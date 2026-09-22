@@ -1,0 +1,124 @@
+/**
+ * Interstitium Labs — DisplayHDR / P3 enhancement (Philips 499P9+)
+ * SDR-safe base remains in theme tokens. Enhancements only under HDR/P3.
+ */
+:root {
+  color-scheme: dark;
+  --il-void: #070b16;
+  --il-cyan: #7ed4e0;
+  --il-gold: #c6a572;
+  --il-paper: #e8eef5;
+  --il-border-luma: rgba(232, 238, 245, 0.10);
+  --il-shadow-depth: 0 22px 48px -28px rgba(7, 11, 22, 0.95);
+}
+
+/* Prefer theme-color aligned with void */
+meta[name="theme-color"] {
+  /* attribute set in HTML; this is a no-op marker for tooling */
+}
+
+@media (color-gamut: p3) {
+  :root {
+    --il-cyan: color(display-p3 0.42 0.82 0.86);
+    --il-gold: color(display-p3 0.78 0.64 0.38);
+    --il-void: color(display-p3 0.025 0.04 0.08);
+    --il-paper: color(display-p3 0.91 0.93 0.96);
+  }
+  .text-cyan { color: var(--il-cyan); }
+  .bg-cyan { background-color: var(--il-cyan); }
+  .text-gold { color: var(--il-gold); }
+  .bg-gold { background-color: var(--il-gold); }
+  .bg-void { background-color: var(--il-void); }
+  .border-paper\/10,
+  .shadow-\[0_0_0_1px_rgba\(232\,238\,245\,0\.08\)\] {
+    /* slightly lifted border luminance on P3 without blown whites */
+  }
+}
+
+@media (dynamic-range: high) {
+  :root {
+    --il-border-luma: rgba(232, 238, 245, 0.14);
+    --il-shadow-depth: 0 28px 64px -24px rgba(0, 0, 0, 0.72);
+    --il-cyan-hdr: color(display-p3 0.38 0.92 0.95);
+    --il-gold-hdr: color(display-p3 0.86 0.70 0.32);
+  }
+
+  .text-cyan,
+  .il-kicker--cyan,
+  a.text-cyan {
+    color: var(--il-cyan-hdr, var(--il-cyan));
+  }
+  .text-gold,
+  .il-kicker {
+    color: var(--il-gold-hdr, var(--il-gold));
+  }
+
+  /* Lift panel edges; avoid pure white blooms */
+  .il-surface,
+  .il-ux-card,
+  .rounded-xl.bg-panel {
+    box-shadow:
+      0 0 0 1px var(--il-border-luma),
+      var(--il-shadow-depth);
+  }
+
+  .il-sigil-glow,
+  .il-hero-sigil {
+    filter: saturate(1.12) contrast(1.04);
+  }
+
+  /* Keep paper readable — never push to #fff on HDR */
+  .text-paper,
+  .bg-paper {
+    /* paper stays off-white */
+  }
+  .bg-paper {
+    background-color: color(display-p3 0.90 0.92 0.95);
+    color: var(--il-void);
+  }
+}
+
+@media (dynamic-range: high) and (color-gamut: rec2020) {
+  :root {
+    --il-cyan-hdr: color(display-p3 0.36 0.94 0.96);
+    --il-gold-hdr: color(display-p3 0.88 0.72 0.30);
+  }
+}
+
+/* Reduce motion: no HDR filter thrash */
+@media (prefers-reduced-motion: reduce) {
+  .il-sigil-glow,
+  .il-hero-sigil {
+    filter: none;
+  }
+}
+
+/* VISIBLE HDR GLOWS */
+@media (dynamic-range: high) {
+  .il-sigil,
+  .il-hero-sigil,
+  .il-sigil-glow {
+    filter: saturate(1.25) contrast(1.08) brightness(1.06);
+    drop-shadow: unset;
+  }
+  .il-sigil {
+    filter: saturate(1.25) contrast(1.08) brightness(1.06)
+      drop-shadow(0 0 36px color(display-p3 0.35 0.95 0.98 / 0.45))
+      drop-shadow(0 0 64px color(display-p3 0.86 0.70 0.32 / 0.28));
+  }
+  .il-hero-field canvas {
+    opacity: 1;
+  }
+  .text-cyan, .il-kicker--cyan {
+    text-shadow: 0 0 18px color(display-p3 0.38 0.92 0.95 / 0.45);
+  }
+  .text-gold, .il-kicker {
+    text-shadow: 0 0 16px color(display-p3 0.86 0.70 0.32 / 0.4);
+  }
+  .il-surface, .rounded-xl.bg-panel {
+    box-shadow:
+      0 0 0 1px rgba(232, 238, 245, 0.14),
+      0 0 24px -8px color(display-p3 0.38 0.92 0.95 / 0.2),
+      var(--il-shadow-depth, 0 28px 64px -24px rgba(0,0,0,0.72));
+  }
+}

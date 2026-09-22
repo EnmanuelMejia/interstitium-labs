@@ -1,0 +1,144 @@
+/**
+ * Interstitium Labs — chrome lockup + header nav guardrails
+ * MUST load after il-responsive.css (which sets img{height:auto} and
+ * was blowing canonical-lockup to natural 596px / collapsing home to 0×0).
+ */
+
+/* Kill global height:auto on brand lockups inside chrome */
+header a img[src*="canonical-lockup"],
+header img[src*="canonical-lockup"],
+footer img[src*="canonical-lockup"],
+.il-lockup {
+  display: block !important;
+  height: 2.25rem !important;          /* h-9 */
+  width: auto !important;
+  max-height: 40px !important;
+  max-width: min(100%, 12.5rem) !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  flex-shrink: 0 !important;
+  min-width: 4.5rem !important;        /* prevent 0×0 flex shrink */
+  min-height: 2.25rem !important;
+  aspect-ratio: auto !important;
+}
+@media (min-width: 640px) {
+  header a img[src*="canonical-lockup"],
+  header img[src*="canonical-lockup"],
+  .il-lockup {
+    height: 2.5rem !important;         /* h-10 */
+    max-height: 40px !important;
+    min-height: 2.5rem !important;
+  }
+  footer img[src*="canonical-lockup"] {
+    height: 2.5rem !important;
+    max-height: 40px !important;
+  }
+}
+
+/* Header flex row: vertical center, clip oversized chrome */
+header.sticky > .mx-auto.flex,
+header.no-print > .mx-auto.flex {
+  align-items: center !important;
+  overflow: hidden;
+  min-height: 3.5rem;
+}
+@media (min-width: 640px) {
+  header.sticky > .mx-auto.flex,
+  header.no-print > .mx-auto.flex {
+    min-height: 4rem;
+  }
+}
+header a.flex.min-w-0 {
+  flex-shrink: 0;
+  overflow: hidden;
+  max-height: 2.75rem;
+  align-items: center;
+}
+
+/* Primary nav: slim + wrap before hamburger kicks in */
+header nav[aria-label="Primary"],
+header nav.hidden.lg\:flex {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: min(100%, 52rem);
+  row-gap: 0.15rem;
+}
+header nav[aria-label="Primary"] a,
+header nav.hidden.lg\:flex > a {
+  padding-inline: 0.45rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+/* Mid widths: use compact nav before lg if overflowing */
+@media (max-width: 1023px) {
+  header nav.hidden.lg\:flex { display: none !important; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  header nav[aria-label="Primary"] a,
+  header nav.hidden.lg\:flex > a {
+    padding-inline: 0.35rem;
+    font-size: 0.58rem;
+  }
+}
+
+/* Hero / decorative lockups may be larger but contained */
+.il-hero-lockup,
+section img[src*="canonical-lockup"]:not(header img):not(footer img) {
+  height: auto !important;
+  max-height: 3.5rem !important;
+  max-width: min(100%, 18rem) !important;
+  width: auto !important;
+  object-fit: contain !important;
+  margin-inline: auto;
+}
+
+/* Footer: left on desktop grid, center on mobile */
+footer img[src*="canonical-lockup"] {
+  object-position: left center !important;
+}
+@media (max-width: 767px) {
+  footer .flex.items-start {
+    justify-content: center;
+  }
+  footer img[src*="canonical-lockup"] {
+    object-position: center !important;
+    margin-inline: auto;
+  }
+}
+
+/* Hide alpha skeleton placeholders if any remain */
+header .animate-pulse,
+nav .animate-pulse.h-11.w-24 {
+  display: none !important;
+}
+
+/* LOCKUP HARD CAP — parent steering: max-height 40px, object-contain, centered, header overflow hidden */
+header {
+  overflow: hidden;
+}
+header .mx-auto.flex {
+  align-items: center !important;
+  overflow: hidden;
+}
+header a img[src*="canonical-lockup"],
+header img[src*="canonical-lockup"],
+header img.il-lockup,
+img.il-lockup {
+  max-height: 40px !important;
+  height: 40px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  display: block !important;
+  min-height: 28px !important;
+  min-width: 72px !important;
+}
+@media (max-width: 639px) {
+  header a img[src*="canonical-lockup"],
+  header img[src*="canonical-lockup"],
+  header img.il-lockup {
+    height: 36px !important;
+    max-height: 36px !important;
+  }
+}
