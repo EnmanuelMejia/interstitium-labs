@@ -2,6 +2,8 @@
  * IL Muse / Lab Muse — Muse-class interaction shell (Interstitium Labs).
  * Mobile hooks: full-bleed shell ≤768px / standalone / Capacitor (see il-muse-mobile.css).
  * Brand: cyan/gold/void + Interstitium lockup — not Meta colors or trademarks.
+ * Default avatar theme: Dee (Monas-derived geometric mark) — Interstitium original artwork;
+ *   inspired by historical John Dee; not a museum portrait or Meta Muse avatar.
  * Interaction patterns inspired by public Muse design posts (introducing.muse.ai).
  * NOT Meta proprietary code, assets, or trademarks. Educational Socratic DevOps tutor.
  *
@@ -13,6 +15,25 @@
   'use strict';
 
   var STORAGE = 'il.muse.v1';
+
+  /** Avatar themes — SVG marks in /assets/. Dee is default. */
+  var AVATARS = [
+    { id: 'dee', label: 'Dee', src: '/assets/il-muse-avatar-dee.svg', hint: 'Monas / hermetic scholar' },
+    { id: 'sigil', label: 'Sigil', src: '/assets/il-muse-avatar-sigil.svg', hint: 'Interstitium orbital' },
+    { id: 'cap', label: 'Cap', src: '/assets/il-muse-avatar-cap.svg', hint: 'Scholar hood silhouette' }
+  ];
+  var AVATAR_DEFAULT = 'dee';
+  var PERSONALITY_DEE = 'Dee · precise · Socratic · hermetic scholar';
+  var PERSONALITY_LEGACY = 'Socratic · precise · patient';
+
+  function avatarById(id) {
+    var i;
+    for (i = 0; i < AVATARS.length; i++) {
+      if (AVATARS[i].id === id) return AVATARS[i];
+    }
+    return AVATARS[0];
+  }
+
 
   function router() {
     return g.IL_MODEL_ROUTER || g.ILModelRouter || null;
@@ -36,7 +57,8 @@
     return {
       v: 1,
       name: 'Lab Muse',
-      personality: 'Socratic · precise · patient',
+      personality: PERSONALITY_DEE,
+      avatarId: AVATAR_DEFAULT,
       tone: 'coach',
       memories: [],
       speak: true,
@@ -64,13 +86,18 @@
         var s = JSON.parse(raw);
         if (s && s.v === 1) {
           var b = emptyState();
-          return Object.assign(b, s, {
+          var merged = Object.assign(b, s, {
             chats: s.chats || b.chats,
             goals: s.goals && s.goals.length ? s.goals : b.goals,
             memories: s.memories || [],
             artifacts: s.artifacts || [],
             activity: s.activity || []
           });
+          if (!merged.avatarId || !avatarById(merged.avatarId)) merged.avatarId = AVATAR_DEFAULT;
+          if (!merged.personality || merged.personality === PERSONALITY_LEGACY) {
+            merged.personality = PERSONALITY_DEE;
+          }
+          return merged;
         }
       }
     } catch (e) {}
@@ -381,6 +408,7 @@
       var catalog = modelCatalog();
       var shell = isMobileShell();
       app.classList.toggle('il-muse-app--shell', shell);
+      app.setAttribute('data-avatar', state.avatarId || AVATAR_DEFAULT);
       if (shell) {
         document.body.classList.add('il-muse-page');
         ensureTabNav();
@@ -528,8 +556,16 @@
         '<span class="il-muse-chat-item__dot" aria-hidden="true"></span><span>' + esc(title) + '</span></button>';
     }
 
+    function avatarMarkHTML() {
+      var av = avatarById(state.avatarId || AVATAR_DEFAULT);
+      return '<button type="button" class="il-muse-avatar il-muse-avatar--' + esc(av.id) + '" data-muse-avatar data-avatar="' + esc(av.id) + '"' +
+        ' title="Lab Muse · ' + esc(av.label) + '" aria-label="Lab Muse activity">' +
+        '<span class="il-muse-avatar__ring" aria-hidden="true"></span>' +
+        '<img class="il-muse-avatar__mark" src="' + esc(av.src) + '" width="40" height="40" alt="" decoding="async"/>' +
+        '</button>';
+    }
+
     function stageHTML(chat, vs) {
-      var initials = (state.name || 'LM').split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
       var bubbles = '';
       (chat.messages || []).forEach(function (m, idx) {
         if (m.role === 'system') {
@@ -563,10 +599,7 @@
 
       return '<section class="il-muse-stage">' +
         '<header class="il-muse-header">' +
-        '<button type="button" class="il-muse-avatar il-muse-avatar--dee" data-muse-avatar title="Lab Muse · Dee monas" aria-label="Lab Muse activity">' +
-        '<span class="il-muse-avatar__ring" aria-hidden="true"></span>' +
-        '<img class="il-muse-avatar__dee" src="/assets/chrome/lab-muse-dee.svg" width="40" height="40" alt="" decoding="async"/>' +
-        '<span class="il-muse-avatar__glyph il-muse-avatar__glyph--fallback" hidden>' + esc(initials) + '</span></button>' +
+        avatarMarkHTML() +
         '<div class="il-muse-header__meta">' +
         '<p class="il-muse-header__name">' + esc(state.name) + '</p>' +
         '<p class="il-muse-header__activity" data-muse-activity>Idle</p></div>' +
@@ -748,6 +781,15 @@
       }).join('');
       return '<div class="il-muse-panel-section"><h3 data-i18n="muse.settings">Muse settings</h3>' +
         '<div class="il-muse-field"><label>Name</label><input data-muse-name value="' + esc(state.name) + '"/></div>' +
+        '<div class="il-muse-field"><label>Avatar</label><div class="il-muse-avatar-picker" role="radiogroup" aria-label="Avatar theme">' +
+        AVATARS.map(function (a) {
+          var on = (state.avatarId || AVATAR_DEFAULT) === a.id;
+          return '<button type="button" class="il-muse-avatar-pick' + (on ? ' is-on' : '') + '" data-muse-avatar-pick="' + esc(a.id) + '"' +
+            ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '" title="' + esc(a.hint) + '">' +
+            '<img src="' + esc(a.src) + '" width="40" height="40" alt="" decoding="async"/>' +
+            '<span>' + esc(a.label) + '</span></button>';
+        }).join('') + '</div>' +
+        '<p class="hint">Default: Dee (Monas-derived). Alts: Interstitium sigil / scholar cap. Original artwork.</p></div>' +
         '<div class="il-muse-field"><label>Personality</label><input data-muse-personality value="' + esc(state.personality) + '"/></div>' +
         '<div class="il-muse-field"><label>Tone</label><select data-muse-tone">' +
         ['coach', 'terse', 'warm', 'exam-strict'].map(function (t) {
@@ -947,6 +989,15 @@
         if (vo) state.voiceURI = vo.value;
         pushActivity(state, 'Updated Muse settings');
         persist(); render();
+      });
+      app.querySelectorAll('[data-muse-avatar-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-muse-avatar-pick');
+          if (!avatarById(id)) return;
+          state.avatarId = id;
+          pushActivity(state, 'Avatar · ' + avatarById(id).label);
+          persist(); render();
+        });
       });
       var memAdd = app.querySelector('[data-muse-mem-add]');
       if (memAdd) memAdd.addEventListener('click', function () {

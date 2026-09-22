@@ -44,6 +44,31 @@
     });
   }
 
+
+  function isCapacitor() {
+    try {
+      return !!(
+        global.Capacitor ||
+        (global.navigator && /capacitor/i.test(global.navigator.userAgent || ""))
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /** Native default launch → Lab Muse companion (/coach/). Web PWA keeps site home. */
+  function openLabMuseHome() {
+    if (!isCapacitor()) return;
+    try {
+      var path = (global.location && global.location.pathname) || "/";
+      if (path === "/" || path === "/index.html" || path === "") {
+        if (global.sessionStorage && global.sessionStorage.getItem("il-muse-home") === "1") return;
+        if (global.sessionStorage) global.sessionStorage.setItem("il-muse-home", "1");
+        global.location.replace("/coach/");
+      }
+    } catch (_) {}
+  }
+
   async function applyVoidChrome() {
     try {
       var SB = global.Capacitor && global.Capacitor.Plugins && global.Capacitor.Plugins.StatusBar;
@@ -60,13 +85,17 @@
     initPushStub: initPushStub,
     initBiometricLockStub: initBiometricLockStub,
     applyVoidChrome: applyVoidChrome,
+    openLabMuseHome: openLabMuseHome,
+    isCapacitor: isCapacitor,
   };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       applyVoidChrome();
+      openLabMuseHome();
     });
   } else {
     applyVoidChrome();
+    openLabMuseHome();
   }
 })(typeof window !== "undefined" ? window : this);

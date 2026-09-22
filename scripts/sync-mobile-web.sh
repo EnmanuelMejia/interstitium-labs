@@ -39,21 +39,26 @@ dest = Path(sys.argv[1])
 index = dest / "index.html"
 if not index.exists():
     raise SystemExit("www/index.html missing after sync")
-text = index.read_text(encoding="utf-8")
-if "/assets/il-bridge.js" not in text:
-    snippet = '<script src="/assets/il-bridge.js" defer></script>\n'
-    if "</body>" in text:
-        text = text.replace("</body>", snippet + "</body>", 1)
-    else:
-        text += "\n" + snippet
-    index.write_text(text, encoding="utf-8")
-    print("injected bridge into www/index.html")
-print("synced", dest, "ok")
+snippet = '<script src="/assets/il-bridge.js" defer></script>\n'
+targets = [index, dest / "coach" / "index.html"]
+for path in targets:
+    if not path.exists():
+        continue
+    text = path.read_text(encoding="utf-8")
+    if "/assets/il-bridge.js" not in text:
+        if "</body>" in text:
+            text = text.replace("</body>", snippet + "</body>", 1)
+        else:
+            text += "\n" + snippet
+        path.write_text(text, encoding="utf-8")
+        print("injected bridge into", path.relative_to(dest))
+print("synced", dest, "ok — Capacitor default home: Lab Muse /coach/ via il-bridge")
 PY
 
 cat > "$DEST/IL-BUNDLE-NOTE.txt" << 'NOTE'
 Interstitium Labs mobile www bundle
 Source: docs/ | Trust: https://interstitiumlabs.dev
+Default native launch: Lab Muse companion (/coach/) — Muse-class shell, Interstitium brand (cyan/gold/void + lockup).
 Secrets: none. See docs/ops/ENTERPRISE-SECURITY.md + MOBILE-SECURITY.md
 NOTE
 

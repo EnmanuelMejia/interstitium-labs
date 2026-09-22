@@ -69,7 +69,7 @@ Clone structure. Ship proof. Never wallpaper course count.
 
 ## Frontier track mapping (sibling ingest)
 
-Paths carry optional `frontier_track_ids[]` in `il-paths.json`. When the MIT/LinkedIn/X Frontier ingest sibling lands artifacts (e.g. `/frontier/` or ingest JSON), these IDs are the join keys.
+Paths carry optional `frontier_track_ids[]` in `il-paths.json`. Frontier ingest lives at `/paths/frontier/` + `/assets/il-trending-catalog.json` (`il-trending.js`). Join keys = `frontier_track_ids[]` ↔ `frontierTrackIds[]`. Exceed IA remains primary.
 
 | Path id | frontier_track_ids (placeholders) |
 |---------|-----------------------------------|
