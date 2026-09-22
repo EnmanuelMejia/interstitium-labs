@@ -2,7 +2,7 @@
  * Security: NEVER cache enroll config as authoritative secrets (there are none client-side;
  * still exclude /enroll/config.js from long-lived shell cache). First-party only.
  */
-const SW_VERSION = "il-sw-v1-2026-09-21";
+const SW_VERSION = "il-sw-2026-09-22-uw-hdr-i18n";
 const SHELL_CACHE = SW_VERSION + "-shell";
 const PAGE_CACHE = SW_VERSION + "-pages";
 
