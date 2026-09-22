@@ -1,0 +1,185 @@
+/**
+ * Immersive 3D curriculum stage — Interstitium Labs
+ * Cyan #5EEAD4 / gold #D4A853 / void #070B16
+ * Curriculum scenes only — NOT Lab Muse avatar (see il-muse-3d.css)
+ */
+.il-immersive {
+  position: relative;
+  margin: 1.25rem 0 1.75rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, #5EEAD4 24%, transparent);
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #5EEAD4 14%, transparent), transparent 55%),
+    radial-gradient(90% 70% at 85% 100%, color-mix(in srgb, #D4A853 10%, transparent), transparent 50%),
+    linear-gradient(180deg, #0a1020 0%, #070B16 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #5EEAD4 16%, transparent),
+    0 0 48px color-mix(in srgb, #5EEAD4 7%, transparent);
+  isolation: isolate;
+}
+
+.il-immersive__chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.65rem 0.9rem 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, #e8eef5 8%, transparent);
+}
+
+.il-immersive__kicker {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #D4A853;
+  margin: 0;
+}
+
+.il-immersive__title {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #e8eef5;
+  margin: 0.15rem 0 0;
+}
+
+.il-immersive__badge {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #5EEAD4;
+  border: 1px solid color-mix(in srgb, #5EEAD4 35%, transparent);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  white-space: nowrap;
+}
+
+.il-immersive__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(14rem, 42vw, 22rem);
+  touch-action: none;
+  outline: none;
+}
+
+.il-immersive__stage:focus-visible {
+  box-shadow: inset 0 0 0 2px #5EEAD4;
+}
+
+.il-immersive__stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.il-immersive__captions {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #070B16 78%, transparent);
+  border: 1px solid color-mix(in srgb, #5EEAD4 18%, transparent);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #e8eef5;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+.il-immersive__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem 0.7rem;
+}
+
+.il-immersive__controls button {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #e8eef5;
+  background: color-mix(in srgb, #0c1222 90%, transparent);
+  border: 1px solid color-mix(in srgb, #e8eef5 14%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  min-height: 2rem;
+}
+
+.il-immersive__controls button:hover,
+.il-immersive__controls button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, #5EEAD4 45%, transparent);
+  color: #5EEAD4;
+}
+
+.il-immersive__fallback {
+  display: none;
+  place-items: center;
+  height: clamp(12rem, 36vw, 18rem);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.il-immersive__fallback-art {
+  width: min(70%, 14rem);
+  aspect-ratio: 16 / 10;
+  margin: 0 auto 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, #5EEAD4 28%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, #5EEAD4 22%, transparent), transparent 42%),
+    linear-gradient(225deg, color-mix(in srgb, #D4A853 18%, transparent), transparent 40%),
+    #0c1222;
+  box-shadow: inset 0 0 40px color-mix(in srgb, #5EEAD4 12%, transparent);
+  position: relative;
+}
+
+.il-immersive__fallback-art::after {
+  content: "";
+  position: absolute;
+  inset: 28% 35%;
+  border: 2px solid #5EEAD4;
+  border-radius: 0.35rem;
+  box-shadow: 0 0 16px color-mix(in srgb, #5EEAD4 40%, transparent);
+  transform: perspective(400px) rotateY(-18deg) rotateX(12deg);
+}
+
+.il-immersive__fallback p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #8b9bb4;
+}
+
+.il-immersive.is-reduced .il-immersive__stage,
+.il-immersive.is-reduced .il-immersive__controls {
+  display: none;
+}
+
+.il-immersive.is-reduced .il-immersive__fallback {
+  display: grid;
+}
+
+.il-immersive.is-reduced .il-immersive__captions {
+  position: static;
+  margin: 0 0.75rem 0.75rem;
+}
+
+/* Compact embeds in path cards / adapt */
+.il-immersive--compact .il-immersive__stage {
+  height: clamp(11rem, 32vw, 15rem);
+}
+
+@media (min-width: 2560px) {
+  .il-immersive__stage {
+    height: clamp(18rem, 28vw, 28rem);
+  }
+}

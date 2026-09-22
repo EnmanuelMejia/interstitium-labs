@@ -4,6 +4,7 @@
  * Brand: cyan/gold/void + Interstitium lockup — not Meta colors or trademarks.
  * Default avatar theme: Dee (Monas-derived geometric mark) — Interstitium original artwork;
  *   inspired by historical John Dee; not a museum portrait or Meta Muse avatar.
+ * Voice-reactive 3D stage: optional il-muse-3d.js (WebGL monas/orrery). SVG picker remains fallback.
  * Interaction patterns inspired by public Muse design posts (introducing.muse.ai).
  * NOT Meta proprietary code, assets, or trademarks. Educational Socratic DevOps tutor.
  *
@@ -202,7 +203,8 @@
     var vs = voiceSupport();
     if (!vs.synthesis || !state.speak || !text) { if (onEnd) onEnd(); return; }
     try { g.speechSynthesis.cancel(); } catch (e) {}
-    var u = new g.SpeechSynthesisUtterance(String(text).slice(0, 1400));
+    var clipped = String(text).slice(0, 1400);
+    var u = new g.SpeechSynthesisUtterance(clipped);
     var voices = listVoices();
     if (state.voiceURI) {
       for (var i = 0; i < voices.length; i++) {
@@ -210,9 +212,39 @@
       }
     }
     u.rate = 1.02;
-    u.onend = function () { if (onEnd) onEnd(); };
-    u.onerror = function () { if (onEnd) onEnd(); };
+    var ampTimer = null;
+    var startAt = Date.now();
+    /* ~14 chars/sec at rate 1.02 — fake amplitude if boundary events are sparse */
+    var estMs = Math.max(900, Math.min(28000, (clipped.length / 14) * 1000 / 1.02));
+    function emitAmp(amp, beat) {
+      try {
+        g.dispatchEvent(new CustomEvent('il-muse-speak-amp', { detail: { amp: amp, beat: beat || 0 } }));
+      } catch (e) {}
+    }
+    function tickAmp() {
+      var t = (Date.now() - startAt) / estMs;
+      if (t >= 1) return;
+      var wave = 0.35 + 0.65 * Math.abs(Math.sin(t * Math.PI * 10));
+      emitAmp(wave, 0);
+      ampTimer = g.setTimeout(tickAmp, 80);
+    }
+    u.onboundary = function (ev) {
+      try {
+        g.dispatchEvent(new CustomEvent('il-muse-speak-boundary', {
+          detail: { charIndex: ev.charIndex || 0, name: ev.name || 'word' }
+        }));
+      } catch (e) {}
+      emitAmp(1, 1);
+    };
+    function done() {
+      if (ampTimer) try { clearTimeout(ampTimer); } catch (e) {}
+      emitAmp(0, 0);
+      if (onEnd) onEnd();
+    }
+    u.onend = done;
+    u.onerror = done;
     g.speechSynthesis.speak(u);
+    tickAmp();
   }
 
   function detectTopic(text) {
@@ -617,6 +649,11 @@
         live.hidden = false;
         live.setAttribute('data-live', key);
       }
+      try {
+        if (app.__ilMuse3d && typeof app.__ilMuse3d.setStatus === 'function') {
+          app.__ilMuse3d.setStatus(key);
+        }
+      } catch (e3) {}
     }
 
     function clearStreamTimers() {
@@ -721,8 +758,21 @@
           if (mp) g.ILModelPanel.mount(mp);
         }
       } catch (ePanel) {}
+      try { attachMuse3d(); } catch (e3d) {}
       var log = app.querySelector('[data-muse-transcript]');
       if (log) log.scrollTop = log.scrollHeight;
+    }
+
+    function attachMuse3d() {
+      if (!g.ILMuse3D || typeof g.ILMuse3D.syncFromApp !== 'function') return;
+      var inst = g.ILMuse3D.syncFromApp(app, {
+        cinema: !!app.closest('[data-il-cinema], .il-cinema-muse-host')
+      });
+      if (inst) {
+        app.__ilMuse3d = inst;
+        inst.setAvatar(state.avatarId || AVATAR_DEFAULT);
+        inst.setStatus(statusKey);
+      }
     }
 
     function demandView() {
@@ -911,6 +961,7 @@
         '<button type="button" class="il-muse-icon-btn' + (state.speak ? ' is-on' : '') + '" data-muse-toggle-speak title="Speak replies" aria-pressed="' + !!state.speak + '">🔊</button>' +
         '<button type="button" class="il-muse-icon-btn" data-muse-open-settings title="Settings">⚙</button>' +
         '</div></header>' +
+        '<div class="il-muse-3d-slot" data-muse-3d-slot aria-hidden="false"></div>' +
         '<div class="il-muse-live" data-muse-live data-live="idle" role="status" aria-live="polite">' +
         '<span class="il-muse-live__dot" aria-hidden="true"></span>' +
         '<span data-muse-live-text>Ready · ask a stuck question</span></div>' +
@@ -1816,7 +1867,7 @@
     for (var i = 0; i < nodes.length; i++) mount(nodes[i]);
   }
 
-  g.ILMuse = { mount: mount, boot: boot, load: load, save: save, STORAGE: STORAGE, voiceSupport: voiceSupport, promptFrom: promptFrom, isMobileShell: isMobileShell, splitBubbles: splitBubbles, localNudges: localNudges };
+  g.ILMuse = { mount: mount, boot: boot, load: load, save: save, STORAGE: STORAGE, voiceSupport: voiceSupport, promptFrom: promptFrom, isMobileShell: isMobileShell, splitBubbles: splitBubbles, localNudges: localNudges, speakText: speakText };
   g.IL_MUSE = g.IL_MUSE || {};
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

@@ -26,3 +26,8 @@ CSS drives cyan/gold glow on `.il-muse-avatar__ring` and mark drop-shadow from `
 ## Do not break
 
 Model router paths (`il-model-router.js`, catalog, analytics) and coach mount `[data-il-muse]` are unchanged. Avatar is presentation-only.
+
+## 3D stage (default)
+
+Voice-reactive WebGL Monas/orrery is the **default stage** — see [LAB-MUSE-3D.md](./LAB-MUSE-3D.md). SVG marks remain the picker + header fallback + reduced-motion path.
+

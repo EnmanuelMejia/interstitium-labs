@@ -1,6 +1,6 @@
 # Musk bar — generations ahead
 
-_Last updated: 2026-09-22 ~00:27 EDT (America/New_York)._  
+_Last updated: 2026-09-22 ~00:41 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev · _Static root:_ `docs/`  
 _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat Learning · Oracle U · AWS Skill Builder · Cloud/DevOps.com
 
@@ -25,7 +25,7 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 | Dimension | Before | After | Peer bar | Notes |
 |-----------|-------:|------:|----------|-------|
 | First-glance wow | **6** | **8** | Brilliant 9 · KodeKloud 8 | Hire OS + cinema + kill-card on home. Demo path remains real, not only FX. |
-| Motion / graphics | **6** | **6** | Brilliant 9 | Do not spam particles. Ultrawide cinema is layout craft. |
+| Motion / graphics | **6** | **7** | Brilliant 9 | 3D-first law + `il-immersive-3d` scaffold. **Not using Blender/Unreal = fail Elon test.** CSS cards ≠ 3D. |
 | Adaptive learning | **7** | **7** | ALEKS 9 · GMAT-CAT 9 | Unchanged engine; exam remediates into `/adapt`. |
 | Live labs density | **4** | **5** | KodeKloud 10 | CotD + SuperLab + honest LOSE on fleet. Still one deep lab. |
 | Coach / Muse | **6** | **7** | KodeKloud in-lab 8 | Muse wired; `promptFrom` + `?prompt=` + path `data-il-muse-prompt`. Router untouched. |
@@ -54,13 +54,19 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 
 ---
 
+
+## Immersive 3D — Elon gate
+
+**Not using Blender/Unreal = fail Elon test.** Dual pipeline: (A) Unreal Pixel Streaming / packaged viewers for heavy sims · (B) Blender → glTF → Godot or Three.js/WebGPU in-page. Default every lecture/lab: `immersive: { mode: '3d-first', engine, asset }`. Never pretend CSS cards = 3D. Muse avatar (`il-muse-3d`) is coach-only; curriculum scenes are `il-immersive-3d`.
+
 ## Remaining NO (brutal)
 
 1. **Hosted lab fleet** — still one SuperLab + CotD, not KodeKloud density.  
 2. **Live in-lab LLM** — local rules default; Ollama/lab-control optional; no committed secrets.  
 3. **Item bank thin** — adaptive engine leads UX, content volume does not.  
 4. **Commerce / community** — intentional placeholders; do not fake.  
-5. **Worker deploy** — `solitary-sound-015a` not redeployed from this agent (no safe wrangler/creds here). Parent must push Assets from `main`.
+5. **Real Blender/Unreal assets** — procedural WebGL scaffolds ≠ authored `.glb` / Pixel Streaming.
+6. **Worker deploy** — `solitary-sound-015a` not redeployed from this agent (no safe wrangler/creds here). Parent must push Assets from `main`.
 
 ---
 

@@ -1,0 +1,78 @@
+/* IL Immersive Player — lectures / cert labs / sims / non-cert */
+.il-immersive {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, #5EEAD4 22%, transparent);
+  background:
+    radial-gradient(120% 80% at 50% 10%, color-mix(in srgb, #5EEAD4 14%, transparent), transparent 55%),
+    linear-gradient(180deg, #0a1020 0%, #070B16 100%);
+  min-height: 14rem;
+  isolation: isolate;
+}
+.il-immersive__stage {
+  position: relative;
+  width: 100%;
+  height: 16rem;
+}
+.il-immersive__stage canvas,
+.il-immersive__ps-frame,
+.il-scene-kit__ps-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.il-immersive__hud {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.il-immersive__badge,
+.il-immersive__engine {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #5EEAD4 80%, #fff);
+  opacity: 0.8;
+}
+.il-immersive__fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+.il-immersive__mono {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  border: 2px solid #5EEAD4;
+  box-shadow: 0 0 20px color-mix(in srgb, #5EEAD4 40%, transparent), inset 0 0 18px color-mix(in srgb, #D4A853 25%, transparent);
+}
+.il-scene-kit__ps-stub {
+  padding: 1.25rem;
+  color: #c8d0dc;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.il-scene-kit__ps-kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 0.5rem;
+}
+@media (min-width: 900px) {
+  .il-immersive__stage { height: 20rem; }
+  .il-immersive { min-height: 18rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-immersive__stage canvas { display: none !important; }
+}
