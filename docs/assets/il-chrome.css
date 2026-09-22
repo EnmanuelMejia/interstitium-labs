@@ -10,9 +10,9 @@ header img[src*="canonical-lockup"],
 footer img[src*="canonical-lockup"],
 .il-lockup {
   display: block !important;
-  height: 2.25rem !important;          /* h-9 */
+  height: var(--il-lockup-h, 3.5rem) !important;
   width: auto !important;
-  max-height: 40px !important;
+  max-height: var(--il-lockup-h, 64px) !important;
   max-width: min(100%, 12.5rem) !important;
   object-fit: contain !important;
   object-position: left center !important;
@@ -26,12 +26,12 @@ footer img[src*="canonical-lockup"],
   header img[src*="canonical-lockup"],
   .il-lockup {
     height: 2.5rem !important;         /* h-10 */
-    max-height: 40px !important;
+    max-height: var(--il-lockup-h, 64px) !important;
     min-height: 2.5rem !important;
   }
   footer img[src*="canonical-lockup"] {
     height: 2.5rem !important;
-    max-height: 40px !important;
+    max-height: var(--il-lockup-h, 64px) !important;
   }
 }
 
@@ -125,8 +125,8 @@ header a img[src*="canonical-lockup"],
 header img[src*="canonical-lockup"],
 header img.il-lockup,
 img.il-lockup {
-  max-height: 40px !important;
-  height: 40px !important;
+  max-height: var(--il-lockup-h, 64px) !important;
+  height: var(--il-lockup-h, 64px) !important;
   width: auto !important;
   object-fit: contain !important;
   object-position: left center !important;
@@ -138,25 +138,127 @@ img.il-lockup {
   header a img[src*="canonical-lockup"],
   header img[src*="canonical-lockup"],
   header img.il-lockup {
-    height: 36px !important;
-    max-height: 36px !important;
+    height: var(--il-lockup-h, 56px) !important;
+    max-height: var(--il-lockup-h, 56px) !important;
   }
 }
 
 /* P0 — hard 40px ceiling, never clip/collapse */
 header img[src*="canonical-lockup"],
 .il-lockup {
-  max-height: 40px !important;
+  max-height: var(--il-lockup-h, 64px) !important;
 }
 header a.flex.min-w-0 img {
-  max-height: 40px !important;
-  height: 36px !important;
+  max-height: var(--il-lockup-h, 64px) !important;
+  height: var(--il-lockup-h, 56px) !important;
 }
 @media (min-width: 640px) {
   header a.flex.min-w-0 img,
   header img[src*="canonical-lockup"],
   .il-lockup {
-    height: 40px !important;
-    max-height: 40px !important;
+    height: var(--il-lockup-h, 64px) !important;
+    max-height: var(--il-lockup-h, 64px) !important;
+  }
+}
+
+
+
+/* ========== INDUSTRY LOCKUP SCALE (2026-09-22) ==========
+   User: 40px is embarrassing / invisible on 499P9.
+   Target: visible wordmark like Codecademy/KK/Brilliant chrome. */
+:root {
+  --il-header-h: 4.5rem; /* 72px */
+  --il-lockup-h: 3.5rem; /* 56px */
+}
+@media (min-width: 1024px) {
+  :root {
+    --il-header-h: 5rem;   /* 80px */
+    --il-lockup-h: 4rem;   /* 64px */
+  }
+}
+@media (min-width: 2560px) {
+  :root {
+    --il-header-h: 5.5rem; /* 88px */
+    --il-lockup-h: 4.5rem; /* 72px */
+  }
+}
+@media (min-width: 3840px) {
+  :root {
+    --il-header-h: 6rem;   /* 96px */
+    --il-lockup-h: 5rem;   /* 80px */
+  }
+}
+
+header.site-header,
+header[class*="sticky"],
+header.no-print.sticky,
+body > div > header,
+.il-site-header {
+  min-height: var(--il-header-h) !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+header .mx-auto.flex,
+header nav,
+header .flex.h-14,
+header .flex.h-16,
+header [class*="h-14"],
+header [class*="h-16"] {
+  min-height: var(--il-header-h) !important;
+  height: var(--il-header-h) !important;
+  align-items: center !important;
+}
+
+header a img[src*="canonical-lockup"],
+header img[src*="canonical-lockup"],
+header img.il-lockup,
+img.il-lockup,
+header a img[src*="lockup"] {
+  height: var(--il-lockup-h) !important;
+  max-height: var(--il-lockup-h) !important;
+  min-height: var(--il-lockup-h) !important;
+  width: auto !important;
+  min-width: 8rem !important;
+  max-width: min(28rem, 55vw) !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+footer img[src*="canonical-lockup"],
+footer img.il-lockup {
+  height: 3rem !important;
+  max-height: 3rem !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+@media (min-width: 1024px) {
+  footer img[src*="canonical-lockup"] {
+    height: 3.5rem !important;
+    max-height: 3.5rem !important;
+  }
+}
+
+/* Hero brand mark — not a stamp */
+.il-hero-lockup,
+.il-hero-sigil img,
+.il-sigil img {
+  max-height: 11rem !important;
+  width: auto !important;
+}
+@media (min-width: 1024px) {
+  .il-hero-lockup,
+  .il-hero-sigil img,
+  .il-sigil img {
+    max-height: 14rem !important;
+  }
+}
+@media (min-width: 2560px) {
+  .il-hero-lockup,
+  .il-hero-sigil img,
+  .il-sigil img {
+    max-height: 16rem !important;
   }
 }
