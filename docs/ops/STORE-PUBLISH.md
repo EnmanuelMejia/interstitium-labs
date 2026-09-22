@@ -152,6 +152,8 @@ Before any store binary:
 
 ---
 
+Capability matrix: [MUSE-AI-MOBILE-CAPABILITY-BENCHMARK.md](./MUSE-AI-MOBILE-CAPABILITY-BENCHMARK.md)
+
 ## Muse-class companion shell
 
 Native and PWA coach experience mirrors public Muse *interaction* patterns (chat-first, thumb mic/speak, drawers) under **Interstitium** brand only:
