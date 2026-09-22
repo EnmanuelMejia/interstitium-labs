@@ -881,8 +881,13 @@
         bubbles += '</div>';
         if (m.artifact) bubbles += artifactHTML(m.artifact);
       });
+      if (statusKey === 'thinking') {
+        bubbles += '<div class="il-muse-bubble il-muse-bubble--bot is-streaming" data-muse-thinking-bubble>' +
+          '<span class="il-muse-bubble__meta">' + esc(state.name) + ' · thinking</span>' +
+          '<span class="il-muse-typing" aria-hidden="true"><i></i><i></i><i></i></span></div>';
+      }
       if (!bubbles) {
-        bubbles = '<div class="il-muse-bubble il-muse-bubble--system">One long main chat · interrupt anytime · side chats for topic contexts. I stay Socratic — show your work.</div>';
+        bubbles = '<div class="il-muse-bubble il-muse-bubble--system">One long main chat · interrupt anytime · multi-send while thinking · side chats for topics. I stay Socratic — show your work.</div>';
       }
 
       var voiceFb = '';
@@ -918,7 +923,9 @@
         '<button type="button" class="il-muse-icon-btn il-muse-mic" data-muse-mic title="Dictate" ' +
           (vs.recognition ? '' : 'disabled ') + 'aria-label="Microphone">🎙</button>' +
         '<textarea class="il-muse-composer__input" data-muse-input rows="1" placeholder="Ask a stuck question — interrupt anytime…" aria-label="Message Lab Muse"></textarea>' +
-        '<button type="submit" class="il-muse-send" data-i18n="muse.send">Send</button>' +
+        (statusKey === 'thinking' || statusKey === 'speaking'
+          ? '<button type="button" class="il-muse-send il-muse-send--stop" data-muse-stop title="Stop / interrupt">Stop</button>'
+          : '<button type="submit" class="il-muse-send" data-i18n="muse.send">Send</button>') +
         '</form>' + voiceFb +
         '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Inspired by Muse <em>interaction design</em> (public posts) — educational agent, not Meta’s product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or Meta Muse asset. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
         '</div></section>';
@@ -952,24 +959,34 @@
         }).join('') + '</div>';
     }
 
-        function artifactHTML(a) {
+    function artifactHTML(a) {
       var links = (a.links || []).map(function (l) {
-        return '<a href="' + esc(l.href) + '">' + esc(l.label) + '</a>';
+        var external = !isFirstPartyHref(l.href);
+        return '<a href="' + esc(l.href) + '" class="il-muse-artifact__link' + (external ? ' is-external' : '') + '"' +
+          (external ? ' data-muse-external="' + esc(l.href) + '"' : '') + '>' + esc(l.label) +
+          (external ? ' ↗' : '') + '</a>';
       }).join('');
-      var list = (a.checklist || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
-      return '<div class="il-muse-artifact">' +
-        '<div class="il-muse-artifact__kicker">Artifact · ' + esc(a.kind || 'card') + '</div>' +
+      var list = (a.checklist || []).map(function (c, i) {
+        return '<li><label class="il-muse-artifact__check"><input type="checkbox" data-muse-art-check="' +
+          esc(a.id || '') + ':' + i + '"/> <span>' + esc(c) + '</span></label></li>';
+      }).join('');
+      var kind = a.kind || 'card';
+      return '<div class="il-muse-artifact il-muse-artifact--' + esc(kind) + '" data-artifact-id="' + esc(a.id || '') + '">' +
+        '<div class="il-muse-artifact__kicker">Artifact · ' + esc(kind) + '</div>' +
         '<h4 class="il-muse-artifact__title">' + esc(a.title) + '</h4>' +
         '<div class="il-muse-artifact__body">' + esc(a.body || '') + '</div>' +
-        (a.command ? '<pre class="il-muse-artifact__cmd">' + esc(a.command) + '</pre>' : '') +
+        (a.command ? '<pre class="il-muse-artifact__cmd"><code>' + esc(a.command) + '</code></pre>' : '') +
         (list ? '<ul class="il-muse-artifact__list">' + list + '</ul>' : '') +
         (links ? '<div class="il-muse-artifact__links">' + links + '</div>' : '') +
         '</div>';
     }
 
     function panelHTML(ideas, demand, routerState, active, catalog, vs) {
+      var unread = (state.inbox || []).filter(function (n) { return !n.read; }).length;
       var tabs = [
-        ['goals', 'Goals'], ['ideas', 'Ideas'], ['library', 'Library'],
+        ['goals', 'Goals'], ['ideas', 'Ideas'],
+        ['inbox', 'Inbox' + (unread ? ' · ' + unread : '')],
+        ['library', 'Library'],
         ['model', 'Model'], ['settings', 'Muse']
       ];
       var tabBtns = tabs.map(function (t) {
@@ -978,6 +995,7 @@
       var body = '';
       if (panelTab === 'goals') body = goalsPanel();
       else if (panelTab === 'ideas') body = ideasPanel(ideas);
+      else if (panelTab === 'inbox') body = inboxPanel();
       else if (panelTab === 'library') body = libraryPanel();
       else if (panelTab === 'model') body = modelPanel(demand, routerState, active, catalog);
       else body = settingsPanel(vs);
@@ -1009,6 +1027,24 @@
       }).join('');
       return '<div class="il-muse-panel-section"><h3 data-i18n="muse.ideas">Ideas</h3>' +
         '<p class="hint">Suggestions from Adaptive weak topics when present.</p>' + rows + '</div>';
+    }
+
+    function inboxPanel() {
+      var rows = (state.inbox || []).map(function (n) {
+        return '<div class="il-muse-idea' + (n.read ? '' : ' is-unread') + '">' +
+          '<p class="il-muse-idea__title">' + esc(n.title) + '</p>' +
+          '<p class="il-muse-idea__meta">' + esc(n.meta || '') + '</p>' +
+          '<div class="il-muse-artifact__links" style="margin-top:0.5rem">' +
+          (n.href ? '<a href="' + esc(n.href) + '"' + (isFirstPartyHref(n.href) ? '' : ' data-muse-external="' + esc(n.href) + '"') + '>Open</a>' : '') +
+          '<button type="button" data-muse-nudge-ask="' + esc(n.title) + '" class="il-muse-chip-btn">Ask Muse</button>' +
+          '<button type="button" data-muse-nudge-read="' + esc(n.id) + '" class="il-muse-chip-btn">Mark read</button></div></div>';
+      }).join('');
+      return '<div class="il-muse-panel-section"><h3>Study inbox</h3>' +
+        '<p class="hint">Local proactive nudges from open goals + weak Adapt topics. No Meta push — optional Notification API on this device.</p>' +
+        (rows || '<p class="hint">Inbox empty — add a lab goal or place Adaptive to seed nudges.</p>') +
+        '<div class="il-muse-add-row" style="margin-top:0.75rem">' +
+        '<button type="button" data-muse-nudge-now>Refresh nudges</button>' +
+        '<button type="button" data-muse-notif-opt>' + (state.notifOptIn ? 'Disable device alerts' : 'Enable device alerts') + '</button></div></div>';
     }
 
     function libraryPanel() {
@@ -1192,18 +1228,23 @@
       });
       app.querySelectorAll('[data-muse-approve]').forEach(function (btn) {
         btn.addEventListener('click', function () {
+          var which = btn.getAttribute('data-muse-approve');
+          /* Modal overlay (yes/no) */
+          if (which === 'yes' || which === 'no') {
+            dismissApproval(which === 'yes');
+            return;
+          }
           var idx = parseInt(btn.getAttribute('data-idx'), 10);
           var chat = getChat(state, state.activeChatId);
           var msg = chat.messages[idx];
           if (!msg || !msg.approval) return;
-          var which = btn.getAttribute('data-muse-approve');
           var ap = msg.approval;
           var act = which === 'primary' ? (ap.primary || {}) : (ap.secondary || {});
           msg.approval.dismissed = true;
           pushActivity(state, 'Approval · ' + (act.label || which));
           persist();
           if (act.href) {
-            g.location.href = act.href;
+            openHrefApproved(act.href);
             return;
           }
           if (act.panel) {
@@ -1213,6 +1254,71 @@
             return;
           }
           render();
+        });
+      });
+
+      function openHrefApproved(href) {
+        if (!href) return;
+        if (isFirstPartyHref(href)) {
+          g.location.href = href;
+          return;
+        }
+        showApproval({
+          title: 'Open external link?',
+          body: 'Leave Interstitium and open: ' + href,
+          confirmLabel: 'Open',
+          cancelLabel: 'Stay',
+          onConfirm: function () { g.location.href = href; }
+        });
+      }
+
+      app.querySelectorAll('[data-muse-external]').forEach(function (a) {
+        a.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          openHrefApproved(a.getAttribute('data-muse-external') || a.getAttribute('href'));
+        });
+      });
+
+      var stopBtn = app.querySelector('[data-muse-stop]');
+      if (stopBtn) stopBtn.addEventListener('click', function () {
+        interruptInflight('Interrupted by user');
+        setStatus('idle');
+        render();
+      });
+
+      var nudgeNow = app.querySelector('[data-muse-nudge-now]');
+      if (nudgeNow) nudgeNow.addEventListener('click', function () {
+        harvestNudges(true);
+        render();
+      });
+      var notifOpt = app.querySelector('[data-muse-notif-opt]');
+      if (notifOpt) notifOpt.addEventListener('click', function () {
+        if (state.notifOptIn) {
+          state.notifOptIn = false;
+          pushActivity(state, 'Device alerts off');
+          persist(); render();
+          return;
+        }
+        if (!g.Notification) {
+          pushActivity(state, 'Notification API unavailable — inbox still works');
+          persist(); render();
+          return;
+        }
+        Notification.requestPermission().then(function (p) {
+          state.notifOptIn = (p === 'granted');
+          pushActivity(state, state.notifOptIn ? 'Device alerts on' : 'Notification permission denied');
+          if (state.notifOptIn) harvestNudges(true);
+          persist(); render();
+        }, function () {
+          pushActivity(state, 'Notification permission error');
+          persist(); render();
+        });
+      });
+      app.querySelectorAll('[data-muse-nudge-read]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-muse-nudge-read');
+          (state.inbox || []).forEach(function (n) { if (n.id === id) n.read = true; });
+          persist(); render();
         });
       });
 
@@ -1306,12 +1412,20 @@
         var bid = (app.querySelector('[data-muse-backend]') || {}).value;
         var mid = (app.querySelector('[data-muse-model]') || {}).value;
         var epEl = app.querySelector('[data-muse-endpoint]');
-        if (epEl && epEl.value && router().setCreds) {
-          router().setCreds(bid, epEl.value.trim(), '');
-        }
-        router().setPolicy({ backend: bid, primary: mid, mode: 'manual' });
-        pushActivity(state, 'Model set ' + bid + '/' + mid);
-        persist(); render();
+        var epVal = epEl && epEl.value ? epEl.value.trim() : '';
+        showApproval({
+          title: 'Switch model backend?',
+          body: 'Apply ' + bid + ' / ' + mid + (epVal ? ' · endpoint ' + epVal : '') +
+            '. Lean T0 local-rules stays safest. No cloud keys are inventable here.',
+          confirmLabel: 'Apply model',
+          cancelLabel: 'Cancel',
+          onConfirm: function () {
+            if (epVal && router().setCreds) router().setCreds(bid, epVal, '');
+            router().setPolicy({ backend: bid, primary: mid, mode: 'manual' });
+            pushActivity(state, 'Model set ' + bid + '/' + mid);
+            persist(); render();
+          }
+        });
       });
       var clr = app.querySelector('[data-muse-clear-override]');
       if (clr) clr.addEventListener('click', function () {
@@ -1500,6 +1614,11 @@
       var chat = getChat(state, state.activeChatId);
       var topic = detectTopic(text);
       if (state.activeChatId !== 'main' && topic) chat.title = 'Side · ' + topic;
+      /* Interruptible multi-send: cancel prior in-flight reply */
+      if (statusKey === 'thinking' || statusKey === 'speaking') {
+        interruptInflight('Interrupted · new message');
+      }
+      var myGen = ++inflightGen;
       chat.messages.push({ role: 'user', text: text, t: Date.now() });
       pushActivity(state, 'User message');
       persist();
@@ -1507,62 +1626,68 @@
       render();
 
       askModel(chat, topic, state).then(function (raw) {
+        if (myGen !== inflightGen) return; /* interrupted */
         var res = normRes(raw);
         var art = maybeArtifact(text, res.text, topic);
         var parts = splitBubbles(res.text, 4);
-        var i;
-        for (i = 0; i < parts.length; i++) {
+        if (!parts.length) parts = [res.text || ''];
+
+        function pushPart(i) {
+          if (myGen !== inflightGen) return;
+          if (i >= parts.length) {
+            var appr = maybeApproval(text, res.text, topic);
+            if (appr) chat.messages.push({ role: 'approval', approval: appr, t: Date.now() });
+            lastThumbMeta = { backendId: res.backendId, modelId: res.modelId };
+            pushActivity(state, 'Replied via ' + res.backendId + (res.latencyMs ? ' · ' + res.latencyMs + 'ms' : '') +
+              (parts.length > 1 ? ' · ' + parts.length + ' bubbles' : ''));
+            persist();
+            setStatus(state.speak ? 'speaking' : 'idle');
+            render();
+            try {
+              if (analytics() && analytics().logCompletion) {
+                analytics().logCompletion({
+                  modelId: res.modelId,
+                  backendId: res.backendId,
+                  latencyMs: res.latencyMs,
+                  ok: true,
+                  taskType: 'coach_chat',
+                  demand_tier: (router() && router().getPolicy) ? router().getPolicy().demand_tier : 'T0'
+                });
+              }
+              if (g.ILGame && g.ILGame.award) g.ILGame.award('muse_ask', 5, { id: 'muse:' + Date.now() });
+            } catch (e) {}
+            speakText(res.text, state, function () {
+              if (myGen === inflightGen) setStatus('idle');
+            });
+            return;
+          }
           var msg = {
             role: 'assistant',
             text: parts[i],
-            t: Date.now() + i,
+            t: Date.now(),
             source: res.source,
             backendId: res.backendId,
             modelId: res.modelId,
             partIndex: i + 1,
-            partOf: parts.length
+            partOf: parts.length,
+            partial: i < parts.length - 1
           };
           if (art && i === parts.length - 1) {
             msg.artifact = art;
+            msg.partial = false;
             state.artifacts = state.artifacts || [];
             state.artifacts.push(art);
           }
           chat.messages.push(msg);
+          persist();
+          render();
+          var delay = parts.length > 1 ? 280 : 0;
+          var tid = setTimeout(function () { pushPart(i + 1); }, delay);
+          streamTimers.push(tid);
         }
-        var appr = maybeApproval(text, res.text, topic);
-        if (appr) {
-          chat.messages.push({ role: 'approval', approval: appr, t: Date.now() });
-        }
-        lastThumbMeta = { backendId: res.backendId, modelId: res.modelId };
-        pushActivity(state, 'Replied via ' + res.backendId + (res.latencyMs ? ' · ' + res.latencyMs + 'ms' : '') +
-          (parts.length > 1 ? ' · ' + parts.length + ' bubbles' : ''));
-        persist();
-        setStatus(state.speak ? 'speaking' : 'idle');
-        render();
-        try {
-          if (analytics() && analytics().logCompletion) {
-            analytics().logCompletion({
-              modelId: res.modelId,
-              backendId: res.backendId,
-              latencyMs: res.latencyMs,
-              ok: true,
-              taskType: 'coach_chat',
-              demand_tier: (router() && router().getPolicy) ? router().getPolicy().demand_tier : 'T0'
-            });
-          }
-          if (router() && router().recommend) {
-            var promo = analytics() && analytics().recommendPrimary
-              ? analytics().recommendPrimary({ current: { backendId: res.backendId, modelId: res.modelId } })
-              : null;
-            if (promo && promo.switchTo && router().setPolicy) {
-              router().setPolicy({ primary: promo.switchTo.modelId });
-              pushActivity(state, 'Auto-promoted ' + promo.switchTo.modelId);
-            }
-          }
-          if (g.ILGame && g.ILGame.award) g.ILGame.award('muse_ask', 5, { id: 'muse:' + Date.now() });
-        } catch (e) {}
-        speakText(res.text, state, function () { setStatus('idle'); });
+        pushPart(0);
       }, function (err) {
+        if (myGen !== inflightGen) return;
         chat.messages.push({
           role: 'assistant',
           text: 'Error: ' + (err && err.message ? err.message : String(err)),
@@ -1619,6 +1744,7 @@
     if (g.speechSynthesis) {
       try { g.speechSynthesis.addEventListener('voiceschanged', function () {}); } catch (e) {}
     }
+    try { harvestNudges(false); } catch (eN) {}
     render();
   }
 

@@ -135,3 +135,17 @@ Reject open redirects into the WebView from untrusted intents.
 - [STORE-PUBLISH.md](./STORE-PUBLISH.md) — App Store / Play Console steps for Enmanuel
 - [payments.md](./payments.md) — no secret keys in static enroll
 - `apps/mobile/README.md` — Capacitor commands and platform notes
+
+---
+
+## Lab Muse microphone & notifications (local-first)
+
+| Surface | Guidance |
+| --- | --- |
+| iOS mic / speech | `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription` — see `apps/mobile/ios-security/Info.plist.snippets.md` |
+| Android mic | Optional `RECORD_AUDIO` only when shipping dictation — see `android-security/AndroidManifest.snippets.xml` |
+| PWA Notification API | Opt-in from Lab Muse Inbox → “Enable device alerts”. Local study nudges only — **no FCM / Meta push** (`IL_FEATURE_PUSH=false`) |
+| Safe-area | `viewport-fit=cover` + `env(safe-area-inset-*)` in `il-muse-mobile.css`; Capacitor StatusBar void `#070B16` |
+| Brand | Interstitium lockup + cyan/gold/void — never Meta Muse purple/pink or Meta trademarks |
+
+Voice path remains **browser Web Speech**. Typing always works if permission is denied.
