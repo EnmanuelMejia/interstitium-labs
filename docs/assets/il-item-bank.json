@@ -1,0 +1,2843 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "IL Adaptive Item Bank",
+    "targetConcepts": 30,
+    "targetItems": 150,
+    "shippedItems": 58,
+    "notes": "Author-estimated a,b (not online IRT calibration). Socratic feedback never dumps answer letter first on wrong picks. Expand toward 150 keeping concept coverage ≥5/topic."
+  },
+  "concepts": [
+    {
+      "id": "linux-shell",
+      "title": "Linux shell & filesystem",
+      "domain": "linux",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "linux-perms",
+      "title": "Permissions & ownership",
+      "domain": "linux",
+      "prereqs": [
+        "linux-shell"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "linux-process",
+      "title": "Processes & systemd basics",
+      "domain": "linux",
+      "prereqs": [
+        "linux-shell"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "linux-logs",
+      "title": "Logs & troubleshooting",
+      "domain": "linux",
+      "prereqs": [
+        "linux-process"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "net-osi",
+      "title": "Networking OSI & ports",
+      "domain": "networking",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "net-cidr",
+      "title": "CIDR & subnetting",
+      "domain": "networking",
+      "prereqs": [
+        "net-osi"
+      ],
+      "threshold": 0.75
+    },
+    {
+      "id": "net-dns",
+      "title": "DNS & name resolution",
+      "domain": "networking",
+      "prereqs": [
+        "net-osi"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "net-http",
+      "title": "HTTP / TLS basics",
+      "domain": "networking",
+      "prereqs": [
+        "net-dns"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "git-basics",
+      "title": "Git basics (commit/branch)",
+      "domain": "git",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "git-remote",
+      "title": "Remotes, PR, push/pull",
+      "domain": "git",
+      "prereqs": [
+        "git-basics"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "git-rebase",
+      "title": "Rebase, FF, conflict hygiene",
+      "domain": "git",
+      "prereqs": [
+        "git-remote"
+      ],
+      "threshold": 0.75
+    },
+    {
+      "id": "ctr-images",
+      "title": "Container images & layers",
+      "domain": "containers",
+      "prereqs": [
+        "linux-shell"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "ctr-runtime",
+      "title": "Docker/runtime basics",
+      "domain": "containers",
+      "prereqs": [
+        "ctr-images"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "ctr-compose",
+      "title": "Compose & multi-service",
+      "domain": "containers",
+      "prereqs": [
+        "ctr-runtime"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "k8s-pods",
+      "title": "Pods & containers in K8s",
+      "domain": "kubernetes",
+      "prereqs": [
+        "ctr-runtime"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "k8s-deploy",
+      "title": "Deployments & ReplicaSets",
+      "domain": "kubernetes",
+      "prereqs": [
+        "k8s-pods"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "k8s-svc",
+      "title": "Services & networking",
+      "domain": "kubernetes",
+      "prereqs": [
+        "k8s-pods",
+        "net-dns"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "k8s-config",
+      "title": "ConfigMaps, Secrets, probes",
+      "domain": "kubernetes",
+      "prereqs": [
+        "k8s-deploy"
+      ],
+      "threshold": 0.75
+    },
+    {
+      "id": "tf-basics",
+      "title": "Terraform basics",
+      "domain": "iac",
+      "prereqs": [
+        "git-basics",
+        "linux-shell"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "tf-state",
+      "title": "State, plan, apply",
+      "domain": "iac",
+      "prereqs": [
+        "tf-basics"
+      ],
+      "threshold": 0.75
+    },
+    {
+      "id": "cicd-pipeline",
+      "title": "CI/CD pipeline anatomy",
+      "domain": "cicd",
+      "prereqs": [
+        "git-remote"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "cicd-gha",
+      "title": "GitHub Actions patterns",
+      "domain": "cicd",
+      "prereqs": [
+        "cicd-pipeline",
+        "ctr-images"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "cicd-cd",
+      "title": "CD, GitOps ideas",
+      "domain": "cicd",
+      "prereqs": [
+        "cicd-pipeline",
+        "k8s-deploy"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "cloud-iam",
+      "title": "Cloud IAM basics",
+      "domain": "cloud",
+      "prereqs": [
+        "net-http"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "cloud-compute",
+      "title": "Compute & networking cloud",
+      "domain": "cloud",
+      "prereqs": [
+        "cloud-iam",
+        "net-cidr"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "cloud-storage",
+      "title": "Object/block storage",
+      "domain": "cloud",
+      "prereqs": [
+        "cloud-iam"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "obs-metrics",
+      "title": "Metrics & SLIs",
+      "domain": "observability",
+      "prereqs": [
+        "linux-logs",
+        "k8s-pods"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "obs-alerts",
+      "title": "Alerting & on-call hygiene",
+      "domain": "observability",
+      "prereqs": [
+        "obs-metrics"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "sec-least",
+      "title": "Least privilege & secrets",
+      "domain": "security",
+      "prereqs": [
+        "linux-perms",
+        "cloud-iam"
+      ],
+      "threshold": 0.75
+    },
+    {
+      "id": "sec-supply",
+      "title": "Supply chain & image scan",
+      "domain": "security",
+      "prereqs": [
+        "ctr-images",
+        "cicd-pipeline"
+      ],
+      "threshold": 0.7
+    }
+  ],
+  "items": [
+    {
+      "id": "linux-shell.ls-home",
+      "type": "mcq",
+      "stem": "Which command lists all files including hidden ones in the current directory?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "ls -a"
+        },
+        {
+          "key": "B",
+          "text": "ls -l"
+        },
+        {
+          "key": "C",
+          "text": "cd ~"
+        },
+        {
+          "key": "D",
+          "text": "pwd"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "-a shows entries starting with '.' — hidden files.",
+        "B": "-l is long format; it does not imply hidden files.",
+        "C": "That changes directory to home; it does not list.",
+        "D": "pwd prints the working directory path."
+      },
+      "conceptIds": [
+        "linux-shell"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-shell.abs-path",
+      "type": "mcq",
+      "stem": "An absolute path always starts with…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "/"
+        },
+        {
+          "key": "B",
+          "text": "./"
+        },
+        {
+          "key": "C",
+          "text": "~ only"
+        },
+        {
+          "key": "D",
+          "text": "$PATH"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "On Unix, absolute paths begin at the filesystem root '/'.",
+        "B": "./ is relative to the current directory.",
+        "C": "~ expands to home, but absolute paths are not limited to home.",
+        "D": "$PATH is an environment variable for executables."
+      },
+      "conceptIds": [
+        "linux-shell"
+      ],
+      "a": 1.25,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-shell.pipe-idea",
+      "type": "mcq",
+      "stem": "What does the shell pipe | do?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Sends stdout of left command to stdin of right"
+        },
+        {
+          "key": "B",
+          "text": "Runs both commands on separate hosts"
+        },
+        {
+          "key": "C",
+          "text": "Always appends to a file"
+        },
+        {
+          "key": "D",
+          "text": "Elevates privileges"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Classic Unix pipeline composition.",
+        "B": "Pipes are local process composition.",
+        "C": "That is redirection with >>.",
+        "D": "Privilege elevation is sudo/su."
+      },
+      "conceptIds": [
+        "linux-shell"
+      ],
+      "a": 1.2,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-perms.chmod-755",
+      "type": "mcq",
+      "stem": "Mode 755 on a file typically means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Owner rwx; group/others r-x"
+        },
+        {
+          "key": "B",
+          "text": "Everyone can write"
+        },
+        {
+          "key": "C",
+          "text": "No execute for owner"
+        },
+        {
+          "key": "D",
+          "text": "Setuid only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "7=rwx, 5=r-x.",
+        "B": "Write for others would need a '2' or '6/7' in that digit.",
+        "C": "Owner 7 includes execute.",
+        "D": "Setuid is a special bit, not 755."
+      },
+      "conceptIds": [
+        "linux-perms"
+      ],
+      "a": 1.12,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-perms.chown",
+      "type": "mcq",
+      "stem": "Which tool changes file ownership?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "chown"
+        },
+        {
+          "key": "B",
+          "text": "chmod"
+        },
+        {
+          "key": "C",
+          "text": "chgrp only for users"
+        },
+        {
+          "key": "D",
+          "text": "umask"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "chown changes user/group ownership.",
+        "B": "chmod changes mode bits, not owner.",
+        "C": "chgrp changes group; chown handles user too.",
+        "D": "umask sets default creation mask."
+      },
+      "conceptIds": [
+        "linux-perms"
+      ],
+      "a": 1.18,
+      "b": -0.7,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-perms.sticky",
+      "type": "mcq",
+      "stem": "A sticky bit on /tmp mainly prevents…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Users deleting others' files in the directory"
+        },
+        {
+          "key": "B",
+          "text": "All reads"
+        },
+        {
+          "key": "C",
+          "text": "Network mounts"
+        },
+        {
+          "key": "D",
+          "text": "SELinux labeling"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Sticky on a dir: only owner (or root) may unlink.",
+        "B": "Sticky does not disable reads.",
+        "C": "Unrelated to sticky.",
+        "D": "Different mechanism."
+      },
+      "conceptIds": [
+        "linux-perms"
+      ],
+      "a": 1.1,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-process.ps-aux",
+      "type": "mcq",
+      "stem": "You want a snapshot of running processes. First tool?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "ps / top / htop"
+        },
+        {
+          "key": "B",
+          "text": "iptables -F"
+        },
+        {
+          "key": "C",
+          "text": "mkfs"
+        },
+        {
+          "key": "D",
+          "text": "useradd"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Process table tools are the starting point.",
+        "B": "That flushes firewall rules — dangerous and unrelated.",
+        "C": "Filesystem format — destructive.",
+        "D": "Creates users, not process inspection."
+      },
+      "conceptIds": [
+        "linux-process"
+      ],
+      "a": 1.23,
+      "b": -0.9,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-process.systemd-unit",
+      "type": "mcq",
+      "stem": "systemctl status nginx shows a unit is failed. Next useful step?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "journalctl -u nginx -e"
+        },
+        {
+          "key": "B",
+          "text": "rm -rf /"
+        },
+        {
+          "key": "C",
+          "text": "Disable SELinux permanently as first step"
+        },
+        {
+          "key": "D",
+          "text": "Reboot without reading logs"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Unit logs usually explain the failure.",
+        "B": "Never.",
+        "C": "Too broad; gather evidence first.",
+        "D": "Loses transient signal; read logs first."
+      },
+      "conceptIds": [
+        "linux-process"
+      ],
+      "a": 1.05,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-logs.journal",
+      "type": "mcq",
+      "stem": "On modern systemd hosts, centralized logs are often in…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "the journal (journalctl)"
+        },
+        {
+          "key": "B",
+          "text": "only Windows Event Viewer"
+        },
+        {
+          "key": "C",
+          "text": "Git history"
+        },
+        {
+          "key": "D",
+          "text": "DNS TXT records"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "systemd-journald stores structured logs.",
+        "B": "Wrong OS.",
+        "C": "Git is VCS, not runtime logs.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "linux-logs"
+      ],
+      "a": 1.15,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-osi.port-443",
+      "type": "mcq",
+      "stem": "Port 443 is commonly associated with…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "HTTPS"
+        },
+        {
+          "key": "B",
+          "text": "SSH"
+        },
+        {
+          "key": "C",
+          "text": "SMTP cleartext only"
+        },
+        {
+          "key": "D",
+          "text": "DNS"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "TLS-wrapped HTTP typically uses 443.",
+        "B": "SSH is usually 22.",
+        "C": "SMTP is 25/587/465.",
+        "D": "DNS is 53."
+      },
+      "conceptIds": [
+        "net-osi"
+      ],
+      "a": 1.35,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-osi.l3-l4",
+      "type": "mcq",
+      "stem": "IP addresses are primarily a ___ concern; TCP ports are ___ .",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Layer 3 · Layer 4"
+        },
+        {
+          "key": "B",
+          "text": "Layer 7 · Layer 1"
+        },
+        {
+          "key": "C",
+          "text": "Layer 2 · Layer 7"
+        },
+        {
+          "key": "D",
+          "text": "Layer 1 · Layer 1"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Network vs transport in the common model.",
+        "B": "Swapped/wrong.",
+        "C": "MAC is L2; HTTP is L7.",
+        "D": "Physical layer is bits on wire."
+      },
+      "conceptIds": [
+        "net-osi"
+      ],
+      "a": 1.07,
+      "b": -0.3,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-cidr.hosts-24",
+      "type": "mcq",
+      "stem": "Usable hosts in a classic /24 (RFC 950 style)?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "254"
+        },
+        {
+          "key": "B",
+          "text": "256"
+        },
+        {
+          "key": "C",
+          "text": "255"
+        },
+        {
+          "key": "D",
+          "text": "24"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "2^8 − 2 = 254 usable hosts.",
+        "B": "Counts network + broadcast.",
+        "C": "Off by one.",
+        "D": "Prefix length, not host count."
+      },
+      "conceptIds": [
+        "net-cidr"
+      ],
+      "a": 1.15,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-cidr.mask-24",
+      "type": "mcq",
+      "stem": "Netmask 255.255.255.0 equals…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "/24"
+        },
+        {
+          "key": "B",
+          "text": "/16"
+        },
+        {
+          "key": "C",
+          "text": "/32"
+        },
+        {
+          "key": "D",
+          "text": "/8"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Twenty-four 1-bits.",
+        "B": "/16 is 255.255.0.0.",
+        "C": "Single host.",
+        "D": "255.0.0.0."
+      },
+      "conceptIds": [
+        "net-cidr"
+      ],
+      "a": 1.25,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-cidr.overlap",
+      "type": "mcq",
+      "stem": "Do 10.0.0.0/24 and 10.0.0.128/25 overlap?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Yes — /25 sits inside /24"
+        },
+        {
+          "key": "B",
+          "text": "No — different lengths never overlap"
+        },
+        {
+          "key": "C",
+          "text": "Only if public IPs"
+        },
+        {
+          "key": "D",
+          "text": "Only on IPv6"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Nested prefixes overlap; longest-match wins in routing.",
+        "B": "Length alone does not guarantee disjointness.",
+        "C": "RFC1918 irrelevant to set overlap.",
+        "D": "Same set logic on IPv4."
+      },
+      "conceptIds": [
+        "net-cidr"
+      ],
+      "a": 1.05,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-cidr.slash-28",
+      "type": "mcq",
+      "stem": "How many addresses in a /28?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "16"
+        },
+        {
+          "key": "B",
+          "text": "28"
+        },
+        {
+          "key": "C",
+          "text": "256"
+        },
+        {
+          "key": "D",
+          "text": "2"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "2^(32-28)=16 total addresses.",
+        "B": "Confusing prefix with count.",
+        "C": "That is /24.",
+        "D": "That is /31-ish special cases."
+      },
+      "conceptIds": [
+        "net-cidr"
+      ],
+      "a": 1.0,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-dns.a-record",
+      "type": "mcq",
+      "stem": "An A record maps…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "name → IPv4 address"
+        },
+        {
+          "key": "B",
+          "text": "IPv4 → name only"
+        },
+        {
+          "key": "C",
+          "text": "name → TLS cert"
+        },
+        {
+          "key": "D",
+          "text": "AS number → prefix"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Classic forward lookup.",
+        "B": "That is PTR (reverse).",
+        "C": "Certs are not DNS A records.",
+        "D": "Routing registry, not A records."
+      },
+      "conceptIds": [
+        "net-dns"
+      ],
+      "a": 1.2,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-dns.nxdomain",
+      "type": "mcq",
+      "stem": "NXDOMAIN means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The queried name does not exist in DNS"
+        },
+        {
+          "key": "B",
+          "text": "TLS handshake failed"
+        },
+        {
+          "key": "C",
+          "text": "Disk full"
+        },
+        {
+          "key": "D",
+          "text": "Firewall dropped SYN"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Authoritative negative answer.",
+        "B": "Different layer.",
+        "C": "Unrelated.",
+        "D": "Network path, not DNS response code."
+      },
+      "conceptIds": [
+        "net-dns"
+      ],
+      "a": 1.1,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-http.tls-sni",
+      "type": "mcq",
+      "stem": "SNI in TLS helps the server…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Choose the right certificate for a hostname"
+        },
+        {
+          "key": "B",
+          "text": "Compress images"
+        },
+        {
+          "key": "C",
+          "text": "Assign private IPs"
+        },
+        {
+          "key": "D",
+          "text": "Run cron jobs"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Server Name Indication.",
+        "B": "Unrelated.",
+        "C": "DHCP/cloud networking.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "net-http"
+      ],
+      "a": 1.07,
+      "b": 0.3,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-http.status-502",
+      "type": "mcq",
+      "stem": "HTTP 502 usually indicates…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Bad gateway — upstream failure via a proxy"
+        },
+        {
+          "key": "B",
+          "text": "Client mistyped a form"
+        },
+        {
+          "key": "C",
+          "text": "Successful cache hit"
+        },
+        {
+          "key": "D",
+          "text": "DNS only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Proxy received invalid upstream response.",
+        "B": "That is often 400.",
+        "C": "Success is 2xx.",
+        "D": "DNS failures surface differently."
+      },
+      "conceptIds": [
+        "net-http"
+      ],
+      "a": 1.02,
+      "b": 0.1,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-basics.commit",
+      "type": "mcq",
+      "stem": "A Git commit stores…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A snapshot (tree) + metadata + parent pointer(s)"
+        },
+        {
+          "key": "B",
+          "text": "Only a diff with no tree"
+        },
+        {
+          "key": "C",
+          "text": "The entire .git of remotes"
+        },
+        {
+          "key": "D",
+          "text": "CI secrets automatically"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Content-addressed snapshot model.",
+        "B": "Implementation may pack deltas; model is snapshots.",
+        "C": "Local object DB.",
+        "D": "Never put secrets in commits."
+      },
+      "conceptIds": [
+        "git-basics"
+      ],
+      "a": 1.18,
+      "b": -0.7,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-basics.branch",
+      "type": "mcq",
+      "stem": "A branch in Git is best described as…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A movable pointer to a commit"
+        },
+        {
+          "key": "B",
+          "text": "A full copy of all blobs always"
+        },
+        {
+          "key": "C",
+          "text": "A separate database server"
+        },
+        {
+          "key": "D",
+          "text": "An OS process"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Lightweight ref.",
+        "B": "Objects are shared.",
+        "C": "Still the same repo objects.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "git-basics"
+      ],
+      "a": 1.23,
+      "b": -0.9,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-remote.detached",
+      "type": "mcq",
+      "stem": "Detached HEAD — safest way to keep new work?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "git switch -c fix/keep-work"
+        },
+        {
+          "key": "B",
+          "text": "git push -f origin main"
+        },
+        {
+          "key": "C",
+          "text": "git reset --hard HEAD~20"
+        },
+        {
+          "key": "D",
+          "text": "Delete .git"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Name the commit with a branch.",
+        "B": "Destructive to shared main.",
+        "C": "Discards history.",
+        "D": "Nuclear; lose work."
+      },
+      "conceptIds": [
+        "git-remote"
+      ],
+      "a": 1.05,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-remote.ff",
+      "type": "mcq",
+      "stem": "Fast-forward merge means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Branch pointer moves forward with no merge commit"
+        },
+        {
+          "key": "B",
+          "text": "Git always invents a merge commit"
+        },
+        {
+          "key": "C",
+          "text": "Conflicts auto-resolve to theirs"
+        },
+        {
+          "key": "D",
+          "text": "Hooks are skipped"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Linear when no divergence.",
+        "B": "That is a true merge.",
+        "C": "FF requires no divergence.",
+        "D": "Hooks still run."
+      },
+      "conceptIds": [
+        "git-remote"
+      ],
+      "a": 1.0,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-rebase.shared",
+      "type": "mcq",
+      "stem": "Interactive rebase is usually wrong when…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Rewriting commits already on shared main"
+        },
+        {
+          "key": "B",
+          "text": "Cleaning local unpushed commits"
+        },
+        {
+          "key": "C",
+          "text": "Squashing a private feature branch"
+        },
+        {
+          "key": "D",
+          "text": "Editing a message on your branch"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Breaks collaborators' history.",
+        "B": "Common good use.",
+        "C": "Often fine.",
+        "D": "Fine while private."
+      },
+      "conceptIds": [
+        "git-rebase"
+      ],
+      "a": 1.07,
+      "b": 0.3,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "ctr-images.layers",
+      "type": "mcq",
+      "stem": "Container image layers are…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Stacked filesystem diffs, cached/shared"
+        },
+        {
+          "key": "B",
+          "text": "Always full VM disks"
+        },
+        {
+          "key": "C",
+          "text": "Git commits of the app only"
+        },
+        {
+          "key": "D",
+          "text": "Kernel modules"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Content-addressed layers.",
+        "B": "Images ≠ full VMs.",
+        "C": "Related idea, different system.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "ctr-images"
+      ],
+      "a": 1.12,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "ctr",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "ctr-images.tag-latest",
+      "type": "mcq",
+      "stem": "Relying on :latest in production is risky because…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The tag can move to a different digest over time"
+        },
+        {
+          "key": "B",
+          "text": "Docker forbids it"
+        },
+        {
+          "key": "C",
+          "text": "It disables networking"
+        },
+        {
+          "key": "D",
+          "text": "It requires rootless always"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Non-immutable reference.",
+        "B": "Allowed, just risky.",
+        "C": "Unrelated.",
+        "D": "Orthogonal."
+      },
+      "conceptIds": [
+        "ctr-images"
+      ],
+      "a": 1.02,
+      "b": -0.1,
+      "c": 0.25,
+      "tags": [
+        "ctr",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "ctr-runtime.pid1",
+      "type": "mcq",
+      "stem": "A container's PID 1 should…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Reap zombies / handle signals properly"
+        },
+        {
+          "key": "B",
+          "text": "Always be systemd on the host"
+        },
+        {
+          "key": "D",
+          "text": "Ignore SIGTERM"
+        },
+        {
+          "key": "C",
+          "text": "Bind-mount /etc from host always"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Or use a proper init.",
+        "B": "Host init ≠ container PID 1.",
+        "D": "Hurts graceful shutdown.",
+        "C": "Not required."
+      },
+      "conceptIds": [
+        "ctr-runtime"
+      ],
+      "a": 1.1,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "ctr",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "ctr-compose.compose-role",
+      "type": "mcq",
+      "stem": "Compose files mainly help you…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Declare multi-container apps for local/dev stacks"
+        },
+        {
+          "key": "B",
+          "text": "Replace Kubernetes in all prod clusters"
+        },
+        {
+          "key": "C",
+          "text": "Issue TLS certificates automatically always"
+        },
+        {
+          "key": "D",
+          "text": "Compile the Linux kernel"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Services, networks, volumes as code.",
+        "B": "Different scope.",
+        "C": "Not Compose's job alone.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "ctr-compose"
+      ],
+      "a": 1.1,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "ctr",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-pods.crashloop",
+      "type": "mcq",
+      "stem": "Pod CrashLoopBackOff — first signal?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "kubectl describe + logs --previous"
+        },
+        {
+          "key": "B",
+          "text": "kubectl delete ns kube-system"
+        },
+        {
+          "key": "C",
+          "text": "Raise replicas to 100"
+        },
+        {
+          "key": "D",
+          "text": "Disable the scheduler"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Events + previous logs.",
+        "B": "Never start there.",
+        "C": "Amplifies failure.",
+        "D": "Dangerous/unrelated."
+      },
+      "conceptIds": [
+        "k8s-pods"
+      ],
+      "a": 1.07,
+      "b": -0.3,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-pods.pod-unit",
+      "type": "mcq",
+      "stem": "A Pod is…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The smallest deployable unit; one or more containers sharing net/ns"
+        },
+        {
+          "key": "B",
+          "text": "A physical rack"
+        },
+        {
+          "key": "C",
+          "text": "Only a Service IP"
+        },
+        {
+          "key": "D",
+          "text": "An etcd snapshot"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Atomic scheduling unit.",
+        "B": "Wrong abstraction.",
+        "C": "Service is separate.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "k8s-pods"
+      ],
+      "a": 1.2,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-deploy.rs",
+      "type": "mcq",
+      "stem": "A Deployment manages…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "ReplicaSets (which manage Pods)"
+        },
+        {
+          "key": "B",
+          "text": "Only Nodes directly"
+        },
+        {
+          "key": "C",
+          "text": "etcd compaction"
+        },
+        {
+          "key": "D",
+          "text": "Ingress TLS secrets only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Desired replicas + rolling updates.",
+        "B": "Node management is different.",
+        "C": "Control plane ops.",
+        "D": "Narrow/wrong."
+      },
+      "conceptIds": [
+        "k8s-deploy"
+      ],
+      "a": 1.1,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-svc.selector",
+      "type": "mcq",
+      "stem": "ClusterIP Service selects Pods by…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Label selectors matching Pod labels"
+        },
+        {
+          "key": "B",
+          "text": "Pod UID only"
+        },
+        {
+          "key": "C",
+          "text": "Node hostname"
+        },
+        {
+          "key": "D",
+          "text": "Image digest"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Service.spec.selector ↔ labels.",
+        "B": "UIDs change on recreate.",
+        "C": "Not ClusterIP selection.",
+        "D": "Not the selector."
+      },
+      "conceptIds": [
+        "k8s-svc"
+      ],
+      "a": 1.12,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-config.liveness",
+      "type": "mcq",
+      "stem": "Liveness probe failing repeatedly typically…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Causes kubelet to restart the container"
+        },
+        {
+          "key": "B",
+          "text": "Keeps Pod Ready forever"
+        },
+        {
+          "key": "C",
+          "text": "Wipes etcd"
+        },
+        {
+          "key": "D",
+          "text": "Scales HPA to zero"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Liveness ≠ readiness.",
+        "B": "Opposite effect path.",
+        "C": "Probes never touch etcd.",
+        "D": "HPA uses metrics."
+      },
+      "conceptIds": [
+        "k8s-config"
+      ],
+      "a": 1.0,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-config.readiness",
+      "type": "mcq",
+      "stem": "Failing readiness probe means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Pod removed from Service endpoints until ready"
+        },
+        {
+          "key": "B",
+          "text": "Node is cordoned automatically"
+        },
+        {
+          "key": "C",
+          "text": "Cluster upgrades start"
+        },
+        {
+          "key": "D",
+          "text": "All Secrets rotate"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Traffic stops; container may keep running.",
+        "B": "Different.",
+        "C": "Unrelated.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "k8s-config"
+      ],
+      "a": 1.05,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "tf-basics.hcl",
+      "type": "mcq",
+      "stem": "Terraform configuration is primarily written in…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "HCL (or JSON)"
+        },
+        {
+          "key": "B",
+          "text": "Only Java"
+        },
+        {
+          "key": "C",
+          "text": "Only XML manifests"
+        },
+        {
+          "key": "D",
+          "text": "Makefile only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "HashiCorp Configuration Language.",
+        "B": "Wrong.",
+        "C": "Wrong.",
+        "D": "May wrap TF, not the language."
+      },
+      "conceptIds": [
+        "tf-basics"
+      ],
+      "a": 1.25,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "tf",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "tf-state.state-role",
+      "type": "mcq",
+      "stem": "Terraform state mainly tracks…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Mapping of resources to real-world IDs"
+        },
+        {
+          "key": "B",
+          "text": "Git commit messages only"
+        },
+        {
+          "key": "C",
+          "text": "Container image layers"
+        },
+        {
+          "key": "D",
+          "text": "DNS SOA serials"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "State is the source of truth for managed objects.",
+        "B": "VCS ≠ TF state.",
+        "C": "Different domain.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "tf-state"
+      ],
+      "a": 1.05,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "tf",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "tf-state.plan",
+      "type": "mcq",
+      "stem": "terraform plan is used to…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Preview changes without applying"
+        },
+        {
+          "key": "B",
+          "text": "Destroy the state bucket always"
+        },
+        {
+          "key": "C",
+          "text": "Start a Kubernetes pod"
+        },
+        {
+          "key": "D",
+          "text": "Rotate AWS root keys automatically"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Execution plan / diff.",
+        "B": "Destructive and wrong.",
+        "C": "Wrong tool.",
+        "D": "Not plan's job."
+      },
+      "conceptIds": [
+        "tf-state"
+      ],
+      "a": 1.15,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "tf",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cicd-pipeline.stages",
+      "type": "mcq",
+      "stem": "A typical CI pipeline includes…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Build → test → artifact → (optional) deploy gates"
+        },
+        {
+          "key": "B",
+          "text": "Only manual FTP to prod"
+        },
+        {
+          "key": "C",
+          "text": "Editing prod DBs by hand first"
+        },
+        {
+          "key": "D",
+          "text": "Disabling all tests for speed"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Feedback before prod.",
+        "B": "Not CI.",
+        "C": "Anti-pattern.",
+        "D": "Trades safety."
+      },
+      "conceptIds": [
+        "cicd-pipeline"
+      ],
+      "a": 1.18,
+      "b": -0.7,
+      "c": 0.25,
+      "tags": [
+        "cicd",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cicd-gha.secrets",
+      "type": "mcq",
+      "stem": "GitHub Actions secrets should be…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Stored as encrypted Actions secrets, never in the repo"
+        },
+        {
+          "key": "B",
+          "text": "Committed as plaintext in workflow YAML"
+        },
+        {
+          "key": "C",
+          "text": "Printed in every log line"
+        },
+        {
+          "key": "D",
+          "text": "Shared in Slack screenshots"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Least exposure.",
+        "B": "Leak.",
+        "C": "Leak.",
+        "D": "Leak."
+      },
+      "conceptIds": [
+        "cicd-gha"
+      ],
+      "a": 1.12,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "cicd",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cicd-gha.on-push",
+      "type": "mcq",
+      "stem": "on: push in a workflow means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The workflow triggers when commits are pushed"
+        },
+        {
+          "key": "B",
+          "text": "It deploys on calendar only"
+        },
+        {
+          "key": "C",
+          "text": "It disables forks"
+        },
+        {
+          "key": "D",
+          "text": "It requires manual approval always"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Event-driven CI.",
+        "B": "That is schedule.",
+        "C": "Unrelated.",
+        "D": "environment protections optional."
+      },
+      "conceptIds": [
+        "cicd-gha"
+      ],
+      "a": 1.23,
+      "b": -0.9,
+      "c": 0.25,
+      "tags": [
+        "cicd",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cicd-cd.gitops",
+      "type": "mcq",
+      "stem": "GitOps CD emphasizes…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Desired state in Git reconciled to the cluster"
+        },
+        {
+          "key": "B",
+          "text": "SSH snowflake edits with no record"
+        },
+        {
+          "key": "C",
+          "text": "Ignoring drift"
+        },
+        {
+          "key": "D",
+          "text": "Only weekly emails"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Declarative pull-based sync.",
+        "B": "Opposite.",
+        "C": "GitOps detects/reconciles drift.",
+        "D": "Not the control loop."
+      },
+      "conceptIds": [
+        "cicd-cd"
+      ],
+      "a": 1.05,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "cicd",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cloud-iam.least",
+      "type": "mcq",
+      "stem": "Least privilege means…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Grant only the permissions needed for the task"
+        },
+        {
+          "key": "B",
+          "text": "Give every user AdministratorAccess"
+        },
+        {
+          "key": "C",
+          "text": "Disable MFA forever"
+        },
+        {
+          "key": "D",
+          "text": "Share one root account"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Core IAM principle.",
+        "B": "Opposite.",
+        "C": "Weakens security.",
+        "D": "Anti-pattern."
+      },
+      "conceptIds": [
+        "cloud-iam"
+      ],
+      "a": 1.2,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "cloud",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cloud-compute.sg",
+      "type": "mcq",
+      "stem": "A security group / firewall rule set typically filters…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Allowed ingress/egress by port, protocol, source/dest"
+        },
+        {
+          "key": "B",
+          "text": "Git branch names"
+        },
+        {
+          "key": "C",
+          "text": "CPU microcode only"
+        },
+        {
+          "key": "D",
+          "text": "DNS SOA"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Network access control.",
+        "B": "Unrelated.",
+        "C": "Unrelated.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "cloud-compute"
+      ],
+      "a": 1.1,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "cloud",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cloud-storage.object",
+      "type": "mcq",
+      "stem": "Object storage (S3-like) is best for…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Durable blobs addressed by key, not a POSIX disk"
+        },
+        {
+          "key": "B",
+          "text": "Replacing RAM"
+        },
+        {
+          "key": "C",
+          "text": "Running etcd consensus"
+        },
+        {
+          "key": "D",
+          "text": "Layer-2 switching"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Objects ≠ block devices.",
+        "B": "Wrong tier.",
+        "C": "Needs different storage semantics.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "cloud-storage"
+      ],
+      "a": 1.07,
+      "b": -0.3,
+      "c": 0.25,
+      "tags": [
+        "cloud",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "obs-metrics.sli",
+      "type": "mcq",
+      "stem": "An SLI is…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A quantitative measure of service level (e.g. success rate)"
+        },
+        {
+          "key": "B",
+          "text": "A legal contract only"
+        },
+        {
+          "key": "C",
+          "text": "A Kubernetes DaemonSet"
+        },
+        {
+          "key": "D",
+          "text": "A Terraform provider"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Indicator; SLO is the target.",
+        "B": "That is closer to SLA.",
+        "C": "Wrong.",
+        "D": "Wrong."
+      },
+      "conceptIds": [
+        "obs-metrics"
+      ],
+      "a": 1.02,
+      "b": 0.1,
+      "c": 0.25,
+      "tags": [
+        "obs",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "obs-alerts.page",
+      "type": "mcq",
+      "stem": "A good page-worthy alert is…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Actionable, tied to user impact, not raw noise"
+        },
+        {
+          "key": "B",
+          "text": "Every DEBUG log line"
+        },
+        {
+          "key": "C",
+          "text": "Disk 0.1% change"
+        },
+        {
+          "key": "D",
+          "text": "Successful deploys only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Alert hygiene.",
+        "B": "Noise.",
+        "C": "Usually not user-impacting.",
+        "D": "Not a failure signal."
+      },
+      "conceptIds": [
+        "obs-alerts"
+      ],
+      "a": 1.07,
+      "b": 0.3,
+      "c": 0.25,
+      "tags": [
+        "obs",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sec-least.secret-store",
+      "type": "mcq",
+      "stem": "Runtime secrets should live in…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A secrets manager / sealed store — not git"
+        },
+        {
+          "key": "B",
+          "text": "Public README"
+        },
+        {
+          "key": "C",
+          "text": "Container image ENV baked forever"
+        },
+        {
+          "key": "D",
+          "text": "DNS TXT"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Rotate-able, audited.",
+        "B": "Leak.",
+        "C": "Hard to rotate; often leaked.",
+        "D": "Wrong place."
+      },
+      "conceptIds": [
+        "sec-least"
+      ],
+      "a": 1.05,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "sec",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sec-supply.scan",
+      "type": "mcq",
+      "stem": "Scanning container images in CI helps catch…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Known CVEs / misconfigs before deploy"
+        },
+        {
+          "key": "B",
+          "text": "CPU thermal throttling"
+        },
+        {
+          "key": "C",
+          "text": "Office Wi-Fi passwords"
+        },
+        {
+          "key": "D",
+          "text": "Kubernetes etcd quorum"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Shift-left supply chain.",
+        "B": "Hardware telemetry.",
+        "C": "Unrelated.",
+        "D": "Different concern."
+      },
+      "conceptIds": [
+        "sec-supply"
+      ],
+      "a": 1.02,
+      "b": -0.1,
+      "c": 0.25,
+      "tags": [
+        "sec",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-shell.x-homes",
+      "type": "mcq",
+      "stem": "Which directory usually holds user home folders on Linux?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "/home"
+        },
+        {
+          "key": "B",
+          "text": "/proc"
+        },
+        {
+          "key": "C",
+          "text": "/boot only"
+        },
+        {
+          "key": "D",
+          "text": "/dev/null"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "User homes typically under /home.",
+        "B": "Virtual process FS.",
+        "C": "Boot files.",
+        "D": "Bit bucket."
+      },
+      "conceptIds": [
+        "linux-shell"
+      ],
+      "a": 1.22,
+      "b": -1.1,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "linux-process.x-sigterm",
+      "type": "mcq",
+      "stem": "Sending SIGTERM to a process typically…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Requests graceful shutdown"
+        },
+        {
+          "key": "B",
+          "text": "Formats the disk"
+        },
+        {
+          "key": "C",
+          "text": "Always force-kills immediately"
+        },
+        {
+          "key": "D",
+          "text": "Restarts systemd"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Default kill signal is TERM.",
+        "B": "No.",
+        "C": "That is SIGKILL.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "linux-process"
+      ],
+      "a": 1.06,
+      "b": -0.3,
+      "c": 0.25,
+      "tags": [
+        "linux",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "net-cidr.x-lpm",
+      "type": "mcq",
+      "stem": "Longest prefix match means routers prefer…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The most specific matching route"
+        },
+        {
+          "key": "B",
+          "text": "Random routes"
+        },
+        {
+          "key": "C",
+          "text": "Always default route"
+        },
+        {
+          "key": "D",
+          "text": "MAC only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Longer prefix wins.",
+        "B": "Deterministic.",
+        "C": "Default is least specific.",
+        "D": "L2."
+      },
+      "conceptIds": [
+        "net-cidr"
+      ],
+      "a": 1.1,
+      "b": 0.5,
+      "c": 0.25,
+      "tags": [
+        "net",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "git-basics.x-status",
+      "type": "mcq",
+      "stem": "git status shows…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Working tree / staging vs HEAD differences"
+        },
+        {
+          "key": "B",
+          "text": "Only remote CI logs"
+        },
+        {
+          "key": "C",
+          "text": "Kernel messages"
+        },
+        {
+          "key": "D",
+          "text": "DNS cache"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Status overview.",
+        "B": "Wrong.",
+        "C": "dmesg.",
+        "D": "Wrong."
+      },
+      "conceptIds": [
+        "git-basics"
+      ],
+      "a": 1.24,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "git",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "k8s-deploy.x-rolling",
+      "type": "mcq",
+      "stem": "Rolling update on a Deployment aims to…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Replace Pods gradually to keep availability"
+        },
+        {
+          "key": "B",
+          "text": "Delete the namespace"
+        },
+        {
+          "key": "C",
+          "text": "Disable the API server"
+        },
+        {
+          "key": "D",
+          "text": "Wipe PersistentVolumes always"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "MaxUnavailable/MaxSurge controls.",
+        "B": "No.",
+        "C": "No.",
+        "D": "No."
+      },
+      "conceptIds": [
+        "k8s-deploy"
+      ],
+      "a": 1.02,
+      "b": 0.1,
+      "c": 0.25,
+      "tags": [
+        "k8s",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cicd-pipeline.x-gate",
+      "type": "mcq",
+      "stem": "Failing tests in CI should…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Block merge/deploy until fixed or explicitly overridden"
+        },
+        {
+          "key": "B",
+          "text": "Be ignored forever"
+        },
+        {
+          "key": "C",
+          "text": "Page every engineer for flake noise only"
+        },
+        {
+          "key": "D",
+          "text": "Auto-force-push main"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Quality gate.",
+        "B": "Defeats CI.",
+        "C": "Tune noise.",
+        "D": "Dangerous."
+      },
+      "conceptIds": [
+        "cicd-pipeline"
+      ],
+      "a": 1.08,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "cicd",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "cloud-iam.x-root",
+      "type": "mcq",
+      "stem": "Root / highly privileged accounts should be…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Rarely used, MFA-protected, audited"
+        },
+        {
+          "key": "B",
+          "text": "Shared casually"
+        },
+        {
+          "key": "C",
+          "text": "Embedded in mobile apps"
+        },
+        {
+          "key": "D",
+          "text": "Printed on stickers"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Break-glass pattern.",
+        "B": "Anti-pattern.",
+        "C": "Leak risk.",
+        "D": "No."
+      },
+      "conceptIds": [
+        "cloud-iam"
+      ],
+      "a": 1.1,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "cloud",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "obs-metrics.x-errors",
+      "type": "mcq",
+      "stem": "High error-rate SLI breach suggests…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Investigate recent deploys, deps, and saturation"
+        },
+        {
+          "key": "B",
+          "text": "Delete monitoring"
+        },
+        {
+          "key": "C",
+          "text": "Ignore if CPU is fine"
+        },
+        {
+          "key": "D",
+          "text": "Only redesign logos"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Symptom → causes.",
+        "B": "Worse.",
+        "C": "Errors can be independent.",
+        "D": "No."
+      },
+      "conceptIds": [
+        "obs-metrics"
+      ],
+      "a": 1.04,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "obs",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sec-supply.x-digest",
+      "type": "mcq",
+      "stem": "Pinning image digests improves…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Reproducibility and supply-chain integrity"
+        },
+        {
+          "key": "B",
+          "text": "DNS speed"
+        },
+        {
+          "key": "C",
+          "text": "Battery life"
+        },
+        {
+          "key": "D",
+          "text": "Keyboard layout"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Immutable reference.",
+        "B": "Unrelated.",
+        "C": "Unrelated.",
+        "D": "Unrelated."
+      },
+      "conceptIds": [
+        "sec-supply"
+      ],
+      "a": 1.0,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "sec",
+        "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "tf-basics.x-provider",
+      "type": "mcq",
+      "stem": "A Terraform provider is responsible for…",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Talking to an API (cloud/SaaS) to CRUD resources"
+        },
+        {
+          "key": "B",
+          "text": "Compiling C++"
+        },
+        {
+          "key": "C",
+          "text": "Running the kube-scheduler"
+        },
+        {
+          "key": "D",
+          "text": "Issuing passports"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Plugin boundary.",
+        "B": "Wrong.",
+        "C": "Wrong.",
+        "D": "Wrong."
+      },
+      "conceptIds": [
+        "tf-basics"
+      ],
+      "a": 1.1,
+      "b": -0.5,
+      "c": 0.25,
+      "tags": [
+        "tf",
+        "practice"
+      ],
+      "exposureCount": 0
+    }
+  ],
+  "paths": [
+    {
+      "id": "platform-associate",
+      "title": "Platform Associate",
+      "blurb": "Linux → Git → networking → containers. Gate: fringe mastery before K8s deep-dives.",
+      "conceptIds": [
+        "linux-shell",
+        "linux-perms",
+        "linux-process",
+        "linux-logs",
+        "net-osi",
+        "net-cidr",
+        "net-dns",
+        "git-basics",
+        "git-remote",
+        "ctr-images",
+        "ctr-runtime"
+      ],
+      "gates": [
+        {
+          "id": "pa-g1",
+          "title": "Shell fluent",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "linux-shell",
+                "linux-perms"
+              ],
+              "min": 0.7
+            }
+          ]
+        },
+        {
+          "id": "pa-g2",
+          "title": "Net + Git",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "net-cidr",
+                "git-remote"
+              ],
+              "min": 0.7
+            }
+          ]
+        },
+        {
+          "id": "pa-g3",
+          "title": "Container ready",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "ctr-runtime"
+              ],
+              "min": 0.7
+            }
+          ]
+        },
+        {
+          "id": "pa-g4",
+          "title": "Associate challenge",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "linux-logs",
+                "net-dns",
+                "git-remote",
+                "ctr-images"
+              ],
+              "min": 0.7
+            },
+            {
+              "type": "challenge",
+              "minCorrect": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "platform-engineer",
+      "title": "Platform Engineer",
+      "blurb": "K8s → Terraform → CI/CD → cloud → obs/sec. Requires Associate-level fringe.",
+      "conceptIds": [
+        "k8s-pods",
+        "k8s-deploy",
+        "k8s-svc",
+        "k8s-config",
+        "tf-basics",
+        "tf-state",
+        "cicd-pipeline",
+        "cicd-gha",
+        "cicd-cd",
+        "cloud-iam",
+        "cloud-compute",
+        "obs-metrics",
+        "sec-least"
+      ],
+      "gates": [
+        {
+          "id": "pe-g1",
+          "title": "K8s core",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "k8s-pods",
+                "k8s-deploy",
+                "k8s-svc"
+              ],
+              "min": 0.7
+            }
+          ]
+        },
+        {
+          "id": "pe-g2",
+          "title": "IaC + CI",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "tf-state",
+                "cicd-gha"
+              ],
+              "min": 0.7
+            }
+          ]
+        },
+        {
+          "id": "pe-g3",
+          "title": "Cloud + secure",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "cloud-iam",
+                "sec-least"
+              ],
+              "min": 0.75
+            }
+          ]
+        },
+        {
+          "id": "pe-g4",
+          "title": "Engineer challenge",
+          "rules": [
+            {
+              "type": "mastery",
+              "conceptIds": [
+                "k8s-config",
+                "cicd-cd",
+                "obs-metrics"
+              ],
+              "min": 0.7
+            },
+            {
+              "type": "challenge",
+              "minCorrect": 10
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "domains": [
+    "cicd",
+    "cloud",
+    "containers",
+    "git",
+    "iac",
+    "kubernetes",
+    "linux",
+    "networking",
+    "observability",
+    "security"
+  ]
+}
