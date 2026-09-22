@@ -339,16 +339,23 @@
     save(s);
     var leveled = s.level > prevLevel;
     var result = {
+      type: event,
+      event: event,
       state: getState(),
       gained: amount,
       leveled: leveled,
       badges: newBadges,
       prevLevel: prevLevel,
+      meta: meta,
     };
 
     paintAll();
-    if (leveled) celebrateLevelUp(s.level);
-    else if (amount > 0) pulseHUD();
+    if (leveled) {
+      celebrateLevelUp(s.level);
+      try {
+        dispatch("il:game", { type: "level_up", event: "hud_level_up", level: s.level, prevLevel: prevLevel });
+      } catch (e0) {}
+    } else if (amount > 0) pulseHUD();
     if (newBadges.length) toastBadges(newBadges);
     dispatch("il:game", result);
     return result;

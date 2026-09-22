@@ -166,7 +166,7 @@
     global.document.addEventListener("il:game", function (ev) {
       var d = (ev && ev.detail) || {};
       if (d.type === "quest_claim" || d.event === "quest_claim") track("quest_claim", d);
-      if (d.type === "level_up" || d.event === "hud_level_up") track("hud_level_up", d);
+      if (d.type === "level_up" || d.event === "hud_level_up" || d.leveled) track("hud_level_up", d);
     });
 
     // Bridge lang picker

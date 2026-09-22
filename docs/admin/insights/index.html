@@ -1,23 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head>
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Insights · Admin — Interstitium Labs</title>
 <meta name="description" content="Local first-party analytics funnel, language mix, and iteration recommendations. No third-party required."/>
 <meta name="theme-color" content="#070B16"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/admin/insights/"
-<link rel="alternate" hreflang="en" href="https://interstitiumlabs.dev/admin/insights/?lang=en" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="es" href="https://interstitiumlabs.dev/admin/insights/?lang=es" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="pt-BR" href="https://interstitiumlabs.dev/admin/insights/?lang=pt-BR" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="fr" href="https://interstitiumlabs.dev/admin/insights/?lang=fr" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="de" href="https://interstitiumlabs.dev/admin/insights/?lang=de" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="zh-CN" href="https://interstitiumlabs.dev/admin/insights/?lang=zh-CN" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="ja" href="https://interstitiumlabs.dev/admin/insights/?lang=ja" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="ko" href="https://interstitiumlabs.dev/admin/insights/?lang=ko" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="hi" href="https://interstitiumlabs.dev/admin/insights/?lang=hi" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="ar" href="https://interstitiumlabs.dev/admin/insights/?lang=ar" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="x-default" href="https://interstitiumlabs.dev/admin/insights/" data-il-hreflang="1"/>/>
+<link rel="canonical" href="https://interstitiumlabs.dev/admin/insights/"/>
 <meta property="og:title" content="Insights · Admin — Interstitium Labs"/>
 <meta property="og:description" content="Local first-party analytics funnel and iteration recommendations."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/admin/insights/"/>
@@ -48,7 +37,7 @@
     </nav>
     <div class="flex items-center gap-2">
       <div data-il-lang-switcher class="no-print"></div>
-      <a href="/admin/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden" data-i18n="nav.admin">Admin</a>
+      <a href="/admin/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Admin</a>
     </div>
   </div>
 </header>
@@ -96,27 +85,6 @@
 <script src="/assets/il-analytics.js" defer></script>
 <script src="/assets/il-iterate.js" defer></script>
 <script src="/assets/il-i18n.js" defer></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  function paint() {
-    if (window.ILIterate) ILIterate.run();
-    if (window.ILIterate) ILIterate.render(document.getElementById("il-insights-root"));
-    var raw = document.getElementById("il-insights-raw");
-    if (raw && window.ILAnalytics) {
-      var buf = ILAnalytics.getBuffer().slice(-25).reverse();
-      raw.textContent = buf.length ? JSON.stringify(buf, null, 2) : "(empty — browse the site on this device)";
-    }
-  }
-  paint();
-  var r = document.getElementById("il-insights-refresh");
-  if (r) r.addEventListener("click", paint);
-  var c = document.getElementById("il-insights-clear");
-  if (c) c.addEventListener("click", function () {
-    if (!confirm("Clear local analytics buffer on this browser?")) return;
-    if (window.ILAnalytics) ILAnalytics.clearBuffer();
-    paint();
-  });
-});
-</script>
+<script src="/assets/il-insights-ui.js" defer></script>
 </body>
 </html>
