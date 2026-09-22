@@ -58,7 +58,7 @@ This document is the **threat model and control catalog**. Implement controls in
 
 ### 3.3 CSP-friendly asset loading
 
-- Prefer same-origin assets under `/assets/`, `/brand/`.
+- Prefer same-origin assets under `/assets/`, `/assets/chrome/`.
 - Third-party fonts (Google Fonts) are a known CSP friction — document any `style-src` / `font-src` exceptions; do not add trackers.
 - Capacitor `server.allowNavigation` / `allowNavigation` equivalent: **only** `interstitiumlabs.dev` and localhost for development.
 

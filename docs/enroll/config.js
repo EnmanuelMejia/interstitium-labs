@@ -10,7 +10,9 @@
  */
 window.IL_ENROLL = {
   currency: "USD",
-  paymentsLive: false, // flip to true only after live links are pasted and tested
+  paymentsLive: false,
+  waitlistMailto: "mailto:edmejia@pm.me?subject=Interstitium%20Labs%20waitlist",
+  // Flip paymentsLive to true only after live links are pasted and tested.
   disclaimer:
     "Checkout links are placeholders. Card and PayPal signup stay inactive until the operator pastes live Payment Link / PayPal URLs into this file and redeploys.",
   tiers: [

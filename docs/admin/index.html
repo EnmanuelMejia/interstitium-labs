@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<head>
+<meta name="robots" content="noindex,nofollow"/><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Admin — Interstitium Labs</title>
 <meta name="description" content="Operator console: GitHub edits, Cloudflare deploy, enroll config, Stripe/PayPal go-live checklist."/>
 <meta name="theme-color" content="#070B16"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/admin/"
+<link rel="canonical" href="https://interstitiumlabs.dev/admin/"/>
 <link rel="alternate" hreflang="en" href="https://interstitiumlabs.dev/admin/?lang=en" data-il-hreflang="1"/>
 <link rel="alternate" hreflang="es" href="https://interstitiumlabs.dev/admin/?lang=es" data-il-hreflang="1"/>
 <link rel="alternate" hreflang="pt-BR" href="https://interstitiumlabs.dev/admin/?lang=pt-BR" data-il-hreflang="1"/>
@@ -17,7 +18,7 @@
 <link rel="alternate" hreflang="ko" href="https://interstitiumlabs.dev/admin/?lang=ko" data-il-hreflang="1"/>
 <link rel="alternate" hreflang="hi" href="https://interstitiumlabs.dev/admin/?lang=hi" data-il-hreflang="1"/>
 <link rel="alternate" hreflang="ar" href="https://interstitiumlabs.dev/admin/?lang=ar" data-il-hreflang="1"/>
-<link rel="alternate" hreflang="x-default" href="https://interstitiumlabs.dev/admin/" data-il-hreflang="1"/>/>
+<link rel="alternate" hreflang="x-default" href="https://interstitiumlabs.dev/admin/" data-il-hreflang="1"/>
 <meta property="og:title" content="Admin — Interstitium Labs"/>
 <meta property="og:description" content="Operator console: GitHub edits, Cloudflare deploy, enroll config, Stripe/PayPal go-live checklist."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/admin/"/>
@@ -27,10 +28,11 @@
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
 <link rel="stylesheet" href="/assets/il-responsive.css"/>
+<link rel="stylesheet" href="/assets/il-compat.css"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/brand/icon-180.png"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
 <style>
   pre { overflow-x: auto; background: #0c1222; border: 1px solid rgba(232,238,245,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.55; color: #e8eef5; margin: 1rem 0; }
   code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85em; }
@@ -46,13 +48,18 @@
 
 </head>
 <body class="min-h-dvh bg-void text-paper">
+<div class="border-b border-gold/40 bg-gold/10 px-5 py-3 text-center" role="status">
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Operator only</p>
+  <p class="mt-1 text-sm text-muted">Not for students or recruiters. Put this path behind Cloudflare Access before go-live. See <a class="text-cyan hover:text-paper" href="/ops/BRAND-PRIVATE.md">ops notes</a>.</p>
+</div>
+
 <div class="flex min-h-dvh flex-col bg-void text-paper">
 <header class="no-print sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md" style="padding-top:env(safe-area-inset-top)">
   <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:h-16 sm:px-8">
     <a class="flex min-w-0 items-center text-paper" href="/">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/>
+      <img src="/assets/chrome/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/>
     </a>
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.index">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/learn/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/admin/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" aria-current="page" data-i18n="nav.admin">Admin</a><a href="/desk" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.desk">Desk</a></nav>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.index">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/superlab/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">SuperLab</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.enroll">Enroll</a></nav>
     <div data-il-lang-switcher class="no-print"></div>
     <a href="/admin/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden" data-i18n="nav.admin">Admin</a>
   </div>
@@ -120,12 +127,20 @@
 <footer class="no-print border-t border-paper/10">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
     <div class="flex items-start gap-4">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/>
+      <img src="/assets/chrome/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/>
     </div>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
       <span>interstitiumlabs.dev</span>
       <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/learn/skills/" class="hover:text-paper" data-i18n="nav.skills">Skills</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/admin/" class="hover:text-paper" data-i18n="nav.admin">Admin</a><a href="/paths/devsecops-mastery/" class="hover:text-paper">DevSecOps Mastery</a><a href="/paths/fde-training/" class="hover:text-paper">FDE Training</a><a href="/paths/nvidia-ai/" class="hover:text-paper">NVIDIA AI</a><a href="/ops/AUDIT.md" class="hover:text-paper">Audit</a><a href="/evidence/lawrence-enrollment/" class="hover:text-paper">Evidence</a></div>
+      <div class="flex flex-wrap gap-4 pt-2">
+        <a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a>
+        <a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a>
+        <a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a>
+        <a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a>
+        <a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a>
+        <a href="/labs/superlab/" class="hover:text-paper">SuperLab</a>
+        <a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a>
+      </div>
     </div>
   </div>
   <!-- lang switcher also auto-injected by ILi18n -->
@@ -133,6 +148,7 @@
 </div>
 
 <script src="/analytics/config.js" defer></script>
+<script src="/assets/il-compat.js" defer></script>
 <script src="/assets/il-analytics.js" defer></script>
 <script src="/assets/il-iterate.js" defer></script>
 <script src="/assets/il-i18n.js" defer></script>

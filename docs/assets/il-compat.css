@@ -1,0 +1,337 @@
+/**
+ * Interstitium Labs — cross-browser / OS / WebView compatibility layer
+ * Load after il-responsive.css. Does not replace fluid type or print rules.
+ * Targets: Chromium, Firefox, Safari 15+ (macOS/iOS/iPadOS), Samsung Internet,
+ * PWA standalone, Capacitor WebView.
+ */
+
+/* ---- Dynamic viewport units (dvh/svh/lvh) ---- */
+:root {
+  /* JS (il-compat.js) may set --il-vh to window.innerHeight/100; CSS fallbacks below */
+  --il-vh: 1vh;
+  --il-svh: 1svh;
+  --il-dvh: 1dvh;
+  --il-lvh: 1lvh;
+}
+
+/* When dvh unsupported, map utilities to vh / --il-vh */
+@supports not (height: 100dvh) {
+  .min-h-dvh,
+  body.min-h-dvh,
+  .flex.min-h-dvh {
+    min-height: 100vh;
+    min-height: calc(var(--il-vh, 1vh) * 100);
+  }
+  .h-dvh { height: 100vh; height: calc(var(--il-vh, 1vh) * 100); }
+  .max-h-\[70dvh\] {
+    max-height: 70vh;
+    max-height: calc(var(--il-vh, 1vh) * 70);
+  }
+  .min-h-\[calc\(100dvh-9\.5rem\)\] {
+    min-height: calc(100vh - 9.5rem);
+    min-height: calc(var(--il-vh, 1vh) * 100 - 9.5rem);
+  }
+  @media (min-width: 40rem) {
+    .sm\:min-h-\[calc\(100dvh-4rem\)\] {
+      min-height: calc(100vh - 4rem);
+      min-height: calc(var(--il-vh, 1vh) * 100 - 4rem);
+    }
+  }
+}
+
+/* Prefer svh for body chrome when available (stable mobile toolbar) */
+@supports (height: 100svh) {
+  body {
+    min-height: 100svh;
+  }
+}
+@supports (height: 100dvh) {
+  .min-h-dvh,
+  body.min-h-dvh,
+  .flex.min-h-dvh {
+    min-height: 100dvh;
+  }
+}
+
+/* Older Safari: overflow-x: clip → hidden */
+@supports not (overflow: clip) {
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
+/* ---- Backdrop filter (Safari / older Chromium / Firefox) ---- */
+.backdrop-blur-md,
+header.sticky,
+header.no-print.sticky,
+.bg-void\/80.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+/* Opaque fallback when backdrop-filter unavailable */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  header.sticky,
+  header.no-print.sticky,
+  .backdrop-blur-md {
+    background-color: rgba(7, 11, 22, 0.96) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ---- Flex gap fallback (pre–Safari 14.1 / rare WebViews) ---- */
+@supports not (gap: 1rem) {
+  .flex.gap-1 > :not(:last-child),
+  .inline-flex.gap-1 > :not(:last-child) { margin-inline-end: 0.25rem; }
+  .flex.gap-2 > :not(:last-child),
+  .inline-flex.gap-2 > :not(:last-child) { margin-inline-end: 0.5rem; }
+  .flex.gap-3 > :not(:last-child),
+  .inline-flex.gap-3 > :not(:last-child) { margin-inline-end: 0.75rem; }
+  .flex.gap-4 > :not(:last-child),
+  .inline-flex.gap-4 > :not(:last-child) { margin-inline-end: 1rem; }
+  .flex.gap-6 > :not(:last-child),
+  .inline-flex.gap-6 > :not(:last-child) { margin-inline-end: 1.5rem; }
+  .flex.gap-8 > :not(:last-child),
+  .inline-flex.gap-8 > :not(:last-child) { margin-inline-end: 2rem; }
+  .flex.gap-10 > :not(:last-child),
+  .inline-flex.gap-10 > :not(:last-child) { margin-inline-end: 2.5rem; }
+  .flex.flex-col.gap-2 > :not(:last-child),
+  .flex.flex-col.gap-4 > :not(:last-child),
+  .flex.flex-col.gap-6 > :not(:last-child),
+  .flex.flex-col.gap-8 > :not(:last-child) {
+    margin-inline-end: 0;
+  }
+  .flex.flex-col.gap-2 > :not(:last-child) { margin-bottom: 0.5rem; }
+  .flex.flex-col.gap-4 > :not(:last-child) { margin-bottom: 1rem; }
+  .flex.flex-col.gap-6 > :not(:last-child) { margin-bottom: 1.5rem; }
+  .flex.flex-col.gap-8 > :not(:last-child) { margin-bottom: 2rem; }
+}
+
+/* ---- aspect-ratio fallbacks ---- */
+@supports not (aspect-ratio: 1) {
+  .aspect-square,
+  .radar-wrap {
+    position: relative;
+    height: 0;
+    padding-bottom: 100%;
+  }
+  .aspect-square > *,
+  .radar-wrap > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .aspect-video {
+    position: relative;
+    height: 0;
+    padding-bottom: 56.25%;
+  }
+  .aspect-video > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ---- Input zoom (iOS Safari zooms if font-size < 16px) ---- */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.4;
+  }
+}
+
+/* ---- Tap delay / touch ---- */
+html {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(94, 234, 212, 0.12);
+}
+a, button, [role="button"], summary, label {
+  touch-action: manipulation;
+}
+/* Kill 300ms delay legacy path */
+a, button, input, select, textarea, label, summary {
+  -ms-touch-action: manipulation;
+}
+
+/* ---- Pointer / hover modalities ---- */
+@media (pointer: coarse) {
+  .il-touch,
+  a.il-touch,
+  button.il-touch,
+  .il-cta,
+  header nav a,
+  header .il-lang-btn,
+  .il-quest button,
+  footer a,
+  main a.inline-flex,
+  main button.inline-flex {
+    min-height: 48px;
+  }
+  /* Prefer larger hit slop on coarse pointers without growing visual chrome too much */
+  header nav a {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+}
+@media (hover: none) {
+  .il-surface:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  a:hover, button:hover {
+    /* intentional: keep existing Tailwind hover utilities */
+  }
+}
+
+/* ---- Keyboard focus rings (visible, high contrast) ---- */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--il-cyan, #5eead4);
+  outline-offset: 2px;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.il-lang-btn:focus-visible {
+  outline: 2px solid var(--il-cyan, #5eead4);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
+}
+
+/* ---- PWA standalone / Capacitor WebView ---- */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    /* header already pads; avoid double-padding if header present */
+  }
+  body:has(> .flex > header.sticky),
+  body:has(header.sticky) {
+    padding-top: 0;
+  }
+  header.sticky,
+  header.no-print.sticky {
+    padding-top: max(env(safe-area-inset-top, 0px), var(--il-safe-t, 0px));
+  }
+  footer.no-print,
+  .il-main-pad-mobile {
+    padding-bottom: calc(var(--il-mobile-nav-h, 4.25rem) + env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
+  @media (min-width: 1024px) {
+    footer.no-print {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    }
+    .il-main-pad-mobile { padding-bottom: 0; }
+  }
+}
+
+/* Capacitor / hybrid markers (set by il-compat.js when detected) */
+html.il-capacitor body,
+html.il-standalone body {
+  /* Status bar / notch clearance reinforced via safe-area env */
+}
+html.il-capacitor header.sticky,
+html.il-standalone header.sticky {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+html.il-capacitor #il-game-hud.il-hud,
+html.il-standalone #il-game-hud.il-hud,
+html.il-capacitor .il-hud,
+html.il-standalone .il-hud {
+  bottom: calc(var(--il-mobile-nav-h, 4.25rem) + env(safe-area-inset-bottom, 0px) + 0.75rem) !important;
+}
+
+/* ---- Landscape phones ---- */
+@media (max-height: 480px) and (orientation: landscape) {
+  header.sticky .h-14,
+  header.sticky .sm\:h-16 {
+    height: 2.75rem;
+  }
+  .il-hero-field,
+  [data-il-starfield] {
+    opacity: 0.35;
+  }
+  main .py-14,
+  main .sm\:py-20 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  #il-game-hud.il-hud,
+  .il-hud {
+    bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)) !important;
+    max-width: min(18rem, calc(100vw - 1rem));
+  }
+}
+
+/* ---- Narrow (320px) / foldable-ish ---- */
+@media (max-width: 360px) {
+  :root {
+    --il-readable-max: 100%;
+  }
+  .mx-auto.max-w-6xl,
+  .il-readable {
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+  header .px-5 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Dual-screen / foldable hint (when supported) */
+@media (horizontal-viewport-segments: 2) {
+  .il-readable,
+  .mx-auto.max-w-6xl {
+    max-width: env(viewport-segment-width 0 0, 100%);
+  }
+}
+
+/* ---- Ultrawide measure harden ---- */
+@media (min-width: 2560px) {
+  .il-readable,
+  .mx-auto.max-w-6xl {
+    max-width: min(100%, 88rem);
+  }
+  .il-prose-max {
+    max-width: 46rem;
+  }
+}
+
+/* ---- Reduced motion: do not fight il-motion; reinforce ---- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .il-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .backdrop-blur-md,
+  header.sticky {
+    transition: none !important;
+  }
+}
+
+/* ---- Print: keep existing responsive print; ensure compat doesn't print HUD ---- */
+@media print {
+  .il-hud,
+  #il-game-hud,
+  [data-il-starfield],
+  .il-hero-field {
+    display: none !important;
+  }
+}

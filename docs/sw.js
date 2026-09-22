@@ -11,11 +11,11 @@ const SHELL_URLS = [
   "/manifest.webmanifest",
   "/favicon.png",
   "/favicon.svg",
-  "/brand/icon-192.png",
-  "/brand/icon-512.png",
-  "/brand/icon-180.png",
-  "/brand/marks/il-sigil-os-512.png",
-  "/brand/marks/canonical-lockup.png",
+  "/assets/chrome/icon-192.png",
+  "/assets/chrome/icon-512.png",
+  "/assets/chrome/apple-touch.png",
+  "/assets/chrome/icon-maskable-512.png",
+  "/assets/chrome/canonical-lockup.png",
   "/assets/il-game.js",
   "/assets/il-motion.js",
   "/assets/il-motion.css",
@@ -107,7 +107,7 @@ self.addEventListener("fetch", (event) => {
     caches.match(req).then((hit) => {
       if (hit) return hit;
       return fetch(req).then((res) => {
-        if (res && res.ok && (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/brand/"))) {
+        if (res && res.ok && (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/assets/chrome/"))) {
           const copy = res.clone();
           caches.open(SHELL_CACHE).then((c) => c.put(req, copy));
         }

@@ -375,3 +375,42 @@ html[dir="rtl"] .il-hud {
     transition: none !important;
   }
 }
+
+/* ---- Compat hardenings (paired with il-compat.css) ---- */
+:root {
+  --il-vh: 1vh;
+}
+
+/* Ensure main content clears notch + bottom home indicator when padded */
+main.il-fluid-type,
+main.flex-1 {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Fixed bottom clearance utility for Capacitor / PWA mobile nav */
+.il-safe-bottom {
+  padding-bottom: calc(0.75rem + var(--il-safe-b));
+}
+.il-safe-top {
+  padding-top: calc(0.25rem + var(--il-safe-t));
+}
+
+/* Prevent horizontal scroll from 100vw + scrollbar / safe-area math */
+.il-hud,
+#il-game-hud {
+  box-sizing: border-box;
+}
+
+/* Landscape + short: keep readable measure */
+@media (max-height: 420px) and (orientation: landscape) {
+  .il-fluid-type h1,
+  main h1 {
+    font-size: clamp(1.5rem, 4vw + 1rem, 2.25rem);
+  }
+}
+
+/* Prefer-reduced-motion already in file; keep scroll snap soft */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
