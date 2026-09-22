@@ -571,10 +571,10 @@
         procPhase += dt * (8 + amp * 10);
         var procedural = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(procPhase));
         amp = Math.max(amp, mic.allowed ? ml : procedural);
-        glow = 0.55 + amp * 0.9;
+        glow = 0.75 + amp * 1.35;
         spin = state.time * 0.55;
         bob = Math.sin(state.time * 6) * (0.03 + amp * 0.08);
-        partAmp = 0.35 + amp * 0.8;
+        partAmp = 0.55 + amp * 1.1;
       } else if (state.status === 'thinking') {
         glow = 0.7 + 0.25 * Math.sin(state.time * 4);
         spin = state.time * 1.25;
@@ -584,7 +584,7 @@
       } else if (state.status === 'speaking') {
         var beat = Math.max(state.speakBeat, state.amp, 0.35 + 0.35 * Math.sin(state.time * 14));
         amp = beat;
-        glow = 0.85 + beat * 1.1;
+        glow = 1.05 + beat * 1.45;
         spin = state.time * 0.45;
         bob = Math.sin(state.time * 18) * (0.02 + beat * 0.06);
         partAmp = 0.45 + beat * 0.7;
@@ -671,9 +671,19 @@
       _destroy();
     };
 
-    /* Kick idle vitality immediately — first 3s feel alive */
-    api.pulseSpeak(0.4);
-    api.setAmplitude(0.2);
+    /* Kick idle vitality immediately — first 3s must feel alive on phone */
+    api.pulseSpeak(0.85);
+    api.setAmplitude(0.55);
+    try {
+      var t0 = Date.now();
+      var bootPulse = function () {
+        if (Date.now() - t0 > 3200) return;
+        api.pulseSpeak(0.35 + 0.4 * Math.random());
+        api.setAmplitude(0.25 + 0.35 * Math.random());
+        g.setTimeout(bootPulse, 280);
+      };
+      g.setTimeout(bootPulse, 180);
+    } catch (eBoot) {}
 
     return api;
   }
