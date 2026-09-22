@@ -34,3 +34,7 @@ Set `cloudflareBeaconToken` to a **real** token from Cloudflare → Web Analytic
 ```html
 <a href="/enroll/" data-il-track="enroll_click" data-il-exp="cta_enroll_copy" data-il-exp-b="Join the cohort">Enroll</a>
 ```
+
+
+## Events (2026-09-22)
+- `demo_path_complete` · `trending_open` · `exam_answer`
