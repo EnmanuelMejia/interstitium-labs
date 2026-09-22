@@ -193,6 +193,45 @@
   border-color: rgba(94, 234, 212, 0.85);
 }
 
+/* Dee monas avatar — original Hermetica-inspired SVG (cyan/gold/void). Not Meta. */
+.il-muse-avatar--dee {
+  background:
+    radial-gradient(circle at 40% 35%, rgba(212, 168, 83, 0.28), transparent 50%),
+    radial-gradient(circle at 65% 70%, rgba(94, 234, 212, 0.22), transparent 55%),
+    linear-gradient(145deg, #0c1220, #070b16);
+  padding: 0;
+  overflow: visible;
+}
+.il-muse-avatar__dee {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: block;
+  pointer-events: none;
+}
+.il-muse-avatar__glyph--fallback { display: none; }
+.il-muse-app[data-status="idle"] .il-muse-avatar--dee {
+  box-shadow: 0 0 14px rgba(94, 234, 212, 0.12);
+}
+.il-muse-app[data-status="thinking"] .il-muse-avatar--dee {
+  box-shadow: 0 0 22px rgba(94, 234, 212, 0.45), 0 0 4px rgba(94, 234, 212, 0.8);
+}
+.il-muse-app[data-status="listening"] .il-muse-avatar--dee {
+  box-shadow: 0 0 24px rgba(212, 168, 83, 0.5), 0 0 4px rgba(212, 168, 83, 0.85);
+}
+.il-muse-app[data-status="speaking"] .il-muse-avatar--dee {
+  box-shadow: 0 0 26px rgba(94, 234, 212, 0.55), 0 0 8px rgba(232, 197, 122, 0.35);
+}
+.il-muse-app[data-status="thinking"] .il-muse-avatar__dee,
+.il-muse-app[data-status="listening"] .il-muse-avatar__dee,
+.il-muse-app[data-status="speaking"] .il-muse-avatar__dee {
+  filter: drop-shadow(0 0 3px rgba(94, 234, 212, 0.45));
+}
+.il-muse-app[data-status="listening"] .il-muse-avatar__dee {
+  filter: drop-shadow(0 0 4px rgba(212, 168, 83, 0.65));
+}
+
+
 .il-muse-header__meta { min-width: 0; flex: 1; }
 .il-muse-header__name {
   font-family: var(--muse-display);
@@ -699,6 +738,12 @@
   .il-muse-avatar__ring,
   .il-muse-mic.is-listening {
     animation: none !important;
+  }
+  .il-muse-avatar__dee {
+    filter: none !important;
+  }
+  .il-muse-avatar--dee {
+    box-shadow: 0 0 10px rgba(94, 234, 212, 0.12) !important;
   }
 }
 

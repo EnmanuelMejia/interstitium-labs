@@ -1,9 +1,9 @@
 /**
- * IL Frontier Tracks — MIT / LinkedIn / X ingest UI
+ * Interstitium Labs — Frontier Tracks (MIT · LinkedIn · X)
  * Catalog: /assets/il-trending-catalog.json
- * Join: course.frontierTrackIds ↔ il-paths.json frontier_track_ids[]
- * Brand: Interstitium cyan/gold/void + lockup language — do NOT Meta-skin.
- * Muse: deep-link /coach/ only; never mutate il-muse*.
+ * Join: course.frontierTrackIds ↔ il-paths.json paths[].frontier_track_ids[]
+ * Brand: Interstitium lockup + cyan/gold/void — never Meta-skin.
+ * Muse: deep-link /coach/ only; do not edit il-muse* (Muse-mobile owns that shell).
  */
 (function (global) {
   "use strict";
@@ -12,12 +12,20 @@
   var SCORES_KEY = "il.frontier.scores.v1";
   var cache = null;
 
-  function track(name, props) {
+  function analyticsTrack(name, props) {
     try {
       if (global.ILAnalytics && typeof global.ILAnalytics.track === "function") {
         global.ILAnalytics.track(name, props || {});
       }
     } catch (e) {}
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function readScores() {
@@ -59,22 +67,8 @@
     row[field] = (row[field] || 0) + 1;
     recompute(row);
     writeScores(scores);
-    var props = Object.assign({ courseId: id, score: row.score }, extra || {});
-    track(eventName, props);
-    try {
-      global.document.dispatchEvent(
-        new CustomEvent("il:frontier", { detail: { id: id, field: field, row: row } })
-      );
-    } catch (e) {}
+    analyticsTrack(eventName, Object.assign({ courseId: id, score: row.score }, extra || {}));
     return row;
-  }
-
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
   }
 
   function loadCatalog() {
@@ -100,6 +94,28 @@
     });
   }
 
+  function filterCourses(courses, opts) {
+    opts = opts || {};
+    var src = opts.source || "all";
+    var q = (opts.q || "").toLowerCase();
+    var trackId = opts.track || "";
+    return courses.filter(function (c) {
+      if (src !== "all" && c.source !== src) return false;
+      if (trackId && (c.frontierTrackIds || []).indexOf(trackId) < 0) return false;
+      if (!q) return true;
+      var blob = (
+        c.title +
+        " " +
+        (c.topics || []).join(" ") +
+        " " +
+        (c.frontierTrackIds || []).join(" ") +
+        " " +
+        (c.courseId || "")
+      ).toLowerCase();
+      return blob.indexOf(q) >= 0;
+    });
+  }
+
   function sourceBadge(src) {
     if (src === "mit") return "MIT";
     if (src === "linkedin") return "LinkedIn";
@@ -117,20 +133,30 @@
       parts.push('<a class="text-cyan hover:text-paper" href="/labs/superlab/">Lab</a>');
     }
     if (o.indexOf("muse") >= 0) {
-      parts.push('<a class="text-cyan hover:text-paper" href="/coach/" data-il-frontier-muse="' + esc(c.id) + '">Lab Muse</a>');
+      parts.push(
+        '<a class="text-cyan hover:text-paper" href="/coach/" data-il-frontier-muse="' +
+          esc(c.id) +
+          '">Lab Muse</a>'
+      );
     }
     if (c.mapTarget) {
-      parts.push('<a class="text-gold hover:text-paper" href="' + esc(c.mapTarget) + '">Path map</a>');
+      parts.push(
+        '<a class="text-gold hover:text-paper" href="' + esc(c.mapTarget) + '">Path map</a>'
+      );
     }
-    return parts.join(" · ");
+    return parts.join(" · ") || "—";
   }
 
   function cardHTML(c, rank) {
     var scores = readScores();
     var row = scores.byId[c.id] || {};
     var ids = (c.frontierTrackIds || []).join(", ");
+    var promoted =
+      rank <= 3 && (row.score || 0) > 0
+        ? '<span class="rounded border border-gold/40 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.14em] text-gold">Promoted</span>'
+        : "";
     return (
-      '<article class="il-frontier-card rounded-xl border border-paper/10 bg-panel p-5 shadow-[0_0_0_1px_rgba(232,238,245,0.06)] sm:p-6" data-frontier-id="' +
+      '<article class="il-frontier-card rounded-xl border border-paper/10 bg-panel p-5 sm:p-6" data-frontier-id="' +
       esc(c.id) +
       '" data-source="' +
       esc(c.source) +
@@ -140,19 +166,17 @@
       esc(sourceBadge(c.source)) +
       (c.courseId ? " · " + esc(c.courseId) : "") +
       "</p>" +
-      (rank <= 3 && (row.score || 0) > 0
-        ? '<span class="rounded border border-gold/40 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-[0.14em] text-gold">Promoted</span>'
-        : "") +
+      promoted +
       "</div>" +
       '<h3 class="mt-2 font-display text-xl tracking-[-0.02em] text-paper">' +
       esc(c.title) +
       "</h3>" +
       '<p class="mt-1 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted">' +
-      esc(c.level || "") +
+      esc(c.level) +
       (c.term ? " · " + esc(c.term) : "") +
       "</p>" +
       '<p class="mt-3 text-sm text-muted">' +
-      esc(c.whyAdvanced || "") +
+      esc(c.whyAdvanced) +
       "</p>" +
       '<p class="mt-3 font-mono text-[0.58rem] text-muted">Join: ' +
       esc(ids) +
@@ -183,29 +207,72 @@
       " · done " +
       (row.completes || 0) +
       "</p>" +
+      (c.note ? '<p class="mt-2 text-[0.7rem] text-muted">' + esc(c.note) + "</p>" : "") +
       "</article>"
     );
   }
 
-  function filterCourses(courses, opts) {
-    opts = opts || {};
-    var src = opts.source || "all";
-    var q = (opts.q || "").toLowerCase();
-    var track = opts.track || "";
-    return courses.filter(function (c) {
-      if (src !== "all" && c.source !== src) return false;
-      if (track && (c.frontierTrackIds || []).indexOf(track) < 0) return false;
-      if (!q) return true;
-      var blob = (
-        c.title +
-        " " +
-        (c.topics || []).join(" ") +
-        " " +
-        (c.frontierTrackIds || []).join(" ") +
-        " " +
-        (c.courseId || "")
-      ).toLowerCase();
-      return blob.indexOf(q) >= 0;
+  function bindOnce(el, opts) {
+    if (el.getAttribute("data-il-frontier-bound") === "1") return;
+    el.setAttribute("data-il-frontier-bound", "1");
+    el.addEventListener("click", function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var ext = t.closest("[data-il-frontier-ext]");
+      if (ext) {
+        bump(ext.getAttribute("data-il-frontier-ext"), "clicks", "frontier_click", {
+          href: ext.getAttribute("href"),
+        });
+        return;
+      }
+      var done = t.closest("[data-il-frontier-complete]");
+      if (done) {
+        ev.preventDefault();
+        bump(done.getAttribute("data-il-frontier-complete"), "completes", "frontier_complete");
+        el.removeAttribute("data-il-frontier-bound");
+        render(el, opts);
+        return;
+      }
+      var up = t.closest("[data-il-frontier-up]");
+      if (up) {
+        ev.preventDefault();
+        bump(up.getAttribute("data-il-frontier-up"), "up", "frontier_thumb_up");
+        el.removeAttribute("data-il-frontier-bound");
+        render(el, opts);
+        return;
+      }
+      var down = t.closest("[data-il-frontier-down]");
+      if (down) {
+        ev.preventDefault();
+        bump(down.getAttribute("data-il-frontier-down"), "down", "frontier_thumb_down");
+        el.removeAttribute("data-il-frontier-bound");
+        render(el, opts);
+        return;
+      }
+      var muse = t.closest("[data-il-frontier-muse]");
+      if (muse) {
+        bump(muse.getAttribute("data-il-frontier-muse"), "opens", "frontier_click", {
+          overlay: "muse",
+        });
+        return;
+      }
+      var filt = t.closest(".il-frontier-filter");
+      if (filt) {
+        ev.preventDefault();
+        opts.source = filt.getAttribute("data-src") || "all";
+        el.removeAttribute("data-il-frontier-bound");
+        render(el, opts);
+      }
+    });
+    el.addEventListener("input", function (ev) {
+      var t = ev.target;
+      if (!t || t.getAttribute("data-il-frontier-q") === null) return;
+      if (t._ilFrontierTimer) clearTimeout(t._ilFrontierTimer);
+      t._ilFrontierTimer = setTimeout(function () {
+        opts.q = t.value || "";
+        el.removeAttribute("data-il-frontier-bound");
+        render(el, opts);
+      }, 180);
     });
   }
 
@@ -217,12 +284,14 @@
     return loadCatalog()
       .then(function (cat) {
         var list = sortCourses(filterCourses(cat.courses || [], opts));
+        var counts = cat.counts || {};
         var html = "";
         html +=
-          '<div class="mb-6 flex flex-wrap items-end justify-between gap-3">' +
-          '<div><p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold" data-i18n="frontier.kicker">Frontier · MIT · LinkedIn · X</p>' +
-          '<p class="mt-2 text-sm text-muted" data-i18n="frontier.lede">External advanced courses mapped onto path <code class="text-cyan">frontier_track_ids</code>. We link out — we do not pirate video.</p></div>' +
-          '<p class="font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted" data-il-frontier-refreshed>Refreshed ' +
+          '<div class="mb-6 flex flex-wrap items-end justify-between gap-3"><div>' +
+          '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold" data-i18n="frontier.kicker">Frontier · MIT · LinkedIn · X</p>' +
+          '<p class="mt-2 max-w-2xl text-sm text-muted" data-i18n="frontier.lede">External advanced courses joined to path <code class="text-cyan">frontier_track_ids</code>. We link out — we do not pirate video. Exceed path IA stays primary.</p>' +
+          "</div>" +
+          '<p class="font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted">' +
           esc(cat.refreshedAtLabel || cat.refreshedAt || "") +
           "</p></div>";
         html +=
@@ -236,16 +305,16 @@
         html +=
           '<p class="mb-4 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted">' +
           list.length +
-          " courses · MIT " +
-          ((cat.counts && cat.counts.mit) || 0) +
+          " shown · MIT " +
+          (counts.mit || 0) +
           " · LinkedIn " +
-          ((cat.counts && cat.counts.linkedin) || 0) +
+          (counts.linkedin || 0) +
           " · X " +
-          ((cat.counts && cat.counts.x) || 0) +
+          (counts.x || 0) +
           "</p>";
         if (!list.length) {
           html +=
-            '<p class="text-sm text-muted">No courses match. Clear filters or refresh catalog.</p>';
+            '<p class="text-sm text-muted">No courses match. Clear filters or refresh the catalog.</p>';
         } else {
           html += '<div class="grid gap-4 lg:grid-cols-2">';
           list.forEach(function (c, i) {
@@ -254,87 +323,31 @@
           html += "</div>";
         }
         html +=
-          '<p class="mt-8 text-xs text-muted">Musk honesty: cite source URLs, label LinkedIn login gaps, never invent MIT course numbers. Interstitium chrome stays cyan/gold/void — Lab Muse mobile shell is a sibling surface.</p>';
+          '<p class="mt-8 text-xs text-muted">Honesty bar: cite URLs, label LinkedIn login gaps, never invent MIT numbers. Chrome stays Interstitium cyan/gold/void — Lab Muse mobile shell is owned elsewhere.</p>';
         el.innerHTML = html;
-        track("frontier_open", {
+        analyticsTrack("frontier_open", {
           count: list.length,
           source: opts.source || "all",
           track: opts.track || null,
         });
-        bind(el, opts);
+        bindOnce(el, opts);
       })
       .catch(function (err) {
         el.innerHTML =
-          '<p class="text-sm text-muted">Frontier catalog failed to load. Check <code class="text-cyan">/assets/il-trending-catalog.json</code>.</p>';
-        track("frontier_open", { error: String(err && err.message) });
+          '<p class="text-sm text-muted">Frontier catalog failed to load (<code class="text-cyan">/assets/il-trending-catalog.json</code>).</p>';
+        analyticsTrack("frontier_open", { error: String(err && err.message) });
       });
-  }
-
-  function bind(el, opts) {
-    el.addEventListener("click", function (ev) {
-      var t = ev.target;
-      if (!t || !t.closest) return;
-      var ext = t.closest("[data-il-frontier-ext]");
-      if (ext) {
-        bump(ext.getAttribute("data-il-frontier-ext"), "clicks", "frontier_click", {
-          href: ext.getAttribute("href"),
-        });
-        return;
-      }
-      var done = t.closest("[data-il-frontier-complete]");
-      if (done) {
-        bump(done.getAttribute("data-il-frontier-complete"), "completes", "frontier_complete");
-        render(el, opts);
-        return;
-      }
-      var up = t.closest("[data-il-frontier-up]");
-      if (up) {
-        bump(up.getAttribute("data-il-frontier-up"), "up", "frontier_thumb_up");
-        render(el, opts);
-        return;
-      }
-      var down = t.closest("[data-il-frontier-down]");
-      if (down) {
-        bump(down.getAttribute("data-il-frontier-down"), "down", "frontier_thumb_down");
-        render(el, opts);
-        return;
-      }
-      var muse = t.closest("[data-il-frontier-muse]");
-      if (muse) {
-        bump(muse.getAttribute("data-il-frontier-muse"), "opens", "frontier_click", {
-          overlay: "muse",
-        });
-        return;
-      }
-      var filt = t.closest(".il-frontier-filter");
-      if (filt) {
-        opts.source = filt.getAttribute("data-src") || "all";
-        render(el, opts);
-      }
-    });
-    var q = el.querySelector("[data-il-frontier-q]");
-    if (q) {
-      var timer = null;
-      q.addEventListener("input", function () {
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-          opts.q = q.value || "";
-          render(el, opts);
-        }, 180);
-      });
-    }
   }
 
   function mountAll() {
     var nodes = global.document.querySelectorAll("[data-il-frontier]");
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      var opts = {
+      render(n, {
         source: n.getAttribute("data-source") || "all",
         track: n.getAttribute("data-track") || "",
         q: "",
-      };
-      render(n, opts);
+      });
     }
   }
 
@@ -346,16 +359,12 @@
     });
   }
 
-  function getScores() {
-    return readScores();
-  }
-
   global.ILTrending = {
     loadCatalog: loadCatalog,
     render: render,
     mountAll: mountAll,
     coursesForTrack: coursesForTrack,
-    getScores: getScores,
+    getScores: readScores,
     bump: bump,
   };
 

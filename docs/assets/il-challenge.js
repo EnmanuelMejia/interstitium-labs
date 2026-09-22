@@ -1,34 +1,55 @@
-(function(g){'use strict';
-var EVIDENCE='il.evidence.feed.v1',DONE='il.challenge.done.v1';
-var CH=[
-{id:'cotd-kind-get',title:'Verify SuperLab workloads',peer:'vs KodeKloud rented sandbox — verify on YOUR clone',steps:['git clone https://github.com/EnmanuelMejia/devops-superlab && cd devops-superlab','make kind-up','kubectl -n superlab-dev get deploy,svc,hpa'],expect:'deploy/svc/hpa in superlab-dev',remediate:'/labs/superlab/#quickstart',path:'/paths/k8s-cka-exceed/'},
-{id:'cotd-kustomize',title:'Explain one Kustomize overlay',peer:'vs video walkthrough — 60s verbal proof',steps:['Open overlays/ in SuperLab','List patches in one overlay','Say aloud: base vs overlay + blast radius'],expect:'Name base vs overlay + one risky patch',remediate:'/labs/superlab/#map',path:'/paths/iac-terraform-gitops/'},
-{id:'cotd-argocd',title:'GitOps sync narrative',peer:'Portfolio story on inspectable repo',steps:['Skim Argo targets in SuperLab','Write 5 bullets: source→sync→health→drift→rollback','Link one bullet to repo map path'],expect:'5-bullet sync story, no fake tenure',remediate:'/labs/superlab/#map',path:'/paths/platform-sre/'},
-{id:'cotd-policy',title:'Policy gate explain',peer:'vs Security+ trivia',steps:['Find Gatekeeper/Conftest in SuperLab docs','Name one policy intent','STAR: fail-closed if gate wrong'],expect:'One intent + fail-closed sentence',remediate:'/labs/superlab/#stack',path:'/paths/secops-blue-team/'},
-{id:'cotd-cidr',title:'CIDR for lab VPC story',peer:'vs ALEKS worksheet — ops-bound',steps:['Open /adapt/ networking fringe','Design a /24 on paper','State usable hosts'],expect:'Usable-host intuition + design sentence',remediate:'/paths/aleks-ops-math/',path:'/adapt/#session'},
-{id:'cotd-linux',title:'systemd failure trace',peer:'vs RHCSA VM hour — RCA today',steps:['Pick failed unit scenario','Order: status→journal→config→hypothesis','Map to SuperLab host assumption'],expect:'Ordered four-step trace',remediate:'/paths/linux-rhcsa-spine/',path:'/adapt/#session'},
-{id:'cotd-py',title:'Automate one verify check',peer:'vs Codecademy toy loop',steps:['Sketch 10–20 line Python that prints/runs kubectl get','Exit non-zero if empty','Note path in evidence'],expect:'Fail-on-empty intent',remediate:'/paths/python-systems/',path:'/labs/challenge/'}
-];
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function today(){return CH[Math.floor(Date.now()/86400000)%CH.length];}
-function loadDone(){try{return JSON.parse(g.localStorage.getItem(DONE)||'{}')||{};}catch(e){return{};}}
-function mark(id){var d=loadDone();d[id]=Date.now();try{g.localStorage.setItem(DONE,JSON.stringify(d));}catch(e){}}
-function push(text,href){var f=[];try{f=JSON.parse(g.localStorage.getItem(EVIDENCE)||'[]')||[];}catch(e){f=[];}f.unshift({t:Date.now(),text:text,href:href||'/labs/challenge/'});if(f.length>40)f.length=40;try{g.localStorage.setItem(EVIDENCE,JSON.stringify(f));}catch(e2){}}
-function feed(){try{return JSON.parse(g.localStorage.getItem(EVIDENCE)||'[]')||[];}catch(e){return[];}}
-function copy(text,btn){function ok(){if(btn){var p=btn.textContent;btn.textContent='Copied';setTimeout(function(){btn.textContent=p;},1200);}}if(g.navigator&&g.navigator.clipboard)g.navigator.clipboard.writeText(text).then(ok).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){}ta.remove();});}
-function paintC(root){var c=today(),done=!!loadDone()[c.id];root.innerHTML='';root.className='il-challenge';
-root.innerHTML='<p class="il-kicker">SuperLab · Challenge of the Day</p><h2 class="mt-2 font-display text-3xl tracking-[-0.02em]">'+esc(c.title)+'</h2><p class="mt-3 text-sm text-muted">'+esc(c.peer)+'</p><p class="mt-2 font-mono text-[0.58rem] uppercase tracking-[0.16em] text-gold">UTC · '+esc(c.id)+(done?' · done locally':'')+'</p>';
-var ol=document.createElement('ol');ol.className='il-challenge-steps mt-6';
-c.steps.forEach(function(step,i){var li=document.createElement('li');li.className='il-challenge-step';var head=document.createElement('div');head.className='il-challenge-step-head';head.innerHTML='<span class="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-cyan">Step '+(i+1)+'</span>';var b=document.createElement('button');b.type='button';b.className='il-challenge-copy';b.textContent='Copy';b.addEventListener('click',function(){copy(step,b);});head.appendChild(b);var pre=document.createElement('pre');pre.className='il-challenge-pre';pre.textContent=step;li.appendChild(head);li.appendChild(pre);ol.appendChild(li);});
-root.appendChild(ol);
-var ex=document.createElement('p');ex.className='mt-5 text-sm text-muted';ex.innerHTML='<strong class="text-paper">Expect:</strong> '+esc(c.expect);root.appendChild(ex);
-var act=document.createElement('div');act.className='mt-6 flex flex-wrap gap-3';
-var complete=document.createElement('button');complete.type='button';complete.className='inline-flex h-11 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void';complete.textContent=done?'Completed · log again':'Mark complete (local)';
-complete.addEventListener('click',function(){mark(c.id);push('CotD: '+c.title,'/labs/challenge/');if(g.ILGame&&g.ILGame.award)try{g.ILGame.award('challenge_day');}catch(e){}paintC(root);paintF(document.querySelector('[data-il-evidence-feed]'));});
-act.appendChild(complete);
-[['Remediate',c.remediate,'border-cyan/40 text-cyan'],['Related path',c.path,'border-paper/15 text-paper'],['Ask Muse','/coach/?q=Help%20verify%20without%20spoilers','border-gold/40 text-gold']].forEach(function(x){var a=document.createElement('a');a.href=x[1];a.className='inline-flex h-11 items-center rounded-lg border px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] '+x[2];a.textContent=x[0];act.appendChild(a);});
-root.appendChild(act);}
-function paintF(root){if(!root)return;var f=feed();root.className='il-evidence-feed';root.innerHTML='<p class="il-kicker">Lab evidence · local proof-of-work</p><p class="mt-2 text-sm text-muted">Your browser only. No fake classmates.</p>';if(!f.length){root.innerHTML+='<p class="mt-4 text-sm text-muted">No events yet — CotD or Instant Demo.</p>';return;}var ul=document.createElement('ul');ul.className='il-evidence-list mt-4';f.slice(0,12).forEach(function(ev){var li=document.createElement('li');li.innerHTML='<time class="font-mono text-[0.55rem] uppercase tracking-[0.14em] text-gold">'+esc(new Date(ev.t).toLocaleString())+'</time><a class="text-sm text-paper hover:text-cyan" href="'+esc(ev.href||'#')+'">'+esc(ev.text)+'</a>';ul.appendChild(li);});root.appendChild(ul);}
-function boot(){document.querySelectorAll('[data-il-challenge]').forEach(paintC);paintF(document.querySelector('[data-il-evidence-feed]'));}
-g.ILChallenge={boot:boot,today:today,pushEvidence:push};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})(typeof window!=='undefined'?window:this);
+/**
+ * SuperLab Challenge of the Day — copy-paste verify + local proof feed.
+ * Storage: il.challenge.done.v1, il.evidence.feed.v1  Mount: [data-il-challenge]
+ */
+(function (g) {
+  'use strict';
+  var DONE = 'il.challenge.done.v1';
+  var EVIDENCE = 'il.evidence.feed.v1';
+  function dayKey() {
+    var d = new Date();
+    var start = new Date(Date.UTC(2026, 0, 1));
+    var day = Math.floor((d - start) / 86400000);
+    return day;
+  }
+  var CHALLENGES = [
+    { id: 'cotd-kind-get', title: 'Namespace inventory', steps: ['cd devops-superlab (or your clone)', 'make kind-up  # if cluster not up', 'kubectl -n superlab-dev get deploy,svc,hpa'], prove: 'Paste: you see deploy + svc lines (or honest empty if not provisioned yet).' },
+    { id: 'cotd-kustomize', title: 'Kustomize dry-run', steps: ['kustomize build overlays/dev | head -n 40', 'OR: kubectl kustomize overlays/dev | head -n 40'], prove: 'Manifest heads show Namespace / Deployment without secrets in plain text.' },
+    { id: 'cotd-argo', title: 'GitOps sync story', steps: ['Open Argo CD UI or CLI for the SuperLab app', 'Explain OutOfSync vs Synced in one sentence'], prove: 'Write: source of truth is Git; live edits are drift.' },
+    { id: 'cotd-gatekeeper', title: 'Policy deny demo', steps: ['kubectl apply -f apps/demo/ (or policy sample)', 'Watch admit deny for privileged pod'], prove: 'Note the constraint name that denied the object.' },
+    { id: 'cotd-gha', title: 'CI graph', steps: ['Open .github/workflows in SuperLab', 'Name the job that builds or lints'], prove: 'Job name + one honest limitation (no cloud deploy required).' }
+  ];
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function loadDone() { try { return JSON.parse(g.localStorage.getItem(DONE) || '{}') || {}; } catch (e) { return {}; } }
+  function saveDone(d) { try { g.localStorage.setItem(DONE, JSON.stringify(d)); } catch (e) {} }
+  function pushEvidence(text) {
+    try { var feed = JSON.parse(g.localStorage.getItem(EVIDENCE) || '[]') || []; feed.unshift({ t: Date.now(), kind: 'challenge', text: text }); if (feed.length > 48) feed.length = 48; g.localStorage.setItem(EVIDENCE, JSON.stringify(feed)); } catch (e) {}
+  }
+  function todayChallenge() { return CHALLENGES[Math.abs(dayKey()) % CHALLENGES.length]; }
+  function paint(root) {
+    var ch = todayChallenge();
+    var done = loadDone();
+    var isDone = !!done[ch.id];
+    var html = '<div class="il-challenge"><p class="il-kicker">Challenge of the Day</p><h3 class="mt-2 font-display text-2xl">' + esc(ch.title) + '</h3><p class="mt-2 text-sm text-muted">One deep SuperLab rhythm — not a fake fleet. Mark done only if you actually ran or honestly simulated the steps.</p><ol class="il-challenge-steps mt-5">';
+    ch.steps.forEach(function (s, i) {
+      html += '<li class="il-challenge-step"><div class="il-challenge-step-head"><span class="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-gold">Step ' + (i + 1) + '</span><button type="button" class="il-challenge-copy" data-copy="' + esc(s) + '">Copy</button></div><pre class="il-challenge-pre">' + esc(s) + '</pre></li>';
+    });
+    html += '</ol><p class="mt-4 text-sm text-muted"><strong class="text-paper">Prove:</strong> ' + esc(ch.prove) + '</p>';
+    html += '<div class="mt-5 flex flex-wrap gap-3"><button type="button" class="inline-flex h-10 items-center rounded-lg ' + (isDone ? 'border border-cyan/40 text-cyan' : 'bg-paper text-void') + ' px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em]" data-il-challenge-done>' + (isDone ? 'Done ✓' : 'Mark verified') + '</button><a href="/labs/superlab/" class="inline-flex h-10 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-paper">SuperLab hub</a><a href="/proof/" class="inline-flex h-10 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-paper">Export proof</a></div></div>';
+    root.innerHTML = html;
+    root.querySelectorAll('[data-copy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var t = btn.getAttribute('data-copy');
+        if (g.navigator && g.navigator.clipboard && g.navigator.clipboard.writeText) g.navigator.clipboard.writeText(t);
+        btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1200);
+      });
+    });
+    var mark = root.querySelector('[data-il-challenge-done]');
+    if (mark) mark.addEventListener('click', function () {
+      var d = loadDone(); d[ch.id] = Date.now(); saveDone(d); pushEvidence('CotD verified: ' + ch.title); if (g.ILGame && g.ILGame.award) try { g.ILGame.award('cotd', 10, { id: 'cotd:' + ch.id }); } catch (e) {} paint(root);
+    });
+  }
+  function boot() { var nodes = document.querySelectorAll('[data-il-challenge]'); for (var i = 0; i < nodes.length; i++) paint(nodes[i]); }
+  g.ILChallenge = { boot: boot, paint: paint, todayChallenge: todayChallenge };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})(typeof window !== 'undefined' ? window : this);
