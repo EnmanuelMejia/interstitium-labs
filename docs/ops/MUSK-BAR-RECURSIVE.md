@@ -1,6 +1,6 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-09-22 ~00:25 EDT._  
+_Last updated: 2026-09-22 ~00:41 EDT._  
 _Live:_ https://interstitiumlabs.dev
 
 ## Verdict
@@ -15,7 +15,7 @@ _Live:_ https://interstitiumlabs.dev
 | Dimension | Before | After | Notes |
 |---|---:|---:|---|
 | First-glance wow | 5 | 7.5 | `/demo/` real path |
-| Motion / graphics | 6 | 6 | P0 surfaces |
+| Motion / graphics | 6 | 7 | Immersive 3D scaffold (procedural); Blender/Unreal still required for YES |
 | Adaptive learning | 7 | 7 | CAT+fringe |
 | Live labs density | 3 | 5.5 | CotD rhythm |
 | Coach / Muse | 4 | 6 | `/coach/` Muse+router |
@@ -24,7 +24,7 @@ _Live:_ https://interstitiumlabs.dev
 | Honesty / trust | 9 | 9 | Matrix LOSE labels |
 | Mobile / ultrawide | 6 | 6 | Lockup P0 |
 
-**Composite ~6.4/10. Musk YES? NO.**
+**Composite ~6.5/10. Musk YES? NO.** — 3D-first law documented; CSS≠3D.
 
 ## TOP ships
 
@@ -35,3 +35,18 @@ _Live:_ https://interstitiumlabs.dev
 5. Exam `/exam/` · Hire OS `/os/` · Proof `/proof/` · Muse blend
 
 Do not claim yes while fleet is one SuperLab.
+
+
+## Immersive 3D gate (product law)
+
+**Not using Blender/Unreal (or Blender → glTF → Godot/Three) = fail Elon test.**
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| CSS cards as “3D” | **NO** | Flat chrome ≠ spatial curriculum |
+| Skip Blender/Unreal authoring forever | **NO** | Recursive fail — document, do not wallpaper |
+| `il-immersive-3d` + dual pipeline scaffold | Closer | Procedural Three-class stages ship; real `.glb` / Pixel Streaming still required for YES |
+
+See `IMMERSIVE-3D-CURRICULUM.md` · `UNREAL-AND-BLENDER-PIPELINE.md`.  
+Muse avatar (`il-muse-3d`) ≠ curriculum scenes (`il-immersive-3d`).
+

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; frame-src 'self' https:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Immersive 3D — Interstitium Labs</title>
+<meta name="description" content="3D-first curriculum stages: lectures, cert labs, simulations, non-cert. WebGL now; Blender glTF + Unreal Pixel Streaming pipeline documented."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/immersive/"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-immersive.css"/>
+<link rel="stylesheet" href="/assets/il-muse-3d.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<header class="sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md">
+  <div class="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
+    <a href="/" class="flex items-center text-paper">
+      <img src="/assets/chrome/canonical-lockup.png" alt="Interstitium Labs" class="h-12 w-auto object-contain" width="178" height="80" decoding="async"/>
+    </a>
+    <nav class="hidden gap-3 text-[0.65rem] uppercase tracking-[0.16em] text-muted sm:flex">
+      <a class="hover:text-paper" href="/learn/">Learn</a>
+      <a class="hover:text-paper" href="/labs/">Labs</a>
+      <a class="hover:text-paper" href="/coach/">Lab Muse</a>
+      <a class="text-paper" href="/immersive/" aria-current="page">Immersive</a>
+    </nav>
+  </div>
+</header>
+<main class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">3D-first · WebGL · Blender · Unreal</p>
+  <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Curriculum immersive stages.</h1>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage today. Author in <strong class="text-paper">Blender</strong> (glTF) or stream <strong class="text-paper">Unreal</strong> via Pixel Streaming when a signaling URL exists. Skipping Blender/Unreal is a Musk-gate fail — web procedural is the ship path that does not block on GPU install. <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline docs</a> · <a class="text-cyan" href="/coach/">voice Muse 3D</a>.</p>
+
+  <div class="mt-10 grid gap-6 lg:grid-cols-2">
+    <div>
+      <h2 class="font-display text-lg text-gold">Lecture</h2>
+      <div class="mt-3" data-il-immersive data-kind="lecture" data-title="Lecture stage"></div>
+    </div>
+    <div>
+      <h2 class="font-display text-lg text-gold">Cert lab</h2>
+      <div class="mt-3" data-il-immersive data-kind="cert" data-title="Cert lab stage"></div>
+    </div>
+    <div>
+      <h2 class="font-display text-lg text-gold">Simulation</h2>
+      <div class="mt-3" data-il-immersive data-kind="sim" data-title="Simulation stage"></div>
+    </div>
+    <div>
+      <h2 class="font-display text-lg text-gold">Non-cert / open lab</h2>
+      <div class="mt-3" data-il-immersive data-kind="non-cert" data-title="Open lab stage"></div>
+    </div>
+  </div>
+
+  <section class="mt-12 rounded-xl border border-paper/10 bg-ink/40 p-6">
+    <h2 class="font-display text-xl">Unreal Pixel Streaming stub</h2>
+    <p class="mt-2 text-sm text-muted">No signaling URL configured — honest stub. Set <code class="text-cyan">data-ps-signaling</code> when UE5 streamer is up.</p>
+    <div class="mt-4" data-il-immersive data-kind="sim" data-engine="unreal" data-title="UE5 stream (awaiting signaling)"></div>
+  </section>
+
+  <section class="mt-12 rounded-xl border border-cyan/20 bg-ink/40 p-6">
+    <h2 class="font-display text-xl">Lab Muse familiar (shared kit)</h2>
+    <p class="mt-2 text-sm text-muted">Same palette / speak-amp bus. Full voice coach on <a class="text-cyan" href="/coach/">/coach/</a>.</p>
+    <div class="il-muse-3d-slot mt-4 min-h-[12rem]" data-muse-3d-slot data-imm-muse></div>
+  </section>
+</main>
+<script src="/assets/il-scene-kit.js" defer></script>
+<script src="/assets/il-muse-3d.js" defer></script>
+<script src="/assets/il-immersive.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var slot = document.querySelector('[data-imm-muse]');
+  if (slot && window.ILMuse3D && ILMuse3D.mount) {
+    var inst = ILMuse3D.mount(slot, { avatarId: 'dee' });
+    if (inst && inst.setStatus) inst.setStatus('idle');
+  }
+});
+</script>
+</body>
+</html>

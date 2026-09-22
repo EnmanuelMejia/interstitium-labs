@@ -34,7 +34,41 @@
           "stages",
           "href"
         ],
-        "additionalProperties": true
+        "additionalProperties": true,
+        "properties": {
+          "immersive": {
+            "type": "object",
+            "description": "3D-first curriculum stage. mode must be 3d-first. engine: three|godot|unreal. asset: procedural:* or /assets/immersive/*.glb",
+            "required": [
+              "mode",
+              "engine",
+              "asset"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "const": "3d-first"
+              },
+              "engine": {
+                "type": "string",
+                "enum": [
+                  "three",
+                  "godot",
+                  "unreal"
+                ]
+              },
+              "asset": {
+                "type": "string"
+              },
+              "captions": {
+                "type": "boolean"
+              },
+              "fallback": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     }
   }
