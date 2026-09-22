@@ -1,7 +1,7 @@
 # Go-live QA — Interstitium Labs
 
 **Date:** 2026-09-21 (America/New_York)  
-**Repo SHA at QA authoring:** see git `main` after this commit  
+**Repo SHA at QA authoring:** `3766aca38ef15fa39b93a499b0d60eba976b3e48`  
 **Custom domain / CNAME:** `interstitiumlabs.dev` (`docs/CNAME`)  
 **Production edge:** Cloudflare Workers Assets (`solitary-sound-015a`) — **not** the same as a green GitHub Pages build
 
