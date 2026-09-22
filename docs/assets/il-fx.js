@@ -716,19 +716,29 @@
 
   /* ---------- Lockup repair + page enter ---------- */
   function repairChrome() {
-    qsa('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"], img.il-lockup').forEach(function (img) {
+    qsa('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"], footer img[src*="canonical-lockup"], img.il-lockup').forEach(function (img) {
       img.classList.add("il-lockup");
-      img.style.maxHeight = "40px";
-      img.style.height = "auto";
-      img.style.width = "auto";
-      img.style.maxWidth = "min(240px, 58vw)";
-      img.style.objectFit = "contain";
-      img.style.display = "block";
+      // Explicit px height — never height:auto (natural lockup is 596px tall).
+      var h = window.matchMedia("(min-width: 640px)").matches ? "40px" : "36px";
+      img.style.setProperty("height", h, "important");
+      img.style.setProperty("max-height", "40px", "important");
+      img.style.setProperty("width", "auto", "important");
+      img.style.setProperty("max-width", "min(200px, 58vw)", "important");
+      img.style.setProperty("min-width", "72px", "important");
+      img.style.setProperty("object-fit", "contain", "important");
+      img.style.setProperty("object-position", "left center", "important");
+      img.style.setProperty("display", "block", "important");
+      img.style.setProperty("flex-shrink", "0", "important");
+      if (!img.getAttribute("width")) img.setAttribute("width", "133");
+      if (!img.getAttribute("height")) img.setAttribute("height", "60");
       var a = img.closest("a");
       if (a) {
         a.style.display = "inline-flex";
         a.style.alignItems = "center";
-        a.style.minHeight = "40px";
+        a.style.minHeight = h;
+        a.style.maxHeight = "44px";
+        a.style.overflow = "hidden";
+        a.style.flexShrink = "0";
       }
       if (img.decode) img.decode().catch(function () {});
     });
