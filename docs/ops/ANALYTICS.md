@@ -38,3 +38,15 @@ Set `cloudflareBeaconToken` to a **real** token from Cloudflare → Web Analytic
 
 ## Events (2026-09-22)
 - `demo_path_complete` · `trending_open` · `exam_answer`
+
+## Frontier Tracks events
+
+| Name | When |
+|------|------|
+| `frontier_open` | Frontier mount / filter render |
+| `frontier_click` | External course link or Muse/Adapt/Lab overlay |
+| `frontier_complete` | Learner marks a Frontier card done |
+| `frontier_thumb_up` / `frontier_thumb_down` | Card quality votes |
+
+Scores roll into `il.frontier.scores.v1` and feed `ILIterate` weekly promote/demote. See `TRENDING-COURSES-X-LINKEDIN-MIT.md`.
+

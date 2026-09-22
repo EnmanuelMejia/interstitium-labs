@@ -193,8 +193,10 @@
   border-color: rgba(94, 234, 212, 0.85);
 }
 
-/* Dee monas avatar — original Hermetica-inspired SVG (cyan/gold/void). Not Meta. */
-.il-muse-avatar--dee {
+/* Avatar marks — Dee (default) / Sigil / Cap. Interstitium original SVGs. Not Meta. */
+.il-muse-avatar--dee,
+.il-muse-avatar--sigil,
+.il-muse-avatar--cap {
   background:
     radial-gradient(circle at 40% 35%, rgba(212, 168, 83, 0.28), transparent 50%),
     radial-gradient(circle at 65% 70%, rgba(94, 234, 212, 0.22), transparent 55%),
@@ -202,6 +204,7 @@
   padding: 0;
   overflow: visible;
 }
+.il-muse-avatar__mark,
 .il-muse-avatar__dee {
   width: 40px;
   height: 40px;
@@ -210,25 +213,80 @@
   pointer-events: none;
 }
 .il-muse-avatar__glyph--fallback { display: none; }
-.il-muse-app[data-status="idle"] .il-muse-avatar--dee {
+
+/* Status glow: idle / listening / thinking / speaking */
+.il-muse-app[data-status="idle"] .il-muse-avatar--dee,
+.il-muse-app[data-status="idle"] .il-muse-avatar--sigil,
+.il-muse-app[data-status="idle"] .il-muse-avatar--cap {
   box-shadow: 0 0 14px rgba(94, 234, 212, 0.12);
 }
-.il-muse-app[data-status="thinking"] .il-muse-avatar--dee {
+.il-muse-app[data-status="thinking"] .il-muse-avatar--dee,
+.il-muse-app[data-status="thinking"] .il-muse-avatar--sigil,
+.il-muse-app[data-status="thinking"] .il-muse-avatar--cap {
   box-shadow: 0 0 22px rgba(94, 234, 212, 0.45), 0 0 4px rgba(94, 234, 212, 0.8);
 }
-.il-muse-app[data-status="listening"] .il-muse-avatar--dee {
+.il-muse-app[data-status="listening"] .il-muse-avatar--dee,
+.il-muse-app[data-status="listening"] .il-muse-avatar--sigil,
+.il-muse-app[data-status="listening"] .il-muse-avatar--cap {
   box-shadow: 0 0 24px rgba(212, 168, 83, 0.5), 0 0 4px rgba(212, 168, 83, 0.85);
 }
-.il-muse-app[data-status="speaking"] .il-muse-avatar--dee {
+.il-muse-app[data-status="speaking"] .il-muse-avatar--dee,
+.il-muse-app[data-status="speaking"] .il-muse-avatar--sigil,
+.il-muse-app[data-status="speaking"] .il-muse-avatar--cap {
   box-shadow: 0 0 26px rgba(94, 234, 212, 0.55), 0 0 8px rgba(232, 197, 122, 0.35);
 }
+.il-muse-app[data-status="thinking"] .il-muse-avatar__mark,
+.il-muse-app[data-status="listening"] .il-muse-avatar__mark,
+.il-muse-app[data-status="speaking"] .il-muse-avatar__mark,
 .il-muse-app[data-status="thinking"] .il-muse-avatar__dee,
 .il-muse-app[data-status="listening"] .il-muse-avatar__dee,
 .il-muse-app[data-status="speaking"] .il-muse-avatar__dee {
   filter: drop-shadow(0 0 3px rgba(94, 234, 212, 0.45));
 }
+.il-muse-app[data-status="listening"] .il-muse-avatar__mark,
 .il-muse-app[data-status="listening"] .il-muse-avatar__dee {
   filter: drop-shadow(0 0 4px rgba(212, 168, 83, 0.65));
+}
+
+/* Avatar picker (settings) */
+.il-muse-avatar-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.il-muse-avatar-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--muse-border);
+  background: rgba(7, 11, 22, 0.55);
+  color: var(--muse-muted);
+  cursor: pointer;
+  font-family: var(--muse-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  min-width: 64px;
+}
+.il-muse-avatar-pick img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: block;
+}
+.il-muse-avatar-pick:hover {
+  color: var(--muse-paper);
+  border-color: rgba(94, 234, 212, 0.35);
+}
+.il-muse-avatar-pick.is-on {
+  color: var(--muse-cyan);
+  border-color: rgba(94, 234, 212, 0.5);
+  background: var(--muse-cyan-dim);
+  box-shadow: 0 0 14px rgba(94, 234, 212, 0.2);
 }
 
 
@@ -736,8 +794,15 @@
   .il-muse-bubble,
   .il-muse-artifact,
   .il-muse-avatar__ring,
+  .il-muse-avatar__mark,
+  .il-muse-avatar__dee,
+  .il-muse-avatar--dee,
+  .il-muse-avatar--sigil,
+  .il-muse-avatar--cap,
   .il-muse-mic.is-listening {
     animation: none !important;
+    filter: none !important;
+    transition: none !important;
   }
   .il-muse-avatar__dee {
     filter: none !important;

@@ -22,6 +22,7 @@
     var byLang = {};
     var ctaByHref = {};
     var views = 0, cta = 0, enroll = 0, friction = 0;
+    var frontierN = 0, frontierById = {};
     var prepViews = 0, foundersViews = 0, prepCtas = 0, foundersCtas = 0;
 
     week.forEach(function (e) {
@@ -32,6 +33,17 @@
         views++;
         if ((e.p || "").indexOf("/prep") === 0) prepViews++;
         if ((e.p || "").indexOf("/founders") === 0) foundersViews++;
+      }
+      // Frontier track quality
+      if (e.n === "frontier_click" || e.n === "frontier_complete" || e.n === "frontier_thumb_up" || e.n === "frontier_thumb_down" || e.n === "frontier_open") {
+        frontierN = (frontierN || 0) + 1;
+        var fid = (e.props && (e.props.courseId || e.props.id)) || "unknown";
+        frontierById[fid] = frontierById[fid] || { clicks: 0, completes: 0, up: 0, down: 0, opens: 0 };
+        if (e.n === "frontier_click") frontierById[fid].clicks++;
+        if (e.n === "frontier_complete") frontierById[fid].completes++;
+        if (e.n === "frontier_thumb_up") frontierById[fid].up++;
+        if (e.n === "frontier_thumb_down") frontierById[fid].down++;
+        if (e.n === "frontier_open") frontierById[fid].opens++;
       }
       if (e.n === "cta_click" || e.n === "enroll_click" || e.n === "path_open") {
         cta++;
@@ -101,6 +113,43 @@
       });
     }
 
+    
+    var frontierIds = Object.keys(frontierById);
+    if (frontierIds.length) {
+      frontierIds.sort(function (a, b) {
+        var A = frontierById[a], B = frontierById[b];
+        var sa = A.completes * 5 + A.up * 3 + A.clicks - A.down * 4;
+        var sb = B.completes * 5 + B.up * 3 + B.clicks - B.down * 4;
+        return sb - sa;
+      });
+      var top = frontierIds[0];
+      var bot = frontierIds[frontierIds.length - 1];
+      recs.push({
+        id: "frontier_promote",
+        severity: "med",
+        title: "Promote Frontier card",
+        detail: "Top local score: " + top + " (" + JSON.stringify(frontierById[top]) + "). il-trending.js already sorts by il.frontier.scores.v1.",
+        action: "Keep " + top + " above the fold on /paths/frontier/; cite source URL in ops dossier."
+      });
+      if (frontierById[bot].down >= 2 || (frontierById[bot].clicks >= 3 && frontierById[bot].completes === 0)) {
+        recs.push({
+          id: "frontier_demote",
+          severity: "med",
+          title: "Demote / audit Frontier card",
+          detail: "Weak signal: " + bot + " (" + JSON.stringify(frontierById[bot]) + ").",
+          action: "Check link rot or LinkedIn login wall; annotate honesty gap — do not invent a replacement MIT id."
+        });
+      }
+    } else if (views >= 8) {
+      recs.push({
+        id: "frontier_silent",
+        severity: "low",
+        title: "Frontier silent this week",
+        detail: "Path traffic without frontier_* events.",
+        action: "Surface /paths/frontier/ CTA on paths + learn indexes."
+      });
+    }
+
     if (!recs.length && views > 0) {
       recs.push({
         id: "healthy_sparse",
@@ -129,6 +178,7 @@
         .sort(function (a, b) { return b.n - a.n; }).slice(0, 12),
       langMix: byLang,
       eventCounts: byName,
+      frontier: frontierById,
       recommendations: recs
     };
   }
