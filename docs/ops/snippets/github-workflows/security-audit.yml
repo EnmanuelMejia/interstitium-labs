@@ -3,15 +3,18 @@ name: security-audit
 on:
   push:
     branches: [main]
-    paths:
-      - "apps/mobile/**"
-      - ".github/workflows/security-audit.yml"
   pull_request:
-    paths:
-      - "apps/mobile/**"
   workflow_dispatch:
 
 jobs:
+  secret-patterns:
+    name: security-check.sh (secret & tracker patterns)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security-check
+        run: bash scripts/security-check.sh
+
   npm-audit-mobile:
     name: npm audit (apps/mobile) fail-on-high
     runs-on: ubuntu-latest
