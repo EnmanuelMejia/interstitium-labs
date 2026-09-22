@@ -13,16 +13,23 @@ Operator overview UI: [/admin/](https://interstitiumlabs.dev/admin/).
 
 ## Cloudflare Workers deploy
 
+**Canonical edge:** Worker / Workers Assets project **`solitary-sound-015a`** → custom domain `interstitiumlabs.dev`.
+
+GitHub Pages (`main` / `docs/`) may build in parallel for backup, but **production traffic is Cloudflare**. If `curl` shows 404 for files that exist in `docs/` on `main`, the Worker Assets publish is stale — re-upload / re-trigger Assets from the dashboard (or connected Git integration). Do not assume a GitHub Pages green check means the CF edge is current.
+
 1. Sign in to the [Cloudflare dashboard](https://dash.cloudflare.com/).
-2. Open the Workers / Pages (Assets) project bound to `interstitiumlabs.dev`.
-3. Confirm the publish root is `docs/` on branch `main`.
-4. After each push, wait for the deployment to succeed; hard-refresh the live URL if CDN cache lags.
+2. Open Workers & Pages → project bound to `interstitiumlabs.dev` (name historically `solitary-sound-015a`).
+3. Confirm the asset root is `docs/` on branch `main` (or upload the `docs/` folder as static assets).
+4. Trigger **Deploy** / **Retry deployment** after each go-live push.
+5. Verify with `curl -sI https://interstitiumlabs.dev/labs/superlab/` (expect 200) and security headers per [`_worker_security_headers.md`](./_worker_security_headers.md).
+6. Hard-refresh / purge CDN cache if an old HIT persists.
 
 Local preview:
 
 ```bash
 cd docs && python3 -m http.server 8080
 ```
+
 
 ## Enrollment commerce config
 
