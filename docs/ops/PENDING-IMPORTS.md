@@ -28,3 +28,14 @@ Tracked ChatGPT shares. When a matching file appears under `docs/_imports/`, fol
 | BNY VP Full-Stack JD #68426 | `docs/_imports/user-attachments/3dcb88bf….txt` | `/paths/bny-fullstack/` + `/prep/drills/bny-fullstack-vp/` |
 | BNY DevOps Sr Associate notes | `docs/_imports/user-attachments/f288a678….txt` | Already largely in `/prep/` |
 | Resume PDF + DOCX | `docs/_imports/user-attachments/a99ecff0….pdf` (+ docx) | Sanitized highlights → `/evidence/resume/`; founders bio refresh |
+
+
+## Folded into Learning OS (2026-09-21)
+
+| Source | What was extracted | Destination |
+|--------|-------------------|-------------|
+| DeepSeek BNY / NVIDIA / Magic Leap | Competency list, STAR surfaces, weekly cadence ideas | `/founders/` radar + weekly OS; `/learn/skills/` |
+| ChatGPT FDE + Enochian | Already resolved to path pages; skills mapped | `/learn/skills/` + `/paths/` outcome cards |
+| Resume attachments | Honest tenure language (no BNY employment) | `/founders/` bio + proof wall |
+
+PENDING ChatGPT rows above remain **Resolved**. No fake employment claims introduced.

@@ -60,7 +60,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const STORAGE_KEY='il-nvidia-quest-v1';
+const STORAGE_KEY='il.progress.nvidia.quest';
 const COURSES=[
 {id:1,title:'Generative AI Explained',phase:1,hours:2,xp:60,url:'https://lnkd.in/gBb3peXi'},
 {id:2,title:'Building A Brain in 10 Minutes',phase:1,hours:0.2,xp:20,url:'https://lnkd.in/gCaA-XKp'},
@@ -86,7 +86,9 @@ const BADGES=[
 function today(){return new Date().toISOString().slice(0,10)}
 function load(){
   let s={completed:{},streak:{count:0,last:null},unlocked:[]};
-  try{const raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(raw)s={...s,...raw,completed:raw.completed||{},streak:raw.streak||s.streak,unlocked:raw.unlocked||[]}}catch(e){}
+  try{let raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(!raw){const legacy=JSON.parse(localStorage.getItem('il-nvidia-quest-v1')||'null');if(legacy){raw=legacy;localStorage.setItem(STORAGE_KEY,JSON.stringify(legacy));}}
+  if(raw)s={...s,...raw,completed:raw.completed||{},streak:raw.streak||s.streak,unlocked:raw.unlocked||[]}}catch(e){}
   return s;
 }
 let state=load();
