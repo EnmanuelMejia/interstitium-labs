@@ -1,31 +1,29 @@
 # Interstitium Labs
 
-**Domain:** https://interstitiumlabs.dev  
-**Product:** Knowledge operating system — academies, adaptive math, source-critical research, certification command, portfolio evidence.
+**https://interstitiumlabs.dev**
+
+A knowledge operating system — academies, adaptive certification command, source-critical research, inspectable labs, and portfolio evidence.
 
 > *Scientia Omnia Vincit*
 
-## Brand
+## What shipped in this build
 
-Canonical lockup lives at `public/brand/marks/canonical-lockup.png` (updated house mark: IL monogram + atomic orbits + triangle on navy).  
-Social preview: `public/og.jpg` (1200×630).
+- Updated **canonical brand lockup** (IL / atomic / triangle mark on navy)
+- Open Graph + Twitter cards → `/og.jpg` (1200×630)
+- `robots.txt` + `sitemap.xml` (fixed; no longer SPA HTML)
+- `CNAME` → `interstitiumlabs.dev`
+- Static SPA mirrored from the Interstitium Grok forge and retargeted to the custom domain
 
-## Stack
-
-Static SPA mirrored from the Interstitium Grok forge build, optimized for custom-domain hosting (GitHub Pages / Cloudflare Pages).
-
-## Local preview
+## Quick start
 
 ```bash
 cd public && python3 -m http.server 8080
 ```
 
-## Deploy notes
+## Deploy
 
-- `public/CNAME` → `interstitiumlabs.dev`
-- Point DNS (Cloudflare) CNAME/ALIAS for `interstitiumlabs.dev` and `www` to the Pages/GitHub Pages target
-- After first deploy, refresh LinkedIn Post Inspector for `https://interstitiumlabs.dev/`
+Publish `public/` to GitHub Pages or Cloudflare Pages, then point DNS for `interstitiumlabs.dev` at the host. Refresh LinkedIn Post Inspector afterward.
 
-## Portfolio framing
+## Portfolio note
 
-Independent product / portfolio work by Enmanuel Mejia — not a paid employer deployment.
+Independent product work by **Enmanuel D. Mejia** — pair with [devops-superlab](https://github.com/EnmanuelMejia/devops-superlab).
