@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Coach — Interstitium Labs</title>
-<meta name="description" content="Local Socratic DevOps coach: CIDR, Git, Kubernetes pods, Terraform, CI/CD, Linux. No fake API keys. AI coach coming online."/>
+<title>Lab Muse — Interstitium Labs</title>
+<meta name="description" content="Lab Muse: Muse-class Socratic DevOps coach with voice, goals, artifacts, and a lean local-first model router (Ollama / OSS). Inspired by public Muse interaction design — not Meta’s product."/>
 <meta name="theme-color" content="#070B16"/>
 <link rel="manifest" href="/manifest.webmanifest"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/coach/"/>
-<meta property="og:title" content="Coach — Interstitium Labs"/>
-<meta property="og:description" content="Local Socratic DevOps coach. Hints, not answer dumps. Optional IL_COACH stub for future model hookup."/>
+<meta property="og:title" content="Lab Muse — Interstitium Labs"/>
+<meta property="og:description" content="Long-chat Socratic lab coach · voice · lean model router. Educational agent; browser Web Speech; no fake API keys."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/coach/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og-sigil.jpg"/>
 <meta property="og:type" content="website"/>
@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="/assets/il-responsive.css"/>
 <link rel="stylesheet" href="/assets/il-compat.css"/>
 <link rel="stylesheet" href="/assets/il-ux.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-muse.css"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
@@ -34,31 +35,31 @@
     <a class="flex min-w-0 items-center text-paper" href="/">
       <picture class="il-lockup"><source type="image/webp" srcset="/assets/chrome/canonical-lockup@2x.webp 356w, /assets/chrome/canonical-lockup@3x.webp 534w, /assets/chrome/canonical-lockup.webp 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px"/><img src="/assets/chrome/canonical-lockup.png" srcset="/assets/chrome/canonical-lockup.png 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px" alt="Interstitium Labs — Scientia Omnia Vincit" class="il-lockup object-contain h-14 w-auto sm:h-16" width="178" height="80" decoding="async"/></picture>
     </a>
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.index">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" data-i18n="nav.coach" aria-current="page">Coach</a><a href="/adapt/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.play">Play</a></nav>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.index">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" data-i18n="nav.coach" aria-current="page">Lab Muse</a><a href="/adapt/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper" data-i18n="nav.play">Play</a></nav>
     <div data-il-lang-switcher class="no-print"></div>
-    <a href="/coach/" class="inline-flex font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Coach</a>
+    <a href="/coach/" class="inline-flex font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden" data-i18n="nav.coach">Lab Muse</a>
   </div>
 </header>
 
 <main class="il-fluid-type flex-1" data-il-auto-reveal>
 <section class="border-b border-paper/10 relative isolate overflow-hidden">
   <div class="il-hero-field" data-il-starfield aria-hidden="true"></div>
-  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20 relative z-[1]">
-    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Coach · Socratic · Local-first</p>
-    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">AI coach coming online.</h1>
-    <p class="mt-5 max-w-2xl text-base text-muted">Today: rule-based Socratic hints for CIDR, Git, Kubernetes pods, Terraform, CI/CD, and Linux. <strong class="text-paper">No invented API keys.</strong> Optional <code class="text-cyan">window.IL_COACH</code> stub for a future same-origin model proxy. I will not answer-dump.</p>
+  <div class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14 relative z-[1]">
+    <p class="il-muse-page-kicker" data-i18n="muse.kicker">Lab Muse · Socratic · Local-first · Voice</p>
+    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl" data-i18n="muse.title">Your lab-aware coach.</h1>
+    <p class="il-muse-page-lead mt-5 text-base" data-i18n="muse.lead">One long main chat, side chats for topics, goals &amp; ideas, rich artifacts, and browser voice. Lean model router (local rules → Ollama ≤3B → scale when demand grows). Inspired by public Muse <em>interaction design</em> — educational Interstitium agent, not Meta’s product. No fake Gmail/Spotify connectors. No invented API keys.</p>
   </div>
 </section>
 
-<section class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-  <div data-il-coach></div>
+<section class="mx-auto max-w-7xl px-3 py-8 sm:px-6 lg:px-8">
+  <div data-il-muse></div>
 </section>
 
 <section class="border-t border-paper/10 bg-ink/40">
   <div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-    <p class="il-kicker">Warm up</p>
-    <h2 class="mt-3 font-display text-2xl tracking-[-0.02em]">Drill, then ask</h2>
-    <p class="mt-2 max-w-2xl text-sm text-muted">Attempt a card first. Bring the coach your hypothesis — not “just give me the answer.”</p>
+    <p class="il-kicker" data-i18n="muse.warmup_kicker">Warm up</p>
+    <h2 class="mt-3 font-display text-2xl tracking-[-0.02em]" data-i18n="muse.warmup_title">Drill, then ask</h2>
+    <p class="mt-2 max-w-2xl text-sm text-muted" data-i18n="muse.warmup_body">Attempt a card first. Bring Muse your hypothesis — not “just give me the answer.”</p>
     <div class="mt-8" data-il-drills data-il-drills-set="mixed"></div>
   </div>
 </section>
@@ -69,7 +70,7 @@
     <picture class="il-lockup"><source type="image/webp" srcset="/assets/chrome/canonical-lockup@2x.webp 356w, /assets/chrome/canonical-lockup@3x.webp 534w, /assets/chrome/canonical-lockup.webp 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px"/><img src="/assets/chrome/canonical-lockup.png" srcset="/assets/chrome/canonical-lockup.png 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px" alt="Interstitium Labs — Scientia Omnia Vincit" class="il-lockup object-contain h-14 w-auto sm:h-16" width="178" height="80" decoding="async"/></picture>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
       <span>interstitiumlabs.dev</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Lab Muse</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
     </div>
   </div>
 </footer>
@@ -85,6 +86,10 @@
 <script src="/assets/il-radar.js" defer></script>
 <script src="/assets/il-mastery.js" defer></script>
 <script src="/assets/il-drills.js" defer></script>
+<script src="/assets/il-adaptive.js" defer></script>
 <script src="/assets/il-coach.js" defer></script>
+<script src="/assets/il-model-analytics.js" defer></script>
+<script src="/assets/il-model-router.js" defer></script>
+<script src="/assets/il-muse.js" defer></script>
 </body>
 </html>

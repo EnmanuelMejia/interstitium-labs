@@ -1,6 +1,7 @@
 /**
  * Local Socratic coach shell — NO fake API keys.
- * Optional future hook: window.IL_COACH = { endpoint, apiKey } (never commit secrets).
+ * Optional: window.IL_COACH / IL_MUSE / IL_MODEL_ROUTER (never commit secrets).
+ * Prefers IL_MODEL_ROUTER.chat when loaded; else local rules.
  * Topics: CIDR, Git, K8s pods (+ Terraform, CI, Linux). Hints only; refuse answer dumps.
  */
 (function (g) {
@@ -55,10 +56,25 @@
 
   function socratic(text, topic) {
     var cfg = config();
-    // Future: if cfg.endpoint, POST {message, topic} — never invent keys here.
+    var router = g.IL_MODEL_ROUTER || g.ILModelRouter;
+    // Prefer analytics-driven OSS router when present (local Ollama / OpenAI-compat).
+    if (router && typeof router.chat === 'function') {
+      var messages = [{ role: 'user', content: text }];
+      return router.chat(messages, { topic: topic || '', task: 'chat' }).then(function (res) {
+        return {
+          text: res.text || localReply(text, topic),
+          source: res.source || res.backendId || 'model-router',
+          modelId: res.modelId,
+          demand_tier: res.demand_tier
+        };
+      }, function () {
+        return { text: localReply(text, topic), source: 'local-rules' };
+      });
+    }
+    // Legacy: endpoint set without router — honesty stub (CSP + key safety).
     if (cfg.endpoint) {
       return Promise.resolve({
-        text: 'IL_COACH.endpoint is set, but this static shell does not call remote models from the browser (CSP + key safety). Wire a same-origin Worker proxy before enabling. Meanwhile: ' + localReply(text, topic),
+        text: 'IL_COACH.endpoint is set, but load il-model-router.js (or a same-origin Worker proxy) before enabling remote chat. Meanwhile: ' + localReply(text, topic),
         source: 'stub-remote'
       });
     }
@@ -174,7 +190,8 @@
     for (var i = 0; i < nodes.length; i++) mount(nodes[i]);
   }
 
-  g.ILCoach = { mount: mount, boot: boot, ask: socratic, topics: TOPICS };
+  g.ILCoach = { mount: mount, boot: boot, ask: socratic, topics: TOPICS,
+    usesRouter: function () { return !!(g.IL_MODEL_ROUTER || g.ILModelRouter); } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })(typeof window !== 'undefined' ? window : this);
