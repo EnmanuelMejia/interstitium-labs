@@ -4,11 +4,11 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Math Foundations — Interstitium Labs</title>
-<meta name="description" content="Zero-to-interview math for DevOps: arithmetic, algebra, logs, probability, binary/hex, rates, CIDR, nines, capacity."/>
+<meta name="description" content="Phase 1 zero-to-interview math for DevOps: Boolean algebra, stats, logs, CIDR, nines, capacity."/>
 <meta name="theme-color" content="#070B16"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/prep/math/"/>
 <meta property="og:title" content="Math Foundations — Interstitium Labs"/>
-<meta property="og:description" content="Zero-to-interview math for DevOps: arithmetic, algebra, logs, probability, binary/hex, rates, CIDR, nines, capacity."/>
+<meta property="og:description" content="Phase 1 zero-to-interview math for DevOps: Boolean algebra, stats, logs, CIDR, nines, capacity."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/prep/math/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta property="og:type" content="website"/>
@@ -39,33 +39,61 @@
 <div class="flex min-h-dvh flex-col bg-void text-paper">
 <header class="no-print sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md" style="padding-top:env(safe-area-inset-top)">
   <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:h-16 sm:px-8">
-    <a class="flex min-w-0 items-center text-paper" href="/">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/>
-    </a>
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" href="/prep/" aria-current="page">Prep</a><a href="/paths/data-science-certs/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">DS Path</a><a href="/academy" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Academy</a><a href="/labs" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Labs</a><a href="/measure" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Measure</a></nav>
+    <a class="flex min-w-0 items-center text-paper" href="/"><img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/></a>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" href="/prep/" aria-current="page">Prep</a><a href="/paths/devsecops-mastery/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Mastery</a><a href="/paths/data-science-certs/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">DS Path</a><a href="/academy" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Academy</a><a href="/labs" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Labs</a><a href="/measure" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Measure</a></nav>
     <a href="/prep/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Prep</a>
   </div>
 </header>
 <main class="flex-1">
+
 <section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
-<p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Prep · Track A</p>
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Prep · Phase 1 · Track A</p>
 <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">Math from absolute zero</h1>
-<p class="mt-5 max-w-2xl text-base text-muted">No shame, no skipped steps. Every section ends with a DevOps-shaped worked example. Return to <a class="text-cyan" href="/prep/">Prep hub</a>.</p>
+<p class="mt-5 max-w-2xl text-base text-muted">Phase 1 of the BNY-aimed DevOps plan. No shame, no skipped steps. Every section ends with a DevOps-shaped worked example. Return to <a class="text-cyan" href="/prep/">Prep hub</a>.</p>
 <nav class="toc mt-8 max-w-xl text-sm" aria-label="On this page">
+<a href="#boolean">0. Boolean algebra</a>
 <a href="#arithmetic">1. Arithmetic</a><a href="#algebra">2. Algebra</a><a href="#logs">3. Logs &amp; exponents</a>
 <a href="#prob">4. Probability &amp; stats</a><a href="#binary">5. Binary &amp; hex</a><a href="#rates">6. Rates, %, ratios</a>
 <a href="#cidr">7. CIDR / subnet math</a><a href="#nines">8. Reliability (nines, MTTR)</a><a href="#capacity">9. Capacity &amp; cost</a>
+<a href="#phase1">Phase 1 practice set</a>
 </nav></div></section>
 
 <article class="prose-il mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
 
-<h2 id="arithmetic" class="font-display text-3xl tracking-[-0.03em]">1. Arithmetic</h2>
+<div class="rounded-xl border border-cyan/25 bg-panel p-6 mb-12">
+<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Phase 1 focus (zero-knowledge plan)</p>
+<ul class="mt-3 text-sm text-muted">
+<li><strong class="text-paper">Boolean algebra</strong> — truth tables; AND/OR/NOT for alert &amp; ACL logic.</li>
+<li><strong class="text-paper">Basic stats</strong> — mean / median / percentiles for dashboards &amp; alerting.</li>
+<li><strong class="text-paper">Exponents &amp; logs</strong> — why indexes feel O(log N) vs scans O(N).</li>
+<li><strong class="text-paper">Networking math</strong> — CIDR (e.g. <code>10.0.0.0/24</code>).</li>
+<li>External: <a class="text-cyan" href="https://www.khanacademy.org/computing/computers-and-internet" target="_blank" rel="noopener noreferrer">Khan Academy — Computers &amp; Internet</a></li>
+</ul>
+</div>
+
+<h2 id="boolean" class="font-display text-3xl tracking-[-0.03em]">0. Boolean algebra (ops logic)</h2>
+<p class="mt-4 text-muted">Alerts, firewalls, and feature flags are Boolean expressions. Build truth tables until AND/OR/NOT are automatic.</p>
+<pre><code>AND  — true only if both inputs true
+OR   — true if either input true
+NOT  — flips true ↔ false
+
+Practice: page on-call IF disk &gt; 90% AND CPU &gt; 80%
+ disk&gt;90 | CPU&gt;80 | alert?
+   F    |   F    |  F
+   F    |   T    |  F
+   T    |   F    |  F
+   T    |   T    |  T
+
+Variant: page IF disk&gt;90% OR memory&gt;95% — different table.</code></pre>
+<p class="mt-4 text-muted"><strong class="text-paper">Interview say:</strong> “I translate runbook conditions into Boolean expressions and verify edge cases with a truth table before wiring the monitor.”</p>
+
+<h2 id="arithmetic" class="mt-16 font-display text-3xl tracking-[-0.03em]">1. Arithmetic</h2>
 <p class="mt-4 text-muted">You already use this. We name it so later formulas do not feel like magic.</p>
 <ul class="mt-4 text-muted">
 <li><strong class="text-paper">Add / subtract</strong> — combine or remove quantities (CPU cores, tickets, dollars).</li>
 <li><strong class="text-paper">Multiply</strong> — repeated add (3 replicas × 2 GB = 6 GB).</li>
 <li><strong class="text-paper">Divide</strong> — split into equal parts (1000 req / 4 pods = 250 req each).</li>
-<li><strong class="text-paper">Order</strong> — parentheses first, then ×÷, then +−. Same as most calculators.</li>
+<li><strong class="text-paper">Order</strong> — parentheses first, then ×÷, then +−.</li>
 </ul>
 <p class="mt-6 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Worked · disk</p>
 <pre><code>You have 500 GB free. Each log day uses 12 GB.
@@ -73,99 +101,80 @@ Days until full ≈ 500 ÷ 12 = 41.666… → about 41 full days.
 Alert earlier: at 80% used you have 20% of 500 = 100 GB → 100÷12 ≈ 8 days left.</code></pre>
 
 <h2 id="algebra" class="mt-16 font-display text-3xl tracking-[-0.03em]">2. Algebra (letters for unknowns)</h2>
-<p class="mt-4 text-muted">A letter stands for a number you do not know yet. Solving means isolating that letter.</p>
 <pre><code>If pods × rps_per_pod = total_rps
 Then pods = total_rps ÷ rps_per_pod
 
 Example: need 2000 rps, each pod does 250 rps
 pods = 2000 ÷ 250 = 8</code></pre>
-<p class="mt-4 text-muted">Balancing: whatever you do to one side, do to the other.</p>
-<pre><code>2x + 6 = 20
-2x = 20 − 6 = 14
-x = 14 ÷ 2 = 7</code></pre>
 
 <h2 id="logs" class="mt-16 font-display text-3xl tracking-[-0.03em]">3. Exponents &amp; logarithms</h2>
-<p class="mt-4 text-muted"><strong class="text-paper">Exponent</strong>: multiply a number by itself. 2<sup>10</sup> = 1024 (why “kibi” feels like ~1000).</p>
-<p class="mt-3 text-muted"><strong class="text-paper">Logarithm</strong>: asks “what power?”. log<sub>2</sub>(1024) = 10. In ops, log scale shows orders of magnitude (latency histograms, storage growth).</p>
-<pre><code>Storage doubles every year: year0=100GB, year3=100×2³=800GB
-Rough “how many doublings to 1TB from 100GB?”
-1TB=1000GB ≈ 100×10 → need factor 10 → a bit more than 3 doublings (8×) so ~3.3 doublings.</code></pre>
+<p class="mt-4 text-muted"><strong class="text-paper">Exponent</strong>: multiply a number by itself. 2<sup>10</sup> = 1024.</p>
+<p class="mt-3 text-muted"><strong class="text-paper">Logarithm</strong>: asks “what power?”. log<sub>2</sub>(1024) = 10. Ops angle: B-tree / index lookups track like O(log N); full scans like O(N).</p>
+<pre><code>1,000,000 rows:
+O(N) scan ≈ touch a million rows
+O(log₂ N) ≈ log₂(1e6) ≈ 20 comparisons (index intuition)
+
+Storage doubles every year: year0=100GB, year3=100×2³=800GB</code></pre>
 
 <h2 id="prob" class="mt-16 font-display text-3xl tracking-[-0.03em]">4. Probability &amp; stats basics</h2>
 <ul class="mt-4 text-muted">
-<li><strong class="text-paper">Probability</strong> between 0 and 1 (or 0–100%). Independent failures multiply: P(both down)=P₁×P₂.</li>
-<li><strong class="text-paper">Mean</strong> — average. <strong class="text-paper">p95</strong> — 95% of samples are at or below this value (latency SLOs).</li>
-<li><strong class="text-paper">Error budget</strong> — if SLO is 99.9% success / month, allowed failure fraction is 0.1%.</li>
+<li><strong class="text-paper">Mean</strong> — average for capacity planning.</li>
+<li><strong class="text-paper">Median</strong> — middle value; resists outlier spikes.</li>
+<li><strong class="text-paper">Percentiles (p95/p99)</strong> — latency SLOs and alert thresholds.</li>
+<li><strong class="text-paper">Probability</strong> 0–1; independent failures multiply.</li>
 </ul>
-<pre><code>30-day month ≈ 30×24×60 = 43,200 minutes
-0.1% of 43,200 = 43.2 minutes downtime allowed for a 99.9% monthly availability SLO</code></pre>
+<pre><code>Alerting: page on p95 latency &gt; 300ms for 5m — not on a single noisy mean spike.
+30-day month ≈ 43,200 minutes
+0.1% of 43,200 = 43.2 minutes downtime for a 99.9% monthly SLO</code></pre>
 
 <h2 id="binary" class="mt-16 font-display text-3xl tracking-[-0.03em]">5. Binary &amp; hexadecimal</h2>
-<p class="mt-4 text-muted">Computers count in powers of 2. Hex groups binary by 4 bits.</p>
 <pre><code>Decimal 13 → binary 1101 (8+4+0+1)
-Hex digits: 0-9 then A=10 … F=15
 0xFF = 255 = 1111 1111
-IPv4 address = 4 bytes. 10.0.0.1 in hex often written in configs as paired bytes.</code></pre>
-<p class="mt-4 text-muted">Powers of two to memorize: 2,4,8,16,32,64,128,256,512,1024.</p>
+Powers of two: 2,4,8,16,32,64,128,256,512,1024.</code></pre>
 
 <h2 id="rates" class="mt-16 font-display text-3xl tracking-[-0.03em]">6. Rates, percentages, ratios</h2>
-<pre><code>Percentage: part/whole × 100
-CPU 2.5 cores of 4 → 2.5/4×100 = 62.5%
-
-Rate: quantity per time (req/s, MB/s)
-Ratio: compare two quantities (3:1 read:write)
-
+<pre><code>CPU 2.5 cores of 4 → 2.5/4×100 = 62.5%
 Change %: (new−old)/old × 100
-Latency 200ms → 150ms: (150−200)/200×100 = −25% (faster)</code></pre>
+Latency 200ms → 150ms = −25%</code></pre>
 
 <h2 id="cidr" class="mt-16 font-display text-3xl tracking-[-0.03em]">7. CIDR &amp; subnet math</h2>
-<p class="mt-4 text-muted">IPv4 has 32 bits. A CIDR prefix length <code>/N</code> means N bits identify the network; <code>32−N</code> bits identify hosts.</p>
 <pre><code>Host bits = 32 − prefix
-Addresses in block = 2^(host bits)
-Usable hosts ≈ addresses − 2 (network &amp; broadcast) on classic subnets
+Addresses = 2^(host bits)
 
-/24 → host bits 8 → 256 addresses → ~254 usable
-/16 → host bits 16 → 65,536 addresses
-/20 → host bits 12 → 4096 addresses
+10.0.0.0/24 → host bits 8 → 256 addresses → ~254 usable (classic)
+/16 → 65,536 · /20 → 4,096
 
-Example: 10.10.0.0/20
-Block size 4096. Next subnet starts at 10.10.16.0
-First usable often 10.10.0.1, last 10.10.15.254 (training simplification)</code></pre>
-<p class="mt-4 text-muted">Azure/AWS often reserve more than 2 addresses — always check cloud docs in interviews and say so.</p>
+Say in interview: “/24 is a Class-C-sized lab subnet; Azure reserves extra addresses — I check docs.”</code></pre>
+<p class="mt-4 text-muted">Practice drawing <code>10.0.0.0/16</code> split into /24 app, data, and management subnets.</p>
 
 <h2 id="nines" class="mt-16 font-display text-3xl tracking-[-0.03em]">8. Reliability: nines, MTTR, MTBF</h2>
 <pre><code>Availability ≈ MTBF / (MTBF + MTTR)
-MTBF = mean time between failures
-MTTR = mean time to repair
-
-"Three nines" 99.9% ≈ 8.76 hours downtime/year
-"Four nines" 99.99% ≈ 52.6 minutes/year
-"Five nines" 99.999% ≈ 5.26 minutes/year
-
-Interview tip: state assumptions (calendar year, planned vs unplanned).</code></pre>
+99.9% ≈ 8.76 h/year · 99.99% ≈ 52.6 min/year</code></pre>
 
 <h2 id="capacity" class="mt-16 font-display text-3xl tracking-[-0.03em]">9. Capacity &amp; cost math</h2>
-<pre><code>Required instances = ceil(peak_load / capacity_per_instance / target_util)
-Peak 1200 rps, each VM 400 rps, target util 70% → effective 280 rps
-1200/280 ≈ 4.29 → 5 instances
+<pre><code>Required ≈ ceil(peak / (per_instance × target_util))
+Peak 1200 rps, VM 400 rps, util 70% → 5 instances
+Cost ≈ instances × 730 × $/hour</code></pre>
 
-Monthly cost ≈ instances × hours × $/hour
-5 × 730 × $0.12 ≈ $438/month (rough)
+<h2 id="phase1" class="mt-16 font-display text-3xl tracking-[-0.03em]">Phase 1 practice set</h2>
+<ol class="mt-4 text-muted">
+<li>Truth table for <code>(disk&gt;90 AND cpu&gt;80) OR load&gt;4</code>.</li>
+<li>Given 12 latency samples, compute mean, median, p95 (interpolate OK).</li>
+<li>Explain O(log N) vs O(N) for “find user by ID” with and without an index.</li>
+<li>How many usable hosts in <code>10.10.0.0/20</code>? What is the next subnet?</li>
+<li>Teach-back (90s): CIDR to a non-engineer PM.</li>
+</ol>
 
-Always add headroom for deploys, AZ loss, and retry storms.</code></pre>
-
-<p class="mt-12 text-sm text-muted">Next: <a class="text-cyan" href="/prep/programming/">Programming track</a> · <a class="text-cyan" href="/prep/devops/">DevOps JD map</a> · <a class="text-cyan" href="/prep/drills/">Drills</a></p>
+<p class="mt-12 text-sm text-muted">Next: <a class="text-cyan" href="/prep/programming/">Programming track</a> · <a class="text-cyan" href="/prep/devops/">DevOps JD map</a> · <a class="text-cyan" href="/prep/drills/">Drills</a> · <a class="text-cyan" href="/paths/devsecops-mastery/">12-mo mastery</a></p>
 </article>
+
 </main>
 <footer class="no-print border-t border-paper/10">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/>
-    </div>
+    <div class="flex items-start gap-4"><img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/></div>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/founders/" class="hover:text-paper">Founders</a><a href="/prep/" class="hover:text-paper">Prep</a><a href="/paths/data-science-certs/" class="hover:text-paper">DS Certs</a><a href="/system" class="hover:text-paper">System</a><a href="/field" class="hover:text-paper">Field</a><a href="/measure" class="hover:text-paper">Measure</a><a href="/labs" class="hover:text-paper">Labs</a><a href="/paths" class="hover:text-paper">Paths</a><a href="/interview" class="hover:text-paper">Interview</a><a href="/code" class="hover:text-paper">Code</a><a href="/evidence" class="hover:text-paper">Evidence</a></div>
+      <span>interstitiumlabs.dev</span><span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/founders/" class="hover:text-paper">Founders</a><a href="/prep/" class="hover:text-paper">Prep</a><a href="/paths/devsecops-mastery/" class="hover:text-paper">DevSecOps Mastery</a><a href="/paths/data-science-certs/" class="hover:text-paper">DS Certs</a><a href="/system" class="hover:text-paper">System</a><a href="/field" class="hover:text-paper">Field</a><a href="/measure" class="hover:text-paper">Measure</a><a href="/labs" class="hover:text-paper">Labs</a><a href="/paths" class="hover:text-paper">Paths</a><a href="/interview" class="hover:text-paper">Interview</a><a href="/code" class="hover:text-paper">Code</a><a href="/evidence" class="hover:text-paper">Evidence</a></div>
     </div>
   </div>
 </footer>
