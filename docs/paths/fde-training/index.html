@@ -4,11 +4,11 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>FDE Training — Interstitium Labs</title>
-<meta name="description" content="Forward Deployed Engineer static track stub. Awaiting ChatGPT import; deduped from BNY/NVIDIA/Mastery."/>
+<meta name="description" content="Forward Deployed Engineer static track: gamified modules, field sims, ten-gate capstones. From ChatGPT FDE Forge import — not a BNY DevOps clone."/>
 <meta name="theme-color" content="#070B16"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/paths/fde-training/"/>
 <meta property="og:title" content="FDE Training — Interstitium Labs"/>
-<meta property="og:description" content="Forward Deployed Engineer static track stub. Awaiting ChatGPT import; deduped from BNY/NVIDIA/Mastery."/>
+<meta property="og:description" content="Forward Deployed Engineer static track: gamified modules, field sims, ten-gate capstones. From ChatGPT FDE Forge import — not a BNY DevOps clone."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/paths/fde-training/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta property="og:type" content="website"/>
@@ -30,66 +30,114 @@
   .prose-il table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin: 1rem 0; }
   .prose-il th, .prose-il td { border: 1px solid rgba(232,238,245,0.1); padding: 0.65rem 0.85rem; text-align: left; vertical-align: top; }
   .prose-il th { color: #c9a227; font-family: "JetBrains Mono", monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .toc a { display: block; padding: 0.35rem 0; color: #8b9bb4; }
+  .toc a:hover { color: #e8eef5; }
 </style>
-
 </head>
 <body class="min-h-dvh bg-void text-paper">
 <div class="flex min-h-dvh flex-col bg-void text-paper">
 <header class="no-print sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md" style="padding-top:env(safe-area-inset-top)">
   <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:h-16 sm:px-8">
-    <a class="flex min-w-0 items-center text-paper" href="/">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/>
-    </a>
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Paths</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Enroll</a><a href="/admin/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Admin</a><a href="/academy" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Academy</a></nav>
-    <a href="/enroll/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Enroll</a>
+    <a class="flex min-w-0 items-center text-paper" href="/"><img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/></a>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Prep</a><a class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" href="/paths/" aria-current="page">Paths</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Enroll</a><a href="/admin/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Admin</a><a href="/academy" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Academy</a></nav>
+    <a href="/paths/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Paths</a>
   </div>
 </header>
 <main class="flex-1">
+<section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Paths · FDE training · FDE Forge spine</p>
+<h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">Forward Deployed Engineer track</h1>
+<p class="mt-5 max-w-2xl text-base text-muted">Gamified FDE curriculum map folded from the ChatGPT “Create FDE Training Webapp” share — discovery through field-to-core productization. Interactive Forge app is out of scope for this static page; the outline and lab contracts are not.</p>
+</div></section>
 
-<section class="border-b border-paper/10">
-  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
-    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Paths · FDE training</p>
-    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">Forward Deployed Engineer track (stub)</h1>
-    <p class="mt-5 max-w-2xl text-base text-muted">Placeholder for unique content from pending ChatGPT imports (“Create FDE Training Webapp” and sibling share). This track is <strong class="text-paper">not</strong> a clone of BNY Prep, DevSecOps Mastery, NVIDIA AI, Magic Leap metrology, or DS certs.</p>
-    <div class="mt-6 rounded-xl border border-gold/40 bg-panel p-4 text-sm text-muted">
-      <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Import pending</p>
-      <p class="mt-2">See <a class="text-cyan" href="/ops/PENDING-IMPORTS.md">PENDING-IMPORTS.md</a>. When <code>docs/_imports/chatgpt-6ab1eabe*.md</code> or <code>chatgpt-6ab1eb2c*.md</code> lands, fold only non-duplicative modules here.</p>
-    </div>
-  </div>
-</section>
-<section class="mx-auto max-w-6xl px-5 py-14 sm:px-8 prose-il">
-  <h2 class="font-display text-3xl tracking-[-0.03em]">Intended unique spine (draft)</h2>
-  <p class="mt-4 max-w-2xl text-sm text-muted">Draft IA so the page is useful before the import arrives. Aligns with common FDE loops — replace with imported outlines when available.</p>
-  <ol class="mt-6 max-w-2xl space-y-3 text-sm text-muted">
-    <li><strong class="text-paper">Role &amp; loop</strong> — FDE vs SWE vs solutions; discover → scope → integrate → deploy → demo → handoff.</li>
-    <li><strong class="text-paper">Customer discovery</strong> — success metrics, smallest slice that proves value (not bank JD interview drills).</li>
-    <li><strong class="text-paper">Integration patterns</strong> — webhooks, idempotency, retries, legacy data plumbing.</li>
-    <li><strong class="text-paper">Customer-env deploy</strong> — security review, rollback, dual-run; distinct from Azure/CKA cert ladder on Mastery.</li>
-    <li><strong class="text-paper">Enablement package</strong> — handoff docs operators keep; not NVIDIA DLI course lists.</li>
-  </ol>
-  <h2 class="mt-14 font-display text-3xl tracking-[-0.03em]">Dedupe map</h2>
-  <table class="mt-4">
-    <thead><tr><th>Existing track</th><th>Keep there</th><th>Do not copy here</th></tr></thead>
-    <tbody>
-      <tr><td><a class="text-cyan" href="/prep/">/prep/</a></td><td>BNY 3-phase interview sprint</td><td>Math/programming/DevOps syllabus</td></tr>
-      <tr><td><a class="text-cyan" href="/paths/devsecops-mastery/">Mastery</a></td><td>12-mo cert curriculum</td><td>AZ-104/CKA ladders</td></tr>
-      <tr><td><a class="text-cyan" href="/paths/nvidia-ai/">NVIDIA AI</a></td><td>Free DLI list + quest</td><td>Course weeks</td></tr>
-      <tr><td><a class="text-cyan" href="/prep/drills/magic-leap-metrology/">Magic Leap</a></td><td>Metrology STAR drills</td><td>Interview Q packs</td></tr>
-    </tbody>
-  </table>
-  <p class="mt-10 text-sm text-muted"><a class="text-cyan" href="/enroll/">Enroll</a> · <a class="text-cyan" href="/paths/">Paths hub</a></p>
-</section>
+<article class="prose-il mx-auto max-w-3xl px-5 py-14 sm:px-8">
+<div class="rounded-xl border border-gold/30 bg-panel p-6 mb-10">
+<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Import folded · Unique FDE spine</p>
+<p class="mt-2 text-sm text-muted">Synthesized from ChatGPT share <a class="text-cyan" href="https://chatgpt.com/share/6ab1eabe-1f24-83ea-8f55-212e35a45529" target="_blank" rel="noopener noreferrer">6ab1eabe…</a> (“Create FDE Training Webapp” / FDE Forge). Local: <code>docs/_imports/chatgpt-6ab1eabe-1f24-83ea-8f55-212e35a45529.md</code>.</p>
+<p class="mt-2 text-sm text-muted"><strong class="text-paper">Not</strong> a clone of BNY Prep, DevSecOps Mastery, NVIDIA AI, Magic Leap, or DS certs. Product-fiction SPA academies stay on <code>/academy</code> — this is the static curriculum map.</p>
+</div>
+
+<nav class="toc mb-10 text-sm" aria-label="On this page">
+<a href="#role">FDE role loop</a>
+<a href="#modules">Gamified mastery modules</a>
+<a href="#sims">Field simulations &amp; labs</a>
+<a href="#capstones">Capstone ten-gate contract</a>
+<a href="#evidence">Evidence vault artifacts</a>
+<a href="#dedupe">Dedupe map</a>
+</nav>
+
+<h2 id="role" class="font-display text-3xl tracking-[-0.03em]">Forward Deployed Engineer — role loop</h2>
+<p class="mt-4 text-muted">Own the field loop: <strong class="text-paper">discover → scope → integrate → evaluate → deploy → adopt → handoff → productize</strong>. Distinct from pure SWE (feature factory) and from bank DevOps interview crush.</p>
+<ol class="mt-4 text-muted">
+<li>Customer discovery &amp; success metrics (smallest slice that proves value).</li>
+<li>Technical decomposition &amp; SoW / RACI.</li>
+<li>Integration patterns — webhooks, idempotency, retries, legacy plumbing.</li>
+<li>Evals &amp; reliability gates before “demo day.”</li>
+<li>Customer-env deploy, rollback, dual-run, security review.</li>
+<li>Adoption / ROI narrative + reusable field→core pattern.</li>
+</ol>
+
+<h2 id="modules" class="mt-16 font-display text-3xl tracking-[-0.03em]">Gamified mastery modules (static outline)</h2>
+<p class="mt-4 text-sm text-muted">Import described “FDE Forge” with XP, levels, streaks, readiness score, and an adaptive diagnostic. Ship the <em>curriculum shape</em> here; the interactive webapp remains a separate build.</p>
+<table class="mt-4">
+<thead><tr><th>Stage cluster</th><th>Focus</th><th>Lab flavor</th></tr></thead>
+<tbody>
+<tr><td>1–4 Discovery &amp; craft</td><td>Vague requirements, stakeholder maps, Discovery Brief</td><td>Role-play intake; write measurable success criteria</td></tr>
+<tr><td>5–8 Engineering core</td><td>Python/TS, APIs, SQL, integrations</td><td>Broken API repair; text-to-SQL with verification</td></tr>
+<tr><td>9–12 AI systems</td><td>RAG, agents, MCP/A2A patterns, evals</td><td>Hallucinating RAG drill; eval gate before ship</td></tr>
+<tr><td>13–16 Platform</td><td>Docker, K8s literacy, Terraform, CI — as <em>customer deploy</em> tools</td><td>Private networking sketch; rollback rehearsal</td></tr>
+<tr><td>17–20 Production &amp; GRC</td><td>SLOs, incidents, PII/DLP, SOC2 literacy</td><td>Incident command sim; threat-model one-pager</td></tr>
+<tr><td>21–24 Commercial FDE</td><td>SoW, pricing, ROI, procurement, field-to-core</td><td>Executive outcome note; reusable pattern memo</td></tr>
+</tbody>
+</table>
+<p class="mt-4 text-sm text-muted">Gamification targets (when app ships): XP / levels / streaks / achievements / field score / readiness score / persistent progress. Interview Arena: scored drills across discovery, systems, security, and executive defense — separate from <a class="text-cyan" href="/prep/drills/bny-interview/">BNY DevOps Q&amp;A</a>.</p>
+
+<h2 id="sims" class="mt-16 font-display text-3xl tracking-[-0.03em]">Field simulations &amp; labs</h2>
+<ul class="mt-4 text-muted">
+<li>Vague customer discovery · broken APIs · contradictory data</li>
+<li>Hallucinating RAG · enterprise security review · production incidents</li>
+<li>Architecture tradeoffs · board-level demonstration</li>
+<li>Terminal-style diagnostics: logs, SQL, eval gates, rollback</li>
+<li>Architecture laboratory: data, integrations, models, eval systems</li>
+</ul>
+
+<h2 id="capstones" class="mt-16 font-display text-3xl tracking-[-0.03em]">Capstone ten-gate contract</h2>
+<pre><code>1 Discovery evidence
+2 SoW
+3 Architecture + threat model
+4 Working vertical slice
+5 Eval suite
+6 Production plan
+7 SLO / runbook
+8 Adoption / ROI
+9 Executive defense
+10 Reusable field pattern (field → core)</code></pre>
+<p class="mt-4 text-muted">Graduate claim: not only “I built something,” but “I found something repeatable in the field and converted it into organizational leverage.”</p>
+
+<h2 id="evidence" class="mt-16 font-display text-3xl tracking-[-0.03em]">Evidence vault (exportables)</h2>
+<p class="mt-4 text-muted">Discovery Brief, Workflow/RACI maps, SoW, ADR, threat model, eval plan/report, data contracts, SLOs, runbooks, postmortems, cost/ROI briefs, adoption plans, handovers, field-to-core memos, executive outcome notes.</p>
+
+<h2 id="dedupe" class="mt-16 font-display text-3xl tracking-[-0.03em]">Dedupe map</h2>
+<table class="mt-4">
+<thead><tr><th>Existing</th><th>Keep there</th><th>Not here</th></tr></thead>
+<tbody>
+<tr><td><a class="text-cyan" href="/prep/">/prep/</a></td><td>BNY DevOps 3-phase interview</td><td>Math/Jenkins syllabus</td></tr>
+<tr><td><a class="text-cyan" href="/paths/devsecops-mastery/">Mastery</a></td><td>12-mo cert ladder</td><td>AZ-104/CKA weeks</td></tr>
+<tr><td><a class="text-cyan" href="/paths/nvidia-ai/">NVIDIA AI</a></td><td>Free DLI list</td><td>Course checklist clone</td></tr>
+<tr><td><a class="text-cyan" href="/paths/bny-fullstack/">BNY Full-Stack</a></td><td>Angular/Spring JD map</td><td>Bank app CRUD syllabus</td></tr>
+<tr><td>SPA <code>/academy</code></td><td>Product fiction cards</td><td>Second static mirror</td></tr>
+</tbody>
+</table>
+<p class="mt-10 text-sm text-muted"><a class="text-cyan" href="/paths/">Paths hub</a> · <a class="text-cyan" href="/enroll/">Enroll</a> · <a class="text-cyan" href="/ops/PENDING-IMPORTS.md">Pending imports</a></p>
+</article>
 
 </main>
 <footer class="no-print border-t border-paper/10">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/>
-    </div>
+    <div class="flex items-start gap-4"><img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/></div>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/founders/" class="hover:text-paper">Founders</a><a href="/prep/" class="hover:text-paper">Prep</a><a href="/paths/" class="hover:text-paper">Paths</a><a href="/enroll/" class="hover:text-paper">Enroll</a><a href="/admin/" class="hover:text-paper">Admin</a><a href="/paths/devsecops-mastery/" class="hover:text-paper">DevSecOps Mastery</a><a href="/paths/fde-training/" class="hover:text-paper">FDE Training</a><a href="/paths/nvidia-ai/" class="hover:text-paper">NVIDIA AI</a><a href="/ops/AUDIT.md" class="hover:text-paper">Audit</a><a href="/evidence/lawrence-enrollment/" class="hover:text-paper">Evidence</a></div>
+      <span>interstitiumlabs.dev</span><span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/founders/" class="hover:text-paper">Founders</a><a href="/prep/" class="hover:text-paper">Prep</a><a href="/paths/" class="hover:text-paper">Paths</a><a href="/enroll/" class="hover:text-paper">Enroll</a><a href="/admin/" class="hover:text-paper">Admin</a><a href="/paths/fde-training/" class="hover:text-paper">FDE Training</a><a href="/paths/bny-fullstack/" class="hover:text-paper">BNY Full-Stack</a><a href="/paths/enochian-programming/" class="hover:text-paper">Enochian+Prog</a><a href="/evidence/resume/" class="hover:text-paper">Resume</a><a href="/ops/AUDIT.md" class="hover:text-paper">Audit</a></div>
     </div>
   </div>
 </footer>
