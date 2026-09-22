@@ -1,0 +1,197 @@
+/* Interstitium Labs — motion system (prefers-reduced-motion safe) */
+:root {
+  --il-void: #070B16;
+  --il-cyan: #5eead4;
+  --il-gold: #c9a227;
+  --il-paper: #e8eef5;
+}
+
+/* Scroll reveal */
+.il-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.il-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+.il-reveal-delay-1 { transition-delay: 0.08s; }
+.il-reveal-delay-2 { transition-delay: 0.16s; }
+.il-reveal-delay-3 { transition-delay: 0.24s; }
+.il-reveal-delay-4 { transition-delay: 0.32s; }
+
+/* Differentiation strip cards stagger */
+.il-diff-strip .il-reveal.is-in {
+  transition-duration: 0.65s;
+}
+
+/* Sigil ambient */
+.il-sigil {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  filter: drop-shadow(0 0 24px rgba(94, 234, 212, 0.18));
+}
+.il-sigil img,
+.il-sigil picture img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.il-sigil--float {
+  animation: il-sigil-breathe 7.5s ease-in-out infinite;
+}
+.il-sigil--spin {
+  animation: il-sigil-spin 48s linear infinite;
+}
+.il-sigil--spin-slow {
+  animation: il-sigil-spin 72s linear infinite;
+}
+.il-sigil-glow::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 234, 212, 0.22), transparent 70%);
+  pointer-events: none;
+  animation: il-sigil-glow 5.5s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes il-sigil-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.02); }
+}
+@keyframes il-sigil-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes il-sigil-glow {
+  0%, 100% { opacity: 0.45; transform: scale(0.95); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+/* Hero particle field host */
+.il-hero-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.il-hero-field canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.il-hero-field + *,
+.il-hero-relative {
+  position: relative;
+  z-index: 1;
+}
+
+/* Magnetic / press buttons */
+.il-magnetic {
+  --mx: 0px;
+  --my: 0px;
+  transform: translate3d(var(--mx), var(--my), 0);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
+}
+.il-magnetic:active {
+  transform: translate3d(var(--mx), var(--my), 0) scale(0.96);
+}
+.il-press:active {
+  transform: scale(0.96);
+}
+
+/* Stats counters */
+.il-stat-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mark system callout */
+.il-mark-note {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .il-mark-note {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.il-mark-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.15rem;
+  border-radius: 0.9rem;
+  background: rgba(12, 18, 34, 0.9);
+  border: 1px solid rgba(232, 238, 245, 0.1);
+}
+.il-mark-card img {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.il-mark-card--lockup img {
+  width: auto;
+  height: 2.5rem;
+  max-width: 9rem;
+}
+
+/* Floating sigil in hero */
+.il-hero-sigil {
+  position: absolute;
+  right: 4%;
+  top: 12%;
+  width: min(38vw, 280px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+}
+@media (max-width: 640px) {
+  .il-hero-sigil {
+    width: min(46vw, 160px);
+    right: -2%;
+    top: 6%;
+    opacity: 0.35;
+  }
+}
+
+/* Emblem block */
+.il-emblem {
+  width: min(100%, 220px);
+  margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .il-sigil--float,
+  .il-sigil--spin,
+  .il-sigil--spin-slow,
+  .il-sigil-glow::after {
+    animation: none !important;
+  }
+  .il-magnetic {
+    transform: none !important;
+    transition: none;
+  }
+  .il-hero-field canvas {
+    display: none;
+  }
+}
