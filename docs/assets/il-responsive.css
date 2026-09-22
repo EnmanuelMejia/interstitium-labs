@@ -1,0 +1,377 @@
+/**
+ * Interstitium Labs — shared responsive + multi-platform utilities
+ * Dark void theme unchanged. Prefer with Tailwind-ish pages via class hooks.
+ */
+:root {
+  --il-void: #070b16;
+  --il-panel: #0c1222;
+  --il-paper: #e8eef5;
+  --il-muted: #8b9bb4;
+  --il-cyan: #5eead4;
+  --il-gold: #c9a227;
+  --il-safe-t: env(safe-area-inset-top, 0px);
+  --il-safe-r: env(safe-area-inset-right, 0px);
+  --il-safe-b: env(safe-area-inset-bottom, 0px);
+  --il-safe-l: env(safe-area-inset-left, 0px);
+  --il-chrome-h: 3.5rem;
+  --il-mobile-nav-h: 4.25rem;
+  --il-readable-max: 72rem; /* ~1152px; ultrawide stays readable */
+  --il-prose-max: 42rem;
+  /* Fluid type scale */
+  --il-fs-xs: clamp(0.68rem, 0.62rem + 0.2vw, 0.78rem);
+  --il-fs-sm: clamp(0.8rem, 0.74rem + 0.28vw, 0.95rem);
+  --il-fs-base: clamp(0.95rem, 0.88rem + 0.35vw, 1.125rem);
+  --il-fs-lg: clamp(1.125rem, 1rem + 0.55vw, 1.35rem);
+  --il-fs-xl: clamp(1.35rem, 1.1rem + 0.9vw, 1.75rem);
+  --il-fs-2xl: clamp(1.65rem, 1.25rem + 1.4vw, 2.25rem);
+  --il-fs-3xl: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  --il-fs-4xl: clamp(2.35rem, 1.55rem + 3vw, 3.75rem);
+  --il-fs-display: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+}
+
+/* ---- Baseline overflow / box ---- */
+html {
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  overflow-x: clip;
+  padding-left: var(--il-safe-l);
+  padding-right: var(--il-safe-r);
+}
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fluid type on static Learning OS surfaces */
+.il-fluid-type h1,
+main h1 {
+  font-size: var(--il-fs-4xl);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.il-fluid-type h2,
+main h2.font-display {
+  font-size: var(--il-fs-2xl);
+  line-height: 1.15;
+}
+.il-fluid-type h3,
+main h3.font-display {
+  font-size: var(--il-fs-xl);
+}
+.il-fluid-type p,
+.il-fluid-type .text-base {
+  font-size: var(--il-fs-base);
+}
+.il-fluid-type .text-sm {
+  font-size: var(--il-fs-sm);
+}
+
+/* Readable max on ultrawide */
+.il-readable,
+.mx-auto.max-w-6xl {
+  max-width: min(100%, var(--il-readable-max));
+}
+.il-prose-max {
+  max-width: var(--il-prose-max);
+}
+
+/* Touch targets ≥44px */
+.il-touch,
+a.il-touch,
+button.il-touch,
+.il-cta,
+header nav a,
+header .il-lang-btn,
+.il-quest button,
+footer a {
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
+}
+header nav a {
+  display: inline-flex;
+  align-items: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+/* Keep compact display text but enlarge hit area */
+header a.inline-flex,
+main a.inline-flex.h-11,
+main a.inline-flex.h-12,
+main button.inline-flex {
+  min-height: 44px;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.check-row {
+  min-height: 44px;
+  align-items: center;
+}
+
+/* Safe-area chrome */
+.il-safe-pad {
+  padding-top: var(--il-safe-t);
+  padding-bottom: var(--il-safe-b);
+  padding-left: var(--il-safe-l);
+  padding-right: var(--il-safe-r);
+}
+header.sticky,
+header.no-print.sticky {
+  padding-top: var(--il-safe-t);
+  padding-left: max(0px, var(--il-safe-l));
+  padding-right: max(0px, var(--il-safe-r));
+}
+footer.no-print {
+  padding-bottom: max(1rem, var(--il-safe-b));
+}
+
+/* HUD: avoid mobile bottom nav / notches (complements il-game inline CSS) */
+#il-game-hud.il-hud,
+.il-hud {
+  right: max(0.75rem, var(--il-safe-r)) !important;
+  bottom: calc(var(--il-mobile-nav-h) + var(--il-safe-b) + 0.5rem) !important;
+  max-width: calc(100vw - 1.5rem - var(--il-safe-l) - var(--il-safe-r));
+}
+@media (min-width: 1024px) {
+  #il-game-hud.il-hud,
+  .il-hud {
+    bottom: max(1rem, var(--il-safe-b)) !important;
+  }
+}
+
+/* Sticky page chrome clearance for mobile fixed bars */
+.il-main-pad-mobile {
+  padding-bottom: calc(var(--il-mobile-nav-h) + var(--il-safe-b) + 1rem);
+}
+@media (min-width: 1024px) {
+  .il-main-pad-mobile { padding-bottom: 0; }
+}
+
+/* Tables: horizontal scroll */
+.il-table-scroll,
+.prose-il .il-table-scroll,
+main .prose-il table,
+.prose-il > table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.prose-il table {
+  border-collapse: collapse;
+}
+.il-table-scroll table {
+  display: table;
+  min-width: 32rem;
+}
+
+/* Code / pre: wrap or scroll */
+pre,
+.prose-il pre,
+code.il-block {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre;
+  word-wrap: normal;
+}
+pre.il-wrap,
+.il-pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+p code, li code, td code {
+  word-break: break-word;
+}
+
+/* Container-query friendly cards */
+.il-cq {
+  container-type: inline-size;
+  container-name: ilcard;
+}
+@container ilcard (max-width: 360px) {
+  .il-cq-stack { flex-direction: column; }
+  .il-cq-hide-sm { display: none; }
+}
+
+/* Breakpoint helpers (reference: 360, 390, 768, 1024, 1280, 1440, 1920+) */
+.il-show-sm { display: none !important; }
+@media (min-width: 390px) {
+  :root { --il-chrome-h: 3.75rem; }
+}
+@media (min-width: 768px) {
+  .il-hide-md { display: none !important; }
+  .il-show-sm { display: initial !important; }
+}
+@media (min-width: 1024px) {
+  :root { --il-chrome-h: 4rem; }
+}
+@media (min-width: 1280px) {
+  .il-readable { --il-readable-max: 72rem; }
+}
+@media (min-width: 1440px) {
+  .il-readable { --il-readable-max: 76rem; }
+}
+@media (min-width: 1920px) {
+  .il-readable { --il-readable-max: 80rem; }
+}
+
+/* Language switcher */
+.il-lang {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.il-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(232, 238, 245, 0.12);
+  background: rgba(12, 18, 34, 0.6);
+  color: var(--il-cyan);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.il-lang-btn:hover,
+.il-lang-btn:focus-visible {
+  border-color: rgba(94, 234, 212, 0.45);
+  outline: none;
+}
+.il-lang-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 60;
+  min-width: 11rem;
+  max-height: min(70vh, 22rem);
+  overflow-y: auto;
+  padding: 0.35rem;
+  border-radius: 0.65rem;
+  background: rgba(7, 11, 22, 0.96);
+  border: 1px solid rgba(232, 238, 245, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  display: none;
+}
+.il-lang-menu.is-open { display: block; }
+.il-lang-menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--il-paper);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+.il-lang-menu button:hover,
+.il-lang-menu button[aria-current="true"] {
+  background: rgba(94, 234, 212, 0.1);
+  color: var(--il-cyan);
+}
+.il-lang-menu .il-lang-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--il-muted);
+}
+.il-i18n-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  background: rgba(12, 18, 34, 0.85);
+  color: var(--il-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.il-i18n-note button {
+  min-height: 36px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  background: transparent;
+  color: var(--il-cyan);
+  font: inherit;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+/* RTL */
+html[dir="rtl"] .il-lang-menu { right: auto; left: 0; }
+html[dir="rtl"] #il-game-hud.il-hud,
+html[dir="rtl"] .il-hud {
+  right: auto !important;
+  left: max(0.75rem, var(--il-safe-l)) !important;
+}
+
+/* Print */
+@media print {
+  .no-print,
+  .il-hud,
+  #il-game-hud,
+  .il-lang,
+  header nav,
+  .il-i18n-note {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    overflow: visible !important;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.7em;
+    color: #555;
+  }
+  a[href^="/"]::after,
+  a[href^="#"]::after {
+    content: "";
+  }
+  main {
+    max-width: 100% !important;
+  }
+  pre, table {
+    break-inside: avoid;
+  }
+}
+
+/* Reduced motion already handled by il-motion; reinforce */
+@media (prefers-reduced-motion: reduce) {
+  .il-hud,
+  .il-lang-menu {
+    transition: none !important;
+  }
+}

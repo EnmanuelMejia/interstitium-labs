@@ -1,0 +1,52 @@
+# Interstitium Labs — Capacitor mobile shell
+
+**Equal capability:** iOS, Android, and (later) desktop wrap the same Learning OS as `docs/` / https://interstitiumlabs.dev  
+**Security:** [docs/ops/ENTERPRISE-SECURITY.md](../../docs/ops/ENTERPRISE-SECURITY.md) · [MOBILE-SECURITY.md](../../docs/ops/MOBILE-SECURITY.md)  
+**Stores:** [STORE-PUBLISH.md](../../docs/ops/STORE-PUBLISH.md)
+
+| | |
+| --- | --- |
+| appId | `dev.interstitiumlabs.app` |
+| appName | Interstitium Labs |
+| webDir | `www/` (synced from `docs/`) |
+
+## Commands
+
+```bash
+# From repo root
+./scripts/sync-mobile-web.sh
+cd apps/mobile
+npm ci
+npm run audit          # or: npm audit --omit=dev --audit-level=high
+npx cap add android    # once — requires Android SDK
+npx cap add ios        # once — requires macOS + Xcode
+npx cap sync
+npx cap open android   # / ios
+```
+
+Copy Android security overlay after first `cap add android`:
+
+```bash
+mkdir -p android/app/src/main/res/xml
+cp android-security/res/xml/network_security_config.xml android/app/src/main/res/xml/
+# Set usesCleartextTraffic=false + networkSecurityConfig (see android-security/README.md)
+```
+
+## Native equal-capability APIs
+
+| Capability | Status |
+| --- | --- |
+| Full Learning OS | Bundled `www/` from `docs/` |
+| Status bar / void theme `#070B16` | StatusBar plugin + `il-bridge.js` |
+| Splash / sigil | SplashScreen + brand assets |
+| Share (proof wall) | `@capacitor/share` — ON |
+| Push | Stub — `IL_FEATURE_PUSH=false`, no FCM keys |
+| Biometric lock | Stub — OFF until auth + Keychain/Keystore |
+
+## Desktop later
+
+Same `www/` sync: Capacitor desktop targets, **or** Tauri/Electron wrapping synced assets — apply the same HTTPS / no-secrets / CSP policy from ENTERPRISE-SECURITY.md. PWA already installable via `docs/manifest.webmanifest` + `sw.js`.
+
+## Never commit
+
+`*.jks`, `AuthKey_*.p8`, `google-services.json`, `GoogleService-Info.plist` — see root `.gitignore`.

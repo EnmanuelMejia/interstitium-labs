@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Interstitium Labs — Network Security Config
+  Cleartext disabled. Debug-only localhost exception documented in MOBILE-SECURITY.md.
+  Merge into android/app/src/main/res/xml/ after `npx cap add android`.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- Debug builds may use localhost for live reload — keep cleartext denied in release -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">interstitiumlabs.dev</domain>
+    </domain-config>
+    <debug-overrides>
+        <domain-config cleartextTrafficPermitted="true">
+            <domain includeSubdomains="true">localhost</domain>
+            <domain includeSubdomains="true">10.0.2.2</domain>
+        </domain-config>
+    </debug-overrides>
+</network-security-config>

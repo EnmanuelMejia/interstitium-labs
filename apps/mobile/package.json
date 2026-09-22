@@ -1,0 +1,33 @@
+{
+  "name": "@interstitium-labs/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capacitor shell for Interstitium Labs Learning OS — security-first, equal capability across platforms",
+  "scripts": {
+    "sync:web": "bash ../../scripts/sync-mobile-web.sh",
+    "build:web": "npm run sync:web",
+    "cap:sync": "npm run sync:web && npx cap sync",
+    "cap:android": "npm run sync:web && npx cap sync android && npx cap open android",
+    "cap:ios": "npm run sync:web && npx cap sync ios && npx cap open ios",
+    "audit": "npm audit --omit=dev",
+    "audit:ci": "npm audit --omit=dev --audit-level=high"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.0",
+    "@capacitor/app": "6.0.2",
+    "@capacitor/core": "6.2.0",
+    "@capacitor/haptics": "6.0.2",
+    "@capacitor/ios": "6.2.0",
+    "@capacitor/preferences": "6.0.3",
+    "@capacitor/share": "6.0.3",
+    "@capacitor/splash-screen": "6.0.3",
+    "@capacitor/status-bar": "6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.0",
+    "typescript": "5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

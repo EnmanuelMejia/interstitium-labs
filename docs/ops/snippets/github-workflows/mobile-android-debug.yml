@@ -1,0 +1,73 @@
+name: mobile-android-debug
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "docs/**"
+      - "scripts/sync-mobile-web.sh"
+      - ".github/workflows/mobile-android-debug.yml"
+
+jobs:
+  debug-apk:
+    name: Sync www + assembleDebug (optional)
+    runs-on: ubuntu-latest
+    # Skip gracefully if Android platform not yet generated
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - name: Sync Learning OS → www
+        run: bash scripts/sync-mobile-web.sh
+      - name: npm ci
+        working-directory: apps/mobile
+        run: npm ci
+      - name: Ensure Android platform
+        working-directory: apps/mobile
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+      - name: Apply network security overlay
+        working-directory: apps/mobile
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          cp android-security/res/xml/network_security_config.xml android/app/src/main/res/xml/
+          # Best-effort cleartext off in manifest
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          t = p.read_text()
+          if "usesCleartextTraffic" not in t:
+              t = t.replace("<application", '<application android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config"', 1)
+          else:
+              t = t.replace('android:usesCleartextTraffic="true"', 'android:usesCleartextTraffic="false"')
+              if "networkSecurityConfig" not in t:
+                  t = t.replace("<application", '<application android:networkSecurityConfig="@xml/network_security_config"', 1)
+          p.write_text(t)
+          print("manifest hardened")
+          PY
+          fi
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Assemble debug APK
+        working-directory: apps/mobile/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: interstitium-labs-debug
+          path: apps/mobile/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
