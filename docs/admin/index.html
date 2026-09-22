@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Admin — Interstitium Labs</title>
+<meta name="description" content="Operator console: GitHub edits, Cloudflare deploy, enroll config, Stripe/PayPal go-live checklist."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/admin/"/>
+<meta property="og:title" content="Admin — Interstitium Labs"/>
+<meta property="og:description" content="Operator console: GitHub edits, Cloudflare deploy, enroll config, Stripe/PayPal go-live checklist."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/admin/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/brand/icon-180.png"/>
+<style>
+  pre { overflow-x: auto; background: #0c1222; border: 1px solid rgba(232,238,245,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.55; color: #e8eef5; margin: 1rem 0; }
+  code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85em; }
+  p code, li code { background: rgba(232,238,245,0.06); padding: 0.1em 0.35em; border-radius: 0.25rem; }
+  .prose-il h2, .prose-il h3 { scroll-margin-top: 5rem; }
+  .prose-il ul { list-style: disc; padding-left: 1.25rem; }
+  .prose-il ol { list-style: decimal; padding-left: 1.25rem; }
+  .prose-il li { margin-top: 0.4rem; }
+  .prose-il table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin: 1rem 0; }
+  .prose-il th, .prose-il td { border: 1px solid rgba(232,238,245,0.1); padding: 0.65rem 0.85rem; text-align: left; vertical-align: top; }
+  .prose-il th { color: #c9a227; font-family: "JetBrains Mono", monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+</style>
+
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<div class="flex min-h-dvh flex-col bg-void text-paper">
+<header class="no-print sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md" style="padding-top:env(safe-area-inset-top)">
+  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:h-16 sm:px-8">
+    <a class="flex min-w-0 items-center text-paper" href="/">
+      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-9 w-auto sm:h-10"/>
+    </a>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Prep</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Paths</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Enroll</a><a href="/admin/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper text-paper" aria-current="page">Admin</a><a href="/academy" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Academy</a></nav>
+    <a href="/admin/" class="inline-flex items-center justify-center font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Admin</a>
+  </div>
+</header>
+<main class="flex-1">
+
+<section class="border-b border-paper/10">
+  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Admin · Operator console</p>
+    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">Site administration</h1>
+    <p class="mt-5 max-w-2xl text-base text-muted">Static site under <code>docs/</code> on Cloudflare Workers Assets. Edit via GitHub. No server CMS yet — Decap + Cloudflare Access is future work.</p>
+  </div>
+</section>
+<section class="mx-auto max-w-6xl px-5 py-14 sm:px-8 prose-il">
+  <div class="grid gap-4 md:grid-cols-2">
+    <article class="rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">
+      <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Content</p>
+      <h2 class="mt-3 font-display text-2xl">Edit on GitHub</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted">
+        <li><a class="text-cyan" href="https://github.com/EnmanuelMejia/interstitium-labs" rel="noopener noreferrer">Repo home</a></li>
+        <li><a class="text-cyan" href="https://github.com/EnmanuelMejia/interstitium-labs/tree/main/docs" rel="noopener noreferrer">docs/ tree</a></li>
+        <li><a class="text-cyan" href="https://github.com/EnmanuelMejia/interstitium-labs/edit/main/docs/enroll/config.js" rel="noopener noreferrer">Edit enroll/config.js</a></li>
+        <li><a class="text-cyan" href="https://github.com/EnmanuelMejia/interstitium-labs/edit/main/docs/index.html" rel="noopener noreferrer">Edit homepage</a></li>
+      </ul>
+    </article>
+    <article class="rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">
+      <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Deploy</p>
+      <h2 class="mt-3 font-display text-2xl">Cloudflare</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted">
+        <li><a class="text-cyan" href="https://dash.cloudflare.com/" rel="noopener noreferrer">Cloudflare dashboard</a> → Workers &amp; Pages / Assets for this domain</li>
+        <li>Publish from <code>docs/</code> on <code>main</code> after push</li>
+        <li>Live: <a class="text-cyan" href="https://interstitiumlabs.dev/">interstitiumlabs.dev</a></li>
+      </ul>
+    </article>
+  </div>
+
+  <h2 class="mt-14 font-display text-3xl tracking-[-0.03em]">Update enrollment links</h2>
+  <ol class="mt-4 max-w-2xl space-y-2 text-sm text-muted">
+    <li>Create Stripe Payment Links (and optional PayPal buttons) — see <a class="text-cyan" href="/ops/payments.md">payments.md</a>.</li>
+    <li>Paste URLs into <code>docs/enroll/config.js</code>; set each tier’s <code>stripeEnabled</code> / <code>paypalEnabled</code> and top-level <code>paymentsLive: true</code>.</li>
+    <li>Commit + push <code>main</code>; confirm CF deploy; open <a class="text-cyan" href="/enroll/">/enroll/</a> and test one live link.</li>
+  </ol>
+
+  <h2 class="mt-14 font-display text-3xl tracking-[-0.03em]">Go-live checklist (Stripe / PayPal)</h2>
+  <ul class="mt-4 max-w-2xl space-y-2 text-sm text-muted">
+    <li>☐ Stripe account activated for live mode</li>
+    <li>☐ Three Payment Links created (Prep Sprint, DevSecOps Mastery, Full Academy)</li>
+    <li>☐ Success URL → <code>https://interstitiumlabs.dev/enroll/success.html</code>; cancel → <code>…/cancel.html</code></li>
+    <li>☐ Optional PayPal no-code payment links for the same three products</li>
+    <li>☐ Placeholders replaced in <code>config.js</code>; no secret keys in repo</li>
+    <li>☐ Manual email kickoff process until webhooks (phase 2)</li>
+  </ul>
+
+  <h2 class="mt-14 font-display text-3xl tracking-[-0.03em]">Ops docs</h2>
+  <ul class="mt-4 space-y-2 text-sm text-muted">
+    <li><a class="text-cyan" href="/ops/admin.md">admin.md</a> — administer site</li>
+    <li><a class="text-cyan" href="/ops/payments.md">payments.md</a> — commerce runbook</li>
+    <li><a class="text-cyan" href="/ops/AUDIT.md">AUDIT.md</a> — URL map + commerce status</li>
+    <li><a class="text-cyan" href="/ops/PENDING-IMPORTS.md">PENDING-IMPORTS.md</a> — ChatGPT shares awaiting extract</li>
+  </ul>
+</section>
+
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/brand/marks/canonical-lockup.png" alt="Interstitium Labs — Scientia Omnia Vincit" class="object-contain object-left h-14 w-auto sm:h-10"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/founders/" class="hover:text-paper">Founders</a><a href="/prep/" class="hover:text-paper">Prep</a><a href="/paths/" class="hover:text-paper">Paths</a><a href="/enroll/" class="hover:text-paper">Enroll</a><a href="/admin/" class="hover:text-paper">Admin</a><a href="/paths/devsecops-mastery/" class="hover:text-paper">DevSecOps Mastery</a><a href="/paths/fde-training/" class="hover:text-paper">FDE Training</a><a href="/paths/nvidia-ai/" class="hover:text-paper">NVIDIA AI</a><a href="/ops/AUDIT.md" class="hover:text-paper">Audit</a><a href="/evidence/lawrence-enrollment/" class="hover:text-paper">Evidence</a></div>
+    </div>
+  </div>
+</footer>
+</div>
+</body>
+</html>
