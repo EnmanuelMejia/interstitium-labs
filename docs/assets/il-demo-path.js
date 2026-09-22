@@ -1,24 +1,76 @@
-(function(g){'use strict';
-var STORAGE='il.demo.path.v1',EVIDENCE='il.evidence.feed.v1';
-var STEPS=[{id:'place',kicker:'01 · Place',title:'One CAT probe. Seed the fringe.',body:'Answer honestly. Wrong is a locator.'},{id:'drill',kicker:'02 · Drill',title:'One SuperLab-shaped check.',body:'Interview-grade signal — not a hosted VM fleet.'},{id:'muse',kicker:'03 · Muse',title:'Socratic handoff.',body:'Lab Muse on /coach/ — local rules → router when healthy. No fake keys.'}];
-var PLACE={id:'demo-place-cidr',stem:'A /24 IPv4 prefix holds how many usable host addresses (classic host math)?',choices:[{key:'A',text:'254'},{key:'B',text:'256'},{key:'C',text:'24'},{key:'D',text:'512'}],answerKey:'A',tip:{A:'Correct — 2^(32-24)=256; classic usable=254.',B:'256 is block size, not classic usable hosts.',C:'24 is prefix length.',D:'That is /23 neighborhood.'},remediate:'/adapt/#session'};
-var DRILL={id:'demo-drill-kind',stem:'After make kind-up in DevOps SuperLab, which verifies workloads?',choices:[{key:'A',text:'kubectl -n superlab-dev get deploy,svc,hpa'},{key:'B',text:'docker ps --filter superlab'},{key:'C',text:'helm list -A | grep kind'},{key:'D',text:'kubectl get nodes -o wide --all-namespaces'}],answerKey:'A',tip:{A:'Correct — SuperLab quickstart verify.',B:'Docker shows nodes, not app namespace.',C:'Helm optional.',D:'Invalid flag combo; nodes ≠ app proof.'},remediate:'/labs/superlab/#quickstart'};
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function load(){try{var r=g.localStorage.getItem(STORAGE);if(r){var s=JSON.parse(r);if(s&&s.v===1)return s;}}catch(e){}return{v:1,step:0,placeOk:null,drillOk:null,startedAt:Date.now(),finishedAt:null};}
-function save(s){try{g.localStorage.setItem(STORAGE,JSON.stringify(s));}catch(e){}return s;}
-function pushEvidence(text,href){var f=[];try{f=JSON.parse(g.localStorage.getItem(EVIDENCE)||'[]')||[];}catch(e){f=[];}f.unshift({t:Date.now(),text:text,href:href||'/demo/'});if(f.length>40)f.length=40;try{g.localStorage.setItem(EVIDENCE,JSON.stringify(f));}catch(e2){}}
-function choices(item,onPick){var w=document.createElement('div');w.className='il-demo-choices';item.choices.forEach(function(c){var b=document.createElement('button');b.type='button';b.className='il-demo-choice';b.innerHTML='<strong>'+esc(c.key)+'</strong> · '+esc(c.text);b.addEventListener('click',function(){onPick(c.key,b,w);});w.appendChild(b);});return w;}
-function disable(w){w.querySelectorAll('button').forEach(function(b){b.disabled=true;});}
-function paint(root){var state=load();root.innerHTML='';root.className='il-demo-path';
-var timer=document.createElement('p');timer.className='il-demo-timer font-mono text-[0.58rem] uppercase tracking-[0.18em] text-cyan';timer.setAttribute('aria-live','polite');root.appendChild(timer);
-var started=state.startedAt||Date.now();function tick(){var sec=Math.max(0,Math.floor((Date.now()-started)/1000));timer.textContent=state.finishedAt?('Path complete · '+Math.floor((state.finishedAt-started)/1000)+'s'):('Elapsed · '+sec+'s · target <30s to Muse');}tick();if(root._iv)clearInterval(root._iv);root._iv=setInterval(tick,500);
-var rail=document.createElement('ol');rail.className='il-demo-rail';STEPS.forEach(function(st,i){var li=document.createElement('li');li.className='il-demo-rail-step'+(i===state.step?' is-on':'')+(i<state.step?' is-done':'');li.innerHTML='<span>'+esc(st.kicker)+'</span><strong>'+esc(st.title.split('.')[0])+'</strong>';rail.appendChild(li);});root.appendChild(rail);
-var card=document.createElement('div');card.className='il-demo-card il-surface';root.appendChild(card);
-function finish(){state.step=2;state.finishedAt=Date.now();save(state);pushEvidence('Instant Demo Path completed','/demo/');try{if(g.ILAnalytics&&g.ILAnalytics.track)g.ILAnalytics.track('demo_path_complete',{placeOk:state.placeOk,drillOk:state.drillOk,ms:state.finishedAt-started});}catch(e){}if(g.ILGame&&g.ILGame.award)try{g.ILGame.award('demo_path');}catch(e2){}paint(root);}
-if(state.step===0){var st=STEPS[0];card.innerHTML='<p class="il-kicker">'+esc(st.kicker)+'</p><h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">'+esc(st.title)+'</h2><p class="mt-2 text-sm text-muted">'+esc(st.body)+'</p><p class="il-demo-stem mt-5">'+esc(PLACE.stem)+'</p>';var fb=document.createElement('p');fb.className='il-demo-fb';fb.setAttribute('aria-live','polite');card.appendChild(choices(PLACE,function(key,btn,wrap){var ok=key===PLACE.answerKey;state.placeOk=ok;save(state);disable(wrap);btn.classList.add(ok?'is-ok':'is-bad');fb.textContent=PLACE.tip[key]||'';fb.className='il-demo-fb '+(ok?'is-ok':'is-bad');pushEvidence(ok?'Demo placement hit':'Demo placement miss',PLACE.remediate);setTimeout(function(){state.step=1;save(state);paint(root);},ok?650:1100);}));card.appendChild(fb);}
-else if(state.step===1){var st1=STEPS[1];card.innerHTML='<p class="il-kicker">'+esc(st1.kicker)+'</p><h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">'+esc(st1.title)+'</h2><p class="mt-2 text-sm text-muted">'+esc(st1.body)+'</p><p class="il-demo-stem mt-5">'+esc(DRILL.stem)+'</p>';var fb1=document.createElement('p');fb1.className='il-demo-fb';card.appendChild(choices(DRILL,function(key,btn,wrap){var ok=key===DRILL.answerKey;state.drillOk=ok;save(state);disable(wrap);btn.classList.add(ok?'is-ok':'is-bad');fb1.textContent=DRILL.tip[key]||'';fb1.className='il-demo-fb '+(ok?'is-ok':'is-bad');pushEvidence(ok?'Demo SuperLab check passed':'Demo drill miss',DRILL.remediate);setTimeout(finish,ok?650:1100);}));card.appendChild(fb1);}
-else{var st2=STEPS[2],elapsed=Math.floor((state.finishedAt-started)/1000);card.innerHTML='<p class="il-kicker">'+esc(st2.kicker)+'</p><h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">'+esc(st2.title)+'</h2><p class="mt-2 text-sm text-muted">'+esc(st2.body)+'</p><p class="mt-5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Done in '+elapsed+'s · place '+(state.placeOk?'hit':'miss')+' · drill '+(state.drillOk?'hit':'miss')+'</p><div class="mt-6 flex flex-wrap gap-3"><a class="inline-flex h-11 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void" href="/coach/?q=I%20finished%20Instant%20Demo%20Path.%20Socratic%20next%20for%20Zero%E2%86%92Hire%3F">Open Lab Muse</a><a class="inline-flex h-11 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-cyan" href="/adapt/#session">Continue Adapt</a><a class="inline-flex h-11 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-paper" href="/labs/challenge/">Challenge of the Day</a><a class="inline-flex h-11 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-paper" href="/paths/devops-zero-to-hire/">Zero→Hire</a></div><button type="button" class="il-demo-reset mt-6" data-r>Reset path</button>';card.querySelector('[data-r]').addEventListener('click',function(){save({v:1,step:0,placeOk:null,drillOk:null,startedAt:Date.now(),finishedAt:null});paint(root);});}
-}
-function boot(){document.querySelectorAll('[data-il-demo-path]').forEach(paint);}
-g.ILDemoPath={boot:boot};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})(typeof window!=='undefined'?window:this);
+/**
+ * Instant Demo Path — place → drill → coach handoff in <30s.
+ * Storage: il.demo.path.v1  Mount: [data-il-demo-path]
+ */
+(function (g) {
+  'use strict';
+  var STORAGE = 'il.demo.path.v1';
+  var EVIDENCE = 'il.evidence.feed.v1';
+  var PLACE = {
+    id: 'demo-place-cidr',
+    stem: 'A /24 IPv4 prefix holds how many usable host addresses (classic host math)?',
+    choices: [{ key: 'A', text: '254' }, { key: 'B', text: '256' }, { key: 'C', text: '24' }, { key: 'D', text: '512' }],
+    answerKey: 'A',
+    tip: { A: 'Correct — 2^(32-24)=256 addresses; classic usable hosts = 254.', B: '256 is the block size, not classic usable hosts.', C: '24 is the prefix length.', D: 'That is /23 neighborhood — not /24 usable hosts.' }
+  };
+  var DRILL = {
+    id: 'demo-drill-kind',
+    stem: 'After `make kind-up` in DevOps SuperLab, which command shows deployments in the lab namespace?',
+    choices: [
+      { key: 'A', text: 'kubectl -n superlab-dev get deploy,svc,hpa' },
+      { key: 'B', text: 'docker ps --filter superlab' },
+      { key: 'C', text: 'helm list -A | grep kind' },
+      { key: 'D', text: 'kubectl get nodes -o wide --all-namespaces' }
+    ],
+    answerKey: 'A',
+    tip: { A: 'Correct — namespace-scoped get of deploy/svc/hpa.', B: 'Docker alone does not show k8s Deployments.', C: 'Helm may not be the install path.', D: 'Nodes are cluster-scoped; --all-namespaces is wrong here.' }
+  };
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function load() { try { var raw = g.localStorage.getItem(STORAGE); if (raw) return JSON.parse(raw); } catch (e) {} return { v: 1, step: 'place', answers: {}, t0: Date.now() }; }
+  function save(s) { try { g.localStorage.setItem(STORAGE, JSON.stringify(s)); } catch (e) {} }
+  function pushEvidence(text) {
+    try { var feed = JSON.parse(g.localStorage.getItem(EVIDENCE) || '[]') || []; feed.unshift({ t: Date.now(), kind: 'demo', text: text }); if (feed.length > 48) feed.length = 48; g.localStorage.setItem(EVIDENCE, JSON.stringify(feed)); } catch (e) {}
+  }
+  function paintQ(root, state, q, nextStep) {
+    var html = '<div class="il-demo-card il-ux-card"><p class="il-demo-stem">' + esc(q.stem) + '</p><div class="il-demo-choices">';
+    q.choices.forEach(function (c) {
+      html += '<button type="button" class="il-demo-choice" data-key="' + c.key + '"><strong>' + c.key + '.</strong> ' + esc(c.text) + '</button>';
+    });
+    html += '</div><p class="il-demo-fb" data-fb></p></div>';
+    root.querySelector('[data-il-demo-body]').innerHTML = html;
+    root.querySelectorAll('.il-demo-choice').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-key');
+        var ok = key === q.answerKey;
+        state.answers[q.id] = key;
+        root.querySelectorAll('.il-demo-choice').forEach(function (b) { b.disabled = true; b.classList.toggle('is-ok', b.getAttribute('data-key') === q.answerKey); b.classList.toggle('is-bad', b.getAttribute('data-key') === key && !ok); });
+        var fb = root.querySelector('[data-fb]');
+        fb.textContent = q.tip[key] || q.tip[q.answerKey];
+        fb.className = 'il-demo-fb ' + (ok ? 'is-ok' : 'is-bad');
+        setTimeout(function () { state.step = nextStep; save(state); render(root, state); }, ok ? 700 : 1100);
+      });
+    });
+  }
+  function render(root, state) {
+    var elapsed = Math.max(0, Math.round((Date.now() - (state.t0 || Date.now())) / 1000));
+    var steps = ['place', 'drill', 'muse'];
+    var rail = steps.map(function (id) {
+      var on = state.step === id; var done = steps.indexOf(id) < steps.indexOf(state.step) || state.step === 'done';
+      return '<li class="il-demo-rail-step' + (on ? ' is-on' : '') + (done && !on ? ' is-done' : '') + '"><span>' + id + '</span><strong>' + ({ place: 'Place', drill: 'Drill', muse: 'Coach' }[id]) + '</strong></li>';
+    }).join('');
+    root.innerHTML = '<div class="il-demo-path"><p class="il-demo-timer font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted">Elapsed ' + elapsed + 's · target &lt;30s</p><ul class="il-demo-rail">' + rail + '</ul><div data-il-demo-body></div></div>';
+    if (state.step === 'place') paintQ(root, state, PLACE, 'drill');
+    else if (state.step === 'drill') paintQ(root, state, DRILL, 'muse');
+    else if (state.step === 'muse' || state.step === 'done') {
+      state.step = 'done'; save(state); pushEvidence('Instant demo path completed');
+      root.querySelector('[data-il-demo-body]').innerHTML =
+        '<div class="il-demo-card il-ux-card"><p class="il-demo-stem">Socratic handoff ready.</p><p class="mt-3 text-sm text-muted">Local coach rules now. Lab Muse wires Ollama when demand grows — never fake API keys.</p><div class="mt-5 flex flex-wrap gap-3"><a class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-void" href="/coach/?prompt=' + encodeURIComponent('I just finished the Instant Demo Path. Quiz me on /24 usable hosts and kubectl -n superlab-dev get deploy.') + '">Open Lab Muse</a><a class="inline-flex h-10 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-cyan" href="/os/">Time-to-hire OS</a><button type="button" class="il-demo-reset text-sm text-muted" data-reset>Reset demo</button></div></div>';
+      var r = root.querySelector('[data-reset]');
+      if (r) r.addEventListener('click', function () { try { g.localStorage.removeItem(STORAGE); } catch (e) {} render(root, { v: 1, step: 'place', answers: {}, t0: Date.now() }); });
+    }
+  }
+  function mount(root) { render(root, load()); }
+  function boot() { var nodes = document.querySelectorAll('[data-il-demo-path]'); for (var i = 0; i < nodes.length; i++) mount(nodes[i]); }
+  g.ILDemoPath = { boot: boot, mount: mount };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})(typeof window !== 'undefined' ? window : this);

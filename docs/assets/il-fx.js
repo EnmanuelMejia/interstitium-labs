@@ -327,21 +327,70 @@
 
   /* ---------- Command palette ⌘K / Ctrl+K ---------- */
   var CMD = [
-    { label: "Instant Demo Path", href: "/demo/", keys: "demo instant musk" },
-    { label: "Challenge of the Day", href: "/labs/challenge/", keys: "challenge cotd" },
-    { label: "Trending MIT LinkedIn X", href: "/trending/", keys: "trending mit linkedin x" },
-    { label: "Lab Muse", href: "/coach/", keys: "muse coach" },
-    { label: "Time-to-hire OS", href: "/os/", keys: "os hire" },
-    { label: "Scenario exam", href: "/exam/", keys: "exam" },
-    { label: "Proof export", href: "/proof/", keys: "proof" },
-    { label: "Adapt", href: "/adapt/", keys: "adapt" },
-    { label: "Paths exceed", href: "/paths/#exceed-paths", keys: "paths" },
-    { label: "Zero to Hire", href: "/paths/devops-zero-to-hire/", keys: "hire" },
-    { label: "Learn", href: "/learn/", keys: "learn" },
-    { label: "Prep", href: "/prep/", keys: "prep" },
-    { label: "Labs", href: "/labs/", keys: "labs" },
-    { label: "Peer matrix", href: "/about/#peer-matrix", keys: "matrix" },
+    { label: "Time-to-hire OS", href: "/os/", keys: "os hire time dashboard" },
+    { label: "Learn — Curriculum OS", href: "/learn/", keys: "learn desk" },
+    { label: "Prep — Interview sprint", href: "/prep/", keys: "prep measure" },
+    { label: "Adapt — Adaptive OS", href: "/adapt/", keys: "adapt cat aleks" },
+    { label: "Labs — SuperLab hub", href: "/labs/", keys: "labs superlab" },
+    { label: "Challenge of the Day", href: "/labs/challenge/", keys: "challenge cotd lab" },
+    { label: "Lab Muse — Coach", href: "/coach/", keys: "coach muse si tutor" },
+    { label: "Scenario exam", href: "/exam/", keys: "exam scenario remediations" },
+    { label: "Proof of work export", href: "/proof/", keys: "proof portfolio export markdown" },
+    { label: "499P9 cinema canvas", href: "/cinema/", keys: "cinema ultrawide 499p9" },
+    { label: "Instant Demo Path", href: "/demo/", keys: "demo instant" },
+    { label: "Founders — Student Zero", href: "/founders/", keys: "founders" },
+    { label: "Paths — Career tracks", href: "/paths/", keys: "paths" },
+    { label: "Play — XP arena", href: "/play/", keys: "play game" },
+    { label: "Enroll", href: "/enroll/", keys: "enroll join" },
+    { label: "Vendor deepen map", href: "/paths/vendor-map/", keys: "vendor" },
+    { label: "Muse · CrashLoopBackOff checks", href: "/coach/?prompt=" + encodeURIComponent("CrashLoopBackOff — first three checks."), keys: "muse prompt crashloop k8s" },
+    { label: "Muse · CIDR /24 usable hosts", href: "/coach/?prompt=" + encodeURIComponent("Explain /24 usable hosts like an interviewer."), keys: "muse prompt cidr network" },
+    { label: "Muse · readiness vs liveness", href: "/coach/?prompt=" + encodeURIComponent("Explain readiness vs liveness to a hiring manager."), keys: "muse prompt probe" },
+    { label: "Path · DevOps zero → hire", href: "/paths/devops-zero-to-hire/", keys: "path devops hire" },
+    { label: "Path · K8s CKA exceed", href: "/paths/k8s-cka-exceed/", keys: "path cka kubernetes" },
+    { label: "Path · DevSecOps mastery", href: "/paths/devsecops-mastery/", keys: "path devsecops" },
   ];
+
+  function deepenCmdFromCatalog() {
+    try {
+      if (global.IL_PATHS_CATALOG && Array.isArray(global.IL_PATHS_CATALOG.paths)) {
+        global.IL_PATHS_CATALOG.paths.forEach(function (p) {
+          if (!p || !p.href) return;
+          CMD.push({
+            label: "Path · " + (p.title || p.slug || p.id),
+            href: p.href,
+            keys: ("path " + (p.slug || "") + " " + (p.title || "") + " " + ((p.peers || []).join(" "))).toLowerCase()
+          });
+        });
+      }
+    } catch (e) {}
+    // Fetch catalog once (non-blocking) to jump to any path
+    try {
+      if (!global.__ilCmdCatalogLoaded) {
+        global.__ilCmdCatalogLoaded = true;
+        fetch("/assets/il-paths-catalog.json")
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (!data || !data.paths) return;
+            global.IL_PATHS_CATALOG = data;
+            data.paths.forEach(function (p) {
+              if (!p || !p.href) return;
+              var label = "Path · " + (p.title || p.slug || p.id);
+              var exists = CMD.some(function (c) { return c.href === p.href; });
+              if (!exists) {
+                CMD.push({
+                  label: label,
+                  href: p.href,
+                  keys: ("path " + (p.slug || "") + " " + (p.title || "")).toLowerCase()
+                });
+              }
+            });
+          })
+          .catch(function () {});
+      }
+    } catch (e2) {}
+  }
+  deepenCmdFromCatalog();
 
   function ensureCmd() {
     var el = qs("#il-cmd");
@@ -354,7 +403,7 @@
     el.setAttribute("aria-label", "Command palette");
     el.innerHTML =
       '<div class="il-cmd-panel">' +
-      '<input class="il-cmd-input" type="search" placeholder="Jump to learn, prep, adapt, labs, coach…" aria-label="Jump" autocomplete="off" spellcheck="false"/>' +
+      '<input class="il-cmd-input" type="search" placeholder="Jump to OS, path, lab, muse prompt, exam…" aria-label="Jump" autocomplete="off" spellcheck="false"/>' +
       '<ul class="il-cmd-list" role="listbox"></ul>' +
       '<div class="il-cmd-hint">⌘K / Ctrl+K · Esc close · ↑↓ · Enter</div>' +
       "</div>";

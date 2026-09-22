@@ -1,5 +1,7 @@
 /**
  * IL Muse / Lab Muse — Muse-class interaction shell (Interstitium Labs).
+ * Mobile hooks: full-bleed shell ≤768px / standalone / Capacitor (see il-muse-mobile.css).
+ * Brand: cyan/gold/void + Interstitium lockup — not Meta colors or trademarks.
  * Interaction patterns inspired by public Muse design posts (introducing.muse.ai).
  * NOT Meta proprietary code, assets, or trademarks. Educational Socratic DevOps tutor.
  *
@@ -93,6 +95,60 @@
       if (s.chats.sides[i].id === id) return s.chats.sides[i];
     }
     return s.chats.main;
+  }
+
+
+  function isNarrow() {
+    try { return !!(g.matchMedia && g.matchMedia('(max-width: 768px)').matches); } catch (e) { return false; }
+  }
+  function isNativeShell() {
+    try {
+      var root = document.documentElement;
+      if (root && (root.classList.contains('il-capacitor') || root.classList.contains('il-standalone'))) return true;
+      if (g.Capacitor) return true;
+      if (g.matchMedia && g.matchMedia('(display-mode: standalone)').matches) return true;
+      if (g.navigator && g.navigator.standalone === true) return true;
+    } catch (e) {}
+    return false;
+  }
+  function isMobileShell() { return isNarrow() || isNativeShell(); }
+
+  function ensureTabNav() {
+    if (document.querySelector('[data-il-muse-tabnav]')) return;
+    var nav = document.createElement('nav');
+    nav.className = 'il-muse-tabnav';
+    nav.setAttribute('data-il-muse-tabnav', '1');
+    nav.setAttribute('aria-label', 'Lab Muse companion');
+    var path = (g.location && g.location.pathname) || '';
+    var items = [
+      ['/coach/', 'Muse', '◆', path.indexOf('/coach') === 0],
+      ['/paths/', 'Paths', '⬡', path.indexOf('/paths') === 0],
+      ['/labs/', 'Labs', '▣', path.indexOf('/labs') === 0],
+      ['/os/', 'OS', '◎', path.indexOf('/os') === 0 || path.indexOf('/founders') === 0]
+    ];
+    nav.innerHTML = items.map(function (it) {
+      return '<a href="' + it[0] + '"' + (it[3] ? ' class="is-on" aria-current="page"' : '') + '>' +
+        '<span class="il-muse-tabnav__glyph" aria-hidden="true">' + it[2] + '</span>' +
+        '<span>' + it[1] + '</span></a>';
+    }).join('');
+    document.body.appendChild(nav);
+  }
+
+  function wireKeyboardAware() {
+    if (g.__IL_MUSE_KB__) return;
+    g.__IL_MUSE_KB__ = true;
+    var vv = g.visualViewport;
+    if (!vv) return;
+    function sync() {
+      var h = vv.height || g.innerHeight;
+      var offset = (g.innerHeight || 0) - h - (vv.offsetTop || 0);
+      document.documentElement.style.setProperty('--muse-vv-h', Math.round(h) + 'px');
+      if (offset > 80) document.body.classList.add('il-muse-kb-open');
+      else document.body.classList.remove('il-muse-kb-open');
+    }
+    vv.addEventListener('resize', sync, { passive: true });
+    vv.addEventListener('scroll', sync, { passive: true });
+    sync();
   }
 
   function voiceSupport() {
@@ -300,6 +356,19 @@
       if (act) {
         act.textContent = (state.activity[0] && state.activity[0].text) || 'Idle · waiting for your stuck question';
       }
+      var live = app.querySelector('[data-muse-live]');
+      var liveTxt = app.querySelector('[data-muse-live-text]');
+      if (live && liveTxt) {
+        var labels = {
+          idle: 'Ready · ask a stuck question',
+          thinking: 'Thinking…',
+          listening: 'Listening…',
+          speaking: 'Speaking…'
+        };
+        liveTxt.textContent = labels[key] || (ST[key] || key);
+        live.hidden = false;
+        live.setAttribute('data-live', key);
+      }
     }
 
     function render() {
@@ -310,9 +379,17 @@
       var routerState = (router() && router().getPolicy) ? router().getPolicy() : null;
       var active = activeTarget();
       var catalog = modelCatalog();
+      var shell = isMobileShell();
+      app.classList.toggle('il-muse-app--shell', shell);
+      if (shell) {
+        document.body.classList.add('il-muse-page');
+        ensureTabNav();
+        wireKeyboardAware();
+      }
 
       app.innerHTML =
         mobileBar() +
+        '<button type="button" class="il-muse-drawer-scrim" data-muse-scrim aria-label="Close drawer"></button>' +
         railHTML() +
         stageHTML(chat, vs) +
         panelHTML(ideas, demand, routerState, active, catalog, vs);
@@ -429,9 +506,9 @@
     }
 
     function mobileBar() {
-      return '<div class="il-muse-mobile-bar">' +
-        '<button type="button" data-muse-toggle-rail>Chats</button>' +
-        '<button type="button" data-muse-toggle-panel>Panel</button></div>';
+      return '<div class="il-muse-mobile-bar" role="toolbar" aria-label="Lab Muse drawers">' +
+        '<button type="button" data-muse-toggle-rail aria-label="Open chats">Chats</button>' +
+        '<button type="button" data-muse-toggle-panel aria-label="Open goals and artifacts">Goals</button></div>';
     }
 
     function railHTML() {
@@ -486,9 +563,10 @@
 
       return '<section class="il-muse-stage">' +
         '<header class="il-muse-header">' +
-        '<button type="button" class="il-muse-avatar" data-muse-avatar title="Activity" aria-label="Activity">' +
+        '<button type="button" class="il-muse-avatar il-muse-avatar--dee" data-muse-avatar title="Lab Muse · Dee monas" aria-label="Lab Muse activity">' +
         '<span class="il-muse-avatar__ring" aria-hidden="true"></span>' +
-        '<span class="il-muse-avatar__glyph">' + esc(initials) + '</span></button>' +
+        '<img class="il-muse-avatar__dee" src="/assets/chrome/lab-muse-dee.svg" width="40" height="40" alt="" decoding="async"/>' +
+        '<span class="il-muse-avatar__glyph il-muse-avatar__glyph--fallback" hidden>' + esc(initials) + '</span></button>' +
         '<div class="il-muse-header__meta">' +
         '<p class="il-muse-header__name">' + esc(state.name) + '</p>' +
         '<p class="il-muse-header__activity" data-muse-activity>Idle</p></div>' +
@@ -498,6 +576,9 @@
         '<button type="button" class="il-muse-icon-btn' + (state.speak ? ' is-on' : '') + '" data-muse-toggle-speak title="Speak replies" aria-pressed="' + !!state.speak + '">🔊</button>' +
         '<button type="button" class="il-muse-icon-btn" data-muse-open-settings title="Settings">⚙</button>' +
         '</div></header>' +
+        '<div class="il-muse-live" data-muse-live data-live="idle" role="status" aria-live="polite">' +
+        '<span class="il-muse-live__dot" aria-hidden="true"></span>' +
+        '<span data-muse-live-text>Ready · ask a stuck question</span></div>' +
         '<div class="il-muse-transcript" data-muse-transcript role="log" aria-live="polite">' + bubbles + '</div>' +
         '<div class="il-muse-composer">' +
         '<p class="il-muse-composer__interim" data-muse-interim hidden></p>' +
@@ -723,6 +804,12 @@
         app.classList.toggle('is-panel-open');
         app.classList.remove('is-rail-open');
       });
+      var scrim = app.querySelector('[data-muse-scrim]');
+      if (scrim) scrim.addEventListener('click', function () {
+        app.classList.remove('is-rail-open');
+        app.classList.remove('is-panel-open');
+      });
+      wireSwipe();
 
       var speakBtn = app.querySelector('[data-muse-toggle-speak]');
       if (speakBtn) speakBtn.addEventListener('click', function () {
@@ -914,6 +1001,35 @@
       }
     }
 
+    function wireSwipe() {
+      var stage = app.querySelector('.il-muse-stage');
+      if (!stage || stage.getAttribute('data-muse-swipe')) return;
+      stage.setAttribute('data-muse-swipe', '1');
+      var sx = 0, sy = 0, tracking = false;
+      stage.addEventListener('touchstart', function (ev) {
+        if (!ev.touches || !ev.touches[0]) return;
+        sx = ev.touches[0].clientX;
+        sy = ev.touches[0].clientY;
+        tracking = true;
+      }, { passive: true });
+      stage.addEventListener('touchend', function (ev) {
+        if (!tracking) return;
+        tracking = false;
+        var t = ev.changedTouches && ev.changedTouches[0];
+        if (!t) return;
+        var dx = t.clientX - sx;
+        var dy = t.clientY - sy;
+        if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+        if (dx > 0) {
+          app.classList.add('is-rail-open');
+          app.classList.remove('is-panel-open');
+        } else {
+          app.classList.add('is-panel-open');
+          app.classList.remove('is-rail-open');
+        }
+      }, { passive: true });
+    }
+
     function toggleMic(micBtn, vs) {
       if (!vs.Rec) return;
       if (listening && recognition) {
@@ -1050,18 +1166,84 @@
     el.innerHTML = '';
     el.appendChild(app);
     el.setAttribute('data-il-muse-ready', '1');
+    el.__ilMuseSend = sendMessage;
+    consumePendingPrompt(sendMessage);
+
     if (g.speechSynthesis) {
       try { g.speechSynthesis.addEventListener('voiceschanged', function () {}); } catch (e) {}
     }
     render();
   }
 
+
+  function promptFrom(text, opts) {
+    opts = opts || {};
+    text = String(text || '').trim();
+    if (!text) return;
+    // Prefer live mount input if present
+    var root = document.querySelector('[data-il-muse][data-il-muse-ready="1"]') || document.querySelector('[data-il-muse]');
+    if (root && root.__ilMuseSend) {
+      root.__ilMuseSend(text);
+      return true;
+    }
+    // Persist pending prompt for /coach mount
+    try {
+      g.sessionStorage.setItem('il.muse.pending.prompt', text);
+    } catch (e) {}
+    if (opts.navigate !== false && !document.querySelector('[data-il-muse]')) {
+      g.location.href = '/coach/?prompt=' + encodeURIComponent(text);
+      return true;
+    }
+    return false;
+  }
+
+  function consumePendingPrompt(sendFn) {
+    var q = '';
+    try {
+      var u = new URL(g.location.href);
+      q = u.searchParams.get('prompt') || '';
+    } catch (e) {}
+    if (!q) {
+      try { q = g.sessionStorage.getItem('il.muse.pending.prompt') || ''; } catch (e2) {}
+    }
+    if (!q) return;
+    try { g.sessionStorage.removeItem('il.muse.pending.prompt'); } catch (e3) {}
+    try {
+      var u2 = new URL(g.location.href);
+      if (u2.searchParams.has('prompt')) {
+        u2.searchParams.delete('prompt');
+        g.history.replaceState({}, '', u2.pathname + u2.search + u2.hash);
+      }
+    } catch (e4) {}
+    if (typeof sendFn === 'function') {
+      setTimeout(function () { sendFn(q); }, 60);
+    }
+  }
+
+  function bindMusePromptButtons() {
+    document.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest('[data-il-muse-prompt]');
+      if (!btn) return;
+      ev.preventDefault();
+      var text = btn.getAttribute('data-il-muse-prompt') || btn.textContent || '';
+      promptFrom(text, { navigate: true });
+    });
+  }
+
   function boot() {
+    bindMusePromptButtons();
+    if (document.body) document.body.classList.add('il-muse-page');
+    if (isMobileShell()) {
+      ensureTabNav();
+      wireKeyboardAware();
+    }
     var nodes = document.querySelectorAll('[data-il-muse]');
     for (var i = 0; i < nodes.length; i++) mount(nodes[i]);
   }
 
-  g.ILMuse = { mount: mount, boot: boot, load: load, save: save, STORAGE: STORAGE, voiceSupport: voiceSupport };
+  g.ILMuse = { mount: mount, boot: boot, load: load, save: save, STORAGE: STORAGE, voiceSupport: voiceSupport, promptFrom: promptFrom };
   g.IL_MUSE = g.IL_MUSE || {};
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
