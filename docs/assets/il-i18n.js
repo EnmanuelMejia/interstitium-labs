@@ -208,10 +208,9 @@
       if (el.childElementCount === 0) {
         el.textContent = val;
       } else {
-        // Prefer updating first text-ish span if marked
+        // Never wipe nested markup (cards/CTAs). Only update an explicit text slot.
         var slot = el.querySelector("[data-i18n-text]");
         if (slot) slot.textContent = val;
-        else el.textContent = val;
       }
     }
     var attrs = scope.querySelectorAll("[data-i18n-attr]");
@@ -372,10 +371,42 @@
   function refreshSwitcherLabels() {
     var codes = global.document.querySelectorAll("[data-il-lang-code]");
     for (var i = 0; i < codes.length; i++) codes[i].textContent = current;
+    var opts = global.document.querySelectorAll(".il-lang-menu [role=\"option\"]");
+    for (var j = 0; j < opts.length; j++) {
+      var meta = opts[j].querySelector(".il-lang-meta");
+      var codeGuess = null;
+      // Match by LOCALES order
+      if (LOCALES[j]) {
+        if (LOCALES[j].code === current) opts[j].setAttribute("aria-current", "true");
+        else opts[j].removeAttribute("aria-current");
+      }
+    }
+    // Sync any native <select aria-label=Language> leftovers
+    var selects = global.document.querySelectorAll('select[aria-label="Language"], select[data-il-lang-select]');
+    for (var s = 0; s < selects.length; s++) {
+      try { selects[s].value = current; } catch (e) {}
+    }
+  }
+
+  function wireNativeSelects() {
+    var selects = global.document.querySelectorAll('select[aria-label="Language"], select[data-il-lang-select]');
+    for (var i = 0; i < selects.length; i++) {
+      var sel = selects[i];
+      if (sel.getAttribute("data-il-lang-wired")) continue;
+      sel.setAttribute("data-il-lang-wired", "1");
+      sel.setAttribute("data-il-lang-select", "");
+      // Replace dead SPA option values (zh, pt, …) with supported codes where possible
+      sel.addEventListener("change", function (ev) {
+        var v = ev.target.value;
+        var map = { zh: "zh-CN", pt: "pt-BR", "pt-br": "pt-BR", "zh-cn": "zh-CN" };
+        var mapped = map[String(v).toLowerCase()] || v;
+        setLang(mapped, true);
+      });
+    }
   }
 
   function loadCatalog(lang) {
-    return fetch(BASE + lang + ".json", { credentials: "same-origin" })
+    return fetch(BASE + lang + ".json?v=20260922", { credentials: "same-origin", cache: "no-cache" })
       .then(function (res) {
         if (!res.ok) throw new Error("i18n " + lang);
         return res.json();
@@ -416,12 +447,13 @@
         applyAttrs(global.document);
         showScaffoldNote();
         ensureSwitcherHosts();
+        wireNativeSelects();
         refreshSwitcherLabels();
         injectHreflang();
         ready = true;
         try {
           global.document.dispatchEvent(new CustomEvent("il:i18n", { detail: { lang: current, completeness: completeness } }));
-        try { global.document.dispatchEvent(new CustomEvent("il:lang", { detail: { lang: current } })); } catch (eLang) {}
+          global.document.dispatchEvent(new CustomEvent("il:lang", { detail: { lang: current } }));
         } catch (e) {}
         return current;
       });

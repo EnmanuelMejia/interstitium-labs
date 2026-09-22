@@ -72,14 +72,14 @@
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var count = Math.min(140, Math.max(40, Math.floor((w * h) / 14000)));
+      var count = Math.min(220, Math.max(70, Math.floor((w * h) / 9000)));
       stars = [];
       for (var i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
           z: 0.2 + Math.random() * 0.8,
-          r: 0.4 + Math.random() * 1.4,
+          r: 0.55 + Math.random() * 1.8,
           tw: Math.random() * Math.PI * 2,
           sp: 0.15 + Math.random() * 0.35,
         });
@@ -99,7 +99,7 @@
           s.y = -2;
           s.x = Math.random() * w;
         }
-        var a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(s.tw));
+        var a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(s.tw));
         var col = i % 5 === 0 ? gold : cyan;
         ctx.beginPath();
         ctx.fillStyle = "rgba(" + col + "," + a * s.z + ")";
@@ -115,7 +115,7 @@
         h * 0.35,
         Math.max(w, h) * 0.45
       );
-      g.addColorStop(0, "rgba(94,234,212,0.04)");
+      g.addColorStop(0, "rgba(94,234,212,0.09)");
       g.addColorStop(1, "rgba(7,11,22,0)");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
@@ -265,7 +265,7 @@
     );
     // Cards as reveal
     qs(
-      "#why-interstitium .rounded-xl, .il-diff-strip .rounded-xl, [data-il-auto-reveal] .rounded-xl, [data-il-auto-reveal] .il-surface",
+      "#why-interstitium .rounded-xl, .il-diff-strip .rounded-xl, [data-il-auto-reveal] .rounded-xl, [data-il-auto-reveal] .il-surface, main .rounded-xl.bg-panel, main .il-surface, section .rounded-xl.bg-panel",
       root
     ).forEach(function (el) {
       if (!el.classList.contains("il-reveal")) el.classList.add("il-reveal");
@@ -283,9 +283,40 @@
     });
   }
 
+  
+  /* FX INJECT 20260922 */
+  function ensureHeroFX(root) {
+    var heroes = qs("section.relative.isolate, section.relative.overflow-hidden, .il-hero-uw", root);
+    if (!heroes.length) {
+      var main = (root || global.document).querySelector("main") || (root || global.document).body;
+      if (main) {
+        var host = global.document.createElement("div");
+        host.className = "il-hero-field";
+        host.setAttribute("data-il-starfield", "");
+        host.setAttribute("aria-hidden", "true");
+        host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.55;";
+        if (main.firstChild) main.insertBefore(host, main.firstChild);
+        else main.appendChild(host);
+      }
+      return;
+    }
+    for (var i = 0; i < Math.min(heroes.length, 2); i++) {
+      var sec = heroes[i];
+      if (!sec.querySelector(".il-hero-field, [data-il-starfield]")) {
+        var h = global.document.createElement("div");
+        h.className = "il-hero-field";
+        h.setAttribute("data-il-starfield", "");
+        h.setAttribute("aria-hidden", "true");
+        sec.insertBefore(h, sec.firstChild);
+      }
+      if (!sec.getAttribute("data-il-auto-reveal")) sec.setAttribute("data-il-auto-reveal", "");
+    }
+  }
+
   function boot() {
     var root = global.document;
     autoTag(root);
+    ensureHeroFX(root);
     initReveal(root);
     initAllStarfields(root);
     initMagnetic(root);

@@ -514,11 +514,21 @@
   function pulseHUD() {
     if (reduced) return;
     var hud = global.document.getElementById("il-game-hud");
-    if (!hud) return;
-    hud.classList.add("is-pulse");
-    setTimeout(function () {
-      hud.classList.remove("is-pulse");
-    }, 280);
+    if (hud) {
+      hud.classList.add("is-pulse");
+      setTimeout(function () {
+        hud.classList.remove("is-pulse");
+      }, 280);
+    }
+    var chips = global.document.querySelectorAll(
+      "[data-il-game-xp], [data-il-game-level], [data-il-game-streak]"
+    );
+    chips.forEach(function (el) {
+      el.classList.add("il-chip-pulse");
+      setTimeout(function () {
+        el.classList.remove("il-chip-pulse");
+      }, 420);
+    });
   }
 
   function toast(msg) {

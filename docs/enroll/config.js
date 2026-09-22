@@ -14,7 +14,7 @@ window.IL_ENROLL = {
   waitlistMailto: "mailto:edmejia@pm.me?subject=Interstitium%20Labs%20waitlist",
   // Flip paymentsLive to true only after live links are pasted and tested.
   disclaimer:
-    "Checkout links are placeholders. Card and PayPal signup stay inactive until the operator pastes live Payment Link / PayPal URLs into this file and redeploys.",
+    "Waitlist mode: checkout is intentionally offline. Card and PayPal stay inactive until live Payment Links are pasted and paymentsLive is set true.",
   tiers: [
     {
       id: "prep-sprint",

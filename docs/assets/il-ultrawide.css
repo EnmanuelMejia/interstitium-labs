@@ -1,0 +1,136 @@
+/**
+ * Interstitium Labs — Philips 499P9 / 32:9 / ultrawide layout
+ * Load after il-responsive.css + il-compat.css.
+ * Target: widths ≥2560 and especially ≥3840, aspect ≥2.5/1 (32:9 ≈ 3.55/1).
+ * Raises shell width without stretching prose past ~65–75ch.
+ */
+:root {
+  --il-shell-max: 72rem;
+  --il-shell-uw: 90rem;
+  --il-shell-uw-xl: 100rem;
+  --il-prose-ch: 72ch;
+  --il-hero-stack-max: 48rem;
+}
+
+/* Soft bump from 1440p ultrawide-ish desktops */
+@media (min-width: 1920px) {
+  :root { --il-readable-max: 80rem; }
+  .il-readable,
+  .mx-auto.max-w-6xl,
+  .il-ux-shell {
+    max-width: min(100%, 80rem);
+  }
+}
+
+/* 1440p+ / dual-QHD territory */
+@media (min-width: 2560px), (min-aspect-ratio: 2.5/1) {
+  :root {
+    --il-readable-max: var(--il-shell-uw);
+    --il-prose-max: 46rem;
+  }
+
+  .il-readable,
+  .mx-auto.max-w-6xl,
+  .il-ux-shell {
+    max-width: min(100%, var(--il-shell-uw));
+  }
+
+  .il-prose-max,
+  main .max-w-2xl,
+  main .max-w-xl,
+  main .max-w-md {
+    max-width: min(100%, var(--il-prose-ch));
+  }
+
+  /* Card grids expand: 3 → 4 */
+  main .md\:grid-cols-3,
+  main .grid.md\:grid-cols-3,
+  .il-uw-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  main .md\:grid-cols-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Centered hero stack — no left postage stamp on 32:9 */
+  .il-hero-uw,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: min(100%, var(--il-shell-uw));
+    gap: 2.5rem;
+  }
+  .il-hero-uw > div,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl > div {
+    width: 100%;
+    max-width: var(--il-hero-stack-max);
+    margin-inline: auto;
+  }
+  .il-hero-uw h1,
+  .il-hero-uw p,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl h1,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl > div > p {
+    margin-inline: auto;
+    max-width: var(--il-hero-stack-max);
+  }
+  .il-hero-uw .flex,
+  .il-hero-uw .grid,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl .flex.flex-wrap,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl .flex.gap-3 {
+    justify-content: center;
+  }
+
+  /* Sigil orbit centered — kill asymmetric empty 32:9 void */
+  .il-hero-sigil {
+    right: auto !important;
+    left: 50% !important;
+    top: 8% !important;
+    transform: translateX(-50%);
+    width: min(22vw, 320px) !important;
+    opacity: 0.42;
+  }
+
+  /* Header lockup stays usable; vertically centered in bar */
+  header .mx-auto.flex {
+    max-width: min(100%, var(--il-shell-uw));
+    align-items: center;
+  }
+}
+
+/* True 5K ultrawide / 5120×1440 */
+@media (min-width: 3840px) {
+  :root { --il-readable-max: var(--il-shell-uw-xl); }
+
+  .il-readable,
+  .mx-auto.max-w-6xl,
+  .il-ux-shell {
+    max-width: min(100%, var(--il-shell-uw-xl));
+  }
+
+  main .md\:grid-cols-3,
+  main .grid.md\:grid-cols-3,
+  .il-uw-cards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  main .md\:grid-cols-2,
+  main .sm\:grid-cols-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .il-hero-sigil {
+    width: min(18vw, 360px) !important;
+  }
+}
+
+/* Explicit 32:9 class hook */
+@media (min-aspect-ratio: 3.2/1) and (min-width: 2560px) {
+  body {
+    --il-uw-active: 1;
+  }
+  .il-hero-uw,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl {
+    padding-block: 3.5rem;
+  }
+}

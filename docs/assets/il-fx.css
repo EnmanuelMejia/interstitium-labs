@@ -1,0 +1,371 @@
+/**
+ * Interstitium Labs — Musk-bar FX chrome
+ * Full-viewport aurora/starfield host, command palette, demo, kinetic type.
+ */
+
+/* Full-viewport FX canvas (behind content, above void) */
+.il-fx-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.il-fx-root canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.il-fx-root.is-static {
+  background:
+    radial-gradient(ellipse 80% 55% at 70% 20%, rgba(126, 212, 224, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 15% 80%, rgba(198, 165, 114, 0.12), transparent 50%),
+    linear-gradient(180deg, #070b16 0%, #0a1224 50%, #070b16 100%);
+}
+.il-fx-root.is-static canvas { display: none; }
+
+/* Lift page chrome above FX */
+body > .flex.min-h-dvh,
+body > div.flex.min-h-dvh,
+header.sticky,
+footer,
+nav[aria-label="App"],
+.il-hud,
+.il-cmd,
+.il-demo-bar,
+.il-toast,
+.il-confetti {
+  position: relative;
+  z-index: 1;
+}
+header.sticky,
+.il-hud,
+.il-cmd,
+.il-demo-bar,
+.il-toast,
+.il-confetti,
+nav[aria-label="App"] {
+  z-index: 50;
+}
+.il-hud { z-index: 48; }
+.il-cmd { z-index: 80; }
+.il-demo-bar { z-index: 47; }
+
+/* Sigil magnetic tilt */
+.il-sigil-tilt {
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--il-rx, 0deg)) rotateY(var(--il-ry, 0deg))
+    translate3d(0, 0, 0);
+  transition: transform 0.12s ease-out;
+  will-change: transform;
+}
+.il-sigil-tilt.is-orbiting {
+  animation: il-sigil-orbit-glow 4.8s ease-in-out infinite;
+}
+@keyframes il-sigil-orbit-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(126, 212, 224, 0.35))
+      drop-shadow(0 0 42px rgba(198, 165, 114, 0.18));
+  }
+  50% {
+    filter: drop-shadow(0 0 36px rgba(126, 212, 224, 0.65))
+      drop-shadow(0 0 64px rgba(198, 165, 114, 0.35));
+  }
+}
+
+/* Kinetic typography accents */
+.il-kinetic {
+  background: linear-gradient(
+    105deg,
+    #e8eef5 0%,
+    #7ed4e0 28%,
+    #c6a572 55%,
+    #e8eef5 82%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: il-kinetic-sweep 7s ease-in-out infinite;
+}
+@keyframes il-kinetic-sweep {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.il-kinetic-underline {
+  position: relative;
+  display: inline-block;
+}
+.il-kinetic-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.12em;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7ed4e0, #c6a572, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+.il-reveal.is-in .il-kinetic-underline::after,
+.is-in .il-kinetic-underline::after {
+  transform: scaleX(1);
+}
+
+/* Springier reveals */
+.il-reveal {
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1.35, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1.35, 0.36, 1) !important;
+}
+
+/* Command palette */
+.il-cmd {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 1rem 1rem;
+  background: rgba(7, 11, 22, 0.72);
+  backdrop-filter: blur(10px);
+}
+.il-cmd.is-open { display: flex; }
+.il-cmd-panel {
+  width: min(36rem, 100%);
+  border-radius: 1rem;
+  background: rgba(10, 16, 30, 0.96);
+  border: 1px solid rgba(126, 212, 224, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(198, 165, 114, 0.12),
+    0 28px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+.il-cmd-input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #e8eef5;
+  font-family: Space Grotesk, Inter, system-ui, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(232, 238, 245, 0.08);
+}
+.il-cmd-list {
+  max-height: min(50vh, 22rem);
+  overflow: auto;
+  padding: 0.4rem;
+  margin: 0;
+  list-style: none;
+}
+.il-cmd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  color: #e8eef5;
+  font-size: 0.9rem;
+}
+.il-cmd-item[aria-selected="true"],
+.il-cmd-item:hover {
+  background: rgba(126, 212, 224, 0.12);
+}
+.il-cmd-item kbd {
+  font-family: JetBrains Mono, ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b9bb4;
+  border: 1px solid rgba(232, 238, 245, 0.12);
+  border-radius: 0.35rem;
+  padding: 0.15rem 0.4rem;
+}
+.il-cmd-hint {
+  padding: 0.55rem 1rem 0.75rem;
+  font-family: JetBrains Mono, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b9bb4;
+}
+
+/* Demo mode bar */
+.il-demo-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(7, 11, 22, 0.9);
+  border: 1px solid rgba(126, 212, 224, 0.35);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+@media (min-width: 1024px) {
+  .il-demo-bar {
+    bottom: max(1.15rem, env(safe-area-inset-bottom));
+    left: max(1rem, env(safe-area-inset-left));
+    transform: none;
+  }
+}
+.il-demo-bar button {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font-family: Space Grotesk, Inter, system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: #e8eef5;
+  color: #070b16;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.il-demo-bar button:hover { background: #fff; }
+.il-demo-bar button:active { transform: scale(0.96); }
+.il-demo-bar button.is-on {
+  background: linear-gradient(90deg, #7ed4e0, #c6a572);
+  color: #070b16;
+}
+.il-demo-bar .il-sound-toggle {
+  background: transparent;
+  color: #8b9bb4;
+  border: 1px solid rgba(232, 238, 245, 0.15);
+  padding: 0.5rem 0.7rem;
+}
+.il-demo-bar .il-sound-toggle.is-on {
+  color: #7ed4e0;
+  border-color: rgba(126, 212, 224, 0.45);
+  background: rgba(126, 212, 224, 0.08);
+}
+.il-demo-bar .il-cmd-open {
+  background: transparent;
+  color: #e8eef5;
+  border: 1px solid rgba(232, 238, 245, 0.15);
+}
+.il-demo-status {
+  font-family: JetBrains Mono, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7ed4e0;
+  max-width: 9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Adaptive mini-demo widget */
+.il-adapt-mini {
+  border-radius: 1rem;
+  border: 1px solid rgba(126, 212, 224, 0.28);
+  background: rgba(10, 16, 30, 0.88);
+  padding: 1.1rem 1.15rem 1.2rem;
+  box-shadow:
+    0 0 0 1px rgba(198, 165, 114, 0.08),
+    0 22px 48px -20px rgba(0, 0, 0, 0.65);
+}
+.il-adapt-mini .il-kicker {
+  font-family: JetBrains Mono, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #c6a572;
+}
+.il-adapt-mini h3 {
+  margin: 0.45rem 0 0.65rem;
+  font-family: Space Grotesk, Inter, sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+.il-adapt-mini .stem {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #e8eef5;
+  margin: 0 0 0.85rem;
+}
+.il-adapt-mini .choices {
+  display: grid;
+  gap: 0.45rem;
+}
+.il-adapt-mini .choice {
+  text-align: left;
+  appearance: none;
+  border: 1px solid rgba(232, 238, 245, 0.12);
+  background: rgba(7, 11, 22, 0.55);
+  color: #e8eef5;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+.il-adapt-mini .choice:hover {
+  border-color: rgba(126, 212, 224, 0.4);
+}
+.il-adapt-mini .choice:active { transform: scale(0.985); }
+.il-adapt-mini .choice.is-ok {
+  border-color: rgba(126, 212, 224, 0.7);
+  background: rgba(126, 212, 224, 0.12);
+}
+.il-adapt-mini .choice.is-bad {
+  border-color: rgba(232, 100, 100, 0.55);
+  background: rgba(232, 100, 100, 0.08);
+}
+.il-adapt-mini .fb {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #8b9bb4;
+  min-height: 1.2em;
+}
+.il-adapt-mini .fb.is-ok { color: #7ed4e0; }
+.il-adapt-mini .cta-row {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Level-up haptic pulse ring */
+.il-haptic-ring {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(126, 212, 224, 0.85);
+  pointer-events: none;
+  z-index: 70;
+  animation: il-haptic 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes il-haptic {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(28); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-kinetic { animation: none; color: #e8eef5; background: none; -webkit-background-clip: unset; background-clip: unset; }
+  .il-sigil-tilt,
+  .il-sigil-tilt.is-orbiting {
+    animation: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .il-haptic-ring { display: none; }
+}
