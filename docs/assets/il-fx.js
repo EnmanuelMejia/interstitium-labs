@@ -1,7 +1,8 @@
 /**
- * Interstitium Labs — cinema FX runtime (canvas 2d, no Three.js)
- * Starfield + aurora + parallax · living sigil · command palette · demo mode
- * Page enter · lockup repair · HDR-aware · ultrawide-safe · prefers-reduced-motion
+ * Interstitium Labs — Musk-bar FX runtime
+ * Full-viewport starfield + cyan/gold aurora · sigil tilt · ⌘K palette ·
+ * Demo mode · optional sound (OFF) · Adaptive mini CAT · level haptic pulse
+ * DPR capped · pauses when hidden/offscreen · reduced-motion → static gradient
  */
 (function (global) {
   "use strict";
@@ -10,275 +11,206 @@
   var reduced =
     global.matchMedia &&
     global.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var hdr =
-    global.matchMedia &&
-    global.matchMedia("(dynamic-range: high)").matches;
+  var DPR_CAP = 1.5;
+  var SOUND_KEY = "il.sound";
+  var soundOn = false;
+  try {
+    soundOn = global.localStorage.getItem(SOUND_KEY) === "1";
+  } catch (e0) {}
+  var audioCtx = null;
+  var unlocked = false;
+
+  function dpr() {
+    return Math.min(global.devicePixelRatio || 1, DPR_CAP);
+  }
 
   function qs(sel, root) {
+    return (root || doc).querySelector(sel);
+  }
+  function qsa(sel, root) {
     return Array.prototype.slice.call((root || doc).querySelectorAll(sel));
   }
 
-  /* ---------- Lockup / sigil size repair ---------- */
-  function repairChrome() {
-    qs('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"]').forEach(function (img) {
-      img.classList.add("il-lockup");
-      img.removeAttribute("width");
-      img.removeAttribute("height");
-      img.style.maxHeight = "40px";
-      img.style.height = "auto";
-      img.style.width = "auto";
-      img.style.maxWidth = "min(240px, 58vw)";
-      img.style.objectFit = "contain";
-      img.style.display = "block";
-      var a = img.closest("a");
-      if (a) {
-        a.style.display = "inline-flex";
-        a.style.alignItems = "center";
-        a.style.minHeight = "40px";
-      }
-      // Force decode so 0×0 never sticks
-      if (img.decode) {
-        img.decode().catch(function () {});
-      }
-      if (!img.complete || img.naturalWidth === 0) {
-        img.addEventListener(
-          "load",
-          function () {
-            img.style.maxHeight = "40px";
-            img.style.height = "auto";
-            img.style.width = "auto";
-          },
-          { once: true }
-        );
-      }
-    });
-    qs(".il-sigil img, .il-hero-sigil img, .il-emblem img").forEach(function (img) {
-      if (!img.getAttribute("width")) img.setAttribute("width", "280");
-      if (!img.getAttribute("height")) img.setAttribute("height", "280");
-      img.style.width = "100%";
-      img.style.height = "auto";
-      img.style.minHeight = "80px";
-      img.style.display = "block";
-    });
+  /* ---------- Optional UI blip (gesture-gated, OFF by default) ---------- */
+  function ensureAudio() {
+    if (!soundOn) return null;
+    if (!audioCtx) {
+      var AC = global.AudioContext || global.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(function () {});
+    }
+    unlocked = true;
+    return audioCtx;
   }
 
-  /* ---------- Page enter fade ---------- */
-  function pageEnter() {
-    doc.documentElement.classList.add("il-fx-ready");
+  function blip(kind) {
+    if (!soundOn || !unlocked) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = "sine";
+      var now = ctx.currentTime;
+      var f0 = kind === "level" ? 520 : kind === "ok" ? 440 : 280;
+      o.frequency.setValueAtTime(f0, now);
+      o.frequency.exponentialRampToValueAtTime(f0 * 1.35, now + 0.08);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.045, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start(now);
+      o.stop(now + 0.16);
+    } catch (e1) {}
+  }
+
+  function unlockSoundOnce() {
+    if (!soundOn) return;
+    ensureAudio();
+  }
+
+  /* ---------- Full-viewport aurora + starfield ---------- */
+  function ensureFxRoot() {
+    var root = qs("#il-fx-root");
+    if (root) return root;
+    root = doc.createElement("div");
+    root.id = "il-fx-root";
+    root.className = "il-fx-root";
+    root.setAttribute("aria-hidden", "true");
+    if (doc.body.firstChild) doc.body.insertBefore(root, doc.body.firstChild);
+    else doc.body.appendChild(root);
+    return root;
+  }
+
+  function initAurora() {
+    var root = ensureFxRoot();
     if (reduced) {
-      doc.documentElement.classList.add("il-page-in");
-      return;
+      root.classList.add("is-static");
+      return null;
     }
-    requestAnimationFrame(function () {
-      doc.documentElement.classList.add("il-page-in");
-    });
-  }
-
-  /* ---------- Cinema starfield + aurora ---------- */
-  function initCinemaField(host) {
-    if (!host || host.getAttribute("data-il-fx-field")) return null;
-    host.setAttribute("data-il-fx-field", "1");
-    host.setAttribute("data-il-starfield-ready", "1");
-    host.classList.add("il-hero-field", "il-fx-field");
-
-    // CSS aurora layers (visible even if canvas skipped)
-    if (!host.querySelector(".il-aurora")) {
-      var aurora = doc.createElement("div");
-      aurora.className = "il-aurora";
-      aurora.setAttribute("aria-hidden", "true");
-      aurora.innerHTML =
-        '<span class="il-aurora-a"></span><span class="il-aurora-b"></span><span class="il-aurora-c"></span><span class="il-nebula"></span>';
-      host.appendChild(aurora);
-    }
-
-    if (reduced) return { start: function () {}, stop: function () {} };
-
-    var canvas = host.querySelector("canvas.il-fx-canvas");
+    var canvas = root.querySelector("canvas");
     if (!canvas) {
-      // replace any prior plain canvas from il-motion
-      var old = host.querySelector("canvas");
-      if (old) old.remove();
       canvas = doc.createElement("canvas");
-      canvas.className = "il-fx-canvas";
-      canvas.setAttribute("aria-hidden", "true");
-      host.appendChild(canvas);
+      root.appendChild(canvas);
     }
     var ctx = canvas.getContext("2d", { alpha: true });
     var stars = [];
-    var meteors = [];
+    var bands = [];
     var raf = 0;
     var running = false;
     var w = 0;
     var h = 0;
-    var dpr = Math.min(global.devicePixelRatio || 1, 2);
-    var mx = 0.5;
-    var my = 0.5;
     var t0 = performance.now();
-    var glowMul = hdr ? 1.55 : 1;
 
-    function resize() {
-      var rect = host.getBoundingClientRect();
-      w = Math.max(1, Math.floor(rect.width));
-      h = Math.max(1, Math.floor(rect.height));
-      // Ultrawide: cap work, still fill
-      if (w > 3840) dpr = Math.min(dpr, 1.5);
-      if (w > 5000) dpr = 1;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
+    function rebuild() {
+      w = Math.max(1, global.innerWidth || doc.documentElement.clientWidth);
+      h = Math.max(1, global.innerHeight || doc.documentElement.clientHeight);
+      var r = dpr();
+      canvas.width = Math.floor(w * r);
+      canvas.height = Math.floor(h * r);
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(r, 0, 0, r, 0, 0);
       var area = w * h;
-      var count = Math.min(220, Math.max(70, Math.floor(area / 11000)));
-      if (w > 3840) count = Math.min(count, 160);
+      var count = Math.min(220, Math.max(70, Math.floor(area / 18000)));
+      // Cap particle load on ultrawide 5k
+      if (w >= 3840) count = Math.min(count, 160);
       stars = [];
       for (var i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          z: 0.15 + Math.random() * 0.85,
-          r: 0.5 + Math.random() * 1.8,
+          z: 0.25 + Math.random() * 0.85,
+          r: 0.45 + Math.random() * 1.7,
           tw: Math.random() * Math.PI * 2,
-          sp: 0.12 + Math.random() * 0.45,
-          kind: Math.random() < 0.12 ? 1 : 0, // gold
+          sp: 0.2 + Math.random() * 0.55,
+          gold: i % 6 === 0,
         });
       }
-      meteors = [];
+      bands = [
+        { y: h * 0.22, amp: h * 0.08, hue: "cyan", phase: 0.2, thick: h * 0.18 },
+        { y: h * 0.55, amp: h * 0.1, hue: "gold", phase: 1.4, thick: h * 0.22 },
+        { y: h * 0.78, amp: h * 0.07, hue: "cyan", phase: 2.6, thick: h * 0.16 },
+      ];
     }
 
-    function spawnMeteor() {
-      if (meteors.length > 2) return;
-      meteors.push({
-        x: Math.random() * w * 0.9,
-        y: -20,
-        vx: 2.2 + Math.random() * 3.5,
-        vy: 3.5 + Math.random() * 4.5,
-        life: 1,
-        len: 40 + Math.random() * 70,
-      });
+    function drawAurora(t) {
+      for (var i = 0; i < bands.length; i++) {
+        var b = bands[i];
+        var wave = Math.sin(t * 0.00035 + b.phase) * b.amp;
+        var g = ctx.createLinearGradient(0, b.y + wave - b.thick, 0, b.y + wave + b.thick);
+        if (b.hue === "cyan") {
+          g.addColorStop(0, "rgba(126,212,224,0)");
+          g.addColorStop(0.45, "rgba(126,212,224,0.22)");
+          g.addColorStop(0.55, "rgba(94,234,212,0.34)");
+          g.addColorStop(1, "rgba(126,212,224,0)");
+        } else {
+          g.addColorStop(0, "rgba(198,165,114,0)");
+          g.addColorStop(0.5, "rgba(198,165,114,0.26)");
+          g.addColorStop(1, "rgba(198,165,114,0)");
+        }
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(0, b.y + wave);
+        var steps = Math.max(24, Math.floor(w / 80));
+        for (var s = 0; s <= steps; s++) {
+          var x = (s / steps) * w;
+          var y =
+            b.y +
+            wave +
+            Math.sin(t * 0.00055 + s * 0.45 + b.phase) * (b.amp * 0.55) +
+            Math.sin(t * 0.00025 + s * 0.18) * (b.amp * 0.25);
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fill();
+        ctx.globalCompositeOperation = "source-over";
+      }
     }
 
     function frame(now) {
       if (!running) return;
-      var t = (now - t0) / 1000;
+      var t = now - t0;
       ctx.clearRect(0, 0, w, h);
-
-      // Parallax nebula wash (canvas)
-      var px = (mx - 0.5) * 36;
-      var py = (my - 0.5) * 24;
-      var g1 = ctx.createRadialGradient(
-        w * 0.72 + px,
-        h * 0.28 + py,
-        0,
-        w * 0.72 + px,
-        h * 0.28 + py,
-        Math.max(w, h) * 0.55
-      );
-      g1.addColorStop(0, "rgba(94,234,212," + (0.14 * glowMul).toFixed(3) + ")");
-      g1.addColorStop(0.45, "rgba(56,189,248," + (0.06 * glowMul).toFixed(3) + ")");
-      g1.addColorStop(1, "rgba(7,11,22,0)");
-      ctx.fillStyle = g1;
+      // void wash so aurora reads on any page bg
+      ctx.fillStyle = "rgba(7,11,22,0.15)";
       ctx.fillRect(0, 0, w, h);
-
-      var g2 = ctx.createRadialGradient(
-        w * 0.22 - px * 0.6,
-        h * 0.75 - py * 0.5,
-        0,
-        w * 0.22,
-        h * 0.75,
-        Math.max(w, h) * 0.4
-      );
-      g2.addColorStop(0, "rgba(201,162,39," + (0.1 * glowMul).toFixed(3) + ")");
-      g2.addColorStop(1, "rgba(7,11,22,0)");
-      ctx.fillStyle = g2;
-      ctx.fillRect(0, 0, w, h);
-
-      // Aurora ribbons
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      for (var band = 0; band < 3; band++) {
-        var baseY = h * (0.25 + band * 0.18);
-        ctx.beginPath();
-        for (var x = 0; x <= w; x += 8) {
-          var y =
-            baseY +
-            Math.sin(x * 0.0035 + t * (0.55 + band * 0.15) + band) * (28 + band * 12) +
-            Math.sin(x * 0.0012 - t * 0.3) * 18 +
-            py * (0.3 + band * 0.1);
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle =
-          band === 1
-            ? "rgba(201,162,39," + (0.18 * glowMul).toFixed(3) + ")"
-            : "rgba(94,234,212," + ((0.22 - band * 0.04) * glowMul).toFixed(3) + ")";
-        ctx.lineWidth = 2.5 + band;
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // Stars
+      drawAurora(t);
       for (var i = 0; i < stars.length; i++) {
         var s = stars[i];
-        var parallax = (s.z - 0.5) * 18;
         s.tw += 0.025 * s.sp;
-        s.y += 0.06 * s.z;
-        if (s.y > h + 4) {
-          s.y = -4;
+        s.x += 0.04 * s.z * (s.gold ? 0.6 : 1);
+        s.y += 0.055 * s.z;
+        if (s.y > h + 2) {
+          s.y = -2;
           s.x = Math.random() * w;
         }
-        var a = (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(s.tw))) * s.z * glowMul;
-        a = Math.min(1, a);
-        var col = s.kind ? "201,162,39" : "94,234,212";
-        var sx = s.x + px * s.z * 0.4 + parallax * (mx - 0.5);
-        var sy = s.y + py * s.z * 0.3;
+        if (s.x > w + 2) s.x = -2;
+        var a = 0.28 + 0.62 * (0.5 + 0.5 * Math.sin(s.tw));
         ctx.beginPath();
-        ctx.fillStyle = "rgba(" + col + "," + a.toFixed(3) + ")";
-        ctx.arc(sx, sy, s.r * s.z, 0, Math.PI * 2);
+        ctx.fillStyle = s.gold
+          ? "rgba(198,165,114," + a * s.z + ")"
+          : "rgba(126,212,224," + a * s.z + ")";
+        ctx.arc(s.x, s.y, s.r * s.z, 0, Math.PI * 2);
         ctx.fill();
-        if (s.r > 1.2 && a > 0.55) {
-          ctx.beginPath();
-          ctx.fillStyle = "rgba(" + col + "," + (a * 0.25).toFixed(3) + ")";
-          ctx.arc(sx, sy, s.r * s.z * 3.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
       }
-
-      // Meteors
-      if (Math.random() < 0.008) spawnMeteor();
-      for (var m = meteors.length - 1; m >= 0; m--) {
-        var met = meteors[m];
-        met.x += met.vx;
-        met.y += met.vy;
-        met.life -= 0.016;
-        if (met.life <= 0 || met.y > h + 40) {
-          meteors.splice(m, 1);
-          continue;
-        }
-        var grad = ctx.createLinearGradient(
-          met.x,
-          met.y,
-          met.x - met.vx * (met.len / 8),
-          met.y - met.vy * (met.len / 8)
-        );
-        grad.addColorStop(0, "rgba(232,238,245," + (0.9 * met.life).toFixed(3) + ")");
-        grad.addColorStop(1, "rgba(94,234,212,0)");
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(met.x, met.y);
-        ctx.lineTo(met.x - met.vx * (met.len / 8), met.y - met.vy * (met.len / 8));
-        ctx.stroke();
-      }
-
+      // nucleus bloom
+      var nx = w * 0.62;
+      var ny = h * 0.28;
+      var rg = ctx.createRadialGradient(nx, ny, 0, nx, ny, Math.max(w, h) * 0.38);
+      rg.addColorStop(0, "rgba(126,212,224,0.14)");
+      rg.addColorStop(0.45, "rgba(198,165,114,0.04)");
+      rg.addColorStop(1, "rgba(7,11,22,0)");
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, w, h);
       raf = requestAnimationFrame(frame);
-    }
-
-    function onPointer(e) {
-      var r = host.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      mx = (e.clientX - r.left) / r.width;
-      my = (e.clientY - r.top) / r.height;
     }
 
     function start() {
@@ -293,394 +225,564 @@
       raf = 0;
     }
 
-    resize();
+    rebuild();
     start();
-    if ("ResizeObserver" in global) {
-      new ResizeObserver(resize).observe(host);
-    } else {
-      global.addEventListener("resize", resize);
-    }
-    global.addEventListener("pointermove", onPointer, { passive: true });
+    global.addEventListener(
+      "resize",
+      function () {
+        rebuild();
+      },
+      { passive: true }
+    );
     doc.addEventListener("visibilitychange", function () {
       if (doc.visibilityState === "hidden") stop();
       else start();
     });
-    return { start: start, stop: stop, resize: resize };
-  }
-
-  function ensureHeroHosts() {
-    var existing = qs("[data-il-starfield], .il-hero-field");
-    if (existing.length) {
-      existing.forEach(initCinemaField);
-      return;
-    }
-    // Auto-mount under first main section / hero
-    var section =
-      doc.querySelector("main > section:first-of-type") ||
-      doc.querySelector(".flex-1 > section:first-of-type") ||
-      doc.querySelector("section.relative");
-    if (!section) return;
-    var cs = global.getComputedStyle(section);
-    if (cs.position === "static") section.style.position = "relative";
-    section.classList.add("overflow-hidden");
-    var host = doc.createElement("div");
-    host.className = "il-hero-field";
-    host.setAttribute("data-il-starfield", "");
-    host.setAttribute("aria-hidden", "true");
-    section.insertBefore(host, section.firstChild);
-    initCinemaField(host);
-  }
-
-  /* ---------- Living sigil ---------- */
-  function initSigils() {
-    qs(".il-sigil, .il-hero-sigil, .il-emblem").forEach(function (el) {
-      if (el.getAttribute("data-il-fx-sigil")) return;
-      el.setAttribute("data-il-fx-sigil", "1");
-      el.classList.add("il-sigil", "il-sigil--live");
-      if (!el.className.match(/il-sigil--float|il-sigil--spin/)) {
-        el.classList.add("il-sigil--float", "il-sigil-glow");
-      }
-      if (reduced) return;
-      el.addEventListener("pointerenter", function () {
-        el.classList.add("is-hot");
-      });
-      el.addEventListener("pointerleave", function () {
-        el.classList.remove("is-hot");
-      });
-      el.addEventListener("pointermove", function (e) {
-        var r = el.getBoundingClientRect();
-        var x = ((e.clientX - r.left) / r.width - 0.5) * 12;
-        var y = ((e.clientY - r.top) / r.height - 0.5) * 12;
-        el.style.setAttribute && el.style.setProperty("--sx", x.toFixed(2) + "px");
-        el.style.setProperty("--sy", y.toFixed(2) + "px");
-      });
-    });
-  }
-
-  /* ---------- Scroll cinema (boost motion auto-tag) ---------- */
-  function boostReveal() {
-    qs(
-      "main .rounded-xl, main .il-surface, .il-diff-strip .rounded-xl, [data-il-auto-reveal] .rounded-xl, section .grid > a, section .grid > div.rounded-xl, section .grid > article"
-    ).forEach(function (el, i) {
-      if (el.closest("header, footer, nav, .il-hud, .il-cmd")) return;
-      if (!el.classList.contains("il-reveal")) el.classList.add("il-reveal");
-      if (!el.className.match(/il-reveal-delay/)) {
-        el.classList.add("il-reveal-delay-" + ((i % 4) + 1));
-      }
-    });
-    if (global.ILMotion && typeof global.ILMotion.initReveal === "function") {
-      global.ILMotion.initReveal(doc);
-    } else if (!reduced && "IntersectionObserver" in global) {
-      var nodes = qs(".il-reveal:not(.is-in)");
+    // Pause when tab scrolled far / IntersectionObserver on root viewport proxy
+    if ("IntersectionObserver" in global) {
+      var probe = doc.createElement("div");
+      probe.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:-1;";
+      probe.setAttribute("aria-hidden", "true");
+      doc.body.appendChild(probe);
       var io = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (en) {
-            if (!en.isIntersecting) return;
-            en.target.classList.add("is-in");
-            io.unobserve(en.target);
+        function (ents) {
+          ents.forEach(function (en) {
+            if (en.isIntersecting) start();
+            else stop();
           });
         },
-        { rootMargin: "0px 0px -6% 0px", threshold: 0.1 }
+        { threshold: 0.01 }
       );
-      nodes.forEach(function (n) {
-        io.observe(n);
-      });
-    } else {
-      qs(".il-reveal").forEach(function (n) {
-        n.classList.add("is-in");
-      });
+      io.observe(probe);
     }
+    return { start: start, stop: stop, rebuild: rebuild };
   }
 
-  /* ---------- Magnetic CTAs ---------- */
-  function boostMagnetic() {
-    qs('a.bg-paper, a[class*="bg-paper"], button.bg-paper, .il-magnetic').forEach(function (el) {
-      el.classList.add("il-magnetic", "il-press");
-      if (!el.getAttribute("data-il-magnetic")) el.setAttribute("data-il-magnetic", "10");
+  /* ---------- Sigil magnetic tilt + orbit ---------- */
+  function initSigilTilt() {
+    if (reduced) return;
+    var nodes = qsa(".il-sigil, .il-hero-sigil, [data-il-sigil-tilt]");
+    nodes.forEach(function (el) {
+      if (el.getAttribute("data-il-tilt-ready")) return;
+      el.setAttribute("data-il-tilt-ready", "1");
+      el.classList.add("il-sigil-tilt", "is-orbiting");
+      var target = el;
+      function onMove(e) {
+        var r = target.getBoundingClientRect();
+        var px = (e.clientX - r.left) / Math.max(1, r.width) - 0.5;
+        var py = (e.clientY - r.top) / Math.max(1, r.height) - 0.5;
+        var ry = (px * 14).toFixed(2) + "deg";
+        var rx = (-py * 10).toFixed(2) + "deg";
+        target.style.setProperty("--il-ry", ry);
+        target.style.setProperty("--il-rx", rx);
+      }
+      function onLeave() {
+        target.style.setProperty("--il-ry", "0deg");
+        target.style.setProperty("--il-rx", "0deg");
+      }
+      // tilt on nearby pointer for floating hero sigil (pointer-events none) via document
+      if (getComputedStyle(el).pointerEvents === "none") {
+        doc.addEventListener(
+          "pointermove",
+          function (e) {
+            var r = el.getBoundingClientRect();
+            var cx = r.left + r.width / 2;
+            var cy = r.top + r.height / 2;
+            var dx = (e.clientX - cx) / Math.max(r.width, 1);
+            var dy = (e.clientY - cy) / Math.max(r.height, 1);
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+              onLeave();
+              return;
+            }
+            el.style.setProperty("--il-ry", (dx * 12).toFixed(2) + "deg");
+            el.style.setProperty("--il-rx", (-dy * 10).toFixed(2) + "deg");
+          },
+          { passive: true }
+        );
+      } else {
+        el.addEventListener("pointermove", onMove);
+        el.addEventListener("pointerleave", onLeave);
+      }
     });
-    if (global.ILMotion && global.ILMotion.initMagnetic) global.ILMotion.initMagnetic(doc);
   }
 
-  /* ---------- Command palette ---------- */
-  var ROUTES = [
-    { k: "Home", h: "/", g: "Navigate" },
-    { k: "Learning OS", h: "/learn/", g: "Navigate" },
-    { k: "Adaptive OS", h: "/adapt/", g: "Navigate" },
-    { k: "Founders / Student Zero", h: "/founders/", g: "Navigate" },
-    { k: "Interview Prep", h: "/prep/", g: "Navigate" },
-    { k: "Paths / Curriculum", h: "/paths/", g: "Navigate" },
-    { k: "Labs hub", h: "/labs/", g: "Navigate" },
-    { k: "DevOps SuperLab", h: "/labs/superlab/", g: "Navigate" },
-    { k: "Coach", h: "/coach/", g: "Navigate" },
-    { k: "Play / Quests", h: "/play/", g: "Navigate" },
-    { k: "Enroll", h: "/enroll/", g: "Navigate" },
-    { k: "About", h: "/about/", g: "Navigate" },
-    { k: "Skills map", h: "/learn/skills/", g: "Navigate" },
-    { k: "Run demo mode", h: "#demo", g: "FX", action: "demo" },
-    { k: "Award +25 XP", h: "#xp", g: "FX", action: "xp" },
-    { k: "Celebrate level-up", h: "#lvl", g: "FX", action: "level" },
+  /* ---------- Kinetic type accents ---------- */
+  function initKinetic() {
+    var h1 = qs("section.relative.isolate h1, .il-hero-uw h1, main h1");
+    if (h1 && !h1.classList.contains("il-kinetic")) {
+      h1.classList.add("il-kinetic");
+    }
+    qsa("#why-interstitium h2, #exceed-peers h2, [data-il-auto-reveal] h2").forEach(
+      function (h, i) {
+        if (i > 2) return;
+        if (!h.querySelector(".il-kinetic-underline")) {
+          var wrap = doc.createElement("span");
+          wrap.className = "il-kinetic-underline";
+          while (h.firstChild) wrap.appendChild(h.firstChild);
+          h.appendChild(wrap);
+        }
+      }
+    );
+  }
+
+  /* ---------- Command palette ⌘K / Ctrl+K ---------- */
+  var CMD = [
+    { label: "Learn — Curriculum OS", href: "/learn/", keys: "learn desk" },
+    { label: "Prep — Interview sprint", href: "/prep/", keys: "prep measure" },
+    { label: "Adapt — Adaptive OS", href: "/adapt/", keys: "adapt cat aleks" },
+    { label: "Labs — SuperLab hub", href: "/labs/", keys: "labs superlab" },
+    { label: "Coach — Socratic SI", href: "/coach/", keys: "coach si tutor" },
+    { label: "Founders — Student Zero", href: "/founders/", keys: "founders" },
+    { label: "Paths — Career tracks", href: "/paths/", keys: "paths" },
+    { label: "Play — XP arena", href: "/play/", keys: "play game" },
+    { label: "Enroll", href: "/enroll/", keys: "enroll join" },
+    { label: "Vendor deepen map", href: "/paths/vendor-map/", keys: "vendor" },
   ];
 
-  function ensureCmdStyles() {
-    if (doc.getElementById("il-fx-cmd-css")) return;
-    var s = doc.createElement("style");
-    s.id = "il-fx-cmd-css";
-    s.textContent =
-      ".il-cmd{position:fixed;inset:0;z-index:80;display:none;align-items:flex-start;justify-content:center;padding:12vh 1rem 2rem;background:rgba(7,11,22,.72);backdrop-filter:blur(10px)}" +
-      ".il-cmd.is-open{display:flex}" +
-      ".il-cmd-panel{width:min(560px,100%);border-radius:1rem;background:#0c1222;border:1px solid rgba(94,234,212,.25);box-shadow:0 0 0 1px rgba(201,162,39,.12),0 24px 80px rgba(0,0,0,.55);overflow:hidden}" +
-      ".il-cmd input{width:100%;background:transparent;border:0;border-bottom:1px solid rgba(232,238,245,.08);padding:1rem 1.1rem;color:#e8eef5;font:500 1rem Space Grotesk,Inter,system-ui,sans-serif;outline:none}" +
-      ".il-cmd ul{list-style:none;margin:0;padding:.4rem;max-height:min(50vh,360px);overflow:auto}" +
-      ".il-cmd li button{width:100%;text-align:left;display:flex;justify-content:space-between;gap:1rem;padding:.7rem .85rem;border-radius:.65rem;border:0;background:transparent;color:#e8eef5;font:500 .9rem Space Grotesk,Inter,system-ui,sans-serif;cursor:pointer}" +
-      ".il-cmd li button:hover,.il-cmd li.is-active button{background:rgba(94,234,212,.1)}" +
-      ".il-cmd .g{font:500 .62rem JetBrains Mono,monospace;letter-spacing:.14em;text-transform:uppercase;color:#c9a227}" +
-      ".il-cmd-hint{padding:.55rem 1rem .8rem;font:500 .58rem JetBrains Mono,monospace;letter-spacing:.16em;text-transform:uppercase;color:#8b9bb4}";
-    doc.head.appendChild(s);
-  }
-
-  function runAction(item) {
-    if (item.action === "demo") {
-      runDemo();
-      return;
-    }
-    if (item.action === "xp") {
-      if (global.ILGame && global.ILGame.award) global.ILGame.award("demo_xp", 25, { label: "Command XP" });
-      return;
-    }
-    if (item.action === "level") {
-      if (global.ILGame) {
-        if (global.ILGame.celebrate) global.ILGame.celebrate();
-        else if (global.ILGame.confetti) global.ILGame.confetti();
-        global.ILGame.award("demo_level", 120, { label: "Demo level" });
-      }
-      return;
-    }
-    if (item.h && item.h.charAt(0) !== "#") global.location.href = item.h;
-  }
-
-  function mountCommandPalette() {
-    ensureCmdStyles();
-    if (doc.getElementById("il-cmd")) return;
-    var root = doc.createElement("div");
-    root.id = "il-cmd";
-    root.className = "il-cmd";
-    root.setAttribute("role", "dialog");
-    root.setAttribute("aria-label", "Command palette");
-    root.innerHTML =
+  function ensureCmd() {
+    var el = qs("#il-cmd");
+    if (el) return el;
+    el = doc.createElement("div");
+    el.id = "il-cmd";
+    el.className = "il-cmd";
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-modal", "true");
+    el.setAttribute("aria-label", "Command palette");
+    el.innerHTML =
       '<div class="il-cmd-panel">' +
-      '<input type="search" placeholder="Jump anywhere… (demo, learn, prep)" aria-label="Command search" autocomplete="off"/>' +
-      "<ul></ul>" +
-      '<div class="il-cmd-hint">⌘K / Ctrl+K · Esc to close · Demo mode included</div>' +
+      '<input class="il-cmd-input" type="search" placeholder="Jump to learn, prep, adapt, labs, coach…" aria-label="Jump" autocomplete="off" spellcheck="false"/>' +
+      '<ul class="il-cmd-list" role="listbox"></ul>' +
+      '<div class="il-cmd-hint">⌘K / Ctrl+K · Esc close · ↑↓ · Enter</div>' +
       "</div>";
-    doc.body.appendChild(root);
-    var input = root.querySelector("input");
-    var list = root.querySelector("ul");
-    var active = 0;
-    var filtered = ROUTES.slice();
+    doc.body.appendChild(el);
+    return el;
+  }
 
-    function paint() {
-      list.innerHTML = filtered
-        .map(function (r, i) {
-          return (
-            '<li class="' +
-            (i === active ? "is-active" : "") +
-            '"><button type="button" data-i="' +
-            i +
-            '"><span>' +
-            r.k +
-            '</span><span class="g">' +
-            r.g +
-            "</span></button></li>"
-          );
-        })
-        .join("");
-    }
+  var cmdIndex = 0;
+  var cmdFilter = "";
 
-    function open() {
-      root.classList.add("is-open");
-      input.value = "";
-      filtered = ROUTES.slice();
-      active = 0;
-      paint();
-      setTimeout(function () {
-        input.focus();
-      }, 10);
+  function paintCmd() {
+    var el = ensureCmd();
+    var list = el.querySelector(".il-cmd-list");
+    var q = cmdFilter.trim().toLowerCase();
+    var items = CMD.filter(function (c) {
+      if (!q) return true;
+      return (
+        c.label.toLowerCase().indexOf(q) >= 0 ||
+        c.keys.indexOf(q) >= 0 ||
+        c.href.indexOf(q) >= 0
+      );
+    });
+    if (!items.length) {
+      list.innerHTML = '<li class="il-cmd-item">No matches</li>';
+      return items;
     }
-    function close() {
-      root.classList.remove("is-open");
-    }
-
-    input.addEventListener("input", function () {
-      var q = input.value.trim().toLowerCase();
-      filtered = ROUTES.filter(function (r) {
-        return !q || r.k.toLowerCase().indexOf(q) >= 0 || r.g.toLowerCase().indexOf(q) >= 0;
+    if (cmdIndex >= items.length) cmdIndex = 0;
+    list.innerHTML = items
+      .map(function (c, i) {
+        return (
+          '<li class="il-cmd-item" role="option" aria-selected="' +
+          (i === cmdIndex ? "true" : "false") +
+          '" data-href="' +
+          c.href +
+          '"><span>' +
+          c.label +
+          "</span><kbd>" +
+          c.href +
+          "</kbd></li>"
+        );
+      })
+      .join("");
+    qsa(".il-cmd-item", list).forEach(function (li) {
+      li.addEventListener("click", function () {
+        var href = li.getAttribute("data-href");
+        if (href) global.location.href = href;
       });
-      active = 0;
-      paint();
     });
-    list.addEventListener("click", function (e) {
-      var btn = e.target.closest("button[data-i]");
-      if (!btn) return;
-      var item = filtered[+btn.getAttribute("data-i")];
-      close();
-      if (item) runAction(item);
-    });
-    root.addEventListener("click", function (e) {
-      if (e.target === root) close();
+    return items;
+  }
+
+  function openCmd() {
+    var el = ensureCmd();
+    el.classList.add("is-open");
+    cmdFilter = "";
+    cmdIndex = 0;
+    var input = el.querySelector(".il-cmd-input");
+    input.value = "";
+    paintCmd();
+    setTimeout(function () {
+      input.focus();
+    }, 10);
+    blip("ok");
+  }
+
+  function closeCmd() {
+    var el = qs("#il-cmd");
+    if (!el) return;
+    el.classList.remove("is-open");
+  }
+
+  function initCmd() {
+    ensureCmd();
+    var el = qs("#il-cmd");
+    var input = el.querySelector(".il-cmd-input");
+    input.addEventListener("input", function () {
+      cmdFilter = input.value;
+      cmdIndex = 0;
+      paintCmd();
     });
     input.addEventListener("keydown", function (e) {
+      var items = paintCmd();
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        active = Math.min(filtered.length - 1, active + 1);
-        paint();
+        cmdIndex = Math.min(items.length - 1, cmdIndex + 1);
+        paintCmd();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        active = Math.max(0, active - 1);
-        paint();
+        cmdIndex = Math.max(0, cmdIndex - 1);
+        paintCmd();
       } else if (e.key === "Enter") {
         e.preventDefault();
-        var item = filtered[active];
-        close();
-        if (item) runAction(item);
+        if (items[cmdIndex]) global.location.href = items[cmdIndex].href;
       } else if (e.key === "Escape") {
-        close();
+        closeCmd();
       }
+    });
+    el.addEventListener("click", function (e) {
+      if (e.target === el) closeCmd();
     });
     doc.addEventListener("keydown", function (e) {
-      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+      var meta = e.metaKey || e.ctrlKey;
+      if (meta && (e.key === "k" || e.key === "K")) {
         e.preventDefault();
-        if (root.classList.contains("is-open")) close();
-        else open();
-      } else if (e.key === "Escape" && root.classList.contains("is-open")) {
-        close();
-      }
+        if (el.classList.contains("is-open")) closeCmd();
+        else openCmd();
+      } else if (e.key === "Escape") closeCmd();
     });
-    global.ILFX = global.ILFX || {};
-    global.ILFX.openCommand = open;
-    global.ILFX.closeCommand = close;
   }
 
-  /* ---------- Demo mode (3-second wow) ---------- */
+  /* ---------- Demo mode (20s wow) ---------- */
+  var demoTimer = null;
+  var demoRunning = false;
+
+  function setDemoStatus(msg) {
+    var s = qs(".il-demo-status");
+    if (s) s.textContent = msg || "";
+  }
+
   function runDemo() {
-    doc.documentElement.classList.add("il-demo");
-    // Burst pointer parallax center-sweep
-    qs(".il-fx-field").forEach(function (host) {
-      host.classList.add("il-fx-demo-burst");
-      setTimeout(function () {
-        host.classList.remove("il-fx-demo-burst");
-      }, 2800);
-    });
-    qs(".il-sigil--live").forEach(function (el) {
-      el.classList.add("is-hot");
-      setTimeout(function () {
-        el.classList.remove("is-hot");
-      }, 3000);
-    });
-    if (global.ILGame) {
-      if (global.ILGame.award) global.ILGame.award("demo_mode", 40, { label: "Demo mode" });
-      setTimeout(function () {
-        if (global.ILGame.award) global.ILGame.award("demo_mode_2", 80, { label: "Demo surge" });
-        if (global.ILGame.confetti) global.ILGame.confetti();
-        else if (global.ILGame.celebrate) global.ILGame.celebrate();
-      }, 900);
+    if (demoRunning) {
+      stopDemo();
+      return;
     }
-    var toast = doc.createElement("div");
-    toast.className = "il-fx-toast";
-    toast.textContent = "DEMO MODE · cinema FX live · ⌘K for command palette";
-    doc.body.appendChild(toast);
-    setTimeout(function () {
-      toast.classList.add("is-out");
-      setTimeout(function () {
-        toast.remove();
-      }, 400);
-    }, 2600);
-  }
-
-  function maybeAutoDemo() {
-    try {
-      if (reduced) return;
-      if (global.sessionStorage.getItem("il.fx.demo") === "1") return;
-      var params = new URLSearchParams(global.location.search);
-      if (params.get("demo") === "1" || params.get("fx") === "demo") {
-        global.sessionStorage.setItem("il.fx.demo", "1");
-        setTimeout(runDemo, 600);
-        return;
-      }
-      // First visit this session: subtle auto-wow once on home/learn
-      var path = global.location.pathname || "/";
-      if ((path === "/" || path.indexOf("/learn") === 0) && !global.sessionStorage.getItem("il.fx.seen")) {
-        global.sessionStorage.setItem("il.fx.seen", "1");
-        setTimeout(function () {
-          doc.documentElement.classList.add("il-fx-wow");
-          setTimeout(function () {
-            doc.documentElement.classList.remove("il-fx-wow");
-          }, 3200);
-        }, 200);
-      }
-    } catch (e) {}
-  }
-
-  /* ---------- Game chip pulse hook ---------- */
-  function wireGameChips() {
-    doc.addEventListener("il:game", function (ev) {
-      var d = (ev && ev.detail) || {};
-      qs("[data-il-game-xp], [data-il-game-level], [data-il-game-streak], #il-game-hud").forEach(function (el) {
-        el.classList.add("il-chip-pulse");
-        setTimeout(function () {
-          el.classList.remove("il-chip-pulse");
-        }, 420);
-      });
-      if (d.leveled || d.type === "level_up") {
-        doc.documentElement.classList.add("il-level-flash");
-        setTimeout(function () {
-          doc.documentElement.classList.remove("il-level-flash");
-        }, 900);
-      }
+    demoRunning = true;
+    var btn = qs("[data-il-demo]");
+    if (btn) btn.classList.add("is-on");
+    setDemoStatus("Demo · placement");
+    blip("ok");
+    // Sigil pulse
+    qsa(".il-sigil-tilt").forEach(function (el) {
+      el.classList.add("is-orbiting");
     });
-  }
-
-  /* ---------- Soften hero plate that buried prior FX ---------- */
-  function liftHeroStack() {
-    qs("section:has(.il-hero-field), section.relative.isolate").forEach(function (sec) {
-      qs(":scope > .pointer-events-none.absolute.inset-0", sec).forEach(function (plate) {
-        plate.classList.add("il-hero-plate");
-      });
-    });
-    // Fallback without :has support — previous sibling of content after field
-    qs(".il-hero-field").forEach(function (field) {
-      var n = field.nextElementSibling;
-      while (n) {
-        if (n.classList && n.classList.contains("pointer-events-none") && n.classList.contains("absolute")) {
-          n.classList.add("il-hero-plate");
-          break;
+    // Fake placement answers on mini widget if present
+    var choices = qsa(".il-adapt-mini .choice");
+    var step = 0;
+    var sequence = [
+      function () {
+        setDemoStatus("Demo · CAT probe");
+        if (choices[0]) choices[0].click();
+      },
+      function () {
+        setDemoStatus("Demo · XP pulse");
+        if (global.ILGame && typeof global.ILGame.award === "function") {
+          global.ILGame.award("demo_pulse");
+        } else {
+          // fallback: dispatch level celebrate
+          hapticPulse();
+          if (global.ILGame && global.ILGame.celebrate) global.ILGame.celebrate((global.ILGame.getState && global.ILGame.getState().level) || 2);
         }
-        n = n.nextElementSibling;
+        blip("level");
+      },
+      function () {
+        setDemoStatus("Demo · sigil orbit");
+        qsa(".il-hero-sigil, .il-sigil--spin-slow").forEach(function (el) {
+          el.style.transition = "filter 0.4s";
+          el.style.filter = "drop-shadow(0 0 48px rgba(126,212,224,0.85))";
+        });
+      },
+      function () {
+        setDemoStatus("Demo · level burst");
+        hapticPulse();
+        if (global.ILGame && global.ILGame.celebrate) {
+          var lvl = (global.ILGame.getState && global.ILGame.getState().level) || 3;
+          global.ILGame.celebrate(lvl);
+        }
+        blip("level");
+      },
+      function () {
+        setDemoStatus("Demo · Adaptive OS");
+        // flash mini CTA
+        var mini = qs(".il-adapt-mini");
+        if (mini) {
+          mini.style.boxShadow = "0 0 0 1px rgba(126,212,224,0.55), 0 0 48px rgba(126,212,224,0.25)";
+        }
+      },
+      function () {
+        stopDemo();
+      },
+    ];
+    var marks = [1500, 4500, 8000, 12000, 16000, 20000];
+    demoTimer = [];
+    marks.forEach(function (ms, i) {
+      demoTimer.push(
+        setTimeout(function () {
+          if (!demoRunning) return;
+          sequence[i]();
+        }, ms)
+      );
+    });
+  }
+
+  function stopDemo() {
+    demoRunning = false;
+    if (demoTimer) {
+      demoTimer.forEach(clearTimeout);
+      demoTimer = null;
+    }
+    var btn = qs("[data-il-demo]");
+    if (btn) btn.classList.remove("is-on");
+    setDemoStatus("");
+    qsa(".il-hero-sigil, .il-sigil--spin-slow").forEach(function (el) {
+      el.style.filter = "";
+    });
+    var mini = qs(".il-adapt-mini");
+    if (mini) mini.style.boxShadow = "";
+  }
+
+  function hapticPulse() {
+    if (reduced) return;
+    var ring = doc.createElement("div");
+    ring.className = "il-haptic-ring";
+    doc.body.appendChild(ring);
+    setTimeout(function () {
+      ring.remove();
+    }, 750);
+    if (global.navigator && global.navigator.vibrate) {
+      try {
+        global.navigator.vibrate([12, 30, 12]);
+      } catch (e2) {}
+    }
+  }
+
+  function initDemoBar() {
+    if (qs(".il-demo-bar")) return;
+    var bar = doc.createElement("div");
+    bar.className = "il-demo-bar no-print";
+    bar.innerHTML =
+      '<button type="button" data-il-demo title="Auto-play placement + XP + sigil (20s)">Demo mode</button>' +
+      '<button type="button" class="il-cmd-open" data-il-cmd title="Command palette">⌘K</button>' +
+      '<button type="button" class="il-sound-toggle" data-il-sound title="UI sound (off by default)" aria-pressed="false">Sound</button>' +
+      '<span class="il-demo-status" aria-live="polite"></span>';
+    doc.body.appendChild(bar);
+    bar.querySelector("[data-il-demo]").addEventListener("click", function () {
+      unlockSoundOnce();
+      runDemo();
+    });
+    bar.querySelector("[data-il-cmd]").addEventListener("click", function () {
+      openCmd();
+    });
+    var snd = bar.querySelector("[data-il-sound]");
+    if (soundOn) {
+      snd.classList.add("is-on");
+      snd.setAttribute("aria-pressed", "true");
+    }
+    snd.addEventListener("click", function () {
+      soundOn = !soundOn;
+      try {
+        global.localStorage.setItem(SOUND_KEY, soundOn ? "1" : "0");
+      } catch (e3) {}
+      snd.classList.toggle("is-on", soundOn);
+      snd.setAttribute("aria-pressed", soundOn ? "true" : "false");
+      if (soundOn) {
+        unlocked = true;
+        ensureAudio();
+        blip("ok");
       }
+    });
+  }
+
+  /* ---------- Adaptive mini CAT (1 sample item inline) ---------- */
+  var SAMPLE = {
+    id: "linux-shell.ls-home",
+    stem: "Which command lists all files including hidden ones in the current directory?",
+    choices: [
+      { key: "A", text: "ls -a" },
+      { key: "B", text: "ls -l" },
+      { key: "C", text: "cd ~" },
+      { key: "D", text: "pwd" },
+    ],
+    answerKey: "A",
+    feedback: {
+      A: "Correct — -a shows entries starting with '.' (hidden).",
+      B: "-l is long format; it does not imply hidden files.",
+      C: "That changes directory to home; it does not list.",
+      D: "pwd prints the working directory path.",
+    },
+  };
+
+  function mountAdaptMini() {
+    var host = qs("[data-il-adapt-mini]");
+    if (!host || host.getAttribute("data-ready")) return;
+    host.setAttribute("data-ready", "1");
+    host.classList.add("il-adapt-mini");
+    var html =
+      '<p class="il-kicker" data-i18n="adapt.mini.kicker">Live CAT sample · Adaptive OS</p>' +
+      "<h3 data-i18n=\"adapt.mini.title\">One probe. Instant fringe signal.</h3>" +
+      '<p class="stem">' +
+      SAMPLE.stem +
+      "</p>" +
+      '<div class="choices" role="group" aria-label="Answer choices">';
+    SAMPLE.choices.forEach(function (c) {
+      html +=
+        '<button type="button" class="choice" data-key="' +
+        c.key +
+        '"><strong>' +
+        c.key +
+        "</strong> · " +
+        c.text +
+        "</button>";
+    });
+    html +=
+      '</div><p class="fb" aria-live="polite"></p>' +
+      '<div class="cta-row">' +
+      '<a href="/adapt/" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void" data-i18n="cta.adaptive">Adaptive OS</a>' +
+      '<a href="/adapt/#session" class="inline-flex h-10 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-cyan">Full session</a>' +
+      "</div>";
+    host.innerHTML = html;
+    var fb = host.querySelector(".fb");
+    var locked = false;
+    qsa(".choice", host).forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (locked) return;
+        locked = true;
+        unlockSoundOnce();
+        var key = btn.getAttribute("data-key");
+        var ok = key === SAMPLE.answerKey;
+        qsa(".choice", host).forEach(function (b) {
+          var k = b.getAttribute("data-key");
+          if (k === SAMPLE.answerKey) b.classList.add("is-ok");
+          else if (k === key) b.classList.add("is-bad");
+          b.disabled = true;
+        });
+        fb.textContent = SAMPLE.feedback[key] || "";
+        fb.classList.toggle("is-ok", ok);
+        blip(ok ? "ok" : "bad");
+        if (ok && global.ILGame && typeof global.ILGame.award === "function") {
+          try {
+            global.ILGame.award("adapt_mini_ok");
+          } catch (e4) {}
+        } else if (ok) {
+          pulseHudFallback();
+        }
+      });
+    });
+  }
+
+  function pulseHudFallback() {
+    var hud = qs("#il-game-hud");
+    if (hud) {
+      hud.classList.add("is-pulse");
+      setTimeout(function () {
+        hud.classList.remove("is-pulse");
+      }, 280);
+    }
+  }
+
+  /* ---------- Level-up haptic hook ---------- */
+  function initLevelHooks() {
+    doc.addEventListener("il:game", function (ev) {
+      var d = ev.detail || {};
+      if (d.type === "level_up" || d.leveled) {
+        hapticPulse();
+        blip("level");
+      } else if (d.gained > 0) {
+        blip("ok");
+      }
+    });
+  }
+
+  /* ---------- Hero CTA rewrite helpers already in HTML; ensure dead links fixed via stubs ---------- */
+
+
+  /* ---------- Lockup repair + page enter ---------- */
+  function repairChrome() {
+    qsa('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"], img.il-lockup').forEach(function (img) {
+      img.classList.add("il-lockup");
+      img.style.maxHeight = "40px";
+      img.style.height = "auto";
+      img.style.width = "auto";
+      img.style.maxWidth = "min(240px, 58vw)";
+      img.style.objectFit = "contain";
+      img.style.display = "block";
+      var a = img.closest("a");
+      if (a) {
+        a.style.display = "inline-flex";
+        a.style.alignItems = "center";
+        a.style.minHeight = "40px";
+      }
+      if (img.decode) img.decode().catch(function () {});
+    });
+    qsa(".il-sigil img, .il-hero-sigil img, .il-emblem img").forEach(function (img) {
+      if (!img.getAttribute("width")) img.setAttribute("width", "280");
+      if (!img.getAttribute("height")) img.setAttribute("height", "280");
+      img.style.width = "100%";
+      img.style.height = "auto";
+      img.style.minHeight = "64px";
+      img.style.display = "block";
+    });
+  }
+
+  function pageEnter() {
+    doc.documentElement.classList.add("il-fx-ready");
+    requestAnimationFrame(function () {
+      doc.documentElement.classList.add("il-page-in");
     });
   }
 
   function boot() {
-    repairChrome();
+    if (!doc.body) return;
     pageEnter();
-    liftHeroStack();
-    ensureHeroHosts();
-    initSigils();
-    boostReveal();
-    boostMagnetic();
-    mountCommandPalette();
-    wireGameChips();
-    maybeAutoDemo();
-    // Re-repair after late layout / SPA chrome
+    repairChrome();
+    initAurora();
+    initSigilTilt();
+    initKinetic();
+    initCmd();
+    initDemoBar();
+    mountAdaptMini();
+    initLevelHooks();
     setTimeout(repairChrome, 400);
     setTimeout(repairChrome, 1200);
+    // First gesture unlocks audio if user already opted in
+    ["pointerdown", "keydown"].forEach(function (evt) {
+      doc.addEventListener(
+        evt,
+        function () {
+          unlockSoundOnce();
+        },
+        { once: true, passive: true }
+      );
+    });
   }
 
-  global.ILFX = {
+  global.ILFX = global.ILFx = {
     boot: boot,
+    openCmd: openCmd,
+    closeCmd: closeCmd,
     runDemo: runDemo,
-    initCinemaField: initCinemaField,
+    stopDemo: stopDemo,
+    blip: blip,
+    hapticPulse: hapticPulse,
     reduced: reduced,
-    hdr: hdr,
   };
 
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot);

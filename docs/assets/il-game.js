@@ -20,6 +20,8 @@
     radar_update: 20,
     quest_claim: 35,
     badge_bonus: 100,
+    adapt_mini_ok: 40,
+    demo_pulse: 55,
   };
 
   /** Cumulative XP required to reach level L (1-indexed). Soft curve → L50. */
@@ -560,6 +562,14 @@
     toast("Level up · L" + level);
     if (reduced) return;
     confettiBurst();
+    try {
+      if (global.ILFx && typeof global.ILFx.hapticPulse === "function") {
+        global.ILFx.hapticPulse();
+      }
+      if (global.ILFx && typeof global.ILFx.blip === "function") {
+        global.ILFx.blip("level");
+      }
+    } catch (eH) {}
   }
 
   function confettiBurst() {
