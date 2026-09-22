@@ -116,9 +116,9 @@
       canvas.style.height = h + "px";
       ctx.setTransform(r, 0, 0, r, 0, 0);
       var area = w * h;
-      var count = Math.min(220, Math.max(70, Math.floor(area / 18000)));
+      var count = Math.min(140, Math.max(48, Math.floor(area / 28000)));
       // Cap particle load on ultrawide 5k
-      if (w >= 3840) count = Math.min(count, 160);
+      if (w >= 3840) count = Math.min(count, 110);
       stars = [];
       for (var i = 0; i < count; i++) {
         stars.push({
@@ -716,38 +716,57 @@
 
   /* ---------- Lockup repair + page enter ---------- */
   function repairChrome() {
-    qsa('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"], footer img[src*="canonical-lockup"], img.il-lockup').forEach(function (img) {
+    qsa('header a img[src*="canonical-lockup"], header img[src*="canonical-lockup"], footer img[src*="canonical-lockup"], img.il-lockup, picture.il-lockup img').forEach(function (img) {
       img.classList.add("il-lockup");
-      // Explicit px height — never height:auto (natural lockup is 596px tall).
-      var h = window.matchMedia("(min-width: 640px)").matches ? "40px" : "36px";
+      // P0 brand: industry lockup heights — never postage stamp, never height:auto.
+      var uw = window.matchMedia("(min-width: 2560px)").matches;
+      var xl = window.matchMedia("(min-width: 3840px)").matches;
+      var sm = window.matchMedia("(min-width: 640px)").matches;
+      var h = xl ? "80px" : uw ? "72px" : sm ? "64px" : "56px";
+      var maxH = xl || uw ? "80px" : "72px";
+      var inFooter = !!(img.closest && img.closest("footer"));
+      if (inFooter) {
+        h = sm ? "56px" : "48px";
+        maxH = "64px";
+      }
       img.style.setProperty("height", h, "important");
-      img.style.setProperty("max-height", "40px", "important");
+      img.style.setProperty("max-height", maxH, "important");
+      img.style.setProperty("min-height", h, "important");
       img.style.setProperty("width", "auto", "important");
-      img.style.setProperty("max-width", "min(200px, 58vw)", "important");
-      img.style.setProperty("min-width", "72px", "important");
+      img.style.setProperty("max-width", inFooter ? "min(320px, 70vw)" : "min(360px, 70vw)", "important");
+      img.style.setProperty("min-width", sm ? "144px" : "120px", "important");
       img.style.setProperty("object-fit", "contain", "important");
       img.style.setProperty("object-position", "left center", "important");
       img.style.setProperty("display", "block", "important");
       img.style.setProperty("flex-shrink", "0", "important");
-      if (!img.getAttribute("width")) img.setAttribute("width", "133");
-      if (!img.getAttribute("height")) img.setAttribute("height", "60");
+      if (!img.getAttribute("width")) img.setAttribute("width", "178");
+      if (!img.getAttribute("height")) img.setAttribute("height", "80");
       var a = img.closest("a");
       if (a) {
         a.style.display = "inline-flex";
         a.style.alignItems = "center";
         a.style.minHeight = h;
-        a.style.maxHeight = "44px";
-        a.style.overflow = "hidden";
+        a.style.maxHeight = "none";
+        a.style.overflow = "visible";
         a.style.flexShrink = "0";
       }
       if (img.decode) img.decode().catch(function () {});
     });
+    // Keep header row tall enough for the lockup
+    qsa("header .mx-auto.flex, header.sticky > .mx-auto.flex").forEach(function (row) {
+      var uw = window.matchMedia("(min-width: 2560px)").matches;
+      var sm = window.matchMedia("(min-width: 640px)").matches;
+      row.style.minHeight = uw ? "5.25rem" : sm ? "5rem" : "4.5rem";
+      row.style.height = "auto";
+      row.style.overflowY = "visible";
+      row.style.alignItems = "center";
+    });
     qsa(".il-sigil img, .il-hero-sigil img, .il-emblem img").forEach(function (img) {
-      if (!img.getAttribute("width")) img.setAttribute("width", "280");
-      if (!img.getAttribute("height")) img.setAttribute("height", "280");
+      if (!img.getAttribute("width")) img.setAttribute("width", "200");
+      if (!img.getAttribute("height")) img.setAttribute("height", "200");
       img.style.width = "100%";
       img.style.height = "auto";
-      img.style.minHeight = "64px";
+      img.style.minHeight = "120px";
       img.style.display = "block";
     });
   }
