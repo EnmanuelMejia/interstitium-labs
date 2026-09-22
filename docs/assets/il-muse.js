@@ -622,7 +622,7 @@
         '<textarea class="il-muse-composer__input" data-muse-input rows="1" placeholder="Ask a stuck question — interrupt anytime…" aria-label="Message Lab Muse"></textarea>' +
         '<button type="submit" class="il-muse-send" data-i18n="muse.send">Send</button>' +
         '</form>' + voiceFb +
-        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Inspired by Muse <em>interaction design</em> (public posts) — educational agent, not Meta’s product. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
+        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Inspired by Muse <em>interaction design</em> (public posts) — educational agent, not Meta’s product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or Meta Muse asset. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
         '</div></section>';
     }
 
