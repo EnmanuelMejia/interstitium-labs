@@ -8,7 +8,7 @@
 | Field | Value |
 | --- | --- |
 | Benchmark date | 2026-09-22 (America/New_York) |
-| Ship SHA (fill after push) | _pending_ |
+| Ship SHA |  |
 | Overall (Learning-OS mobile) | **YES** — meets Muse-class companion behaviors in scope; exceeds on lab-state / Adapt / Ollama / proof / EN·ES axes |
 | Meet | 9 |
 | Exceed | 7 |
