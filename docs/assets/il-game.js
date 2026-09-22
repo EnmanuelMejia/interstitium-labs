@@ -130,6 +130,14 @@
         return !!(s.flags && s.flags.founders_star);
       },
     },
+    {
+      id: "superlab_scout",
+      name: "SuperLab Scout",
+      blurb: "Claim Clone SuperLab XP",
+      unlock: function (s) {
+        return !!(s.flags && s.flags.superlab_clone);
+      },
+    },
   ];
 
   var DAILY_QUESTS = [
@@ -174,6 +182,13 @@
       xp: 25,
       href: "/founders/#radar",
       hint: "Re-rate one competency",
+    },
+    {
+      id: "q_superlab",
+      title: "Clone SuperLab",
+      xp: 40,
+      href: "/labs/superlab/#quickstart",
+      hint: "Open hub · clone the flagship lab",
     },
   ];
 
@@ -710,7 +725,8 @@
         path.indexOf("/paths/") === 0 ||
         path.indexOf("/prep/") === 0 ||
         path.indexOf("/learn") === 0 ||
-        path.indexOf("/founders") === 0
+        path.indexOf("/founders") === 0 ||
+        path.indexOf("/labs/") === 0
       ) {
         award("path_open", EVENT_XP.path_open, {
           id: path,
