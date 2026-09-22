@@ -247,6 +247,9 @@ Auth: HMAC from Interstitium / Cloudflare Access
 
 ### 6.3 Ollama on lab-control
 
+> Demand scaling & browser router: see [MODEL-ROUTER.md](./MODEL-ROUTER.md) (T0/T1/T2).
+
+
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 sudo systemctl enable --now ollama
@@ -367,6 +370,35 @@ RHEL/Rocky 10 · libvirt/Cockpit · k3s or Kind · Podman · ttyd · Ollama · Q
 
 ---
 
+## 13b. Browser model router (Lab Muse)
+
+Static site ships `il-model-router.js` + `il-model-analytics.js` + Muse **Model** panel.
+
+- **Default:** demand tier **T0 (lean)** — local Socratic rules; optional Ollama ≤3B on P1000, 7B on CPU.
+- **Scale relative to demand:** Muse shows current tier + “scale when demand grows.” Promote T1/T2 only when concurrency, p95 latency, or error rate warrants it.
+- **Config JSON:** `/assets/il-model-catalog.json` (backends, models, tiers, `p920-p1000-4gb` profile).
+- **Operator hooks:** `window.IL_MUSE.endpoint` / `ollamaEndpoint` — keys stay on lab-control, not in git.
+- **Healthy-only auto-switch:** never select offline models; never pretend 70B is local GPU.
+- **Scale recommendations only:** analytics suggest T1/T2 — operator decides; never auto-buy hardware.
+- **UI:** `/coach/`, `/admin/`, `/admin/insights/` mount `data-il-model-panel`.
+- Full detail: [MODEL-ROUTER.md](./MODEL-ROUTER.md).
+
+### Example router policy after Ollama is up
+
+```js
+ILModelRouter.setCreds('ollama', 'http://127.0.0.1:11434', '');
+ILModelRouter.setPolicy({
+  mode: 'auto',
+  demand_tier: 'T0',
+  primary: 'qwen2.5-coder-3b',
+  backend: 'ollama',
+  healthy_only: true
+});
+ILModelRouter.healthCheck({ force: true });
+```
+
+Wire Muse chat through the router (already default on `/coach/`). Fallback chain ends at `local-rules`.
+
 ## 14. Your decisions (reply when ready)
 
 1. Bare-metal RHEL vs Hyper-V pilot first?  
@@ -374,6 +406,5 @@ RHEL/Rocky 10 · libvirt/Cockpit · k3s or Kind · Podman · ttyd · Ollama · Q
 3. GPU to Linux LLM or Windows desktop?  
 4. Want the Launch API + Coach proxy scaffolded in the Interstitium repo next?
 
----
 
 *Document version: 2026-09-22 · Host: p920-host · Win11 Pro Workstation 25H2 build 26200.9457 · Interstitium Labs ops*

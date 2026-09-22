@@ -1,0 +1,331 @@
+{
+  "version": 1,
+  "updated": "2026-09-22",
+  "policy": "scale_relative_to_demand",
+  "defaults": {
+    "task": "chat",
+    "hardware_profile": "p920-p1000-4gb",
+    "demand_tier": "T0",
+    "backend_priority": ["ollama", "openai-compat", "llamacpp", "vllm", "lmstudio", "textgen"],
+    "base_urls": {
+      "ollama": "http://127.0.0.1:11434",
+      "openai-compat": "http://127.0.0.1:8000/v1",
+      "llamacpp": "http://127.0.0.1:8080/v1",
+      "vllm": "http://127.0.0.1:8000/v1",
+      "lmstudio": "http://127.0.0.1:1234/v1",
+      "textgen": "http://127.0.0.1:5000/v1"
+    },
+    "routing": {
+      "mode": "auto",
+      "min_samples": 8,
+      "win_rate_margin": 0.08,
+      "latency_slack_ms": 1500,
+      "explore_ratio": 0.2,
+      "healthy_only": true
+    },
+    "scale_signals": {
+      "p95_latency_ms": 8000,
+      "error_rate": 0.15,
+      "concurrency_hint": 4,
+      "thumbs_down_rate": 0.25,
+      "window_events": 40
+    }
+  },
+  "demand_tiers": {
+    "T0": {
+      "id": "T0",
+      "label": "Local P920 (single host)",
+      "description": "Quadro P1000 4GB GPU for ≤3B Q4/Q5; 7B on dual-Xeon CPU. Never claim 70B local GPU.",
+      "hosts": ["p920-host / lab-control"],
+      "models_gpu": ["qwen2.5-coder-3b", "phi-3-mini", "llama3.2-3b", "gemma2-2b"],
+      "models_cpu": ["qwen2.5-coder-7b", "qwen2.5-7b", "mistral-7b", "deepseek-coder-6.7b"],
+      "backends": ["ollama", "llamacpp", "lmstudio", "local-rules"],
+      "next_tier": "T1",
+      "scale_when": "p95 latency, error rate, or concurrency exceeds T0 thresholds"
+    },
+    "T1": {
+      "id": "T1",
+      "label": "Extra CPU inference hosts",
+      "description": "Add lab-control peers or dedicated CPU boxes; same OSS weights, more parallel capacity. Still no fake 70B-on-P1000.",
+      "hosts": ["p920 + N CPU workers"],
+      "models_gpu": ["qwen2.5-coder-3b", "phi-3-mini"],
+      "models_cpu": ["qwen2.5-coder-7b", "llama3.1-8b", "qwen2.5-7b", "mistral-7b"],
+      "backends": ["ollama", "vllm", "llamacpp", "openai-compat", "local-rules"],
+      "next_tier": "T2",
+      "scale_when": "T1 saturated; quality needs larger context or remote capacity"
+    },
+    "T2": {
+      "id": "T2",
+      "label": "Remote OSS API / bigger GPU later",
+      "description": "Operator-configured OpenAI-compatible endpoints for open weights (Together/Groq/Fireworks open models, rented GPU). Keys only in localStorage or lab-control env — never in git. Suggest tier; never auto-buy hardware.",
+      "hosts": ["remote OSS API", "rented GPU (future)"],
+      "models_gpu": [],
+      "models_cpu": ["qwen2.5-7b", "llama3.1-8b", "mistral-7b"],
+      "backends": ["together-open", "groq-open", "fireworks-open", "openai-compat", "local-rules"],
+      "next_tier": null,
+      "scale_when": "Business decision — router only recommends"
+    }
+  },
+  "hardware_profiles": {
+    "p920-p1000-4gb": {
+      "id": "p920-p1000-4gb",
+      "label": "ThinkStation P920 · Quadro P1000 4GB + dual Xeon",
+      "vram_gb": 4,
+      "ram_gb": 64,
+      "default_tier": "T0",
+      "honesty": "GPU fits ~3B Q4/Q5 only. Prefer 7B on CPU. Never claim 70B local GPU.",
+      "recommend_gpu": ["qwen2.5-coder-3b", "phi-3-mini", "llama3.2-3b"],
+      "recommend_cpu": ["qwen2.5-coder-7b", "qwen2.5-7b", "mistral-7b"],
+      "forbid_local_gpu": ["qwen2.5-coder-32b", "llama3.1-70b", "mixtral-8x7b"]
+    },
+    "generic-8gb": {
+      "id": "generic-8gb",
+      "label": "Generic 8GB VRAM",
+      "vram_gb": 8,
+      "default_tier": "T0",
+      "recommend_gpu": ["qwen2.5-coder-7b", "phi-3-mini", "llama3.1-8b"],
+      "recommend_cpu": ["qwen2.5-14b"],
+      "forbid_local_gpu": ["llama3.1-70b"]
+    }
+  },
+  "backends": [
+    {
+      "id": "ollama",
+      "label": "Ollama",
+      "kind": "ollama",
+      "tier_min": "T0",
+      "chat_path": "/api/chat",
+      "tags_path": "/api/tags",
+      "openai_compat": false
+    },
+    {
+      "id": "openai-compat",
+      "label": "OpenAI-compatible (generic)",
+      "kind": "openai",
+      "tier_min": "T0",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true
+    },
+    {
+      "id": "llamacpp",
+      "label": "llama.cpp server",
+      "kind": "openai",
+      "tier_min": "T0",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true
+    },
+    {
+      "id": "vllm",
+      "label": "vLLM",
+      "kind": "openai",
+      "tier_min": "T1",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true
+    },
+    {
+      "id": "lmstudio",
+      "label": "LM Studio",
+      "kind": "openai",
+      "tier_min": "T0",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true
+    },
+    {
+      "id": "textgen",
+      "label": "text-generation-webui",
+      "kind": "openai",
+      "tier_min": "T0",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true
+    },
+    {
+      "id": "together-open",
+      "label": "Together (open models only)",
+      "kind": "openai",
+      "tier_min": "T2",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true,
+      "requires_key": true,
+      "note": "User sets base URL + key in localStorage only."
+    },
+    {
+      "id": "groq-open",
+      "label": "Groq (open models only)",
+      "kind": "openai",
+      "tier_min": "T2",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true,
+      "requires_key": true
+    },
+    {
+      "id": "fireworks-open",
+      "label": "Fireworks (open models only)",
+      "kind": "openai",
+      "tier_min": "T2",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "openai_compat": true,
+      "requires_key": true
+    },
+    {
+      "id": "local-rules",
+      "label": "Local Socratic rules",
+      "kind": "local",
+      "tier_min": "T0",
+      "openai_compat": false,
+      "always_on": true
+    }
+  ],
+  "models": [
+    {
+      "id": "qwen2.5-coder-3b",
+      "family": "qwen2.5-coder",
+      "label": "Qwen2.5-Coder 3B",
+      "size_b": 3,
+      "demand_tiers": ["T0", "T1"],
+      "placement": "gpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat"],
+      "ollama_pull": "qwen2.5-coder:3b",
+      "tags": ["code", "chat"],
+      "min_vram_gb": 3,
+      "default_params": { "temperature": 0.2, "num_predict": 1024 },
+      "fit": ["p920-p1000-4gb"]
+    },
+    {
+      "id": "phi-3-mini",
+      "family": "phi-3",
+      "label": "Phi-3 / Phi-3.5 mini",
+      "size_b": 3.8,
+      "demand_tiers": ["T0", "T1"],
+      "placement": "gpu",
+      "backends": ["ollama", "llamacpp", "lmstudio", "openai-compat"],
+      "ollama_pull": "phi3:mini",
+      "tags": ["chat", "reason"],
+      "min_vram_gb": 3.5,
+      "default_params": { "temperature": 0.3, "num_predict": 1024 },
+      "fit": ["p920-p1000-4gb"]
+    },
+    {
+      "id": "llama3.2-3b",
+      "family": "llama3.2",
+      "label": "Llama 3.2 3B Instruct",
+      "size_b": 3,
+      "demand_tiers": ["T0"],
+      "placement": "gpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat"],
+      "ollama_pull": "llama3.2:3b",
+      "tags": ["chat"],
+      "min_vram_gb": 3,
+      "default_params": { "temperature": 0.4, "num_predict": 1024 },
+      "fit": ["p920-p1000-4gb"]
+    },
+    {
+      "id": "gemma2-2b",
+      "family": "gemma2",
+      "label": "Gemma 2 2B",
+      "size_b": 2,
+      "demand_tiers": ["T0"],
+      "placement": "gpu",
+      "backends": ["ollama", "llamacpp", "lmstudio", "openai-compat"],
+      "ollama_pull": "gemma2:2b",
+      "tags": ["chat"],
+      "min_vram_gb": 2,
+      "default_params": { "temperature": 0.5, "num_predict": 768 },
+      "fit": ["p920-p1000-4gb"]
+    },
+    {
+      "id": "qwen2.5-coder-7b",
+      "family": "qwen2.5-coder",
+      "label": "Qwen2.5-Coder 7B (CPU / offload)",
+      "size_b": 7,
+      "demand_tiers": ["T0", "T1"],
+      "placement": "cpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat"],
+      "ollama_pull": "qwen2.5-coder:7b-instruct-q4_K_M",
+      "tags": ["code", "chat"],
+      "min_vram_gb": 6,
+      "cpu_ok": true,
+      "default_params": { "temperature": 0.2, "num_predict": 1536 },
+      "fit": ["p920-p1000-4gb"],
+      "note": "On P1000: run on CPU (dual Xeon). Do not claim full GPU."
+    },
+    {
+      "id": "qwen2.5-7b",
+      "family": "qwen2.5",
+      "label": "Qwen2.5 7B Instruct",
+      "size_b": 7,
+      "demand_tiers": ["T0", "T1", "T2"],
+      "placement": "cpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat", "together-open", "fireworks-open"],
+      "ollama_pull": "qwen2.5:7b-instruct-q4_K_M",
+      "tags": ["chat", "reason"],
+      "min_vram_gb": 6,
+      "cpu_ok": true,
+      "default_params": { "temperature": 0.4, "num_predict": 1536 }
+    },
+    {
+      "id": "mistral-7b",
+      "family": "mistral",
+      "label": "Mistral 7B Instruct",
+      "size_b": 7,
+      "demand_tiers": ["T0", "T1", "T2"],
+      "placement": "cpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat", "together-open", "groq-open"],
+      "ollama_pull": "mistral:7b-instruct-q4_K_M",
+      "tags": ["chat"],
+      "min_vram_gb": 6,
+      "cpu_ok": true,
+      "default_params": { "temperature": 0.4, "num_predict": 1024 }
+    },
+    {
+      "id": "llama3.1-8b",
+      "family": "llama3.1",
+      "label": "Llama 3.1 8B Instruct",
+      "size_b": 8,
+      "demand_tiers": ["T1", "T2"],
+      "placement": "cpu",
+      "backends": ["ollama", "llamacpp", "vllm", "lmstudio", "openai-compat", "together-open", "groq-open", "fireworks-open"],
+      "ollama_pull": "llama3.1:8b-instruct-q4_K_M",
+      "tags": ["chat", "reason"],
+      "min_vram_gb": 7,
+      "cpu_ok": true,
+      "default_params": { "temperature": 0.4, "num_predict": 1536 },
+      "note": "Prefer T1+ CPU hosts or T2 remote OSS — tight on P1000."
+    },
+    {
+      "id": "deepseek-coder-6.7b",
+      "family": "deepseek-coder",
+      "label": "DeepSeek Coder 6.7B",
+      "size_b": 6.7,
+      "demand_tiers": ["T0", "T1"],
+      "placement": "cpu",
+      "backends": ["ollama", "llamacpp", "lmstudio", "openai-compat"],
+      "ollama_pull": "deepseek-coder:6.7b",
+      "tags": ["code"],
+      "min_vram_gb": 6,
+      "cpu_ok": true,
+      "default_params": { "temperature": 0.15, "num_predict": 1536 }
+    },
+    {
+      "id": "local-rules",
+      "family": "rules",
+      "label": "Local Socratic rules (offline fallback)",
+      "size_b": 0,
+      "demand_tiers": ["T0", "T1", "T2"],
+      "placement": "local",
+      "backends": ["local-rules"],
+      "tags": ["chat", "code"],
+      "min_vram_gb": 0,
+      "default_params": {},
+      "note": "No network. Always available via ILCoach.ask.",
+      "always_healthy": true
+    }
+  ]
+}
