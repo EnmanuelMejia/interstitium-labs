@@ -61,7 +61,7 @@
     var running = false;
     var w = 0;
     var h = 0;
-    var dpr = Math.min(global.devicePixelRatio || 1, 2);
+    var dpr = Math.min(global.devicePixelRatio || 1, 1.5);
 
     function resize() {
       var rect = host.getBoundingClientRect();
@@ -155,11 +155,22 @@
   }
 
   function initAllStarfields(root) {
+    // Full-viewport aurora/starfield is owned by il-fx.js (Musk-bar).
+    // Section hosts get a static vignette only — no second canvas (5k-wide perf).
     qs("[data-il-starfield], .il-hero-field", root).forEach(function (host) {
       if (host.getAttribute("data-il-starfield-ready")) return;
       host.setAttribute("data-il-starfield-ready", "1");
       host.classList.add("il-hero-field");
-      initStarfield(host);
+      if (!host.querySelector(".il-hero-vignette")) {
+        var v = global.document.createElement("div");
+        v.className = "il-hero-vignette";
+        v.setAttribute("aria-hidden", "true");
+        v.style.cssText =
+          "position:absolute;inset:0;pointer-events:none;" +
+          "background:radial-gradient(ellipse at 68% 28%,rgba(126,212,224,0.10),transparent 58%)," +
+          "radial-gradient(ellipse at 18% 78%,rgba(198,165,114,0.07),transparent 52%);";
+        host.appendChild(v);
+      }
     });
   }
 
