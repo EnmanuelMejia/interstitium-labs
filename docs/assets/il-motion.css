@@ -23,34 +23,41 @@ html.il-page-in {
   to { opacity: 1; }
 }
 
-/* Header lockup — max 40px, vertically centered (fixes 0×0 / clip) */
+/* Header lockup — sizes owned by il-chrome.css (56/64/72–80). Keep visible + unclipped. */
 header a img[src*="canonical-lockup"],
 header img.il-lockup,
 img.il-lockup {
   display: block !important;
-  height: auto !important;
-  max-height: 40px !important;
+  height: 56px !important;
+  max-height: 80px !important;
   width: auto !important;
-  max-width: min(240px, 58vw) !important;
+  max-width: min(360px, 70vw) !important;
   object-fit: contain !important;
   object-position: left center !important;
   flex-shrink: 0;
+}
+@media (min-width: 640px) {
+  header a img[src*="canonical-lockup"],
+  header img.il-lockup,
+  img.il-lockup {
+    height: 64px !important;
+  }
 }
 header .mx-auto > a:first-child,
 header a[href="/"] {
   display: inline-flex !important;
   align-items: center !important;
   align-self: center;
-  min-height: 40px;
+  min-height: 56px;
   min-width: 0;
   overflow: visible;
 }
 footer img[src*="canonical-lockup"] {
   display: block;
-  height: auto !important;
-  max-height: 40px !important;
+  height: 48px !important;
+  max-height: 64px !important;
   width: auto !important;
-  max-width: min(280px, 70vw);
+  max-width: min(320px, 70vw);
   object-fit: contain;
 }
 
@@ -240,18 +247,14 @@ html.il-demo .il-hero-field {
 .il-hero-sigil {
   position: absolute;
   right: 4%;
-  top: 12%;
-  width: min(38vw, 280px);
-  opacity: 0.7;
+  top: 10%;
+  width: min(42vw, 160px);
+  z-index: 1;
   pointer-events: none;
-  z-index: 2;
 }
 @media (max-width: 640px) {
   .il-hero-sigil {
-    width: min(46vw, 160px);
-    right: -2%;
-    top: 6%;
-    opacity: 0.45;
+    width: min(48vw, 140px);
   }
 }
 
@@ -360,7 +363,7 @@ html.il-level-flash body::after {
   .il-aurora-a { opacity: 0.9; }
 }
 @media (min-width: 3840px) {
-  .il-hero-sigil { width: min(22vw, 320px); }
+  .il-hero-sigil { width: min(14vw, 280px); }
 }
 
 /* HDR punch */

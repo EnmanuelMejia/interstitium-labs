@@ -1,264 +1,343 @@
 /**
- * Interstitium Labs — chrome lockup + header nav guardrails
- * MUST load after il-responsive.css (which sets img{height:auto} and
- * was blowing canonical-lockup to natural 596px / collapsing home to 0×0).
+ * Interstitium Labs — P0 brand chrome (loads LAST)
+ * Lockup must read as industry-standard, never postage stamp.
+ * Targets: 56px mobile / 64px desktop / 72–80px ultrawide (≥2560).
+ * Header bar: ~72–80px to fit full lockup height. Overflow-x only.
  */
 
-/* Kill global height:auto on brand lockups inside chrome */
-header a img[src*="canonical-lockup"],
-header img[src*="canonical-lockup"],
-footer img[src*="canonical-lockup"],
-.il-lockup {
-  display: block !important;
-  height: var(--il-lockup-h, 3.5rem) !important;
-  width: auto !important;
-  max-height: var(--il-lockup-h, 64px) !important;
-  max-width: min(100%, 12.5rem) !important;
-  object-fit: contain !important;
-  object-position: left center !important;
-  flex-shrink: 0 !important;
-  min-width: 4.5rem !important;        /* prevent 0×0 flex shrink */
-  min-height: 2.25rem !important;
-  aspect-ratio: auto !important;
-}
-@media (min-width: 640px) {
-  header a img[src*="canonical-lockup"],
-  header img[src*="canonical-lockup"],
-  .il-lockup {
-    height: 2.5rem !important;         /* h-10 */
-    max-height: var(--il-lockup-h, 64px) !important;
-    min-height: 2.5rem !important;
-  }
-  footer img[src*="canonical-lockup"] {
-    height: 2.5rem !important;
-    max-height: var(--il-lockup-h, 64px) !important;
-  }
+:root {
+  --il-lockup-h: 56px;
+  --il-lockup-h-sm: 64px;
+  --il-lockup-h-uw: 72px;
+  --il-lockup-h-uw-xl: 80px;
+  --il-header-h: 4.5rem;       /* 72px */
+  --il-header-h-sm: 5rem;      /* 80px */
+  --il-header-h-uw: 5.25rem;   /* 84px */
+  --il-surface-elev: 0 1px 0 rgba(232, 238, 245, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+  --il-hairline: 1px solid rgba(232, 238, 245, 0.1);
+  --il-hairline-strong: 1px solid rgba(232, 238, 245, 0.16);
 }
 
-/* Header flex row: vertical center, clip oversized chrome */
+/* ========== HEADER BAR ========== */
+header.sticky,
+header.no-print.sticky,
+header.no-print {
+  overflow-x: clip;
+  overflow-y: visible;
+  min-height: var(--il-header-h);
+}
+
 header.sticky > .mx-auto.flex,
 header.no-print > .mx-auto.flex {
   align-items: center !important;
-  overflow: hidden;
-  min-height: 3.5rem;
+  min-height: var(--il-header-h) !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-x: auto;
+  overflow-y: visible !important;
+  padding-block: 0.5rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+header.sticky > .mx-auto.flex::-webkit-scrollbar,
+header.no-print > .mx-auto.flex::-webkit-scrollbar {
+  display: none;
+}
+
 @media (min-width: 640px) {
+  header.sticky,
+  header.no-print.sticky {
+    min-height: var(--il-header-h-sm);
+  }
   header.sticky > .mx-auto.flex,
   header.no-print > .mx-auto.flex {
-    min-height: 4rem;
-  }
-}
-header a.flex.min-w-0 {
-  flex-shrink: 0;
-  overflow: hidden;
-  max-height: 2.75rem;
-  align-items: center;
-}
-
-/* Primary nav: slim + wrap before hamburger kicks in */
-header nav[aria-label="Primary"],
-header nav.hidden.lg\:flex {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  max-width: min(100%, 52rem);
-  row-gap: 0.15rem;
-}
-header nav[aria-label="Primary"] a,
-header nav.hidden.lg\:flex > a {
-  padding-inline: 0.45rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-}
-
-/* Mid widths: use compact nav before lg if overflowing */
-@media (max-width: 1023px) {
-  header nav.hidden.lg\:flex { display: none !important; }
-}
-@media (min-width: 1024px) and (max-width: 1279px) {
-  header nav[aria-label="Primary"] a,
-  header nav.hidden.lg\:flex > a {
-    padding-inline: 0.35rem;
-    font-size: 0.58rem;
+    min-height: var(--il-header-h-sm) !important;
   }
 }
 
-/* Hero / decorative lockups may be larger but contained */
-.il-hero-lockup,
-section img[src*="canonical-lockup"]:not(header img):not(footer img) {
+@media (min-width: 2560px) {
+  :root {
+    --il-lockup-h-sm: var(--il-lockup-h-uw);
+    --il-header-h-sm: var(--il-header-h-uw);
+  }
+}
+@media (min-width: 3840px), (min-width: 2560px) and (min-aspect-ratio: 2.5/1) {
+  :root {
+    --il-lockup-h-sm: var(--il-lockup-h-uw-xl);
+    --il-header-h-sm: 5.5rem;
+  }
+}
+
+/* Kill Tailwind h-14/h-16 clamps on the header row */
+header .mx-auto.flex.h-14,
+header .mx-auto.flex.sm\:h-16,
+header .mx-auto.flex[class*="h-14"],
+header .mx-auto.flex[class*="h-16"] {
   height: auto !important;
-  max-height: 3.5rem !important;
-  max-width: min(100%, 18rem) !important;
-  width: auto !important;
-  object-fit: contain !important;
-  margin-inline: auto;
+  min-height: var(--il-header-h) !important;
+}
+@media (min-width: 640px) {
+  header .mx-auto.flex.h-14,
+  header .mx-auto.flex.sm\:h-16,
+  header .mx-auto.flex[class*="h-14"],
+  header .mx-auto.flex[class*="h-16"] {
+    min-height: var(--il-header-h-sm) !important;
+  }
 }
 
-/* Footer: left on desktop grid, center on mobile */
-footer img[src*="canonical-lockup"] {
+/* Brand anchor: never clip logo */
+header a.flex.min-w-0,
+header a[href="/"],
+header .mx-auto > a:first-child {
+  flex-shrink: 0 !important;
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: var(--il-lockup-h);
+  align-items: center !important;
+  display: inline-flex !important;
+}
+
+/* ========== LOCKUP — authoritative sizes ========== */
+header a img[src*="canonical-lockup"],
+header img[src*="canonical-lockup"],
+header img.il-lockup,
+header picture.il-lockup img,
+img.il-lockup,
+.il-lockup {
+  display: block !important;
+  height: var(--il-lockup-h) !important;
+  max-height: var(--il-lockup-h) !important;
+  min-height: var(--il-lockup-h) !important;
+  width: auto !important;
+  max-width: min(100%, 18rem) !important;
+  min-width: 7.5rem !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  flex-shrink: 0 !important;
+  aspect-ratio: auto !important;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+@media (min-width: 640px) {
+  header a img[src*="canonical-lockup"],
+  header img[src*="canonical-lockup"],
+  header img.il-lockup,
+  header picture.il-lockup img,
+  img.il-lockup,
+  .il-lockup {
+    height: var(--il-lockup-h-sm) !important;
+    max-height: var(--il-lockup-h-sm) !important;
+    min-height: var(--il-lockup-h-sm) !important;
+    max-width: min(100%, 22rem) !important;
+    min-width: 9rem !important;
+  }
+}
+
+/* Footer lockup — readable, ≥48px, prefer 56+ */
+footer img[src*="canonical-lockup"],
+footer img.il-lockup,
+footer picture.il-lockup img {
+  display: block !important;
+  height: 48px !important;
+  max-height: 56px !important;
+  min-height: 48px !important;
+  width: auto !important;
+  max-width: min(100%, 20rem) !important;
+  object-fit: contain !important;
   object-position: left center !important;
 }
-@media (max-width: 767px) {
-  footer .flex.items-start {
-    justify-content: center;
+@media (min-width: 640px) {
+  footer img[src*="canonical-lockup"],
+  footer img.il-lockup,
+  footer picture.il-lockup img {
+    height: 56px !important;
+    max-height: 64px !important;
+    min-height: 56px !important;
   }
-  footer img[src*="canonical-lockup"] {
+}
+@media (max-width: 767px) {
+  footer .flex.items-start { justify-content: center; }
+  footer img[src*="canonical-lockup"],
+  footer img.il-lockup {
     object-position: center !important;
     margin-inline: auto;
   }
 }
 
-/* Hide alpha skeleton placeholders if any remain */
+/* Hero / decorative lockups (not chrome) */
+.il-hero-lockup,
+section img[src*="canonical-lockup"]:not(header img):not(footer img) {
+  height: auto !important;
+  max-height: 4.5rem !important;
+  max-width: min(100%, 22rem) !important;
+  width: auto !important;
+  object-fit: contain !important;
+  margin-inline: auto;
+}
+
+/* ========== HERO SIGIL — meaningful size, sharp ========== */
+.il-hero-sigil {
+  width: min(42vw, 160px) !important;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 36px rgba(94, 234, 212, 0.35));
+}
+@media (min-width: 640px) {
+  .il-hero-sigil {
+    width: min(28vw, 180px) !important;
+    opacity: 0.6;
+  }
+}
+@media (min-width: 1024px) {
+  .il-hero-sigil {
+    width: min(22vw, 200px) !important;
+  }
+}
+@media (min-width: 2560px) {
+  .il-hero-sigil {
+    width: min(18vw, 240px) !important;
+    opacity: 0.5;
+  }
+}
+@media (min-width: 3840px) {
+  .il-hero-sigil {
+    width: min(14vw, 280px) !important;
+  }
+}
+
+/* Inline campaign sigil in hero column */
+.il-sigil.il-sigil--spin-slow,
+.il-sigil.max-w-md {
+  max-width: min(100%, 22rem) !important;
+}
+@media (min-width: 1024px) {
+  .il-sigil.il-sigil--spin-slow,
+  .il-sigil.max-w-md {
+    max-width: min(100%, 26rem) !important;
+  }
+}
+.il-sigil img,
+.il-sigil picture img {
+  min-height: 120px !important;
+  min-width: 120px !important;
+}
+
+/* ========== NAV polish ========== */
+header nav[aria-label="Primary"],
+header nav.hidden.lg\:flex {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: min(100%, 56rem);
+  row-gap: 0.2rem;
+}
+header nav[aria-label="Primary"] a,
+header nav.hidden.lg\:flex > a {
+  padding-inline: 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+}
+@media (max-width: 1023px) {
+  header nav.hidden.lg\:flex { display: none !important; }
+}
+
 header .animate-pulse,
 nav .animate-pulse.h-11.w-24 {
   display: none !important;
 }
 
-/* LOCKUP HARD CAP — parent steering: max-height 40px, object-contain, centered, header overflow hidden */
-header {
-  overflow: hidden;
+/* ========== BRILLIANT-GRADE SURFACES ========== */
+.il-surface,
+a.il-surface,
+li.il-surface {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(232, 238, 245, 0.045) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(12, 18, 34, 0.92), rgba(7, 11, 22, 0.88));
+  border: var(--il-hairline);
+  box-shadow: var(--il-surface-elev);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.3s ease,
+    transform 0.25s ease,
+    background 0.3s ease;
 }
-header .mx-auto.flex {
-  align-items: center !important;
-  overflow: hidden;
+.il-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 80% at 10% 0%,
+    rgba(94, 234, 212, 0.06),
+    transparent 55%
+  );
+  opacity: 0.9;
 }
-header a img[src*="canonical-lockup"],
-header img[src*="canonical-lockup"],
-header img.il-lockup,
-img.il-lockup {
-  max-height: var(--il-lockup-h, 64px) !important;
-  height: var(--il-lockup-h, 64px) !important;
-  width: auto !important;
-  object-fit: contain !important;
-  object-position: left center !important;
-  display: block !important;
-  min-height: 28px !important;
-  min-width: 72px !important;
+.il-surface:hover,
+a.il-surface:hover {
+  border-color: rgba(94, 234, 212, 0.28);
+  box-shadow:
+    0 1px 0 rgba(94, 234, 212, 0.12),
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(94, 234, 212, 0.08);
+  transform: translateY(-1px);
 }
-@media (max-width: 639px) {
-  header a img[src*="canonical-lockup"],
-  header img[src*="canonical-lockup"],
-  header img.il-lockup {
-    height: var(--il-lockup-h, 56px) !important;
-    max-height: var(--il-lockup-h, 56px) !important;
+
+/* Section rhythm + type tightening */
+main > section {
+  scroll-margin-top: calc(var(--il-header-h-sm) + 0.5rem);
+}
+main h1.font-display,
+.il-fluid-type h1 {
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+main h2.font-display,
+.il-fluid-type h2 {
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+/* Intentional gradient mesh (replace lazy flat panels) */
+.il-mesh,
+section.relative.isolate {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 78% 12%, rgba(94, 234, 212, 0.11), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 12% 88%, rgba(201, 162, 39, 0.08), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(56, 189, 248, 0.04), transparent 60%);
+}
+
+/* Optional subtle grain — quality over FX spam */
+.il-grain::after,
+body.il-grain-on::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Tone down cheap pulse / spam if present */
+.il-hero-field {
+  opacity: 0.55;
+}
+html.il-fx-wow .il-hero-field,
+html.il-demo .il-hero-field {
+  opacity: 0.75;
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-surface:hover,
+  a.il-surface:hover {
+    transform: none;
   }
-}
-
-/* P0 — hard 40px ceiling, never clip/collapse */
-header img[src*="canonical-lockup"],
-.il-lockup {
-  max-height: var(--il-lockup-h, 64px) !important;
-}
-header a.flex.min-w-0 img {
-  max-height: var(--il-lockup-h, 64px) !important;
-  height: var(--il-lockup-h, 56px) !important;
-}
-@media (min-width: 640px) {
-  header a.flex.min-w-0 img,
-  header img[src*="canonical-lockup"],
-  .il-lockup {
-    height: var(--il-lockup-h, 64px) !important;
-    max-height: var(--il-lockup-h, 64px) !important;
-  }
-}
-
-
-
-/* ========== INDUSTRY LOCKUP SCALE (2026-09-22) ==========
-   User: 40px is embarrassing / invisible on 499P9.
-   Target: visible wordmark like Codecademy/KK/Brilliant chrome. */
-:root {
-  --il-header-h: 4.5rem; /* 72px */
-  --il-lockup-h: 3.5rem; /* 56px */
-}
-@media (min-width: 1024px) {
-  :root {
-    --il-header-h: 5rem;   /* 80px */
-    --il-lockup-h: 4rem;   /* 64px */
-  }
-}
-@media (min-width: 2560px) {
-  :root {
-    --il-header-h: 5.5rem; /* 88px */
-    --il-lockup-h: 4.5rem; /* 72px */
-  }
-}
-@media (min-width: 3840px) {
-  :root {
-    --il-header-h: 6rem;   /* 96px */
-    --il-lockup-h: 5rem;   /* 80px */
-  }
-}
-
-header.site-header,
-header[class*="sticky"],
-header.no-print.sticky,
-body > div > header,
-.il-site-header {
-  min-height: var(--il-header-h) !important;
-  height: auto !important;
-  overflow: visible !important;
-}
-header .mx-auto.flex,
-header nav,
-header .flex.h-14,
-header .flex.h-16,
-header [class*="h-14"],
-header [class*="h-16"] {
-  min-height: var(--il-header-h) !important;
-  height: var(--il-header-h) !important;
-  align-items: center !important;
-}
-
-header a img[src*="canonical-lockup"],
-header img[src*="canonical-lockup"],
-header img.il-lockup,
-img.il-lockup,
-header a img[src*="lockup"] {
-  height: var(--il-lockup-h) !important;
-  max-height: var(--il-lockup-h) !important;
-  min-height: var(--il-lockup-h) !important;
-  width: auto !important;
-  min-width: 8rem !important;
-  max-width: min(28rem, 55vw) !important;
-  object-fit: contain !important;
-  object-position: left center !important;
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-footer img[src*="canonical-lockup"],
-footer img.il-lockup {
-  height: 3rem !important;
-  max-height: 3rem !important;
-  width: auto !important;
-  object-fit: contain !important;
-}
-@media (min-width: 1024px) {
-  footer img[src*="canonical-lockup"] {
-    height: 3.5rem !important;
-    max-height: 3.5rem !important;
-  }
-}
-
-/* Hero brand mark — not a stamp */
-.il-hero-lockup,
-.il-hero-sigil img,
-.il-sigil img {
-  max-height: 11rem !important;
-  width: auto !important;
-}
-@media (min-width: 1024px) {
-  .il-hero-lockup,
-  .il-hero-sigil img,
-  .il-sigil img {
-    max-height: 14rem !important;
-  }
-}
-@media (min-width: 2560px) {
-  .il-hero-lockup,
-  .il-hero-sigil img,
-  .il-sigil img {
-    max-height: 16rem !important;
+  .il-grain::after,
+  body.il-grain-on::after {
+    display: none;
   }
 }
