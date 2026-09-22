@@ -327,16 +327,20 @@
 
   /* ---------- Command palette ⌘K / Ctrl+K ---------- */
   var CMD = [
-    { label: "Learn — Curriculum OS", href: "/learn/", keys: "learn desk" },
-    { label: "Prep — Interview sprint", href: "/prep/", keys: "prep measure" },
-    { label: "Adapt — Adaptive OS", href: "/adapt/", keys: "adapt cat aleks" },
-    { label: "Labs — SuperLab hub", href: "/labs/", keys: "labs superlab" },
-    { label: "Coach — Socratic SI", href: "/coach/", keys: "coach si tutor" },
-    { label: "Founders — Student Zero", href: "/founders/", keys: "founders" },
-    { label: "Paths — Career tracks", href: "/paths/", keys: "paths" },
-    { label: "Play — XP arena", href: "/play/", keys: "play game" },
-    { label: "Enroll", href: "/enroll/", keys: "enroll join" },
-    { label: "Vendor deepen map", href: "/paths/vendor-map/", keys: "vendor" },
+    { label: "Instant Demo Path", href: "/demo/", keys: "demo instant musk" },
+    { label: "Challenge of the Day", href: "/labs/challenge/", keys: "challenge cotd" },
+    { label: "Trending MIT LinkedIn X", href: "/trending/", keys: "trending mit linkedin x" },
+    { label: "Lab Muse", href: "/coach/", keys: "muse coach" },
+    { label: "Time-to-hire OS", href: "/os/", keys: "os hire" },
+    { label: "Scenario exam", href: "/exam/", keys: "exam" },
+    { label: "Proof export", href: "/proof/", keys: "proof" },
+    { label: "Adapt", href: "/adapt/", keys: "adapt" },
+    { label: "Paths exceed", href: "/paths/#exceed-paths", keys: "paths" },
+    { label: "Zero to Hire", href: "/paths/devops-zero-to-hire/", keys: "hire" },
+    { label: "Learn", href: "/learn/", keys: "learn" },
+    { label: "Prep", href: "/prep/", keys: "prep" },
+    { label: "Labs", href: "/labs/", keys: "labs" },
+    { label: "Peer matrix", href: "/about/#peer-matrix", keys: "matrix" },
   ];
 
   function ensureCmd() {
@@ -579,7 +583,7 @@
     var bar = doc.createElement("div");
     bar.className = "il-demo-bar no-print";
     bar.innerHTML =
-      '<button type="button" data-il-demo title="Auto-play placement + XP + sigil (20s)">Demo mode</button>' +
+      '<a class="il-demo-path-link" data-il-demo-path-link href="/demo/">Instant path</a>' + '<button type="button" data-il-demo title="FX demo">Demo FX</button>' +
       '<button type="button" class="il-cmd-open" data-il-cmd title="Command palette">⌘K</button>' +
       '<button type="button" class="il-sound-toggle" data-il-sound title="UI sound (off by default)" aria-pressed="false">Sound</button>' +
       '<span class="il-demo-status" aria-live="polite"></span>';
