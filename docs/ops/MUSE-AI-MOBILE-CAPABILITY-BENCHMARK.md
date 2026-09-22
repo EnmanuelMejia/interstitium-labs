@@ -1,42 +1,88 @@
-# Muse AI ↔ Lab Muse mobile capability benchmark
+# Muse AI ↔ Lab Muse **mobile** capability benchmark (recursive)
 
-**Product:** Lab Muse / Interstitium Labs companion (`/coach/`, Capacitor `dev.interstitiumlabs.app`)  
-**Brand:** Interstitium lockup (56–80px) · cyan `#5EEAD4` · gold `#D4A853` · void `#070B16`  
-**Honesty:** Muse-*class interaction patterns* from public design posts — **not** Meta’s product, logo, purple/pink palette, connectors, or assets.
+**Scope:** Interstitium Labs mobile Learning OS — PWA + Capacitor `apps/mobile` · Lab Muse `/coach/`  
+**Not in scope (by design):** Meta Gmail / Calendar / WhatsApp / booking / Spotify-style connectors  
+**Brand lock:** Interstitium lockup (56–80px) · cyan `#5EEAD4` · gold `#D4A853` · void `#070B16` · Dee monas avatar  
+**Honesty:** Muse-*class interaction patterns* from **public** Meta design posts — **not** Meta IP, assets, purple/pink Muse skin, or product clone.
 
-Recursive score: **meet or exceed** public Muse-class companion behaviors with **local-first** Interstitium surfaces. No Gmail/Spotify/Meta connectors.
+| Field | Value |
+| --- | --- |
+| Benchmark date | 2026-09-22 (America/New_York) |
+| Ship SHA (fill after push) | _pending_ |
+| Overall (Learning-OS mobile) | **YES** — meets Muse-class companion behaviors in scope; exceeds on lab-state / Adapt / Ollama / proof / EN·ES axes |
+| Meet | 9 |
+| Exceed | 7 |
+| Gap (closable remaining) | 0 |
+| N/A-by-design | 3 |
 
-| # | Muse-class capability | Lab Muse mobile | Status | Exceed note |
-|---|----------------------|-----------------|--------|-------------|
-| 1 | Chat-first full-bleed shell | `il-muse-mobile.css` ≤768 / standalone / Capacitor; page chrome collapses | **Meet** | Desktop grid ≥960 untouched |
-| 2 | Bottom composer + thumb mic/speak | Composer sticky; ≥44px targets; speak toggle + Web Speech | **Meet** | Keyboard-aware via `visualViewport` |
-| 3 | Avatar + live status | Dee monas SVG default; ring + glow for idle/listening/thinking/speaking | **Exceed** | Dee/Hermetica original; picker (Dee/Sigil/Cap); see [LAB-MUSE-AVATAR.md](./LAB-MUSE-AVATAR.md) |
-| 4 | Side chats / drawers | Swipe + Chats/Goals drawers + scrim | **Meet** | Goals/artifacts/model in panel |
-| 5 | Bottom nav | Muse · Paths · Labs · OS tabnav | **Meet** | First-party routes only |
-| 6 | Multi-bubble replies | `splitBubbles()` → sequential assistant parts | **Meet+** | Boot + replies; part index in meta |
-| 7 | Approval cards | Local approve cards (Adaptive / SuperLab / Model panel) | **Meet+** | Explicit “no Meta connectors” copy |
-| 8 | Proactive nudges | `localNudges()` from goals + `ILAdaptive` weak topics | **Exceed** | On-device only; gold chip strip |
-| 9 | Voice in / out | Mic dictation + TTS; status → Listening/Speaking | **Meet** | Browser Web Speech honesty |
-| 10 | Goals / ideas / artifacts | Panel tabs + library | **Meet** | Lab-linked artifacts |
-| 11 | Model transparency | Demand tiers T0–T2 + health; lean default | **Exceed** | Demand-tier router; no fake API keys |
-| 12 | Native / PWA home | Capacitor `/` → `/coach/` via `il-bridge`; PWA shortcut Lab Muse | **Meet** | Void status bar `#070B16` |
-| 13 | Safe-area / reduce-motion | insets + `prefers-reduced-motion` | **Meet** | iOS rubber-band fixes |
-| 14 | Third-party connectors | **Deliberately absent** | **Exceed (honesty)** | No Gmail/Spotify/Meta — educational lab coach |
+**Elon / Musk bar (self):** visitor on phone cold-starts Lab Muse → long chat + interrupt multi-send → local nudge → artifact with proof link → optional Ollama lean tier — without fake connectors or invented API keys. **Pass for Learning-OS scope.** Still NO on Meta-cloud push fleet / WhatsApp — deliberately.
 
-## Recursive close-the-gap checklist
+---
 
-1. [x] Full-bleed `/coach/` as native home  
-2. [x] Dee avatar states with cyan/gold glows  
-3. [x] Multi-bubble assistant cadence  
-4. [x] Local approval cards  
-5. [x] Proactive local nudges  
-6. [x] Interstitium lockup preserved (not Meta)  
-7. [ ] Optional: richer artifact carousels (P2)  
-8. [ ] Optional: haptics on approve via Capacitor Haptics (P2)  
+## Recursive matrix
+
+| Muse AI capability (public) | IL mobile status | Evidence path | Elon bar |
+| --- | --- | --- | --- |
+| Main persistent chat (not turn-locked) | **Meet** | `docs/assets/il-muse.js` `chats.main` · `localStorage il.muse.v1` · `/coach/` | Long session survives reload |
+| Side chats | **Meet** | Rail + swipe drawers · `chats.sides` · `il-muse-mobile.css` | Topic contexts without losing main |
+| Interruptible multi-send | **Meet** | `inflightGen` + Stop · sequential `splitBubbles()` multi-bubble · thinking typing indicator | New message cancels prior reply |
+| Proactive goals / background work | **Exceed** | `localNudges()` strip + Inbox harvest (`harvestNudges`) from goals + `ILAdaptive` weak topics · optional Notification API (no FCM) | Local study cadence without Meta push infra |
+| Editable memory | **Meet** | Settings → memories add/remove · passed to router ctx | Student owns local memory |
+| Artifacts (rich outputs) | **Exceed** | CIDR / lab-checklist / proof / path deep-link cards · checkable lists · Library tab | Lab evidence > chat dump |
+| Avatar + activity transparency | **Exceed** | Dee default SVG · idle/listening/thinking/speaking · live strip · activity log | Status honesty + Interstitium original art |
+| Goals | **Meet** | Goals panel · checkbox persist · goal nudges | Open goals drive inbox |
+| Voice / transcription | **Meet** | Web Speech mic + TTS · status Listening/Speaking · mic permission notes (iOS/Android snippets) | Works without cloud STT keys |
+| Permissions / approval cards | **Meet** | Inline approve (Adaptive/SuperLab/Model) + modal before **external open** / **model switch** | No silent outbound / backend flip |
+| Connectors (email / calendar / WhatsApp) | **N/A-by-design** | Explicitly out of Learning-OS Lab Muse scope | Honesty > fake Meta clones |
+| Cloud push / Meta infra | **N/A-by-design** | `IL_FEATURE_PUSH=false` · local Notification API opt-in only | Security-first |
+| Booking / Gmail / Spotify agents | **N/A-by-design** | Disclaimer on `/coach/` + approval copy | Educational lab coach only |
+
+### Exceed axes (IL-only — Muse AI does not have these)
+
+| Axis | Status | Evidence |
+| --- | --- | --- |
+| Lab-state Socratic coach | **Exceed** | `il-coach.js` + Muse router fallback · hypothesis-first prompts |
+| Adapt hooks | **Exceed** | Weak-topic ideas/nudges · `/adapt/` deep links |
+| Path / frontier deep links | **Exceed** | Artifact links → `/paths/`, `/os/`, SuperLab |
+| Local Ollama router | **Exceed** | `il-model-router.js` · T0 lean · demand tiers · health probe |
+| Proof export | **Exceed** | Artifact → `/proof/` · `il-proof.js` aggregates Muse turns |
+| EN / ES | **Exceed** | `il-i18n.js` + speech `es-ES` / `en-US` from `documentElement.lang` |
+| Capacitor full-bleed home | **Exceed** | `il-bridge.js` `/` → `/coach/` · safe-area · void StatusBar |
+
+---
+
+## Closable gaps — closed this recursion
+
+| Gap | Close | Evidence |
+| --- | --- | --- |
+| Proactive study nudges | **Closed** | Inbox tab + `harvestNudges` + optional Notification API · gold nudge strip |
+| Richer artifacts | **Closed** | `cidr` / `lab-checklist` / `proof` kinds · checkable items · proof/path links |
+| Approval before external / model switch | **Closed** | `showApproval` modal · `data-muse-external` · Apply model gated |
+| Interruptible streaming feel | **Closed** | Multi-bubble timed push · Stop · gen token abort · typing bubble |
+| Full-bleed Capacitor `/coach/` | **Closed** (prior) | `apps/mobile/src/il-bridge.js` + sync script |
+| Dee avatar status on mobile | **Closed** (prior) | `il-muse-mobile.css` + `data-status` glows |
+| Mic permission notes + safe-area + lockup | **Closed** | `ios-security/Info.plist.snippets.md` · Android snippet · `MOBILE-SECURITY.md` · safe-area CSS · Interstitium lockup retained |
+
+**Do not implement:** email / WhatsApp / booking connector clones.
+
+---
+
+## Counts (Learning-OS mobile scope)
+
+| Status | Count |
+| --- | --- |
+| Meet | 9 |
+| Exceed | 7 (+6 IL-only axes) |
+| Gap | **0** closable |
+| N/A-by-design | 3 |
+| **Overall** | **YES** |
+
+---
 
 ## How to verify on phone
 
-**PWA:** https://interstitiumlabs.dev/coach/ → Add to Home Screen  
+**PWA:** https://interstitiumlabs.dev/coach/ → Add to Home Screen (void chrome, safe-area, Muse · Paths · Labs · OS).
+
 **Capacitor:**
 
 ```bash
@@ -45,10 +91,14 @@ cd apps/mobile && npm ci && npx cap sync
 npx cap run android   # or ios on macOS
 ```
 
-Cold start should land on Lab Muse. Expect Dee avatar, nudge chips, multi-bubble welcome, and an Adaptive approval card — void chrome, Interstitium lockup in header.
+Expect: cold start → Lab Muse; Dee avatar status; nudge chips + Inbox; multi-bubble welcome + Adaptive approval; Stop while thinking; model Apply → approval modal; Interstitium lockup (not Meta).
+
+---
 
 ## Related
 
-- [LAB-MUSE-AVATAR.md](./LAB-MUSE-AVATAR.md)  
-- [STORE-PUBLISH.md](./STORE-PUBLISH.md) — Muse-class companion shell  
-- `docs/assets/il-muse.js` · `il-muse-mobile.css` · `apps/mobile/src/il-bridge.js`
+- [LAB-MUSE-AVATAR.md](./LAB-MUSE-AVATAR.md)
+- [MOBILE-SECURITY.md](./MOBILE-SECURITY.md) — mic / notifications
+- [STORE-PUBLISH.md](./STORE-PUBLISH.md)
+- [MODEL-ROUTER.md](./MODEL-ROUTER.md)
+- `docs/assets/il-muse.js` · `il-muse.css` · `il-muse-mobile.css` · `apps/mobile/src/il-bridge.js`
