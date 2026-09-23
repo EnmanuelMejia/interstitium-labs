@@ -33,7 +33,7 @@ function DeskPage() {
       <p className="mt-5 max-w-[66ch] text-lg text-fg/85">
         <span className="font-mono text-base">/var/log/app.log</span> is mode 666. The service account should be the only
         writer. Group may read. Others nothing. Leave the contents alone. Java, C, C++, Perl, PowerShell, and SQL traces
-        are questions on Muse — this page does not pretend to ship their compilers.
+        are questions for Noah — this page does not pretend to ship their compilers.
       </p>
       <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="rounded-xl border border-line bg-surface p-4">

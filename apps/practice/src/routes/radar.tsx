@@ -7,9 +7,9 @@ export const Route = createFileRoute("/radar")({
 });
 
 const bench = [
-  ["Fringe, not a playlist", "ALEKS-style", "Muse only offers a node whose prerequisites are held."],
+  ["Fringe, not a playlist", "ALEKS-style", "Noah only offers a node whose prerequisites are held."],
   ["One problem", "Brilliant-style", "The question is on screen before the explanation."],
-  ["Language reps", "boot.dev-style", "Traces live on Muse. Bash is a real parser on the desk, not a video."],
+  ["Language reps", "boot.dev-style", "Traces live with Noah. Bash is a real parser on the desk, not a video."],
   ["Proof", "Codecademy-style projects", "Cyber benches and path studios record a pass, not a watch-time."],
   ["Video wall", "Often the product", "Not shipped. On purpose."],
   ["Compiler fleet", "Hosted sandboxes", "Not claimed. Java, C, C++, Perl, and PowerShell are traces, not their compilers."],

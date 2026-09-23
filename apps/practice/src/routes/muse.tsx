@@ -45,11 +45,12 @@ function MusePage() {
 
   return (
     <main>
-      <p className="text-xs tracking-[0.18em] text-muted uppercase">Muse · a tutor, no deadline</p>
+      <p className="text-xs tracking-[0.18em] text-muted uppercase">Noah · a tutor, no deadline</p>
       <h1 className="mt-3 max-w-[16ch] text-hero leading-[0.95]">Ask, then explain</h1>
       <p className="mt-5 max-w-[66ch] text-lg text-fg/85">
-        Four reconstructions sit the desk: Dee, Hypatia, Agrippa, Lovelace. They tailor the next step to what you have
-        already held, and to the one build you named. Nothing is due. The fringe question below is still the gate.
+        Four offices sit the desk: Dee, Hypatia, Agrippa, Lovelace. Noah is the tutor in every one of them, and tailors the
+        next step to what you have already held and to the one build you named. Nothing is due. The fringe question
+        below is still the gate.
       </p>
       <TutorDesk />
       <div className="mt-8">
@@ -129,7 +130,7 @@ function MusePage() {
             ) : null}
           </div>
           <label className="mt-6 block text-sm text-muted" htmlFor="muse-attempt">
-            Say what you tried. One press. Muse will not hand you the key.
+            Say what you tried. One press. Noah will not hand you the key.
           </label>
           <textarea
             id="muse-attempt"
@@ -150,11 +151,11 @@ function MusePage() {
                   if (res.ok) setReply(res.text);
                   else setMuseError(res.error);
                 })
-                .catch(() => setMuseError("Muse could not be reached."))
+                .catch(() => setMuseError("Noah could not be reached."))
                 .finally(() => setPending(false));
             }}
           >
-            {pending ? "Asking" : "Ask Muse"}
+            {pending ? "Asking" : "Ask Noah"}
           </button>
           {museError ? <p className="mt-3 text-sm text-warn">{museError}</p> : null}
           {reply ? <p className="mt-3 max-w-[68ch] text-sm text-fg/90">{reply}</p> : null}

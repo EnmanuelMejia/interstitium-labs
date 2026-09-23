@@ -6,7 +6,7 @@ import { paths } from "@/lib/paths";
 import { useProgress } from "@/lib/progress";
 import { cn } from "@/lib/cn";
 
-function NavLink({ to, on, children }: { to: "/" | "/muse" | "/paths" | "/desk" | "/editor" | "/baseline" | "/radar" | "/stack" | "/canon" | "/ladders" | "/manuals" | "/host"; on: boolean; children: ReactNode }) {
+function NavLink({ to, on, children }: { to: "/" | "/muse" | "/paths" | "/desk" | "/editor" | "/baseline" | "/school" | "/radar" | "/stack" | "/canon" | "/ladders" | "/manuals" | "/host"; on: boolean; children: ReactNode }) {
   return (
     <Link
       to={to}
@@ -78,7 +78,7 @@ export function Shell({ children }: { children: ReactNode }) {
               Domain
             </NavLink>
             <NavLink to="/muse" on={pathname === "/muse"}>
-              Muse
+              Noah
             </NavLink>
             <NavLink to="/paths" on={pathname === "/paths" || pathname.startsWith("/paths/")}>
               Paths
@@ -97,6 +97,9 @@ export function Shell({ children }: { children: ReactNode }) {
             </NavLink>
             <NavLink to="/baseline" on={pathname === "/baseline"}>
               Place
+            </NavLink>
+            <NavLink to="/school" on={pathname === "/school"}>
+              School
             </NavLink>
             <NavLink to="/editor" on={pathname === "/editor"}>
               Bench
