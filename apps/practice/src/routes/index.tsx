@@ -44,8 +44,11 @@ function Home() {
         <Link to="/works" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
           Engineering works
         </Link>
-        <Link to="/academy" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
-          Academy build
+        <Link to="/data" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
+          Data
+        </Link>
+        <Link to="/audit" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
+          Audit
         </Link>
         <Link to="/host" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
           P920 host

@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { harnessConfig, tutorChat } from "@/lib/harness";
 import { tutorById, tutors } from "@/lib/tutors";
 
 const SYSTEM = `You are Noah at Interstitium Labs. You teach by one question or one correction. Never open with the final answer. Under 120 words. Plain sentences. The learner has no deadline.
-Do not claim affiliation with ALEKS, Khan Academy, Codecademy, Brilliant, boot.dev, KodeKloud, Webucator, Per Scholas, Oracle, Meta, GitHub Copilot, or any school.
+Do not claim affiliation with ALEKS, Khan Academy, Codecademy, Brilliant, boot.dev, KodeKloud, Webucator, Per Scholas, Oracle, Meta, GitHub Copilot, Tableau, or any school.
 Do not invent citations or incident statistics.
 If asked for exploits, malware, stolen credentials, exam questions, or occult power, refuse and teach the public, historical, or defensive version.
 John Dee and the other offices are historical. Symbols mean the rules written for them. There is no secret transmission.
@@ -18,6 +19,8 @@ function gate() {
   return null;
 }
 
+export const harnessState = createServerFn({ method: "GET" }).handler(async () => harnessConfig());
+
 export const askMuse = createServerFn({ method: "POST" })
   .validator((input: unknown) => {
     if (!input || typeof input !== "object") throw new Error("Missing attempt.");
@@ -29,40 +32,15 @@ export const askMuse = createServerFn({ method: "POST" })
     return { topic, attempt, note };
   })
   .handler(async ({ data }) => {
-    const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) {
-      return { ok: false as const, error: "The live model is not configured. The local question still stands." };
-    }
     const waited = gate();
     if (waited) return { ok: false as const, error: waited };
-    try {
-      const res = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "grok-4.5",
-          max_tokens: 220,
-          temperature: 0.3,
-          messages: [
-            { role: "system", content: SYSTEM },
-            {
-              role: "user",
-              content: `Topic: ${data.topic}\nLearner attempt: ${data.attempt}\nLocal nudge already shown: ${data.note}`,
-            },
-          ],
-        }),
-      });
-      if (!res.ok) return { ok: false as const, error: `Noah could not answer (${res.status}).` };
-      const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-      const text = body.choices?.[0]?.message?.content?.trim() ?? "";
-      if (!text) return { ok: false as const, error: "Noah returned an empty note." };
-      return { ok: true as const, text: text.slice(0, 900) };
-    } catch {
-      return { ok: false as const, error: "Noah could not be reached." };
-    }
+    const result = await tutorChat(
+      SYSTEM,
+      `Topic: ${data.topic}\nLearner attempt: ${data.attempt}\nLocal nudge already shown: ${data.note}`,
+      220,
+    );
+    if (!result.ok) return result;
+    return { ok: true as const, text: result.text.slice(0, 900), provider: result.provider, model: result.model };
   });
 
 export const askTutor = createServerFn({ method: "POST" })
@@ -78,37 +56,27 @@ export const askTutor = createServerFn({ method: "POST" })
     return { tutor, line, obsession, prior };
   })
   .handler(async ({ data }) => {
-    const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) return { ok: false as const, error: "The live tutor is not configured. The fringe question still stands." };
     const waited = gate();
     if (waited) return { ok: false as const, error: waited };
     const persona = `You are Noah, the tutor at Interstitium Labs. The learner opened the ${data.tutor.name} office (${data.tutor.office}). You are not that historical person, not Meta's Muse, and not a vendor coding assistant.
 ${data.tutor.holds}
+You may be an open weight running through Ollama or Hugging Face. Say so if asked. A frontier model is only the scale step.
 Self-paced. Never set a due date. Under 80 words of spoken prose. No markdown.
 Teach the obsession if one is named. Prefer the open manual over a proprietary course. One follow-up question is enough.
 Refuse exploits, malware, exam dumps, and claims of occult power.`;
-    try {
-      const res = await fetch("https://api.x.ai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: "grok-4.5",
-          max_tokens: 180,
-          temperature: 0.4,
-          messages: [
-            { role: "system", content: persona },
-            { role: "user", content: `Obsession: ${data.obsession || "not named"}\nRecent:\n${data.prior || "(none)"}\nLearner: ${data.line}` },
-          ],
-        }),
-      });
-      if (!res.ok) return { ok: false as const, error: `The tutor could not answer (${res.status}).` };
-      const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-      const text = body.choices?.[0]?.message?.content?.trim() ?? "";
-      if (!text) return { ok: false as const, error: "The tutor returned an empty line." };
-      return { ok: true as const, text: text.slice(0, 700), voice: data.tutor.voice };
-    } catch {
-      return { ok: false as const, error: "The tutor could not be reached." };
-    }
+    const result = await tutorChat(
+      persona,
+      `Obsession: ${data.obsession || "not named"}\nRecent:\n${data.prior || "(none)"}\nLearner: ${data.line}`,
+      180,
+    );
+    if (!result.ok) return result;
+    return {
+      ok: true as const,
+      text: result.text.slice(0, 700),
+      voice: data.tutor.voice,
+      provider: result.provider,
+      model: result.model,
+    };
   });
 
 export const speakTutor = createServerFn({ method: "POST" })
@@ -122,18 +90,18 @@ export const speakTutor = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) return { ok: false as const, error: "Voice is not configured." };
+    if (!apiKey) return { ok: false as const, error: "The open voice is the browser. Frontier speech is not configured." };
     try {
       const res = await fetch("https://api.x.ai/v1/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({ text: data.text, voice_id: data.voice, language: "en" }),
       });
-      if (!res.ok) return { ok: false as const, error: `Voice failed (${res.status}). The line is still on screen.` };
+      if (!res.ok) return { ok: false as const, error: `Frontier voice failed (${res.status}). The line is still on screen.` };
       const audio = Buffer.from(await res.arrayBuffer()).toString("base64");
       if (!audio || audio.length > 1_800_000) return { ok: false as const, error: "The voice clip was unusable." };
       return { ok: true as const, audio };
     } catch {
-      return { ok: false as const, error: "Voice could not be reached. The line is still on screen." };
+      return { ok: false as const, error: "Frontier voice could not be reached. The line is still on screen." };
     }
   });
