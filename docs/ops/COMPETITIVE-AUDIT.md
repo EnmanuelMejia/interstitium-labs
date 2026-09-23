@@ -16,7 +16,7 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 | Founders Learning OS | `/founders/` | Student Zero, skills radar, weekly OS, quests, proof wall |
 | Curriculum OS | `/learn/` + `/learn/skills/` | Outcome cards, sigil pillars (honest forthcoming), skills taxonomy |
 | Prep sprint | `/prep/` (+ math / programming / devops / drills) | 3-phase JD-mapped interview crush |
-| Paths | `/paths/*` | DevSecOps Mastery, BNY Full-Stack, FDE, DS certs, NVIDIA AI, Enochian+code |
+| Paths | `/paths/*` | DevSecOps Mastery, Full-stack desk, FDE, DS certs, NVIDIA AI, Enochian+code |
 | Labs hub + SuperLab | `/labs/`, `/labs/superlab/` | Flagship cloneable lab — **not** 800 cloud playgrounds |
 | Play XP | `/play/` | Local XP / quests / `il.game.v1` |
 | Enroll | `/enroll/` | UI + `config.js`; `paymentsLive: false` |
@@ -52,7 +52,7 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 | Search | 1 | 4 | 3 | 3 | 4 | No site search |
 | Progress analytics | 3 | 4 | **5** | 4 | **5** | Local `il.progress.*` + admin insights |
 | Community | 1 | **5** | 2 | 3 | 4 | No forums/Discord productized |
-| Trust / honesty | **5** | 4 | 4 | 4 | **5** | Portfolio labeling; no fake BNY employment — IL lead |
+| Trust / honesty | **5** | 4 | 4 | 4 | **5** | Portfolio labeling; no invented employment — IL lead |
 | Performance | 4 | 4 | 3 | 4 | 4 | Static + CSP; heavy SPA chrome on index |
 | i18n | 3 | 3 | 2 | 3 | **5** | 10 locales; chrome coverage uneven |
 | Enroll / commerce | 2 | **5** | **5** | **5** | 3 | Placeholder Payment Links only (by design) |
@@ -134,7 +134,7 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 ## 7. Honesty constraints
 
-- No fake BNY employment or production tenure
+- No invented employment or production tenure
 - SuperLab = portfolio / interview demo
 - Payments inactive until operator enables
 - Brand masters stay out of public Pages

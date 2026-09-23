@@ -168,7 +168,7 @@
       id: "q_star",
       title: "STAR elevator",
       xp: 30,
-      href: "/prep/drills/bny-interview/#tell-me",
+      href: "/prep/drills/desk-interview/#tell-me",
       hint: "One honest story out loud",
     },
     {

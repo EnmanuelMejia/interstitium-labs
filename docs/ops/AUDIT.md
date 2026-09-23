@@ -11,7 +11,7 @@ _Last updated: 2026-09-21 (America/New_York)._
 | Curriculum OS hub | `/learn/` + upgraded `/paths/` | Outcome cards: Job-ready DevOps, Full-Stack fintech, FDE, DS certs, AI infra, Hermetica+code |
 | Skills taxonomy (no orphans) | `/learn/skills/` | Every static path mapped to competencies from Prep/JD/imports |
 | Local progress without accounts | `/assets/il-progress.js`, Founders weekly OS, NVIDIA Quest | Keys namespaced `il.progress.*` |
-| Honesty | Founders + evidence | No fake BNY employment; portfolio labeled; Lawrence withdrawal on record |
+| Honesty | Founders + evidence | No invented employment; portfolio labeled; a client withdrawal on record |
 
 **What still belongs to video LMS competitors:** deep interactive KodeKloud labs, ACG clouds sandboxes, Coursera degree rails. Interstitium **exceeds** on career-changer OS, JD/STAR honesty, inspectable static curriculum, and founder-as-Student-Zero narrative.
 
@@ -34,19 +34,19 @@ No Stripe secret keys in repo (by design).
 |-------|-----|------|-------------|
 | Curriculum OS | `/learn/` | Outcome hub | Points into Prep/Paths/Skills |
 | Skills taxonomy | `/learn/skills/` | Master map | Nothing orphaned |
-| BNY Prep hub | `/prep/` | Interview sprint | Canonical short crush; not Mastery |
+| a desk Prep hub | `/prep/` | Interview sprint | Canonical short crush; not Mastery |
 | Prep math / prog / devops | `/prep/math/`, `/programming/`, `/devops/` | Phase pages | Part of Prep |
-| BNY DevOps drills | `/prep/drills/bny-interview/` | STAR / JD drills + honest elevator | Prep only |
-| BNY Full-Stack VP pointer | `/prep/drills/bny-fullstack-vp/` | Points to path | Not DevOps Q&A clone |
-| BNY Full-Stack path | `/paths/bny-fullstack/` | Zero→interview JD #68426 map | Separate from DevOps syllabus |
-| Magic Leap metrology | `/prep/drills/magic-leap-metrology/` | Separate interview aim | Keep role stories separate |
+| DevOps desk drills | `/prep/drills/desk-interview/` | STAR / JD drills + honest elevator | Prep only |
+| Full-stack desk VP pointer | `/prep/drills/fullstack-desk/` | Points to path | Not DevOps Q&A clone |
+| Full-stack desk path | `/paths/fullstack-desk/` | Full-stack study map | Separate from DevOps syllabus |
+| an instrument desk | `/prep/drills/instrument-desk/` | Separate interview aim | Keep role stories separate |
 | Paths hub (Curriculum OS) | `/paths/` | Outcome cards index | Not SPA academies |
 | DevSecOps Mastery | `/paths/devsecops-mastery/` | 12-mo curriculum | Cross-links Prep; no syllabus clone |
 | DS cert roadmap | `/paths/data-science-certs/` | DS certs only | Not DevOps ladder |
 | NVIDIA AI | `/paths/nvidia-ai/` (+ `quest.html`) | Free DLI track | Progress `il.progress.nvidia.quest` |
 | FDE training | `/paths/fde-training/` | FDE Forge gamified spine | From ChatGPT `6ab1eabe…` |
 | Enochian + programming | `/paths/enochian-programming/` | Source-critical DH + code | From ChatGPT `6ab1eb2c…` |
-| Lawrence evidence | `/evidence/lawrence-enrollment/` | Portfolio write-up | Single evidence page |
+| a client evidence | `/evidence/withdrawn-note/` | Portfolio write-up | Single evidence page |
 | Resume highlights | `/evidence/resume/` | Sanitized public resume | No overclaims |
 | Founders Learning OS | `/founders/` | Student Zero hero | Progress `il.progress.founders.*` |
 
@@ -70,7 +70,7 @@ SPA academies (`/academy/…`, homepage IL-01…IL-10) remain product fiction ro
 
 ## Imports
 
-See [PENDING-IMPORTS.md](./PENDING-IMPORTS.md) — ChatGPT FDE + Enochian **Resolved**. DeepSeek BNY/NVIDIA/Magic Leap + resume attachments folded into Prep/drills/evidence/Founders skills (no fake employment claims).
+See [PENDING-IMPORTS.md](./PENDING-IMPORTS.md) — ChatGPT FDE + Enochian **Resolved**. DeepSeek NVIDIA/a device lab + resume attachments folded into Prep/drills/evidence/Founders skills (no fake employment claims).
 
 ## Nav / sitemap wiring
 
