@@ -10,7 +10,18 @@ export const Route = createFileRoute("/editor")({
 const files = {
   "query.sql": "select host, rate from readings where errors > 0 order by rate desc;\n",
   "Gate.java": "class Gate {\n  // There is no JVM on this page.\n}\n",
-  "notes.md": "Read the manual for the tool you are not using.\n",
+  "index.html": `<!doctype html>
+<title>Gate</title>
+<style>
+  body { margin: 0; font-family: sans-serif; background: #0e1012; color: #eceae4; }
+  main { padding: 1.5rem; }
+</style>
+<main>
+  <h1>Open stack</h1>
+  <p id="out">Ready</p>
+</main>
+<script>document.querySelector("#out").textContent = "The script ran.";</script>
+`,
 } as const;
 
 type FileName = keyof typeof files;
@@ -117,10 +128,8 @@ function EditorPage() {
           ))}
         </div>
       ) : null}
-      {name === "notes.md" && ran ? (
-        <div className="mt-4 max-w-[68ch]">
-          <Rtfm line="The note is saved in the buffer only. The manuals page is the shelf." />
-        </div>
+      {name === "index.html" && ran ? (
+        <iframe title="Page preview" sandbox="allow-scripts" srcDoc={source} className="mt-4 h-64 w-full max-w-3xl rounded-xl border border-line bg-bg" />
       ) : null}
     </main>
   );

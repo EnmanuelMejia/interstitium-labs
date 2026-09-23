@@ -20,8 +20,9 @@ function Home() {
       <p className="text-xs tracking-[0.18em] text-muted uppercase">Domain 01</p>
       <h1 className="mt-3 max-w-[14ch] text-hero leading-[0.95] text-fg">AI-aided cybersecurity</h1>
       <p className="mt-6 max-w-[62ch] text-lg text-fg/85">
-        The practice for every course, before it is folded into the public site. No deadlines. A tutor on Muse holds the
-        one thing you are building. Nine weeks of cybersecurity remain a sequence you can walk in any number of days.
+        The practice for every course, before it is folded into the public site. No deadlines. Noah holds the one thing
+        you are building. The open stack replaces a vendor bootcamp. Nine weeks of cybersecurity remain a sequence you
+        can walk in any number of days.
       </p>
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link
@@ -35,10 +36,10 @@ function Home() {
           Place your math
         </Link>
         <Link to="/muse" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
-          Ask Muse first
+          Ask Noah first
         </Link>
-        <Link to="/canon" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
-          Open the canon
+        <Link to="/school" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
+          Open stack
         </Link>
         <Link to="/host" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
           P920 host

@@ -50,7 +50,7 @@ export function TutorDesk() {
     if (line.length < 2 || pending) return;
     const prior = lines
       .slice(-4)
-      .map((item) => `${item.who === "you" ? "Learner" : tutor.name}: ${item.text}`)
+      .map((item) => `${item.who === "you" ? "Learner" : "Noah"}: ${item.text}`)
       .join("\n");
     setLines((curr) => [...curr, { who: "you", text: line }]);
     setDraft("");
@@ -132,7 +132,7 @@ export function TutorDesk() {
                   }
                 >
                   <span className="mb-1 block text-xs tracking-[0.14em] text-muted uppercase">
-                    {item.who === "tutor" ? tutor.name : "You"}
+                    {item.who === "tutor" ? "Noah" : "You"}
                   </span>
                   {item.text}
                 </p>
@@ -151,7 +151,7 @@ export function TutorDesk() {
               placeholder="A detector, a proof, a service"
             />
             <label className="mt-4 block text-sm text-muted" htmlFor="tutor-line">
-              Speak to {tutor.name}
+              Speak to Noah
             </label>
             <textarea
               id="tutor-line"

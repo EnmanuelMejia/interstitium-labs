@@ -38,7 +38,7 @@ export const ladders: Ladder[] = [
     id: "systems",
     role: "C, C++, and the shell",
     pace: "No deadline",
-    note: "GCC and the bash desk are the open tools. Perl, PowerShell, and the rest are traces on Muse until a parser exists. No proprietary IDE is bundled.",
+    note: "GCC and the bash desk are the open tools. Perl, PowerShell, and the rest are traces with Noah until a parser exists. No proprietary IDE is bundled.",
     catalog: { label: "GCC manuals", href: "https://gcc.gnu.org/onlinedocs/" },
     rungs: [
       { name: "Shell", practice: "Make the log 640 and leave the bytes alone.", href: "/desk" },

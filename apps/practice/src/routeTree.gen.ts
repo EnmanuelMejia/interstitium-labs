@@ -20,6 +20,7 @@ import { Route as ManualsRouteImport } from './routes/manuals'
 import { Route as MuseRouteImport } from './routes/muse'
 import { Route as PathsRouteImport } from './routes/paths'
 import { Route as RadarRouteImport } from './routes/radar'
+import { Route as SchoolRouteImport } from './routes/school'
 import { Route as StackRouteImport } from './routes/stack'
 import { Route as LabLabIdRouteImport } from './routes/lab.$labId'
 import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
@@ -80,6 +81,11 @@ const RadarRoute = RadarRouteImport.update({
   path: '/radar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SchoolRoute = SchoolRouteImport.update({
+  id: '/school',
+  path: '/school',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StackRoute = StackRouteImport.update({
   id: '/stack',
   path: '/stack',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
+  '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
+  '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
+  '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/muse'
     | '/paths'
     | '/radar'
+    | '/school'
     | '/stack'
     | '/lab/$labId'
     | '/paths/$slug'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/muse'
     | '/paths'
     | '/radar'
+    | '/school'
     | '/stack'
     | '/lab/$labId'
     | '/paths/$slug'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/muse'
     | '/paths'
     | '/radar'
+    | '/school'
     | '/stack'
     | '/lab/$labId'
     | '/paths/$slug'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   MuseRoute: typeof MuseRoute
   PathsRoute: typeof PathsRouteWithChildren
   RadarRoute: typeof RadarRoute
+  SchoolRoute: typeof SchoolRoute
   StackRoute: typeof StackRoute
   LabLabIdRoute: typeof LabLabIdRoute
   SessionSessionIdRoute: typeof SessionSessionIdRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RadarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/school': {
+      id: '/school'
+      path: '/school'
+      fullPath: '/school'
+      preLoaderRoute: typeof SchoolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stack': {
       id: '/stack'
       path: '/stack'
@@ -356,6 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   MuseRoute: MuseRoute,
   PathsRoute: PathsRouteWithChildren,
   RadarRoute: RadarRoute,
+  SchoolRoute: SchoolRoute,
   StackRoute: StackRoute,
   LabLabIdRoute: LabLabIdRoute,
   SessionSessionIdRoute: SessionSessionIdRoute,

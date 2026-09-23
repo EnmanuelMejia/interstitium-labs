@@ -404,7 +404,7 @@ export const canon: CanonEntry[] = [
     source: "GNU",
     href: "https://gcc.gnu.org/onlinedocs/",
     license: "GFDL",
-    implements: "C and C++ authority. The Muse questions do not compile.",
+    implements: "C and C++ authority. Noah's questions do not compile.",
   },
   {
     id: "llvm",
@@ -506,13 +506,13 @@ export const canon: CanonEntry[] = [
     implements: "Each path has a reading, a motif stage, and a simulation whose bar tightens with load.",
   },
   {
-    id: "muse",
+    id: "noah",
     domain: "practice",
-    title: "Muse",
+    title: "Noah",
     source: "Interstitium Labs",
     href: "/muse",
     license: "Original practice",
-    implements: "Question first. Mastery stays on this device.",
+    implements: "The tutor. Question first. Mastery stays on this device.",
   },
   {
     id: "desk",
@@ -581,7 +581,7 @@ export type AtlasRoom = {
 export const atlas: AtlasRoom[] = [
   { room: "Academy, learn, paths", was: "Curriculum index", now: "Paths, with the cybersecurity domain folded in.", href: "/paths" },
   { room: "Adapt", was: "Load that changes the lesson", now: "The load slider on each path studio.", href: "/paths" },
-  { room: "Coach, Muse", was: "Ask before the answer", now: "A tutor at the desk, plus the fringe question. No due date.", href: "/muse" },
+  { room: "Coach, Noah", was: "Ask before the answer", now: "Noah at the desk, plus the fringe question. No due date.", href: "/muse" },
   { room: "Desk", was: "Working shell", now: "A permission parser. The real shell is on the host.", href: "/desk" },
   { room: "Radar, graph, measure", was: "Skill picture", now: "Radar.", href: "/radar" },
   { room: "Library, doctrine, code", was: "Sources and stack", now: "This canon, plus the stack page.", href: "/stack" },
