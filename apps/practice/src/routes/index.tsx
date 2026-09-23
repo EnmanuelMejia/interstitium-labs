@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { labs, outlineMap, sessions, weeks } from "@/lib/course";
 import { paths } from "@/lib/paths";
 import { useProgress } from "@/lib/progress";
+import { publicRooms } from "@/lib/public-os";
 import { Stage } from "@/components/stage";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -20,9 +21,8 @@ function Home() {
       <p className="text-xs tracking-[0.18em] text-muted uppercase">Domain 01</p>
       <h1 className="mt-3 max-w-[14ch] text-hero leading-[0.95] text-fg">AI-aided cybersecurity</h1>
       <p className="mt-6 max-w-[62ch] text-lg text-fg/85">
-        The practice for every course, before it is folded into the public site. No deadlines. Noah holds the one thing
-        you are building. The open stack replaces a vendor bootcamp. Nine weeks of cybersecurity remain a sequence you
-        can walk in any number of days.
+        The practice and the Learning OS are one product. The public wing is on the static host. Noah’s frontier turn
+        stays on this server. No deadlines. The disk on the ThinkStation waits until you are at the machine.
       </p>
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link
@@ -61,6 +61,13 @@ function Home() {
           Open the capstone
         </Link>
       </div>
+      <nav className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        {publicRooms.map((room) => (
+          <a key={room.href} href={room.href} className="underline">
+            {room.name}
+          </a>
+        ))}
+      </nav>
       <div className="mt-10">
         <Stage
           scene="lattice"
