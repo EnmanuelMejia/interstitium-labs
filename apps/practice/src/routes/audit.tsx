@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { findings } from "@/lib/audit";
+import { noahGraph } from "@/lib/harness";
 import { harnessState } from "@/lib/muse-ask";
 
 export const Route = createFileRoute("/audit")({
@@ -32,6 +33,14 @@ function AuditPage() {
       ) : (
         <p className="mt-6 text-sm text-muted">The harness has not reported yet.</p>
       )}
+      <ol className="mt-8 max-w-[68ch] space-y-3 border-l border-line pl-4">
+        {noahGraph.map((node) => (
+          <li key={node.id}>
+            <span className="text-xs tracking-[0.14em] text-muted uppercase">{node.id}</span>
+            <span className="mt-1 block">{node.does}</span>
+          </li>
+        ))}
+      </ol>
       <div className="mt-8 overflow-x-auto rounded-xl border border-line">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead className="text-muted">
