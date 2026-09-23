@@ -99,6 +99,13 @@ export async function tutorChat(system: string, user: string, maxTokens: number)
   };
 }
 
+export const noahGraph = [
+  { id: "office", does: "Bind the office and the obsession. No model call yet." },
+  { id: "model", does: "One completion. Ollama, then Hugging Face, then a frontier model." },
+  { id: "tool", does: "Not wired. If added, one local tool only, such as the SQL bench. No arbitrary code." },
+  { id: "stop", does: "Return the line. The learner speaks next. That pause is the human interrupt." },
+] as const;
+
 export function harnessConfig() {
   return {
     ollama: Boolean(process.env.OLLAMA_BASE_URL),

@@ -12,7 +12,7 @@ export const findings: Finding[] = [
   { name: "School", decision: "Webucator and Per Scholas are the topic map. Manuals are MDN, Node, Postgres, Ansible.", state: "Held" },
   { name: "Works and academy", decision: "Engineering labs and the build, field, return. Both open shelves linked, not rehosted.", state: "Held" },
   { name: "Data", decision: "Analyst grain, chart, and model. Tableau and Power BI are catalogs. Superset, DuckDB, Vega-Lite, pandas, scikit-learn, dbt are the tools.", state: "Held" },
-  { name: "License of our labs", decision: "Runs and practice exams on Works are CC BY 4.0.", state: "Held" },
+  { name: "Orchestration", decision: "LangChain’s create_agent sits on LangGraph. We do not take that stack, or LangSmith. Noah is four nodes we own. LangGraph.js is MIT if a later graph needs checkpoints.", state: "Partial" },
   { name: "Public site", decision: "This practice is the source tree. The static public site is not this server, so the tutor is not folded into those pages.", state: "Gap" },
   { name: "Host", decision: "The ThinkStation walkthrough was deferred.", state: "Gap" },
 ];
