@@ -57,11 +57,93 @@ img[src*="sigil-hero"] {
   display: none !important;
 }
 
-.il-hero-uw {
-  min-height: 0 !important;
-  align-items: start !important;
-  padding-top: 3.5rem !important;
-  padding-bottom: 3rem !important;
+/* Homepage stage stays cinematic. The quiet field still covers the other pages. */
+section:has(.il-hero-field) [data-il-starfield],
+section:has(.il-hero-field) .il-hero-sigil,
+section:has(.il-hero-field) img[src*="sigil-decor"],
+section:has(.il-hero-field) img[src*="sigil-hero"] {
+  display: block !important;
+}
+
+section:has(.il-hero-field) {
+  background: #05070c;
+  min-height: calc(100dvh - 4.5rem);
+}
+
+section:has(.il-hero-field)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 42%, transparent 36%, rgba(0, 0, 0, 0.62) 100%),
+    linear-gradient(180deg, rgba(5, 7, 12, 0.35), transparent 18%, transparent 72%, #05070c 100%);
+}
+
+section:has(.il-hero-field) .il-hero-uw {
+  min-height: calc(100dvh - 5rem) !important;
+  align-items: center !important;
+  padding-top: 4.5rem !important;
+  padding-bottom: 5rem !important;
+}
+
+section:has(.il-hero-field) .il-hero-sigil {
+  opacity: 1;
+  filter:
+    contrast(1.18)
+    saturate(1.35)
+    brightness(1.08)
+    drop-shadow(0 0 22px rgba(126, 212, 224, 0.65))
+    drop-shadow(0 0 70px rgba(198, 165, 114, 0.42));
+}
+
+section:has(.il-hero-field) .il-hero-field {
+  opacity: 0.95;
+  mix-blend-mode: screen;
+}
+
+section:has(.il-hero-field) img[src*="sigil-decor"] {
+  opacity: 0.72 !important;
+  filter: contrast(1.2) saturate(1.25) brightness(0.92);
+}
+
+section:has(.il-hero-field) h1 {
+  text-shadow:
+    0 0 24px rgba(232, 238, 245, 0.18),
+    0 0 64px rgba(126, 212, 224, 0.28);
+}
+
+section:has(.il-hero-field) .il-hero-uw a.bg-cyan,
+section:has(.il-hero-field) .il-hero-uw a.bg-paper,
+section:has(.il-hero-field) .il-hero-uw a[class*="bg-cyan"] {
+  background: #f4f1ea !important;
+  color: #101418 !important;
+  box-shadow:
+    0 0 0 1px rgba(244, 241, 234, 0.4),
+    0 0 28px rgba(126, 212, 224, 0.35);
+}
+
+@media (dynamic-range: high) {
+  section:has(.il-hero-field) .il-hero-sigil {
+    filter:
+      contrast(1.22)
+      saturate(1.45)
+      brightness(1.12)
+      drop-shadow(0 0 28px color(display-p3 0.45 0.95 0.98 / 0.7))
+      drop-shadow(0 0 80px color(display-p3 0.9 0.72 0.35 / 0.5));
+  }
+  section:has(.il-hero-field) h1 {
+    text-shadow:
+      0 0 28px color(display-p3 0.91 0.93 0.96 / 0.35),
+      0 0 72px color(display-p3 0.4 0.92 0.96 / 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  section:has(.il-hero-field) .il-hero-field {
+    display: none !important;
+  }
 }
 
 .il-hero-uw h1 {
