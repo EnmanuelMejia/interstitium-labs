@@ -139,6 +139,20 @@
     if (!reduced && d.visibilityState === "visible") frame = w.requestAnimationFrame(paint);
   }
 
+  function mountHero(node) {
+    if (node.getAttribute("data-il-mark") === "1") return;
+    node.setAttribute("data-il-mark", "1");
+    while (node.firstChild) node.removeChild(node.firstChild);
+    var canvas = d.createElement("canvas");
+    canvas.className = "il-spin-mark il-spin-mark--hero";
+    canvas.setAttribute("aria-label", "Interstitium Labs");
+    canvas.setAttribute("role", "img");
+    canvas.width = 160;
+    canvas.height = 160;
+    node.appendChild(canvas);
+    hosts.push(canvas);
+  }
+
   function scan() {
     var pictures = d.querySelectorAll("picture.il-lockup");
     var headerMark = null;
@@ -148,6 +162,8 @@
       else picture.remove();
     }
     if (headerMark) mount(headerMark);
+    var heroes = d.querySelectorAll(".il-hero-sigil");
+    for (var h = 0; h < heroes.length; h++) mountHero(heroes[h]);
     if (!hosts.length) return;
     if (reduced) paint(0);
     else if (!frame) frame = w.requestAnimationFrame(paint);
