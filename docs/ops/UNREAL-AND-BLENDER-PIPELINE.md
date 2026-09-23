@@ -102,7 +102,7 @@ CSP forbids CDN Three → v1 is self-contained WebGL. When vendoring Three/WebGP
 - [ ] Stage visible on lecture/lab without console CDN errors  
 - [ ] `prefers-reduced-motion` shows static fallback + captions  
 - [ ] Real `.glb` path 404 → falls back to procedural of same family (no blank)  
-- [ ] Muse avatar (`il-muse-3d`) not double-mounted inside curriculum stage  
+- [ ] Noah (`il-muse-3d`) not double-mounted inside curriculum stage  
 - [ ] No claim of Unreal Pixel Streaming until signalling host is up  
 
 ## Related

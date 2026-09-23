@@ -1,11 +1,11 @@
-# Lab Muse avatar — Dee theme
+# Noah avatar — Dee theme
 
-**Default avatar** for Lab Muse (`/coach/`) is the **Dee** mark: a geometric Monas-derived SVG in Interstitium brand colors (cyan / gold / void).
+**Default avatar** for Noah (`/coach/`) is the **Dee** mark: a geometric Monas-derived SVG in Interstitium brand colors (cyan / gold / void).
 
 ## Attribution & honesty
 
 - **Inspired by** historical John Dee (Elizabethan mathematician-mage; Monas Hieroglyphica / Hermetica energy already present in product language).
-- **Artwork:** Interstitium original SVG/CSS — not a copy of any museum portrait photograph, and **not** a Meta Muse avatar or Meta brand asset.
+- **Artwork:** Interstitium original SVG/CSS — not a copy of any museum portrait photograph, and **not** a Meta Noah or Meta brand asset.
 - Educational Socratic DevOps coach personality default: `Dee · precise · Socratic · hermetic scholar` (still a lab coach).
 
 ## Assets

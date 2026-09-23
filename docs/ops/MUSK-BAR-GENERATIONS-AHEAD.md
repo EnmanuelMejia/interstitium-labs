@@ -28,7 +28,7 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 | Motion / graphics | **6** | **7** | Brilliant 9 | 3D-first law + `il-immersive-3d` scaffold. **Not using Blender/Unreal = fail Elon test.** CSS cards ≠ 3D. |
 | Adaptive learning | **7** | **7** | ALEKS 9 · GMAT-CAT 9 | Unchanged engine; exam remediates into `/adapt`. |
 | Live labs density | **4** | **5** | KodeKloud 10 | CotD + SuperLab + honest LOSE on fleet. Still one deep lab. |
-| Coach / Muse | **6** | **7** | KodeKloud in-lab 8 | Muse wired; `promptFrom` + `?prompt=` + path `data-il-muse-prompt`. Router untouched. |
+| Noah | **6** | **7** | KodeKloud in-lab 8 | Muse wired; `promptFrom` + `?prompt=` + path `data-il-muse-prompt`. Router untouched. |
 | Model router | **6** | **6** | n/a (ours) | Demand-tier lean defaults preserved. No fake keys. |
 | Career / time-to-hire | **6** | **8** | KodeKloud 8 · cert vendors 9 | `/os/` is the asymmetric loop competitors lack as one URL. |
 | Proof / portfolio | **5** | **8** | peers ~4–6 | localStorage → markdown / print. Honesty labels mandatory. |
@@ -46,18 +46,18 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 | 1 | **Time-to-hire OS** | `/os/` + `il-os.js` | Single Adapt→Path→Lab→Muse→Proof dashboard |
 | 2 | **Proof-of-work generator** | `/proof/` + `il-proof.js` | localStorage → markdown / print PDF-ish |
 | 3 | **Scenario exam simulator** | `/exam/` + `il-exam.js` | Miss → remediations into `/adapt` + `/coach` |
-| 4 | **Deepened ⌘K palette** | `il-fx.js` | Jump to any path (catalog fetch) + Muse prompts |
+| 4 | **Deepened ⌘K palette** | `il-fx.js` | Jump to any path (catalog fetch) + Noah's prompts |
 | 5 | **499P9 cinema canvas** | `/cinema/` + ultrawide CSS | Multi-pane Learn\|Lab\|Muse |
 | 6 | **Honest kill-card** | home `#peer-matrix` + `il-peer-matrix.js` | WIN/LOSE matrix, no fake lab counts |
 
-**Also blended (do not regress):** Lab Muse + model router; path competitive clone / catalog; `il-trending*` frontier mount (peer agent) — **not deleted**.
+**Also blended (do not regress):** Noah + model router; path competitive clone / catalog; `il-trending*` frontier mount (peer agent) — **not deleted**.
 
 ---
 
 
 ## Immersive 3D — Elon gate
 
-**Not using Blender/Unreal = fail Elon test.** Dual pipeline: (A) Unreal Pixel Streaming / packaged viewers for heavy sims · (B) Blender → glTF → Godot or Three.js/WebGPU in-page. Default every lecture/lab: `immersive: { mode: '3d-first', engine, asset }`. Never pretend CSS cards = 3D. Muse avatar (`il-muse-3d`) is coach-only; curriculum scenes are `il-immersive-3d`.
+**Not using Blender/Unreal = fail Elon test.** Dual pipeline: (A) Unreal Pixel Streaming / packaged viewers for heavy sims · (B) Blender → glTF → Godot or Three.js/WebGPU in-page. Default every lecture/lab: `immersive: { mode: '3d-first', engine, asset }`. Never pretend CSS cards = 3D. Noah (`il-muse-3d`) is coach-only; curriculum scenes are `il-immersive-3d`.
 
 ## Remaining NO (brutal)
 

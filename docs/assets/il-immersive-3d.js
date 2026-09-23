@@ -2,7 +2,7 @@
  * IL Immersive 3D — curriculum stage player (lectures / labs / cert / non-cert).
  * Self-contained WebGL (CSP script-src 'self'; no CDN Three).
  * Procedural v1 scenes: hermetic | rack | k8s. Optional .glb path (loader hook).
- * NOT Lab Muse avatar — that is il-muse-3d.js (coach familiar only).
+ * NOT Noah avatar — that is il-muse-3d.js (coach familiar only).
  * Sibling optional: il-scene-kit.js + il-immersive.js (data-kind hosts / demo /immersive/).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
@@ -633,6 +633,6 @@
     version: '1.0.0',
     engines: ['three', 'godot', 'unreal'],
     scenes: ['hermetic', 'rack', 'k8s'],
-    note: 'Curriculum scenes. Muse avatar = il-muse-3d (separate).'
+    note: 'Curriculum scenes. Noah = il-muse-3d (separate).'
   };
 })(typeof window !== 'undefined' ? window : this);

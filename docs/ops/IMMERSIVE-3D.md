@@ -4,7 +4,7 @@
 
 **Rule (Musk gate):** Skipping Blender **and** Unreal = fail. Open-source path (Blender / Godot / Three) ships in-browser today; Unreal Pixel Streaming is scaffolded and documented — **do not block** the web ship on a local UE install.
 
-**Companion:** Lab Muse voice-reactive familiar (`LAB-MUSE-3D.md`) shares `ILSceneKit` with the immersive player.
+**Companion:** Noah voice-reactive familiar (`LAB-MUSE-3D.md`) shares `ILSceneKit` with the immersive player.
 
 ## What shipped (this pass)
 
@@ -90,7 +90,7 @@ ILSceneKit.onSpeakAmp(detail => …) // same bus as Muse TTS boundaries
 ILImmersive.mount(el, { kind: 'lecture' })
 ```
 
-Voice amp from Lab Muse (`il-muse-speak-amp` / `il-muse-speak-boundary`) drives immersive emissive when both are on-page (cinema Learn|Lab|Muse).
+Voice amp from Noah (`il-muse-speak-amp` / `il-muse-speak-boundary`) drives immersive emissive when both are on-page (cinema Learn|Lab|Muse).
 
 ## Markup cheatsheet
 
@@ -133,7 +133,7 @@ Include:
 - No fake “Unreal online” without a signaling URL.
 - No CDN Three (CSP).
 - Procedural ≠ final art; Blender/Unreal content is the quality bar.
-- Muse 3D exceeds flat Muse-class motion; curriculum immersive is the same philosophy applied to lectures/labs.
+- Muse 3D exceeds flat assistant-class motion; curriculum immersive is the same philosophy applied to lectures/labs.
 
 ## Sync
 
