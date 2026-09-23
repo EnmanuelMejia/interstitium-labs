@@ -120,15 +120,11 @@
     canvas.height = 160;
     var word = d.createElement("span");
     word.className = "il-word";
-    word.textContent = "Interstitium";
-    var labs = d.createElement("span");
-    labs.className = "il-labs";
-    labs.textContent = "LABS";
+    word.textContent = "Interstitium: the space between the cells. Paths and detections live in the gaps. Drag to orbit.";
     var row = d.createElement("span");
     row.className = "il-lockup-row";
     row.appendChild(canvas);
     row.appendChild(word);
-    row.appendChild(labs);
     picture.replaceWith(row);
     hosts.push(canvas);
   }
