@@ -9,6 +9,14 @@
   if (w.__IL_COMPAT__) return;
   w.__IL_COMPAT__ = true;
 
+  if (!d.getElementById("il-logo")) {
+    var logo = d.createElement("script");
+    logo.id = "il-logo";
+    logo.src = "/assets/il-logo.js";
+    logo.defer = true;
+    d.head.appendChild(logo);
+  }
+
   if (!d.getElementById("il-practice-language")) {
     var link = d.createElement("link");
     link.id = "il-practice-language";
