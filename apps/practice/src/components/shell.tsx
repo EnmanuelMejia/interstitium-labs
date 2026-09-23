@@ -6,7 +6,7 @@ import { paths } from "@/lib/paths";
 import { useProgress } from "@/lib/progress";
 import { cn } from "@/lib/cn";
 
-function NavLink({ to, on, children }: { to: "/" | "/muse" | "/paths" | "/desk" | "/editor" | "/baseline" | "/school" | "/works" | "/academy" | "/data" | "/audit" | "/radar" | "/stack" | "/canon" | "/ladders" | "/manuals" | "/host"; on: boolean; children: ReactNode }) {
+function NavLink({ to, on, children }: { to: "/" | "/about" | "/muse" | "/paths" | "/desk" | "/editor" | "/baseline" | "/school" | "/works" | "/academy" | "/data" | "/audit" | "/radar" | "/stack" | "/canon" | "/ladders" | "/manuals" | "/host"; on: boolean; children: ReactNode }) {
   return (
     <Link
       to={to}
@@ -76,6 +76,9 @@ export function Shell({ children }: { children: ReactNode }) {
           <nav className="ml-auto flex min-w-0 items-center gap-0.5 overflow-x-auto">
             <NavLink to="/" on={pathname === "/"}>
               Domain
+            </NavLink>
+            <NavLink to="/about" on={pathname === "/about"}>
+              About
             </NavLink>
             <NavLink to="/muse" on={pathname === "/muse"}>
               Noah
