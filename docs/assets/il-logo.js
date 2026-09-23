@@ -112,14 +112,27 @@
   }
 
   function mount(picture) {
-    if (picture.querySelector("canvas.il-spin-mark")) return;
+    if (picture.getAttribute("data-il-mark") === "1") return;
+    picture.setAttribute("data-il-mark", "1");
+    var link = picture.closest ? picture.closest("a") : null;
+    if (link && !link.getAttribute("aria-label")) link.setAttribute("aria-label", "Interstitium Labs");
     var canvas = d.createElement("canvas");
     canvas.className = "il-spin-mark";
     canvas.setAttribute("aria-hidden", "true");
     canvas.width = 160;
     canvas.height = 160;
-    picture.classList.add("is-mark");
-    picture.replaceChildren(canvas);
+    var word = d.createElement("span");
+    word.className = "il-word";
+    word.textContent = "Interstitium";
+    var labs = d.createElement("span");
+    labs.className = "il-labs";
+    labs.textContent = "LABS";
+    var row = d.createElement("span");
+    row.className = "il-lockup-row";
+    row.appendChild(canvas);
+    row.appendChild(word);
+    row.appendChild(labs);
+    picture.replaceWith(row);
     hosts.push(canvas);
   }
 
