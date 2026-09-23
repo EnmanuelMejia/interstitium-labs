@@ -1,5 +1,5 @@
 /**
- * IL Model Router — local-first OSS backends + demand-tier scaling for Lab Muse / Coach.
+ * IL Model Router — local-first OSS backends + demand-tier scaling for Noah / Coach.
  *
  * Product policy: scale relative to demand (T0 → T1 → T2). Auto-switch only among
  * models that are currently healthy/online. Never pretend a 70B is local GPU.
@@ -461,7 +461,7 @@
   function systemPrompt(ctx) {
     ctx = ctx || {};
     var lines = [
-      'You are Lab Muse / Interstitium Labs coach — Socratic DevOps tutor.',
+      'You are Noah / Interstitium Labs coach — Socratic DevOps tutor.',
       'Ask questions and give hints; never dump full exam answers.',
       'Topics: CIDR, Git, Kubernetes, Terraform, CI/CD, Linux.',
       'Hardware honesty: student lab may be P920 Quadro P1000 4GB — do not claim 70B local GPU.',
@@ -841,7 +841,7 @@
   }
 
 
-  // Public surface — deliverable API + Muse aliases
+  // Public surface — deliverable API + Noah aliases
   var api = {
     POLICY_KEY: POLICY_KEY,
     CREDS_KEY: CREDS_KEY,

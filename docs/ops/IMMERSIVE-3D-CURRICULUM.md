@@ -15,7 +15,7 @@ _Live:_ https://interstitiumlabs.dev · _Static root:_ `docs/`
 |------|------|
 | CSS cards / 2D diagrams labeled “3D lab” | Real mesh / procedural WebGL / glTF / Unreal Pixel Streaming |
 | Screenshots of Unity/Unreal without a player | In-page `il-immersive-3d` stage or packaged / streamed viewer |
-| Muse avatar alone counted as curriculum 3D | Muse = coach familiar; curriculum scenes = separate asset lane |
+| Noah alone counted as curriculum 3D | Muse = coach familiar; curriculum scenes = separate asset lane |
 
 ## Musk gate (document forever)
 

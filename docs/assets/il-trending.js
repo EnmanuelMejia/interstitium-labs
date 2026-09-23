@@ -136,7 +136,7 @@
       parts.push(
         '<a class="text-cyan hover:text-paper" href="/coach/" data-il-frontier-muse="' +
           esc(c.id) +
-          '">Lab Muse</a>'
+          '">Noah</a>'
       );
     }
     if (c.mapTarget) {
@@ -323,7 +323,7 @@
           html += "</div>";
         }
         html +=
-          '<p class="mt-8 text-xs text-muted">Honesty bar: cite URLs, label LinkedIn login gaps, never invent MIT numbers. Chrome stays Interstitium cyan/gold/void — Lab Muse mobile shell is owned elsewhere.</p>';
+          '<p class="mt-8 text-xs text-muted">Honesty bar: cite URLs, label LinkedIn login gaps, never invent MIT numbers. Chrome stays Interstitium cyan/gold/void — Noah mobile shell is owned elsewhere.</p>';
         el.innerHTML = html;
         analyticsTrack("frontier_open", {
           count: list.length,

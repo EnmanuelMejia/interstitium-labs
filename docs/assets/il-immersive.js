@@ -1,7 +1,7 @@
 /**
  * IL Immersive Player — 3D-first stage for lectures, cert labs, sims, non-cert.
  * Procedural WebGL now (CSP-safe). Optional vendored Three+glTF + Unreal Pixel Streaming.
- * Shares window.ILSceneKit with Lab Muse 3D. Interstitium original art/code.
+ * Shares window.ILSceneKit with Noah 3D. Interstitium original art/code.
  */
 (function (g) {
   'use strict';

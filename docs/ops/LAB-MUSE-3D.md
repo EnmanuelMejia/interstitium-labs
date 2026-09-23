@@ -1,11 +1,11 @@
-# Lab Muse 3D — voice-reactive stage
+# Noah 3D — voice-reactive stage
 
 **Ship:** voice-driven WebGL familiar on `/coach/` (and cinema Muse pane).  
 **Claim (honest):** exceeds Meta Muse–class **flat/soft avatar motion** with a crystalline Dee/Monas orrery that reacts to mic + TTS. Original Interstitium art — **not** Meta assets, **not** a photoreal scraped portrait.
 
-## Why this beats flat Muse avatars
+## Why this beats flat Noahs
 
-| | Meta Muse–class (public) | Lab Muse 3D |
+| | Meta Muse–class (public) | Noah 3D |
 |--|--------------------------|-------------|
 | Form | Soft 2D / simple avatar chrome | Crystalline Monas + orrery rings + particle field |
 | Voice | Soft status chrome | `idle \| listening \| thinking \| speaking` drives shaders, glow, spin, particles |
@@ -63,7 +63,7 @@ We do **not** claim Meta’s product, models, or connectors. Interaction pattern
 
 - Site `Permissions-Policy` may include `microphone=()` on some edges — STT/Analyser then degrade; procedural listening pulse still ships.
 - Not Three.js CDN (blocked by CSP); lightweight self-hosted WebGL with Three-class mesh/lighting depth.
-- “Generations ahead” = motion/reactivity vs flat Muse-class chrome — not a claim about Meta’s private roadmap.
+- “Generations ahead” = motion/reactivity vs flat assistant-class chrome — not a claim about Meta’s private roadmap.
 
 ## Sync
 

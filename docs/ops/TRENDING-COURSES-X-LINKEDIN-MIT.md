@@ -64,7 +64,7 @@
 
 ## Interstitium overlays
 
-Each card can surface **Adapt** (`/adapt/`), **Lab** (`/labs/superlab/`), **Lab Muse** (`/coach/`), plus the path `mapTarget`.  
+Each card can surface **Adapt** (`/adapt/`), **Lab** (`/labs/superlab/`), **Noah** (`/coach/`), plus the path `mapTarget`.  
 We adapt/lab/muse around the external course — we do **not** re-host their media.
 
 ## Analytics → weekly promote/demote

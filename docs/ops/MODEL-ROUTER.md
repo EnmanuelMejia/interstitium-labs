@@ -1,4 +1,4 @@
-# Model router — Lab Muse / Coach
+# Model router — Noah / Coach
 
 Local-first OSS model routing for Interstitium Labs. **Prefer lean defaults. Scale relative to demand.**
 

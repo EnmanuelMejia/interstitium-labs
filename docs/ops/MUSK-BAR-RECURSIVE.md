@@ -8,7 +8,7 @@ _Live:_ https://interstitiumlabs.dev
 | Checkpoint | Impressed? | Why |
 |---|:---:|---|
 | Before | **NO** | FX demo theater; thin labs; Muse unwired |
-| After this ship | **NO** | Instant Demo + CotD + peer matrix + exceed paths + trending + exam/OS/proof + Muse/router blend. Still no hosted fleet / default live model. Closer — not yes. |
+| After this ship | **NO** | Instant Demo + CotD + peer matrix + exceed paths + trending + exam/OS/proof + Noah/router blend. Still no hosted fleet / default live model. Closer — not yes. |
 
 ## Scorecard (0–10)
 
@@ -18,7 +18,7 @@ _Live:_ https://interstitiumlabs.dev
 | Motion / graphics | 6 | 7 | Immersive 3D scaffold (procedural); Blender/Unreal still required for YES |
 | Adaptive learning | 7 | 7 | CAT+fringe |
 | Live labs density | 3 | 5.5 | CotD rhythm |
-| Coach / Muse | 4 | 6 | `/coach/` Muse+router |
+| Noah | 4 | 6 | `/coach/` Muse+router |
 | Model router | 3 | 5 | Demand-tier OSS |
 | Career prep | 6 | 7.5 | Paths+exam+OS |
 | Honesty / trust | 9 | 9 | Matrix LOSE labels |
@@ -48,5 +48,5 @@ Do not claim yes while fleet is one SuperLab.
 | `il-immersive-3d` + dual pipeline scaffold | Closer | Procedural Three-class stages ship; real `.glb` / Pixel Streaming still required for YES |
 
 See `IMMERSIVE-3D-CURRICULUM.md` · `UNREAL-AND-BLENDER-PIPELINE.md`.  
-Muse avatar (`il-muse-3d`) ≠ curriculum scenes (`il-immersive-3d`).
+Noah (`il-muse-3d`) ≠ curriculum scenes (`il-immersive-3d`).
 

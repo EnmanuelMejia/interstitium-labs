@@ -3,7 +3,7 @@
 **Bundle ID (all platforms):** `dev.interstitiumlabs.app`  
 **App name:** Interstitium Labs  
 **Primary surface:** Learning OS via Capacitor → `docs/`  
-**Default native shell:** **Lab Muse** (`/coach/`) — Muse-class companion shell (Interstitium brand: cyan/gold/void + lockup + Dee monas avatar; not Meta)  
+**Default native shell:** **Noah** (`/coach/`) — Muse-class companion shell (Interstitium brand: cyan/gold/void + lockup + Dee monas avatar; not Meta)  
 
 Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + Google Play Console account steps** — agents cannot finish store submission without those accounts.
 
@@ -19,7 +19,7 @@ Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + G
 | Android network security sample | `apps/mobile/android-security/` |
 | Optional Android debug APK CI | `.github/workflows/mobile-android-debug.yml` |
 | PWA (installable web) | `docs/manifest.webmanifest`, `docs/sw.js` |
-| Lab Muse mobile shell | `docs/assets/il-muse-mobile.css`, Dee avatar, Capacitor home → `/coach/` |
+| Noah mobile shell | `docs/assets/il-muse-mobile.css`, Dee avatar, Capacitor home → `/coach/` |
 
 **Not completable without Enmanuel:** paid Apple Developer Program, Google Play Console developer registration, store listing privacy forms, production signing secrets, final binary upload.
 
@@ -58,7 +58,7 @@ Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + G
    ```
    Archive → Distribute → App Store Connect.
 6. Screenshots (required device sizes — check current ASC matrix):
-   - Lab Muse companion (full-bleed chat, Dee avatar, bottom nav) — Muse-class shell
+   - Noah companion (full-bleed chat, Dee avatar, bottom nav) — Muse-class shell
    - Home / hero with Interstitium lockup + sigil
    - Founders Learning OS
    - Learn / Prep / Play
@@ -158,7 +158,7 @@ Capability matrix: [MUSE-AI-MOBILE-CAPABILITY-BENCHMARK.md](./MUSE-AI-MOBILE-CAP
 
 Native and PWA coach experience mirrors public Muse *interaction* patterns (chat-first, thumb mic/speak, drawers) under **Interstitium** brand only:
 
-- Product name: **Lab Muse** / Interstitium Labs
+- Product name: **Noah** / Interstitium Labs
 - Tokens: void `#070B16`, cyan `#5EEAD4`, gold `#D4A853`
 - Lockup: canonical Interstitium (56–80px industry scale) — not Meta logo
 - Avatar: original Dee / Monas Hieroglyphica–inspired SVG (`assets/il-muse-avatar-dee.svg`) with status glows

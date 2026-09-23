@@ -370,9 +370,9 @@ RHEL/Rocky 10 · libvirt/Cockpit · k3s or Kind · Podman · ttyd · Ollama · Q
 
 ---
 
-## 13b. Browser model router (Lab Muse)
+## 13b. Browser model router (Noah)
 
-Static site ships `il-model-router.js` + `il-model-analytics.js` + Muse **Model** panel.
+Static site ships `il-model-router.js` + `il-model-analytics.js` + Noah **Model** panel.
 
 - **Default:** demand tier **T0 (lean)** — local Socratic rules; optional Ollama ≤3B on P1000, 7B on CPU.
 - **Scale relative to demand:** Muse shows current tier + “scale when demand grows.” Promote T1/T2 only when concurrency, p95 latency, or error rate warrants it.

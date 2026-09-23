@@ -1,7 +1,7 @@
 /**
  * IL Muse 3D — voice-reactive crystalline Monas / orrery stage (Interstitium original).
- * Self-contained WebGL (CSP-safe; no CDN). Exceeds flat Muse-class soft avatars in motion depth.
- * Driven by Lab Muse status: idle | listening | thinking | speaking.
+ * Self-contained WebGL (CSP-safe; no CDN). Exceeds flat assistant-class soft avatars in motion depth.
+ * Driven by Noah status: idle | listening | thinking | speaking.
  * NOT Meta Muse assets/code. NOT a photoreal scraped portrait.
  */
 (function (g) {
@@ -338,7 +338,7 @@
     root.className = 'il-muse-3d';
     root.setAttribute('data-muse-3d', '1');
     root.setAttribute('role', 'img');
-    root.setAttribute('aria-label', 'Lab Muse voice-reactive 3D familiar');
+    root.setAttribute('aria-label', 'Noah voice-reactive 3D familiar');
     root.innerHTML = fallbackHTML();
     slot.appendChild(root);
     if (opts.cinema) slot.classList.add('il-muse-3d-slot--cinema');

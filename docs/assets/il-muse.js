@@ -1,11 +1,11 @@
 /**
- * IL Muse / Lab Muse — Muse-class interaction shell (Interstitium Labs).
+ * IL Muse / Noah — Muse-class interaction shell (Interstitium Labs).
  * Mobile hooks: full-bleed shell ≤768px / standalone / Capacitor (see il-muse-mobile.css).
  * Brand: cyan/gold/void + Interstitium lockup — not Meta colors or trademarks.
  * Default avatar theme: Dee (Monas-derived geometric mark) — Interstitium original artwork;
- *   inspired by historical John Dee; not a museum portrait or Meta Muse avatar.
+ *   inspired by historical John Dee; not a museum portrait or Meta Noah.
  * Voice-reactive 3D stage: optional il-muse-3d.js (WebGL monas/orrery). SVG picker remains fallback.
- * Interaction patterns inspired by public Muse design posts (introducing.muse.ai).
+ * Interaction patterns inspired by a public assistant design posts (introducing.muse.ai).
  * NOT Meta proprietary code, assets, or trademarks. Educational Socratic DevOps tutor.
  *
  * Optional deps: il-coach.js, il-model-router.js, il-model-analytics.js, il-adaptive.js
@@ -57,7 +57,7 @@
   function emptyState() {
     return {
       v: 1,
-      name: 'Lab Muse',
+      name: 'Noah',
       personality: PERSONALITY_DEE,
       avatarId: AVATAR_DEFAULT,
       tone: 'coach',
@@ -152,10 +152,10 @@
     var nav = document.createElement('nav');
     nav.className = 'il-muse-tabnav';
     nav.setAttribute('data-il-muse-tabnav', '1');
-    nav.setAttribute('aria-label', 'Lab Muse companion');
+    nav.setAttribute('aria-label', 'Noah companion');
     var path = (g.location && g.location.pathname) || '';
     var items = [
-      ['/coach/', 'Muse', '◆', path.indexOf('/coach') === 0],
+      ['/coach/', 'Noah', '◆', path.indexOf('/coach') === 0],
       ['/paths/', 'Paths', '⬡', path.indexOf('/paths') === 0],
       ['/labs/', 'Labs', '▣', path.indexOf('/labs') === 0],
       ['/os/', 'OS', '◎', path.indexOf('/os') === 0 || path.indexOf('/founders') === 0]
@@ -405,7 +405,7 @@
       return {
         id: uid('appr'),
         title: 'Review model / demand panel?',
-        body: 'Lean T0 stays default. Approve to open Muse settings → Model (local policy only).',
+        body: 'Lean T0 stays default. Approve to open Noah settings → Model (local policy only).',
         primary: { label: 'Open Model panel', panel: 'model' },
         secondary: { label: 'Keep lean', dismiss: true }
       };
@@ -453,7 +453,7 @@
     if (/terraform|pipeline|ci\/?cd|linux|systemd|ansible/i.test(t)) {
       return {
         id: uid('art'), kind: 'lab-checklist', title: 'Lab drill checklist',
-        body: 'Practice beats answer dumps. Bring Muse a hypothesis after one lab sitting.',
+        body: 'Practice beats answer dumps. Bring Noah a hypothesis after one lab sitting.',
         checklist: ['One observation', 'One hypothesis', 'One command tried', 'Link proof export'],
         links: [
           { href: '/labs/superlab/', label: 'SuperLab' },
@@ -466,7 +466,7 @@
     if (/proof|portfolio|evidence|export/i.test(t)) {
       return {
         id: uid('art'), kind: 'proof', title: 'Proof-of-work link',
-        body: 'Export inspectable markdown from local adaptive + Muse + exam state — no invented server claims.',
+        body: 'Export inspectable markdown from local adaptive + Noah + exam state — no invented server claims.',
         checklist: ['Refresh snapshot', 'Download .md or print PDF', 'Keep honesty labels'],
         links: [
           { href: '/proof/', label: 'Open proof export' },
@@ -478,7 +478,7 @@
     if (/path|frontier|career|hire|interview/i.test(t)) {
       return {
         id: uid('art'), kind: 'link', title: 'Path / frontier deep links',
-        body: 'Jump the hire loop — Adapt placement → path phase → lab → Muse → proof.',
+        body: 'Jump the hire loop — Adapt placement → path phase → lab → Noah → proof.',
         links: [
           { href: '/paths/', label: 'Paths' },
           { href: '/os/', label: 'Hire OS' },
@@ -500,7 +500,7 @@
       out.push({ id: id, title: title, meta: meta || '', href: href || '/coach/', t: Date.now(), read: false });
     }
     (state.goals || []).forEach(function (g0) {
-      if (!g0.done) add('goal:' + g0.id, 'Goal nudge · ' + g0.title, 'Open goal · ask Muse for a Socratic next step', '/coach/');
+      if (!g0.done) add('goal:' + g0.id, 'Goal nudge · ' + g0.title, 'Open goal · ask Noah for a Socratic next step', '/coach/');
     });
     ideasFromAdaptive().forEach(function (idea) {
       add('idea:' + idea.id, idea.title, idea.meta || 'Weak Adapt topic', idea.href || '/adapt/');
@@ -515,7 +515,7 @@
   function tryLocalNotification(title, body) {
     try {
       if (!g.Notification || Notification.permission !== 'granted') return false;
-      var n = new Notification(title || 'Lab Muse', {
+      var n = new Notification(title || 'Noah', {
         body: body || 'Time for a short study sitting.',
         tag: 'il-muse-nudge',
         silent: false
@@ -716,7 +716,7 @@
         pushActivity(state, 'Study nudges · +' + added);
         var top = state.inbox[0];
         if (state.notifOptIn && top) {
-          tryLocalNotification('Lab Muse · study nudge', top.title);
+          tryLocalNotification('Noah · study nudge', top.title);
         }
         persist();
       } else if (force) {
@@ -875,7 +875,7 @@
     }
 
     function mobileBar() {
-      return '<div class="il-muse-mobile-bar" role="toolbar" aria-label="Lab Muse drawers">' +
+      return '<div class="il-muse-mobile-bar" role="toolbar" aria-label="Noah drawers">' +
         '<button type="button" data-muse-toggle-rail aria-label="Open chats">Chats</button>' +
         '<button type="button" data-muse-toggle-panel aria-label="Open goals and artifacts">Goals</button></div>';
     }
@@ -900,7 +900,7 @@
     function avatarMarkHTML() {
       var av = avatarById(state.avatarId || AVATAR_DEFAULT);
       return '<button type="button" class="il-muse-avatar il-muse-avatar--' + esc(av.id) + '" data-muse-avatar data-avatar="' + esc(av.id) + '"' +
-        ' title="Lab Muse · ' + esc(av.label) + '" aria-label="Lab Muse activity">' +
+        ' title="Noah · ' + esc(av.label) + '" aria-label="Noah activity">' +
         '<span class="il-muse-avatar__ring" aria-hidden="true"></span>' +
         '<img class="il-muse-avatar__mark" src="' + esc(av.src) + '" width="40" height="40" alt="" decoding="async"/>' +
         '</button>';
@@ -973,12 +973,12 @@
         '<button type="button" class="il-muse-icon-btn" data-muse-attach title="Attach (stub)" aria-label="Attach">📎</button>' +
         '<button type="button" class="il-muse-icon-btn il-muse-mic" data-muse-mic title="Dictate" ' +
           (vs.recognition ? '' : 'disabled ') + 'aria-label="Microphone">🎙</button>' +
-        '<textarea class="il-muse-composer__input" data-muse-input rows="1" placeholder="Ask a stuck question — interrupt anytime…" aria-label="Message Lab Muse"></textarea>' +
+        '<textarea class="il-muse-composer__input" data-muse-input rows="1" placeholder="Ask a stuck question — interrupt anytime…" aria-label="Message Noah"></textarea>' +
         (statusKey === 'thinking' || statusKey === 'speaking'
           ? '<button type="button" class="il-muse-send il-muse-send--stop" data-muse-stop title="Stop / interrupt">Stop</button>'
           : '<button type="submit" class="il-muse-send" data-i18n="muse.send">Send</button>') +
         '</form>' + voiceFb +
-        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Inspired by Muse <em>interaction design</em> (public posts) — educational agent, not Meta’s product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or Meta Muse asset. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
+        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Noah is the assistant. Not a filmed character, and not another company's product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or a filmed assistant. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
         '</div></section>';
     }
 
@@ -1038,7 +1038,7 @@
         ['goals', 'Goals'], ['ideas', 'Ideas'],
         ['inbox', 'Inbox' + (unread ? ' · ' + unread : '')],
         ['library', 'Library'],
-        ['model', 'Model'], ['settings', 'Muse']
+        ['model', 'Model'], ['settings', 'Noah']
       ];
       var tabBtns = tabs.map(function (t) {
         return '<button type="button" class="il-muse-tab' + (panelTab === t[0] ? ' is-on' : '') + '" data-muse-tab="' + t[0] + '">' + t[1] + '</button>';
@@ -1050,7 +1050,7 @@
       else if (panelTab === 'library') body = libraryPanel();
       else if (panelTab === 'model') body = modelPanel(demand, routerState, active, catalog);
       else body = settingsPanel(vs);
-      return '<aside class="il-muse-panel" aria-label="Lab Muse panels">' +
+      return '<aside class="il-muse-panel" aria-label="Noah panels">' +
         '<div class="il-muse-tabs">' + tabBtns + '</div>' +
         '<div class="il-muse-panel__body">' + body + '</div></aside>';
     }
@@ -1074,7 +1074,7 @@
           '<p class="il-muse-idea__meta">' + esc(idea.meta || '') + '</p>' +
           '<div class="il-muse-artifact__links" style="margin-top:0.5rem">' +
           (idea.href ? '<a href="' + esc(idea.href) + '">Open</a>' : '') +
-          '<button type="button" data-muse-idea-ask="' + esc(idea.title) + '" class="il-muse-chip-btn">Ask Muse</button></div></div>';
+          '<button type="button" data-muse-idea-ask="' + esc(idea.title) + '" class="il-muse-chip-btn">Ask Noah</button></div></div>';
       }).join('');
       return '<div class="il-muse-panel-section"><h3 data-i18n="muse.ideas">Ideas</h3>' +
         '<p class="hint">Suggestions from Adaptive weak topics when present.</p>' + rows + '</div>';
@@ -1087,7 +1087,7 @@
           '<p class="il-muse-idea__meta">' + esc(n.meta || '') + '</p>' +
           '<div class="il-muse-artifact__links" style="margin-top:0.5rem">' +
           (n.href ? '<a href="' + esc(n.href) + '"' + (isFirstPartyHref(n.href) ? '' : ' data-muse-external="' + esc(n.href) + '"') + '>Open</a>' : '') +
-          '<button type="button" data-muse-nudge-ask="' + esc(n.title) + '" class="il-muse-chip-btn">Ask Muse</button>' +
+          '<button type="button" data-muse-nudge-ask="' + esc(n.title) + '" class="il-muse-chip-btn">Ask Noah</button>' +
           '<button type="button" data-muse-nudge-read="' + esc(n.id) + '" class="il-muse-chip-btn">Mark read</button></div></div>';
       }).join('');
       return '<div class="il-muse-panel-section"><h3>Study inbox</h3>' +
@@ -1192,7 +1192,7 @@
       var mems = (state.memories || []).map(function (m, i) {
         return '<li><span>' + esc(m) + '</span><button type="button" data-muse-mem-del="' + i + '">Remove</button></li>';
       }).join('');
-      return '<div class="il-muse-panel-section"><h3 data-i18n="muse.settings">Muse settings</h3>' +
+      return '<div class="il-muse-panel-section"><h3 data-i18n="muse.settings">Noah settings</h3>' +
         '<div class="il-muse-field"><label>Name</label><input data-muse-name value="' + esc(state.name) + '"/></div>' +
         '<div class="il-muse-field"><label>Avatar</label><div class="il-muse-avatar-picker" role="radiogroup" aria-label="Avatar theme">' +
         AVATARS.map(function (a) {
@@ -1511,11 +1511,11 @@
         var p = app.querySelector('[data-muse-personality]');
         var ton = app.querySelector('[data-muse-tone]');
         var vo = app.querySelector('[data-muse-voice]');
-        if (n) state.name = n.value.trim() || 'Lab Muse';
+        if (n) state.name = n.value.trim() || 'Noah';
         if (p) state.personality = p.value.trim() || state.personality;
         if (ton) state.tone = ton.value;
         if (vo) state.voiceURI = vo.value;
-        pushActivity(state, 'Updated Muse settings');
+        pushActivity(state, 'Updated Noah settings');
         persist(); render();
       });
       app.querySelectorAll('[data-muse-avatar-pick]').forEach(function (btn) {

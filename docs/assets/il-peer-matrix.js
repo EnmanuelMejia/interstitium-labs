@@ -3,7 +3,7 @@ var ROWS=[
 {dim:'Hosted lab / playground fleet',il:'LOSE',note:'One SuperLab + CotD — not 800 VMs',kk:'WIN',br:'TIE',al:'LOSE',aws:'WIN'},
 {dim:'Adaptive placement + fringe',il:'WIN',note:'Local CAT + ALEKS-style fringe',kk:'TIE',br:'TIE',al:'WIN',aws:'TIE'},
 {dim:'Interaction / lesson craft',il:'TIE',note:'Brilliant still denser',kk:'TIE',br:'WIN',al:'TIE',aws:'TIE'},
-{dim:'In-lab live AI / Muse',il:'TIE',note:'Lab Muse + router shipped; no fake keys',kk:'WIN',br:'TIE',al:'LOSE',aws:'TIE'},
+{dim:'In-lab live AI / Noah',il:'TIE',note:'Noah + router shipped; no fake keys',kk:'WIN',br:'TIE',al:'LOSE',aws:'TIE'},
 {dim:'Official certs / proctoring',il:'LOSE',note:'Vendor-map orchestrates',kk:'TIE',br:'LOSE',al:'TIE',aws:'WIN'},
 {dim:'Portfolio honesty / proof',il:'WIN',note:'Labeled portfolio; no fake employment',kk:'TIE',br:'LOSE',al:'LOSE',aws:'LOSE'},
 {dim:'Offline / inspectable static OS',il:'WIN',note:'Browser-local; CSP-first',kk:'LOSE',br:'LOSE',al:'LOSE',aws:'LOSE'},
