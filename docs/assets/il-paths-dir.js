@@ -6,7 +6,7 @@
 
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
   }
 
   function paint(root, catalog) {
@@ -56,7 +56,11 @@
       })
       .catch(function (err) {
         for (var i = 0; i < nodes.length; i++) {
-          nodes[i].innerHTML = '<p class="il-honest-note">Path catalog failed to load. ' + String(err && err.message || err) + '</p>';
+          nodes[i].textContent = "";
+          var note = document.createElement("p");
+          note.className = "il-honest-note";
+          note.textContent = "Path catalog failed to load. " + String((err && err.message) || err);
+          nodes[i].appendChild(note);
         }
       });
   }
