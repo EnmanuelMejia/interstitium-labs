@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BaselineRouteImport } from './routes/baseline'
 import { Route as CanonRouteImport } from './routes/canon'
 import { Route as DeskRouteImport } from './routes/desk'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as HostRouteImport } from './routes/host'
 import { Route as LaddersRouteImport } from './routes/ladders'
+import { Route as ManualsRouteImport } from './routes/manuals'
 import { Route as MuseRouteImport } from './routes/muse'
 import { Route as PathsRouteImport } from './routes/paths'
 import { Route as RadarRouteImport } from './routes/radar'
@@ -27,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BaselineRoute = BaselineRouteImport.update({
+  id: '/baseline',
+  path: '/baseline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CanonRoute = CanonRouteImport.update({
   id: '/canon',
   path: '/canon',
@@ -37,6 +45,11 @@ const DeskRoute = DeskRouteImport.update({
   path: '/desk',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HostRoute = HostRouteImport.update({
   id: '/host',
   path: '/host',
@@ -45,6 +58,11 @@ const HostRoute = HostRouteImport.update({
 const LaddersRoute = LaddersRouteImport.update({
   id: '/ladders',
   path: '/ladders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManualsRoute = ManualsRouteImport.update({
+  id: '/manuals',
+  path: '/manuals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MuseRoute = MuseRouteImport.update({
@@ -85,10 +103,13 @@ const SessionSessionIdRoute = SessionSessionIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
   '/desk': typeof DeskRoute
+  '/editor': typeof EditorRoute
   '/host': typeof HostRoute
   '/ladders': typeof LaddersRoute
+  '/manuals': typeof ManualsRoute
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
@@ -99,10 +120,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
   '/desk': typeof DeskRoute
+  '/editor': typeof EditorRoute
   '/host': typeof HostRoute
   '/ladders': typeof LaddersRoute
+  '/manuals': typeof ManualsRoute
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
@@ -114,10 +138,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
   '/desk': typeof DeskRoute
+  '/editor': typeof EditorRoute
   '/host': typeof HostRoute
   '/ladders': typeof LaddersRoute
+  '/manuals': typeof ManualsRoute
   '/muse': typeof MuseRoute
   '/paths': typeof PathsRouteWithChildren
   '/radar': typeof RadarRoute
@@ -130,10 +157,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/baseline'
     | '/canon'
     | '/desk'
+    | '/editor'
     | '/host'
     | '/ladders'
+    | '/manuals'
     | '/muse'
     | '/paths'
     | '/radar'
@@ -144,10 +174,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/baseline'
     | '/canon'
     | '/desk'
+    | '/editor'
     | '/host'
     | '/ladders'
+    | '/manuals'
     | '/muse'
     | '/paths'
     | '/radar'
@@ -158,10 +191,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/baseline'
     | '/canon'
     | '/desk'
+    | '/editor'
     | '/host'
     | '/ladders'
+    | '/manuals'
     | '/muse'
     | '/paths'
     | '/radar'
@@ -173,10 +209,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BaselineRoute: typeof BaselineRoute
   CanonRoute: typeof CanonRoute
   DeskRoute: typeof DeskRoute
+  EditorRoute: typeof EditorRoute
   HostRoute: typeof HostRoute
   LaddersRoute: typeof LaddersRoute
+  ManualsRoute: typeof ManualsRoute
   MuseRoute: typeof MuseRoute
   PathsRoute: typeof PathsRouteWithChildren
   RadarRoute: typeof RadarRoute
@@ -194,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/baseline': {
+      id: '/baseline'
+      path: '/baseline'
+      fullPath: '/baseline'
+      preLoaderRoute: typeof BaselineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/canon': {
       id: '/canon'
       path: '/canon'
@@ -208,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeskRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/host': {
       id: '/host'
       path: '/host'
@@ -220,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/ladders'
       fullPath: '/ladders'
       preLoaderRoute: typeof LaddersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuals': {
+      id: '/manuals'
+      path: '/manuals'
+      fullPath: '/manuals'
+      preLoaderRoute: typeof ManualsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/muse': {
@@ -286,10 +346,13 @@ const PathsRouteWithChildren = PathsRoute._addFileChildren(PathsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BaselineRoute: BaselineRoute,
   CanonRoute: CanonRoute,
   DeskRoute: DeskRoute,
+  EditorRoute: EditorRoute,
   HostRoute: HostRoute,
   LaddersRoute: LaddersRoute,
+  ManualsRoute: ManualsRoute,
   MuseRoute: MuseRoute,
   PathsRoute: PathsRouteWithChildren,
   RadarRoute: RadarRoute,

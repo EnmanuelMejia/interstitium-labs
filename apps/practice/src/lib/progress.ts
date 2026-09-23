@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 
 export type QuizResult = { correct: number; total: number; passed: boolean };
 export type LabResult = { score: number; passed: boolean; detail: string };
+export type BaselineResult = { theta: number; band: "numerals" | "rates" | "models" | "tails"; asked: number };
 
 type State = {
   quizzes: Record<string, QuizResult>;
@@ -10,6 +11,7 @@ type State = {
   notes: Record<string, boolean>;
   obsession: string;
   tutorId: string;
+  baseline: BaselineResult | null;
   hydrated: boolean;
   setHydrated: (v: boolean) => void;
   saveQuiz: (id: string, result: QuizResult) => void;
@@ -17,6 +19,7 @@ type State = {
   setNote: (id: string, done: boolean) => void;
   setObsession: (text: string) => void;
   setTutorId: (id: string) => void;
+  setBaseline: (result: BaselineResult) => void;
 };
 
 export const useProgress = create<State>()(
@@ -27,6 +30,7 @@ export const useProgress = create<State>()(
       notes: {},
       obsession: "",
       tutorId: "dee",
+      baseline: null,
       hydrated: false,
       setHydrated: (v) => set({ hydrated: v }),
       saveQuiz: (id, result) => set((s) => ({ quizzes: { ...s.quizzes, [id]: result } })),
@@ -34,11 +38,19 @@ export const useProgress = create<State>()(
       setNote: (id, done) => set((s) => ({ notes: { ...s.notes, [id]: done } })),
       setObsession: (text) => set({ obsession: text.slice(0, 140) }),
       setTutorId: (id) => set({ tutorId: id }),
+      setBaseline: (result) => set({ baseline: result }),
     }),
     {
       name: "interstitium-domain-v1",
       skipHydration: true,
-      partialize: (s) => ({ quizzes: s.quizzes, labs: s.labs, notes: s.notes, obsession: s.obsession, tutorId: s.tutorId }),
+      partialize: (s) => ({
+        quizzes: s.quizzes,
+        labs: s.labs,
+        notes: s.notes,
+        obsession: s.obsession,
+        tutorId: s.tutorId,
+        baseline: s.baseline,
+      }),
     },
   ),
 );

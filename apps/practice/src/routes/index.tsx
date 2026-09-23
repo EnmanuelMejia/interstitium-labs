@@ -31,6 +31,9 @@ function Home() {
         >
           {hydrated && quizzes[sessions[0].id]?.passed ? `Continue · ${next.index} ${next.title}` : "Begin with the orientation"}
         </Link>
+        <Link to="/baseline" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
+          Place your math
+        </Link>
         <Link to="/muse" className="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-fg">
           Ask Muse first
         </Link>
