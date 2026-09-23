@@ -34,8 +34,7 @@ export function AboutPage() {
           </ul>
           <p className="mt-5 text-fg/85">
             Linux, networking, Azure-oriented cloud practice, infrastructure as code, containers, and CI/CD are labeled
-            lab or portfolio unless paid ownership is true. Interview prep is prep, not employment. A proposed Lawrence
-            analysis engagement was withdrawn for budget, and that stays on the record.
+            lab or portfolio unless paid ownership is true. Interview prep is prep, not employment.
           </p>
           <p className="mt-5 text-sm">
             <a className="underline" href="https://github.com/EnmanuelMejia">GitHub</a>
