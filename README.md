@@ -16,6 +16,10 @@ Knowledge OS — Learning OS (founders, learn, prep, play, paths), academies, ad
 | Store path | `docs/ops/STORE-PUBLISH.md` (Enmanuel’s Apple/Google accounts required) |
 | Payments | Payment Links only — no Stripe secrets in repo |
 
+## Practice app
+
+`apps/practice/` is the self-paced practice: tutor, ladders, labs, and the motif stage. It is not the live site yet. `docs/` stays what interstitiumlabs.dev serves. The P920 hypervisor comes later.
+
 ## Local web
 
 ```bash
