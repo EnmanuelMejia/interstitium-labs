@@ -71,7 +71,14 @@ export function TutorDesk() {
           setError(res.error);
           return;
         }
-        setLines((curr) => [...curr, { who: "tutor", text: res.text, via: `${res.provider} · ${res.model}` }]);
+        setLines((curr) => [
+          ...curr,
+          {
+            who: "tutor",
+            text: res.text,
+            via: res.provider === "jev" ? `jev · ${res.route}` : `jev · ${res.route} · ${res.provider} · ${res.model}`,
+          },
+        ]);
         if (!voiceOn) return;
         if (speakOpen(res.text)) return;
         setSpeaking(true);

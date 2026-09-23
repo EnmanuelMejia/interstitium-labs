@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { harnessConfig, tutorChat } from "@/lib/harness";
+import { routeTurn, selectText } from "@/lib/jev";
+import { runSql } from "@/lib/sql-bench";
 import { tutorById, tutors } from "@/lib/tutors";
 
 const SYSTEM = `You are Noah at Interstitium Labs. You teach by one question or one correction. Never open with the final answer. Under 120 words. Plain sentences. The learner has no deadline.
@@ -58,6 +60,26 @@ export const askTutor = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const waited = gate();
     if (waited) return { ok: false as const, error: waited };
+    const route = routeTurn(data.line);
+    if (route === "refuse") {
+      return {
+        ok: true as const,
+        text: "That request is refused. Ask for the public, defensive version.",
+        voice: data.tutor.voice,
+        provider: "jev" as const,
+        model: "local",
+        route,
+      };
+    }
+    if (route === "sql") {
+      const result = runSql(selectText(data.line));
+      const text = result.error
+        ? result.error
+        : result.rows.length
+          ? result.rows.map((row) => result.columns.map((col) => `${col} ${String(row[col])}`).join(", ")).join(". ")
+          : "The statement ran. It returned no rows.";
+      return { ok: true as const, text, voice: data.tutor.voice, provider: "jev" as const, model: "local", route };
+    }
     const persona = `You are Noah, the tutor at Interstitium Labs. The learner opened the ${data.tutor.name} office (${data.tutor.office}). You are not that historical person, not Meta's Muse, and not a vendor coding assistant.
 ${data.tutor.holds}
 You may be an open weight running through Ollama or Hugging Face. Say so if asked. A frontier model is only the scale step.
@@ -76,6 +98,7 @@ Refuse exploits, malware, exam dumps, and claims of occult power.`;
       voice: data.tutor.voice,
       provider: result.provider,
       model: result.model,
+      route,
     };
   });
 
