@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Run } from "@/components/run";
-import { evalAt, evalRows, passages, practiceExam, retrievalAnswer, retrievalQuery, runSteps } from "@/lib/works";
+import { evalAt, evalRows, passages, practiceExam, retrievalAnswer, retrievalQuery, runSteps, shelves } from "@/lib/works";
 import { useProgress } from "@/lib/progress";
 
 export const Route = createFileRoute("/works")({
@@ -15,10 +15,6 @@ function pct(n: number) {
 function WorksPage() {
   const saveQuiz = useProgress((s) => s.saveQuiz);
   const saveLab = useProgress((s) => s.saveLab);
-  const obsession = useProgress((s) => s.obsession);
-  const setObsession = useProgress((s) => s.setObsession);
-  const build = useProgress((s) => s.build);
-  const setBuild = useProgress((s) => s.setBuild);
   const [picks, setPicks] = useState<number[]>(() => practiceExam.map(() => -1));
   const [checked, setChecked] = useState(false);
   const [passage, setPassage] = useState("");
@@ -29,18 +25,40 @@ function WorksPage() {
 
   return (
     <main>
-      <p className="text-xs tracking-[0.18em] text-muted uppercase">Works · open</p>
-      <h1 className="mt-3 max-w-[16ch] text-hero leading-[0.95]">Understand it, run it, then build</h1>
+      <p className="text-xs tracking-[0.18em] text-muted uppercase">Works · engineering</p>
+      <h1 className="mt-3 max-w-[16ch] text-hero leading-[0.95]">Understand it, then measure it</h1>
       <p className="mt-5 max-w-[68ch] text-lg text-fg/85">
-        One business bootcamp builds a single system, then another, across three levels. The San Francisco academy
-        asks for one obsession and proof the thing exists. Those are the methods. Their videos, their campus calendar,
-        and their certificates are not here. These runs, labs, and the practice exam are original and released under
-        CC BY 4.0.
+        This is the engineering half. One system at a time: a run, a practice exam, a retrieval, a line you move. The
+        build half is the academy. Both are open. Neither is a certificate from those schools.
+      </p>
+      <p className="mt-4">
+        <Link to="/academy" className="text-sm underline">
+          The academy build
+        </Link>
       </p>
 
-      <section className="mt-10">
+      <section className="mt-10 max-w-3xl space-y-8">
+        <h2 className="text-3xl">Both shelves</h2>
+        <p className="max-w-[68ch] text-muted">
+          MIT’s lecture videos and the Hugging Face course. Play our order, then open theirs. We do not rehost the files.
+        </p>
+        {shelves.map((shelf) => (
+          <div key={shelf.id}>
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+              <h3 className="text-2xl">{shelf.title}</h3>
+              <a href={shelf.href} className="text-sm underline" target="_blank" rel="noreferrer">
+                Open the source
+              </a>
+            </div>
+            <Run steps={shelf.steps} />
+            <p className="mt-2 text-sm text-muted">{shelf.note}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mt-14">
         <h2 className="text-3xl">Understand</h2>
-        <p className="mt-3 max-w-[68ch] text-muted">Play the run. Then sit the practice exam. Four of four to clear it.</p>
+        <p className="mt-3 max-w-[68ch] text-muted">Our run, then the practice exam. Four of four to clear it. CC BY 4.0.</p>
         <div className="mt-4 max-w-3xl">
           <Run steps={runSteps} />
         </div>
@@ -154,62 +172,6 @@ function WorksPage() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="mt-14 max-w-[68ch]">
-        <h2 className="text-3xl">The build</h2>
-        <p className="mt-3 text-muted">
-          One thing, named. Who it is for. How you will know it failed. No term dates, no city requirement, no admission
-          office. Noah can hold the name. The proof stays on this device.
-        </p>
-        <label className="mt-4 block text-sm text-muted" htmlFor="obsession-works">
-          The work
-        </label>
-        <input
-          id="obsession-works"
-          value={obsession}
-          onChange={(e) => setObsession(e.target.value)}
-          maxLength={140}
-          className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
-        />
-        <label className="mt-4 block text-sm text-muted" htmlFor="artifact">
-          The artifact someone can run
-        </label>
-        <input
-          id="artifact"
-          value={build.artifact}
-          onChange={(e) => setBuild({ artifact: e.target.value.slice(0, 160) })}
-          className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
-        />
-        <label className="mt-4 block text-sm text-muted" htmlFor="who">
-          Who uses it
-        </label>
-        <input
-          id="who"
-          value={build.who}
-          onChange={(e) => setBuild({ who: e.target.value.slice(0, 160) })}
-          className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
-        />
-        <label className="mt-4 block text-sm text-muted" htmlFor="fails">
-          How it fails in the open
-        </label>
-        <input
-          id="fails"
-          value={build.fails}
-          onChange={(e) => setBuild({ fails: e.target.value.slice(0, 160) })}
-          className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
-        />
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link to="/muse" className="inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-sm font-medium text-accent-fg">
-            Take it to Noah
-          </Link>
-          <a className="inline-flex min-h-11 items-center text-sm underline" href="https://huggingface.co/learn" target="_blank" rel="noreferrer">
-            Hugging Face course
-          </a>
-          <a className="inline-flex min-h-11 items-center text-sm underline" href="https://ocw.mit.edu/" target="_blank" rel="noreferrer">
-            MIT OpenCourseWare
-          </a>
-        </div>
       </section>
     </main>
   );
