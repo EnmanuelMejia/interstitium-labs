@@ -21,7 +21,7 @@ window.IL_ENROLL = {
       name: "Prep Sprint",
       badge: "Interview crush",
       blurb:
-        "Guided access framing for the BNY-aimed 3-phase prep track (math → programming → DevOps + drills). Study path — not employment.",
+        "Guided access framing for the desk 3-phase prep track (math → programming → DevOps + drills). Study path — not employment.",
       publishablePrice: "$149",
       period: "one-time",
       features: [
