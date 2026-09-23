@@ -14,6 +14,8 @@ type State = {
   tutorId: string;
   baseline: BaselineResult | null;
   build: BuildProof;
+  memory: string[];
+  goals: string[];
   hydrated: boolean;
   setHydrated: (v: boolean) => void;
   saveQuiz: (id: string, result: QuizResult) => void;
@@ -23,6 +25,9 @@ type State = {
   setTutorId: (id: string) => void;
   setBaseline: (result: BaselineResult) => void;
   setBuild: (patch: Partial<BuildProof>) => void;
+  addMemory: (text: string) => void;
+  dropMemory: (text: string) => void;
+  addGoal: (text: string) => void;
 };
 
 export const useProgress = create<State>()(
@@ -35,6 +40,8 @@ export const useProgress = create<State>()(
       tutorId: "dee",
       baseline: null,
       build: { artifact: "", who: "", fails: "" },
+      memory: [],
+      goals: [],
       hydrated: false,
       setHydrated: (v) => set({ hydrated: v }),
       saveQuiz: (id, result) => set((s) => ({ quizzes: { ...s.quizzes, [id]: result } })),
@@ -44,6 +51,20 @@ export const useProgress = create<State>()(
       setTutorId: (id) => set({ tutorId: id }),
       setBaseline: (result) => set({ baseline: result }),
       setBuild: (patch) => set((s) => ({ build: { ...s.build, ...patch } })),
+      addMemory: (text) =>
+        set((s) => {
+          const next = text.replace(/\s+/g, " ").trim().slice(0, 160);
+          if (next.length < 2 || s.memory.includes(next)) return s;
+          return { memory: [next, ...s.memory].slice(0, 12) };
+        }),
+      dropMemory: (text) =>
+        set((s) => ({ memory: s.memory.filter((item) => !item.toLowerCase().includes(text.toLowerCase())) })),
+      addGoal: (text) =>
+        set((s) => {
+          const next = text.replace(/\s+/g, " ").trim().slice(0, 160);
+          if (next.length < 2 || s.goals.includes(next)) return s;
+          return { goals: [next, ...s.goals].slice(0, 6) };
+        }),
     }),
     {
       name: "interstitium-domain-v1",
@@ -56,6 +77,8 @@ export const useProgress = create<State>()(
         tutorId: s.tutorId,
         baseline: s.baseline,
         build: s.build,
+        memory: s.memory,
+        goals: s.goals,
       }),
     },
   ),

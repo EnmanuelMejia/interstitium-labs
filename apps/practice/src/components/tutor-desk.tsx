@@ -41,6 +41,11 @@ export function TutorDesk() {
   const setTutorId = useProgress((s) => s.setTutorId);
   const obsession = useProgress((s) => s.obsession);
   const setObsession = useProgress((s) => s.setObsession);
+  const memory = useProgress((s) => s.memory);
+  const goals = useProgress((s) => s.goals);
+  const addMemory = useProgress((s) => s.addMemory);
+  const dropMemory = useProgress((s) => s.dropMemory);
+  const addGoal = useProgress((s) => s.addGoal);
   const tutor = tutorById(tutorId);
   const [draft, setDraft] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
@@ -65,12 +70,17 @@ export function TutorDesk() {
     setDraft("");
     setPending(true);
     setError("");
-    void askTutor({ data: { tutorId: tutor.id, line, obsession, prior } })
+    void askTutor({ data: { tutorId: tutor.id, line, obsession, prior, memory, goals } })
       .then(async (res) => {
         if (!res.ok) {
           setError(res.error);
           return;
         }
+        if (res.route === "remember" && res.fact) {
+          if (res.drop) dropMemory(res.fact);
+          else addMemory(res.fact);
+        }
+        if (res.route === "goal" && res.fact) addGoal(res.fact);
         setLines((curr) => [
           ...curr,
           {
@@ -168,6 +178,30 @@ export function TutorDesk() {
               className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg"
               placeholder="A detector, a proof, a service"
             />
+            {goals.length || memory.length ? (
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                {goals.length ? (
+                  <div>
+                    <p className="text-xs tracking-[0.14em] text-muted uppercase">Goals</p>
+                    <ul className="mt-2 space-y-1">
+                      {goals.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {memory.length ? (
+                  <div>
+                    <p className="text-xs tracking-[0.14em] text-muted uppercase">Memory</p>
+                    <ul className="mt-2 space-y-1">
+                      {memory.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <label className="mt-4 block text-sm text-muted" htmlFor="tutor-line">
               Speak to Noah
             </label>
@@ -176,6 +210,7 @@ export function TutorDesk() {
               value={draft}
               onChange={(e) => setDraft(e.target.value.slice(0, 500))}
               rows={3}
+              placeholder="A task, a question, remember …, or goal: …"
               className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg"
             />
             <div className="mt-3 flex flex-wrap items-center gap-3">
