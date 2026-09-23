@@ -102,7 +102,7 @@ export async function tutorChat(system: string, user: string, maxTokens: number)
 export const noahGraph = [
   { id: "office", does: "Bind the office and the obsession. No model call yet." },
   { id: "model", does: "One completion. Ollama, then Hugging Face, then a frontier model." },
-  { id: "tool", does: "Not wired. If added, one local tool only, such as the SQL bench. No arbitrary code." },
+  { id: "tool", does: "Jev, a local scorer, picks refuse, the SQL bench, or teach. TypeSafe’s hosted model is not called." },
   { id: "stop", does: "Return the line. The learner speaks next. That pause is the human interrupt." },
 ] as const;
 
