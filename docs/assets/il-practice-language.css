@@ -39,12 +39,13 @@ h3,
 }
 .il-lockup-row .il-spin-mark {
   display: block;
-  width: 4.75rem;
-  height: 4.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
 }
 .il-word {
   font-family: "Fraunces", "Iowan Old Style", Georgia, serif;
-  font-size: 1.85rem;
+  font-size: 1.15rem;
   font-weight: 520;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -52,10 +53,18 @@ h3,
 }
 .il-labs {
   font-family: "Figtree", system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #9b9890;
+}
+@media (min-width: 640px) {
+  .il-lockup-row .il-spin-mark {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .il-word { font-size: 1.35rem; }
+  .il-labs { font-size: 0.68rem; }
 }
 #bio img {
   width: 10rem;
@@ -105,14 +114,25 @@ section:has(.il-hero-field) .il-hero-uw {
 
 section:has(.il-hero-field) .il-hero-sigil {
   opacity: 1;
-  width: min(72vw, 22rem) !important;
-  height: min(72vw, 22rem) !important;
+  z-index: 4;
+  top: 1rem;
+  right: 1rem;
+  width: 4.5rem !important;
+  height: 4.5rem !important;
   filter:
     contrast(1.18)
     saturate(1.35)
     brightness(1.08)
     drop-shadow(0 0 22px rgba(126, 212, 224, 0.65))
     drop-shadow(0 0 70px rgba(198, 165, 114, 0.42));
+}
+@media (min-width: 640px) {
+  section:has(.il-hero-field) .il-hero-sigil {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 9.5rem !important;
+    height: 9.5rem !important;
+  }
 }
 section:has(.il-hero-field) .il-spin-mark--hero {
   display: block;
