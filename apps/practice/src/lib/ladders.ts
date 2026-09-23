@@ -26,10 +26,10 @@ export const ladders: Ladder[] = [
     id: "sql",
     role: "SQL, associate to architect",
     pace: "No deadline",
-    note: "There is no SQL bench in the browser yet. That gap is stated, not papered over. Study the vendor catalog, then use the data paths for the decision the query serves.",
+    note: "SQL practice is the bench: SELECT on one table. Oracle still owns the exams and the rest of the dialect.",
     catalog: { label: "Oracle Database training", href: "https://education.oracle.com/oracle-database" },
     rungs: [
-      { name: "Associate", practice: "One SELECT you can read aloud: which rows, which grain, which lie the join can tell." },
+      { name: "Associate", practice: "One SELECT you can read aloud, then run it on the bench.", href: "/editor" },
       { name: "Professional", practice: "A model with a label that is not the future leaking in.", href: "/paths/data-analyst-to-ml" },
       { name: "Architect", practice: "Retention, identity, and the log you would show the next shift.", href: "/paths/aws-cloud-ops" },
     ],
