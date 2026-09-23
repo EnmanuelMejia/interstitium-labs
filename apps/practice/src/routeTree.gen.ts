@@ -22,6 +22,7 @@ import { Route as PathsRouteImport } from './routes/paths'
 import { Route as RadarRouteImport } from './routes/radar'
 import { Route as SchoolRouteImport } from './routes/school'
 import { Route as StackRouteImport } from './routes/stack'
+import { Route as WorksRouteImport } from './routes/works'
 import { Route as LabLabIdRouteImport } from './routes/lab.$labId'
 import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
 import { Route as SessionSessionIdRouteImport } from './routes/session.$sessionId'
@@ -91,6 +92,11 @@ const StackRoute = StackRouteImport.update({
   path: '/stack',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorksRoute = WorksRouteImport.update({
+  id: '/works',
+  path: '/works',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LabLabIdRoute = LabLabIdRouteImport.update({
   id: '/lab/$labId',
   path: '/lab/$labId',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/radar': typeof RadarRoute
   '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
+  '/works': typeof WorksRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/session/$sessionId': typeof SessionSessionIdRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/radar': typeof RadarRoute
   '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
+  '/works': typeof WorksRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/session/$sessionId': typeof SessionSessionIdRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/radar': typeof RadarRoute
   '/school': typeof SchoolRoute
   '/stack': typeof StackRoute
+  '/works': typeof WorksRoute
   '/lab/$labId': typeof LabLabIdRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/session/$sessionId': typeof SessionSessionIdRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/radar'
     | '/school'
     | '/stack'
+    | '/works'
     | '/lab/$labId'
     | '/paths/$slug'
     | '/session/$sessionId'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/radar'
     | '/school'
     | '/stack'
+    | '/works'
     | '/lab/$labId'
     | '/paths/$slug'
     | '/session/$sessionId'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/radar'
     | '/school'
     | '/stack'
+    | '/works'
     | '/lab/$labId'
     | '/paths/$slug'
     | '/session/$sessionId'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   RadarRoute: typeof RadarRoute
   SchoolRoute: typeof SchoolRoute
   StackRoute: typeof StackRoute
+  WorksRoute: typeof WorksRoute
   LabLabIdRoute: typeof LabLabIdRoute
   SessionSessionIdRoute: typeof SessionSessionIdRoute
 }
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/works': {
+      id: '/works'
+      path: '/works'
+      fullPath: '/works'
+      preLoaderRoute: typeof WorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lab/$labId': {
       id: '/lab/$labId'
       path: '/lab/$labId'
@@ -378,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   RadarRoute: RadarRoute,
   SchoolRoute: SchoolRoute,
   StackRoute: StackRoute,
+  WorksRoute: WorksRoute,
   LabLabIdRoute: LabLabIdRoute,
   SessionSessionIdRoute: SessionSessionIdRoute,
 }
