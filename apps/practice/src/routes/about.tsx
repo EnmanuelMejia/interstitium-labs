@@ -28,7 +28,6 @@ export function AboutPage() {
             and DevOps SuperLab are portfolio products, not a claim of senior production tenure or a paid studio payroll.
           </p>
           <ul className="mt-5 space-y-2 text-sm text-fg/85">
-            <li>Data Vimenca, IT Support 2 (2021–2025): VoIP and PBX on RHEL for 300+ users; Active Directory and Windows Server; supervised 22; IT budget and inventory.</li>
             <li>Philips Lifeline, Retention Specialist (2018–2021, Framingham): Salesforce, SAP, and Oracle data accuracy and reconnections.</li>
             <li>Certifications: CompTIA A+; Google IT Support Professional Certificate; a Boston University undergraduate computer science certificate.</li>
             <li>Earlier operations and data work includes Comcast Business, BU IT Labs, Intel, and Fidelity telecom.</li>
