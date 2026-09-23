@@ -9,6 +9,14 @@
   if (w.__IL_COMPAT__) return;
   w.__IL_COMPAT__ = true;
 
+  if (!d.getElementById("il-practice-language")) {
+    var link = d.createElement("link");
+    link.id = "il-practice-language";
+    link.rel = "stylesheet";
+    link.href = "/assets/il-practice-language.css";
+    d.head.appendChild(link);
+  }
+
   var root = d.documentElement;
 
   function setVh() {
