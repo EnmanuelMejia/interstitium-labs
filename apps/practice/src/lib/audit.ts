@@ -12,7 +12,7 @@ export const findings: Finding[] = [
   { name: "School", decision: "Webucator and Per Scholas are the topic map. Manuals are MDN, Node, Postgres, Ansible.", state: "Held" },
   { name: "Works and academy", decision: "Engineering labs and the build, field, return. Both open shelves linked, not rehosted.", state: "Held" },
   { name: "Data", decision: "Analyst grain, chart, and model. Tableau and Power BI are catalogs. Superset, DuckDB, Vega-Lite, pandas, scikit-learn, dbt are the tools.", state: "Held" },
-  { name: "Orchestration", decision: "Jev here is a local scorer: refuse, one SQL statement, or teach. TypeSafe’s hosted Jev is closed, so it is not called. LangGraph stays unused.", state: "Held" },
-  { name: "Public site", decision: "This practice is the source tree. The static public site is not this server, so the tutor is not folded into those pages.", state: "Gap" },
-  { name: "Host", decision: "The ThinkStation walkthrough was deferred.", state: "Gap" },
+  { name: "Orchestration", decision: "Jev routes refuse, memory, goal, one SQL statement, teach, or assist. TypeSafe’s hosted Jev is not called. LangGraph stays unused.", state: "Held" },
+  { name: "Public site", decision: "The Learning OS and this server share one map. /practice/ on the static host is the wing: placement and the bench. Noah’s frontier turn cannot run inside that static page.", state: "Partial" },
+  { name: "Host", decision: "Tomorrow, at the machine. Windows stays the host. The secondary disk is not erased from here.", state: "Gap" },
 ];

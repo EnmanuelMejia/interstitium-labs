@@ -16,9 +16,13 @@ Knowledge OS — Learning OS (founders, learn, prep, play, paths), academies, ad
 | Store path | `docs/ops/STORE-PUBLISH.md` (Enmanuel’s Apple/Google accounts required) |
 | Payments | Payment Links only — no Stripe secrets in repo |
 
-## Practice app
+## One site
 
-`apps/practice/` is the self-paced practice: tutor, ladders, labs, and the motif stage. It is not the live site yet. `docs/` stays what interstitiumlabs.dev serves. The P920 hypervisor comes later.
+`docs/` is what [interstitiumlabs.dev](https://interstitiumlabs.dev) serves. `/practice/` is the wing on that host: the same placement and the SQL bench, with no model call.
+
+`apps/practice/` is the server: Noah, memory, goals, and the frontier turn. The home page links the Learning OS rooms.
+
+The ThinkStation disk is not part of this merge. Hyper-V waits until you are at the machine.
 
 ## Local web
 

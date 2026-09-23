@@ -7,7 +7,7 @@ export const Route = createFileRoute("/host")({
 const steps = [
   {
     name: "Boot Windows, not the RHEL disk",
-    text: "The secondary M.2 keeps RHEL only until you choose to erase it. If that system is the one running, reboot and start Windows 11 Pro. This session cannot see your disks and cannot press the keys.",
+    text: "Tomorrow, when you are at the machine. Leave the secondary M.2 alone tonight. Boot Windows 11 Pro, not the RHEL disk. This session cannot see the disks and cannot press the keys.",
   },
   {
     name: "Name the disk before you touch it",
