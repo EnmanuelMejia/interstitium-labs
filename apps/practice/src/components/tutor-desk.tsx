@@ -3,7 +3,16 @@ import { askTutor, speakTutor } from "@/lib/muse-ask";
 import { useProgress } from "@/lib/progress";
 import { tutorById, tutors } from "@/lib/tutors";
 
-type Line = { who: "you" | "tutor"; text: string };
+type Line = { who: "you" | "tutor"; text: string; via?: string };
+
+function speakOpen(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return false;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text.slice(0, 420));
+  utterance.rate = 0.96;
+  window.speechSynthesis.speak(utterance);
+  return true;
+}
 
 function playMp3(b64: string) {
   const bin = atob(b64);
@@ -62,8 +71,9 @@ export function TutorDesk() {
           setError(res.error);
           return;
         }
-        setLines((curr) => [...curr, { who: "tutor", text: res.text }]);
+        setLines((curr) => [...curr, { who: "tutor", text: res.text, via: `${res.provider} · ${res.model}` }]);
         if (!voiceOn) return;
+        if (speakOpen(res.text)) return;
         setSpeaking(true);
         const said = await speakTutor({ data: { text: res.text, voice: res.voice } });
         if (!said.ok) setError(said.error);
@@ -135,6 +145,7 @@ export function TutorDesk() {
                     {item.who === "tutor" ? "Noah" : "You"}
                   </span>
                   {item.text}
+                  {item.via ? <span className="mt-2 block text-xs text-muted">{item.via}</span> : null}
                 </p>
               ))}
               {pending ? <p className="text-sm text-muted">At the keys.</p> : null}

@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcademyRouteImport } from './routes/academy'
+import { Route as AuditRouteImport } from './routes/audit'
 import { Route as BaselineRouteImport } from './routes/baseline'
 import { Route as CanonRouteImport } from './routes/canon'
+import { Route as DataRouteImport } from './routes/data'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as HostRouteImport } from './routes/host'
@@ -38,6 +40,11 @@ const AcademyRoute = AcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BaselineRoute = BaselineRouteImport.update({
   id: '/baseline',
   path: '/baseline',
@@ -46,6 +53,11 @@ const BaselineRoute = BaselineRouteImport.update({
 const CanonRoute = CanonRouteImport.update({
   id: '/canon',
   path: '/canon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeskRoute = DeskRouteImport.update({
@@ -122,8 +134,10 @@ const SessionSessionIdRoute = SessionSessionIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/audit': typeof AuditRoute
   '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
+  '/data': typeof DataRoute
   '/desk': typeof DeskRoute
   '/editor': typeof EditorRoute
   '/host': typeof HostRoute
@@ -142,8 +156,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/audit': typeof AuditRoute
   '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
+  '/data': typeof DataRoute
   '/desk': typeof DeskRoute
   '/editor': typeof EditorRoute
   '/host': typeof HostRoute
@@ -163,8 +179,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/audit': typeof AuditRoute
   '/baseline': typeof BaselineRoute
   '/canon': typeof CanonRoute
+  '/data': typeof DataRoute
   '/desk': typeof DeskRoute
   '/editor': typeof EditorRoute
   '/host': typeof HostRoute
@@ -185,8 +203,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/academy'
+    | '/audit'
     | '/baseline'
     | '/canon'
+    | '/data'
     | '/desk'
     | '/editor'
     | '/host'
@@ -205,8 +225,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/academy'
+    | '/audit'
     | '/baseline'
     | '/canon'
+    | '/data'
     | '/desk'
     | '/editor'
     | '/host'
@@ -225,8 +247,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/academy'
+    | '/audit'
     | '/baseline'
     | '/canon'
+    | '/data'
     | '/desk'
     | '/editor'
     | '/host'
@@ -246,8 +270,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademyRoute: typeof AcademyRoute
+  AuditRoute: typeof AuditRoute
   BaselineRoute: typeof BaselineRoute
   CanonRoute: typeof CanonRoute
+  DataRoute: typeof DataRoute
   DeskRoute: typeof DeskRoute
   EditorRoute: typeof EditorRoute
   HostRoute: typeof HostRoute
@@ -279,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/baseline': {
       id: '/baseline'
       path: '/baseline'
@@ -291,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/canon'
       fullPath: '/canon'
       preLoaderRoute: typeof CanonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desk': {
@@ -407,8 +447,10 @@ const PathsRouteWithChildren = PathsRoute._addFileChildren(PathsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademyRoute: AcademyRoute,
+  AuditRoute: AuditRoute,
   BaselineRoute: BaselineRoute,
   CanonRoute: CanonRoute,
+  DataRoute: DataRoute,
   DeskRoute: DeskRoute,
   EditorRoute: EditorRoute,
   HostRoute: HostRoute,
