@@ -2,7 +2,7 @@ export type Finding = { name: string; decision: string; state: "Held" | "Partial
 
 export const findings: Finding[] = [
   { name: "Pace", decision: "Self-paced. No deadlines, no cohort calendar.", state: "Held" },
-  { name: "Tutor name", decision: "Noah, in the Dee, Hypatia, Agrippa, or Lovelace office. Not Meta Muse.", state: "Held" },
+  { name: "Assistant", decision: "Noah drafts, plans, remembers, and keeps goals on this device. Assistant turns try the frontier model first. Noah does not send mail, spend money, browse after the turn, or connect to Meta’s apps.", state: "Partial" },
   { name: "Open weight first", decision: "Ollama, then Hugging Face, then a frontier model only if those are unset.", state: "Partial" },
   { name: "Voice", decision: "The browser speaks. Frontier speech is the fallback, not the product.", state: "Partial" },
   { name: "Exceed Muse", decision: "The harness is inspectable and local. The avatar is not a filmed character, and an open 7B weight is not a larger model by default.", state: "Partial" },

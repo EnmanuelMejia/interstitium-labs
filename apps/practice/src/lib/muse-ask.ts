@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { harnessConfig, tutorChat } from "@/lib/harness";
-import { routeTurn, selectText } from "@/lib/jev";
+import { goalFact, memoryFact, routeTurn, selectText } from "@/lib/jev";
 import { runSql } from "@/lib/sql-bench";
 import { tutorById, tutors } from "@/lib/tutors";
 
@@ -54,8 +54,10 @@ export const askTutor = createServerFn({ method: "POST" })
     const line = typeof o.line === "string" ? o.line.replace(/\u0000/g, "").trim().slice(0, 500) : "";
     const obsession = typeof o.obsession === "string" ? o.obsession.replace(/\s+/g, " ").trim().slice(0, 140) : "";
     const prior = typeof o.prior === "string" ? o.prior.replace(/\u0000/g, "").trim().slice(0, 800) : "";
+    const memory = Array.isArray(o.memory) ? o.memory.filter((item) => typeof item === "string").map((item) => item.slice(0, 160)).slice(0, 12) : [];
+    const goals = Array.isArray(o.goals) ? o.goals.filter((item) => typeof item === "string").map((item) => item.slice(0, 160)).slice(0, 6) : [];
     if (line.length < 2) throw new Error("Say something first.");
-    return { tutor, line, obsession, prior };
+    return { tutor, line, obsession, prior, memory, goals };
   })
   .handler(async ({ data }) => {
     const waited = gate();
@@ -69,6 +71,35 @@ export const askTutor = createServerFn({ method: "POST" })
         provider: "jev" as const,
         model: "local",
         route,
+        fact: "",
+        drop: false,
+      };
+    }
+    if (route === "remember") {
+      const dropping = /^forget\b/i.test(data.line);
+      const fact = memoryFact(data.line);
+      return {
+        ok: true as const,
+        text: fact.length < 2 ? "Say the fact after remember." : dropping ? `Dropped matches for “${fact}” on this device.` : `Kept on this device: ${fact}`,
+        voice: data.tutor.voice,
+        provider: "jev" as const,
+        model: "local",
+        route,
+        fact: fact.length < 2 ? "" : fact,
+        drop: dropping,
+      };
+    }
+    if (route === "goal") {
+      const fact = goalFact(data.line);
+      return {
+        ok: true as const,
+        text: fact.length < 2 ? "Say the goal after goal:." : `Goal kept on this device: ${fact}`,
+        voice: data.tutor.voice,
+        provider: "jev" as const,
+        model: "local",
+        route,
+        fact,
+        drop: false,
       };
     }
     if (route === "sql") {
@@ -78,27 +109,30 @@ export const askTutor = createServerFn({ method: "POST" })
         : result.rows.length
           ? result.rows.map((row) => result.columns.map((col) => `${col} ${String(row[col])}`).join(", ")).join(". ")
           : "The statement ran. It returned no rows.";
-      return { ok: true as const, text, voice: data.tutor.voice, provider: "jev" as const, model: "local", route };
+      return { ok: true as const, text, voice: data.tutor.voice, provider: "jev" as const, model: "local", route, fact: "", drop: false };
     }
-    const persona = `You are Noah, the tutor at Interstitium Labs. The learner opened the ${data.tutor.name} office (${data.tutor.office}). You are not that historical person, not Meta's Muse, and not a vendor coding assistant.
+    const context = `Obsession: ${data.obsession || "not named"}\nGoals: ${data.goals.join("; ") || "none"}\nMemory: ${data.memory.join("; ") || "none"}\nRecent:\n${data.prior || "(none)"}\nLearner: ${data.line}`;
+    const persona =
+      route === "assist"
+        ? `You are Noah, the assistant at Interstitium Labs. Tutoring is one of your jobs, not the only one. The learner opened the ${data.tutor.name} office. You are not Meta's Muse and you are not that historical person.
+Answer the task. A draft, a plan, or a list may be given in full. Under 160 words. No markdown. No due date.
+You cannot send email, spend money, book travel, browse after this turn, or touch Instagram, Facebook, or WhatsApp. If asked, write the draft and say the person sends it.
+Use the goals and memory when they matter. Refuse exploits, malware, exam dumps, and claims of occult power.`
+        : `You are Noah, teaching from the ${data.tutor.name} office (${data.tutor.office}). You are not Meta's Muse.
 ${data.tutor.holds}
-You may be an open weight running through Ollama or Hugging Face. Say so if asked. A frontier model is only the scale step.
-Self-paced. Never set a due date. Under 80 words of spoken prose. No markdown.
-Teach the obsession if one is named. Prefer the open manual over a proprietary course. One follow-up question is enough.
-Refuse exploits, malware, exam dumps, and claims of occult power.`;
-    const result = await tutorChat(
-      persona,
-      `Obsession: ${data.obsession || "not named"}\nRecent:\n${data.prior || "(none)"}\nLearner: ${data.line}`,
-      180,
-    );
+Self-paced. Never set a due date. Under 80 words. No markdown. One question or one correction. Do not open with the final answer.
+Use the memory if it changes the example. Refuse exploits, malware, exam dumps, and claims of occult power.`;
+    const result = await tutorChat(persona, context, route === "assist" ? 280 : 180, route === "assist" ? "frontier" : "open");
     if (!result.ok) return result;
     return {
       ok: true as const,
-      text: result.text.slice(0, 700),
+      text: result.text.slice(0, 900),
       voice: data.tutor.voice,
       provider: result.provider,
       model: result.model,
       route,
+      fact: "",
+      drop: false,
     };
   });
 

@@ -39,60 +39,58 @@ async function complete(
   return clip(body.choices?.[0]?.message?.content ?? "", 900) || null;
 }
 
-export async function tutorChat(system: string, user: string, maxTokens: number): Promise<ChatResult> {
-  const ollama = process.env.OLLAMA_BASE_URL?.replace(/\/$/, "");
-  const ollamaModel = process.env.OLLAMA_MODEL || OPEN_MODEL;
-  if (ollama) {
-    try {
-      const text = await complete(
-        `${ollama}/v1/chat/completions`,
-        { "Content-Type": "application/json" },
-        ollamaModel,
-        system,
-        user,
-        maxTokens,
-      );
-      if (text) return { ok: true, text, provider: "ollama", model: ollamaModel };
-    } catch {
-      /* the next open provider, then the frontier */
-    }
-  }
+type Slot = "ollama" | "huggingface" | "frontier";
 
-  const hf = process.env.HF_TOKEN;
-  const hfModel = process.env.HF_MODEL || HF_DEFAULT;
-  if (hf) {
-    try {
-      const text = await complete(
-        "https://router.huggingface.co/v1/chat/completions",
-        { "Content-Type": "application/json", Authorization: `Bearer ${hf}` },
-        hfModel,
-        system,
-        user,
-        maxTokens,
-      );
-      if (text) return { ok: true, text, provider: "huggingface", model: hfModel };
-    } catch {
-      /* frontier is the scale step, not the default */
-    }
+async function slot(which: Slot, system: string, user: string, maxTokens: number): Promise<ChatOk | null> {
+  if (which === "ollama") {
+    const ollama = process.env.OLLAMA_BASE_URL?.replace(/\/$/, "");
+    if (!ollama) return null;
+    const model = process.env.OLLAMA_MODEL || OPEN_MODEL;
+    const text = await complete(`${ollama}/v1/chat/completions`, { "Content-Type": "application/json" }, model, system, user, maxTokens);
+    return text ? { ok: true, text, provider: "ollama", model } : null;
   }
-
+  if (which === "huggingface") {
+    const hf = process.env.HF_TOKEN;
+    if (!hf) return null;
+    const model = process.env.HF_MODEL || HF_DEFAULT;
+    const text = await complete(
+      "https://router.huggingface.co/v1/chat/completions",
+      { "Content-Type": "application/json", Authorization: `Bearer ${hf}` },
+      model,
+      system,
+      user,
+      maxTokens,
+    );
+    return text ? { ok: true, text, provider: "huggingface", model } : null;
+  }
   const frontier = process.env.XAI_API_KEY;
-  if (frontier) {
+  if (!frontier) return null;
+  const text = await complete(
+    "https://api.x.ai/v1/chat/completions",
+    { "Content-Type": "application/json", Authorization: `Bearer ${frontier}` },
+    FRONTIER_MODEL,
+    system,
+    user,
+    maxTokens,
+  );
+  return text ? { ok: true, text, provider: "frontier", model: FRONTIER_MODEL } : null;
+}
+
+export async function tutorChat(
+  system: string,
+  user: string,
+  maxTokens: number,
+  prefer: "open" | "frontier" = "open",
+): Promise<ChatResult> {
+  const order: Slot[] = prefer === "frontier" ? ["frontier", "ollama", "huggingface"] : ["ollama", "huggingface", "frontier"];
+  for (const which of order) {
     try {
-      const text = await complete(
-        "https://api.x.ai/v1/chat/completions",
-        { "Content-Type": "application/json", Authorization: `Bearer ${frontier}` },
-        FRONTIER_MODEL,
-        system,
-        user,
-        maxTokens,
-      );
-      if (text) return { ok: true, text, provider: "frontier", model: FRONTIER_MODEL };
+      const hit = await slot(which, system, user, maxTokens);
+      if (hit) return hit;
     } catch {
-      return { ok: false, error: "The frontier model could not be reached. The question still stands." };
+      /* the next slot */
     }
   }
-
   return {
     ok: false,
     error: "No open weight is configured, and the frontier model is not configured. On the host, set OLLAMA_BASE_URL. Hugging Face is the second open path. The question still stands.",
@@ -101,7 +99,7 @@ export async function tutorChat(system: string, user: string, maxTokens: number)
 
 export const noahGraph = [
   { id: "office", does: "Bind the office and the obsession. No model call yet." },
-  { id: "model", does: "One completion. Ollama, then Hugging Face, then a frontier model." },
+  { id: "model", does: "Teach stays on an open weight. An assistant task tries the frontier model first, then falls back." },
   { id: "tool", does: "Jev, a local scorer, picks refuse, the SQL bench, or teach. TypeSafe’s hosted model is not called." },
   { id: "stop", does: "Return the line. The learner speaks next. That pause is the human interrupt." },
 ] as const;

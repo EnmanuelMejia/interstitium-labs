@@ -45,12 +45,11 @@ function MusePage() {
 
   return (
     <main>
-      <p className="text-xs tracking-[0.18em] text-muted uppercase">Noah · a tutor, no deadline</p>
-      <h1 className="mt-3 max-w-[16ch] text-hero leading-[0.95]">Ask, then explain</h1>
+      <p className="text-xs tracking-[0.18em] text-muted uppercase">Noah · assistant, and tutor</p>
+      <h1 className="mt-3 max-w-[16ch] text-hero leading-[0.95]">Tell Noah the work</h1>
       <p className="mt-5 max-w-[66ch] text-lg text-fg/85">
-        Four offices sit the desk: Dee, Hypatia, Agrippa, Lovelace. Noah is the tutor in every one of them, and tailors the
-        next step to what you have already held and to the one build you named. Nothing is due. The fringe question
-        below is still the gate.
+        Noah is the assistant. Tutoring is one of the jobs. A question still gets a question back. A task gets the draft.
+        Memory and goals stay on this device. Noah does not send mail, spend money, or keep working after you leave.
       </p>
       <TutorDesk />
       <div className="mt-8">

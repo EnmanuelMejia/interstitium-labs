@@ -42,7 +42,7 @@ export function jev(state: string, questions: Question[]): Answer[] {
   });
 }
 
-export function routeTurn(line: string): "refuse" | "sql" | "teach" {
+export function routeTurn(line: string): "refuse" | "remember" | "goal" | "sql" | "teach" | "assist" {
   const answers = jev(line, [
     { id: "refuse", kind: "noul", instructions: "Ask for an exploit, malware, or an exam dump." },
     { id: "sql", kind: "noul", instructions: "A SELECT against the readings table." },
@@ -50,8 +50,19 @@ export function routeTurn(line: string): "refuse" | "sql" | "teach" {
   const refused = answers.find((answer) => answer.id === "refuse");
   const query = answers.find((answer) => answer.id === "sql");
   if (refused?.kind === "noul" && refused.yes >= 0.5) return "refuse";
+  if (/^(remember|forget)\b/i.test(line)) return "remember";
+  if (/^(?:goal:|my goal is\b|add a goal\b)/i.test(line)) return "goal";
   if (query?.kind === "noul" && query.yes >= 0.5) return "sql";
-  return "teach";
+  if (/^(what|why|how|explain|quiz)\b/i.test(line) || line.trim().endsWith("?")) return "teach";
+  return "assist";
+}
+
+export function memoryFact(line: string) {
+  return line.replace(/^(remember|forget)(?:\s+that)?\s+/i, "").trim().slice(0, 160);
+}
+
+export function goalFact(line: string) {
+  return line.replace(/^(?:goal:\s*|my goal is\s+|add a goal\s+)/i, "").trim().slice(0, 160);
 }
 
 export function selectText(line: string) {
