@@ -19,14 +19,18 @@
   function draw(canvas, yaw) {
     var ctx = canvas.getContext("2d");
     if (!ctx) return;
-    var dpr = Math.min(2, w.devicePixelRatio || 1);
-    var size = 160;
-    if (canvas.width !== size * dpr) {
-      canvas.width = size * dpr;
-      canvas.height = size * dpr;
+    var dpr = Math.min(3, w.devicePixelRatio || 1);
+    var size = Math.max(64, Math.round(canvas.clientWidth || 160));
+    var px = Math.round(size * dpr);
+    if (canvas.width !== px || canvas.height !== px) {
+      canvas.width = px;
+      canvas.height = px;
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size, size);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    var u = size / 160;
     var cx = size / 2, cy = size / 2, scale = size * 0.36;
     var cos = Math.cos(yaw), sin = Math.sin(yaw);
     function proj(x, y, z) {
@@ -42,14 +46,17 @@
       if (i === 0) ctx.moveTo(q[0], q[1]);
       else ctx.lineTo(q[0], q[1]);
     }
+    ctx.strokeStyle = "rgba(244,241,234,0.35)";
+    ctx.lineWidth = 3.1 * u;
+    ctx.stroke();
     ctx.strokeStyle = "#f4f1ea";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.15 * u;
     ctx.stroke();
     var nodes = [[0, 1.15], [1.15, 0], [0, -1.15], [-1.15, 0]];
     for (var n = 0; n < nodes.length; n++) {
       var qn = proj(nodes[n][0], nodes[n][1], 0);
       ctx.beginPath();
-      ctx.arc(qn[0], qn[1], 2.3, 0, Math.PI * 2);
+      ctx.arc(qn[0], qn[1], 2.2 * u, 0, Math.PI * 2);
       ctx.fillStyle = "#f4f1ea";
       ctx.fill();
     }
@@ -62,7 +69,7 @@
     }
     ctx.closePath();
     ctx.strokeStyle = "#c6a36a";
-    ctx.lineWidth = 1.4;
+    ctx.lineWidth = 1.2 * u;
     ctx.stroke();
     function quad(x, y, w0, h) {
       var pts = [[x, y, 0.06], [x + w0, y, 0.06], [x + w0, y - h, 0.06], [x, y - h, 0.06]];
@@ -82,16 +89,19 @@
     quad(0.08, -0.2, 0.46, 0.16);
     function orbit(tilt, radius) {
       ctx.beginPath();
-      for (var i = 0; i <= 80; i++) {
-        var a = (i / 80) * Math.PI * 2 + yaw * 1.4;
+      for (var i = 0; i <= 140; i++) {
+        var a = (i / 140) * Math.PI * 2 + yaw * 1.4;
         var x = Math.cos(a) * radius;
         var y = Math.sin(a) * radius * 0.36;
         var q = proj(x, y * Math.cos(tilt), y * Math.sin(tilt));
         if (i === 0) ctx.moveTo(q[0], q[1]);
         else ctx.lineTo(q[0], q[1]);
       }
+      ctx.strokeStyle = "rgba(126,212,224,0.28)";
+      ctx.lineWidth = 2.8 * u;
+      ctx.stroke();
       ctx.strokeStyle = "#7ed4e0";
-      ctx.lineWidth = 1.25;
+      ctx.lineWidth = 1.05 * u;
       ctx.stroke();
     }
     orbit(0.9, 0.84);
@@ -99,11 +109,11 @@
     orbit(2.45, 0.64);
     var c = proj(0, 0, 0.18);
     ctx.beginPath();
-    ctx.arc(c[0], c[1], 4.6, 0, Math.PI * 2);
+    ctx.arc(c[0], c[1], 4.4 * u, 0, Math.PI * 2);
     ctx.fillStyle = "#c6a36a";
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(c[0], c[1], 1.8, 0, Math.PI * 2);
+    ctx.arc(c[0], c[1], 1.7 * u, 0, Math.PI * 2);
     ctx.fillStyle = "#102028";
     ctx.fill();
   }
