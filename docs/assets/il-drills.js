@@ -6,6 +6,13 @@
 (function (g) {
   'use strict';
 
+  function t(key, fb) {
+    try {
+      if (g.ILi18n && typeof g.ILi18n.t === 'function') return g.ILi18n.t(key, fb);
+    } catch (e) {}
+    return fb;
+  }
+
   var SETS = {
     cidr: [
       {
@@ -136,23 +143,23 @@
     var prev = document.createElement('button');
     prev.type = 'button';
     prev.className = 'il-coach-topic';
-    prev.textContent = 'Previous';
+    prev.textContent = t('drill.prev', 'Previous');
     var next = document.createElement('button');
     next.type = 'button';
     next.className = 'il-coach-topic';
-    next.textContent = 'Next drill';
+    next.textContent = t('drill.next', 'Next drill');
     nav.appendChild(prev);
     nav.appendChild(next);
     root.appendChild(nav);
 
     function render() {
       var item = items[idx];
-      progress.textContent = 'Drill ' + (idx + 1) + ' / ' + items.length + ' · ' + setName + ' · instant feedback, no answer dumps';
+      progress.textContent = t('drill.kicker', 'Drill') + ' ' + (idx + 1) + ' / ' + items.length + ' · ' + setName + ' · ' + t('drill.feedback_note', 'instant feedback, no answer dumps');
       cardHost.innerHTML = '';
       var card = document.createElement('div');
       card.className = 'il-drill';
       card.setAttribute('role', 'group');
-      card.setAttribute('aria-label', 'Practice drill');
+      card.setAttribute('aria-label', t('drill.aria', 'Practice drill'));
       var prompt = document.createElement('p');
       prompt.className = 'il-drill__prompt';
       prompt.textContent = item.prompt;
@@ -192,7 +199,7 @@
             feedback.classList.add('is-on', c.correct ? 'il-feedback--ok' : 'il-feedback--bad');
             feedback.textContent = c.correct
               ? '✓ ' + c.tip
-              : 'Not yet — ' + c.tip + ' Try another angle; do not memorize the letter.';
+              : t('drill.not_yet', 'Not yet —') + ' ' + c.tip + ' ' + t('drill.another_angle', 'Try another angle; do not memorize the letter.');
           }
         });
         choices.appendChild(btn);
@@ -204,7 +211,7 @@
         fb.classList.add('is-on', chosen && chosen.correct ? 'il-feedback--ok' : 'il-feedback--bad');
         fb.textContent = (chosen && chosen.correct)
           ? '✓ ' + correct.tip
-          : 'Not yet — ' + (chosen ? chosen.tip : '') + (correct ? ' (Path: ' + correct.key + ')' : '');
+          : t('drill.not_yet', 'Not yet —') + ' ' + (chosen ? chosen.tip : '') + (correct ? ' (' + t('adapt.path', 'Path') + ': ' + correct.key + ')' : '');
       }
       card.appendChild(fb);
       cardHost.appendChild(card);
@@ -223,6 +230,11 @@
     el.innerHTML = '';
     el.appendChild(root);
     el.setAttribute('data-il-drills-ready', '1');
+    document.addEventListener('il:i18n', function () {
+      prev.textContent = t('drill.prev', 'Previous');
+      next.textContent = t('drill.next', 'Next drill');
+      render();
+    });
   }
 
   function boot() {

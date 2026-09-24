@@ -631,12 +631,17 @@
     if (qs(".il-demo-bar")) return;
     var bar = doc.createElement("div");
     bar.className = "il-demo-bar no-print";
+    bar.setAttribute("data-il-no-body", "");
     bar.innerHTML =
-      '<a class="il-demo-path-link" data-il-demo-path-link href="/demo/">Instant path</a>' + '<button type="button" data-il-demo title="FX demo">Demo FX</button>' +
-      '<button type="button" class="il-cmd-open" data-il-cmd title="Command palette">⌘K</button>' +
-      '<button type="button" class="il-sound-toggle" data-il-sound title="UI sound (off by default)" aria-pressed="false">Sound</button>' +
+      '<a class="il-demo-path-link" data-il-demo-path-link href="/demo/" data-i18n="fx.instant">Instant path</a>' +
+      '<button type="button" data-il-demo data-i18n="fx.demo" data-i18n-attr="title:fx.demo_title" title="FX demo">Demo FX</button>' +
+      '<button type="button" class="il-cmd-open" data-il-cmd data-i18n-attr="title:fx.cmd_title" title="Command palette">⌘K</button>' +
+      '<button type="button" class="il-sound-toggle" data-il-sound data-i18n="fx.sound" data-i18n-attr="title:fx.sound_title" title="UI sound (off by default)" aria-pressed="false">Sound</button>' +
       '<span class="il-demo-status" aria-live="polite"></span>';
     doc.body.appendChild(bar);
+    if (global.ILi18n && typeof global.ILi18n.apply === "function") {
+      try { global.ILi18n.apply(bar); } catch (e) {}
+    }
     bar.querySelector("[data-il-demo]").addEventListener("click", function () {
       unlockSoundOnce();
       runDemo();
@@ -869,4 +874,10 @@
 
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot);
   else boot();
+  doc.addEventListener("il:i18n", function () {
+    var bar = qs(".il-demo-bar");
+    if (bar && global.ILi18n && typeof global.ILi18n.apply === "function") {
+      try { global.ILi18n.apply(bar); } catch (e) {}
+    }
+  });
 })(typeof window !== "undefined" ? window : this);

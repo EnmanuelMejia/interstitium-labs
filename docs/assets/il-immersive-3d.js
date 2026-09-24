@@ -291,7 +291,7 @@
     if (root.getAttribute('data-il-compact') === '1') root.classList.add('il-immersive--compact');
 
     var chrome = document.createElement('div');
-    chrome.className = 'il-immersive__chrome';
+    chrome.setAttribute('data-il-no-body', '');
     chrome.innerHTML =
       '<div><p class="il-immersive__kicker" data-i18n="immersive.kicker">3D-first · Blender / Unreal / Three</p>' +
       '<p class="il-immersive__title" data-i18n="' + titleKey + '">' + titleFb + '</p></div>' +
@@ -307,11 +307,13 @@
 
     var cap = document.createElement('div');
     cap.className = 'il-immersive__captions';
+    cap.setAttribute('data-il-no-body', '');
     cap.setAttribute('aria-live', 'polite');
     stage.appendChild(cap);
 
     var controls = document.createElement('div');
     controls.className = 'il-immersive__controls';
+    controls.setAttribute('data-il-no-body', '');
     controls.setAttribute('role', 'toolbar');
     root.appendChild(controls);
 
@@ -352,7 +354,7 @@
 
     if (prefersReduced()) {
       root.classList.add('is-reduced');
-      this.cap.textContent = (CAPTIONS[this.cfg.scene] || CAPTIONS.k8s).idle;
+      this.cap.textContent = capText(this.cfg.scene, 'idle', (CAPTIONS[this.cfg.scene] || CAPTIONS.k8s).idle);
       return;
     }
 
@@ -362,9 +364,31 @@
     this._probeGlb();
   }
 
+  function clipLabel(scene, id, fallback){
+    return t('immersive.clip.' + scene + '.' + id, fallback);
+  }
+
+  function capText(scene, id, fallback){
+    return t('immersive.cap.' + scene + '.' + id, fallback);
+  }
+
   ScenePlayer.prototype.setCaption = function (clipId){
     var map = CAPTIONS[this.cfg.scene] || CAPTIONS.k8s;
-    this.cap.textContent = map[clipId] || map.idle;
+    var fb = map[clipId] || map.idle;
+    this.cap.textContent = capText(this.cfg.scene, clipId || 'idle', fb);
+  };
+
+  ScenePlayer.prototype.refreshChrome = function (){
+    if (g.ILi18n && typeof g.ILi18n.apply === 'function') {
+      try { g.ILi18n.apply(this.root); } catch (e) { /* ignore */ }
+    }
+    var self = this;
+    Array.prototype.forEach.call(this.controls.querySelectorAll('button[data-il-clip]'), function (b){
+      var id = b.getAttribute('data-il-clip');
+      var fb = b.getAttribute('data-il-clip-en') || b.textContent;
+      b.textContent = clipLabel(self.cfg.scene, id, fb);
+    });
+    this.setCaption(this.clip);
   };
 
   ScenePlayer.prototype._buildButtons = function (){
@@ -373,7 +397,9 @@
     clips.forEach(function (c){
       var b = document.createElement('button');
       b.type = 'button';
-      b.textContent = c.label;
+      b.setAttribute('data-il-clip', c.id);
+      b.setAttribute('data-il-clip-en', c.label);
+      b.textContent = clipLabel(self.cfg.scene, c.id, c.label);
       b.setAttribute('aria-pressed', c.id === 'idle' ? 'true' : 'false');
       b.addEventListener('click', function (){
         self.clip = c.id;
@@ -620,9 +646,7 @@
 
   g.document && g.document.addEventListener('il:i18n', function (){
     registry.forEach(function (p){
-      if (p && p.root && g.ILi18n && g.ILi18n.apply) {
-        try { g.ILi18n.apply(p.root); } catch (e) { /* ignore */ }
-      }
+      if (p && typeof p.refreshChrome === 'function') p.refreshChrome();
     });
   });
 

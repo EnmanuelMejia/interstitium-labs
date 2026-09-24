@@ -2,7 +2,7 @@
  * Security: NEVER cache enroll config as authoritative secrets (there are none client-side;
  * still exclude /enroll/config.js from long-lived shell cache). First-party only.
  */
-const SW_VERSION = "il-sw-2026-09-22-uw-hdr-i18n";
+const SW_VERSION = "il-sw-2026-09-24-i18n-body";
 const SHELL_CACHE = SW_VERSION + "-shell";
 const PAGE_CACHE = SW_VERSION + "-pages";
 
@@ -98,6 +98,28 @@ self.addEventListener("fetch", (event) => {
         .catch(() =>
           caches.match(req).then((hit) => hit || caches.match("/") || caches.match("/founders/"))
         )
+    );
+    return;
+  }
+
+  if (
+    url.pathname.startsWith("/i18n/") ||
+    url.pathname === "/assets/il-i18n.js" ||
+    url.pathname === "/assets/il-fx.js" ||
+    url.pathname === "/assets/il-immersive-3d.js" ||
+    url.pathname === "/assets/il-adaptive.js" ||
+    url.pathname === "/assets/il-drills.js"
+  ) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(SHELL_CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req))
     );
     return;
   }

@@ -14,6 +14,7 @@
 
   var STORAGE_KEY = "il.lang";
   var BASE = "/i18n/";
+  var CACHE_V = "20260924";
   var RTL = { ar: 1, he: 1, fa: 1, ur: 1 };
 
   var LOCALES = [
@@ -84,9 +85,17 @@
   };
 
   var catalog = {};
+  var bodyMap = {};
+  var bodyApplying = false;
   var current = "en";
   var completeness = "full";
   var ready = false;
+
+  var INLINE_OK = {
+    CODE: 1, EM: 1, STRONG: 1, B: 1, I: 1, SPAN: 1, A: 1, BR: 1,
+    SMALL: 1, KBD: 1, ABBR: 1, MARK: 1, SUB: 1, SUP: 1, WBR: 1
+  };
+  var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, SVG: 1, CODE: 1, PRE: 1, KBD: 1, SAMP: 1, TEXTAREA: 1 };
 
   function supportedCodes() {
     return LOCALES.map(function (l) { return l.code; });
@@ -196,6 +205,146 @@
     html.setAttribute("dir", dir);
   }
 
+  function sanitizeInline(html) {
+    var tpl = global.document.createElement("template");
+    tpl.innerHTML = String(html);
+    function walk(node) {
+      var kids = Array.prototype.slice.call(node.childNodes);
+      for (var i = 0; i < kids.length; i++) {
+        var ch = kids[i];
+        if (ch.nodeType !== 1) continue;
+        if (!INLINE_OK[ch.tagName]) {
+          node.replaceChild(global.document.createTextNode(ch.textContent || ""), ch);
+          continue;
+        }
+        var attrs = Array.prototype.slice.call(ch.attributes);
+        for (var a = 0; a < attrs.length; a++) {
+          var n = attrs[a].name.toLowerCase();
+          var v = attrs[a].value || "";
+          if (n.indexOf("on") === 0 || n === "srcdoc" || n === "style") {
+            ch.removeAttribute(attrs[a].name);
+            continue;
+          }
+          if ((n === "href" || n === "src") && !/^(\/|https?:|#|mailto:)/i.test(v)) {
+            ch.removeAttribute(attrs[a].name);
+          }
+        }
+        walk(ch);
+      }
+    }
+    walk(tpl.content);
+    return tpl.innerHTML;
+  }
+
+  function writeTranslation(el, val) {
+    var slot = el.querySelector("[data-i18n-text]");
+    if (el.childElementCount && slot) {
+      slot.textContent = val;
+      return;
+    }
+    if (/<[a-z]/i.test(val)) {
+      el.innerHTML = sanitizeInline(val);
+      return;
+    }
+    el.textContent = val;
+  }
+
+  function lookupBody(text) {
+    if (!text || current === "en") return null;
+    var key = String(text).replace(/\s+/g, " ").trim();
+    if (!key || !Object.prototype.hasOwnProperty.call(bodyMap, key)) return null;
+    var v = bodyMap[key];
+    if (v == null || v === key) return null;
+    return String(v);
+  }
+
+  function inSkipped(el) {
+    while (el) {
+      if (el.nodeType === 1) {
+        if (SKIP_TAGS[el.tagName]) return true;
+        if (el.getAttribute && (el.getAttribute("translate") === "no" || el.hasAttribute("data-i18n") || el.hasAttribute("data-il-no-body"))) return true;
+      }
+      el = el.parentElement || el.parentNode;
+    }
+    return false;
+  }
+
+  function applyBodyText(node) {
+    if (!node || node.nodeType !== 3 || inSkipped(node.parentElement)) return;
+    if (node.__ilOrig == null) node.__ilOrig = node.nodeValue;
+    var orig = node.__ilOrig;
+    var match = orig.match(/^(\s*)([\s\S]*?)(\s*)$/);
+    if (!match) return;
+    var core = match[2].replace(/\s+/g, " ").trim();
+    var translated = lookupBody(core);
+    var next = translated ? (match[1] + translated + match[3]) : orig;
+    if (node.nodeValue !== next) node.nodeValue = next;
+  }
+
+  function applyBodyAttrs(el) {
+    if (!el || el.nodeType !== 1 || SKIP_TAGS[el.tagName]) return;
+    if (el.getAttribute("translate") === "no" || el.hasAttribute("data-il-no-body")) return;
+    var names = ["aria-label", "title", "placeholder", "alt"];
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      if (!el.hasAttribute(name)) continue;
+      var store = "data-il-orig-" + name;
+      if (!el.hasAttribute(store)) el.setAttribute(store, el.getAttribute(name) || "");
+      var orig = el.getAttribute(store) || "";
+      var translated = lookupBody(orig);
+      var next = translated || orig;
+      if (el.getAttribute(name) !== next) el.setAttribute(name, next);
+    }
+    if (el.tagName === "META") {
+      var prop = (el.getAttribute("property") || el.getAttribute("name") || "").toLowerCase();
+      if (prop === "description" || prop === "og:description" || prop === "og:title" || prop === "twitter:title" || prop === "twitter:description") {
+        if (!el.hasAttribute("data-il-orig-content")) el.setAttribute("data-il-orig-content", el.getAttribute("content") || "");
+        var oc = el.getAttribute("data-il-orig-content") || "";
+        var tv = lookupBody(oc);
+        var nc = tv || oc;
+        if (el.getAttribute("content") !== nc) el.setAttribute("content", nc);
+      }
+    }
+  }
+
+  function applyBody(root) {
+    if (!global.document || !global.document.documentElement) return;
+    bodyApplying = true;
+    try {
+      var scope = root || global.document.documentElement;
+      if (scope.nodeType === 1) applyBodyAttrs(scope);
+      var walker = global.document.createTreeWalker(scope, 5 /* SHOW_ELEMENT | SHOW_TEXT */, null);
+      var n = walker.nextNode();
+      while (n) {
+        if (n.nodeType === 3) applyBodyText(n);
+        else applyBodyAttrs(n);
+        n = walker.nextNode();
+      }
+    } finally {
+      bodyApplying = false;
+    }
+  }
+
+  function loadBody(lang) {
+    if (!lang || lang === "en") {
+      bodyMap = {};
+      return Promise.resolve(bodyMap);
+    }
+    return fetch(BASE + lang + ".body.json?v=" + CACHE_V, { credentials: "same-origin", cache: "no-cache" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("i18n body " + lang);
+        return res.json();
+      })
+      .then(function (json) {
+        bodyMap = json && typeof json === "object" ? json : {};
+        return bodyMap;
+      })
+      .catch(function () {
+        bodyMap = {};
+        return bodyMap;
+      });
+  }
+
   function applyAttrs(root) {
     var scope = root || global.document;
     var nodes = scope.querySelectorAll("[data-i18n]");
@@ -204,14 +353,7 @@
       var key = el.getAttribute("data-i18n");
       if (!key) continue;
       var val = t(key, el.getAttribute("data-i18n-fallback") || el.textContent);
-      // Preserve child structure for elements that only wrap text
-      if (el.childElementCount === 0) {
-        el.textContent = val;
-      } else {
-        // Never wipe nested markup (cards/CTAs). Only update an explicit text slot.
-        var slot = el.querySelector("[data-i18n-text]");
-        if (slot) slot.textContent = val;
-      }
+      writeTranslation(el, val);
     }
     var attrs = scope.querySelectorAll("[data-i18n-attr]");
     for (var j = 0; j < attrs.length; j++) {
@@ -406,7 +548,7 @@
   }
 
   function loadCatalog(lang) {
-    return fetch(BASE + lang + ".json?v=20260922", { credentials: "same-origin", cache: "no-cache" })
+    return fetch(BASE + lang + ".json?v=" + CACHE_V, { credentials: "same-origin", cache: "no-cache" })
       .then(function (res) {
         if (!res.ok) throw new Error("i18n " + lang);
         return res.json();
@@ -443,8 +585,10 @@
         catalog = {};
         completeness = "full";
       })
+      .then(function () { return loadBody(current); })
       .then(function () {
         applyAttrs(global.document);
+        applyBody(global.document);
         showScaffoldNote();
         ensureSwitcherHosts();
         wireNativeSelects();
@@ -483,6 +627,31 @@
         global.sessionStorage.setItem("il.lang.detect", JSON.stringify(detected));
       } catch (e) {}
     });
+    if (global.MutationObserver && global.document.documentElement) {
+      var pending = 0;
+      var obs = new global.MutationObserver(function () {
+        if (bodyApplying || current === "en") return;
+        if (pending) return;
+        pending = global.setTimeout(function () {
+          pending = 0;
+          if (!bodyApplying && current !== "en") applyBody(global.document);
+        }, 30);
+      });
+      var target = global.document.documentElement;
+      var startObs = function () {
+        try {
+          obs.observe(target, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ["aria-label", "title", "placeholder", "alt", "content"]
+          });
+        } catch (e) {}
+      };
+      if (global.document.body) startObs();
+      else global.document.addEventListener("DOMContentLoaded", startObs);
+    }
   }
 
   var api = {
@@ -491,6 +660,7 @@
     getLang: function () { return current; },
     detect: detect,
     apply: applyAttrs,
+    applyBody: applyBody,
     locales: LOCALES.slice(),
     ready: function () { return ready; },
     completeness: function () { return completeness; }
