@@ -13,6 +13,13 @@
   var PLACE_MIN = 8;
   var PLACE_MAX = 12;
   var MASTERY_KNOWN = 0.75;
+
+  function t(key, fb) {
+    try {
+      if (g.ILi18n && typeof g.ILi18n.t === 'function') return g.ILi18n.t(key, fb);
+    } catch (e) {}
+    return fb;
+  }
   var MASTERY_LEARNING = 0.35;
   var DECAY_MS = 1000 * 60 * 60 * 24 * 5; // ~5 days soft decay nudge
   var bank = null;
@@ -488,8 +495,9 @@
     var wrap = el('div', 'il-adapt-pie');
     var total = Math.max(pie.total, 1);
     var k = pie.known / total, l = pie.learning / total, x = pie.locked / total;
-    var svg = '<svg viewBox="0 0 42 42" role="img" aria-label="Knowledge pie: ' +
-      pie.known + ' known, ' + pie.learning + ' learning, ' + pie.locked + ' locked">' +
+    var svg = '<svg viewBox="0 0 42 42" role="img" aria-label="' +
+      t('adapt.pie_aria', 'Knowledge pie') + ': ' +
+      pie.known + ' ' + t('adapt.known', 'known') + ', ' + pie.learning + ' ' + t('adapt.learning', 'learning') + ', ' + pie.locked + ' ' + t('adapt.locked', 'locked') + '">' +
       '<circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(232,238,245,0.08)" stroke-width="6"/>';
     var off = 0;
     function arc(frac, color) {
@@ -507,9 +515,9 @@
     svgWrap.innerHTML = svg;
     var legend = el('div', 'il-adapt-pie__legend');
     legend.innerHTML =
-      '<div><span class="il-dot il-dot--known"></span> Known <strong>' + pie.known + '</strong></div>' +
-      '<div><span class="il-dot il-dot--learning"></span> Learning <strong>' + pie.learning + '</strong></div>' +
-      '<div><span class="il-dot il-dot--locked"></span> Locked <strong>' + pie.locked + '</strong></div>';
+      '<div><span class="il-dot il-dot--known"></span> ' + t('adapt.known_label', 'Known') + ' <strong>' + pie.known + '</strong></div>' +
+      '<div><span class="il-dot il-dot--learning"></span> ' + t('adapt.learning_label', 'Learning') + ' <strong>' + pie.learning + '</strong></div>' +
+      '<div><span class="il-dot il-dot--locked"></span> ' + t('adapt.locked_label', 'Locked') + ' <strong>' + pie.locked + '</strong></div>';
     wrap.appendChild(svgWrap);
     wrap.appendChild(legend);
     host.appendChild(wrap);
@@ -561,11 +569,11 @@
       b.addEventListener('click', fn);
       return b;
     }
-    toolbar.appendChild(btn('Placement', function () { begin('place'); }, 'il-coach-topic'));
-    toolbar.appendChild(btn('Daily practice', function () { begin('practice'); }, 'il-coach-topic'));
-    toolbar.appendChild(btn('Challenge gate', function () { begin('challenge'); }, 'il-coach-topic'));
-    toolbar.appendChild(btn('Reset local state', function () {
-      if (g.confirm && !g.confirm('Reset adaptive mastery on this device?')) return;
+    toolbar.appendChild(btn(t('adapt.mode.place', 'Placement'), function () { begin('place'); }, 'il-coach-topic'));
+    toolbar.appendChild(btn(t('adapt.mode.practice', 'Daily practice'), function () { begin('practice'); }, 'il-coach-topic'));
+    toolbar.appendChild(btn(t('adapt.mode.challenge', 'Challenge gate'), function () { begin('challenge'); }, 'il-coach-topic'));
+    toolbar.appendChild(btn(t('adapt.reset', 'Reset local state'), function () {
+      if (g.confirm && !g.confirm(t('adapt.reset_confirm', 'Reset adaptive mastery on this device?'))) return;
       reset(); paintShell(); begin('place');
     }, 'il-coach-topic'));
     root.appendChild(toolbar);
@@ -578,19 +586,19 @@
       var pie = pieState(state);
       renderPie(pieHost, pie);
       var ready = readyTopics(state);
-      readyBox.innerHTML = '<strong>Ready-to-learn (ALEKS fringe):</strong> ' +
+      readyBox.innerHTML = '<strong>' + t('adapt.ready', 'Ready-to-learn (ALEKS fringe):') + '</strong> ' +
         (ready.length
           ? ready.slice(0, 5).map(function (r) {
               return r.title + ' (' + Math.round(r.mastery * 100) + '%)';
             }).join(' · ')
-          : 'Complete Placement to unlock the fringe.');
+          : t('adapt.ready_empty', 'Complete Placement to unlock the fringe.'));
       var gates = evaluateGates(state);
       var pathLabel = state.pathId || (recommendPath(state) || {}).id || '—';
-      gatesBox.innerHTML = '<p class="il-kicker">Path · ' + pathLabel + '</p>' +
+      gatesBox.innerHTML = '<p class="il-kicker">' + t('adapt.path', 'Path') + ' · ' + pathLabel + '</p>' +
         gates.map(function (g) {
           return '<div class="il-adapt-gate' + (g.unlocked ? ' is-open' : '') + '">' +
             (g.unlocked ? '🔓 ' : '🔒 ') + g.title + '</div>';
-        }).join('') || '<p class="text-sm text-muted">Gates appear after bank load.</p>';
+        }).join('') || '<p class="text-sm text-muted">' + t('adapt.gates_pending', 'Gates appear after bank load.') + '</p>';
     }
 
     function showItem(pack) {
@@ -598,19 +606,19 @@
       fb.className = 'il-feedback';
       fb.textContent = '';
       if (!pack || !pack.item) {
-        meta.textContent = 'Session complete · fringe updated';
-        prompt.textContent = 'No more items in this band. Review ready topics or deepen via vendor map.';
+        meta.textContent = t('adapt.session_done', 'Session complete · fringe updated');
+        prompt.textContent = t('adapt.session_empty', 'No more items in this band. Review ready topics or deepen via vendor map.');
         choices.innerHTML = '';
         why.textContent = '';
         return;
       }
       current = pack.item;
-      meta.textContent = (pack.mode || 'practice').toUpperCase() +
-        ' · item ' + ((pack.n || 0) + 1) +
+      meta.textContent = t('adapt.mode.' + (pack.mode || 'practice'), pack.mode || 'practice') +
+        ' · ' + t('adapt.item', 'item') + ' ' + ((pack.n || 0) + 1) +
         ' · θ ' + (pack.theta != null ? pack.theta.toFixed(2) : '0') +
         ' · SE ' + (pack.se != null ? pack.se.toFixed(2) : '—');
       prompt.textContent = current.stem;
-      why.textContent = pack.why ? ('Why this item: ' + pack.why) : '';
+      why.textContent = pack.why ? (t('adapt.why', 'Why this item:') + ' ' + pack.why) : '';
       choices.innerHTML = '';
       (current.choices || []).forEach(function (c) {
         var b = el('button', 'il-drill__choice');
@@ -629,7 +637,7 @@
             if (key === c.key && !res.correct) btn.classList.add('is-wrong');
           });
           fb.classList.add('is-on', res.correct ? 'il-feedback--ok' : 'il-feedback--bad');
-          fb.textContent = res.tip || (res.correct ? '✓ Correct.' : 'Not yet — rethink.');
+          fb.textContent = res.tip || (res.correct ? t('adapt.correct', '✓ Correct.') : t('adapt.not_yet', 'Not yet — rethink.'));
           paintShell();
           try {
             if (g.ILGame && typeof g.ILGame.award === 'function') {
@@ -650,7 +658,7 @@
       showItem(pack);
     }
 
-    nav.appendChild(btn('Next item', function () {
+    nav.appendChild(btn(t('adapt.next', 'Next item'), function () {
       var pack = next();
       showItem(pack);
       paintShell();
@@ -659,16 +667,20 @@
     paintShell();
     var state = loadState();
     begin(state.placed ? 'practice' : 'place');
+    if (g.ILi18n && typeof g.ILi18n.apply === 'function') {
+      try { g.ILi18n.apply(root); } catch (e) {}
+    }
   }
 
   function boot() {
     var nodes = document.querySelectorAll('[data-il-adaptive]');
     if (!nodes.length) return;
     loadBank().then(function () {
+      g.ILAdaptive._bankReady = true;
       for (var i = 0; i < nodes.length; i++) render(nodes[i]);
     }).catch(function (err) {
       for (var i = 0; i < nodes.length; i++) {
-        nodes[i].innerHTML = '<p class="il-honest-note">Adaptive bank failed to load (local JSON). Check /assets/il-item-bank.json. ' +
+        nodes[i].innerHTML = '<p class="il-honest-note">' + t('adapt.bank_fail', 'Adaptive bank failed to load (local JSON). Check /assets/il-item-bank.json.') + ' ' +
           String(err && err.message || err) + '</p>';
       }
     });
@@ -695,4 +707,9 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+  document.addEventListener('il:i18n', function () {
+    var nodes = document.querySelectorAll('[data-il-adaptive]');
+    if (!nodes.length || !g.ILAdaptive || !g.ILAdaptive._bankReady) return;
+    for (var i = 0; i < nodes.length; i++) render(nodes[i]);
+  });
 })(typeof window !== 'undefined' ? window : this);
