@@ -120,6 +120,8 @@
     if (src === "mit") return "MIT";
     if (src === "linkedin") return "LinkedIn";
     if (src === "x") return "X signal";
+    if (src === "arxiv") return "arXiv";
+    if (src === "oss") return "Open source";
     return src;
   }
 
@@ -294,12 +296,30 @@
           '<p class="font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted">' +
           esc(cat.refreshedAtLabel || cat.refreshedAt || "") +
           "</p></div>";
+        if (cat.dailyFold) {
+          var fold = cat.dailyFold;
+          html +=
+            '<section class="mb-6 rounded-xl border border-gold/30 bg-ink/50 p-5">' +
+            '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Daily fold · ' +
+            esc(fold.label || fold.date || "") +
+            "</p>" +
+            '<p class="mt-2 max-w-2xl text-sm text-muted">' +
+            esc(fold.summary || "") +
+            "</p>" +
+            '<p class="mt-3 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-cyan">' +
+            (fold.seatedIds || []).length +
+            " seated · " +
+            (fold.held || []).length +
+            " held</p></section>";
+        }
         html +=
           '<div class="mb-6 flex flex-wrap gap-2" role="toolbar" aria-label="Frontier filters">' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-cyan/40 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-cyan" data-src="all">All</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="mit">MIT</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="linkedin">LinkedIn</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="x">X signal</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="arxiv">arXiv</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="oss">Open source</button>' +
           '<input type="search" class="min-w-[12rem] flex-1 rounded-lg border border-paper/15 bg-void px-3 py-2 font-mono text-sm text-paper" placeholder="Filter…" data-il-frontier-q aria-label="Filter frontier courses"/>' +
           "</div>";
         html +=
@@ -311,6 +331,10 @@
           (counts.linkedin || 0) +
           " · X " +
           (counts.x || 0) +
+          " · arXiv " +
+          (counts.arxiv || 0) +
+          " · OSS " +
+          (counts.oss || 0) +
           "</p>";
         if (!list.length) {
           html +=
@@ -340,7 +364,7 @@
   }
 
   function mountAll() {
-    var nodes = global.document.querySelectorAll("[data-il-frontier]");
+    var nodes = global.document.querySelectorAll("[data-il-frontier], [data-il-trending]");
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
       render(n, {
