@@ -122,6 +122,9 @@
     if (src === "x") return "X signal";
     if (src === "arxiv") return "arXiv";
     if (src === "oss") return "Open source";
+    if (src === "reddit") return "Reddit";
+    if (src === "substack") return "Substack";
+    if (src === "primary") return "Primary source";
     return src;
   }
 
@@ -329,6 +332,9 @@
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="x">X signal</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="arxiv">arXiv</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="oss">Open source</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="primary">Primary source</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="reddit">Reddit</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="substack">Substack</button>' +
           '<input type="search" class="min-w-[12rem] flex-1 rounded-lg border border-paper/15 bg-void px-3 py-2 font-mono text-sm text-paper" placeholder="Filter…" data-il-frontier-q aria-label="Filter frontier courses"/>' +
           "</div>";
         html +=
@@ -344,6 +350,12 @@
           (counts.arxiv || 0) +
           " · OSS " +
           (counts.oss || 0) +
+          " · primary " +
+          (counts.primary || 0) +
+          " · Reddit " +
+          (counts.reddit || 0) +
+          " · Substack " +
+          (counts.substack || 0) +
           "</p>";
         if (!list.length) {
           html +=
