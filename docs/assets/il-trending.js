@@ -286,6 +286,15 @@
     return loadCatalog()
       .then(function (cat) {
         var list = sortCourses(filterCourses(cat.courses || [], opts));
+        if (el.getAttribute("data-fold") === "today" && cat.dailyFold) {
+          var allow = {};
+          (cat.dailyFold.seatedIds || []).forEach(function (id) {
+            allow[id] = true;
+          });
+          list = list.filter(function (c) {
+            return allow[c.id];
+          });
+        }
         var counts = cat.counts || {};
         var html = "";
         html +=
