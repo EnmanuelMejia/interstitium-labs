@@ -1,7 +1,7 @@
 # Trending advanced courses — MIT · LinkedIn · X
 
-**Refreshed:** 2026-09-25 · 6:45 PM ET  
-**Previous:** 2026-09-22 · 12:25 AM ET  
+**Refreshed:** 2026-09-25 · 6:55 PM ET · revised  
+**Previous:** 2026-09-25 · 6:45 PM ET  
 **Catalog:** [`/assets/il-trending-catalog.json`](../assets/il-trending-catalog.json)  
 **UI:** [`/paths/frontier/`](../paths/frontier/) · [`/trending/`](../trending/) · home `[data-il-trending]`  
 **Join key:** `course.frontierTrackIds[]` ↔ `il-paths.json` → `paths[].frontier_track_ids[]`
@@ -25,6 +25,22 @@ Held, not seated: posts with no paper, course, or repository; one vacuum-fluctua
 Counts after this fold: MIT 10 · LinkedIn 7 · X 6 · arXiv 4 · OSS 2 · total 29.
 
 `il-trending.js` now mounts both `[data-il-frontier]` and `[data-il-trending]`, so the home page and `/trending/` render the same catalog.
+
+## Revised the same day — physics, neuroscience, Hermetica
+
+New parents, still no orphan courses:
+
+| Track | Path that carries it |
+|-------|----------------------|
+| `frontier-physics` | `/paths/aleks-ops-math/` |
+| `frontier-neuroscience` | `/paths/data-analyst-to-ml/` |
+| `frontier-hermetica` | `/paths/enochian-programming/` |
+
+Seated this revision: OCW 8.04, OCW 8.811, Feynman Lectures, Susskind’s Theoretical Minimum, the Particle Data Group, CERN Open Data, Weissman’s free Substack slides, OCW 18.06 (Strang), 3Blue1Brown, OCW 9.01, Allen Brain Map, Friston et al. arXiv:1909.10863, Huberman Lab (outreach, under 9.01), Casaubon’s Dee relation (Archive), Mead’s public-domain Hermetica, ESSWE, and one r/Hermeticism bibliography thread.
+
+Not seated: operative ritual manuals, spell instructions, and secret-knowledge claims with no manuscript, paper, or course. LinkedIn added no new stable public syllabus this pass. The Enochian path stays source-critical. It is not a ritual school.
+
+Catalog total: 46.
 
 ## Honesty (Musk bar)
 
