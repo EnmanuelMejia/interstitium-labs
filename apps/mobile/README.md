@@ -21,7 +21,7 @@
 
 Android 16 (API 36) draws apps edge-to-edge: the web view sits behind the status and navigation bars, and StatusBar `backgroundColor` no longer applies there. The site already pads with `env(safe-area-inset-*)` under `viewport-fit=cover`, and `SystemBars` in `capacitor.config.ts` keeps those insets correct.
 
-CI: `.github/workflows/mobile-build.yml` builds Android (debug + release, unit tests, lint) and an unsigned iOS simulator app on every change under `apps/mobile/`.
+CI: `.github/workflows/mobile-build.yml` builds Android (debug + release, unit tests, lint) and an unsigned iOS simulator app on every change under `apps/mobile/`. It then launch-tests both builds: the APK on an Android 16 (API 36) emulator and the app on the newest iPhone simulator, through a cold start and a background/foreground cycle, plus an `https://interstitiumlabs.dev` link on Android. The screenshots and console output are kept as the `android-launch` and `ios-launch` artifacts. To run the same checks locally against a booted emulator or simulator: `scripts/launch-check-android.sh <app-debug.apk>` or `scripts/launch-check-ios.sh <App.app>`. These are smoke tests, not a substitute for trying a release build on real phones before a store submission.
 
 ## Commands
 
