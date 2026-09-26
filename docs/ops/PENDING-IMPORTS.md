@@ -39,3 +39,7 @@ Tracked ChatGPT shares. When a matching file appears under `docs/_imports/`, fol
 | Resume attachments | Honest tenure language (no a desk employment) | `/founders/` bio + proof wall |
 
 PENDING ChatGPT rows above remain **Resolved**. No fake employment claims introduced.
+
+## Consolidation — 2026-09-25
+
+Both ChatGPT shares are already on `main` and on the live site. No open ChatGPT import job remains. Public learner pages no longer print `docs/_imports/…` paths; provenance stays in this file. Dependabot Capacitor bumps are closed, not merged.
