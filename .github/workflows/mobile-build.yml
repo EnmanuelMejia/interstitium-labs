@@ -1,7 +1,11 @@
 ---
 # Builds the Capacitor shell on both platforms whenever the mobile app or
 # the web bundle script changes: Android debug and release builds with unit
-# tests and lint, and an unsigned iOS simulator build. Nothing is signed or
+# tests and lint, and an unsigned iOS simulator build. Each build is then
+# launch-tested: installed on an Android 16 (API 36) emulator and on the
+# newest iPhone simulator, checked through a cold start and a
+# background/foreground cycle (plus an https://interstitiumlabs.dev link on
+# Android), with screenshots kept as artifacts. Nothing is signed or
 # published here.
 name: Mobile build
 on:
@@ -26,7 +30,7 @@ concurrency:
 jobs:
   android:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: apps/mobile
@@ -63,10 +67,44 @@ jobs:
             apps/mobile/android/app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
           retention-days: 7
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Boot an Android 16 (API 36) emulator
+        env:
+          IMAGE: "system-images;android-36;google_apis;x86_64"
+        run: |
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
+          tools="$ANDROID_HOME/cmdline-tools/latest/bin"
+          (yes || true) | "$tools/sdkmanager" --licenses > /dev/null
+          "$tools/sdkmanager" --install emulator "$IMAGE" > /dev/null
+          echo no | "$tools/avdmanager" create avd --force -n ci -d pixel_7 -k "$IMAGE"
+          nohup "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-anim \
+            -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          adb wait-for-device
+          timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2> /dev/null | tr -d "\r")" = "1" ]; do sleep 5; done'
+          for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+            adb shell settings put global "$scale" 0
+          done
+          echo "Booted Android $(adb shell getprop ro.build.version.release | tr -d '\r'), API $(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+      - name: Launch test (cold start, resume, https link)
+        run: scripts/launch-check-android.sh android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/launch-android"
+      - name: Keep the launch screenshots and logcat
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: android-launch
+          path: ${{ runner.temp }}/launch-android
+          if-no-files-found: ignore
+          retention-days: 7
 
   ios:
     runs-on: macos-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     defaults:
       run:
         working-directory: apps/mobile
@@ -94,4 +132,15 @@ jobs:
           set -o pipefail
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/derived" \
             CODE_SIGNING_ALLOWED=NO build | tail -n 40
+      - name: Launch test on an iPhone simulator (cold start, resume)
+        run: scripts/launch-check-ios.sh "$RUNNER_TEMP/derived/Build/Products/Debug-iphonesimulator/App.app" "$RUNNER_TEMP/launch-ios"
+      - name: Keep the launch screenshots and console output
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ios-launch
+          path: ${{ runner.temp }}/launch-ios
+          if-no-files-found: ignore
+          retention-days: 7

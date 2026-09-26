@@ -17,7 +17,7 @@ Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + G
 | Sync `docs/` → `www/` | `scripts/sync-mobile-web.sh` |
 | Security threat model | [MOBILE-SECURITY.md](./MOBILE-SECURITY.md) |
 | Android network security sample | `apps/mobile/android-security/` |
-| Mobile build CI (Android debug + release, unit tests, lint; unsigned iOS simulator build) | `.github/workflows/mobile-build.yml` |
+| Mobile build CI (Android debug + release, unit tests, lint; unsigned iOS simulator build; launch tests on an API 36 emulator and an iPhone simulator) | `.github/workflows/mobile-build.yml` |
 | PWA (installable web) | `docs/manifest.webmanifest`, `docs/sw.js` |
 | Noah mobile shell | `docs/assets/il-muse-mobile.css`, Dee avatar, Capacitor home → `/coach/` |
 
