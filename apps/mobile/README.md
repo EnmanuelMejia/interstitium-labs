@@ -11,6 +11,18 @@
 | appName | Interstitium Labs |
 | webDir | `www/` (synced from `docs/`) |
 
+## Toolchain (Capacitor 8)
+
+| | Minimum |
+| --- | --- |
+| Node | 22 |
+| Android | Android Studio Otter 2025.2.1, JDK 21; app targets API 36, runs on API 24+ |
+| iOS | Xcode 26; app runs on iOS 15+, CocoaPods project, UIScene lifecycle |
+
+Android 16 (API 36) draws apps edge-to-edge: the web view sits behind the status and navigation bars, and StatusBar `backgroundColor` no longer applies there. The site already pads with `env(safe-area-inset-*)` under `viewport-fit=cover`, and `SystemBars` in `capacitor.config.ts` keeps those insets correct.
+
+CI: `.github/workflows/mobile-build.yml` builds Android (debug + release, unit tests, lint) and an unsigned iOS simulator app on every change under `apps/mobile/`.
+
 ## Commands
 
 ```bash
@@ -28,8 +40,9 @@ npx cap open android   # / ios
 Copy Android security overlay after first `cap add android`:
 
 ```bash
-mkdir -p android/app/src/main/res/xml
+mkdir -p android/app/src/main/res/xml android/app/src/debug/res/xml
 cp android-security/res/xml/network_security_config.xml android/app/src/main/res/xml/
+cp android-security/debug/res/xml/network_security_config.xml android/app/src/debug/res/xml/
 # Set usesCleartextTraffic=false + networkSecurityConfig (see android-security/README.md)
 ```
 
