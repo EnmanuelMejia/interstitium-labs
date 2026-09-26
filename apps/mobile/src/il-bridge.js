@@ -74,7 +74,9 @@
       var SB = global.Capacitor && global.Capacitor.Plugins && global.Capacitor.Plugins.StatusBar;
       if (SB) {
         await SB.setStyle({ style: "DARK" });
-        await SB.setBackgroundColor({ color: "#070B16" });
+        // Android 15+ draws edge-to-edge; the status bar colour only applies on iOS.
+        var platform = global.Capacitor.getPlatform ? global.Capacitor.getPlatform() : "";
+        if (platform !== "android") await SB.setBackgroundColor({ color: "#070B16" });
       }
     } catch (_) {}
   }
