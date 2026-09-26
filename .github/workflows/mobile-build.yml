@@ -1,0 +1,97 @@
+---
+# Builds the Capacitor shell on both platforms whenever the mobile app or
+# the web bundle script changes: Android debug and release builds with unit
+# tests and lint, and an unsigned iOS simulator build. Nothing is signed or
+# published here.
+name: Mobile build
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "apps/mobile/**"
+      - "scripts/sync-mobile-web.sh"
+      - ".github/workflows/mobile-build.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "apps/mobile/**"
+      - "scripts/sync-mobile-web.sh"
+      - ".github/workflows/mobile-build.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6  # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Bundle the web app from docs/
+        run: ../../scripts/sync-mobile-web.sh
+      - name: Install (lockfile, exact pins)
+        run: npm ci
+      - name: Audit production dependencies
+        run: npm run audit:ci
+      - name: Type-check config and native bridge
+        run: npx tsc -p .
+      - name: Sync Capacitor into the Android project
+        run: npx cap sync android
+      - name: Build, unit-test and lint
+        working-directory: apps/mobile/android
+        run: ./gradlew --no-daemon assembleDebug assembleRelease testDebugUnitTest lintDebug
+      - name: Keep the debug APK and lint report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: android-debug
+          path: |
+            apps/mobile/android/app/build/outputs/apk/debug/*.apk
+            apps/mobile/android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Select Xcode 26 (Capacitor 8 requires 26.0 or newer)
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$xcode" ]; then echo "No Xcode 26 on this runner image" >&2; exit 1; fi
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Bundle the web app from docs/
+        run: ../../scripts/sync-mobile-web.sh
+      - name: Install (lockfile, exact pins)
+        run: npm ci
+      - name: Sync Capacitor into the iOS project (pod install)
+        run: npx cap sync ios
+      - name: Build for the simulator, unsigned
+        working-directory: apps/mobile/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 40
