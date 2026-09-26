@@ -13,11 +13,11 @@ Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + G
 
 | Item | Location |
 | --- | --- |
-| Capacitor 6+ project | `apps/mobile/` |
+| Capacitor 8 project (Android API 24–36, iOS 15+) | `apps/mobile/` |
 | Sync `docs/` → `www/` | `scripts/sync-mobile-web.sh` |
 | Security threat model | [MOBILE-SECURITY.md](./MOBILE-SECURITY.md) |
 | Android network security sample | `apps/mobile/android-security/` |
-| Optional Android debug APK CI | `.github/workflows/mobile-android-debug.yml` |
+| Mobile build CI (Android debug + release, unit tests, lint; unsigned iOS simulator build) | `.github/workflows/mobile-build.yml` |
 | PWA (installable web) | `docs/manifest.webmanifest`, `docs/sw.js` |
 | Noah mobile shell | `docs/assets/il-muse-mobile.css`, Dee avatar, Capacitor home → `/coach/` |
 
