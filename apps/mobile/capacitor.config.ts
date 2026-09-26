@@ -7,7 +7,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  *
  * Android 16 (targetSdk 36) enforces edge-to-edge: the web view draws behind
  * the system bars, and StatusBar backgroundColor / overlaysWebView no longer
- * apply there. The site already sets viewport-fit=cover and pads with
+ * apply there. The launch pages set viewport-fit=cover and pad with
  * env(safe-area-inset-*); SystemBars keeps those insets correct on Android.
  */
 const config: CapacitorConfig = {
@@ -41,7 +41,8 @@ const config: CapacitorConfig = {
     SystemBars: {
       // Inject --safe-area-inset-* as well as env() values on Android.
       insetsHandling: "css",
-      // Every page declares viewport-fit=cover; saying so up front avoids a layout jump.
+      // The launch pages (/ and /coach/) declare viewport-fit=cover; saying so up
+      // front avoids a layout jump on start.
       initialViewportFitValueHint: "cover",
       // Light system bar icons on the void background.
       style: "DARK",

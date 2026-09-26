@@ -136,7 +136,7 @@ Equal capability means **same Learning OS**, not three different products.
 | Android **release** signed AAB | Needs Enmanuel’s keystore secrets |
 | iOS Archive | Needs macOS runner + Apple creds — **out of scope for Linux agents** |
 
-See `.github/workflows/mobile-android-debug.yml`.
+See `.github/workflows/mobile-build.yml`.
 
 ---
 
