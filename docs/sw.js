@@ -2,7 +2,7 @@
  * Security: NEVER cache enroll config as authoritative secrets (there are none client-side;
  * still exclude /enroll/config.js from long-lived shell cache). First-party only.
  */
-const SW_VERSION = "il-sw-2026-09-24-i18n-body";
+const SW_VERSION = "il-sw-2026-09-28-musk-frontier";
 const SHELL_CACHE = SW_VERSION + "-shell";
 const PAGE_CACHE = SW_VERSION + "-pages";
 
@@ -103,12 +103,18 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (
+    url.pathname === "/assets/il-trending-catalog.json" ||
+    url.pathname === "/assets/il-trending.json" ||
+    url.pathname === "/curriculum-os/mirror.json" ||
     url.pathname.startsWith("/i18n/") ||
     url.pathname === "/assets/il-i18n.js" ||
     url.pathname === "/assets/il-fx.js" ||
     url.pathname === "/assets/il-immersive-3d.js" ||
     url.pathname === "/assets/il-adaptive.js" ||
-    url.pathname === "/assets/il-drills.js"
+    url.pathname === "/assets/il-drills.js" ||
+    url.pathname === "/assets/il-trending.js" ||
+    url.pathname === "/assets/il-curriculum-sync.js" ||
+    url.pathname === "/assets/il-scene-kit.js"
   ) {
     event.respondWith(
       fetch(req)

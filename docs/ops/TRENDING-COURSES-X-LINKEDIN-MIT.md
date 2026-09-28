@@ -1,3 +1,5 @@
+_Last weekday refresh: 2026-09-28 — Frontier fetch harden + MIT 6.5940 TinyML seat (Han Lab public URL)._
+
 # Trending advanced courses — MIT · LinkedIn · X
 
 **Refreshed:** 2026-09-25 · 6:55 PM ET · revised  

@@ -1,8 +1,9 @@
 /**
- * Local Socratic coach shell — NO fake API keys.
+ * Noah Live Assist — local Socratic in-lab coach. NO fake API keys.
+ * Exceeds KodeKloud AI Tutor Live Assist on honesty: lab-context prompts, no spoiler dumps,
+ * demand-tier OSS router (Ollama) when present, 3D curriculum stages stay separate.
  * Optional: window.IL_COACH / IL_MUSE / IL_MODEL_ROUTER (never commit secrets).
- * Prefers IL_MODEL_ROUTER.chat when loaded; else local rules.
- * Topics: CIDR, Git, K8s pods (+ Terraform, CI, Linux). Hints only; refuse answer dumps.
+ * Topics: CIDR, Git, K8s pods (+ Terraform, CI, Linux) + lab-paste triage.
  */
 (function (g) {
   'use strict';
@@ -16,10 +17,53 @@
     { id: 'linux', label: 'Linux' }
   ];
 
+  function labContext(el) {
+    var ctx = {
+      surface: '',
+      challenge: '',
+      scene: '',
+      mode: 'coach'
+    };
+    try {
+      var path = (g.location && g.location.pathname) || '';
+      if (path.indexOf('/labs/challenge') === 0) ctx.surface = 'challenge';
+      else if (path.indexOf('/labs') === 0) ctx.surface = 'labs';
+      else if (path.indexOf('/coach') === 0) ctx.surface = 'coach';
+      else if (path.indexOf('/prep') === 0) ctx.surface = 'prep';
+      var host = el || (g.document && g.document.querySelector('[data-il-live-assist], [data-il-coach]'));
+      if (host) {
+        ctx.challenge = host.getAttribute('data-il-lab-challenge') || '';
+        ctx.scene = host.getAttribute('data-il-lab-scene') || '';
+        if (host.getAttribute('data-il-live-assist') != null) ctx.mode = 'live-assist';
+      }
+      var ch = g.document && g.document.querySelector('[data-il-challenge-id], [data-challenge]');
+      if (ch && !ctx.challenge) {
+        ctx.challenge = ch.getAttribute('data-il-challenge-id') || ch.getAttribute('data-challenge') || '';
+      }
+    } catch (e) {}
+    return ctx;
+  }
+
+  function liveAssistPreface(ctx) {
+    var bits = ['Noah Live Assist'];
+    if (ctx.surface) bits.push(ctx.surface);
+    if (ctx.challenge) bits.push('challenge ' + ctx.challenge);
+    if (ctx.scene) bits.push('scene ' + ctx.scene);
+    return bits.join(' · ') + ' — Socratic, lab-context, no spoiler dump. Paste an error or hypothesis.';
+  }
+
   var RULES = [
     // meta
     { re: /(answer|just tell me|give me the (answer|solution)|solve it for me)/i, topic: null,
       reply: 'I will not dump the answer. What have you already tried? Name one observation (error text, command output, or hypothesis).' },
+    // Live Assist — lab paste / terminal triage (still Socratic)
+    { re: /(error:|Traceback|E\d{4}|ImagePullBackOff|CrashLoopBackOff|ErrImagePull|CreateContainerConfigError)/i, topic: null,
+      reply: 'Live Assist triage: quote the *first* failing line only. What command or apply produced it? Do not paste secrets. What did you expect to happen instead?' },
+    { re: /(kubectl\s+(apply|get|describe|logs)|helm\s+|argocd\s+|terraform\s+)/i, topic: 'k8s',
+      reply: 'Live Assist: name the resource kind + namespace (no cluster credentials). Is the failure at apply-time validation, schedule, or runtime? One hypothesis before I nudge the next check.' },
+    { re: /(micro-?lesson|on-?demand|explain this lab|what should I do next)/i, topic: null,
+      reply: 'Micro-lesson mode: I will not narrate the whole lab. Pick one concept (CIDR, probes, selectors, state lock, pipeline stage). What have you already verified?' },
+
     { re: /^(hi|hello|hey)\b/i, topic: null,
       reply: 'Welcome. Pick a topic chip or ask about CIDR, Git, pods, Terraform, CI, or Linux. I stay Socratic — questions before solutions.' },
     // CIDR
@@ -98,16 +142,20 @@
   function mount(el) {
     if (el.getAttribute('data-il-coach-ready')) return;
     var topic = el.getAttribute('data-il-coach-topic') || '';
+    var ctx = labContext(el);
+    var live = ctx.mode === 'live-assist' || el.getAttribute('data-il-live-assist') != null;
 
     var shell = document.createElement('div');
-    shell.className = 'il-coach-shell';
+    shell.className = 'il-coach-shell' + (live ? ' il-coach-shell--live-assist' : '');
 
     var left = document.createElement('div');
     left.className = 'il-ux-card il-ux-card--quiet';
     left.innerHTML =
-      '<span class="il-coach-status"><span class="il-coach-status__dot" aria-hidden="true"></span> AI coach coming online</span>' +
-      '<h2 class="mt-4 font-display text-2xl tracking-[-0.02em]" style="margin-top:1rem;font-family:Space Grotesk,system-ui,sans-serif;font-size:1.5rem;color:#e8eef5">Local Socratic hints</h2>' +
-      '<p style="margin-top:0.75rem;font-size:0.875rem;color:#8b9bb4;line-height:1.55">No API keys in this repo. Optional <code style="color:#5eead4">window.IL_COACH</code> stub for a future same-origin proxy. I ask questions; I do not dump final answers.</p>' +
+      '<span class="il-coach-status"><span class="il-coach-status__dot" aria-hidden="true"></span> ' + (live ? 'Noah Live Assist · online (local)' : 'Noah · Socratic coach') + '</span>' +
+      '<h2 class="mt-4 font-display text-2xl tracking-[-0.02em]" style="margin-top:1rem;font-family:Space Grotesk,system-ui,sans-serif;font-size:1.5rem;color:#e8eef5">' + (live ? 'Live Assist in the lab' : 'Local Socratic hints') + '</h2>' +
+      '<p style="margin-top:0.75rem;font-size:0.875rem;color:#8b9bb4;line-height:1.55">' + (live
+        ? 'Real-time <em>in-lab</em> help without KodeKloud\'s hosted fleet claim. Paste an error or hypothesis. On-demand micro-lessons stay Socratic — no spoiler dump. Demand-tier OSS router when Ollama is present. No fake keys.'
+        : 'No API keys in this repo. Optional <code style="color:#5eead4">window.IL_COACH</code> stub for a future same-origin proxy. I ask questions; I do not dump final answers.') + '</p>' +
       '<p class="il-kicker" style="margin-top:1.25rem">Topics</p>';
     var topics = document.createElement('div');
     topics.className = 'il-coach-topics';
@@ -127,7 +175,7 @@
     });
     left.appendChild(topics);
     left.insertAdjacentHTML('beforeend',
-      '<p class="il-honest-note" style="margin-top:1.25rem"><strong>Honesty:</strong> Rule-based coach only. Full lab-state-aware AI (KodeKloud-class) needs a Worker + model — Enmanuel wires keys out of band.</p>');
+      '<p class="il-honest-note" style="margin-top:1.25rem"><strong>Honesty vs KodeKloud Live Assist:</strong> We ship Socratic lab-context coaching + optional local Ollama router. We do <em>not</em> claim a hosted multi-cloud playground fleet or terminal keylogger. SuperLab is cloneable proof; paste your own lab state.</p>');
 
     var right = document.createElement('div');
     right.className = 'il-ux-card';
@@ -159,7 +207,7 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    push('bot', 'Interstitium Coach (local rules). Topics: CIDR, Git, K8s, Terraform, CI/CD, Linux. I will not answer-dump — show your work.');
+    push('bot', live ? liveAssistPreface(ctx) : 'Interstitium Coach (local rules). Topics: CIDR, Git, K8s, Terraform, CI/CD, Linux. I will not answer-dump — show your work.');
 
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
@@ -186,11 +234,12 @@
   }
 
   function boot() {
-    var nodes = document.querySelectorAll('[data-il-coach]');
+    var nodes = document.querySelectorAll('[data-il-coach], [data-il-live-assist]');
     for (var i = 0; i < nodes.length; i++) mount(nodes[i]);
   }
 
   g.ILCoach = { mount: mount, boot: boot, ask: socratic, topics: TOPICS,
+    labContext: labContext, liveAssistPreface: liveAssistPreface,
     usesRouter: function () { return !!(g.IL_MODEL_ROUTER || g.ILModelRouter); } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

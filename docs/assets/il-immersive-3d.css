@@ -183,3 +183,33 @@
     height: clamp(18rem, 28vw, 28rem);
   }
 }
+
+
+/* Musk-bar pass 2026-09-28 — gfx HUD + particle stage energy */
+.il-immersive__badge[data-il-gfx="webgpu"],
+.il-immersive__badge[data-il-gfx="webgl"] {
+  box-shadow: 0 0 18px color-mix(in srgb, #5EEAD4 35%, transparent);
+  animation: il-immersive-badge-pulse 2.8s ease-in-out infinite;
+}
+.il-immersive__badge[data-il-gfx="webgpu"] {
+  border-color: color-mix(in srgb, #D4A853 55%, transparent);
+  color: #D4A853;
+}
+@keyframes il-immersive-badge-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+.il-immersive__stage::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(40% 35% at 50% 20%, color-mix(in srgb, #5EEAD4 12%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 80% 70%, color-mix(in srgb, #D4A853 10%, transparent), transparent 65%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-immersive__badge[data-il-gfx] { animation: none; }
+}

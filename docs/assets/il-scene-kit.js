@@ -121,6 +121,58 @@
     return out;
   }
 
+
+  /** WebGPU capability + preference (flag path). Full WGSL renderer lands later; callers fall back to WebGL. */
+  function hasWebGPU() {
+    return !!(g.navigator && g.navigator.gpu);
+  }
+  function preferWebGPU(opts) {
+    opts = opts || {};
+    if (opts.forceWebGL) return false;
+    if (opts.forceWebGPU) return hasWebGPU();
+    try {
+      if (g.location && /[?&]webgpu=1\b/.test(g.location.search || '')) return hasWebGPU();
+      if (g.localStorage && g.localStorage.getItem('il-webgpu') === '1') return hasWebGPU();
+    } catch (e) {}
+    if (opts.webgpu === false) return false;
+    if (opts.engine === 'webgpu' || opts.webgpu === true) return hasWebGPU();
+    return false;
+  }
+  /**
+   * Acquire best canvas context: WebGPU adapter probe when preferred, else WebGL.
+   * Returns { api:'webgpu'|'webgl'|'none', gl?, gpu?, adapter?, canvas, label }
+   */
+  function acquireGraphics(canvas, opts) {
+    opts = opts || {};
+    var out = { api: 'none', canvas: canvas, label: 'none' };
+    if (!canvas) return out;
+    if (preferWebGPU(opts) && hasWebGPU()) {
+      out.api = 'webgpu';
+      out.gpu = g.navigator.gpu;
+      out.label = 'WebGPU';
+      /* Adapter request is async — callers may upgrade; procedural path still uses WebGL today. */
+      try {
+        g.navigator.gpu.requestAdapter().then(function (a) {
+          out.adapter = a || null;
+          emitSceneEvent('il-webgpu-adapter', { ok: !!a });
+        }).catch(function () {
+          emitSceneEvent('il-webgpu-adapter', { ok: false });
+        });
+      } catch (e) {}
+      /* Honest dual-path: still provide WebGL for procedural mesh until WGSL port */
+    }
+    var gl = canvas.getContext('webgl', opts.webglAttrs || { antialias: true, alpha: !!opts.alpha, powerPreference: 'high-performance' })
+      || canvas.getContext('experimental-webgl');
+    if (gl) {
+      out.gl = gl;
+      if (out.api !== 'webgpu') { out.api = 'webgl'; out.label = 'WebGL'; }
+      else out.label = 'WebGPU·WebGL-fallback';
+      return out;
+    }
+    if (out.api === 'webgpu') return out;
+    return out;
+  }
+
   /** Detect vendored Three (optional). Place at /assets/vendor/three.min.js */
   function hasThree() {
     return !!(g.THREE && g.THREE.WebGLRenderer);
@@ -207,11 +259,14 @@
     mat4FromRTS: mat4FromRTS,
     hasThree: hasThree,
     hasGLTFLoader: hasGLTFLoader,
+    hasWebGPU: hasWebGPU,
+    preferWebGPU: preferWebGPU,
+    acquireGraphics: acquireGraphics,
     loadGltf: loadGltf,
     pixelStreamEmbed: pixelStreamEmbed,
     onSpeakAmp: onSpeakAmp,
     emitSceneEvent: emitSceneEvent,
-    VERSION: '1.0.0'
+    VERSION: '1.1.0'
   };
 
   /* Muse 3D may re-export kit when both present */
