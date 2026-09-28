@@ -134,7 +134,13 @@
     var meta = kindDefaults(kind);
     var gltfUrl = opts.gltf || host.getAttribute('data-gltf') || '';
     var psUrl = opts.pixelStream || host.getAttribute('data-ps-signaling') || '';
-    var engine = String(opts.engine || host.getAttribute('data-engine') || 'web').toLowerCase();
+    var engine = String(opts.engine || host.getAttribute('data-engine') || host.getAttribute('data-il-engine') || 'web').toLowerCase();
+    var wantWebGPU = host.getAttribute('data-il-webgpu') === '1' || engine === 'webgpu';
+    if (wantWebGPU && kit && kit.preferWebGPU && kit.preferWebGPU({ engine: 'webgpu', webgpu: true })) {
+      engine = 'webgpu';
+    } else if (engine === 'webgpu') {
+      engine = 'web';
+    }
     var title = opts.title || host.getAttribute('data-title') || meta.label;
 
     host.classList.add('il-immersive');
@@ -204,7 +210,7 @@
       return api;
     }
 
-    if (engineEl) engineEl.textContent = gltfUrl ? 'WebGL · glTF pending' : 'WebGL';
+    if (engineEl) engineEl.textContent = (engine === 'webgpu' ? 'WebGPU·GL' : 'WebGL') + (gltfUrl ? ' · glTF pending' : '');
 
     var mobile = kit.isMobile();
     var pedestal = makeMesh(gl, boxGeo(1.2, 0.12, 1.2));

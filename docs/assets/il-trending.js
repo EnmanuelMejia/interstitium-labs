@@ -71,17 +71,49 @@
     return row;
   }
 
-  function loadCatalog() {
-    if (cache) return Promise.resolve(cache);
-    return fetch(CATALOG_URL, { credentials: "same-origin" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("catalog " + r.status);
-        return r.json();
-      })
-      .then(function (j) {
-        cache = j;
+  function catalogUrls() {
+    var urls = [CATALOG_URL];
+    try {
+      if (global.document && global.document.baseURI) {
+        urls.push(new URL("assets/il-trending-catalog.json", global.document.baseURI).href);
+      }
+    } catch (e) {}
+    urls.push("/assets/il-trending.json"); /* legacy alias */
+    var seen = {};
+    return urls.filter(function (u) {
+      if (!u || seen[u]) return false;
+      seen[u] = 1;
+      return true;
+    });
+  }
+
+  function fetchCatalogOnce(url) {
+    return fetch(url, { credentials: "same-origin", cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("catalog " + r.status + " @ " + url);
+      return r.json().then(function (j) {
+        if (!j || !Array.isArray(j.courses)) throw new Error("catalog shape @ " + url);
         return j;
       });
+    });
+  }
+
+  function loadCatalog() {
+    if (cache) return Promise.resolve(cache);
+    var urls = catalogUrls();
+    var i = 0;
+    function next(err) {
+      if (i >= urls.length) {
+        return Promise.reject(err || new Error("catalog exhausted"));
+      }
+      var url = urls[i++];
+      return fetchCatalogOnce(url).then(function (j) {
+        cache = j;
+        return j;
+      }, function (e) {
+        return next(e);
+      });
+    }
+    return next(null);
   }
 
   function sortCourses(courses) {
@@ -378,9 +410,20 @@
         bindOnce(el, opts);
       })
       .catch(function (err) {
+        var detail = esc((err && err.message) || "unknown");
         el.innerHTML =
-          '<p class="text-sm text-muted">Frontier catalog failed to load (<code class="text-cyan">/assets/il-trending-catalog.json</code>).</p>';
+          '<p class="text-sm text-muted">Frontier catalog failed to load (<code class="text-cyan">/assets/il-trending-catalog.json</code>). <span class="font-mono text-[0.55rem] text-muted">' +
+          detail +
+          '</span> · <button type="button" class="text-cyan underline" data-il-frontier-retry>Retry</button></p>';
         analyticsTrack("frontier_open", { error: String(err && err.message) });
+        var btn = el.querySelector("[data-il-frontier-retry]");
+        if (btn) {
+          btn.addEventListener("click", function () {
+            cache = null;
+            el.removeAttribute("data-il-frontier-bound");
+            render(el, opts);
+          });
+        }
       });
   }
 

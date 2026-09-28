@@ -246,20 +246,25 @@
   }
 
   function parseConfig(el){
-    var cfg = { mode: '3d-first', engine: 'three', asset: '', scene: 'k8s', captions: true };
+    var cfg = { mode: '3d-first', engine: 'three', asset: '', scene: 'k8s', captions: true, webgpu: false, gltf: '' };
     var raw = el.getAttribute('data-immersive');
+    var j = null;
     if (raw) {
       try {
-        var j = JSON.parse(raw);
+        j = JSON.parse(raw);
         if (j.mode) cfg.mode = j.mode;
         if (j.engine) cfg.engine = j.engine;
         if (j.asset) cfg.asset = j.asset;
         if (j.captions === false) cfg.captions = false;
+        if (j.webgpu != null) cfg.webgpu = !!j.webgpu;
       } catch (e) { /* ignore */ }
     }
     var sceneAttr = el.getAttribute('data-il-scene') || '';
     var eng = el.getAttribute('data-il-engine');
     if (eng) cfg.engine = eng;
+    if (el.getAttribute('data-il-webgpu') === '1') cfg.webgpu = true;
+    cfg.gltf = el.getAttribute('data-gltf') || el.getAttribute('data-gltf-pending') || '';
+    if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
     } else if (sceneAttr) {
@@ -267,6 +272,17 @@
     } else if (cfg.asset) {
       cfg.scene = resolveScene(cfg.asset);
     }
+    /* WebGPU flag path: prefer when requested + navigator.gpu; procedural still WebGL until WGSL port */
+    try {
+      if (g.ILSceneKit && g.ILSceneKit.preferWebGPU) {
+        if (g.ILSceneKit.preferWebGPU({ engine: cfg.engine, webgpu: cfg.webgpu })) {
+          cfg.engine = 'webgpu';
+          cfg.webgpu = true;
+        }
+      } else if (cfg.engine === 'webgpu' && !(g.navigator && g.navigator.gpu)) {
+        cfg.engine = 'three';
+      }
+    } catch (e2) { /* ignore */ }
     return cfg;
   }
 
@@ -291,6 +307,7 @@
     if (root.getAttribute('data-il-compact') === '1') root.classList.add('il-immersive--compact');
 
     var chrome = document.createElement('div');
+    chrome.className = 'il-immersive__chrome';
     chrome.setAttribute('data-il-no-body', '');
     chrome.innerHTML =
       '<div><p class="il-immersive__kicker" data-i18n="immersive.kicker">3D-first · Blender / Unreal / Three</p>' +
@@ -453,7 +470,17 @@
   ScenePlayer.prototype._initGL = function (){
     var canvas = document.createElement('canvas');
     this.stage.insertBefore(canvas, this.cap);
-    var gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+    var gl = null;
+    if (g.ILSceneKit && g.ILSceneKit.acquireGraphics) {
+      var gfx = g.ILSceneKit.acquireGraphics(canvas, { webgpu: this.cfg.webgpu, engine: this.cfg.engine, alpha: false });
+      gl = gfx.gl || null;
+      this._gfxApi = gfx.api;
+      this._gfxLabel = gfx.label;
+    } else {
+      gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+      this._gfxApi = gl ? 'webgl' : 'none';
+      this._gfxLabel = gl ? 'WebGL' : 'none';
+    }
     if (!gl) {
       this.root.classList.add('is-reduced');
       return;
@@ -464,12 +491,52 @@
     if (!this.prog) { this.root.classList.add('is-reduced'); return; }
     this.box = upload(gl, boxMesh());
     this.cyl = upload(gl, cylMesh(14));
+    this.particles = this._makeParticles(48);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
+    this._paintHud();
     this._resize();
     var self = this;
     g.addEventListener('resize', function (){ self._resize(); });
     this._loop();
+  };
+
+  ScenePlayer.prototype._paintHud = function (){
+    var badge = this.root.querySelector('.il-immersive__badge');
+    if (!badge) return;
+    var eng = this._gfxLabel || this.cfg.engine || 'WebGL';
+    var pending = (this.cfg.gltf && String(this.cfg.gltf).indexOf('.pending.') >= 0) ? ' · glTF scaffold' : '';
+    badge.textContent = eng + ' · ' + this.cfg.scene + pending;
+    badge.setAttribute('data-il-gfx', this._gfxApi || 'webgl');
+  };
+
+  ScenePlayer.prototype._makeParticles = function (n){
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      out.push({
+        a: Math.random() * Math.PI * 2,
+        r: 1.2 + Math.random() * 2.4,
+        y: -0.4 + Math.random() * 2.2,
+        s: 0.03 + Math.random() * 0.05,
+        sp: 0.35 + Math.random() * 0.9,
+        gold: Math.random() > 0.62
+      });
+    }
+    return out;
+  };
+
+  ScenePlayer.prototype._renderParticles = function (P, V, time, amp){
+    if (!this.particles) return;
+    for (var i = 0; i < this.particles.length; i++) {
+      var p = this.particles[i];
+      var a = p.a + time * p.sp * 0.35;
+      var x = Math.cos(a) * p.r;
+      var z = Math.sin(a) * p.r;
+      var y = p.y + Math.sin(time * 1.4 + i) * 0.08;
+      var col = p.gold ? GOLD : CYAN;
+      var glow = 0.18 + amp * 0.45;
+      this._drawObject(this.box, x, y, z, p.s, p.s, p.s, a, col, glow, time, P, V);
+    }
   };
 
   ScenePlayer.prototype._resize = function (){
@@ -484,11 +551,15 @@
   };
 
   ScenePlayer.prototype._probeGlb = function (){
-    var asset = this.cfg.asset || '';
+    var asset = this.cfg.gltf || this.cfg.asset || '';
     if (!asset || asset.indexOf('procedural:') === 0) return;
-    if (!/\.glb($|\?)/i.test(asset) && asset.indexOf('/assets/immersive/') < 0) return;
     var self = this;
-    // v1 honesty: fetch existence; full GLTFLoader lands when Three is vendored under /assets/vendor/.
+    if (/\.pending\.json($|\?)/i.test(asset)) {
+      self.cap.textContent = (self.cap.textContent || '') + ' · glTF scaffold (pending Blender export).';
+      return;
+    }
+    if (!/\.glb($|\?)/i.test(asset) && asset.indexOf('/assets/immersive/') < 0) return;
+    // Honesty: HEAD probe only; full GLTFLoader when Three is vendored under /assets/vendor/.
     try {
       g.fetch(asset, { method: 'HEAD' }).then(function (res){
         if (res && res.ok) {
@@ -547,8 +618,9 @@
 
   ScenePlayer.prototype._renderK8s = function (P, V, time, amp){
     var self = this;
-    this._drawObject(this.cyl, 0, 0.9, 0, 0.7, 0.35, 0.7, time * 0.2, GOLD, 0.35 + amp * 0.3, time, P, V);
-    this._drawObject(this.box, 0, 1.35, 0, 0.35, 0.35, 0.35, time * 0.5, CYAN, 0.45 + amp * 0.4, time, P, V);
+    this._drawObject(this.cyl, 0, 0.9, 0, 0.75, 0.38, 0.75, time * 0.22, GOLD, 0.42 + amp * 0.4, time, P, V);
+    this._drawObject(this.box, 0, 1.38, 0, 0.38, 0.38, 0.38, time * 0.55, CYAN, 0.55 + amp * 0.5, time, P, V);
+    this._drawObject(this.cyl, 0, 0.55, 0, 1.15, 0.04, 1.15, -time * 0.4, CYAN, 0.22 + amp * 0.25, time, P, V);
     var n = this.clip === 'scale' ? 7 : 5;
     for (var i = 0; i < n; i++) {
       var a = (i / n) * Math.PI * 2 + time * 0.25;
@@ -585,6 +657,7 @@
     if (this.cfg.scene === 'hermetic') this._renderHermetic(P, V, time, amp);
     else if (this.cfg.scene === 'rack') this._renderRack(P, V, time, amp);
     else this._renderK8s(P, V, time, amp);
+    this._renderParticles(P, V, time, amp);
 
     this.raf = g.requestAnimationFrame(function (){ self._loop(); });
   };
@@ -654,9 +727,11 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.0.0',
-    engines: ['three', 'godot', 'unreal'],
+    version: '1.2.0',
+    engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s'],
-    note: 'Curriculum scenes. Noah = il-muse-3d (separate).'
+    note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
+    webgpuFlag: true,
+    gltfLectureHook: true
   };
 })(typeof window !== 'undefined' ? window : this);

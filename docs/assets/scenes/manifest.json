@@ -1,11 +1,57 @@
 {
-  "v": 1,
-  "note": "3D-first curriculum. Procedural WebGL ships today; glTF optional when Blender exports land. Unreal via Pixel Streaming URL.",
-  "engines": ["webgl", "three-gltf", "godot-gltf", "unreal-pixel-streaming"],
+  "v": 2,
+  "updated": "2026-09-28T09:20:00-04:00",
+  "note": "3D-first curriculum. Procedural WebGL ships today; WebGPU flag path on; glTF optional when Blender exports land. Pending scaffolds are .pending.json \u2014 not live .glb. Unreal via Pixel Streaming URL.",
+  "engines": [
+    "webgl",
+    "webgpu",
+    "three-gltf",
+    "godot-gltf",
+    "unreal-pixel-streaming"
+  ],
   "scenes": [
-    { "id": "lecture-default", "kind": "lecture", "gltf": null, "procedural": true },
-    { "id": "cert-default", "kind": "cert", "gltf": null, "procedural": true },
-    { "id": "sim-default", "kind": "sim", "gltf": null, "procedural": true },
-    { "id": "lab-default", "kind": "non-cert", "gltf": null, "procedural": true }
-  ]
+    {
+      "id": "lecture-default",
+      "kind": "lecture",
+      "gltf": null,
+      "gltfPending": "/assets/immersive/lecture-k8s-control-plane.pending.json",
+      "procedural": true,
+      "scene": "k8s"
+    },
+    {
+      "id": "lecture-hermetic",
+      "kind": "lecture",
+      "gltf": null,
+      "procedural": true,
+      "scene": "hermetic"
+    },
+    {
+      "id": "cert-default",
+      "kind": "cert",
+      "gltf": null,
+      "gltfPending": "/assets/immersive/cert-cka.pending.json",
+      "procedural": true,
+      "scene": "k8s"
+    },
+    {
+      "id": "sim-default",
+      "kind": "sim",
+      "gltf": null,
+      "gltfPending": "/assets/immersive/sim-superlab.pending.json",
+      "procedural": true,
+      "scene": "k8s"
+    },
+    {
+      "id": "lab-default",
+      "kind": "non-cert",
+      "gltf": null,
+      "procedural": true,
+      "scene": "rack"
+    }
+  ],
+  "scaffolds": {
+    "gltf_lecture_stage": "/immersive/?kind=lecture&scene=k8s",
+    "lab_sim_scaffold": "/labs/superlab/",
+    "cert_lab_3d_shell": "/labs/?shell=cert"
+  }
 }

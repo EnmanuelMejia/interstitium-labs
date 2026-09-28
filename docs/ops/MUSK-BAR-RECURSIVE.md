@@ -1,41 +1,48 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-09-22 ~00:41 EDT._  
+_Last updated: 2026-09-28 ~09:20 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
 
-## Verdict
+## Verdict — 2026-09-28 weekday pass
 
 | Checkpoint | Impressed? | Why |
 |---|:---:|---|
-| Before | **NO** | FX demo theater; thin labs; Muse unwired |
-| After this ship | **NO** | Instant Demo + CotD + peer matrix + exceed paths + trending + exam/OS/proof + Noah/router blend. Still no hosted fleet / default live model. Closer — not yes. |
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? |
+| After this ship | **Closer / still NO** | Curriculum OS mirror + WebGPU flag + Noah Live Assist + procedural wow bump shipped. Still no authored `.glb`, no live UE Pixel Streaming, no hosted lab fleet. |
+| Fake YES risk | Rejected | Pending glTF = `.pending.json` scaffolds, not claimed `.glb`. |
 
-## Scorecard (0–10)
+## Scorecard (0–10) — 2026-09-28
 
-| Dimension | Before | After | Notes |
+| Dimension | Prior | Now | Notes |
 |---|---:|---:|---|
-| First-glance wow | 5 | 7.5 | `/demo/` real path |
-| Motion / graphics | 6 | 7 | Immersive 3D scaffold (procedural); Blender/Unreal still required for YES |
-| Adaptive learning | 7 | 7 | CAT+fringe |
-| Live labs density | 3 | 5.5 | CotD rhythm |
-| Noah | 4 | 6 | `/coach/` Muse+router |
-| Model router | 3 | 5 | Demand-tier OSS |
-| Career prep | 6 | 7.5 | Paths+exam+OS |
-| Honesty / trust | 9 | 9 | Matrix LOSE labels |
-| Mobile / ultrawide | 6 | 6 | Lockup P0 |
+| First-glance wow | 7.5 | **8.0** | Particle stage + gfx HUD (WebGL vs WebGPU·fallback) |
+| Motion / graphics | 7 | **7.5** | WebGPU prefer/acquireGraphics; WGSL port still open |
+| Adaptive learning | 7 | 7 | Adapt unchanged this pass |
+| Live labs density | 5.5 | **6.0** | Noah Live Assist on labs/challenge/coach |
+| Noah | 6 | **7.5** | Live Assist vs KodeKloud AI Tutor — honesty exceed |
+| Model router | 5 | 5 | Demand-tier OSS (no fake keys) |
+| Career prep | 7.5 | 7.5 | — |
+| Honesty / trust | 9 | **9.5** | Catalog harden + pending scaffolds labeled |
+| Mobile / ultrawide | 6 | 6 | — |
+| Curriculum SoT | — | **7** | `docs/curriculum-os/` + `il-curriculum-sync.js` |
 
-**Composite ~6.5/10. Musk YES? NO.** — 3D-first law documented; CSS≠3D.
+**Composite ~7.1/10. Musk YES? NO — Closer.** Authored Blender sets + UE stream still required for YES.
 
-## TOP ships
+## Shipped this pass (answer the mediocrity)
 
-1. Instant Demo Path `/demo/`
-2. Challenge of the Day `/labs/challenge/`
-3. Honest peer matrix + trending MIT/LinkedIn/X `/trending/`
-4. Paths OS + 8 exceed spines (coordinated)
-5. Exam `/exam/` · Hire OS `/os/` · Proof `/proof/` · Muse blend
+1. Curriculum OS file mirror + sync stamps `immersive.mode=3d-first` on learn/labs/paths/prep/immersive/adapt/challenge
+2. `preferWebGPU` + `acquireGraphics` in `il-scene-kit.js`; immersive-3d honors `data-il-webgpu`
+3. Noah **Live Assist** — Socratic lab-context coaching (exceed KodeKloud Live Assist on honesty)
+4. Procedural particles + status HUD + CSS energy (Muse remains separate)
+5. Frontier catalog network-first in SW + retry UI; seated MIT 6.5940 TinyML (public Han Lab URL)
+6. Ops: `ANTI-MEDIOCRITY-ELON-GATE.md` · `NOTION-CURRICULUM-OS.md` · this scorecard
 
-Do not claim yes while fleet is one SuperLab.
+## Competitor delta (this week)
 
+| Peer | Delta | IL response |
+|------|-------|-------------|
+| KodeKloud **AI Tutor Live Assist** | Real-time in-lab help + on-demand micro-lessons in hosted labs | Noah Live Assist on `/labs/`, `/labs/challenge/`, `/coach/` — lab-context Socratic, OSS router, **no** hosted fleet claim |
+| Brilliant **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
 
 ## Immersive 3D gate (product law)
 
@@ -44,9 +51,19 @@ Do not claim yes while fleet is one SuperLab.
 | Checkpoint | Impressed? | Why |
 |---|:---:|---|
 | CSS cards as “3D” | **NO** | Flat chrome ≠ spatial curriculum |
-| Skip Blender/Unreal authoring forever | **NO** | Recursive fail — document, do not wallpaper |
-| `il-immersive-3d` + dual pipeline scaffold | Closer | Procedural Three-class stages ship; real `.glb` / Pixel Streaming still required for YES |
+| Skip Blender/Unreal authoring forever | **NO** | Pipeline docs + pending scaffolds only |
+| WebGPU flag + curriculum sync + Live Assist | Closer | Still need authored `.glb` + UE stream for YES |
 
-See `IMMERSIVE-3D-CURRICULUM.md` · `UNREAL-AND-BLENDER-PIPELINE.md`.  
+See `IMMERSIVE-3D-CURRICULUM.md` · `UNREAL-AND-BLENDER-PIPELINE.md` · `ANTI-MEDIOCRITY-ELON-GATE.md`.  
 Noah (`il-muse-3d`) ≠ curriculum scenes (`il-immersive-3d`).
 
+---
+
+## Prior verdict (2026-09-22)
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Before | **NO** | FX demo theater; thin labs; Muse unwired |
+| After 2026-09-22 ship | **NO** | Instant Demo + CotD + peer matrix + exceed paths + trending + exam/OS/proof + Noah/router blend. Still no hosted fleet / default live model. |
+
+Do not claim yes while fleet is one SuperLab.

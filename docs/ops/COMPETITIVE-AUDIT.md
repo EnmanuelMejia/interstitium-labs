@@ -3,6 +3,7 @@
 _Last updated: 2026-09-21 (America/New_York)._  
 _Static root:_ `docs/` · _Live:_ https://interstitiumlabs.dev  
 _Peers scored:_ **KodeKloud (primary)**, ALEKS, Brilliant.org, Khan Academy.
+_Last weekday pass:_ **2026-09-28** — KodeKloud AI Tutor Live Assist delta → Noah Live Assist shipped.
 
 Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Payments stay placeholder-honest. No invented Stripe/LLM keys. Enterprise security headers preserved.
 
@@ -95,7 +96,7 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 | Mastery loop UI (Learn→Practice→Checkpoint) | Khan | Implicit phases | **P0** | `il-mastery.js` on learn/prep |
 | Reusable knowledge pie / readiness radar | ALEKS | Founders-only | **P0** | `il-radar.js` |
 | Labs playground hub + scenario cards | KodeKloud | SuperLab only | **P0** | `/labs/` |
-| AI coach UI shell + local Prep hints | KodeKloud∩Khan | Missing | **P0** | `/coach/` + `il-coach.js` |
+| AI coach UI shell + local Prep hints | KodeKloud∩Khan | **Noah Live Assist shipped** | **P0 done / deepen** | `/coach/` + `il-coach.js` |
 | Home competitive strip | — | Basic | **P0** | `#why-interstitium` |
 | First-party video / lecture CDN | Khan / KodeKloud | None | **P1** | Enmanuel |
 | Real LLM tutor (lab-state + UI-grounded) | KodeKloud | Rules only | **P1** | Enmanuel (keys out-of-band) |
@@ -151,7 +152,26 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 | ALEKS Pie / ready-to-learn | `il-radar.js` on Learn + Prep + Founders; clickable self-rate; mid-band fringe copy |
 | Khan mastery queue | `il-mastery.js` Learn→Practice→Checkpoint + persistent next-action CTA |
 | KodeKloud playgrounds | `/labs/#playground` guided vs playground split + scenario cards → SuperLab; honest infra note |
-| KodeKloud in-lab AI | `/coach/` local Socratic rules (CIDR/Git/K8s/Terraform/CI/Linux); `window.IL_COACH` stub; no fake keys |
+| KodeKloud in-lab AI / Live Assist | **Noah Live Assist** on `/labs/` · `/labs/challenge/` · `/coach/` — lab-context Socratic + OSS router; no fake keys; no hosted fleet claim |
 | Trust | Portfolio honesty, placeholder payments, private brand kit, CSP headers preserved |
 
 **Still behind (P1 — Enmanuel):** hosted cloud playground fleet, real LLM tutor with lab-state, video CDN, live Stripe links, store publish.
+
+
+---
+
+## 9. Weekday pass — 2026-09-28 (KodeKloud AI Tutor Live Assist)
+
+**Peer claim (public):** KodeKloud AI Tutor + **Live Assist** — real-time in-lab / terminal help and on-demand micro-lessons with real hosted labs (promo noted free until Oct 2026 in their posts).
+
+**What we shipped (honest exceed):**
+- **Noah Live Assist** on `/labs/`, `/labs/challenge/`, `/coach/` — lab-context Socratic coaching, paste-an-error triage, micro-lesson prompts that refuse spoiler dumps.
+- Demand-tier OSS model router when Ollama present — **no fake API keys**.
+- 3D-first curriculum stages (procedural WebGL + WebGPU flag) beside the coach — Muse avatar stays separate.
+- Peer matrix row updated: In-lab live AI → IL **WIN** on honesty framing (still lose on hosted terminal fleet).
+
+**What we still do not claim:** multi-cloud playground fleet, terminal keylogging into a SaaS sandbox, “800 labs.”
+
+**Brilliant Koji:** noted; Adapt + Noah remain our adaptive/Socratic lane — not a Koji skin.
+
+**Musk verdict this pass:** Closer / still **NO** until authored `.glb` + UE stream.

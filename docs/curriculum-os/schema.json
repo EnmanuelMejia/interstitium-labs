@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://interstitiumlabs.dev/curriculum-os/schema.json",
+  "title": "Interstitium Curriculum OS",
+  "description": "Notion-shaped SoT for Tracks/Lectures/Labs/Certs/Assets3D. Sync stamps immersive:3d-first onto /learn /labs /prep /paths.",
+  "type": "object",
+  "required": [
+    "version",
+    "updated",
+    "notion",
+    "tracks",
+    "lectures",
+    "labs",
+    "certs",
+    "assets3d"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "updated": {
+      "type": "string"
+    },
+    "notion": {
+      "type": "object"
+    },
+    "tracks": {
+      "type": "array"
+    },
+    "lectures": {
+      "type": "array"
+    },
+    "labs": {
+      "type": "array"
+    },
+    "certs": {
+      "type": "array"
+    },
+    "assets3d": {
+      "type": "array"
+    },
+    "defaults": {
+      "type": "object",
+      "properties": {
+        "immersive": {
+          "type": "object",
+          "required": [
+            "mode",
+            "engine",
+            "asset"
+          ],
+          "properties": {
+            "mode": {
+              "const": "3d-first"
+            },
+            "engine": {
+              "enum": [
+                "three",
+                "godot",
+                "unreal",
+                "webgpu"
+              ]
+            },
+            "asset": {
+              "type": "string"
+            },
+            "captions": {
+              "type": "boolean"
+            },
+            "fallback": {
+              "type": "string"
+            },
+            "webgpu": {
+              "type": "boolean",
+              "description": "Prefer WebGPU when flag + navigator.gpu"
+            }
+          }
+        }
+      }
+    }
+  }
+}
