@@ -8,7 +8,7 @@
   'use strict';
 
   var MIRROR_URL = '/curriculum-os/mirror.json';
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   function parseImmersive(el) {
     var raw = el.getAttribute('data-immersive');
@@ -18,9 +18,11 @@
 
   function assetToScene(asset) {
     if (!asset || typeof asset !== 'string') return 'k8s';
-    if (asset.indexOf('hermetic') >= 0) return 'hermetic';
-    if (asset.indexOf('rack') >= 0) return 'rack';
-    if (asset.indexOf('k8s') >= 0 || asset.indexOf('cluster') >= 0) return 'k8s';
+    var a = asset.toLowerCase();
+    if (a.indexOf('hermetic') >= 0 || a.indexOf('monas') >= 0) return 'hermetic';
+    if (a.indexOf('rack') >= 0 || a.indexOf('19u') >= 0) return 'rack';
+    if (a.indexOf('superlab') >= 0) return 'k8s';
+    if (a.indexOf('k8s') >= 0 || a.indexOf('cluster') >= 0 || a.indexOf('cka') >= 0) return 'k8s';
     return 'k8s';
   }
 
@@ -57,8 +59,12 @@
     if (useGpu) el.setAttribute('data-il-webgpu', '1');
     else el.removeAttribute('data-il-webgpu');
 
+    /* Prefer explicit meta.gltf; else asset path ending in .glb */
+    var gltf = (meta && meta.gltf) || '';
+    if (!gltf && imm.asset && /\.glb($|\?)/i.test(imm.asset)) gltf = imm.asset;
+    if (gltf) el.setAttribute('data-gltf', gltf);
+
     if (meta) {
-      if (meta.gltf) el.setAttribute('data-gltf', meta.gltf);
       if (meta.kind) el.setAttribute('data-kind', meta.kind);
       if (meta.title) el.setAttribute('data-title', meta.title);
       if (meta.slug) el.setAttribute('data-il-curriculum-id', meta.slug);
@@ -82,8 +88,14 @@
       mode: '3d-first', engine: 'three', asset: 'procedural:k8s', webgpu: true
     };
     var surf = mirror.surfaces && mirror.surfaces[surface];
+    /* Keep kit .glb from defaults when present; only force procedural if no glTF asset */
     if (surf && surf.defaultScene) {
-      def = Object.assign({}, def, { asset: 'procedural:' + surf.defaultScene });
+      var hasGlb = def.asset && /\.glb($|\?)/i.test(String(def.asset));
+      if (!hasGlb) {
+        def = Object.assign({}, def, { asset: 'procedural:' + surf.defaultScene });
+      } else if (!def.fallbackAsset) {
+        def = Object.assign({}, def, { fallbackAsset: 'procedural:' + surf.defaultScene });
+      }
     }
     var path = (g.location && g.location.pathname) || '';
     var tracks = mirror.tracks || [];
@@ -109,7 +121,9 @@
         };
       }
     }
-    return { imm: def, meta: { kind: surf && surf.kind } };
+    var defMeta = { kind: surf && surf.kind };
+    if (def.asset && /\.glb($|\?)/i.test(String(def.asset))) defMeta.gltf = def.asset;
+    return { imm: def, meta: defMeta };
   }
 
   function stampAll(mirror) {

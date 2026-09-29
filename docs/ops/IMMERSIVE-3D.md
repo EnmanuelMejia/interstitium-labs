@@ -6,19 +6,20 @@
 
 **Companion:** Noah voice-reactive familiar (`LAB-MUSE-3D.md`) shares `ILSceneKit` with the immersive player.
 
-## What shipped (this pass)
+## What shipped (2026-09-29)
 
 | Layer | Asset | Status |
 |-------|-------|--------|
-| Shared kit | `/assets/il-scene-kit.js` | WebGL helpers, palette, glTF loader hook, Pixel Streaming embed stub, speak-amp bus |
-| Curriculum scaffold | `/assets/il-immersive-3d.js` + `.css` | **Wired** on prep/labs/paths/adapt/learn — owns `[data-il-scene]` |
+| Shared kit | `/assets/il-scene-kit.js` | WebGL helpers, **`parseGlb`**, `loadGltf`, Pixel Streaming embed, speak-amp bus |
+| Curriculum scaffold | `/assets/il-immersive-3d.js` + `.css` | Native GLB fetch/parse/draw + procedural fallback; owns `[data-il-scene]` |
+| Kit assets | `/assets/immersive/*.glb` | **Live** kit-authored glTF 2.0 (Blender-compatible; polish on P920) |
+| Authoring | `scripts/author_immersive_glb.py` | Regenerates lecture/cert/rack/hermetic/sim GLBs |
 | Demo player | `/assets/il-immersive.js` + `.css` | `/immersive/` + `data-kind` hosts; skips `data-il-scene` |
 | Muse 3D | `/assets/il-muse-3d.js` | Voice-reactive Monas; exposes `.kit` / `.immersive` getters |
-| Scene registry | `/assets/scenes/manifest.json` | Placeholders until Blender `.glb` exports land |
-| Demo | `/immersive/` | Live procedural stages + engine switcher notes |
-| Docs | this file | Blender → glTF, Godot, Unreal Pixel Streaming |
+| Pixel Streaming | `/immersive/pixel-stream/` | Honest client shell (signaling required; no fake video) |
+| Docs | this file + pipeline | Blender → glTF, Godot, Unreal Pixel Streaming |
 
-Honest claim: **procedural WebGL stages are live** (CSP-safe, no CDN). Photoreal Unreal rooms and authored glTF sets are **pipeline-ready**, not yet content-complete.
+Honest claim: **authored kit `.glb` + procedural fallback are live** (CSP-safe, no CDN Three). Photoreal Unreal rooms and P920 Blender-polished artist sets are **not** YES yet — Pixel Streaming client path exists; live streamer host does not.
 
 ## Engines (pick per surface)
 

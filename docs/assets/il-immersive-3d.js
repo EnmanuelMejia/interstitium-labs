@@ -1,7 +1,7 @@
 /**
  * IL Immersive 3D — curriculum stage player (lectures / labs / cert / non-cert).
  * Self-contained WebGL (CSP script-src 'self'; no CDN Three).
- * Procedural v1 scenes: hermetic | rack | k8s. Optional .glb path (loader hook).
+ * Procedural scenes: hermetic | rack | k8s. Native .glb load via ILSceneKit.parseGlb (no Three CDN).
  * NOT Noah avatar — that is il-muse-3d.js (coach familiar only).
  * Sibling optional: il-scene-kit.js + il-immersive.js (data-kind hosts / demo /immersive/).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
@@ -505,9 +505,13 @@
     var badge = this.root.querySelector('.il-immersive__badge');
     if (!badge) return;
     var eng = this._gfxLabel || this.cfg.engine || 'WebGL';
-    var pending = (this.cfg.gltf && String(this.cfg.gltf).indexOf('.pending.') >= 0) ? ' · glTF scaffold' : '';
-    badge.textContent = eng + ' · ' + this.cfg.scene + pending;
+    var mode = '';
+    if (this._authoredOk) mode = ' · authored .glb';
+    else if (this.cfg.gltf && String(this.cfg.gltf).indexOf('.pending.') >= 0) mode = ' · glTF scaffold';
+    else if (this._authoredTried) mode = ' · procedural fallback';
+    badge.textContent = eng + ' · ' + this.cfg.scene + mode;
     badge.setAttribute('data-il-gfx', this._gfxApi || 'webgl');
+    badge.setAttribute('data-il-mesh', this._authoredOk ? 'authored' : 'procedural');
   };
 
   ScenePlayer.prototype._makeParticles = function (n){
@@ -554,19 +558,88 @@
     var asset = this.cfg.gltf || this.cfg.asset || '';
     if (!asset || asset.indexOf('procedural:') === 0) return;
     var self = this;
+    this._authoredTried = false;
+    this._authoredOk = false;
+    this._authored = null;
     if (/\.pending\.json($|\?)/i.test(asset)) {
       self.cap.textContent = (self.cap.textContent || '') + ' · glTF scaffold (pending Blender export).';
+      self._paintHud();
       return;
     }
     if (!/\.glb($|\?)/i.test(asset) && asset.indexOf('/assets/immersive/') < 0) return;
-    // Honesty: HEAD probe only; full GLTFLoader when Three is vendored under /assets/vendor/.
-    try {
-      g.fetch(asset, { method: 'HEAD' }).then(function (res){
-        if (res && res.ok) {
-          self.cap.textContent = (self.cap.textContent || '') + ' · glTF present (procedural until vendored loader).';
+    if (!self.gl) return;
+    self._authoredTried = true;
+    var loader = (g.ILSceneKit && g.ILSceneKit.loadGltf) ? g.ILSceneKit.loadGltf : null;
+    var parse = (g.ILSceneKit && g.ILSceneKit.parseGlb) ? g.ILSceneKit.parseGlb : null;
+    function applyParsed(parsed) {
+      if (!parsed || !parsed.ok || !parsed.meshes || !parsed.meshes.length) {
+        self._authoredOk = false;
+        self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (authored .glb unavailable).';
+        self._paintHud();
+        return;
+      }
+      var uploaded = [];
+      for (var i = 0; i < parsed.meshes.length; i++) {
+        var m = parsed.meshes[i];
+        var mesh = {
+          pos: m.positions,
+          nrm: m.normals,
+          idx: m.indices instanceof Uint16Array ? m.indices : new Uint16Array(m.indices)
+        };
+        var vao = upload(self.gl, mesh);
+        vao.color = (m.material && m.material.color) || CYAN;
+        vao.emissive = (m.material && m.material.emissive) || vao.color;
+        vao.name = m.name || ('mesh-' + i);
+        uploaded.push(vao);
+      }
+      self._authored = uploaded;
+      self._authoredOk = true;
+      self.cap.textContent = (self.cap.textContent || '') + ' · authored .glb (' + uploaded.length + ' meshes).';
+      self._paintHud();
+      try {
+        if (g.ILSceneKit && g.ILSceneKit.emitSceneEvent) {
+          g.ILSceneKit.emitSceneEvent('il-immersive-glb', { url: asset, meshes: uploaded.length, ok: true });
         }
-      }).catch(function (){ /* keep procedural */ });
-    } catch (e) { /* ignore */ }
+      } catch (e2) { /* ignore */ }
+    }
+    try {
+      if (loader) {
+        loader(asset).then(applyParsed).catch(function (){
+          self._authoredOk = false;
+          self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (fetch/parse fail).';
+          self._paintHud();
+        });
+      } else if (parse) {
+        g.fetch(asset).then(function (res){
+          if (!res || !res.ok) throw new Error('http');
+          return res.arrayBuffer();
+        }).then(function (buf){ applyParsed(parse(buf)); })
+          .catch(function (){
+            self._authoredOk = false;
+            self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (fetch/parse fail).';
+            self._paintHud();
+          });
+      } else {
+        self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (no native GLB parser).';
+        self._paintHud();
+      }
+    } catch (e) {
+      self._authoredOk = false;
+      self._paintHud();
+    }
+  };
+
+  ScenePlayer.prototype._renderAuthored = function (P, V, time, amp){
+    if (!this._authored || !this._authored.length) return;
+    var glowBase = 0.12 + amp * 0.35;
+    for (var i = 0; i < this._authored.length; i++) {
+      var vao = this._authored[i];
+      var col = vao.color || CYAN;
+      var glow = glowBase;
+      /* gentle pulse on gold-ish materials */
+      if (col[0] > 0.7 && col[1] > 0.5 && col[1] < 0.8) glow = 0.2 + amp * 0.45;
+      this._drawObject(vao, 0, 0, 0, 1, 1, 1, 0, col, glow, time, P, V);
+    }
   };
 
   ScenePlayer.prototype._clipAmp = function (elapsed){
@@ -654,9 +727,15 @@
     var ez = Math.cos(ph) * Math.cos(th) * dist;
     var V = lookAt(mat4(), ex, ey, ez, 0, 0.4, 0, 0, 1, 0);
 
-    if (this.cfg.scene === 'hermetic') this._renderHermetic(P, V, time, amp);
-    else if (this.cfg.scene === 'rack') this._renderRack(P, V, time, amp);
-    else this._renderK8s(P, V, time, amp);
+    if (this._authoredOk && this._authored && this._authored.length) {
+      this._renderAuthored(P, V, time, amp);
+    } else if (this.cfg.scene === 'hermetic') {
+      this._renderHermetic(P, V, time, amp);
+    } else if (this.cfg.scene === 'rack') {
+      this._renderRack(P, V, time, amp);
+    } else {
+      this._renderK8s(P, V, time, amp);
+    }
     this._renderParticles(P, V, time, amp);
 
     this.raf = g.requestAnimationFrame(function (){ self._loop(); });
@@ -727,11 +806,12 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.2.0',
+    version: '1.3.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
     webgpuFlag: true,
-    gltfLectureHook: true
+    gltfLectureHook: true,
+    nativeGlb: true
   };
 })(typeof window !== 'undefined' ? window : this);

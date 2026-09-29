@@ -1,6 +1,6 @@
 # Anti-mediocrity — Elon recursive gate
 
-_Last updated: 2026-09-28 ~09:20 EDT._  
+_Last updated: 2026-09-29 ~09:15 EDT._  
 _Standing order:_ Free rein · bleeding-edge · generations ahead.  
 _Recursive question:_ **Would Elon be impressed by my mediocrity?**
 
@@ -12,13 +12,13 @@ Copy into the PR / commit body. Fail any row → do not claim YES.
 
 | # | Gate | Pass criteria | This ship |
 |---|------|---------------|-----------|
-| 1 | Recursive question asked | Written answer, not vibes | ☑ 2026-09-28 |
-| 2 | Mediocrity would impress nobody? | If yes → replaced something, not renamed | ☑ replaced flat coach claim with Live Assist + WebGPU wow |
+| 1 | Recursive question asked | Written answer, not vibes | ☑ 2026-09-29 |
+| 2 | Mediocrity would impress nobody? | If yes → replaced something, not renamed | ☑ replaced pending scaffolds with kit `.glb` + native GLB loader + PS client |
 | 3 | Curriculum SoT | Notion Curriculum OS **or** file mirror matching Notion shape | ☑ `docs/curriculum-os/` |
 | 4 | 3D-first law | Lectures / labs / certs / paths stamped `immersive.mode=3d-first` | ☑ sync wired |
 | 5 | Runtime honesty | Unreal/Blender/Godot/glTF/WebGL/WebGPU player — **not** Notion embed | ☑ |
 | 6 | Muse separation | Lab Muse = coach familiar; curriculum scenes = separate lane | ☑ |
-| 7 | Skip Blender+Unreal forever? | **NO** — pipeline documented even if content pending | ☑ pending.json scaffolds |
+| 7 | Skip Blender+Unreal forever? | **NO** — kit glTF live + UE PS client path | ☑ `.glb` + `/immersive/pixel-stream/` |
 | 8 | CSS ≠ 3D | No card labeled “3D lab” without a stage | ☑ |
 | 9 | WebGPU flag path | Prefer `navigator.gpu` when `data-il-webgpu` / mirror `webgpu:true` | ☑ |
 | 10 | EN/ES | Lang enum present on SoT rows | ☑ schema |
@@ -38,8 +38,8 @@ Copy into the PR / commit body. Fail any row → do not claim YES.
 | Verdict | When |
 |---------|------|
 | **NO** | Procedural WebGL only; no authored `.glb`; no live UE stream; no hosted fleet |
-| **Closer** | SoT + sync + WebGPU flag + glTF hooks + Muse + dual pipeline docs |
-| **YES** | Authored Blender sets live + Unreal stream or packaged fidelity + hireable proof density |
+| **Closer** | Kit glTF live + native loader + PS client path + SoT/sync + Muse (still no live UE host / P920 polish / fleet) |
+| **YES** | P920 Blender-polished sets + live Unreal stream or packaged fidelity + hireable proof density |
 
 Default until YES: score **Closer / still NO** on the Musk bar. See `MUSK-BAR-RECURSIVE.md`.
 
