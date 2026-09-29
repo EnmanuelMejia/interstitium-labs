@@ -1,6 +1,6 @@
 # Unreal + Blender pipeline (P920)
 
-_Last updated: 2026-09-22 ~00:41 EDT (America/New_York)._  
+_Last updated: 2026-09-29 ~09:15 EDT (America/New_York)._  
 _Authoring host:_ Lenovo ThinkStation **P920** · _Site delivery:_ Cloudflare Pages `docs/`
 
 ## Goal
@@ -63,7 +63,7 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 | Server rack / DC | `rack-19u.glb` |
 | Kubernetes cluster | `k8s-cluster.glb` |
 
-Until real files exist, `il-immersive-3d.js` uses **procedural** stand-ins (`procedural:hermetic|rack|k8s`). That is honest scaffolding — still 3D mesh/WebGL, still not a CSS card.
+**2026-09-29:** Kit-authored `.glb` files live under `docs/assets/immersive/` (see README + `scripts/author_immersive_glb.py`). Open/polish in Blender on P920. `il-immersive-3d.js` loads via native `ILSceneKit.parseGlb` (no Three CDN); on 404/parse fail → **procedural** of same family with honest caption. Provenance: kit glTF, not hand-sculpted Blender UI sets yet.
 
 ## Unreal → cinematic / cert sims
 
@@ -82,28 +82,37 @@ Until real files exist, `il-immersive-3d.js` uses **procedural** stand-ins (`pro
 
 5. Until Pixel Streaming is live, do **not** fake an Unreal iframe — keep `three` procedural/glTF on docs and link “Open heavy sim (LAN)” only when the host is real.
 
-### Pixel Streaming (later)
+### Pixel Streaming (client path live; streamer host later)
 
-- Host streamer on lab GPU box (not Pages).
-- Signalling server + STUN/TURN as needed.
-- Site CSP today is tight (`frame-ancestors`, limited `connect-src`) — streaming subdomain will need an explicit CSP exception documented in `ENTERPRISE-SECURITY.md` before go-live.
+- **Browser client:** `/immersive/pixel-stream/` — reads `?signaling=` / `data-ps-signaling` / `localStorage.il-ps-signaling`.
+- Without signaling: honest stub (never fake a live stream video).
+- With `wss://` signaling: minimal WebRTC handshake attempt (UE PS subset); with http(s) player URL: iframe via `ILSceneKit.pixelStreamEmbed`.
+- Host streamer on lab GPU box (not Pages). STUN/TURN as needed.
+- **CSP (do NOT widen live today without a real host):** when streaming goes live, allowlist the stream subdomain in `connect-src` (WebSocket/signaling) + `frame-src` / `media-src` as needed. Exact future exception documented in `ENTERPRISE-SECURITY.md` §5.3. Until then Pages CSP stays tight.
 
 ## In-page player (now)
 
 | File | Notes |
 |------|-------|
-| `docs/assets/il-immersive-3d.js` | Orbit, captions, clip play, procedural scenes, glTF hook |
+| `docs/assets/il-immersive-3d.js` | Orbit, captions, clip play, procedural + **native GLB render** |
+| `docs/assets/il-scene-kit.js` | `parseGlb` / `loadGltf` / `pixelStreamEmbed` |
 | `docs/assets/il-immersive-3d.css` | Stage chrome + reduced-motion |
+| `docs/immersive/pixel-stream/` | UE Pixel Streaming client shell |
+| `scripts/author_immersive_glb.py` | Kit authoring (glTF 2.0 binary) |
 
-CSP forbids CDN Three → v1 is self-contained WebGL. When vendoring Three/WebGPU + GLTFLoader, place under `/assets/vendor/` and keep `script-src 'self'`.
+CSP forbids CDN Three → native `parseGlb` ships meshes without Three. Optional vendored Three/GLTFLoader still under `/assets/vendor/` with `script-src 'self'`.
 
 ## QA checklist
 
-- [ ] Stage visible on lecture/lab without console CDN errors  
-- [ ] `prefers-reduced-motion` shows static fallback + captions  
-- [ ] Real `.glb` path 404 → falls back to procedural of same family (no blank)  
-- [ ] Noah (`il-muse-3d`) not double-mounted inside curriculum stage  
-- [ ] No claim of Unreal Pixel Streaming until signalling host is up  
+- [x] Stage visible on lecture/lab without console CDN errors  
+- [x] `prefers-reduced-motion` shows static fallback + captions  
+- [x] Real `.glb` committed under `/assets/immersive/`; 404/parse → procedural same family (no blank)  
+- [x] Native `parseGlb` draws authored meshes (caption: authored .glb vs procedural fallback)  
+- [x] Noah (`il-muse-3d`) not double-mounted inside curriculum stage  
+- [x] Pixel Streaming **client path** at `/immersive/pixel-stream/` — no fake live stream  
+- [ ] Live UE5 streamer + signaling host on lab GPU (not yet)  
+- [ ] P920 Blender polish pass on kit meshes (not yet)  
+- [ ] CSP allowlist for stream subdomain at go-live only  
 
 ## Related
 

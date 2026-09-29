@@ -183,38 +183,224 @@
   }
 
   /**
-   * Load glTF/GLB when Three+GLTFLoader are vendored; else resolve null (caller uses procedural).
+   * Native GLB (glTF 2.0 binary) parser — CSP-safe, no Three CDN.
+   * Returns { ok, meshes:[{positions,normals,indices,material}], materials, url?, reason? }.
+   */
+  function parseGlb(arrayBuffer) {
+    try {
+      if (!arrayBuffer || arrayBuffer.byteLength < 20) {
+        return { ok: false, reason: 'too_short', meshes: [] };
+      }
+      var u8 = new Uint8Array(arrayBuffer);
+      var dv = new DataView(arrayBuffer);
+      if (u8[0] !== 0x67 || u8[1] !== 0x6c || u8[2] !== 0x54 || u8[3] !== 0x46) {
+        return { ok: false, reason: 'bad_magic', meshes: [] };
+      }
+      var version = dv.getUint32(4, true);
+      var total = dv.getUint32(8, true);
+      if (version !== 2) return { ok: false, reason: 'unsupported_version', meshes: [] };
+      var offset = 12;
+      var json = null;
+      var bin = null;
+      while (offset + 8 <= u8.byteLength && offset < total) {
+        var chunkLen = dv.getUint32(offset, true);
+        var chunkType = String.fromCharCode(u8[offset + 4], u8[offset + 5], u8[offset + 6], u8[offset + 7]);
+        offset += 8;
+        if (chunkType.indexOf('JSON') === 0) {
+          var js = '';
+          for (var i = 0; i < chunkLen; i++) js += String.fromCharCode(u8[offset + i]);
+          json = JSON.parse(js.trim());
+        } else if (chunkType.indexOf('BIN') === 0) {
+          bin = arrayBuffer.slice(offset, offset + chunkLen);
+        }
+        offset += chunkLen;
+      }
+      if (!json || !bin) return { ok: false, reason: 'missing_chunks', meshes: [] };
+      var accessors = json.accessors || [];
+      var views = json.bufferViews || [];
+      var mats = json.materials || [];
+
+      function readAccessor(ai) {
+        var acc = accessors[ai];
+        if (!acc) return null;
+        var view = views[acc.bufferView];
+        if (!view) return null;
+        var byteOffset = (view.byteOffset || 0) + (acc.byteOffset || 0);
+        var count = acc.count;
+        var comp = acc.componentType;
+        var type = acc.type;
+        var comps = type === 'SCALAR' ? 1 : type === 'VEC2' ? 2 : type === 'VEC3' ? 3 : type === 'VEC4' ? 4 : 1;
+        var bdv = new DataView(bin);
+        var out;
+        var j, k, o;
+        if (comp === 5126) {
+          out = new Float32Array(count * comps);
+          for (j = 0; j < count * comps; j++) out[j] = bdv.getFloat32(byteOffset + j * 4, true);
+        } else if (comp === 5123) {
+          out = new Uint16Array(count * comps);
+          for (j = 0; j < count * comps; j++) out[j] = bdv.getUint16(byteOffset + j * 2, true);
+        } else if (comp === 5125) {
+          out = new Uint32Array(count * comps);
+          for (j = 0; j < count * comps; j++) out[j] = bdv.getUint32(byteOffset + j * 4, true);
+        } else if (comp === 5121) {
+          out = new Uint8Array(count * comps);
+          for (j = 0; j < count * comps; j++) out[j] = bdv.getUint8(byteOffset + j);
+        } else {
+          return null;
+        }
+        return { data: out, count: count, type: type, componentType: comp, min: acc.min, max: acc.max };
+      }
+
+      function matColor(mi) {
+        var m = mats[mi];
+        if (!m || !m.pbrMetallicRoughness || !m.pbrMetallicRoughness.baseColorFactor) {
+          return { color: [0.369, 0.918, 0.831], emissive: [0.05, 0.18, 0.15], name: (m && m.name) || 'default' };
+        }
+        var bc = m.pbrMetallicRoughness.baseColorFactor;
+        var em = m.emissiveFactor || [0, 0, 0];
+        return {
+          color: [bc[0], bc[1], bc[2]],
+          emissive: [em[0] || 0, em[1] || 0, em[2] || 0],
+          name: m.name || 'mat'
+        };
+      }
+
+      var meshes = [];
+      var meshDefs = json.meshes || [];
+      for (var mi = 0; mi < meshDefs.length; mi++) {
+        var prims = meshDefs[mi].primitives || [];
+        for (var pi = 0; pi < prims.length; pi++) {
+          var prim = prims[pi];
+          if (prim.mode != null && prim.mode !== 4) continue; /* TRIANGLES only */
+          var posA = readAccessor(prim.attributes && prim.attributes.POSITION);
+          var nrmA = readAccessor(prim.attributes && prim.attributes.NORMAL);
+          var idxA = prim.indices != null ? readAccessor(prim.indices) : null;
+          if (!posA) continue;
+          var positions = posA.data instanceof Float32Array ? posA.data : new Float32Array(posA.data);
+          var normals;
+          if (nrmA && nrmA.data) {
+            normals = nrmA.data instanceof Float32Array ? nrmA.data : new Float32Array(nrmA.data);
+          } else {
+            normals = new Float32Array(positions.length);
+            for (k = 0; k < normals.length; k += 3) normals[k + 1] = 1;
+          }
+          var indices;
+          if (idxA && idxA.data) {
+            indices = idxA.data instanceof Uint16Array || idxA.data instanceof Uint32Array
+              ? idxA.data
+              : new Uint16Array(idxA.data);
+          } else {
+            indices = new Uint16Array(positions.length / 3);
+            for (k = 0; k < indices.length; k++) indices[k] = k;
+          }
+          /* WebGL1 drawElements UNSIGNED_SHORT path — split if needed later; kit assets stay <65k */
+          if (!(indices instanceof Uint16Array) && maxOf(indices) > 65535) {
+            /* keep Uint32 — caller may use OES_element_index_uint */
+          } else if (!(indices instanceof Uint16Array)) {
+            indices = new Uint16Array(indices);
+          }
+          var mc = matColor(prim.material != null ? prim.material : 0);
+          meshes.push({
+            name: (meshDefs[mi].name || 'mesh') + (prims.length > 1 ? ':' + pi : ''),
+            positions: positions,
+            normals: normals,
+            indices: indices,
+            material: mc
+          });
+        }
+      }
+      return {
+        ok: meshes.length > 0,
+        reason: meshes.length ? undefined : 'no_triangles',
+        meshes: meshes,
+        materials: mats,
+        asset: json.asset || {}
+      };
+    } catch (err) {
+      return { ok: false, reason: 'parse_error', error: String(err && err.message || err), meshes: [] };
+    }
+  }
+
+  function maxOf(arr) {
+    var m = 0;
+    for (var i = 0; i < arr.length; i++) if (arr[i] > m) m = arr[i];
+    return m;
+  }
+
+  /**
+   * Fetch + parse GLB via native parser (preferred) or vendored Three GLTFLoader.
    * Does not fetch CDN — CSP script-src 'self' only.
    */
   function loadGltf(url, opts) {
     opts = opts || {};
     return new Promise(function (resolve, reject) {
+      if (!url) {
+        resolve({ ok: false, reason: 'no_url', url: url });
+        return;
+      }
+      /* Prefer native GLB path — no Three required */
+      if (/\.glb($|\?)/i.test(url) || opts.forceNative) {
+        g.fetch(url).then(function (res) {
+          if (!res || !res.ok) {
+            resolve({ ok: false, reason: 'http_' + (res && res.status), url: url });
+            return null;
+          }
+          return res.arrayBuffer();
+        }).then(function (buf) {
+          if (!buf) return;
+          var parsed = parseGlb(buf);
+          parsed.url = url;
+          resolve(parsed);
+        }).catch(function (err) {
+          resolve({ ok: false, reason: 'fetch_error', error: String(err && err.message || err), url: url, meshes: [] });
+        });
+        return;
+      }
       if (!hasThree() || !hasGLTFLoader()) {
-        resolve({ ok: false, reason: 'three_not_vendored', url: url });
+        resolve({ ok: false, reason: 'three_not_vendored', url: url, meshes: [] });
         return;
       }
       var Loader = g.THREE.GLTFLoader || g.GLTFLoader;
       var loader = new Loader();
       loader.load(
         url,
-        function (gltf) { resolve({ ok: true, gltf: gltf, url: url }); },
+        function (gltf) { resolve({ ok: true, gltf: gltf, url: url, meshes: [] }); },
         opts.onProgress || null,
         function (err) { reject(err); }
       );
     });
   }
 
-  /** Unreal Pixel Streaming embed helper — iframe only when signaling URL provided. */
+  /**
+   * Unreal Pixel Streaming embed — honest stub or iframe/player mount.
+   * Never fakes a live stream. Prefer dedicated /immersive/pixel-stream/ client page.
+   */
   function pixelStreamEmbed(host, signalingUrl, opts) {
     opts = opts || {};
     if (!host) return null;
     host.innerHTML = '';
+    host.classList.add('il-scene-kit__ps-host');
     if (!signalingUrl) {
       host.innerHTML = '<div class="il-scene-kit__ps-stub" role="status">' +
         '<p class="il-scene-kit__ps-kicker">Unreal Pixel Streaming</p>' +
-        '<p>Scaffold ready. Set <code>data-ps-signaling</code> or pass signaling URL when UE5 streamer is up. See IMMERSIVE-3D.md.</p>' +
+        '<p>Scaffold ready — set signaling when UE5 streamer is up on lab GPU host.</p>' +
+        '<p class="il-scene-kit__ps-hint">Pass <code>?signaling=</code>, <code>data-ps-signaling</code>, or open ' +
+        '<a class="il-scene-kit__ps-link" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. ' +
+        'See <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline docs</a>.</p>' +
         '</div>';
-      return { mode: 'stub' };
+      return { mode: 'stub', signaling: null };
+    }
+    /* Prefer navigating the dedicated client when mountMode=page */
+    if (opts.mountMode === 'page') {
+      var frame = document.createElement('iframe');
+      var q = '/immersive/pixel-stream/?signaling=' + encodeURIComponent(signalingUrl);
+      frame.src = q;
+      frame.title = opts.title || 'Unreal Pixel Streaming';
+      frame.allow = 'autoplay; fullscreen; microphone; camera';
+      frame.setAttribute('allowfullscreen', 'true');
+      frame.className = 'il-scene-kit__ps-frame';
+      host.appendChild(frame);
+      return { mode: 'client-page', iframe: frame, signaling: signalingUrl };
     }
     var iframe = document.createElement('iframe');
     iframe.src = signalingUrl;
@@ -223,7 +409,7 @@
     iframe.setAttribute('allowfullscreen', 'true');
     iframe.className = 'il-scene-kit__ps-frame';
     host.appendChild(iframe);
-    return { mode: 'iframe', iframe: iframe };
+    return { mode: 'iframe', iframe: iframe, signaling: signalingUrl };
   }
 
   /** Shared voice-amp bus — Muse TTS + immersive lecture stages. */
@@ -263,10 +449,11 @@
     preferWebGPU: preferWebGPU,
     acquireGraphics: acquireGraphics,
     loadGltf: loadGltf,
+    parseGlb: parseGlb,
     pixelStreamEmbed: pixelStreamEmbed,
     onSpeakAmp: onSpeakAmp,
     emitSceneEvent: emitSceneEvent,
-    VERSION: '1.1.0'
+    VERSION: '1.2.0'
   };
 
   /* Muse 3D may re-export kit when both present */

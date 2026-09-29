@@ -143,6 +143,7 @@ Alignment target: **MASVS-L1** + selected L2 network/storage controls for Capaci
 | `script-src` | `'self'` only | Inline enroll/founders/insights UI extracted to `/assets/il-*-ui.js`. Do not reintroduce bare inline `<script>` without hashes. |
 | `style-src` | `'unsafe-inline'` + Google Fonts | **Accepted debt.** Harden: self-host WOFF2 → drop Google Fonts → remove inline styles → drop `'unsafe-inline'`. |
 | `connect-src` | `'self'` | When analytics ingest is live, allowlist that origin explicitly (never `*`). |
+| Pixel Streaming (future) | **Not live** | When UE5 streamer subdomain exists: allowlist that origin in `connect-src` (wss/https signaling), `frame-src` (player iframe if used), and `media-src`/`blob:` as required for WebRTC. **Do not widen Pages CSP today** without a real host. Client path: `/immersive/pixel-stream/`. |
 | Trusted Types | Off | Phase-2 Report-Only → enforce. |
 | COOP | `same-origin` | If future OAuth popup breaks SPA, switch documented exception to `same-origin-allow-popups` — do not silently drop. |
 

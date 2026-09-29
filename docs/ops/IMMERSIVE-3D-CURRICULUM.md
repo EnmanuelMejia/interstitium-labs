@@ -1,6 +1,6 @@
 # Immersive 3D curriculum — product law
 
-_Last updated: 2026-09-22 ~00:41 EDT (America/New_York)._  
+_Last updated: 2026-09-29 ~09:15 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev · _Static root:_ `docs/`
 
 ## Product law (non-negotiable)
@@ -21,7 +21,7 @@ _Live:_ https://interstitiumlabs.dev · _Static root:_ `docs/`
 
 > **Not using Blender/Unreal (or honest OSS stand-ins: Blender → glTF → Godot/Three) = fail Elon test.**
 
-CSS neumorphism ≠ spatial literacy. If a lecture has no `immersive` block, it is **not shipped** under this law — scaffold the stage with a procedural placeholder scene until real `.glb` / Unreal content lands.
+CSS neumorphism ≠ spatial literacy. If a lecture has no `immersive` block, it is **not shipped** under this law. **2026-09-29:** kit-authored `.glb` files are live; procedural remains fallback only. Pixel Streaming client path exists; live UE host still open.
 
 ## Dual pipeline
 
@@ -64,7 +64,7 @@ Blender (author) → glTF / .glb → Godot export  OR  Three.js / WebGPU player 
 | `procedural:hermetic` | Monas / hermetica procedural scene (v1) |
 | `procedural:rack` | Server rack procedural scene (v1) |
 | `procedural:k8s` | Cluster / control-plane procedural scene (v1) |
-| `/assets/immersive/*.glb` | Real glTF when authored (optional v1) |
+| `/assets/immersive/*.glb` | Kit-authored glTF 2.0 live (polish in Blender on P920) |
 | `unreal:pixel://…` / packaged URL | Pipeline A |
 
 Schema: extend path/lab items with `immersive` (`additionalProperties` already allowed on path catalog). Generator scripts and hand-authored HTML must set `data-il-immersive` + `data-il-scene`.
@@ -73,7 +73,7 @@ Schema: extend path/lab items with `immersive` (`additionalProperties` already a
 
 | File | Role |
 |------|------|
-| `/assets/il-immersive-3d.js` | Stage player: load glTF when present, else procedural scene; orbit; anim clips; captions |
+| `/assets/il-immersive-3d.js` | Stage player: native GLB load/draw when present, else procedural; orbit; clips; captions |
 | `/assets/il-immersive-3d.css` | Stage chrome (cyan `#5EEAD4` / gold `#D4A853` / void `#070B16`); reduced-motion fallback |
 | `/assets/immersive/` | Optional real `.glb` / HDR / caption sidecars |
 
@@ -128,7 +128,8 @@ Each mounts:
 | Path | Role |
 |------|------|
 | `IMMERSIVE-3D.md` | Alternate pipeline notes + Pixel Streaming embed stub |
-| `/immersive/` | Demo page (sibling player `il-immersive.js` + `il-scene-kit.js`) |
+| `/immersive/` | Demo page (`il-immersive.js` + `il-immersive-3d.js` + authored `.glb`) |
+| `/immersive/pixel-stream/` | UE Pixel Streaming client shell (honest stub without signaling) |
 | `/assets/il-immersive-3d.js` | **Canonical curriculum scaffold** wired on lecture/lab/path HTML (`data-il-scene`) |
 | `/assets/il-immersive.js` | Demo / `data-kind` hosts — skips `data-il-scene` nodes |
 
