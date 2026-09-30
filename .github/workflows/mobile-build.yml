@@ -56,7 +56,7 @@ jobs:
         run: npx cap sync android
       - name: Build, unit-test and lint
         working-directory: apps/mobile/android
-        run: ./gradlew --no-daemon assembleDebug assembleRelease testDebugUnitTest lintDebug
+        run: ./gradlew --no-daemon assembleDebug assembleRelease bundleDebug testDebugUnitTest lintDebug
       - name: Keep the debug APK and lint report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -64,6 +64,7 @@ jobs:
           name: android-debug
           path: |
             apps/mobile/android/app/build/outputs/apk/debug/*.apk
+            apps/mobile/android/app/build/outputs/bundle/debug/*.aab
             apps/mobile/android/app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
           retention-days: 7
