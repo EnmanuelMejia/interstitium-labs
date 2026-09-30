@@ -1,6 +1,6 @@
 # Unreal + Blender pipeline (P920)
 
-_Last updated: 2026-09-29 ~09:15 EDT (America/New_York)._  
+_Last updated: 2026-09-30 ~09:10 EDT (America/New_York)._  
 _Authoring host:_ Lenovo ThinkStation **P920** · _Site delivery:_ Cloudflare Pages `docs/`
 
 ## Goal
@@ -63,7 +63,7 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 | Server rack / DC | `rack-19u.glb` |
 | Kubernetes cluster | `k8s-cluster.glb` |
 
-**2026-09-29:** Kit-authored `.glb` files live under `docs/assets/immersive/` (see README + `scripts/author_immersive_glb.py`). Open/polish in Blender on P920. `il-immersive-3d.js` loads via native `ILSceneKit.parseGlb` (no Three CDN); on 404/parse fail → **procedural** of same family with honest caption. Provenance: kit glTF, not hand-sculpted Blender UI sets yet.
+**2026-09-30:** Kit-**v2** `.glb` under `docs/assets/immersive/` (+ `muse-dee-monas.glb`, `cka-etcd-quorum.glb`). Pedagogical node extras + LOD proxies. Blender handoff: `scripts/blender_polish_glb.py` (CLI when available; else P920 command). `il-immersive-3d.js` / `il-muse-3d.js` load via native `parseGlb`. Provenance: kit glTF — not hand-sculpted Blender artist sets until polish lands.
 
 ## Unreal → cinematic / cert sims
 
@@ -84,11 +84,12 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 
 ### Pixel Streaming (client path live; streamer host later)
 
-- **Browser client:** `/immersive/pixel-stream/` — reads `?signaling=` / `data-ps-signaling` / `localStorage.il-ps-signaling`.
-- Without signaling: honest stub (never fake a live stream video).
-- With `wss://` signaling: minimal WebRTC handshake attempt (UE PS subset); with http(s) player URL: iframe via `ILSceneKit.pixelStreamEmbed`.
+- **Browser client:** `/immersive/pixel-stream/` + `il-pixel-stream.js` — Connect/Save/Disconnect UI, `?signaling=` / `data-ps-signaling` / `localStorage.il-ps-signaling`, **exponential reconnect backoff**.
+- Without signaling: honest empty state — “connect a Unreal Pixel Streaming host” (never fake a live stream video).
+- With `ws(s)://` signaling: minimal WebRTC handshake (UE PS subset); http(s) player URL → `ILSceneKit.pixelStreamEmbed`.
+- **Dev runbook:** `PIXEL-STREAMING-DEV.md` (local UE5 host against this client).
 - Host streamer on lab GPU box (not Pages). STUN/TURN as needed.
-- **CSP (do NOT widen live today without a real host):** when streaming goes live, allowlist the stream subdomain in `connect-src` (WebSocket/signaling) + `frame-src` / `media-src` as needed. Exact future exception documented in `ENTERPRISE-SECURITY.md` §5.3. Until then Pages CSP stays tight.
+- **CSP:** localhost `ws`/`wss` allowed for lab bring-up. Do **not** widen live Pages CSP for a public stream subdomain until the host exists (`ENTERPRISE-SECURITY.md`).
 
 ## In-page player (now)
 
@@ -97,8 +98,11 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 | `docs/assets/il-immersive-3d.js` | Orbit, captions, clip play, procedural + **native GLB render** |
 | `docs/assets/il-scene-kit.js` | `parseGlb` / `loadGltf` / `pixelStreamEmbed` |
 | `docs/assets/il-immersive-3d.css` | Stage chrome + reduced-motion |
-| `docs/immersive/pixel-stream/` | UE Pixel Streaming client shell |
-| `scripts/author_immersive_glb.py` | Kit authoring (glTF 2.0 binary) |
+| `docs/immersive/pixel-stream/` | UE Pixel Streaming client + config UI |
+| `docs/assets/il-pixel-stream.js` | Signaling, reconnect, honest empty state |
+| `scripts/author_immersive_glb.py` | Kit-v2 authoring (glTF 2.0 binary) |
+| `scripts/blender_polish_glb.py` | P920 Blender polish handoff |
+| `docs/ops/PIXEL-STREAMING-DEV.md` | Local/dev UE5 runbook |
 
 CSP forbids CDN Three → native `parseGlb` ships meshes without Three. Optional vendored Three/GLTFLoader still under `/assets/vendor/` with `script-src 'self'`.
 
@@ -109,9 +113,10 @@ CSP forbids CDN Three → native `parseGlb` ships meshes without Three. Optional
 - [x] Real `.glb` committed under `/assets/immersive/`; 404/parse → procedural same family (no blank)  
 - [x] Native `parseGlb` draws authored meshes (caption: authored .glb vs procedural fallback)  
 - [x] Noah (`il-muse-3d`) not double-mounted inside curriculum stage  
-- [x] Pixel Streaming **client path** at `/immersive/pixel-stream/` — no fake live stream  
+- [x] Pixel Streaming **client path** + reconnect/config UI — no fake live stream  
 - [ ] Live UE5 streamer + signaling host on lab GPU (not yet)  
-- [ ] P920 Blender polish pass on kit meshes (not yet)  
+- [x] Blender polish **handoff script** (`blender_polish_glb.py`) — live CLI polish still P920
+- [ ] P920 Blender polish pass applied to kit meshes (not yet)  
 - [ ] CSP allowlist for stream subdomain at go-live only  
 
 ## Related

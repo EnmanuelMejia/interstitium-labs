@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Interstitium Labs — glTF 2.0 binary (.glb) authoring kit.
+Interstitium Labs — glTF 2.0 binary (.glb) authoring kit (P920-class polish path).
 
-Honest provenance: kit-authored meshes (POSITION + NORMAL, TRIANGLES, PBR materials).
-Blender-compatible glTF 2.0 binary — open/polish on P920. NOT hand-sculpted in Blender UI.
-Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16.
+Honest provenance: kit-authored meshes (POSITION + NORMAL, TRIANGLES, PBR materials,
+pedagogical node names, optional LOD child meshes, extras for Blender handoff).
+Blender-compatible glTF 2.0 binary — open/polish on P920 via scripts/blender_polish_glb.py.
+NOT hand-sculpted in Blender UI yet. Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16.
 
 Usage:
-  python3 scripts/author_immersive_glb.py [--out docs/assets/immersive]
+  python3 scripts/author_immersive_glb.py [--out docs/assets/immersive] [--only name.glb ...]
+  python3 scripts/blender_polish_glb.py --in docs/assets/immersive/cert-cka.glb  # if blender CLI
 """
 from __future__ import annotations
 
@@ -138,6 +140,55 @@ class MeshBuilder:
                 self.add_tri(bot_c, ring_bot[j], ring_bot[i], (0, -1, 0))
                 self.add_tri(top_c, ring_top[i], ring_top[j], (0, 1, 0))
 
+    def add_sphere(self, cx, cy, cz, radius, stacks=12, slices=16):
+        """UV sphere with smooth-ish normals (P920 polish precursor)."""
+        stacks = max(4, stacks)
+        slices = max(6, slices)
+        for i in range(stacks):
+            v0 = i / stacks
+            v1 = (i + 1) / stacks
+            phi0 = (v0 - 0.5) * math.pi
+            phi1 = (v1 - 0.5) * math.pi
+            y0 = math.sin(phi0) * radius
+            y1 = math.sin(phi1) * radius
+            r0 = math.cos(phi0) * radius
+            r1 = math.cos(phi1) * radius
+            for j in range(slices):
+                u0 = j / slices
+                u1 = (j + 1) / slices
+                a0 = u0 * math.pi * 2
+                a1 = u1 * math.pi * 2
+                p00 = (cx + math.cos(a0) * r0, cy + y0, cz + math.sin(a0) * r0)
+                p01 = (cx + math.cos(a1) * r0, cy + y0, cz + math.sin(a1) * r0)
+                p10 = (cx + math.cos(a0) * r1, cy + y1, cz + math.sin(a0) * r1)
+                p11 = (cx + math.cos(a1) * r1, cy + y1, cz + math.sin(a1) * r1)
+                n00 = _norm3(p00[0] - cx, p00[1] - cy, p00[2] - cz)
+                n01 = _norm3(p01[0] - cx, p01[1] - cy, p01[2] - cz)
+                n10 = _norm3(p10[0] - cx, p10[1] - cy, p10[2] - cz)
+                n11 = _norm3(p11[0] - cx, p11[1] - cy, p11[2] - cz)
+                # two tris with per-vertex normals
+                base = len(self.positions) // 3
+                for p, n in ((p00, n00), (p01, n01), (p11, n11), (p10, n10)):
+                    self.positions.extend(p)
+                    self.normals.extend(n)
+                self.indices.extend([base, base + 1, base + 2, base, base + 2, base + 3])
+
+    def add_chamfer_box(self, cx, cy, cz, sx, sy, sz, bevel=0.04):
+        """Box with slightly inset faces + edge rails for less toy-block look."""
+        b = min(bevel, sx * 0.2, sy * 0.2, sz * 0.2)
+        self.add_box(cx, cy, cz, sx - 2 * b, sy - 2 * b, sz - 2 * b)
+        # edge rails (thin boxes along edges)
+        hx, hy, hz = sx / 2, sy / 2, sz / 2
+        for dx in (-hx, hx):
+            for dy in (-hy, hy):
+                self.add_box(cx + dx * 0.92, cy + dy * 0.92, cz, b * 1.2, b * 1.2, sz - 2 * b)
+        for dx in (-hx, hx):
+            for dz in (-hz, hz):
+                self.add_box(cx + dx * 0.92, cy, cz + dz * 0.92, b * 1.2, sy - 2 * b, b * 1.2)
+        for dy in (-hy, hy):
+            for dz in (-hz, hz):
+                self.add_box(cx, cy + dy * 0.92, cz + dz * 0.92, sx - 2 * b, b * 1.2, b * 1.2)
+
     def bounds(self):
         if not self.positions:
             return [0, 0, 0], [0, 0, 0]
@@ -147,9 +198,9 @@ class MeshBuilder:
         return [min(xs), min(ys), min(zs)], [max(xs), max(ys), max(zs)]
 
 
-def pack_glb(meshes_with_mats: list[tuple[MeshBuilder, dict, str]]) -> bytes:
+def pack_glb(meshes_with_mats: list[tuple], scene_extras: dict | None = None) -> bytes:
     """
-    meshes_with_mats: list of (MeshBuilder, material_dict, node_name)
+    meshes_with_mats: list of (MeshBuilder, material_dict, node_name[, extras_dict])
     material_dict keys: name, baseColorFactor, metallicFactor, roughnessFactor, emissiveFactor
     """
     bin_parts: list[bytes] = []
@@ -195,7 +246,9 @@ def pack_glb(meshes_with_mats: list[tuple[MeshBuilder, dict, str]]) -> bytes:
         )
         return bv_idx
 
-    for mb, mat, name in meshes_with_mats:
+    for item in meshes_with_mats:
+        mb, mat, name = item[0], item[1], item[2]
+        node_extras = item[3] if len(item) > 3 else None
         if not mb.indices:
             continue
         mi = ensure_mat(mat)
@@ -262,21 +315,35 @@ def pack_glb(meshes_with_mats: list[tuple[MeshBuilder, dict, str]]) -> bytes:
                 ],
             }
         )
-        nodes.append({"name": name, "mesh": mesh_idx})
+        node = {"name": name, "mesh": mesh_idx}
+        if node_extras:
+            node["extras"] = node_extras
+        nodes.append(node)
 
     bin_blob = b"".join(bin_parts)
     # pad BIN to 4-byte
     if len(bin_blob) % 4:
         bin_blob += b"\x00" * (4 - len(bin_blob) % 4)
 
+    scene_obj = {"name": "Scene", "nodes": list(range(len(nodes)))}
+    if scene_extras:
+        scene_obj["extras"] = scene_extras
     gltf = {
         "asset": {
             "version": "2.0",
-            "generator": "Interstitium Labs glTF kit (author_immersive_glb.py)",
+            "generator": "Interstitium Labs glTF kit (author_immersive_glb.py) v2",
             "copyright": "Interstitium Labs — kit-authored, Blender-compatible; polish on P920",
+            "extras": {
+                "interstitium": {
+                    "kit": "author_immersive_glb",
+                    "kitVersion": 2,
+                    "blenderHandoff": "scripts/blender_polish_glb.py",
+                    "palette": {"cyan": "#5EEAD4", "gold": "#D4A853", "void": "#070B16"},
+                }
+            },
         },
         "scene": 0,
-        "scenes": [{"name": "Scene", "nodes": list(range(len(nodes)))}],
+        "scenes": [scene_obj],
         "nodes": nodes,
         "meshes": meshes,
         "materials": materials,
@@ -318,35 +385,49 @@ MAT_GOLD = mat("il-gold", GOLD, 0.35, 0.35, (0.12, 0.08, 0.02))
 MAT_VOID = mat("il-void", VOID, 0.05, 0.85)
 MAT_INK = mat("il-ink", INK, 0.1, 0.7)
 MAT_LED = mat("il-led", CYAN, 0.0, 0.3, (0.2, 0.7, 0.55))
+MAT_PAPER = mat("il-paper", PAPER, 0.05, 0.55)
+MAT_CRYSTAL = mat("il-crystal", CYAN, 0.05, 0.18, (0.12, 0.45, 0.38))
+MAT_DEE_GOLD = mat("il-dee-gold", GOLD, 0.45, 0.28, (0.22, 0.14, 0.04))
 
 
 def scene_k8s_control_plane() -> list:
     """Control-plane cylinder + surrounding worker boxes (procedural:k8s family)."""
     parts = []
-    # floor ring
+    ped = {"il": {"role": "pedagogy", "topic": "kubernetes-control-plane"}}
     floor = MeshBuilder()
-    floor.add_cylinder(0, -0.2, 0, 2.0, 0.06, 24)
-    parts.append((floor, MAT_INK, "floor-ring"))
-    # control plane body
+    floor.add_cylinder(0, -0.2, 0, 2.0, 0.06, 32)
+    parts.append((floor, MAT_INK, "floor-ring", {**ped, "label": "cluster-floor"}))
     cp = MeshBuilder()
-    cp.add_cylinder(0, 0.9, 0, 0.45, 0.55, 20)
-    parts.append((cp, MAT_GOLD, "control-plane"))
-    # etcd/api cube on top
+    cp.add_cylinder(0, 0.9, 0, 0.45, 0.55, 28)
+    parts.append((cp, MAT_GOLD, "control-plane", {**ped, "label": "control-plane", "cka": "cp"}))
     api = MeshBuilder()
-    api.add_box(0, 1.35, 0, 0.42, 0.42, 0.42)
-    parts.append((api, MAT_CYAN, "api-server"))
-    # halo ring (thin cylinder)
+    api.add_chamfer_box(0, 1.35, 0, 0.42, 0.42, 0.42, 0.03)
+    parts.append((api, MAT_CYAN, "api-server", {**ped, "label": "kube-apiserver"}))
+    # scheduler + controller-manager side pods
+    sched = MeshBuilder()
+    sched.add_box(-0.55, 1.15, 0.35, 0.22, 0.22, 0.22)
+    parts.append((sched, MAT_LED, "scheduler", {**ped, "label": "kube-scheduler"}))
+    cm = MeshBuilder()
+    cm.add_box(0.55, 1.15, 0.35, 0.22, 0.22, 0.22)
+    parts.append((cm, MAT_LED, "controller-manager", {**ped, "label": "kube-controller-manager"}))
     halo = MeshBuilder()
-    halo.add_cylinder(0, 0.55, 0, 0.75, 0.05, 20, capped=True)
-    parts.append((halo, MAT_CYAN, "cp-halo"))
-    # workers
+    halo.add_cylinder(0, 0.55, 0, 0.75, 0.05, 28, capped=True)
+    parts.append((halo, MAT_CYAN, "cp-halo", {**ped, "label": "cp-halo"}))
     n = 5
     for i in range(n):
         a = (i / n) * math.pi * 2
         x, z = math.cos(a) * 1.55, math.sin(a) * 1.55
         w = MeshBuilder()
-        w.add_box(x, 0.2, z, 0.4, 0.55, 0.4)
-        parts.append((w, MAT_CYAN if i % 2 == 0 else MAT_INK, f"worker-{i}"))
+        w.add_chamfer_box(x, 0.2, z, 0.4, 0.55, 0.4, 0.025)
+        # kubelet LED
+        led = MeshBuilder()
+        led.add_sphere(x, 0.52, z + 0.18, 0.05, 8, 10)
+        parts.append((w, MAT_CYAN if i % 2 == 0 else MAT_INK, f"worker-{i}", {**ped, "label": f"worker-node-{i}"}))
+        parts.append((led, MAT_LED, f"kubelet-led-{i}", {**ped, "label": f"kubelet-{i}"}))
+    # LOD1 simplified proxy (single low-poly disk) for Blender LOD workflow demo
+    lod = MeshBuilder()
+    lod.add_cylinder(0, 0.4, 0, 1.8, 0.08, 12)
+    parts.append((lod, MAT_VOID, "lod1-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
     return parts
 
 
@@ -440,6 +521,99 @@ def scene_sim_superlab() -> list:
     return parts
 
 
+
+def scene_muse_dee_monas() -> list:
+    """Lab Muse Dee / Monas familiar — crystalline avatar for voice-reactive coach (glTF path)."""
+    parts = []
+    ped = {"il": {"role": "muse-avatar", "avatar": "dee", "voiceReactive": True}}
+    # void plinth
+    base = MeshBuilder()
+    base.add_cylinder(0, -0.55, 0, 0.85, 0.08, 28)
+    parts.append((base, MAT_VOID, "muse-plinth", {**ped, "label": "plinth"}))
+    # monas core (icosa-ish via sphere)
+    core = MeshBuilder()
+    core.add_sphere(0, 0.35, 0, 0.38, 14, 18)
+    parts.append((core, MAT_CRYSTAL, "monas-core", {**ped, "label": "monas-core", "state": "idle|listen|speak"}))
+    # crescent / Dee shell (partial torus approx via thin torus + offset sphere cut look)
+    shell = MeshBuilder()
+    shell.add_sphere(0.12, 0.42, 0, 0.48, 12, 16)
+    parts.append((shell, MAT_DEE_GOLD, "dee-crescent", {**ped, "label": "dee-crescent"}))
+    # orrery rings
+    for i, (R, y, mname, mat_) in enumerate(
+        ((0.72, 0.35, "orrery-inner", MAT_GOLD), (0.98, 0.32, "orrery-outer", MAT_CYAN))
+    ):
+        ring = MeshBuilder()
+        # approximate torus with stacked thin cylinders at angles via many segments box ring
+        seg = 28
+        for s in range(seg):
+            a = (s / seg) * math.pi * 2
+            x, z = math.cos(a) * R, math.sin(a) * R
+            bead = MeshBuilder()
+            bead.add_sphere(x, y, z, 0.035 if i == 0 else 0.028, 6, 8)
+            parts.append((bead, mat_, f"{mname}-bead-{s}", {**ped, "label": mname, "ring": i}))
+    # sigil stem + cross
+    stem = MeshBuilder()
+    stem.add_cylinder(0, -0.05, 0, 0.04, 0.7, 12)
+    parts.append((stem, MAT_GOLD, "sigil-stem", {**ped, "label": "sigil-stem"}))
+    cross = MeshBuilder()
+    cross.add_box(0, -0.15, 0, 0.55, 0.05, 0.05)
+    parts.append((cross, MAT_GOLD, "sigil-cross", {**ped, "label": "sigil-cross"}))
+    # tip crystal
+    tip = MeshBuilder()
+    tip.add_sphere(0, 0.85, 0, 0.1, 8, 10)
+    parts.append((tip, MAT_LED, "sigil-tip", {**ped, "label": "sigil-tip"}))
+    # LOD proxy
+    lod = MeshBuilder()
+    lod.add_sphere(0, 0.3, 0, 0.5, 6, 8)
+    parts.append((lod, MAT_VOID, "lod1-muse-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_cka_etcd_quorum() -> list:
+    """CKA etcd quorum immersive — 3-member raft + API front (honest CKA pedagogy exceed)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cka-etcd-quorum", "cert": "CKA"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.85, 0, 4.2, 0.08, 3.0)
+    parts.append((floor, MAT_VOID, "exam-floor", {**ped, "label": "exam-floor"}))
+    # three etcd members in triangle
+    positions = [(0, 0.9), (-1.1, -0.7), (1.1, -0.7)]
+    for i, (x, z) in enumerate(positions):
+        body = MeshBuilder()
+        body.add_cylinder(x, 0.35, z, 0.32, 0.7, 20)
+        parts.append((body, MAT_GOLD if i == 0 else MAT_CYAN, f"etcd-member-{i}", {
+            **ped, "label": f"etcd-{i}", "raft": "leader" if i == 0 else "follower"
+        }))
+        cap = MeshBuilder()
+        cap.add_sphere(x, 0.78, z, 0.14, 10, 12)
+        parts.append((cap, MAT_LED if i == 0 else MAT_INK, f"etcd-heart-{i}", {
+            **ped, "label": f"raft-heartbeat-{i}"
+        }))
+    # quorum ring linking members
+    for i in range(3):
+        j = (i + 1) % 3
+        x0, z0 = positions[i]
+        x1, z1 = positions[j]
+        mx, mz = (x0 + x1) / 2, (z0 + z1) / 2
+        link = MeshBuilder()
+        dx, dz = x1 - x0, z1 - z0
+        length = math.sqrt(dx * dx + dz * dz) or 1
+        link.add_box(mx, 0.55, mz, length * 0.85, 0.04, 0.06)
+        parts.append((link, MAT_CYAN, f"raft-link-{i}-{j}", {**ped, "label": "raft-replication"}))
+    # API server front desk
+    api = MeshBuilder()
+    api.add_chamfer_box(0, 0.15, 1.35, 1.1, 0.55, 0.4, 0.03)
+    parts.append((api, MAT_INK, "apiserver-front", {**ped, "label": "kube-apiserver"}))
+    badge = MeshBuilder()
+    badge.add_box(0, 0.55, 1.35, 0.35, 0.12, 0.12)
+    parts.append((badge, MAT_GOLD, "cka-badge", {**ped, "label": "CKA"}))
+    # exam prompt tablet
+    tablet = MeshBuilder()
+    tablet.add_box(1.6, -0.35, 1.1, 0.7, 0.06, 0.5)
+    parts.append((tablet, MAT_PAPER, "exam-prompt", {**ped, "label": "exam-prompt"}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -447,6 +621,8 @@ SCENES = {
     "hermetic-monas.glb": scene_hermetic_monas,
     "sim-superlab.glb": scene_sim_superlab,
     "k8s-cluster.glb": scene_k8s_control_plane,  # alias
+    "muse-dee-monas.glb": scene_muse_dee_monas,
+    "cka-etcd-quorum.glb": scene_cka_etcd_quorum,
 }
 
 
@@ -469,7 +645,14 @@ def main(argv=None):
             print(f"unknown scene: {name}", file=sys.stderr)
             continue
         parts = SCENES[name]()
-        blob = pack_glb(parts)
+        extras = {
+            "interstitium": {
+                "sceneId": name.replace(".glb", ""),
+                "authored": "kit-v2",
+                "blenderPolish": "scripts/blender_polish_glb.py",
+            }
+        }
+        blob = pack_glb(parts, scene_extras=extras)
         path = out / name
         path.write_bytes(blob)
         magic = blob[:4]

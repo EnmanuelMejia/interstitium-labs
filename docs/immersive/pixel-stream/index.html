@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self' blob:; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://127.0.0.1:* wss://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self' blob:; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Unreal Pixel Streaming — Interstitium Labs</title>
-<meta name="description" content="Honest Unreal Engine 5 Pixel Streaming client shell. Signaling URL required — no fake live stream."/>
+<meta name="description" content="Honest Unreal Engine 5 Pixel Streaming client. Signaling URL + reconnect — never fakes a live stream or hosted fleet."/>
 <meta name="theme-color" content="#070B16"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/immersive/pixel-stream/"/>
 <link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
@@ -19,6 +19,23 @@
   .il-ps-log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; color: #8b95a8; white-space: pre-wrap; max-height: 8rem; overflow: auto; }
   .il-ps-video { width: 100%; height: 100%; min-height: 18rem; background: #070B16; object-fit: contain; display: none; }
   .il-ps-video.is-live { display: block; }
+  .il-ps-cfg { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+  .il-ps-cfg input {
+    flex: 1 1 16rem; min-width: 12rem; height: 2.5rem; border-radius: 0.5rem;
+    border: 1px solid rgba(232,238,245,0.15); background: #070B16; color: #E8EEF5;
+    padding: 0 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem;
+  }
+  .il-ps-cfg button {
+    height: 2.5rem; padding: 0 0.9rem; border-radius: 0.5rem; font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid rgba(94,234,212,0.35); background: transparent; color: #5EEAD4;
+  }
+  .il-ps-cfg button.primary { background: #5EEAD4; color: #070B16; border-color: #5EEAD4; }
+  .il-ps-cfg button.danger { border-color: rgba(212,168,83,0.45); color: #D4A853; }
+  .il-ps-empty { padding: 2rem 1.25rem; text-align: left; color: #8b95a8; font-size: 0.875rem; }
+  .il-ps-empty__kicker { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: #5EEAD4; margin-bottom: 0.75rem; }
+  .il-ps-empty a { color: #5EEAD4; }
+  .il-ps-empty code { color: #5EEAD4; }
 </style>
 </head>
 <body class="min-h-dvh bg-void text-paper">
@@ -30,6 +47,7 @@
     <nav class="hidden gap-3 text-[0.65rem] uppercase tracking-[0.16em] text-muted sm:flex">
       <a class="hover:text-paper" href="/immersive/">Immersive</a>
       <a class="text-paper" href="/immersive/pixel-stream/" aria-current="page">Pixel Stream</a>
+      <a class="hover:text-paper" href="/ops/PIXEL-STREAMING-DEV.md">Dev runbook</a>
       <a class="hover:text-paper" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">Pipeline</a>
     </nav>
   </div>
@@ -37,12 +55,20 @@
 <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
   <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">Unreal · Pixel Streaming · honest client</p>
   <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">UE5 Pixel Streaming path.</h1>
-  <p class="mt-4 max-w-2xl text-sm text-muted">Browser client shell for lab GPU hosts. Reads signaling from <code class="text-cyan">?signaling=</code>, <code class="text-cyan">data-ps-signaling</code>, or <code class="text-cyan">localStorage.il-ps-signaling</code>. <strong class="text-paper">Never fakes a live stream</strong> — without a real UE5 streamer this page stays an honest stub. CSP is <strong class="text-paper">not</strong> widened on Pages until a stream subdomain exists (see Enterprise Security).</p>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Production-grade browser client for lab GPU hosts. Signaling from <code class="text-cyan">?signaling=</code>, the form below, <code class="text-cyan">data-ps-signaling</code>, or <code class="text-cyan">localStorage.il-ps-signaling</code>. <strong class="text-paper">Reconnect with backoff</strong> when the socket drops — still <strong class="text-paper">never fakes a live stream or hosted fleet</strong>. CSP allows localhost ws(s) for local UE5 only; production stream subdomain requires an ENTERPRISE-SECURITY allowlist at go-live.</p>
 
   <section class="mt-8 rounded-xl border border-cyan/20 bg-ink/40 p-4 sm:p-6">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <p class="il-ps-status" id="ps-status" role="status">Checking signaling…</p>
-      <a class="text-[0.7rem] uppercase tracking-[0.14em] text-cyan" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">Pipeline docs →</a>
+      <a class="text-[0.7rem] uppercase tracking-[0.14em] text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">Dev runbook →</a>
+    </div>
+    <div class="il-ps-cfg" role="group" aria-label="Pixel Streaming signaling config">
+      <input id="ps-signaling-input" type="url" spellcheck="false" autocomplete="off"
+        placeholder="ws://127.0.0.1:8888 or wss://stream.lab/…" aria-label="Signaling WebSocket URL"/>
+      <button type="button" class="primary" id="ps-btn-connect">Connect</button>
+      <button type="button" id="ps-btn-save">Save</button>
+      <button type="button" class="danger" id="ps-btn-disconnect">Disconnect</button>
+      <button type="button" id="ps-btn-clear">Clear</button>
     </div>
     <div class="il-ps-shell mt-4 overflow-hidden rounded-lg border border-paper/10 bg-void" id="ps-host" data-ps-host data-ps-signaling="">
       <video id="ps-video" class="il-ps-video" playsinline autoplay muted></video>
@@ -53,12 +79,12 @@
 
   <section class="mt-10 grid gap-4 text-sm text-muted sm:grid-cols-2">
     <div class="rounded-xl border border-paper/10 bg-ink/30 p-5">
-      <h2 class="font-display text-lg text-gold">When streamer is up</h2>
+      <h2 class="font-display text-lg text-gold">Local / lab GPU</h2>
       <ol class="mt-3 list-decimal space-y-2 pl-5">
         <li>Run UE5 Pixel Streaming on the lab GPU host (not Cloudflare Pages).</li>
-        <li>Expose signaling (typically <code class="text-cyan">wss://stream.…/signaling</code>).</li>
-        <li>Open this page with <code class="text-cyan">?signaling=wss://…</code>.</li>
-        <li>Before go-live: allowlist stream origin in <code class="text-cyan">connect-src</code> + <code class="text-cyan">frame-src</code> / media — see ENTERPRISE-SECURITY.</li>
+        <li>Expose signaling (<code class="text-cyan">ws://127.0.0.1:8888</code> locally or <code class="text-cyan">wss://…</code>).</li>
+        <li>Paste URL → <strong class="text-paper">Connect</strong>. Optional: Save to localStorage.</li>
+        <li>Full steps: <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PIXEL-STREAMING-DEV.md</a>.</li>
       </ol>
     </div>
     <div class="rounded-xl border border-paper/10 bg-ink/30 p-5">
@@ -73,153 +99,6 @@
   </section>
 </main>
 <script src="/assets/il-scene-kit.js" defer></script>
-<script>
-(function () {
-  function qs(name) {
-    try {
-      var u = new URL(window.location.href);
-      return u.searchParams.get(name) || '';
-    } catch (e) { return ''; }
-  }
-  function log(msg) {
-    var el = document.getElementById('ps-log');
-    if (!el) return;
-    var t = new Date().toLocaleTimeString();
-    el.textContent += '[' + t + '] ' + msg + '\n';
-  }
-  function setStatus(s) {
-    var el = document.getElementById('ps-status');
-    if (el) el.textContent = s;
-  }
-  function resolveSignaling() {
-    var fromQ = qs('signaling') || qs('ps') || qs('pixel');
-    if (fromQ) return fromQ;
-    var host = document.getElementById('ps-host');
-    if (host) {
-      var d = host.getAttribute('data-ps-signaling');
-      if (d) return d;
-    }
-    try {
-      var ls = localStorage.getItem('il-ps-signaling');
-      if (ls) return ls;
-    } catch (e) {}
-    if (window.IL_LOCAL_CONFIG && window.IL_LOCAL_CONFIG.pixelStreamingSignaling) {
-      return window.IL_LOCAL_CONFIG.pixelStreamingSignaling;
-    }
-    return '';
-  }
-
-  /**
-   * Minimal UE Pixel Streaming protocol attempt:
-   * - Prefer WebSocket signaling handshake when URL is ws(s):
-   * - Else mount via ILSceneKit.pixelStreamEmbed (iframe player)
-   * Never invent video frames.
-   */
-  function attemptWebRtc(signaling) {
-    var video = document.getElementById('ps-video');
-    if (!/^wss?:\/\//i.test(signaling)) {
-      log('Signaling is not ws(s) — using embed mount (iframe/player URL).');
-      return false;
-    }
-    if (typeof RTCPeerConnection === 'undefined') {
-      log('RTCPeerConnection unavailable — cannot negotiate WebRTC.');
-      setStatus('WebRTC unavailable in this browser');
-      return false;
-    }
-    setStatus('Connecting signaling…');
-    log('Opening WebSocket signaling: ' + signaling);
-    var pc = null;
-    var ws;
-    try {
-      ws = new WebSocket(signaling);
-    } catch (err) {
-      log('WebSocket construct failed: ' + err);
-      setStatus('Signaling construct failed');
-      return false;
-    }
-    ws.addEventListener('open', function () {
-      log('Signaling socket open — sending player connect (UE PS minimal).');
-      setStatus('Signaling open — negotiating…');
-      try {
-        /* Epic Pixel Streaming player hello (subset). Real streamer required. */
-        ws.send(JSON.stringify({ type: 'connect', peerConnectionOptions: {} }));
-      } catch (e) { log('send connect failed: ' + e); }
-    });
-    ws.addEventListener('message', function (ev) {
-      var raw = ev.data;
-      var msg;
-      try { msg = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) {
-        log('Non-JSON signaling frame');
-        return;
-      }
-      var type = msg.type || msg.Type || '';
-      log('Signaling message: ' + type);
-      if (type === 'config' || type === 'playerCount' || type === 'identify') {
-        /* continue */
-      }
-      if (type === 'offer' && msg.sdp) {
-        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-        pc.ontrack = function (tev) {
-          if (video && tev.streams && tev.streams[0]) {
-            video.srcObject = tev.streams[0];
-            video.classList.add('is-live');
-            setStatus('Live Pixel Streaming track');
-            log('Remote media track attached.');
-          }
-        };
-        pc.onicecandidate = function (c) {
-          if (c.candidate && ws.readyState === 1) {
-            ws.send(JSON.stringify({ type: 'iceCandidate', candidate: c.candidate }));
-          }
-        };
-        pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp }).then(function () {
-          return pc.createAnswer();
-        }).then(function (answer) {
-          return pc.setLocalDescription(answer);
-        }).then(function () {
-          ws.send(JSON.stringify({ type: 'answer', sdp: pc.localDescription.sdp }));
-          log('Answer sent.');
-        }).catch(function (err) {
-          log('SDP negotiate failed: ' + err);
-          setStatus('SDP negotiate failed — is UE streamer up?');
-        });
-      }
-      if ((type === 'iceCandidate' || type === 'iceCandidateResponse') && msg.candidate && pc) {
-        pc.addIceCandidate(msg.candidate).catch(function () {});
-      }
-    });
-    ws.addEventListener('error', function () {
-      log('Signaling error (expected if no lab host).');
-      setStatus('Signaling error — scaffold ready, no live UE host');
-    });
-    ws.addEventListener('close', function () {
-      log('Signaling closed.');
-      if (!video || !video.srcObject) setStatus('Signaling closed — no live stream');
-    });
-    return true;
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var signaling = resolveSignaling();
-    var host = document.getElementById('ps-host');
-    var stubSlot = document.getElementById('ps-stub-slot');
-    if (!signaling) {
-      setStatus('Scaffold ready — set signaling when UE5 streamer is up');
-      log('No signaling URL. Pass ?signaling=wss://host/… or data-ps-signaling.');
-      if (window.ILSceneKit && ILSceneKit.pixelStreamEmbed) {
-        ILSceneKit.pixelStreamEmbed(stubSlot || host, '', { title: 'UE5 Pixel Streaming' });
-      }
-      return;
-    }
-    host.setAttribute('data-ps-signaling', signaling);
-    log('Signaling configured: ' + signaling);
-    var usedWs = attemptWebRtc(signaling);
-    if (!usedWs && window.ILSceneKit && ILSceneKit.pixelStreamEmbed) {
-      setStatus('Mounting signaling URL via embed');
-      ILSceneKit.pixelStreamEmbed(stubSlot || host, signaling, { title: 'UE5 Pixel Streaming' });
-    }
-  });
-})();
-</script>
+<script src="/assets/il-pixel-stream.js" defer></script>
 </body>
 </html>

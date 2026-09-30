@@ -383,10 +383,10 @@
     if (!signalingUrl) {
       host.innerHTML = '<div class="il-scene-kit__ps-stub" role="status">' +
         '<p class="il-scene-kit__ps-kicker">Unreal Pixel Streaming</p>' +
-        '<p>Scaffold ready — set signaling when UE5 streamer is up on lab GPU host.</p>' +
+        '<p>Connect a Unreal Pixel Streaming host — set signaling when UE5 streamer is up on lab GPU host.</p>' +
         '<p class="il-scene-kit__ps-hint">Pass <code>?signaling=</code>, <code>data-ps-signaling</code>, or open ' +
         '<a class="il-scene-kit__ps-link" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. ' +
-        'See <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline docs</a>.</p>' +
+        'See <a class="il-scene-kit__ps-link" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline</a>.</p>' +
         '</div>';
       return { mode: 'stub', signaling: null };
     }
@@ -453,7 +453,7 @@
     pixelStreamEmbed: pixelStreamEmbed,
     onSpeakAmp: onSpeakAmp,
     emitSceneEvent: emitSceneEvent,
-    VERSION: '1.2.0'
+    VERSION: '1.3.0'
   };
 
   /* Muse 3D may re-export kit when both present */
