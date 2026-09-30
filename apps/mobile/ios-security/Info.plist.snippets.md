@@ -8,7 +8,9 @@ After `npx cap add ios`, confirm `Info.plist`:
 
 Universal Links (later): associated domains `applinks:interstitiumlabs.dev` only after `apple-app-site-association` is published.
 
-Status bar: dark content on void `#070B16` via Capacitor StatusBar plugin.
+Status bar: light content on the void `#070B16` background via the Capacitor StatusBar plugin (`Style.Dark`).
+
+Scene lifecycle: since Capacitor 8.5 the app uses UIScene (`SceneDelegate.swift` + `UIApplicationSceneManifest`). URL opens and universal links now arrive through `SceneDelegate`, which forwards them to Capacitor; do not add handling to the AppDelegate `open url` / `continue userActivity` methods, which iOS no longer calls.
 
 ## Lab Muse — microphone (Web Speech dictation)
 

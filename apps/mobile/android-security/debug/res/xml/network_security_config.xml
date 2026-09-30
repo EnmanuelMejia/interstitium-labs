@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Interstitium Labs — Network Security Config (debug builds only)
+  The debug source set replaces the main config, so release builds never
+  carry this cleartext exception. <debug-overrides> cannot hold domain
+  rules (it only overrides trust anchors), which is why this is a file.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">interstitiumlabs.dev</domain>
+    </domain-config>
+    <!-- Live reload from the development machine or the emulator host. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
