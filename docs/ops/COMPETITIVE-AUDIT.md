@@ -175,3 +175,10 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 **Brilliant Koji:** noted; Adapt + Noah remain our adaptive/Socratic lane — not a Koji skin.
 
 **Musk verdict this pass:** Closer / still **NO** until authored `.glb` + UE stream.
+
+## 2026-09-30 Musk-bar skim
+
+- **KodeKloud:** AI Tutor Live Assist + custom/on-demand labs + hosted environments remain the hosted-lab moat (Agent Factory / Gemini Flash multi-agent stack public). IL: Noah Live Assist + **cka-etcd-quorum.glb** immersive + Muse authored glTF — **no fake hosted fleet**.
+- **Brilliant:** adaptive tutor still flat-2D primary; IL counters with kit-v2 glTF + Pixel Streaming client (reconnect) — still no live UE host.
+- **Peer LMS:** mostly flat; IL 3D-first path widened (muse-dee-monas, etcd quorum, Blender polish handoff).
+- **Honesty bar:** Pixel Streaming empty-state + backoff; never invent stream metrics or course counts.

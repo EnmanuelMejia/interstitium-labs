@@ -1,14 +1,5 @@
-# Curriculum 3D scenes
+# Scene manifest
 
-Place exported **glTF 2.0** (`.glb` preferred) here. Naming:
+`manifest.json` v3 (2026-09-30): maps curriculum kinds → authored kit-v2 `.glb` under `/assets/immersive/` with procedural WebGL fallback.
 
-| Pattern | Use |
-|---------|-----|
-| `lecture-<slug>.glb` | Lecture / theory stages |
-| `cert-<slug>.glb` | Cert lab environments |
-| `sim-<slug>.glb` | Simulations |
-| `lab-<slug>.glb` | Non-cert / open labs |
-
-Pipeline: Blender → glTF Binary → this folder → `data-gltf="/assets/scenes/…"`.  
-Until a `.glb` lands, `il-immersive.js` uses the procedural WebGL stage (CSP-safe).  
-Godot can export glTF too. Unreal high-fidelity: Pixel Streaming — see `/ops/IMMERSIVE-3D.md`.
+Author: `scripts/author_immersive_glb.py` · Blender polish: `scripts/blender_polish_glb.py` · Pixel Streaming: `/immersive/pixel-stream/`

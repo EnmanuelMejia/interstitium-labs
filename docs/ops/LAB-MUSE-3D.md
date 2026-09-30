@@ -1,6 +1,6 @@
 # Noah 3D — voice-reactive stage
 
-**Ship:** voice-driven WebGL familiar on `/coach/` (and cinema Muse pane).  
+**Ship:** voice-driven WebGL familiar on `/coach/` (and cinema Muse pane) + **authored `muse-dee-monas.glb`** when present (2026-09-30).  
 **Claim (honest):** exceeds Meta Muse–class **flat/soft avatar motion** with a crystalline Dee/Monas orrery that reacts to mic + TTS. Original Interstitium art — **not** Meta assets, **not** a photoreal scraped portrait.
 
 ## Why this beats flat Noahs
@@ -20,7 +20,8 @@ We do **not** claim Meta’s product, models, or connectors. Interaction pattern
 
 | File | Role |
 |------|------|
-| `/assets/il-muse-3d.js` | Self-contained WebGL stage (`ILMuse3D`). CSP-safe — **no** esm.sh/CDN (site CSP is `script-src 'self'`). |
+| `/assets/il-muse-3d.js` | Self-contained WebGL stage (`ILMuse3D` v1.4). Optional authored `/assets/immersive/muse-dee-monas.glb` via `ILSceneKit.loadGltf` — voice amp → glow/breathe. CSP-safe — **no** CDN. |
+| `/assets/immersive/muse-dee-monas.glb` | Kit-v2 Dee/Monas glTF for coach (procedural fallback if fetch fails). |
 | `/assets/il-muse-3d.css` | Stage chrome, HDR cyan `#5EEAD4` / gold `#D4A853` / void `#070B16`, cinema + shell sizing, reduced-motion |
 | `/assets/il-muse.js` | Mounts slot, syncs `data-status`, emits `il-muse-speak-boundary` / `il-muse-speak-amp` |
 | `/assets/il-muse-avatar-*.svg` | **Picker + header fallback** — Dee default theme still selectable |

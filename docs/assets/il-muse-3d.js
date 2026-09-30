@@ -1,7 +1,8 @@
 /**
  * IL Muse 3D — voice-reactive crystalline Monas / orrery stage (Interstitium original).
- * Self-contained WebGL (CSP-safe; no CDN). Exceeds flat assistant-class soft avatars in motion depth.
- * Driven by Noah status: idle | listening | thinking | speaking.
+ * Self-contained WebGL (CSP-safe; no CDN). Optional authored glTF (/assets/immersive/muse-dee-monas.glb)
+ * via ILSceneKit.parseGlb — voice amp drives emissive/scale on named nodes (exceed Meta Muse honesty:
+ * local/OSS, no fake cloud). Driven by Noah status: idle | listening | thinking | speaking.
  * NOT Meta Muse assets/code. NOT a photoreal scraped portrait.
  */
 (function (g) {
@@ -329,7 +330,7 @@
     return '<div class="il-muse-3d__fallback" aria-hidden="true">' +
       '<div class="il-muse-3d__monas"><span class="il-muse-3d__core"></span><span class="il-muse-3d__glyph"></span></div>' +
       '</div>' +
-      '<span class="il-muse-3d__badge">Dee · Monas 3D</span>';
+      '<span class="il-muse-3d__badge" data-muse-badge>Dee · Monas 3D</span>';
   }
 
   function createInstance(slot, opts) {
@@ -435,6 +436,69 @@
     gl.bufferData(gl.ARRAY_BUFFER, pSize, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, pBufSeed);
     gl.bufferData(gl.ARRAY_BUFFER, pSeed, gl.STATIC_DRAW);
+
+    /* Authored glTF Muse (kit muse-dee-monas.glb) — optional exceed path */
+    var authored = { ok: false, meshes: [], loading: true };
+    var defaultGltf = (opts && opts.gltf) || '/assets/immersive/muse-dee-monas.glb';
+    function expandIndexed(positions, normals, indices) {
+      var pos = new Float32Array(indices.length * 3);
+      var nrm = new Float32Array(indices.length * 3);
+      var i, ii, j;
+      for (i = 0; i < indices.length; i++) {
+        ii = indices[i] * 3;
+        j = i * 3;
+        pos[j] = positions[ii]; pos[j + 1] = positions[ii + 1]; pos[j + 2] = positions[ii + 2];
+        if (normals && normals.length >= ii + 3) {
+          nrm[j] = normals[ii]; nrm[j + 1] = normals[ii + 1]; nrm[j + 2] = normals[ii + 2];
+        } else {
+          nrm[j + 1] = 1;
+        }
+      }
+      return { pos: pos, nrm: nrm, count: indices.length };
+    }
+    function uploadAuthored(parsed) {
+      if (!parsed || !parsed.ok || !parsed.meshes || !parsed.meshes.length) {
+        authored.ok = false;
+        authored.loading = false;
+        return;
+      }
+      var out = [];
+      for (var mi = 0; mi < parsed.meshes.length; mi++) {
+        var m = parsed.meshes[mi];
+        if (!m.positions || !m.indices) continue;
+        /* skip lod proxy in realtime coach */
+        if (m.name && /lod1|proxy/i.test(m.name)) continue;
+        var geo = expandIndexed(m.positions, m.normals, m.indices);
+        var mesh = makeMesh(gl, geo);
+        mesh.name = m.name || ('muse-' + mi);
+        mesh.color = (m.material && m.material.color) ? m.material.color : CYAN;
+        mesh.emissive = (m.material && m.material.emissive) ? m.material.emissive : [0.05, 0.18, 0.15];
+        out.push(mesh);
+      }
+      if (!out.length) { authored.ok = false; authored.loading = false; return; }
+      authored.meshes = out;
+      authored.ok = true;
+      authored.loading = false;
+      var badge = root.querySelector('[data-muse-badge]');
+      if (badge) badge.textContent = 'Dee · authored glTF · voice-reactive';
+      try {
+        if (g.ILSceneKit && ILSceneKit.emitSceneEvent) {
+          ILSceneKit.emitSceneEvent('il-muse-glb', { url: defaultGltf, meshes: out.length, ok: true });
+        }
+      } catch (e) {}
+    }
+    function tryLoadAuthored() {
+      var loader = g.ILSceneKit && ILSceneKit.loadGltf;
+      if (!loader) {
+        authored.loading = false;
+        return;
+      }
+      loader(defaultGltf, { forceNative: true }).then(uploadAuthored).catch(function () {
+        authored.ok = false;
+        authored.loading = false;
+      });
+    }
+    tryLoadAuthored();
 
     var uMVP = mat4Identity();
     var uView = mat4Identity();
@@ -601,24 +665,37 @@
       var goldOn = state.avatarId === 'sigil' ? GOLD : CYAN;
       var accent = state.avatarId === 'cap' ? GOLD : CYAN;
       var em = state.status === 'speaking' ? CYAN : (state.status === 'listening' ? GOLD : accent);
+      var scaleAmp = 1 + amp * 0.08;
 
-      mat4FromRTS(uModel, 0.25, spin * 0.7, 0.1, 0, 0.28 + bob, 0, 1, 1, 1);
-      drawMesh(moon, goldOn, em, glow * 0.7, uModel);
+      if (authored.ok && authored.meshes.length) {
+        /* Authored muse-dee-monas.glb — voice amp → glow + gentle breathe (exceed flat Muse) */
+        var ai;
+        for (ai = 0; ai < authored.meshes.length; ai++) {
+          var am = authored.meshes[ai];
+          var spinA = spin * (0.25 + (ai % 5) * 0.05);
+          var yOff = bob * (0.4 + (ai % 3) * 0.1);
+          mat4FromRTS(uModel, 0.05, spinA, 0.02, 0, yOff, 0, scaleAmp, scaleAmp, scaleAmp);
+          drawMesh(am, am.color || accent, em, glow * (0.55 + amp * 0.6), uModel);
+        }
+      } else {
+        mat4FromRTS(uModel, 0.25, spin * 0.7, 0.1, 0, 0.28 + bob, 0, scaleAmp, scaleAmp, scaleAmp);
+        drawMesh(moon, goldOn, em, glow * 0.7, uModel);
 
-      mat4FromRTS(uModel, state.time * 0.2, spin, 0, 0, bob * 0.5, 0, 1, 1, 1);
-      drawMesh(core, CYAN, em, glow, uModel);
+        mat4FromRTS(uModel, state.time * 0.2, spin, 0, 0, bob * 0.5, 0, scaleAmp, scaleAmp, scaleAmp);
+        drawMesh(core, CYAN, em, glow, uModel);
 
-      mat4FromRTS(uModel, Math.PI / 2.2, spin * 0.4, 0.2, 0, bob, 0, 1, 1, 1);
-      drawMesh(ringA, GOLD, GOLD, glow * 0.55, uModel);
+        mat4FromRTS(uModel, Math.PI / 2.2, spin * 0.4, 0.2, 0, bob, 0, 1, 1, 1);
+        drawMesh(ringA, GOLD, GOLD, glow * 0.55, uModel);
 
-      mat4FromRTS(uModel, 0.4, -spin * 0.55, Math.PI / 5, 0, bob * 0.3, 0, 1, 1, 1);
-      drawMesh(ringB, CYAN, CYAN, glow * 0.4, uModel);
+        mat4FromRTS(uModel, 0.4, -spin * 0.55, Math.PI / 5, 0, bob * 0.3, 0, 1, 1, 1);
+        drawMesh(ringB, CYAN, CYAN, glow * 0.4, uModel);
 
-      mat4FromRTS(uModel, 0, 0, 0, 0, -0.15 + bob * 0.2, 0, 1, 1, 1);
-      drawMesh(stem, GOLD, GOLD, glow * 0.35, uModel);
+        mat4FromRTS(uModel, 0, 0, 0, 0, -0.15 + bob * 0.2, 0, 1, 1, 1);
+        drawMesh(stem, GOLD, GOLD, glow * 0.35, uModel);
 
-      mat4FromRTS(uModel, 0, 0, Math.PI / 2, 0, -0.35 + bob * 0.2, 0, 1, 1, 1);
-      drawMesh(cross, GOLD, GOLD, glow * 0.3, uModel);
+        mat4FromRTS(uModel, 0, 0, Math.PI / 2, 0, -0.35 + bob * 0.2, 0, 1, 1, 1);
+        drawMesh(cross, GOLD, GOLD, glow * 0.3, uModel);
+      }
 
       /* particles */
       mat4FromRTS(uModel, 0, spin * 0.25, 0, 0, bob * 0.4, 0, 1, 1, 1);
@@ -761,6 +838,8 @@
     reattach: reattach,
     syncFromApp: syncFromApp,
     attachCinema: attachCinema,
+    DEFAULT_GLTF: '/assets/immersive/muse-dee-monas.glb',
+    VERSION: '1.4.0',
     CYAN: '#5EEAD4',
     GOLD: '#D4A853',
     VOID: '#070B16',

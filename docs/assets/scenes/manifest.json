@@ -1,7 +1,7 @@
 {
-  "v": 2,
-  "updated": "2026-09-28T09:20:00-04:00",
-  "note": "3D-first curriculum. Procedural WebGL ships today; WebGPU flag path on; glTF optional when Blender exports land. Pending scaffolds are .pending.json \u2014 not live .glb. Unreal via Pixel Streaming URL.",
+  "v": 3,
+  "updated": "2026-09-30T09:05:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR). Blender polish: scripts/blender_polish_glb.py. Procedural WebGL fallback. Unreal via Pixel Streaming client (no fake fleet).",
   "engines": [
     "webgl",
     "webgpu",
@@ -13,45 +13,60 @@
     {
       "id": "lecture-default",
       "kind": "lecture",
-      "gltf": null,
-      "gltfPending": "/assets/immersive/lecture-k8s-control-plane.pending.json",
+      "gltf": "/assets/immersive/lecture-k8s-control-plane.glb",
       "procedural": true,
       "scene": "k8s"
     },
     {
       "id": "lecture-hermetic",
       "kind": "lecture",
-      "gltf": null,
+      "gltf": "/assets/immersive/hermetic-monas.glb",
       "procedural": true,
       "scene": "hermetic"
     },
     {
       "id": "cert-default",
       "kind": "cert",
-      "gltf": null,
-      "gltfPending": "/assets/immersive/cert-cka.pending.json",
+      "gltf": "/assets/immersive/cert-cka.glb",
       "procedural": true,
       "scene": "k8s"
     },
     {
+      "id": "cert-etcd-quorum",
+      "kind": "cert",
+      "gltf": "/assets/immersive/cka-etcd-quorum.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-etcd"
+    },
+    {
       "id": "sim-default",
       "kind": "sim",
-      "gltf": null,
-      "gltfPending": "/assets/immersive/sim-superlab.pending.json",
+      "gltf": "/assets/immersive/sim-superlab.glb",
       "procedural": true,
       "scene": "k8s"
     },
     {
       "id": "lab-default",
       "kind": "non-cert",
-      "gltf": null,
+      "gltf": "/assets/immersive/rack-19u.glb",
       "procedural": true,
       "scene": "rack"
+    },
+    {
+      "id": "muse-dee",
+      "kind": "muse",
+      "gltf": "/assets/immersive/muse-dee-monas.glb",
+      "procedural": true,
+      "scene": "hermetic",
+      "voiceReactive": true
     }
   ],
   "scaffolds": {
     "gltf_lecture_stage": "/immersive/?kind=lecture&scene=k8s",
     "lab_sim_scaffold": "/labs/superlab/",
-    "cert_lab_3d_shell": "/labs/?shell=cert"
+    "cert_lab_3d_shell": "/labs/?shell=cert",
+    "pixel_streaming_client": "/immersive/pixel-stream/",
+    "blender_polish": "scripts/blender_polish_glb.py"
   }
 }
