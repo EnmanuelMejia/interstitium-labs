@@ -1,0 +1,186 @@
+---
+# Builds the Capacitor shell on both platforms whenever the mobile app or
+# the web bundle script changes: Android debug and release builds with unit
+# tests and lint, and an unsigned iOS simulator build. Each build is then
+# launch-tested: installed on an Android 16 (API 36) emulator and on the
+# newest iPhone simulator, checked through a cold start and a
+# background/foreground cycle (plus an https://interstitiumlabs.dev link on
+# Android), with screenshots kept as artifacts. Nothing is signed or
+# published here.
+name: Mobile build
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "apps/mobile/**"
+      - "scripts/sync-mobile-web.sh"
+      - ".github/workflows/mobile-build.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "apps/mobile/**"
+      - "scripts/sync-mobile-web.sh"
+      - ".github/workflows/mobile-build.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6  # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Bundle the web app from docs/
+        run: ../../scripts/sync-mobile-web.sh
+      - name: Install (lockfile, exact pins)
+        run: npm ci
+      - name: Audit production dependencies
+        run: npm run audit:ci
+      - name: Type-check config and native bridge
+        run: npx tsc -p .
+      - name: Sync Capacitor into the Android project
+        run: npx cap sync android
+      - name: Build, unit-test and lint
+        working-directory: apps/mobile/android
+        run: ./gradlew --no-daemon assembleDebug assembleRelease testDebugUnitTest lintDebug
+      - name: Keep the debug APK and lint report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: android-debug
+          path: |
+            apps/mobile/android/app/build/outputs/apk/debug/*.apk
+            apps/mobile/android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules > /dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Boot an Android 16 (API 36) emulator
+        env:
+          IMAGE: "system-images;android-36;google_apis;x86_64"
+        run: |
+          set -o pipefail
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
+          logs="$RUNNER_TEMP/launch-android"
+          mkdir -p "$logs"
+          # Current cmdline-tools put AVDs under $XDG_CONFIG_HOME/.android when
+          # that is set (it is on GitHub's runners), but the emulator only looks
+          # in $ANDROID_AVD_HOME, $ANDROID_SDK_HOME/avd and ~/.android/avd.
+          # Pin one location for both.
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          tools="$ANDROID_HOME/cmdline-tools/latest/bin"
+          (yes || true) | "$tools/sdkmanager" --licenses > /dev/null
+          "$tools/sdkmanager" --install emulator "$IMAGE" > /dev/null
+          echo no | "$tools/avdmanager" create avd --force -n ci -d pixel_7 -k "$IMAGE"
+          # grep without -q reads to the end, so pipefail cannot trip on SIGPIPE.
+          if ! "$ANDROID_HOME/emulator/emulator" -list-avds | grep -x ci > /dev/null; then
+            echo "::error::the emulator cannot see the AVD that avdmanager created"
+            "$tools/avdmanager" list avd
+            exit 1
+          fi
+          ls -l /dev/kvm
+          df -h "$HOME" | tail -n 1
+          "$ANDROID_HOME/emulator/emulator" -accel-check || true
+          adb start-server
+          "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-anim \
+            -no-snapshot -gpu swiftshader_indirect -camera-back none -camera-front none \
+            > "$logs/emulator.log" 2>&1 &
+          emulator_pid=$!
+          # Up to 10 minutes; fail at once, with the emulator's own output,
+          # if it exits instead of booting.
+          for _ in $(seq 1 120); do
+            if ! kill -0 "$emulator_pid" 2> /dev/null; then
+              echo "::error::the emulator exited before booting"
+              cat "$logs/emulator.log"
+              exit 1
+            fi
+            if [ "$(adb shell getprop sys.boot_completed 2> /dev/null | tr -d '\r')" = "1" ]; then
+              break
+            fi
+            sleep 5
+          done
+          if [ "$(adb shell getprop sys.boot_completed 2> /dev/null | tr -d '\r')" != "1" ]; then
+            echo "::error::the emulator did not finish booting in 10 minutes"
+            tail -n 100 "$logs/emulator.log"
+            exit 1
+          fi
+          # The package manager can lag boot_completed by a few seconds.
+          timeout 120 bash -c 'until adb shell pm path android > /dev/null 2>&1; do sleep 2; done'
+          for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+            adb shell settings put global "$scale" 0
+          done
+          echo "Booted Android $(adb shell getprop ro.build.version.release | tr -d '\r'), API $(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+      - name: Launch test (cold start, resume, https link)
+        run: scripts/launch-check-android.sh android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/launch-android"
+      - name: Keep the launch screenshots, logcat and emulator log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: android-launch
+          path: ${{ runner.temp }}/launch-android
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 50
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Select Xcode 26 (Capacitor 8 requires 26.0 or newer)
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$xcode" ]; then echo "No Xcode 26 on this runner image" >&2; exit 1; fi
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Bundle the web app from docs/
+        run: ../../scripts/sync-mobile-web.sh
+      - name: Install (lockfile, exact pins)
+        run: npm ci
+      - name: Sync Capacitor into the iOS project (pod install)
+        run: npx cap sync ios
+      - name: Build for the simulator, unsigned
+        working-directory: apps/mobile/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/derived" \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 40
+      - name: Launch test on an iPhone simulator (cold start, resume)
+        run: scripts/launch-check-ios.sh "$RUNNER_TEMP/derived/Build/Products/Debug-iphonesimulator/App.app" "$RUNNER_TEMP/launch-ios"
+      - name: Keep the launch screenshots and console output
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ios-launch
+          path: ${{ runner.temp }}/launch-ios
+          if-no-files-found: ignore
+          retention-days: 7

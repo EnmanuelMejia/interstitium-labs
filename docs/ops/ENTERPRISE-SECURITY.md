@@ -185,7 +185,7 @@ Secrets (Stripe webhooks, analytics ingest): Cloudflare **Secrets** only.
 | Android | `android-security/` NSC + cleartext off snippets |
 | iOS | ATS strict (`NSAllowsArbitraryLoads` false) |
 | Feature flags | `IL_FEATURE_PUSH=false`, `IL_FEATURE_BIOMETRIC_LOCK=false` |
-| Supply chain | `engines.node >=18`, lockfile, `npm run audit` / `audit:ci` |
+| Supply chain | `engines.node >=22` (enforced by `engine-strict`), lockfile, `npm run audit` / `audit:ci` |
 
 Full model: [MOBILE-SECURITY.md](./MOBILE-SECURITY.md).
 

@@ -83,9 +83,13 @@ export async function initBiometricLockStub(): Promise<{ enabled: false; reason:
 /** Status bar / safe-area theming — void #070B16 */
 export async function applyVoidChrome(): Promise<void> {
   try {
+    const { Capacitor } = await import("@capacitor/core");
     const { StatusBar, Style } = await import("@capacitor/status-bar");
     await StatusBar.setStyle({ style: Style.Dark });
-    await StatusBar.setBackgroundColor({ color: "#070B16" });
+    // Android 15+ draws edge-to-edge; the status bar colour only applies on iOS.
+    if (Capacitor.getPlatform() !== "android") {
+      await StatusBar.setBackgroundColor({ color: "#070B16" });
+    }
   } catch {
     /* web / unsupported */
   }

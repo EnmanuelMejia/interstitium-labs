@@ -52,7 +52,7 @@ This document is the **threat model and control catalog**. Implement controls in
 ### 3.2 Transport security (MASVS-NETWORK)
 
 - **HTTPS-only** for production loads of Learning OS.
-- **Android:** `android:usesCleartextTraffic="false"` + Network Security Config denying cleartext; allow `localhost` only in debug builds if needed.
+- **Android:** `android:usesCleartextTraffic="false"` + Network Security Config denying cleartext. Debug builds alone allow `localhost` and `10.0.2.2` for live reload, through a debug-source-set copy of the config (`android/app/src/debug/res/xml/`); release builds never carry the exception.
 - **iOS:** App Transport Security — `NSAllowsArbitraryLoads` must remain **false**. No exception domains except documented localhost for debug.
 - Remote update fetches (if used) must pin or at least use TLS + integrity notes (SRI / hash check in release notes). Prefer bundling offline shell; treat remote as enhancement.
 
@@ -145,7 +145,7 @@ Reject open redirects into the WebView from untrusted intents.
 | iOS mic / speech | `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription` — see `apps/mobile/ios-security/Info.plist.snippets.md` |
 | Android mic | Optional `RECORD_AUDIO` only when shipping dictation — see `android-security/AndroidManifest.snippets.xml` |
 | PWA Notification API | Opt-in from Noah Inbox → “Enable device alerts”. Local study nudges only — **no FCM / Meta push** (`IL_FEATURE_PUSH=false`) |
-| Safe-area | `viewport-fit=cover` + `env(safe-area-inset-*)` in `il-muse-mobile.css`; Capacitor StatusBar void `#070B16` |
+| Safe-area | `viewport-fit=cover` + `env(safe-area-inset-*)` in `il-muse-mobile.css`. Android 16 enforces edge-to-edge, so Capacitor 8 SystemBars (`insetsHandling: "css"`) keeps the insets correct there; the StatusBar void `#070B16` background applies on iOS |
 | Brand | Interstitium lockup + cyan/gold/void — never Meta Muse purple/pink or Meta trademarks |
 
 Voice path remains **browser Web Speech**. Typing always works if permission is denied.

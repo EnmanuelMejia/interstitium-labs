@@ -1,9 +1,14 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
- * Interstitium Labs — Capacitor 6 config (security-first).
+ * Interstitium Labs — Capacitor 8 config (security-first).
  * appId must match store Bundle ID / applicationId.
  * allowNavigation: first-party + localhost only (see docs/ops/MOBILE-SECURITY.md).
+ *
+ * Android 16 (targetSdk 36) enforces edge-to-edge: the web view draws behind
+ * the system bars, and StatusBar backgroundColor / overlaysWebView no longer
+ * apply there. The launch pages set viewport-fit=cover and pad with
+ * env(safe-area-inset-*); SystemBars keeps those insets correct on Android.
  */
 const config: CapacitorConfig = {
   appId: "dev.interstitiumlabs.app",
@@ -30,7 +35,17 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "DARK",
+      // iOS only from Android 16 on; see the note above.
       backgroundColor: "#070B16",
+    },
+    SystemBars: {
+      // Inject --safe-area-inset-* as well as env() values on Android.
+      insetsHandling: "css",
+      // The launch pages (/ and /coach/) declare viewport-fit=cover; saying so up
+      // front avoids a layout jump on start.
+      initialViewportFitValueHint: "cover",
+      // Light system bar icons on the void background.
+      style: "DARK",
     },
   },
   android: {
