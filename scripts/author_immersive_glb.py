@@ -614,6 +614,190 @@ def scene_cka_etcd_quorum() -> list:
     return parts
 
 
+
+def scene_cni_pod_network() -> list:
+    """CNI / pod networking — nodes, pods, CNI bridge/overlay arcs (CKA networking domain)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cni-pod-network", "cert": "CKA", "domain": "networking"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.0, 0.08, 3.4)
+    parts.append((floor, MAT_VOID, "net-floor", {**ped, "label": "cluster-network-plane"}))
+    # two worker nodes as racks/boxes
+    node_pos = [(-1.6, 0.0), (1.6, 0.0)]
+    for ni, (nx, nz) in enumerate(node_pos):
+        node = MeshBuilder()
+        node.add_chamfer_box(nx, 0.15, nz, 1.35, 0.85, 1.1, 0.04)
+        parts.append((node, MAT_INK, f"node-{ni}", {**ped, "label": f"worker-node-{ni}", "cka": "node"}))
+        # kubelet LED
+        led = MeshBuilder()
+        led.add_sphere(nx, 0.65, nz + 0.45, 0.07, 8, 10)
+        parts.append((led, MAT_LED, f"kubelet-{ni}", {**ped, "label": f"kubelet-{ni}"}))
+        # pods on node (3 each)
+        for pi in range(3):
+            px = nx - 0.4 + pi * 0.4
+            pz = nz - 0.15
+            pod = MeshBuilder()
+            pod.add_sphere(px, 0.55, pz, 0.16, 10, 12)
+            parts.append((pod, MAT_CYAN if pi != 1 else MAT_GOLD, f"pod-{ni}-{pi}", {
+                **ped, "label": f"pod-{ni}-{pi}", "ip": f"10.{ni}.{pi}.2"
+            }))
+            # veth stub under pod
+            veth = MeshBuilder()
+            veth.add_cylinder(px, 0.32, pz, 0.03, 0.22, 8)
+            parts.append((veth, MAT_GOLD, f"veth-{ni}-{pi}", {**ped, "label": "veth-pair"}))
+    # CNI bridge (center cyan bar) + overlay arcs between nodes
+    bridge = MeshBuilder()
+    bridge.add_chamfer_box(0, 0.05, 0, 2.6, 0.12, 0.35, 0.02)
+    parts.append((bridge, MAT_CYAN, "cni-bridge", {**ped, "label": "cni-bridge", "plugin": "bridge|calico|cilium"}))
+    # overlay tunnel arcs (approximated as elevated boxes along path)
+    for ai, (y, zoff) in enumerate(((0.95, 0.55), (1.15, -0.55))):
+        for t in range(7):
+            # interpolate x from -1.6 to 1.6
+            u = t / 6
+            x = -1.6 + 3.2 * u
+            # parabolic height
+            h = y + 0.35 * math.sin(u * math.pi)
+            bead = MeshBuilder()
+            bead.add_sphere(x, h, zoff, 0.05, 6, 8)
+            parts.append((bead, MAT_GOLD if ai == 0 else MAT_CYAN, f"overlay-arc-{ai}-{t}", {
+                **ped, "label": "overlay-tunnel", "encap": "VXLAN|Geneve"
+            }))
+    # service VIP / ClusterIP orb
+    vip = MeshBuilder()
+    vip.add_sphere(0, 1.55, 0, 0.18, 10, 12)
+    parts.append((vip, MAT_GOLD, "cluster-ip", {**ped, "label": "Service ClusterIP", "cka": "service"}))
+    # DNS stub
+    dns = MeshBuilder()
+    dns.add_chamfer_box(0, 0.35, -1.35, 0.55, 0.35, 0.35, 0.02)
+    parts.append((dns, MAT_PAPER, "coredns", {**ped, "label": "CoreDNS"}))
+    # LOD proxy
+    lod = MeshBuilder()
+    lod.add_box(0, 0.2, 0, 4.2, 0.15, 2.4)
+    parts.append((lod, MAT_VOID, "lod1-cni-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_rbac_authz_graph() -> list:
+    """K8s RBAC spatial graph — User → Role → RoleBinding → API resources."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "rbac-authz", "cert": "CKA", "domain": "security"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.85, 0, 4.8, 0.08, 3.2)
+    parts.append((floor, MAT_VOID, "rbac-floor", {**ped, "label": "authz-plane"}))
+    # layers along +Z depth: users, bindings, roles, resources
+    # Users (left / front)
+    users = [(-1.4, 0.4, 1.2), (-0.5, 0.4, 1.2), (0.4, 0.4, 1.2)]
+    for i, (x, y, z) in enumerate(users):
+        u = MeshBuilder()
+        u.add_sphere(x, y, z, 0.18, 10, 12)
+        parts.append((u, MAT_GOLD, f"user-{i}", {**ped, "label": f"User/SA-{i}", "kind": "User|ServiceAccount"}))
+    # RoleBindings (middle)
+    bindings = [(-1.0, 0.55, 0.35), (0.0, 0.55, 0.35), (1.0, 0.55, 0.35)]
+    for i, (x, y, z) in enumerate(bindings):
+        b = MeshBuilder()
+        b.add_chamfer_box(x, y, z, 0.45, 0.22, 0.35, 0.02)
+        parts.append((b, MAT_CYAN, f"rolebinding-{i}", {**ped, "label": f"RoleBinding-{i}", "kind": "RoleBinding"}))
+    # Roles / ClusterRoles
+    roles = [(-1.2, 0.7, -0.55), (0.2, 0.7, -0.55), (1.4, 0.7, -0.55)]
+    for i, (x, y, z) in enumerate(roles):
+        r = MeshBuilder()
+        r.add_cylinder(x, y, z, 0.22, 0.45, 16)
+        parts.append((r, MAT_LED if i == 2 else MAT_GOLD, f"role-{i}", {
+            **ped, "label": "ClusterRole" if i == 2 else f"Role-{i}", "kind": "Role|ClusterRole"
+        }))
+    # API resources (back row)
+    resources = ["pods", "secrets", "deployments", "nodes"]
+    for i, name in enumerate(resources):
+        x = -1.5 + i * 1.0
+        z = -1.35
+        res = MeshBuilder()
+        res.add_chamfer_box(x, 0.35, z, 0.55, 0.4, 0.28, 0.02)
+        parts.append((res, MAT_INK, f"api-{name}", {**ped, "label": name, "apiGroup": "core|apps"}))
+        # verb chips (get/list/watch)
+        chip = MeshBuilder()
+        chip.add_box(x, 0.65, z, 0.35, 0.08, 0.12)
+        parts.append((chip, MAT_CYAN, f"verbs-{name}", {**ped, "label": "get,list,watch", "verbs": True}))
+    # edges: user→binding→role→resource (thin cylinders / boxes as arcs)
+    def link(a, b, name, mat_=MAT_CYAN):
+        x0, y0, z0 = a
+        x1, y1, z1 = b
+        mx, my, mz = (x0 + x1) / 2, (y0 + y1) / 2 + 0.08, (z0 + z1) / 2
+        dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+        length = math.sqrt(dx * dx + dy * dy + dz * dz) or 1
+        edge = MeshBuilder()
+        edge.add_box(mx, my, mz, max(0.08, length * 0.9), 0.035, 0.035)
+        parts.append((edge, mat_, name, {**ped, "label": "authz-edge"}))
+
+    link(users[0], bindings[0], "edge-u0-b0")
+    link(users[1], bindings[1], "edge-u1-b1")
+    link(users[2], bindings[2], "edge-u2-b2", MAT_GOLD)
+    link(bindings[0], roles[0], "edge-b0-r0")
+    link(bindings[1], roles[1], "edge-b1-r1")
+    link(bindings[2], roles[2], "edge-b2-r2", MAT_GOLD)
+    link(roles[0], (-1.5, 0.35, -1.35), "edge-r0-pods")
+    link(roles[1], (-0.5, 0.35, -1.35), "edge-r1-secrets")
+    link(roles[2], (0.5, 0.35, -1.35), "edge-r2-deploys", MAT_LED)
+    link(roles[2], (1.5, 0.35, -1.35), "edge-r2-nodes", MAT_LED)
+    # apiserver gate
+    api = MeshBuilder()
+    api.add_chamfer_box(0, 1.35, 0, 1.0, 0.35, 0.35, 0.03)
+    parts.append((api, MAT_PAPER, "kube-apiserver", {**ped, "label": "kube-apiserver authz"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.2, 0, 4.0, 0.12, 2.6)
+    parts.append((lod, MAT_VOID, "lod1-rbac-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_service_mesh_sidecar() -> list:
+    """Service mesh — sidecar data-plane vs control-plane (Istio/Linkerd pedagogy)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "service-mesh-sidecar", "domain": "networking"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.85, 0, 4.6, 0.08, 3.0)
+    parts.append((floor, MAT_VOID, "mesh-floor", {**ped, "label": "mesh-plane"}))
+    # control plane (gold cylinder center-back)
+    cp = MeshBuilder()
+    cp.add_cylinder(0, 0.9, -1.0, 0.4, 0.7, 22)
+    parts.append((cp, MAT_GOLD, "mesh-control-plane", {**ped, "label": "control-plane", "examples": "istiod|linkerd-control"}))
+    halo = MeshBuilder()
+    halo.add_cylinder(0, 0.55, -1.0, 0.65, 0.05, 22)
+    parts.append((halo, MAT_CYAN, "cp-halo", {**ped, "label": "xDS/config"}))
+    # two services with app + sidecar
+    for si, sx in enumerate((-1.35, 1.35)):
+        app = MeshBuilder()
+        app.add_chamfer_box(sx, 0.35, 0.55, 0.7, 0.7, 0.55, 0.03)
+        parts.append((app, MAT_INK, f"app-{si}", {**ped, "label": f"workload-{si}", "plane": "app"}))
+        side = MeshBuilder()
+        side.add_chamfer_box(sx + (0.42 if si == 0 else -0.42), 0.35, 0.55, 0.28, 0.55, 0.45, 0.02)
+        parts.append((side, MAT_CYAN, f"sidecar-{si}", {**ped, "label": "envoy|linkerd-proxy", "plane": "data"}))
+        # mTLS padlock LED
+        lock = MeshBuilder()
+        lock.add_sphere(sx, 0.85, 0.55, 0.08, 8, 10)
+        parts.append((lock, MAT_LED, f"mtls-{si}", {**ped, "label": "mTLS"}))
+    # data-plane traffic between sidecars
+    for t in range(6):
+        u = t / 5
+        x = -0.9 + 1.8 * u
+        bead = MeshBuilder()
+        bead.add_sphere(x, 0.55, 0.55, 0.045, 6, 8)
+        parts.append((bead, MAT_GOLD, f"dataplane-hop-{t}", {**ped, "label": "mTLS hop"}))
+    # config push arcs from CP to sidecars
+    for si, sx in enumerate((-1.35, 1.35)):
+        for t in range(4):
+            u = t / 3
+            x = 0 + (sx - 0) * u
+            z = -1.0 + (0.55 - (-1.0)) * u
+            y = 0.9 + 0.25 * math.sin(u * math.pi)
+            bead = MeshBuilder()
+            bead.add_sphere(x, y, z, 0.04, 6, 8)
+            parts.append((bead, MAT_CYAN, f"xds-{si}-{t}", {**ped, "label": "xDS config"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.15, 0, 3.8, 0.1, 2.4)
+    parts.append((lod, MAT_VOID, "lod1-mesh-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -623,6 +807,9 @@ SCENES = {
     "k8s-cluster.glb": scene_k8s_control_plane,  # alias
     "muse-dee-monas.glb": scene_muse_dee_monas,
     "cka-etcd-quorum.glb": scene_cka_etcd_quorum,
+    "cni-pod-network.glb": scene_cni_pod_network,
+    "rbac-authz-graph.glb": scene_rbac_authz_graph,
+    "service-mesh-sidecar.glb": scene_service_mesh_sidecar,
 }
 
 

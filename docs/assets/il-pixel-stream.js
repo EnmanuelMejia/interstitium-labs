@@ -2,11 +2,15 @@
  * IL Pixel Streaming client — production-grade signaling/reconnect shell.
  * Honest: never fakes a live UE host or fleet. CSP-safe (no eval).
  * Config: ?signaling= | data-ps-signaling | localStorage.il-ps-signaling | IL_LOCAL_CONFIG
+ * ICE: localStorage.il-ps-ice (JSON iceServers array) | IL_LOCAL_CONFIG.pixelStreamingIce
+ * Health: probes WS open + recognizes il-dev-health / il-dev-signaling-echo (NOT UE media)
+ * VERSION 1.1.0 — 2026-10-01
  */
 (function (g) {
   'use strict';
 
   var LS_KEY = 'il-ps-signaling';
+  var LS_ICE_KEY = 'il-ps-ice';
   var MAX_BACKOFF_MS = 30000;
   var state = {
     ws: null,
@@ -131,6 +135,98 @@
     }
   }
 
+
+  function resolveIceServers() {
+    try {
+      var raw = localStorage.getItem(LS_ICE_KEY);
+      if (raw && raw.trim()) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+        if (parsed && Array.isArray(parsed.iceServers)) return parsed.iceServers;
+      }
+    } catch (e) {
+      log('ICE localStorage parse failed — using default STUN');
+    }
+    if (g.IL_LOCAL_CONFIG && Array.isArray(g.IL_LOCAL_CONFIG.pixelStreamingIce)) {
+      return g.IL_LOCAL_CONFIG.pixelStreamingIce;
+    }
+    return [{ urls: 'stun:stun.l.google.com:19302' }];
+  }
+
+  function setHostRequiredUx(detail) {
+    var el = document.getElementById('ps-host-required');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = detail ||
+      'Host required: no Unreal Pixel Streaming media until a real UE signaling server answers with an SDP offer. Dev echo at scripts/pixel-streaming/dev-signaling-echo.py is NOT UE media.';
+  }
+
+  function healthProbe(signaling) {
+    return new Promise(function (resolve) {
+      if (!/^wss?:\/\//i.test(signaling)) {
+        resolve({ ok: false, reason: 'not-ws' });
+        return;
+      }
+      var done = false;
+      var probe;
+      try {
+        probe = new WebSocket(signaling);
+      } catch (err) {
+        resolve({ ok: false, reason: 'construct', error: String(err) });
+        return;
+      }
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        try { probe.close(); } catch (e) {}
+        resolve({ ok: false, reason: 'timeout' });
+      }, 2500);
+      probe.addEventListener('open', function () {
+        try {
+          probe.send(JSON.stringify({ type: 'connect', peerConnectionOptions: {}, ilHealthProbe: true }));
+        } catch (e) {}
+      });
+      probe.addEventListener('message', function (ev) {
+        if (done) return;
+        var msg = null;
+        try {
+          msg = typeof ev.data === 'string' ? JSON.parse(ev.data) : null;
+        } catch (e2) {}
+        var t = (msg && (msg.type || msg.Type)) || '';
+        if (t === 'il-dev-health' || t === 'il-dev-signaling-echo' || t === 'echo') {
+          done = true;
+          clearTimeout(timer);
+          try { probe.close(); } catch (e3) {}
+          resolve({
+            ok: true,
+            kind: 'dev-echo',
+            isUnrealPixelStreaming: false,
+            note: (msg && msg.note) || 'Dev signaling reachable — NOT UE media'
+          });
+          return;
+        }
+        if (t === 'offer' && msg && msg.sdp) {
+          done = true;
+          clearTimeout(timer);
+          try { probe.close(); } catch (e4) {}
+          resolve({ ok: true, kind: 'ue-offer', isUnrealPixelStreaming: true });
+        }
+      });
+      probe.addEventListener('error', function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({ ok: false, reason: 'error' });
+      });
+      probe.addEventListener('close', function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({ ok: false, reason: 'closed' });
+      });
+    });
+  }
+
   function attemptWebRtc(signaling) {
     var video = document.getElementById('ps-video');
     if (!/^wss?:\/\//i.test(signaling)) {
@@ -179,7 +275,7 @@
       var type = msg.type || msg.Type || '';
       log('Signaling message: ' + type);
       if (type === 'offer' && msg.sdp) {
-        var pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        var pc = new RTCPeerConnection({ iceServers: resolveIceServers() });
         state.pc = pc;
         pc.ontrack = function (tev) {
           if (video && tev.streams && tev.streams[0]) {
@@ -244,6 +340,21 @@
     var host = document.getElementById('ps-host');
     if (host) host.setAttribute('data-ps-signaling', url);
     if (!opts.silent) log('Signaling configured: ' + url);
+    setHostRequiredUx();
+    healthProbe(url).then(function (res) {
+      if (!res || !res.ok) {
+        log('Health probe: no answer (' + ((res && res.reason) || 'unknown') + ') — host required.');
+        setStatus('Host required — signaling unreachable (honest)');
+        return;
+      }
+      if (res.kind === 'dev-echo') {
+        log('Health probe: DEV echo only — ' + (res.note || 'NOT Unreal Pixel Streaming media'));
+        setStatus('Dev echo reachable — NOT UE media (host still required for video)');
+        setHostRequiredUx('Dev signaling echo answered. This is NOT Unreal Pixel Streaming. Start a real UE5 host for SDP/media.');
+      } else if (res.kind === 'ue-offer') {
+        log('Health probe saw UE-style SDP offer path — negotiating via main connect.');
+      }
+    });
     var usedWs = attemptWebRtc(url);
     if (!usedWs && g.ILSceneKit && ILSceneKit.pixelStreamEmbed) {
       setStatus('Mounting signaling URL via embed');
@@ -329,7 +440,9 @@
     disconnect: disconnect,
     clearConfig: clearConfig,
     resolveSignaling: resolveSignaling,
-    VERSION: '1.0.0'
+    resolveIceServers: resolveIceServers,
+    healthProbe: healthProbe,
+    VERSION: '1.1.0'
   };
 
   if (document.readyState === 'loading') {

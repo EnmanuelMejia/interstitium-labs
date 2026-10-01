@@ -1,0 +1,22 @@
+# Interstitium Labs — DEV signaling reachability helper
+# HONEST: this is NOT Unreal Engine Pixel Streaming and does NOT stream video.
+# Use it only to verify ws://localhost from the browser client / CSP before
+# pointing /immersive/pixel-stream/ at a REAL UE5 signaling server on a GPU host.
+#
+#   cd docs/ops/pixel-streaming && docker compose up
+#   open /immersive/pixel-stream/?signaling=ws://127.0.0.1:8888
+#
+# Prefer the Python helper when Docker is unavailable:
+#   python3 scripts/pixel-streaming/dev-signaling-echo.py
+
+services:
+  il-dev-signaling-echo:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../../../scripts/pixel-streaming:/app:ro
+    command: ["bash", "-lc", "pip install -q websockets && python3 /app/dev-signaling-echo.py --host 0.0.0.0 --port 8888"]
+    ports:
+      - "8888:8888"
+    labels:
+      interstitium.honest: "NOT Unreal Pixel Streaming media; bring-up echo only"
