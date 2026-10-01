@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render white/unstyled, even if stylesheets fail */html{background:#070b16}body{background:#070b16!important;color:#e8eef5!important;min-height:100dvh}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://127.0.0.1:* wss://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self' blob:; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Pixel Streaming helpers — Interstitium Labs</title>
+<meta name="description" content="Honest Unreal Engine 5 Pixel Streaming client. Signaling URL + reconnect — never fakes a live stream or hosted fleet."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/immersive/pixel-stream/"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-immersive.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<style>
+  .il-ps-shell { min-height: 22rem; }
+  .il-ps-status { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: #D4A853; }
+  .il-ps-log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; color: #8b95a8; white-space: pre-wrap; max-height: 8rem; overflow: auto; }
+  .il-ps-video { width: 100%; height: 100%; min-height: 18rem; background: #070B16; object-fit: contain; display: none; }
+  .il-ps-video.is-live { display: block; }
+  .il-ps-cfg { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+  .il-ps-cfg input {
+    flex: 1 1 16rem; min-width: 12rem; height: 2.5rem; border-radius: 0.5rem;
+    border: 1px solid rgba(232,238,245,0.15); background: #070B16; color: #E8EEF5;
+    padding: 0 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem;
+  }
+  .il-ps-cfg button {
+    height: 2.5rem; padding: 0 0.9rem; border-radius: 0.5rem; font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid rgba(94,234,212,0.35); background: transparent; color: #5EEAD4;
+  }
+  .il-ps-cfg button.primary { background: #5EEAD4; color: #070B16; border-color: #5EEAD4; }
+  .il-ps-cfg button.danger { border-color: rgba(212,168,83,0.45); color: #D4A853; }
+  .il-ps-empty { padding: 2rem 1.25rem; text-align: left; color: #8b95a8; font-size: 0.875rem; }
+  .il-ps-empty__kicker { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: #5EEAD4; margin-bottom: 0.75rem; }
+  .il-ps-empty a { color: #5EEAD4; }
+  .il-ps-empty code { color: #5EEAD4; }
+</style>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<main class="il-wrap" style="max-width:56rem">
+  <p class="il-eyebrow" style="margin-top:2rem">Ops helpers</p>
+  <h1>Pixel Streaming &mdash; local bring-up helpers</h1>
+  <p style="color:var(--muted)"><em>Last updated: 2026-10-01 (America/New_York).</em></p>
+
+  <h2 class="il-h il-h--section" style="margin-top:3rem">Honesty</h2>
+  <table>
+    <thead><tr><th>Helper</th><th>What it is</th><th>What it is NOT</th></tr></thead>
+    <tbody>
+      <tr><td><code>scripts/pixel-streaming/dev-signaling-echo.py</code></td><td>WebSocket accept + health/echo JSON</td><td>Unreal Pixel Streaming, SDP media, or a fleet</td></tr>
+      <tr><td><code>docker-compose.yml</code> (this folder)</td><td>Same echo in a container</td><td>Hosted UE GPU stream</td></tr>
+    </tbody>
+  </table>
+  <p>Interstitium does <strong>not</strong> claim a live UE fleet. The open-web client at <a href="/immersive/pixel-stream/">/immersive/pixel-stream/</a> reconnects honestly and never invents frames.</p>
+
+  <h2 class="il-h il-h--section" style="margin-top:3rem">Quick path</h2>
+  <pre><code># A) Python (preferred on this box)
+pip install websockets
+python3 scripts/pixel-streaming/dev-signaling-echo.py --port 8888
+
+# B) Docker (optional)
+cd docs/ops/pixel-streaming &amp;&amp; docker compose up</code></pre>
+  <p>Then open:</p>
+  <p><code>/immersive/pixel-stream/?signaling=ws://127.0.0.1:8888</code></p>
+  <p>You should see signaling open + an <code>il-dev-health</code> / echo frame. <strong>No video track</strong> until a real UE5 Pixel Streaming host answers with an SDP offer.</p>
+
+  <h2 class="il-h il-h--section" style="margin-top:3rem">Real host</h2>
+  <p>Follow <a href="/ops/PIXEL-STREAMING-DEV.md">/ops/PIXEL-STREAMING-DEV.md</a> &mdash; GPU box, UE5 plugin, Epic signaling. Point the same client at that <code>ws(s)://</code> URL. Optional ICE servers via <code>localStorage.il-ps-ice</code> (JSON array) &mdash; see client v1.1.0+.</p>
+  <p style="margin-top:3rem"><a class="il-textlink" href="/immersive/pixel-stream/">&larr; Back to Pixel Streaming client</a></p>
+</main>
+
+<footer class="il-footer">
+  <div class="il-wrap">
+    <a class="il-footer__brand" href="/">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="42" height="42"/>
+      <span class="il-brand__word">Interstitium Labs</span>
+    </a>
+    <p style="color:var(--muted);font-size:.95rem;margin:0">A Learning OS for unusually ambitious builders. Scientia Omnia Vincit.</p>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
