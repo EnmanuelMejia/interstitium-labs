@@ -22,7 +22,7 @@
  *   window.IL.noah   = { ask, configureLLM }            (legacy, kept)
  *   window.IL.noahAI = { open, close, toggle, ask, endpoint }
  * ===================================================================== */
-(function () {
+(function (g) {
   'use strict';
 
   /* ================= Local Socratic engine (unchanged doctrine) ====== */
@@ -37,8 +37,15 @@
     { name: 'python', keys: ['python', 'list comprehension', 'pandas', 'def '] },
     { name: 'sql', keys: ['sql', 'select', 'join', 'where clause', 'database', 'query'] },
     { name: 'git', keys: ['git', 'commit', 'branch', 'merge', 'rebase', 'repository'] },
-    { name: 'containers', keys: ['docker', 'container', 'kubernetes', 'pod', 'deployment'] },
-    { name: 'cloud', keys: ['aws', 'azure', 'gcp', 'cloud', 'ec2'] }
+    { name: 'kubernetes', keys: ['kubernetes', 'k8s', 'kubectl', 'helm', 'argocd', 'gitops'] },
+    { name: 'containers', keys: ['docker', 'container', 'pod', 'deployment'] },
+    { name: 'cloud', keys: ['aws', 'azure', 'gcp', 'cloud', 'ec2'] },
+    { name: 'blockchain', keys: ['blockchain', 'bitcoin', 'ethereum', 'solidity', 'smart contract', 'wallet', 'ledger', 'consensus', 'monero', 'stellar', 'xrpl', 'defi', 'utxo'] },
+    { name: 'quantum', keys: ['quantum', 'qubit', 'superposition', 'entanglement', 'shor', 'grover'] },
+    { name: 'devops', keys: ['devops', 'sre', 'terraform', 'jenkins', 'github actions', 'cicd', 'ci/cd', 'pipeline'] },
+    { name: 'web', keys: ['javascript', 'typescript', 'react', 'html', 'css', 'node.js', 'nodejs', 'frontend', 'fullstack', 'full-stack'] },
+    { name: 'study', keys: ['study', 'studying', 'focus', 'procrastinat', 'deep work', 'time block', 'exam', 'certification'] },
+    { name: 'career', keys: ['interview', 'resume', 'cv', 'job', 'career', 'salary', 'hiring', 'offer letter'] }
   ];
 
   var GUIDE = {
@@ -53,6 +60,13 @@
     'git': { question: 'Draw the branch graph as it is right now, from memory. Where does your drawing go vague?', nudge1: 'Which commit is each branch actually pointing at? Name them; do not trust the labels alone.', nudge2: 'What would the graph look like after the operation succeeds? Describe the desired end state first.' },
     'containers': { question: 'Is the failure in the image, the container, or the orchestration around it? Place it before fixing it.', nudge1: 'Read the exact error line, not the summary. Which component speaks first in the log?', nudge2: 'What is the smallest change that would prove your theory wrong? Try that before trying to prove it right.' },
     'cloud': { question: 'Which service owns the resource, and which identity is acting on it? Confusion between the two causes most cloud errors.', nudge1: 'Check the effective permissions of the acting identity, not the ones you believe it has.', nudge2: 'Trace one request through the console or the logs. Where does the observed path diverge from your mental model?' },
+    'kubernetes': { question: 'Is the trouble in the workload definition, the cluster state, or the traffic path into the pod? Place it before you touch anything.', nudge1: 'Name the failing object — Deployment, Service, or Pod — and read its events first. What does the newest event actually claim?', nudge2: 'What is the smallest change that would prove your theory wrong? Try that before trying to prove it right.' },
+    'blockchain': { question: 'Are you reasoning about the ledger, the cryptography, or the application on top? Name the layer before the question.', nudge1: 'State what the chain guarantees — ordering, finality — and what it does not. Which guarantee does your question depend on?', nudge2: 'Which module\u2019s lab would settle your question empirically: UTXO, EVM, or consensus?' },
+    'quantum': { question: 'Is your question about the physics, the algorithms, or the engineering of qubits? Each wears different math.', nudge1: 'Write the smallest quantum state involved — one qubit, two amplitudes. What operation are you actually asking about?', nudge2: 'Apply one idea only: superposition, interference, or entanglement. Which one carries your question?' },
+    'devops': { question: 'Is the failure in code, pipeline, or platform? The fix lives wherever the handoff breaks.', nudge1: 'Name the stage that went red first — lint, test, build, push, or deploy — and quote its first error line.', nudge2: 'Separate \u201ctest red\u201d from \u201csecrets or registry auth\u201d. Which one is it?' },
+    'web': { question: 'Is the behavior in markup, style, or script? Isolate the layer before debugging the framework.', nudge1: 'Reproduce with the smallest page that still shows it. Does it survive with the framework removed?', nudge2: 'What type is the object at the exact point where your reasoning gets uncertain?' },
+    'study': { question: 'Are you stuck on attention, retention, or pacing? Each has a different fix.', nudge1: 'What does one 90-minute distraction-free session on this topic actually look like for you — same time, same place, phone in another room?', nudge2: 'Which are you skipping: the shutdown ritual, the weekly review, or measuring depth instead of hours?' },
+    'career': { question: 'Are you optimizing the application, the interview, or the offer conversation? Each is a different game.', nudge1: 'Name the single strongest proof of work you can show — a shipped project beats a claimed skill. What is yours?', nudge2: 'State the role\u2019s actual problem in one sentence. How does your proof map onto it?' },
     'general': { question: 'What is the single claim you are least sure of in your own reasoning? Begin there.', nudge1: 'Restate the problem in your own words, with no terms you could not define to a beginner.', nudge2: 'What would you need to observe to know your hypothesis is wrong? Seek that observation first. Festina lente.' }
   };
 
@@ -63,8 +77,112 @@
     return { endpoint: llmConfig.endpoint, model: llmConfig.model, local: true };
   }
 
-  var DEMAND_RE = /just give me the answer|give me the answer|tell me the answer|answer (this|it) for me|do (this|it) for me/i;
-  var HYP_RES = [/i think ([^.!?\n]{1,140})/i, /my (?:answer|guess|hypothesis) is ([^.!?\n]{1,140})/i];
+  /* ============ On-device knowledge bundle ==========================
+     Built by scripts/build-noah-knowledge.mjs from the site's real curriculum
+     pages. The engine searches it and answers with cited on-site links.
+     Nothing is invented: no bundle entry, no claim. */
+  var KB = null, kbInflight = null;
+  var KB_STOP = { what: 1, why: 1, how: 1, when: 1, where: 1, which: 1, who: 1,
+    does: 1, doing: 1, done: 1, about: 1, tell: 1, show: 1, explain: 1, give: 1,
+    with: 1, from: 1, that: 1, this: 1, these: 1, those: 1, them: 1, then: 1,
+    than: 1, into: 1, over: 1, under: 1, your: 1, you: 1, the: 1, and: 1,
+    for: 1, are: 1, was: 1, were: 1, has: 1, have: 1, had: 1, will: 1,
+    would: 1, should: 1, could: 1, can: 1, any: 1, all: 1, more: 1, most: 1,
+    some: 1, such: 1, like: 1, just: 1, very: 1, much: 1, many: 1, get: 1,
+    got: 1, one: 1, two: 1, new: 1, best: 1, top: 1 };
+
+  function ensureKB() {
+    if (KB) return Promise.resolve(KB);
+    if (kbInflight) return kbInflight;
+    kbInflight = fetch('/assets/noah-knowledge.json', { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('kb-missing'); return r.json(); })
+      .then(function (b) {
+        KB = (b && b.entries && b.entries.length) ? b : null;
+        return KB;
+      })
+      .catch(function () { KB = null; return null; });
+    return kbInflight;
+  }
+
+  function kbTokens(text) {
+    var out = [], words = String(text).toLowerCase().replace(/[^a-z0-9+#/ ]/g, ' ').split(/\s+/), i, w;
+    for (i = 0; i < words.length; i++) {
+      w = words[i];
+      if (w.length > 2 && !KB_STOP[w]) out.push(w);
+    }
+    return out;
+  }
+
+  function kbScore(entry, tokens) {
+    var score = 0, kws = String(entry.k || '').split(' '), i, j, tok, kw;
+    var title = String(entry.t || '').toLowerCase(), desc = String(entry.d || '').toLowerCase();
+    for (i = 0; i < tokens.length; i++) {
+      tok = tokens[i];
+      for (j = 0; j < kws.length; j++) {
+        kw = kws[j];
+        if (!kw) continue;
+        if (kw === tok) { score += 3; break; }
+        if (kw.indexOf(tok) === 0 || tok.indexOf(kw) === 0) { score += 1; break; }
+      }
+      if (title.indexOf(tok) !== -1) score += 2;
+      else if (desc.indexOf(tok) !== -1) score += 1;
+    }
+    return score;
+  }
+
+  function shortTitle(t) {
+    return String(t).split(/\s+[—–|\-]\s+/)[0].trim() || String(t);
+  }
+
+  function answerFromKB(text) {
+    if (!KB || !KB.entries) return null;
+    var tokens = kbTokens(text);
+    if (!tokens.length) return null;
+    var scored = [], i, s;
+    for (i = 0; i < KB.entries.length; i++) {
+      s = kbScore(KB.entries[i], tokens);
+      if (s >= 3) scored.push({ e: KB.entries[i], s: s });
+    }
+    if (!scored.length) return null;
+    scored.sort(function (a, b) { return b.s - a.s; });
+    var top = scored[0], links = [], j;
+    for (j = 0; j < scored.length && j < 3; j++) {
+      if (scored[j].s >= top.s * 0.45) links.push('[' + shortTitle(scored[j].e.t) + '](' + scored[j].e.u + ')');
+    }
+    var reply = '**' + top.e.t + '** — ' + top.e.d;
+    if (links.length) reply += '\n\nOn this site: ' + links.join(' · ');
+    return { reply: reply, entry: top.e };
+  }
+
+  /* Direct answers for questions the site cannot answer from a page. All facts
+     below are verified against the published site — no invented content. */
+  var GREET_RE = /^(hi|hey|hello|yo|sup|good\s(morning|afternoon|evening))\b/;
+  var BUILDER_RE = /who (built|made|created|founded|is behind)|about the founder|who runs this/;
+  var START_RE = /what should i learn first|where (do|should) i start|how do i (get started|begin)|learning path/;
+  var IL11_RE = /\bil-?11\b/;
+
+  var A_GREET = 'Hey — I\u2019m **Noah**, answering on-device from this site\u2019s curriculum. ' +
+    'Ask me about any track — blockchain, quantum, DevOps, Kubernetes, deep work — or tap a suggestion below.';
+  var A_BUILDER = 'Interstitium Labs was built by **Enmanuel Mejia** — Founder and DevSecOps/Full Stack Developer. ' +
+    'This site is his knowledge operating system: curriculum tracks, labs, and study guides distilled from his work ' +
+    'across IT operations, DevOps, security, and systems engineering. Everything I tell you comes from these on-site ' +
+    'pages, answered on-device. What do you want to learn first?';
+  var A_START = '**Where to start** depends on your target:\n\n' +
+    '- **DevOps / SRE roles:** [DevOps Zero to Hire](/paths/devops-zero-to-hire/) — Linux, networking, Git, containers, CI/CD.\n' +
+    '- **Security:** [CISSP](/learn/sequences/cissp/) and [Security+ / CySA+](/learn/sequences/security-plus-cysa/) study guides.\n' +
+    '- **Study method itself:** [Deep Work](/learn/deep-work/) and the [Study Protocol](/learn/study-protocol/).\n\n' +
+    'Tell me the role or the topic and I\u2019ll narrow it to one next step.';
+  var A_IL11 = 'Honest answer: **there is no IL-11 Zero Trust track on this site** — the name doesn\u2019t match ' +
+    'a published academy or path. The site\u2019s real Zero Trust material lives inside two labs:\n\n' +
+    '- **[K8s CKA](/learn/sequences/k8s-cka/)** — zero-trust network policies: default-deny-all, then explicit allow rules.\n' +
+    '- **[Security+ / CySA+](/learn/sequences/security-plus-cysa/)** — microsegmentation plus a half-page zero-trust plan for a flat home LAN.\n\n' +
+    'Want the network-policy lab or the segmentation plan first?';
+  var A_ZT = 'Zero Trust on this site is taught as practice rather than a dedicated track: ' +
+    '**[K8s CKA](/learn/sequences/k8s-cka/)** covers zero-trust network policies (default-deny-all with explicit allow rules), ' +
+    'and **[Security+ / CySA+](/learn/sequences/security-plus-cysa/)** covers microsegmentation with a hands-on zero-trust plan lab. ' +
+    'Which one do you want?';
+  var A_UNKNOWN = 'I don\u2019t have on-site material on that yet — I answer from this site\u2019s curriculum, and it doesn\u2019t cover it. ' +
+    'Try rephrasing, or start from [DevOps Zero to Hire](/paths/devops-zero-to-hire/), [Deep Work](/learn/deep-work/), or the [Study Protocol](/learn/study-protocol/).';
 
   function detectTopic(lower) {
     for (var i = 0; i < TOPICS.length; i++) {
@@ -79,33 +197,27 @@
   function ask(text, ctx) {
     var input = String(text == null ? '' : text);
     var lower = input.toLowerCase();
-    var topic = detectTopic(lower);
-    var guide = GUIDE[topic] || GUIDE.general;
-    var demand = DEMAND_RE.test(lower);
-    var hasHypothesis = false;
-    for (var i = 0; i < HYP_RES.length; i++) {
-      if (HYP_RES[i].test(input)) { hasHypothesis = true; break; }
+    /* 1 · direct special cases (verified facts only) */
+    if (GREET_RE.test(lower) && input.trim().length < 32) return { reply: A_GREET, nudges: [] };
+    if (BUILDER_RE.test(lower)) return { reply: A_BUILDER, nudges: [] };
+    if (START_RE.test(lower)) return { reply: A_START, nudges: [] };
+    if (IL11_RE.test(lower)) return { reply: A_IL11, nudges: [] };
+    if (/zero.?trust/.test(lower)) return { reply: A_ZT, nudges: [] };
+    /* 2 · the knowledge bundle: direct answers with cited on-site links */
+    var hit = answerFromKB(input);
+    if (hit) {
+      var topic = detectTopic(lower);
+      var guide = GUIDE[topic];
+      var nudges = (guide && topic && topic !== 'general') ? [guide.question] : [];
+      return { reply: hit.reply, nudges: nudges };
     }
-    var reply;
-    if (demand) {
-      reply = 'I will not hand you the answer outright. This is not reluctance — ' +
-        'an unearned answer does not hold, and the sitting is the work. ' +
-        'Bring Noah your hypothesis, not a request for the ending. ' +
-        'Your hypothesis is registered; I have set its figures aside so that we ' +
-        'reason rather than recite. Take the next smallest step instead: ' + guide.question;
-    } else {
-      reply = 'Acknowledged. We are in the domain of ' + topic + '. ' +
-        'Your hypothesis is registered' +
-        (hasHypothesis ? '; I have set its figures aside so that we reason rather than recite.'
-                       : ', though none is stated yet — bring it plainly when you are ready.') +
-        ' Consider this first: ' + guide.question;
+    /* 3 · Socratic topic guides (bundle unreachable or genuinely uncovered) */
+    var topic2 = detectTopic(lower);
+    if (topic2 && topic2 !== 'general' && GUIDE[topic2]) {
+      var g2 = GUIDE[topic2];
+      return { reply: g2.question + ' ' + g2.nudge1, nudges: [g2.nudge2] };
     }
-    if (llmConfig) {
-      reply += ' Note: a remote endpoint is configured' +
-        (llmConfig.model ? ' (model ' + llmConfig.model + ')' : '') +
-        '; this reply was still produced by the local engine. Routing outward is a separate, explicit step.';
-    }
-    return { reply: reply, nudges: [guide.nudge1, guide.nudge2] };
+    return { reply: A_UNKNOWN, nudges: [] };
   }
 
   /* ================= Remote endpoint =============================== */
@@ -126,6 +238,14 @@
     return llmConfig && llmConfig.endpoint ? llmConfig.endpoint : DEFAULT_ENDPOINT;
   }
 
+  var LOCAL_NOTICE = 'Answered on-device from this site\u2019s distilled curriculum — no cloud.';
+
+  function askLocal(text) {
+    var out = ask(text);
+    out.notice = LOCAL_NOTICE;
+    return out;
+  }
+
   function askRemote(text, history) {
     var endpoint = getEndpoint();
     var msgs = (history || []).concat([{ role: 'user', content: String(text) }]);
@@ -136,12 +256,16 @@
     }).then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {
         if (out.res.ok && out.data && out.data.reply) return { reply: String(out.data.reply), remote: true };
-        var local = ask(text);
-        return { reply: local.reply, nudges: local.nudges, remote: false, notice: 'Noah AI is offline — answering from the local Socratic engine.' };
+        return ensureKB().then(function () {
+          var local = askLocal(text);
+          return { reply: local.reply, nudges: local.nudges, remote: false, notice: local.notice };
+        });
       })
       .catch(function () {
-        var local = ask(text);
-        return { reply: local.reply, nudges: local.nudges, remote: false, notice: 'Noah AI is offline — answering from the local Socratic engine.' };
+        return ensureKB().then(function () {
+          var local = askLocal(text);
+          return { reply: local.reply, nudges: local.nudges, remote: false, notice: local.notice };
+        });
       });
   }
 
@@ -216,7 +340,7 @@
 
   var AVATAR_SRC = '/assets/noah-avatar.png'; // apex-local avatar
   var LS_KEY = 'noah-ai-history-v1';
-  var CHIPS = ['What should I learn first?', 'Tell me about IL-11 Zero Trust', 'Who built this site?', 'Explain a DevOps concept'];
+  var CHIPS = ['What should I learn first?', 'How do I study with deep work?', 'Who built this site?', 'Explain a DevOps concept'];
 
   var els = {};
   var history = [];
@@ -237,6 +361,7 @@
     var h = esc(src);
     h = h.replace(/```([\s\S]*?)```/g, function (m, code) { return '<pre><code>' + code.replace(/^\n/, '') + '</code></pre>'; });
     h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    h = h.replace(/\[([^\]\n]{1,80})\]\((\/[A-Za-z0-9\-._~:/?#@!$&'()*+,;=%]*)\)/g, '<a href="$2">$1</a>');
     h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     var lines = h.split('\n'), out = [], inList = false;
     lines.forEach(function (ln) {
@@ -312,7 +437,7 @@
       var notice = out.notice;
       if (!out.remote && !fallbackNoted && NoahStats.fallbackStreak() >= 3) {
         fallbackNoted = true;
-        notice = (notice ? notice + ' ' : '') + 'Heads up: I have been answering from the on-device engine — check your connection for the full Noah.';
+        notice = (notice ? notice + ' ' : '') + 'Heads up: the remote Noah endpoint is unreachable — I\u2019m answering on-device from the site\u2019s curriculum.';
       }
       addMsg('noah', mdLite(out.reply), notice);
       if (out.nudges) renderNudges(out.nudges);
@@ -424,7 +549,10 @@
   var TOPIC_LABEL = {
     algebra: 'algebra', trigonometry: 'trigonometry', calculus: 'calculus',
     networking: 'subnetting & networking', linux: 'Linux', security: 'security',
-    python: 'Python', sql: 'SQL', git: 'Git', containers: 'containers', cloud: 'cloud'
+    python: 'Python', sql: 'SQL', git: 'Git', kubernetes: 'Kubernetes',
+    containers: 'containers', cloud: 'cloud', blockchain: 'blockchain',
+    quantum: 'quantum computing', devops: 'DevOps', web: 'web development',
+    study: 'study method', career: 'career prep'
   };
   var fallbackNoted = false;
   function adaptiveChips() {
@@ -663,6 +791,9 @@
 
   function buildWidget() {
     if (document.getElementById('noah-launcher')) return;
+    /* One canonical Noah per page: the full coach chat owns pages that mount it
+       (coach, cinema). The floating widget would be a competing second chat UI. */
+    try { if (document.querySelector('[data-il-muse]')) return; } catch (e) {}
     var style = document.createElement('style');
     style.textContent = WIDGET_CSS;
     document.head.appendChild(style);
@@ -685,7 +816,7 @@
     panel.innerHTML =
       '<div id="noah-head"><span class="noah-avatar" aria-hidden="true"></span>' +
       '<span class="noah-title"><span class="noah-name">Noah AI</span><br>' +
-      '<span class="noah-status"><span class="noah-dot"></span><span id="noah-status-text">Online — resident intelligence</span></span></span>' +
+      '<span class="noah-status"><span class="noah-dot"></span><span id="noah-status-text">On-device · site curriculum</span></span></span>' +
       '<button id="noah-close" aria-label="Close chat">×</button></div>' +
       '<div id="noah-msgs"></div>' +
       '<div id="noah-chips"></div>' +
@@ -742,6 +873,7 @@
 
   function open() {
     buildWidget();
+    if (!els.panel) return; /* main coach chat owns this page — no floating widget */
     els.panel.classList.add('open');
     els.launcher.classList.remove('attn');
     setTimeout(function () { els.input.focus(); }, 320);
@@ -751,12 +883,14 @@
   }
   function toggle() {
     buildWidget();
+    if (!els.panel) return; /* main coach chat owns this page */
     if (els.panel.classList.contains('open')) close(); else open();
   }
 
   /* ================= Boot ========================================== */
   function boot() {
     if (!document.body) return;
+    try { ensureKB(); } catch (e) {} /* preload the answer bundle */
     buildWidget();
   }
   if (document.readyState === 'loading') {
@@ -765,12 +899,17 @@
     boot();
   }
 
-  if (typeof window === 'undefined') { var window = {}; }
-  window.IL = window.IL || {};
-  window.IL.noah = { ask: ask, configureLLM: configureLLM };
-  window.IL.noahAI = {
+  g.IL = g.IL || {};
+  g.IL.noah = { ask: ask, configureLLM: configureLLM };
+  g.IL.noahAI = {
     open: open, close: close, toggle: toggle,
     ask: function (text, hist) { return askRemote(text, hist || []); },
     endpoint: getEndpoint
   };
-})();
+  /* Shared on-device knowledge API for the coach page (il-coach.js). */
+  g.__ilNoahKB = {
+    ensure: ensureKB,
+    get: function () { return KB; },
+    answer: answerFromKB
+  };
+})(typeof window !== 'undefined' ? window : this);
