@@ -647,6 +647,17 @@
       '<button type="button" class="il-sound-toggle" data-il-sound data-i18n="fx.sound" data-i18n-attr="title:fx.sound_title" title="UI sound (off by default)" aria-pressed="false">Sound</button>' +
       '<span class="il-demo-status" aria-live="polite"></span>';
     doc.body.appendChild(bar);
+    /* 2026-10-01: yield to the footer — park the bar below the viewport
+     * when the footer scrolls into view so footer links stay tappable. */
+    doc.body.classList.add('il-has-demobar');
+    try {
+      var ftr = doc.querySelector('footer');
+      if (ftr && 'IntersectionObserver' in global) {
+        new global.IntersectionObserver(function (entries) {
+          bar.classList.toggle('is-parked', !!(entries[0] && entries[0].isIntersecting));
+        }, { threshold: 0 }).observe(ftr);
+      }
+    } catch (e) {}
     if (global.ILi18n && typeof global.ILi18n.apply === "function") {
       try { global.ILi18n.apply(bar); } catch (e) {}
     }
