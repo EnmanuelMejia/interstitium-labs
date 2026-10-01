@@ -8,7 +8,9 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * Android 16 (targetSdk 36) enforces edge-to-edge: the web view draws behind
  * the system bars, and StatusBar backgroundColor / overlaysWebView no longer
  * apply there. The launch pages set viewport-fit=cover and pad with
- * env(safe-area-inset-*); SystemBars keeps those insets correct on Android.
+ * env(safe-area-inset-*) themselves; there is no official
+ * `@capacitor/system-bars` package, so no such plugin is configured here —
+ * the site's own safe-area CSS is the source of truth.
  */
 const config: CapacitorConfig = {
   appId: "dev.interstitiumlabs.app",
@@ -30,22 +32,18 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       backgroundColor: "#070B16",
-      launchAutoHide: true,
+      // Explicit hide from il-bridge.js once the page is interactive (plus a
+      // 5s safety timeout in the same file); auto-hide is never ambiguous.
+      launchAutoHide: false,
+      launchShowDuration: 5000,
       showSpinner: false,
     },
     StatusBar: {
-      style: "DARK",
-      // iOS only from Android 16 on; see the note above.
+      // LIGHT = light status-bar content (clock/battery) for the void
+      // background. "DARK" would render dark content — invisible on #070B16.
+      style: "LIGHT",
+      // Ignored on Android 16+ (edge-to-edge); applies on iOS.
       backgroundColor: "#070B16",
-    },
-    SystemBars: {
-      // Inject --safe-area-inset-* as well as env() values on Android.
-      insetsHandling: "css",
-      // The launch pages (/ and /coach/) declare viewport-fit=cover; saying so up
-      // front avoids a layout jump on start.
-      initialViewportFitValueHint: "cover",
-      // Light system bar icons on the void background.
-      style: "DARK",
     },
   },
   android: {
