@@ -1,0 +1,486 @@
+/**
+ * Interstitium Labs — Editorial theme override layer (2026-10-01)
+ * ------------------------------------------------------------------
+ * Re-skins the legacy dark-theme pages (body.bg-void, .text-paper,
+ * .bg-panel, il-chrome / il-ux components, Tailwind bundle utilities)
+ * into the cream/paper editorial theme WITHOUT touching any HTML.
+ *
+ * LOAD ORDER (required): after styles-DSCbqSS9.css, after all other
+ * legacy il-*.css files, and after /assets/il-editorial.css.
+ * Must also come after any per-page inline <style> blocks that restyle
+ * prose (pre / code / tables), so place the <link> as the LAST
+ * stylesheet in <head>. The sheet relies on load order rather than
+ * !important everywhere; !important is used only where an inline
+ * <style> block already carries it (the IL critical-style guard).
+ *
+ * Tokens (from il-editorial.css):
+ *   --paper #f7f4ee · --paper-deep #efe9dd · --ink #16130e
+ *   --ink-soft #3d382e · --muted #6f675a · --hairline rgba(22,19,14,.14)
+ *   --gold #b8862f · --gold-deep #96690f · --gold-soft rgba(184,134,47,.12)
+ *   --void #070b16 · --void-ink #f2ede1
+ *
+ * Design decision — heroes: flipped to cream everywhere. The
+ * .il-hero-field starfield appears on only ~26 of ~106 pages and is not
+ * consistently the first section, so there is no uniform dark-hero
+ * pattern to preserve. Starfield canvases are transparent and simply go
+ * quiet on paper. The homepage keeps its own dark cinematic hero; this
+ * sheet never loads there.
+ */
+
+/* ================================================================
+ * §0 — Pill-nav clearance (fixed .il-pillnav floats over content)
+ * The pill is ~3.7rem tall at top:1rem; 6rem clears it comfortably.
+ * Loads only on converted subpages — no double-spacing on homepage.
+ * ================================================================ */
+body {
+  padding-top: 6rem;
+}
+
+/* ================================================================
+ * §1 — Base canvas
+ * Beats the per-page inline critical guard:
+ *   body{background:#070b16!important;color:#e8eef5!important}
+ * which is why !important is required here (later + !important wins).
+ * ================================================================ */
+html {
+  background: #f7f4ee !important;
+}
+body {
+  background: #f7f4ee !important;
+  color: #16130e !important;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+::selection {
+  background: rgba(184, 134, 47, 0.28);
+  color: #16130e;
+}
+
+/* ================================================================
+ * §2 — Shared component variable remaps
+ * il-ux widgets and il-chrome surfaces read these; remapping flips
+ * whole widget families in one move.
+ * ================================================================ */
+:root {
+  /* il-ux.css */
+  --il-panel-elevated: #fffdf9;
+  --il-focus: #96690f;
+  --il-ok: #15803d;
+  --il-warn: #b45309;
+  --il-bad: #b91c1c;
+  /* il-chrome.css */
+  --il-hairline: 1px solid rgba(22, 19, 14, 0.14);
+  --il-hairline-strong: 1px solid rgba(22, 19, 14, 0.22);
+  --il-surface-elev:
+    0 1px 2px rgba(22, 19, 14, 0.05),
+    0 12px 32px rgba(22, 19, 14, 0.08);
+}
+
+/* ================================================================
+ * §3 — Text utilities
+ * .text-paper was near-white; .text-cyan/#7ed4e0 and .text-gold/#c6a572
+ * both fail contrast on paper, so accents collapse to gold-deep.
+ * ================================================================ */
+.text-paper { color: #16130e; }
+.text-muted { color: #6f675a; }
+.text-cyan { color: #96690f; }
+.text-gold { color: #96690f; }
+.text-void { color: #16130e; }
+.text-red-200 { color: #b91c1c; }
+
+.hover\:text-paper:hover { color: #16130e; }
+.hover\:text-cyan:hover { color: #96690f; }
+
+.font-display {
+  font-family: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Eyebrow kickers (il-ux.css) */
+.il-kicker { color: #96690f; }
+.il-kicker--cyan { color: #96690f; }
+
+/* ================================================================
+ * §4 — Background utilities
+ * ================================================================ */
+.bg-void { background-color: #f7f4ee; }
+.bg-void\/80 { background-color: rgba(247, 244, 238, 0.88); }
+.bg-void\/70 { background-color: rgba(247, 244, 238, 0.75); }
+.bg-void\/60 { background-color: rgba(247, 244, 238, 0.65); }
+.bg-void\/50 { background-color: rgba(247, 244, 238, 0.55); }
+
+.bg-ink\/50 { background-color: rgba(239, 233, 221, 0.55); }
+.bg-ink\/40 { background-color: rgba(239, 233, 221, 0.45); }
+.bg-ink\/30 { background-color: rgba(239, 233, 221, 0.35); }
+
+.bg-gold\/10 { background-color: rgba(184, 134, 47, 0.12); }
+.bg-red-950\/20 { background-color: rgba(185, 28, 28, 0.07); }
+
+/* ================================================================
+ * §5 — Border utilities + legacy ring-shadow kill
+ * ================================================================ */
+.border-paper\/5,
+.border-paper\/10,
+.border-paper\/15,
+.border-paper\/20,
+.border-paper\/30 { border-color: rgba(22, 19, 14, 0.14); }
+
+.border-cyan\/20,
+.border-cyan\/25,
+.border-cyan\/30,
+.border-cyan\/35,
+.border-cyan\/40 { border-color: rgba(150, 105, 15, 0.42); }
+
+.border-gold\/25,
+.border-gold\/30,
+.border-gold\/35,
+.border-gold\/40 { border-color: rgba(150, 105, 15, 0.38); }
+
+.border-red-500\/40 { border-color: rgba(185, 28, 28, 0.4); }
+
+/* The legacy 1px light ring used as card outline (arbitrary-value class
+ * can't be written as a plain selector, so match the class attribute). */
+[class*="shadow-[0_0_0_1px_rgba(232,238,245,0.08)]"],
+[class*="shadow-[0_0_0_1px_rgba(232,238,245,0.06)]"] {
+  box-shadow: 0 0 0 1px rgba(22, 19, 14, 0.14);
+}
+
+/* ================================================================
+ * §6 — Links
+ * In-content links were .text-cyan (now gold-deep via §3). Footer/nav
+ * links and prose links get the editorial treatment here.
+ * ================================================================ */
+main a,
+footer a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.prose-il a { color: #96690f; }
+.prose-il a:hover { color: #16130e; }
+a.ext::after { opacity: 0.7; } /* keep the ↗ marker from inline styles */
+
+/* ================================================================
+ * §7 — Legacy sticky header + footer (defensive: the homepage model
+ * removes the old header, but if one survives conversion it must not
+ * render as a dark bar on paper).
+ * ================================================================ */
+header.sticky,
+header.no-print {
+  background: rgba(247, 244, 238, 0.9) !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(22, 19, 14, 0.14);
+}
+header nav a { color: #6f675a; }
+header nav a:hover { color: #16130e; }
+#il-menu-btn { color: #16130e; }
+
+footer.no-print {
+  border-top: 1px solid rgba(22, 19, 14, 0.14);
+  background: #f7f4ee;
+}
+
+/* ================================================================
+ * §8 — Mobile menu sheet (.il-menu, il-chrome.css)
+ * ================================================================ */
+.il-menu-backdrop { background: rgba(22, 19, 14, 0.45); }
+.il-menu-panel {
+  background: #f7f4ee;
+  border-top: 1px solid rgba(22, 19, 14, 0.14);
+  box-shadow: 0 -18px 60px rgba(22, 19, 14, 0.25);
+}
+.il-menu-grab { background: rgba(22, 19, 14, 0.22); }
+.il-menu-grid a {
+  background: #fffdf9;
+  box-shadow: 0 0 0 1px rgba(22, 19, 14, 0.14);
+  color: #16130e;
+}
+.il-menu-grid a .il-menu-sub { color: #6f675a; }
+.il-menu-grid a.il-menu-ask .il-menu-sub { color: #96690f; }
+
+/* ================================================================
+ * §9 — CTA buttons → editorial gold
+ * Old solid CTA = `bg-paper text-void` (all 44 .bg-paper uses are this
+ * pattern). Old outline CTA = border-cyan/40 + text-cyan or
+ * border-paper/15 + text-paper — both land on gold/ink via §3 + §5.
+ * ================================================================ */
+a.bg-paper.text-void,
+button.bg-paper.text-void {
+  background-color: #b8862f;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(184, 134, 47, 0.35);
+}
+a.bg-paper.text-void:hover,
+button.bg-paper.text-void:hover {
+  background-color: #96690f;
+  color: #fff;
+}
+.hover\:bg-paper\/90:hover { background-color: #96690f; }
+.hover\:bg-paper\/5:hover { background-color: rgba(22, 19, 14, 0.05); }
+.hover\:border-paper\/30:hover { border-color: rgba(22, 19, 14, 0.3); }
+
+/* ================================================================
+ * §10 — Cards & surfaces
+ * ================================================================ */
+.bg-panel {
+  background-color: #fffdf9;
+  border: 1px solid rgba(22, 19, 14, 0.14);
+  box-shadow:
+    0 1px 2px rgba(22, 19, 14, 0.04),
+    0 8px 24px rgba(22, 19, 14, 0.06);
+}
+.bg-panel\/40 { background-color: rgba(255, 253, 249, 0.45); }
+.bg-panel\/70 { background-color: rgba(255, 253, 249, 0.72); }
+.bg-panel\/80 { background-color: rgba(255, 253, 249, 0.82); }
+
+/* il-chrome "brilliant" card: kill the dark gradient + teal aura. */
+.il-surface,
+a.il-surface,
+li.il-surface {
+  background: #fffdf9;
+  border: 1px solid rgba(22, 19, 14, 0.14);
+  box-shadow:
+    0 1px 2px rgba(22, 19, 14, 0.04),
+    0 8px 24px rgba(22, 19, 14, 0.06);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.il-surface::before { display: none; }
+.il-surface:hover,
+a.il-surface:hover {
+  border-color: rgba(150, 105, 15, 0.45);
+  box-shadow:
+    0 1px 2px rgba(22, 19, 14, 0.05),
+    0 14px 36px rgba(22, 19, 14, 0.1);
+  transform: translateY(-1px);
+}
+
+/* il-ux card + empty states */
+.il-ux-card {
+  background: #fffdf9;
+  box-shadow: 0 0 0 1px rgba(22, 19, 14, 0.14);
+}
+.il-ux-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(150, 105, 15, 0.4),
+    0 12px 40px rgba(22, 19, 14, 0.1);
+}
+.il-empty {
+  border: 1px dashed rgba(22, 19, 14, 0.28);
+  background: #fffdf9;
+}
+.il-empty__title { color: #16130e; }
+.il-empty__hint { color: #6f675a; }
+
+/* ================================================================
+ * §11 — il-ux interactive widgets (drills, mastery, radar, coach,
+ * lab-split, diff, feedback). Dark literals → paper equivalents.
+ * ================================================================ */
+/* Drills */
+.il-drill {
+  background: #fffdf9;
+  box-shadow: 0 0 0 1px rgba(22, 19, 14, 0.14);
+}
+.il-drill__prompt { color: #16130e; }
+.il-drill__choice {
+  background: #f7f4ee;
+  box-shadow: inset 0 0 0 1px rgba(22, 19, 14, 0.14);
+  color: #16130e;
+}
+.il-drill__choice:hover {
+  background: rgba(184, 134, 47, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.45);
+}
+.il-drill__choice.is-correct {
+  background: rgba(21, 128, 61, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.5);
+}
+.il-drill__choice.is-wrong {
+  background: rgba(185, 28, 28, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.45);
+}
+.il-drill__key {
+  background: rgba(22, 19, 14, 0.07);
+  color: #3d382e;
+}
+
+/* Mastery steps */
+.il-mastery-step {
+  background: #fffdf9;
+  box-shadow: inset 0 0 0 1px rgba(22, 19, 14, 0.14);
+  color: #16130e;
+}
+.il-mastery-step:hover {
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.45);
+}
+.il-mastery-step.is-active {
+  background: rgba(184, 134, 47, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.55);
+}
+.il-mastery-step.is-done {
+  box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.45);
+}
+.il-mastery-step__n { color: #96690f; }
+.il-mastery-step__title { color: #16130e; }
+.il-mastery-step__hint { color: #6f675a; }
+.il-mastery__next-label { color: #6f675a; }
+
+/* Radar */
+.il-radar__row-label span:first-child { color: #6f675a; }
+.il-radar__row-label span:last-child { color: #96690f; }
+.il-radar__bar { background: rgba(22, 19, 14, 0.1); }
+.il-radar__bar > i { background: linear-gradient(90deg, #b8862f, #96690f); }
+.il-radar__bar:focus-visible { outline-color: #96690f; }
+
+/* Coach */
+.il-coach-msg--bot {
+  background: rgba(184, 134, 47, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.3);
+  color: #16130e;
+}
+.il-coach-msg--user {
+  background: rgba(22, 19, 14, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(22, 19, 14, 0.14);
+  color: #16130e;
+}
+.il-coach-topic { color: #3d382e; }
+.il-coach-topic:hover,
+.il-coach-topic.is-on {
+  color: #96690f;
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.45);
+}
+.il-coach-status { color: #6f675a; }
+
+/* Lab split panes + diff cards */
+.il-lab-split__pane {
+  background: #fffdf9;
+  box-shadow: 0 0 0 1px rgba(22, 19, 14, 0.14);
+}
+.il-lab-split__pane--guided { box-shadow: 0 0 0 1px rgba(150, 105, 15, 0.45); }
+.il-lab-split__pane--play { box-shadow: 0 0 0 1px rgba(150, 105, 15, 0.35); }
+.il-diff-card h3 { color: #16130e; }
+.il-diff-card p { color: #6f675a; }
+
+/* Feedback / honest notes / states */
+.il-feedback--ok {
+  background: rgba(21, 128, 61, 0.1);
+  color: #15803d;
+  box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.35);
+}
+.il-feedback--bad {
+  background: rgba(185, 28, 28, 0.08);
+  color: #b91c1c;
+  box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.35);
+}
+.il-feedback--hint {
+  background: rgba(184, 134, 47, 0.12);
+  color: #96690f;
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.35);
+}
+.il-honest-note {
+  background: rgba(184, 134, 47, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(150, 105, 15, 0.3);
+  color: #3d382e;
+}
+.il-honest-note strong { color: #96690f; }
+.il-error-state {
+  background: rgba(185, 28, 28, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.35);
+  color: #b91c1c;
+}
+.il-loading-state { color: #6f675a; }
+.il-loading-state::before {
+  border-color: rgba(150, 105, 15, 0.25);
+  border-top-color: #96690f;
+}
+
+/* ================================================================
+ * §12 — Prose elements (beats per-page inline <style> blocks, which
+ * carry the same selectors; `body` prefix wins regardless of order).
+ * ================================================================ */
+body pre {
+  background: #fffdf9;
+  border: 1px solid rgba(22, 19, 14, 0.14);
+  color: #16130e;
+}
+body code { color: #3d382e; }
+body p code,
+body li code {
+  background: rgba(22, 19, 14, 0.06);
+  color: #3d382e;
+}
+body .prose-il th,
+body .prose-il td {
+  border: 1px solid rgba(22, 19, 14, 0.14);
+}
+body .prose-il th { color: #96690f; }
+body .toc a {
+  display: block;
+  padding: 0.35rem 0;
+  color: #3d382e;
+}
+body .toc a:hover { color: #96690f; }
+
+/* ================================================================
+ * §13 — Form controls (JS-rendered forms included)
+ * ================================================================ */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background-color: #ffffff;
+  border: 1px solid rgba(22, 19, 14, 0.22);
+  color: #16130e;
+  border-radius: 0.5rem;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #96690f;
+  outline: 2px solid rgba(150, 105, 15, 0.35);
+  outline-offset: 1px;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #b8862f;
+}
+
+/* ================================================================
+ * §14 — Legacy FX neutralization (dark-optimized decoration)
+ * The gradient-mesh wash on `section.relative.isolate` would tint the
+ * paper; the starfield canvas is transparent and goes quiet on its own.
+ * ================================================================ */
+.il-mesh,
+section.relative.isolate {
+  background-image: none;
+}
+
+/* ================================================================
+ * §15 — Focus visibility on paper
+ * ================================================================ */
+:focus-visible {
+  outline: 2px solid #96690f;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(184, 134, 47, 0.22);
+}
+
+/* ================================================================
+ * §16 — Noah AI widget (docs/assets/noah-ai.js)
+ * INTENTIONALLY UNTOUCHED. The widget injects its own <style> at
+ * runtime (after this sheet) and is a self-contained dark floating
+ * panel — readable on cream by design, like the homepage's dark hero.
+ * No overrides here; the rules above use selectors the widget never
+ * matches (#noah-*, .noah-*), and where element selectors overlap
+ * (pre / code / textarea) the widget's ID/class selectors win.
+ * ================================================================ */
+
+/* ================================================================
+ * §17 — Motion + overflow safety
+ * ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .il-surface:hover,
+  a.il-surface:hover { transform: none; }
+}
