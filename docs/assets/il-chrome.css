@@ -357,8 +357,12 @@ nav[aria-label="App"] a[aria-current="page"]::before {
 }
 
 /* ========== MOBILE MENU SHEET (all destinations) ========== */
+/* 2026-10-01: scoped to div.il-menu — the full-screen overlay pattern.
+   Every in-page menu is <details class="il-menu"> (pill-nav dropdown);
+   the unscoped rule stretched all 92 of them across the viewport and
+   parked the MENU summary button over the brand pill on mobile. */
 .il-menu[hidden] { display: none !important; }
-.il-menu {
+div.il-menu {
   position: fixed;
   inset: 0;
   z-index: 60;

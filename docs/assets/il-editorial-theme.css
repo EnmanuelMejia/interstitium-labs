@@ -110,15 +110,19 @@ body {
 /* ================================================================
  * §4 — Background utilities
  * ================================================================ */
+/* 2026-10-01: these were hardcoded cream rgba() — in dark mode they
+ * painted light-gray bands with washed-out text (e.g. the OUTCOMES
+ * section on path pages, SQL console inputs). Restored to the original
+ * Tailwind design tokens: --color-void #070b16, --color-ink #0c1424. */
 .bg-void { background-color: var(--paper); }
-.bg-void\/80 { background-color: rgba(247, 244, 238, 0.88); }
-.bg-void\/70 { background-color: rgba(247, 244, 238, 0.75); }
-.bg-void\/60 { background-color: rgba(247, 244, 238, 0.65); }
-.bg-void\/50 { background-color: rgba(247, 244, 238, 0.55); }
+.bg-void\/80 { background-color: rgb(7 11 22 / 0.88); }
+.bg-void\/70 { background-color: rgb(7 11 22 / 0.75); }
+.bg-void\/60 { background-color: rgb(7 11 22 / 0.65); }
+.bg-void\/50 { background-color: rgb(7 11 22 / 0.55); }
 
-.bg-ink\/50 { background-color: rgba(239, 233, 221, 0.55); }
-.bg-ink\/40 { background-color: rgba(239, 233, 221, 0.45); }
-.bg-ink\/30 { background-color: rgba(239, 233, 221, 0.35); }
+.bg-ink\/50 { background-color: rgb(12 20 36 / 0.55); }
+.bg-ink\/40 { background-color: rgb(12 20 36 / 0.45); }
+.bg-ink\/30 { background-color: rgb(12 20 36 / 0.35); }
 
 .bg-gold\/10 { background-color: rgba(var(--gold-rgb), 0.12); }
 .bg-red-950\/20 { background-color: rgba(var(--bad-rgb), 0.07); }
@@ -173,7 +177,9 @@ a.ext::after { opacity: 0.7; } /* keep the ↗ marker from inline styles */
  * ================================================================ */
 header.sticky,
 header.no-print {
-  background: rgba(247, 244, 238, 0.9) !important;
+  /* 2026-10-01: was hardcoded cream — theme-aware via --paper-rgb so a
+   * surviving legacy header never renders as a light bar in dark mode. */
+  background: rgba(var(--paper-rgb), 0.9) !important;
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.14);
