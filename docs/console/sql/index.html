@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com https://cdn.jsdelivr.net; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>SQL Console — Interstitium Labs</title>
+<meta name="description" content="A real SQL console running SQLite in your browser. Write queries, load a sample dataset, and work through 10 guided exercises — nothing leaves your device."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/console/sql/"/>
+<meta property="og:title" content="SQL Console — Interstitium Labs"/>
+<meta property="og:description" content="A real SQL console: SQLite compiled to WebAssembly, running entirely in your browser."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/console/sql/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-motion.css"/>
+<link rel="stylesheet" href="/assets/il-fx.css"/>
+<link rel="stylesheet" href="/assets/il-responsive.css"/>
+<link rel="stylesheet" href="/assets/il-compat.css"/>
+<link rel="stylesheet" href="/assets/il-ux.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="stylesheet" href="/assets/il-wow.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<div class="flex min-h-dvh flex-col bg-void text-paper">
+<header class="no-print sticky top-0 z-40 border-b border-paper/10 bg-void/80 backdrop-blur-md">
+  <div class="mx-auto flex min-h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-5 sm:min-h-20 sm:px-8">
+    <a class="flex min-w-0 items-center text-paper" href="/"><picture class="il-lockup"><source type="image/webp" srcset="/assets/chrome/canonical-lockup-2x.webp 356w, /assets/chrome/canonical-lockup-3x.webp 534w, /assets/chrome/canonical-lockup.webp 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px"/><img src="/assets/chrome/canonical-lockup.png" srcset="/assets/chrome/canonical-lockup.png 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px" alt="Interstitium Labs — Scientia Omnia Vincit" class="il-lockup object-contain h-14 w-auto sm:h-16" width="178" height="80" decoding="async"/></picture></a>
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary"><a href="/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Index</a><a href="/about/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">About</a><a href="/coach/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Coach</a><a href="/paths/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Paths</a><a href="/learn/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Learn</a><a href="https://learn.interstitiumlabs.dev" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">University</a><a href="/labs/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Labs</a><a href="/prep/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Prep</a><a href="/adapt/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Adapt</a><a href="/founders/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Founders</a><a href="/enroll/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Enroll</a><a href="/play/" class="rounded-md px-2.5 py-2 font-display text-[0.65rem] uppercase tracking-[0.16em] text-muted transition-colors duration-150 hover:text-paper">Play</a></nav>
+    <div data-il-lang-switcher class="no-print"></div><div class="flex items-center gap-1 lg:hidden"><button type="button" id="il-menu-btn" class="inline-flex size-11 items-center justify-center text-paper" aria-expanded="false" aria-controls="il-menu-sheet" aria-label="Open menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg></button></div>
+    <a href="/paths/" class="inline-flex font-display text-[0.65rem] uppercase tracking-[0.16em] text-cyan lg:hidden">Paths</a>
+  </div>
+</header>
+<main class="il-fluid-type flex-1" data-il-auto-reveal>
+
+<section class="border-b border-paper/10">
+  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Console · SQL</p>
+    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">A real SQL console, in your browser.</h1>
+    <p class="mt-5 max-w-2xl text-base text-muted">SQLite compiled to WebAssembly executes every query on your device — no account, no backend, nothing leaves the machine. Start with the sample dataset, or build your own tables from scratch.</p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+  <div id="sql-engine-banner" class="rounded-xl border border-paper/10 bg-void/60 p-4 text-sm text-muted" role="status">Loading the SQL engine…</div>
+  <noscript><p class="mt-4 rounded-xl border border-red-500/40 bg-red-950/20 p-4 text-sm text-red-200">The SQL console requires JavaScript.</p></noscript>
+
+  <div class="mt-8 flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="min-w-0">
+      <div class="rounded-xl border border-paper/10 bg-panel p-5 sm:p-6">
+        <label for="sql-editor" class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Query editor</label>
+        <textarea id="sql-editor" rows="10" spellcheck="false" autocomplete="off" autocapitalize="off"
+          class="mt-3 w-full rounded-lg border border-paper/15 bg-void/70 p-4 font-mono text-[0.85rem] leading-relaxed text-paper placeholder:text-muted/60 focus:border-cyan/60 focus:outline-none"
+          placeholder="SELECT 'hello, sql';  — press Ctrl+Enter (Cmd+Enter on Mac) to run">SELECT name, city FROM customers;</textarea>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button type="button" id="sql-run" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.68rem] uppercase tracking-[0.14em] text-void disabled:opacity-40">Run query</button>
+          <button type="button" id="sql-sample" class="inline-flex h-11 items-center rounded-lg border border-cyan/40 px-5 font-display text-[0.68rem] uppercase tracking-[0.14em] text-cyan disabled:opacity-40">Load sample dataset</button>
+          <button type="button" id="sql-reset" class="inline-flex h-11 items-center rounded-lg border border-paper/15 px-5 font-display text-[0.68rem] uppercase tracking-[0.14em] text-paper disabled:opacity-40">Reset database</button>
+        </div>
+        <p class="mt-2 font-mono text-[0.62rem] text-muted">Tip: Ctrl+Enter / Cmd+Enter runs the query.</p>
+        <p id="sql-status" class="mt-3 font-mono text-[0.7rem] text-muted" aria-live="polite">Engine loading…</p>
+      </div>
+
+      <div class="mt-6 rounded-xl border border-paper/10 bg-panel p-5 sm:p-6">
+        <h2 class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Results</h2>
+        <div id="sql-results" class="mt-4" aria-live="polite">
+          <p class="text-sm text-muted">Results appear here — a real table, rendered from the engine's output.</p>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-xl border border-paper/10 bg-panel p-5 sm:p-6">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Query history</h2>
+          <button type="button" id="sql-clear-history" class="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted hover:text-paper">Clear</button>
+        </div>
+        <ul id="sql-history" class="mt-4 space-y-2"></ul>
+      </div>
+    </div>
+
+    <aside class="min-w-0 space-y-6">
+      <div class="rounded-xl border border-paper/10 bg-panel p-5">
+        <h2 class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Guided exercises</h2>
+        <p class="mt-2 text-xs text-muted">Work top to bottom. Your answer is checked against the real result set — not the query text.</p>
+        <div id="ex-nav" class="mt-4 space-y-2" role="tablist" aria-label="SQL exercises"></div>
+        <div id="ex-panel" class="mt-4 rounded-lg border border-paper/10 bg-void/50 p-4"></div>
+      </div>
+
+      <details class="rounded-xl border border-paper/10 bg-panel p-5">
+        <summary class="cursor-pointer font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Dialect notes: SQLite vs T-SQL vs PL/SQL</summary>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[20rem] border-collapse text-xs">
+            <thead><tr>
+              <th scope="col" class="border-b border-paper/15 px-2 py-2 text-left font-mono uppercase tracking-[0.1em] text-cyan">Idea</th>
+              <th scope="col" class="border-b border-paper/15 px-2 py-2 text-left font-mono uppercase tracking-[0.1em] text-cyan">SQLite (here)</th>
+              <th scope="col" class="border-b border-paper/15 px-2 py-2 text-left font-mono uppercase tracking-[0.1em] text-cyan">T-SQL</th>
+              <th scope="col" class="border-b border-paper/15 px-2 py-2 text-left font-mono uppercase tracking-[0.1em] text-cyan">PL/SQL</th>
+            </tr></thead>
+            <tbody class="text-muted">
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">Top-N rows</td><td class="border-b border-paper/5 px-2 py-2 font-mono">LIMIT 3</td><td class="border-b border-paper/5 px-2 py-2 font-mono">TOP 3</td><td class="border-b border-paper/5 px-2 py-2 font-mono">FETCH FIRST 3 ROWS ONLY</td></tr>
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">Auto-increment key</td><td class="border-b border-paper/5 px-2 py-2 font-mono">INTEGER PRIMARY KEY</td><td class="border-b border-paper/5 px-2 py-2 font-mono">IDENTITY(1,1)</td><td class="border-b border-paper/5 px-2 py-2 font-mono">GENERATED AS IDENTITY</td></tr>
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">String concat</td><td class="border-b border-paper/5 px-2 py-2 font-mono">a || b</td><td class="border-b border-paper/5 px-2 py-2 font-mono">a + b</td><td class="border-b border-paper/5 px-2 py-2 font-mono">a || b</td></tr>
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">Current date/time</td><td class="border-b border-paper/5 px-2 py-2 font-mono">date('now')</td><td class="border-b border-paper/5 px-2 py-2 font-mono">GETDATE()</td><td class="border-b border-paper/5 px-2 py-2 font-mono">SYSDATE</td></tr>
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">Null fallback</td><td class="border-b border-paper/5 px-2 py-2 font-mono">IFNULL(x, 0)</td><td class="border-b border-paper/5 px-2 py-2 font-mono">ISNULL(x, 0)</td><td class="border-b border-paper/5 px-2 py-2 font-mono">NVL(x, 0)</td></tr>
+              <tr><td class="border-b border-paper/5 px-2 py-2 text-paper">Procedural code</td><td class="border-b border-paper/5 px-2 py-2">Triggers only</td><td class="border-b border-paper/5 px-2 py-2">Stored procedures, batches</td><td class="border-b border-paper/5 px-2 py-2">Packages, procedures, functions</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-xs text-muted">This console runs SQLite — it does not execute T-SQL or PL/SQL. The core SELECT / JOIN / GROUP BY / CTE / window-function skills transfer directly; the table above maps the dialect differences you'll meet on SQL Server and Oracle.</p>
+      </details>
+
+      <div class="rounded-xl border border-paper/10 bg-panel p-5">
+        <h2 class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Sample schema</h2>
+        <pre class="mt-3 overflow-x-auto font-mono text-[0.68rem] leading-relaxed text-muted">customers(id, name, email,
+  city, signup_date)
+products(id, name,
+  category, price)
+orders(id, customer_id,
+  product_id, qty,
+  order_date, status)</pre>
+      </div>
+    </aside>
+  </div>
+</section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <picture class="il-lockup"><source type="image/webp" srcset="/assets/chrome/canonical-lockup-2x.webp 356w, /assets/chrome/canonical-lockup-3x.webp 534w, /assets/chrome/canonical-lockup.webp 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px"/><img src="/assets/chrome/canonical-lockup.png" srcset="/assets/chrome/canonical-lockup.png 1326w" sizes="(min-width: 2560px) 178px, (min-width: 640px) 142px, 125px" alt="Interstitium Labs — Scientia Omnia Vincit" class="il-lockup object-contain h-14 w-auto sm:h-16" width="178" height="80" decoding="async"/></picture>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper">About</a><a href="/paths/" class="hover:text-paper">Paths</a><a href="/paths/frontier/" class="hover:text-paper">Frontier</a><a href="/coach/" class="hover:text-paper">Coach</a><a href="/console/sql/" class="hover:text-paper">SQL Console</a><a href="/enroll/" class="hover:text-paper">Enroll</a></div>
+    </div>
+  </div>
+</footer>
+</div>
+<script src="/assets/il-compat.js" defer></script>
+<script src="/assets/il-pwa.js" defer></script>
+<script src="/analytics/config.js" defer></script>
+<script src="/assets/il-analytics.js" defer></script>
+<script src="/assets/il-iterate.js" defer></script>
+<script src="/assets/il-fx.js" defer></script>
+<script src="/assets/il-motion.js" defer></script>
+<script src="/assets/il-i18n.js" defer></script>
+<script src="/assets/il-immersive-3d.js" defer></script>
+<script src="/assets/il-menu.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-wasm.js" integrity="sha384-DJiKBv+LC78e5InEB+MvFIAH079ynMK/ERTtFUCpDzXhH1Bht7aVfpg3yOVsuYl9" crossorigin="anonymous"></script>
+<script src="/assets/il-sql-console.js" defer></script>
+</body>
+</html>

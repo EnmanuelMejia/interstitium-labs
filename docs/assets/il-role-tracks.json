@@ -1,0 +1,445 @@
+{
+ "note": "Roles are ordered learning tracks, not job guarantees. Each stage expands into its full study sequence — objectives, concepts, labs, checkpoints. Certifications named are third-party exams; check the official pages for current requirements.",
+ "roles": [
+  {
+   "id": "sysadmin",
+   "milestone": "Capstone: provision and harden a production-like VPS — users, SSH, firewall, backups, monitoring.",
+   "outcome": "You will be able to administer Linux servers end to end: users, services, storage, networking, and automation.",
+   "stages": [
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "The operating-system foundation every other role builds on.",
+     "title": "Linux system administration"
+    },
+    {
+     "distilledId": "distill-ansible-config",
+     "note": "Turn repetitive admin work into idempotent playbooks.",
+     "title": "Automation with Ansible"
+    },
+    {
+     "cert": "LFCS",
+     "distilledId": "distill-docker-containers",
+     "note": "Validate the admin skills; containers are where modern workloads live.",
+     "title": "Containers with Docker"
+    }
+   ],
+   "tagline": "Own the machine, then automate it.",
+   "title": "Linux System Administrator",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "Linux man pages & kernel docs",
+     "url": "https://www.kernel.org/doc/html/latest/"
+    }
+   }
+  },
+  {
+   "id": "devops",
+   "milestone": "Capstone: a full Git-to-production pipeline deploying a containerized app to Kubernetes with IaC.",
+   "outcome": "You will be able to take code from commit to production on automated, auditable pipelines.",
+   "stages": [
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "You cannot automate what you cannot operate.",
+     "title": "Linux system administration"
+    },
+    {
+     "distilledId": "distill-docker-containers",
+     "note": "The unit of deployment for everything downstream.",
+     "title": "Containers with Docker"
+    },
+    {
+     "distilledId": "distill-terraform-iac",
+     "note": "Infrastructure as versioned, reviewable code.",
+     "title": "Terraform & infrastructure as code"
+    },
+    {
+     "distilledId": "distill-ansible-config",
+     "note": "Configuration management for what Terraform does not own.",
+     "title": "Ansible configuration management"
+    },
+    {
+     "cert": "CKA",
+     "distilledId": "distill-k8s-cka",
+     "note": "The orchestrator everything runs on.",
+     "title": "Kubernetes administration (CKA)"
+    },
+    {
+     "distilledId": "distill-devsecops-pipeline",
+     "note": "Security gates inside the delivery pipeline, not bolted on after.",
+     "title": "DevSecOps pipelines"
+    }
+   ],
+   "tagline": "From commit to production, automated.",
+   "title": "DevOps Engineer",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "Git docs (everything starts here)",
+     "url": "https://git-scm.com/doc"
+    }
+   }
+  },
+  {
+   "id": "cloud-engineer",
+   "milestone": "Capstone: a hub-and-spoke Azure landing zone deployed entirely from Terraform.",
+   "outcome": "You will be able to design, deploy, and operate cloud infrastructure on Azure.",
+   "stages": [
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "Cloud VMs are still Linux under the portal.",
+     "title": "Linux foundations"
+    },
+    {
+     "cert": "AZ-104",
+     "distilledId": "distill-azure-az104",
+     "note": "The administrator associate credential for Azure.",
+     "title": "Azure administration (AZ-104)"
+    },
+    {
+     "distilledId": "distill-terraform-iac",
+     "note": "Declarative cloud provisioning that survives team turnover.",
+     "title": "Terraform for Azure"
+    }
+   ],
+   "tagline": "Design, deploy, and operate cloud infrastructure.",
+   "title": "Cloud Engineer (Azure)",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code + Azure extensions",
+      "url": "https://code.visualstudio.com/docs/azure/extensions"
+     }
+    ],
+    "manual": {
+     "name": "Microsoft Learn — Azure docs",
+     "url": "https://learn.microsoft.com/en-us/azure/"
+    }
+   }
+  },
+  {
+   "id": "sre",
+   "milestone": "Capstone: define SLOs for a service and prove them with chaos drills and runbooks.",
+   "outcome": "You will be able to run Kubernetes in production and keep it reliable under load.",
+   "stages": [
+    {
+     "distilledId": "distill-docker-containers",
+     "note": "Prerequisite fluency.",
+     "title": "Containers"
+    },
+    {
+     "cert": "CKA",
+     "distilledId": "distill-k8s-cka",
+     "note": "Cluster operations: the SRE home turf.",
+     "title": "Kubernetes administration (CKA)"
+    },
+    {
+     "cert": "CKAD",
+     "distilledId": "distill-k8s-ckad",
+     "note": "How applications consume the platform.",
+     "title": "Kubernetes application development (CKAD)"
+    },
+    {
+     "distilledId": "distill-devsecops-pipeline",
+     "note": "Release engineering with safety gates.",
+     "title": "DevSecOps pipelines"
+    }
+   ],
+   "tagline": "Reliability as an engineering discipline.",
+   "title": "Kubernetes / SRE",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "Google SRE books (free, official)",
+     "url": "https://sre.google/books/"
+    }
+   }
+  },
+  {
+   "id": "security-analyst",
+   "milestone": "Capstone: a home SOC — log pipeline, detections, and an incident report from a simulated attack.",
+   "outcome": "You will be able to detect, triage, and respond to security incidents.",
+   "stages": [
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "Attackers and defenders both live on Linux.",
+     "title": "Linux for security work"
+    },
+    {
+     "cert": "Security+",
+     "distilledId": "distill-security-plus-cysa",
+     "note": "Analyst track, part 1: threats, architecture, operations.",
+     "title": "Security+ foundations"
+    },
+    {
+     "cert": "CySA+",
+     "distilledId": "distill-security-plus-cysa",
+     "note": "Analyst track, part 2: detection, response, threat hunting.",
+     "title": "CySA+ detection & response"
+    }
+   ],
+   "tagline": "Detect, triage, respond.",
+   "title": "Security Analyst (Blue Team)",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "MITRE ATT&CK (read the adversary manual)",
+     "url": "https://attack.mitre.org/"
+    }
+   }
+  },
+  {
+   "id": "security-engineer",
+   "milestone": "Capstone: a full security program review for a fictional company — risks, controls, roadmap.",
+   "outcome": "You will be able to design security programs and lead them at organizational scale.",
+   "stages": [
+    {
+     "cert": "Security+ / CySA+",
+     "distilledId": "distill-security-plus-cysa",
+     "note": "Analyst foundations first.",
+     "title": "Analyst track"
+    },
+    {
+     "cert": "CISSP",
+     "distilledId": "distill-cissp",
+     "note": "All 8 CBK domains; experience requirements apply.",
+     "title": "CISSP practitioner"
+    },
+    {
+     "cert": "CISM",
+     "distilledId": "distill-cism",
+     "note": "The management layer: governance, risk, incident management.",
+     "title": "CISM management"
+    }
+   ],
+   "tagline": "From practitioner to program leader.",
+   "title": "Cybersecurity Engineer / Architect",
+   "tooling": {
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "NIST Cybersecurity Framework",
+     "url": "https://www.nist.gov/cyberframework"
+    }
+   }
+  },
+  {
+   "id": "dba",
+   "milestone": "Capstone: a database with HA, tested backups, and a documented recovery runbook.",
+   "outcome": "You will be able to design, secure, and operate production databases.",
+   "stages": [
+    {
+     "distilledId": "distill-sql-core",
+     "note": "Query fluency in the interactive SQL console.",
+     "title": "Core SQL"
+    },
+    {
+     "distilledId": "distill-t-sql",
+     "note": "Procedural SQL on the Microsoft stack.",
+     "title": "T-SQL development"
+    },
+    {
+     "distilledId": "distill-plsql",
+     "note": "Procedural SQL on the Oracle stack.",
+     "title": "PL/SQL development"
+    },
+    {
+     "distilledId": "distill-database-admin",
+     "note": "HA, backup/recovery, security, performance.",
+     "title": "Database administration & engineering"
+    },
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "Databases run on operating systems you must understand.",
+     "title": "Linux supporting skills"
+    }
+   ],
+   "tagline": "Data you can trust, systems that recover.",
+   "title": "Database Administrator",
+   "tooling": {
+    "ides": [
+     {
+      "name": "DBeaver",
+      "url": "https://dbeaver.io/"
+     },
+     {
+      "name": "SSMS",
+      "url": "https://learn.microsoft.com/en-us/sql/ssms/"
+     }
+    ],
+    "manual": {
+     "name": "SQLite language reference",
+     "url": "https://www.sqlite.org/lang.html"
+    }
+   }
+  },
+  {
+   "id": "fullstack",
+   "milestone": "Capstone: a full-stack app with tests, CI, container image, and a live deployment.",
+   "outcome": "You will be able to build, test, and ship full-stack applications.",
+   "stages": [
+    {
+     "distilledId": "distill-java-core",
+     "note": "The backend language track.",
+     "title": "Core Java"
+    },
+    {
+     "distilledId": "distill-sql-core",
+     "note": "Persistence layer fluency.",
+     "title": "Core SQL"
+    },
+    {
+     "distilledId": "distill-docker-containers",
+     "note": "Ship the app as an artifact.",
+     "title": "Containers"
+    },
+    {
+     "distilledId": "distill-devsecops-pipeline",
+     "note": "CI/CD for your own projects.",
+     "title": "DevSecOps pipelines"
+    }
+   ],
+   "tagline": "Build it, test it, ship it.",
+   "title": "Full-Stack Developer",
+   "tooling": {
+    "frameworks": [
+     {
+      "name": "Spring Boot docs",
+      "url": "https://spring.io/projects/spring-boot"
+     }
+    ],
+    "ides": [
+     {
+      "name": "IntelliJ IDEA",
+      "url": "https://www.jetbrains.com/idea/"
+     },
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "Oracle Java SE Documentation",
+     "url": "https://docs.oracle.com/en/java/javase/index.html"
+    }
+   }
+  },
+  {
+   "id": "blockchain",
+   "milestone": "Capstone: an audited contract plus a node you operate yourself.",
+   "outcome": "You will understand how ledgers actually work and be able to build on them safely.",
+   "stages": [
+    {
+     "distilledId": "distill-bitcoin-protocol",
+     "note": "UTXOs, mining, Script — the original design.",
+     "title": "Bitcoin protocol engineering"
+    },
+    {
+     "distilledId": "distill-xrpl-engineering",
+     "note": "Accounts, consensus, issued currencies.",
+     "title": "XRP Ledger engineering"
+    },
+    {
+     "distilledId": "distill-solidity-security",
+     "note": "Write contracts, then attack them.",
+     "title": "Solidity & contract security"
+    },
+    {
+     "distilledId": "distill-crypto-protocols-2",
+     "note": "Ten protocols: consensus, cryptography, VMs, SDKs.",
+     "title": "Ledger protocols in-depth"
+    }
+   ],
+   "tagline": "Ledgers, understood from the metal up.",
+   "title": "Blockchain / Ledger Engineer",
+   "tooling": {
+    "frameworks": [
+     {
+      "name": "Hardhat",
+      "url": "https://hardhat.org/docs"
+     },
+     {
+      "name": "Foundry",
+      "url": "https://book.getfoundry.sh/"
+     }
+    ],
+    "ides": [
+     {
+      "name": "VS Code",
+      "url": "https://code.visualstudio.com/docs"
+     }
+    ],
+    "manual": {
+     "name": "Ethereum developer docs",
+     "url": "https://ethereum.org/en/developers/docs/"
+    }
+   }
+  },
+  {
+   "id": "systems",
+   "milestone": "Capstone: a systems tool in C++ with benchmarks and a security review.",
+   "outcome": "You will be able to write systems software with an engineer's discipline.",
+   "stages": [
+    {
+     "distilledId": "distill-c-language",
+     "note": "Memory, pointers, undefined behavior — no hiding.",
+     "title": "C for systems"
+    },
+    {
+     "distilledId": "distill-cpp-engineering",
+     "note": "RAII, templates, concurrency, modern idioms.",
+     "title": "Modern C++"
+    },
+    {
+     "distilledId": "distill-linux-sysadmin",
+     "note": "The environment your code runs in.",
+     "title": "Linux environment"
+    }
+   ],
+   "tagline": "No abstractions you don't understand.",
+   "title": "C / C++ Systems Programmer",
+   "tooling": {
+    "frameworks": [
+     {
+      "name": "Boost C++ Libraries",
+      "url": "https://www.boost.org/doc/"
+     }
+    ],
+    "ides": [
+     {
+      "name": "VS Code + C/C++ extension",
+      "url": "https://code.visualstudio.com/docs/languages/cpp"
+     }
+    ],
+    "manual": {
+     "name": "cppreference — the C/C++ manual",
+     "url": "https://en.cppreference.com/w/"
+    }
+   }
+  }
+ ]
+}
