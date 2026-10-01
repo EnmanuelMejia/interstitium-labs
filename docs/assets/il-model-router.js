@@ -584,8 +584,28 @@
     return localRulesReply(messages, ctx);
   }
 
+  /* Fail-safe against circular backend delegation (2026-10-01, noah-recovery-2):
+     a backend must never re-enter chat() unboundedly — the 2026-10-01 renderer
+     hang was exactly such a ping-pong (router -> localRules -> ILCoach.ask ->
+     router -> ...), starving the event loop on the first send. Normal use nests
+     at most a couple of concurrent chats (multi-send while thinking); anything
+     deeper is a bug, and it now fails safe with an honest local reply instead
+     of hanging the page. */
+  var CHAT_DEPTH = 0, CHAT_DEPTH_MAX = 8;
+  function chatGuardReply() {
+    return {
+      text: 'Local rules only (recursion guard tripped — refusing to loop). Ask about CIDR, Git, K8s, Terraform, CI/CD, Linux, blockchain, or quantum, and share what you tried.',
+      source: 'local-rules',
+      modelId: 'local-rules',
+      backendId: 'local-rules',
+      latencyMs: 0,
+      demand_tier: (getPolicy() || {}).demand_tier
+    };
+  }
   function chat(messages, ctx) {
     ctx = ctx || {};
+    if (CHAT_DEPTH >= CHAT_DEPTH_MAX) return Promise.resolve(chatGuardReply());
+    CHAT_DEPTH++;
     return loadCatalog().then(function () {
       var policy = getPolicy();
       ctx.tier = policy.demand_tier;
@@ -628,7 +648,8 @@
           return local;
         });
       });
-    });
+    }).then(function (res) { CHAT_DEPTH--; return res; },
+            function (err) { CHAT_DEPTH--; throw err; });
   }
 
   function maybePromote() {
