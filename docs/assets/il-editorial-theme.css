@@ -221,13 +221,16 @@ a.bg-paper.text-void,
 button.bg-paper.text-void {
   background-color: var(--gold);
   border-color: transparent;
-  color: #fff;
+  /* 2026-10-01: was color:#fff — failed on gold in both themes
+   * (2.3 dark / 3.2 light). --on-gold passes (8.1 / 5.7). Light-mode
+   * hover switches to white via il-theme.css. */
+  color: var(--on-gold);
   box-shadow: 0 10px 28px rgba(var(--gold-rgb), 0.35);
 }
 a.bg-paper.text-void:hover,
 button.bg-paper.text-void:hover {
   background-color: var(--gold-deep);
-  color: #fff;
+  color: var(--on-gold);
 }
 .hover\:bg-paper\/90:hover { background-color: var(--gold-deep); }
 .hover\:bg-paper\/5:hover { background-color: rgba(var(--ink-rgb), 0.05); }
@@ -243,9 +246,12 @@ button.bg-paper.text-void:hover {
     0 1px 2px rgba(var(--ink-rgb), 0.04),
     0 8px 24px rgba(var(--ink-rgb), 0.06);
 }
-.bg-panel\/40 { background-color: rgba(255, 253, 249, 0.45); }
-.bg-panel\/70 { background-color: rgba(255, 253, 249, 0.72); }
-.bg-panel\/80 { background-color: rgba(255, 253, 249, 0.82); }
+/* 2026-10-01: these were hardcoded cream rgba(255,253,249,…) — in dark
+ * mode they painted light-gray bands with washed-out light text (live on
+ * labs/superlab bg-panel/70 and /80). Now translucent paper, per theme. */
+.bg-panel\/40 { background-color: rgba(var(--paper-rgb), 0.45); }
+.bg-panel\/70 { background-color: rgba(var(--paper-rgb), 0.72); }
+.bg-panel\/80 { background-color: rgba(var(--paper-rgb), 0.82); }
 
 /* il-chrome "brilliant" card: kill the dark gradient + teal aura. */
 .il-surface,
@@ -493,4 +499,38 @@ section.relative.isolate {
 @media (prefers-reduced-motion: reduce) {
   .il-surface:hover,
   a.il-surface:hover { transform: none; }
+}
+
+/* ================================================================
+ * §18 — Print: force light paper + hide fixed chrome
+ * il-responsive.css already aims for white-bg print, but this sheet's
+ * §1 body{background:var(--paper)!important} loads later and wins the
+ * !important war — without this block, dark-mode prints kept the dark
+ * canvas. Fixed chrome (pillnav, demo bar, toasts, film grain, FX root)
+ * would otherwise overlay every printed page. (2026-10-01)
+ * ================================================================ */
+@media print {
+  html {
+    background: #fff !important;
+    color-scheme: light;
+  }
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .il-pillnav,
+  .il-demo-bar,
+  nav[aria-label="App"],
+  div.il-menu,
+  .il-menu,
+  .il-cmd,
+  .il-toast,
+  .il-fx-toast,
+  .il-haptic-ring,
+  .il-grain::after,
+  body.il-grain-on::after,
+  .il-lang-menu,
+  .il-fx-root {
+    display: none !important;
+  }
 }

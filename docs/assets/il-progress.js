@@ -24,21 +24,43 @@
     }
   }
 
+  function storeGet(k) {
+    try {
+      return global.localStorage.getItem(k);
+    } catch (e) {
+      return null; /* private mode / disabled storage */
+    }
+  }
+
+  function storeSet(k, v) {
+    try {
+      global.localStorage.setItem(k, v);
+    } catch (e) {
+      /* quota / private mode — progress simply isn't persisted */
+    }
+  }
+
+  function storeRemove(k) {
+    try {
+      global.localStorage.removeItem(k);
+    } catch (e) {}
+  }
+
   function getJSON(scope, id, fallback) {
-    return safeParse(global.localStorage.getItem(key(scope, id)), fallback);
+    return safeParse(storeGet(key(scope, id)), fallback);
   }
 
   function setJSON(scope, id, value) {
-    global.localStorage.setItem(key(scope, id), JSON.stringify(value));
+    storeSet(key(scope, id), JSON.stringify(value));
   }
 
   function getBool(scope, id) {
-    return global.localStorage.getItem(key(scope, id)) === "1";
+    return storeGet(key(scope, id)) === "1";
   }
 
   function setBool(scope, id, on) {
-    if (on) global.localStorage.setItem(key(scope, id), "1");
-    else global.localStorage.removeItem(key(scope, id));
+    if (on) storeSet(key(scope, id), "1");
+    else storeRemove(key(scope, id));
   }
 
   function toggleBool(scope, id) {
@@ -68,16 +90,20 @@
   function listKeys(scope) {
     var out = [];
     var needle = PREFIX + scope + ".";
-    for (var i = 0; i < global.localStorage.length; i++) {
-      var k = global.localStorage.key(i);
-      if (k && k.indexOf(needle) === 0) out.push(k);
+    try {
+      for (var i = 0; i < global.localStorage.length; i++) {
+        var k = global.localStorage.key(i);
+        if (k && k.indexOf(needle) === 0) out.push(k);
+      }
+    } catch (e) {
+      /* private mode / disabled storage */
     }
     return out;
   }
 
   function clearScope(scope) {
     listKeys(scope).forEach(function (k) {
-      global.localStorage.removeItem(k);
+      storeRemove(k);
     });
   }
 

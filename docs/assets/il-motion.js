@@ -340,6 +340,32 @@
     }
   }
 
+  /* ---------- Cinematic hero video: reduced-motion + offscreen pause ---------- */
+  function initHeroVideo(root) {
+    var vids = qs(".il-hero__video", root);
+    if (!vids.length) return;
+    vids.forEach(function (v) {
+      if (reduced) {
+        v.removeAttribute("autoplay");
+        v.pause();
+        return; /* poster frame remains as the still */
+      }
+      if ("IntersectionObserver" in global) {
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (en) {
+              if (en.isIntersecting) {
+                if (v.paused) v.play().catch(function () {});
+              } else v.pause();
+            });
+          },
+          { threshold: 0.05 }
+        );
+        io.observe(v);
+      }
+    });
+  }
+
   function boot() {
     var root = global.document;
     autoTag(root);
@@ -348,6 +374,7 @@
     initAllStarfields(root);
     initMagnetic(root);
     initCounters(root);
+    initHeroVideo(root);
   }
 
   global.ILMotion = {

@@ -79,12 +79,11 @@ a { color: inherit; }
   transform: translateX(-50%);
   z-index: 60;
   width: min(60rem, calc(100% - 2rem));
-  background: rgba(247, 244, 238, 0.82);
+  /* background + box-shadow: owned by il-theme.css (loads later, every page) */
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--hairline);
   border-radius: 1.75rem;
-  box-shadow: 0 18px 50px rgba(22, 19, 14, 0.14);
   transition: box-shadow 0.3s ease;
 }
 .il-pillnav__row {
@@ -109,7 +108,7 @@ a { color: inherit; }
   border-radius: 999px;
   transition: background 0.18s ease, color 0.18s ease;
 }
-.il-pillnav__links a:hover { background: rgba(22, 19, 14, 0.06); color: var(--ink); }
+.il-pillnav__links a:hover { /* background: owned by il-theme.css */ color: var(--ink); }
 
 /* Mobile menu: <details> — works with zero JS */
 .il-menu { display: inline-flex; }
@@ -132,7 +131,7 @@ a { color: inherit; }
   top: calc(100% + 0.5rem);
   right: 0.75rem;
   min-width: 14rem;
-  background: var(--paper);
+  /* background: owned by il-theme.css (loads later, every page) */
   border: 1px solid var(--hairline);
   border-radius: 1rem;
   box-shadow: 0 24px 60px rgba(22, 19, 14, 0.2);
@@ -164,7 +163,10 @@ a { color: inherit; }
   cursor: pointer;
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
-.il-btn--gold { background: var(--gold); color: #fff; box-shadow: 0 10px 28px rgba(184, 134, 47, 0.35); }
+.il-btn--gold { background: var(--gold); color: var(--on-gold); box-shadow: 0 10px 28px rgba(184, 134, 47, 0.35); }
+/* 2026-10-01: was color:#fff — failed contrast on gold in both themes
+ * (2.3 dark / 3.2 light). --on-gold passes (8.1 / 5.7). Light-mode hover
+ * to white is handled in il-theme.css (gold-deep needs #fff there). */
 .il-btn--gold:hover { background: var(--gold-deep); transform: translateY(-1px); }
 .il-btn--ghost { border-color: var(--hairline); color: var(--ink); }
 .il-btn--ghost:hover { background: rgba(22, 19, 14, 0.05); }
@@ -205,6 +207,13 @@ a { color: inherit; }
   height: 100%;
   object-fit: cover;
   opacity: 0.5;
+}
+/* 2026-10-01: cinematic hero video loop (GitS-spirit anime city). */
+.il-hero__bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
 }
 .il-hero__scrim {
   position: absolute;
@@ -293,7 +302,7 @@ a { color: inherit; }
   flex-direction: column;
   gap: 0.5rem;
 }
-.il-distill:hover { background: var(--paper-elev); }
+/* .il-distill:hover background: owned by il-theme.css (loads later, every page) */
 .il-distill h3 { margin: 0; font-size: 1.05rem; }
 .il-distill p { margin: 0; color: var(--muted); font-size: 0.85rem; font-family: var(--font-mono); letter-spacing: 0.04em; }
 
@@ -344,8 +353,8 @@ a { color: inherit; }
 /* ---------- Founder ---------- */
 .il-founder{display:grid;gap:2.5rem;align-items:start}
 @media(min-width:900px){.il-founder{grid-template-columns:minmax(0,380px) minmax(0,1fr)}}
-.il-founder__photo img{width:100%;height:auto;display:block;border-radius:18px;border:1px solid var(--line);filter:grayscale(1) sepia(.14) contrast(1.02);background:#e9e2d4}
-.il-founder__title{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-deep);margin:1rem 0 1.25rem}
+.il-founder__photo img{width:100%;height:auto;display:block;border-radius:18px;border:1px solid var(--hairline);filter:grayscale(1) sepia(.14) contrast(1.02);background:#e9e2d4}
+.il-founder__title{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-deep);margin:1rem 0 1.25rem}
 .il-founder__bio{color:var(--muted);font-size:1.05rem;line-height:1.75;margin:0 0 1rem;max-width:38rem}
 
 /* ---------- Pursue closer (dark) ---------- */
