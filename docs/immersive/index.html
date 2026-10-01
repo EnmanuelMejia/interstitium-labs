@@ -18,7 +18,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <link rel="stylesheet" href="/assets/il-chrome.css"/>
 <link rel="stylesheet" href="/assets/il-immersive.css"/>
 <link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
-<link rel="stylesheet" href="/assets/il-muse-3d.css"/>
+<link rel="stylesheet" href="/assets/il-muse-3d.css"/><link rel="stylesheet" href="/assets/il-noah-avatar.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
@@ -140,15 +140,21 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <script src="/assets/il-scene-kit.js" defer></script>
 <script src="/assets/il-immersive-3d.js" defer></script>
 <script src="/assets/il-muse-3d.js" defer></script>
+<script src="/assets/il-noah-avatar.js" defer></script>
 <script src="/assets/il-immersive.js" defer></script>
 <script src="/assets/il-curriculum-sync.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var slot = document.querySelector('[data-imm-muse]');
-  if (slot && window.ILMuse3D && ILMuse3D.mount) {
-    var inst = ILMuse3D.mount(slot, { avatarId: 'dee' });
-    if (inst && inst.setStatus) inst.setStatus('idle');
-  }
+  try {
+    if (slot && window.ILNoahAvatar && ILNoahAvatar.mount) {
+      var ninst = ILNoahAvatar.mount(slot, {});
+      if (ninst && ninst.setStatus) ninst.setStatus('idle');
+    } else if (slot && window.ILMuse3D && ILMuse3D.mount) {
+      var inst = ILMuse3D.mount(slot, { avatarId: 'dee' });
+      if (inst && inst.setStatus) inst.setStatus('idle');
+    }
+  } catch (eMuse) {}
 });
 </script>
 <script src="/assets/noah-ai.js" defer></script>

@@ -207,7 +207,7 @@
     '  p += vec3(sin(uTime*0.30+aSeed*6.28), cos(uTime*0.23+aSeed*4.00), sin(uTime*0.27+aSeed*5.00)) * uDrift;',
     '  vec4 mv = uMVP * vec4(p,1.0);',
     '  gl_Position = mv;',
-    '  gl_PointSize = aSize * (1.0 + uAmp * 1.8) * (180.0 / max(mv.w, 0.4));',
+    '  gl_PointSize = aSize * (1.0 + uAmp * 1.8) * (26.0 / max(mv.w, 0.4));',
     '  vA = 0.35 + 0.65 * fract(aSeed + uTime * 0.05);',
     '}'
   ].join('\n');
@@ -366,7 +366,7 @@
   }
 
   function makeMesh(gl, geo) {
-    var m = { pos: gl.createBuffer(), nrm: gl.createBuffer(), count: geo.count };
+    var m = { pos: trackBuf(gl.createBuffer()), nrm: trackBuf(gl.createBuffer()), count: geo.count };
     gl.bindBuffer(gl.ARRAY_BUFFER, m.pos);
     gl.bufferData(gl.ARRAY_BUFFER, geo.pos, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, m.nrm);
@@ -396,7 +396,7 @@
       seed[i] = Math.random();
     }
     function buf(arr) {
-      var b = gl.createBuffer();
+      var b = trackBuf(gl.createBuffer());
       gl.bindBuffer(gl.ARRAY_BUFFER, b);
       gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
       return b;
@@ -675,3 +675,465 @@
   ];
   var AVATARS_BY_ID = {};
   AVATARS.forEach(function (a) { AVATARS_BY_ID[a.id] = a; });
+
+  /* ---------------- engine ---------------- */
+
+  /* buffer tracking so avatar switches don't leak GL resources */
+  var _track = null;
+  function trackBuf(b) { if (_track) _track.push(b); return b; }
+
+  function prefersReduced() {
+    try {
+      return !!(g.matchMedia && g.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) { return false; }
+  }
+
+  function fallbackHTML(name, label) {
+    return '<div class="il-muse-3d__fallback" aria-hidden="true">' +
+      '<div class="il-muse-3d__monas"><span class="il-muse-3d__core"></span><span class="il-muse-3d__glyph"></span></div>' +
+      '</div>' +
+      '<span class="il-muse-3d__badge" data-noah-badge title="Renders on-device in your browser · no cloud">' +
+      name + ' · ' + label + ' 3D</span>';
+  }
+
+  function accentPair(key) {
+    var a = ACCENTS[key] || ACCENTS.cyan;
+    var second = (key === 'gold') ? ACCENTS.cyan.rgb : [0.831, 0.659, 0.325];
+    return { primary: a.rgb, secondary: second, css: a.css, label: a.label };
+  }
+
+  function createInstance(slot, opts) {
+    opts = opts || {};
+    var prof = getProfile();
+    var root = document.createElement('div');
+    root.className = 'il-muse-3d';
+    root.setAttribute('data-noah-avatar', '1');
+    root.setAttribute('role', 'img');
+    root.setAttribute('aria-label', 'Noah voice-reactive 3D avatar');
+    root.innerHTML = fallbackHTML(prof.name, AVATARS_BY_ID[prof.avatar].label);
+    slot.appendChild(root);
+    if (opts.cinema) slot.classList.add('il-muse-3d-slot--cinema');
+
+    var mobile = (typeof opts.mobile === 'boolean')
+      ? opts.mobile
+      : (g.matchMedia && g.matchMedia('(max-width: 768px)').matches);
+
+    var state = {
+      status: 'idle',
+      avatar: AVATARS_BY_ID[opts.avatar] ? opts.avatar : prof.avatar,
+      accentKey: ACCENTS[opts.accent] ? opts.accent : prof.accent,
+      intensityKey: INTENSITY[opts.intensity] ? opts.intensity : prof.intensity,
+      name: (typeof opts.name === 'string' && opts.name.trim()) ? opts.name.trim().slice(0, 40) : prof.name,
+      amp: 0, speakBeat: 0, time: 0,
+      alive: true, paused: false, reduced: prefersReduced(),
+      cinema: !!opts.cinema, mobile: mobile
+    };
+    var pair = accentPair(state.accentKey);
+    var kScale = INTENSITY[state.intensityKey].scale;
+
+    var api = {
+      root: root, slot: slot,
+      setStatus: function (s) {
+        state.status = (s === 'listening' || s === 'thinking' || s === 'speaking') ? s : 'idle';
+        if (state.reduced) renderStatic();
+      },
+      setAvatar: function (id) {
+        if (!AVATARS_BY_ID[id] || id === state.avatar) return;
+        state.avatar = id;
+        rebuildScene();
+        updateBadge();
+        if (state.reduced) renderStatic();
+      },
+      setAccent: function (key) {
+        if (!ACCENTS[key]) return;
+        state.accentKey = key; pair = accentPair(key);
+        if (state.reduced) renderStatic();
+      },
+      setIntensity: function (key) {
+        if (!INTENSITY[key]) return;
+        state.intensityKey = key; kScale = INTENSITY[key].scale;
+        if (state.reduced) renderStatic();
+      },
+      setName: function (n) {
+        if (typeof n === 'string' && n.trim()) { state.name = n.trim().slice(0, 40); updateBadge(); }
+      },
+      setAmplitude: function (a) { state.amp = Math.max(0, Math.min(1, a || 0)); },
+      pulseSpeak: function (v) { state.speakBeat = Math.max(state.speakBeat, v == null ? 1 : v); },
+      getStatus: function () { return state.status; },
+      getAvatar: function () { return state.avatar; },
+      applyProfile: function () {
+        var p = getProfile();
+        api.setName(p.name);
+        api.setAccent(p.accent);
+        api.setIntensity(p.intensity);
+        api.setAvatar(p.avatar);
+      },
+      destroy: function () {
+        state.alive = false;
+        try { if (raf) g.cancelAnimationFrame(raf); } catch (e) {}
+        if (io) { try { io.disconnect(); } catch (e2) {} }
+        if (ro) { try { ro.disconnect(); } catch (e3) {} }
+        g.removeEventListener('il-muse-speak-boundary', onBoundary);
+        g.removeEventListener('il-muse-speak-amp', onAmp);
+        stopMic();
+        freeScene();
+        var ix = registry.indexOf(api);
+        if (ix >= 0) registry.splice(ix, 1);
+        if (root.parentNode) root.parentNode.removeChild(root);
+      }
+    };
+
+    function updateBadge() {
+      var b = root.querySelector('[data-noah-badge]');
+      if (b) b.textContent = state.name + ' · ' + AVATARS_BY_ID[state.avatar].label + ' 3D';
+    }
+
+    if (!g.WebGLRenderingContext) {
+      root.classList.add('is-fallback');
+      return api;
+    }
+    /* reduced-motion keeps going: one static WebGL frame, no animation loop */
+
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    root.insertBefore(canvas, root.firstChild);
+    var gl = canvas.getContext('webgl', {
+      alpha: true, antialias: true, premultipliedAlpha: true, powerPreference: 'high-performance'
+    }) || canvas.getContext('experimental-webgl');
+    if (!gl) { root.classList.add('is-fallback'); return api; }
+    root.classList.add('is-webgl');
+
+    var meshProg = makeProgram(gl, VERT, FRAG);
+    var partProg = makeProgram(gl, PVERT, PFRAG);
+    if (!meshProg || !partProg) {
+      root.classList.add('is-fallback');
+      root.classList.remove('is-webgl');
+      return api;
+    }
+
+    var L = {
+      mesh: {
+        aPos: gl.getAttribLocation(meshProg, 'aPos'),
+        aNrm: gl.getAttribLocation(meshProg, 'aNrm'),
+        uMVP: gl.getUniformLocation(meshProg, 'uMVP'),
+        uN: gl.getUniformLocation(meshProg, 'uN'),
+        uColor: gl.getUniformLocation(meshProg, 'uColor'),
+        uEmissive: gl.getUniformLocation(meshProg, 'uEmissive'),
+        uGlow: gl.getUniformLocation(meshProg, 'uGlow'),
+        uTime: gl.getUniformLocation(meshProg, 'uTime'),
+        uAlpha: gl.getUniformLocation(meshProg, 'uAlpha')
+      },
+      part: {
+        aPos: gl.getAttribLocation(partProg, 'aPos'),
+        aSize: gl.getAttribLocation(partProg, 'aSize'),
+        aSeed: gl.getAttribLocation(partProg, 'aSeed'),
+        uMVP: gl.getUniformLocation(partProg, 'uMVP'),
+        uTime: gl.getUniformLocation(partProg, 'uTime'),
+        uAmp: gl.getUniformLocation(partProg, 'uAmp'),
+        uGather: gl.getUniformLocation(partProg, 'uGather'),
+        uSwirl: gl.getUniformLocation(partProg, 'uSwirl'),
+        uDrift: gl.getUniformLocation(partProg, 'uDrift'),
+        uColor: gl.getUniformLocation(partProg, 'uColor')
+      }
+    };
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(VOID[0], VOID[1], VOID[2], 0);
+
+    var uMVP = mat4Identity(), uView = mat4Identity(), uProj = mat4Identity();
+    var uModel = mat4Identity(), uN = new Float32Array(9), tmp = mat4Identity();
+
+    function drawMeshEntry(mesh, color, emissive, glow, model, alpha) {
+      mat4Multiply(uMVP, uView, model);
+      mat4Multiply(tmp, uProj, uMVP);
+      mat3NormalFromMat4(uN, model);
+      gl.useProgram(meshProg);
+      gl.uniformMatrix4fv(L.mesh.uMVP, false, tmp);
+      gl.uniformMatrix3fv(L.mesh.uN, false, uN);
+      gl.uniform3fv(L.mesh.uColor, color);
+      gl.uniform3fv(L.mesh.uEmissive, emissive);
+      gl.uniform1f(L.mesh.uGlow, glow);
+      gl.uniform1f(L.mesh.uTime, state.time);
+      gl.uniform1f(L.mesh.uAlpha, alpha == null ? 0.96 : alpha);
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.pos);
+      gl.enableVertexAttribArray(L.mesh.aPos);
+      gl.vertexAttribPointer(L.mesh.aPos, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, mesh.nrm);
+      gl.enableVertexAttribArray(L.mesh.aNrm);
+      gl.vertexAttribPointer(L.mesh.aNrm, 3, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, mesh.count);
+    }
+
+    function drawPointsEntry(p, color, o, model) {
+      mat4Multiply(uMVP, uView, model);
+      mat4Multiply(tmp, uProj, uMVP);
+      gl.useProgram(partProg);
+      gl.uniformMatrix4fv(L.part.uMVP, false, tmp);
+      gl.uniform1f(L.part.uTime, state.time);
+      gl.uniform1f(L.part.uAmp, o.amp || 0);
+      gl.uniform1f(L.part.uGather, o.gather || 0);
+      gl.uniform1f(L.part.uSwirl, o.swirl || 0);
+      gl.uniform1f(L.part.uDrift, o.drift || 0);
+      gl.uniform3fv(L.part.uColor, color);
+      gl.bindBuffer(gl.ARRAY_BUFFER, p.pos);
+      gl.enableVertexAttribArray(L.part.aPos);
+      gl.vertexAttribPointer(L.part.aPos, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, p.size);
+      gl.enableVertexAttribArray(L.part.aSize);
+      gl.vertexAttribPointer(L.part.aSize, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, p.seed);
+      gl.enableVertexAttribArray(L.part.aSeed);
+      gl.vertexAttribPointer(L.part.aSeed, 1, gl.FLOAT, false, 0, 0);
+      gl.depthMask(false);
+      gl.drawArrays(gl.POINTS, 0, p.count);
+      gl.depthMask(true);
+    }
+
+    /* scene (re)build with GL-resource tracking */
+    var scene = null, avatarDef = null;
+    function freeScene() {
+      if (scene && scene.buffers) {
+        scene.buffers.forEach(function (b) { try { gl.deleteBuffer(b); } catch (e) {} });
+      }
+      scene = null;
+    }
+    function rebuildScene() {
+      freeScene();
+      avatarDef = AVATARS_BY_ID[state.avatar];
+      _track = [];
+      var s = avatarDef.build(gl, { mobile: state.mobile });
+      s.buffers = _track;
+      _track = null;
+      scene = s;
+    }
+    rebuildScene();
+
+    /* mic (voice-reactive listening) */
+    var mic = { stream: null, ctx: null, analyser: null, data: null, allowed: false, _trying: false };
+    function stopMic() {
+      try { if (mic.stream) mic.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+      try { if (mic.ctx && mic.ctx.close) mic.ctx.close(); } catch (e2) {}
+      mic.stream = null; mic.ctx = null; mic.analyser = null; mic.data = null; mic.allowed = false;
+    }
+    function ensureMic() {
+      if (mic.allowed || mic._trying || state.reduced) return;
+      if (!g.navigator || !g.navigator.mediaDevices || !g.navigator.mediaDevices.getUserMedia) return;
+      mic._trying = true;
+      g.navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(function (stream) {
+        mic.stream = stream;
+        var AC = g.AudioContext || g.webkitAudioContext;
+        if (!AC) { mic._trying = false; return; }
+        mic.ctx = new AC();
+        var src = mic.ctx.createMediaStreamSource(stream);
+        mic.analyser = mic.ctx.createAnalyser();
+        mic.analyser.fftSize = 256;
+        mic.analyser.smoothingTimeConstant = 0.78;
+        src.connect(mic.analyser);
+        mic.data = new Uint8Array(mic.analyser.frequencyBinCount);
+        mic.allowed = true;
+        mic._trying = false;
+      }).catch(function () { mic._trying = false; mic.allowed = false; });
+    }
+    function micLevel() {
+      if (!mic.allowed || !mic.analyser || !mic.data) return 0;
+      mic.analyser.getByteFrequencyData(mic.data);
+      var sum = 0, i, n = mic.data.length;
+      for (i = 0; i < n; i++) sum += mic.data[i];
+      return Math.min(1, (sum / n) / 90);
+    }
+
+    function resize() {
+      var dpr = Math.min(g.devicePixelRatio || 1, state.mobile ? 1.5 : 2);
+      var w = Math.max(1, root.clientWidth || slot.clientWidth || 320);
+      var h = Math.max(1, root.clientHeight || 200);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      mat4Perspective(uProj, Math.PI / 3.4, canvas.width / canvas.height, 0.1, 40);
+    }
+
+    var EYES = { monas: 3.35, orrery: 3.6, sigil: 3.4, wisp: 3.8 };
+
+    function renderFrame() {
+      var st = state.status, t = state.time;
+      var amp = state.amp;
+      if (st === 'listening') {
+        if (!mic.allowed) ensureMic();
+        var ml = micLevel();
+        procPhase += 0.016 * (8 + amp * 10);
+        var procedural = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(procPhase));
+        amp = Math.max(amp, mic.allowed ? ml : procedural);
+        state.amp = amp;
+      }
+      var eyeZ = (EYES[state.avatar] || 3.4) + (st === 'thinking' ? -0.2 : 0);
+      var bob = Math.sin(t * 1.2) * 0.04;
+      mat4LookAt(uView, [0, 0.15 + bob * 0.2, eyeZ], [0, 0.05, 0], [0, 1, 0]);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      var rc = {
+        gl: gl, t: t, status: st, amp: amp, beat: state.speakBeat,
+        accent: pair.primary, accent2: pair.secondary, k: kScale,
+        uView: uView, uProj: uProj,
+        mesh: drawMeshEntry, points: drawPointsEntry
+      };
+      avatarDef.draw(scene, rc);
+    }
+
+    function renderStatic() {
+      if (!gl || !scene) return;
+      if (root.clientWidth && canvas.width === 0) resize();
+      renderFrame();
+    }
+
+    var raf = 0, last = 0, procPhase = 0, io = null, ro = null;
+
+    function frame(ts) {
+      if (!state.alive || state.paused) { raf = 0; return; }
+      raf = g.requestAnimationFrame(frame);
+      if (!last) last = ts;
+      var dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      state.time += dt;
+      state.speakBeat *= Math.pow(0.08, dt);
+      if (root.clientWidth && (canvas.width === 0 ||
+          Math.abs(canvas.width / (g.devicePixelRatio || 1) - root.clientWidth) > 2)) {
+        resize();
+      }
+      renderFrame();
+    }
+
+    function kickLoop() {
+      if (state.reduced || raf || !state.alive || state.paused) return;
+      last = 0;
+      raf = g.requestAnimationFrame(frame);
+    }
+
+    resize();
+
+    if (state.reduced) {
+      renderStatic();
+      /* layout may settle after deferred scripts run — keep the still frame correct */
+      var rsT = 0;
+      g.addEventListener('resize', function () {
+        if (!state.alive) return;
+        if (rsT) return;
+        rsT = g.setTimeout(function () { rsT = 0; resize(); renderStatic(); }, 150);
+      }, { passive: true });
+    } else {
+      kickLoop();
+      /* pause when offscreen (mobile perf + battery) */
+      if (g.IntersectionObserver) {
+        io = new IntersectionObserver(function (entries) {
+          var vis = entries.length && entries[0].isIntersecting;
+          state.paused = !vis;
+          if (vis) kickLoop();
+          else if (raf) { try { g.cancelAnimationFrame(raf); } catch (e) {} raf = 0; }
+        }, { threshold: 0.02 });
+        io.observe(root);
+      }
+      if (g.ResizeObserver) {
+        ro = new ResizeObserver(function () { resize(); });
+        ro.observe(root);
+      } else {
+        g.addEventListener('resize', resize, { passive: true });
+      }
+      /* idle vitality: first 3s must feel alive on phone */
+      api.pulseSpeak(0.85);
+      api.setAmplitude(0.55);
+      try {
+        var t0 = Date.now();
+        var bootPulse = function () {
+          if (!state.alive || Date.now() - t0 > 3200) return;
+          api.pulseSpeak(0.35 + 0.4 * Math.random());
+          api.setAmplitude(0.25 + 0.35 * Math.random());
+          g.setTimeout(bootPulse, 280);
+        };
+        g.setTimeout(bootPulse, 180);
+      } catch (eBoot) {}
+    }
+
+    var onBoundary = function () { api.pulseSpeak(1); };
+    var onAmp = function (ev) {
+      var d = ev && ev.detail;
+      if (d && typeof d.amp === 'number') api.setAmplitude(d.amp);
+      if (d && d.beat) api.pulseSpeak(d.beat);
+    };
+    g.addEventListener('il-muse-speak-boundary', onBoundary);
+    g.addEventListener('il-muse-speak-amp', onAmp);
+
+    return api;
+  }
+
+  /* ---------------- registry / public API ---------------- */
+
+  var registry = [];
+
+  function findForSlot(slot) {
+    for (var i = 0; i < registry.length; i++) {
+      if (registry[i].slot === slot) return registry[i];
+    }
+    return null;
+  }
+
+  function mount(slot, opts) {
+    if (!slot) return null;
+    var existing = findForSlot(slot);
+    if (existing) {
+      if (existing.root.parentNode !== slot) slot.appendChild(existing.root);
+      existing.applyProfile();
+      return existing;
+    }
+    /* reuse orphaned instance whose root was detached (e.g. widget re-render) */
+    for (var j = 0; j < registry.length; j++) {
+      if (!registry[j].root.parentNode) {
+        slot.appendChild(registry[j].root);
+        registry[j].slot = slot;
+        registry[j].applyProfile();
+        return registry[j];
+      }
+    }
+    var inst = createInstance(slot, opts || {});
+    registry.push(inst);
+    return inst;
+  }
+
+  function syncFromApp(app, opts) {
+    if (!app) return null;
+    var slot = app.querySelector('[data-muse-3d-slot]');
+    if (!slot) return null;
+    var cinema = !!(opts && opts.cinema) || !!app.closest('[data-il-cinema], .il-cinema-muse-host');
+    var inst = mount(slot, { cinema: cinema });
+    if (inst) inst.setStatus(app.getAttribute('data-status') || 'idle');
+    return inst;
+  }
+
+  function setProfilePatch(patch) {
+    var p = saveProfile(Object.assign(getProfile(), patch || {}));
+    for (var i = 0; i < registry.length; i++) {
+      try { registry[i].applyProfile(); } catch (e) {}
+    }
+    try {
+      var ev;
+      if (typeof CustomEvent === 'function') ev = new CustomEvent('il-noah-profile', { detail: p });
+      else { ev = document.createEvent('CustomEvent'); ev.initCustomEvent('il-noah-profile', false, false, p); }
+      g.dispatchEvent(ev);
+    } catch (e2) {}
+    return p;
+  }
+
+  g.ILNoahAvatar = {
+    mount: mount,
+    syncFromApp: syncFromApp,
+    getProfile: getProfile,
+    saveProfile: saveProfile,
+    setProfilePatch: setProfilePatch,
+    AVATARS: AVATARS,
+    ACCENTS: ACCENTS,
+    INTENSITY: INTENSITY,
+    PROFILE_KEY: PROFILE_KEY,
+    VERSION: '2.0.0',
+    get instances() { return registry.slice(); }
+  };
+
+})(typeof window !== 'undefined' ? window : this);

@@ -1,0 +1,138 @@
+/**
+ * IL Noah Avatar — picker + personalization UI (Interstitium original).
+ * Dark-first; pairs with il-muse.css / il-muse-3d.css.
+ */
+
+/* 3D avatar gallery */
+.il-noah-3d-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (min-width: 560px) {
+  .il-noah-3d-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.il-noah-3d-card {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, #5EEAD4 22%, transparent);
+  background: linear-gradient(180deg, #0b1224 0%, #070B16 100%);
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.5rem 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+.il-noah-3d-card:hover { transform: translateY(-1px); }
+.il-noah-3d-card:focus-visible {
+  outline: 2px solid #5EEAD4;
+  outline-offset: 2px;
+}
+.il-noah-3d-card.is-on {
+  border-color: #5EEAD4;
+  box-shadow: 0 0 0 1px #5EEAD4, 0 0 22px color-mix(in srgb, #5EEAD4 25%, transparent);
+}
+.il-noah-3d-card__art {
+  height: 3.4rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.45rem;
+  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+}
+.il-noah-3d-card[data-noah-3d="monas"] .il-noah-3d-card__art {
+  background:
+    radial-gradient(circle at 50% 42%, #5EEAD4 0 8%, transparent 9%),
+    radial-gradient(ellipse 60% 34% at 50% 55%, transparent 52%, #D4A853 54% 58%, transparent 60%),
+    radial-gradient(ellipse 84% 46% at 50% 55%, transparent 62%, #5EEAD4 64% 68%, transparent 70%),
+    radial-gradient(120% 90% at 50% 10%, #12303a 0%, #070B16 70%);
+}
+.il-noah-3d-card[data-noah-3d="orrery"] .il-noah-3d-card__art {
+  background:
+    radial-gradient(circle at 50% 50%, #D4A853 0 7%, transparent 8%),
+    radial-gradient(ellipse 70% 30% at 50% 50%, transparent 55%, #5EEAD4 57% 60%, transparent 62%),
+    radial-gradient(ellipse 92% 40% at 50% 50%, transparent 66%, #D4A853 68% 71%, transparent 73%),
+    radial-gradient(circle at 68% 38%, #5EEAD4 0 3%, transparent 4%),
+    radial-gradient(120% 90% at 50% 10%, #141126 0%, #070B16 70%);
+}
+.il-noah-3d-card[data-noah-3d="sigil"] .il-noah-3d-card__art {
+  background:
+    radial-gradient(circle at 50% 50%, #A78BFA 0 9%, transparent 10%),
+    radial-gradient(circle at 50% 50%, transparent 40%, #A78BFA 42% 45%, transparent 47%),
+    radial-gradient(circle at 50% 50%, transparent 58%, #5EEAD4 60% 63%, transparent 65%),
+    radial-gradient(120% 90% at 50% 10%, #1a1440 0%, #070B16 70%);
+}
+.il-noah-3d-card[data-noah-3d="wisp"] .il-noah-3d-card__art {
+  background:
+    radial-gradient(circle at 42% 46%, #34D39955 0 18%, transparent 19%),
+    radial-gradient(circle at 60% 55%, #5EEAD433 0 22%, transparent 23%),
+    radial-gradient(circle at 52% 50%, #34D399 0 4%, transparent 5%),
+    radial-gradient(120% 90% at 50% 10%, #0c2620 0%, #070B16 70%);
+}
+.il-noah-3d-card__name {
+  display: block;
+  font-weight: 650;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+.il-noah-3d-card__hint {
+  display: block;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  opacity: 0.62;
+  margin-top: 0.15rem;
+}
+
+/* accent swatches */
+.il-noah-accents {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.il-noah-accent {
+  appearance: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+}
+.il-noah-accent:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.il-noah-accent.is-on {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #070B16, 0 0 14px currentColor;
+}
+
+/* motion intensity segmented control */
+.il-noah-intensity {
+  display: inline-flex;
+  border: 1px solid color-mix(in srgb, #5EEAD4 25%, transparent);
+  border-radius: 0.65rem;
+  overflow: hidden;
+}
+.il-noah-intensity button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  opacity: 0.65;
+}
+.il-noah-intensity button + button { border-left: 1px solid color-mix(in srgb, #5EEAD4 18%, transparent); }
+.il-noah-intensity button.is-on {
+  background: color-mix(in srgb, #5EEAD4 18%, transparent);
+  opacity: 1;
+  font-weight: 650;
+}
+.il-noah-intensity button:focus-visible { outline: 2px solid #5EEAD4; outline-offset: -2px; }
+
+/* reduced-motion: show the static WebGL frame (not the CSS fallback) for Noah avatars */
+@media (prefers-reduced-motion: reduce) {
+  .il-muse-3d[data-noah-avatar].is-webgl canvas { display: block !important; }
+  .il-muse-3d[data-noah-avatar].is-webgl .il-muse-3d__fallback { display: none !important; }
+  .il-noah-3d-card:hover { transform: none; }
+  .il-noah-3d-card, .il-noah-accent, .il-noah-intensity button { transition: none; }
+}
