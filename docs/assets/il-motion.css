@@ -253,7 +253,10 @@ html.il-demo .il-hero-field {
 }
 @media (max-width: 640px) {
   .il-hero-sigil {
-    width: min(48vw, 140px);
+    /* 2026-10-01: tuck into the corner on mobile — ambient decor, never
+     * tangles with the hero H1 (visual QA). Size set in il-chrome.css. */
+    top: 4%;
+    right: 2%;
   }
 }
 
@@ -412,5 +415,13 @@ html.il-level-flash body::after {
   }
   .il-aurora {
     opacity: 0.55;
+  }
+  /* 2026-10-01: reduced-motion gaps — flash, chip pulse, FX toasts. */
+  html.il-level-flash body::after,
+  .il-chip-pulse {
+    animation: none !important;
+  }
+  .il-fx-toast {
+    transition: none !important;
   }
 }

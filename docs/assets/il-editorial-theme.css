@@ -463,6 +463,11 @@ input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--gold);
 }
+/* 2026-10-01: themed placeholders (was UA default gray, ~3.9:1). */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
 
 /* ================================================================
  * §14 — Legacy FX neutralization (dark-optimized decoration)
@@ -534,3 +539,19 @@ section.relative.isolate {
     display: none !important;
   }
 }
+
+/* ================================================================
+ * §19 — Light-theme overrides for fixed-token bands (2026-10-01)
+ * .bg-ink/* and .bg-void/* restore the original Tailwind tokens
+ * (#0c1424 / #070b16): correct in dark mode, but they paint dark bands
+ * under dark light-mode text. These overrides swap them for near-paper
+ * surfaces under [data-theme="light"]. Same for .il-ux-card--quiet.
+ * ================================================================ */
+html[data-theme="light"] .bg-ink\/50 { background-color: rgba(22, 19, 14, 0.10); }
+html[data-theme="light"] .bg-ink\/40 { background-color: rgba(22, 19, 14, 0.07); }
+html[data-theme="light"] .bg-ink\/30 { background-color: rgba(22, 19, 14, 0.05); }
+html[data-theme="light"] .bg-void\/80 { background-color: rgba(247, 244, 238, 0.90); }
+html[data-theme="light"] .bg-void\/70 { background-color: rgba(247, 244, 238, 0.78); }
+html[data-theme="light"] .bg-void\/60 { background-color: rgba(247, 244, 238, 0.66); }
+html[data-theme="light"] .bg-void\/50 { background-color: rgba(247, 244, 238, 0.56); }
+html[data-theme="light"] .il-ux-card--quiet { background: rgba(var(--paper-rgb), 0.7); }

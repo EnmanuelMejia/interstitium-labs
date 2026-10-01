@@ -107,6 +107,10 @@ a { color: inherit; }
   padding: 0.55rem 0.9rem;
   border-radius: 999px;
   transition: background 0.18s ease, color 0.18s ease;
+  /* 2026-10-01: 44px touch target (was ~38px). */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 .il-pillnav__links a:hover { /* background: owned by il-theme.css */ color: var(--ink); }
 
@@ -124,6 +128,10 @@ a { color: inherit; }
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   color: var(--ink);
+  /* 2026-10-01: 44px touch target (was ~31px). */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 .il-menu summary::-webkit-details-marker { display: none; }
 .il-menu__sheet {
@@ -145,6 +153,24 @@ a { color: inherit; }
   font-weight: 500;
 }
 .il-menu__sheet a:hover { background: rgba(22, 19, 14, 0.05); }
+
+/* ---------- Skip link (WCAG 2.4.1) ---------- */
+.il-skip {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 200;
+  background: var(--gold);
+  color: var(--on-gold);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.il-skip:focus-visible { top: 1rem; }
 
 /* ---------- Buttons ---------- */
 .il-btn {
@@ -219,12 +245,32 @@ a { color: inherit; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgba(7, 11, 22, 0.55) 0%, rgba(7, 11, 22, 0.25) 45%, rgba(7, 11, 22, 0.78) 100%);
+  /* 2026-10-01: cinematic grade — vertical scrim + vignette for video legibility. */
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(7, 11, 22, 0.5) 100%),
+    linear-gradient(180deg, rgba(7, 11, 22, 0.62) 0%, rgba(7, 11, 22, 0.28) 40%, rgba(7, 11, 22, 0.82) 100%);
 }
 .il-hero h1 {
   font-size: clamp(2.6rem, 7vw, 5.2rem);
   max-width: 16ch;
   margin: 0 auto;
+  /* 2026-10-01: cinematic type — balanced lines, tight tracking, video legibility. */
+  text-wrap: balance;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  text-shadow: 0 2px 34px rgba(7, 11, 22, 0.55);
+}
+/* 2026-10-01: hero entrance — staggered fade-up, premium motion. */
+@keyframes il-hero-enter {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.il-hero h1 { animation: il-hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.il-hero__sub { animation: il-hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
+.il-hero__cta { animation: il-hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both; }
+.il-hero__motto { animation: il-hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.36s both; }
+@media (prefers-reduced-motion: reduce) {
+  .il-hero h1, .il-hero__sub, .il-hero__cta, .il-hero__motto { animation: none; }
 }
 .il-hero__sub {
   max-width: 38rem;
@@ -245,6 +291,12 @@ a { color: inherit; }
 /* ---------- Sections ---------- */
 .il-section { padding: 6rem 0; }
 .il-section--tight { padding: 4rem 0; }
+/* 2026-10-01: cinematic rhythm — flagship moments get more air. */
+.il-section--loose { padding: 8.5rem 0; }
+@media (max-width: 640px) {
+  .il-section { padding: 4.5rem 0; }
+  .il-section--loose { padding: 6rem 0; }
+}
 .il-section__head { text-align: center; max-width: 44rem; margin: 0 auto 3.5rem; }
 .il-section__head p { color: var(--muted); margin: 1.25rem 0 0; font-size: 1.1rem; }
 .il-rule { border: 0; border-top: 1px solid var(--hairline); margin: 0; }
@@ -390,7 +442,7 @@ a { color: inherit; }
 @media (min-width: 768px) { .il-footer__grid { grid-template-columns: 1.2fr 1fr 1fr; } }
 .il-footer__brand { display: flex; align-items: center; gap: 0.8rem; text-decoration: none; margin-bottom: 1rem; }
 .il-footer__brand img { width: 2.6rem; height: 2.6rem; border-radius: 0.7rem; }
-.il-footer h4 { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); margin: 0 0 1rem; }
+.il-footer h2 { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); margin: 0 0 1rem; }
 .il-footer ul { list-style: none; margin: 0; padding: 0; }
 .il-footer li { margin: 0.55rem 0; }
 .il-footer ul a { text-decoration: none; color: var(--ink-soft); font-size: 0.95rem; }

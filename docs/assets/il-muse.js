@@ -603,6 +603,14 @@
   function mount(el) {
     if (!el || el.getAttribute('data-il-muse-ready')) return;
     var state = load();
+    /* Noah 3D avatar profile (il-noah-profile) overlays the widget state:
+       display name + avatar + accent + intensity apply on every page load. */
+    try {
+      if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) {
+        var __nprof = g.ILNoahAvatar.getProfile();
+        if (__nprof && __nprof.name) state.name = __nprof.name;
+      }
+    } catch (eProf) {}
     var statusKey = 'idle';
     var panelTab = 'goals';
     var recognition = null;
@@ -764,9 +772,22 @@
     }
 
     function attachMuse3d() {
+      var cinema = !!app.closest('[data-il-cinema], .il-cinema-muse-host');
+      /* Prefer the full Noah 3D avatar system (profile-driven); fall back to legacy stage. */
+      if (g.ILNoahAvatar && typeof g.ILNoahAvatar.syncFromApp === 'function') {
+        try {
+          var ninst = g.ILNoahAvatar.syncFromApp(app, { cinema: cinema });
+          if (ninst) {
+            app.__ilNoahAvatar = ninst;
+            app.__ilMuse3d = ninst; /* compat: setStatus forwarder uses __ilMuse3d */
+            ninst.setStatus(statusKey);
+            return;
+          }
+        } catch (eN3d) {}
+      }
       if (!g.ILMuse3D || typeof g.ILMuse3D.syncFromApp !== 'function') return;
       var inst = g.ILMuse3D.syncFromApp(app, {
-        cinema: !!app.closest('[data-il-cinema], .il-cinema-muse-host')
+        cinema: cinema
       });
       if (inst) {
         app.__ilMuse3d = inst;
@@ -978,7 +999,7 @@
           ? '<button type="button" class="il-muse-send il-muse-send--stop" data-muse-stop title="Stop / interrupt">Stop</button>'
           : '<button type="submit" class="il-muse-send" data-i18n="muse.send">Send</button>') +
         '</form>' + voiceFb +
-        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Noah is the assistant. Not a filmed character, and not another company's product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or a filmed assistant. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
+        '<p class="il-muse-disclaimer"><strong>Honesty:</strong> Noah is the assistant. Not a filmed character, and not another company’s product. Avatar theme inspired by historical John Dee (Monas / hermetic scholar energy); Interstitium original artwork — not a museum portrait or a filmed assistant. Voice = browser Web Speech. Models: local rules by default; Ollama / lab-control optional. No fake API keys. Prefer lean tier; scale when demand grows.</p>' +
         '</div></section>';
     }
 
@@ -1184,6 +1205,60 @@
         '</div>';
     }
 
+    function noahProfile() {
+      try {
+        if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) return g.ILNoahAvatar.getProfile();
+      } catch (e) {}
+      return { avatar: 'monas', name: 'Noah', accent: 'cyan', intensity: 'balanced' };
+    }
+
+    /* 3D avatar gallery + accent + motion personalization (il-noah-profile). */
+    function noahAvatarPanel() {
+      var P = noahProfile();
+      var list = (g.ILNoahAvatar && g.ILNoahAvatar.AVATARS) || [
+        { id: 'monas', label: 'Monas', hint: 'Crystalline Monas · orrery rings' },
+        { id: 'orrery', label: 'Orrery', hint: 'Ringed worlds · orbital mechanics' },
+        { id: 'sigil', label: 'Sigil Core', hint: 'Radiant sigil · counter-rotating glyph rings' },
+        { id: 'wisp', label: 'Wisp', hint: 'Nebula ghost · drifting star-wisp' }
+      ];
+      var accents = (g.ILNoahAvatar && g.ILNoahAvatar.ACCENTS) || {
+        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#D4A853' },
+        violet: { label: 'Violet', css: '#A78BFA' }, emerald: { label: 'Emerald', css: '#34D399' }
+      };
+      var inten = (g.ILNoahAvatar && g.ILNoahAvatar.INTENSITY) || {
+        calm: { label: 'Calm' }, balanced: { label: 'Balanced' }, vivid: { label: 'Vivid' }
+      };
+      var cards = list.map(function (a) {
+        var on = P.avatar === a.id;
+        return '<button type="button" class="il-noah-3d-card' + (on ? ' is-on' : '') + '" data-noah-3d-pick="' + esc(a.id) + '"' +
+          ' data-noah-3d="' + esc(a.id) + '" role="radio" aria-checked="' + (on ? 'true' : 'false') + '"' +
+          ' title="' + esc(a.hint || a.label) + '">' +
+          '<span class="il-noah-3d-card__art" aria-hidden="true"></span>' +
+          '<span class="il-noah-3d-card__name">' + esc(a.label) + '</span>' +
+          '<span class="il-noah-3d-card__hint">' + esc(a.hint || '') + '</span></button>';
+      }).join('');
+      var sw = Object.keys(accents).map(function (key) {
+        var ac = accents[key];
+        var on = P.accent === key;
+        return '<button type="button" class="il-noah-accent' + (on ? ' is-on' : '') + '" data-noah-accent-pick="' + esc(key) + '"' +
+          ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '" title="' + esc(ac.label) + '" aria-label="Accent ' + esc(ac.label) + '"' +
+          ' style="background:' + esc(ac.css) + ';color:' + esc(ac.css) + '"></button>';
+      }).join('');
+      var seg = Object.keys(inten).map(function (key) {
+        var on = P.intensity === key;
+        return '<button type="button" class="' + (on ? 'is-on' : '') + '" data-noah-intensity-pick="' + esc(key) + '"' +
+          ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '">' + esc(inten[key].label) + '</button>';
+      }).join('');
+      return '<div class="il-muse-field"><label>3D avatar</label>' +
+        '<div class="il-noah-3d-gallery" role="radiogroup" aria-label="3D avatar">' + cards + '</div>' +
+        '<p class="hint">Live 3D stage · renders on-device in your browser, no cloud. Switches instantly and reacts to Idle / Listening / Thinking / Speaking.</p></div>' +
+        '<div class="il-muse-field"><label>Accent</label>' +
+        '<div class="il-noah-accents" role="radiogroup" aria-label="Accent color">' + sw + '</div></div>' +
+        '<div class="il-muse-field"><label>Motion</label>' +
+        '<div class="il-noah-intensity" role="radiogroup" aria-label="Animation intensity">' + seg + '</div>' +
+        '<p class="hint">Your OS reduced-motion setting always wins — then the avatar renders a single still frame.</p></div>';
+    }
+
     function settingsPanel(vs) {
       var voices = listVoices();
       var vopts = '<option value="">Browser default</option>' + voices.map(function (v) {
@@ -1203,6 +1278,7 @@
             '<span>' + esc(a.label) + '</span></button>';
         }).join('') + '</div>' +
         '<p class="hint">Default: Dee (Monas-derived). Alts: Interstitium sigil / scholar cap. Original artwork.</p></div>' +
+        noahAvatarPanel() +
         '<div class="il-muse-field"><label>Personality</label><input data-muse-personality value="' + esc(state.personality) + '"/></div>' +
         '<div class="il-muse-field"><label>Tone</label><select data-muse-tone">' +
         ['coach', 'terse', 'warm', 'exam-strict'].map(function (t) {
@@ -1512,6 +1588,16 @@
         var ton = app.querySelector('[data-muse-tone]');
         var vo = app.querySelector('[data-muse-voice]');
         if (n) state.name = n.value.trim() || 'Noah';
+        /* keep the Noah 3D profile name in sync (il-noah-profile) */
+        try {
+          if (g.ILNoahAvatar && g.ILNoahAvatar.setProfilePatch) {
+            g.ILNoahAvatar.setProfilePatch({ name: state.name });
+          } else if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) {
+            var __pp = g.ILNoahAvatar.getProfile(); __pp.name = state.name;
+            g.ILNoahAvatar.saveProfile(__pp);
+          }
+          if (app.__ilNoahAvatar && app.__ilNoahAvatar.setName) app.__ilNoahAvatar.setName(state.name);
+        } catch (eName) {}
         if (p) state.personality = p.value.trim() || state.personality;
         if (ton) state.tone = ton.value;
         if (vo) state.voiceURI = vo.value;
@@ -1525,6 +1611,38 @@
           state.avatarId = id;
           pushActivity(state, 'Avatar · ' + avatarById(id).label);
           persist(); render();
+        });
+      });
+      /* Noah 3D avatar system: gallery / accent / motion — live, persisted to il-noah-profile */
+      function noahPatch(patch, activityText) {
+        if (!g.ILNoahAvatar || !g.ILNoahAvatar.setProfilePatch) return;
+        g.ILNoahAvatar.setProfilePatch(patch);
+        if (activityText) pushActivity(state, activityText);
+        render();
+      }
+      app.querySelectorAll('[data-noah-3d-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-noah-3d-pick');
+          var known = g.ILNoahAvatar && g.ILNoahAvatar.AVATARS &&
+            g.ILNoahAvatar.AVATARS.some(function (a) { return a.id === id; });
+          if (!known) return;
+          noahPatch({ avatar: id }, '3D avatar · ' + id);
+        });
+      });
+      app.querySelectorAll('[data-noah-accent-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-noah-accent-pick');
+          var known = g.ILNoahAvatar && g.ILNoahAvatar.ACCENTS && g.ILNoahAvatar.ACCENTS[key];
+          if (!known) return;
+          noahPatch({ accent: key }, 'Accent · ' + known.label);
+        });
+      });
+      app.querySelectorAll('[data-noah-intensity-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-noah-intensity-pick');
+          var known = g.ILNoahAvatar && g.ILNoahAvatar.INTENSITY && g.ILNoahAvatar.INTENSITY[key];
+          if (!known) return;
+          noahPatch({ intensity: key }, 'Motion · ' + known.label);
         });
       });
       var memAdd = app.querySelector('[data-muse-mem-add]');
