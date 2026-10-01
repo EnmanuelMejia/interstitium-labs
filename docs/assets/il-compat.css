@@ -68,12 +68,15 @@ header.no-print.sticky,
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
-/* Opaque fallback when backdrop-filter unavailable */
+/* Opaque fallback when backdrop-filter unavailable.
+ * 2026-10-01: was hardcoded dark rgba(7,11,22,0.96) — painted a dark
+ * navy header in light mode on legacy browsers. Theme-aware via
+ * --paper-rgb so the fallback matches the active theme. */
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   header.sticky,
   header.no-print.sticky,
   .backdrop-blur-md {
-    background-color: rgba(7, 11, 22, 0.96) !important;
+    background-color: rgba(var(--paper-rgb), 0.96) !important;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

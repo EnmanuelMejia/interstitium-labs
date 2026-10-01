@@ -21,7 +21,13 @@
   }
 
   function loadState() {
-    var s = safeParse(global.localStorage.getItem(STORAGE), null);
+    var raw = null;
+    try {
+      raw = global.localStorage.getItem(STORAGE);
+    } catch (e) {
+      /* private mode — fall through to default state */
+    }
+    var s = safeParse(raw, null);
     if (!s || typeof s !== "object") {
       s = { version: 1, paths: {}, updated: null };
     }

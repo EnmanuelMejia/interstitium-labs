@@ -32,6 +32,9 @@ html {
   --gold: #d2a53f;
   --gold-deep: #c6a572;
   --gold-soft: rgba(210, 165, 63, 0.12);
+  /* Text color for gold CTA surfaces. #16130e on --gold = 8.1:1 (dark)
+   * and 5.7:1 (light) — AA in both themes. White failed (2.3 / 3.2). */
+  --on-gold: #16130e;
   --void: #070b16;
   --void-ink: #f2ede1;
   --void-muted: rgba(242, 237, 225, 0.66);
@@ -66,6 +69,8 @@ html[data-theme="light"] {
   --gold: #b8862f;
   --gold-deep: #96690f;
   --gold-soft: rgba(184, 134, 47, 0.12);
+  /* Same value as dark: --on-gold passes on --gold in both themes. */
+  --on-gold: #16130e;
   --void: #070b16;
   --void-ink: #f2ede1;
   --void-muted: rgba(242, 237, 225, 0.66);
@@ -100,6 +105,16 @@ html[data-theme="light"] .il-pillnav {
 }
 .il-btn--ghost:hover {
   background: rgba(var(--ink-rgb), 0.06);
+}
+
+/* Gold CTA buttons (.il-btn--gold, legacy bg-paper/text-void CTAs): dark
+ * ink text on gold passes AA in both themes (white failed: 2.3 dark /
+ * 3.2 light). Hover deepens to gold-deep; in light mode gold-deep needs
+ * white text (4.9), while dark mode keeps ink (8.0). (2026-10-01) */
+html[data-theme="light"] .il-btn--gold:hover,
+html[data-theme="light"] a.bg-paper.text-void:hover,
+html[data-theme="light"] button.bg-paper.text-void:hover {
+  color: #fff;
 }
 
 /* Mobile menu sheet: explicit surface + text colors so the dropdown

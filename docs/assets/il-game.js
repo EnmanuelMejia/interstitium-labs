@@ -226,7 +226,13 @@
   }
 
   function load() {
-    var s = safeParse(global.localStorage.getItem(STORAGE_KEY), null);
+    var raw = null;
+    try {
+      raw = global.localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      /* private mode — fall through to default state */
+    }
+    var s = safeParse(raw, null);
     if (!s || typeof s !== "object") s = defaultState();
     if (s.v !== 1) s.v = 1;
     s.xp = Math.max(0, Number(s.xp) || 0);
