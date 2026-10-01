@@ -1,9 +1,12 @@
-/* Interstitium Labs service worker — self-healing shell (2026-10-01)
+/* Interstitium Labs service worker — self-healing shell (2026-10-01, heal2)
  *
  * This worker exists to REPAIR poisoned offline state, then stay healthy.
  * - On activate it deletes EVERY cache it can see (including all older
  *   il-sw-* shell/page caches), so stale or half-written entries from
  *   previous workers can never be served again.
+ * - After the purge it reloads every open tab (except form/stateful pages),
+ *   so a device stuck on a poisoned render heals visibly without the user
+ *   having to clear site data.
  * - HTML navigations are network-first: visitors always get the newest page.
  * - Static assets are stale-while-revalidate: instant render from cache when
  *   present, but every entry is revalidated in the background on each visit,
@@ -12,7 +15,7 @@
  * - Sensitive/volatile paths are network-only.
  * - Same-origin only; third-party (fonts, CDNs) is never intercepted.
  */
-const SW_VERSION = "il-sw-2026-10-01-heal";
+const SW_VERSION = "il-sw-2026-10-01-heal2";
 const SHELL_CACHE = SW_VERSION + "-shell";
 const PAGE_CACHE = SW_VERSION + "-pages";
 
@@ -56,6 +59,25 @@ self.addEventListener("activate", (event) => {
       // The fresh caches for this version are (re)created lazily below.
       .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+      // Make the heal visible: reload open tabs so a poisoned render is
+      // replaced by a fully fresh one. Skip form/stateful pages so in-progress
+      // input is never yanked out from under the visitor.
+      .then(() => self.clients.matchAll({ type: "window", includeUncontrolled: true }))
+      .then((clients) =>
+        Promise.all(
+          clients.map((client) => {
+            try {
+              const u = new URL(client.url);
+              if (u.origin !== self.location.origin) return Promise.resolve();
+              if (u.pathname.startsWith("/enroll/") || u.search) return Promise.resolve();
+              return client.navigate(client.url).catch(() => {});
+            } catch (_) {
+              return Promise.resolve();
+            }
+          })
+        )
+      )
+      .catch(() => {})
   );
 });
 
