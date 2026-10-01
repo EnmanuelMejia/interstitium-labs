@@ -1,7 +1,7 @@
 /**
  * IL Immersive 3D — curriculum stage player (lectures / labs / cert / non-cert).
  * Self-contained WebGL (CSP script-src 'self'; no CDN Three).
- * Procedural scenes: hermetic | rack | k8s. Native .glb load via ILSceneKit.parseGlb (no Three CDN).
+ * Procedural scenes: hermetic | rack | k8s | math (math reuses the hermetic geometric renderer). Native .glb load via ILSceneKit.parseGlb (no Three CDN).
  * NOT Noah avatar — that is il-muse-3d.js (coach familiar only).
  * Sibling optional: il-scene-kit.js + il-immersive.js (data-kind hosts / demo /immersive/).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
@@ -208,6 +208,13 @@
       { id: 'invoke', label: 'Invoke sigil' },
       { id: 'transcribe', label: 'Transcribe' }
     ],
+    /* 2026-10-01: math scene — reuses the geometric (hermetic) renderer
+     * with math-appropriate clip labels. Same clip ids, same behaviors. */
+    math: [
+      { id: 'idle', label: 'Idle diagram' },
+      { id: 'invoke', label: 'Construct figure' },
+      { id: 'transcribe', label: 'Trace construction' }
+    ],
     rack: [
       { id: 'idle', label: 'Idle racks' },
       { id: 'fail', label: 'Node fail' },
@@ -226,6 +233,11 @@
       invoke: 'Clip: invoke — gold accent pulse on the sigil axis.',
       transcribe: 'Clip: transcribe — cyan sweep across the tablet plane.'
     },
+    math: {
+      idle: 'Math lecture — geometric constructions as living diagram (procedural v1).',
+      invoke: 'Clip: construct — gold accent pulse along the figure axis.',
+      transcribe: 'Clip: trace — cyan sweep across the construction plane.'
+    },
     rack: {
       idle: 'Immersive lab — 19″ rack row (procedural). Real .glb optional under /assets/immersive/.',
       fail: 'Clip: fail — amber bay indicates fault domain.',
@@ -240,6 +252,7 @@
 
   function resolveScene(raw){
     var s = (raw || 'k8s').toLowerCase();
+    if (s.indexOf('math') >= 0) return 'math';
     if (s.indexOf('hermetic') >= 0 || s.indexOf('monas') >= 0) return 'hermetic';
     if (s.indexOf('rack') >= 0 || s.indexOf('server') >= 0 || s.indexOf('dc') >= 0) return 'rack';
     return 'k8s';
@@ -729,7 +742,7 @@
 
     if (this._authoredOk && this._authored && this._authored.length) {
       this._renderAuthored(P, V, time, amp);
-    } else if (this.cfg.scene === 'hermetic') {
+    } else if (this.cfg.scene === 'hermetic' || this.cfg.scene === 'math') {
       this._renderHermetic(P, V, time, amp);
     } else if (this.cfg.scene === 'rack') {
       this._renderRack(P, V, time, amp);
@@ -808,7 +821,7 @@
     resolveScene: resolveScene,
     version: '1.3.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
-    scenes: ['hermetic', 'rack', 'k8s'],
+    scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
     webgpuFlag: true,
     gltfLectureHook: true,
