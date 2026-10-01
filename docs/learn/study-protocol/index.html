@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>The Deep Work Study Protocol — how this site teaches | Interstitium Labs</title>
+<meta name="description" content="How every track on this site is designed to be learned: distraction-free long-form pages built for 90-minute deep sessions, time-blocked study rhythm, attention training, depth measured in artifacts — Cal Newport's philosophy applied to curriculum delivery."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/study-protocol/"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · How this site teaches</p>
+    <h1 class="il-h">The Deep Work Study Protocol.</h1>
+    <p class="il-hero__sub">Cal Newport's philosophy — the ability to focus without distraction on cognitively demanding tasks is rare and increasingly valuable — applied to the design of this entire curriculum: what the pages are, how the sessions run, and what counts as done.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#protocol">Read the protocol</a>
+      <a class="il-btn" href="/learn/deep-work/">The Deep Work track</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The premise</p>
+        <h2 class="il-h il-h--section" id="overview-h">A curriculum is a delivery system for attention.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Most online learning is engineered against the learner. Feeds, recommendations, autoplay, notifications, progress bars that reward clicking — every mechanism that keeps you on the platform is a mechanism that fragments the attention the material actually requires. Cal Newport, the Georgetown computer science professor (MIT PhD 2009) whose books <em>Deep Work</em> (2016), <em>Digital Minimalism</em> (2019), <em>A World Without Email</em> (2021), and <em>Slow Productivity</em> (2024) form this site's philosophy of learning, gives the counter-principle: the ability to focus without distraction on cognitively demanding tasks is becoming rare at exactly the moment it is becoming increasingly valuable. This site is built on the assumption that the principle is true — and so the entire curriculum is designed as a delivery system for sustained attention, not for engagement.</p>
+        <p>What follows is the protocol: five commitments that shape every track page, every module, and every lab on this site. They are stated here so you can hold the site to them — and so you can run your own study life on the same rules. For the full philosophy behind the protocol, the companion track is <a href="/learn/deep-work/">Deep Work — Cal Newport's attention philosophy for technical mastery</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- (a) Distraction-free by design -->
+  <section class="il-section" id="protocol" aria-labelledby="distraction-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Commitment one</p>
+        <h2 class="il-h il-h--section" id="distraction-h">Distraction-free by design.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The pages are long on purpose. A track module is a single long-form page — prose, diagrams in words, labs, self-checks — because the material is cognitively demanding and cognitively demanding material needs unbroken time. There is no feed to scroll, no sidebar of recommendations competing for the next click, no autoplay, no notification layer, no infinite anything. The page you opened is the page you study; when it ends, the session ends.</p>
+        <p>This is the craftsman approach to tool selection applied to the site itself: a learning platform should earn its place by serving the deep work of its students, and every feature that does not serve that work is a liability. So the features that are missing are missing deliberately. What remains is the reading surface, the lab instructions, and the self-checks — the smallest set of tools that supports ninety minutes of real concentration.</p>
+        <p>The design asks one thing of you in return: bring the same discipline to your side of the screen. The page cannot silence your phone. Study sessions on this site assume the device rules from the deep-work track — notifications off, the phone in another room, one tab open. The site holds up its end of the bargain by never manufacturing a distraction; the protocol asks you to hold up yours by never importing one.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- (b) The study rhythm -->
+  <section class="il-section" aria-labelledby="rhythm-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Commitment two</p>
+        <h2 class="il-h il-h--section" id="rhythm-h">The study rhythm: one module, one deep session.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Every track on this site is paced in time-blocked sessions, and the unit is the module. One module is one 90-minute deep session: read the prose, work the lab, answer the self-checks in writing, produce the artifact. The pages are written to that length — long enough to go deep, short enough to finish in a single defended block. A track of eight modules is eight sessions; a track of fourteen is fourteen. There is no hidden homework and no assumed background reading beyond what the page itself contains.</p>
+        <p>The rhythm comes from Newport's time-blocking method: plan the study day in advance, assign every block, revise when reality intrudes. A typical protocol day holds one or two module blocks, a shallow batch for messages and logistics, and a fixed shutdown time. The fixed end of the day is what makes the blocks honest — when the day cannot stretch, you are forced to protect the deep hours instead of borrowing against the evening.</p>
+        <p>Run one track at a time. The slow-productivity principle — do fewer things — applies to curricula as much as to careers: three half-finished tracks are worth less than one finished slowly, because unfinished modules leave no artifacts and artifacts are the only durable product of study. Start the next track when the current one's capstone is defended, not when you are bored of it. Boredom, as the deep-work track teaches, is the workout.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- (c) Attention training -->
+  <section class="il-section" aria-labelledby="attention-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Commitment three</p>
+        <h2 class="il-h il-h--section" id="attention-h">Attention training is part of the curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Concentration is trainable, and the training is tolerating boredom without reaching for a device. The protocol builds that training into the work itself rather than treating it as a separate exercise. Every module's hardest stretch — the lab that will not yield, the proof that will not crack, the self-check you cannot yet answer — is the workout. The ten minutes of staring at a problem are not the failure of the session; they are the session doing its real work on you.</p>
+        <p>Two rituals structure the training. The <strong>shutdown ritual</strong> closes each study day: capture every unfinished item into a trusted system, name tomorrow's first deep block, and end with a phrase that marks work as done. Its purpose is to stop the mind rehearsing open loops all evening, so tomorrow's first session starts clean — attention residue from yesterday's unfinished business is as costly as residue from this morning's phone check. The <strong>weekly review</strong>, no longer than twenty minutes, looks back at the week's deep hours and artifacts and forward at next week's blocks. It is the only meeting your study life needs, and it replaces the ambient anxiety of "am I behind?" with a number you can read.</p>
+        <p>The protocol also assumes asynchronous collaboration. Study groups and mentors coordinate through written weekly updates and one fixed synchronous hour, not through always-on chat — the hyperactive hive mind, where constant messaging keeps everyone interruptible, is the enemy of exactly the attention this curriculum is built to protect. Questions that can wait for the weekly hour wait for the weekly hour.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- (d) Depth metrics -->
+  <section class="il-section" aria-labelledby="metrics-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Commitment four</p>
+        <h2 class="il-h il-h--section" id="metrics-h">Depth metrics: done means artifacts, not hours.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Hours logged are a vanity metric. A student can sit with a page open for three hours and produce nothing; another can produce a working lab and a written proof in ninety minutes. The protocol measures depth, and depth leaves evidence. A module is done when three things exist: the <strong>lab is completed</strong> — the thing runs, the transaction decodes, the contract deploys; the <strong>self-checks are passed in writing</strong> — answered in your own words, on paper or in a notebook, not nodded at in your head; and the <strong>artifact is built</strong> — the diagram, the brief, the script, the defended answer that proves the module changed what you can do.</p>
+        <p>The weekly review tracks three numbers: deep hours (time in defended, distraction-free blocks), modules completed to the artifact standard, and capstones defended. That is the whole dashboard. No streaks, no points, no leaderboard — gamification is shallow-work instrumentation, and it optimizes for the appearance of learning. The protocol optimizes for the only metric that compounds: rare skill, demonstrated.</p>
+        <p>This is the craftsman mindset made operational. Do not ask whether you finished the track; ask whether you can do the thing the track teaches. The capstone of every track is a defended deliverable — a brief, a system, a design — because the ability to defend a choice under questioning is the difference between having read about a subject and having learned it.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- (e) Slow-productivity pacing -->
+  <section class="il-section" aria-labelledby="pacing-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Commitment five</p>
+        <h2 class="il-h il-h--section" id="pacing-h">Slow-productivity pacing across tracks.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The final commitment is about pace: fewer things, natural rhythm, quality over quantity. The site will keep publishing tracks — the knowledge operating system is meant to be vast — and the protocol's answer to vastness is deliberately unhurried. Master one track before starting the next. Let a hard module take two sessions instead of one. Take weeks off between tracks when life demands it; the curriculum does not expire, and intensity varies with the seasons of a real life.</p>
+        <p>This is the direct antidote to completionism — the disease of racing through modules to collect finished checkmarks while retaining nothing. A year spent mastering three tracks to the artifact standard, able to defend every capstone, beats a year spent skimming twelve. The knowledge worker's version of Newport's third principle applies here too: obsess over quality. The work that matters is the work done well, and in learning, the work done well is the work you can still do a year later.</p>
+        <p>None of this is new. It is simply the oldest pedagogy — read deeply, practice deliberately, demonstrate mastery — restated for an age of infinite distraction and applied, consistently, to every page on this site. The protocol is the site's promise: nothing here will ever be redesigned to keep you scrolling, because scrolling is the opposite of what the site is for.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/deep-work/">Study the philosophy behind the protocol</a>
+        <a class="il-btn" href="/learn/" style="margin-left:.75rem">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a><a href="/learn/turing/" class="hover:text-paper">Turing</a><a href="/learn/cybernetics/" class="hover:text-paper">Cybernetics</a><a href="/learn/esoteric/" class="hover:text-paper">Esoteric</a><a href="/learn/bernays/" class="hover:text-paper">Bernays</a><a href="/learn/philosophy/" class="hover:text-paper">Philosophy</a><a href="/learn/deep-work/" class="hover:text-paper">Deep Work</a><a href="/learn/study-protocol/" class="hover:text-paper">Study Protocol</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
