@@ -56,10 +56,15 @@
     }
   }
 
-  /** Native default launch → Lab Muse companion (/coach/). Web PWA keeps site home. */
+  /** Native default launch → Lab Muse companion (/coach/). Web PWA keeps site home.
+   * The sync pipeline serves the coach entry directly at www/ root, so cold
+   * start is a single page load; this redirect is a fallback for older
+   * bundles, and never fires when the coach page is already rendered
+   * (body.il-muse-page marker). */
   function openLabMuseHome() {
     if (!isCapacitor()) return;
     try {
+      if (document.body && document.body.classList.contains("il-muse-page")) return;
       var path = (global.location && global.location.pathname) || "/";
       if (path === "/" || path === "/index.html" || path === "") {
         if (global.sessionStorage && global.sessionStorage.getItem("il-muse-home") === "1") return;
@@ -73,11 +78,26 @@
     try {
       var SB = global.Capacitor && global.Capacitor.Plugins && global.Capacitor.Plugins.StatusBar;
       if (SB) {
-        await SB.setStyle({ style: "DARK" });
+        // LIGHT = light status-bar content for the void background.
+        await SB.setStyle({ style: "LIGHT" });
         // Android 15+ draws edge-to-edge; the status bar colour only applies on iOS.
         var platform = global.Capacitor.getPlatform ? global.Capacitor.getPlatform() : "";
         if (platform !== "android") await SB.setBackgroundColor({ color: "#070B16" });
       }
+    } catch (_) {}
+  }
+
+  /** Deliberate splash behavior: hide exactly when the page is interactive.
+   * capacitor.config.ts sets launchAutoHide: false, so the splash never hides
+   * ambiguously; the 5s fallback covers a hung first paint. Defensive: every
+   * plugin call is guarded, failures are silent. */
+  var splashHidden = false;
+  function hideSplash() {
+    if (splashHidden) return;
+    splashHidden = true;
+    try {
+      var SP = global.Capacitor && global.Capacitor.Plugins && global.Capacitor.Plugins.SplashScreen;
+      if (SP && SP.hide) SP.hide();
     } catch (_) {}
   }
 
@@ -88,6 +108,7 @@
     initBiometricLockStub: initBiometricLockStub,
     applyVoidChrome: applyVoidChrome,
     openLabMuseHome: openLabMuseHome,
+    hideSplash: hideSplash,
     isCapacitor: isCapacitor,
   };
 
@@ -95,9 +116,13 @@
     document.addEventListener("DOMContentLoaded", function () {
       applyVoidChrome();
       openLabMuseHome();
+      hideSplash();
     });
   } else {
     applyVoidChrome();
     openLabMuseHome();
+    hideSplash();
   }
+  // Safety net: never leave the splash up longer than 5s even if DOMContentLoaded stalls.
+  setTimeout(hideSplash, 5000);
 })(typeof window !== "undefined" ? window : this);
