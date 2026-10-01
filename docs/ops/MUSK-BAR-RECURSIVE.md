@@ -1,9 +1,53 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-09-29 ~09:15 EDT (America/New_York)._  
+_Last updated: 2026-10-01 ~09:00 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
 
-## Verdict — 2026-09-29 morning pass
+## Verdict — 2026-10-01 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? |
+| After this ship | **Closer / still NO** | Blender **CLI polish** on priority + new pedagogical `.glb` landed. Pixel Streaming bring-up helpers + health/ICE. Still **no live UE host**, **no hosted lab fleet**, polish is CLI not hand-sculpted artist sets. |
+| Fake YES risk | Rejected | Provenance honest: Blender 4.2.3 CLI shade-smooth/weighted-normals/LOD1 on kit meshes. Dev signaling echo labeled NOT UE media. |
+
+## Scorecard (0–10) — 2026-10-01
+
+| Dimension | Prior (09-30) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 8.2 | **8.5** | CNI + RBAC + mesh spatial scenes + polished surfaces |
+| Motion / graphics | 8.0 | **8.4** | Real Blender CLI polish path executed (not handoff-only) |
+| Adaptive learning | 7 | 7 | Unchanged |
+| Live labs density | 6.0 | 6.0 | Still no hosted fleet (do not fake) |
+| Noah | 7.5 | 7.6 | Muse glTF Blender-polished |
+| Model router | 5 | 5 | — |
+| Career prep | 7.5 | 7.5 | — |
+| Honesty / trust | 9.6 | **9.7** | PS health probe distinguishes dev-echo vs UE offer |
+| Mobile / ultrawide | 6 | 6 | sync-mobile-web after ship |
+| Curriculum SoT | 7.5 | **8.0** | assets3d + labs/certs/lectures wired for new scenes |
+| Immersive / 3D gate | 7.5 | **8.2** | Blender polish A-path closed; B/C still open |
+
+**Composite ~7.7/10. Musk YES? NO — Closer.** Remaining blockers: (B) live UE Pixel Streaming host, (C) hosted lab fleet, plus optional hand-sculpted artist polish beyond CLI.
+
+## Shipped this pass (2026-10-01)
+
+1. **Blender 4.2.3 LTS** installed on authoring box; `blender_polish_glb.py` hardened (`--all`, `--promote`, fail-loud without `--write-only`)
+2. **CLI-polished + promoted** `.glb`: cert-cka, cka-etcd-quorum, muse-dee-monas, lecture-k8s-control-plane, cni-pod-network, rbac-authz-graph, service-mesh-sidecar
+3. **New competitive pedagogical scenes**: `cni-pod-network.glb`, `rbac-authz-graph.glb`, optional `service-mesh-sidecar.glb` — wired into curriculum OS + `/immersive/`
+4. **Pixel Streaming honesty**: `scripts/pixel-streaming/dev-signaling-echo.py` + `docs/ops/pixel-streaming/`; client v1.1.0 health probe + ICE localStorage
+5. Recursive competitor note updated (this file + COMPETITIVE-AUDIT)
+
+## Competitor delta (this pass)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
+| Brilliant / Codecademy / ALEKS | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
+| Peer LMS 3D | Mostly video / 2D diagrams | IL ships polished glTF binaries + honest UE PS bring-up path |
+
+---
+
+## Prior verdict — 2026-09-29 morning pass
 
 | Checkpoint | Impressed? | Why |
 |---|:---:|---|

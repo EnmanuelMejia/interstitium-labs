@@ -1,6 +1,6 @@
 # Unreal + Blender pipeline (P920)
 
-_Last updated: 2026-09-30 ~09:10 EDT (America/New_York)._  
+_Last updated: 2026-10-01 ~09:00 EDT (America/New_York)._  
 _Authoring host:_ Lenovo ThinkStation **P920** · _Site delivery:_ Cloudflare Pages `docs/`
 
 ## Goal
@@ -62,6 +62,8 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 | Hermetica / Monas lecture | `hermetic-monas.glb` |
 | Server rack / DC | `rack-19u.glb` |
 | Kubernetes cluster | `k8s-cluster.glb` |
+
+**2026-10-01:** Blender **CLI polish** landed on priority + new pedagogical assets via `scripts/blender_polish_glb.py --all --promote` (Blender 4.2.3 LTS on authoring box). Provenance: kit glTF + CLI shade-smooth/weighted-normals/LOD1 — **still not** hand-sculpted artist sets. New competitive scenes: `cni-pod-network.glb`, `rbac-authz-graph.glb`, `service-mesh-sidecar.glb`.
 
 **2026-09-30:** Kit-**v2** `.glb` under `docs/assets/immersive/` (+ `muse-dee-monas.glb`, `cka-etcd-quorum.glb`). Pedagogical node extras + LOD proxies. Blender handoff: `scripts/blender_polish_glb.py` (CLI when available; else P920 command). `il-immersive-3d.js` / `il-muse-3d.js` load via native `parseGlb`. Provenance: kit glTF — not hand-sculpted Blender artist sets until polish lands.
 

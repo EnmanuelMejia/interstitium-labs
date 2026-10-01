@@ -1,6 +1,6 @@
 # Pixel Streaming — local / lab GPU runbook
 
-_Last updated: 2026-09-30 (America/New_York)._  
+_Last updated: 2026-10-01 (America/New_York)._  
 _Client:_ https://interstitiumlabs.dev/immersive/pixel-stream/  
 _Honesty:_ this runbook does **not** claim a live Interstitium-hosted UE fleet.
 
@@ -54,3 +54,25 @@ Spin a **real** Unreal Engine 5 Pixel Streaming host against the Interstitium br
 - `/immersive/pixel-stream/` — client UI + `il-pixel-stream.js`
 - `UNREAL-AND-BLENDER-PIPELINE.md` — dual pipeline
 - `scripts/author_immersive_glb.py` — open-web glTF path (no UE required)
+
+
+## 2026-10-01 — bring-up helpers (honest)
+
+| Path | Role |
+|------|------|
+| `scripts/pixel-streaming/dev-signaling-echo.py` | Local WS accept + `il-dev-health` / echo — **NOT** UE Pixel Streaming media |
+| `docs/ops/pixel-streaming/docker-compose.yml` | Same echo in Docker |
+| `docs/ops/pixel-streaming/README.md` | Labels + quick path |
+
+Client **v1.1.0** (`il-pixel-stream.js`):
+
+1. **Health probe** before/alongside connect — reports `dev-echo` vs unreachable vs UE-style offer.
+2. **ICE servers** from `localStorage.il-ps-ice` (JSON array of `{urls:…}` or `{iceServers:[…]}`) or `IL_LOCAL_CONFIG.pixelStreamingIce`.
+3. Clearer **host-required** UX — never claims Interstitium-hosted UE fleet.
+
+```bash
+pip install websockets
+python3 scripts/pixel-streaming/dev-signaling-echo.py --port 8888
+# open /immersive/pixel-stream/?signaling=ws://127.0.0.1:8888
+# Expect: Dev echo reachable — NOT UE media
+```

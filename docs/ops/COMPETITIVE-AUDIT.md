@@ -1,6 +1,6 @@
 # Competitive audit — Interstitium Labs vs peer Learning OS
 
-_Last updated: 2026-09-21 (America/New_York)._  
+_Last updated: 2026-10-01 (America/New_York)._  
 _Static root:_ `docs/` · _Live:_ https://interstitiumlabs.dev  
 _Peers scored:_ **KodeKloud (primary)**, ALEKS, Brilliant.org, Khan Academy.
 _Last weekday pass:_ **2026-09-28** — KodeKloud AI Tutor Live Assist delta → Noah Live Assist shipped.
@@ -8,6 +8,13 @@ _Last weekday pass:_ **2026-09-28** — KodeKloud AI Tutor Live Assist delta →
 Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Payments stay placeholder-honest. No invented Stripe/LLM keys. Enterprise security headers preserved.
 
 ---
+
+### 2026-10-01 recursive note
+
+- **KodeKloud still wins:** hosted playground fleets + in-lab AI Tutor density.
+- **IL shipped today that exceeds on 3D:** Blender CLI–polished pedagogical `.glb` (CNI pod network, RBAC authz graph, service-mesh sidecar) wired into Curriculum OS + `/immersive/` — peers mostly keep these domains as flat diagrams/video.
+- **Musk verdict:** **Closer / NO**. Blockers remain: live UE Pixel Streaming host + hosted lab fleet (do not invent). CLI polish ≠ hand-sculpted artist sets.
+
 
 ## 1. Inventory — what Interstitium actually has today
 
