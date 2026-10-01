@@ -19,7 +19,7 @@
 | Android | Android Studio Otter 2025.2.1, JDK 21; app targets API 36, runs on API 24+ |
 | iOS | Xcode 26; app runs on iOS 15+, CocoaPods project, UIScene lifecycle |
 
-Android 16 (API 36) draws apps edge-to-edge: the web view sits behind the status and navigation bars, and StatusBar `backgroundColor` no longer applies there. The site already pads with `env(safe-area-inset-*)` under `viewport-fit=cover`, and `SystemBars` in `capacitor.config.ts` keeps those insets correct.
+Android 16 (API 36) draws apps edge-to-edge: the web view sits behind the status and navigation bars, and StatusBar `backgroundColor` no longer applies there. The site already pads with `env(safe-area-inset-*)` under `viewport-fit=cover` — that CSS is the source of truth for insets. (There is no official `@capacitor/system-bars` package; an earlier config referenced a `SystemBars` plugin that was never installed. It has been removed — see `capacitor.config.ts`.)
 
 CI: `.github/workflows/mobile-build.yml` builds Android (debug + release, unit tests, lint) and an unsigned iOS simulator app on every change under `apps/mobile/`. It then launch-tests both builds: the APK on an Android 16 (API 36) emulator and the app on the newest iPhone simulator, through a cold start and a background/foreground cycle, plus an `https://interstitiumlabs.dev` link on Android. The screenshots and console output are kept as the `android-launch` and `ios-launch` artifacts. To run the same checks locally against a booted emulator or simulator: `scripts/launch-check-android.sh <app-debug.apk>` or `scripts/launch-check-ios.sh <App.app>`. These are smoke tests, not a substitute for trying a release build on real phones before a store submission.
 
@@ -52,8 +52,8 @@ cp android-security/debug/res/xml/network_security_config.xml android/app/src/de
 | --- | --- |
 | Full Learning OS | Bundled `www/` from `docs/` |
 | Lab Muse companion shell | Default native home `/coach/` · `il-muse-mobile.css` · Dee avatar |
-| Status bar / void theme `#070B16` | StatusBar plugin + `il-bridge.js` |
-| Splash / sigil | SplashScreen + brand assets |
+| Status bar / void theme `#070B16` | StatusBar plugin (LIGHT style) + `il-bridge.js` |
+| Splash / sigil | SplashScreen (explicit hide when interactive) + brand void/sigil assets |
 | Share (proof wall) | `@capacitor/share` — ON |
 | Push | Stub — `IL_FEATURE_PUSH=false`, no FCM keys |
 | Biometric lock | Stub — OFF until auth + Keychain/Keystore |
@@ -82,7 +82,7 @@ npx cap run android   # device/emulator + Android SDK
 npx cap run ios       # macOS + Xcode + device/sim
 ```
 
-`il-bridge.js` deep-links Capacitor cold start from `/` → `/coach/` (Lab Muse). Brand lockup stays Interstitium (56–80px industry scale); avatar is the original Dee/Monas SVG (`docs/assets/il-muse-avatar-dee.svg (mirrored at assets/chrome/lab-muse-dee.svg)`).
+Cold start is a single page load: `scripts/sync-mobile-web.sh` serves the Lab Muse entry (`/coach/`) directly at `www/` root, so the shell never parses the home page first. `il-bridge.js` keeps the `/` → `/coach/` redirect only as a fallback for older bundles (skipped when the coach page marker `body.il-muse-page` is present). Brand lockup stays Interstitium (56–80px industry scale); avatar is the original Dee/Monas SVG (`docs/assets/il-muse-avatar-dee.svg (mirrored at assets/chrome/lab-muse-dee.svg)`).
 
 ## Never commit
 

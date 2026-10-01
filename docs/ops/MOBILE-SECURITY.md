@@ -145,7 +145,7 @@ Reject open redirects into the WebView from untrusted intents.
 | iOS mic / speech | `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription` — see `apps/mobile/ios-security/Info.plist.snippets.md` |
 | Android mic | Optional `RECORD_AUDIO` only when shipping dictation — see `android-security/AndroidManifest.snippets.xml` |
 | PWA Notification API | Opt-in from Noah Inbox → “Enable device alerts”. Local study nudges only — **no FCM / Meta push** (`IL_FEATURE_PUSH=false`) |
-| Safe-area | `viewport-fit=cover` + `env(safe-area-inset-*)` in `il-muse-mobile.css`. Android 16 enforces edge-to-edge, so Capacitor 8 SystemBars (`insetsHandling: "css"`) keeps the insets correct there; the StatusBar void `#070B16` background applies on iOS |
+| Safe-area | `viewport-fit=cover` + `env(safe-area-inset-*)` in `il-muse-mobile.css`. Android 16 enforces edge-to-edge, so the CSS safe-area insets are the source of truth there (there is no official `@capacitor/system-bars` package; an earlier config referenced a `SystemBars` plugin that was never installed and it has been removed); the StatusBar void `#070B16` background applies on iOS |
 | Brand | Interstitium lockup + cyan/gold/void — never Meta Muse purple/pink or Meta trademarks |
 
 Voice path remains **browser Web Speech**. Typing always works if permission is denied.

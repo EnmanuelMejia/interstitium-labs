@@ -174,23 +174,39 @@
     });
   }
 
-  /* ---------- Magnetic buttons ---------- */
+  /* ---------- Magnetic buttons (rAF-throttled, fine pointers only) ---------- */
+  var finePointer =
+    !global.matchMedia || global.matchMedia("(pointer: fine)").matches;
   function initMagnetic(root) {
-    if (reduced) return;
+    if (reduced || !finePointer) return;
     var nodes = qs(".il-magnetic, [data-il-magnetic]", root);
     nodes.forEach(function (el) {
       if (el.getAttribute("data-il-mag-ready")) return;
       el.setAttribute("data-il-mag-ready", "1");
       el.classList.add("il-magnetic");
       var strength = parseFloat(el.getAttribute("data-il-magnetic") || "10") || 10;
+      var raf = 0;
+      var px = 0;
+      var py = 0;
+      function apply() {
+        raf = 0;
+        el.style.setProperty("--mx", px.toFixed(2) + "px");
+        el.style.setProperty("--my", py.toFixed(2) + "px");
+      }
       el.addEventListener("pointermove", function (e) {
+        if (e.pointerType === "touch" || e.pointerType === "pen") return;
         var r = el.getBoundingClientRect();
-        var x = ((e.clientX - r.left) / r.width - 0.5) * strength;
-        var y = ((e.clientY - r.top) / r.height - 0.5) * strength;
-        el.style.setProperty("--mx", x.toFixed(2) + "px");
-        el.style.setProperty("--my", y.toFixed(2) + "px");
+        px = ((e.clientX - r.left) / r.width - 0.5) * strength;
+        py = ((e.clientY - r.top) / r.height - 0.5) * strength;
+        if (!raf) raf = global.requestAnimationFrame(apply);
       });
       el.addEventListener("pointerleave", function () {
+        if (raf) {
+          global.cancelAnimationFrame(raf);
+          raf = 0;
+        }
+        px = 0;
+        py = 0;
         el.style.setProperty("--mx", "0px");
         el.style.setProperty("--my", "0px");
       });
