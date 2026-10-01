@@ -156,6 +156,8 @@
     if (src === "oss") return "Open source";
     if (src === "reddit") return "Reddit";
     if (src === "substack") return "Substack";
+    if (src === "youtube") return "YouTube";
+    if (src === "github") return "GitHub";
     if (src === "primary") return "Primary source";
     return src;
   }
@@ -367,6 +369,8 @@
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="primary">Primary source</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="reddit">Reddit</button>' +
           '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="substack">Substack</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="youtube">YouTube</button>' +
+          '<button type="button" class="il-frontier-filter rounded-lg border border-paper/15 px-3 py-2 font-display text-[0.62rem] uppercase tracking-[0.14em] text-paper" data-src="github">GitHub</button>' +
           '<input type="search" class="min-w-[12rem] flex-1 rounded-lg border border-paper/15 bg-void px-3 py-2 font-mono text-sm text-paper" placeholder="Filter…" data-il-frontier-q aria-label="Filter frontier courses"/>' +
           "</div>";
         html +=
@@ -388,6 +392,10 @@
           (counts.reddit || 0) +
           " · Substack " +
           (counts.substack || 0) +
+          " · YouTube " +
+          (counts.youtube || 0) +
+          " · GitHub " +
+          (counts.github || 0) +
           "</p>";
         if (!list.length) {
           html +=
