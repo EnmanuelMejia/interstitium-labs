@@ -65,7 +65,7 @@
       reply: 'Micro-lesson mode: I will not narrate the whole lab. Pick one concept (CIDR, probes, selectors, state lock, pipeline stage). What have you already verified?' },
 
     { re: /^(hi|hello|hey)\b/i, topic: null,
-      reply: 'Welcome. Pick a topic chip or ask about CIDR, Git, pods, Terraform, CI, or Linux. I stay Socratic — questions before solutions.' },
+      reply: 'Welcome. Ask about CIDR, Git, K8s, blockchain, quantum, deep work, or Linux. I stay Socratic for coaching — factual questions get direct answers from the site\u2019s curriculum.' },
     // CIDR
     { re: /(cidr|subnet|\/2[0-9]|netmask|usable hosts?)/i, topic: 'cidr',
       reply: 'CIDR check: (1) How many host bits remain? (2) What are network vs broadcast? (3) Are you designing for hosts or for routes? Reply with your prefix and intended host count.' },
@@ -87,12 +87,27 @@
     // CI
     { re: /(jenkins|github actions|pipeline|ci\/?cd|workflow)/i, topic: 'ci',
       reply: 'CI: Is the failure at lint, unit, build, push, or deploy? Separate “test red” from “secrets/registry auth”. Which stage failed first?' },
+    // Blockchain (site carries a full ledger-engineering track)
+    { re: /(blockchain|bitcoin|ethereum|solidity|smart contract|utxo|monero|stellar|xrpl|ledger)/i, topic: 'blockchain',
+      reply: 'Ledger first: which layer is your question on — the protocol (consensus, UTXO/account model), the cryptography (hashes, signatures), or the application (contracts, wallets)? Name the layer, then state your hypothesis.' },
+    // Quantum
+    { re: /(quantum|qubit|superposition|entanglement)/i, topic: 'quantum',
+      reply: 'Quantum: are you asking about the physics, an algorithm (Shor, Grover), or the engineering of qubits? Write the smallest state involved — what operation are you uncertain about?' },
+    // Study method (Cal Newport content now on site)
+    { re: /(deep work|procrastinat|study plan|time block|focus)/i, topic: 'study',
+      reply: 'Study method: are you stuck on attention, retention, or pacing? Name one 90-minute distraction-free session you could run this week — same time, same place, phone elsewhere. What would it cover?' },
+    // Zero Trust / IL-11 (honest: no such track exists on the site)
+    { re: /(il-?11|zero.?trust)/i, topic: null,
+      reply: 'Honest correction: there is no IL-11 Zero Trust track on this site — the name matches no published academy or path. The real Zero Trust material lives in two labs: the K8s CKA network-policies lab (default-deny-all, explicit allow rules) and the Security+/CySA+ microsegmentation lab. Which one do you want to work through, and what is your first hypothesis about it?' },
+    // Career
+    { re: /(interview|resume|job application|career|salary|hiring)/i, topic: 'career',
+      reply: 'Career: are you optimizing the application, the interview, or the offer? Name your single strongest proof of work — a shipped project beats a claimed skill. What is yours?' },
     // Linux
     { re: /(linux|systemd|journalctl|chmod|ssh|disk|oom)/i, topic: 'linux',
       reply: 'Linux: What is the symptom — exit code, service status, or resource pressure? Check unit status / journal / df / free before changing configs. What command output do you have?' }
   ];
 
-  var FALLBACK = 'I only have local rule-based coaching right now (AI model hookup pending). Ask about CIDR, Git, K8s pods, Terraform, CI/CD, or Linux — and share what you already tried.';
+  var FALLBACK = 'I only have local rule-based coaching right now (AI model hookup pending). Ask about CIDR, Git, K8s pods, Terraform, CI/CD, Linux, blockchain, quantum, or study method — or ask any factual question and I will answer it from the site\u2019s curriculum on-device.';
 
   function config() {
     return g.IL_COACH || {};
@@ -105,24 +120,35 @@
     if (router && typeof router.chat === 'function') {
       var messages = [{ role: 'user', content: text }];
       return router.chat(messages, { topic: topic || '', task: 'chat' }).then(function (res) {
+        var lr = asReply(localReply(text, topic));
         return {
-          text: res.text || localReply(text, topic),
-          source: res.source || res.backendId || 'model-router',
+          text: res.text || lr.text,
+          source: res.text ? (res.source || res.backendId || 'model-router') : lr.source,
           modelId: res.modelId,
           demand_tier: res.demand_tier
         };
       }, function () {
-        return { text: localReply(text, topic), source: 'local-rules' };
+        return asReply(localReply(text, topic));
       });
     }
     // Legacy: endpoint set without router — honesty stub (CSP + key safety).
     if (cfg.endpoint) {
+      var lr2 = asReply(localReply(text, topic));
       return Promise.resolve({
-        text: 'IL_COACH.endpoint is set, but load il-model-router.js (or a same-origin Worker proxy) before enabling remote chat. Meanwhile: ' + localReply(text, topic),
+        text: 'IL_COACH.endpoint is set, but load il-model-router.js (or a same-origin Worker proxy) before enabling remote chat. Meanwhile: ' + lr2.text,
         source: 'stub-remote'
       });
     }
-    return Promise.resolve({ text: localReply(text, topic), source: 'local-rules' });
+    return Promise.resolve(asReply(localReply(text, topic)));
+  }
+
+  /* localReply returns a string for Socratic rules, or {text, source} for the
+     knowledge-bundle branch. Normalize before handing to the chat shell. */
+  function asReply(r) {
+    if (r && typeof r === 'object' && typeof r.text === 'string') {
+      return { text: r.text, source: r.source || 'local-rules' };
+    }
+    return { text: String(r), source: 'local-rules' };
   }
 
   function localReply(text, topic) {
@@ -136,6 +162,22 @@
       var topical = RULES.filter(function (r) { return r.topic === topic; });
       if (topical.length) return topical[0].reply + ' Your question: “' + String(text).slice(0, 120) + '”';
     }
+    /* On-device knowledge bundle: direct grounded answers when no Socratic rule
+       fires. Socratic stays the coach doctrine; the bundle answers factual
+       "tell me about X" questions from the site's real curriculum. Plain text
+       only — the coach chat renders escaped bubbles, no markdown. */
+    try {
+      var kbApi = g.__ilNoahKB;
+      if (kbApi && kbApi.get && kbApi.answer && kbApi.get()) {
+        var hit = kbApi.answer(text);
+        if (hit && hit.entry) {
+          var plain = String(hit.reply)
+            .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g, '$1 ($2)')
+            .replace(/\*\*/g, '');
+          return { text: plain + '\n\nWant to go Socratic on it? State your first hypothesis and we will reason from there.', source: 'kb-local' };
+        }
+      }
+    } catch (e) { /* bundle unreachable — Socratic fallback below */ }
     return FALLBACK;
   }
 

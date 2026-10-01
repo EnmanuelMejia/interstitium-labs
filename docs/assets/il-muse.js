@@ -254,6 +254,11 @@
     if (/terraform|tfstate|iac/i.test(text)) return 'terraform';
     if (/jenkins|github actions|pipeline|ci\/?cd|workflow/i.test(text)) return 'ci';
     if (/linux|systemd|journalctl|chmod|ssh|oom/i.test(text)) return 'linux';
+    if (/blockchain|bitcoin|ethereum|solidity|smart contract|utxo/i.test(text)) return 'blockchain';
+    if (/quantum|qubit|superposition|entanglement/i.test(text)) return 'quantum';
+    if (/deep work|procrastinat|study plan|time block/i.test(text)) return 'study';
+    if (/interview|resume|career|salary/i.test(text)) return 'career';
+    if (/devops|sre|docker|container/i.test(text)) return 'devops';
     return '';
   }
 
@@ -773,6 +778,25 @@
 
     function attachMuse3d() {
       var cinema = !!app.closest('[data-il-cinema], .il-cinema-muse-host');
+      var slot = app.querySelector('[data-muse-3d-slot]');
+      if (!slot) return;
+      /* Recovery 2026-10-01: render() rebuilds app.innerHTML on every message, which
+         orphaned the 3D slot and leaked one WebGL context + rAF loop per render
+         (~6 per SEND) until the renderer hung. Reattach the single live instance
+         instead of mounting anew — the expando survives innerHTML rebuilds. */
+      var prev = app.__ilNoahAvatar;
+      if (prev && prev.root && typeof prev.setStatus === 'function') {
+        try {
+          if (prev.slot !== slot) {
+            slot.appendChild(prev.root);
+            prev.slot = slot;
+          }
+          if (typeof prev.applyProfile === 'function') { try { prev.applyProfile(); } catch (eP) {} }
+          prev.setStatus(statusKey);
+          app.__ilMuse3d = prev; /* compat: setStatus forwarder uses __ilMuse3d */
+          return;
+        } catch (eRe) { /* fall through to a fresh mount */ }
+      }
       /* Prefer the full Noah 3D avatar system (profile-driven); fall back to legacy stage. */
       if (g.ILNoahAvatar && typeof g.ILNoahAvatar.syncFromApp === 'function') {
         try {
