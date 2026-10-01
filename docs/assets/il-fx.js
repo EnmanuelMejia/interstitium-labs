@@ -537,12 +537,12 @@
     qsa(".il-sigil-tilt").forEach(function (el) {
       el.classList.add("is-orbiting");
     });
-    // Fake placement answers on mini widget if present
-    var choices = qsa(".il-adapt-mini .choice");
+    // (IL 2026-10-01: live CAT sample widget retired; demo tour skips the probe step.)
+    var choices = [];
     var step = 0;
     var sequence = [
       function () {
-        setDemoStatus("Demo · CAT probe");
+        setDemoStatus("Demo · Adaptive OS");
         if (choices[0]) choices[0].click();
       },
       function () {
@@ -689,61 +689,8 @@
   };
 
   function mountAdaptMini() {
-    var host = qs("[data-il-adapt-mini]");
-    if (!host || host.getAttribute("data-ready")) return;
-    host.setAttribute("data-ready", "1");
-    host.classList.add("il-adapt-mini");
-    var html =
-      '<p class="il-kicker" data-i18n="adapt.mini.kicker">Live CAT sample · Adaptive OS</p>' +
-      "<h3 data-i18n=\"adapt.mini.title\">One probe. Instant fringe signal.</h3>" +
-      '<p class="stem">' +
-      SAMPLE.stem +
-      "</p>" +
-      '<div class="choices" role="group" aria-label="Answer choices">';
-    SAMPLE.choices.forEach(function (c) {
-      html +=
-        '<button type="button" class="choice" data-key="' +
-        c.key +
-        '"><strong>' +
-        c.key +
-        "</strong> · " +
-        c.text +
-        "</button>";
-    });
-    html +=
-      '</div><p class="fb" aria-live="polite"></p>' +
-      '<div class="cta-row">' +
-      '<a href="/adapt/" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void" data-i18n="cta.adaptive">Adaptive OS</a>' +
-      '<a href="/adapt/#session" class="inline-flex h-10 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-cyan">Full session</a>' +
-      "</div>";
-    host.innerHTML = html;
-    var fb = host.querySelector(".fb");
-    var locked = false;
-    qsa(".choice", host).forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        if (locked) return;
-        locked = true;
-        unlockSoundOnce();
-        var key = btn.getAttribute("data-key");
-        var ok = key === SAMPLE.answerKey;
-        qsa(".choice", host).forEach(function (b) {
-          var k = b.getAttribute("data-key");
-          if (k === SAMPLE.answerKey) b.classList.add("is-ok");
-          else if (k === key) b.classList.add("is-bad");
-          b.disabled = true;
-        });
-        fb.textContent = SAMPLE.feedback[key] || "";
-        fb.classList.toggle("is-ok", ok);
-        blip(ok ? "ok" : "bad");
-        if (ok && global.ILGame && typeof global.ILGame.award === "function") {
-          try {
-            global.ILGame.award("adapt_mini_ok");
-          } catch (e4) {}
-        } else if (ok) {
-          pulseHudFallback();
-        }
-      });
-    });
+    // IL 2026-10-01: live CAT sample removed per founder order — widget retired.
+    return;
   }
 
   function pulseHudFallback() {
