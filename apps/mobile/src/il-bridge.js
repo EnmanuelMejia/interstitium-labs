@@ -88,9 +88,11 @@
   }
 
   /** Deliberate splash behavior: hide exactly when the page is interactive.
-   * capacitor.config.ts sets launchAutoHide: false, so the splash never hides
-   * ambiguously; the 5s fallback covers a hung first paint. Defensive: every
-   * plugin call is guarded, failures are silent. */
+   * Primary path is this explicit hide (never ambiguous timing); the 5s
+   * fallback covers a hung first paint. Native backstop: capacitor.config.ts
+   * keeps launchAutoHide on with an 8s duration, so a failed bridge load can
+   * never strand users on the splash. Defensive: every plugin call is
+   * guarded, failures are silent. */
   var splashHidden = false;
   function hideSplash() {
     if (splashHidden) return;

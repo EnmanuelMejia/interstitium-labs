@@ -32,10 +32,13 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       backgroundColor: "#070B16",
-      // Explicit hide from il-bridge.js once the page is interactive (plus a
-      // 5s safety timeout in the same file); auto-hide is never ambiguous.
-      launchAutoHide: false,
-      launchShowDuration: 5000,
+      // Primary path: explicit SplashScreen.hide() from il-bridge.js once the
+      // page is interactive (plus a 5s in-bridge safety timeout). Native
+      // backstop: launchAutoHide stays ON with a long duration, so if the
+      // bridge file ever fails to load or parse, the native plugin still
+      // dismisses the splash at 8s — users can never be stranded on it.
+      launchAutoHide: true,
+      launchShowDuration: 8000,
       showSpinner: false,
     },
     StatusBar: {
