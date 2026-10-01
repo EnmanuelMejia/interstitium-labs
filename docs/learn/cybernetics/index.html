@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Cybernetics — The Science of Steering | Interstitium Labs</title>
+<meta name="description" content="A full-stack track on cybernetics: from Watt's governor and WWII fire control through Wiener, the Macy Conferences, Ashby, Bateson, and second-order cybernetics to the present."/>
+<meta name="theme-color" content="#f7f4ee"/>
+<meta name="color-scheme" content="light"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Systems &amp; Control</p>
+    <h1 class="il-h">Cybernetics: the science of steering.</h1>
+    <p class="il-hero__sub">From the steam-engine governor to Wiener's wartime predictors, the Macy Conferences, and the observer inside the loop — the ideas that taught machines, minds, and organizations to regulate themselves.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the track</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The track</p>
+        <h2 class="il-h il-h--section" id="overview-h">One loop to describe them all.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Cybernetics is the study of <strong>control and communication in the animal and the machine</strong> — Norbert Wiener's 1948 subtitle, and still the best one-sentence definition. Its central discovery is almost embarrassingly simple: a huge number of very different systems — thermostats, blood-sugar regulation, antiaircraft guns, economies, conversations — are all instances of the same structure, the feedback loop. A sensor reads the state of the world, a comparator measures the gap between that state and a goal, and an actuator pushes to close the gap. Once you see the loop, you see it everywhere.</p>
+        <p>The field was born twice. First as engineering practice: governors on steam engines, gyro-stabilized ships, fire-control computers that had to shoot at where an airplane <em>would be</em>, not where it was. Then, during and after World War II, as a deliberate transdisciplinary science — the Macy Conferences of 1946–1953, where mathematicians, neurophysiologists, anthropologists, and engineers forged a shared language of feedback and information. Later it split and deepened: Ashby's formal laws, Bateson carrying feedback into the social sciences, and second-order cybernetics putting the observer inside the loop.</p>
+        <p>This track teaches the real mathematics gently, the real history precisely, and the real distinctions — including which popular claims about the field are wrong. Finish it and you will be able to draw the loop in any system you meet, explain why feedback can destabilize as well as stabilize, and say exactly what cybernetics is and is not.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Timeline -->
+  <section class="il-section" aria-labelledby="timeline-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Chronology</p>
+        <h2 class="il-h il-h--section" id="timeline-h">Two centuries of the loop.</h2>
+      </div>
+      <ol class="il-timeline">
+        <li><span class="il-timeline__date">~3rd c. BCE</span><p>Ktesibios of Alexandria's water clock uses a float valve to hold water level steady — arguably the first recorded feedback device.</p></li>
+        <li><span class="il-timeline__date">c. 1620</span><p>Cornelis Drebbel builds a mercury-thermostat furnace that regulates its own temperature via float-and-lever control of the air supply.</p></li>
+        <li><span class="il-timeline__date">1788</span><p>James Watt adapts the fly-ball (centrifugal) governor to his steam engine: rising speed throws the balls outward and mechanically throttles steam admission. Proportional feedback control, in iron.</p></li>
+        <li><span class="il-timeline__date">1868</span><p>James Clerk Maxwell publishes "On Governors" — the first mathematical analysis of a feedback system. He shows the rhythmic oscillation engineers called "hunting" is a mathematical instability, not a mechanical defect, and distinguishes the conditions for stability, oscillation, and runaway.</p></li>
+        <li><span class="il-timeline__date">1911–22</span><p>The servomechanism era: Elmer Sperry's ship-steering controllers; Nicolas Minorsky's 1922 theoretical analysis of PID control, based on trials aboard the USS <em>New Mexico</em> — formalizing integral and derivative action by watching human helmsmen.</p></li>
+        <li><span class="il-timeline__date">WWI–WWII</span><p>Fire control becomes the forcing function: Sperry and Ford Instrument directors, the Navy's Mark I Fire Control Computer — electromechanical analog computers doing tachymetric target-motion prediction, because shells take seconds to arrive and you must shoot at where the plane <em>will be</em>.</p></li>
+        <li><span class="il-timeline__date">1940–43</span><p><strong>The Wiener–Bigelow AA predictor project.</strong> Wiener writes Vannevar Bush in September 1940 volunteering for the war effort; under an NDRC contract he and MIT graduate student Julian Bigelow build a machine that statistically extrapolates an evasive pilot's future position from radar track data, minimizing mean-square prediction error. The mathematics becomes the Wiener filter — kept classified until his 1949 book on extrapolation of stationary time series.</p></li>
+        <li><span class="il-timeline__date">1942</span><p><strong>May 13–15</strong> — The Macy Foundation's Cerebral Inhibition Meeting: Arturo Rosenblueth previews the teleology paper's ideas to an audience including Bateson, Mead, and McCulloch. Bateson later recalled that "feedback" filled the conceptual hole in his ethnography.</p></li>
+        <li><span class="il-timeline__date">1943</span><p><strong>Two founding papers.</strong> Rosenblueth, Wiener &amp; Bigelow, "Behavior, Purpose and Teleology" — purposeful behavior rebuilt on negative feedback, without opening the black box. McCulloch &amp; Pitts, "A Logical Calculus of the Ideas Immanent in Nervous Activity" — the formal neuron: all-or-none units, inhibition as veto, networks equivalent to logic and finite automata.</p></li>
+        <li><span class="il-timeline__date">1946–53</span><p><strong>The Macy Conferences.</strong> Ten meetings, beginning March 8–9, 1946 at the Beekman Hotel, NYC ("Feedback Mechanisms and Circular Causal Systems in Biological and Social Systems"); chairman Warren McCulloch; core members Wiener, von Neumann, McCulloch, Pitts, Bigelow, Rosenblueth, Bateson, Mead, Shannon. Heinz von Foerster joins at the 6th conference (1949) and edits the <em>Transactions</em>, proposing the whole series be titled "Cybernetics."</p></li>
+        <li><span class="il-timeline__date">1948</span><p><strong>Two landmark books.</strong> Wiener, <em>Cybernetics: Or Control and Communication in the Animal and the Machine</em> — the word from Greek <em>kybernētēs</em>, steersman. Shannon, "A Mathematical Theory of Communication" — information theory founded the same year, allied but distinct. <strong>March 16</strong> — W. Ross Ashby completes the <strong>homeostat</strong> at Barnwood House Hospital; <em>Time</em> (1949) calls it "the closest thing to a synthetic brain so far designed by man."</p></li>
+        <li><span class="il-timeline__date">1950–58</span><p>Wiener's <em>The Human Use of Human Beings</em> (1950); Ashby's <em>Design for a Brain</em> (1952) and <em>An Introduction to Cybernetics</em> (1956, with the Law of Requisite Variety); the 1956 Dartmouth workshop names AI as a field, sharing Macy-era intellectual DNA; Frank Rosenblatt's perceptron (1958) — a learning-enabled threshold network in the McCulloch–Pitts lineage.</p></li>
+        <li><span class="il-timeline__date">1968–74</span><p>Von Bertalanffy's <em>General System Theory</em> (1968); Conant &amp; Ashby's Good Regulator theorem (1970); Stafford Beer's <strong>Project Cybersyn</strong> in Chile (1971–73) — a real-time cybernetic economic-coordination system ended by the 1973 coup; Maturana &amp; Varela's autopoiesis framework (1972/73); Heinz von Foerster formally introduces <strong>second-order cybernetics</strong> (1974) — the cybernetics of observing systems.</p></li>
+        <li><span class="il-timeline__date">1982</span><p>William Gibson coins "cyberspace" — a science-fiction branding term grafted onto the prefix 34 years after Wiener's book, not a technical term of the field. The prefix drift begins.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Key figures -->
+  <section class="il-section" aria-labelledby="figures-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Dramatis personae</p>
+        <h2 class="il-h il-h--section" id="figures-h">The people who drew the loop.</h2>
+      </div>
+      <div class="il-grid">
+        <div class="il-card"><span class="il-card__index">01</span><h3 class="il-h il-h--card">Norbert Wiener (1894–1964)</h3><p>MIT mathematician who named and synthesized the field in <em>Cybernetics</em> (1948). Invented the Wiener filter; warned publicly about automation's social effects.</p></div>
+        <div class="il-card"><span class="il-card__index">02</span><h3 class="il-h il-h--card">Arturo Rosenblueth (1900–1970)</h3><p>Mexican physiologist; co-author of the 1943 teleology paper and co-coiner of "cybernetics."</p></div>
+        <div class="il-card"><span class="il-card__index">03</span><h3 class="il-h il-h--card">Julian Bigelow (1913–2003)</h3><p>Wiener's wartime collaborator on the AA predictor; later von Neumann's chief engineer for the IAS computer at Princeton.</p></div>
+        <div class="il-card"><span class="il-card__index">04</span><h3 class="il-h il-h--card">Warren McCulloch (1898–1969) &amp; Walter Pitts (1923–1969)</h3><p>Neurophysiologist and self-taught logician; their 1943 formal-neuron paper founded neural computation. McCulloch chaired the Macy conferences.</p></div>
+        <div class="il-card"><span class="il-card__index">05</span><h3 class="il-h il-h--card">Claude Shannon (1916–2001)</h3><p>Bell Labs mathematician; founded information theory in 1948 — independently of Wiener — and attended the Macy conferences.</p></div>
+        <div class="il-card"><span class="il-card__index">06</span><h3 class="il-h il-h--card">W. Ross Ashby (1903–1972)</h3><p>British psychiatrist; built the homeostat (1948); stated the Law of Requisite Variety (1956). The field's great formalizer.</p></div>
+        <div class="il-card"><span class="il-card__index">07</span><h3 class="il-h il-h--card">Gregory Bateson (1904–1980) &amp; Margaret Mead (1901–1978)</h3><p>Anthropologists who carried feedback into the social sciences — double-bind theory, schismogenesis, <em>Steps to an Ecology of Mind</em> (1972).</p></div>
+        <div class="il-card"><span class="il-card__index">08</span><h3 class="il-h il-h--card">Heinz von Foerster (1911–2002)</h3><p>Editor of the Macy <em>Transactions</em>; founder of second-order cybernetics (1974). His ethical imperative: "act always so as to increase the number of choices."</p></div>
+        <div class="il-card"><span class="il-card__index">09</span><h3 class="il-h il-h--card">Stafford Beer (1926–2002)</h3><p>Founder of management cybernetics; the Viable System Model; Project Cybersyn in Chile, 1971–73.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Core concepts -->
+  <section class="il-section" aria-labelledby="concepts-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The machinery</p>
+        <h2 class="il-h il-h--section" id="concepts-h">The ideas, stated plainly.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Feedback: negative vs. positive</h3>
+        <p>A feedback loop routes part of a system's output back to its input, turning a chain of cause and effect into a circle. In <strong>negative</strong> feedback the returned signal opposes the direction of change — it corrects. In <strong>positive</strong> feedback it amplifies change — it compounds. The governor uses negative feedback: more speed, less steam. A microphone squealing through a PA is positive feedback. Cybernetics' central move was treating this loop as substrate-independent: the same mathematics applies to a thermostat, a heartbeat, or a panic-selling wave.</p>
+        <h3>Open vs. closed loop — and the error signal</h3>
+        <p>An open-loop system acts blindly: it issues a command with no check on the result (a timed sprinkler). A closed-loop system senses the result and compares it against the goal. The <strong>setpoint</strong> is the target value — the thermostat's 20°C, the body's 37°C core temperature. The sensor measures the actual state; subtracting the two yields the <strong>error signal</strong>, and the whole machinery of control exists to drive that error toward zero. Every regulator is, in a precise sense, an error-destroying machine.</p>
+        <h3>Stability, oscillation, and why feedback is not magic</h3>
+        <p>Adding feedback does not guarantee good behavior — this is Maxwell's 1868 lesson, still taught when tuning PID controllers. A corrective push can be too weak (sluggish), too strong (overshooting), or too late (each correction lands out of phase, so the system swings wider each cycle — growing oscillation, i.e., instability). Engineers call rhythmic overcorrection <strong>"hunting,"</strong> after the governor's needle. Stability requires the loop's dynamics to settle.</p>
+        <h3>PID control, plainly</h3>
+        <p>A <strong>proportional</strong> term pushes back in proportion to the current error — but fails against steady disturbances like a stiff gale. An <strong>integral</strong> term accumulates error over time and eliminates persistent offsets — but can wind up and overshoot. A <strong>derivative</strong> term watches how fast the error is <em>changing</em> and dampens the response to prevent overshoot — predictive, but noisy. Minorsky formalized integral and derivative action in 1922 by watching human helmsmen; together the three terms still run the overwhelming majority of industrial control loops.</p>
+        <h3>The homeostat</h3>
+        <p>Ashby's 1948 device was the first machine that <em>reconfigured itself</em> to stay stable. Four interconnected circuits each had one "essential variable"; perturb one, and the machine hunted, its internal connections randomly changing until it found a configuration that brought the variable home — at which point the search stopped. Ashby compared it to "a fireside cat or dog which only stirs when disturbed, and then methodically finds a comfortable position and goes to sleep again." It demonstrated <strong>ultrastability</strong>: a machine that adapts by changing its own organization, not merely its state.</p>
+        <h3>The Law of Requisite Variety</h3>
+        <p>Ashby's master theorem (1956): frame regulation as a game between a disturbance source D and a regulator R. Ashby proved that <strong>"only variety in R can force down the variety due to D — only variety can destroy variety."</strong> Plainly: to keep a system stable, the controller must be at least as flexible, as state-rich, as the disturbances it faces. A one-trick controller cannot regulate a thousand-trick world.</p>
+        <h3>The Macy synthesis</h3>
+        <p>What the 1946–53 conferences established was not a theorem but a <em>shared language</em>: circular causality and information as a physical quantity, applicable across engineering, physiology, psychology, and anthropology. The group deliberately fused mathematicians and engineers with social and medical scientists, with neurophysiologists as the hinge — in an informal, unfinished-work format captured in published <em>Transactions</em>.</p>
+        <h3>First-order vs. second-order cybernetics</h3>
+        <p>First-order cybernetics (Wiener, Ashby) is, in von Foerster's phrase, <strong>"the cybernetics of observed systems"</strong>: the scientist stands outside the machine and the observer never enters the description. Second-order cybernetics (von Foerster, from 1974) is <strong>"the cybernetics of observing systems"</strong>: the observer is inside the loop, so every observation is also an action on the system. Perception becomes construction, not reception — and objectivity is reframed: von Foerster called classical objectivity "the delusion that observations could be made without an observer," arguing that removing the observer also removes responsibility.</p>
+        <h3>Shannon's theory: the ally, not the twin</h3>
+        <p>Shannon's theory is about <em>transmission</em>: how many bits a channel can carry, how to compress a source to its entropy, how noise sets a hard capacity limit — all deliberately <em>independent of meaning</em>. Cybernetics is about <em>regulation</em>: what the message <em>does</em> — steering behavior toward a goal through feedback. The 1948 simultaneity created a lifelong conflation, but the fields diverge in intent: Shannon asks how faithfully a signal travels; Wiener asks how a signal governs what happens next.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">Twelve modules: the science of steering.</h2>
+        <p>Roughly 24–30 study hours. Each module: objectives, hands-on exercise, assessment.</p>
+      </div>
+      <div class="il-modules">
+        <article class="il-module"><p class="il-eyebrow">Module 1</p><h3>Steering before the word</h3><p>Ktesibios' float valve, Drebbel's thermostat, Watt's 1788 governor — what each senses, what it actuates, where the loop closes.</p><p class="il-module__work"><strong>Exercise:</strong> draw a sensor → comparator → actuator block diagram for a household thermostat and a flush toilet. <strong>Assessment:</strong> explain, with the governor as example, why feedback predates any theory of feedback.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 2</p><h3>The first theory — Maxwell's "On Governors" (1868)</h3><p>Hunting as mathematics; why feedback can destabilize; the stability question that still governs PID tuning.</p><p class="il-module__work"><strong>Exercise:</strong> simulate a spring-mass governor in a spreadsheet or Python with adjustable gain; find the gain where it oscillates. <strong>Assessment:</strong> state Maxwell's core insight in one paragraph, in your own words.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 3</p><h3>Servomechanisms and fire control, 1900–1945</h3><p>Sperry's gyros, Minorsky's 1922 PID paper, the AA director problem — shoot where the plane <em>will be</em> — and Ford Instrument's Mark I computer.</p><p class="il-module__work"><strong>Exercise:</strong> work the "20-second shell flight" numbers: given speed and radar sampling, why prediction error compounds. <strong>Assessment:</strong> explain why antiaircraft fire control forced the invention of statistical prediction.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 4</p><h3>The 1943 papers — purpose rebuilt on feedback</h3><p>Rosenblueth–Wiener–Bigelow on behavior and teleology; McCulloch–Pitts threshold-logic neurons — networks as logic and finite automata.</p><p class="il-module__work"><strong>Exercise:</strong> wire AND, OR, and NOT from McCulloch–Pitts neurons with thresholds; then build a 1-bit memory loop. <strong>Assessment:</strong> define "teleological" as the 1943 paper uses it, without using the word "goal."</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 5</p><h3>The word and the book — Wiener's <em>Cybernetics</em> (1948)</h3><p>Greek <em>kybernētēs</em> (steersman) to governor to cybernetics; Wiener's synthesis of control and communication; the Wiener filter; <em>The Human Use of Human Beings</em> (1950) and the automation warnings.</p><p class="il-module__work"><strong>Exercise:</strong> map five systems (cruise control, blood glucose, panic buying, a group chat, a supply chain) onto sensor/comparator/actuator vocabulary. <strong>Assessment:</strong> why did Wiener insist the same field covers animal <em>and</em> machine?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 6</p><h3>The Macy Conferences (1946–1953) — a language is forged</h3><p>Ten meetings; McCulloch chairing; von Foerster editing the <em>Transactions</em>; the deliberate collision of engineers, physiologists, and anthropologists.</p><p class="il-module__work"><strong>Exercise:</strong> role-play — argue for or against "the brain is a digital computer" in von Neumann's voice, then in Bateson's. <strong>Assessment:</strong> what did the Macy format itself contribute that a normal journal could not?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 7</p><h3>Shannon's information theory (1948) — the ally, not the twin</h3><p>Entropy as uncertainty in bits; source coding and channel capacity; meaning deliberately excluded; why cybernetics needs information but is not reducible to it.</p><p class="il-module__work"><strong>Exercise:</strong> compute the entropy of a weighted coin and a fair six-sided die, in bits. <strong>Assessment:</strong> one paragraph — how does Shannon's "message" differ from Wiener's?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 8</p><h3>Ashby's Britain — the homeostat and requisite variety</h3><p>The 1948 machine that hunted for its own stable configuration; the Law of Requisite Variety, exactly stated; the Good Regulator theorem (1970, with Conant).</p><p class="il-module__work"><strong>Exercise:</strong> design a disturbance/regulator variety table for a real system (e.g., café staffing vs. the lunch rush) and show where variety is insufficient. <strong>Assessment:</strong> give a case where adding more variety to the regulator is the wrong fix, and justify it.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 9</p><h3>Control theory fundamentals lab</h3><p>Negative/positive feedback, open vs. closed loop, setpoint and error signal, oscillation and hunting, PID terms — with a simulator.</p><p class="il-module__work"><strong>Exercise:</strong> tune P, I, D on an interactive loop for fast settle with no overshoot; then deliberately induce instability with excessive gain. <strong>Assessment:</strong> explain, causally, why derivative action is predictive.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 10</p><h3>Cybernetics goes social — Bateson, Mead, Palo Alto</h3><p>Schismogenesis; the double bind (Bateson, Jackson, Haley &amp; Weakland, 1956); <em>Steps to an Ecology of Mind</em> (1972); family therapy's systemic turn.</p><p class="il-module__work"><strong>Exercise:</strong> analyze a workplace escalation as complementary vs. symmetrical schismogenesis. <strong>Assessment:</strong> is double-bind theory a claim about minds or about messages? Defend your answer.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 11</p><h3>The observer inside the loop — second-order cybernetics</h3><p>Von Foerster 1974; observed systems vs. observing systems; the ethical imperative ("act always so as to increase the number of choices"); Maturana &amp; Varela's autopoiesis (1972/73).</p><p class="il-module__work"><strong>Exercise:</strong> write two descriptions of the same event — one first-order, one second-order — and mark where the observer entered. <strong>Assessment:</strong> explain why second-order cybernetics makes responsibility <em>larger</em>, not smaller.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 12</p><h3>Descendants — systems theory, management, AI, the present</h3><p>Von Bertalanffy's General Systems Theory (1968); Beer's Viable System Model and Project Cybersyn (Chile, 1971–73); the real cybernetics-to-AI lineage and where the line ends; the Gibson prefix-drift myth as a cautionary tale.</p><p class="il-module__work"><strong>Exercise:</strong> design a Cybersyn-style feedback dashboard for a domain you know, then write its von Foerster-style critique. <strong>Assessment:</strong> capstone essay — "What does cybernetics explain that neither information theory nor systems theory alone explains?"</p></article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Myths -->
+  <section class="il-section" aria-labelledby="myths-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Corrections</p>
+        <h2 class="il-h il-h--section" id="myths-h">What cybernetics is not.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>"Cybernetics is the study of cyborgs or the internet."</strong> False twice over. Wiener's 1948 book is about control and communication in animals and machines. The digital "cyber-" prefix descends from William Gibson's coinage "cyberspace" (1982) — a science-fiction branding term, by Gibson's own admission "evocative and essentially meaningless" when he wrote it — grafted onto the prefix 34 years after Wiener's book.</p>
+        <p><strong>"Wiener invented feedback."</strong> False. Feedback devices predate him by centuries, and Maxwell analyzed them mathematically 80 years earlier — Wiener himself called Maxwell's "On Governors" (1868) "the first significant paper on feedback mechanisms." Wiener's contribution was synthesis and naming.</p>
+        <p><strong>"Cybernetics founded AI."</strong> Needs nuance. The two share wartime intellectual ancestry — the McCulloch–Pitts neuron, the Macy discussions of learning machines — but diverged in program: AI aimed at machines that <em>think</em>; cybernetics at principles of <em>regulation</em> across any substrate. The honest claim is shared ancestry, distinct trajectories.</p>
+        <p><strong>"Second-order cybernetics means cybernetics applied to humans."</strong> No. The first/second-order cut is about the <em>observer's position</em>, not the system's complexity. A thermostat analyzed reflexively is second-order; an entire economy analyzed as an object from outside is first-order.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Sources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Primary sources &amp; further reading.</h2>
+        <p>Many of the founding papers are freely readable. Free and open sources preferred throughout.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Primary — read in full</h3>
+        <ul>
+          <li>Rosenblueth, Wiener &amp; Bigelow (1943), "Behavior, Purpose and Teleology," <em>Philosophy of Science</em> 10:18–24.</li>
+          <li>McCulloch &amp; Pitts (1943), "A Logical Calculus of the Ideas Immanent in Nervous Activity."</li>
+          <li>Wiener (1948), <em>Cybernetics: Or Control and Communication in the Animal and the Machine</em>; Wiener (1950), <em>The Human Use of Human Beings</em>.</li>
+          <li>Shannon (1948), "A Mathematical Theory of Communication," <em>Bell System Technical Journal</em> 27.</li>
+          <li>Maxwell (1868), "On Governors," <em>Proceedings of the Royal Society</em> 16 — via archive.org.</li>
+          <li>Ashby (1956), <em>An Introduction to Cybernetics</em> — full text at rossashby.info; Ashby (1948), "Design for a Brain."</li>
+          <li>Bateson, Jackson, Haley &amp; Weakland (1956), "Toward a Theory of Schizophrenia," <em>Behavioral Science</em> 1.</li>
+          <li>The Macy <em>Transactions</em> (1946–53), ed. von Foerster — scanned volumes on archive.org.</li>
+        </ul>
+        <h3>Secondary &amp; reference</h3>
+        <ul>
+          <li>Principia Cybernetica Web (pespmc1.vub.ac.be) — encyclopedia of core terms.</li>
+          <li>Stanford Encyclopedia of Philosophy: entries on information and cybernetics (plato.stanford.edu).</li>
+          <li>Heims, <em>The Cybernetics Group</em> (MIT Press, 1991) — the definitive Macy history.</li>
+          <li>Medina, <em>Cybernetic Revolutionaries</em> (MIT Press, 2011) — on Project Cybersyn.</li>
+          <li>Galison, "The Ontology of the Enemy" (<em>Critical Inquiry</em>, 1994) — the AA predictor project.</li>
+        </ul>
+        <p>Companion track: <a href="/learn/turing/">Alan Turing</a> — the computability theory that fed the cybernetic imagination, and Turing's own seat at the cybernetics table.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
