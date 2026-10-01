@@ -413,6 +413,7 @@
 
   var cmdIndex = 0;
   var cmdFilter = "";
+  var cmdReturnFocus = null;
 
   function paintCmd() {
     var el = ensureCmd();
@@ -457,6 +458,8 @@
 
   function openCmd() {
     var el = ensureCmd();
+    /* 2026-10-01: remember the trigger so closeCmd() can return focus. */
+    cmdReturnFocus = document.activeElement;
     el.classList.add("is-open");
     cmdFilter = "";
     cmdIndex = 0;
@@ -473,6 +476,11 @@
     var el = qs("#il-cmd");
     if (!el) return;
     el.classList.remove("is-open");
+    /* 2026-10-01: return focus to the trigger (WCAG 2.4.3). */
+    try {
+      if (cmdReturnFocus && document.contains(cmdReturnFocus)) cmdReturnFocus.focus();
+    } catch (e) {}
+    cmdReturnFocus = null;
   }
 
   function initCmd() {
