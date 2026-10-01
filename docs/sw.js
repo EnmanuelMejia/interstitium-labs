@@ -1,13 +1,25 @@
-/* Interstitium Labs service worker — Learning OS offline shell
- * Security: NEVER cache enroll config as authoritative secrets (there are none client-side;
- * still exclude /enroll/config.js from long-lived shell cache). First-party only.
+/* Interstitium Labs service worker — self-healing shell (2026-10-01)
+ *
+ * This worker exists to REPAIR poisoned offline state, then stay healthy.
+ * - On activate it deletes EVERY cache it can see (including all older
+ *   il-sw-* shell/page caches), so stale or half-written entries from
+ *   previous workers can never be served again.
+ * - HTML navigations are network-first: visitors always get the newest page.
+ * - Static assets are stale-while-revalidate: instant render from cache when
+ *   present, but every entry is revalidated in the background on each visit,
+ *   so a bad cached copy heals itself within a single page load.
+ * - Error responses (4xx/5xx) and opaque failures are NEVER written to cache.
+ * - Sensitive/volatile paths are network-only.
+ * - Same-origin only; third-party (fonts, CDNs) is never intercepted.
  */
-const SW_VERSION = "il-sw-2026-09-28-musk-frontier";
+const SW_VERSION = "il-sw-2026-10-01-heal";
 const SHELL_CACHE = SW_VERSION + "-shell";
 const PAGE_CACHE = SW_VERSION + "-pages";
 
+/* Minimal precache: only long-lived brand chrome. Versioned CSS/JS is NOT
+ * precached — it is cached on first use via stale-while-revalidate, so
+ * filename drift between deploys can never poison the shell. */
 const SHELL_URLS = [
-  "/",
   "/manifest.webmanifest",
   "/favicon.png",
   "/favicon.svg",
@@ -15,19 +27,9 @@ const SHELL_URLS = [
   "/assets/chrome/icon-512.png",
   "/assets/chrome/apple-touch.png",
   "/assets/chrome/icon-maskable-512.png",
-  "/assets/chrome/canonical-lockup.png",
-  "/assets/il-game.js",
-  "/assets/il-motion.js",
-  "/assets/il-motion.css",
-  "/assets/il-pwa.js",
-  "/founders/",
-  "/learn/",
-  "/play/",
-  "/prep/",
-  "/paths/",
 ];
 
-/** Paths that must not be put in the durable shell cache */
+/** Paths that must never be cached. */
 function isSensitiveOrVolatile(url) {
   const p = url.pathname;
   if (p === "/enroll/config.js" || p.startsWith("/enroll/config")) return true;
@@ -50,16 +52,24 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((k) => k.startsWith("il-sw-") && k !== SHELL_CACHE && k !== PAGE_CACHE)
-            .map((k) => caches.delete(k))
-        )
-      )
+      // Nuclear purge: remove every cache, including all older il-sw-* shells.
+      // The fresh caches for this version are (re)created lazily below.
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
+
+/** Revalidate a request in the background and refresh the cache entry. */
+function revalidate(cacheName, req) {
+  fetch(req)
+    .then((res) => {
+      if (res && res.ok) {
+        const copy = res.clone();
+        caches.open(cacheName).then((c) => c.put(req, copy)).catch(() => {});
+      }
+    })
+    .catch(() => {});
+}
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
@@ -72,11 +82,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Same-origin only — do not intercept third-party (fonts, Stripe hosted pages)
+  // Same-origin only — do not intercept third-party (fonts, etc.)
   if (url.origin !== self.location.origin) return;
 
   if (isSensitiveOrVolatile(url)) {
-    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    // Network-only: never cache, never serve stale.
+    event.respondWith(fetch(req));
     return;
   }
 
@@ -85,59 +96,36 @@ self.addEventListener("fetch", (event) => {
     (req.headers.get("accept") || "").includes("text/html");
 
   if (acceptsHTML) {
-    // Network-first for HTML so Learning OS updates land; fall back to cache offline
+    // Network-first for documents so updates land immediately.
     event.respondWith(
       fetch(req)
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
-            caches.open(PAGE_CACHE).then((c) => c.put(req, copy));
+            caches.open(PAGE_CACHE).then((c) => c.put(req, copy)).catch(() => {});
           }
           return res;
         })
         .catch(() =>
-          caches.match(req).then((hit) => hit || caches.match("/") || caches.match("/founders/"))
+          caches.match(req).then((hit) => hit || caches.match("/"))
         )
     );
     return;
   }
 
-  if (
-    url.pathname === "/assets/il-trending-catalog.json" ||
-    url.pathname === "/assets/il-trending.json" ||
-    url.pathname === "/curriculum-os/mirror.json" ||
-    url.pathname.startsWith("/i18n/") ||
-    url.pathname === "/assets/il-i18n.js" ||
-    url.pathname === "/assets/il-fx.js" ||
-    url.pathname === "/assets/il-immersive-3d.js" ||
-    url.pathname === "/assets/il-adaptive.js" ||
-    url.pathname === "/assets/il-drills.js" ||
-    url.pathname === "/assets/il-trending.js" ||
-    url.pathname === "/assets/il-curriculum-sync.js" ||
-    url.pathname === "/assets/il-scene-kit.js"
-  ) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(SHELL_CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match(req))
-    );
-    return;
-  }
-
-  // Cache-first for shell static assets
+  // Stale-while-revalidate for everything else (CSS/JS/images/JSON).
+  // Serves instantly when cached, but ALWAYS revalidates in the background,
+  // so poisoned entries heal on the next visit without any user action.
   event.respondWith(
     caches.match(req).then((hit) => {
-      if (hit) return hit;
+      if (hit) {
+        revalidate(SHELL_CACHE, req);
+        return hit;
+      }
       return fetch(req).then((res) => {
-        if (res && res.ok && (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/assets/chrome/"))) {
+        if (res && res.ok) {
           const copy = res.clone();
-          caches.open(SHELL_CACHE).then((c) => c.put(req, copy));
+          caches.open(SHELL_CACHE).then((c) => c.put(req, copy)).catch(() => {});
         }
         return res;
       });
