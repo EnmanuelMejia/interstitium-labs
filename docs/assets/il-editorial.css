@@ -251,6 +251,12 @@ a { color: inherit; }
   grid-template-columns: repeat(2, 1fr);
 }
 @media (min-width: 900px) { .il-grid { grid-template-columns: repeat(5, 1fr); } }
+/* 2026-10-01: on the 2-column mobile layout an odd card count leaves a
+ * visibly empty cell (homepage tracks grid: 5 cards). Span the orphan
+ * last card across both columns instead of leaving a hole. */
+@media (max-width: 899px) {
+  .il-grid > :last-child:nth-child(odd) { grid-column: span 2; }
+}
 .il-card {
   background: var(--paper);
   padding: 1.75rem 1.5rem 2rem;
