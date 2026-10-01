@@ -40,6 +40,12 @@
     btn.title = isDark ? "Light mode" : "Dark mode";
   }
 
+  /* Keep the browser-chrome theme-color in sync with the active theme. */
+  function paintChrome() {
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", current() === "dark" ? "#0a0f1d" : "#f7f4ee");
+  }
+
   function toggle() {
     var next = current() === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
@@ -47,6 +53,7 @@
       window.localStorage.setItem(KEY, next);
     } catch (e) {}
     paint();
+    paintChrome();
   }
 
   function mount() {
@@ -66,8 +73,12 @@
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", mount);
+    document.addEventListener("DOMContentLoaded", function () {
+      mount();
+      paintChrome();
+    });
   } else {
     mount();
+    paintChrome();
   }
 })();
