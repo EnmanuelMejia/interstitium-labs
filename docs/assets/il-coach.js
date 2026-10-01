@@ -115,22 +115,17 @@
 
   function socratic(text, topic) {
     var cfg = config();
-    var router = g.IL_MODEL_ROUTER || g.ILModelRouter;
-    // Prefer analytics-driven OSS router when present (local Ollama / OpenAI-compat).
-    if (router && typeof router.chat === 'function') {
-      var messages = [{ role: 'user', content: text }];
-      return router.chat(messages, { topic: topic || '', task: 'chat' }).then(function (res) {
-        var lr = asReply(localReply(text, topic));
-        return {
-          text: res.text || lr.text,
-          source: res.text ? (res.source || res.backendId || 'model-router') : lr.source,
-          modelId: res.modelId,
-          demand_tier: res.demand_tier
-        };
-      }, function () {
-        return asReply(localReply(text, topic));
-      });
-    }
+    /* NOTE (2026-10-01, noah-recovery-2): socratic() must NEVER delegate back to
+       IL_MODEL_ROUTER.chat(). socratic IS the router's local-rules backend
+       (il-model-router.js: localRulesReply -> ILCoach.ask -> socratic), so calling
+       router.chat() from in here ping-pongs forever: router -> localRulesReply ->
+       socratic -> router -> ... Each hop schedules more microtasks, the microtask
+       queue never drains, and the renderer goes terminally unresponsive on the very
+       first send (reproduced: 680k+ router.chat calls in 20s, timers starved).
+       The old "prefer router" branch could only fire after the router had already
+       selected the local-rules backend, so it could never have reached a real model
+       anyway — removing it loses nothing. Real model backends (Ollama / OpenAI-
+       compat) are still selected directly by the router's own selectModel(). */
     // Legacy: endpoint set without router — honesty stub (CSP + key safety).
     if (cfg.endpoint) {
       var lr2 = asReply(localReply(text, topic));
