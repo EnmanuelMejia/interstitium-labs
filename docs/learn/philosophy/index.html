@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Philosophy — Antiquity to the Present | Interstitium Labs</title>
+<meta name="description" content="A full-stack philosophy track from the Presocratics to contemporary thought: the actual arguments, source-critically taught, with free primary-text readings — from Thales to Rawls, Chalmers, Confucius, and the Buddha."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · The Examined Life</p>
+    <h1 class="il-h">Philosophy: antiquity to the present.</h1>
+    <p class="il-hero__sub">Twenty-six centuries of the actual arguments — from Thales's water to Chalmers's zombies — taught the way the arguments deserve: precisely, source-critically, and from the primary texts, which are free.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the track</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The track</p>
+        <h2 class="il-h il-h--section" id="overview-h">Not names and dates — the moves.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Most philosophy surveys teach you <em>about</em> philosophers. This one teaches you the <em>moves</em>: Parmenides's remorseless deduction that change is impossible; Zeno's paradoxes as weapons in its defense; Plato's argument that learning is recollection; Aristotle's four-cause checklist; Augustine's reclassification of evil as absence; Hume's airtight circle around induction; Kant's reversal of the mind–world relation; the categorical imperative as a consistency test; Nietzsche's diagnosis of a dying moral world; Russell's logical hygiene; Wittgenstein's demolition of the idea that meaning is a mental entity; Rawls's veil; Nozick's Wilt Chamberlain; Singer's pond. If you can reconstruct these arguments in your own words — premises, inference, weak point — you know philosophy. The names are just filing.</p>
+        <p><strong>A note on method.</strong> Philosophy has its own folklore, and this track treats it the way every track on this site treats legend: the famous "thesis–antithesis–synthesis" triad is <em>not</em> Hegel's — it comes from Fichte and was popularized by Chalybäus. The <em>Will to Power</em> is not a book Nietzsche published — it is his sister's posthumous, doctored compilation. The atomic "swerve" is not Epicurus's idea — it appears only in Lucretius. Every correction of this kind is marked on the page. Where a detail could not be verified against a primary source (flagged in the sources section), the page paraphrases rather than quoting and says what is approximate. That discipline is not pedantry: in philosophy, the argument <em>is</em> the content, and a misquoted premise is a different argument.</p>
+        <p><strong>On scope.</strong> The spine is the Western tradition, Presocratics to contemporary — because that is where the verifiable chain of argument runs longest. The final lesson opens the two great non-Western systems — Confucius and the Buddha — not as an afterthought but as independent convergences: the Buddha's no-self argument and Hume's bundle theory of the self reach startlingly similar conclusions from opposite ends of Eurasia. That comparison is left as an exercise, because it is the kind of question that teaches itself.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Timeline -->
+  <section class="il-section" aria-labelledby="timeline-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Chronology</p>
+        <h2 class="il-h il-h--section" id="timeline-h">Twenty-six centuries of argument.</h2>
+        <p>Every date below is verifiable from the Stanford Encyclopedia of Philosophy and the primary sources named at the foot of this page; approximate or flagged dates are marked.</p>
+      </div>
+      <ol class="il-timeline">
+        <li><span class="il-timeline__date">c. 624–546 BCE</span><p><strong>Thales of Miletus</strong> — the first known thinker to seek natural rather than mythic explanations; the <em>archē</em>, the origin of all things, is water. Followed by <strong>Anaximander</strong> (c. 610–546; the <em>apeiron</em>, the boundless) and <strong>Anaximenes</strong> (c. 588–524; air, transformed by rarefaction and condensation).</p></li>
+        <li><span class="il-timeline__date">c. 551–479 BCE</span><p><strong>Confucius</strong> — the <em>Analects</em>: <em>ren</em> (benevolence) cultivated through <em>li</em> (ritual propriety); the five virtues ren, yi, li, zhi, xin.</p></li>
+        <li><span class="il-timeline__date">c. 5th c. BCE</span><p><strong>The Buddha</strong> — <em>anattā</em> (no-self): the person is five ever-changing aggregates (form, feeling, perception, mental formations, consciousness), none of them a self.</p></li>
+        <li><span class="il-timeline__date">fl. c. 500 BCE</span><p><strong>Heraclitus of Ephesus</strong> — reality is flux governed by a rational <em>logos</em>: "though the logos is common, the many live as if they had a private understanding"; the cosmos is "ever-living fire, kindled in measures and going out in measures."</p></li>
+        <li><span class="il-timeline__date">fl. c. 495–470 BCE</span><p><strong>Parmenides of Elea</strong> — fragment 8: Being is ungenerated, imperishable, one, continuous, indivisible, motionless; change and plurality are illusions, because what-is-not cannot be thought. The first great deductive argument in Western philosophy.</p></li>
+        <li><span class="il-timeline__date">c. 490–430 BCE</span><p><strong>Zeno of Elea</strong> — the paradoxes defending Parmenides: Achilles and the Tortoise, the Dichotomy, the Arrow — each a <em>reductio</em> of the commonsense picture of space and time.</p></li>
+        <li><span class="il-timeline__date">c. 490–420 BCE</span><p><strong>Protagoras</strong> — the <em>homo-mensura</em>: "man is the measure of all things." Preserved mainly through Plato's hostile <em>Theaetetus</em>; read with suspicion.</p></li>
+        <li><span class="il-timeline__date">c. 460–370 BCE</span><p><strong>Democritus of Abdera</strong> (dates approximate) — atoms (<em>atomoi</em>, "uncuttable") moving in the void; everything is combinations of indivisible particles. Founded by Leucippus, developed by Democritus.</p></li>
+        <li><span class="il-timeline__date">470–399 BCE</span><p><strong>Socrates</strong> — the elenchus: cross-examination that reduces an interlocutor's thesis to contradiction. Executed in <strong>399 BCE</strong> on charges of impiety and corrupting the young; refused escape in the <em>Crito</em>.</p></li>
+        <li><span class="il-timeline__date">c. 428–348 BCE</span><p><strong>Plato</strong> — the Theory of Forms; the <em>Phaedo</em> equality argument; the <em>Meno</em> slave-boy demonstration (learning as recollection); the <em>Republic</em>'s tripartite soul and city; the cave allegory (Book VII).</p></li>
+        <li><span class="il-timeline__date">384–322 BCE</span><p><strong>Aristotle</strong> — the <strong>four causes</strong> (material, formal, efficient, final); potentiality and actuality; the <strong>prime mover</strong> as pure actuality, moving everything as a final cause — the way a beloved inspires lovers.</p></li>
+        <li><span class="il-timeline__date">c. 360–270 BCE</span><p><strong>Pyrrho of Elis</strong> — suspension of judgment (<em>epoché</em>) before equipollent disagreement; tranquility said to follow like a shadow. <strong>Epicurus</strong> (341–270): pleasure as <em>ataraxia</em> and <em>aponia</em>; "when we are, death is not; when death is, we are not."</p></li>
+        <li><span class="il-timeline__date">c. 300 BCE</span><p><strong>Zeno of Citium</strong> founds <strong>Stoicism</strong> — the dichotomy of control; the four cardinal virtues (wisdom, justice, courage, temperance); cosmopolitanism.</p></li>
+        <li><span class="il-timeline__date">204/5–270 CE</span><p><strong>Plotinus</strong> — from the <strong>One</strong> emanates <em>Nous</em> (Intellect), from Nous the World-Soul, from Soul matter; the soul's return (<em>epistrophē</em>) to the One.</p></li>
+        <li><span class="il-timeline__date">354–430 CE</span><p><strong>Augustine</strong> — evil as <strong>privation of good</strong> (<em>privatio boni</em>): the way blindness is an absence of sight; the <em>City of God</em> (413–427).</p></li>
+        <li><span class="il-timeline__date">c. 872–950</span><p><strong>Al-Farabi</strong>, the "Second Teacher" — the philosopher-prophet-ruler of the virtuous city, a multicultural, multilingual, multireligious empire. Then <strong>Avicenna</strong> (980–1037; the Flying Man), <strong>Averroes</strong> (1126–1198), <strong>Maimonides</strong> (1138–1204; negative theology), and <strong>Aquinas</strong> (1225–1274; the <strong>Five Ways</strong>, <em>Summa Theologiae</em> I.2.3).</p></li>
+        <li><span class="il-timeline__date">1463–1592</span><p>The Renaissance turn: <strong>Pico della Mirandola</strong> (1463–1494; man as "maker and moulder of his own self"); <strong>Machiavelli</strong> (1469–1527; <em>The Prince</em>, 1513 — the <em>verità effettuale</em>); <strong>Montaigne</strong> (1533–1592; <em>Essays</em>, 1580; "Que sais-je?").</p></li>
+        <li><span class="il-timeline__date">1596–1716</span><p>The rationalists: <strong>Descartes</strong> (1596–1650; <em>Meditations</em>, 1641 — the cogito, the wax argument, mind–body dualism); <strong>Spinoza</strong> (1632–1677; <em>Ethics</em>, 1677 — <em>Deus sive Natura</em>); <strong>Leibniz</strong> (1646–1716 — monads, pre-established harmony, the Principle of Sufficient Reason).</p></li>
+        <li><span class="il-timeline__date">1632–1776</span><p>The empiricists: <strong>Locke</strong> (1632–1704; <em>Essay</em>, 1689/90 — tabula rasa; primary vs. secondary qualities); <strong>Berkeley</strong> (1685–1753 — <em>esse est percipi</em>); <strong>Hume</strong> (1711–1776; <em>Enquiry</em>, 1748 — the problem of induction; the is–ought passage, <em>Treatise</em> 3.1.1).</p></li>
+        <li><span class="il-timeline__date">1724–1831</span><p><strong>Kant</strong> (1724–1804; <em>Critique of Pure Reason</em>, 1781/1787; <em>Groundwork</em>, 1785 — synthetic a priori, phenomena/noumena, the categorical imperative); <strong>Hegel</strong> (1770–1831; <em>Phenomenology of Spirit</em>, 1807 — the lordship–bondage dialectic).</p></li>
+        <li><span class="il-timeline__date">1788–1873</span><p>The 19th-century reaction: <strong>Schopenhauer</strong> (1788–1860; the world as Will); <strong>Kierkegaard</strong> (1813–1855; the three stages); <strong>Marx</strong> (1818–1883; the four alienations of the 1844 manuscripts); <strong>Mill</strong> (1806–1873; <em>Utilitarianism</em>, 1863; <em>On Liberty</em>, 1859 — the harm principle).</p></li>
+        <li><span class="il-timeline__date">1844–1900</span><p><strong>Nietzsche</strong> — "God is dead" as the madman's cry (<em>The Gay Science</em> §125, 1882); master vs. slave morality (<em>Genealogy</em>, 1887); the Übermensch; the eternal recurrence.</p></li>
+        <li><span class="il-timeline__date">1848–1951</span><p>The linguistic turn: <strong>Frege</strong> (1848–1925; sense vs. reference, 1892); <strong>Russell</strong> (1872–1970; "On Denoting," 1905; the paradox); <strong>Wittgenstein</strong> (1889–1951; <em>Tractatus</em>, 1921 — the picture theory; <em>Philosophical Investigations</em> — meaning as use, language-games).</p></li>
+        <li><span class="il-timeline__date">1859–1984</span><p><strong>Husserl</strong> (1859–1938; phenomenology, intentionality, the epoché); <strong>Heidegger</strong> (1889–1976; <em>Being and Time</em>, 1927 — Dasein as being-in-the-world); <strong>Sartre</strong> (1905–1980); <strong>de Beauvoir</strong> (1908–1986; <em>The Second Sex</em>, 1949); <strong>Camus</strong> (1913–1960); <strong>Arendt</strong> (1906–1975); <strong>Foucault</strong> (1926–1984).</p></li>
+        <li><span class="il-timeline__date">1921–2002</span><p><strong>Rawls</strong> (1921–2002; <em>A Theory of Justice</em>, 1971 — the original position, the veil of ignorance); <strong>Nozick</strong> (1938–2002; <em>Anarchy, State, and Utopia</em>, 1974 — entitlement theory, the Wilt Chamberlain argument).</p></li>
+        <li><span class="il-timeline__date">1946–present</span><p><strong>Singer</strong> (b. 1946; "Famine, Affluence, and Morality," 1972 — the shallow pond; the root of effective altruism); <strong>Chalmers</strong> (b. 1966 — the hard problem of consciousness; philosophical zombies).</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Key figures -->
+  <section class="il-section" aria-labelledby="figures-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Dramatis personae</p>
+        <h2 class="il-h il-h--section" id="figures-h">Twelve minds, one long argument.</h2>
+        <p>Each card names the figure's central move — the full exposition is in the arguments section below.</p>
+      </div>
+      <div class="il-grid">
+        <div class="il-card"><span class="il-card__index">01</span><h3 class="il-h il-h--card">Socrates (470–399 BCE)</h3><p>The elenchus: cross-examination that reduces a thesis to contradiction. Executed in 399 BCE; refused escape. His move is a method, not a doctrine — the examined life as a practice.</p></div>
+        <div class="il-card"><span class="il-card__index">02</span><h3 class="il-h il-h--card">Plato (c. 428–348 BCE)</h3><p>The Forms: genuine knowledge is of unchanging realities that sensible things merely participate in. The equality argument, recollection, the cave — the West's first systematic metaphysics.</p></div>
+        <div class="il-card"><span class="il-card__index">03</span><h3 class="il-h il-h--card">Aristotle (384–322 BCE)</h3><p>The four causes and potentiality/actuality. Every later physics, biology, and metaphysics is an argument with him — including the ones that claim to refute him.</p></div>
+        <div class="il-card"><span class="il-card__index">04</span><h3 class="il-h il-h--card">Augustine (354–430)</h3><p>Evil as privation of good — the hole-in-the-sock move. Married Greek philosophy to Christian theology and invented the interior self as a philosophical subject.</p></div>
+        <div class="il-card"><span class="il-card__index">05</span><h3 class="il-h il-h--card">Avicenna (980–1037)</h3><p>The Flying Man: self-awareness survives the blocking of every sense — the sharpest thought experiment in the medieval East–West conversation on mind and body.</p></div>
+        <div class="il-card"><span class="il-card__index">06</span><h3 class="il-h il-h--card">Aquinas (1225–1274)</h3><p>The Five Ways: five instances of one pattern — observed features of the world argued to be unintelligible unless anchored in something non-derivative.</p></div>
+        <div class="il-card"><span class="il-card__index">07</span><h3 class="il-h il-h--card">Descartes (1596–1650)</h3><p>Methodic doubt down to the single indubitable point: doubting is happening. The cogito proves a thinker exists <em>while thinking</em> — and almost nothing more.</p></div>
+        <div class="il-card"><span class="il-card__index">08</span><h3 class="il-h il-h--card">Hume (1711–1776)</h3><p>Induction is rationally unjustifiable but natural and indispensable — we live by custom. The circle is airtight; the answer is deflationary, not skeptical panic.</p></div>
+        <div class="il-card"><span class="il-card__index">09</span><h3 class="il-h il-h--card">Kant (1724–1804)</h3><p>The Copernican turn: objects conform to the mind's forms, not the reverse. Synthetic a priori knowledge is possible — at the price of knowing only phenomena.</p></div>
+        <div class="il-card"><span class="il-card__index">10</span><h3 class="il-h il-h--card">Nietzsche (1844–1900)</h3><p>"God is dead" as diagnosis, not triumph: the moral framework has become unbelievable, and nihilism is the consequence to be survived. The eternal recurrence is the test of survival.</p></div>
+        <div class="il-card"><span class="il-card__index">11</span><h3 class="il-h il-h--card">Wittgenstein (1889–1951)</h3><p>From the picture theory to language-games: meaning is use in a practice, not a mental entity. The private-language argument turns the search for meaning inward — and finds nothing to point at.</p></div>
+        <div class="il-card"><span class="il-card__index">12</span><h3 class="il-h il-h--card">Arendt (1906–1975)</h3><p>The banality of evil: enormous evil needed no demonic depth — only thoughtlessness. The explanatory burden moves from monstrosity to the failure to think.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Core arguments -->
+  <section class="il-section" aria-labelledby="arguments-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The arguments</p>
+        <h2 class="il-h il-h--section" id="arguments-h">The moves, explained genuinely.</h2>
+        <p>Original exposition throughout — not summaries of conclusions but reconstructions of the reasoning: the premises, the inference, the weak point.</p>
+      </div>
+      <div class="il-prose">
+        <h3>1. Parmenides's block on change</h3>
+        <p>Start from: you can only think about what <em>is</em>. To say "X changed" you would have to say X came <em>from what-is-not</em> — but what-is-not cannot be thought or spoken. So change, birth, death, and plurality are impossible; reality is one unchanging Being. The power is that the conclusion follows remorselessly from a premise about thought itself. Every later metaphysics — Plato's Forms, atomism, Aristotle's potentiality/actuality — is an attempt to answer him without absurdity.</p>
+        <h3>2. Zeno's paradoxes as a defense, not a puzzle</h3>
+        <p>Zeno is not confused about walking to the door. His point: <em>if</em> space and time are infinitely divisible, <em>then</em> motion is impossible — so since motion obviously happens, your assumptions about space and time must be wrong somewhere. Each paradox is a <em>reductio</em> of the commonsense picture, in service of Parmenides. The live question is whether modern calculus solves him or dissolves him.</p>
+        <h3>3. Plato's equality argument (<em>Phaedo</em>)</h3>
+        <p>We look at two sticks and judge them "equal but falling short of Equality itself." But to judge something as <em>falling short</em> of a standard, you must already know the standard — and you cannot have gotten the perfect standard <em>from</em> imperfect instances. Therefore the soul must have known the Forms before birth: learning is recollection. The argument's nerve is the "deficient likeness" move: copies can only be recognized <em>as</em> copies by someone who knows the original.</p>
+        <h3>4. Aristotle's four causes as an explanatory checklist</h3>
+        <p>Ask of anything: what is it made of (material), what is its form/pattern (formal), what brought it about (efficient), and what is it <em>for</em> (final). Modern science mostly dropped the fourth — but notice how much of biology ("the heart is <em>for</em> pumping") and all of human action still speaks final-cause language. The prime mover then answers: what keeps the whole causal order in motion without itself needing a mover? Something fully actual, with nothing left to become — which moves everything the way a beloved moves a lover: as an end, not a push.</p>
+        <h3>5. The Stoic dichotomy as cognitive therapy</h3>
+        <p>Epictetus's move is not "don't care" but a sorting operation: suffering comes from treating non-up-to-us things (reputation, health, outcomes) as though they were up-to-us. Restrict your <em>prohairesis</em> (moral choice) to judgments, impulses, desires — the only things fully yours — and externals become "preferred indifferents": fine to pursue, catastrophic to <em>need</em>.</p>
+        <h3>6. Epicurus's death argument</h3>
+        <p>Fear of death rests on imagining <em>being dead</em> — experiencing the state of non-experience. But experience requires a subject, and death is precisely the dissolution of the subject. So "death is nothing to us": the feared scenario is incoherent. The corollary is the positive program: since only present experience matters, maximize <em>ataraxia</em> — and that turns out to need very little (bread, water, friends, philosophy), which is why Epicureanism is the opposite of luxury.</p>
+        <h3>7. Augustine's privation theory</h3>
+        <p>The problem of evil assumes evil is a <em>thing</em> God made. Augustine reclassifies: evil is to good what a hole is to a sock — not a substance but a <em>lack</em> in a substance that ought to have it. God creates only good things; evil enters when free wills defect from the good they were made for. Whether the analogy holds for natural disasters is the live question — but the logical move is to deny the premise that evil needs a <em>maker</em>.</p>
+        <h3>8. Aquinas's Five Ways as five instances of one pattern</h3>
+        <p>Each begins from an observed feature of the world (things move, causes chain, things are contingent, things come in degrees, unintelligent things act toward ends) and argues it is unintelligible unless anchored in something that has that feature <em>non-derivatively</em> (unmoved, uncaused, necessary, maximal, intelligent). The crucial caveat Aquinas himself would insist on: these conclude to "what everyone calls God" only analogically — the arguments establish a metaphysical anchor, not the Trinity.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Arguments continued -->
+  <section class="il-section" aria-labelledby="arguments2-h">
+    <div class="il-wrap">
+      <div class="il-prose">
+        <h3 id="arguments2-h">9. Descartes's cogito as a survivor, not a proof</h3>
+        <p>Methodic doubt is demolition: senses deceive, dreams deceive, maybe a demon deceives. What <em>cannot</em> be doubted is not a grand metaphysical edifice but the single point that doubting is happening — "I think, therefore I am" survives because the attempt to doubt it confirms it. Note what it does <em>not</em> prove: that the "I" is an immaterial soul-substance persisting through time. That needs the later, shakier arguments of Meditations II–VI. The cogito proves a thinker exists <em>while thinking</em>, nothing more. Scholars cannot even agree on what Descartes's mind–body picture was — interactionism, trialism, hylomorphism — so cite the cogito only for what it establishes.</p>
+        <h3>10. Spinoza and Leibniz: two ways out of dualism</h3>
+        <p>Descartes left mind and body as two substances with no intelligible connection. <strong>Spinoza</strong> dissolves the problem: there is exactly one substance, <em>Deus sive Natura</em> ("God, or Nature"), and mind and body are two <em>attributes</em> of the same thing — like two sides of one coin, so their correlation needs no causal bridge. <strong>Leibniz</strong> keeps many substances — <strong>monads</strong>, simple and windowless, each mirroring the whole universe from its own perspective — with no real interaction between them, only <strong>pre-established harmony</strong> set by God. Two opposite solutions to the same problem: one substance, or infinitely many synchronized ones.</p>
+        <h3>11. Hume on induction as circularity, not refutation</h3>
+        <p>Hume does not say the sun won't rise tomorrow. He says: try to <em>justify</em> your confidence. Deductive justification is impossible (no contradiction in imagining otherwise). Probabilistic justification ("it's always worked") presupposes that past regularities predict future ones — which <em>is</em> the uniformity of nature, the very thing needing justification. The circle is airtight, and his answer is deflationary: we believe by <em>custom</em>, a kind of animal instinct — justified pragmatically, not rationally.</p>
+        <h3>12. Kant's Copernican turn</h3>
+        <p>Previous philosophy assumed the mind must conform to objects, and then despaired that objects-as-they-are-in-themselves are unreachable. Kant reverses it: <em>objects conform to the mind's</em> forms (space, time, the categories). That is what makes <strong>synthetic a priori</strong> knowledge possible — geometry is certain because space is <em>our</em> form of intuition. The price: we know only phenomena. The payoff: the moral law needs no empirical support; freedom, God, and immortality can be <em>postulated</em> by practical reason without theoretical proof.</p>
+        <h3>13. The categorical imperative as a consistency test</h3>
+        <p>Do not ask "what should I do?" — ask "could everyone do <em>this</em>, for <em>this reason</em>, without contradiction?" A lying promise fails: if everyone lied to get loans, the institution of promising (which the liar needs) collapses — the maxim <em>contradicts itself</em> universalized. The humanity formula adds the positive content: persons are ends, never tools merely. The test's bite is that it rules out <em>exceptions for me</em> — the exact structure of most immoral reasoning.</p>
+        <h3>14. Hegel's master and slave as a parable of recognition</h3>
+        <p>Self-consciousness needs another self-consciousness to confirm it — you cannot be "independent" alone. The life-and-death struggle produces a winner (lord) and loser (bondsman), but the lord's recognition comes from someone unfree, so it is worthless; meanwhile the bondsman, through <em>work</em> on the world, discovers his own formative power. Dependence inverts: the lord depends on the bondsman. The general lesson: identities built on domination are self-undermining; genuine recognition requires the other's freedom. (And no: "thesis–antithesis–synthesis" is not Hegel's terminology — see the corrections below.)</p>
+        <h3>15. Nietzsche's hammer as diagnosis, not vandalism</h3>
+        <p>"God is dead" is not atheist triumphalism — it is the madman <em>mourning</em> in a marketplace that does not yet understand what has happened: the Christian-moral framework that gave European life meaning has become unbelievable, and the values built on it (truth, pity, equality) are now unsupported. Nihilism is the <em>consequence to be survived</em>, not the doctrine to adopt. The eternal recurrence is the test for whether you have survived it: could you will <em>this exact life</em>, with every pain, infinitely many times? If yes, you have achieved <em>amor fati</em> — love of fate.</p>
+        <h3>16. Russell's theory of descriptions as logical hygiene</h3>
+        <p>"The present King of France is bald" <em>looks</em> like it refers to someone. Russell shows the grammar misleads: it is really an existential claim plus a uniqueness claim plus a predication — and it is simply <em>false</em>, no ghost-kings needed. The general method: regiment sentences into logical form to dissolve pseudo-problems. This is the founding move of analytic philosophy: many philosophical puzzles are confusions produced by surface grammar.</p>
+        <h3>17. Wittgenstein's use-theory as anti-essentialism about meaning</h3>
+        <p>The <em>Tractatus</em> tried to fix language's essence (picturing). The later Wittgenstein asks: what do we actually <em>do</em> with words? "Game" has no single defining feature — only family resemblances across language-games. Meaning is not a mental entity attached to a word; it is the word's <em>role</em> in a practice. The private-language argument extends this inward: a sensation-word defined by private ostension has no criterion of correct re-application, so it is not a <em>language</em> at all — even to the speaker.</p>
+        <h3>18. Sartre's freedom as condemnation</h3>
+        <p>"Existence precedes essence" means: for humans, unlike paper-knives, there is no blueprint. Every situation leaves options (even refusal), so <em>not choosing is a choice</em>. <strong>Bad faith</strong> is the repertoire of tricks for pretending otherwise — treating yourself as an object with a fixed nature ("I <em>am</em> a waiter," "I <em>had</em> no choice"). Anguish is the feeling of that freedom; bad faith is the flight from it. Facticity — past, body, class, situation — is inescapable and <em>constitutes</em> the situation freedom operates within, not an escape from it.</p>
+        <h3>19. Rawls's veil as a fairness device</h3>
+        <p>Moral arbitrariness — the class, talents, and family you were born into — should not determine your life chances, but any real-world chooser is biased by knowing their position. So: choose the rules <em>as if</em> you did not know who you would be. The maximin logic follows: you would rationally insure against being the worst-off, hence the difference principle. The veil does not <em>prove</em> justice; it operationalizes the intuition that fairness means impartiality.</p>
+        <h3>20. Nozick's Wilt Chamberlain as a dynamic objection</h3>
+        <p>Patterned theories (to each according to need, merit, equality...) describe <em>end-states</em>. But any end-state is a snapshot; free people transacting voluntarily will immediately move away from it. Start from any "just" distribution, let fans pay to watch Wilt play, and the pattern is upset by free exchange — so <strong>"liberty upsets patterns,"</strong> and no end-state principle can survive voluntary transactions. The standard reply: justice constrains the <em>background institutions</em>, not every transaction.</p>
+        <h3>21. Singer's pond as moral mathematics</h3>
+        <p>The argument has exactly two premises: suffering is bad; if you can prevent something bad without sacrificing anything of comparable importance, you should. The pond case — you would wade in and muddy your clothes to save a drowning child — makes the second premise vivid and undeniable; then distance is shown to be morally irrelevant. The conclusion most people resist — that buying luxuries while children die of preventable causes is <em>wrong</em>, not merely uncharitable — follows by logic, not sentiment. The live objections: demandingness, and whether "comparable moral importance" smuggles in the conclusion.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Myth corrections -->
+  <section class="il-section" aria-labelledby="myths-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Read the legend critically</p>
+        <h2 class="il-h il-h--section" id="myths-h">Fourteen misreadings the textbooks won't correct.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>"Protagoras meant anything goes."</strong> The <em>homo-mensura</em> doctrine survives almost entirely through Plato's hostile <em>Theaetetus</em>; as presented, it is a claim about <em>appearance</em> — closer to a phenomenology of perception than to "all opinions are equally true."</p>
+        <p><strong>"The cogito proves the soul."</strong> It proves only that thinking is occurring while doubt is attempted. The immaterial, persisting <em>res cogitans</em> is argued separately and controversially.</p>
+        <p><strong>"Nietzsche was a nihilist."</strong> He <em>diagnosed</em> nihilism as Europe's coming catastrophe and wrote <em>against</em> it. "God is dead" is spoken by a grieving madman, not a triumphant atheist.</p>
+        <p><strong>"Epicurus was a glutton."</strong> Epicurean pleasure is <em>ataraxia</em> plus <em>aponia</em> — tranquility and absence of pain. The school's actual menu was barley, water, and conversation.</p>
+        <p><strong>"Stoicism means suppressing emotions."</strong> The Stoics target <em>false judgments</em> ("this insult harmed me"), not feeling; the sage still feels joy, caution, and wishing — the <em>eupatheiai</em>.</p>
+        <p><strong>"Hegel's dialectic is thesis–antithesis–synthesis."</strong> He never used the formula. It derives from Fichte and was popularized by Chalybäus; documented by Mueller (1958). Hegel's movement is a concept's <em>internal</em> contradiction generating a preserving-and-canceling unity (<em>Aufhebung</em>).</p>
+        <p><strong>"Machiavelli taught evil."</strong> <em>The Prince</em> describes the <em>logic</em> of power maintenance as distinct from Christian morality — descriptive political science, whether or not one endorses the advice.</p>
+        <p><strong>"Hume proved reason is worthless."</strong> Hume is a <em>mitigated</em> skeptic: induction is rationally unjustifiable but natural and indispensable. He suspends <em>justification</em>, not belief.</p>
+        <p><strong>"Berkeley thought things pop out of existence unperceived."</strong> God perceives everything continuously — that is precisely the role God plays in the system, the guarantor of continuity. The view is theism-dependent by design.</p>
+        <p><strong>"Kant said we can't know anything."</strong> Phenomena are <em>fully real</em> — empirically real. What is unknowable is things <em>apart from</em> our forms of cognition. A misreading Kant fought in his lifetime.</p>
+        <p><strong>"The 'swerve' is Epicurus's idea."</strong> It appears only in Lucretius (<em>De Rerum Natura</em> 2.251–292); nothing in surviving Epicurus contains it. Attribute carefully.</p>
+        <p><strong>"Sartre meant you can do literally anything."</strong> Facticity — your past, body, class, historical situation — is inescapable and <em>constitutes</em> the situation in which freedom operates.</p>
+        <p><strong>"Arendt called Eichmann's evil ordinary or excusable."</strong> "Banal" modifies the <em>perpetrator</em>, not the crime: the horror is that enormous evil needed no demonic depth — only thoughtlessness.</p>
+        <p><strong>"The is–ought gap means morality is impossible."</strong> Hume's paragraph <em>poses</em> the problem as a challenge to moral rationalists; it does not contain a proof that no ought follows from any is.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">Eighteen lessons, primary texts throughout.</h2>
+        <p>Each lesson pairs a teaching focus with free primary-text readings (Project Gutenberg, New Advent, marxists.org, accesstoinsight.org) and SEP reference entries — plus discussion and assessment prompts.</p>
+      </div>
+      <div class="il-modules">
+        <article class="il-module"><p class="il-eyebrow">Lesson 1</p><h3>The first question: what is everything made of?</h3><p>The Milesian move from myth to <em>physis</em>; archē-theories (water, apeiron, air) as the birth of natural explanation.</p><p class="il-module__work"><strong>Reading:</strong> Presocratic fragments (Gutenberg) + SEP "Presocratics." <strong>Discussion:</strong> why is "everything is water" a <em>philosophical</em> advance over "the gods did it"? <strong>Assessment:</strong> is an archē-theory falsifiable? Should it be?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 2</p><h3>Heraclitus vs. Parmenides: flux against logic</h3><p>Heraclitus's logos and unity of opposites; Parmenides fragment 8's deductive case that change is impossible — the deadlock that mothers all later metaphysics.</p><p class="il-module__work"><strong>Reading:</strong> Heraclitus fragments + Parmenides fragment 8 (Gutenberg) + SEP "Heraclitus," "Parmenides." <strong>Assessment:</strong> reconstruct Parmenides's argument in 4 numbered premises — which premise would you deny, and what does denying it cost?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 3</p><h3>Zeno and the birth of the reductio</h3><p>The paradoxes (Achilles, Dichotomy, Arrow) as <em>reductio ad absurdum</em> in defense of Parmenides; infinite divisibility vs. motion.</p><p class="il-module__work"><strong>Reading:</strong> SEP "Zeno's Paradoxes" + Aristotle's <em>Physics</em> VI excerpts. <strong>Discussion:</strong> do the paradoxes attack motion, or our <em>concepts</em> of space and time?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 4</p><h3>Socrates: the examined life and its price</h3><p>The elenchus; Socratic ignorance; the 399 BCE trial, charges, and execution; civil disobedience in the <em>Crito</em>.</p><p class="il-module__work"><strong>Reading:</strong> Plato's <em>Apology</em>, <em>Crito</em> (Gutenberg) + SEP "Socrates." <strong>Assessment:</strong> debate — does a citizen ever owe obedience to an unjust verdict?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 5</p><h3>Plato: Forms, recollection, and the cave</h3><p>The Theory of Forms; the <em>Phaedo</em> equality argument; the <em>Meno</em> slave-boy; the tripartite soul and city; the cave allegory.</p><p class="il-module__work"><strong>Reading:</strong> <em>Meno</em>, <em>Phaedo</em> (selections), <em>Republic</em> VII (Gutenberg) + SEP "Plato's Metaphysics." <strong>Discussion:</strong> who in the cave allegory are <em>we</em> — prisoners, escapee, or returners?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 6</p><h3>Aristotle: causes, substance, and the prime mover</h3><p>The four causes; potentiality/actuality; the prime mover as pure actuality and final (not efficient) cause.</p><p class="il-module__work"><strong>Reading:</strong> <em>Physics</em> II, <em>Metaphysics</em> XII (selections) + SEP "Aristotle's Metaphysics." <strong>Assessment:</strong> apply the four causes to a smartphone, then to a human action.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 7</p><h3>Hellenistic therapies: Stoics, Epicureans, skeptics</h3><p>The dichotomy of control; Epicurean pleasure as <em>ataraxia</em>; Pyrrhonian <em>epoché</em> — philosophy as medicine for anxiety.</p><p class="il-module__work"><strong>Reading:</strong> Epictetus's <em>Enchiridion</em>, Epicurus's <em>Letter to Menoeceus</em> (Gutenberg) + SEP "Stoicism," "Epicurus," "Skepticism." <strong>Assessment:</strong> one-week journal experiment using the dichotomy of control; report what broke.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 8</p><h3>Plotinus to Augustine: evil and the One</h3><p>Emanation (One → Nous → Soul); Augustine's privation theory of evil; the two cities.</p><p class="il-module__work"><strong>Reading:</strong> Plotinus <em>Enneads</em> selections, Augustine <em>Confessions</em> VII, <em>City of God</em> XIX (New Advent) + SEP "Plotinus," "Augustine." <strong>Discussion:</strong> does privation theory handle <em>natural</em> evil?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 9</p><h3>Reason and revelation: Farabi to Aquinas</h3><p>Al-Farabi's philosopher-prophet and the virtuous city; Avicenna's Flying Man; Averroes on faith and reason; Maimonides's negative theology; Aquinas's Five Ways.</p><p class="il-module__work"><strong>Reading:</strong> <em>Summa Theologiae</em> I.2.3 (New Advent), <em>Guide for the Perplexed</em> I.50–60 (Gutenberg) + SEP "Al-Farabi," "Ibn Sina," "Aquinas." <strong>Assessment:</strong> does the Flying Man prove dualism, or only self-awareness-without-body?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 10</p><h3>Descartes to Leibniz: the rationalist system-builders</h3><p>Methodic doubt and the cogito's limits; mind–body dualism and the interaction problem; Spinoza's monism (<em>Deus sive Natura</em>); Leibniz's monads and sufficient reason.</p><p class="il-module__work"><strong>Reading:</strong> <em>Meditations</em> I, II, VI, <em>Ethics</em> I, <em>Monadology</em> (Gutenberg) + SEP "Descartes' Epistemology," "Spinoza," "Leibniz." <strong>Discussion:</strong> which solves the mind–body problem better — Spinoza's one substance or Leibniz's pre-established harmony?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 11</p><h3>Locke, Berkeley, Hume: the empiricist arc</h3><p>Tabula rasa; primary/secondary qualities; <em>esse est percipi</em>; the problem of induction; the is–ought paragraph.</p><p class="il-module__work"><strong>Reading:</strong> Locke <em>Essay</em> II (selections), Berkeley <em>Principles</em>, Hume <em>Enquiry</em> IV–V, XII + SEP "Locke," "Berkeley," "Hume." <strong>Assessment:</strong> write Hume's induction argument as a dilemma; then say whether <em>you</em> can live with custom as your only ground.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 12</p><h3>Kant: the Copernican revolution in philosophy</h3><p>Synthetic a priori; phenomena/noumena; transcendental idealism vs. phenomenalism; the categorical imperative's formulas.</p><p class="il-module__work"><strong>Reading:</strong> <em>Prolegomena</em> (whole — it is short), <em>Groundwork</em> I–II (Gutenberg) + SEP "Kant's Transcendental Idealism," "Kant's Moral Philosophy." <strong>Assessment:</strong> test three of your own maxims against the universalization test.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 13</p><h3>Hegel, Kierkegaard, Marx: history, existence, economy</h3><p>Master–slave and recognition; the thesis–antithesis–synthesis <em>myth</em>; Kierkegaard's stages and the parody of Hegel; Marx's four alienations.</p><p class="il-module__work"><strong>Reading:</strong> <em>Phenomenology</em> §§178–196, <em>Fear and Trembling</em> selections, the 1844 Manuscripts (marxists.org) + SEP "Hegel," "Kierkegaard," "Marx." <strong>Discussion:</strong> find a real relationship with the lordship–bondage structure; who does the recognizing?</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 14</p><h3>Mill, Nietzsche, Schopenhauer: values under pressure</h3><p>The greatest happiness principle and higher pleasures; the harm principle and its "maturity" restriction; Schopenhauer's Will; Nietzsche's death of God, master/slave morality, eternal recurrence.</p><p class="il-module__work"><strong>Reading:</strong> <em>Utilitarianism</em> II + <em>On Liberty</em> I, <em>Genealogy</em> I + <em>Gay Science</em> §125, §341 (Gutenberg) + SEP "Mill's Moral and Political Philosophy." <strong>Assessment:</strong> take the eternal recurrence test seriously for one week of your life.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 15</p><h3>Frege, Russell, Wittgenstein: the linguistic turn</h3><p>Sense vs. reference; definite descriptions; logical atomism and Russell's paradox; picture theory → language-games; private language.</p><p class="il-module__work"><strong>Reading:</strong> "On Sense and Reference" (selections), "On Denoting" (1905), <em>Tractatus</em> Preface + <em>Investigations</em> §§1–43 + SEP "Frege," "Wittgenstein." <strong>Assessment:</strong> give three sentences whose surface grammar misleads about their logical form.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 16</p><h3>Phenomenology and existentialism: consciousness and freedom</h3><p>Intentionality and the epoché; Dasein as being-in-the-world; existence precedes essence; bad faith; the Absurd and revolt; "one becomes a woman."</p><p class="il-module__work"><strong>Reading:</strong> <em>Existentialism Is a Humanism</em>, <em>Myth of Sisyphus</em> (selections), <em>Second Sex</em> Introduction + SEP "Sartre." <strong>Assessment:</strong> catch yourself in one act of bad faith this week; write it up in Sartrean vocabulary.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 17</p><h3>Justice and power: Rawls, Nozick, Arendt, Foucault</h3><p>The veil of ignorance and the two principles; entitlement theory and "liberty upsets patterns"; the banality of evil; disciplinary power and the Panopticon.</p><p class="il-module__work"><strong>Reading:</strong> <em>Theory of Justice</em> ch. 3 (selections), <em>Anarchy, State, and Utopia</em> ch. 7, <em>Eichmann in Jerusalem</em> Postscript, "Panopticism" + SEP "Original Position," "Arendt," "Foucault." <strong>Assessment:</strong> design a classroom grading policy from behind the veil; then let Nozick attack it with Wilt Chamberlain.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Lesson 18</p><h3>Consciousness, giving, and the self: Chalmers, Singer, Buddha, Confucius</h3><p>The hard problem and zombies; effective altruism's shallow pond; anattā and the five aggregates; ren and li.</p><p class="il-module__work"><strong>Reading:</strong> "Facing Up to the Problem of Consciousness" (1995, web), "Famine, Affluence, and Morality" (1972, web), the <em>Anattalakkhana Sutta</em> (accesstoinsight.org), <em>Analects</em> 1–4, 12 (Gutenberg) + SEP "Zombies," "Confucius." <strong>Assessment:</strong> compare no-self (aggregates) with Hume's bundle theory of the self (<em>Treatise</em> I.iv.6) — independent convergence or shared error?</p></article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Sources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Primary sources &amp; further reading.</h2>
+        <p>Primary texts first — nearly all free. The Stanford Encyclopedia of Philosophy (plato.stanford.edu) is the scholarly reference throughout.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Primary — read in full (Project Gutenberg, gutenberg.org)</h3>
+        <ul>
+          <li>Plato — <em>Apology, Crito, Euthyphro, Meno, Phaedo, Republic</em> (Jowett trans.).</li>
+          <li>Aristotle — <em>Physics, Metaphysics, Nicomachean Ethics</em>; Marcus Aurelius — <em>Meditations</em>; Epictetus — <em>Enchiridion</em>; Lucretius — <em>De Rerum Natura</em>.</li>
+          <li>Augustine — <em>Confessions</em>, <em>City of God</em> (also newadvent.org); Maimonides — <em>Guide for the Perplexed</em> (Friedländer trans.).</li>
+          <li>Descartes — <em>Meditations</em>, <em>Discourse</em>; Spinoza — <em>Ethics</em>; Leibniz — <em>Monadology</em>; Locke — <em>Essay</em>; Berkeley — <em>Principles</em>, <em>Three Dialogues</em>; Hume — <em>Treatise</em>, <em>Enquiry</em>.</li>
+          <li>Kant — <em>Groundwork</em>, <em>Prolegomena</em>, <em>Critique of Pure Reason</em> (Meiklejohn); Mill — <em>Utilitarianism</em>, <em>On Liberty</em>; Nietzsche — <em>Beyond Good and Evil</em>, <em>Genealogy of Morals</em>, <em>Thus Spoke Zarathustra</em>.</li>
+          <li>Marx — the 1844 Manuscripts, <em>Communist Manifesto</em>, <em>Capital</em> I (marxists.org).</li>
+          <li>The <em>Anattalakkhana Sutta</em> (accesstoinsight.org); the <em>Analects</em> 1–4, 12 (Gutenberg).</li>
+        </ul>
+        <h3>Reference &amp; secondary</h3>
+        <ul>
+          <li><strong>Stanford Encyclopedia of Philosophy</strong> (plato.stanford.edu) — entries consulted include: presocratics, heraclitus, parmenides, zeno-elea, socrates, plato-metaphysics, aristotle-metaphysics, stoicism, epicurus, skepticism, plotinus, augustine, al-farabi, ibn-sina, ibn-rushd, maimonides-islamic, aquinas, pico-della-mirandola, machiavelli, montaigne, descartes-epistemology, pineal-gland, spinoza, leibniz, locke, berkeley, hume-newton, kant-transcendental-idealism, kant-metaphysics, kant-moral, kierkegaard, schopenhauer-aesthetics, mill-moral-political, frege, wittgenstein, sartre, foucault, arendt, original-position, zombies, confucius. Canonical URLs: <strong>plato.stanford.edu/entries/&lt;slug&gt;/</strong>.</li>
+          <li><strong>Internet Encyclopedia of Philosophy</strong> (iep.utm.edu) — backup coverage for figures with thinner SEP treatment.</li>
+        </ul>
+        <h3>A note on sources</h3>
+        <ul>
+          <li>Ancient dates (Democritus, Leucippus) follow the scholarly consensus approximations — the surviving record doesn't permit precision, and this track says so where it matters.</li>
+          <li>The most-quoted lines in philosophy (Sisyphus's closing, "one is not born, but becomes a woman," Singer's pond) are <em>paraphrased</em> here rather than quoted verbatim — check scholarly editions for exact wording before citing.</li>
+          <li>Every figure links to its Stanford Encyclopedia of Philosophy entry and, where available, a public-domain primary text. Start there; this track is the map, not the territory.</li>
+          <li>The Hegel-myth correction (Mueller 1958) is solidly sourced; the master–slave exposition should be re-checked against SEP "Hegel" for a publishable version.</li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

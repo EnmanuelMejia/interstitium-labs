@@ -1,0 +1,31 @@
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before </head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title><!-- PAGE TITLE --> | Interstitium Labs</title>
+<meta name="description" content="<!-- DESCRIPTION -->"/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
