@@ -17,7 +17,12 @@
     d.head.appendChild(logo);
   }
 
-  if (!d.getElementById("il-practice-language")) {
+  // Practice-language theme is opt-in only: pages add class="il-practice-lang"
+  // to <body> (or <html>). Never loaded globally — the brand Space Grotesk /
+  // Inter stack stays the one global stack.
+  var practiceOptIn =
+    d.body && d.body.classList && d.body.classList.contains("il-practice-lang");
+  if (practiceOptIn && !d.getElementById("il-practice-language")) {
     var link = d.createElement("link");
     link.id = "il-practice-language";
     link.rel = "stylesheet";
