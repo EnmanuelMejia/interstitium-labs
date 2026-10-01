@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>CISSP — Practitioner Study Sequence | Interstitium Labs</title>
+<meta name="description" content="An on-site practitioner study sequence across all 8 CISSP CBK domains: security and risk management, asset security, security architecture and engineering, communication and network security, identity and access management, security assessment and testing, security operations, and software development security — scenario-driven, lab-backed, management-voiced."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Security Practitioner</p>
+    <h1 class="il-h">CISSP — Practitioner Study Sequence</h1>
+    <p class="il-hero__sub">All eight CBK domains as one practitioner&#x27;s discipline: scenario-driven study, home-lab fluency, and the managerial judgment the field rewards — every conclusion ending in a business consequence.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the sequence</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What this sequence is, and how to work it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>What this is: a practitioner-level study sequence across all eight CISSP CBK domains — security and risk management, asset security, security architecture and engineering, communication and network security, identity and access management, security assessment and testing, security operations, and software development security. It is built from ISC2&#x27;s public certification pages and teaches each domain the way the field rewards it: scenario-driven judgment, hands-on lab fluency, and business-aligned recommendations.</p>
+        <p>Who it is for: experienced security practitioners preparing for the CISSP certification, and security engineers who want the full-spectrum judgment the credential represents — the ability to reason across domains and make risk tradeoffs under constraints. This is not a memorization guide; it is a decision-making workout.</p>
+        <p>Prerequisites: working experience in information security across several domains; a home lab (virtual machines, a network you control) for the hands-on modules; comfort reading technical documentation. ISC2 requires verified professional experience for the certification itself — check the current requirements on the official ISC2 page before planning your path.</p>
+        <p>How to use it: work the modules in order. Every checkpoint is a scenario — answer in writing, as a memo, a plan, or a decision log, before reading on. Do the labs for real: the firewall ruleset, the packet captures, the access review, and the pipeline gates are where practitioner fluency comes from. End with the capstone engagement, defended to your toughest audience.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="outcomes-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Outcomes</p>
+        <h2 class="il-h il-h--section" id="outcomes-h">What you will be able to do.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li>Build practitioner-level judgment across all 8 CISSP CBK domains through scenario-driven study, not memorization</li>
+          <li>Practice the managerial decision-making the exam rewards: risk tradeoffs, prioritization under constraints, and business-aligned recommendations</li>
+          <li>Develop hands-on fluency with the tools and artifacts of each domain in a home lab (policies, registers, firewall rules, packet analysis, scans, logs, pipeline gates)</li>
+          <li>Learn to brief technical findings to non-technical leadership: every conclusion ends in a business consequence</li>
+          <li>Note: CISSP is a credential for experienced security practitioners. ISC2 requires verified professional experience for certification — check the current requirements on the official ISC2 page before planning your path.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in study order.</h2>
+      </div>
+      <div class="il-modules">
+      <article class="il-module" aria-labelledby="m1-h">
+        <p class="il-eyebrow">Module 1</p>
+        <h3 class="il-h il-h--card" id="m1-h">Security and Risk Management</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write enforceable security policies, standards, and procedures and explain who approves each tier</li>
+            <li>Build and maintain a risk register: assess likelihood and impact, assign treatment, and brief residual risk to leadership</li>
+            <li>Conduct a business impact analysis and derive defensible RTO/RPO priorities</li>
+            <li>Design personnel-security controls (separation of duties, least privilege, termination procedures) and argue for them in business terms</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Governance: policies, standards, procedures, guidelines — and who signs each</h5>
+          <p>Policies are senior-management statements of intent — short, stable, and approved at the top. Standards are mandatory rules derived from policy. Procedures are the step-by-step how. Guidelines are recommended practice. The approval authority descends with the detail: executives sign policies; technical leadership signs procedures.</p>
+          <p>This tiering is operational, not ceremonial: it determines what can change quickly (procedures) and what requires leadership sign-off (policy). A practitioner who cannot say who signs each tier cannot operate the governance system.</p>
+          <h5>Risk management lifecycle: identify, assess, treat, monitor</h5>
+          <p>Risk management is a loop, not an event: identify risks (assets, threats, vulnerabilities), assess them (likelihood and impact), treat them (accept, mitigate, transfer, or avoid), and monitor what remains. The loop repeats because risks age, controls decay, and the business changes.</p>
+          <p>The practitioner&#x27;s failure mode is treating assessment as the product. The product is the treatment decision and the monitoring that verifies it worked. An assessed-but-untreated risk is just a documented surprise.</p>
+          <h5>Qualitative vs quantitative analysis: when a matrix beats a dollar model</h5>
+          <p>Qualitative analysis ranks risks on ordered scales (high/medium/low) — fast, workshop-friendly, honest about uncertainty. Quantitative analysis computes expected monetary loss — precise-looking, powerful for business cases, and only as good as its inputs. Use the matrix when inputs are judgments; use the dollars when the decision is a budget.</p>
+          <p>The exam and the field both reward this discernment: false precision is worse than honest ranking. A qualitative assessment that drives treatment beats a quantitative model built on invented numbers.</p>
+          <h5>Business Impact Analysis: RTO, RPO, critical-process ranking</h5>
+          <p>BIA identifies the business processes that matter, ranks them by criticality, and derives two numbers per process: RTO (recovery time objective — how fast it must be back) and RPO (recovery point objective — how much data loss is tolerable). These numbers drive every continuity investment.</p>
+          <p>RTO and RPO are business decisions with technical consequences, not technical decisions. The practitioner facilitates the business owners&#x27; ranking — then designs recovery to meet it, and reports honestly when the budget does not.</p>
+          <h5>Security roles: data owner, custodian, user, and the accountability chain</h5>
+          <p>The data owner (a business leader) decides classification and acceptable risk. The custodian (often IT) implements controls. Users follow the rules. The chain is accountability: decisions about risk belong to owners, implementation belongs to custodians, and the practitioner keeps the two from blurring.</p>
+          <p>When custodians start accepting risks, governance has failed quietly. Part of practitioner judgment is noticing that drift and routing the decision back to the accountable owner.</p>
+          <h5>Personnel security: background checks, separation of duties, mandatory vacations, least privilege</h5>
+          <p>People are part of the control system: background checks at hire, separation of duties so no one person controls a critical process end-to-end, mandatory vacations (or job rotation) so someone else&#x27;s eyes periodically cover every role, and least privilege everywhere.</p>
+          <p>Mandatory vacations deserve emphasis because they are counterintuitive: the control exists because fraud needs continuous concealment — forcing absence forces handover, and handover exposes what concealment hid. Administrative controls are controls.</p>
+          <h5>Awareness and training: measuring behavior, not completion</h5>
+          <p>Training completion rates measure attendance; phishing click rates, reporting rates, and incident root causes measure behavior. The practitioner designs for behavior change — segmented audiences, relevant scenarios, repeated measurement — and treats flat metrics as a program failure, not a user failure.</p>
+          <p>If two quarters of training move no metric, the training is broken. Change the content, the channel, or the frequency — and check whether the technical control (filtering, MFA) should be carrying more of the weight.</p>
+          <h5>Ethics and professional conduct for credentialed practitioners</h5>
+          <p>A credential is a public trust signal: it says this practitioner will act honestly, protect confidentiality, and put the profession&#x27;s integrity above convenience. ISC2&#x27;s code of ethics makes this explicit, and violations can cost the certification.</p>
+          <p>In practice this means: no exaggerating findings to win budget, no hiding findings to protect relationships, honest scoping with clients, and refusing work you are not competent to do. The scenarios in this sequence keep testing this — notice when the right answer costs you something.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Acceptable-use policy. Draft a one-page acceptable-use policy for a fictional 50-person company: scope, prohibited actions, monitoring notice, consequences — plus a one-paragraph exception process. Review it after 48 hours and mark every sentence you could not defend to an employee.</li>
+            <li>Lab 2 — Risk register. Build a spreadsheet risk register: 12 risks across people, process, and technology, each with likelihood, impact, named owner, and treatment decision. Include at least one accepted, one transferred, and one avoided risk; write the accepted risk&#x27;s residual-risk statement as you would brief it.</li>
+            <li>Lab 3 — Tabletop BIA. Pick five business processes of a fictional online retailer, rank by criticality, assign RTO/RPO with one-sentence justifications each. Then cut the recovery budget in half, re-rank, and document what changed and why.</li>
+            <li>Lab 4 — Supplier one-pager. Write the five questions you would ask any new SaaS vendor before procurement, the contract clauses you require (right-to-audit, breach notification, data return), and how you would verify answers without an on-site visit.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Your board will fund exactly one initiative this quarter: a $60k endpoint-protection upgrade OR a $60k vendor-risk-management program. The company has suffered one phishing compromise (contained) and is about to sign three new SaaS vendors. Write a half-page recommendation naming the initiative you fund, the risk you are accepting by defunding the other, and how you would measure success in 90 days.</li>
+            <li>A department head asks you to approve an exception allowing unencrypted USB drives for a field team that works where there is no network connectivity. Draft the exception request as the department head would submit it (business justification, compensating controls, expiry date) and then your decision memo as the security manager (approve, approve-with-conditions, or deny — with the residual risk stated plainly).</li>
+            <li>A regulator and a major customer each demand evidence of your risk process within 30 days, but your risk register is three years out of date. Write the two-week recovery plan: who you interview, what artifacts you produce, and what you will honestly tell each requester about gaps.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m2-h">
+        <p class="il-eyebrow">Module 2</p>
+        <h3 class="il-h il-h--card" id="m2-h">Asset Security</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design a data-classification scheme and map handling controls to each level</li>
+            <li>Distinguish owner, custodian, and user responsibilities in a conflict scenario</li>
+            <li>Build defensible retention, legal-hold, and destruction procedures</li>
+            <li>Apply privacy principles (minimization, purpose limitation) to a real system design</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Data classification levels and handling rules per level</h5>
+          <p>Classification assigns every data type a level (public, internal, confidential, restricted — labels vary by organization), and each level carries handling rules: who may access it, how it must be stored and transmitted, how it is marked, and how it is destroyed.</p>
+          <p>The lab&#x27;s four-tier scheme makes this operational: labels, examples, handling rules, and marking requirements on one page an employee can actually use. Classification that lives only in a policy document classifies nothing.</p>
+          <h5>Ownership vs custodianship: who decides, who implements</h5>
+          <p>The data owner decides the classification, the retention, and the acceptable risk. The custodian implements the controls the owner requires. Marketing-versus-legal on retention is an owner-level decision — the practitioner frames it, documents it, and implements the outcome.</p>
+          <p>When the two roles blur, you get either IT making business risk decisions or business leaders configuring firewalls. Neither ends well. Keep the line bright.</p>
+          <h5>Data states: at rest, in transit, in use</h5>
+          <p>Data at rest (stored) is protected by encryption, access controls, and media handling. Data in transit (moving) is protected by TLS and network controls. Data in use (being processed) is the hardest — protected by endpoint controls, memory protections, and increasingly by confidential computing.</p>
+          <p>Controls map to states: encrypting the database does not protect the API response in flight, and TLS does not protect the backup tape. Design coverage across all three states or accept the gap explicitly.</p>
+          <h5>Retention and legal hold: schedules, destruction, defensibility</h5>
+          <p>Retention schedules state how long each data type is kept and then destroyed — balancing business need, legal obligation, and the liability of holding data you do not need. A legal hold suspends destruction when litigation is reasonably anticipated; destroying under hold is spoliation.</p>
+          <p>Defensibility is the point: you must be able to show a regulator or court that destruction followed the schedule, with evidence. &#x27;We delete things sometimes&#x27; is not a retention program.</p>
+          <h5>Privacy principles: purpose limitation, minimization, consent</h5>
+          <p>Collect data only for a stated purpose (purpose limitation), collect no more than the purpose needs (minimization), and get consent where required. These principles increasingly carry legal force across jurisdictions.</p>
+          <p>For the practitioner they are design constraints: every new data collection gets a purpose statement, a minimization review, and a consent check before it ships. Retrofitting privacy after launch is where breaches and fines come from.</p>
+          <h5>Scoping and tailoring: controls proportional to classification</h5>
+          <p>Not all data deserves the same protection spend: scoping selects which controls apply where, tailoring adjusts them to the system&#x27;s reality. The shared-drive remediation lab is scoping in action — PII gets restricted handling, marketing assets do not.</p>
+          <p>Proportionality is what makes security affordable. Protect everything equally and you protect nothing affordably; scope by classification and the budget follows the risk.</p>
+          <h5>Secure disposal: media sanitization and verification</h5>
+          <p>Disposal must match the media: overwriting or degaussing for spinning disks, cryptographic erase or manufacturer secure-erase for SSDs (where overwriting is unreliable due to wear leveling), shredding or incineration for paper. Each method needs a verification step and a record.</p>
+          <p>The record is the product: method, date, media identifier, verifier, and the destruction certificate. A regulator asking &#x27;prove it&#x27; gets the certificate, not your memory.</p>
+          <h5>Data remanence and why deletion is not destruction</h5>
+          <p>Deletion removes the pointer; the data remains until overwritten — on disks, in SSD wear-leveling blocks, in backups, in cloud snapshots. Remanence is why &#x27;delete the file&#x27; is not a destruction procedure.</p>
+          <p>This is the hard part of the cloud-backup question in the checkpoints: your deletion workflow must account for every copy, including the provider&#x27;s backups and their retention windows. If you cannot enumerate the copies, you cannot claim destruction.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Classification scheme. Write a four-tier data-classification scheme (labels, examples, handling rules, marking requirements) for a fictional healthcare-adjacent startup, plus a one-page quick-reference an employee could tape to a monitor.</li>
+            <li>Lab 2 — Home-lab inventory. List every place your sensitive data lives (VMs, backups, cloud notes, password manager, phone), classify each, and identify one item over-protected and one under-protected relative to its classification. Fix the shortfall.</li>
+            <li>Lab 3 — Disposal drill. Document the sanitization method for three media types (spinning disk, SSD, paper) with verification steps and the record you would keep. Then actually sanitize a throwaway USB stick and photograph the evidence steps.</li>
+            <li>Lab 4 — Data-subject request procedure. Draft the intake form, identity-verification step, search checklist across systems, and response template — with timelines you could actually meet solo.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Marketing wants to keep customer records indefinitely &#x27;for analytics&#x27;; legal wants a 2-year retention ceiling. Draft the decision memo: state the classification of the data, who decides (owner vs custodian), the retention rule you recommend, and the control that makes each party&#x27;s concern moot.</li>
+            <li>You inherit a shared drive where a predecessor stored customer PII alongside public marketing assets with identical permissions. Write the 30-day remediation plan: how you classify, who you consult before restricting access, and how you handle the discovery that two departed employees still have access.</li>
+            <li>A regulator asks how you would prove a specific record was destroyed. Describe the destruction workflow and the evidence artifact you would produce — then explain what changes if the record lives in a cloud provider&#x27;s backups.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m3-h">
+        <p class="il-eyebrow">Module 3</p>
+        <h3 class="il-h il-h--card" id="m3-h">Security Architecture and Engineering</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Apply security models and design principles (least privilege, defense in depth, fail-secure) to a system architecture</li>
+            <li>Select appropriate cryptographic controls and manage keys through their lifecycle</li>
+            <li>Map shared-responsibility boundaries across cloud models and assign accountability</li>
+            <li>Evaluate security products and architectures against business requirements</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Security models: Bell-LaPadula, Biba, Clark-Wilson</h5>
+          <p>Bell-LaPadula protects confidentiality: no read up, no write down — information flows only upward in classification. Biba protects integrity: no read down, no write up — data flows only from more-trusted to less-trusted levels. Clark-Wilson protects integrity in commercial systems through well-formed transactions and separation of duties.</p>
+          <p>Know what each protects: the classic exam trap mixes them up. BLP is the military confidentiality model; Biba is its integrity mirror; Clark-Wilson is the model that looks like actual business software.</p>
+          <h5>Reference monitor, security kernel, trusted computing base</h5>
+          <p>The reference monitor is the abstract concept: a tamper-proof, always-invoked, small-enough-to-verify mechanism that mediates every access. The security kernel is its implementation in the OS. The trusted computing base (TCB) is everything the system&#x27;s security depends on — hardware, firmware, kernel, and trusted processes.</p>
+          <p>The design lesson: keep the TCB small, because everything in it must be correct. Every line you add to the TCB is a line an attacker would love to own.</p>
+          <h5>Cryptography selection: symmetric, asymmetric, hashing, signatures, PKI</h5>
+          <p>Symmetric crypto (one shared key) is fast and suits bulk data; asymmetric (public/private key pairs) solves key distribution and enables signatures; hashing gives integrity fingerprints; digital signatures bind identity to data; PKI is the trust infrastructure (certificate authorities, chains, revocation) that makes public keys believable at scale.</p>
+          <p>Selection is risk-driven: use standard, vetted algorithms — never the vendor&#x27;s proprietary cipher from the checkpoint. &#x27;Military-grade&#x27; is a marketing term; AES, RSA/ECC, and SHA-2/SHA-3 with proper modes are engineering terms. The reply you draft should say exactly that, politely and finally.</p>
+          <h5>Key management lifecycle: generate, distribute, store, rotate, destroy</h5>
+          <p>Keys are born (generated with proper randomness), distributed (without exposure), stored (in HSMs, vaults, or OS key stores — never in code or chat), rotated (on schedule and on personnel changes), and destroyed (verifiably, at end of life). A failure at any stage voids the cryptography built on top.</p>
+          <p>The lab&#x27;s key-management plan makes this concrete for a small team. Most real-world crypto failures are key-management failures — the math held, the handling did not.</p>
+          <h5>Cloud models and shared responsibility</h5>
+          <p>IaaS, PaaS, SaaS shift progressively more responsibility to the provider — but never all of it: you always own your data, your identities, and your configurations. Deployment models (public, private, hybrid, community) shift where the infrastructure lives and who operates it.</p>
+          <p>The decision memo lab is the real skill: drawing the responsibility boundary for a regulated workload, choosing key management (provider-managed vs customer-held keys), and planning exit before you enter. Cloud is an outsourcing decision wearing a technology costume — evaluate it as one.</p>
+          <h5>Virtualization and container security boundaries</h5>
+          <p>The hypervisor is a security boundary between guest VMs — a hypervisor escape breaks all of them. Containers share the host kernel, so the boundary is weaker: a kernel vulnerability can cross container lines that would stop at a VM boundary.</p>
+          <p>Design accordingly: untrusted or differently-classified workloads get VM-level separation; containers are for mutually-trusting workloads where density matters. Know which boundary you are standing behind.</p>
+          <h5>Physical and environmental controls</h5>
+          <p>Security architecture includes the physical: facility access controls, surveillance, environmental protections (power, fire, water, temperature), and media handling. A perfectly hardened server in an unlocked closet is a joke with a power cable.</p>
+          <p>The practitioner includes physical controls in scope because attackers do: tailgating, theft, and environmental failure are in the threat model, and the controls are unglamorous and effective.</p>
+          <h5>Evaluation criteria: what &#x27;certified&#x27; actually claims</h5>
+          <p>Security product certifications (Common Criteria, FIPS 140 validations) certify specific claims about specific configurations — not &#x27;this product is secure.&#x27; A FIPS-validated module means the crypto implementation passed testing; it says nothing about the product&#x27;s access controls.</p>
+          <p>Read the certificate, not the badge: what was evaluated, in which configuration, against which threats. The vendor&#x27;s shiny logo is the start of evaluation, not the end.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Segmented architecture. Draw a segmented network for a fictional company (office LAN, server segment, DMZ, guest Wi-Fi, management network): label every trust boundary, firewall placement, and allowed traffic per boundary, with a two-sentence justification for each boundary.</li>
+            <li>Lab 2 — TLS comparison. On a test web server, compare weak legacy TLS settings against a modern hardened profile using a TLS scanner. Document what changed, what breaks with hardening, and your recommendation for public-facing versus internal-only services.</li>
+            <li>Lab 3 — Key-management plan. Design a key-management plan for a small team: key storage, backups, rotation schedule, revocation on departure. Implement it for one lab service and rotate a key once, documenting each step.</li>
+            <li>Lab 4 — Tool evaluation. Evaluate one open-source security tool for adoption: one-page assessment of trust (maintainers), supportability, update cadence, and compromise detection. Conclude adopt or reject with reasons.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>You must choose the cloud deployment model for a regulated workload: public cloud with strong controls vs private cloud on aging hardware the team knows well. Write the decision memo weighing shared-responsibility boundaries, key-management options, and exit strategy — then state your recommendation and the one assumption that would flip it.</li>
+            <li>A vendor proposes a &#x27;military-grade&#x27; proprietary cipher for a new product. Write your reply: the evaluation questions you ask, the standard you require instead, and the business-risk sentence you would put in front of the product owner.</li>
+            <li>Your company is moving to zero-trust network access. Draft the phased rollout plan that keeps the help desk from drowning: which users migrate first, what breaks on day one, and how you measure that the new model is actually stricter than the VPN it replaces.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m4-h">
+        <p class="il-eyebrow">Module 4</p>
+        <h3 class="il-h il-h--card" id="m4-h">Communication and Network Security</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design and validate firewall rulesets with default-deny posture and tested rule hygiene</li>
+            <li>Analyze packet captures to identify protocols, anomalies, and cleartext exposure</li>
+            <li>Deploy and verify encrypted tunnels (VPN/TLS) and explain what each protects against</li>
+            <li>Architect segmented networks including secure wireless for untrusted clients</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>OSI and TCP/IP models: where attacks and controls operate</h5>
+          <p>The OSI seven-layer model (and the practical TCP/IP four-layer stack) locate every attack and every control: spoofing at the network layer, TLS at the session/presentation boundary, application attacks at layer 7. &#x27;Where does this operate?&#x27; is the first diagnostic question.</p>
+          <p>You do not need to recite the layers from memory under pressure — you need the habit of placing a problem at its layer, because controls at the wrong layer do not help. A WAF does not fix a routing attack.</p>
+          <h5>Firewalls: packet filter, stateful, application-layer, next-gen</h5>
+          <p>Packet filters judge individual packets by header fields — fast, dumb. Stateful firewalls track connections and judge packets in context. Application-layer (proxy) firewalls understand protocols. Next-gen adds identity, application awareness, and threat intelligence to the mix.</p>
+          <p>Rule hygiene matters more than firewall generation: default-deny, explicit allows, logged drops, regular review. The lab&#x27;s &#x27;one rule I got wrong&#x27; writeup is the real lesson — every ruleset has one, and testing finds it.</p>
+          <h5>VPNs: site-to-site vs remote access, tunneling, endpoint trust</h5>
+          <p>Site-to-site VPNs join networks over untrusted transport; remote-access VPNs join individual endpoints. Tunneling encrypts and encapsulates the traffic — but the tunnel&#x27;s security is only as good as its endpoints: a compromised laptop inside the VPN is inside the network.</p>
+          <p>This is why the zero-trust checkpoint matters: VPNs grant network access on authentication, while zero-trust grants per-resource access continuously verified. Know what your VPN actually proves — identity at connect time — and what it does not.</p>
+          <h5>Wireless security: enterprise auth vs pre-shared keys, rogue APs</h5>
+          <p>Enterprise wireless (802.1X with per-user credentials or certificates) gives per-user authentication and keying; pre-shared keys give one secret for everyone — which means one ex-employee knows the network key until you rotate it everywhere. Rogue access points (evil twins, unauthorized APs) are detected by wireless monitoring, not by hope.</p>
+          <p>The guest-Wi-Fi lab is the applied version: separate SSID, client isolation, no route to corporate, bandwidth policy. Guest networks exist to keep untrusted devices off your network while looking hospitable.</p>
+          <h5>Segmentation and micro-segmentation</h5>
+          <p>Segmentation divides the network into zones with controlled traffic between them, so a compromise in one zone does not mean compromise of all. Micro-segmentation pushes this to workload-level granularity, often in software-defined networks.</p>
+          <p>The rationale is blast-radius reduction: assume breach, limit lateral movement. Every firewall placement in the architecture lab needs its two-sentence justification — &#x27;so that X cannot reach Y&#x27; is the entire argument.</p>
+          <h5>Common attack patterns: spoofing, MitM, DoS/DDoS, DNS abuse</h5>
+          <p>Spoofing forges identity (IP, ARP, email sender). Man-in-the-middle inserts between communicating parties — defeated by proper certificate validation, enabled by users clicking through warnings. DoS/DDoS exhausts resources, increasingly via amplification and botnets. DNS abuse (cache poisoning, tunneling, hijacking) exploits the trust everything places in name resolution.</p>
+          <p>Recognize the pattern, then reach for the control: anti-spoofing filters, certificate pinning/validation, rate limiting and scrubbing, DNSSEC and DNS monitoring. Pattern recognition is the practitioner&#x27;s reflex.</p>
+          <h5>Secure communications: TLS and what certificate validation proves</h5>
+          <p>TLS provides confidentiality and integrity in transit — and, with proper certificate validation, assurance you are talking to the intended server. Validation checks the chain to a trusted root, the hostname match, expiry, and revocation status.</p>
+          <p>What it proves is narrower than people think: it proves the server holds the private key for that certificate — not that the server is trustworthy. The Wireshark lab&#x27;s TLS handshake annotation makes this concrete: see exactly what is visible (handshake metadata) and what is not (payload).</p>
+          <h5>Network monitoring: full-packet capture vs flow logs</h5>
+          <p>Flow logs (NetFlow/IPFIX) record who talked to whom, when, how much — compact, long-retained, enough for behavioral analysis. Full-packet capture records everything — enormous, short-retained, and the only thing that answers &#x27;what exactly was in that payload.&#x27;</p>
+          <p>You need both, tiered: flows everywhere for the long view, packet capture at choke points for the deep view. The 2 AM alert scenario is where this pays off — flows tell you the database server talked to a strange host; packets tell you what it said.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Host firewall ruleset. Build a default-deny host firewall (iptables/nftables or Windows Defender Firewall) with explicit allows and drop logging for a lab server. Test each rule with port scans from another VM; document one rule you got wrong and how the test exposed it.</li>
+            <li>Lab 2 — Traffic analysis. Capture 10 minutes of your own lab traffic in Wireshark. Annotate: a DNS exchange, a TLS handshake (what is and isn&#x27;t visible), one broadcast/multicast conversation, and any plaintext credential on your own test services. Write the finding as a mini incident note.</li>
+            <li>Lab 3 — VPN verification. Configure a site-to-site or client VPN between two lab VMs (e.g., WireGuard). Verify with captures on both sides that payload is actually protected, then document the key-distribution step you would change for production.</li>
+            <li>Lab 4 — Guest Wi-Fi architecture. Design a small-office guest Wi-Fi: SSID strategy, authentication, client isolation, bandwidth policy, firewall rules between guest and corporate. Implement the firewall portion and test isolation with two clients.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>At 2 AM the monitoring system alerts on unusual outbound traffic from a database server to an external host. Write the first-hour decision log: what you check before waking anyone, the containment call you make at minute 30, and the evidence you preserve before the containment changes it.</li>
+            <li>The business wants to allow a new video-conferencing tool that uses peer-to-peer connections through the firewall. Write the network-security review: the ports/protocols question you ask the vendor, the firewall change you propose (and refuse), and the monitoring you add as a condition of approval.</li>
+            <li>Two branch offices need always-on connectivity. Compare site-to-site VPN vs private line in a half-page recommendation: the security properties that differ, the failure modes, and which you choose for a site handling payment data.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m5-h">
+        <p class="il-eyebrow">Module 5</p>
+        <h3 class="il-h il-h--card" id="m5-h">Identity and Access Management (IAM)</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design a joiner/mover/leaver provisioning process with measurable SLAs</li>
+            <li>Implement least-privilege and privileged-access controls, including just-in-time elevation</li>
+            <li>Run a defensible periodic access review with documented revoke/retain decisions</li>
+            <li>Evaluate authentication architectures (MFA, SSO, federation) including failure and recovery modes</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Identification, authentication, authorization, accountability</h5>
+          <p>Identification: who are you (username). Authentication: prove it (password, token, biometric). Authorization: what may you do (permissions). Accountability: the record tying actions to identities (logging). The chain breaks at its weakest link — strong authentication with no logging gives you secure anonymity.</p>
+          <p>Non-repudiation — the inability to deny an action — depends on the whole chain holding: authenticated identity, authorized action, tamper-evident logs. Design the chain end to end or do not claim the property.</p>
+          <h5>MFA: factors, phishing-resistant options, enrollment and recovery pitfalls</h5>
+          <p>Factors are something you know, have, or are. Phishing-resistant MFA (FIDO2/WebAuthn security keys, device-bound passkeys) defeats credential replay and adversary-in-the-middle; SMS and push-approval do not — both have well-documented bypasses.</p>
+          <p>The pitfalls live in enrollment and recovery: a perfect MFA deployment with a help-desk &#x27;just reset it&#x27; process has no MFA. Document the recovery procedure, protect it like the front door, and test it — the lab&#x27;s simulated second-factor loss is the honest version of this test.</p>
+          <h5>Access-control models: DAC, MAC, RBAC, ABAC</h5>
+          <p>Discretionary (DAC): owners grant access at their discretion — flexible, hard to audit centrally. Mandatory (MAC): the system enforces labels (think classification levels) — strong, rigid. Role-based (RBAC): permissions attach to roles, users get roles — the enterprise workhorse. Attribute-based (ABAC): policies evaluate attributes of user, resource, and context — the most expressive, the most complex.</p>
+          <p>Choose by need: RBAC for most organizations, MAC where classification is law, ABAC where context (device, location, risk) must drive decisions. The RBAC matrix lab shows why RBAC wins in practice — it is reviewable.</p>
+          <h5>Provisioning lifecycle: joiner, mover, leaver</h5>
+          <p>Joiner: accounts created promptly with least-privilege defaults. Mover: access updated when roles change — the step everyone forgets, accumulating privilege. Leaver: access revoked immediately on departure, with privileged and disgruntled departures at the top of the queue.</p>
+          <p>Orphaned accounts are the residue of a broken lifecycle: the departed employees with live access from the Module 2 checkpoint. The 60-minute deprovisioning runbook exists because at 2 AM nobody should be inventing the order of operations.</p>
+          <h5>Privileged access management: vaulting, session recording, just-in-time elevation</h5>
+          <p>Standing privilege is standing risk: PAM vaults privileged credentials (humans never see them), records privileged sessions, and grants just-in-time elevation — privilege for minutes, for a ticketed reason, then gone. The manager asking for standing admin for 40 people gets JIT plus an approval workflow plus an audit trail instead.</p>
+          <p>The principle: privilege should be an event, not a state. Every hour of standing admin access is an hour an attacker would love to borrow.</p>
+          <h5>Single sign-on and federation: trust and failure modes</h5>
+          <p>SSO centralizes authentication — one strong login, many applications — via federation trust between the identity provider and each service. It reduces password sprawl and centralizes MFA enforcement.</p>
+          <p>The failure mode is centralization itself: the SSO outage during month-end close from the checkpoint. Plan for it — emergency bypass accounts with strict policy, tested recovery, and a post-incident decision (keep, restrict, or delete) that prevents the bypass from becoming a permanent backdoor.</p>
+          <h5>Access reviews and recertification</h5>
+          <p>Periodic access reviews ask resource owners to attest: does each person still need this access? The review needs evidence (who has what, last-used dates), named attesters, revoke/retain decisions in writing, and a re-review date.</p>
+          <p>The lab&#x27;s quarterly review on your own systems is the muscle memory: export accounts, flag dormant and excessive privilege, decide, document, remove one. Reviews that change nothing are theater; schedule them so they bite.</p>
+          <h5>Accountability and non-repudiation</h5>
+          <p>Accountability requires the full chain: unique identities (no shared accounts — they destroy attribution), authentication that actually happened, authorization records, and tamper-protected logs. Non-repudiation is the property that emerges when the chain is complete.</p>
+          <p>Shared credentials are the accountability killer the lab keeps finding: convenient, and the end of &#x27;who did this.&#x27; Eliminate them where attribution matters — which, in a security context, is everywhere.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Quarterly access review. On your own lab systems, export every account, flag dormant (&gt;90 days), excessive privilege, and shared credentials. Write the review memo with revoke/retain decisions and a re-review date. Actually remove one dormant account.</li>
+            <li>Lab 2 — RBAC matrix. Build an RBAC matrix for a fictional company: 6 roles × 8 systems, marking standing vs just-in-time access. Include the approval chain for the most privileged role, role-play a request through it, and find the step where it could be abused.</li>
+            <li>Lab 3 — Harden authentication. Enable MFA on every lab service that supports it, disable password-only logins where possible, document the lost-second-factor recovery procedure. Then simulate the loss (use only the recovery path) and time the recovery.</li>
+            <li>Lab 4 — Service-account audit. List each service account in your home lab with its actual versus needed permissions; reduce at least one over-privileged account to least privilege. Document what broke and how you fixed the gap without restoring full rights.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>A manager asks for standing administrator access &#x27;to be efficient&#x27; for their 40-person team. Write your response: the alternative you offer (just-in-time elevation), the approval workflow, and the audit trail that makes the manager&#x27;s request unnecessary — without using the word &#x27;no&#x27; in the first paragraph.</li>
+            <li>HR reports a same-day termination of a privileged IT administrator who may be disgruntled. Write the 60-minute deprovisioning runbook in order: accounts, tokens, VPN, physical access, shared credentials — and the one step teams always forget.</li>
+            <li>The SSO provider has a 4-hour outage during month-end close. Write the after-action decision: do you keep the emergency bypass accounts you created, change their policy, or delete them — and what control prevents the bypass from becoming permanent?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m6-h">
+        <p class="il-eyebrow">Module 6</p>
+        <h3 class="il-h il-h--card" id="m6-h">Security Assessment and Testing</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Scope and authorize security assessments (vuln scans, pen tests, audits) with proper rules of engagement</li>
+            <li>Triage vulnerability reports: validate findings, prioritize by risk, and drive remediation to closure</li>
+            <li>Write audit-grade findings and corrective-action plans</li>
+            <li>Build security metrics that translate technical results into management decisions</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Vulnerability assessment vs penetration test vs security audit</h5>
+          <p>A vulnerability assessment finds and reports weaknesses — breadth, no exploitation. A penetration test exploits them to prove impact — depth, with strict rules of engagement. A security audit checks compliance against a standard — conformity, with evidence. Different questions, different methods, different paperwork.</p>
+          <p>The practitioner scopes each correctly: you do not pen-test when you need a compliance attestation, and you do not audit when you need to know if the firewall actually stops anyone. Match the tool to the question.</p>
+          <h5>Test strategies: black, white, gray box</h5>
+          <p>Black box: no internal knowledge — simulates an external attacker, finds what is visible from outside. White box: full knowledge — finds the most issues fastest, simulates an insider or a thorough adversary. Gray box: partial knowledge — the pragmatic middle, like an attacker with some recon.</p>
+          <p>Each reveals different things: black box tests your external posture honestly; white box tests your actual security deeply. Budget usually buys gray. Know what your chosen strategy cannot see.</p>
+          <h5>Vulnerability management lifecycle: discover, prioritize, remediate, verify</h5>
+          <p>Discover (scan, assess, ingest), prioritize (exploitability × asset value × exposure — the 400-findings triage memo), remediate (patch, configure, or accept with documentation), verify (rescan and confirm closure). The loop runs continuously, not quarterly.</p>
+          <p>The metrics that matter live here: remediation SLAs by severity, scan coverage, and repeat-findings rate. A finding remediated but never verified is a finding you hope is gone.</p>
+          <h5>Security control testing: technical, administrative, physical</h5>
+          <p>Controls need testing at all three levels: technical (does the firewall rule actually block?), administrative (is the policy actually followed?), physical (does the badge reader actually deny?). Testing only the technical layer is how organizations pass scans and fail breaches.</p>
+          <p>Evidence is the product: test results, not assertions. &#x27;The jobs are green&#x27; is an assertion; a timed restore from backup is evidence. Collect evidence or accept the gap.</p>
+          <h5>Log review and monitoring as assessment input</h5>
+          <p>Logs are a continuous assessment feed: authentication failures, privilege escalations, configuration changes, and anomalies all surface in log review before they surface anywhere else. Regular log review catches the misconfigurations scanners miss.</p>
+          <p>But logs are only useful if they are complete, time-synchronized, and tamper-protected — which is why the operations module covers logging discipline. Assessment consumes what operations produces.</p>
+          <h5>Code review and testing perspectives for the security manager</h5>
+          <p>The manager does not need to find every bug personally, but must ensure code gets reviewed with security eyes: input handling, authentication logic, cryptographic use, and error handling are the high-yield areas. Automated testing (SAST/DAST/SCA) scales the review; manual review catches the logic flaws tools miss.</p>
+          <p>Your job is coverage and quality of the review process, plus reading the resulting findings as risk input. A clean SAST report on unreviewed business logic is not assurance.</p>
+          <h5>Third-party and supply-chain assessment</h5>
+          <p>Your vendors&#x27; security is your security exposure: assess critical suppliers with questionnaires, evidence review, and (for the critical few) audits or pen tests of the integration points. Software supply chain adds SCA and provenance (signed builds, SBOMs) to the list.</p>
+          <p>Prioritize by data access and integration depth: the SaaS holding your customer data gets the deep assessment; the office-supply vendor gets the questionnaire. Proportionality again.</p>
+          <h5>Metrics that matter: remediation SLAs, coverage, repeat findings</h5>
+          <p>Track remediation time against SLAs by severity, scan and assessment coverage (what was not tested is unknown, not safe), and the repeat-findings rate — the same deficiency appearing twice is a process failure, not a technical one.</p>
+          <p>Report these as trends with business meaning: &#x27;critical remediation time rose from 9 to 21 days&#x27; is a risk statement; &#x27;we closed 400 tickets&#x27; is activity. The monthly one-pager lab forces the translation.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Scan triage. Run an authenticated vulnerability scan (OpenVAS or Nessus Essentials) against two lab VMs with known-weak configurations. Mark false positives with evidence, rank true findings by exploitability × asset value, and write remediation tickets for the top 5 with verification steps.</li>
+            <li>Lab 2 — Password audit. On a test VM you own, extract hashes and run a cracking tool with a small wordlist; document which accounts fell and why. Enforce the policy change that would have prevented the worst case and re-test.</li>
+            <li>Lab 3 — Pen-test scope document. Write a scope document for a fictional engagement: targets, exclusions, allowed techniques, communication plan, emergency stop conditions, and the written authorization template — annotating three clauses that protect tester and company.</li>
+            <li>Lab 4 — Monthly metrics one-pager. Build a one-pager from lab data: patch latency, scan coverage, open findings by age, one trend line. Attach the three-bullet executive summary translating each metric into a business risk statement.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Your vulnerability scan returns 400 findings across 60 servers with a two-person team and a 30-day patch window. Write the prioritization memo: your triage criteria (exploitability, asset criticality, exposure), the top-10 list with owners, and what you tell the auditor about the remaining 390.</li>
+            <li>A penetration-test proposal offers a no-holds-barred test of the production environment next week. Write your reply: the scope boundaries you require, the rules of engagement, the authorization paperwork, and the one test type you refuse on production — with the alternative you propose.</li>
+            <li>An internal audit finds the backup restores have never been tested. The backup admin says &#x27;the jobs are green.&#x27; Write the finding as an auditor would (criteria, condition, cause, effect, recommendation) and then the manager&#x27;s 90-day corrective-action plan.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m7-h">
+        <p class="il-eyebrow">Module 7</p>
+        <h3 class="il-h il-h--card" id="m7-h">Security Operations</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Operate the incident-response lifecycle: detect, contain, eradicate, recover, and learn</li>
+            <li>Build and tune detection content (logging, alerting) against false-positive pressure</li>
+            <li>Execute and measure backup, continuity, and disaster-recovery procedures</li>
+            <li>Apply forensic fundamentals: volatility order, imaging, hashing, chain of custody</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Incident response lifecycle: preparation through lessons learned</h5>
+          <p>Preparation (plans, teams, tools, training), detection and analysis (triage the signal), containment (stop the bleeding — short-term and long-term), eradication (remove the cause), recovery (restore service safely), lessons learned (make it count). The lifecycle is a loop: every incident should improve the preparation phase.</p>
+          <p>The 3 AM ransomware scenario tests the hardest transition — containment versus uptime. The incident commander&#x27;s decision framework: contain surgically where possible, contain broadly where necessary, and never let the perfect response delay the adequate one. Decide, document, act.</p>
+          <h5>Digital forensics fundamentals: order of volatility, chain of custody</h5>
+          <p>Collect the most volatile evidence first: memory, network connections, running processes — then disk images, then logs. Every item gets hashed at collection and a chain-of-custody log follows it from seizure to courtroom.</p>
+          <p>The practitioner ensures the team knows this order cold and that legal is engaged when evidence may matter. Mishandled evidence is worse than no evidence — it creates liability without utility.</p>
+          <h5>Logging: what to collect, retention, time sync, tamper protection</h5>
+          <p>Collect authentication events, privilege use, configuration changes, network flows, and application security events — from every system that matters. Retain per policy and legal need. Synchronize time everywhere (NTP), because uncorrelated timestamps make multi-system analysis fiction. Protect logs from tampering (forward off-host, restrict access), because attackers delete logs first.</p>
+          <p>The SIEM tuning scenario is the operational reality: 2,000 ignored alerts mean no detection. Tune ruthlessly, document each gap created, and compensate the riskiest ones — a smaller, trusted alert set beats a comprehensive, ignored one.</p>
+          <h5>Business continuity vs disaster recovery: plans, roles, testing</h5>
+          <p>Business continuity keeps the business operating through disruption (alternate processes, manual workarounds); disaster recovery restores IT services after disruption (failover, rebuild, restore). Different plans, different owners, one coordinated test program.</p>
+          <p>Testing methods escalate: checklist review, tabletop, simulation, full interruption. The backup-restore drill lab is the minimum honest test — &#x27;the jobs are green&#x27; means the backup ran, not that the restore works. Time your actual RTO and report the gap.</p>
+          <h5>SOC operations: triage, escalation, alert tuning</h5>
+          <p>A SOC triages alerts (is this real?), escalates by severity with defined criteria, and tunes continuously against false positives. Analyst burnout from alert floods is a security control failure — ignored alerts are undetected incidents.</p>
+          <p>The tuning proposal checkpoint is the job: suppress or re-threshold the noisiest low-value classes, name the detection gap each change opens, and add compensating controls for the gaps that matter. Detection engineering is risk management applied to alerts.</p>
+          <h5>Patch and vulnerability operations under pressure</h5>
+          <p>Patching is change control at speed: test where you can, deploy by criticality, and have an emergency path for actively exploited vulnerabilities. The 30-day window with 400 findings from Module 6 is normal operations, not a crisis — the crisis is the zero-day with no patch and a workaround to deploy tonight.</p>
+          <p>Operations maturity shows in the boring metrics: patch latency by severity, coverage, and the ability to emergency-patch without breaking production. Build the muscle before the emergency.</p>
+          <h5>Physical and personnel security operations</h5>
+          <p>Operations includes the physical layer: badge systems, visitor control, surveillance review, and environmental monitoring — plus personnel processes like termination deprovisioning executed on time, every time.</p>
+          <p>These controls fail operationally, not technically: the badge reader works, but nobody challenges tailgaters; the deprovisioning process exists, but HR never triggers it. Audit the operation, not just the device.</p>
+          <h5>Resilience: redundancy, backups, tested recovery</h5>
+          <p>Resilience is designed: redundant components, geographically separated backups, failover that has actually failed over. Untested redundancy is redundancy you hope exists.</p>
+          <p>The restore drill is the unit of proof: back up, break, restore, time it, compare achieved RTO to assumed RTO, write the gap as a finding. Do this on schedule and resilience becomes a measured property instead of a belief.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Centralized logging. Stand up centralized logging (Wazuh, Graylog, or rsyslog + parser): forward logs from three sources, write one brute-force detection rule, tune it until a simulated attack fires exactly one alert. Document the false positives you eliminated.</li>
+            <li>Lab 2 — IR playbook. Write a one-page playbook for &#x27;suspected compromised workstation&#x27;: roles, first-30-minutes checklist, evidence preservation, escalation criteria. Tabletop it solo against the CFO-during-earnings-week scenario and note what the playbook missed.</li>
+            <li>Lab 3 — Backup and restore drill. Back up a lab VM, deliberately break it, restore while timing each phase. Document achieved vs assumed RTO and write the gap as a finding with corrective action.</li>
+            <li>Lab 4 — Forensic preservation. On a test VM you own, capture memory and disk images in forensically sound order, hash everything, write the chain-of-custody log. Then write what you would do differently on a live production system you cannot take offline.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Ransomware is encrypting file shares at 3 AM; the on-call engineer wants to pull the network cable on the whole site, which would also kill the order-processing system during peak season. Write the incident-commander decision: contain now or contain surgically, who you wake, and the first three evidence-preservation orders.</li>
+            <li>A developer&#x27;s laptop with customer data is stolen from a car. Write the first-24-hours plan: the notifications you owe (and to whom, in what order), the technical containment steps, and the question you ask legal before you say anything publicly.</li>
+            <li>Your SIEM fires 2,000 alerts a day and the analysts ignore most of them. Write the tuning proposal: which three alert classes you suppress or re-threshold first, the detection gap each change creates, and the compensating control you add for the riskiest gap.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m8-h">
+        <p class="il-eyebrow">Module 8</p>
+        <h3 class="il-h il-h--card" id="m8-h">Software Development Security</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Integrate security activities into each SDLC phase (requirements through decommissioning)</li>
+            <li>Threat-model an application and derive concrete, implementable mitigations</li>
+            <li>Evaluate software vulnerabilities and recommend fixes in business-priority order</li>
+            <li>Design DevSecOps pipeline gates (SAST/DAST/SCA/secrets) that catch real issues without blocking delivery</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Secure SDLC phases: security injected at each phase</h5>
+          <p>Requirements get security requirements and abuse cases. Design gets threat modeling and architecture review. Implementation gets secure coding standards and review. Testing gets security testing. Deployment gets hardening and configuration review. Maintenance gets patching and monitoring. Decommissioning gets data destruction.</p>
+          <p>The &#x27;shift left&#x27; slogan means exactly this: the earlier a flaw is caught, the cheaper it is. A design flaw found in a threat model costs a whiteboard; found in production it costs an incident. Inject at every phase because each phase catches what the others miss.</p>
+          <h5>Threat modeling: assets, attackers, abuse cases before code</h5>
+          <p>Threat modeling asks, before code exists: what are we building (data-flow diagram, trust boundaries), what can go wrong (threats per boundary — STRIDE or attacker goals), what will we do about it (mitigations), and did we do it (validation).</p>
+          <p>The lab&#x27;s threat model of your own application is the habit to build: thirty minutes with a diagram beats thirty days of incident response. Pick the top threats, write concrete mitigations, implement one — then repeat next sprint.</p>
+          <h5>Common software vulnerabilities and root causes</h5>
+          <p>The recurring root causes: unvalidated input, broken authentication and session handling, cryptographic misuse (homegrown crypto, hardcoded keys), injection flaws, insecure defaults, and verbose error handling that leaks internals. Every &#x27;top 10&#x27; list is a remix of these.</p>
+          <p>The practitioner reads findings as instances of causes: fix the instance, then fix the cause (the coding standard, the review checklist, the training gap) so the class shrinks. Otherwise you will triage the same bug forever.</p>
+          <h5>Secure coding practices: validation, encoding, safe errors</h5>
+          <p>Validate all input at the boundary (type, range, format — allowlist, not denylist). Encode output for its context (HTML, SQL, shell — each has its own encoding). Fail safely: errors deny by default, log for defenders, and reveal nothing useful to attackers.</p>
+          <p>The two-page coding standard lab forces the essential distillation: rules an engineer will actually read. If the standard is longer than the attention it gets, it does not exist.</p>
+          <h5>Security testing in the pipeline: SAST, DAST, SCA</h5>
+          <p>SAST (static analysis) reads code without running it — finds injection patterns and crypto misuse early, with false positives to manage. DAST (dynamic testing) attacks the running app — finds runtime and configuration issues SAST cannot see. SCA (software composition analysis) inventories dependencies and flags known-vulnerable libraries.</p>
+          <p>Each misses what the others catch: SAST misses runtime config, DAST misses code paths it cannot reach, SCA misses your own code entirely. The pipeline needs all three, tuned so developers trust the signal — the lab&#x27;s deliberately-vulnerable commit proves each gate earns its place.</p>
+          <h5>Change and release management from the security perspective</h5>
+          <p>Every release is a risk decision: what changed, what was tested, what the residual risk is, and who approved shipping it. Security&#x27;s role in change management is the go/no-go input — the ship/no-ship memo from the checkpoint, with exploitability analysis and a CTO-signed residual-risk statement.</p>
+          <p>Emergency changes get a fast path, not no path: abbreviated review, mandatory post-change review, and full documentation. &#x27;Emergency&#x27; describes the timeline, not the rigor.</p>
+          <h5>Database and application-layer controls</h5>
+          <p>Databases need their own controls: least-privilege service accounts, parameterized queries (injection&#x27;s eternal fix), encryption at rest and in transit, auditing of privileged access, and backup protection. Application-layer controls — input validation, output encoding, session management, access checks on every function — are where most vulnerabilities actually live.</p>
+          <p>Defense in depth means the database does not trust the application blindly: even with a compromised app server, parameterized queries and least-privilege DB accounts limit the blast radius. Layer the controls; assume each layer fails.</p>
+          <h5>DevSecOps: shifting left without stopping delivery</h5>
+          <p>DevSecOps embeds security into the delivery pipeline — automated gates, security-as-code, fast feedback — so that secure becomes the path of least resistance rather than a tollbooth at the end. The goal is not more security process; it is security at the speed of delivery.</p>
+          <p>The practitioner&#x27;s measure: do the gates catch real issues (the lab proves it) without blocking delivery (measure lead time before and after)? Security that stops shipping gets routed around; security that ships safely gets adopted.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Threat model. Threat-model a small application you run: data-flow diagram, trust boundaries, threats per boundary (STRIDE or attacker goals). Pick the top 3 threats, write concrete mitigations, implement one.</li>
+            <li>Lab 2 — Guided code review. Review an intentionally vulnerable practice app run locally: find and document 5 vulnerabilities with severity, exploit scenario, and fix. Write each finding professionally — facts and remediation, no snark.</li>
+            <li>Lab 3 — Pipeline gates. Add SAST, dependency scanning (SCA), and secrets detection to a toy CI pipeline. Commit a deliberately vulnerable change and a leaked test secret; verify each gate catches its target, then document one false positive you suppressed and why the suppression is safe.</li>
+            <li>Lab 4 — Coding standard excerpt. Write a two-page secure-coding standard your team would actually read: input validation, authentication, cryptography rules (approved algorithms, no homegrown crypto), logging. Test it by reviewing a 100-line script against it.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>A critical vulnerability is announced in a library your flagship product ships, on the eve of a major release. Write the ship/no-ship memo: the exploitability questions you ask engineering, the mitigations that would let you ship, and the residual-risk statement the CTO signs.</li>
+            <li>A security researcher emails you a vulnerability report with a 90-day disclosure deadline and a proof of concept. Draft the response plan: intake, validation, severity assignment, remediation timeline, and the coordinated-disclosure reply — including what you do if engineering disputes the severity.</li>
+            <li>Your team wants to adopt an AI coding assistant. Write the secure-use policy: what code it may touch, what data it may see, the review gate before AI-generated code merges, and the one prohibition you hold even if it slows the team down.</li>
+          </ol>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="capstone-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Capstone</p>
+        <h2 class="il-h il-h--section" id="capstone-h">Prove it: the capstone project.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The capstone is a week-long engagement: you are the security manager of a fictional 120-person SaaS company preparing for its first enterprise customer security review. Deliver: (1) a one-page risk summary naming the top 5 risks across at least 4 domains, each with a recommended disposition (accept, mitigate, transfer, avoid) and the business rationale; (2) a draft incident-response escalation page covering containment-versus-uptime tradeoffs; (3) an access-review calendar for the year with owners named for each review type; (4) a go/no-go recommendation on the next product release with the security evidence cited.</p>
+        <p>Present your recommendations as if defending them to a skeptical CFO: every technical finding must end in a business consequence. This is the sequence&#x27;s thesis in one exercise — practitioner judgment across all eight domains, expressed in the language of the people who sign checks.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Resources</p>
+        <h2 class="il-h il-h--section" id="resources-h">Open and free sources.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://www.isc2.org/certifications/cissp">https://www.isc2.org/certifications/cissp</a> — the official curriculum this study guide is keyed to. The guide teaches the same ground in original prose; consult the source for the authoritative material.</li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://www.isc2.org/certifications/cissp">https://www.isc2.org/certifications/cissp</a></li>
+          <li><a href="https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline">https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline</a></li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+      <div class="il-prose" style="margin-top:2rem">
+        <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public CISSP certification pages published by ISC2. It teaches the same ground in original prose with scenario-driven labs; it does not reproduce ISC2&#x27;s official materials. For the authoritative certification requirements, exam outline, and experience criteria, consult the official curriculum source above. Note: CISSP is a credential for experienced security practitioners — ISC2 requires verified professional experience for certification.</em></p>
+      </div>
+
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

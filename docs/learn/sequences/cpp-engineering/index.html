@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Modern C++ Engineering — Study Sequence | Interstitium Labs</title>
+<meta name="description" content="An on-site study sequence for modern C++ engineering: the compilation model, RAII and smart pointers, STL containers and algorithms, move semantics, templates and concepts, concurrency, CMake, and sanitizer-driven testing — ending in a concurrent, tested C++20 capstone."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Systems Programming</p>
+    <h1 class="il-h">Modern C++ Engineering</h1>
+    <p class="il-hero__sub">From C to C++20: RAII, smart pointers, the STL, move semantics, templates and concepts, threads and atomics, CMake, and sanitizer-driven testing — an original, hands-on study sequence.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the sequence</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What this sequence is, and how to work it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>What this is: a complete engineering study sequence for modern C++, built from the public C++ language reference. It bridges from C to C++20 across eight modules: the compilation model and toolchain, RAII and smart pointers, STL containers and algorithms, move semantics, templates and concepts, concurrency, CMake build systems, and sanitizer-driven testing and debugging — ending in a capstone that demands a concurrent, tested, sanitizer-clean C++20 program.</p>
+        <p>Who it is for: programmers comfortable in C or another systems language who want idiomatic modern C++ — the RAII, move-semantics, template-metaprogramming C++ of the last decade, not the C-with-classes of the 1990s. It pairs with the companion C Programming for Systems sequence: take C first if pointers and manual memory are new to you.</p>
+        <p>Prerequisites: fluency with pointers, memory management, and compilation in C (or equivalent experience); a Linux or macOS machine (or WSL) with g++ or clang++, CMake, and gdb; comfort reading template-heavy compiler errors without panic. The sequence names which standard (C++11/14/17/20) each feature comes from, so you always know what you are using.</p>
+        <p>How to use it: work the modules in order — RAII before move semantics before concurrency is a deliberate dependency chain. Compile everything with -Wall -Wextra -Werror -std=c++20, run every test under ASan+UBSan (and TSan for the concurrency module), and keep a bug log: each sanitizer report, what it meant, and the fix. The checkpoints are designed to be answered in writing; the capstone is the proof.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="outcomes-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Outcomes</p>
+        <h2 class="il-h il-h--section" id="outcomes-h">What you will be able to do.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li>Close the gap from C to modern C++: write idiomatic, resource-safe code using RAII, move semantics, and the STL.</li>
+          <li>Build, test, and debug a multi-file C++ project with CMake, sanitizers, and gdb on a home machine or free-tier CI.</li>
+          <li>Apply concurrency primitives (threads, mutexes, atomics) correctly and reason about data races and lifetimes.</li>
+          <li>Design generic, reusable components with templates and know which features come from C++11, 14, 17, and 20.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in study order.</h2>
+      </div>
+      <div class="il-modules">
+      <article class="il-module" aria-labelledby="m1-h">
+        <p class="il-eyebrow">Module 1</p>
+        <h3 class="il-h il-h--card" id="m1-h">From C to C++: the compilation model and toolchain refresher</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how a C++ program is compiled: preprocessing, translation units, one-definition rule, and linking.</li>
+            <li>Read and fix the most common compiler and linker errors (undefined reference, multiple definition, ODR violations).</li>
+            <li>Set up a sane modern toolchain (g++/clang++) with warnings enabled and a chosen language standard.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Translation units and header/source separation</h5>
+          <p>A C++ program is built from translation units — each .cpp file plus everything it includes — compiled independently and linked together. Headers declare the interface; sources define the implementation. The separation is what lets large codebases compile incrementally and what makes the linker&#x27;s contract (one definition per program) enforceable.</p>
+          <p>Coming from C, the model is familiar; what is new is how much more the language does per translation unit — templates, inline functions, and constexpr all bend the old rules, and this module maps exactly where.</p>
+          <h5>The one-definition rule (ODR)</h5>
+          <p>Across the whole program, each variable, function, and class must have exactly one definition — but inline functions, templates, and classes defined identically in headers are exempt, because the linker merges the duplicates. Violating the ODR (different definitions in different units) is undefined behavior that the linker usually cannot catch.</p>
+          <p>The checkpoint&#x27;s true/false is the key case: inline in a header is ODR-safe by design — that is what inline means to the linker, not (only) a hint to the compiler.</p>
+          <h5>Name mangling basics and extern &quot;C&quot;</h5>
+          <p>C++ encodes function signatures into symbol names (mangling) so overloads can coexist — which is why a C++ function and a C function with the same name produce different symbols. extern &quot;C&quot; disables mangling for a declaration, giving the symbol C linkage so C++ code can call C libraries and vice versa.</p>
+          <p>The lab&#x27;s nm comparison makes this visible: build without the guard, watch the link fail on mismatched symbols, add extern &quot;C&quot;, watch it succeed. Mangling is invisible until it bites; now you have seen the teeth.</p>
+          <h5>Compiler flags: -Wall -Wextra -Werror, -std=c++20</h5>
+          <p>The same warning discipline as C, plus a language-standard flag that selects which C++ you are writing. -std=c++20 enables concepts, ranges, and the rest of the modern feature set this sequence teaches — without it, the compiler defaults to an older dialect and modern code simply fails.</p>
+          <p>Pin the standard explicitly in every build. &#x27;It compiled&#x27; means nothing if you do not know which language version compiled it.</p>
+          <h5>Build-time vs link-time errors</h5>
+          <p>Build-time (compile) errors are about one translation unit: syntax, types, missing declarations. Link-time errors are about the whole program: undefined references (a promise with no definition) and multiple definitions (two definitions keeping the promise).</p>
+          <p>The diagnostic habit: read which phase failed first. An &#x27;undefined reference&#x27; after a clean compile is a linker problem — check the three causes from the checkpoint (never defined, defined but not linked in, or C/C++ linkage mismatch) before touching the code.</p>
+          <h5>Static vs shared libraries at a high level</h5>
+          <p>Static libraries (.a) are archives of object files linked into your binary — self-contained, larger binaries, no runtime dependency. Shared libraries (.so) are linked at load time — smaller binaries, shared in memory, but a runtime dependency that must be present and version-compatible.</p>
+          <p>For learning and for the capstone, static linking keeps deployment simple. Know the tradeoff exists; reach for shared libraries when distribution size or in-memory sharing actually matters.</p>
+          <h5>Include guards vs #pragma once</h5>
+          <p>Same problem as C, same solutions: include guards (portable, standard) and #pragma once (concise, universally supported in practice though not in the standard). The checkpoint asks why the non-standard one thrives — because it is one line, cannot collide with another header&#x27;s guard macro, and every major compiler honors it.</p>
+          <p>Many codebases use both. Pick one convention per project and move on; the important thing is that every header has protection.</p>
+          <h5>Forward declarations and reducing compile dependencies</h5>
+          <p>A forward declaration (class Widget;) lets you declare pointers and references without including the full header — which means fewer includes, faster builds, and fewer rebuild cascades when a header changes. Include what you use, forward-declare what you only name.</p>
+          <p>This is a build-performance discipline that compounds: in large codebases, include-what-you-use plus forward declarations is the difference between seconds and minutes per rebuild. Start the habit on small projects so it is automatic on large ones.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — C to C++ warnings. Take a small C program (hello world plus one helper in a separate .c file), compile it, then rename the sources to .cpp and compile with g++ -std=c++20 -Wall -Wextra -Werror. Record every new warning and explain each one in your own words.</li>
+            <li>Lab 2 — ODR violation, three fixes. Deliberately define the same non-inline function in two translation units, link them, and observe the linker error. Fix it three ways: mark one static, move the definition to a single .cpp file, and declare it inline — and explain why each fix is legal.</li>
+            <li>Lab 3 — Missing symbol. Declare a function in a header but never define it; build, read the undefined-reference error, fix it. Repeat with a variable declared extern but never defined. Learn the error message&#x27;s shape.</li>
+            <li>Lab 4 — extern &quot;C&quot; bridge. Create a tiny C library (add.c/add.h) and call it from C++. Build without the linkage guard to see mangling break the link (use nm to compare symbols), then fix with extern &quot;C&quot;.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Given a linker error message showing &#x27;undefined reference to X&#x27;, list the three most likely causes and how to check each one.</li>
+            <li>True or false with justification: a function marked inline in a header can be defined in multiple translation units without violating the ODR.</li>
+            <li>Explain in two sentences why #pragma once is common practice even though it is not part of the language standard.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m2-h">
+        <p class="il-eyebrow">Module 2</p>
+        <h3 class="il-h il-h--card" id="m2-h">RAII and resource management</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Internalize the rule of three/five/zero and know when each applies.</li>
+            <li>Implement RAII wrappers that acquire in the constructor and release in the destructor, surviving exceptions.</li>
+            <li>Use std::unique_ptr, std::shared_ptr, and std::weak_ptr correctly, including the cyclic-reference pitfall.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>RAII: resource acquisition is initialization</h5>
+          <p>RAII ties a resource&#x27;s lifetime to an object&#x27;s lifetime: the constructor acquires (opens the file, allocates the memory, takes the lock), the destructor releases. Because C++ guarantees destructors run when objects go out of scope — including during exception unwinding — the resource is released on every path, with no explicit cleanup code to forget.</p>
+          <p>This is the single most important idea in C++. Every smart pointer, lock guard, and container is RAII; every leak and double-free you fought in C is what RAII eliminates. Internalize it and modern C++ starts making sense.</p>
+          <h5>Rule of Three (C++98), Rule of Five (C++11), Rule of Zero</h5>
+          <p>If a class needs a custom destructor, copy constructor, or copy assignment (the Three), it almost certainly needs all three — otherwise copying does the wrong thing (the classic double-free). C++11 adds move constructor and move assignment (the Five). The Rule of Zero says: design so you need none of them — let member smart pointers and containers do the work.</p>
+          <p>The checkpoint&#x27;s logging-destructor trap: defining any destructor suppresses the implicit move operations, silently turning moves into copies. The Rule of Zero avoids the trap entirely: no custom destructor, no problem.</p>
+          <h5>std::unique_ptr: exclusive ownership; std::make_unique (C++14)</h5>
+          <p>unique_ptr is sole ownership of a heap object: it cannot be copied, only moved, and it deletes on destruction. It is the default smart pointer — reach for it first, always. std::make_unique constructs the object and the pointer in one call, avoiding the (brief, real) window where a raw new could leak if an exception intervenes.</p>
+          <p>Use unique_ptr for every &#x27;this function/class owns that object&#x27; relationship. If you cannot name a second owner, you do not need shared_ptr.</p>
+          <h5>std::shared_ptr: reference counting; std::make_shared</h5>
+          <p>shared_ptr implements shared ownership via reference counting: the object is deleted when the last shared_ptr dies. std::make_shared allocates the object and the control block together — one allocation instead of two, and exception-safe.</p>
+          <p>Shared ownership is genuinely needed sometimes (graphs, caches, observers with lifetime requirements), but it is also the most abused smart pointer: cycles leak (see weak_ptr), and shared mutable state is a design smell. The checkpoint&#x27;s observer question has one right answer — weak_ptr — because observation must not extend lifetime.</p>
+          <h5>std::weak_ptr and breaking cycles</h5>
+          <p>weak_ptr observes a shared_ptr-managed object without owning it: it does not keep the object alive. lock() attempts to get a shared_ptr — returning empty if the object is already gone, which is exactly the information the observer needs.</p>
+          <p>The parent/child lab makes the cycle concrete: shared_ptr both ways, use_count never reaches zero, destructors never run — a leak with no raw pointers in sight. The fix is one word: make the back-reference weak.</p>
+          <h5>Custom deleters</h5>
+          <p>Smart pointers are not only for delete: a custom deleter lets unique_ptr manage any resource — fclose for FILE*, close for file descriptors, or a pool-release function. unique_ptr&lt;FILE, decltype(&amp;fclose)&gt; turns a C file handle into an RAII object in one declaration.</p>
+          <p>This is how RAII absorbs C APIs: the acquisition stays a C call, the release becomes a destructor. The FileHandle lab&#x27;s first exercise is the pattern in miniature.</p>
+          <h5>Exception safety of destructors: noexcept by default in C++11</h5>
+          <p>Since C++11, destructors are implicitly noexcept — if a destructor throws during stack unwinding, the program terminates. Destructors must never throw: they release resources, they do not report errors.</p>
+          <p>Design accordingly: if cleanup can fail, provide a separate close() that can report errors, and make the destructor a best-effort release. Throwing from a destructor is not an error-handling strategy; it is a termination strategy.</p>
+          <h5>Raw new/delete as a code smell</h5>
+          <p>In modern C++, a raw new or delete in application code is a smell: it means ownership is being managed by hand where a smart pointer or container should manage it. The capstone bans them outright — zero raw new/delete — and the codebase gets simpler, not harder.</p>
+          <p>new still exists for library authors and truly custom allocation. For everyone else, make_unique, make_shared, and containers cover every legitimate need. If you type &#x27;new&#x27;, stop and ask what is managing the delete.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — FileHandle RAII. Write a class FileHandle that opens a FILE* in its constructor and fclose()es in its destructor. Leak a raw handle on purpose to compare, then show the RAII version cleans up even when an exception is thrown mid-scope.</li>
+            <li>Lab 2 — Rule of Three, violated then honored. Write a class with a heap buffer that violates the rule of three (copy it twice, double-free). Observe the crash, then fix it three ways: user-defined copy operations, deleted copies plus moves, and finally std::vector replacing the raw pointer — the Rule of Zero.</li>
+            <li>Lab 3 — The cycle. Build a parent/child graph with shared_ptr in both directions; print use_count() to show the leak. Fix with weak_ptr on the back-reference and verify destruction order with constructor/destructor prints.</li>
+            <li>Lab 4 — No raw new. Refactor an existing lab to never call new or delete directly — replace with make_unique/make_shared — and confirm it still compiles and passes a smoke run.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>When is the Rule of Zero the right answer, and what two conditions must the member types satisfy for it to work?</li>
+            <li>Your class manages no raw resources but you define a custom destructor for logging. What happens to the implicitly generated copy operations, and why is that a hazard?</li>
+            <li>Design question: you need shared ownership with occasional observation that must not extend lifetime. Which smart pointer goes on the observer, and what does lock() tell you?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m3-h">
+        <p class="il-eyebrow">Module 3</p>
+        <h3 class="il-h il-h--card" id="m3-h">STL containers, algorithms, and iterators</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose the right container for the job from vector, deque, list, set/map, and unordered set/map, with complexity reasoning.</li>
+            <li>Compose generic code with iterators and the &lt;algorithm&gt; library instead of hand-written loops.</li>
+            <li>Avoid iterator invalidation bugs by knowing which operations invalidate which iterators per container.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>std::vector as the default sequence container</h5>
+          <p>vector is contiguous, cache-friendly, and the right default for sequences: push_back amortized O(1), random access O(1), and iteration at memory speed. The other sequence containers exist for specific needs — deque for efficient front insertion, list for stable iterators under insertion — not as general replacements.</p>
+          <p>Default to vector; switch only with a measured reason. Most &#x27;I need a list&#x27; instincts are wrong on modern hardware, where cache locality beats pointer-chasing asymptotics for realistic sizes.</p>
+          <h5>Associative vs unordered containers and complexity guarantees</h5>
+          <p>Ordered associative containers (map, set) are tree-based: O(log n) operations with iteration in sorted order — the checkpoint&#x27;s &#x27;ordered unique keys with range queries&#x27; answer is std::map. Unordered containers (unordered_map) are hash-based: average O(1) lookup with no ordering — the second answer.</p>
+          <p>The tradeoff is ordering versus speed, plus hash quality: a bad hash function turns O(1) into a bad day. Choose by the access pattern you actually have, and benchmark the lab&#x27;s three word-counters to feel the difference.</p>
+          <h5>std::array (C++11) and std::string_view (C++17)</h5>
+          <p>array is a fixed-size sequence with vector-like interface and zero overhead — the modern replacement for C arrays when the size is known at compile time. string_view is a non-owning view over character data: pointer plus length, no allocation, no copy.</p>
+          <p>string_view is the performance answer to &#x27;I need to look at this string but not own it&#x27; — the case-insensitive search lab shows the allocation savings directly. The rule: string_view for parameters and views, std::string for ownership.</p>
+          <h5>Iterator categories and ranges (C++20 std::ranges)</h5>
+          <p>Iterators abstract &#x27;position in a sequence&#x27; with capability categories (input through random-access); algorithms are written against categories, not containers, which is why sort works on vector and deque alike. C++20 ranges lift this further: views compose lazily (filter | transform) without intermediate containers.</p>
+          <p>The lab&#x27;s rewrite — copy_if + transform versus ranges views — shows the readability payoff: the ranges version says what it computes, not how it iterates. Prefer algorithms and views over hand loops; the hand loop is where the off-by-one lives.</p>
+          <h5>The erase-remove idiom</h5>
+          <p>std::remove does not remove anything — it shuffles the kept elements forward and returns the new logical end, leaving the tail in a valid-but-unspecified state. The idiom v.erase(v.remove(...), v.end()) pairs it with erase, which actually destroys the tail and shrinks the container.</p>
+          <p>The checkpoint&#x27;s true/false exists because this misnaming has burned everyone once. C++20&#x27;s std::erase / std::erase_if finally do the whole job in one call — use them in new code, know the idiom for old code.</p>
+          <h5>Lambda expressions (C++11) and generic lambdas (C++14)</h5>
+          <p>Lambdas are anonymous function objects defined inline — the predicates and comparators that algorithms take as arguments. Capture lists ([&amp;], [=], or explicit captures) control what surrounding state the lambda sees; C++14&#x27;s auto parameters make lambdas generic.</p>
+          <p>Capture discipline matters: [&amp;] captures by reference (dangling risk if the lambda outlives the scope), [=] by value (copy cost, and the classic &#x27;this&#x27; capture surprise). Capture explicitly and minimally — the default captures are for quick code, not for code that lives.</p>
+          <h5>if constexpr (C++17) for generic code</h5>
+          <p>if constexpr evaluates the condition at compile time and discards the untaken branch — including branches that would not compile for the given template arguments. It replaces tag dispatch and SFINAE tricks for the common &#x27;do X for this type, Y for that type&#x27; pattern inside templates.</p>
+          <p>The concept entry notes what it is not: it does not choose containers at runtime. It is a compile-time tool for generic code — use it to write one template that handles several type families cleanly.</p>
+          <h5>Iterator invalidation rules per container</h5>
+          <p>vector invalidates iterators at and after an insertion point on reallocation, and at erase positions; list invalidates only the erased element; associative containers invalidate only erased elements; deque invalidates on most insertions. These rules are per-container contracts you must know cold.</p>
+          <p>The lab&#x27;s dangling-iterator demonstration — store iterators, push_back past capacity, watch ASan complain — exists because this bug is silent without sanitizers and catastrophic with them. When in doubt, reserve() up front or re-acquire iterators after mutation.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Three word counters. Write a word-frequency counter three ways: std::map, std::unordered_map, and std::vector&lt;std::pair&gt; with linear search. Benchmark all three on a 1 MB text file with std::chrono and write up which wins and why.</li>
+            <li>Lab 2 — Algorithms vs ranges. Rewrite a filter-and-transform loop twice: once with std::copy_if + std::transform, once with C++20 ranges views. Confirm identical output on edge cases (empty input, all-filtered-out).</li>
+            <li>Lab 3 — Dangling iterator, caught. Store iterators into a vector, push_back past reallocation, and demonstrate the dangling iterator with ASan. Fix by reserving capacity up front or by re-acquiring iterators.</li>
+            <li>Lab 4 — string_view search. Implement case-insensitive word search using std::string_view (no copies) over a large buffer; compare against a std::string version for allocation count with simple instrumentation.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>You need ordered unique keys with range queries; you need average O(1) lookup with no ordering. Name the container for each and justify.</li>
+            <li>True or false with justification: std::remove actually removes elements from a vector.</li>
+            <li>After v.erase(it) on a std::vector, which iterators remain valid? Contrast with std::list.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m4-h">
+        <p class="il-eyebrow">Module 4</p>
+        <h3 class="il-h il-h--card" id="m4-h">Move semantics and value categories</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Classify expressions as lvalue, xvalue, or prvalue and know which can bind to which reference type.</li>
+            <li>Implement correct, noexcept move constructors and move assignment operators.</li>
+            <li>Apply perfect forwarding with forwarding references and std::forward without reference-collapse mistakes.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Value categories: lvalue, xvalue, prvalue</h5>
+          <p>Every expression has a value category. lvalues name persistent objects (things with addresses you can take). prvalues are temporaries — pure rvalues like 42 or a returned-by-value object. xvalues are &#x27;expiring&#x27; lvalues: objects you have marked as movable-from, typically via std::move.</p>
+          <p>The taxonomy exists to answer one question: is it safe to steal this object&#x27;s resources? lvalue: no (someone still uses it). prvalue/xvalue: yes (it is dying or dead). Move semantics is the machinery that acts on the answer.</p>
+          <h5>rvalue references (T&amp;&amp;) vs forwarding references</h5>
+          <p>T&amp;&amp; in a non-template context (void f(std::string&amp;&amp;)) binds only to rvalues — it is an rvalue reference, the move-constructor parameter. But template&lt;typename T&gt; void f(T&amp;&amp;) deduces T from the argument: lvalue arguments deduce T as an lvalue reference (T = int&amp;), rvalues as plain T — so the parameter binds to anything. This deducible form is the forwarding reference.</p>
+          <p>The checkpoint&#x27;s deduction question is the whole rule: int lvalue → T is int&amp;; int rvalue → T is int. Reference collapsing (int&amp; &amp;&amp; → int&amp;) does the rest. Get this and perfect forwarding follows.</p>
+          <h5>std::move as a cast, not a move</h5>
+          <p>std::move does nothing at runtime — it is a cast to an rvalue reference, a way of saying &#x27;treat this object as expiring; you may steal from it.&#x27; The actual moving is done by the move constructor or move assignment operator that receives the cast expression.</p>
+          <p>This is why &#x27;std::move doesn&#x27;t move anything&#x27; is the checkpoint: the cast enables the move, the move constructor performs it. Moving from a const object silently copies instead — the move constructor cannot steal from const — which is a classic performance trap worth knowing.</p>
+          <h5>std::forward and perfect forwarding</h5>
+          <p>std::forward&lt;T&gt; preserves the value category: inside f(T&amp;&amp; x), forward&lt;T&gt;(x) passes an lvalue as an lvalue and an rvalue as an rvalue to the next function. Without it, the named parameter x is an lvalue regardless of what was passed in — and everything downstream would copy.</p>
+          <p>The lab&#x27;s overload experiment shows the failure mode: forward incorrectly and the rvalue overload never fires. Perfect forwarding is how factory functions (make_unique) and wrappers pass arguments through untouched — learn it once, use it in every generic wrapper you write.</p>
+          <h5>noexcept moves and vector reallocation</h5>
+          <p>When a vector grows, it must move elements to new storage — but if a move constructor might throw, the vector cannot risk leaving the old storage half-moved, so it falls back to copying (copies can be retried safely). A noexcept move constructor lets the vector move with confidence.</p>
+          <p>The checkpoint&#x27;s penalty is real and measurable: the lab counts copies versus moves with and without noexcept, and the difference is the price of an unmarked move. Mark move operations noexcept whenever they truly cannot throw — which, for resource-stealing moves, is almost always.</p>
+          <h5>Copy elision and guaranteed elision (C++17)</h5>
+          <p>Copy elision lets the compiler construct a returned object directly in its destination, skipping the copy/move entirely. Since C++17, elision is guaranteed in certain cases (returning a prvalue) — the standard mandates it, not just permits it.</p>
+          <p>The lab&#x27;s -O0 comparison across standards shows the guarantee working: identical behavior regardless of optimization. Practical upshot: return heavy objects by value without fear — the language promises the efficient path.</p>
+          <h5>Moved-from state: valid but unspecified</h5>
+          <p>After std::move(x), x is in a valid-but-unspecified state: you may destroy it or assign to it, but you may not assume anything about its value. For std::string the typical implementation leaves it empty, but that is not guaranteed.</p>
+          <p>The safe pattern from the lab: move, then either reassign or destroy — never read. Treating moved-from objects as usable is the use-after-move bug, and it is as real as use-after-free, just quieter.</p>
+          <h5>std::move_if_noexcept</h5>
+          <p>move_if_noexcept casts to an rvalue only if the move is noexcept (or copying is impossible) — otherwise it casts to a const lvalue, forcing a copy. It is the standard library&#x27;s way of encoding the vector-growth rule as a utility.</p>
+          <p>You will rarely call it directly, but it is the mechanism behind &#x27;vector moves when safe, copies when not.&#x27; Knowing it exists completes the picture: the language does not just hope moves are safe, it checks.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Count the moves. Write a String class with deep-copy semantics and instrumented copy/move constructors that print. Push temporaries into a vector and count copies vs moves; mark the move constructor noexcept and watch reallocations switch from copies to moves.</li>
+            <li>Lab 2 — Forwarding experiment. Write a function template taking a forwarding reference that forwards to two overloads (const T&amp; and T&amp;&amp;). Pass lvalues, rvalues, and const lvalues; print which overload fires; fix any case that forwards incorrectly.</li>
+            <li>Lab 3 — Use after move. Deliberately use an object after std::move and demonstrate the valid-but-unspecified state (e.g., moved-from std::string). Then write the safe pattern — move, then reassign or destroy — and document the rule.</li>
+            <li>Lab 4 — Guaranteed elision. Return a large vector by value under -O0 with C++14 vs C++17 flags; compare copy/move constructor call counts to observe guaranteed copy elision in action.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Explain why std::move does not move anything by itself, and what actually performs the move.</li>
+            <li>A move constructor that is not noexcept: what penalty does std::vector pay during growth, and why?</li>
+            <li>Given template&lt;typename T&gt; void f(T&amp;&amp; x), what is the deduced type of T when called with an int lvalue? With an int rvalue?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m5-h">
+        <p class="il-eyebrow">Module 5</p>
+        <h3 class="il-h il-h--card" id="m5-h">Templates and generics</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write function and class templates with correct syntax and sensible constraints.</li>
+            <li>Use variadic templates and fold expressions (C++17) for genuinely generic utilities.</li>
+            <li>Apply C++20 concepts to constrain templates and produce readable error messages.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Function templates and class templates</h5>
+          <p>A function template generates overloads from argument types; a class template generates classes from its parameters (Matrix&lt;double, 3, 3&gt; is a different type from Matrix&lt;float, 3, 3&gt;). Deduction usually fills in the arguments — you write clamp(a, b) and the compiler figures out the types.</p>
+          <p>Templates are compile-time code generation with type checking per instantiation: the template is checked loosely at definition, strictly at each use. That two-phase checking is why template errors point deep inside library headers — and why concepts (below) were invented.</p>
+          <h5>Template argument deduction</h5>
+          <p>Deduction matches the function arguments against the template parameters to infer the types — clamp(1, 2.5) fails because int and double deduce conflicting types for one parameter. Understanding deduction is understanding template error messages: the compiler is telling you what it inferred and where the inference broke.</p>
+          <p>When deduction fails, the fixes are explicit template arguments (clamp&lt;double&gt;(1, 2.5)) or constraints that guide the user to valid calls. The lab&#x27;s mismatched-types call is the canonical first encounter.</p>
+          <h5>Non-type template parameters</h5>
+          <p>Templates can take values, not just types: Matrix&lt;T, Rows, Cols&gt; bakes dimensions into the type itself, enabling compile-time size checks (static_assert on zero dimensions) and stack-allocated fixed storage with no runtime overhead.</p>
+          <p>The lab&#x27;s Matrix is the pattern: dimensions as parameters, static_assert rejecting nonsense, constexpr operations on the fixed size. Non-type parameters turn runtime invariants into compile-time guarantees.</p>
+          <h5>Variadic templates (C++11) and fold expressions (C++17)</h5>
+          <p>Variadic templates accept any number of arguments via a parameter pack; the classic implementation recurses over the pack with a base case. C++17 fold expressions collapse the whole pattern into one expression: (args + ...) or (args &amp;&amp; ...) with no recursion and no base case to write.</p>
+          <p>The checkpoint&#x27;s question is the payoff: the fold version is one line where the recursive version is two functions. The type-safe printf lab shows folds at their best — mixed-type argument handling in a single expression.</p>
+          <h5>SFINAE and std::enable_if: the C++11-era technique</h5>
+          <p>SFINAE (&#x27;substitution failure is not an error&#x27;) let C++11/14 code enable or disable template overloads by making invalid substitutions silently remove candidates rather than erroring. std::enable_if was the workhorse: incomprehensible to read, but it made overload sets behave.</p>
+          <p>Know it because you will read it in older codebases — and because understanding what concepts replaced tells you why concepts are better. You should write new code with concepts, not enable_if.</p>
+          <h5>Concepts and requires clauses (C++20)</h5>
+          <p>Concepts name requirements on template arguments: template&lt;std::totally_ordered T&gt; says exactly what clamp needs. Violations fail at the call site with a readable message naming the unsatisfied concept — instead of a hundred-line error from deep inside the template body.</p>
+          <p>The lab&#x27;s before/after comparison is the whole argument for C++20: same misuse, one-line diagnostic versus template vomit. Concepts are documentation the compiler enforces and diagnostics the user can read.</p>
+          <h5>constexpr functions across the standards</h5>
+          <p>constexpr functions can execute at compile time; each standard revision allows more inside them (C++11: single return; C++14: loops and locals; C++17/20: ever more). The lab&#x27;s constexpr 2x2 determinant computes at compile time when given constant inputs.</p>
+          <p>constexpr is how compile-time computation grows up: the same function runs at runtime when inputs are dynamic, at compile time when they are constant. Write constexpr by default for pure computations — it costs nothing and buys compile-time evaluation.</p>
+          <h5>Template instantiation and code bloat awareness</h5>
+          <p>Each distinct set of template arguments generates a separate instantiation — vector&lt;int&gt; and vector&lt;double&gt; are entirely separate code. Used carelessly across many types, this bloats binaries; used well, it is the price of zero-cost abstraction.</p>
+          <p>Awareness, not fear: prefer type-erased interfaces (virtuals, std::function) at module boundaries where many types flow through, and templates where performance or type safety demands it. The checkpoint&#x27;s &#x27;what still needs runtime polymorphism&#x27; question points at exactly this boundary — heterogeneous collections chosen at runtime are the virtual interface&#x27;s home turf.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Constrain the error. Write a generic clamp as a function template; call it with mismatched types (int, double) and read the deduction error. Constrain with a C++20 concept and compare the diagnostic quality before and after.</li>
+            <li>Lab 2 — Variadic logger. Implement a type-safe printf-like logger with variadic templates and a C++17 fold expression. Test with zero, one, and many mixed-type arguments.</li>
+            <li>Lab 3 — Matrix class template. Write Matrix parameterized on element type and dimensions as non-type parameters; add a static_assert rejecting zero dimensions and a constexpr 2x2 determinant.</li>
+            <li>Lab 4 — requires at the call site. Take a template that fails deep inside its body for the wrong type; rewrite with a requires clause so misuse fails at the call site with a one-line message. Show before/after compiler output.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>What is the difference between a fold expression over &amp;&amp; and a recursive variadic base-case implementation, in terms of code you must write?</li>
+            <li>Why does a concept-constrained template usually give a better diagnostic than the same template with a static_assert inside the body?</li>
+            <li>Name one thing you still cannot do with templates that requires runtime polymorphism, and when you would choose a virtual interface instead.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m6-h">
+        <p class="il-eyebrow">Module 6</p>
+        <h3 class="il-h il-h--card" id="m6-h">Concurrency: threads, mutexes, and atomics</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Launch and join std::thread workers and pass data safely between threads.</li>
+            <li>Protect shared state with std::mutex/std::lock_guard and avoid deadlocks with consistent lock ordering or std::scoped_lock (C++17).</li>
+            <li>Use std::atomic for lock-free counters and flags, and explain the data-race rule in plain language.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>std::thread lifecycle: join vs detach</h5>
+          <p>std::thread launches a thread running a callable; you must either join() it (wait for completion) or detach() it (let it run independently) before the thread object is destroyed — destroying a joinable thread terminates the program. Joining is the norm; detaching is for fire-and-forget background work whose lifetime you have genuinely reasoned about.</p>
+          <p>The capstone&#x27;s thread pool joins everything at shutdown: no detached threads, no orphaned work. A thread you cannot join is a thread you cannot reason about.</p>
+          <h5>Data races are undefined behavior</h5>
+          <p>A data race — two threads accessing the same memory, at least one writing, with no synchronization — is undefined behavior in C++, not merely a timing bug. The compiler may assume races never happen and optimize accordingly, which is why the checkpoint&#x27;s counter loses increments: x++ compiles to load-add-store, and two threads&#x27; load-add-store sequences interleave, each overwriting the other&#x27;s increment.</p>
+          <p>The hardware-level two sentences: each core loads x into its cache, increments its private copy, and stores it back; when both threads load before either stores, one increment is silently lost. ThreadSanitizer exists to catch exactly this — run it before you theorize.</p>
+          <h5>std::mutex, std::lock_guard, std::unique_lock</h5>
+          <p>A mutex serializes access to shared state: lock it, touch the data, unlock it. lock_guard is RAII for the simple case — locks on construction, unlocks on destruction, exception-safe by construction. unique_lock adds flexibility (deferred locking, timed tries, manual unlock) for the cases lock_guard cannot express.</p>
+          <p>The rule is lock_guard by default: its very inflexibility prevents the forgotten-unlock bug. Reach for unique_lock only when you need its features — condition variables being the classic case.</p>
+          <h5>std::scoped_lock for multi-mutex acquisition (C++17)</h5>
+          <p>Acquiring two mutexes in opposite orders in different threads is the textbook deadlock: each thread holds one lock and waits forever for the other. std::scoped_lock acquires multiple mutexes atomically in a deadlock-safe order — the lab&#x27;s deliberate deadlock, fixed in one line.</p>
+          <p>The deeper discipline is consistent lock ordering everywhere, with scoped_lock as the enforcement mechanism. If your design needs more than two locks held simultaneously, reconsider the design; if it genuinely does, scoped_lock every acquisition site.</p>
+          <h5>std::atomic and lock-free programming basics</h5>
+          <p>std::atomic&lt;T&gt; makes individual operations (load, store, increment, compare-exchange) indivisible — the counter lab&#x27;s fix is std::atomic&lt;int&gt;, and the total comes out exact. Atomics are the right tool for simple shared state: counters, flags, and lock-free algorithms built on compare-exchange loops.</p>
+          <p>The one-sentence test from the checkpoint: if the shared state fits in one atomic operation, use an atomic; if the operation spans multiple variables that must change together, use a mutex. The lab&#x27;s second shared variable proves the boundary — one atomic plus one plain variable is still a race.</p>
+          <h5>Memory ordering at a high level</h5>
+          <p>Atomic operations default to sequential consistency — every thread observes a single global order of operations, the intuitive model. Weaker orderings (acquire/release, relaxed) permit more hardware reordering for performance, at the cost of reasoning difficulty.</p>
+          <p>For this sequence: use the default unless you can prove the weaker ordering safe and the performance matters. Memory-ordering bugs are among the hardest to diagnose in existence; the default ordering exists so most code never has to think about them.</p>
+          <h5>Condition variables</h5>
+          <p>std::condition_variable lets a thread sleep until another thread signals that some condition holds — the producer/consumer queue&#x27;s &#x27;wait until the queue is non-empty.&#x27; Always wait in a loop re-checking the predicate (spurious wakeups are real), and always hold the associated mutex while checking and waiting.</p>
+          <p>The pattern is fixed: lock, while (!ready) cv.wait(lock), consume, unlock; producer: lock, produce, unlock, notify. Deviate from the pattern and you get lost wakeups or data races — the lab&#x27;s queue is the pattern to memorize.</p>
+          <h5>ThreadSanitizer as the ground truth</h5>
+          <p>-fsanitize=thread instruments memory accesses to detect data races at runtime, reporting the two threads, the memory location, and both stack traces. It is the ground truth for &#x27;is this actually race-free&#x27; — reasoning is not, code review is not, testing is not.</p>
+          <p>Run the full test suite under TSan as standard practice (the capstone requires it), alongside ASan/UBSan runs. Note the constraint: TSan and ASan cannot combine in one build — run them as separate configurations, which is what the CMake Debug/Sanitizer presets are for.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — The race, measured. Two threads increment a plain int 1M times each; run 5 times, record the varying wrong totals. Rebuild with -fsanitize=thread, capture the race report. Fix with std::atomic and confirm the exact expected total.</li>
+            <li>Lab 2 — Deadlock, then scoped_lock. Implement a producer/consumer queue with mutex + condition_variable. Deliberately deadlock by acquiring two mutexes in opposite orders; detect the hang, fix with std::scoped_lock and consistent ordering.</li>
+            <li>Lab 3 — Thread pool. Build a tiny thread pool: N workers, a task queue of std::function&lt;void()&gt;, shutdown flag. Submit 100 tasks, verify each runs exactly once, shut down cleanly with all threads joined — no detach.</li>
+            <li>Lab 4 — One atomic is not enough. Add a second shared variable updated alongside the atomic counter without synchronization; show with TSan that the race persists, then protect both under one mutex.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Two threads each do x++ on a plain int one million times and the result is 1,432,887. Explain precisely what went wrong at the hardware level, in two sentences.</li>
+            <li>When is std::atomic the right tool versus a mutex, and what is the one-sentence test?</li>
+            <li>Your program hangs intermittently. Name the two most likely concurrency causes and the tool/flag you would use to confirm each.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m7-h">
+        <p class="il-eyebrow">Module 7</p>
+        <h3 class="il-h il-h--card" id="m7-h">Build systems with CMake</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write a CMakeLists.txt for a multi-target project: library, executable, and tests.</li>
+            <li>Manage dependencies with find_package and target-based commands (target_link_libraries, target_include_directories).</li>
+            <li>Configure Debug vs Release builds and pass the project to a second machine or CI cleanly.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Out-of-source builds</h5>
+          <p>Building in a separate directory from the sources keeps generated files (objects, binaries, CMake cache) out of the source tree: the repo stays clean, multiple configurations (Debug, Release, sanitizer builds) coexist as sibling directories, and &#x27;clean&#x27; is rm -rf build. In-source builds pollute the tree and make configuration switches unreliable.</p>
+          <p>The lab proves reproducibility the hard way: delete the build directory, rebuild from scratch, get the same binary. If your build cannot survive that, it is not a build system — it is a hope.</p>
+          <h5>Targets, not variables: modern CMake practice</h5>
+          <p>Modern CMake describes targets (libraries, executables) and their properties; legacy CMake set global variables. The difference matters because targets carry their requirements with them: include directories, compile options, and link dependencies propagate to dependents automatically.</p>
+          <p>The checkpoint&#x27;s PUBLIC/PRIVATE question is the mechanism: PRIVATE means &#x27;needed to build this target&#x27;; PUBLIC means &#x27;needed to build this target and anyone linking it.&#x27; Get the propagation right and downstream targets just link — no manual -I flags, no ordering rituals.</p>
+          <h5>target_include_directories / target_link_libraries with PUBLIC/PRIVATE</h5>
+          <p>target_include_directories declares a target&#x27;s header search paths with a scope; target_link_libraries declares its library dependencies with a scope. PUBLIC propagates to consumers, PRIVATE does not, INTERFACE propagates without applying to the target itself.</p>
+          <p>The lab&#x27;s compile-fail test makes scope tangible: link a dependency PRIVATE to one target and prove a second target cannot see its headers. Scoping is dependency hygiene — every over-exposed include directory is a coupling you will regret.</p>
+          <h5>find_package for system libraries</h5>
+          <p>find_package(LibName) locates an installed library and exposes it as an imported target with its include paths and link requirements already configured. It replaces hand-rolled Find modules and pkg-config guesswork for well-behaved libraries.</p>
+          <p>Prefer config-mode packages shipped by the library; fall back to module mode only when the library provides none. Either way, the consuming code just target_link_libraries against the imported target.</p>
+          <h5>CMAKE_BUILD_TYPE and generator expressions</h5>
+          <p>Single-configuration generators (Make, Ninja) take CMAKE_BUILD_TYPE=Debug or Release to select optimization and debug-info flags. Generator expressions ($&lt;CONFIG:Debug&gt;) evaluate per-configuration inside multi-config generators (Visual Studio, Ninja Multi-Config) — the portable way to say &#x27;this flag only in Debug.&#x27;</p>
+          <p>The checkpoint&#x27;s Debug-works-Release-crashes triage starts here: optimization level, NDEBUG (which disables assert), and any config-specific flags. The lab&#x27;s dual build directories make the comparison mechanical.</p>
+          <h5>FetchContent for vendored dependencies</h5>
+          <p>FetchContent downloads a dependency at configure time and builds it as part of your project — vendoring without submodules or system installs. It is ideal for small header-only libraries and for pinning exact dependency versions in CI.</p>
+          <p>The tradeoff is configure-time cost and network dependence; for large dependencies, prefer find_package against a system install. The lab&#x27;s header-only FetchContent exercise shows the sweet spot.</p>
+          <h5>CTest integration</h5>
+          <p>CTest is CMake&#x27;s test runner: enable_testing(), add_test() registering executables, and ctest runs them all with pass/fail reporting. Tests become part of the build — &#x27;the full build fails on test failure&#x27; is not a slogan but a property of the lab&#x27;s setup.</p>
+          <p>Wire tests in from the start, not at the end: a test suite that runs with every build is a living specification; one that runs manually is a wish.</p>
+          <h5>Install rules and package basics</h5>
+          <p>install() rules declare what gets deployed — binaries, headers, libraries — and where; CPack can turn those rules into distributable packages. Even for learning projects, writing install rules forces you to decide what your project&#x27;s public surface is.</p>
+          <p>The capstone does not require packaging, but a project with install rules is a project someone else can actually use. It is the difference between code and software.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Makefile to CMake. Convert a hand-rolled Makefile (or raw g++ commands) project with lib/ and app/ split into CMake. Build out-of-source, delete the build directory, rebuild from scratch to prove reproducibility.</li>
+            <li>Lab 2 — PRIVATE scope, proven. Add a third-party dependency via FetchContent, link it PRIVATE to one target, and verify a second target cannot see its headers (compile-fail test). Document what the failure proves.</li>
+            <li>Lab 3 — Debug vs Release sanitizers. Set up two build dirs: Debug with -fsanitize=address,undefined and Release with -O2. Run the same test binary under both; document any behavioral difference and explain it.</li>
+            <li>Lab 4 — The missing source. Add a new .cpp file without listing it in CMakeLists, observe the stale build, fix it, and note the lesson about globbing versus explicit source lists.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Why are out-of-source builds the standard practice, and what breaks if you build in-source?</li>
+            <li>PUBLIC vs PRIVATE in target_link_libraries: what does each propagate, and to whom?</li>
+            <li>Your CI builds Debug fine but Release crashes. List three build-configuration differences you would check first.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m8-h">
+        <p class="il-eyebrow">Module 8</p>
+        <h3 class="il-h il-h--card" id="m8-h">Testing and debugging: sanitizers, gdb, and unit tests</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write unit tests for C++ code with a lightweight framework and run them under CTest.</li>
+            <li>Use AddressSanitizer, UndefinedBehaviorSanitizer, and ThreadSanitizer to find bugs tests miss.</li>
+            <li>Drive gdb (or lldb) to get backtraces, inspect variables, and set conditional breakpoints.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Unit test structure: arrange/act/assert</h5>
+          <p>A unit test arranges preconditions, acts on the unit under test, and asserts the outcome — three phases, each visible. Tests that mix phases become unreadable; tests that assert multiple unrelated behaviors become undebuggable.</p>
+          <p>The capstone&#x27;s &#x27;meaningful assertions&#x27; requirement is this discipline graded: each test names one behavior and verifies it precisely. A test suite is executable documentation — write it as carefully as the code.</p>
+          <h5>CTest as the test runner</h5>
+          <p>CTest runs the test executables CMake registers and reports pass/fail per test — the &#x27;make the full build fail on test failure&#x27; property from the CMake module. CI runs ctest; developers run ctest; the suite is the gate.</p>
+          <p>Keep tests fast and hermetic: a suite that takes an hour or depends on the network does not get run. The tests you actually run are the only tests that protect you.</p>
+          <h5>AddressSanitizer: heap/stack/global overflows, use-after-free</h5>
+          <p>ASan instruments every memory access and catches spatial and temporal errors at runtime: heap, stack, and global buffer overflows, use-after-free, use-after-return, double-free, leaks (with LeakSanitizer). The checkpoint&#x27;s paradox — tests pass but ASan reports an overflow — resolves here: the test never read the corrupted memory in a way that changed the outcome, but the bug is real regardless.</p>
+          <p>Tests verify behavior; sanitizers verify correctness. You need both, because passing tests prove the code did the right thing this time, while a clean sanitizer run proves it did not cheat to get there.</p>
+          <h5>UndefinedBehaviorSanitizer: signed overflow, null deref, misalignment</h5>
+          <p>UBSan instruments the language-level UB classes: signed integer overflow, null pointer dereference, misaligned access, out-of-bounds on known sizes, and more. It catches the bugs that are &#x27;not memory errors&#x27; but are still undefined — the ones that make optimizers miscompile.</p>
+          <p>Run ASan and UBSan together routinely (they compose); add TSan as a separate configuration (it does not compose with ASan). The three-sanitizer matrix is the capstone&#x27;s bar and should become your default.</p>
+          <h5>ThreadSanitizer: data races</h5>
+          <p>TSan detects data races at runtime with precise reports — the two threads, the location, both stacks. It is the only reliable way to verify concurrent code: reasoning about interleavings does not scale, and stress-testing finds races by luck.</p>
+          <p>The plant-a-race lab teaches the report format before you need it under pressure: read one TSan report carefully now, and the 3 AM race later becomes a thirty-minute fix instead of a three-day mystery.</p>
+          <h5>gdb: backtrace, frame, print, break, watch</h5>
+          <p>The C module&#x27;s gdb curriculum transfers directly: break stops at locations, watch stops on data changes, catch stops on events (exceptions, syscalls) — the checkpoint&#x27;s three-way distinction. backtrace shows the call stack, frame selects one, print inspects.</p>
+          <p>C++ adds name-mangled symbols and template-heavy stacks to the reading, but the workflow is identical: reproduce, break near the fault, inspect, understand. The debugger does not change; only the code it reads gets more expressive.</p>
+          <h5>Core dumps and post-mortem debugging</h5>
+          <p>Same discipline as C: enable cores, load the core in gdb, read the backtrace without re-running. Production C++ crashes rarely reproduce in the lab — the core dump is often the only witness.</p>
+          <p>For the capstone, know how to get a core from your system before you need one. Post-mortem skill is what separates &#x27;it crashed in prod&#x27; from &#x27;here is the faulting line and the fix.&#x27;</p>
+          <h5>Fuzzing at a glance: libFuzzer/AFL concept</h5>
+          <p>Fuzzing feeds generated inputs to your code under sanitizers, hunting for crashes automatically — the force-multiplier beyond handwritten tests. libFuzzer (in-process, LLVM) and AFL (coverage-guided, general) are the standard tools; the concept to take from this module is the workflow: fuzz target + sanitizer + corpus = bugs found while you sleep.</p>
+          <p>You are not required to fuzz the capstone, but knowing the concept exists changes how you write parsers and input handling: every input boundary is a future fuzz target. Write code you would not fear fuzzing.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Tests pass, sanitizers fail. Take a small string-utility module with 3 planted bugs (off-by-one heap overflow, use-after-free, signed integer overflow). Write unit tests that pass despite the bugs, run under ASan+UBSan, fix each reported bug. Write down why the tests missed each one.</li>
+            <li>Lab 2 — gdb on C++. Debug a segfaulting program with gdb: backtrace, walk frames, print the offending pointer, set a watchpoint on the corrupted variable. Record the exact command sequence you used.</li>
+            <li>Lab 3 — CTest wiring. Write a minimal test suite for the Matrix class from the templates module, wire it into CMake via CTest, and make the full build fail on test failure.</li>
+            <li>Lab 4 — Plant a race. Plant a data race in test-adjacent code, run the suite under ThreadSanitizer, read the race report (threads, location, stacks), and fix it.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Your tests pass but ASan reports a heap-buffer-overflow in code the tests cover. Explain how both can be true.</li>
+            <li>Name the sanitizer for each: use-after-free, signed integer overflow, data race.</li>
+            <li>In gdb, what is the difference between break, watch, and catch, and when would you use each?</li>
+          </ol>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="capstone-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Capstone</p>
+        <h2 class="il-h il-h--section" id="capstone-h">Prove it: the capstone project.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Design and build a concurrent, tested C++20 utility of your choosing — a multithreaded file hasher, a parallel word-frequency analyzer, or a small TCP echo server are all good choices. Requirements from the curriculum: a CMake build with Debug/Release configurations; RAII resource handling with zero raw new/delete; STL algorithms over hand loops; at least one class template or concept-constrained function; a thread pool or worker threads with sanitizer-clean runs (ASan/UBSan/TSan); a CTest suite with meaningful assertions; and a README documenting the C++ standard features used per module and how each sanitizer run came back clean.</p>
+        <p>Deliverable: a git repo link or archive plus a one-page writeup of the hardest bug the sanitizers caught. That writeup is the real deliverable — it proves you can find, understand, and fix the bugs that separate C++ that compiles from C++ that is correct.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Resources</p>
+        <h2 class="il-h il-h--section" id="resources-h">Open and free sources.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/w/cpp">https://en.cppreference.com/w/cpp</a> — the official curriculum this study guide is keyed to. The guide teaches the same ground in original prose; consult the source for the authoritative material.</li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/w/cpp/language">https://en.cppreference.com/w/cpp/language</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp">https://en.cppreference.com/w/cpp</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/memory">https://en.cppreference.com/w/cpp/memory</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/container">https://en.cppreference.com/w/cpp/container</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/algorithm">https://en.cppreference.com/w/cpp/algorithm</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/thread">https://en.cppreference.com/w/cpp/thread</a></li>
+          <li><a href="https://cmake.org/documentation/">https://cmake.org/documentation/</a></li>
+          <li><a href="https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug.html">https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug.html</a></li>
+        </ul>
+        <h3>Other free resources</h3>
+        <ul>
+          <li><a href="https://www.learncpp.com/">learncpp.com</a> — a free, comprehensive C++ tutorial widely used alongside the reference</li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+      <div class="il-prose" style="margin-top:2rem">
+        <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public C++ language reference. It teaches the same ground in original prose with hands-on labs; it does not reproduce the official reference. For the authoritative material, consult the official curriculum source above.</em></p>
+      </div>
+
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

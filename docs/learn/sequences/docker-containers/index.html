@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Docker and Container Engineering | Interstitium Labs</title>
+<meta name="description" content="An original study guide to Docker and container engineering: namespaces and cgroups, images and Dockerfiles, build caching, lifecycle, volumes, networking, registries, Compose, and security hardening — keyed to the official Docker documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Containers · Infrastructure</p>
+    <h1 class="il-h">Docker and Container Engineering</h1>
+    <p class="il-hero__sub">From kernel primitives to production hardening: how containers isolate, how images are built, and how to run them safely.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Containers are the dominant unit of software deployment, and Docker is their lingua franca. But containers are not magic and not virtual machines: they are ordinary Linux processes given an isolated view of the system through kernel namespaces and constrained through control groups. Everything Docker does — images, layers, volumes, networks — is composed from these primitives plus a client-server architecture that manages them.</p>
+        <p>This sequence builds from the kernel up. You start with namespaces, cgroups, and the image-container split, then learn images properly: layers, Dockerfile instructions, and tag discipline. Build caching and multi-stage builds follow, then the container lifecycle, storage, and networking. Registries cover distribution, Compose covers multi-service applications as code, and the final module hardens everything: non-root users, minimal bases, secret hygiene, and a systematic debugging workflow.</p>
+        <p>The official Docker documentation is the authoritative reference for exact flags and syntax; this page teaches the concepts that make those flags meaningful.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Developers who run docker commands daily and want to understand what the commands actually do.</li>
+          <li>DevOps and platform engineers building container-based deployment pipelines.</li>
+          <li>System administrators moving from VMs to containers who need the isolation model explained honestly.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>A Linux machine (or VM) with Docker Engine installed, or Docker Desktop — most labs assume a Linux host for namespace inspection.</li>
+          <li>Comfort with the Linux command line and basic networking concepts.</li>
+          <li>No prior container experience required; the first module starts at the kernel.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order — the kernel primitives in module 1 are the vocabulary for everything after.</li>
+          <li>Run every lab. Container knowledge is tactile: inspect, break, and rebuild until the behavior is unsurprising.</li>
+          <li>Read docker inspect output the way you would read source code — it is the ground truth of what Docker actually configured.</li>
+          <li>Verify flags and behaviors against the official Docker docs; the CLI evolves and this guide teaches concepts.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">9 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Container fundamentals: namespaces, cgroups, and the image-container split</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what namespaces and cgroups provide and how they compose a container's isolation model.</li>
+            <li>Distinguish an image (immutable, layered template) from a container (mutable runtime instance).</li>
+            <li>Describe the Docker daemon/CLI/client-server architecture at a high level.</li>
+            <li>State what containers do not isolate, and why containers are not VMs.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Namespaces: PID, NET, MNT, UTS, IPC, USER</h5>
+          <p>Namespaces give a process its own isolated view of a system resource. PID namespaces mean the container sees its own process tree starting at PID 1; NET namespaces give it its own network interfaces and routing table; MNT namespaces give it its own filesystem mount table; UTS namespaces isolate hostname and domain; IPC namespaces isolate inter-process communication; USER namespaces map container UIDs to different host UIDs.</p>
+          <p>Isolation here means restricted visibility, not a security boundary by itself — a process that escapes its namespaces is just a host process. Understanding which namespace isolates what is the foundation for reasoning about every container behavior that follows.</p>
+          <h5>cgroups: CPU, memory, I/O accounting and limits</h5>
+          <p>Control groups (cgroups) account for and limit what a group of processes may consume: CPU shares and quotas, memory ceilings, block I/O bandwidth. Where namespaces control what a container can see, cgroups control what it may use.</p>
+          <p>Docker's --memory and --cpus flags are cgroup settings. When a container is OOM-killed, that is the kernel's cgroup enforcement, not Docker being unkind — the limit you set is the limit the kernel enforces.</p>
+          <h5>Image = read-only layers + metadata; container = image + thin writable layer</h5>
+          <p>An image is an immutable template: a stack of read-only filesystem layers plus metadata (default command, environment, exposed ports). A container is a running instance of an image: the same layers plus one thin writable layer on top where all changes go.</p>
+          <p>This split is why starting a container is fast and cheap — no copying, just a new writable layer over shared read-only layers. It is also why container filesystems are ephemeral: the writable layer dies with the container.</p>
+          <h5>dockerd daemon and the docker CLI as remote API client</h5>
+          <p>Docker is client-server: the docker CLI you type into is a thin client speaking a REST API, and the dockerd daemon does the actual work — managing images, containers, networks, and volumes. The CLI and daemon can even be on different machines, connected over a socket or TLS.</p>
+          <p>This architecture explains several behaviors: why the daemon needs root (it configures namespaces, cgroups, and networking), why docker commands work identically against remote daemons, and why the daemon's logs — not the CLI's — hold the truth during failures.</p>
+          <h5>Layered filesystems: lower layers shared, upper layer per-container</h5>
+          <p>The image's read-only layers are shared between all containers from that image — ten containers from one image share the base layers on disk once. Each container gets its own private upper layer for writes, which is why containers are isolated from each other's filesystem changes.</p>
+          <p>Sharing is also why pulls are efficient: docker only downloads layers it does not already have. Layer reuse across images is the quiet economy underlying the whole ecosystem.</p>
+          <h5>Copy-on-write semantics on container writes</h5>
+          <p>When a container modifies a file that lives in a read-only lower layer, the filesystem copies that file up into the writable upper layer first, then applies the change — copy-on-write. Reads of unmodified files come straight from the shared lower layers at full speed.</p>
+          <p>Copy-on-write means the first write to a large file is expensive (the whole file copies up) while subsequent writes are cheap. Workloads that rewrite big files repeatedly pay this cost on every container — a real performance consideration for databases in containers.</p>
+          <h5>Container ephemerality: data lost on removal unless stored externally</h5>
+          <p>The writable layer is tied to the container's lifecycle: docker rm destroys it, and with it every file the container wrote. Containers are cattle — replaceable, disposable, expected to die.</p>
+          <p>Any data that must survive the container — databases, uploads, logs worth keeping — belongs in a volume or bind mount, outside the writable layer. Designing for ephemerality is the central discipline of running stateful workloads in containers.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Install Docker Engine or Desktop; run hello-world and alpine, then list containers and images.</strong><br/>The hello-world run exercises the full path: pull, create, start, exit. Listing what it left behind — images, stopped containers — introduces the artifacts you will manage from here on.</li>
+            <li><strong>Run a container, write a file inside it, commit vs. remove it to observe data persistence behavior.</strong><br/>Write a file, remove the container, and watch the file vanish — then repeat with docker commit to see the writable layer frozen into a new image. The contrast teaches ephemerality concretely.</li>
+            <li><strong>Inspect a running container with docker inspect and map its mounts, networks, and PID namespace.</strong><br/>Read the inspect JSON and find the mounts, the network settings, and the process configuration. Inspect output is the ground truth — learn to read it fluently.</li>
+            <li><strong>Use nsenter-style tooling or /proc on a Linux host to observe a container's isolated PID/NET view.</strong><br/>From the host, enter the container's namespaces and compare what you see inside versus outside: different PIDs, different interfaces. The isolation becomes observable fact.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain, without notes, why two containers from the same image do not see each other's filesystem changes.</li>
+            <li>List which namespace type isolates each of: hostname, process IDs, network interfaces.</li>
+            <li>Describe what happens to data in the container's writable layer when docker rm runs.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Images: layers, Dockerfile instructions, and tag hygiene</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Read and write a Dockerfile using the core instructions correctly.</li>
+            <li>Predict layer outcomes from instruction ordering and cache behavior.</li>
+            <li>Apply COPY vs ADD, CMD vs ENTRYPOINT, and ENV/ARG distinctions deliberately.</li>
+            <li>Choose tags deliberately and explain why latest is unreliable for reproducibility.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>One instruction = one layer; layer reuse across images</h5>
+          <p>Each Dockerfile instruction that modifies the filesystem creates one layer, and layers are content-addressed and shared: if ten images share the same base, the base layers are stored once. Fewer, better-ordered layers mean smaller images and faster pulls.</p>
+          <p>This is why instruction ordering matters and why chaining related RUN commands with &amp;&amp; is idiomatic — every layer is permanent overhead in the image's history, even if a later layer deletes the files.</p>
+          <h5>RUN vs CMD vs ENTRYPOINT: build-time vs runtime roles</h5>
+          <p>RUN executes a command during the build and commits the result as a layer — it is how software gets installed into the image. CMD and ENTRYPOINT do not run at build time at all; they declare what runs when a container starts: ENTRYPOINT is the fixed executable, CMD the default arguments.</p>
+          <p>Confusing them is the classic Dockerfile bug: putting the application start in RUN bakes a running process into a layer (useless), while putting installation in CMD reinstalls on every container start (slow). Build-time versus runtime is the line; RUN is left of it, CMD/ENTRYPOINT right.</p>
+          <h5>COPY vs ADD: prefer COPY; ADD's URL/tar extraction caveats</h5>
+          <p>COPY transfers files from the build context into the image, plainly and predictably. ADD does the same plus two extras: it fetches remote URLs and auto-extracts tar archives — conveniences that make builds less transparent and less cache-friendly.</p>
+          <p>Prefer COPY for files and use explicit RUN curl/tar steps when you need downloads or extraction, because explicit steps are cacheable, readable, and auditable. ADD's magic is rarely worth its opacity.</p>
+          <h5>ENV vs ARG: runtime env vs build-time variables</h5>
+          <p>ARG defines build-time variables — available during the build, for parameterizing versions or flags — while ENV sets environment variables baked into the image and visible to running containers. ARG values can also leak into image history; ENV values are visible to anyone who can inspect the image.</p>
+          <p>Neither is a secret store: both are readable from the image. Use ARG for build parameters, ENV for genuine runtime configuration, and secret mounts for anything sensitive.</p>
+          <h5>WORKDIR, EXPOSE, USER, HEALTHCHECK instruction roles</h5>
+          <p>WORKDIR sets the working directory for subsequent instructions and the container's default — prefer it over cd in RUN commands. EXPOSE documents which ports the container listens on; it publishes nothing by itself, it is metadata (and documentation). USER switches the user for subsequent instructions and the default runtime user — the one-line privilege drop. HEALTHCHECK defines a command Docker runs periodically to judge container health.</p>
+          <p>These four are the &quot;production readiness&quot; instructions: working directory sanity, port documentation, non-root execution, and health signaling. A Dockerfile without USER and HEALTHCHECK is a development Dockerfile.</p>
+          <h5>Tag semantics: name:tag, immutable digests vs mutable tags</h5>
+          <p>An image reference is name:tag, but tags are mutable labels — latest today points to a different image than latest next month. The digest (image@sha256:...) is the immutable content address: it names exactly one image forever.</p>
+          <p>For reproducibility, pin deployments by digest; use tags for human convenience in development. &quot;It worked with :latest yesterday&quot; is not a reproducible statement, and production should never depend on one.</p>
+          <h5>.dockerignore to keep build context lean</h5>
+          <p>The build context — everything in the build directory — is sent to the daemon before the build starts. Without .dockerignore, that includes .git histories, node_modules, and secrets-adjacent files: slow builds and accidental inclusions.</p>
+          <p>.dockerignore works like .gitignore, excluding what the image does not need. A lean context builds faster, and more importantly, it cannot accidentally COPY a private key into a layer.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a Dockerfile for a small scripted app; build, run, and verify layer count with docker history.</strong><br/>Build it, then read docker history: one row per layer, with sizes. The history table makes the instruction-to-layer mapping undeniable.</li>
+            <li><strong>Reorder a dependency-install step above source COPY and rebuild to observe cache hits.</strong><br/>Build twice: once with dependencies installed after the source copy (slow rebuilds), once before (cached). The build-time difference teaches cache ordering permanently.</li>
+            <li><strong>Build the same app with :latest and a versioned tag; retag by digest and compare pinning behavior.</strong><br/>Push both references, then re-pull by digest versus by tag after rebuilding. The digest always returns the identical image; the tag may not — the lesson in one experiment.</li>
+            <li><strong>Add a .dockerignore and measure build-context size before and after.</strong><br/>Time the context transfer and note its size with and without the ignore file. The difference on a real project directory is usually embarrassing.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Given a Dockerfile, predict which layers rebuild when only application source changes.</li>
+            <li>Explain the observable difference between CMD and ENTRYPOINT at docker run time.</li>
+            <li>Justify when COPY is preferable to ADD.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Build caching and multi-stage builds</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Diagnose cache misses in a build and restructure the Dockerfile to maximize cache hits.</li>
+            <li>Build a multi-stage Dockerfile that separates build tooling from the runtime image.</li>
+            <li>Explain how BuildKit changes build performance and what build contexts are.</li>
+            <li>Shrink a final image by excluding build dependencies and caches.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Cache invalidation: any changed layer invalidates all layers below it</h5>
+          <p>Docker caches each layer: if the instruction and its inputs are unchanged, the cached layer is reused. But invalidation cascades downward — change one layer and every layer after it rebuilds, because each layer is built on its parent's exact content.</p>
+          <p>This single rule drives all Dockerfile ordering strategy: anything that changes rarely goes early, anything volatile goes late. A cache-hostile Dockerfile rebuilds the world on every source edit; a cache-friendly one rebuilds only the app layer.</p>
+          <h5>Instruction ordering: stable layers first, volatile layers last</h5>
+          <p>The canonical ordering: base image, system dependencies, language dependencies (which change rarely), then application source (which changes constantly). Each rebuild then reuses every cached layer down to the source copy and rebuilds only from there.</p>
+          <p>Review Dockerfiles top-to-bottom asking &quot;how often does this change?&quot; — any inversion you find is build time being wasted on every developer's every commit.</p>
+          <h5>Multi-stage builds: named stages, COPY --from=&lt;stage&gt;</h5>
+          <p>Multi-stage Dockerfiles define named build stages — a full toolchain stage that compiles the application, then a minimal final stage that COPY --from the build stage only the resulting binary. The final image contains the artifact, not the toolchain.</p>
+          <p>Only the final stage's layers ship: intermediate stages are build scaffolding, discarded after use. This is the single most impactful Dockerfile pattern for image size and attack surface.</p>
+          <h5>BuildKit: parallel stage resolution, build mounts and secrets</h5>
+          <p>BuildKit is the modern build engine: it parallelizes independent stages, offers cache mounts that persist package caches across builds without baking them into layers, and provides secret mounts for build-time credentials that never touch the image.</p>
+          <p>BuildKit also improves caching semantics and build performance generally. If a Dockerfile feature (RUN --mount, cache backends) requires it, that is BuildKit — the legacy builder is increasingly a historical artifact.</p>
+          <h5>RUN --mount=type=cache for dependency caches without persisting them</h5>
+          <p>Package manager caches speed rebuilds enormously but should not ship in the image. RUN --mount=type=cache gives the step a persistent cache directory that survives across builds yet is never committed to any layer.</p>
+          <p>The result is the best of both: fast incremental builds and lean images. Without the mount, you choose between slow builds (no cache) and bloated images (cache baked in).</p>
+          <h5>Squashing vs layer count trade-offs</h5>
+          <p>Squashing collapses multiple layers into one, shrinking metadata overhead and hiding intermediate files — but it destroys layer sharing and cache granularity: any change rebuilds the whole squashed layer. Multi-stage builds usually achieve the size goal without squashing's costs.</p>
+          <p>Prefer multi-stage over squashing in almost all cases. Squash only when image layer count itself is the constraint (some registries and runtimes have limits) and you have measured that it matters.</p>
+          <h5>Base-image selection: slim/distroless/alpine size-vs-debuggability trade-off</h5>
+          <p>The base image sets the floor for size and attack surface: full distributions are hundreds of megabytes with shells and package managers; slim trims them; Alpine rebuilds minimal on musl; distroless ships only the runtime. Smaller base, fewer CVEs, less to debug with.</p>
+          <p>Choose by lifecycle stage: debuggable bases in development where you exec in constantly, minimal bases in production where the CVE count matters. The comparison lab makes the tradeoff visceral.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build a compiled-language or bundled-JS app in two stages: toolchain stage, minimal runtime stage; compare image sizes.</strong><br/>Build the single-stage and multi-stage variants and compare sizes — the multi-stage image is typically a fraction of the size. The number is the argument.</li>
+            <li><strong>Introduce a cache-hostile ordering, then fix it; record build times before and after.</strong><br/>Deliberately put the volatile source copy first, time a rebuild, then reorder and time again. The measured delta teaches cache ordering better than any diagram.</li>
+            <li><strong>Use RUN --mount=type=cache to persist a package cache across builds without baking it into layers.</strong><br/>Build twice with the cache mount and confirm the second build is fast while the final image stays lean. Then check the image has no cache directory — both properties verified.</li>
+            <li><strong>Compare final image sizes of debian-slim, alpine, and distroless variants of the same app.</strong><br/>Three bases, one app, three sizes and three CVE counts. The table you produce is the base-image decision framework you will reuse for years.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain why a package-manager install belongs before the application COPY for cache efficiency.</li>
+            <li>Describe what COPY --from does and which layers end up in the final image.</li>
+            <li>List two artifacts that must never end up in a production image layer.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Container lifecycle: run, exec, logs, and resource constraints</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Drive the full container lifecycle: create, start, stop, restart, pause, remove.</li>
+            <li>Use exec, attach, cp, and logs to interact with and inspect running containers.</li>
+            <li>Apply CPU and memory constraints and observe their enforcement.</li>
+            <li>Distinguish foreground vs detached execution and container restart policies.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>docker run = create + start; flags: -d, -it, --rm, --name</h5>
+          <p>docker run is two operations fused: create (build the container from the image) plus start (launch its process). The flags shape the result: -d detaches so the container runs in the background; -it allocates a TTY and keeps stdin open for interactive use; --rm deletes the container when it exits; --name gives it a stable identity instead of a generated one.</p>
+          <p>Understanding run as create+start explains the separate create/start/stop commands and why docker ps -a shows containers that ran and exited. The flags are the everyday vocabulary — know them cold.</p>
+          <h5>Lifecycle states: created, running, paused, stopped, removing</h5>
+          <p>A container moves through states: created (configured, not started), running, paused (processes frozen with SIGSTOP, memory retained), stopped (process exited, filesystem retained), removing (being deleted). docker ps shows running; docker ps -a shows everything.</p>
+          <p>Paused is the underused one: it freezes a container without killing it, useful for consistent snapshots or temporarily halting a misbehaving process. Stopped containers still hold their writable layer until removed — &quot;stopped&quot; is not &quot;gone.&quot;</p>
+          <h5>Restart policies: no, on-failure, always, unless-stopped</h5>
+          <p>Restart policies tell the daemon what to do when the container's process exits or the daemon restarts: no (never restart), on-failure (restart only on nonzero exit, optionally with a retry cap), always (restart regardless, including after daemon reboot), unless-stopped (like always, but respect a manual stop).</p>
+          <p>For long-lived services, unless-stopped is usually right: it survives reboots but honors your explicit stop. always restarting a container you deliberately stopped is a classic source of confusion.</p>
+          <h5>docker exec vs docker attach: new process vs main process stream</h5>
+          <p>docker exec starts a new process inside the running container's namespaces — typically an interactive shell for inspection. docker attach connects your terminal to the container's main process stream (its stdin/stdout/stderr).</p>
+          <p>The critical difference: detaching from attach with Ctrl-C can signal the main process (unless detached properly), while exiting an exec shell never harms the main process. For inspection, exec is almost always the safer choice.</p>
+          <h5>Log drivers, log rotation, and stdout/stderr capture</h5>
+          <p>Docker captures the container's stdout and stderr through log drivers — json-file by default, writing to disk. Without rotation, a chatty container fills the disk; configure max-size and max-file so logs stay bounded.</p>
+          <p>The twelve-factor discipline applies: applications log to stdout/stderr, Docker captures and routes. docker logs reads the captured stream; the driver decides where it ultimately goes (files, syslog, cloud logging).</p>
+          <h5>--memory, --cpus, --memory-swap: cgroup-backed limits</h5>
+          <p>Resource flags are cgroup settings: --memory caps RAM, --cpus caps CPU time, --memory-swap caps RAM plus swap combined. Setting --memory without --memory-swap allows swapping up to a default; setting them equal disables swap for the container.</p>
+          <p>Always set memory limits on production containers — an unlimited container can OOM the host, and the kernel kills whatever it chooses. Limits convert &quot;the host might die&quot; into &quot;this container might die,&quot; which is the correct failure mode.</p>
+          <h5>Exit codes and docker wait for scripting around completion</h5>
+          <p>A container's exit code is its process's exit code, preserved after the container stops — docker ps -a shows it, docker inspect reports it. docker wait blocks until the container exits and prints the code, which makes it the primitive for scripting batch workflows around containers.</p>
+          <p>Treat exit codes as the container's API: zero means success, nonzero means investigate the logs. Scripting around docker wait turns one-shot containers into reliable batch jobs.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run a long-lived container detached with a restart policy; stop the daemon and observe restart behavior.</strong><br/>Start it with unless-stopped, restart the daemon, and confirm the container comes back. Then stop it manually, restart the daemon, and confirm it stays stopped — the policy semantics made observable.</li>
+            <li><strong>Constrain a container to 512 MB and trigger an OOM; identify the OOM-killed event in logs.</strong><br/>Run a memory hog under the limit and watch the kernel kill it. Finding the OOM event in the logs teaches you what resource exhaustion actually looks like.</li>
+            <li><strong>Practice docker exec -it into a running container to inspect state; contrast with docker attach.</strong><br/>Exec in, look around, exit cleanly — the container is unaffected. Then attach, and practice detaching without harming the process. The safety difference becomes muscle memory.</li>
+            <li><strong>Configure log rotation on a chatty container and verify log files stay bounded.</strong><br/>Point a log-spamming container at a rotated json-file driver and watch the log files stay capped. Unbounded logs are a disk-full incident waiting; this is the prevention.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Given a crashed container, list the exact commands to read its last logs and its exit code.</li>
+            <li>Explain when --rm is safe and when it destroys evidence you still need.</li>
+            <li>Describe the difference between --memory=1g and --memory=1g --memory-swap=1g.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Volumes and storage: bind mounts, named volumes, tmpfs</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose correctly among bind mounts, named volumes, and tmpfs for a given data requirement.</li>
+            <li>Create, back up, and restore named volumes without data loss.</li>
+            <li>Explain volume driver behavior and the volume lifecycle independent of containers.</li>
+            <li>Diagnose permission and ownership issues on mounted paths.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Bind mount: host path into container; host-managed lifecycle</h5>
+          <p>A bind mount maps a host directory or file directly into the container. The lifecycle belongs to the host: the data exists before the container starts and survives after it is removed. It is the right choice for configuration you edit on the host, source code in development, and anything the host must manage.</p>
+          <p>The tradeoff is coupling: the container depends on that exact host path existing with the right contents and permissions. Bind mounts are for development and host-integrated cases, not for portable production data.</p>
+          <h5>Named volume: Docker-managed, persists across container removal</h5>
+          <p>A named volume is storage managed by Docker: created by name, mounted into containers, and independent of any container's lifecycle. Delete the container and the volume — and its data — remains, ready for the replacement container.</p>
+          <p>This is the production answer for databases and stateful services: the data outlives any single container, upgrades replace the container while the volume persists, and backups target the volume. Named volumes are the &quot;data has a longer life than compute&quot; primitive.</p>
+          <h5>tmpfs: memory-only, never touches disk, gone with the container</h5>
+          <p>A tmpfs mount lives purely in memory: fast, never written to disk, and destroyed with the container. It is for session data, scratch space, and secrets that must not persist — anything where &quot;gone on stop&quot; is a feature.</p>
+          <p>Because it is RAM, tmpfs counts against the container's memory limit. Size it deliberately; a tmpfs that grows unboundedly is a memory leak with a fancy name.</p>
+          <h5>Read-only mounts (:ro) and mount propagation basics</h5>
+          <p>Appending :ro mounts the path read-only inside the container — the container can read configuration but cannot modify it, which limits the damage a compromised process can do. Mount propagation controls whether mounts created inside the container propagate to the host or vice versa; the default (private) is correct for nearly all cases.</p>
+          <p>Default to read-only for anything the container does not need to write. It is a one-flag hardening win that costs nothing.</p>
+          <h5>Volumes are not deleted by docker rm unless -v is given</h5>
+          <p>Removing a container does not remove its named volumes — the data survives, which is the safety default. The -v flag on docker rm (or docker compose down -v) deletes the volumes too, which is the &quot;I really mean destroy everything&quot; operation.</p>
+          <p>This asymmetry has bitten everyone once: down -v in the wrong directory deletes production-adjacent data. Treat volume-destroying commands with the same care as rm -rf.</p>
+          <h5>UID/GID mismatch: host ownership vs container user</h5>
+          <p>Files in a bind mount are owned by host UIDs; the container's user may map to a different UID, causing permission denied on files the host user owns — or worse, the container running as root creating root-owned files on the host.</p>
+          <p>The fixes: run the container with the matching --user UID:GID, adjust ownership on the host, or use named volumes (where Docker manages ownership) instead of bind mounts. UID mapping is the cause of most &quot;it works in the container but the files are wrong&quot; mysteries.</p>
+          <h5>Backup pattern: --volumes-from with a tar sidecar container</h5>
+          <p>To back up a named volume, run a temporary container with --volumes-from the data container (or mounting the volume directly) that tars the volume contents to a host path or stdout. The sidecar pattern backs up live volumes without installing backup tooling in the application container.</p>
+          <p>Restore is the mirror: a fresh volume plus a sidecar that untars the archive into it. Practice the restore, not just the backup — the tarball you have never unpacked is a hope, not a backup.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Persist a database across container destroy/recreate using a named volume; verify data survives.</strong><br/>Create data, remove the container entirely, start a fresh one on the same volume, and read the data back. The survival is the whole point of named volumes.</li>
+            <li><strong>Back up a named volume to a tarball with a temporary sidecar container, then restore it into a fresh volume.</strong><br/>Tar the volume out, destroy everything, restore into a new volume, and verify. The full backup-restore loop, rehearsed before you need it.</li>
+            <li><strong>Mount the same host directory into two containers; write from one and read from the other.</strong><br/>Shared bind mounts are the simplest inter-container communication for files. Watching the write appear in the second container makes shared storage concrete.</li>
+            <li><strong>Run a container with a tmpfs mount holding session data; restart the container and confirm the data is gone.</strong><br/>Write session state to tmpfs, restart, and confirm emptiness. &quot;Gone on stop&quot; verified empirically is a property you can design around.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Name the storage type for each: config you edit on the host, database that must survive upgrades, session cache.</li>
+            <li>Explain what docker volume prune does and when it is dangerous.</li>
+            <li>Describe how to fix a container writing root-owned files into a host bind mount.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Networking: bridge, host, none, and user-defined networks</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe the default bridge, host, and none drivers and when each applies.</li>
+            <li>Publish container ports to the host and predict the resulting reachability.</li>
+            <li>Create a user-defined network and use embedded DNS for service discovery.</li>
+            <li>Inspect network topology with docker network inspect to troubleshoot connectivity.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Default bridge vs user-defined bridge: DNS resolution only on the latter</h5>
+          <p>Every container on the default bridge network can reach others by IP, but not by name — the default bridge provides no embedded DNS. Containers on a user-defined bridge network get automatic DNS resolution by container name and network alias.</p>
+          <p>This single difference is why production Compose setups define their own networks: services find each other by name (web reaches db as &quot;db&quot;), while default-bridge containers are stuck with IPs that change on every restart.</p>
+          <h5>Port publishing -p host:container and the published-port NAT path</h5>
+          <p>The -p flag publishes a container port on the host: -p 8080:80 maps host port 8080 to container port 80 through NAT rules Docker manages. The host dials 8080; the container listens on 80; Docker translates between them.</p>
+          <p>Publishing is explicit by design: unmapped container ports are unreachable from outside the container's network. The container port is the application's business; the host port is the operator's choice — they need not match.</p>
+          <h5>host network: container shares host stack; no port mapping needed</h5>
+          <p>With --network host, the container shares the host's network stack directly: it sees the host's interfaces, uses the host's ports, needs no port mapping. It is the fastest networking mode (no NAT overhead) and the least isolated.</p>
+          <p>Use it for network-intensive workloads or when the container must see host network traffic — and accept the tradeoff: a port conflict with a host service breaks the container, and the container can observe host networking.</p>
+          <h5>none: fully isolated, no external networking</h5>
+          <p>The none network gives the container a loopback interface and nothing else: no external connectivity, no container-to-container traffic. It is for workloads that must not talk to the network at all — batch crypto operations, untrusted code execution.</p>
+          <p>none is the strongest network isolation Docker offers. When the threat model says &quot;this must not phone home,&quot; none is how you enforce it.</p>
+          <h5>Embedded DNS server at 127.0.0.11 on user-defined networks</h5>
+          <p>Docker runs an embedded DNS server at 127.0.0.11 inside each container on user-defined networks, resolving container names and network aliases to their current IPs. Containers get this resolver automatically via their resolv.conf.</p>
+          <p>This is the mechanism behind name-based service discovery in Compose: the name &quot;db&quot; resolves because the embedded DNS knows the network's members. Debugging name resolution starts with checking the container is on a user-defined network.</p>
+          <h5>Container name / network alias as resolvable hostname</h5>
+          <p>On user-defined networks, a container is reachable by its --name and by any --network-alias assigned. Aliases let multiple containers share one logical name (for simple load distribution) or give one container several names.</p>
+          <p>Aliases are the poor man's service discovery and Compose uses them throughout: the service name becomes the resolvable hostname. Design service names as the API contract between containers.</p>
+          <h5>iptables/nftables rules Docker manages for published ports</h5>
+          <p>Docker implements port publishing and inter-container traffic rules as firewall rules on the host — traditionally iptables, increasingly nftables. The DOCKER chain and NAT rules are Docker's machinery; hand-editing them fights the daemon.</p>
+          <p>Know they exist for two reasons: debugging connectivity (the rules show exactly what Docker configured) and understanding that host firewall tools and Docker both write firewall state — conflicts between them cause the most confusing &quot;it should work&quot; networking failures.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run two containers on a user-defined network; ping and curl one from the other by container name.</strong><br/>Create the network, attach both containers, and resolve by name. Then repeat on the default bridge and watch name resolution fail — the contrast is the lesson.</li>
+            <li><strong>Publish a web server's port; verify reachability from the host and from another machine on the LAN.</strong><br/>Curl it from the host, then from another machine. The LAN reachability test confirms the publish path works end to end, not just on loopback.</li>
+            <li><strong>Run a container with --network none and demonstrate the absence of external connectivity.</strong><br/>Try to ping out and watch it fail; inspect the interfaces and find only loopback. Total isolation, demonstrated.</li>
+            <li><strong>Create an overlay-free multi-network setup: one container on two networks bridging segmented services.</strong><br/>Attach one container to two user-defined networks and route between segments through it. Multi-homed containers are the building block of segmented topologies.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain why containers on the default bridge cannot resolve each other by name.</li>
+            <li>Given -p 8080:80, state which port the host dials and which port the container listens on.</li>
+            <li>List the steps to diagnose a container that cannot reach the internet.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Registries: push, pull, tags, and authentication</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Push and pull images through a registry with deliberate tag and digest discipline.</li>
+            <li>Authenticate to public and private registries and store credentials safely.</li>
+            <li>Explain manifest lists and multi-architecture image pulls.</li>
+            <li>Run a local registry for testing and describe registry storage layout.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Registry as content store; image name = registry/host/path:tag</h5>
+          <p>A registry is a content-addressed store for image layers and manifests. The full image name encodes the location: registry hostname, repository path, and tag — docker.io/library/nginx:1.25 means &quot;Docker Hub, library/nginx, tag 1.25.&quot; Omit the registry and Docker assumes Docker Hub.</p>
+          <p>Understanding the name as an address demystifies pulls: the client resolves the registry, fetches the manifest, then fetches each layer by digest. Every part of the name has a mechanical meaning.</p>
+          <h5>Push/pull mechanics: layer upload by digest, deduplication across images</h5>
+          <p>Push uploads only layers the registry does not already have — each layer is addressed by its digest, so identical layers across different images are stored and transferred once. Pull is the mirror: the manifest lists layer digests, and the client fetches only the missing ones.</p>
+          <p>This deduplication is why pushing a rebuilt image is fast (only changed layers upload) and why base-image sharing across your fleet saves real bandwidth and storage.</p>
+          <h5>docker login credential storage; credential helpers vs plaintext config</h5>
+          <p>docker login stores credentials for registry authentication. By default they land in ~/.docker/config.json — base64-encoded, which is obfuscation, not encryption. Credential helpers ( OS keychains, pass) store them in the system credential store instead.</p>
+          <p>Configure a credential helper so registry passwords never sit in plaintext on disk. On shared build machines this is not optional — config.json is readable by the user and often backed up or copied.</p>
+          <h5>Digest pinning (image@sha256:...) for reproducible deploys</h5>
+          <p>Referencing an image by digest pins the exact content: image@sha256:abc... always resolves to the same bytes, while image:1.25 can be repointed by whoever controls the tag. Deployments pinned by digest are reproducible by construction.</p>
+          <p>The workflow: resolve the tag to a digest at build/CI time, record it, deploy the digest. Tag mutability then cannot surprise production — the deployment names content, not a label.</p>
+          <h5>Multi-arch manifests: one tag, per-platform images</h5>
+          <p>A manifest list (OCI index) lets one tag point to multiple platform-specific images — amd64, arm64 — and the client automatically pulls the variant matching its architecture. One tag, many architectures, correct image everywhere.</p>
+          <p>Build multi-arch images in CI so the same deployment works on Intel servers and ARM laptops without anyone thinking about it. The manifest list is the indirection that makes it seamless.</p>
+          <h5>Retention and garbage collection on self-hosted registries</h5>
+          <p>Registries accumulate layers and manifests; untagged manifests and unreferenced layers consume storage until garbage collection reclaims them. The stock registry's GC requires care (it should not run against a registry being written to).</p>
+          <p>Plan retention: how many tagged versions to keep, when to GC, and how to avoid deleting a layer still referenced by a manifest you care about. Registry storage is cheap until nobody manages it.</p>
+          <h5>Public registries: Docker Hub rate limits and mirror considerations</h5>
+          <p>Docker Hub rate-limits anonymous and free-tier pulls — a real constraint for CI fleets that pull heavily. The responses are mirrors and pull-through caches: a local registry that caches upstream images, insulating your builds from both rate limits and upstream outages.</p>
+          <p>For any serious CI volume, run a pull-through cache or pay for the tier you need. Builds failing on rate limits at 2 AM is an avoidable incident.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run a local registry container; tag, push, and pull an image through it end to end.</strong><br/>The registry itself is just a container. Pushing to localhost:5000 and pulling back demystifies the whole distribution flow — it is HTTP and content hashes, not magic.</li>
+            <li><strong>Configure a credential helper so docker login never writes a plaintext password.</strong><br/>Log in with the helper configured and inspect config.json to confirm no credential material is there. The absence is the test.</li>
+            <li><strong>Pull a multi-arch image on your host and inspect its manifest to see the platform entries.</strong><br/>Pull a manifest list and read the per-platform entries. Seeing amd64 and arm64 side by side explains how one tag serves two architectures.</li>
+            <li><strong>Deploy with a digest-pinned reference instead of a tag and demonstrate immunity to tag mutation.</strong><br/>Deploy by digest, then push a new image to the same tag and confirm the deployment is unaffected. Tag mutation happened; the deployment did not notice.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain what is actually transferred during docker push when the registry already holds most layers.</li>
+            <li>Describe where docker login credentials land and how to keep them out of plaintext.</li>
+            <li>State when a digest pin is preferable to a version tag.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Compose: multi-service applications as code</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Model a multi-service app (app + database + cache) as a Compose file.</li>
+            <li>Wire services through networks, volumes, environment, and dependencies.</li>
+            <li>Use env files, interpolation, and profiles for dev/prod variants.</li>
+            <li>Run the full lifecycle: up, down, logs, scale, and config validation.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>services, networks, volumes top-level blocks</h5>
+          <p>A Compose file declares the application's services (the containers), networks (how they connect), and volumes (where state lives) as data. One file describes the whole multi-container application: the web tier, the database, the cache, their networks, their storage.</p>
+          <p>This is infrastructure as code for development and small production: the file is reviewable, versioned, and the single source of truth for &quot;what does this app need to run.&quot;</p>
+          <h5>depends_on: startup order, not readiness (healthcheck + condition)</h5>
+          <p>depends_on controls startup order: the database container starts before the app container. It does not wait for readiness — the database process may still be initializing when the app tries to connect, which is the classic Compose race condition.</p>
+          <p>The fix is healthchecks plus the condition: depend on the database service being healthy, not merely started. Order without readiness is a hope; order with health gating is a guarantee.</p>
+          <h5>Environment: environment, env_file, variable interpolation, .env</h5>
+          <p>Compose has layered configuration: environment sets values inline, env_file loads them from a file, and ${VAR} interpolation pulls from the shell or .env file. The layers compose — .env defaults, env_file overrides, explicit environment wins.</p>
+          <p>Keep secrets out of the Compose file itself: interpolate them from the environment or a secrets file. The Compose file is versioned; secrets are not.</p>
+          <h5>Volume and network declarations shared across services</h5>
+          <p>Volumes and networks declared at the top level are shared resources: multiple services mount the same named volume or join the same network. This is how the app service and a backup sidecar share data, or how frontend and backend share a network while the database sits on a second, private one.</p>
+          <p>Shared declarations with per-service attachment give you topology as data: which services share fate, which are isolated. Read the networks section to understand the security segmentation.</p>
+          <h5>docker compose up/down/logs/exec/scale lifecycle commands</h5>
+          <p>The lifecycle verbs: up creates and starts the stack, down stops and removes it, logs tails the aggregated logs, exec runs commands in a service container, scale adjusts replica counts. Together they are the complete operational interface for the stack.</p>
+          <p>Learn them as a set: up/down for lifecycle, logs/exec for debugging, config for validation. A Compose stack you can operate fluently is a development environment that never surprises you.</p>
+          <h5>docker compose config to render and validate the effective file</h5>
+          <p>docker compose config renders the merged, interpolated, fully-resolved Compose file and validates its schema. With multiple -f files, env interpolation, and profiles, the effective configuration is not obvious from reading the sources — config shows the truth.</p>
+          <p>Run config before up whenever the setup is non-trivial. It catches interpolation mistakes, invalid references, and merge surprises before any container starts.</p>
+          <h5>Profiles and multiple -f files for environment variants</h5>
+          <p>Profiles tag services for selective startup (a debug tool only in the dev profile); multiple -f files layer configurations — base compose.yaml plus compose.override.yaml for development tweaks, or compose.prod.yaml for production. Later files merge over earlier ones.</p>
+          <p>This is how one application definition serves many environments: the base file holds the stable truth, overlays hold the differences. Variants as overlays, not as copied-and-edited files that drift apart.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a Compose file for a web app with a database and cache; bring it up and exercise the app.</strong><br/>The three-service stack is the canonical Compose shape. Getting it running end to end — app serving, database persisting, cache caching — is the core skill.</li>
+            <li><strong>Add a healthcheck to the database and gate app startup on the healthy condition.</strong><br/>Watch the app wait for the database to actually be ready, not just started. The race condition from the previous lab disappears — the fix demonstrated, not described.</li>
+            <li><strong>Split config into compose.yaml + compose.override.yaml for a dev variant; validate with docker compose config.</strong><br/>Layer the override, render the effective config, and confirm the merge did what you intended. Overlays you have validated are safe; overlays you assume are not.</li>
+            <li><strong>Tear the stack down with volumes removed, then restore from your earlier volume backup.</strong><br/>Down with -v destroys the data volumes — deliberately, in the lab — then restore from backup. Destruction and recovery rehearsed together is the complete lesson.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain why depends_on alone does not guarantee the database is ready.</li>
+            <li>Describe how docker compose config helps catch errors before up.</li>
+            <li>State what docker compose down -v destroys.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 9</p>
+          <h3 class="il-h il-h--card">Security hardening and debugging workflows</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Harden an image: non-root user, minimal base, no secrets in layers, read-only filesystem.</li>
+            <li>Scan images for known vulnerabilities and interpret the findings pragmatically.</li>
+            <li>Apply a systematic debugging workflow: logs, inspect, exec, events, network traces.</li>
+            <li>Explain capability drops, seccomp, and AppArmor as defense-in-depth.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>USER instruction: never run production workloads as root</h5>
+          <p>Containers default to running as root, and a container-root process with a kernel vulnerability or a misconfigured volume is a host-compromise path. The USER instruction drops to a dedicated non-root user for the application — the single highest-value hardening step.</p>
+          <p>Creating the user, setting file ownership, and switching with USER belongs in every production Dockerfile. &quot;It runs fine as root&quot; is not a security argument; it is an unexamined default.</p>
+          <h5>Minimal bases reduce attack surface; fewer packages, fewer CVEs</h5>
+          <p>Every package in the image is attack surface and CVE inventory: the scanner reports on what is installed, so installing less means fewer findings and fewer patches. Minimal bases — slim, Alpine, distroless — are a security control, not just a size optimization.</p>
+          <p>The hardening workflow is subtractive: start from the minimal base that runs your application and add only what it needs. Each added package should justify itself against the CVE burden it brings.</p>
+          <h5>Secrets hygiene: build secrets via --mount=type=secret, never ENV in layers</h5>
+          <p>Secrets baked into layers are compromised by design: anyone with the image can extract them from layer history, even if a later layer deletes the file. BuildKit secret mounts expose secrets to a single build step without persisting them anywhere.</p>
+          <p>Audit with docker history and layer inspection: if the secret appears, the image is burned — rotate the secret and rebuild correctly. Runtime secrets arrive via environment, mounted files, or secret stores — never via the image.</p>
+          <h5>Read-only root filesystem (--read-only) with tmpfs for writable scratch</h5>
+          <p>Running with --read-only makes the container's filesystem immutable; the application gets writable scratch space via tmpfs mounts for temp files. A compromised process cannot persist malware, modify binaries, or alter configuration.</p>
+          <p>This breaks applications that expect to write to their own directory — which is exactly the information you want, because unexpected writes are either bugs or attacks. Fix the legitimate writes with tmpfs; the rest were liabilities.</p>
+          <h5>--cap-drop/--cap-add, --security-opt seccomp/AppArmor profiles</h5>
+          <p>Linux capabilities split root's powers into pieces; Docker grants containers a default subset. --cap-drop removes capabilities the workload does not need (start by dropping ALL, then adding back), --cap-add restores specific ones. Seccomp filters which syscalls the container may invoke; AppArmor confines file and capability access by profile.</p>
+          <p>These are defense-in-depth layers: each narrows what a compromised container process can do. Apply them progressively — drop capabilities first (high value, low breakage), then seccomp/AppArmor profiles tuned to the workload.</p>
+          <h5>Image scanning: vulnerability databases, base-image freshness as the real fix</h5>
+          <p>Scanners match installed packages against CVE feeds, but the fix for base-image CVEs is almost always &quot;rebuild on a fresher base,&quot; not &quot;patch the package by hand.&quot; Base-image freshness — rebuilding regularly from current upstream tags — is the operational control; scanning is the measurement.</p>
+          <p>Wire scanning into CI as a gate and schedule base rebuilds. A green scan on a six-month-old base is luck, not hygiene; freshness is what keeps it green.</p>
+          <h5>Debugging order: docker ps, logs, inspect, events, exec, network inspect, stats</h5>
+          <p>Debug in escalating order of invasiveness: ps (is it running? what exited?), logs (what did it say?), inspect (how is it configured?), events (what happened recently?), exec (look inside live), network inspect (can it reach things?), stats (is it resourced?).</p>
+          <p>The order matters because each step is cheaper than the next and answers the question the previous step raised. Random debugging — exec'ing into containers before reading logs — wastes the information the cheap steps give for free.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Take a root-running image, add a non-root USER, fix file ownership, and verify with docker exec whoami.</strong><br/>Convert the Dockerfile, rebuild, and confirm the application runs as the unprivileged user. The whoami output is the proof; the still-working application is the rest of the proof.</li>
+            <li><strong>Scan a base image with an open-source scanner; update the base tag and re-scan to compare.</strong><br/>Scan, note the findings, bump the base tag, re-scan. The findings that vanish are the argument for base-image freshness as a practice.</li>
+            <li><strong>Reproduce a failing container and debug it strictly in order: logs, inspect, events, exec.</strong><br/>Break a container on purpose, then work the debugging order without skipping steps. The discipline — cheapest evidence first — is the skill being trained.</li>
+            <li><strong>Run a service with --read-only and a tmpfs scratch mount; prove it functions without a writable root.</strong><br/>Launch read-only with tmpfs for temp space and exercise the application fully. Working correctly with an immutable root is the hardened state, verified.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>List three concrete checks to run before shipping any image to production.</li>
+            <li>Explain why a secret baked into a layer is compromised even if later deleted in a higher layer.</li>
+            <li>Describe the debugging sequence for a container that exits immediately on start.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://docs.docker.com/">https://docs.docker.com/</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/">https://docs.docker.com/engine/</a></li>
+          <li><a href="https://docs.docker.com/reference/dockerfile/">https://docs.docker.com/reference/dockerfile/</a></li>
+          <li><a href="https://docs.docker.com/build/cache/">https://docs.docker.com/build/cache/</a></li>
+          <li><a href="https://docs.docker.com/engine/storage/volumes/">https://docs.docker.com/engine/storage/volumes/</a></li>
+          <li><a href="https://docs.docker.com/engine/network/">https://docs.docker.com/engine/network/</a></li>
+          <li><a href="https://docs.docker.com/">https://docs.docker.com/</a></li>
+          <li><a href="https://docs.docker.com/compose/">https://docs.docker.com/compose/</a></li>
+          <li><a href="https://docs.docker.com/engine/security/">https://docs.docker.com/engine/security/</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://docs.docker.com/engine/">Docker Engine documentation</a></li>
+          <li><a href="https://docs.docker.com/reference/dockerfile/">Dockerfile reference</a></li>
+          <li><a href="https://docs.docker.com/compose/">Docker Compose documentation</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

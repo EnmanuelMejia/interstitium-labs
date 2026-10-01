@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before 
+<style>
+  .mod-index{columns:2;column-gap:2.5rem}
+  .mod-index li{break-inside:avoid;margin-bottom:.4rem}
+  @media (max-width:640px){.mod-index{columns:1}}
+  .il-gloss dt{font-weight:600}
+  .il-gloss dd{margin:0 0 .75rem 0}
+</style>
+</head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Core SQL Engineering | Interstitium Labs</title>
+<meta name="description" content="An eight-module study sequence on core SQL engineering taught on SQLite: DDL/DML, filtering and aggregation, joins, subqueries and CTEs, window functions, set operations, transactions and isolation, indexes and normalization. Original study guide keyed to the public SQLite documentation, with dialect notes throughout."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Data Systems</p>
+    <h1 class="il-h">Core SQL Engineering</h1>
+    <p class="il-hero__sub">Working SQL fluency on SQLite: DDL and DML, filtering and aggregation, joins, subqueries and CTEs, window functions, set operations, transactions, and indexes — with dialect notes translating every concept to SQL Server, Oracle, and Postgres.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Start the sequence</a>
+      <a class="il-btn" href="/learn/">Back to Learn</a>
+    </div>
+    <p class="il-hero__motto">Learn the language the data speaks.</p>
+  </div>
+</header>
+<main>
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Study sequence</p>
+      <h2 class="il-h" id="overview-h">Overview</h2>
+      <div class="il-prose">
+      <p>Eight modules of core SQL taught on SQLite: DDL and DML fundamentals, filtering and aggregation, joins, subqueries and CTEs, window functions, set operations, transactions and isolation, and indexes with normalization. Dialect notes throughout translate each concept to SQL Server, Oracle, and Postgres. SQLite is the teaching engine — and it is never confused with the others: every dialect difference is called out explicitly.</p>
+      <p>It is for developers, analysts, and engineers who need working SQL fluency. No prior SQL is assumed; programmers will move faster, but the sequence starts at zero.</p>
+      <p>Prerequisites are the sqlite3 CLI — preinstalled on most systems — and a scratch directory. No server, no account, no cost: SQLite&#x27;s zero-setup nature is exactly why it is the teaching engine.</p>
+      <p>Every module is lab-driven: build the tables, run the queries, break things, fix them. The dialect notes are for reading, not memorizing — learn SQLite deeply, and treat the translations as a map for later. Do the self-checks from memory; the sequence&#x27;s checkpoint questions are designed to be answerable without notes once the concept lands.</p>
+      </div>
+      <h3 class="il-h il-h--section">At a glance</h3>
+      <dl class="il-gloss">
+        <dt>Modules</dt><dd>8</dd>
+        <dt>Key concepts</dt><dd>48</dd>
+        <dt>Hands-on labs</dt><dd>34</dd>
+        <dt>Self-check questions</dt><dd>32</dd>
+        <dt>Format</dt><dd>Self-paced study sequence; labs use free and open tooling only.</dd>
+        <dt>Source material</dt><dd>Original study guide keyed to public documentation; official sources linked per module.</dd>
+      </dl>
+      <h3 class="il-h il-h--section">Module index</h3>
+      <ol class="il-list mod-index">
+        <li><a href="#module-1-ddl-and-dml-fundamentals"><strong>Module 1.</strong> Module 1 — DDL and DML Fundamentals</a></li>
+        <li><a href="#module-2-filtering-and-aggregation"><strong>Module 2.</strong> Module 2 — Filtering and Aggregation</a></li>
+        <li><a href="#module-3-joins-inner-outer-self-cross"><strong>Module 3.</strong> Module 3 — Joins: Inner, Outer, Self, Cross</a></li>
+        <li><a href="#module-4-subqueries-and-ctes"><strong>Module 4.</strong> Module 4 — Subqueries and CTEs</a></li>
+        <li><a href="#module-5-window-functions"><strong>Module 5.</strong> Module 5 — Window Functions</a></li>
+        <li><a href="#module-6-set-operations"><strong>Module 6.</strong> Module 6 — Set Operations</a></li>
+        <li><a href="#module-7-transactions-and-isolation"><strong>Module 7.</strong> Module 7 — Transactions and Isolation</a></li>
+        <li><a href="#module-8-indexes-query-plans-and-normalization"><strong>Module 8.</strong> Module 8 — Indexes, Query Plans, and Normalization</a></li>
+      </ol>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <div id="modules">
+<section class="il-section" id="module-1-ddl-and-dml-fundamentals" aria-labelledby="module-1-ddl-and-dml-fundamentals-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 1 of 8</p>
+    <h2 class="il-h" id="module-1-ddl-and-dml-fundamentals-h">Module 1 — DDL and DML Fundamentals</h2>
+    <div class="il-prose">
+      <p>The foundation: creating tables, inserting rows, updating and deleting data. This module covers CREATE TABLE with constraints, the INSERT/UPDATE/DELETE statements, and the data types SQLite offers. You will build your first database from scratch — a small company schema you will extend all sequence long.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Create, alter, and drop tables using standard DDL with constraints</li>
+        <li>Insert, update, and delete rows safely with WHERE clauses and transactions</li>
+        <li>Describe how SQLite&#x27;s type affinity differs from strict-typed engines</li>
+        <li>Recover from a schema-migration mistake using the rebuild pattern</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Schemas, databases, and tables: organizing containers for rows</h4>
+      <div class="il-prose"><p>Databases contain schemas, schemas contain tables, tables contain rows — the nesting that organizes everything. SQLite collapses the hierarchy (one file, effectively one schema), while server engines use it for security and organization. The lab&#x27;s company.db with departments and employees is the hierarchy in miniature. Name things deliberately at each level; you will live with those names for years.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Column data types and why SQLite type affinity matters</h4>
+      <div class="il-prose"><p>Every column has a declared type, but what the engine enforces varies: strict-typed engines reject a string in an integer column, while SQLite&#x27;s type affinity system nudges values toward the column&#x27;s preferred type instead of rejecting them. Affinity is flexible — usually convenient, occasionally surprising when a value lands in a form you did not expect. The module&#x27;s labs surface the difference deliberately. Know your engine&#x27;s strictness before you trust its types.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Primary keys, foreign keys, UNIQUE, NOT NULL, CHECK, DEFAULT constraints</h4>
+      <div class="il-prose"><p>Constraints are the database enforcing your rules: PRIMARY KEY uniquely identifies each row, FOREIGN KEY ties rows to a parent table, UNIQUE forbids duplicates, NOT NULL forbids missing values, CHECK enforces a condition, DEFAULT supplies a value when none is given. The lab&#x27;s departments table uses four of them at once. Constraints move data-quality enforcement from application hope to database guarantee — declare them at creation, not after the bad data arrives.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CREATE/ALTER/DROP TABLE as schema-change tools</h4>
+      <div class="il-prose"><p>CREATE TABLE defines structure, ALTER TABLE modifies it (with SQLite&#x27;s historically limited ALTER — no dropping columns or changing types), and DROP TABLE removes it entirely. The lab&#x27;s rebuild pattern — create new, copy with INSERT INTO ... SELECT, drop old, rename — is the portable answer to ALTER&#x27;s limits. Schema changes are the dangerous half of database work: they affect every query, so practice them on scratch data first.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">INSERT, UPDATE, DELETE as row-change tools</h4>
+      <div class="il-prose"><p>INSERT adds rows, UPDATE modifies rows matching a WHERE clause, DELETE removes them — and the WHERE clause is the difference between a targeted change and a catastrophe. The lab wraps the three operations in a transaction, runs them, rolls back, and watches the changes vanish: the safety net made visible. Always SELECT with the same WHERE first, so you see what you are about to change before you change it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">The full read-modify cycle: SELECT it, UPDATE it, DELETE it, re-verify</h4>
+      <div class="il-prose"><p>The disciplined change pattern is read-modify-verify: SELECT the rows you intend to touch, make the change, then re-run the SELECT to confirm exactly what happened. The lab practices the full cycle on employees — raise, rename, delete, count. Verification is not paranoia; it is how you catch the WHERE clause that matched zero rows or ten thousand. Every DML statement ends with a confirming read.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 1.1 — Create company.db and build a departments table: CREATE TABLE departments (dept_id INTEGER PRIMARY KEY, dept_name TEXT NOT NULL UNIQUE, budget INTEGER CHECK (budget &gt;= 0)). Insert 4 departments. Dialect note: SQLite&#x27;s INTEGER PRIMARY KEY auto-increments without the AUTOINCREMENT keyword; SQL Server uses IDENTITY(1,1), Oracle uses sequences. AUTOINCREMENT in SQLite is optional and adds a bookkeeping table.</li>
+      <li>Lab 1.2 — Build employees (emp_id INTEGER PRIMARY KEY, name TEXT NOT NULL, dept_id INTEGER REFERENCES departments(dept_id), salary INTEGER, hire_date TEXT). Insert 8 employees, two per department. Dialect note: store dates as TEXT in ISO &#x27;YYYY-MM-DD&#x27; form in SQLite; SQL Server has a real DATE type and Oracle uses DATE; comparisons on ISO text sort correctly.</li>
+      <li>Lab 1.3 — Practice DML: give every employee in one department a 5% raise (UPDATE with WHERE), fix a misspelled name, delete one employee row, then re-run SELECT COUNT(*) to verify. Wrap the three changes in BEGIN; ... COMMIT; and re-run with ROLLBACK first to see changes vanish.</li>
+      <li>Lab 1.4 — Alter the schema without losing data: ALTER TABLE employees ADD COLUMN email TEXT UNIQUE; update rows to fill it in. Dialect note: SQLite ALTER TABLE cannot drop a column (historically) or modify a type — the standard workaround is CREATE new table, INSERT INTO ... SELECT, DROP old, RENAME. SQL Server supports ALTER TABLE ... DROP COLUMN directly.</li>
+      <li>Lab 1.5 — Explore the schema: run .schema employees and PRAGMA table_info(employees); in the sqlite3 CLI. Note what sqlite3 prints for the primary key and foreign key, and which of those it enforces by default.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Given an existing table customers with a UNIQUE email column, which single statement raises its balance column by 100 for every row where balance is negative?</li>
+        <li>Explain the difference between TRUNCATE TABLE (where supported) and DELETE FROM with no WHERE clause, in terms of what is logged and what can be rolled back.</li>
+        <li>Describe, in your own words, what happens if an UPDATE statement matches zero rows.</li>
+        <li>Write the SQLite pragma that lists the columns of a table, and state what a T-SQL equivalent would be (hint: information_schema or sp_help).</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang.html" rel="noopener">www.sqlite.org/lang.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-2-filtering-and-aggregation" aria-labelledby="module-2-filtering-and-aggregation-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 2 of 8</p>
+    <h2 class="il-h" id="module-2-filtering-and-aggregation-h">Module 2 — Filtering and Aggregation</h2>
+    <div class="il-prose">
+      <p>WHERE clauses and aggregate functions turn tables into answers. This module covers comparison and logical operators, GROUP BY and HAVING, and the aggregate functions — plus the NULL-handling rules that trip up every beginner. Labs build the filtering reflex.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Filter rows precisely with WHERE predicates including NULL semantics</li>
+        <li>Aggregate with GROUP BY and separate row filters from group filters (WHERE vs HAVING)</li>
+        <li>Page and sort result sets portably across dialects</li>
+        <li>Translate basic date/string functions between SQLite and T-SQL</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SELECT column list, DISTINCT, and column aliases</h4>
+      <div class="il-prose"><p>The SELECT list names exactly which columns return — never SELECT * in production code, because schema changes then silently change your output. DISTINCT deduplicates the returned rows. Aliases (AS) rename columns for readability. The lab&#x27;s queries practice all three deliberately. Explicit column lists are documentation, performance (less data moved), and safety in one habit.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">WHERE predicates: comparisons, BETWEEN, IN, LIKE, IS NULL</h4>
+      <div class="il-prose"><p>WHERE filters rows with predicates: comparisons (=, &lt;&gt;, &gt;, &lt;), BETWEEN for ranges, IN for sets, LIKE for patterns (% and _ wildcards), and IS NULL — never = NULL — for missing values. The lab&#x27;s NULL comparison is the lesson that sticks: NULL never equals anything, not even itself. Precise filtering is the foundation everything else builds on; get the predicate right before reaching for anything fancier.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Logical evaluation order: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT</h4>
+      <div class="il-prose"><p>SQL is written SELECT-first but executed FROM-first: the engine finds the tables, filters rows, groups, filters groups, then computes the SELECT list, sorts, and pages. The checkpoint asks you to write this order from memory because half of all SQL confusion is clause-order confusion — why WHERE cannot use a SELECT alias, why HAVING cannot precede GROUP BY. Memorize the pipeline and the language stops being mysterious.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Aggregate functions: COUNT, SUM, AVG, MIN, MAX and NULL handling</h4>
+      <div class="il-prose"><p>Aggregates collapse rows into summaries: COUNT tallies, SUM and AVG total and average numerics, MIN and MAX find extremes. The NULL rule is the subtle part — aggregates ignore NULLs, except COUNT(*), which counts rows. The lab inserts a NULL customer and watches COUNT(customer) diverge from COUNT(*): the difference is the concept. When a summary looks wrong, check the NULLs first.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">GROUP BY buckets and HAVING post-aggregation filters</h4>
+      <div class="il-prose"><p>GROUP BY sorts rows into buckets by shared values, and aggregates then compute per bucket — sales per region, headcount per department. HAVING filters the buckets after aggregation, which is why the lab&#x27;s attempt to move a SUM condition into WHERE fails: WHERE runs before grouping and cannot see aggregates. The mental model is pipeline order — filter rows, group, filter groups. WHERE versus HAVING is the most-tested distinction in the module for a reason.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">ORDER BY, LIMIT, OFFSET for paging</h4>
+      <div class="il-prose"><p>ORDER BY sorts the result, LIMIT caps how many rows return, OFFSET skips the first N — the paging trio. The lab pages rows 6–10 by amount. The dialect note matters: LIMIT is SQLite/Postgres/MySQL, SQL Server uses TOP and OFFSET/FETCH, Oracle 12c+ uses FETCH FIRST. Paging without ORDER BY is not paging — it is a random sample wearing a LIMIT clause. Always sort before you page.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 2.1 — Seed an orders table (order_id, customer, amount, region, order_date). Write queries: all orders from &#x27;West&#x27; over 500; customers whose names start with &#x27;A&#x27; (LIKE &#x27;A%&#x27;); all rows where shipped is NULL vs IS NULL. Observe that NULL never equals anything.</li>
+      <li>Lab 2.2 — Aggregation: compute COUNT(*), COUNT(customer), SUM(amount), AVG(amount), MIN/MAX(amount) over orders. Run COUNT(customer) after inserting a row with NULL customer and note the difference from COUNT(*) — aggregates ignore NULLs except COUNT(*).</li>
+      <li>Lab 2.3 — Group and filter groups: SELECT region, COUNT(*), SUM(amount) FROM orders GROUP BY region HAVING SUM(amount) &gt; 5000. Then try moving the SUM condition into WHERE and record the error — WHERE cannot see aggregates because it runs before grouping.</li>
+      <li>Lab 2.4 — Paging drill: ORDER BY amount DESC LIMIT 5 OFFSET 5 returns rows 6–10 by amount. Dialect note: SQL Server uses SELECT TOP 5 ... (no OFFSET equivalent without ORDER BY + OFFSET/FETCH), Oracle 12c+ uses FETCH FIRST 5 ROWS ONLY (older Oracle: WHERE ROWNUM &lt;= 5). LIMIT is SQLite/Postgres/MySQL.</li>
+      <li>Lab 2.5 — String/date practice: concatenate first and last name with || (SQLite/Postgres/Oracle; SQL Server uses +). Extract the order year with strftime(&#x27;%Y&#x27;, order_date) — dialect note: SQL Server uses YEAR() or DATEPART, Postgres EXTRACT(YEAR FROM ...).</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Predict the result of WHERE salary = NULL versus WHERE salary IS NULL — and explain why.</li>
+        <li>Rewrite a HAVING clause as a WHERE clause in a query where it is valid to do so, and state where the rewrite breaks.</li>
+        <li>Given daily sales rows, which clause filters individual sales above 1000 and which filters stores whose total sales are below 10000?</li>
+        <li>Write the logical execution order of SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT from memory.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_select.html" rel="noopener">www.sqlite.org/lang_select.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-3-joins-inner-outer-self-cross" aria-labelledby="module-3-joins-inner-outer-self-cross-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 3 of 8</p>
+    <h2 class="il-h" id="module-3-joins-inner-outer-self-cross-h">Module 3 — Joins: Inner, Outer, Self, Cross</h2>
+    <div class="il-prose">
+      <p>Relational data lives across tables; joins put it back together. This module covers INNER, LEFT, RIGHT, and FULL joins, self-joins, and the join-condition discipline that prevents accidental Cartesian products. Labs drill the join patterns until they are reflex.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Write inner and outer joins with correct ON conditions and aliases</li>
+        <li>Model a hierarchy with a self-join and keep the root rows</li>
+        <li>Predict and verify cross-join row counts</li>
+        <li>Simulate FULL OUTER JOIN in SQLite with UNION</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">INNER JOIN: matching rows only, the default workhorse</h4>
+      <div class="il-prose"><p>An INNER JOIN returns only rows with a match on both sides — employees whose dept_id exists in departments. It is the default mental model and the most common join in practice. The lab joins employees to departments, then switches to LEFT JOIN to show exactly which rows the inner join was hiding. When rows go missing unexpectedly, the join type is the first suspect.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">LEFT/RIGHT/FULL OUTER JOIN: preserving unmatched rows from one or both sides</h4>
+      <div class="il-prose"><p>Outer joins preserve unmatched rows: LEFT keeps everything from the left table (NULLs where no match), RIGHT mirrors it, FULL keeps both sides&#x27; orphans. The lab adds an employee with NULL dept_id and watches the LEFT JOIN surface what the inner join dropped. SQLite lacks FULL OUTER JOIN, so the lab builds it from a UNION of LEFT JOINs — the same result, assembled manually. Choose the side whose orphans matter.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Table aliases and why join queries need them</h4>
+      <div class="il-prose"><p>Aliases (e, d, m) shorten table references and are mandatory when a table appears twice — without them, the engine cannot tell the two instances apart. In join queries they also document intent: e.name versus m.name reads as employee versus manager. The lab aliases every join from the start. Consistent, meaningful aliases are the cheapest readability investment in SQL.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Self-joins: a table joined to itself for hierarchies</h4>
+      <div class="il-prose"><p>A self-join treats one table as two by aliasing it twice — employees e joined to employees m on manager_id — which models hierarchies like org charts. The lab keeps the CEO by using LEFT JOIN: the root has no manager, and an inner join would erase it. The duplicate-pair checkpoint (A-B and B-A) is the classic self-join trap, fixed with one inequality predicate. Whenever a table references itself, the self-join is the tool.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CROSS JOIN: the cartesian product and its row-count math</h4>
+      <div class="il-prose"><p>A CROSS JOIN pairs every row of one table with every row of the other — the cartesian product, with row count equal to rows-A times rows-B. The lab verifies the math on small tables and shows the comma-style equivalence. Deliberate uses exist (generating combinations, test data), but an accidental cross join — a missing ON condition — is the classic runaway query. Know the formula so you recognize the explosion.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Multi-table join chains and join-order readability</h4>
+      <div class="il-prose"><p>Real queries chain several joins, and readability comes from ordering them as a narrative: start from the driving table, join outward, alias everything. The ON conditions should read as the relationships they are. Long chains deserve formatting — one join per line, consistent aliases. The optimizer reorders freely; you order for the human who debugs this at midnight.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 3.1 — INNER JOIN employees to departments on dept_id; select employee name, department name, salary. Then change INNER to LEFT JOIN and add an employee with a NULL dept_id — observe the new row with a NULL department name. Dialect note: join syntax is identical across SQLite, SQL Server, Postgres, Oracle.</li>
+      <li>Lab 3.2 — Self-join hierarchy: ALTER TABLE employees ADD COLUMN manager_id INTEGER REFERENCES employees(emp_id). Set managers, then SELECT e.name, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.emp_id. LEFT JOIN keeps the CEO (no manager).</li>
+      <li>Lab 3.3 — CROSS JOIN experiment: SELECT d.dept_name, p.proj_name FROM departments d CROSS JOIN (small projects table) — count the rows and verify it equals departments × projects. Then rewrite the same query with a comma-style join and an explicit ON 1=1 to see the equivalence.</li>
+      <li>Lab 3.4 — FULL OUTER JOIN in SQLite: SQLite has no FULL OUTER JOIN keyword (Postgres and SQL Server do). Simulate it: LEFT JOIN query UNION RIGHT-equivalent (swap table order) LEFT JOIN. Compare the result to the INNER JOIN row count and account for every extra row.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Draw the Venn-diagram overlap for INNER vs LEFT JOIN on employees ⋈ departments and state which side keeps its unmatched rows.</li>
+        <li>A self-join query returns each pair twice (A-B and B-A). What single predicate removes the duplicates?</li>
+        <li>State the row-count formula for a CROSS JOIN and explain when you would actually want one.</li>
+        <li>Explain what happens to columns when a FULL OUTER JOIN is simulated in SQLite with a UNION of LEFT and RIGHT joins.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_select.html" rel="noopener">www.sqlite.org/lang_select.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-4-subqueries-and-ctes" aria-labelledby="module-4-subqueries-and-ctes-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 4 of 8</p>
+    <h2 class="il-h" id="module-4-subqueries-and-ctes-h">Module 4 — Subqueries and CTEs</h2>
+    <div class="il-prose">
+      <p>Queries inside queries: subqueries and common table expressions. This module covers correlated and uncorrelated subqueries, EXISTS versus IN, and the CTE patterns that make complex queries readable. Labs build multi-step analytical queries.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Choose between scalar, correlated, and EXISTS subqueries for a task</li>
+        <li>Avoid the NOT IN / NULL trap with NOT EXISTS</li>
+        <li>Refactor nested subqueries into readable chained CTEs</li>
+        <li>Traverse a hierarchy with a recursive CTE</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Scalar, row, and table subqueries in SELECT, WHERE, and FROM</h4>
+      <div class="il-prose"><p>Subqueries come in shapes: scalar (one value, usable in the SELECT list), row/table (usable in FROM as a derived table), and predicates (IN, EXISTS in WHERE). The lab&#x27;s scalar subquery broadcasts one average per row; the derived-table form appears in the set-operations module. A scalar subquery must return at most one row — more is an error, which is the engine enforcing your assumption. Match the shape to the clause.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Correlated vs uncorrelated subqueries and how the engine evaluates them</h4>
+      <div class="il-prose"><p>An uncorrelated subquery runs once, independently; a correlated subquery references the outer query and re-evaluates per outer row — conceptually a nested loop. The lab correlates an average-salary subquery per department, then rewrites it as a CTE join. Correlation is expressive but can be slow on large data; the rewrite pattern (CTE plus join) is the standard escape. Know which kind you wrote before you worry about performance.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EXISTS vs IN: semantics and NULL pitfalls</h4>
+      <div class="il-prose"><p>EXISTS asks whether the subquery returns any row — true or false, immune to NULLs. IN compares against a list — and a single NULL in the list makes NOT IN return nothing at all, silently. The lab demonstrates the trap: insert a NULL dept_id, watch NOT IN go empty, then fix it with NOT EXISTS. The rule is absolute: for negative membership tests, use NOT EXISTS. IN is fine for positive tests on clean data; NOT IN is a loaded gun.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Common Table Expressions (WITH) for readability and reuse</h4>
+      <div class="il-prose"><p>A CTE (WITH name AS (SELECT ...)) names a subquery so the main query reads as prose instead of nesting. The same CTE can be referenced multiple times in the query. The lab&#x27;s refactor turns a nested correlated query into a named dept_avg step joined cleanly. CTEs are primarily a readability tool — the engine may or may not materialize them — so use them wherever a query&#x27;s logic deserves names.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Chained CTEs: building a query in named steps</h4>
+      <div class="il-prose"><p>CTEs chain: WITH a AS (...), b AS (SELECT ... FROM a) — each named step building on the last. The lab rewrites a correlated query as a two-CTE chain and the readability difference is the lesson. Named steps are self-documenting; nesting is not. When a query needs three levels of nesting, it needs CTEs instead.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Recursive CTEs: traversing hierarchies and sequences</h4>
+      <div class="il-prose"><p>A recursive CTE (WITH RECURSIVE) defines a base case and a recursive step that joins back to itself — the lab walks the employee-manager hierarchy printing indentation by level. It is the SQL answer to tree traversal and sequence generation, which plain subqueries cannot express. Every recursive CTE needs a termination condition, or it recurses until the engine stops it. Hierarchies, bills of materials, org charts: this is their query.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 4.1 — Scalar subquery: SELECT name, salary, (SELECT AVG(salary) FROM employees) AS avg_sal FROM employees — one value broadcast per row. Then correlate it: employees earning more than the average of THEIR department, with the inner query referencing the outer alias.</li>
+      <li>Lab 4.2 — EXISTS vs IN: find departments with no employees using NOT EXISTS (SELECT 1 FROM employees e WHERE e.dept_id = d.dept_id). Insert a NULL dept_id employee and show that NOT IN (SELECT dept_id FROM employees) silently returns nothing — the classic NULL trap; NOT EXISTS is immune.</li>
+      <li>Lab 4.3 — CTE readability: rewrite Lab 4.1&#x27;s correlated query as WITH dept_avg AS (SELECT dept_id, AVG(salary) a FROM employees GROUP BY dept_id) SELECT e.name FROM employees e JOIN dept_avg d ON ... WHERE e.salary &gt; d.a. Chain a second CTE that ranks the result.</li>
+      <li>Lab 4.4 — Recursive CTE: WITH RECURSIVE reports(emp_id, name, lvl) AS (SELECT emp_id, name, 0 FROM employees WHERE manager_id IS NULL UNION ALL SELECT e.emp_id, e.name, r.lvl+1 FROM employees e JOIN reports r ON e.manager_id = r.emp_id) SELECT * FROM reports. Print the org chart with indentation via lvl.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Convert a correlated subquery to an equivalent JOIN and state which reads more clearly for &#x27;employees earning above their department average&#x27;.</li>
+        <li>Explain why a scalar subquery must return at most one row, and what error you get otherwise.</li>
+        <li>Rewrite a three-level nested subquery as a chain of two CTEs and compare readability.</li>
+        <li>State one thing a recursive CTE can do that a plain subquery cannot.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_select.html" rel="noopener">www.sqlite.org/lang_select.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-5-window-functions" aria-labelledby="module-5-window-functions-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 5 of 8</p>
+    <h2 class="il-h" id="module-5-window-functions-h">Module 5 — Window Functions</h2>
+    <div class="il-prose">
+      <p>Window functions compute across rows without collapsing them: rankings, running totals, moving averages. This module covers ROW_NUMBER, RANK, LAG/LEAD, and frame clauses — the most powerful analytical tool in modern SQL. Labs build reports that GROUP BY alone cannot express.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Compute rankings, running totals, and moving aggregates without collapsing rows</li>
+        <li>Choose correctly between ROW_NUMBER, RANK, and DENSE_RANK</li>
+        <li>Use LAG/LEAD and frames for period-over-period analysis</li>
+        <li>Solve top-N-per-group problems with window functions</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">OVER() clause: computing across rows without collapsing them</h4>
+      <div class="il-prose"><p>The OVER clause defines the window — the set of rows a function sees — and the revolutionary property is that rows survive: unlike GROUP BY, the result keeps every input row with the computed value attached. SUM(amount) OVER () totals without collapsing; add PARTITION BY and it totals per group. The lab&#x27;s running-total query shows the shape. Windows answer questions about rows in context; aggregates answer questions about groups.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">PARTITION BY: independent calculations per group</h4>
+      <div class="il-prose"><p>PARTITION BY divides the rows into independent groups — per department, per year — and the window function restarts in each. The lab ranks salaries partitioned by department; removing PARTITION BY ranks across the whole table, which the checkpoint asks you to predict. Think of it as GROUP BY that does not collapse: grouping for calculation, not for output. Every per-group analytic starts here.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">ORDER BY inside OVER and frame boundaries</h4>
+      <div class="il-prose"><p>ORDER BY inside OVER orders rows within each partition, and the frame clause (ROWS BETWEEN ... AND ...) selects which of those ordered rows the function sees — the running total versus the moving average differ only in frame. The lab changes the frame from unbounded to 2 PRECEDING and watches the total become a 3-month moving average. Default frames vary subtly by function, so specify the frame when it matters. Frames turn ordering into arithmetic.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Ranking: ROW_NUMBER, RANK, DENSE_RANK</h4>
+      <div class="il-prose"><p>The three rankings differ on ties: ROW_NUMBER assigns unique sequential numbers (ties broken arbitrarily), RANK gives tied rows the same rank and skips the next numbers, DENSE_RANK gives tied rows the same rank without skipping. The lab inserts tied salaries and compares all three side by side. Top-N-per-group queries filter on ROW_NUMBER in an outer query — the standard pattern the lab demonstrates. Choose the function whose tie behavior matches the business rule.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Running totals and moving averages with ROWS frames</h4>
+      <div class="il-prose"><p>A running total is SUM(x) OVER (ORDER BY d) — cumulative from the partition start to the current row. A moving average narrows the frame: ROWS BETWEEN 2 PRECEDING AND CURRENT ROW averages the current and two prior rows. The lab builds both on monthly sales. Frames make time-series math declarative: describe the window, and the engine does the arithmetic. This is the reporting workhorse of window functions.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">LAG/LEAD: reaching into neighboring rows</h4>
+      <div class="il-prose"><p>LAG reaches backward and LEAD forward — previous or next row&#x27;s value within the partition — which makes period-over-period math trivial: amount minus LAG(amount) is month-over-month change. The lab handles the first row&#x27;s NULL with COALESCE. FIRST_VALUE and LAST_VALUE extend the idea to partition edges. Before window functions, this required self-joins; now it is one expression.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 5.1 — Ranking per department: SELECT name, dept_id, salary, ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) rn, RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) r, DENSE_RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) dr FROM employees. Insert two employees with identical salaries and compare the three columns on the tie.</li>
+      <li>Lab 5.2 — Running totals: monthly sales table; SELECT month, amount, SUM(amount) OVER (ORDER BY month) AS running FROM sales. Then change the frame to ROWS BETWEEN 2 PRECEDING AND CURRENT ROW for a 3-month moving total. Dialect note: window functions are standard SQL and work identically in SQLite (3.25+), Postgres, SQL Server, Oracle.</li>
+      <li>Lab 5.3 — LAG/LEAD deltas: SELECT month, amount, amount - LAG(amount) OVER (ORDER BY month) AS mom_change FROM sales. Handle the first row&#x27;s NULL with COALESCE(..., 0). Note FIRST_VALUE/LAST_VALUE exist too — try FIRST_VALUE(amount) OVER (PARTITION BY year ORDER BY month).</li>
+      <li>Lab 5.4 — Top-N per group, the window way: WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) rn FROM employees) SELECT * FROM ranked WHERE rn &lt;= 2. Compare with the GROUP BY approach from Module 2 and note what information GROUP BY loses (the actual rows).</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>State the difference between ROW_NUMBER, RANK, and DENSE_RANK on tied values.</li>
+        <li>Explain what happens to a window function&#x27;s result when the PARTITION BY is removed.</li>
+        <li>Predict the output of SUM(x) OVER (ORDER BY d ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) on five rows.</li>
+        <li>Name two reporting questions that are painful without window functions but trivial with them.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/windowfunctions.html" rel="noopener">www.sqlite.org/windowfunctions.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-6-set-operations" aria-labelledby="module-6-set-operations-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 6 of 8</p>
+    <h2 class="il-h" id="module-6-set-operations-h">Module 6 — Set Operations</h2>
+    <div class="il-prose">
+      <p>UNION, INTERSECT, and EXCEPT combine result sets the way joins combine tables. This module covers set semantics, the duplicate-handling rules, and the practical patterns — change detection, reconciliation — where set operations shine.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Combine result sets with UNION/UNION ALL and explain the cost difference</li>
+        <li>Answer membership questions with INTERSECT and EXCEPT</li>
+        <li>Enforce column alignment with explicit CASTs for portability</li>
+        <li>Translate EXCEPT to Oracle&#x27;s MINUS</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">UNION vs UNION ALL: deduplicated vs raw appends</h4>
+      <div class="il-prose"><p>UNION concatenates result sets and removes duplicates; UNION ALL concatenates without the dedupe pass — cheaper, because dedupe requires sorting or hashing. The lab counts rows both ways on regional sales tables and the duplicate rows&#x27; disappearance is the lesson. Default to UNION ALL unless you need dedupe: paying for sorting you did not ask for is the common waste. When the inputs cannot contain duplicates, ALL is pure win.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Column alignment rules across set-operation branches</h4>
+      <div class="il-prose"><p>Every branch of a UNION, INTERSECT, or EXCEPT must return the same number of columns with compatible types, matched positionally — the first column of each branch aligns. The lab hits SQLite&#x27;s lenient coercion versus SQL Server&#x27;s strictness and fixes it with explicit CASTs. Name columns in the first branch; later branches&#x27; names are ignored. Alignment is positional, not nominal — count carefully.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">INTERSECT: rows present in both sets</h4>
+      <div class="il-prose"><p>INTERSECT returns only rows appearing in both queries — customers who ordered in both Q1 and Q2. The lab rewrites it as an inner join of DISTINCT subqueries and compares plans, showing two routes to the same answer. INTERSECT reads as the question asked; the join reads as the mechanism. Duplicates are eliminated by definition — it is set semantics, not bag semantics.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EXCEPT: rows in the first set but not the second</h4>
+      <div class="il-prose"><p>EXCEPT returns rows present in the first query but absent from the second — Engineering employees not on Project X, in the lab. It answers membership negatively where INTERSECT answers positively. The checkpoint contrasts it with LEFT JOIN ... WHERE right IS NULL: equivalent results, but EXCEPT states the intent directly. For set-difference questions, reach for the operator before the join.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Set operations as an alternative to joins for membership questions</h4>
+      <div class="il-prose"><p>Membership questions — in both sets, in one but not the other — can be answered with set operators or with joins, and the operator usually states intent more directly. The lab demonstrates both forms for INTERSECT so you can compare. Prefer the form whose reading matches the question: future readers (including you) will thank you. Performance differences are engine-specific; clarity is universal.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dialect note: Oracle calls EXCEPT &#x27;MINUS&#x27;</h4>
+      <div class="il-prose"><p>The set-difference operator is spelled EXCEPT in Postgres, SQL Server, and SQLite, but MINUS in Oracle — same semantics, different keyword. The lab translates deliberately. Portable SQL avoids the operator or abstracts it; dialect-aware SQL just spells it right. Small differences like this are why the dialect notes run through the whole sequence.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 6.1 — UNION ALL drill: two regional sales tables with identical schemas; SELECT region, amount FROM sales_east UNION ALL SELECT region, amount FROM sales_west. Count rows, then switch to UNION and count again — the duplicate rows disappear. Explain which is cheaper and why (no sort/dedupe pass).</li>
+      <li>Lab 6.2 — Type-alignment trap: attempt a UNION between a TEXT column and an INTEGER column and observe SQLite&#x27;s lenient coercion; note that SQL Server would raise a conversion error. Fix the query with CAST(amount AS TEXT). Dialect note: always CAST explicitly for portable set queries.</li>
+      <li>Lab 6.3 — INTERSECT: customers who ordered in both Q1 and Q2: SELECT customer FROM orders WHERE quarter=&#x27;Q1&#x27; INTERSECT SELECT customer FROM orders WHERE quarter=&#x27;Q2&#x27;. Rewrite with an INNER JOIN of two DISTINCT subqueries and compare plans with EXPLAIN QUERY PLAN.</li>
+      <li>Lab 6.4 — EXCEPT and the Oracle name: employees in Engineering EXCEPT employees assigned to Project X. Dialect note: Oracle spells this operator MINUS; Postgres, SQL Server, and SQLite use EXCEPT.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>State the column-count and type-compatibility rules that UNION enforces.</li>
+        <li>Explain the practical difference between UNION and UNION ALL on a 10-million-row append.</li>
+        <li>Show how INTERSECT answers &#x27;customers who bought in BOTH January and February&#x27;.</li>
+        <li>Describe what EXCEPT returns that a LEFT JOIN ... WHERE right IS NULL does not make obvious.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_select.html" rel="noopener">www.sqlite.org/lang_select.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-7-transactions-and-isolation" aria-labelledby="module-7-transactions-and-isolation-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 7 of 8</p>
+    <h2 class="il-h" id="module-7-transactions-and-isolation-h">Module 7 — Transactions and Isolation</h2>
+    <div class="il-prose">
+      <p>ACID is the promise databases make. This module covers transactions, the isolation levels, and what actually happens when two sessions touch the same row. You will run concurrent sessions against SQLite and observe locking and serialization firsthand.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Wrap multi-statement changes in atomic transactions with savepoints</li>
+        <li>Demonstrate and fix a lost update with proper locking</li>
+        <li>Explain the four isolation levels and the anomalies each prevents</li>
+        <li>Contrast SQLite&#x27;s locking model with SQL Server/Postgres isolation settings</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">ACID: atomicity, consistency, isolation, durability</h4>
+      <div class="il-prose"><p>ACID is the transaction contract: atomicity (all or nothing), consistency (valid state to valid state), isolation (concurrent transactions do not see each other&#x27;s partial work), durability (committed means surviving crashes). The lab&#x27;s atomic transfer — debit one account, credit another, verify the total — is atomicity made tangible. Every checkpoint scenario in the module maps to one letter. ACID is why databases exist instead of files.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">BEGIN / COMMIT / ROLLBACK and savepoints</h4>
+      <div class="il-prose"><p>BEGIN opens a transaction, COMMIT makes its changes permanent, ROLLBACK discards them — the three verbs of atomic work. Savepoints mark positions inside a transaction so ROLLBACK TO can undo part without abandoning all: the lab rolls back to a savepoint and shows only the pre-savepoint change surviving. T-SQL spells the savepoint SAVE TRANSACTION; the semantics match. Transactions are the unit of correctness: group statements that must succeed or fail together.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SQLite locking: DEFERRED, IMMEDIATE, EXCLUSIVE</h4>
+      <div class="il-prose"><p>SQLite transactions begin in DEFERRED mode (locks acquired lazily, upgraded as needed), IMMEDIATE (reserved write lock at BEGIN — other writers wait), or EXCLUSIVE (no other access at all). The lab&#x27;s lost-update fix uses BEGIN IMMEDIATE deliberately. Coarse locking is SQLite&#x27;s simplicity trade: one writer at a time, but SERIALIZABLE behavior by default. Choose the mode that matches the transaction&#x27;s intent; the default defers the decision until contention decides it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">The four standard isolation levels: READ UNCOMMITTED → SERIALIZABLE</h4>
+      <div class="il-prose"><p>The standard levels trade correctness for concurrency: READ UNCOMMITTED (sees everything, guarantees little), READ COMMITTED (no dirty reads), REPEATABLE READ (no non-repeatable reads), SERIALIZABLE (no phantoms — transactions behave as if sequential). Higher levels mean more locking and more waiting. SQL Server and Postgres default to READ COMMITTED; SQLite&#x27;s locking gives SERIALIZABLE-like behavior without the setting. The lab contrasts the defaults so the difference is explicit rather than assumed.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dirty reads, non-repeatable reads, phantom reads</h4>
+      <div class="il-prose"><p>The three classic anomalies: a dirty read sees uncommitted data (permitted only at READ UNCOMMITTED), a non-repeatable read sees a row change between two reads in one transaction, a phantom read sees new rows appear in a repeated range query. Isolation levels are defined by which anomalies they forbid. The lab&#x27;s vocabulary exercise makes the distinctions writable from memory. Name the anomaly before choosing the level.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Lost updates and why read-modify-write needs a transaction</h4>
+      <div class="il-prose"><p>Read-modify-write without protection loses updates: two sessions read 5, both add 1, both write 6 — one increment vanishes. The lab demonstrates it with a counter, then fixes it with BEGIN IMMEDIATE so the second session waits. The pattern is everywhere (balances, inventory, counters) and the fix is always the same: make the read and the write one atomic unit. Concurrency bugs are logic bugs that only appear under load.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 7.1 — Atomic transfer: two account rows; BEGIN; UPDATE accounts SET bal = bal - 100 WHERE id=1; UPDATE accounts SET bal = bal + 100 WHERE id=2; COMMIT; Verify totals unchanged. Then repeat but run ROLLBACK instead of COMMIT after the first UPDATE — show the balances revert. Open two sqlite3 sessions to try overlapping writes and observe the second session&#x27;s &#x27;database is locked&#x27; behavior.</li>
+      <li>Lab 7.2 — Savepoints: BEGIN; UPDATE ...; SAVEPOINT sp1; UPDATE ...; ROLLBACK TO sp1; COMMIT; Show that only the pre-savepoint change survived. Note savepoints are standard SQL and work the same in Postgres and SQL Server (SAVE TRANSACTION in T-SQL).</li>
+      <li>Lab 7.3 — Lost-update demo: read a counter value in two sessions, have both add 1 and write back — the counter only goes up by 1. Fix it by wrapping read+write in BEGIN IMMEDIATE; ... COMMIT; so the second session waits. Dialect note: Postgres/SQL Server solve the same problem with row locks or SERIALIZABLE; SQLite&#x27;s coarse locking makes BEGIN IMMEDIATE the tool.</li>
+      <li>Lab 7.4 — Isolation vocabulary: read the SQLite transaction docs and write a one-paragraph summary of why SQLite documents no SET TRANSACTION ISOLATION LEVEL — its locking gives SERIALIZABLE behavior by default. Dialect note: SQL Server defaults to READ COMMITTED; Postgres defaults to READ COMMITTED too. Contrast with SQLite in your notes.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>List the four ACID properties and give a one-sentence failure scenario each prevents.</li>
+        <li>Explain the difference between BEGIN DEFERRED and BEGIN IMMEDIATE in SQLite locking terms.</li>
+        <li>Describe a dirty read in plain language and name the isolation level that permits it.</li>
+        <li>State what happens to an uncommitted transaction when the sqlite3 CLI exits.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_transaction.html" rel="noopener">www.sqlite.org/lang_transaction.html</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-8-indexes-query-plans-and-normalization" aria-labelledby="module-8-indexes-query-plans-and-normalization-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 8 of 8</p>
+    <h2 class="il-h" id="module-8-indexes-query-plans-and-normalization-h">Module 8 — Indexes, Query Plans, and Normalization</h2>
+    <div class="il-prose">
+      <p>The final module covers the two topics that make databases scale: indexes (what they are, when they help, when they hurt) and normalization (1NF through 3NF and when to denormalize). You will read query plans, add indexes, measure, and design a normalized schema from scratch.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Create and evaluate indexes with EXPLAIN QUERY PLAN</li>
+        <li>Apply the composite-index leftmost-prefix rule</li>
+        <li>Quantify the write cost of over-indexing</li>
+        <li>Normalize to 3NF and justify deliberate denormalization</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">B-tree indexes: ordered lookups, range scans, sorting</h4>
+      <div class="il-prose"><p>A B-tree index keeps keys in sorted order, which serves three query shapes: point lookups (find this key), range scans (keys between A and B), and ordered output (no separate sort). The lab creates an index on customer and watches the plan change from SCAN to SEARCH — the visible payoff. Indexes are sorted copies of key columns plus row pointers; every query shape they serve is a consequence of sortedness.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">When indexes help: selective WHERE, JOIN keys, ORDER BY</h4>
+      <div class="il-prose"><p>Indexes pay off on selective WHERE clauses (few rows out of many), join keys (the engine looks up matches repeatedly), and ORDER BY (sorted output without sorting). The lab&#x27;s 100,000-row timing makes the speedup concrete. Selectivity is the key word: an index on a yes/no column helps nobody. Index the predicates and joins your workload actually runs, not the columns that look indexable.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">When indexes hurt: write amplification and storage</h4>
+      <div class="il-prose"><p>Every index is a second structure to maintain: each INSERT, UPDATE, and DELETE does extra work per index, and each index consumes storage. The lab times 10,000 inserts with five indexes versus none and records the slowdown percentage — write amplification made measurable. On write-heavy tables, each index must earn its keep in read performance. Indexing everything is worse than indexing nothing when the workload writes more than it reads.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Reading EXPLAIN QUERY PLAN: SCAN vs SEARCH, covering indexes</h4>
+      <div class="il-prose"><p>EXPLAIN QUERY PLAN reveals the access path: SCAN means the engine read the whole table, SEARCH means it used an index to find rows. A covering index goes further — the plan touches only the index, never the table. The lab points at the SEARCH line naming its index. Read the plan before tuning and after; the plan is the ground truth of what the engine did, and the checkpoint asks you to identify SCAN versus SEARCH on sight.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Composite indexes and leftmost-prefix rule</h4>
+      <div class="il-prose"><p>A composite index on (region, amount) serves queries filtering on region, or on region and amount — but not on amount alone. The leftmost-prefix rule: the engine uses the index from the left until the WHERE clause stops matching. The lab tries both column orders against a real query and explains which prefix the WHERE clause can use. Order composite columns by how queries filter: equality columns first, then ranges, then sorting.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Normalization forms 1NF–3NF vs deliberate denormalization trade-offs</h4>
+      <div class="il-prose"><p>Normalization removes redundancy: 1NF demands atomic values, 2NF removes partial dependencies on part of a key, 3NF removes transitive dependencies (the address depends on the customer, not on the sale). The lab normalizes a flat sales table, then deliberately denormalizes a total_spent column maintained by a trigger — and argues in writing when each shape wins. Normalize for integrity; denormalize for measured performance, with the maintenance cost acknowledged. 3NF is the default; denormalization is the documented exception.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Lab 8.1 — Measure before/after: create orders_big with 100,000 rows (generate with a recursive CTE INSERT). Time SELECT COUNT(*) FROM orders_big WHERE customer=&#x27;C042&#x27; with .timer on. CREATE INDEX idx_cust ON orders_big(customer); re-time and record the speedup. Then run EXPLAIN QUERY PLAN on the query and point to the SEARCH line naming your index.</li>
+      <li>Lab 8.2 — Composite index: query WHERE region=&#x27;West&#x27; AND amount &gt; 1000 ORDER BY order_date. Create (region, amount) and compare plans against separate single-column indexes. Try swapping the column order and explain which prefix the WHERE clause can use — the leftmost-prefix rule in action.</li>
+      <li>Lab 8.3 — Write cost: time inserting 10,000 rows into a table with 5 indexes vs the same table with none (DROP INDEX, re-time). Record the slowdown percentage — this is write amplification, the reason for index discipline.</li>
+      <li>Lab 8.4 — Normalize then denormalize on purpose: start with a flat sales_flat table (repeating customer name/address per row), normalize to customers + sales (1NF: atomic values, 2NF/3NF: no partial or transitive dependencies — address depends on customer, not on the sale). Then add a denormalized total_spent column to customers maintained by a trigger, and argue in writing when each shape wins. Dialect note: CREATE INDEX and EXPLAIN syntax is near-identical across SQLite, Postgres, and SQL Server (SQL Server: SET SHOWPLAN or graphical plans).</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>State the two questions an index answers faster, and the two costs every index charges.</li>
+        <li>Read an EXPLAIN QUERY PLAN line and identify SCAN vs SEARCH and which index was used.</li>
+        <li>Explain why indexing every column is worse than indexing none on a write-heavy table.</li>
+        <li>Give a real example of a query that got slower after denormalization, or explain why that can happen.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.sqlite.org/lang_explain.html" rel="noopener">www.sqlite.org/lang_explain.html</a></li>
+        <li><a href="https://www.sqlite.org/lang_createindex.html" rel="noopener">www.sqlite.org/lang_createindex.html</a></li>
+    </ul>
+  </div>
+</section>
+  </div>
+  <hr class="il-rule" />
+  <section class="il-section" id="resources" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Keep learning</p>
+      <h2 class="il-h" id="resources-h">Resources</h2>
+      <ul class="il-list">
+      <li><a href="https://www.sqlite.org/lang.html" rel="noopener"><strong>Official curriculum source (supplemental)</strong></a> — the public documentation this study guide is keyed to.<br /><span class="il-src">www.sqlite.org/lang.html</span></li>
+      <li><a href="https://sqlbolt.com/" rel="noopener"><strong>SQLBolt</strong></a> — Free interactive SQL lessons in the browser — a good warm-up before Module 1.<br /><span class="il-src">sqlbolt.com</span></li>
+      <li><a href="https://use-the-index-luke.com/" rel="noopener"><strong>Use The Index, Luke</strong></a> — Markus Winand&#x27;s free book on SQL indexing and performance — extends Module 8 across dialects.<br /><span class="il-src">use-the-index-luke.com</span></li>
+      </ul>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <section class="il-section" id="about" aria-labelledby="about-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">About this guide</p>
+      <h2 class="il-h" id="about-h">About this guide</h2>
+      <div class="il-prose">
+        <p>This page is an original study guide by Interstitium Labs, keyed to the public SQLite documentation. It is not affiliated with or endorsed by the SQLite project, and it does not reproduce SQLite&#x27;s documentation — the official docs live at the sources linked throughout. Explanations here are our own distillation, written for study. Dialect notes describe SQL Server, Oracle, and Postgres behavior at concept level; confirm details against current vendor documentation.</p>
+        <p>Every lab in this sequence runs on free tooling — public testnets, free database editions, and open-source software. Where a module touches security tooling, labs target only systems and data you own.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
