@@ -186,6 +186,93 @@
     return parts.join(" · ") || "—";
   }
 
+  var distillCache = null;
+  var distillInflight = null;
+
+  function loadDistilled() {
+    if (distillCache) return Promise.resolve(distillCache);
+    if (distillInflight) return distillInflight;
+    var url = catalogUrls()[0].replace("il-trending-catalog.json", "il-distilled.json");
+    distillInflight = fetch(url, { credentials: "same-origin", cache: "no-cache" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("distill " + r.status);
+        return r.json();
+      })
+      .then(function (j) {
+        distillCache = {};
+        (j.distillations || []).forEach(function (x) {
+          distillCache[x.id] = x;
+        });
+        return distillCache;
+      })
+      .catch(function () {
+        return {};
+      });
+    return distillInflight;
+  }
+
+  function distillModuleHTML(m, mi) {
+    function lis(arr) {
+      return arr
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+    }
+    var refs = (m.sourceRefs || [])
+      .map(function (u) {
+        return '<a class="text-cyan hover:text-paper" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + "</a>";
+      })
+      .join("<br>");
+    return (
+      '<details class="il-distill-mod rounded-lg border border-paper/10 bg-void/40 px-4 py-3">' +
+      '<summary class="cursor-pointer font-display text-sm text-paper">' +
+      esc(mi + 1) +
+      ". " +
+      esc(m.title) +
+      "</summary>" +
+      '<div class="mt-3 space-y-3 text-sm text-muted">' +
+      '<div><p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-gold">Objectives</p><ul class="mt-1 list-disc space-y-1 pl-5">' +
+      lis(m.objectives || []) +
+      "</ul></div>" +
+      '<div><p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-gold">Key concepts</p><ul class="mt-1 list-disc space-y-1 pl-5">' +
+      lis(m.keyConcepts || []) +
+      "</ul></div>" +
+      '<div><p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-gold">Hands-on labs</p><ul class="mt-1 list-disc space-y-1 pl-5">' +
+      lis(m.labs || []) +
+      "</ul></div>" +
+      '<div><p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-gold">Checkpoints</p><ul class="mt-1 list-disc space-y-1 pl-5">' +
+      lis(m.checkpoints || []) +
+      "</ul></div>" +
+      (refs ? '<div><p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-gold">Source references</p><p class="mt-1 text-[0.7rem] break-all">' + refs + "</p></div>" : "") +
+      "</div></details>"
+    );
+  }
+
+  function distillHTML(x) {
+    var mods = (x.modules || [])
+      .map(function (m, i) {
+        return distillModuleHTML(m, i);
+      })
+      .join("");
+    return (
+      '<div class="il-distill mt-4 space-y-3 rounded-xl border border-gold/30 bg-void/60 p-4 sm:p-5">' +
+      '<p class="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-gold">Distilled study sequence</p>' +
+      '<h4 class="font-display text-lg text-paper">' +
+      esc(x.title) +
+      "</h4>" +
+      '<p class="text-xs text-muted">' +
+      esc(x.disclaimer || "Original study guide keyed to public curriculum; course content itself lives at the source.") +
+      (x.sourceUrl
+        ? ' · <a class="text-cyan hover:text-paper" href="' + esc(x.sourceUrl) + '" target="_blank" rel="noopener noreferrer">Study at the source →</a>'
+        : "") +
+      "</p>" +
+      '<div class="space-y-2">' +
+      mods +
+      "</div></div>"
+    );
+  }
+
   function cardHTML(c, rank) {
     var scores = readScores();
     var row = scores.byId[c.id] || {};
@@ -238,6 +325,11 @@
       '<button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-paper/15 text-paper" data-il-frontier-down="' +
       esc(c.id) +
       '" aria-label="Thumb down">▼</button>' +
+      (c.distilledId
+        ? '<button type="button" class="inline-flex h-10 items-center rounded-lg border border-gold/50 px-3 font-display text-[0.65rem] uppercase tracking-[0.14em] text-gold" data-il-distill="' +
+          esc(c.distilledId) +
+          '" aria-expanded="false">Study guide</button>'
+        : "") +
       "</div>" +
       '<p class="mt-3 font-mono text-[0.55rem] uppercase tracking-[0.12em] text-muted">score ' +
       (row.score || 0) +
@@ -286,6 +378,34 @@
         bump(down.getAttribute("data-il-frontier-down"), "down", "frontier_thumb_down");
         el.removeAttribute("data-il-frontier-bound");
         render(el, opts);
+        return;
+      }
+      var distill = t.closest("[data-il-distill]");
+      if (distill) {
+        ev.preventDefault();
+        var did = distill.getAttribute("data-il-distill");
+        var card = distill.closest(".il-frontier-card");
+        var open = card.querySelector(".il-distill");
+        if (open) {
+          open.remove();
+          distill.setAttribute("aria-expanded", "false");
+          return;
+        }
+        distill.setAttribute("aria-expanded", "true");
+        loadDistilled().then(function (cache) {
+          var x = cache[did];
+          if (!x) {
+            var p = document.createElement("p");
+            p.className = "mt-3 text-sm text-muted";
+            p.textContent = "Study guide unavailable right now.";
+            card.appendChild(p);
+            return;
+          }
+          var wrap = document.createElement("div");
+          wrap.innerHTML = distillHTML(x);
+          card.appendChild(wrap.firstChild);
+          bump(did, "opens", "frontier_distill_open", { id: did });
+        });
         return;
       }
       var muse = t.closest("[data-il-frontier-muse]");
