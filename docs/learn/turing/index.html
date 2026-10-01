@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Alan Turing — Computation, Codebreaking &amp; Cybernetics | Interstitium Labs</title>
+<meta name="description" content="A full-stack track on Alan Turing: the 1936 machine, Bletchley Park and the Bombe, the ACE, the imitation game, morphogenesis, and his place in British cybernetics — myths corrected, sources named."/>
+<meta name="theme-color" content="#f7f4ee"/>
+<meta name="color-scheme" content="light"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Computation &amp; Mind</p>
+    <h1 class="il-h">Alan Turing: the man who defined the machine.</h1>
+    <p class="il-hero__sub">The 1936 universal machine, the Bombe at Bletchley Park, the ACE, the imitation game, patterns from nothing — and his seat at the cybernetics table. Everything, sourced; the myths, corrected.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the track</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The track</p>
+        <h2 class="il-h il-h--section" id="overview-h">Before the computer existed, he described it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>In 1936, a 24-year-old logician at King's College, Cambridge asked what a human "computer" — a person doing calculation by hand — actually does, and stripped the answer to a minimum: a finite control unit, a tape of symbols, a head that reads, writes, and moves. From that stripped-down model he proved two things that still bound everything built since: that one <em>universal</em> machine can imitate any other machine described to it (program and data on the same tape — the intellectual ancestor of the stored-program computer), and that no machine can decide in advance whether an arbitrary machine will ever stop (the halting problem — computation has proven, in-principle limits).</p>
+        <p>Then history intervened. At Bletchley Park he led the naval-Enigma work in Hut 8 and designed the Bombe, the electromechanical contradiction-detector that broke Enigma daily keys. After the war he designed the ACE — the first detailed design of a stored-program computer — asked whether machines could think, and then, astonishingly, showed how a uniform embryo could grow spots and stripes from nothing but chemistry. He also sat, monthly, in a basement room in London with Britain's cyberneticians — the Ratio Club — arguing about brains and machines in the new language of feedback.</p>
+        <p>This track teaches all of it the way it deserves: the actual mathematics, the actual history, and a ruthless separation of the documented record from the legends — including legends the films invented. Finish it and you will be able to explain the Turing machine on a whiteboard, the Bombe's logic without saying "brute force," what the imitation game actually proposes, and exactly where Turing stands in the cybernetics story.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Timeline -->
+  <section class="il-section" aria-labelledby="timeline-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Chronology</p>
+        <h2 class="il-h il-h--section" id="timeline-h">Forty-one years, five revolutions.</h2>
+      </div>
+      <ol class="il-timeline">
+        <li><span class="il-timeline__date">1912</span><p><strong>June 23</strong> — Alan Mathison Turing is born in Maida Vale, London.</p></li>
+        <li><span class="il-timeline__date">1931</span><p>Enters King's College, Cambridge to read mathematics.</p></li>
+        <li><span class="il-timeline__date">1935</span><p>Elected Fellow of King's at 22, after independently proving the central limit theorem. Max Newman's lectures on the <em>Entscheidungsproblem</em> set the problem he will solve.</p></li>
+        <li><span class="il-timeline__date">1936</span><p><strong>May</strong> — Submits <em>On Computable Numbers, with an Application to the Entscheidungsproblem</em> to the London Mathematical Society: the Turing machine, the universal machine, the halting problem.</p></li>
+        <li><span class="il-timeline__date">1936–38</span><p>Graduate study at Princeton under Alonzo Church; PhD 1938 — the dissertation introduces the "oracle machine."</p></li>
+        <li><span class="il-timeline__date">1939</span><p><strong>September</strong> — Reports to Bletchley Park the day after Britain declares war; heads the naval-Enigma work in Hut 8.</p></li>
+        <li><span class="il-timeline__date">1940</span><p><strong>March</strong> — The first Bombe is installed at Bletchley Park.</p></li>
+        <li><span class="il-timeline__date">1942</span><p><strong>July</strong> — Devises Turingery, a manual method for "wheel-breaking" the Lorenz (Tunny) cipher. <strong>November–March 1943</strong> — visits the US, consulting at Bell Labs on speech encipherment; lunchtime conversations with Claude Shannon about thinking machines.</p></li>
+        <li><span class="il-timeline__date">1945</span><p>Awarded the OBE for wartime service. <strong>Late 1945</strong> — completes <em>Proposed Electronic Calculator</em>: the ACE design, costed at £11,200.</p></li>
+        <li><span class="il-timeline__date">1946</span><p><strong>February 19</strong> — Presents the ACE to the NPL Executive Committee: the first detailed design of a stored-program computer.</p></li>
+        <li><span class="il-timeline__date">1947</span><p><strong>February 20</strong> — Lectures on the ACE at Burlington House — the first public lecture to mention computer intelligence. <strong>January</strong> — meets John von Neumann.</p></li>
+        <li><span class="il-timeline__date">1948</span><p>Writes <em>Intelligent Machinery</em> (unpublished in his lifetime), describing "unorganized machines" — randomly connected trainable networks. <strong>September</strong> — moves to the University of Manchester as Deputy Director of Max Newman's Computing Machine Laboratory.</p></li>
+        <li><span class="il-timeline__date">1949</span><p><strong>September 14</strong> — Joins the Ratio Club, Britain's cybernetics dining club, right after its inaugural meeting. Also: <em>Checking a Large Routine</em> — the ancestor of program verification.</p></li>
+        <li><span class="il-timeline__date">1950</span><p><strong>May 10</strong> — The Pilot ACE (built under James H. Wilkinson after Turing left NPL) runs its first program. <strong>October</strong> — <em>Computing Machinery and Intelligence</em> published in <em>Mind</em>: the imitation game.</p></li>
+        <li><span class="il-timeline__date">1951</span><p>Elected Fellow of the Royal Society. Writes to W. Ross Ashby about modeling the brain with the ACE.</p></li>
+        <li><span class="il-timeline__date">1952</span><p><strong>March 31</strong> — Tried and convicted of "gross indecency"; accepts probation conditional on a year of hormone injections; his security clearance is revoked. <strong>August 14</strong> — <em>The Chemical Basis of Morphogenesis</em> published: reaction-diffusion theory.</p></li>
+        <li><span class="il-timeline__date">1954</span><p><strong>June 7</strong> — Dies at home in Wilmslow, aged 41, of cyanide poisoning; the inquest returns a verdict of suicide. A half-eaten apple lay beside the bed — it was never tested for cyanide.</p></li>
+        <li><span class="il-timeline__date">2009–21</span><p><strong>2009</strong> — Prime Minister Gordon Brown issues an official public apology. <strong>December 2013</strong> — posthumous royal pardon. <strong>2017</strong> — the "Alan Turing law" retrospectively pardons tens of thousands convicted under historic anti-homosexuality laws. <strong>2021</strong> — his portrait appears on the Bank of England £50 note.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Key figures -->
+  <section class="il-section" aria-labelledby="figures-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Dramatis personae</p>
+        <h2 class="il-h il-h--section" id="figures-h">The people in Turing's orbit.</h2>
+      </div>
+      <div class="il-grid">
+        <div class="il-card"><span class="il-card__index">01</span><h3 class="il-h il-h--card">Max Newman</h3><p>Cambridge mathematician whose 1935 lectures prompted the 1936 paper; wartime head of the Newmanry (the Tunny/Colossus section); brought Turing to Manchester in 1948.</p></div>
+        <div class="il-card"><span class="il-card__index">02</span><h3 class="il-h il-h--card">Alonzo Church</h3><p>Princeton logician and Turing's PhD supervisor; his lambda calculus reached the same negative answer to the Entscheidungsproblem months before Turing.</p></div>
+        <div class="il-card"><span class="il-card__index">03</span><h3 class="il-h il-h--card">Marian Rejewski &amp; the Poles</h3><p>Polish Cipher Bureau mathematicians whose pre-war break of Enigma — and their <em>bomba</em> — was the foundation Turing built on, shared with Britain and France in July 1939.</p></div>
+        <div class="il-card"><span class="il-card__index">04</span><h3 class="il-h il-h--card">Hugh Alexander &amp; Gordon Welchman</h3><p>Alexander co-headed Hut 8 with Turing on naval Enigma; Welchman (Hut 6) invented the diagonal board that multiplied the Bombe's power.</p></div>
+        <div class="il-card"><span class="il-card__index">05</span><h3 class="il-h il-h--card">Tommy Flowers &amp; Bill Tutte</h3><p>Flowers designed and built Colossus; Tutte worked out the Lorenz machine's logical structure. The Tunny story belongs to them and Newman — not to Turing.</p></div>
+        <div class="il-card"><span class="il-card__index">06</span><h3 class="il-h il-h--card">John von Neumann &amp; Claude Shannon</h3><p>Von Neumann met Turing in January 1947 and publicized the stored-program concept in the 1945 EDVAC draft; Shannon lunched with Turing in 1942–43 discussing thinking machines.</p></div>
+        <div class="il-card"><span class="il-card__index">07</span><h3 class="il-h il-h--card">W. Ross Ashby &amp; the Ratio Club</h3><p>Ashby — psychiatrist, homeostat builder, founding Ratio Club member — corresponded with Turing about brain modeling. The club (1949–58) was Turing's cybernetics home.</p></div>
+        <div class="il-card"><span class="il-card__index">08</span><h3 class="il-h il-h--card">Joan Clarke</h3><p>Hut 8 cryptanalyst; briefly engaged to Turing in 1941. One of the many brilliant minds the films sideline.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Core concepts -->
+  <section class="il-section" aria-labelledby="concepts-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The machinery</p>
+        <h2 class="il-h il-h--section" id="concepts-h">The ideas, stated plainly.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>The Turing machine (1936)</h3>
+        <p>Strip a human "computer" to the minimum: a finite control unit (a small set of internal states), a one-dimensional tape of symbols, and a head that reads the current square and — following a fixed rule table — writes a symbol, changes state, and steps left or right. The whole of "computing" becomes this table of transitions. A "computable number" is one whose digits such a machine can print. The machine was never meant to be built; it was a philosopher's instrument for defining, once and for all, what "mechanical procedure" means.</p>
+        <h3>Universality — the stored-program idea</h3>
+        <p>The paper's second bombshell: one special machine, the <strong>universal machine</strong>, can read the <em>description</em> of any other machine off its own tape and imitate it step for step. Program and data live on the same tape. This is the intellectual ancestor of the stored-program computer: a single piece of hardware that becomes any machine you describe to it. Turing's 1945 ACE was, in Newman's obituary phrase, the universal machine "realised" in hardware.</p>
+        <h3>The halting problem</h3>
+        <p>No machine can be built that, given any machine-description and any input, reliably answers "will it ever stop?" The proof is a diagonal self-reference trap: assume such a decider exists, then build a machine that asks the decider about <em>itself</em> and does the opposite of whatever the decider predicts — a contradiction, so the decider cannot exist. Two permanent consequences: computation has proven, in-principle limits; and because intelligence-like behavior is computable in principle, machines might think.</p>
+        <h3>Bombe logic, in plain language</h3>
+        <p>Enigma's strength was its daily-changing key — on the order of 10²⁰ possibilities. The Bombe did not brute-force them. It exploited two facts: (a) a guessed stretch of plaintext (a "crib") can be slid against the ciphertext, and because Enigma can <em>never</em> encipher a letter as itself, most alignments die instantly; (b) each surviving alignment generates a chain of logical implications about the wiring — and the moment the chain contradicts itself, a whole family of settings is eliminated at once. The Bombe was an electromechanical sieve: 36 Enigma-equivalents spinning through rotor positions, propagating each crib's deductions electrically and rejecting the contradictory batches en masse. It was not a computer — it ran no programs; it was a special-purpose contradiction detector. And it stood on Polish shoulders: Rejewski's mathematics and the Polish <em>bomba</em> were the foundation.</p>
+        <h3>The imitation game — what it actually proposes</h3>
+        <p>The 1950 paper opens with "Can machines think?" and immediately refuses to answer it. Instead it <em>replaces</em> the question with a game: three people — a man (A), a woman (B), an interrogator (C) in separate rooms, communicating by typed notes. C must decide which respondent is the man and which the woman; A's job is to make C guess wrong. Then: <em>"What will happen when a machine takes the part of A in this game?"</em> The test is not "can a machine fool you into thinking it's human" — it is a deception game about identity in which the machine plays a deliberate impostor, benchmarked against the all-human version. His one concrete prediction: by 2000, machines with large storage would have about a 30% chance of fooling an average interrogator after five minutes. He then answers nine anticipated objections — theological, "too dreadful to contemplate," mathematical, consciousness, Lady Lovelace's, ESP, and more — and closes with the most prophetic proposal: don't program an adult mind; build a <em>child machine</em> and educate it. The 1950 blueprint of machine learning.</p>
+        <h3>Morphogenesis — patterns from nothing (1952)</h3>
+        <p>How does a near-uniform embryo grow spots, stripes, and whorls with no blueprint? Turing's answer: two chemicals ("morphogens") — an activator that promotes its own production and an inhibitor that suppresses it — diffusing at <em>different rates</em>, the inhibitor much faster. Counterintuitively, this <em>destabilizes</em> uniformity: a tiny excess of activator amplifies locally while the fast inhibitor suppresses the surroundings, and stable patterns crystallize out of nothing. He predicted six pattern types and ran the simulations on the Ferranti Mark I — among the first uses of a digital computer for a biological model. Confirmation took decades: the first chemical Turing patterns in 1990, angelfish stripes (1995), mouse digit spacing (2012), synthetic cell rings producing all six predicted patterns plus a seventh (2014).</p>
+        <h3>Turing and cybernetics: the Ratio Club</h3>
+        <p>The Ratio Club (1949–1958) was Britain's cybernetics dining club: founded by neurologist John Bates after a 1949 Cambridge symposium; the name from Latin <em>ratio</em> — computation, reason. Monthly dinners in a basement room at London's National Hospital, then a blackboard talk. Turing was proposed at the inaugural meeting on September 14, 1949 and "gladly accepted." His cybernetic footprint is threefold: <strong>membership</strong> — he sat with Ashby, Grey Walter (tortoise robots), MacKay, and guests including Shannon, Pitts, and Mandelbrot; <strong>the machine-brain program</strong> — he told Ashby he was "more interested in the possibility of producing models of the action of the brain than in the practical applications to computing," and his 1948 <em>Intelligent Machinery</em> described "unorganized machines" of randomly connected trainable nodes; <strong>the universality bridge</strong> — von Neumann's 1946 letter to Wiener proposed studying self-reproduction "in about the style in which Turing did it for his mechanisms." Note the boundary: Turing never attended the American Macy Conferences; his cybernetics was the British strand, and he died in 1954 just as the movement's first wave was dissolving. Companion track: <a href="/learn/cybernetics/">Cybernetics — the science of steering</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">Twelve modules, from the machine to the myths.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module"><p class="il-eyebrow">Module 1</p><h3>The world that made him — Britain, 1912–1935</h3><p>Sherborne and Christopher Morcom's death; King's College; Hilbert's program, Gödel (1931), and the Entscheidungsproblem as the problem-space.</p><p class="il-module__work"><strong>Exercise:</strong> map Hilbert's decision problem to three everyday yes/no questions and argue which are decidable. <strong>Assessment:</strong> explain in 300 words why mathematicians in 1935 wanted a <em>mechanical</em> decision procedure.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 2</p><h3>"On Computable Numbers" (1936) — the machine</h3><p>The a-machine in plain language: finite control, tape, head, transition table; what "computable number" means.</p><p class="il-module__work"><strong>Exercise:</strong> hand-execute a 3-state machine adding unary tallies on a paper tape. <strong>Assessment:</strong> define each component and show a trace table of one full run.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 3</p><h3>Universality and the stored program</h3><p>The universal machine reading descriptions off its own tape; program as data; the bridge to 1945–51 hardware (ACE, EDSAC, Manchester Baby).</p><p class="il-module__work"><strong>Exercise:</strong> write a "description number" scheme for a tiny 2-symbol machine and simulate it with a universal-machine emulator. <strong>Assessment:</strong> argue why universality made general-purpose computers inevitable once electronics caught up.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 4</p><h3>Limits — the halting problem and undecidability</h3><p>The diagonal self-reference proof; reduction from halting to the Entscheidungsproblem; Church's parallel result and the Church–Turing thesis.</p><p class="il-module__work"><strong>Exercise:</strong> construct the "does the opposite" machine on paper for a toy decider. <strong>Assessment:</strong> prove, in your own words, why no perfect virus-detector or bug-finder can exist.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 5</p><h3>Bletchley Park — Enigma and the Polish foundations</h3><p>How Enigma worked (rotors, plugboard, reflector, daily keys); Rejewski's group theory and the bomba; the July 1939 sharing; Hut 8 and naval Enigma.</p><p class="il-module__work"><strong>Exercise:</strong> build a rotor-scrambler in code and break a 1-rotor version by hand. <strong>Assessment:</strong> explain why "never enciphers a letter as itself" was the fatal flaw.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 6</p><h3>The Bombe — logic as a machine</h3><p>Cribs, menus, chains of implication, contradiction-as-elimination; Welchman's diagonal board; the Wrens who ran the 210 Bombes; what Ultra did and didn't do.</p><p class="il-module__work"><strong>Exercise:</strong> given a crib/ciphertext pair, derive a menu and find the "loop" by hand. <strong>Assessment:</strong> explain the Bombe's logic to a non-technical friend without using the word "brute force."</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 7</p><h3>Tunny, Turingery, and Colossus — getting the credits right</h3><p>The Lorenz machine; Tutte's structural diagnosis; Turingery (July 1942, manual wheel-breaking); Tutte's statistical break-in; Flowers's Colossus in the Newmanry.</p><p class="il-module__work"><strong>Exercise:</strong> reconstruct the key-stream insight on a toy stream cipher. <strong>Assessment:</strong> write a corrections memo — who did what in the Tunny story, and what popular accounts get wrong.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 8</p><h3>ACE and the birth of the stored-program computer</h3><p>The 1945 <em>Proposed Electronic Calculator</em>; the secrecy handicap vs. von Neumann's EDVAC draft; the Pilot ACE's first run on May 10, 1950.</p><p class="il-module__work"><strong>Exercise:</strong> compare one ACE design decision against the EDVAC First Draft and argue Turing's side. <strong>Assessment:</strong> explain why the full ACE was never built in Turing's lifetime.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 9</p><h3>"Computing Machinery and Intelligence" (1950) — the imitation game</h3><p>The actual three-person game, the machine-takes-A's-part substitution, the 30%-by-2000 prediction, all nine objections and replies, and the child-machine proposal.</p><p class="il-module__work"><strong>Exercise:</strong> run a 5-minute imitation game with a hidden language model and score the interrogators. <strong>Assessment:</strong> pick two objections and evaluate whether Turing's replies survive 75 years of AI progress.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 10</p><h3>Morphogenesis — patterns from nothing (1952)</h3><p>Activator–inhibitor dynamics, diffusion-driven instability, the six predicted patterns; the Ferranti Mark I simulations; the long road to confirmation.</p><p class="il-module__work"><strong>Exercise:</strong> code a 2-chemical reaction-diffusion simulation and tune the inhibitor's diffusion far above the activator's until spots appear. <strong>Assessment:</strong> explain why diffusion — usually a smoother — can <em>create</em> structure here.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 11</p><h3>Turing and cybernetics — the Ratio Club</h3><p>Wiener's <em>Cybernetics</em> and the Macy Conferences; the 1949 founding; the membership roll and Turing's place in it; the brain-modeling letter to Ashby; von Neumann's 1946 letter to Wiener and the January 1947 meeting.</p><p class="il-module__work"><strong>Exercise:</strong> debate — was Turing a cybernetician, a critic, or a fellow traveler? Use primary quotes. <strong>Assessment:</strong> trace one idea (feedback, self-organization, or universality) from cybernetics into a modern machine-learning system.</p></article>
+        <article class="il-module"><p class="il-eyebrow">Module 12</p><h3>Trial, death, memory — the ethics and the myths</h3><p>The 1952 prosecution and hormone treatment; the 1954 inquest and the disputed evidence; the 2009 apology, 2013 pardon, 2017 Alan Turing law, 2021 £50 note; systematic myth-busting.</p><p class="il-module__work"><strong>Exercise:</strong> source-audit — take three viral Turing claims and grade them verified / nuanced / false with citations. <strong>Assessment (capstone):</strong> a 1,500-word referenced essay — "What did Alan Turing actually do, and what does his story obligate us to get right?"</p></article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Myths -->
+  <section class="il-section" aria-labelledby="myths-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Corrections</p>
+        <h2 class="il-h il-h--section" id="myths-h">The legends, graded.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>"Turing invented the computer."</strong> Nuance. In 1936 he invented the <em>abstract</em> universal machine as a logician's tool — he did not build a computer, and the Bombe was not a computer. What he uniquely supplied was the <em>concept</em>: universality, the stored program as one machine imitating any described machine. Fair phrasing: he defined computation and described the universal computer before one existed.</p>
+        <p><strong>"Turing shortened the war by two years."</strong> Loose. The "two years" figure is an estimate about Bletchley Park and Ultra <em>as a whole</em> — some historians say two to four, the Imperial War Museum says "several," and military historian Max Hastings is on record as sceptical. It is not a measured fact and not attributable to one man: some 10,000 people worked at Bletchley.</p>
+        <p><strong>The Apple logo.</strong> False. The bitten-apple logo was designed by Rob Janoff in 1977; Janoff has repeatedly said the Turing connection is "a wonderful urban legend." Steve Jobs, asked directly, replied: "It isn't true, but God we wish it were!"</p>
+        <p><strong>"The Turing test is the benchmark for AI."</strong> Misuse. The 1950 paper proposes a philosophical <em>replacement question</em>, not a benchmark; Turing set no pass criterion. Modern "passing" claims test short text chat under loose conditions — a shadow of the paper's actual game.</p>
+        <p><strong>"Turing designed Colossus."</strong> False. Tommy Flowers designed and built Colossus; Bill Tutte broke the Lorenz machine's structure. Turing's Tunny contribution, Turingery, was a <em>manual</em> method. Turing's machine was the Bombe (Enigma); Tunny's machine age belonged to Tutte, Flowers, and Newman.</p>
+        <p><strong>The poisoned apple.</strong> The inquest verdict is suicide by cyanide — that is the legal fact. But the half-eaten apple beside his bed was <em>never tested</em> for cyanide, so the mechanism is speculation; accident and staging theories exist and are disputed. Report the verdict as the verdict and the alternatives as disputed.</p>
+        <p><strong>"The work stayed secret for 50 years."</strong> Wrong. The Ultra secret began lifting in 1974 with <em>The Ultra Secret</em> — about 29 years after the war. Secrecy was real but partial and already eroding by the mid-1970s.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Sources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Primary sources &amp; further reading.</h2>
+        <p>Free and open sources preferred throughout.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Primary — read in full</h3>
+        <ul>
+          <li>"On Computable Numbers, with an Application to the Entscheidungsproblem," <em>Proc. London Math. Soc.</em> (1936–37) — via the Turing Digital Archive, King's College Cambridge (turingarchive.kings.cam.ac.uk).</li>
+          <li>"Computing Machinery and Intelligence," <em>Mind</em> LIX(236), October 1950 — full text at the Southampton Cogprints archive.</li>
+          <li>"The Chemical Basis of Morphogenesis," <em>Phil. Trans. R. Soc. B</em> (August 14, 1952) — via the Turing Archive.</li>
+          <li>"Proposed Electronic Calculator" (NPL report, late 1945); "Intelligent Machinery" (NPL report, 1948) — via the Turing Archive.</li>
+          <li>Husbands &amp; Holland, "The Ratio Club: A Hub of British Cybernetics" — Sussex-hosted paper.</li>
+        </ul>
+        <h3>Secondary</h3>
+        <ul>
+          <li>Stanford Encyclopedia of Philosophy: "Turing Machines" (plato.stanford.edu).</li>
+          <li>Andrew Hodges, <em>Alan Turing: The Enigma</em> (1983; centenary edition 2012) — the definitive biography; the companion site turing.org.uk is free.</li>
+          <li>Bletchley Park Trust (bletchleypark.org.uk) and the National Museum of Computing Tunny gallery.</li>
+          <li>Copeland (ed.), "Turing and Von Neumann: From Logic to the Computer," <em>Philosophies</em> 8(2):22 (open access) — the Turing–von Neumann–Wiener triangle.</li>
+          <li><em>Nature Computational Science</em>, "Turing patterns, 70 years later" (2022) — morphogenesis retrospective.</li>
+        </ul>
+        <p>Companion track: <a href="/learn/cybernetics/">Cybernetics — the science of steering</a>.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+/**
+ * Interstitium Labs — theme system (2026-10-01)
+ * ------------------------------------------------------------------
+ * Dark mode is the default across the board. Light mode is opt-in via
+ * the pill-nav toggle; the choice persists in localStorage ("il-theme").
+ *
+ * How it works:
+ *   1. /assets/il-theme.js (sync in <head>) sets
+ *      <html data-theme="dark|light"> before first paint. Default: dark.
+ *   2. This sheet maps the editorial tokens per theme. All components
+ *      (il-editorial.css, il-editorial-theme.css) consume the tokens,
+ *      so flipping data-theme re-skins the whole site with no reload.
+ *
+ * LOAD ORDER: this must be the LAST stylesheet in <head>.
+ */
+
+html {
+  color-scheme: dark;
+}
+
+/* ================================================================
+ * Dark (default)
+ * ================================================================ */
+:root {
+  --paper: #0a0f1d;
+  --paper-deep: #070b16;
+  --paper-elev: #101829;
+  --ink: #f2ede1;
+  --ink-soft: #cfc7b4;
+  --muted: #98917e;
+  --hairline: rgba(242, 237, 225, 0.14);
+  --gold: #d2a53f;
+  --gold-deep: #c6a572;
+  --gold-soft: rgba(210, 165, 63, 0.12);
+  --void: #070b16;
+  --void-ink: #f2ede1;
+  --void-muted: rgba(242, 237, 225, 0.66);
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+
+  /* rgb triplets for alpha compositing: rgba(var(--ink-rgb), .5) */
+  --ink-rgb: 242, 237, 225;
+  --ink-soft-rgb: 207, 199, 180;
+  --muted-rgb: 152, 145, 126;
+  --gold-rgb: 210, 165, 63;
+  --gold-deep-rgb: 198, 165, 114;
+  --ok-rgb: 74, 222, 128;
+  --warn-rgb: 251, 191, 36;
+  --bad-rgb: 248, 113, 113;
+  --paper-rgb: 10, 15, 29;
+}
+
+/* ================================================================
+ * Light (opt-in, preserves the original cream/paper editorial look)
+ * ================================================================ */
+html[data-theme="light"] {
+  color-scheme: light;
+  --paper: #f7f4ee;
+  --paper-deep: #efe9dd;
+  --paper-elev: #fffdf9;
+  --ink: #16130e;
+  --ink-soft: #3d382e;
+  --muted: #6f675a;
+  --hairline: rgba(22, 19, 14, 0.14);
+  --gold: #b8862f;
+  --gold-deep: #96690f;
+  --gold-soft: rgba(184, 134, 47, 0.12);
+  --void: #070b16;
+  --void-ink: #f2ede1;
+  --void-muted: rgba(242, 237, 225, 0.66);
+  --ok: #15803d;
+  --warn: #b45309;
+  --bad: #b91c1c;
+
+  --ink-rgb: 22, 19, 14;
+  --ink-soft-rgb: 61, 56, 46;
+  --muted-rgb: 111, 103, 90;
+  --gold-rgb: 184, 134, 47;
+  --gold-deep-rgb: 150, 105, 15;
+  --ok-rgb: 21, 128, 61;
+  --warn-rgb: 180, 83, 9;
+  --bad-rgb: 185, 28, 28;
+  --paper-rgb: 247, 244, 238;
+}
+
+/* ================================================================
+ * Hardcoded spots in il-editorial.css, re-skinned per theme.
+ * (This sheet loads last, so these win on equal specificity.)
+ * ================================================================ */
+.il-pillnav {
+  background: rgba(var(--paper-rgb), 0.84);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+}
+html[data-theme="light"] .il-pillnav {
+  box-shadow: 0 18px 50px rgba(22, 19, 14, 0.14);
+}
+.il-pillnav__links a:hover {
+  background: rgba(var(--ink-rgb), 0.08);
+}
+.il-menu__sheet a:hover {
+  background: rgba(var(--ink-rgb), 0.06);
+}
+.il-btn--ghost:hover {
+  background: rgba(var(--ink-rgb), 0.06);
+}
+
+::selection {
+  background: rgba(var(--gold-rgb), 0.32);
+  color: var(--ink);
+}
+
+/* ================================================================
+ * Theme toggle button (injected into the pill nav by il-theme.js)
+ * ================================================================ */
+.il-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.il-theme-toggle:hover {
+  color: var(--gold-deep);
+  border-color: var(--gold-deep);
+}
+.il-theme-toggle:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 2px;
+}
+.il-theme-toggle svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
