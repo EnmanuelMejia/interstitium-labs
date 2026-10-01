@@ -1,39 +1,33 @@
 /**
- * Interstitium Labs — PWA register + install hints.
- * Registers /sw.js on HTTPS or localhost. No third-party trackers.
+ * Interstitium Labs — service worker RETIRED (2026-10-01).
+ * The offline worker poisoned mobile caches and broke rendering during
+ * hiring-manager audits. This script now unregisters any service worker
+ * and deletes every cache, then stays out of the way. The page always
+ * loads fresh from the network. PWA re-introduction (if ever) will be
+ * deliberate, versioned, and fail-open.
  */
 (function (global) {
   "use strict";
-  if (!("serviceWorker" in navigator)) return;
-
-  var host = global.location.hostname;
-  var ok =
-    global.location.protocol === "https:" ||
-    host === "localhost" ||
-    host === "127.0.0.1";
-  if (!ok) return;
-
-  global.addEventListener("load", function () {
-    navigator.serviceWorker
-      .register("/sw.js", { scope: "/" })
-      .then(function (reg) {
-        // Force an update check now and whenever the tab becomes visible.
-        // Restored background tabs never navigate, so without this poke a
-        // healing worker could sit uninstalled indefinitely.
-        function poke() {
-          try {
-            if (reg && typeof reg.update === "function") reg.update();
-          } catch (_) {}
-        }
-        poke();
-        try {
-          document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) poke();
+  try {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then(function (regs) {
+          regs.forEach(function (r) {
+            try { r.unregister(); } catch (_) {}
           });
-        } catch (_) {}
-      })
-      .catch(function () {
-        /* offline or blocked — fail closed silently */
-      });
-  });
+        })
+        .catch(function () {});
+    }
+    if ("caches" in global) {
+      caches
+        .keys()
+        .then(function (keys) {
+          keys.forEach(function (k) {
+            try { caches.delete(k); } catch (_) {}
+          });
+        })
+        .catch(function () {});
+    }
+  } catch (_) {}
 })(typeof window !== "undefined" ? window : this);
