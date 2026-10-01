@@ -217,7 +217,23 @@
       var g2 = GUIDE[topic2];
       return { reply: g2.question + ' ' + g2.nudge1, nudges: [g2.nudge2] };
     }
-    return { reply: A_UNKNOWN, nudges: [] };
+    return { reply: A_UNKNOWN, nudges: [], unknown: true };
+  }
+
+  /* Honesty screen for REMOTE replies (2026-10-01, noah-recovery-2). The remote
+     endpoint once fabricated a confirmation of a nonexistent "IL-11 Zero Trust"
+     track, so every remote answer is screened before display:
+     - IL-11 claims that are not explicit denials are replaced with the verified
+       local answer (there is no such track on this site).
+     Remote answers are always labeled as remote; they never carry the on-device
+     notice. Returns { reply, replaced }. */
+  var REMOTE_NOTICE = 'Answered by the remote Noah endpoint — track names verified against this site\u2019s published pages; treat uncited claims as unverified.';
+  function screenRemote(reply, text) {
+    var r = String(reply == null ? '' : reply);
+    if (/\bil-?11\b/i.test(r) && !/no\s+(such|il-?11)|doesn[’']t exist|not\s+a\s+(real|published)/i.test(r)) {
+      return { reply: A_IL11, replaced: true };
+    }
+    return { reply: r, replaced: false };
   }
 
   /* ================= Remote endpoint =============================== */
@@ -242,6 +258,7 @@
 
   function askLocal(text) {
     var out = ask(text);
+    out.answered = !out.unknown; /* false only for the honest "not on this site" fallthrough */
     out.notice = LOCAL_NOTICE;
     return out;
   }
@@ -255,7 +272,10 @@
       body: JSON.stringify({ messages: msgs.slice(-12) })
     }).then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {
-        if (out.res.ok && out.data && out.data.reply) return { reply: String(out.data.reply), remote: true };
+        if (out.res.ok && out.data && out.data.reply) {
+          var screened = screenRemote(out.data.reply, text);
+          return { reply: screened.reply, remote: true, remoteScreened: screened.replaced, notice: REMOTE_NOTICE };
+        }
         return ensureKB().then(function () {
           var local = askLocal(text);
           return { reply: local.reply, nudges: local.nudges, remote: false, notice: local.notice };
@@ -429,24 +449,37 @@
     history.push({ role: 'user', content: text });
     saveHistory();
     showTyping();
-    askRemote(text, history.slice(0, -1)).then(function (out) {
-      hideTyping();
-      NoahStats.track(out.remote ? 'remote' : 'fallback');
-      setAvatarState('speaking');
-      setTimeout(function () { if (!busy) setAvatarState('idle'); }, 2800);
-      var notice = out.notice;
-      if (!out.remote && !fallbackNoted && NoahStats.fallbackStreak() >= 3) {
-        fallbackNoted = true;
-        notice = (notice ? notice + ' ' : '') + 'Heads up: the remote Noah endpoint is unreachable — I\u2019m answering on-device from the site\u2019s curriculum.';
+    /* Local-first (2026-10-01, noah-recovery-2): the on-device knowledge bundle
+       answers first, so the honesty guardrails can never be bypassed by trying the
+       remote endpoint first. Remote is only a fallback for questions the site's
+       curriculum genuinely doesn't cover, and its replies pass screenRemote(). */
+    ensureKB().then(function () {
+      var local = askLocal(text);
+      if (local.answered) {
+        deliver({ reply: local.reply, nudges: local.nudges, remote: false, local: true, notice: local.notice });
+        return;
       }
-      addMsg('noah', mdLite(out.reply), notice);
-      if (out.nudges) renderNudges(out.nudges);
-      history.push({ role: 'assistant', content: out.reply });
-      saveHistory();
-      busy = false;
-      els.send.disabled = false;
-      els.input.focus();
+      askRemote(text, history.slice(0, -1)).then(deliver);
     });
+  }
+
+  function deliver(out) {
+    hideTyping();
+    NoahStats.track(out.local ? 'local' : (out.remote ? 'remote' : 'fallback'));
+    setAvatarState('speaking');
+    setTimeout(function () { if (!busy) setAvatarState('idle'); }, 2800);
+    var notice = out.notice;
+    if (!out.remote && !out.local && !fallbackNoted && NoahStats.fallbackStreak() >= 3) {
+      fallbackNoted = true;
+      notice = (notice ? notice + ' ' : '') + 'Heads up: the remote Noah endpoint is unreachable — I\u2019m answering on-device from the site\u2019s curriculum.';
+    }
+    addMsg('noah', mdLite(out.reply), notice);
+    if (out.nudges) renderNudges(out.nudges);
+    history.push({ role: 'assistant', content: out.reply });
+    saveHistory();
+    busy = false;
+    els.send.disabled = false;
+    els.input.focus();
   }
 
   /* ================= NoahStats: privacy-respecting analytics ==========
@@ -903,7 +936,17 @@
   g.IL.noah = { ask: ask, configureLLM: configureLLM };
   g.IL.noahAI = {
     open: open, close: close, toggle: toggle,
-    ask: function (text, hist) { return askRemote(text, hist || []); },
+    /* Local-first (2026-10-01, noah-recovery-2): on-device bundle answers first;
+       remote only as a screened fallback. Same result shape as before. */
+    ask: function (text, hist) {
+      return ensureKB().then(function () {
+        var local = askLocal(text);
+        if (local.answered) {
+          return { reply: local.reply, nudges: local.nudges, remote: false, local: true, notice: local.notice };
+        }
+        return askRemote(text, hist || []);
+      });
+    },
     endpoint: getEndpoint
   };
   /* Shared on-device knowledge API for the coach page (il-coach.js). */
