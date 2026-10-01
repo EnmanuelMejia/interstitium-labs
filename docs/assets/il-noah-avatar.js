@@ -726,7 +726,8 @@
       name: (typeof opts.name === 'string' && opts.name.trim()) ? opts.name.trim().slice(0, 40) : prof.name,
       amp: 0, speakBeat: 0, time: 0,
       alive: true, paused: false, reduced: prefersReduced(),
-      cinema: !!opts.cinema, mobile: mobile
+      cinema: !!opts.cinema, mobile: mobile,
+      eyeZCur: null, bornAt: null /* status-transition smoothing fields */
     };
     var pair = accentPair(state.accentKey);
     var kScale = INTENSITY[state.intensityKey].scale;
@@ -967,12 +968,18 @@
         amp = Math.max(amp, mic.allowed ? ml : procedural);
         state.amp = amp;
       }
-      var eyeZ = (EYES[state.avatar] || 3.4) + (st === 'thinking' ? -0.2 : 0);
+      var eyeTarget = (EYES[state.avatar] || 3.4) + (st === 'thinking' ? -0.2 : 0);
+      /* Smooth camera: lerp eyeZ toward the status target instead of snapping. */
+      state.eyeZCur = (state.eyeZCur == null) ? eyeTarget : state.eyeZCur + (eyeTarget - state.eyeZCur) * 0.08;
+      /* Wake-in: ease animation time from stillness over the first 1.5 s. */
+      if (state.bornAt == null) state.bornAt = t;
+      var wake = 1, age = t - state.bornAt;
+      if (age < 1.5 && age >= 0) wake = (1 - Math.cos(Math.PI * age / 1.5)) / 2;
       var bob = Math.sin(t * 1.2) * 0.04;
-      mat4LookAt(uView, [0, 0.15 + bob * 0.2, eyeZ], [0, 0.05, 0], [0, 1, 0]);
+      mat4LookAt(uView, [0, 0.15 + bob * 0.2, state.eyeZCur], [0, 0.05, 0], [0, 1, 0]);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       var rc = {
-        gl: gl, t: t, status: st, amp: amp, beat: state.speakBeat,
+        gl: gl, t: t * wake, status: st, amp: amp, beat: state.speakBeat,
         accent: pair.primary, accent2: pair.secondary, k: kScale,
         uView: uView, uProj: uProj,
         mesh: drawMeshEntry, points: drawPointsEntry
@@ -1076,6 +1083,18 @@
     return null;
   }
 
+  /* An instance is orphaned when its root lost its parent, or when its slot has
+     left the document (e.g. a widget rebuilt its innerHTML around the slot).
+     Recovery 2026-10-01: the old check missed detached-tree orphans, leaking one
+     WebGL context + rAF loop per chat re-render until the renderer hung. */
+  function isOrphaned(inst) {
+    if (!inst || !inst.root || !inst.root.parentNode) return true;
+    try {
+      if (inst.slot && typeof document !== 'undefined' && !document.contains(inst.slot)) return true;
+    } catch (e) {}
+    return false;
+  }
+
   function mount(slot, opts) {
     if (!slot) return null;
     var existing = findForSlot(slot);
@@ -1086,11 +1105,18 @@
     }
     /* reuse orphaned instance whose root was detached (e.g. widget re-render) */
     for (var j = 0; j < registry.length; j++) {
-      if (!registry[j].root.parentNode) {
+      if (isOrphaned(registry[j])) {
         slot.appendChild(registry[j].root);
         registry[j].slot = slot;
         registry[j].applyProfile();
         return registry[j];
+      }
+    }
+    /* self-healing cap: destroy any other detached instances before allocating
+       another WebGL context, so a re-render storm can never exhaust the GPU */
+    for (var k = registry.length - 1; k >= 0; k--) {
+      if (isOrphaned(registry[k])) {
+        try { registry[k].destroy(); } catch (eD) {}
       }
     }
     var inst = createInstance(slot, opts || {});
