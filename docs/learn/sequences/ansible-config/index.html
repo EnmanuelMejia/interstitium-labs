@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Ansible Configuration Management | Interstitium Labs</title>
+<meta name="description" content="An original study guide to Ansible configuration management: agentless architecture, inventory, playbooks, roles, idempotence, vault, and production troubleshooting — keyed to the official documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Configuration Management · Infrastructure as Code</p>
+    <h1 class="il-h">Ansible Configuration Management</h1>
+    <p class="il-hero__sub">Agentless automation from control node to fleet: inventory, playbooks, roles, vault, and the discipline of idempotent change.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Ansible is an automation platform for configuring systems, deploying software, and orchestrating complex tasks across a fleet of machines. Its defining design decision is that it is agentless: the machine you drive everything from, the control node, reaches each managed node over SSH (or WinRM for Windows) and runs ordinary commands there. There is nothing to install, patch, or license on the machines you manage, which means Ansible works on anything you can log into — including network devices, appliances, and legacy systems that will never run an agent.</p>
+        <p>This sequence walks the full path from first principles to production practice. You start with the agentless execution model and the control-node/managed-node relationship, then learn inventory — how Ansible knows which machines exist and how to address subsets of them. Playbooks follow: the YAML documents that declare what should be true on each group of hosts. From there you add variables and Jinja2 templating, package reusable logic into roles, internalize idempotence as the core contract of every task, protect secrets with ansible-vault, and finish with a troubleshooting discipline for when playbooks fail in production.</p>
+        <p>Everything here is keyed to the official Ansible documentation, which is the authoritative reference for exact syntax and behavior. This page teaches the concepts and the habits; the docs supply the canonical syntax.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>System administrators and SREs who need to manage fleets of Linux servers reproducibly.</li>
+          <li>DevOps engineers building configuration management into CI/CD pipelines.</li>
+          <li>Engineers who know basic SSH and YAML and want a vendor-neutral automation foundation before specializing in tools like Terraform or Puppet.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Comfortable with the Linux command line and SSH key authentication.</li>
+          <li>Basic YAML literacy (indentation, mappings, lists).</li>
+          <li>Two disposable lab VMs or containers you can SSH into — nothing in this sequence should be run against production infrastructure while learning.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order: each one assumes the vocabulary of the previous one.</li>
+          <li>Do every lab on a real lab host. Ansible is learned by watching runs succeed, fail, and converge — reading alone will not stick.</li>
+          <li>Answer every self-check in writing before moving on. If you cannot answer, re-read the concept — that is the point of the check.</li>
+          <li>Keep the official documentation open beside you; when this guide describes a behavior, verify the current syntax there.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Agentless Architecture, Control Node, and SSH Transport</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how Ansible operates without managed-node agents and why that shapes its trust model</li>
+            <li>Stand up a control node and establish key-based SSH to two target hosts</li>
+            <li>Configure privilege escalation (become) safely across mixed-privilege fleets</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Push-based, agentless execution over SSH (WinRM for Windows)</h5>
+          <p>Ansible inverts the usual agent-based model: instead of every managed machine running a daemon that phones home, a single control node pushes work out to the fleet. For each task, Ansible opens an SSH connection to the target, transfers a small module payload, executes it, collects the result, and closes the connection.</p>
+          <p>Because nothing persistent runs on the managed node, there is no agent to upgrade, no agent certificate lifecycle, and no pull schedule to reason about. The cost is that every action depends on working SSH access — credential rotation, bastion hosts, and SSH tuning are operational concerns you inherit directly.</p>
+          <p>Windows hosts cannot be reached over SSH in the classic model, so Ansible uses WinRM (and increasingly SSH on modern Windows) for them; the agentless principle is the same, only the transport changes.</p>
+          <h5>Control node vs managed node roles</h5>
+          <p>The control node is the machine where Ansible is installed and where you run playbooks — typically a workstation, a CI runner, or a dedicated automation host. It holds the inventory, the playbooks, the vault passwords, and the credentials, so it is the crown jewel of your automation security posture.</p>
+          <p>Managed nodes are the targets: servers, network devices, cloud instances. They need no Ansible installation — just a reachable SSH port, a user account, and (for most modules) a Python interpreter so the module payloads can execute.</p>
+          <p>This asymmetry matters for network design: the control node needs outbound reachability to every managed node, while managed nodes need no inbound access beyond SSH. Firewall rules and bastion architecture follow from that one fact.</p>
+          <h5>Python on the control node; minimal Python on managed nodes</h5>
+          <p>Ansible itself is a Python application, so the control node needs Python 3 installed along with the ansible-core package. Managed nodes do not need Ansible, but most modules are small Python programs that get copied over and executed — so they need a Python interpreter too.</p>
+          <p>The interpreter on the managed side can be modest; Ansible will even auto-discover it. A handful of modules (notably the raw module) work without Python, which is exactly what you use to bootstrap Python onto a fresh host before anything else can run.</p>
+          <h5>ansible.cfg scoping (global, user, project) and inventory defaults</h5>
+          <p>Ansible reads its configuration from the first ansible.cfg it finds in a defined search order: an ANSIBLE_CONFIG environment variable wins, then a file named ansible.cfg in the current project directory, then ~/.ansible.cfg, then /etc/ansible/ansible.cfg.</p>
+          <p>This precedence is what makes project-local configuration work: each automation project can carry its own ansible.cfg pinning its inventory path, role locations, and defaults, without affecting other projects or the system. In practice, keep one ansible.cfg per project, versioned with the project, and treat the global file as a fallback.</p>
+          <h5>become/become_user/become_method privilege escalation semantics</h5>
+          <p>Ansible connects as an ordinary user and escalates only where needed, which mirrors good operational hygiene. The become directive on a play or task requests privilege escalation; become_user names the target identity (root by default); become_method selects the mechanism (sudo by default, with su, pbrun, and others available).</p>
+          <p>Escalation is explicit and auditable per task rather than a blanket &quot;run everything as root.&quot; When become is requested but sudo is misconfigured on the target — wrong NOPASSWD entry, missing sudo package — the task fails with a permission error rather than silently running unprivileged, which is the safe failure mode.</p>
+          <h5>SSH key authentication, ControlPersist, pipelining</h5>
+          <p>Key-based SSH authentication is the foundation: the control node holds a private key whose public half is installed on every managed node, so automation never types passwords. Passphrase-protected keys are unlocked once via ssh-agent rather than embedded in files.</p>
+          <p>Two performance knobs matter at fleet scale. ControlPersist keeps SSH connections open and reuses them across tasks, eliminating per-task connection setup cost. Pipelining streams the module payload through the SSH channel instead of writing a temporary file on the target via sftp/scp, which is faster and avoids touching the filesystem — at the cost of requiring slightly different sudo configuration.</p>
+          <h5>Connection plugins and local execution</h5>
+          <p>Ansible abstracts the transport behind connection plugins: ssh is the default, but local runs tasks on the control node itself, and there are plugins for containers, network devices over API, and cloud CLIs. The same playbook can target heterogeneous infrastructure because the connection detail lives in inventory, not in the tasks.</p>
+          <p>Local execution deserves special attention: running Ansible against localhost turns it into a configuration tool for the control node itself, and delegate_to lets you run a single task on a different host (for example, updating a load balancer from the web-server play) while the rest of the play targets the fleet.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Install ansible-core in a venv and run ansible --version from a project directory</strong><br/>Installing into a virtual environment keeps Ansible isolated from system Python and lets different projects pin different versions. Running ansible --version from the project directory also confirms which ansible.cfg and inventory Ansible would pick up there.</li>
+            <li><strong>Generate an SSH keypair, distribute via ssh-copy-id to two lab VMs, and confirm passwordless access</strong><br/>ssh-copy-id appends your public key to the target authorized_keys in one step. Confirm with a plain ssh command before involving Ansible — if raw SSH fails, Ansible will fail for the same reason and the error will be harder to read.</li>
+            <li><strong>Ping the fleet with an ad-hoc command and observe connection failures under a misconfigured key</strong><br/>The ping module is the canonical connectivity test. Deliberately breaking the key first teaches you what an authentication failure looks like, so you recognize it instantly in production output.</li>
+            <li><strong>Write a project-local ansible.cfg and demonstrate config precedence against the global file</strong><br/>Set a distinguishing option — like a different default inventory path — in the project file and show ansible picking it up. Then set ANSIBLE_CONFIG to a third file and watch the environment variable win; the precedence ladder is now something you have felt, not just read.</li>
+            <li><strong>Run a privileged ad-hoc task with become and contrast it against a run without become</strong><br/>A package-install or file-write to a protected path makes the difference visible: without become it fails with permission denied, with become it succeeds. This is the mental model you will reuse for every playbook.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Which side of the connection requires an installed agent, and why does that matter for network design?</li>
+            <li>Describe what happens when become is requested but sudo is misconfigured on the target</li>
+            <li>Given two conflicting ansible.cfg files, which wins and why?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Inventory: Static Files, Groups, and Dynamic Sources</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Author a static INI/YAML inventory with groups, children, and variables</li>
+            <li>Query hosts by pattern and predict group membership</li>
+            <li>Describe how dynamic inventories source truth from external systems</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>INI vs YAML inventory formats</h5>
+          <p>Inventory is simply the list of machines Ansible manages, and it can be written in INI or YAML. INI is compact for small fleets — a group header in brackets followed by hostnames — while YAML expresses the same structure as nested mappings and scales better to complex groupings with variables attached.</p>
+          <p>Both formats describe the same underlying model: hosts organized into groups, groups containing other groups, and variables attached at any level. Choose one format per project and stay consistent; mixed-format projects confuse future readers.</p>
+          <h5>Groups, group children, and the all group</h5>
+          <p>Groups are the unit of targeting: you run plays against webservers, dbservers, or prod, not against individual hostnames. Groups can contain child groups, so prod can include web-prod and db-prod, letting you address the whole environment or one tier with a single name.</p>
+          <p>Every inventory has an implicit all group containing every host, and a special localhost. Well-designed group trees mirror your real topology — by role, by environment, by datacenter — because the group tree becomes the language you use to aim changes.</p>
+          <h5>Host patterns: wildcards, ranges, unions, intersections</h5>
+          <p>Host patterns are the query language for inventory: web* matches names by prefix, web[01:10] expands numeric ranges, and the set operators &amp; (intersection), ! (exclusion), and , or : (union) combine groups. The pattern web:&amp;prod:!db means &quot;hosts in both web and prod, excluding db.&quot;</p>
+          <p>Patterns are evaluated fresh on every run, so they are the safe way to aim a change at exactly the right hosts. Always preview with ansible-inventory --graph or --list before running a destructive play against a pattern you composed by hand.</p>
+          <h5>host_vars/ and group_vars/ directories</h5>
+          <p>Variables can live in files beside the inventory: host_vars/&lt;hostname&gt;.yml for one machine, group_vars/&lt;groupname&gt;.yml for a whole group. This keeps the inventory file itself clean and gives each variable a single, discoverable home.</p>
+          <p>The resolution rule is specificity wins: a value in host_vars overrides the same variable in group_vars for that host, which is how you express &quot;everyone gets the default, this one machine is special.&quot; Version these directories with the inventory so variable changes are reviewed like code.</p>
+          <h5>Inventory precedence across multiple sources</h5>
+          <p>Ansible accepts multiple inventory sources at once — a static file plus a dynamic script, for example — and merges them. When sources disagree about a host's variables, the last-loaded source wins, which is deterministic but easy to misread.</p>
+          <p>The discipline is to give each source a clear jurisdiction: static files for the long-lived topology, dynamic sources for cloud fleets that change hourly, and never two sources both claiming authority over the same variable.</p>
+          <h5>Dynamic inventory plugin concept (cloud, virtualization, CMDB)</h5>
+          <p>Static files rot when infrastructure is created and destroyed by APIs. Dynamic inventory plugins query the source of truth — a cloud provider, a virtualization platform, a CMDB — at the start of each run and build the group tree from live data, often grouping by tags or regions automatically.</p>
+          <p>The inventory becomes a view over the infrastructure rather than a separate record of it, which eliminates the &quot;forgot to add the new server&quot; failure class. The trade is that runs now depend on the API being reachable, so inventory caching and refresh behavior become part of your design.</p>
+          <h5>Inventory caching and refresh behavior</h5>
+          <p>Querying a cloud API on every playbook run is slow and risks rate limits, so Ansible can cache dynamic inventory results and refresh them on a schedule. Cached inventory is fast but potentially stale; uncached inventory is fresh but slow and API-dependent.</p>
+          <p>Choose deliberately: caching with a short TTL suits large fleets, while a forced refresh suits the playbook that provisions brand-new machines and must see them immediately.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build a static YAML inventory: web, db, and prod groups with group children</strong><br/>Model a small realistic topology: web and db groups, each with prod and staging children, and a top-level prod group containing both prod children. This single exercise teaches the whole group-membership model.</li>
+            <li><strong>Target subsets with patterns (web:&amp;prod, !db) using ansible-inventory --graph</strong><br/>The --graph output renders the group tree and shows exactly which hosts each pattern selects. Practice predicting the set before you run the command; the intersection and exclusion operators are where mistakes happen.</li>
+            <li><strong>Place variables in host_vars/group_vars and verify resolution with ansible-inventory --host</strong><br/>Set the same variable at group and host level with different values, then ask Ansible what one host sees. The --host view shows the merged result and makes precedence concrete.</li>
+            <li><strong>Combine two inventory files and observe merge precedence</strong><br/>Pass two -i sources and watch how groups and variables merge. Then create a deliberate conflict and confirm which source wins, so the rule is earned rather than memorized.</li>
+            <li><strong>Configure a cloud inventory plugin against a free-tier account or mock, and list returned hosts</strong><br/>Point the plugin at a real (free-tier) or mocked cloud account and list the hosts it discovers. Seeing groups form from cloud tags is the moment dynamic inventory clicks.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Predict the host set for pattern 'web:&amp;prod:!db' before running it</li>
+            <li>Where must a variable live so that one host overrides its group's value?</li>
+            <li>What goes wrong when two inventory sources disagree about a host's group membership?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Playbooks: Plays, Tasks, Handlers, Conditionals, and Loops</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write a multi-play playbook with distinct host targets</li>
+            <li>Trigger handlers on change and control execution with conditionals</li>
+            <li>Replace repetitive tasks with loops and structured iteration</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Plays, tasks, and modules as the execution unit</h5>
+          <p>A playbook is a YAML list of plays; each play maps a set of tasks onto a set of hosts. A task names one module — the unit of work, like package, copy, or service — with its arguments, and Ansible executes tasks in order against every targeted host.</p>
+          <p>This structure is what makes playbooks readable as policy: the play says &quot;on the webservers,&quot; the tasks say &quot;ensure these things are true,&quot; and the modules are the verbs. Thinking in desired state rather than in shell commands is the single biggest mindset shift in this module.</p>
+          <h5>Task ordering and play-level vs task-level scope</h5>
+          <p>Tasks within a play run top to bottom, and each task completes on all hosts before the next begins (by default). Directives can be set at play level — applying to every task — or overridden per task, which is how you express &quot;this whole play escalates, except this one diagnostic task.&quot;</p>
+          <p>Ordering matters because later tasks may depend on earlier ones having converged. When you need a strict sequence across hosts rather than per-task batching, that is what serial and strategy settings are for — but the default ordering covers the vast majority of cases.</p>
+          <h5>Handlers: notify, change-triggered runs, flush_handlers</h5>
+          <p>Handlers are tasks that run only when notified, and only if the notifying task actually reported a change. The classic pattern: a task writes a configuration file and notifies a &quot;restart service&quot; handler, so the service restarts only when its config really changed.</p>
+          <p>Notified handlers do not run immediately — they run once each at the end of the play, in the order they are defined, no matter how many tasks notified them. If you need the restart to happen mid-play before later tasks proceed, flush_handlers forces the queued handlers to run at that point.</p>
+          <h5>when conditionals with facts, variables, and registered results</h5>
+          <p>The when clause gates a task on a Jinja2 expression: it runs only when the expression is true. Conditions can test gathered facts (like the OS family), inventory variables, or the registered result of an earlier task, which is how playbooks adapt to heterogeneous fleets.</p>
+          <p>A when referencing an undefined variable fails the task, so conditions on possibly-absent variables should use the default filter or is defined tests. Defensive conditionals are a production habit, not paranoia.</p>
+          <h5>loop keyword and loop_control (label, loop_var, pause)</h5>
+          <p>The loop keyword replaces N near-identical tasks with one task iterated over a list — creating five users becomes one task looping over five names. Each iteration sees the current item as the item variable, and can use per-item dictionaries for structured data.</p>
+          <p>loop_control fine-tunes the loop: label controls what the output shows per iteration (vital for readable logs), loop_var renames item to avoid collisions in nested loops, and pause inserts a delay between iterations for rate-sensitive operations.</p>
+          <h5>block/rescue/always for error handling structure</h5>
+          <p>Blocks group tasks so error handling applies to the group: if any task in the block fails, the rescue section runs (rollback, cleanup, alerting), and the always section runs no matter what (restoring state, removing temp files). It is the playbook equivalent of try/catch/finally.</p>
+          <p>Use blocks to make failure behavior explicit and reviewable. A playbook that aborts halfway through a database migration is a liability; the same playbook with a rescue path is an engineering artifact.</p>
+          <h5>tags and task selection at runtime</h5>
+          <p>Tags label tasks so a run can select a subset: --tags deploys only the tagged tasks, --skip-tags excludes them. This is how you build a playbook that does everything but can be run surgically — &quot;just the app deploy, not the OS hardening.&quot;</p>
+          <p>Tag discipline matters: tag by function (deploy, configure, restart) and document the supported tag sets, because untagged tasks run by default and a forgotten tag silently includes work you meant to skip.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a playbook that installs a package, writes a config file, and notifies a restart handler</strong><br/>This is the canonical playbook shape: package task, template/copy task with notify, handler that restarts the service. Build it once and you have the template for half of all configuration work.</li>
+            <li><strong>Run the playbook twice and confirm the handler fires only on the first run</strong><br/>The second run should report zero changes and no handler execution. Watching idempotence and change-triggered handlers work together is the core Ansible experience.</li>
+            <li><strong>Gate tasks with when clauses on distribution and on a registered command result</strong><br/>Write one task that runs only on Debian-family hosts and another that runs only if a registered command found a marker file. Conditionals on facts and on prior results cover nearly every real gating need.</li>
+            <li><strong>Convert three near-identical user-creation tasks into one looped task with per-item variables</strong><br/>Start with the repetitive version, then collapse it into a single looped task with a list of dictionaries. The diff between the two versions teaches why loops exist.</li>
+            <li><strong>Structure a failing task with block/rescue so the playbook reports cleanly instead of aborting</strong><br/>Make a task fail deliberately inside a block, handle it in rescue with a clear message, and use always for cleanup. The playbook should finish with a controlled, informative outcome.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>When does a notified handler actually run relative to the task that notified it?</li>
+            <li>Rewrite a three-task sequence as a loop without changing its observable effect</li>
+            <li>What is the failure mode of a when clause referencing an undefined variable, and how do you guard it?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Variables, Facts, and Jinja2 Templating</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Navigate the variable precedence chain from defaults to extra vars</li>
+            <li>Gather and consume facts to drive OS-conditional logic</li>
+            <li>Author Jinja2 templates and test them before deployment</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Variable precedence chain (role defaults up through extra vars)</h5>
+          <p>Ansible has over twenty levels of variable precedence, but the shape is simple: broad defaults lose to specific overrides, and explicit runtime input beats everything. Role defaults sit at the bottom as the documented &quot;sane default&quot;; inventory group_vars and host_vars sit in the middle; extra vars passed with -e sit at the absolute top and cannot be overridden.</p>
+          <p>The practical rule: define defaults where the role lives, tune per environment in group_vars, handle snowflakes in host_vars, and reserve -e extra vars for one-off operator overrides. If you cannot predict which value wins, your variable layout is too clever — simplify it.</p>
+          <h5>Magic variables: hostvars, inventory_hostname, groups, group_names</h5>
+          <p>Magic variables are populated by Ansible itself: inventory_hostname is the current host's name, groups is the whole group tree, group_names lists the groups the current host belongs to, and hostvars gives access to every host's variables — letting a webserver template reference the database hosts' addresses.</p>
+          <p>hostvars is the key to multi-tier configuration: a load balancer config rendered on the web tier can loop over groups['db'] and pull each database host's address from its hostvars. This is how one playbook configures cooperating tiers without hardcoding addresses.</p>
+          <h5>Gathered facts (ansible_facts) and fact caching</h5>
+          <p>At the start of each play, Ansible gathers facts about every host — OS distribution, network interfaces, memory, disks — into the ansible_facts dictionary. Facts are what let one playbook handle Ubuntu and RHEL correctly: the package task branches on ansible_facts['os_family'].</p>
+          <p>Fact gathering costs an SSH round trip per host, so large fleets cache facts (in Redis, JSON files, or a database) and refresh them on a schedule. Cached facts trade freshness for speed; disable gathering entirely (gather_facts: false) for plays that provably need no host data.</p>
+          <h5>Registered task results and set_fact</h5>
+          <p>Any task can register its result into a variable, capturing return code, stdout, and the changed flag for later tasks to test in when clauses. Registered variables are the playbook's short-term memory — the bridge between &quot;do something&quot; and &quot;decide based on what happened.&quot;</p>
+          <p>set_fact creates a persistent fact for the host that lasts the rest of the play (or longer, with caching), computed from Jinja2 expressions. Use it to derive values once — like a computed port or a normalized hostname — rather than recomputing them in every template.</p>
+          <h5>Jinja2 expressions, filters, and lookups in templates</h5>
+          <p>Jinja2 is the templating language: {{ variable }} interpolates, {% if %} and {% for %} add logic, and filters transform values — {{ name | upper }}, {{ ports | join(&quot;,&quot;) }}, {{ config | default({}) }}. Filters are where most real template work happens: defaults for missing values, type conversions, list manipulation.</p>
+          <p>Lookups fetch data from outside the playbook at template time (a file, an environment variable, a password store). Keep template logic simple — templates that need complex control flow are a sign the logic belongs in a variable or a role default instead.</p>
+          <h5>template module vs copy module with content</h5>
+          <p>The template module renders a Jinja2 file through the engine and deploys the result, which is the right choice for any file containing variables or logic. The copy module transfers files verbatim; its content parameter can inline small static content without a source file.</p>
+          <p>Rule of thumb: if the file has even one variable in it, use template; if it is byte-identical everywhere, use copy. Mixing them up either leaks unrendered {{ }} braces into production configs or wastes a template render on a static file.</p>
+          <h5>Variable typing pitfalls (strings vs booleans vs numbers)</h5>
+          <p>YAML's loose typing is a classic trap: yes, on, and no are parsed as booleans in YAML 1.1, so a variable meant to hold the string &quot;yes&quot; can silently become True. Quote anything that must stay a string, and be explicit about types at role boundaries.</p>
+          <p>Jinja2 renders everything as strings inside templates, so a port number becomes &quot;8080&quot; unless filtered back with | int. Test templates with --check --diff and eyeball the rendered output before deploying — type surprises are cheapest to catch in preview.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Set the same variable at five precedence levels and observe which value wins</strong><br/>Define one variable in role defaults, group_vars, host_vars, the play, and -e extra vars, then print it with the debug module. The winning value demonstrates the precedence ladder more convincingly than any diagram.</li>
+            <li><strong>Run the setup module on one host and extract one fact to drive a when condition</strong><br/>Call the setup module directly, find the OS family fact in its output, then write a task whose when clause keys off that exact fact path. This is the pattern behind every cross-distribution playbook.</li>
+            <li><strong>Write a Jinja2 template for a service config with conditionals and loops, rendered via the template module</strong><br/>Build a realistic config — say, a web server vhost file — with an if block for TLS and a for loop over backend servers. Render it and diff the output against a hand-written reference.</li>
+            <li><strong>Break a template intentionally, read the Jinja2 error, and fix it</strong><br/>Introduce an undefined variable and a syntax error separately, and read both error messages carefully. Jinja2 errors point at the template line; learning to read them now saves hours later.</li>
+            <li><strong>Pass -e extra_vars at runtime to override a template parameter and re-render</strong><br/>Override one parameter from the command line and confirm the rendered file changes while the committed variables stay untouched. This is how operators tune a run without editing versioned files.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Rank these from lowest to highest precedence: group_vars, extra vars, role defaults, host_vars</li>
+            <li>Given a host's facts, write the when expression that selects only Debian-family hosts</li>
+            <li>Why does a bare 'yes' in YAML break a boolean test, and what is the fix?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Roles: Structure, Dependencies, and Galaxy</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Scaffold a role and explain the purpose of each directory</li>
+            <li>Compose playbooks from roles with variables and dependencies</li>
+            <li>Evaluate and pin third-party roles from Galaxy</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Role directory layout: tasks, handlers, defaults, vars, files, templates, meta</h5>
+          <p>A role is a directory with a conventional layout that Ansible understands: tasks/main.yml holds the task list, handlers/main.yml the handlers, defaults/main.yml the overridable defaults, vars/main.yml the non-overridable variables, files/ the static payloads, templates/ the Jinja2 templates, and meta/main.yml the metadata.</p>
+          <p>The layout is the documentation: anyone who knows the convention can open an unfamiliar role and know exactly where to look. Roles turn playbooks from scripts into packages with a predictable internal geography.</p>
+          <h5>defaults vs vars precedence within a role</h5>
+          <p>defaults/main.yml is the lowest-precedence variable source in all of Ansible — deliberately so, because role defaults are meant to be overridden by the playbook author. vars/main.yml sits much higher and cannot be overridden by inventory, which makes it the place for values the role itself must control.</p>
+          <p>The design rule: put anything a user might reasonably change in defaults, with a comment explaining it; put internal constants the role depends on in vars. A role whose defaults are empty or undocumented is a role nobody can safely reuse.</p>
+          <h5>meta/main.yml: dependencies, argument specs, platform support</h5>
+          <p>meta/main.yml declares the role's relationships: dependencies lists other roles that must run first, and the argument spec validates the variables callers pass in — failing fast with a clear message instead of mid-run with a Jinja2 error.</p>
+          <p>It also declares supported platforms, so automation can refuse to run a Debian-only role on RHEL rather than failing obscurely. Metadata is what separates a folder of tasks from a distributable, trustworthy role.</p>
+          <h5>requirements.yml for pinning collections and roles</h5>
+          <p>requirements.yml pins every external dependency — Galaxy roles and collections with exact versions — so a playbook run today and a run in six months install the same code. Without pinning, a fresh install silently pulls the newest upstream release and your automation drifts.</p>
+          <p>Commit requirements.yml with the project and install from it in CI. Version pins are reviewed and bumped deliberately, exactly like a lockfile in application development.</p>
+          <h5>Galaxy as a distribution registry; collection vs role granularity</h5>
+          <p>Ansible Galaxy is the public registry where the community publishes reusable automation. The older unit is the role; the modern unit is the collection, which bundles roles, modules, plugins, and documentation under one namespace and version.</p>
+          <p>Prefer collections for new work — they carry their own modules and are versioned as a unit — and treat Galaxy content as third-party code: read it before you run it, pin it, and prefer well-maintained, widely-used projects.</p>
+          <h5>Role inclusion order and dependency execution</h5>
+          <p>Roles listed on a play run in order, and each role's dependencies run before the role itself, recursively. This gives a deterministic execution sequence you can reason about: dependencies first, then the role's own tasks.</p>
+          <p>Because dependencies always run first, deep dependency chains can surprise — a role you included for one task may drag in three others. Keep dependency trees shallow and prefer explicit role lists in the play over hidden transitive dependencies.</p>
+          <h5>Idiomatic role naming and versioning</h5>
+          <p>Role names are lowercase with underscores, namespaced by collection or author, and describe what the role manages — not who wrote it or which project first needed it. Versions follow semantic versioning so consumers can reason about upgrades.</p>
+          <p>Good naming is a reuse strategy: a role named webserver_tls is discoverable and self-describing; a role named johns_stuff is not. Name for the next team, not the current sprint.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Scaffold a role with ansible-galaxy init and map each directory to its runtime function</strong><br/>The scaffolding generates every conventional directory with placeholder files. Walk each one and state what Ansible loads from it and when — the layout becomes a mental map rather than a mystery.</li>
+            <li><strong>Refactor an earlier playbook into two roles (common, webserver) wired by a site playbook</strong><br/>Split a working playbook along responsibility lines: common for baseline configuration, webserver for the application tier. The site playbook becomes a short, readable composition of roles.</li>
+            <li><strong>Declare a dependency in meta/main.yml and observe dependency execution order</strong><br/>Make webserver depend on common and watch the run order: common's tasks execute before webserver's, even though the play lists only webserver. Dependencies are execution order made declarative.</li>
+            <li><strong>Pin a Galaxy role version in requirements.yml and install it into a local roles path</strong><br/>Write the requirements file, install with ansible-galaxy, and confirm the exact pinned version landed in your roles path. Then bump the pin and reinstall to feel the upgrade path.</li>
+            <li><strong>Diff defaults/main.yml against vars/main.yml overrides to demonstrate precedence</strong><br/>Set the same variable in both files plus an inventory override, and show which value wins at runtime. Watch role defaults lose to inventory, and role vars beat inventory — seeing the three tiers resolve once makes the precedence chain real.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Which role directory's variables can a playbook override, and which cannot?</li>
+            <li>When do role dependencies execute relative to the role that declares them?</li>
+            <li>What breaks if requirements.yml pins a collection version your roles don't support?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Idempotence: Check Mode, Diff, and Change Semantics</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design tasks that converge to desired state without side effects on rerun</li>
+            <li>Use check mode and diff to preview changes before applying them</li>
+            <li>Interpret changed/failed/ok/unreachable task outcomes in run output</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Idempotence as the contract: describe state, not steps</h5>
+          <p>Idempotence is the promise that running the same automation twice produces the same end state, with the second run reporting no changes. Every Ansible module is designed around this: you declare the desired state (&quot;this package installed, this line present in this file&quot;), and the module checks current state before acting.</p>
+          <p>This contract is what makes automation safe to re-run — after failures, on schedules, across fleets. A playbook that is not idempotent is a script with YAML syntax; a playbook that is idempotent is infrastructure as code.</p>
+          <h5>Changed vs failed vs ok vs unreachable vs skipped outcomes</h5>
+          <p>Every task ends in one of a small set of states: ok means the desired state already held; changed means the task altered something; failed means the task errored; unreachable means Ansible could not even reach the host; skipped means a when condition excluded it. The recap at the end of a run tallies these per host.</p>
+          <p>Reading the recap is a core skill: a run with zero changed is a converged fleet; changed on every run for the same task is a broken idempotence promise; unreachable points at SSH and network, not at your tasks. The outcome vocabulary tells you where to look.</p>
+          <h5>check_mode (--check) and per-task check_mode overrides</h5>
+          <p>Check mode (--check) is the dry run: Ansible runs through the playbook and reports what would change, without changing anything. It is the last review gate before a production run — the equivalent of reading the diff before merging.</p>
+          <p>Individual tasks can opt out or force check-mode behavior, because some modules cannot predict their effect without executing. Treat check mode as a preview, not a proof: it shows intent, but only the real run shows reality.</p>
+          <h5>--diff rendering of file-level changes</h5>
+          <p>Combined with check mode, --diff shows the actual file-level differences a run would produce — added and removed lines in configs, exactly like a code diff. For file-managing tasks this turns a dry run into a precise, reviewable change proposal.</p>
+          <p>Make --check --diff the default way you review any playbook that touches configuration files. It catches the &quot;I didn't expect it to rewrite that whole file&quot; surprises before they reach production.</p>
+          <h5>changed_when and failed_when for non-idempotent commands</h5>
+          <p>The shell and command modules cannot know whether they changed anything, so they report changed on every run — breaking the idempotence contract. changed_when lets you define the condition (for example, a string in stdout) that actually means &quot;something changed,&quot; restoring honest reporting.</p>
+          <p>failed_when is the mirror: it defines what failure means for commands whose exit codes lie — a nonzero exit that is actually the expected &quot;not found&quot; signal, for instance. Together they let raw commands participate honestly in the changed/failed/ok vocabulary.</p>
+          <h5>Why shell/command modules break idempotence and how to guard them (creates, removes)</h5>
+          <p>Shell tasks are imperative steps in a declarative system: Ansible cannot diff &quot;the state after running this script&quot; against anything. The creates and removes arguments are the standard guards — the task is skipped if a marker file already exists (creates) or is missing (removes).</p>
+          <p>Prefer a purpose-built module over shell whenever one exists; modules encode idempotence, while shell tasks make you encode it by hand. Every shell task in a playbook should make a reviewer ask &quot;why isn't this a module?&quot; — and have a good answer.</p>
+          <h5>Dry-run limits: modules that cannot support check mode</h5>
+          <p>Some modules cannot predict their outcome without executing — anything involving external side effects, generated secrets, or API calls with non-idempotent semantics. These modules skip or approximate check mode, and the run will tell you so.</p>
+          <p>Know which of your modules these are before you trust a dry run. A clean --check on a playbook whose critical tasks all skipped prediction is a false sense of security; pair it with a staging run for those tasks.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a raw shell task that reports changed every run, then make it idempotent with changed_when</strong><br/>Watch the task report changed on three consecutive runs — the visible symptom of broken idempotence. Then add a changed_when condition tied to real output, and watch the second and third runs go green.</li>
+            <li><strong>Run a file-management playbook with --check --diff and reconcile the preview with the real run</strong><br/>Preview first, note every predicted change, then run for real and compare. The preview and the reality should match exactly; any divergence is a lesson about check-mode limits.</li>
+            <li><strong>Compare three runs of the same playbook and record the changed-count decay to zero</strong><br/>Run the playbook three times and record the changed tally each time: N, then smaller, then zero. That decay curve is the signature of a healthy idempotent playbook.</li>
+            <li><strong>Use failed_when to treat a nonzero exit code as success for an idempotence probe</strong><br/>Write a probe command whose nonzero exit means &quot;already in desired state&quot; and teach the task to interpret it correctly. Exit codes are data; failed_when is how you decode them.</li>
+            <li><strong>Identify one module in your playbook that ignores check mode and add a guard task</strong><br/>Find a task whose check-mode output is uninformative, and add a preceding guard — a stat check or a when condition — so the dry run stays meaningful. Not every module cooperates; your playbook design must compensate.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Your playbook reports changed on every run for one task — list three candidate causes in order of likelihood</li>
+            <li>What does --diff show for a task that changed nothing, and why?</li>
+            <li>When is failed_when preferable to ignore_errors?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">ansible-vault and Secrets Handling</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Encrypt sensitive variables with ansible-vault and use them in playbooks</li>
+            <li>Design a vault password workflow that keeps secrets out of version control</li>
+            <li>Audit a playbook for secret leakage in logs and output</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>ansible-vault encrypt/decrypt/view/edit/rekey operations</h5>
+          <p>ansible-vault encrypts files and strings with AES, turning secrets into ciphertext that is safe to store alongside code. The subcommands cover the lifecycle: encrypt and decrypt for whole files, view for reading without decrypting to disk, edit for in-place editing through a decrypted temp file, and rekey for rotating the password.</p>
+          <p>Encrypted files remain usable by Ansible directly — playbooks reference them like any vars file, and Ansible decrypts in memory at runtime. The workflow never requires plaintext secrets to rest on disk outside the editor's temp file.</p>
+          <h5>Encrypting whole files vs encrypt_string for single values</h5>
+          <p>Whole-file encryption suits files that are mostly secrets — a group_vars file holding database passwords, for example. encrypt_string encrypts a single value inline in an otherwise readable playbook, keeping the surrounding structure visible for review.</p>
+          <p>Prefer whole files when most of the file is sensitive, and encrypt_string when one value in a readable file needs protection. Either way, the ciphertext is committed and the password never is.</p>
+          <h5>Vault password sources: prompt, password files, vault-id labels</h5>
+          <p>Ansible needs the vault password at runtime, and there are three honest ways to supply it: an interactive prompt (--ask-vault-pass) for human runs, a password file (--vault-password-file) for automation — ideally an executable script that fetches the password from a real secret store — and vault-id labels that map different passwords to different vault identities.</p>
+          <p>The password file is the sharp edge: if it holds the plaintext password and gets committed, the encryption is theater. Treat the vault password with the same care as the secrets it protects.</p>
+          <h5>no_log to suppress sensitive task output</h5>
+          <p>Tasks that handle secrets — registering a password, templating a config — can leak values into logs and console output. no_log: true on a task suppresses its arguments and results from all output, closing that leak.</p>
+          <p>Apply no_log to any task that touches secret values, and verify with -v output that nothing sensitive appears. Logging is a secret-handling surface; treat it as one.</p>
+          <h5>Separation of secrets from code in version control</h5>
+          <p>The vault model's whole point is that ciphertext can live in git while the password lives elsewhere. Secrets are versioned (so changes are reviewed and auditable) without being exposed (because the password is not in the repo).</p>
+          <p>This separation must be total: no plaintext secrets in playbooks, no password files committed, no secrets in CI logs. Audit regularly — a single committed password file voids the entire scheme.</p>
+          <h5>Multi-vault-id setups for per-environment secrets</h5>
+          <p>Vault IDs let different environments use different passwords: the production vault is encrypted with the production password, staging with staging's. A playbook run supplies the relevant --vault-id, and Ansible decrypts only what that identity can open.</p>
+          <p>This limits blast radius: a compromised staging password does not decrypt production secrets. It also models real organizational boundaries — the people who can read production secrets are not everyone with repo access.</p>
+          <h5>Rotation practice: rekeying and updating dependent vars</h5>
+          <p>Rotation means generating a new secret, updating every place that consumes it, and rekeying the vault files to a new password. Because vault files are versioned, the rotation itself is a reviewed change with a clear before and after.</p>
+          <p>Practice rotation on a schedule, not just after incidents: scheduled rotations prove the procedure works when nothing is on fire, which is exactly when you want to discover that a consumer was missed.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create an encrypted group_vars file holding a service password and consume it in a task</strong><br/>Encrypt a vars file with ansible-vault create, reference the variable in a task, and run the playbook with the password prompt. The task should succeed while the committed file stays ciphertext.</li>
+            <li><strong>Convert a plaintext password in a playbook to an inline vault-encrypted string</strong><br/>Take a working playbook with a plaintext secret, replace the value with ansible-vault encrypt_string output, and re-run. The playbook stays readable; only the value becomes opaque.</li>
+            <li><strong>Run a playbook with a vault password file and confirm no secret appears in -v output</strong><br/>Supply the password via a file, run with verbose output, and grep the output for the secret value. The absence of the value is the test — and add no_log where the test fails.</li>
+            <li><strong>Mark a secret-registering task no_log: true and verify redaction</strong><br/>Register a task result containing a secret, first without no_log to see the leak, then with it to see the redaction. The contrast makes the setting unforgettable.</li>
+            <li><strong>Rekey a vault file with a new password and re-run the playbook end to end</strong><br/>Rotate the vault password with rekey, confirm the old password no longer works and the new one does, and run the full playbook. Rotation is a procedure; rehearse it.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>A colleague commits the vault password file — what is the blast radius and the recovery plan?</li>
+            <li>When should a value be encrypt_string in the playbook vs a separate encrypted vars file?</li>
+            <li>How do you prove a run did not leak a secret into the log?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Troubleshooting Playbooks in Production</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Diagnose failed runs from output, verbosity levels, and return data</li>
+            <li>Isolate faults to inventory, connectivity, privilege, or task logic</li>
+            <li>Build repeatable debugging habits for fleet-wide changes</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Reading task results: msg, rc, stdout/stderr, changed</h5>
+          <p>Every task result is a small data structure: msg carries the human-readable error, rc the return code, stdout and stderr the command output, changed whether anything was altered. The habit is to read the result bottom-up — the msg first, then the output that explains it.</p>
+          <p>Most Ansible errors are precise if you read them fully: the failing task name, the host, and the module's own error message usually name the cause. Skimming to the recap and guessing wastes the information Ansible already gave you.</p>
+          <h5>Verbosity ladder (-v to -vvvv) and what each level reveals</h5>
+          <p>Verbosity is a ladder: -v shows task results and basic facts, -vv adds more detail, -vvv exposes the SSH connection layer — the exact command Ansible ran to connect — and -vvvv adds connection-level debugging including SSH's own verbose output.</p>
+          <p>Climb one rung at a time. Connection failures want -vvv; task-logic failures rarely need more than -v. Reaching for -vvvv first buries the signal in SSH internals.</p>
+          <h5>Common failure classes: unreachable (SSH), permission (become), undefined variable, Jinja2 syntax</h5>
+          <p>Production failures fall into a small taxonomy. Unreachable means SSH failed — keys, network, host keys. Permission errors after become mean sudo is misconfigured. Undefined variable means a name was misspelled or never defined at that precedence level. Jinja2 syntax errors mean the template is malformed.</p>
+          <p>Classify first, then investigate: each class has a different fix location (inventory, target sudoers, variable layout, template file). Misclassifying an SSH failure as a playbook bug sends you debugging the wrong layer.</p>
+          <h5>debug module and strategic task isolation (--start-at-task, --step)</h5>
+          <p>The debug module prints variable values mid-run — the fastest way to answer &quot;what does Ansible think this variable is right now?&quot; Add debug tasks temporarily, run, read, and remove them; they are scaffolding, not permanent fixtures.</p>
+          <p>For long playbooks, --start-at-task resumes from a named task instead of re-running everything, and --step pauses before each task for confirmation. Together they turn a 200-task run into a debuggable sequence.</p>
+          <h5>Retrying failed hosts with --limit @retry-files</h5>
+          <p>When a run fails on some hosts, Ansible writes a retry file listing them. Re-running with --limit @&lt;retryfile&gt; targets exactly those hosts, so the fix run is surgical rather than fleet-wide.</p>
+          <p>This pairs with idempotence: the retry re-runs the playbook, and already-converged hosts report no changes. Retries are safe precisely because the playbook is idempotent — another reason the contract matters.</p>
+          <h5>Idempotent re-runs as the safe retry strategy</h5>
+          <p>The safest response to a half-failed run is usually to fix the root cause and re-run the whole playbook: converged hosts stay converged, failed hosts get another chance, and no manual per-host surgery diverges the fleet.</p>
+          <p>Manual fixes on individual hosts are the enemy of this model — they create snowflakes that the next playbook run may or may not reconcile. Prefer the re-run; reserve manual intervention for the cases automation genuinely cannot express.</p>
+          <h5>Callback plugins and structured output for post-mortems</h5>
+          <p>Callback plugins control how Ansible presents results: the default is human-readable, but JSON or YAML callbacks emit structured output for machines. A JSON callback report from a failed run gives per-host, per-task failure data you can query programmatically.</p>
+          <p>For post-mortems and fleet-wide analysis, structured output beats scrolling terminal history. Generate it for significant runs, extract the failure counts, and file it with the incident record.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Inject four faults (bad key, bad sudo, undefined var, Jinja2 typo) and classify each from its error alone</strong><br/>Break one thing at a time and read only the error output to name the failure class. This builds the pattern-matching reflex that makes production debugging fast.</li>
+            <li><strong>Use -vvv to trace an SSH connection failure to its root cause</strong><br/>Break SSH access deliberately, then climb the verbosity ladder until the output shows the exact failing step — key rejection, host key mismatch, or network timeout. The -vvv output is the map.</li>
+            <li><strong>Resume a half-failed run with the generated retry file limited to failed hosts</strong><br/>Run a playbook that fails on a subset of hosts, then re-run with --limit @retryfile after fixing the cause. Watch the previously-failed hosts converge while the healthy ones report no changes.</li>
+            <li><strong>Add debug tasks that dump the three variables most likely to be wrong, then remove them</strong><br/>When a task misbehaves, the fastest diagnosis is printing the variables it consumes. Practice the add-run-read-remove cycle until it is muscle memory.</li>
+            <li><strong>Produce a JSON callback report for a run and extract per-host failure counts</strong><br/>Run with a JSON callback, then query the output for per-host failed-task counts. Structured post-mortem data is a professional habit worth building early.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Distinguish an unreachable host from a failed task in the recap output — what differs?</li>
+            <li>A run fails on 2 of 20 hosts with a permission error — what is your isolation sequence?</li>
+            <li>Why is re-running an idempotent playbook usually safer than targeted manual fixes?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://docs.ansible.com/">https://docs.ansible.com/</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html">https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html">https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html">https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html">https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html">https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html">https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html</a></li>
+          <li><a href="https://galaxy.ansible.com/ui/">https://galaxy.ansible.com/ui/</a></li>
+          <li><a href="https://docs.ansible.com/ansible/latest/vault_guide/vault.html">https://docs.ansible.com/ansible/latest/vault_guide/vault.html</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://galaxy.ansible.com/ui/">Ansible Galaxy — shared roles and collections</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

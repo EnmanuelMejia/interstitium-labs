@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before 
+<style>
+  .mod-index{columns:2;column-gap:2.5rem}
+  .mod-index li{break-inside:avoid;margin-bottom:.4rem}
+  @media (max-width:640px){.mod-index{columns:1}}
+  .il-gloss dt{font-weight:600}
+  .il-gloss dd{margin:0 0 .75rem 0}
+</style>
+</head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Ledger Protocol Engineering In-Depth — 10 Protocol Families | Interstitium Labs</title>
+<meta name="description" content="A ten-module study sequence distilling the engineering of ten ledger protocol families — Solana, Cardano, Cosmos, Polkadot, Avalanche, Chainlink, Polygon, Hedera, Litecoin, Monero, Stellar — plus ISO 20022 messaging. Original study guide keyed to public protocol documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Ledger Engineering</p>
+    <h1 class="il-h">Ledger Protocol Engineering In-Depth — 10 Protocol Families</h1>
+    <p class="il-hero__sub">Ten production protocols, distilled: Solana, Cardano, Cosmos, Polkadot, Avalanche, Chainlink, Polygon, Hedera, Litecoin — plus Monero, Stellar, and ISO 20022. Consensus, execution models, and developer surfaces, taught in each protocol&#x27;s own terms with labs on public testnets.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Start the sequence</a>
+      <a class="il-btn" href="/learn/">Back to Learn</a>
+    </div>
+    <p class="il-hero__motto">Ten ledgers. One curriculum. Understand the machinery.</p>
+  </div>
+</header>
+<main>
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Study sequence</p>
+      <h2 class="il-h" id="overview-h">Overview</h2>
+      <div class="il-prose">
+      <p>Ten protocol families, one sequence. This study guide distills the engineering of ten production ledger protocols — Solana, Cardano, Cosmos, Polkadot, Avalanche, Chainlink, Polygon, Hedera, Litecoin, and a closing module combining Monero, Stellar, and ISO 20022 messaging — into a single comparative curriculum. Each module teaches one protocol&#x27;s consensus mechanism, execution model, and developer surface in the project&#x27;s own terms, with labs run on public testnets.</p>
+      <p>It is for developers and systems engineers who want to understand how modern ledgers actually work — not the marketing, the machinery. You will get the most from it if you can already read code and reason about distributed systems at a conceptual level; prior blockchain experience is helpful but not required.</p>
+      <p>Prerequisites are practical: comfort with a systems language (Rust or TypeScript helps for the Solana, Soroban, and Chainlink labs), basic cryptography vocabulary (hashes, signatures, Merkle proofs), and a machine that can run CLIs and local test validators. Every on-chain lab uses testnets and faucets — no real funds, ever.</p>
+      <p>Work the modules in order; each builds vocabulary the next assumes. Read the key-concept explanations, then do the labs — the sequence is designed so every lab runs with free tooling. Finish each module&#x27;s self-check before moving on; if you cannot answer a checkpoint, re-read before proceeding. Budget roughly a focused week per module.</p>
+      </div>
+      <h3 class="il-h il-h--section">At a glance</h3>
+      <dl class="il-gloss">
+        <dt>Modules</dt><dd>10</dd>
+        <dt>Key concepts</dt><dd>80</dd>
+        <dt>Hands-on labs</dt><dd>40</dd>
+        <dt>Self-check questions</dt><dd>31</dd>
+        <dt>Format</dt><dd>Self-paced study sequence; labs use free and open tooling only.</dd>
+        <dt>Source material</dt><dd>Original study guide keyed to public documentation; official sources linked per module.</dd>
+      </dl>
+      <h3 class="il-h il-h--section">Module index</h3>
+      <ol class="il-list mod-index">
+        <li><a href="#module-1-solana-sealevel-runtime-and-proof-of-history"><strong>Module 1.</strong> Solana: Sealevel Runtime and Proof of History</a></li>
+        <li><a href="#module-2-cardano-eutxo-and-ouroboros"><strong>Module 2.</strong> Cardano: eUTxO and Ouroboros</a></li>
+        <li><a href="#module-3-cosmos-tendermint-bft-the-sdk-and-ibc"><strong>Module 3.</strong> Cosmos: Tendermint BFT, the SDK, and IBC</a></li>
+        <li><a href="#module-4-polkadot-relay-chain-parachains-and-xcm"><strong>Module 4.</strong> Polkadot: Relay Chain, Parachains, and XCM</a></li>
+        <li><a href="#module-5-avalanche-snow-consensus-and-subnets"><strong>Module 5.</strong> Avalanche: Snow Consensus and Subnets</a></li>
+        <li><a href="#module-6-chainlink-decentralized-oracle-networks-and-ccip"><strong>Module 6.</strong> Chainlink: Decentralized Oracle Networks and CCIP</a></li>
+        <li><a href="#module-7-polygon-pos-chain-and-the-zkevm-concept"><strong>Module 7.</strong> Polygon: PoS Chain and the zkEVM Concept</a></li>
+        <li><a href="#module-8-hedera-hashgraph-and-hbar"><strong>Module 8.</strong> Hedera: Hashgraph and HBAR</a></li>
+        <li><a href="#module-9-litecoin-scrypt-mining-and-mweb"><strong>Module 9.</strong> Litecoin: Scrypt Mining and MWEB</a></li>
+        <li><a href="#module-10-privacy-and-payments-monero-stellar-and-iso-20022-messaging"><strong>Module 10.</strong> Privacy and Payments: Monero, Stellar, and ISO 20022 Messaging</a></li>
+      </ol>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <div id="modules">
+<section class="il-section" id="module-1-solana-sealevel-runtime-and-proof-of-history" aria-labelledby="module-1-solana-sealevel-runtime-and-proof-of-history-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 1 of 10</p>
+    <h2 class="il-h" id="module-1-solana-sealevel-runtime-and-proof-of-history-h">Solana: Sealevel Runtime and Proof of History</h2>
+    <div class="il-prose">
+      <p>Solana&#x27;s breakthrough was treating time as data: proof-of-history embeds a verifiable clock into the ledger itself, letting validators parallelize transaction processing. This module covers the PoH mechanism, the account model, and how programs execute — the architecture behind the highest-throughput major chain.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe the Solana account model and how it differs from a global-state account model.</li>
+        <li>Explain Proof of History and Tower BFT at a systems level.</li>
+        <li>Build, deploy, and invoke a simple Anchor program on devnet.</li>
+        <li>Identify Solana-specific security considerations such as account validation and signer checks.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Sealevel parallel runtime</h4>
+      <div class="il-prose"><p>Sealevel is Solana&#x27;s transaction-processing runtime, and its defining trick is parallel execution. Every Solana transaction declares up front which accounts it will read and which it will write; Sealevel uses those declarations to run non-overlapping transactions on separate CPU cores at the same time. Transactions that touch the same writable account are serialized, but everything else flows in parallel. This is why declared-account models matter so much on Solana: the declaration is what makes parallelism safe.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Accounts as state containers</h4>
+      <div class="il-prose"><p>On Solana there is no global account balance that programs mutate in place the way EVM contracts mutate storage. Instead, all state lives in accounts — data containers with an owner field — and only the program that owns an account may write to it. Programs themselves live in executable accounts and are stateless; an invocation takes data accounts as inputs. This separation is why a transaction must list every account it touches: the runtime needs to know what to lock and what to hand the program.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Proof of History ordering</h4>
+      <div class="il-prose"><p>Proof of History (PoH) is a verifiable delay function — a long, sequential chain of hashes where each output feeds the next computation. Because the chain cannot be parallelized, a hash&#x27;s position in the sequence is itself proof that a certain amount of real time has passed. Validators embed transactions into this time-stamped sequence, so the network agrees on event ordering without every node gossiping timestamps first. PoH is not consensus by itself; it is a cryptographic clock that consensus builds on.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Tower BFT finality</h4>
+      <div class="il-prose"><p>Tower BFT is Solana&#x27;s consensus algorithm, a PBFT-like protocol that uses Proof of History as its clock. Validators vote on the PoH-ordered ledger, and each vote locks the voter out of conflicting forks for a cooldown that grows exponentially the deeper it votes — the lockout mechanism. Finality arrives when more than two-thirds of stake has voted for a block. Because flipping a vote gets exponentially expensive, validators cannot cheaply flip-flop, which is what keeps the ledger from forking.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Programs vs. contracts</h4>
+      <div class="il-prose"><p>In EVM chains a smart contract bundles code and state; on Solana the equivalent program is stateless code while state lives in separate accounts. One program can therefore serve thousands of users, because each user&#x27;s data sits in their own accounts and is passed in at invocation time. The model resembles an operating-system process — code plus explicitly passed memory — more than the contract-as-object model. It is also why Solana security reviews obsess over account validation: a program cannot trust any account it is handed.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Anchor IDL and macros</h4>
+      <div class="il-prose"><p>Anchor is the dominant Rust framework for writing Solana programs, and its macros handle most of the security-critical plumbing. The derive macro for accounts declares which accounts an instruction expects, with constraints — signer checks, ownership checks — that the generated code enforces automatically. Building produces an IDL (interface description) JSON file, which TypeScript clients use to construct correct transactions. The IDL is also what makes programs explorable and composable from off-chain code.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Rent and lamports</h4>
+      <div class="il-prose"><p>A lamport is Solana&#x27;s smallest unit — one SOL equals one billion lamports — and rent is the mechanism that keeps ledger state from growing without bound. Accounts must hold a minimum lamport balance proportional to the data they store; accounts above that threshold are rent-exempt and effectively pay nothing. In practice every account created today is made rent-exempt, so rent functions as a minimum-balance rule rather than an ongoing fee. When an account is closed, its lamports are returned to a designated recipient.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Devnet and test validators</h4>
+      <div class="il-prose"><p>Devnet is Solana&#x27;s public test network: real consensus and real programs, but with valueless SOL obtained from faucets. For local iteration, solana-test-validator runs a full single-node cluster on your own machine, with instant airdrops and fast confirmation, so you can develop without any network at all. The standard workflow is local validator first, devnet for integration, mainnet only when everything is proven. The labs in this module follow exactly that order.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Install the Solana CLI and run `solana-test-validator` locally; airdrop devnet-style SOL and transfer between two keypairs you generate.</li>
+      <li>Use the Solana explorer on devnet to trace a transaction&#x27;s account inputs and program invocations.</li>
+      <li>Scaffold an Anchor counter program, build it, deploy it to devnet, and call it from a small TypeScript client using the generated IDL.</li>
+      <li>Simulate a failed transaction by omitting a required account and read the resulting error log to understand account validation.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Diagram the lifecycle of a Solana transaction from client submission to confirmation, marking where Proof of History ordering and Tower BFT voting happen.</li>
+        <li>Given a program account and a data account, explain why a transaction must declare all accounts it will touch.</li>
+        <li>Sketch an Anchor project layout and name the purpose of each generated file.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://solana.com/developers" rel="noopener">solana.com/developers</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-2-cardano-eutxo-and-ouroboros" aria-labelledby="module-2-cardano-eutxo-and-ouroboros-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 2 of 10</p>
+    <h2 class="il-h" id="module-2-cardano-eutxo-and-ouroboros-h">Cardano: eUTxO and Ouroboros</h2>
+    <div class="il-prose">
+      <p>Cardano took the slow road: peer-reviewed protocol design, a formally verified ledger model, and the Ouroboros proof-of-stake family. This module teaches eUTxO accounting, staking and delegation mechanics, and Plutus smart contracts — the careful-engineering end of the protocol spectrum.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Model ledger state as unspent transaction outputs with datum and redeemer attachments.</li>
+        <li>Explain Ouroboros slot leadership and delegation without mining.</li>
+        <li>Write and execute a minimal Plutus validator on testnet.</li>
+        <li>Describe Cardano-specific attack surfaces such as transaction malleability handling and script validation costs.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">eUTxO ledger model</h4>
+      <div class="il-prose"><p>Cardano extends Bitcoin&#x27;s UTxO model: each unspent output can carry a datum (arbitrary data) alongside its value, and spending an output can require a redeemer plus a validator script. Ledger state is therefore a set of discrete outputs, not a mutable global store, and every transaction declares exactly which outputs it consumes and produces. This extended model is what lets Cardano run smart contracts while keeping validation local and predictable.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Ouroboros proof of stake</h4>
+      <div class="il-prose"><p>Ouroboros is Cardano&#x27;s family of proof-of-stake protocols, notable for being argued with formal security proofs rather than empirical testing alone. Time is divided into slots grouped into epochs; slot leaders are elected in proportion to stake and take turns producing blocks — no mining involved. Later generations tightened the assumptions: Praos added security against adaptive adversaries, and Genesis added the ability for a new node to bootstrap securely from the genesis block.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Stake pools and delegation</h4>
+      <div class="il-prose"><p>ADA holders who do not run a pool can delegate their stake to one without giving up custody — delegation is an on-chain certificate, and the ADA never leaves the owner&#x27;s wallet. Pools earn rewards for blocks produced in their elected slots and share them with delegators minus the pool&#x27;s margin and fixed cost. A saturation parameter discourages any single pool from growing too large, which is Cardano&#x27;s lever against centralization. Because delegation is non-custodial, a pool operator can never steal delegated funds.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Plutus scripts and validators</h4>
+      <div class="il-prose"><p>Plutus is Cardano&#x27;s smart-contract platform; validators are scripts attached to eUTxO outputs that must approve any spend. A spending transaction supplies a redeemer, and the validator executes against the datum, the redeemer, and the transaction context, returning true or false with no access to outside state. Because a validator sees the whole transaction, it can constrain exactly which outputs a spend may create. Plutus Tx compiles Haskell-like code to the on-chain format, and Aiken offers a purpose-built alternative language.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Native assets</h4>
+      <div class="il-prose"><p>On Cardano, tokens are native — first-class citizens of the ledger rather than smart-contract bookkeeping. A native asset is identified by a policy ID (the script controlling minting) plus an asset name, and transferring it works exactly like transferring ADA. No custom token contract is needed, and the same fees and validation rules apply. The trade-off sits in the minting policy: once a policy is locked, no more tokens can ever be minted under it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Slot leaders and epochs</h4>
+      <div class="il-prose"><p>Cardano organizes time into epochs (currently five days), each containing many one-second slots. For every slot, the protocol elects a leader from the stake-distribution snapshot taken at the epoch boundary, using a verifiable random function. If the elected leader is offline, the slot stays empty — no block is produced. Each pool computes its own leader schedule privately and reveals it only by producing blocks, which limits targeted denial-of-service against upcoming leaders.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Deterministic validation</h4>
+      <div class="il-prose"><p>Because eUTxO transactions declare all inputs and outputs up front, a transaction&#x27;s effects are fully determined before submission — fees, resulting balances, and script outcomes can all be computed locally. A transaction either validates exactly as predicted or fails entirely; there is no partial execution and no dependence on global state at inclusion time. This determinism is Cardano&#x27;s answer to the failed-transaction and front-running classes of problems common on account-model chains. What you simulate is what the ledger does.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Testnets and faucets</h4>
+      <div class="il-prose"><p>Cardano maintains public testnets — including a long-lived pre-production environment that mirrors mainnet configuration — where you deploy scripts with valueless test ADA from faucets. Faucets drip test ADA on request so you can pay fees and fund script addresses. Because testnet parameters track mainnet, behavior observed there transfers; only the ledger history does not. Every on-chain lab in this module runs on testnet.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Install cardano-cli and connect to a public testnet; query the tip and inspect a block.</li>
+      <li>Build and submit a simple ADA transfer on testnet using cardano-cli, observing inputs, outputs, and fees.</li>
+      <li>Deploy and redeem a basic Plutus validator script on testnet (always-succeeds pattern) and inspect the script address.</li>
+      <li>Trace a native asset through the testnet explorer, noting policy ID and asset name.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Contrast a Cardano transaction&#x27;s inputs and outputs with an account-model balance update.</li>
+        <li>Explain what eUTxO adds on top of classic UTxO for smart contracts.</li>
+        <li>List the steps a Plutus script goes through from submission to ledger inclusion.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://developers.cardano.org" rel="noopener">developers.cardano.org</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-3-cosmos-tendermint-bft-the-sdk-and-ibc" aria-labelledby="module-3-cosmos-tendermint-bft-the-sdk-and-ibc-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 3 of 10</p>
+    <h2 class="il-h" id="module-3-cosmos-tendermint-bft-the-sdk-and-ibc-h">Cosmos: Tendermint BFT, the SDK, and IBC</h2>
+    <div class="il-prose">
+      <p>Cosmos rejected the one-chain-to-rule-them-all thesis: application-specific blockchains, connected by the Inter-Blockchain Communication protocol. This module teaches Tendermint consensus, the Cosmos SDK, and IBC packet flow — the engineering of a network of sovereign chains.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain Tendermint BFT block production and finality guarantees.</li>
+        <li>Describe how the Cosmos SDK composes application logic from modules.</li>
+        <li>Trace an IBC packet across a channel handshake.</li>
+        <li>Identify Cosmos-specific risks: validator slashing, governance capture, and IBC relayer trust assumptions.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Tendermint BFT consensus</h4>
+      <div class="il-prose"><p>Tendermint is a Byzantine-fault-tolerant consensus engine that provides instant finality: once a block is committed, it is final and there are no reorgs. Validators take turns proposing blocks in rounds, and each block needs prevotes and precommits from more than two-thirds of voting power. The protocol tolerates up to one-third malicious voting power. Because finality is immediate, a transaction in a committed block is settled — a property applications and IBC depend on.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Cosmos SDK modules</h4>
+      <div class="il-prose"><p>The Cosmos SDK is a framework for building application-specific blockchains from composable modules — auth, bank, staking, governance, plus your custom logic. Each module owns a slice of state and defines message handlers that mutate it; the application wires modules together through keepers, which are capability-guarded references to other modules&#x27; functionality. You assemble a chain the way you assemble software from libraries. The result is a sovereign chain with its own validator set, not a contract on someone else&#x27;s chain.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">IBC protocol and channels</h4>
+      <div class="il-prose"><p>The Inter-Blockchain Communication protocol lets sovereign chains exchange authenticated messages without trusting each other. Two chains open a channel through a four-step handshake (init, try, acknowledge, confirm), with each step verified by on-chain light clients tracking the counterparty&#x27;s consensus state. Packets sent over a channel are committed to the sender&#x27;s state and proven on the receiver&#x27;s side with Merkle proofs. IBC is what makes Cosmos an internet of blockchains rather than a set of islands.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Hubs and zones topology</h4>
+      <div class="il-prose"><p>In Cosmos topology, zones are application-specific chains and hubs are chains whose purpose is routing between zones. The Cosmos Hub was the first hub, but any chain can serve as one — the topology is emergent, not enforced. A zone needs a channel to only one well-connected hub to reach the rest of the network. This hub-and-spoke pattern keeps the number of light clients and relayers needed for N chains to interoperate manageable.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Staking and slashing</h4>
+      <div class="il-prose"><p>Cosmos chains secure themselves with bonded proof of stake: validators lock (bond) tokens, and voting power follows the bond. Misbehavior is punished by slashing — part of the bonded stake, including delegators&#x27;, is burned — for faults like double-signing, and by temporary jailing for extended downtime. Delegators share both rewards and slash risk, which makes choosing a validator a genuine trust decision. Unbonding takes a chain-defined period (commonly two to three weeks) during which tokens earn nothing and cannot move: that illiquidity is the price of exit.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Governance proposals</h4>
+      <div class="il-prose"><p>On-chain governance lets token holders vote on parameter changes, software upgrades, and community-pool spending. Proposals pass through deposit and voting periods, and a quorum and threshold must be met. A passed upgrade proposal coordinates the standard upgrade path: the chain halts at an agreed height and validators swap binaries. Governance capture — an attacker acquiring enough voting power to pass hostile proposals — is the central risk of the model.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Light clients</h4>
+      <div class="il-prose"><p>A light client tracks another chain&#x27;s consensus state — validator set and signed headers — without executing its transactions. In IBC, each chain runs a light client of its counterparty inside its own state machine, and channel handshakes and packet proofs verify against it. Relayers submit client updates as transactions. Light clients are the trust-minimized core of IBC: each chain verifies the other&#x27;s signatures itself instead of trusting a bridge operator&#x27;s word.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Ignite CLI scaffolding</h4>
+      <div class="il-prose"><p>Ignite CLI (formerly Starport) scaffolds a working Cosmos SDK chain from templates — keyring, genesis, and module boilerplate included. The labs use it to stand up a single-validator local chain in minutes, so your effort goes into module logic and IBC rather than wiring. It is a development accelerator, not a production deployment tool.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Run a local single-node chain with Ignite CLI and query its status and validators.</li>
+      <li>Scaffold a custom Cosmos SDK module with a message type and handler; run the chain and submit a transaction.</li>
+      <li>Inspect IBC channel state on a public testnet using an explorer or CLI relayer query.</li>
+      <li>Practice delegation and redelegation operations on a testnet, observing unbonding behavior.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain why IBC channels, and not direct message passing, connect two Cosmos chains.</li>
+        <li>Describe the two-phase IBC handshake a new channel requires.</li>
+        <li>Map a Cosmos SDK module&#x27;s message handlers to the state transitions they perform.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.cosmos.network" rel="noopener">docs.cosmos.network</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-4-polkadot-relay-chain-parachains-and-xcm" aria-labelledby="module-4-polkadot-relay-chain-parachains-and-xcm-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 4 of 10</p>
+    <h2 class="il-h" id="module-4-polkadot-relay-chain-parachains-and-xcm-h">Polkadot: Relay Chain, Parachains, and XCM</h2>
+    <div class="il-prose">
+      <p>Polkadot&#x27;s bet is shared security: parachains lease validation from a relay chain instead of bootstrapping their own validator sets. This module covers the relay chain, parachain auctions and slots, XCM cross-chain messaging, and the nominated proof-of-stake that secures it all.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe the relay-chain/parachain division of responsibilities.</li>
+        <li>Explain nominated proof of stake and validator selection.</li>
+        <li>Build and run a Substrate-based chain with a custom pallet.</li>
+        <li>Compare XCM&#x27;s design goals with token-bridge architectures and their respective trust assumptions.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Relay chain and parachains</h4>
+      <div class="il-prose"><p>Polkadot splits responsibilities: the relay chain provides consensus, finality, and shared security, while parachains are sovereign blockchains that plug into it for those services. Parachains produce their own blocks through collators and submit them to the relay chain, which validates and finalizes them. Application logic lives on parachains; the relay chain itself stays minimal and upgradeable. This division is the core scaling argument: many execution environments, one security layer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Nominated proof of stake</h4>
+      <div class="il-prose"><p>Nominated proof of stake lets token holders nominate validators instead of running one, and the election algorithm (a sequential Phragmén method) spreads stake to maximize security and decentralization at once. Nominators share rewards and slash risk with the validators they back. The active validator set is elected each era from the candidate pool. Unlike simple delegation, NPoS actively balances stake across validators to resist concentration.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Shared security model</h4>
+      <div class="il-prose"><p>Parachains do not secure themselves; they inherit economic security from the relay chain&#x27;s full validator set, which validates every parachain block. Corrupting one parachain would require corrupting the entire relay chain — the security budget is pooled. This contrasts with the Cosmos model, where each zone&#x27;s security is its own validator set&#x27;s stake. The trade-off is sovereignty: parachains accept the relay chain&#x27;s validator set and governance as their security foundation.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">XCM cross-consensus messaging</h4>
+      <div class="il-prose"><p>XCM (Cross-Consensus Messaging) is a message format — a language for expressing what one consensus system wants another to do — not itself a transport. It lets parachains and the relay chain instruct each other: transfer assets, trigger logic, pay fees in the destination&#x27;s currency. Because the format is abstract, it works across parachains, smart contracts, and eventually external networks via bridges. Token bridges move value through a trusted custodian; XCM moves instructions with shared-security verification underneath.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Substrate FRAME pallets</h4>
+      <div class="il-prose"><p>Substrate is the blockchain framework Polkadot is built with, and FRAME is its module system: pallets are composable units of runtime logic (balances, staking, governance, your custom code). A parachain&#x27;s runtime is assembled from pallets, compiled to WebAssembly, and stored on-chain — which is how Polkadot performs forkless upgrades: the runtime itself is state that governance can replace. Writing a pallet means defining storage, dispatchable calls, and events. The labs build a node-template chain and add a custom pallet to it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Parachain slots and auctions</h4>
+      <div class="il-prose"><p>Parachain slots are scarce — the relay chain supports a bounded number — and historically they were leased through candle auctions, where teams bond DOT for up to two years to win a slot. Newer coretime mechanisms let chains buy execution time in bulk or on demand instead of winning a long lease. When a lease ends, the bonded DOT unlocks and the slot returns to the pool. Slot economics are the gatekeeper of the shared-security model.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Collators and validators</h4>
+      <div class="il-prose"><p>Validators are the relay chain&#x27;s consensus participants: they check parachain blocks and finalize the chain. Collators are per-parachain full nodes that maintain the parachain&#x27;s state, assemble its block candidates, and pass them to validators for checking. Collators do not participate in consensus; their job is keeping block production alive for their chain. If a parachain&#x27;s collators go offline, that chain stalls even while the relay chain stays healthy.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Governance and referenda</h4>
+      <div class="il-prose"><p>Polkadot&#x27;s on-chain governance (OpenGov) lets any token holder propose referenda, voted on with conviction-weighted stake — locking tokens longer multiplies voting power. There is no privileged council in the current design; proposals go straight to public referendum. Passed referenda can upgrade the runtime, spend treasury funds, or change parameters. The treasury is funded by a slice of staking rewards, slashes, and transaction fees.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Run a local Substrate node template and inspect its runtime pallets via the Polkadot.js Apps interface.</li>
+      <li>Add a simple FRAME pallet to the node template, rebuild, and submit an extrinsic that changes on-chain state.</li>
+      <li>Use Polkadot.js Apps on a public testnet to inspect a parachain&#x27;s head and recent blocks.</li>
+      <li>Draft an XCM message flow on paper between two test chains, identifying the message format and fee payment.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain how shared security differs from each parachain securing itself.</li>
+        <li>Describe what XCM messages allow chains to do that plain token bridges cannot.</li>
+        <li>Outline the lifecycle of a parachain slot from auction to onboarding.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.polkadot.com" rel="noopener">docs.polkadot.com</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-5-avalanche-snow-consensus-and-subnets" aria-labelledby="module-5-avalanche-snow-consensus-and-subnets-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 5 of 10</p>
+    <h2 class="il-h" id="module-5-avalanche-snow-consensus-and-subnets-h">Avalanche: Snow Consensus and Subnets</h2>
+    <div class="il-prose">
+      <p>Avalanche trades the single-chain model for a platform of many: subnets are sovereign blockchains that validate the primary network&#x27;s rules while running their own. This module covers the DAG-based consensus family, the three-chain primary network, and how to launch a subnet — the design answer to the question of how one network serves many applications.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain the Snow family&#x27;s metastable consensus approach at concept level.</li>
+        <li>Describe subnets as application-specific validator sets.</li>
+        <li>Operate a node and move assets across the X/P/C chain structure.</li>
+        <li>Identify Avalanche-specific considerations: subnet validator incentives and cross-chain atomicity.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Snow consensus family</h4>
+      <div class="il-prose"><p>The Snow family (Slush, Snowflake, Snowball, and the Avalanche protocol itself) reaches agreement through repeated random subsampling: each validator repeatedly queries a small random subset of peers and adopts the majority opinion, with confidence counters that lock in a decision once conviction runs high enough. There are no leaders and no classic BFT rounds — consensus emerges metastably from the sampling process. The headline properties are high throughput and fast finality with low communication overhead; C-chain finality typically lands in about a second or two.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Subnets and custom VMs</h4>
+      <div class="il-prose"><p>A subnet is a sovereign validator set — a group of validators that agree to validate one or more blockchains, with its own membership rules and economics. Each subnet runs blockchains built on virtual machines of its choice: the EVM-compatible chain VM, or a fully custom VM for application-specific logic. Subnets are Avalanche&#x27;s application-specific scaling story: your chain, your rules, your validators. Creating a subnet is permissionless; recruiting validators to secure it is the real work.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Primary network: X/P/C chains</h4>
+      <div class="il-prose"><p>The primary network — which every Avalanche validator must validate — is split into three chains with distinct jobs. The X-chain (exchange) handles asset creation and simple transfers on a UTXO model. The P-chain (platform) manages validators, subnets, staking, and delegation. The C-chain (contract) is the EVM-compatible smart-contract chain where most DeFi activity lives. Assets move between them through export/import transactions, which the labs walk through on testnet.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Validator staking and delegation</h4>
+      <div class="il-prose"><p>Becoming an Avalanche validator means staking AVAX at the protocol-defined minimum, running a node that validates the primary network, and staying online — uptime below the threshold earns no rewards for that period. Delegators can back a validator without running a node, sharing rewards minus the validator&#x27;s fee. Staking has a defined duration with minimum and maximum periods, and there is no slashing in the classic sense: the penalty for misbehavior or downtime is forfeited rewards. Delegation is non-custodial.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EVM compatibility on C-chain</h4>
+      <div class="il-prose"><p>The C-chain runs an Ethereum-compatible execution environment, so Solidity contracts, Hardhat/Foundry toolchains, and familiar wallets work with minimal changes. That is why the labs deploy a standard Solidity contract to Fuji with ordinary EVM tooling. Compatibility sits at the API level: address formats, the JSON-RPC interface, and the EVM itself behave as Ethereum developers expect. Gas is paid in AVAX, and finality is much faster than Ethereum mainnet.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Cross-chain messaging (Teleporter concept)</h4>
+      <div class="il-prose"><p>Teleporter is Avalanche&#x27;s native cross-chain messaging protocol for the C-chain and subnets: contracts on one chain send authenticated messages to contracts on another, verified by validator signatures rather than a trusted bridge operator. It generalizes the export/import asset flow into arbitrary message passing. The trust assumption is the validator set of the chains involved, not a third-party multisig. Treat the live interface as a docs-check item; the concept — validator-verified messaging — is what to carry.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dynamic fees</h4>
+      <div class="il-prose"><p>Avalanche fees adjust dynamically with network usage rather than following a fixed schedule: congestion raises the cost of whichever resource is scarce. The C-chain uses an EIP-1559-style fee market familiar from Ethereum; the X and P chains have their own dynamic fee formulas. All primary-network fees are burned, which ties AVAX value to network usage. For subnet operators, fee design is part of the chain&#x27;s economics.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Fuji testnet</h4>
+      <div class="il-prose"><p>Fuji is Avalanche&#x27;s public test network, mirroring the primary network&#x27;s X/P/C structure with valueless test AVAX from faucets. The labs run a node against Fuji, move assets across the three chains, and deploy contracts to the Fuji C-chain. Testnet behavior mirrors mainnet mechanics closely enough to build real operational skill. Fuji state is not permanent and the network can be reset — plan accordingly.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Run an Avalanche node on the Fuji testnet in archive or full mode and monitor its bootstrapping progress.</li>
+      <li>Transfer test AVAX between the X, P, and C chains to observe the export/import flow.</li>
+      <li>Deploy a Solidity contract to the Fuji C-chain with a standard EVM toolchain and verify it on the explorer.</li>
+      <li>Create a local subnet configuration and inspect how its validator set differs from the primary network.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Contrast Snow-family subsampled voting with classic BFT quorum voting.</li>
+        <li>Explain what a subnet controls independently of the primary network.</li>
+        <li>Describe how the three primary-network chains divide responsibilities.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.avax.network" rel="noopener">docs.avax.network</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-6-chainlink-decentralized-oracle-networks-and-ccip" aria-labelledby="module-6-chainlink-decentralized-oracle-networks-and-ccip-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 6 of 10</p>
+    <h2 class="il-h" id="module-6-chainlink-decentralized-oracle-networks-and-ccip-h">Chainlink: Decentralized Oracle Networks and CCIP</h2>
+    <div class="il-prose">
+      <p>Smart contracts are blind to the outside world; Chainlink is how they see. This module covers decentralized oracle networks, data feeds and their aggregation, verifiable randomness, and automation — the middleware layer that connects deterministic ledgers to real-world data.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe how decentralized oracle networks aggregate off-chain data.</li>
+        <li>Build a consumer contract that reads a testnet price feed.</li>
+        <li>Explain VRF request/response mechanics.</li>
+        <li>Identify oracle-specific risks: data-source manipulation, stale feeds, and cross-chain message finality.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Decentralized oracle networks</h4>
+      <div class="il-prose"><p>A decentralized oracle network (DON) is a set of independent Chainlink node operators that jointly provide a service — fetching data, computing, or relaying messages — so no single node is a point of trust or failure. Nodes run distinct infrastructure under distinct operators, and their outputs are aggregated before delivery on-chain. The security argument is economic and reputational: corrupting a DON means corrupting many independent parties. DONs are the unit of decentralization for everything Chainlink offers.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Data feeds and aggregation</h4>
+      <div class="il-prose"><p>Chainlink Data Feeds are the canonical price-feed service: each DON&#x27;s nodes pull prices from multiple premium data sources, aggregate them off-chain, and post one updated answer on-chain when it deviates beyond a threshold or a heartbeat elapses. A consumer contract reads the latest answer through a simple aggregator interface. Aggregation across sources and nodes is what makes one feed trustworthy even though no single source or node is. The labs read a testnet feed from a small consumer contract.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Verifiable randomness (VRF)</h4>
+      <div class="il-prose"><p>Chainlink VRF gives smart contracts randomness they can prove is fair: you request randomness, the DON generates it off-chain together with a cryptographic proof, and your contract&#x27;s fulfill function receives the value only if the proof verifies on-chain. The proof binds the output to the request, so neither the nodes nor the requester can bias it. It is the standard primitive for on-chain lotteries, NFT reveals, and gaming. The pattern is asynchronous — you request, and the callback arrives in a later transaction.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Automation networks</h4>
+      <div class="il-prose"><p>Chainlink Automation (formerly Keepers) lets contracts schedule work: you register an upkeep with a condition (time-based or custom logic), and the DON&#x27;s nodes monitor it and execute your function when the condition becomes true. Nodes are paid from the upkeep&#x27;s funded balance, and execution is decentralized across the network. The trust point is liveness and correct triggering, not custody — the DON cannot steal funds, only fail to call. The lab diagrams this flow conceptually.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CCIP cross-chain messaging</h4>
+      <div class="il-prose"><p>The Cross-Chain Interoperability Protocol is Chainlink&#x27;s standard for moving data and tokens between blockchains. Messages are committed on the source chain, attested by a separate Risk Management Network — an independent set of node operators watching for anomalies — and executed on the destination. The dual-network design is the security story: DONs execute, the Risk Management Network watches. Token transfers use lock-and-mint or burn-and-mint depending on the lane&#x27;s configuration.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Off-chain reporting</h4>
+      <div class="il-prose"><p>Off-Chain Reporting (OCR) is how DONs aggregate without congesting the chain: nodes exchange signed observations off-chain, agree on a single report, and submit one transaction carrying the aggregated result with the quorum&#x27;s signatures. One on-chain transaction replaces dozens, which is why feeds can update frequently and cheaply. The signatures let the contract verify that a supermajority of the DON endorsed the report. OCR is the scaling layer underneath feeds, VRF, and automation alike.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Node operator staking</h4>
+      <div class="il-prose"><p>Chainlink staking lets LINK holders stake behind node operators as a cryptoeconomic backstop: stakers earn a share of rewards and face defined penalties if the DON they back misbehaves, within the program&#x27;s alerting mechanics. It aligns operators and the community — operators gain delegated trust, stakers earn yield for underwriting service quality. The program has rolled out in defined versions with caps, so treat current parameters as docs-check items rather than fixed facts. The concept to carry: staking turns reputation into slashable collateral.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Sepolia testnet feeds</h4>
+      <div class="il-prose"><p>Chainlink maintains its services on public Ethereum testnets — Sepolia in the current generation — where data feeds, VRF, and automation all have testnet deployments with valueless LINK from faucets. The labs build against these: reading a feed needs no LINK, while VRF and automation need testnet LINK for fees. Testnet deployments mirror mainnet interfaces, so consumer-contract code transfers directly. Always confirm current feed addresses in the docs — they change across testnet generations.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Read a Chainlink data feed on a testnet from a small consumer contract you deploy.</li>
+      <li>Request randomness via VRF on a testnet and observe the fulfill callback in your contract.</li>
+      <li>Register an upkeep-style automation trigger conceptually and diagram the keeper execution flow.</li>
+      <li>Inspect CCIP documentation examples and map a token-transfer message&#x27;s lifecycle across lanes.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain the data-reporting flow from off-chain source to on-chain consumer.</li>
+        <li>Describe what makes an oracle report trustworthy when no single node is trusted.</li>
+        <li>Outline how CCIP routes a message between two chains at concept level.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.chain.link" rel="noopener">docs.chain.link</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-7-polygon-pos-chain-and-the-zkevm-concept" aria-labelledby="module-7-polygon-pos-chain-and-the-zkevm-concept-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 7 of 10</p>
+    <h2 class="il-h" id="module-7-polygon-pos-chain-and-the-zkevm-concept-h">Polygon: PoS Chain and the zkEVM Concept</h2>
+    <div class="il-prose">
+      <p>Polygon is Ethereum&#x27;s scaling laboratory: sidechains, commit chains, and a growing family of zero-knowledge rollups. This module covers the PoS chain, the zkEVM approach, and how developers choose between scaling options — the pragmatic end of the Ethereum ecosystem.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain the two-layer PoS chain architecture and its checkpointing design.</li>
+        <li>Describe the zkEVM concept and how it differs from optimistic approaches.</li>
+        <li>Deploy and verify contracts on a Polygon testnet.</li>
+        <li>Identify Polygon-specific risks: validator-set centralization concerns and bridge trust assumptions.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Heimdall validator layer</h4>
+      <div class="il-prose"><p>Polygon&#x27;s PoS chain is two-layered: Heimdall is the validator and staking layer (a Tendermint-based chain) that manages the validator set, staking, and checkpointing. Validators stake on Ethereum, and Heimdall tracks their identities and voting power. It is the chain&#x27;s management plane — it does not execute user transactions. Block production happens below it, in Bor.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Bor block-producer layer</h4>
+      <div class="il-prose"><p>Bor is the block-production layer — an EVM-compatible client derived from go-ethereum that executes transactions and produces blocks rapidly. A rotating subset of validators takes turns proposing Bor blocks, which is why confirmation feels fast. Bor is the user-facing chain; Heimdall handles validator coordination and anchoring. The two layers communicate through well-defined sync events.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Checkpoints to Ethereum</h4>
+      <div class="il-prose"><p>Periodically, a proposer submits a checkpoint — a Merkle root of Bor blocks — to a contract on Ethereum, attested by Heimdall validator signatures. Checkpoints anchor the PoS chain to Ethereum&#x27;s security: once a checkpoint is accepted, the history it covers becomes extremely expensive to rewrite. This is the bridge between fast sidechain-style execution and Ethereum-grade finality. The lab traces a checkpoint from the PoS chain to mainnet via explorers.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">zkEVM concept</h4>
+      <div class="il-prose"><p>A zkEVM is a zero-knowledge rollup whose execution environment matches the Ethereum Virtual Machine: it executes transactions off-chain and posts a validity proof to Ethereum proving correct execution. The concept differs from the PoS chain fundamentally — validity proofs replace validator-set trust. Polygon&#x27;s zkEVM work is a separate product line from the PoS chain this module centers on; the module teaches the concept so you can contrast the two security models. Optimistic rollups, by contrast, post state and wait out a challenge window instead of proving validity up front.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">State sync and deposits</h4>
+      <div class="il-prose"><p>Moving assets from Ethereum to the PoS chain goes through the bridge contracts: you deposit on Ethereum, a state-sync event relays the deposit to Bor, and the corresponding tokens appear on the PoS chain. Withdrawals reverse the flow and take longer, gated by checkpoint timing. The mechanism is event-driven rather than light-client verification — the bridge contracts on each side are the trust points. Testnet deposits on Amoy follow the same pattern with valueless tokens.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Plasma-era exit concepts</h4>
+      <div class="il-prose"><p>Polygon began as Matic Network with Plasma-based scaling ambitions, and exits are the Plasma concept that still shapes withdrawal thinking: to leave the child chain, you prove your funds on the parent chain and wait out a challenge period during which anyone can contest fraud. The PoS chain&#x27;s actual withdrawal flow is checkpoint-based rather than classic Plasma, but the exit vocabulary — proving inclusion, challenge windows — carries over. Knowing the history explains why bridge documentation talks the way it does.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Amoy testnet</h4>
+      <div class="il-prose"><p>Amoy is the current Polygon PoS testnet, replacing the older Mumbai testnet. It mirrors the Heimdall/Bor architecture with valueless test tokens from faucets. The labs connect a wallet, deploy and verify contracts, and compare behavior against an Ethereum testnet. As with all testnets, confirm the current faucet and RPC endpoints in the docs — they move.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EVM equivalence</h4>
+      <div class="il-prose"><p>The Bor layer aims for EVM equivalence: Solidity contracts, Ethereum tooling, and address formats work as developers expect, and execution semantics match Ethereum. Equivalence here means compatibility at the developer surface, not identical consensus or gas economics underneath. That is why the same contract deploys to Ethereum, the PoS chain, and Amoy with the same toolchain, and why the lab&#x27;s gas and confirmation comparison is meaningful: the code is identical, the chains differ.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Connect a wallet to the Amoy testnet, obtain test MATIC/POL from a faucet, and submit transactions.</li>
+      <li>Deploy a Solidity contract to Amoy and verify it on the block explorer.</li>
+      <li>Trace a checkpoint transaction from the Polygon PoS chain to Ethereum mainnet via explorers.</li>
+      <li>Compare gas costs and confirmation behavior of the same contract call on Amoy versus an Ethereum testnet.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain the roles of Heimdall and Bor in block production.</li>
+        <li>Describe how checkpoints anchor Polygon PoS state to Ethereum.</li>
+        <li>Contrast the PoS chain&#x27;s security model with a zero-knowledge rollup&#x27;s at concept level.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.polygon.technology" rel="noopener">docs.polygon.technology</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-8-hedera-hashgraph-and-hbar" aria-labelledby="module-8-hedera-hashgraph-and-hbar-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 8 of 10</p>
+    <h2 class="il-h" id="module-8-hedera-hashgraph-and-hbar-h">Hedera: Hashgraph and HBAR</h2>
+    <div class="il-prose">
+      <p>Hedera&#x27;s hashgraph reaches consensus through gossip-about-gossip and virtual voting — no blocks, no mining, no leader election in the classical sense. This module covers the hashgraph algorithm, the governing council model, and the token, consensus, and smart-contract services developers actually use.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain the hashgraph consensus mechanism at concept level.</li>
+        <li>Operate with HBAR accounts, keys, and allowances.</li>
+        <li>Use SDKs to work with tokens, consensus messages, and contracts.</li>
+        <li>Identify Hedera-specific considerations: council-governed validator set and fee-schedule economics.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Hashgraph gossip-about-gossip</h4>
+      <div class="il-prose"><p>Hashgraph&#x27;s core is gossip about gossip: each node repeatedly picks a random peer and tells it everything it knows — and the history of who told whom is itself part of what gets gossiped. Every event a node creates references the hashes of the events it has seen, building a directed acyclic graph of who knew what when. From this shared graph, every node can independently reconstruct the same ordering of events. The gossip protocol is both the communication layer and the raw material of consensus.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Virtual voting and ABFT</h4>
+      <div class="il-prose"><p>Because every node holds the same hashgraph, each node can compute how every other node would vote in a consensus round — without any votes actually being sent. This virtual voting is what makes hashgraph bandwidth-efficient: voting happens as local computation over shared history. The protocol is asynchronous Byzantine fault tolerant (aBFT), the strongest standard notion — it holds even under arbitrary network delays, given fewer than one-third malicious nodes. Finality is fast because agreement emerges from the graph rather than from rounds of messages.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">HBAR and account model</h4>
+      <div class="il-prose"><p>HBAR is Hedera&#x27;s native currency, used for transaction fees, staking to consensus nodes, and network security. Hedera uses an account model: accounts are identified by shard/realm/number triples, hold HBAR and token balances, and are controlled by keys, with support for key lists and thresholds. Allowances let an account grant another account limited spending rights without sharing keys. Fees are denominated in USD but paid in HBAR, which keeps the fee schedule stable in dollar terms.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Consensus nodes vs mirror nodes</h4>
+      <div class="il-prose"><p>Consensus nodes are the council-governed validators that run the hashgraph algorithm and decide transaction order — a permissioned set operated by Hedera Council members. Mirror nodes do not participate in consensus; they store the full history and serve it through query APIs so applications and explorers can read state without burdening consensus nodes. If you are building an app, you talk to mirror nodes; consensus nodes are the network&#x27;s trust core. The lab&#x27;s consensus-service messages are retrieved through a mirror node query.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Smart contract service (EVM-equivalent)</h4>
+      <div class="il-prose"><p>Hedera&#x27;s Smart Contract Service runs Solidity contracts in an EVM-equivalent environment, so standard languages and tooling transfer. Contracts deploy to Hedera and are called like on any EVM chain, with gas paid in HBAR. Equivalent signals Ethereum-compatible execution semantics within Hedera&#x27;s account model and fee schedule. The lab deploys a simple Solidity contract to testnet and calls it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Token service (HTS)</h4>
+      <div class="il-prose"><p>The Hedera Token Service creates and manages tokens natively — at the protocol level, not through smart contracts. Fungible and non-fungible tokens get the network&#x27;s throughput and fee schedule directly, with built-in features like KYC flags, freeze, wipe, and custom fee schedules. Because tokens are native, transfers are simple consensus transactions rather than contract calls. The lab creates a fungible token and moves it between accounts with the SDK.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Consensus service (HCS)</h4>
+      <div class="il-prose"><p>The Consensus Service gives applications decentralized, timestamped ordering of messages: you submit a message to a topic, the network orders it through hashgraph consensus, and anyone can retrieve the ordered log through a mirror node. It is a trust layer for ordering — audit trails, event logs, verifiable data feeds — without building a blockchain. Messages are small and cheap, and ordering carries the network&#x27;s consensus guarantee rather than a single server&#x27;s clock.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Testnet and local node</h4>
+      <div class="il-prose"><p>Hedera&#x27;s testnet is a public shared network with free test HBAR from the faucet, suitable for SDK quickstarts and the token, consensus, and contract labs. For fully local work, the local-node setup runs a single-node network in Docker on your machine. The standard progression is local node for iteration, testnet for realistic integration. Testnet state can be reset, so treat it as ephemeral.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Create a testnet account via the Hedera portal and fund it from the testnet faucet.</li>
+      <li>Use an SDK quickstart to create a fungible token with the Token Service and transfer it between accounts.</li>
+      <li>Submit a message to the Consensus Service and retrieve it via a mirror node query.</li>
+      <li>Deploy a simple Solidity contract to the Hedera testnet smart-contract service and call it.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain gossip-about-gossip and how it builds a shared event history.</li>
+        <li>Describe virtual voting and why nodes do not need to exchange votes.</li>
+        <li>Contrast consensus nodes with mirror nodes in operational responsibility.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.hedera.com" rel="noopener">docs.hedera.com</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-9-litecoin-scrypt-mining-and-mweb" aria-labelledby="module-9-litecoin-scrypt-mining-and-mweb-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 9 of 10</p>
+    <h2 class="il-h" id="module-9-litecoin-scrypt-mining-and-mweb-h">Litecoin: Scrypt Mining and MWEB</h2>
+    <div class="il-prose">
+      <p>Litecoin is Bitcoin&#x27;s oldest living fork and its most instructive one: the same codebase lineage with different parameters — Scrypt mining, faster blocks, and a higher supply cap. This module uses Litecoin to teach proof-of-work mechanics hands-on, because its testnet is cheap, fast, and honest.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe Scrypt mining and Litecoin&#x27;s issuance schedule.</li>
+        <li>Explain MWEB&#x27;s confidential-transaction extension at concept level.</li>
+        <li>Run and maintain a Litecoin node.</li>
+        <li>Identify Litecoin-specific risks: merged-mining dynamics and privacy limitations of transparent addresses.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Scrypt proof of work</h4>
+      <div class="il-prose"><p>Litecoin mines with Scrypt, a memory-hard hash function chosen to resist the ASIC-dominated landscape of Bitcoin&#x27;s SHA-256 at the time of Litecoin&#x27;s creation. Memory-hardness raises the cost of specialized hardware relative to general hardware — the design goal was broader mining participation. In practice Scrypt ASICs were eventually built anyway, and much Litecoin mining today is merged-mined alongside Dogecoin. The concept to carry: the choice of proof-of-work function shapes who can mine profitably, which shapes decentralization.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">2.5-minute block cadence</h4>
+      <div class="il-prose"><p>Litecoin targets a block every 2.5 minutes — one quarter of Bitcoin&#x27;s ten-minute target — so transactions confirm roughly four times faster at the same confirmation count. The trade-off is a higher stale-block rate and more chain growth for the same security budget. Confirmation policy is as much convention as technology: exchanges historically required more Litecoin confirmations than Bitcoin confirmations for equivalent assurance.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">84M supply cap</h4>
+      <div class="il-prose"><p>Litecoin&#x27;s maximum supply is 84 million LTC — exactly four times Bitcoin&#x27;s 21 million, mirroring the four-times-faster block schedule with the same halving cadence in block terms. Issuance halves on a fixed block schedule, with the final fractions mined far in the future. The cap is enforced by consensus rules, not by policy. Apart from the scale factor, the scarcity mechanics are Bitcoin-identical: the schedule is the point.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">MWEB extension blocks</h4>
+      <div class="il-prose"><p>MWEB (Mimblewimble Extension Blocks) is Litecoin&#x27;s opt-in confidential-transaction layer: coins move into an extension block where amounts are hidden with Pedersen commitments and no addresses appear on-chain, then move back out. It adds meaningful privacy for users who opt in, without changing the transparent base layer. Activation came through miner signaling, and exchange and wallet support varies — privacy features live or die on ecosystem adoption. The lab inspects an MWEB transaction&#x27;s peg-in/peg-out structure on a supporting explorer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SegWit activation history</h4>
+      <div class="il-prose"><p>Litecoin activated Segregated Witness in 2017 — before Bitcoin — and in doing so served as the live testbed that de-risked Bitcoin&#x27;s own SegWit activation. The episode matters beyond Litecoin: it demonstrated miner-activated soft-fork deployment under real economic conditions. SegWit also enabled the bech32 address format and fixed transaction malleability, which unblocked Lightning development on both chains.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Address formats (legacy, bech32)</h4>
+      <div class="il-prose"><p>Litecoin addresses come in legacy form (starting with L) and modern bech32 SegWit form (starting with ltc1), with wrapped-SegWit (M prefix) in between historically. Bech32 addresses have better error detection and are cheaper to spend from, because SegWit discounts witness data. The lab generates both and compares them on a testnet explorer. Wallet support varies, so check before moving funds — the address encodes the same script type, but not every wallet handles every format.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Lightning Network compatibility</h4>
+      <div class="il-prose"><p>Because Litecoin shares Bitcoin&#x27;s scripting and SegWit foundations, Lightning Network implementations run on Litecoin with minimal changes — it hosted some of the first live Lightning channels. The same HTLC mechanics, channel management, and routing concepts apply. Litecoin&#x27;s faster blocks make channel opens and closes confirm sooner, a genuine usability edge for Lightning operations. Testnet Lightning experimentation is cheap and instructive.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Node operation and pruning</h4>
+      <div class="il-prose"><p>Running a Litecoin full node means downloading and validating the entire chain history; pruning mode discards old block data after validation, keeping only recent blocks plus the UTXO set. A pruned node still validates everything — it simply cannot serve historical blocks to peers. For the labs, a testnet node with pruning keeps disk requirements modest. Node operation is the sovereignty baseline: your node, your verification.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Run a Litecoin full node on testnet (or signet-style test network) and monitor sync progress.</li>
+      <li>Generate addresses in legacy and bech32 formats and observe the differences on a testnet explorer.</li>
+      <li>Send a testnet transaction and track its confirmations; compare fee behavior with mainnet documentation.</li>
+      <li>Inspect an MWEB-enabled transaction on an explorer that supports the view and identify its peg-in/peg-out structure.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain why Scrypt was chosen as memory-hard and what that implies for miners.</li>
+        <li>Describe what MWEB adds to Litecoin transactions at concept level.</li>
+        <li>Contrast Litecoin&#x27;s confirmation profile with Bitcoin&#x27;s.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://litecoin.com" rel="noopener">litecoin.com</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-10-privacy-and-payments-monero-stellar-and-iso-20022-messaging" aria-labelledby="module-10-privacy-and-payments-monero-stellar-and-iso-20022-messaging-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 10 of 10</p>
+    <h2 class="il-h" id="module-10-privacy-and-payments-monero-stellar-and-iso-20022-messaging-h">Privacy and Payments: Monero, Stellar, and ISO 20022 Messaging</h2>
+    <div class="il-prose">
+      <p>Three different answers to three different problems: Monero&#x27;s privacy through ring signatures and stealth addresses, Stellar&#x27;s federated consensus for payments, and ISO 20022&#x27;s messaging standard for bank-to-bank communication. This closing module puts privacy, payments, and the traditional financial rails side by side.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain RingCT, stealth addresses, and Dandelion++ as a privacy stack.</li>
+        <li>Describe Stellar&#x27;s federated Byzantine agreement and quorum slices.</li>
+        <li>Build and deploy a minimal Soroban contract on testnet.</li>
+        <li>Describe ISO 20022 as a financial messaging standard and note that community claims about specific cryptocurrencies&#x27; ISO 20022 status are unverified marketing unless confirmed by the standards body.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">RingCT confidential amounts</h4>
+      <div class="il-prose"><p>Ring Confidential Transactions hide transaction amounts with Pedersen commitments — the network verifies that inputs equal outputs without seeing the values. Combined with ring signatures, which hide the true spender among decoys, RingCT is the core of Monero&#x27;s privacy: amounts, sender, and receiver are all obscured. Range proofs guarantee the hidden amounts are non-negative, preventing inflation by commitment. This is mandatory privacy, not opt-in: every Monero transaction uses it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Stealth addresses</h4>
+      <div class="il-prose"><p>A stealth address is a one-time destination derived from the recipient&#x27;s public keys and random data from the sender — each payment goes to a unique address that only the recipient can detect and spend. The recipient&#x27;s published address never appears on-chain, so payments to the same person cannot be linked by address reuse. What stealth addresses do not protect: the fact that a transaction occurred, its timing, or network-level metadata. They solve address reuse, not the whole privacy problem.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dandelion++ transaction relay</h4>
+      <div class="il-prose"><p>Dandelion++ protects the network layer: instead of broadcasting a transaction to all peers at once (which lets observers link it to the sender&#x27;s IP), the transaction first travels a random stem path through the peer-to-peer network, then fluffs into normal broadcast. An adversary watching the network sees the fluff phase but cannot easily tell where the stem began. It is a statistical defense — it raises the cost of IP-to-transaction linkage rather than eliminating it. Combined with Tor or I2P, it meaningfully hardens the peer-to-peer layer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">RandomX proof of work</h4>
+      <div class="il-prose"><p>RandomX is Monero&#x27;s CPU-optimized proof-of-work algorithm, designed to keep mining competitive on general-purpose CPUs and uneconomical for ASICs and GPUs. It executes randomized programs in a virtual machine, which favors the branch prediction and caches of modern CPUs. The goal is decentralization through commodity hardware: anyone with a computer can mine. Monero has hard-forked its proof of work before to break ASICs; RandomX is the long-term answer to that arms race.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Stellar Consensus Protocol (FBA)</h4>
+      <div class="il-prose"><p>The Stellar Consensus Protocol implements federated Byzantine agreement: instead of one global validator set, each node chooses its own quorum slices — sets of nodes it trusts — and the network agrees where those trust choices overlap sufficiently. Agreement emerges from intersecting trust rather than from proof of work or global stake. The model is fast (ledgers close in seconds) and energy-light, but its security depends on the actual trust topology: poorly configured slices can fragment or centralize the network.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Quorum slices</h4>
+      <div class="il-prose"><p>A quorum slice is a node&#x27;s personal trust declaration: this is the set of nodes I trust. A quorum is a set of nodes containing at least one slice for each of its members — the structure through which agreement propagates. The key safety condition is quorum intersection: any two quorums must share at least one honest node, or the network can split. Slice configuration is therefore a security-critical operational decision, not a formality — public network health depends on major participants choosing overlapping, reputable slices.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Soroban smart contracts</h4>
+      <div class="il-prose"><p>Soroban is Stellar&#x27;s smart-contract platform, with contracts written in Rust and compiled to WebAssembly. It brings programmability to Stellar&#x27;s fast, cheap ledger while the classic payment operations stay native and efficient. The lab writes and deploys a minimal Soroban contract to testnet and invokes it. Fees stay low because the ledger was designed for high-throughput simple operations from the start.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">ISO 20022 MX messaging and MT-to-MX migration</h4>
+      <div class="il-prose"><p>ISO 20022 is a global standard for financial messaging — a common dictionary and XML-based (MX) message formats for payments, securities, and trade. The industry is migrating from legacy MT message types (like MT103) to MX equivalents (like pacs.008), a multi-year, bank-by-bank effort. An honesty note the curriculum insists on: many crypto projects claim ISO 20022 compliance, but the standard is a messaging specification, not a certification — community claims about specific cryptocurrencies&#x27; status are unverified marketing unless confirmed by the standards body. The lab maps a pain.001-style payment instruction&#x27;s fields to the message structure at concept level.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Run a Monero node on testnet/stagenet and observe daemon sync and peer behavior.</li>
+      <li>Create a stagenet wallet, receive test XMR from a faucet, and inspect the transaction in a stagenet explorer noting what is visible vs. hidden.</li>
+      <li>On Stellar testnet, create and fund accounts, issue a custom asset, and inspect trustlines.</li>
+      <li>Write and deploy a minimal Soroban contract (Rust) to Stellar testnet and invoke it; then draft a pain.001-style payment instruction template and map its fields to the ISO 20022 message structure at concept level.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain how ring signatures obscure the true signer without a trusted setup.</li>
+        <li>Describe what a stealth address protects and what it does not.</li>
+        <li>Contrast Monero&#x27;s privacy model with Stellar&#x27;s transparency model.</li>
+        <li>Explain what ISO 20022 standardizes and name two message families at concept level.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://web.getmonero.org" rel="noopener">web.getmonero.org</a></li>
+        <li><a href="https://developers.stellar.org" rel="noopener">developers.stellar.org</a></li>
+    </ul>
+  </div>
+</section>
+  </div>
+  <hr class="il-rule" />
+  <section class="il-section" id="resources" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Keep learning</p>
+      <h2 class="il-h" id="resources-h">Resources</h2>
+      <ul class="il-list">
+      <li><a href="https://solana.com/developers" rel="noopener"><strong>Official curriculum source (supplemental)</strong></a> — the public documentation this study guide is keyed to.<br /><span class="il-src">solana.com/developers</span></li>
+      <li><a href="https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.asciidoc" rel="noopener"><strong>Mastering Bitcoin — Chapter 1 (free, open source)</strong></a> — Background reading on how open blockchains work — useful context for the Litecoin module&#x27;s proof-of-work mechanics.<br /><span class="il-src">github.com/bitcoinbook/bitcoinbook/blob/develop/ch01.…</span></li>
+      </ul>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <section class="il-section" id="about" aria-labelledby="about-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">About this guide</p>
+      <h2 class="il-h" id="about-h">About this guide</h2>
+      <div class="il-prose">
+        <p>This page is an original study guide by Interstitium Labs, keyed to the public developer documentation of each protocol covered. It is not affiliated with or endorsed by Solana, Cardano, Cosmos, Polkadot, Avalanche, Chainlink, Polygon, Hedera, Litecoin, Monero, or Stellar, and it does not reproduce their course content — protocol documentation itself lives with the official sources linked throughout. Explanations here are our own distillation, written for study.</p>
+        <p>Every lab in this sequence runs on free tooling — public testnets, free database editions, and open-source software. Where a module touches security tooling, labs target only systems and data you own.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

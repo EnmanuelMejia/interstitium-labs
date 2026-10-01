@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before 
+<style>
+  .mod-index{columns:2;column-gap:2.5rem}
+  .mod-index li{break-inside:avoid;margin-bottom:.4rem}
+  @media (max-width:640px){.mod-index{columns:1}}
+  .il-gloss dt{font-weight:600}
+  .il-gloss dd{margin:0 0 .75rem 0}
+</style>
+</head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>PL/SQL Development (Oracle) | Interstitium Labs</title>
+<meta name="description" content="An eight-module study sequence on Oracle PL/SQL development: anonymous blocks, variables and anchoring, cursors, stored procedures and functions, packages, collections and bulk binds, exception handling, and performance. Original study guide keyed to the public Oracle PL/SQL documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Data Systems</p>
+    <h1 class="il-h">PL/SQL Development (Oracle)</h1>
+    <p class="il-hero__sub">From first anonymous block to production-grade PL/SQL: block structure, anchored declarations, cursors, stored subprograms, packages, bulk binds, exception handling, and performance — every lab runnable on Oracle Database Free.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Start the sequence</a>
+      <a class="il-btn" href="/learn/">Back to Learn</a>
+    </div>
+    <p class="il-hero__motto">The database is the application.</p>
+  </div>
+</header>
+<main>
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Study sequence</p>
+      <h2 class="il-h" id="overview-h">Overview</h2>
+      <div class="il-prose">
+      <p>Eight modules from first anonymous block to production-grade PL/SQL: block structure, variables with %TYPE and %ROWTYPE anchoring, cursors, stored procedures and functions, packages, collections with BULK COLLECT and FORALL, exception handling, and performance. The sequence is built around Oracle Database Free with SQL*Plus or SQLcl, and every lab runs at zero cost.</p>
+      <p>It is for Oracle developers, database engineers, and anyone maintaining PL/SQL codebases. Basic SQL is required; no prior PL/SQL is assumed.</p>
+      <p>Prerequisites are Oracle Database Free (container or local install) with SQL*Plus or SQLcl, basic SQL fluency, and the scratch tables you build in Module 1 — later modules&#x27; labs build on those objects, so keep your lab schema across modules.</p>
+      <p>Type every block yourself rather than copying; the compilation errors are part of the curriculum. Time the performance labs honestly and write the memos — the sequence&#x27;s performance module accepts no untimed claims. Work the modules in order; each extends the previous one&#x27;s objects and vocabulary.</p>
+      </div>
+      <h3 class="il-h il-h--section">At a glance</h3>
+      <dl class="il-gloss">
+        <dt>Modules</dt><dd>8</dd>
+        <dt>Key concepts</dt><dd>63</dd>
+        <dt>Hands-on labs</dt><dd>33</dd>
+        <dt>Self-check questions</dt><dd>32</dd>
+        <dt>Format</dt><dd>Self-paced study sequence; labs use free and open tooling only.</dd>
+        <dt>Source material</dt><dd>Original study guide keyed to public documentation; official sources linked per module.</dd>
+      </dl>
+      <h3 class="il-h il-h--section">Module index</h3>
+      <ol class="il-list mod-index">
+        <li><a href="#module-1-anonymous-blocks-and-block-structure"><strong>Module 1.</strong> Anonymous Blocks and Block Structure</a></li>
+        <li><a href="#module-2-variables-type-and-rowtype"><strong>Module 2.</strong> Variables, %TYPE, and %ROWTYPE</a></li>
+        <li><a href="#module-3-cursors-implicit-explicit-and-for-loops"><strong>Module 3.</strong> Cursors: Implicit, Explicit, and FOR Loops</a></li>
+        <li><a href="#module-4-stored-procedures-and-functions"><strong>Module 4.</strong> Stored Procedures and Functions</a></li>
+        <li><a href="#module-5-packages-specification-and-body"><strong>Module 5.</strong> Packages: Specification and Body</a></li>
+        <li><a href="#module-6-collections-and-bulk-binds-bulk-collect-forall"><strong>Module 6.</strong> Collections and Bulk Binds (BULK COLLECT / FORALL)</a></li>
+        <li><a href="#module-7-exception-handling-predefined-user-defined-raise-application-error"><strong>Module 7.</strong> Exception Handling: Predefined, User-Defined, RAISE_APPLICATION_ERROR</a></li>
+        <li><a href="#module-8-performance-basics-avoiding-row-by-row-bind-variables"><strong>Module 8.</strong> Performance Basics: Avoiding Row-by-Row, Bind Variables</a></li>
+      </ol>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <div id="modules">
+<section class="il-section" id="module-1-anonymous-blocks-and-block-structure" aria-labelledby="module-1-anonymous-blocks-and-block-structure-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 1 of 8</p>
+    <h2 class="il-h" id="module-1-anonymous-blocks-and-block-structure-h">Anonymous Blocks and Block Structure</h2>
+    <div class="il-prose">
+      <p>Every PL/SQL program is a block: DECLARE, BEGIN, EXCEPTION, END. This module teaches the block anatomy, anonymous blocks versus named program units, and the DBMS_OUTPUT debugging workflow. You will write, compile, and run your first blocks against a scratch schema.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe the DECLARE / BEGIN / EXCEPTION / END sections of a PL/SQL block and identify which are optional.</li>
+        <li>Execute anonymous blocks in SQL*Plus or SQLcl against Oracle Database Free (23ai Free) and observe output via DBMS_OUTPUT.</li>
+        <li>Predict variable scope and shadowing behavior in nested blocks.</li>
+        <li>Trace execution flow when an exception interrupts a block.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Anonymous block vs named program unit</h4>
+      <div class="il-prose"><p>An anonymous block is PL/SQL code with no name — written, executed once, and gone. Named program units (procedures, functions, packages, triggers) are stored in the database, compiled, and callable by name. Anonymous blocks are the scratchpad: testing logic, running one-off tasks, and learning the language. Everything you learn in anonymous blocks transfers directly, because a procedure body is an anonymous block with a header.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">DECLARE section (optional): declarations</h4>
+      <div class="il-prose"><p>The DECLARE section is where variables, constants, cursors, and types are introduced before use. It is optional — a block can go straight to BEGIN — but any named thing the block uses must be declared here first. The lab&#x27;s section drill shows what you give up without it: no persistent names across statements, everything inline. Declarations are the block&#x27;s vocabulary; BEGIN is its sentences.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">BEGIN: the mandatory executable section</h4>
+      <div class="il-prose"><p>BEGIN opens the one section a block cannot skip: the executable statements. Assignments, SQL, control flow, and procedure calls all live here. Execution runs top to bottom until it hits END or an exception diverts it. The lab&#x27;s exception-flow trace maps this precisely — print before, divide by zero, print after — so you can see the exact moment control leaves the normal path.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EXCEPTION section (optional): error handlers</h4>
+      <div class="il-prose"><p>The EXCEPTION section catches errors raised in the BEGIN section and routes them to handlers matched by exception name. It is optional, and its absence means an error propagates straight to the caller — the lab&#x27;s nested-block checkpoint asks where execution ends up in exactly that case. Handlers run, then control leaves the block; there is no resume into the middle. A later module makes this section a full discipline.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">END: closing the block</h4>
+      <div class="il-prose"><p>END closes the block, optionally repeating the block&#x27;s label for readability. Every BEGIN needs its END, and the compiler is unforgiving about the pairing — most early syntax errors are mismatched or missing ENDs. In nested blocks, labeled ENDs (END outer_block;) turn a wall of ENDs into something a human can audit. Close what you open, label what you nest.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Nested blocks and variable scope/shadowing</h4>
+      <div class="il-prose"><p>Blocks nest inside blocks, and an inner block sees the outer block&#x27;s variables — unless it declares its own with the same name, which shadows the outer one inside the inner scope. The lab demonstrates this directly: print the variable inside the inner block and after it ends, and watch the value change back. Shadowing is legal and occasionally useful, but mostly it is a bug factory; the experiment teaches you to recognize it on sight.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">DBMS_OUTPUT.PUT_LINE for observable output</h4>
+      <div class="il-prose"><p>DBMS_OUTPUT.PUT_LINE writes text to a buffer the client can display — the standard way to observe a block&#x27;s behavior while learning. It is not logging, not a result set, and not visible unless the client enables it. The lab runs the same block with server output off and on to make that dependency visceral. In production code you will use proper logging; in the lab, PUT_LINE is your microscope.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SET SERVEROUTPUT ON in SQL*Plus/SQLcl</h4>
+      <div class="il-prose"><p>DBMS_OUTPUT fills a buffer, but SQL*Plus and SQLcl only drain and display that buffer when server output is enabled — hence SET SERVEROUTPUT ON. Without it, your PUT_LINE calls execute silently and you conclude, wrongly, that nothing happened. The lab&#x27;s hello-block run isolates this variable first, because half of all beginner PL/SQL confusion is this one setting. When output vanishes, check the switch before doubting the code.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Hello-block run</strong> — write an anonymous block that prints a greeting with DBMS_OUTPUT.PUT_LINE. Run it with SET SERVEROUTPUT OFF, then ON, and note exactly what changes. (Oracle Database Free 23ai Free, free container or local install; connect with SQL*Plus or SQLcl — no paid license needed.)</li>
+      <li><strong>Section drill</strong> — write a block with a DECLARE section containing a counter, loop from 1 to 5, and print each value. Then rewrite it so all work happens without a DECLARE section and describe what you had to give up.</li>
+      <li><strong>Scope experiment</strong> — declare v_msg in an outer block, then redeclare v_msg with a different value in a nested inner block. Print v_msg inside the inner block and again after it ends; explain the shadowing you observe.</li>
+      <li><strong>Exception flow trace</strong> — write a block that prints &#x27;before&#x27;, then performs 1/0, then prints &#x27;after&#x27;, with an exception section that prints &#x27;handled&#x27;. Run it and map the exact execution order to the block structure.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Which two sections of a block are optional, and what happens if the EXCEPTION section is absent when an error occurs?</li>
+        <li>Predict the output of a nested block where the inner block redeclares the outer block&#x27;s variable with a different value.</li>
+        <li>Why does DBMS_OUTPUT.PUT_LINE appear to do nothing until you run SET SERVEROUTPUT ON?</li>
+        <li>An unhandled exception is raised in the inner block of two nested blocks, and neither has an exception section. Where does execution end up?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/overview.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-language-elements.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-2-variables-type-and-rowtype" aria-labelledby="module-2-variables-type-and-rowtype-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 2 of 8</p>
+    <h2 class="il-h" id="module-2-variables-type-and-rowtype-h">Variables, %TYPE, and %ROWTYPE</h2>
+    <div class="il-prose">
+      <p>Declarations are where PL/SQL programs meet the database schema. This module covers scalar types, the %TYPE and %ROWTYPE anchoring that keeps declarations synchronized with tables, constants, and scope rules. You will learn why anchored types are the professional default.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Declare scalar variables with appropriate datatypes, NOT NULL constraints, and defaults.</li>
+        <li>Anchor declarations to table columns with %TYPE and to whole rows with %ROWTYPE.</li>
+        <li>Explain why anchored declarations are resilient to schema changes.</li>
+        <li>Choose between PL/SQL datatypes deliberately, including the limits of BOOLEAN.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Scalar datatypes: VARCHAR2, NUMBER, DATE, BOOLEAN</h4>
+      <div class="il-prose"><p>PL/SQL&#x27;s core scalars are VARCHAR2 for variable-length strings, NUMBER for numerics, DATE for dates and times, and BOOLEAN for true/false logic. VARCHAR2 — not VARCHAR — is the Oracle idiom; NUMBER covers integers and decimals alike. BOOLEAN deserves special attention: it is a PL/SQL-only type, fully usable in procedural logic but not selectable in SQL. The lab&#x27;s boolean-boundary exercise proves the boundary by hitting it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">NOT NULL and DEFAULT constraints on declarations</h4>
+      <div class="il-prose"><p>A declaration can require a value (NOT NULL) and supply one when none is given (DEFAULT) — small constraints that remove whole classes of bugs. NOT NULL turns a missing assignment into a compile-time or immediate error instead of a NULL propagating silently through logic. DEFAULT documents intent: this variable starts life with a sensible value. The checkpoint asks when each pays for itself; the answer is whenever the variable&#x27;s absence would be a lie.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">%TYPE: anchoring a variable to a column&#x27;s datatype</h4>
+      <div class="il-prose"><p>Declaring v_name employees.last_name%TYPE anchors the variable to the column&#x27;s datatype — whatever the column is today, the variable matches. When the DBA widens the column, anchored declarations recompile against the new definition automatically. The lab proves it: widen first_name to 200 characters and the anchored block runs unchanged while the hardcoded VARCHAR2(50) version breaks. Anchor to the schema; never hand-copy its types.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">%ROWTYPE: anchoring a record to a table or cursor row</h4>
+      <div class="il-prose"><p>table%ROWTYPE declares a record with one field per column — the whole row as a single variable. SELECT ... INTO a %ROWTYPE record fetches an entire row in one statement, and cursor%ROWTYPE does the same for cursor rows. It is the DRY answer to declaring a dozen scalars that mirror a table. The lab fetches a full lab_emp row into a record and prints fields by name; adding a column later changes nothing in the code.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Anchored declarations surviving schema changes</h4>
+      <div class="il-prose"><p>The resilience story is the point of anchoring: schema evolution — wider columns, added columns — flows through anchored code without edits. Hardcoded declarations rot silently until they fail loudly at runtime. The lab&#x27;s before/after contrast is the argument in miniature. In a database that will outlive its developers, anchored declarations are how code stays correct without being touched.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">BOOLEAN as a PL/SQL-only datatype</h4>
+      <div class="il-prose"><p>BOOLEAN lives in PL/SQL but not in SQL: you can branch on it, return it from functions, and store it in variables, but you cannot SELECT it or put it in a table column. The lab computes a BOOLEAN flag, uses it in IF logic, then tries to SELECT it and documents the expected error. The boundary exists because the SQL engine predates the type. Know which side of the line each piece of your code stands on.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CONSTANT declarations</h4>
+      <div class="il-prose"><p>A CONSTANT declaration fixes a value at compile time — tax rates, status codes, magic strings given names. Constants document intent and centralize change: one edit updates every use. They pair naturally with anchored types and DEFAULT. Use them for every literal that means something; literals that mean something and appear twice are a future inconsistency.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Implicit conversion pitfalls between SQL and PL/SQL types</h4>
+      <div class="il-prose"><p>PL/SQL converts between types silently when it can — strings to numbers, dates to strings — and silently is the problem. A conversion that works for a thousand rows fails on row 1001 with an unexpected value, or worse, succeeds with a wrong one. DATE-to-string conversions depend on session NLS settings, which differ between environments. Convert explicitly with TO_NUMBER, TO_DATE, TO_CHAR and named format models; implicit conversion is a convenience that bills you later.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Anchor lab</strong> — create your own small table lab_emp (emp_id NUMBER, first_name VARCHAR2(50), salary NUMBER). Declare variables anchored with lab_emp.first_name%TYPE and lab_emp%ROWTYPE, insert a row, fetch it back, and print the fields.</li>
+      <li><strong>Resilience check</strong> — ALTER TABLE lab_emp to widen first_name to VARCHAR2(200). Re-run your previous block unchanged and confirm it still compiles and runs; then write the same logic with a hardcoded VARCHAR2(50) and show the contrast.</li>
+      <li><strong>Record drill</strong> — fetch an entire lab_emp row into a %ROWTYPE record with SELECT ... INTO, then print three of its fields with DBMS_OUTPUT.</li>
+      <li><strong>Boolean boundary</strong> — write a function-style block that computes a BOOLEAN flag (e.g., salary &gt; 100000) and uses it in IF logic. Then try to SELECT that BOOLEAN into SQL and document the error you get and why it is expected.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>What is the practical difference between v_name employees.last_name%TYPE and v_emp employees%ROWTYPE?</li>
+        <li>A DBA widens a VARCHAR2 column from 30 to 100 characters. Which declarations break, and which survive untouched?</li>
+        <li>Why is BOOLEAN legal in PL/SQL logic but not directly usable in a SQL statement?</li>
+        <li>When would you add NOT NULL or a DEFAULT to a declaration, and what risk does each remove?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-data-types.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-language-elements.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-3-cursors-implicit-explicit-and-for-loops" aria-labelledby="module-3-cursors-implicit-explicit-and-for-loops-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 3 of 8</p>
+    <h2 class="il-h" id="module-3-cursors-implicit-explicit-and-for-loops-h">Cursors: Implicit, Explicit, and FOR Loops</h2>
+    <div class="il-prose">
+      <p>Cursors are how PL/SQL walks through query results row by row. This module covers explicit cursors, cursor attributes, cursor FOR loops, and the parameterized patterns that keep cursor code clean. You will also learn when not to use a cursor — the set-based alternative is usually faster.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Read implicit cursor attributes (SQL%ROWCOUNT, SQL%FOUND, SQL%NOTFOUND) after DML and single-row queries.</li>
+        <li>Implement the full explicit cursor lifecycle: declare, open, fetch in a loop, close.</li>
+        <li>Replace manual cursor code with cursor FOR loops where appropriate.</li>
+        <li>Parameterize cursors and select the right loop form for a given task.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Implicit cursors and their attributes: SQL%ROWCOUNT, SQL%FOUND, SQL%NOTFOUND, SQL%ISOPEN</h4>
+      <div class="il-prose"><p>Every DML statement and single-row SELECT runs in an implicit cursor, and its attributes report what happened: SQL%ROWCOUNT says how many rows were affected, SQL%FOUND and SQL%NOTFOUND say whether any were, SQL%ISOPEN is always false (the engine manages it). The lab updates a department&#x27;s salaries and branches on SQL%FOUND to print a confirmation — the attributes turn a blind statement into an observed one. Check them immediately after the statement; any intervening SQL overwrites them.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Explicit cursor lifecycle: DECLARE, OPEN, FETCH, CLOSE</h4>
+      <div class="il-prose"><p>An explicit cursor is a named handle on a multi-row query, and its lifecycle is four verbs: DECLARE names the query, OPEN executes it, FETCH pulls rows one at a time, CLOSE releases it. The lab walks lab_emp in a loop and then comments out the CLOSE to observe the hygiene failure — unclosed cursors leak resources and eventually hit session limits. Explicit cursors are verbose on purpose: the verbosity is the control.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Cursor FOR loops: implicit open, fetch, and close</h4>
+      <div class="il-prose"><p>The cursor FOR loop — FOR rec IN cursor LOOP ... END LOOP — performs the open, fetch, and close automatically, declaring the loop record implicitly. The lab rewrites the explicit walk as a FOR loop and counts the lines that vanish. For straightforward row processing it is the idiomatic form: less code, no forgotten CLOSE, no manual exit condition. Reach for explicit lifecycle only when you need control the FOR loop does not offer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Parameterized cursors</h4>
+      <div class="il-prose"><p>A cursor can take parameters — CURSOR c(p_dept_id NUMBER) IS SELECT ... WHERE dept_id = p_dept_id — so one definition serves many executions. The lab opens the same cursor once per department and prints a header per department. Parameters make cursors reusable logic rather than single-use queries. They are the cursor equivalent of a function&#x27;s arguments, with the same readability payoff.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Loop records anchored with cursor%ROWTYPE</h4>
+      <div class="il-prose"><p>In a cursor FOR loop the loop record is implicitly declared as cursor%ROWTYPE — one field per selected column, correctly typed, no declaration needed. For explicit cursors you can declare the fetch target the same way. Anchoring the record to the cursor means SELECT-list changes flow through without declaration edits. It is %ROWTYPE doing exactly the job it was designed for.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SELECT ... INTO as a single-row implicit cursor operation</h4>
+      <div class="il-prose"><p>SELECT ... INTO is the implicit cursor for the single-row case: it fetches exactly one row into variables. Zero rows raises NO_DATA_FOUND; more than one raises TOO_MANY_ROWS — the lab&#x27;s exception module catches the first deliberately. It is not a loop and not a multi-row tool; for those, use a cursor. The exceptions are features: they tell you your single-row assumption was wrong.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Cursor FOR UPDATE and WHERE CURRENT OF for safe row locking</h4>
+      <div class="il-prose"><p>Declaring a cursor FOR UPDATE locks the selected rows, and WHERE CURRENT OF in the loop&#x27;s UPDATE targets exactly the row the cursor is positioned on — no re-specifying the key, no race between the SELECT and the UPDATE. This is the safe pattern for read-modify-write row processing. Without it, a separate UPDATE ... WHERE key can hit a different row than the one you read, or none at all. Lock what you intend to change, change what you locked.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Rowcount lab</strong> — populate lab_emp with 10 rows across two departments. Run an UPDATE that gives everyone in one department a raise, then print SQL%ROWCOUNT and branch on SQL%FOUND to print a confirmation message.</li>
+      <li><strong>Explicit cursor walk</strong> — declare an explicit cursor over lab_emp ordered by emp_id; OPEN it, FETCH in a loop printing each name, then CLOSE it. Deliberately comment out the CLOSE once, re-run, and describe what you observe about cursor hygiene.</li>
+      <li><strong>FOR loop conversion</strong> — rewrite the previous walk as a cursor FOR loop. Count the lines of both versions and note which cursor operations disappeared.</li>
+      <li><strong>Parameterized cursor</strong> — declare a cursor that takes p_dept_id, then call it once per department in a loop, printing a header per department. Confirm the same cursor definition serves both calls.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>List the implicit cursor attributes and state what each one tells you after an UPDATE.</li>
+        <li>What three cursor operations does a cursor FOR loop perform for you automatically?</li>
+        <li>You need to run the same query twice with different department ids. Which cursor form fits best and why?</li>
+        <li>After OPEN, FETCH in a loop, and CLOSE: which step is most commonly forgotten, and what is the consequence?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/static-sql.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-control-statements.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-4-stored-procedures-and-functions" aria-labelledby="module-4-stored-procedures-and-functions-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 4 of 8</p>
+    <h2 class="il-h" id="module-4-stored-procedures-and-functions-h">Stored Procedures and Functions</h2>
+    <div class="il-prose">
+      <p>Procedures do work; functions compute values. This module covers parameter modes (IN, OUT, IN OUT), the function purity rules, autonomous transactions, and the invoker/definer rights model. You will build a small library of stored subprograms with proper contracts.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Create stored procedures and functions with IN, OUT, and IN OUT parameters.</li>
+        <li>Call functions from both SQL statements and PL/SQL blocks, respecting side-effect rules.</li>
+        <li>Diagnose compilation failures with SHOW ERRORS and the USER_ERRORS view.</li>
+        <li>Apply parameter design basics: modes, defaults, and calling notations.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CREATE OR REPLACE PROCEDURE and FUNCTION</h4>
+      <div class="il-prose"><p>CREATE OR REPLACE compiles a named program unit into the database, replacing any previous version — the fundamental deployment verb for server-side logic. Procedures perform actions; functions compute and return a value. Both are stored, compiled, and dependency-tracked by the database. The lab builds give_raise and annual_salary against lab_emp, establishing the pattern every later module extends: write it, compile it, call it, verify it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Parameter modes: IN, OUT, IN OUT</h4>
+      <div class="il-prose"><p>IN parameters carry values into the subprogram and are read-only inside it. OUT parameters carry values back to the caller and start uninitialized. IN OUT does both. The lab&#x27;s get_dept_stats fills two OUT parameters with aggregates, demonstrating the multi-value return that functions cannot do. Mode choice is interface design: IN for inputs, OUT for results, IN OUT for state the caller owns and the routine transforms.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">RETURN clause and RETURN statement in functions</h4>
+      <div class="il-prose"><p>A function&#x27;s header declares RETURN &lt;type&gt; — the contract — and its body executes RETURN &lt;value&gt; on every path — the fulfillment. Every code path must return, or the compiler complains. Functions called from SQL have extra rules: no OUT parameters, no DML (with defined exceptions), because SQL expects a pure computation. The checkpoint&#x27;s broken-function question — OUT parameter plus INSERT, called from SELECT — violates both rules at once.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Calling functions from SQL vs from PL/SQL</h4>
+      <div class="il-prose"><p>A function can be called in a SELECT list or WHERE clause and in PL/SQL assignments alike — the lab does both with annual_salary and confirms both work. SQL-callable functions must be well-behaved: deterministic-ish, side-effect free, no transaction control. PL/SQL callers tolerate more. Design the function for its strictest caller; a function safe in SQL is safe everywhere.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Positional vs named parameter notation</h4>
+      <div class="il-prose"><p>Positional notation passes arguments in declared order — concise but brittle. Named notation (p_emp_id =&gt; 42) labels each argument — verbose but self-documenting and immune to parameter reordering. The checkpoint asks when the verbosity pays: whenever the call is read more than written, which is always in production code. Defaulted parameters practically require named notation to skip positions.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SHOW ERRORS and USER_ERRORS for compilation diagnostics</h4>
+      <div class="il-prose"><p>When compilation fails, the database records exactly where: SHOW ERRORS in SQL*Plus/SQLcl prints the errors for the last compiled object, and the USER_ERRORS view holds them queryably. The lab introduces a bad column name on purpose, reads the reported line and column, fixes it, and recompiles cleanly. Compilation errors are precise — line, column, message — so read them literally instead of guessing. The database is telling you the answer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dependency invalidation and recompilation</h4>
+      <div class="il-prose"><p>The database tracks dependencies: if a table or called object changes incompatibly, dependent procedures invalidate and recompile automatically on next call. Most invalidations heal silently; breaking changes (a dropped column) surface as runtime errors after recompilation fails. The packages module explores spec-change versus body-change invalidation in depth. The concept to carry: stored code is a living dependency graph, not a pile of files.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Default parameter values</h4>
+      <div class="il-prose"><p>Parameters can declare defaults (p_pct IN NUMBER DEFAULT 5), letting callers omit them — usually combined with named notation. Defaults stabilize interfaces: new optional behavior does not break existing callers. They also document the common case at the declaration site. Use defaults for genuinely optional inputs, not to hide required ones.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Procedure build</strong> — write give_raise(p_emp_id IN NUMBER, p_pct IN NUMBER) that updates lab_emp. Call it from an anonymous block, then verify the new salary with a SELECT.</li>
+      <li><strong>Function in SQL</strong> — write annual_salary(p_emp_id IN NUMBER) RETURN NUMBER. Call it in a SELECT against lab_emp and in a PL/SQL assignment; confirm both work.</li>
+      <li><strong>Break-and-fix</strong> — introduce a bad column name into annual_salary, attempt to compile, run SHOW ERRORS, read the exact line/column reported, fix it, and recompile cleanly.</li>
+      <li><strong>OUT parameter drill</strong> — write get_dept_stats(p_dept_id IN NUMBER, p_headcount OUT NUMBER, p_avg_sal OUT NUMBER) that fills both OUT values with aggregate queries. Call it and print the results.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>What can an IN parameter do that an OUT parameter cannot, and vice versa?</li>
+        <li>A function you want to call from a SELECT statement has an OUT parameter and performs an INSERT. What two problems does that create?</li>
+        <li>What is the difference between positional and named notation when calling a subprogram, and when is named notation worth the verbosity?</li>
+        <li>Your function fails compilation. Which two data dictionary views or commands show you the exact error lines?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-subprograms.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-5-packages-specification-and-body" aria-labelledby="module-5-packages-specification-and-body-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 5 of 8</p>
+    <h2 class="il-h" id="module-5-packages-specification-and-body-h">Packages: Specification and Body</h2>
+    <div class="il-prose">
+      <p>Packages are PL/SQL&#x27;s unit of modularity: a specification declaring the public interface and a body hiding the implementation. This module covers package structure, state, initialization, and the design patterns that keep large codebases maintainable. You will refactor loose procedures into a coherent package.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Separate a package&#x27;s public interface (specification) from its implementation (body).</li>
+        <li>Group related procedures and functions behind a single package API with shared private state.</li>
+        <li>Keep helper routines private to the package body using encapsulation.</li>
+        <li>Explain how spec changes versus body changes affect dependent objects.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Package specification: the public interface</h4>
+      <div class="il-prose"><p>The package specification declares what callers may use: procedure and function headers, public variables, types, and exceptions — the API contract. Nothing in the spec has a body; it is pure interface. Clients compile against the spec, which is why spec changes ripple and body changes do not. The lab&#x27;s emp_admin spec declares hire_emp, terminate_emp, and give_raise: three verbs that promise behavior without revealing implementation.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Package body: implementation and private items</h4>
+      <div class="il-prose"><p>The body implements every spec-declared subprogram and may add private items — helpers, variables, cursors — visible only inside the package. The lab&#x27;s log_action lives in the body and is called by each public routine; the privacy check proves outsiders cannot reach it. Bodies are where encapsulation happens: the spec is the promise, the body is the machinery, and the machinery is none of the caller&#x27;s business.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Public vs private procedures, functions, and variables</h4>
+      <div class="il-prose"><p>Public items are declared in the spec and callable from anywhere with privileges; private items exist only in the body. This is the module boundary of database programming: public surface is designed, private surface is free to change. The lab demonstrates both directions — using public routines across sessions, failing to call the private helper. A package with a small public surface and rich private machinery is a well-designed package.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Package-level state and session persistence</h4>
+      <div class="il-prose"><p>Variables declared at package level persist for the session: the lab increments g_hire_count across three hire_emp calls and sees it accumulate, then opens a second session and sees it reset. Package state is per-session memory — useful for caching and counters, dangerous as hidden coupling between calls. It vanishes when the session ends and never crosses sessions. Treat it as convenient, private, and ephemeral.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Initialization section of a package body</h4>
+      <div class="il-prose"><p>A package body may end with an initialization block that runs once per session, the first time the package is referenced — for setting up state, validating configuration, or warming caches. It runs invisibly, which is both its power and its hazard: expensive or failing initialization punishes the first caller mysteriously. Keep initialization light and failure-proof; heavy setup belongs in explicit routines.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Forward declarations within a body</h4>
+      <div class="il-prose"><p>Inside a body, a subprogram must be declared before it is called — forward declarations (a header without a body, completed later) resolve mutual recursion and ordering constraints. They are the body&#x27;s private scaffolding, invisible to spec consumers. Most bodies never need them; when two private helpers call each other, they are the clean answer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Spec-change vs body-change invalidation behavior</h4>
+      <div class="il-prose"><p>Changing only the body — the lab edits a log message — leaves dependents valid: the contract did not change. Changing the spec invalidates dependents, because their compiled contract may no longer hold. This asymmetry is the economic argument for packages: stable specs let implementations evolve without recompiling the world. Design specs to be stable; relegate churn to the body.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Grouping related subprograms into a cohesive API</h4>
+      <div class="il-prose"><p>A package should be a cohesive API around one responsibility — employee administration, in the lab — not a junk drawer of unrelated routines. Cohesion is what makes the package learnable, testable, and safe to change. Related subprograms share private state and helpers naturally; unrelated ones share only a name. If you cannot state the package&#x27;s single responsibility in a sentence, split it.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Package build</strong> — create package emp_admin with a spec declaring hire_emp, terminate_emp, and give_raise, plus a body implementing them against lab_emp. Add a private procedure log_action visible only inside the body and call it from each public routine.</li>
+      <li><strong>Session state</strong> — add a package-level variable g_hire_count incremented by hire_emp. Call hire_emp three times in one session and print the counter; open a second session and print it again. Document the difference.</li>
+      <li><strong>Invalidation experiment</strong> — recompile only the package body with a changed log message and confirm dependent callers stay valid. Then add a new parameter to a spec procedure and observe which dependents invalidate.</li>
+      <li><strong>Privacy check</strong> — from outside the package, try to call the private log_action directly. Record the exact error and explain what it proves about encapsulation.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Which parts of a package must appear in the specification, and which may live only in the body?</li>
+        <li>You change only the package body. Do dependent procedures invalidate? What if you change the spec instead?</li>
+        <li>Where would you put a helper that formats log messages for internal use only, and why?</li>
+        <li>A package-level counter keeps its value between your calls in one session but resets in a new session. What does that tell you about package state?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-packages.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-6-collections-and-bulk-binds-bulk-collect-forall" aria-labelledby="module-6-collections-and-bulk-binds-bulk-collect-forall-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 6 of 8</p>
+    <h2 class="il-h" id="module-6-collections-and-bulk-binds-bulk-collect-forall-h">Collections and Bulk Binds (BULK COLLECT / FORALL)</h2>
+    <div class="il-prose">
+      <p>Row-by-row processing is the classic PL/SQL performance trap. This module covers collections — nested tables, varrays, associative arrays — and the bulk binds that move data between SQL and PL/SQL in batches: BULK COLLECT and FORALL. You will measure the difference and never write a slow loop again.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Declare and use associative arrays, nested tables, and VARRAYs, stating the differences.</li>
+        <li>Fetch multi-row result sets efficiently with BULK COLLECT, bounding memory with LIMIT.</li>
+        <li>Apply DML across collections with FORALL instead of row-by-row loops.</li>
+        <li>Combine BULK COLLECT and FORALL to eliminate slow-by-slow processing.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Associative arrays (INDEX BY tables)</h4>
+      <div class="il-prose"><p>An associative array — TYPE t IS TABLE OF X INDEX BY PLS_INTEGER — is a key-value structure indexed by integer or string, existing only in PL/SQL memory. Indexes need not be dense: the lab skips an index and observes the sparse behavior directly. Associative arrays are the workhorse for in-memory lookup tables and for staging rows before bulk DML. They cannot be stored in a database column; they are purely procedural.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Nested tables</h4>
+      <div class="il-prose"><p>A nested table — TABLE OF X without INDEX BY — is a dense, integer-indexed collection starting at 1, and unlike associative arrays it can be stored in a database column. BULK COLLECT fetches naturally into nested tables. The lab bulk-fetches into one with a LIMIT clause, looping in batches. Choose nested tables when the collection models a multi-row result set or must persist; choose associative arrays for sparse or keyed in-memory work.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">VARRAYs and their fixed maximum size</h4>
+      <div class="il-prose"><p>A VARRAY (variable-size array) is a dense, ordered collection with a declared maximum size — VARRAY(100) OF NUMBER can never hold 101 elements. The bound is the point: VARRAYs model fixed-cardinality things and can be stored in columns with their order preserved. Exceeding the max raises an error, which is a feature when the business rule says there are at most N. For unbounded or sparse data, prefer nested tables or associative arrays.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">BULK COLLECT for multi-row fetches</h4>
+      <div class="il-prose"><p>BULK COLLECT fetches an entire result set into a collection in one context switch instead of row-by-row — SELECT ... BULK COLLECT INTO t_coll. The lab fetches 500 rows with LIMIT 100, printing batch counts per pass. It is the read half of eliminating slow-by-slow processing. Without a LIMIT clause on a large table it can exhaust PGA memory, which is why the checkpoint asks what goes wrong on a million-row table.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">LIMIT clause to bound memory use</h4>
+      <div class="il-prose"><p>LIMIT caps how many rows each BULK COLLECT fetch pulls — the standard pattern is a loop fetching LIMIT 100 (or 1000) until the collection comes back empty. It bounds memory to one batch regardless of table size. The lab&#x27;s batched fetch is the template to memorize. BULK COLLECT without LIMIT is a bet that the result set fits in memory; LIMIT makes it engineering instead of gambling.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">FORALL for bulk DML over collections</h4>
+      <div class="il-prose"><p>FORALL sends DML for every element of a collection to the SQL engine in one context switch — FORALL i IN 1..t_ids.COUNT UPDATE ... WHERE id = t_ids(i). It is not a loop; it is a single bulk operation, and the lab&#x27;s timing comparison against row-by-row UPDATE quantifies the difference. FORALL is the write half of bulk processing. Note the syntax quirk: the statement inside uses the collection index, and only one DML statement is allowed per FORALL.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SQL%BULK_ROWCOUNT for per-statement row counts</h4>
+      <div class="il-prose"><p>After a FORALL, SQL%BULK_ROWCOUNT(i) reports how many rows the i-th iteration affected — the bulk analogue of SQL%ROWCOUNT. It lets you verify per-element effects without re-querying. Combined with SAVE EXCEPTIONS it gives a complete accounting: which elements succeeded, which failed, and how many rows each touched. Bulk operations are not fire-and-forget; the rowcount array is how you audit them.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SAVE EXCEPTIONS and SQL%BULK_EXCEPTIONS</h4>
+      <div class="il-prose"><p>By default one failing element aborts the whole FORALL; SAVE EXCEPTIONS lets the rest continue and collects the failures in SQL%BULK_EXCEPTIONS — each entry holding the failing index and error code. The lab seeds a duplicate key, runs the bulk insert, then loops the exceptions array printing each failure. This is the production pattern: bulk for speed, exceptions array for accountability. Never let a bulk operation fail silently, and never let one bad row veto ten thousand good ones without a record.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Associative array</strong> — declare TYPE t_ids IS TABLE OF NUMBER INDEX BY PLS_INTEGER; load it with employee ids from lab_emp in a loop, then iterate and print them. Note the sparse-index behavior if you skip an index.</li>
+      <li><strong>Bulk fetch</strong> — build a 500-row staging table, then BULK COLLECT into a nested table with LIMIT 100 inside a loop, printing the batch count each pass until done.</li>
+      <li><strong>Speed comparison</strong> — time a row-by-row UPDATE loop over 5,000 rows with DBMS_UTILITY.GET_TIME, then time the equivalent FORALL UPDATE over a BULK COLLECTed collection. Record both timings and the speedup factor.</li>
+      <li><strong>Graceful bulk errors</strong> — seed one bad row (e.g., a duplicate key) into a FORALL INSERT with SAVE EXCEPTIONS; after it runs, loop over SQL%BULK_EXCEPTIONS and print each failing index with its error code.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Contrast associative arrays, nested tables, and VARRAYs: how is each indexed, and can it be stored in a database column?</li>
+        <li>Why does BULK COLLECT usually carry a LIMIT clause, and what goes wrong without one on a million-row table?</li>
+        <li>Rewrite this in your head: a FOR loop that UPDATEs one row per iteration. What does the FORALL version look like?</li>
+        <li>After a FORALL with SAVE EXCEPTIONS, how do you find out which rows failed and why?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-data-types.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-optimization-and-tuning.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-7-exception-handling-predefined-user-defined-raise-application-error" aria-labelledby="module-7-exception-handling-predefined-user-defined-raise-application-error-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 7 of 8</p>
+    <h2 class="il-h" id="module-7-exception-handling-predefined-user-defined-raise-application-error-h">Exception Handling: Predefined, User-Defined, RAISE_APPLICATION_ERROR</h2>
+    <div class="il-prose">
+      <p>Production code expects failure. This module covers the exception model: predefined and user-defined exceptions, the EXCEPTION block, RAISE and RAISE_APPLICATION_ERROR, and the logging patterns that make errors diagnosable. You will build error-handling that informs instead of obscures.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Catch and handle predefined exceptions deliberately instead of letting raw errors surface.</li>
+        <li>Declare, raise, and handle user-defined exceptions for business rules.</li>
+        <li>Raise application errors with RAISE_APPLICATION_ERROR inside the legal error-number range.</li>
+        <li>Write WHEN OTHERS handlers that log diagnostics and re-raise rather than swallowing errors.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Exception section structure and handler order</h4>
+      <div class="il-prose"><p>The EXCEPTION section is a list of WHEN handlers evaluated in order: WHEN NO_DATA_FOUND THEN ... WHEN OTHERS THEN .... The first matching handler runs, then control leaves the block — there is no fall-through and no resume. Order matters because WHEN OTHERS matches everything; the checkpoint&#x27;s DUP_VAL_ON_INDEX-before-OTHERS question tests exactly this. Put specific handlers first, OTHERS last, and never assume an unlisted exception is handled.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Predefined exceptions: NO_DATA_FOUND, TOO_MANY_ROWS, DUP_VAL_ON_INDEX, ZERO_DIVIDE</h4>
+      <div class="il-prose"><p>The language pre-names the common failures: NO_DATA_FOUND (SELECT ... INTO found nothing), TOO_MANY_ROWS (it found several), DUP_VAL_ON_INDEX (unique constraint violated), ZERO_DIVIDE. The lab catches NO_DATA_FOUND on a missing employee and prints a friendly message instead of surfacing a raw stack. Predefined exceptions turn predictable failures into designed behavior. Handle the ones your code can genuinely produce; do not blanket-catch the ones it cannot.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">User-defined exceptions: declaration, RAISE, handling</h4>
+      <div class="il-prose"><p>Business rules get their own exceptions: DECLARE e_raise_too_big EXCEPTION, RAISE it when p_pct exceeds the policy limit, and handle it in the caller with a clear message. The lab wires exactly this through a raise procedure. User-defined exceptions name the business failure instead of abusing a predefined one — e_raise_too_big says more than a generic error ever could. Declare near the code that raises, handle where the decision belongs.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">RAISE_APPLICATION_ERROR and the -20000..-20999 range</h4>
+      <div class="il-prose"><p>RAISE_APPLICATION_ERROR(-20001, &#x27;message&#x27;) raises an error that propagates to clients like a database error, with your message attached. The legal range is -20000 to -20999 — the checkpoint&#x27;s -19999 question has exactly one answer: out of range, it fails. The lab uses -20001 for a terminate-with-active-projects rule and the caller reads SQLCODE and SQLERRM. Reserve this for errors that must cross the PL/SQL-to-client boundary with meaning intact.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SQLCODE and SQLERRM for diagnostics</h4>
+      <div class="il-prose"><p>Inside a handler, SQLCODE returns the error number and SQLERRM the message — the diagnostics of the caught exception. The lab prints both when catching the application error, and the honest-OTHERS pattern logs both to an error table. They are only meaningful inside the handler for the current exception; capture them immediately. Diagnostics you do not record are diagnostics you never had.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EXCEPTION_INIT pragma for naming Oracle error numbers</h4>
+      <div class="il-prose"><p>PRAGMA EXCEPTION_INIT(e_dup_emp, -20001) binds a name to an Oracle error number, so you can handle ORA-00001 as e_dup_emp instead of parsing messages. The lab names the duplicate-key error and handles the named exception specifically. Named errors read as intent; magic numbers read as archaeology. Use EXCEPTION_INIT for the handful of Oracle errors your code deliberately anticipates.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Exception propagation across call stacks</h4>
+      <div class="il-prose"><p>An exception with no handler in its block propagates to the enclosing block, then to its caller, unwinding the call stack until something handles it or it reaches the client. The lab&#x27;s honest-OTHERS procedure demonstrates the disciplined endpoint: log the diagnostics, then re-raise with bare RAISE so the original error continues upward. Propagation is the default error channel — design for it rather than catching everything locally. Handle where you can act; let the rest travel.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">WHEN OTHERS: log and re-raise, never swallow</h4>
+      <div class="il-prose"><p>WHEN OTHERS catches everything, which makes it the most dangerous handler in the language: catch, print, and continue silently, and you have built a bug-hiding machine. The lab&#x27;s error_log pattern is the only honest shape — insert SQLCODE, SQLERRM, and a timestamp, then re-raise. The checkpoint asks for two concrete harms of swallowing: corrupted data nobody notices, and incidents that cannot be diagnosed. Log and re-raise, or do not catch at all.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Predefined catch</strong> — write a block that SELECTs a nonexistent emp_id INTO a variable. Catch NO_DATA_FOUND and print a friendly message instead of letting the raw error surface.</li>
+      <li><strong>User-defined rule</strong> — declare e_raise_too_big EXCEPTION; in a raise procedure, RAISE it when p_pct &gt; 20; handle it in the caller with a clear business message.</li>
+      <li><strong>Application error</strong> — in a terminate_emp procedure, call RAISE_APPLICATION_ERROR(-20001, &#x27;Cannot terminate employee with active projects&#x27;) when a rule fails. Catch it in the caller and print SQLCODE and SQLERRM.</li>
+      <li><strong>Name an error</strong> — use PRAGMA EXCEPTION_INIT to associate e_dup_emp with ORA-00001, then attempt a duplicate emp_id insert and handle e_dup_emp specifically.</li>
+      <li><strong>Honest OTHERS</strong> — build an error_log table; write a procedure whose WHEN OTHERS inserts SQLCODE/SQLERRM plus a timestamp into error_log and then re-raises with RAISE. Trigger it and verify both the log row and the propagated error.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>RAISE_APPLICATION_ERROR is called with -19999. What is wrong, and what range is legal?</li>
+        <li>Your block has WHEN DUP_VAL_ON_INDEX, then WHEN OTHERS. A unique violation occurs. Which handler runs, and why does order matter?</li>
+        <li>You catch WHEN OTHERS, print a message, and do nothing else. Name two concrete harms of this pattern.</li>
+        <li>An exception raised in a procedure with no handler: describe its propagation path to the caller.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-error-handling.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-8-performance-basics-avoiding-row-by-row-bind-variables" aria-labelledby="module-8-performance-basics-avoiding-row-by-row-bind-variables-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 8 of 8</p>
+    <h2 class="il-h" id="module-8-performance-basics-avoiding-row-by-row-bind-variables-h">Performance Basics: Avoiding Row-by-Row, Bind Variables</h2>
+    <div class="il-prose">
+      <p>Fast PL/SQL is a discipline, not an accident. This module covers the performance toolkit: bulk binds, the NOCOPY hint, deterministic and result-cached functions, native compilation, and the DBMS_PROFILER workflow for finding hot spots. You will profile real code and document each optimization with timings.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Identify row-by-row (slow-by-slow) patterns and the context switches that make them expensive.</li>
+        <li>Rewrite row-by-row logic as set-based SQL first and bulk binds second.</li>
+        <li>Explain why bind variables reduce hard parsing in the shared pool.</li>
+        <li>Measure performance claims with timings instead of asserting them.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SQL/PL/SQL context switches and slow-by-slow processing</h4>
+      <div class="il-prose"><p>Every hop between the PL/SQL engine and the SQL engine — each row fetched, each single-row DML — is a context switch with real cost. Row-by-row (slow-by-slow) processing multiplies that cost by the row count: the lab&#x27;s 10,000-row loop versus a single INSERT ... SELECT makes the ratio tangible. The switches are the tax; the loop is what multiplies it. Recognize the pattern on sight: a loop whose body is one SQL statement.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Set-based SQL as the first and cheapest rewrite</h4>
+      <div class="il-prose"><p>Before reaching for bulk binds, ask whether the loop is SQL in disguise: one UPDATE, one INSERT ... SELECT, one MERGE usually replaces the entire cursor. The lab rewrites the cursor-loop UPDATE as a single statement and times both — the set-based version wins on speed and on readability. Set-based is the first rewrite because it removes the loop instead of accelerating it. If the logic fits in SQL, it belongs in SQL.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Bulk binds (BULK COLLECT/FORALL) as the second line of defense</h4>
+      <div class="il-prose"><p>When procedural logic genuinely cannot be expressed as set SQL, bulk binds are the fallback: BULK COLLECT the rows, process the collection, FORALL the writes. The collections module built the mechanics; this module places them in the strategy — second choice, not first. Two context switches for ten thousand rows beats ten thousand switches. Reserve row-by-row for the residue that survives both rewrites.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Bind variables vs literals in the shared pool</h4>
+      <div class="il-prose"><p>A SQL statement with literals is a new statement to the shared pool every time the values change — each requiring a hard parse. The same statement with bind variables parses once and reuses the plan: soft parses thereafter. The lab runs 1,000 iterations both ways and times the gap. Bind variables are also the primary defense against SQL injection in dynamic SQL. Literals in repeated SQL are a performance bug and a security smell at once.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Hard parse vs soft parse</h4>
+      <div class="il-prose"><p>A hard parse builds an execution plan from scratch: syntax, semantics, optimization — expensive. A soft parse finds the existing plan in the shared pool by matching the statement text — cheap. Bind variables maximize soft parses; literals maximize hard parses. The shared pool is a cache, and like every cache it only hits on identical keys. Write SQL that repeats and you get plan reuse for free; write SQL that varies and you pay full price every execution.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Measuring with DBMS_UTILITY.GET_TIME</h4>
+      <div class="il-prose"><p>Performance claims without timings are opinions. DBMS_UTILITY.GET_TIME brackets code with hundred-of-a-second timestamps — the lab wraps every comparison in it and records the ratio. Measure the same workload before and after, on comparable data, more than once. The checkpoint&#x27;s 3%-on-100-rows question is the skepticism to internalize: tiny wins on tiny data are noise. Time it, or do not claim it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Row-by-row as the option of last resort</h4>
+      <div class="il-prose"><p>After set-based rewrites and bulk binds, a small residue of genuinely row-dependent logic remains — complex per-row branching with side effects that resist both. That residue earns its loop honestly. The discipline is ordering: SQL first, bulk second, loop last — and documenting why the loop survived. Row-by-row is not forbidden; it is the option you choose after proving the better ones do not fit.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Documenting before/after timings for every optimization claim</h4>
+      <div class="il-prose"><p>Every optimization ends with a memo: what changed, the before timing, the after timing, and why the new version is faster. The lab&#x27;s optimization memo is five lines — short enough to actually write, complete enough to actually trust. Undocumented speedups regress silently when someone rewrites the code. The memo is the difference between tuning and folklore.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Set-based win</strong> — time a PL/SQL loop that inserts 10,000 rows one at a time with DBMS_UTILITY.GET_TIME; then time a single INSERT ... SELECT doing the same work. Record both numbers and the ratio.</li>
+      <li><strong>Loop-to-SQL rewrite</strong> — take the cursor-loop UPDATE from the cursors module and rewrite it as one UPDATE statement; time both and note which is simpler to read as well as faster.</li>
+      <li><strong>Bind variable demo</strong> — in a loop of 1,000 iterations, run EXECUTE IMMEDIATE with a concatenated literal once and with a bind variable once; time both and explain the gap in terms of parsing.</li>
+      <li><strong>Optimization memo</strong> — pick any earlier lab that used row-by-row logic, rewrite it, and write a five-line memo stating the before/after timings, what you changed, and why the new version is faster.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Define a SQL-to-PL/SQL context switch in one sentence and explain why thousands of them are expensive.</li>
+        <li>A report query is written as a cursor loop that prints one row at a time. What is the first rewrite you attempt before reaching for bulk binds?</li>
+        <li>Why do literal values in repeated SQL cause hard parses while bind variables allow soft parses?</li>
+        <li>You timed two approaches and the &#x27;faster&#x27; one wins by 3% on 100 rows. What do you change about the experiment before trusting it?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/plsql-optimization-and-tuning.html" rel="noopener">docs.oracle.com/en/database/oracle/oracle-database/26…</a></li>
+    </ul>
+  </div>
+</section>
+  </div>
+  <hr class="il-rule" />
+  <section class="il-section" id="resources" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Keep learning</p>
+      <h2 class="il-h" id="resources-h">Resources</h2>
+      <ul class="il-list">
+      <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/lnpls/" rel="noopener"><strong>Official curriculum source (supplemental)</strong></a> — the public documentation this study guide is keyed to.<br /><span class="il-src">docs.oracle.com/en/database/oracle/oracle-database/26…</span></li>
+      <li><a href="https://livesql.oracle.com" rel="noopener"><strong>Oracle Live SQL</strong></a> — Free in-browser Oracle database for running this sequence&#x27;s labs with no local install; requires a free Oracle account.<br /><span class="il-src">livesql.oracle.com</span></li>
+      </ul>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <section class="il-section" id="about" aria-labelledby="about-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">About this guide</p>
+      <h2 class="il-h" id="about-h">About this guide</h2>
+      <div class="il-prose">
+        <p>This page is an original study guide by Interstitium Labs, keyed to the public Oracle Database PL/SQL documentation. It is not affiliated with or endorsed by Oracle, and it does not reproduce Oracle&#x27;s course content — the official documentation lives at the sources linked throughout. Explanations here are our own distillation, written for study.</p>
+        <p>Every lab in this sequence runs on free tooling — public testnets, free database editions, and open-source software. Where a module touches security tooling, labs target only systems and data you own.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

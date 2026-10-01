@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>C Programming for Systems — Study Sequence | Interstitium Labs</title>
+<meta name="description" content="An on-site study sequence for C systems programming: the translation pipeline, pointers and dynamic memory, arrays and strings, structs and unions, file I/O, gcc and make, gdb debugging, and undefined behavior — ending in a sanitizer-clean capstone."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Systems Programming</p>
+    <h1 class="il-h">C Programming for Systems</h1>
+    <p class="il-hero__sub">From translation phases to undefined behavior: pointers, memory, strings, structs, file I/O, build tooling, and gdb — the full C systems curriculum, distilled into an original, hands-on study sequence.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the sequence</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What this sequence is, and how to work it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>What this is: a complete systems-programming study sequence for the C language, built from the public C language reference. It covers the full arc from source text to running program — the translation pipeline, pointers and dynamic memory, arrays and strings, structs and unions, file I/O, build tooling, debugging with gdb, and the discipline of undefined behavior — ending in a capstone that demands a sanitizer-clean, Makefile-built utility.</p>
+        <p>Who it is for: programmers who can already write code in some language and want the ground truth underneath — operating systems, embedded systems, high-performance computing, and anyone who wants to understand what higher-level languages are hiding. It is also the prerequisite foundation for the companion Modern C++ Engineering sequence.</p>
+        <p>Prerequisites: comfort with programming fundamentals (variables, loops, functions) in any language; a Linux or macOS machine (or WSL) with gcc, make, and gdb installed; willingness to read compiler errors as instruction rather than insult. No prior C experience is assumed.</p>
+        <p>How to use it: work the modules in order, and do the labs — C is not learned by reading about pointers. Compile everything with the full warning set from the start (-Wall -Wextra -Werror -std=c11 -pedantic), run every test under AddressSanitizer and UBSan, and keep a personal log of each bug the tools catch. The checkpoints are written to be answered in writing; the capstone is the proof.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="outcomes-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Outcomes</p>
+        <h2 class="il-h il-h--section" id="outcomes-h">What you will be able to do.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li>Explain the four stages of C translation and how the preprocessor, compiler, and linker cooperate to produce an executable.</li>
+          <li>Manage dynamic memory safely with malloc/calloc/realloc/free, and diagnose the classic lifetime bugs: leaks, double free, and use-after-free.</li>
+          <li>Use pointers, arrays, strings, structs, unions, and enums fluently while reasoning about object representation, alignment, and padding.</li>
+          <li>Build, debug, and harden small C programs with gcc flags, Makefiles, gdb, sanitizers, and a working knowledge of undefined behavior classes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in study order.</h2>
+      </div>
+      <div class="il-modules">
+      <article class="il-module" aria-labelledby="m1-h">
+        <p class="il-eyebrow">Module 1</p>
+        <h3 class="il-h il-h--card" id="m1-h">The Translation Pipeline — From Source to Executable</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe the four logical translation phases: preprocessing, compilation to assembly, assembly to object code, and linking.</li>
+            <li>Use preprocessor directives (#include, #define, #ifdef, include guards) correctly and explain that inclusion is textual expansion.</li>
+            <li>Separate declarations from definitions across headers and source files to avoid multiple-definition linker errors.</li>
+            <li>Produce and inspect intermediate artifacts: preprocessed output (-E), assembly (-S), and object-file symbol tables (nm).</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Translation phases: preprocessing, compilation, assembly, linking</h5>
+          <p>A C program becomes an executable in four logical phases. The preprocessor handles directives (#include, #define, conditionals) as pure text manipulation. The compiler translates each preprocessed translation unit into assembly. The assembler turns assembly into object code — machine instructions plus a symbol table. The linker combines object files and libraries, resolves symbol references, and emits the executable.</p>
+          <p>You will invoke these phases separately throughout this sequence (gcc -E, -S, -c), because seeing the intermediate artifacts is the fastest way to stop thinking of compilation as magic. When a build breaks, knowing which phase broke tells you where to look.</p>
+          <h5>The preprocessor is textual expansion</h5>
+          <p>#include literally pastes the header&#x27;s text into your file; #define performs token substitution before the compiler ever sees the code. There is no type checking, no scoping in the C sense — just text in, text out.</p>
+          <p>This explains entire classes of bugs: a macro argument with side effects gets evaluated multiple times because it is substituted multiple times, and an #include inside a function is legal (if horrifying) because by the time the compiler runs, it is just text. Run gcc -E once and the preprocessor&#x27;s innocence — and danger — becomes obvious.</p>
+          <h5>Include guards and the #pragma once idiom</h5>
+          <p>Headers get included from multiple places, and without protection the same declarations would be pasted in twice, causing redefinition errors. The classic guard wraps the header in #ifndef HEADER_H / #define HEADER_H / #endif so the second inclusion expands to nothing.</p>
+          <p>#pragma once is the widely supported shorthand: one line at the top of the header, same effect, no symbol to invent. It is not part of the C standard, but every major compiler honors it; many codebases use both — guards for portability, pragma once for speed and simplicity.</p>
+          <h5>Declarations versus definitions</h5>
+          <p>A declaration says &#x27;this thing exists, with this type&#x27; — extern int x; or int f(void);. A definition additionally creates it: int x = 0; or the full function body. Headers carry declarations; exactly one source file carries each definition.</p>
+          <p>This split is what makes separate compilation possible: every translation unit learns the shapes of things from declarations, and the linker later wires them to the single definition. The printf you call is declared in &lt;stdio.h&gt; and defined inside libc — you compile against the promise and link against the reality.</p>
+          <h5>External vs internal linkage: extern and static</h5>
+          <p>A file-scope name has external linkage by default: it is visible to the linker across translation units. Mark it static and it gets internal linkage — visible only within its own translation unit, invisible to the linker and to other files.</p>
+          <p>static at file scope is your encapsulation tool in C: helper functions and module-private variables marked static cannot collide with same-named symbols elsewhere and cannot be called from outside. Reach for it by default; use external linkage only for the deliberate public interface.</p>
+          <h5>One definition per program for external symbols</h5>
+          <p>If two translation units each define the same externally-linked symbol — two int counter = 0; at file scope — the linker must reject the program with a &#x27;multiple definition&#x27; error, because it cannot know which one you meant. Exactly one definition must exist across the whole program.</p>
+          <p>This rule is the linker&#x27;s only real job beyond copying bytes: matching every undefined reference to exactly one definition. Internalize it and linker errors stop being mysterious — they are always either zero definitions (undefined reference) or more than one (multiple definition).</p>
+          <h5>Object files, symbol tables, and the linker&#x27;s job</h5>
+          <p>An object file (.o) is machine code plus a symbol table: a list of symbols it defines (marked T for text/code, D for data) and symbols it needs but does not define (marked U for undefined). The nm tool prints this table, and reading it is a core debugging skill.</p>
+          <p>The linker collects all object files, matches every U against a T or D somewhere, lays out the final memory image, and writes the executable. When it complains, nm on your .o files shows you exactly which side of the contract is broken.</p>
+          <h5>Static libraries and link order basics</h5>
+          <p>A static library (.a) is just an archive of object files. The linker pulls from it only the members needed to satisfy currently-undefined symbols — which is why order matters: put -lfoo after the object files that need it, because the linker processes inputs left to right and will not go back.</p>
+          <p>The classic symptom is &#x27;undefined reference to sqrt&#x27; when -lm comes before your .o files. The fix is never to add flags randomly; it is to understand that the linker is a single left-to-right pass and order your inputs accordingly.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Compile in stages. Write a two-file program (main.c calling add(), declared in calc.h and defined in calc.c). Compile each file with gcc -c, link the .o files manually, then run nm on each object file and identify which symbols are defined (T/D) versus undefined (U).</li>
+            <li>Lab 2 — See the preprocessor&#x27;s output. Run gcc -E on a file that includes &lt;stdio.h&gt; and pipe it to wc -l to see how much text one include pulls in. Then write a small header with and without an include guard, include it twice from one .c file, and observe the compile error the unguarded version produces.</li>
+            <li>Lab 3 — Provoke the linker. Deliberately place a non-static function definition in a header included by two .c files, link them, and record the linker&#x27;s &#x27;multiple definition&#x27; error verbatim. Fix it by moving the definition into exactly one .c file and leaving only the declaration in the header.</li>
+            <li>Lab 4 — Read assembly. Compile a simple program with gcc -S -O0 and read the generated .s file: find the function label, the prologue, a call instruction to a library function, and the return sequence. Annotate each in a comment.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Without compiling: two files, a.c and b.c, each contain &#x27;int counter = 0;&#x27; at file scope and both are linked into one program. State what the linker will do and why, then build it to verify your prediction.</li>
+            <li>Explain in your own words why a declaration may appear in many translation units while a definition must appear in exactly one, and name one example of each from the C standard library (for instance, the printf declaration in &lt;stdio.h&gt; versus its definition inside libc).</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m2-h">
+        <p class="il-eyebrow">Module 2</p>
+        <h3 class="il-h il-h--card" id="m2-h">Pointers and Dynamic Memory</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what a pointer value is (an address plus a type) and how pointer arithmetic scales by the size of the pointed-to type.</li>
+            <li>Allocate, reallocate, and free heap memory with malloc/calloc/realloc/free, checking every allocation for failure.</li>
+            <li>Distinguish automatic, static, and allocated storage durations and predict how long each object lives.</li>
+            <li>Implement ownership conventions (who allocates, who frees) that prevent leaks, double frees, and use-after-free.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Pointers as typed addresses: &amp; and *</h5>
+          <p>A pointer is an address plus a type. The type is not decoration — it tells the compiler how many bytes live at that address and how to interpret them. int *p means &#x27;p holds the address of an integer&#x27;; &amp;x takes an address, *p follows it.</p>
+          <p>Because the type rides along, dereferencing the wrong pointer type silently reinterprets memory. Every pointer bug in C is, at bottom, a disagreement between the type the pointer claims and the bytes actually there.</p>
+          <h5>Pointer arithmetic scales by the pointed-to type</h5>
+          <p>p + 1 does not add one byte — it adds sizeof(*p) bytes, moving to the next element of whatever p points to. This is what makes pointers usable as array iterators, and it is why pointer arithmetic on void* is forbidden: without a pointed-to type there is no scale.</p>
+          <p>Internalize the scaling rule and two things become obvious: why (p+1)-p is 1 regardless of type, and why casting a byte buffer to a wider type and then doing arithmetic is a classic alignment trap.</p>
+          <h5>void* as a generic address carrier; NULL and null-pointer constants</h5>
+          <p>void* is C&#x27;s generic pointer: it can hold any object pointer, and any object pointer converts to it implicitly. malloc returns void* for exactly this reason — the caller supplies the type by assigning it to a typed pointer.</p>
+          <p>NULL (or plain 0 in pointer context) is the null pointer constant: a pointer value guaranteed to compare unequal to any valid object address. Dereferencing it is undefined behavior and on most systems a segfault — which is the kindest possible outcome, because at least it is loud.</p>
+          <h5>Storage durations: automatic, static, allocated</h5>
+          <p>Objects live in one of three durations. Automatic: local variables, born at block entry, dead at block exit — returning their address is a classic bug. Static: globals and static locals, alive for the whole program. Allocated: malloc&#x27;d memory, alive from allocation until free — its lifetime is entirely your responsibility.</p>
+          <p>Most C bugs are lifetime bugs wearing other disguises. When something crashes, ask first: is this object still alive? The three durations give you exactly three possible answers.</p>
+          <h5>malloc / calloc / realloc / free semantics and failure handling</h5>
+          <p>malloc(n) returns n uninitialized bytes or NULL on failure; calloc(k, n) returns k*n zeroed bytes; realloc resizes (possibly moving) an allocation; free releases it. Every one of these can fail or be misused, and &#x27;can&#x27; means &#x27;will, in production, at 3 AM.&#x27;</p>
+          <p>The discipline is non-negotiable: check every allocation for NULL before use, and treat an unchecked malloc as a bug even if it &#x27;works.&#x27; calloc&#x27;s zeroing matters whenever the memory will be read before it is fully written — strings, structs with padding, arrays used as accumulators.</p>
+          <h5>The safe realloc idiom: temporary first, NULL check before assignment</h5>
+          <p>realloc can fail and return NULL — and if you wrote p = realloc(p, n), that NULL just overwrote your only handle to the still-valid old block: a leak and a lost pointer in one line. The safe idiom assigns to a temporary: tmp = realloc(p, n); if (!tmp) { handle the failure, p is still valid }; p = tmp.</p>
+          <p>This is the single most valuable three-line pattern in C memory management. Write it from muscle memory, every time.</p>
+          <h5>Dangling pointers, double free, use-after-free</h5>
+          <p>A dangling pointer points at memory whose lifetime ended — a freed block or a dead stack frame. Using it is use-after-free; freeing it again is double free. Both are undefined behavior, both are exploitable, and both are silent until they are catastrophic.</p>
+          <p>The defenses are boring and effective: set pointers to NULL after freeing (so a second free is a safe no-op and a use crashes loudly), establish who owns each allocation, and run every test under AddressSanitizer, which catches all three with precise diagnostics.</p>
+          <h5>Ownership conventions: who allocates, who frees</h5>
+          <p>Every allocation needs a documented owner: the function that allocates either frees it, or transfers ownership to its caller, and the convention must be written down — in the function&#x27;s contract comment, not in anyone&#x27;s head. const-qualified pointers (const char *) are part of this: they advertise &#x27;I will not modify or take ownership of this.&#x27;</p>
+          <p>C has no garbage collector and no borrow checker, so ownership conventions are the memory-safety system. The capstone README will ask you to state yours explicitly; start practicing the habit in every function you write from this module on.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Allocate and free cleanly. Write a program that reads a size from stdin, validates it (reject zero, negative, and absurd values), allocates an int array with malloc, fills and prints it, then frees it. Compile with -Wall -Wextra and fix every warning before running.</li>
+            <li>Lab 2 — Growable vector. Implement a growable vector of double using realloc with doubling growth, using the safe temporary idiom. Write a test driver that pushes 1,000 values and then frees everything; confirm with a comment where each allocation is released.</li>
+            <li>Lab 3 — Meet the sanitizer. Write two small buggy programs: one that leaks memory in a loop and one that calls free twice on the same pointer. Build both with -fsanitize=address and record the exact diagnostic each report gives you — learn what ASan output looks like before you need it.</li>
+            <li>Lab 4 — The dangling local. Write a function that returns a pointer to a local variable. Compile without -w, read the -Wreturn-local-addr warning, then fix the design by switching to caller-provided storage and explain why that fix is correct.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Given &#x27;int *p = malloc(4 * sizeof *p);&#x27; explain in writing why &#x27;sizeof *p&#x27; is more maintainable than &#x27;sizeof(int)&#x27;, then change the allocation to zero-initialized memory with calloc and justify when zero-initialization matters.</li>
+            <li>Run your Lab 2 vector under AddressSanitizer with a driver that pushes 10,000 elements and pops them all: it must report zero errors, and you must be able to point at the exact line where each allocation is released.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m3-h">
+        <p class="il-eyebrow">Module 3</p>
+        <h3 class="il-h il-h--card" id="m3-h">Arrays and Strings</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain when an array decays to a pointer and when it does not (sizeof, unary &amp;, string-literal initialization).</li>
+            <li>Manipulate C strings as NUL-terminated char arrays using &lt;string.h&gt; safely, with bounded operations and explicit length checks.</li>
+            <li>Compare stack arrays, variable-length arrays, and heap arrays, and choose correctly for a given size and lifetime.</li>
+            <li>Write functions that take array parameters together with explicit size arguments instead of trusting a bare pointer.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Array-to-pointer decay and its three exceptions</h5>
+          <p>In most expressions, an array name &#x27;decays&#x27; to a pointer to its first element — which is why arrays and pointers feel interchangeable. But there are exactly three exceptions where the array stays an array: as the operand of sizeof, as the operand of unary &amp;, and when initializing a char array from a string literal.</p>
+          <p>The checkpoint&#x27;s hand-trace is the whole rule in miniature: sizeof(a) is 10 (array, no decay), sizeof(p) is 8 (pointer), &amp;a is a pointer to the whole array, a+1 steps one char, &amp;a+1 steps ten. Memorize the three exceptions and decay stops being mysterious.</p>
+          <h5>sizeof on arrays versus on pointers</h5>
+          <p>sizeof(array) is the total bytes of the array; sizeof(pointer) is the size of the address itself, regardless of what it points to. This is why a function receiving char *s cannot learn the array&#x27;s length with sizeof — the decay already happened at the call boundary.</p>
+          <p>The engineering consequence: array length must travel with the pointer as a separate argument. Every function in this sequence that takes an array parameter will also take an explicit size — no exceptions.</p>
+          <h5>String literals live in read-only storage; char arrays are writable copies</h5>
+          <p>char *s = &quot;literal&quot;; points s at the string literal, which typically lives in read-only memory — writing through s crashes. char a[] = &quot;literal&quot;; instead copies the characters into a writable array you own.</p>
+          <p>The lab where you write s[0] = &#x27;x&#x27; and watch it die exists to burn this into reflex. If a string might ever be modified, it must be an array (or heap memory), never a bare pointer to a literal.</p>
+          <h5>NUL terminator discipline and off-by-one sizing</h5>
+          <p>C strings end at the first &#x27;\0&#x27;, and every string of length n needs n+1 bytes of storage. Forgetting the +1 is the most common off-by-one in C — strlen returns the length excluding the terminator, so allocation must always be strlen(s) + 1.</p>
+          <p>Treat the terminator as a first-class citizen: every copy, every concatenation, every buffer size calculation must account for it explicitly. The day you stop adding +1 &#x27;just in case&#x27; and start adding it because the terminator is real data is the day your string code gets reliable.</p>
+          <h5>Bounded string functions and their pitfalls</h5>
+          <p>strcpy and strcat do not know your buffer&#x27;s size — they are the historical source of countless overflows. The bounded family (strncpy, strncat, snprintf) takes a size, but each has its own trap: strncpy does not NUL-terminate if the source is too long, and strncat&#x27;s size argument means &#x27;space remaining,&#x27; not &#x27;total buffer size.&#x27;</p>
+          <p>The safe habit: prefer snprintf for formatting (it always terminates and reports truncation), and when you use strncpy, follow it with an explicit buf[n-1] = &#x27;\0&#x27;. Never trust a bounded function to do the terminating for you unless you have verified its contract.</p>
+          <h5>snprintf as the safe formatting workhorse</h5>
+          <p>snprintf(buf, sizeof buf, fmt, ...) writes at most sizeof buf - 1 characters plus the terminator, always terminates, and returns the number of characters that would have been written — letting you detect truncation. It replaces sprintf, strcat chains, and most manual string assembly.</p>
+          <p>Make snprintf your default for building strings. Its return value is the truncation detector: if it is &gt;= the buffer size, you know output was cut and can handle it (bigger buffer, error, log) instead of silently corrupting.</p>
+          <h5>Multidimensional arrays are row-major contiguous blocks</h5>
+          <p>int m[3][4] is one contiguous block of 12 ints in row-major order — row 0&#x27;s four elements, then row 1&#x27;s, and so on. m[i][j] is exactly *(m[0] + i*4 + j); there is no array of pointers unless you build one.</p>
+          <p>This matters when you pass 2D arrays to functions (all dimensions but the first must be declared so the compiler knows the row stride) and when you reason about cache behavior: iterating row-major matches the layout, column-major fights it.</p>
+          <h5>Variable-length arrays: convenience versus stack-overflow risk</h5>
+          <p>C99 variable-length arrays (int buf[n];) size a stack array at runtime — convenient, but the allocation is unchecked: a large or hostile n blows the stack with no error return to test. VLAs are optional in C11 for exactly this reason.</p>
+          <p>The rule: VLAs for small, bounded, trusted sizes only. Anything user-controlled or potentially large goes on the heap with malloc, where failure is detectable. Convenience is not worth an uncatchable crash.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — sizeof laboratory. Write a program that prints sizeof for &#x27;char buf[64];&#x27; and for a &#x27;char *p&#x27; pointing at it. Explain the different results in a code comment stating the decay rule precisely.</li>
+            <li>Lab 2 — Safe line reader. Implement fgets into a fixed buffer, detect a missing newline to grow the buffer dynamically, and handle EOF. Test on a 10 KB single-line input and on an empty file — both must work.</li>
+            <li>Lab 3 — Bound the unbounded. Take a program using strcpy/strcat and rewrite it with snprintf/strncat using explicit size math. Construct a test input where the unbounded version overflows and show the bounded version truncating safely instead.</li>
+            <li>Lab 4 — The read-only literal. Write &#x27;char *s = &quot;literal&quot;; s[0] = &#x27;x&#x27;;&#x27;, build and run it, observe the crash, then fix it by declaring a writable char array instead. Write down what the crash taught you.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Hand-trace this: &#x27;char a[10]; char *p = a;&#x27;. List which of sizeof(a), sizeof(p), &amp;a, a+1, and &amp;a+1 differ from each other and why. Verify with a small printing program.</li>
+            <li>Write a function &#x27;void reverse(char *s)&#x27; that reverses a string in place using no &lt;string.h&gt; calls except strlen, then prove it handles the empty string and a single-character string correctly.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m4-h">
+        <p class="il-eyebrow">Module 4</p>
+        <h3 class="il-h il-h--card" id="m4-h">Structs, Unions, and Enums</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define structs, use the . and -&gt; operators, and initialize with designated initializers and compound literals.</li>
+            <li>Predict struct size and member offsets from alignment rules, and reorder members to minimize padding.</li>
+            <li>Use unions for space-efficient variant storage and apply the tagged-union discipline to access them safely.</li>
+            <li>Model state machines and option sets with enums and apply integer-promotion rules correctly.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>struct layout: member order, alignment, and padding</h5>
+          <p>Struct members are laid out in declaration order, but each member must start at an address that is a multiple of its alignment requirement — so the compiler inserts invisible padding bytes between members and possibly at the end. struct { char a; int b; char c; } is typically 12 bytes, not 6.</p>
+          <p>This is why member order matters: grouping members by descending alignment (doubles, then ints, then chars) minimizes padding. The checkpoint&#x27;s reorder exercise — char, char, int, double versus the scattered original — makes the savings concrete and measurable.</p>
+          <h5>offsetof and reasoning about member addresses</h5>
+          <p>The offsetof macro (from &lt;stddef.h&gt;) gives the byte offset of a member within its struct — the tool for reasoning about layout without guessing. Combined with sizeof, it lets you verify your hand-computed layouts against reality.</p>
+          <p>Use offsetof whenever you serialize structs, compute field positions in binary formats, or argue about padding in a code review. &#x27;I measured it&#x27; beats &#x27;I think the compiler does&#x27; every time.</p>
+          <h5>Designated initializers and compound literals</h5>
+          <p>Designated initializers (.x = 1, .y = 2) initialize struct members by name instead of position — immune to member reordering and self-documenting. Unmentioned members are zero-initialized, which is often exactly what you want.</p>
+          <p>Compound literals ((struct Point){.x=1, .y=2}) create an unnamed object on the fly, perfect for passing a struct by value to a function without declaring a temporary. Together they make struct-heavy code dramatically more readable.</p>
+          <h5>Anonymous structs and unions (C11)</h5>
+          <p>C11 allows a struct or union to be nested anonymously inside another struct, promoting its members to the enclosing scope: you write s.x instead of s.inner.x. It is syntactic sugar — the layout is identical to the named version.</p>
+          <p>Use it sparingly, for cases where the nesting adds no information (a point&#x27;s x/y inside a rect). Overuse creates confusing scope flattening; the feature exists to reduce noise, not structure.</p>
+          <h5>Unions as space-efficient variant storage; tagged unions</h5>
+          <p>A union stores its members overlapping in the same memory — its size is the size of the largest member. It is the right tool when exactly one of several alternatives is live at any time, saving the space the alternatives would waste.</p>
+          <p>The danger is reading the wrong member: without discipline, nothing records which alternative is current. The tagged-union discipline adds a kind field (usually an enum) that is always set on write and always checked on read — the union becomes safe, at the cost of a few bytes for the tag.</p>
+          <h5>Enums: named integer constants, promotion rules, state machines</h5>
+          <p>Enums give names to integer constants — states, options, error codes — with the compiler assigning values from 0 unless you specify. Enum values promote to int in expressions, which keeps arithmetic simple but means the compiler will not stop you from mixing enum types.</p>
+          <p>Their highest-value use is state machines: an enum for the states, a transition function switching on (state, input), and the compiler warning you about unhandled cases. The word-counter lab is the canonical first example.</p>
+          <h5>Bit-fields: what they guarantee and why they are non-portable</h5>
+          <p>Bit-fields (unsigned x : 3;) pack members into sub-word storage — useful for hardware registers and wire protocols where every bit counts. The standard guarantees the packing is tight, but not the order of bits, the layout of straddling fields, or much else.</p>
+          <p>Consequence: bit-fields are fine for memory savings inside one program compiled by one compiler, but never for data exchanged across compilers, platforms, or the network. For wire formats, use explicit shifts and masks — verbose, but portable by construction.</p>
+          <h5>Flexible array members for variable-length trailing data</h5>
+          <p>A struct ending in char data[]; (no size) is C99&#x27;s sanctioned way to model variable-length trailing payloads: allocate sizeof(struct) + payload bytes in one malloc, and data behaves as an array of exactly the size you allocated.</p>
+          <p>One allocation means one free, no pointer chasing, and cache-friendly locality — the classic packet-header pattern. The rules: the flexible member must be last, the struct cannot be copied by value meaningfully, and sizeof excludes the flexible part.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Measure the padding. Define &#x27;struct { char a; double b; char c; int d; }&#x27;, print sizeof and offsetof of each member, then reorder to &#x27;char, char, int, double&#x27; and compare: compute the bytes saved and explain where the padding went.</li>
+            <li>Lab 2 — Tagged union. Implement a tagged union &#x27;Value&#x27; with an int kind field and a union of { long i; double d; char *s; }. Write make/print/free functions that switch on kind, freeing the string member only when kind says it is a string — and prove a misuse is caught.</li>
+            <li>Lab 3 — Enum state machine. Build an enum-driven word counter with states START, IN_WORD, IN_SPACE, fed character by character through a transition function. Test on empty input, all-spaces, and words with multiple separators.</li>
+            <li>Lab 4 — Flexible array member. Model a variable-length packet with a flexible array member struct: allocate with a single malloc of sizeof(struct) + payload bytes, write the payload, read it back, and free once.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>On a typical 64-bit ABI, compute by hand the sizeof and each member offsetof for &#x27;struct { char a; int b; char c; }&#x27;, then verify with a program that prints offsetof for all three members.</li>
+            <li>Explain in writing why reading a union member other than the one most recently stored is fragile, and describe the tagged-union discipline (a kind field checked before every access) that makes unions safe.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m5-h">
+        <p class="il-eyebrow">Module 5</p>
+        <h3 class="il-h il-h--card" id="m5-h">File I/O</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Open, read, write, and close files with the &lt;stdio.h&gt; stream API, checking every call for failure.</li>
+            <li>Distinguish text versus binary mode, buffered versus unbuffered I/O, and line-oriented versus block-oriented reads.</li>
+            <li>Handle I/O errors robustly: check ferror/feof, report with perror/strerror, and never treat a short read as EOF.</li>
+            <li>Use file positioning (fseek/ftell/rewind) and write streaming programs that handle files larger than RAM.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>FILE* streams and fopen modes</h5>
+          <p>fopen(path, mode) returns a FILE* stream or NULL on failure — always check. The mode string selects read (r), write (w, truncating), append (a), update (+) for read-write, and binary (b). Text versus binary mode matters on some platforms (newline translation); on POSIX they are identical, but write the b anyway when the data is binary — it documents intent and is portable.</p>
+          <p>Opening with the wrong mode is a silent logic bomb: w destroys existing content, r fails on missing files, a never lets you overwrite. Choose the mode by stating what the program must do if the file already exists.</p>
+          <h5>Buffering: fully buffered, line buffered, unbuffered</h5>
+          <p>Streams buffer I/O for performance: fully buffered (blocks flushed when full — files), line buffered (flushed per newline — terminals), unbuffered (every write goes through — stderr). setvbuf lets you change the policy; fflush forces a flush.</p>
+          <p>Buffering explains &#x27;my output didn&#x27;t appear&#x27;: a crashed program loses its unflushed buffers, and interleaved stdout/stderr look out of order because one is buffered and the other is not. When debugging output mysteries, ask about buffering before anything else.</p>
+          <h5>fgets versus fread/fwrite: line-oriented vs block I/O</h5>
+          <p>fgets reads one line (stopping at newline or buffer-full) and is the right tool for text; fread/fwrite move raw byte blocks and are the right tool for binary data and bulk copies. Mixing them on one stream without repositioning is asking for confusion.</p>
+          <p>The line-oriented/block distinction drives the capstone&#x27;s design: streaming text processing uses fgets-style line reads, while the binary record lab uses fread with fseek. Pick the API that matches the data&#x27;s shape.</p>
+          <h5>The feof/ferror discipline: the read controls the loop</h5>
+          <p>feof reports that a previous read hit end-of-file — it does not predict the next read. while (!feof(f)) processes one phantom extra iteration because feof only becomes true after a read fails. The correct loop tests the read itself: while (fgets(buf, sizeof buf, f) != NULL).</p>
+          <p>After the loop, feof versus ferror tells you why it stopped: clean EOF or an I/O error. Programs that never check ferror silently treat disk errors as end-of-file — data loss wearing an EOF costume.</p>
+          <h5>errno, perror, and strerror</h5>
+          <p>When a library call fails, it typically returns an error indicator and sets errno to a code naming the failure. perror(msg) prints your message plus the human-readable errno string to stderr; strerror(errno) gives you the string for logging or formatting.</p>
+          <p>The pattern is: check the return, then immediately capture errno (later calls can overwrite it), then report with context — which file, which operation. &#x27;fopen failed: No such file or directory&#x27; is a diagnosis; a bare &#x27;error&#x27; is a shrug.</p>
+          <h5>Format-string safety</h5>
+          <p>printf(user_string) is a vulnerability, not a shortcut: if the string contains % sequences, printf interprets them as format specifiers, reading (or writing, with %n) arbitrary stack memory. The compiler&#x27;s -Wformat-security warning exists specifically to catch this.</p>
+          <p>The fix is printf(&quot;%s&quot;, user_string) — the format string is always a literal you control; user data is always an argument. This rule has no exceptions, and the lab where you trigger the warning exists so you recognize the pattern in other people&#x27;s code.</p>
+          <h5>File positioning: fseek, ftell, rewind, fgetpos/fsetpos</h5>
+          <p>fseek moves the stream position (by bytes from start/current/end), ftell reports it, rewind resets to the start, and fgetpos/fsetpos handle positions portably for large files. Together they turn a stream into a random-access device.</p>
+          <p>The record-seek lab is the canonical use: fseek(f, 500 * sizeof(record), SEEK_SET) jumps straight to record 500 with no reading in between. Positioning plus fixed-size records is a tiny database; positioning on text files is fragile because line lengths vary.</p>
+          <h5>Streaming design: files larger than RAM in constant memory</h5>
+          <p>The capstone&#x27;s headline requirement — process a 1 GB file in constant memory — is a design discipline, not a trick: read a chunk, process it, emit results, discard the chunk. No step may retain the whole input.</p>
+          <p>This rules out slurp-the-file-into-memory and forces the patterns this module teaches: line-at-a-time or block-at-a-time processing, incremental aggregation (the hash table grows with distinct words, not input size), and output written as you go. If memory grows with input size, the design is wrong.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — wc clone. Write a wc-like tool counting bytes, words, and lines from stdin or a named file. Test on: an empty file, a file with no trailing newline, and a 1 GB generated file — confirming constant memory use with /usr/bin/time -v.</li>
+            <li>Lab 2 — Random access. Write 1,000 fixed-layout records to a binary file with fwrite, then read back record #500 by seeking to offset 500 * sizeof(record). Verify the contents match what you wrote, byte for byte.</li>
+            <li>Lab 3 — Copy with verification. Write a file-copy program using fread/fwrite with a 64 KB buffer; compare sha256sum of source and copy, then extend the program to correctly handle a short write from fwrite (loop until all bytes are written).</li>
+            <li>Lab 4 — Format-string warning. Write a program that passes a user-supplied string as the printf format argument, observe the -Wformat-security warning, then fix it with &quot;%s&quot; and confirm the warning disappears.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Explain the bug in &#x27;while (!feof(f)) { fgets(buf, sizeof buf, f); process(buf); }&#x27;, rewrite the loop so the read itself controls iteration, and test both versions on a file whose last line has no trailing newline.</li>
+            <li>Write a function that safely replaces a file&#x27;s contents: write to a temporary file, fflush, then rename it over the original. Explain in writing why each step matters for crash safety.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m6-h">
+        <p class="il-eyebrow">Module 6</p>
+        <h3 class="il-h il-h--card" id="m6-h">Build Tooling — gcc Flags and make</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Compile and link multi-file projects from the command line with explicit -c, -o, -I, -L, and -l steps in the correct order.</li>
+            <li>Use warning and language-standard flags (-Wall -Wextra -Werror -std=c11 -pedantic) and explain what each major class catches.</li>
+            <li>Write a Makefile with targets, prerequisites, recipes, variables, and pattern rules, and explain the TAB-before-recipe rule.</li>
+            <li>Apply -g, optimization levels, and sanitizers (-fsanitize=address,undefined) as a standard debug and hardening workflow.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Separate compilation: -c, then link</h5>
+          <p>gcc -c compiles one source file to one object file without linking; a later gcc invocation links the objects. This is separate compilation, and it is what makes large projects buildable: change one file, recompile one object, relink.</p>
+          <p>The build labs drill this until it is reflex, because every build system — make, CMake, or otherwise — is automation around exactly these two steps.</p>
+          <h5>-I, -L, and link order: -l after the objects that need it</h5>
+          <p>-I adds header search paths for the compiler; -L adds library search paths for the linker; -lfoo links libfoo. And because the linker processes inputs left to right, libraries come after the object files that reference them.</p>
+          <p>&#x27;undefined reference to sqrt&#x27; with -lm present almost always means -lm was placed before the objects. The fix is ordering, not more flags — understand the single-pass linker and this error becomes a thirty-second fix forever.</p>
+          <h5>Warning flags: -Wall -Wextra -Werror; standards: -std=c11 -pedantic</h5>
+          <p>-Wall and -Wextra enable the warning families that catch real bugs (unused variables, suspicious comparisons, missing cases); -Werror promotes warnings to errors so they cannot be ignored. -std=c11 -pedantic pins the language dialect and rejects non-standard extensions.</p>
+          <p>This combination is the sequence&#x27;s mandatory baseline — the capstone requires building clean under it. Warnings are the compiler telling you about bugs it can already see; -Werror is you agreeing to listen.</p>
+          <h5>-g versus optimization levels</h5>
+          <p>-g embeds debug information (variable names, line mappings) for gdb; optimization levels -O0 through -O3 (and -Os for size) trade compile time and debuggability for runtime speed. -O0 compiles fast and debugs faithfully; -O2 is the standard &#x27;ship it&#x27; level.</p>
+          <p>The standard practice from Module 7: debug at -O0, ship at -O2, and never try to make sense of &#x27;optimized out&#x27; variables when you could just rebuild without optimization.</p>
+          <h5>Sanitizers as standard workflow: -fsanitize=address,undefined</h5>
+          <p>AddressSanitizer instruments memory accesses to catch overflows, use-after-free, and leaks at runtime with precise reports; UndefinedBehaviorSanitizer catches signed overflow, misaligned access, null dereference, and the other UB classes from Module 8. The cost is roughly 2x slowdown — irrelevant during development.</p>
+          <p>Treat sanitizer builds as a second compiler you always run: the labs require ASan+UBSan-clean runs because tests that pass without sanitizers routinely hide memory bugs. A green test suite plus a clean sanitizer run is the actual definition of &#x27;works.&#x27;</p>
+          <h5>Make: targets, prerequisites, recipes; $@ $&lt; $^</h5>
+          <p>A Makefile rule reads &#x27;target: prerequisites&#x27; followed by TAB-indented recipes. The automatic variables compress the common cases: $@ is the target name, $&lt; is the first prerequisite, $^ is all prerequisites. A compile rule becomes &#x27;$(CC) $(CFLAGS) -c $&lt; -o $@&#x27; — generic across every source file.</p>
+          <p>The TAB-before-recipe rule is make&#x27;s most infamous gotcha: spaces do not work, and the error message (&#x27;missing separator&#x27;) never says so plainly. Now you know.</p>
+          <h5>Pattern rules, variables, .PHONY</h5>
+          <p>Pattern rules (%.o: %.c) say how to build any object from its source, so you write the compile logic once. Variables (CC, CFLAGS) centralize toolchain choices. .PHONY marks targets like clean and all that are not files, so make runs their recipes even if a file named &#x27;clean&#x27; exists.</p>
+          <p>These three features turn a Makefile from a list of commands into a maintainable build description — and they are exactly what the capstone Makefile must demonstrate.</p>
+          <h5>Incremental rebuilds: why make rebuilds only what changed</h5>
+          <p>make compares timestamps: a target rebuilds only if a prerequisite is newer than it. Touch one .c file and only its .o recompiles, then the program relinks — on a large project this is the difference between a two-second and a twenty-minute build.</p>
+          <p>The corollary: if make rebuilds everything every time, something is wrong with your dependency declarations (often a missing header dependency). Correct prerequisites are what make incremental builds trustworthy.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Three ways to build. Take a three-file project and build it three ways: a single gcc invocation, manual &#x27;gcc -c&#x27; steps plus an explicit link, and a Makefile you write. Confirm all three produce identical program behavior.</li>
+            <li>Lab 2 — Pattern rules and incrementals. Write a Makefile with a &#x27;%.o: %.c&#x27; pattern rule, CC/CFLAGS variables, and a .PHONY clean target. Touch one .c file and demonstrate that only its .o rebuilds before relinking.</li>
+            <li>Lab 3 — Warning-zero. Take a warning-laden program and iterate with &#x27;-Wall -Wextra -Werror -std=c11 -pedantic&#x27; until it builds clean. Keep a log of each warning fixed and what it was telling you — this log is a personal bug taxonomy.</li>
+            <li>Lab 4 — Sanitizers then optimization. Build your Module 2 vector program with &#x27;-fsanitize=address,undefined -g&#x27;, run your test driver, fix every report, then rebuild with &#x27;-O2 -DNDEBUG&#x27; and compare runtime on a large input. Note what changed and what did not.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Given the link error &#x27;undefined reference to sqrt&#x27;, state the exact fix and explain why &#x27;-lm&#x27; must appear after the object files on the gcc command line.</li>
+            <li>From memory, write a minimal correct Makefile for main.c + util.c + util.h with separate debug (CFLAGS_DEBUG) and release (CFLAGS_RELEASE) flag sets, then verify it builds both.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m7-h">
+        <p class="il-eyebrow">Module 7</p>
+        <h3 class="il-h il-h--card" id="m7-h">Debugging with gdb</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Build with -g and drive gdb through its core workflow: run, break, next/step/finish, continue, print, backtrace.</li>
+            <li>Inspect memory directly with the x command, watch variables with watchpoints, and examine frames and locals.</li>
+            <li>Debug crashes: obtain a backtrace from a segfault, identify the faulting line, and distinguish null dereference from heap corruption.</li>
+            <li>Combine gdb with core dumps and sanitizer output to localize bugs faster.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Debug info with -g; -O0 is the debugging optimization level</h5>
+          <p>-g embeds the mapping between machine code and your source — variable names, types, line numbers — that gdb reads. Without it you are debugging assembly with no symbols.</p>
+          <p>-O0 (no optimization) keeps the generated code in one-to-one correspondence with your source: variables live where you expect, lines execute in order. Higher optimization levels reorder, eliminate, and merge — great for shipping, actively hostile to debugging. Rebuild at -O0 before you reach for gdb; the ten seconds it costs saves hours of confusion.</p>
+          <h5>Core workflow: break, run, next, step, finish, continue</h5>
+          <p>break sets a breakpoint at a line or function; run starts the program; next executes one line (stepping over calls); step descends into a call; finish runs to the end of the current function; continue resumes until the next breakpoint. These six commands cover ninety percent of debugging sessions.</p>
+          <p>The rhythm is: break where it goes wrong, run to get there, then next/step through the suspect code watching state change. Everything else in gdb is specialization of this loop.</p>
+          <h5>Inspecting state: print, x, info locals, info args</h5>
+          <p>print expr evaluates any C expression in the current context — variables, dereferences, even function calls (carefully). info locals and info args dump the current frame&#x27;s variables. x (examine) reads raw memory: x/16xb p shows sixteen bytes in hex at p.</p>
+          <p>When the bug is &#x27;wrong value,&#x27; print finds it. When the bug is &#x27;memory is corrupt,&#x27; x finds it. Learn the x format letters (x hex, d decimal, s string, i instruction) — they turn gdb from a variable-watcher into a memory microscope.</p>
+          <h5>Backtraces and frames: bt, frame N, up/down</h5>
+          <p>A segfault&#x27;s first question is &#x27;how did I get here?&#x27; — bt (backtrace) answers with the full call stack. frame N jumps to any frame; up/down move between them; then print and info locals inspect that frame&#x27;s world.</p>
+          <p>Most crashes are solved in the backtrace: the faulting line is visible, and one frame up is usually the caller that passed the bad argument. The checkpoint&#x27;s frame exercise builds the habit of reading the stack before reading the code.</p>
+          <h5>Watchpoints: stopping when a variable changes</h5>
+          <p>A watchpoint stops the program whenever a watched memory location is written — the tool for &#x27;something corrupts this variable and I don&#x27;t know what.&#x27; Set it on the victim, continue, and gdb halts at the exact instruction doing the corrupting.</p>
+          <p>Use watchpoints for heap corruption and mysterious state changes; they are slower than breakpoints (the debugger single-steps checking the location), so watch one variable at a time and only around the suspect region.</p>
+          <h5>Conditional breakpoints for iteration-999 bugs</h5>
+          <p>break foo.c:42 if i == 999 stops only when the condition holds — essential when a loop misbehaves on one iteration out of a thousand. Without the condition you would press continue 999 times; with it, you land directly on the crime.</p>
+          <p>The silent-logic-bug lab exists to make this reflex: when the failure is data-dependent, the breakpoint must be too.</p>
+          <h5>Core dumps: ulimit -c, loading a core without re-running</h5>
+          <p>A core dump is the program&#x27;s memory at the moment of death, written to disk. Enable with ulimit -c unlimited, then gdb ./prog core gives you the backtrace and full state without re-running — invaluable when the crash is rare or the environment is gone.</p>
+          <p>Post-mortem debugging is a production skill: the crashed process on a customer machine cannot be re-run under your debugger, but its core can be analyzed on yours. Always know how to get a core from your systems.</p>
+          <h5>Sanitizer output plus gdb: two tools, one workflow</h5>
+          <p>ASan/UBSan reports tell you what went wrong and the exact stack trace; gdb lets you explore the live state around it. The combined workflow: reproduce under the sanitizer, note the faulting line, then re-run under gdb with a breakpoint just before it to inspect the state that led there.</p>
+          <p>Neither tool replaces the other. Sanitizers find bugs your eyes miss; gdb explains bugs the sanitizer only points at. The capstone README asks you to document one real bug found this way — start collecting candidates in these labs.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Segfault under gdb. Write a program with an off-by-one write past a stack array that segfaults. Run it under gdb, capture the backtrace, identify the faulting line and variable values, then fix the bug and confirm the fix.</li>
+            <li>Lab 2 — Use-after-free with a watchpoint. Set a breakpoint after free(), place a watchpoint on the pointer variable, and step through to observe the stale access. Fix it with the set-pointer-to-NULL-after-free discipline and show the watchpoint no longer fires.</li>
+            <li>Lab 3 — Core dump post-mortem. Enable core dumps (&#x27;ulimit -c unlimited&#x27;), crash a program, then load the core file in gdb and produce the backtrace without re-running the program. Write down the exact commands.</li>
+            <li>Lab 4 — The silent logic bug. Debug a wrong-output-no-crash bug using a conditional breakpoint that stops only on the failing iteration of a 1,000-record loop. Record the condition you used and what it revealed.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>From a gdb backtrace of a three-deep call stack, use &#x27;frame N&#x27; and &#x27;info locals&#x27; to identify which frame holds the buggy variable and display its value. Do this on your Lab 1 crashing program.</li>
+            <li>Explain in writing why debugging at -O2 shows &#x27;optimized out&#x27; variables and jumping line numbers, and state the standard practice: debug at -O0, ship at -O2.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m8-h">
+        <p class="il-eyebrow">Module 8</p>
+        <h3 class="il-h il-h--card" id="m8-h">Undefined Behavior and Safe-Coding Discipline</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define undefined behavior and explain why the compiler is permitted to assume it never happens, with optimization consequences.</li>
+            <li>Recognize the major UB classes: invalid dereference, out-of-bounds access, use-after-free/double-free, signed integer overflow, uninitialized reads, data races, strict-aliasing violations, and unsequenced modifications.</li>
+            <li>Use UBSan, ASan, compiler warnings, and static analysis to detect UB during development instead of in production.</li>
+            <li>Apply safe-coding discipline: initialize at declaration, validate all inputs, bound every loop and copy, check every fallible call, prefer size-aware APIs.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Three behavior classes: undefined, unspecified, implementation-defined</h5>
+          <p>The standard sorts edge cases into three buckets. Undefined behavior (UB): the standard imposes no requirements — anything may happen, including appearing to work. Unspecified: the implementation must pick some behavior but need not document it (e.g., order of function argument evaluation). Implementation-defined: the implementation must pick and document it (e.g., sizeof(int)).</p>
+          <p>The checkpoint&#x27;s classification drill is the whole taxonomy in five cases: (a) undefined — unsequenced modification; (b) unspecified — argument order; (c) implementation-defined — documented by your compiler; (d) undefined — null dereference; (e) undefined — shift by the width. Only (c) is portable-by-documentation.</p>
+          <h5>The compiler may assume UB never happens — and optimizes on that assumption</h5>
+          <p>This is the deep reason UB is dangerous: the optimizer is permitted to reason &#x27;this program has no UB, therefore...&#x27; and transform code accordingly. A null check after a dereference can be deleted (dereferencing null would be UB, so the pointer &#x27;must&#x27; be non-null). Signed overflow &#x27;cannot happen,&#x27; so a + b &gt; a folds to true.</p>
+          <p>The result: UB does not just crash — it makes the compiler generate code for a different program than the one you wrote, and the miscompilation changes with optimization level. &#x27;Works at -O0, breaks at -O2&#x27; is the signature scent of UB.</p>
+          <h5>Major UB classes: bad dereference, out-of-bounds, lifetime, signed overflow</h5>
+          <p>The greatest-hits list: dereferencing null or invalid pointers; reading/writing past object bounds; lifetime errors (use-after-free, double free, returning stack addresses); signed integer overflow; reading uninitialized memory; data races; modifying a variable twice between sequence points (x = x++); strict-aliasing violations.</p>
+          <p>You have met most of these in earlier labs — deliberately. This module names the family they belong to and explains why the sanitizer reports you collected are not style suggestions but correctness verdicts.</p>
+          <h5>Uninitialized reads, data races, modifying twice between sequence points</h5>
+          <p>Reading uninitialized memory is UB even if you &#x27;just&#x27; get garbage — the value is indeterminate and the compiler may exploit that. Data races (unsynchronized concurrent access with a write) are UB in the language model, not merely a timing hazard. And x = x++ is UB because the standard does not sequence the two modifications — there is no &#x27;order it happens in&#x27; to rely on.</p>
+          <p>The common thread: in each case the programmer assumes an operational detail the standard deliberately leaves open, and the optimizer is free to disagree with the assumption.</p>
+          <h5>Strict aliasing and effective type</h5>
+          <p>The compiler may assume that pointers of different types do not point to the same memory (with narrow exceptions like char*), and it reorders and caches accesses based on that assumption. Writing through int* and reading through float* violates the rule — at -O0 it &#x27;works,&#x27; at -O2 the read can return a stale cached value.</p>
+          <p>The fixes are memcpy (the blessed type-punning tool — modern compilers optimize it away) or a union. The lab&#x27;s -O0/-O2 comparison makes the abstract rule viscerally concrete.</p>
+          <h5>Detection tooling: UBSan, ASan, -Wall -Wextra, -fanalyzer</h5>
+          <p>UBSan (-fsanitize=undefined) instruments the classic UB classes and reports them at runtime with file and line. ASan covers the memory-safety subset. -Wall -Wextra catch several at compile time (-Wsequence-point flags x = x++). GCC&#x27;s -fanalyzer adds static path analysis.</p>
+          <p>No single tool catches everything — the hardening workflow layers them: warnings at compile time, sanitizers at test time, and -fanalyzer as a periodic audit. The Module 8 lab runs the full stack against hostile inputs.</p>
+          <h5>Checked arithmetic and explicit bounds as defensive patterns</h5>
+          <p>Where overflow is possible, check before operating: for addition, verify b &lt;= INT_MAX - a rather than computing a + b and testing the result (the computation itself would be the UB). For indexing, validate against the known size before touching the array.</p>
+          <p>These patterns feel paranoid until the first UBSan report on a &#x27;can&#x27;t happen&#x27; input. Defensive arithmetic is not pessimism — it is the admission that inputs are adversarial and the optimizer is literal.</p>
+          <h5>Safe-coding discipline: initialize, validate, check, bound</h5>
+          <p>The module&#x27;s closing discipline, and the sequence&#x27;s: initialize every variable at declaration; validate all inputs at the boundary; bound every loop and every copy; check every fallible call; prefer size-aware APIs (snprintf over sprintf, fgets over gets — which no longer exists for good reason).</p>
+          <p>None of this is exciting. All of it is what separates C that survives contact with users from C that survives only the demo. The capstone&#x27;s sanitizer-clean requirement is this discipline made gradable.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Signed overflow, caught. Write a program adding two ints from stdin; trigger signed overflow, capture the UBSan report with -fsanitize=undefined, then rewrite with a checked-add that detects overflow before it happens and verify UBSan stays silent.</li>
+            <li>Lab 2 — Sequence points. Write &#x27;i = i++ + ++i;&#x27; and &#x27;a[i] = i++;&#x27;, compile with -Wall -Wsequence-point, read the warnings, then rewrite each with explicit temporaries in well-defined evaluation order.</li>
+            <li>Lab 3 — Strict aliasing, observed. Write the int*/float* aliasing violation, compare behavior at -O0 versus -O2, then fix with memcpy and confirm identical behavior at -O2. Write down what changed.</li>
+            <li>Lab 4 — Full hardening pass. Take your Module 5 file tool through the complete gauntlet: -Wall -Wextra -Werror, ASan+UBSan clean on hostile inputs, every allocation and I/O call checked, all inputs validated. Document anything the earlier version got away with.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Classify each as undefined, unspecified, or implementation-defined behavior, with a one-sentence justification: (a) x = x++ (b) the order in which function arguments are evaluated (c) sizeof(int) (d) dereferencing a null pointer (e) shifting a 32-bit int left by 32.</li>
+            <li>Explain in writing why &#x27;it works on my machine&#x27; is not evidence of correctness for a program containing undefined behavior, citing one optimizer behavior you personally observed in these labs.</li>
+          </ol>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="capstone-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Capstone</p>
+        <h2 class="il-h il-h--section" id="capstone-h">Prove it: the capstone project.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The capstone pulls every module together: build wfreq, a word-frequency counter that streams arbitrarily large text files in constant memory, stores results in a dynamically grown hash table of heap-allocated strings, and writes a sorted report to an output file.</p>
+        <p>Requirements, from the curriculum: at least four translation units (main, table, io, util) plus headers, built by a Makefile you write with debug and release targets; clean under gcc -Wall -Wextra -Werror -std=c11 -pedantic; zero reports from AddressSanitizer and UBSan on a 1 GB input and on hostile inputs (empty file, no trailing newline, a 10 MB single line, binary bytes); every allocation and I/O call checked; and a README explaining your ownership conventions and how you debugged at least one real bug with gdb.</p>
+        <p>Budget your time honestly: the hash table and the streaming I/O are each a solid day&#x27;s work, the Makefile and sanitizer-clean runs another day, and the README writeup is where the learning crystallizes. This is the program that proves you can write C like an engineer.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Resources</p>
+        <h2 class="il-h il-h--section" id="resources-h">Open and free sources.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/c/language">https://en.cppreference.com/c/language</a> — the official curriculum this study guide is keyed to. The guide teaches the same ground in original prose; consult the source for the authoritative material.</li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/c/language/translation_phases">https://en.cppreference.com/c/language/translation_phases</a></li>
+          <li><a href="https://en.cppreference.com/c/language/pointer">https://en.cppreference.com/c/language/pointer</a></li>
+          <li><a href="https://en.cppreference.com/c/memory/malloc">https://en.cppreference.com/c/memory/malloc</a></li>
+          <li><a href="https://en.cppreference.com/c/language/array">https://en.cppreference.com/c/language/array</a></li>
+          <li><a href="https://en.cppreference.com/c/string/byte">https://en.cppreference.com/c/string/byte</a></li>
+          <li><a href="https://en.cppreference.com/c/language/struct">https://en.cppreference.com/c/language/struct</a></li>
+          <li><a href="https://en.cppreference.com/c/language/union">https://en.cppreference.com/c/language/union</a></li>
+          <li><a href="https://en.cppreference.com/c/language/enum">https://en.cppreference.com/c/language/enum</a></li>
+          <li><a href="https://en.cppreference.com/c/io">https://en.cppreference.com/c/io</a></li>
+          <li><a href="https://en.cppreference.com/c/language">https://en.cppreference.com/c/language</a></li>
+          <li><a href="https://en.cppreference.com/c/language/behavior">https://en.cppreference.com/c/language/behavior</a></li>
+        </ul>
+        <h3>Other free resources</h3>
+        <ul>
+          <li><a href="https://beej.us/guide/bgc/">Beej&#x27;s Guide to C Programming</a> — a free, well-regarded tutorial that complements the reference nicely</li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+      <div class="il-prose" style="margin-top:2rem">
+        <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public C language reference. It teaches the same ground in original prose with hands-on labs; it does not reproduce the official reference. For the authoritative material, consult the official curriculum source above.</em></p>
+      </div>
+
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

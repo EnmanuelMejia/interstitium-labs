@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Bitcoin Protocol Engineering | Interstitium Labs</title>
+<meta name="description" content="An original study guide to Bitcoin protocol engineering: the UTXO model, transactions and sighash, Script, keys and addresses, mining and consensus, P2P networking, node operation, and Lightning — keyed to the Bitcoin developer documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Ledger Engineering · Cryptography</p>
+    <h1 class="il-h">Bitcoin Protocol Engineering</h1>
+    <p class="il-hero__sub">From UTXOs to Lightning: how the Bitcoin protocol moves value without a central authority — transactions, script, keys, mining, networking, and nodes.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Bitcoin is a decentralized ledger: thousands of independent nodes agree on a single history of value transfers with no central authority, no accounts, and no trusted intermediaries. The protocol achieves this with a small set of interlocking ideas — unspent transaction outputs as the unit of value, a stack-based scripting language for spending conditions, public-key cryptography for ownership, proof-of-work for leader election, and a peer-to-peer network for propagation.</p>
+        <p>This sequence teaches the protocol as an engineer would need it: the UTXO model and how coins live and die, raw transaction structure and sighash semantics, Script execution and the standard output types, key derivation and address formats, mining and the most-work chain rule, P2P networking and mempool policy, full-node operation and RPC, and a conceptual tour of the Lightning Network layered on top.</p>
+        <p>You will work primarily on testnet and regtest — free, resettable Bitcoin networks where mistakes cost nothing. The developer documentation at developer.bitcoin.org is the authoritative reference for exact semantics; this page teaches the mental models that make that documentation readable.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Software engineers who want to understand how Bitcoin works at the protocol level, not the price level.</li>
+          <li>Backend and infrastructure engineers evaluating Bitcoin integration, custody, or node operation.</li>
+          <li>Cryptography-curious developers with basic programming skills and a tolerance for hexadecimal.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Comfortable with the command line and basic programming (any language).</li>
+          <li>High-level familiarity with hashes and public-key cryptography — the sequence explains what it uses, but not from zero.</li>
+          <li>A machine where you can run Bitcoin Core on testnet/regtest; no real bitcoin is ever needed.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order — each layer (UTXO, transaction, script, keys) is the vocabulary of the next.</li>
+          <li>Run every lab on testnet or regtest. Reading about script execution is abstract; tracing a real spend is concrete.</li>
+          <li>Keep a block explorer for testnet open while you study, and look up every transaction hash you create. The chain is the textbook.</li>
+          <li>When this guide states a consensus rule, verify it in the developer documentation or Bitcoin Core source behavior — the protocol is the authority.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Money and the Ledger: UTXO Model</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Contrast UTXO-based ledgers with account-based ledgers</li>
+            <li>Trace a coin's lifecycle from coinbase output to spent input</li>
+            <li>Explain how double-spending is prevented without a central authority</li>
+            <li>Read block explorers as a raw view of the UTXO set</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Unspent transaction output (UTXO) as the unit of value</h5>
+          <p>Bitcoin has no accounts and no balances at the protocol level. Value exists only as unspent transaction outputs — discrete chunks of bitcoin, each locked to a spending condition, each created by an earlier transaction. Your &quot;balance&quot; is simply the sum of the UTXOs your keys can unlock.</p>
+          <p>This is closer to physical cash than to a bank account: you hold specific bills (UTXOs) of specific denominations, and spending means handing whole bills over and receiving change. The model makes every coin's history traceable and every spend explicitly authorized.</p>
+          <h5>UTXO set and chainstate</h5>
+          <p>The UTXO set — called the chainstate in Bitcoin Core — is the collection of all currently spendable outputs. It is the ledger's present tense: everything a node needs to validate new transactions, without replaying all of history.</p>
+          <p>Full nodes maintain this set in a database, applying each new block's deltas: spent inputs are removed, new outputs are added. The chainstate is small relative to the full blockchain, which is why nodes can validate quickly once synced.</p>
+          <h5>Coinbase transactions and issuance schedule</h5>
+          <p>Every block begins with a coinbase transaction, which has no inputs and creates new bitcoin out of nothing — the block subsidy plus the block's transaction fees. This is the protocol's only issuance mechanism: new coins enter circulation exclusively through mining.</p>
+          <p>The subsidy halves every 210,000 blocks (roughly four years), converging toward the 21 million cap. Issuance is therefore a known, decaying schedule — monetary policy as consensus code rather than committee decision.</p>
+          <h5>Outpoints (txid + vout) as inputs</h5>
+          <p>A transaction input does not name an amount or an address — it names an outpoint: the transaction ID of the previous transaction plus the output index (vout) within it. That pair uniquely identifies one UTXO in the entire history.</p>
+          <p>This precision is what makes double-spending detectable: the rules can check exactly whether that specific outpoint has already been consumed. An input is a pointer to a coin; the signature proves you may spend it.</p>
+          <h5>No accounts or balances at the protocol layer</h5>
+          <p>Nothing in the consensus rules knows about &quot;accounts.&quot; Wallets compute balances by scanning for UTXOs locked to your keys; the protocol only knows individual outputs and whether each has been spent. Address reuse is discouraged partly because it fights this model — it clusters your UTXOs visibly.</p>
+          <p>Internalizing this pays off everywhere: fee estimation, coin selection, privacy, and change outputs all follow from the absence of accounts.</p>
+          <h5>Deterministic validation of inputs vs outputs</h5>
+          <p>Validation is purely mechanical: for each input, the referenced UTXO must exist and be unspent; the unlocking script must satisfy the locking script; and the total output value must not exceed the total input value. Any node, given the same UTXO set and transaction, reaches the same verdict.</p>
+          <p>This determinism is what lets thousands of mutually distrusting nodes agree. There is no judgment call in validation — only rules, applied identically everywhere.</p>
+          <h5>Dust and economic spendability</h5>
+          <p>Outputs below a tiny value threshold are called dust: they cost more in fees to spend than they are worth. Nodes' mempool policy typically refuses to relay dust outputs, because they bloat the UTXO set for no economic purpose.</p>
+          <p>Dust is a reminder that the ledger has real costs — every UTXO ever created must be stored by every full node forever. Economically rational transacting means consolidating small outputs rather than scattering them.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Spin up a testnet full node and list its chainstate entries via RPC</strong><br/>Syncing a testnet node gives you a live UTXO set to inspect. Querying it via RPC makes the chainstate concrete — it is a database you can read, not an abstraction.</li>
+            <li><strong>Follow one UTXO from coinbase to spend across three transactions on a testnet explorer</strong><br/>Pick a coinbase output and trace it forward through spends on the explorer. Watching a coin's lifecycle across transactions teaches the UTXO model faster than any diagram.</li>
+            <li><strong>Compare your node's `gettxoutsetinfo` output before and after syncing one block</strong><br/>The RPC reports the UTXO set size and total value. Observing it change by exactly one block's delta shows validation as bookkeeping.</li>
+            <li><strong>Model a UTXO ledger in a small script: apply and rollback a block's UTXO deltas</strong><br/>Implement the add/remove logic yourself on toy data, including a rollback. Reorganizations make sense only once you have felt why the set must be revertible.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why can the same outpoint never be spent twice by valid rules?</li>
+            <li>Given a 0.5 BTC input and two outputs (0.3 + 0.15 BTC), what happened to the remainder?</li>
+            <li>What distinguishes a coinbase output from a regular output?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Transactions: Inputs, Outputs, and Sighash</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Dissect raw transaction structure field by field</li>
+            <li>Explain how inputs reference and consume prior outputs</li>
+            <li>Describe what sighash flags commit a signature to</li>
+            <li>Compute and explain transaction fees and weight</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Version, inputs, outputs, locktime</h5>
+          <p>A transaction is a small structured message: a version number, a list of inputs (outpoints plus unlocking data), a list of outputs (amounts plus locking scripts), and a locktime. Locktime sets the earliest block height or timestamp at which the transaction becomes valid — a built-in &quot;do not confirm before&quot; constraint.</p>
+          <p>Reading raw transactions field by field is a rite of passage: the format is compact and every byte is accounted for. Once you can decode one by hand, the whole protocol feels legible.</p>
+          <h5>nSequence and relative lock-time signaling</h5>
+          <p>Each input carries a sequence number. Originally for a replaced-by-fee precursor that never shipped, nSequence now signals relative lock-times: with the CHECKSEQUENCEVERIFY opcode, an output can require that a given number of blocks or seconds pass after the funding transaction confirms before it may be spent.</p>
+          <p>Relative timelocks are the foundation of Lightning channels and other second-layer contracts — they express &quot;this coin is locked for N blocks from when it was created,&quot; a constraint the protocol enforces absolutely.</p>
+          <h5>Witness data and segregated witness</h5>
+          <p>Segregated witness (segwit) moved the unlocking signatures out of the traditional transaction structure into a separate witness section. The transaction ID is computed without the witness, which fixed the transaction-malleability problem: signatures can no longer alter the txid.</p>
+          <p>Witness data counts at a discount toward block limits, which effectively raised throughput for segwit transactions. Understanding the witness as &quot;the signatures, relocated&quot; demystifies most segwit discussion.</p>
+          <h5>Sighash flags (ALL, NONE, SINGLE, ANYONECANPAY)</h5>
+          <p>A signature does not sign &quot;the transaction&quot; vaguely — the sighash flag declares exactly which parts it commits to. SIGHASH_ALL (the default) commits to all inputs and outputs. SIGHASH_NONE commits to inputs but no outputs, letting others fill in outputs. SIGHASH_SINGLE commits to the input and the output at the same index. ANYONECANPAY variants commit to only the signer's own input, letting others add inputs.</p>
+          <p>These flags are the protocol's composability mechanism: partially-signed transactions, crowdfunding transactions, and coinjoin coordination all work because signers can commit to exactly their part and no more.</p>
+          <h5>Fee as implicit difference of inputs minus outputs</h5>
+          <p>Transactions have no fee field. The fee is implicit: the sum of inputs minus the sum of outputs, claimed by the miner as part of the block reward. If you construct a transaction whose outputs equal its inputs, the fee is zero — and miners will likely ignore it.</p>
+          <p>This design means fee bugs are expensive: a typo that makes outputs much smaller than inputs silently donates the difference to the miner. Always compute and sanity-check the fee before signing.</p>
+          <h5>Weight units and virtual size (vB)</h5>
+          <p>Block limits are measured in weight units: non-witness bytes count as 4, witness bytes as 1. Virtual size (vbytes) is weight divided by 4 — the number miners and fee estimators actually use. The block limit is 4 million weight units, equivalent to 1 million vbytes of legacy data.</p>
+          <p>Fee rates are quoted in satoshis per vbyte, so fee estimation is arithmetic on virtual size. Segwit transactions pay less per byte of signature data because witness bytes are discounted — the incentive that drove segwit adoption.</p>
+          <h5>Transaction malleability and its mitigations</h5>
+          <p>Before segwit, a transaction's signatures were part of the data hashed into its txid, so third parties could alter the signature encoding and change the txid without invalidating the transaction. Any system tracking transactions by txid — like Lightning — could be confused by this malleability.</p>
+          <p>Segwit fixed it by excluding witness data from the txid computation. For legacy transactions, standardness rules require low-S signatures and canonical encodings, narrowing the malleability surface. The lesson generalizes: identifiers should commit to intent, not to signatures.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Decode a raw testnet transaction with a local decoder and annotate each field</strong><br/>Take a real raw transaction and label every field: version, input count, each outpoint, sequence, output values, locking scripts, locktime. The annotated hex is worth more than a chapter of prose.</li>
+            <li><strong>Build a funding transaction and a spending transaction by hand on regtest with bitcoin-cli</strong><br/>Constructing transactions manually — createrawtransaction, signing, broadcasting — teaches the input/output mechanics that wallets hide. Regtest gives you coins and instant blocks for free.</li>
+            <li><strong>Sign the same input with SIGHASH_ALL and SIGHASH_SINGLE and compare the signed bytes</strong><br/>The two signatures commit to different message preimages, so the bytes differ. Comparing them makes the sighash flag concrete rather than theoretical.</li>
+            <li><strong>Calculate fees and vsize for three real transactions and rank them by fee rate</strong><br/>Pull three transactions from a block, compute each fee from inputs minus outputs, divide by vsize, and rank. Fee estimation stops being mysterious once you have done the arithmetic.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Which sighash flag lets other inputs be added after you sign?</li>
+            <li>Why does the witness not count toward legacy block size?</li>
+            <li>What does nLockTime prevent, and what does it not prevent?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Script: Locking, Unlocking, and Standard Types</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Trace script execution for a P2PKH spend</li>
+            <li>Classify P2PKH, P2SH, P2WPKH, P2WSH, and P2TR by their locking semantics</li>
+            <li>Construct a multisig redeem script and its spending path</li>
+            <li>Apply absolute and relative timelocks correctly</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Stack-based execution, no loops</h5>
+          <p>Bitcoin Script is a deliberately minimal, stack-based language: data is pushed onto a stack and opcodes manipulate it — no loops, no recursion, no persistent state. Every script terminates, because termination is a consensus requirement: nodes must agree on the result, and unbounded execution would break that.</p>
+          <p>The lack of loops is a feature, not a limitation. Script expresses spending conditions — signatures, timelocks, hash preimages — and anything more expressive belongs in layers above the protocol.</p>
+          <h5>locking script (scriptPubKey) vs unlocking script (scriptSig/witness)</h5>
+          <p>Every output carries a locking script (scriptPubKey) stating the condition for spending; every input carries the unlocking data (scriptSig, or witness for segwit) that must satisfy it. Validation concatenates the two and executes: the spend is valid if the script finishes with a true value on the stack and no errors.</p>
+          <p>This split is the protocol's programmability: the output author writes the lock, the spender provides the key. All of Bitcoin's contract types are compositions of this one mechanism.</p>
+          <h5>Standardness vs consensus validity</h5>
+          <p>Consensus rules define what is valid in a block — the hard law. Standardness is the softer relay policy: nodes refuse to relay or mine transactions that are valid but non-standard (unusual script types, excessive size, dust outputs). A non-standard transaction can still confirm if a miner includes it directly.</p>
+          <p>The distinction matters for contract design: exotic scripts may be consensus-valid yet practically unspendable because the network will not propagate them. Build within standardness unless you have a miner relationship.</p>
+          <h5>Multisig m-of-n and CHECKMULTISIG semantics</h5>
+          <p>The CHECKMULTISIG opcode verifies m signatures against n public keys — 2-of-3 being the classic: any two of three keyholders can spend. It is the primitive behind escrow, shared custody, and Lightning funding outputs.</p>
+          <p>The opcode has a famous quirk: it consumes one more stack item than expected (the &quot;off-by-one bug&quot;), so multisig spends begin with a dummy OP_0. The bug was never fixed because fixing it would fork the chain — a lesson in how consensus ossifies even mistakes.</p>
+          <h5>OP_CHECKLOCKTIMEVERIFY (absolute timelock)</h5>
+          <p>CHECKLOCKTIMEVERIFY (CLTV) fails the script unless the spending transaction's locktime has reached the specified height or time — an absolute timelock: &quot;this coin cannot move before block 800,000.&quot; Combined with a signature requirement, it builds escrows with expiry and refund paths.</p>
+          <p>Absolute timelocks express deadlines. They are simple, predictable, and the reason old &quot;dead man's switch&quot; and inheritance contracts are expressible in Script.</p>
+          <h5>OP_CHECKSEQUENCEVERIFY (relative timelock)</h5>
+          <p>CHECKSEQUENCEVERIFY (CSV) enforces relative timelocks: the output can only be spent by a transaction whose input sequence indicates enough blocks or time have passed since the funding output confirmed. &quot;Locked for 144 blocks from now&quot; rather than &quot;locked until block X.&quot;</p>
+          <p>Relative timelocks are what Lightning channels use for their dispute windows — the safety period only starts when the channel closes, whenever that happens. Absolute timelocks could not express this; relative ones can.</p>
+          <h5>Taproot key-path and script-path spending (conceptual)</h5>
+          <p>Taproot outputs can be spent two ways: the key path — a single Schnorr signature that looks like an ordinary payment, hiding that any contract existed — or the script path, revealing one of several committed scripts. Unused contract branches stay hidden, improving both privacy and efficiency.</p>
+          <p>Conceptually, Taproot makes complex contracts look simple on chain when everyone cooperates, and only reveals complexity when there is a dispute. It is the &quot;optimistic&quot; design philosophy applied to Script.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a P2SH 2-of-3 multisig on regtest and spend it with two valid signatures</strong><br/>Generate three keys, build the redeem script, fund the P2SH address, then spend with two signatures — including the leading OP_0 the CHECKMULTISIG quirk demands. The spend working is the proof you understood the quirk.</li>
+            <li><strong>Build a timelocked output (CLTV) and confirm it fails before height, succeeds after</strong><br/>Fund a CLTV-locked output, attempt the spend early and watch consensus reject it, then mine past the height and spend successfully. The protocol enforcing time is worth witnessing.</li>
+            <li><strong>Execute a hand-written P2PKH script trace with a stack visualizer</strong><br/>Step through a pay-to-public-key-hash spend opcode by opcode, tracking the stack. The trace turns &quot;script execution&quot; from a phrase into a mechanism you have operated.</li>
+            <li><strong>Compare address encodings for P2PKH, P2SH, and bech32 outputs of the same keys</strong><br/>Derive the three address forms from one keypair and note the prefixes and character sets. Address formats are encodings of the same underlying scripts — the comparison proves it.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is the redeem script revealed only at spend time in P2SH?</li>
+            <li>What goes wrong if CSV is applied to the wrong input's sequence?</li>
+            <li>Give one case where a consensus-valid script is still non-standard.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Keys, Signatures, and Addresses</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Derive a public key from a private key on secp256k1</li>
+            <li>Explain how ECDSA and Schnorr signatures commit to the message</li>
+            <li>Describe HD wallet derivation paths conceptually</li>
+            <li>Map key material to address formats and their risks</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>secp256k1 curve and discrete-log hardness</h5>
+          <p>Bitcoin keys live on the secp256k1 elliptic curve: the private key is a large random number, the public key is that number multiplied by the curve's generator point. The multiplication is easy; reversing it — the discrete logarithm problem — is computationally infeasible, and that one-way gap is the entire basis of ownership.</p>
+          <p>Key security therefore reduces to randomness: a private key must be generated from a proper cryptographic random source. Weak randomness has caused real thefts; the curve itself has never been the failure point.</p>
+          <h5>Private key, compressed vs uncompressed public keys</h5>
+          <p>A private key is 256 bits of secret; the public key is the corresponding curve point, encodable in compressed (33 bytes, with a prefix indicating the y-coordinate's parity) or uncompressed (65 bytes) form. Compressed keys are the modern standard — same security, smaller transactions.</p>
+          <p>The encoding choice affects the address derived from the key, so wallets must be consistent. This is a frequent source of &quot;my address doesn't match&quot; confusion when moving keys between software.</p>
+          <h5>ECDSA signatures (legacy) vs Schnorr signatures (Taproot)</h5>
+          <p>Legacy Bitcoin signatures use ECDSA, which has known quirks: signatures are malleable in their encoding and cannot be straightforwardly aggregated. Taproot introduced Schnorr signatures, which are linear — multiple signers can combine their signatures into one that verifies against a combined key.</p>
+          <p>Schnorr enables key-path spends that hide multisig participation and makes signature aggregation practical. ECDSA remains valid for older output types; the protocol carries both, with Schnorr as the modern path.</p>
+          <h5>BIP32 HD wallets: master seed, chain codes, hardened derivation</h5>
+          <p>Hierarchical deterministic (BIP32) wallets derive a tree of keypairs from a single master seed: each child key comes from the parent key plus a chain code, so one backup covers every address the wallet will ever generate. Public derivation lets a server generate receiving addresses from an extended public key without ever touching private keys.</p>
+          <p>Hardened derivation breaks the public-derivation link for sensitive branches, protecting the tree if a child private key leaks. The account structure (BIP44/49/84 paths) organizes keys by purpose and script type so wallets interoperate.</p>
+          <h5>BIP39 mnemonics and BIP44/49/84 account paths</h5>
+          <p>BIP39 encodes the master seed as 12 or 24 human-readable words with a checksum — the &quot;seed phrase&quot; users back up on paper or steel. The words are not the keys; they deterministically regenerate the seed, which regenerates the whole tree.</p>
+          <p>Derivation paths like m/84'/0'/0' (BIP84, native segwit) tell any compliant wallet exactly which keys to generate, so the same seed phrase restores the same addresses in different software. Guard the phrase as the master secret it is: anyone holding it holds everything.</p>
+          <h5>Address formats: base58check, bech32, bech32m</h5>
+          <p>Addresses are encodings of locking scripts with checksums: base58check (starting with 1 or 3) for legacy P2PKH and P2SH, bech32 (bc1q...) for segwit v0, bech32m (bc1p...) for Taproot. The checksum catches typos — sending to a mistyped address fails loudly instead of burning funds.</p>
+          <p>Each format corresponds to a script type, so the address prefix tells you what kind of spend to expect. Modern wallets default to bech32/bech32m for lower fees and better error detection.</p>
+          <h5>Key hygiene: offline signing, gap limits, xpub exposure</h5>
+          <p>Operational key hygiene: generate and store seeds offline, sign transactions on air-gapped or hardware devices, and keep private material off networked machines. Wallets scan a gap limit of consecutive unused addresses when restoring — funds beyond the gap look missing until the limit is raised.</p>
+          <p>Sharing an extended public key (xpub) with a third party — a block explorer service, an auditor — lets them derive all your addresses and watch every payment. It is a complete privacy leak of the account's activity, even though it cannot spend. Share xpubs deliberately or not at all.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Generate a keypair locally, derive its P2WPKH address, and verify the encoding by hand</strong><br/>Do the full pipeline yourself: private key to public key to hash to bech32. Verifying the checksum by hand once removes all magic from addresses.</li>
+            <li><strong>Create a BIP39 seed in an offline environment and derive three receiving addresses</strong><br/>Generate the mnemonic offline, derive the BIP84 path addresses, and confirm a wallet restores the same addresses. The offline discipline is the point as much as the derivation.</li>
+            <li><strong>Sign a message with a regtest private key and verify it with the public key</strong><br/>Message signing proves key ownership without moving coins. Sign, then verify with only the public key — the asymmetric property made tangible.</li>
+            <li><strong>Demonstrate why reusing addresses harms privacy by clustering outputs on a testnet explorer</strong><br/>Send several payments to one address and one payment each to fresh addresses, then compare what the explorer reveals. The reused address tells a story; the fresh ones do not.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does the checksum in an address protect against?</li>
+            <li>Why is sharing an xpub with a third party a privacy leak?</li>
+            <li>What breaks if a signature commits to the wrong sighash preimage?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Mining and Consensus</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain proof-of-work as a leader-election lottery</li>
+            <li>Describe the difficulty adjustment algorithm's goal</li>
+            <li>Apply the longest-chain (most-work) rule to a fork scenario</li>
+            <li>Dissect block structure: header fields and merkle trees</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Block header: version, prev hash, merkle root, timestamp, bits, nonce</h5>
+          <p>The 80-byte block header is the unit miners hash: version, the previous block's hash (chaining blocks together), the merkle root committing to all transactions, a timestamp, the difficulty bits, and the nonce. Mining is the search for a nonce making the header's double-SHA256 fall below the target.</p>
+          <p>Everything about a block's validity is committed to in the header except the transactions themselves, which the merkle root covers. Light clients can therefore verify chain membership from headers alone.</p>
+          <h5>Hashcash-style PoW and target thresholds</h5>
+          <p>Proof-of-work adapts Hashcash: miners grind nonces until the header hash is numerically below the target threshold. There is no shortcut — each attempt is an independent lottery ticket, and the expected number of tickets to win is proportional to the difficulty.</p>
+          <p>The work is deliberately useless except as a cost signal: producing a valid block proves real computation was spent, which is what makes rewriting history expensive. The security assumption is economic, not cryptographic.</p>
+          <h5>Difficulty retarget every 2016 blocks</h5>
+          <p>Every 2016 blocks (roughly two weeks), the protocol retargets difficulty from the actual time those blocks took versus the 20,160-minute target. If blocks came too fast — hashrate grew — difficulty rises; too slow, it falls. The adjustment is capped per period to prevent shocks.</p>
+          <p>This feedback loop is what holds the 10-minute average against wildly varying global hashrate. It is the protocol's monetary-policy-adjacent mechanism: predictable issuance regardless of how much mining power exists.</p>
+          <h5>Chainwork and the most-work rule</h5>
+          <p>Nodes follow the chain with the most accumulated work — the sum of difficulty across its blocks — not simply the longest by height. A shorter chain of harder blocks beats a longer chain of easy ones, which is why the rule is &quot;most work&quot; rather than &quot;longest chain.&quot;</p>
+          <p>This resolves forks deterministically: when two miners find blocks simultaneously, the network converges on whichever branch accumulates more work first. Reorganizations are the visible form of this convergence.</p>
+          <h5>Merkle trees and inclusion proofs</h5>
+          <p>Transactions in a block are hashed pairwise up a binary tree to a single merkle root in the header. A merkle proof — the handful of sibling hashes along one leaf's path — lets anyone verify a transaction is in the block knowing only the header and the proof, in logarithmic space.</p>
+          <p>This is what makes light clients possible: a phone can verify its payment is buried under proof-of-work without downloading the block. Inclusion proofs are the scalability primitive of the whole system.</p>
+          <h5>Orphan/stale blocks and reorganization depth</h5>
+          <p>When two miners find competing blocks, one becomes stale — valid work that the network abandons when the other branch wins more work. A reorganization swaps the active chain tip, rolling back the UTXO set changes of the abandoned blocks and reapplying the winner's.</p>
+          <p>Deeper confirmations mean exponentially more work to reverse, which is why recipients wait for multiple confirmations on large payments. Finality in Bitcoin is probabilistic, deepening with every block.</p>
+          <h5>Coinbase maturity and block reward schedule</h5>
+          <p>Coinbase outputs cannot be spent until 100 blocks have buried them — the maturity rule. This prevents miners from spending rewards on blocks that might later be reorganized away, which would cascade invalid spends through the chain.</p>
+          <p>The block reward is the subsidy (halving every 210,000 blocks) plus the block's fees. As the subsidy decays toward zero, fees must eventually carry miner incentives alone — the protocol's long-term security budget question.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Mine blocks on regtest with `generatetoaddress` and inspect header fields</strong><br/>Regtest mining is instant and free. Pull a mined block's header apart field by field and confirm each one's role — the header stops being abstract immediately.</li>
+            <li><strong>Build a merkle tree from a block's transactions and verify the root matches the header</strong><br/>Hash the transaction list pairwise up the tree yourself and compare against the header's merkle root. The match is the proof you understand the commitment.</li>
+            <li><strong>Simulate a two-block reorg on regtest and observe mempool/UTXO rollback behavior</strong><br/>Mine competing chains on two nodes, reconnect them, and watch the shorter branch's transactions return to the mempool. Reorganization as an observable event, not a diagram.</li>
+            <li><strong>Plot inter-block times from testnet data and compare to the 10-minute target</strong><br/>Collect timestamps across a few hundred testnet blocks and histogram the intervals. The exponential distribution around the 10-minute mean is the Poisson process made visible.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does consensus follow most accumulated work, not longest height?</li>
+            <li>How does the difficulty adjustment respond to hashrate doubling?</li>
+            <li>What is a merkle proof and why does it let light clients verify inclusion?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">P2P Networking and the Mempool</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe how nodes discover peers and gossip transactions</li>
+            <li>Explain mempool admission policy and fee-based eviction</li>
+            <li>Walk through initial block download (IBD) and headers-first sync</li>
+            <li>Interpret inventory messages (inv/getdata) and compact blocks</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Peer discovery: DNS seeds, addr gossip</h5>
+          <p>A new node finds the network through DNS seeds — hardcoded domain names returning IP addresses of listening nodes — then learns more peers from addr messages gossiped between nodes. No central directory exists; the peer list is emergent.</p>
+          <p>This bootstrapping is deliberately simple and hard to censor: seeds are many, gossip is constant, and a node needs only one honest peer to learn the rest. Eclipse attacks target this process by surrounding a node with attacker peers.</p>
+          <h5>Transaction relay policy vs consensus rules</h5>
+          <p>Consensus rules decide what is valid in a block; relay policy decides what a node will propagate and keep in its mempool. Policy is stricter: minimum fee rates, dust limits, standard script types. A transaction can be consensus-valid yet refused relay — policy is each node's local spam filter, not law.</p>
+          <p>This split lets the network evolve its spam defenses without consensus changes. But it means &quot;my transaction is valid&quot; does not imply &quot;the network will relay it&quot; — a distinction that confuses newcomers exactly once.</p>
+          <h5>Mempool: ancestor/descendant fee packages, RBF</h5>
+          <p>Each node's mempool holds unconfirmed transactions, admitted by fee rate and evicted lowest-fee-first when full. Child-pays-for-parent lets a stuck low-fee transaction be rescued by a high-fee child spending its output — miners evaluate the package's combined fee rate.</p>
+          <p>Replace-by-fee (RBF) lets a sender replace their own unconfirmed transaction with a higher-fee version, given the original signaled replaceability. Together, CPFP and RBF are the fee-bumping toolkit for stuck transactions.</p>
+          <h5>Initial block download and headers-first synchronization</h5>
+          <p>A new node syncs with headers-first IBD: it downloads all 80-byte headers first — cheap to verify via proof-of-work — then fetches full blocks in parallel from multiple peers. Headers-first means the node knows the most-work chain before downloading any transactions.</p>
+          <p>This protects against resource-exhaustion attacks: a node never downloads gigabytes on the word of one peer. The header chain is the skeleton; blocks are the flesh, fetched only once the skeleton checks out.</p>
+          <h5>Compact blocks and high-bandwidth relay</h5>
+          <p>Compact block relay exploits the fact that miners' mempools mostly overlap: instead of sending full blocks, a node sends short transaction IDs and the receiver reconstructs the block from its own mempool, requesting only the missing pieces. High-bandwidth mode pushes this proactively.</p>
+          <p>The result is dramatically faster block propagation, which reduces stale-block rates and keeps mining decentralized — propagation delay is a centralization pressure, and compact blocks fight it directly.</p>
+          <h5>Eclipse and Sybil attack concepts</h5>
+          <p>A Sybil attack floods the network with attacker-controlled identities; an eclipse attack isolates one victim by occupying all of its peer slots, letting the attacker feed it a false view of the chain. Bitcoin's defenses are economic and structural: proof-of-work makes false chains expensive, and diverse peer selection makes isolation hard.</p>
+          <p>Running your own node over Tor or with diverse peers is the practical mitigation. The threat model assumes adversaries exist; the protocol assumes they cannot cheaply out-compute or out-connect the honest network.</p>
+          <h5>Network magic, message framing (conceptual)</h5>
+          <p>P2P messages are framed with a network magic prefix (identifying the network — mainnet, testnet, regtest each differ), a command name, a length, a checksum, and the payload. The magic bytes prevent cross-network confusion: a mainnet node ignores testnet chatter.</p>
+          <p>You will rarely touch this layer directly, but knowing the framing exists explains inventory messages, version handshakes, and why nodes on different networks simply cannot peer.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run a node with `-debug=net` and log its peer connections and addr traffic</strong><br/>Watch the node discover peers, exchange version handshakes, and gossip addresses. The P2P network stops being a diagram and becomes log lines you can read.</li>
+            <li><strong>Submit a low-fee transaction on testnet and watch its mempool position over time</strong><br/>Broadcast below the prevailing fee rate and observe the transaction linger — then bump it with RBF and watch it confirm. Fee markets are learned by participating in one.</li>
+            <li><strong>Compare IBD time with and without `assumevalid` on a pruned testnet sync</strong><br/>Sync twice with different assumevalid settings and compare. The flag skips script verification below a known-good block — the tradeoff between validation thoroughness and sync speed, measured.</li>
+            <li><strong>Use `getpeerinfo` and `getmempoolinfo` to snapshot your node's network and mempool state</strong><br/>These two RPCs are the node operator's dashboard: who you are connected to, and what your mempool holds. Learn to read them the way a pilot reads instruments.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why can a consensus-valid transaction still be rejected by mempool policy?</li>
+            <li>How does replace-by-fee change the fee-bumping options for a stuck transaction?</li>
+            <li>What does headers-first sync protect a new node against?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Node Operation: Full, Pruned, and RPC</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose full vs pruned node configurations for a use case</li>
+            <li>Operate a node via bitcoin-cli RPC calls</li>
+            <li>Harden a node: configuration, firewall, and backups</li>
+            <li>Monitor node health and troubleshoot sync stalls</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Full validation vs pruned storage trade-offs</h5>
+          <p>A full node downloads and validates every block and keeps all block data — hundreds of gigabytes — serving history to new peers. A pruned node validates everything identically but discards old block data below a configured threshold, keeping only recent blocks plus the full UTXO set.</p>
+          <p>Pruning sacrifices nothing in validation security: the node still checked every signature. What it sacrifices is service to others — a pruned node cannot serve historical blocks to syncing peers. Run full if you can afford the disk; prune when you cannot.</p>
+          <h5>bitcoin.conf: key options for networking, RPC, indexing</h5>
+          <p>Bitcoin Core is configured through bitcoin.conf: network options (listen, ports, peer limits), RPC options (which interfaces serve, authentication), and indexing options (txindex for arbitrary transaction lookup, blockfilterindex for light-client serving).</p>
+          <p>Treat the config file as infrastructure: version it, comment it, and understand each option before enabling it. Most node problems are config problems wearing a networking disguise.</p>
+          <h5>RPC authentication (cookie vs user/password)</h5>
+          <p>The RPC interface authenticates via a cookie file — automatically generated credentials readable only by the local user — or via explicit rpcuser/rpcpassword. The cookie is the default and the safer choice: no password to manage, scoped to local filesystem access.</p>
+          <p>Never expose RPC to the network without authentication and TLS-like protections; the interface can spend funds. Bind it to localhost and reach it remotely only through SSH tunnels or Tor hidden services.</p>
+          <h5>Wallet backup: wallet.dat vs descriptor/xpub backups</h5>
+          <p>Legacy wallets back up wallet.dat, the Berkeley DB file holding keys and metadata — it must be copied while the node is stopped or via the backup RPC to be consistent. Modern descriptor wallets back up the output descriptors (or the seed they derive from), which regenerate everything deterministically.</p>
+          <p>Test your restore procedure on a fresh datadir before you need it. A backup you have never restored is a hope, not a backup — and descriptor backups are strictly simpler to verify than wallet.dat copies.</p>
+          <h5>Reindex, rewind, and corruption recovery</h5>
+          <p>If block data corrupts, -reindex rebuilds the indexes and chainstate from the block files; if the corruption is deeper, a fresh sync from peers is the reliable path. There is no repair-in-place for consensus data — the network is the backup.</p>
+          <p>This is why multiple independent copies matter for operators: re-syncing from scratch costs days. Keep known-good snapshots of the datadir for fast recovery.</p>
+          <h5>Tor/onion peer support and privacy posture</h5>
+          <p>Bitcoin Core can route P2P traffic over Tor, connect to onion peers, and serve as an onion service — hiding the node's network location from observers. Combined with a personal Electrum or wallet backend, this keeps your transaction broadcasting unlinkable to your IP.</p>
+          <p>Privacy is a configuration discipline: Tor for P2P, your own node as your wallet's backend, no address reuse. Each layer removes one observer's vantage point.</p>
+          <h5>Resource footprint: disk, RAM, bandwidth</h5>
+          <p>A full mainnet node needs hundreds of gigabytes of disk (or tens pruned), several gigabytes of RAM for the UTXO cache during sync, and significant bandwidth for initial block download — then modest ongoing usage. These are the sizing inputs for any deployment decision.</p>
+          <p>Raise the dbcache during initial sync to trade RAM for speed, then lower it for steady state. Operators who size from these three numbers rarely get surprised.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Deploy a pruned mainnet node in a VM, configure RPC, and query block data</strong><br/>A pruned mainnet node is the practical operator's setup: full validation, modest disk. Configure RPC access and pull real block data — mainnet makes it feel consequential.</li>
+            <li><strong>Create an encrypted backup of wallet descriptors and test a restore on a fresh datadir</strong><br/>Back up, wipe the datadir, restore, and confirm the wallet sees its funds. The restore test is the lab; the backup is just preparation.</li>
+            <li><strong>Simulate a stalled sync, then diagnose it with debug.log and peer/ban RPCs</strong><br/>Throttle or break connectivity mid-sync, then read debug.log to find the stall, inspect peers, and recover. Sync stalls are the most common operator incident — rehearse the diagnosis.</li>
+            <li><strong>Benchmark initial sync resource usage and document your hardware sizing rule</strong><br/>Record disk, RAM, and bandwidth during a sync and write down the sizing rule you would give a colleague. Operators document; hobbyists guess.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>When is a pruned node insufficient for a given application?</li>
+            <li>What must you back up to recover funds from a descriptor wallet?</li>
+            <li>Which bitcoin.conf settings reduce bandwidth without weakening validation?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Lightning Network Overview</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how a payment channel moves value off-chain</li>
+            <li>Describe HTLCs as the primitive for routed payments</li>
+            <li>Trace a multi-hop payment at a conceptual level</li>
+            <li>Identify watchtower and liquidity failure modes</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Funding transaction and 2-of-2 multisig channel</h5>
+          <p>A Lightning channel opens with a funding transaction that locks bitcoin into a 2-of-2 multisig output owned jointly by the two participants. The funds are on chain, spendable only by mutual agreement — the channel's entire off-chain life is a series of pre-signed ways to split that output.</p>
+          <p>Opening and closing touch the chain; everything between is instant and nearly free. The funding output is the anchor that makes the off-chain promises enforceable.</p>
+          <h5>Commitment transactions and revocation keys</h5>
+          <p>Each channel state is a pair of commitment transactions, one held by each party, splitting the funding output per the current balance. When the balance updates, both parties sign new commitments and exchange revocation keys for the old ones — invalidating the prior state.</p>
+          <p>Revocation is the security mechanism: broadcasting an old commitment lets the counterparty claim all funds via the penalty transaction. Cheating is therefore unprofitable as long as someone is watching — which is what watchtowers are for.</p>
+          <h5>Hash Time-Locked Contracts (HTLCs)</h5>
+          <p>HTLCs are the primitive for routed payments: an output locked by both a hash condition (reveal the preimage) and a time condition (refund after expiry). Each hop in a multi-hop payment adds an HTLC conditional on the same preimage, chaining trust across strangers.</p>
+          <p>The hashlock makes payment atomic across hops — either every hop's HTLC completes or all refund — and the timelock bounds how long funds can be held hostage. HTLCs are conditional payments with cryptographic enforcement.</p>
+          <h5>Onion routing and invoice preimages</h5>
+          <p>Lightning routes payments with onion routing: each intermediate node learns only its predecessor and successor, not the payment's origin or destination. The recipient generates an invoice containing a payment hash; the preimage — revealed on delivery — is the proof of payment that unwinds the HTLC chain, releasing funds hop by hop.</p>
+          <p>Privacy and atomicity compose: no intermediary sees the full path, and no intermediary can steal the payment, because each HTLC only resolves with the preimage.</p>
+          <h5>Channel liquidity: inbound vs outbound capacity</h5>
+          <p>A channel's capacity is fixed at funding; what matters operationally is direction. Outbound liquidity is what you can send; inbound is what you can receive. Opening a channel gives you outbound only — receiving requires someone to open to you, or to spend first.</p>
+          <p>Liquidity management — rebalancing, splicing, choosing peers — is the real operational skill of running a Lightning node. Channels are inventory, and inventory must be positioned where demand is.</p>
+          <h5>Force-close vs cooperative close</h5>
+          <p>A cooperative close has both parties agree on the final split and broadcast one clean closing transaction — cheap and fast. A force-close unilaterally broadcasts the latest commitment transaction, starting the dispute timelock during which the counterparty can punish an old state.</p>
+          <p>Cooperative close is the happy path; force-close is the safety valve. Force-closes cost more, take longer, and reveal your balance on chain — avoid them by keeping peers responsive, but never fear them: they are the guarantee that unilateral exit is always possible.</p>
+          <h5>Watchtowers and penalty transactions (conceptual)</h5>
+          <p>If you go offline, a counterparty could broadcast an outdated commitment and steal funds — unless a watchtower watches for you. Watchtowers are services that hold your revocation data and broadcast the penalty transaction if they see a revoked state confirmed.</p>
+          <p>Conceptually, watchtowers outsource vigilance: you trade a small fee or trust assumption for the ability to stay offline safely. They complete the security model for participants who cannot monitor the chain continuously.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Open two regtest Lightning channels between local nodes and send an off-chain payment</strong><br/>Run two Lightning nodes on regtest, open channels, and route a payment that never touches the chain. The instant settlement after Bitcoin's 10-minute blocks is the Lightning value proposition, felt directly.</li>
+            <li><strong>Force-close a channel on regtest and observe the on-chain settlement flow</strong><br/>Close unilaterally and watch the commitment transaction confirm, the timelock expire, and funds settle. The dispute machinery working correctly is reassuring to witness.</li>
+            <li><strong>Route a payment through an intermediate node and inspect the HTLC lifecycle in logs</strong><br/>Set up three nodes in a line, pay across them, and read the HTLC add/settle messages in the logs. Multi-hop routing as log lines makes the onion concrete.</li>
+            <li><strong>Test invoice expiry by letting an invoice lapse and requesting a fresh one</strong><br/>Generate an invoice, wait out its expiry, and attempt payment — then generate a fresh one and succeed. Expiry is a small feature with real operational consequences for integrations.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why can a channel only send up to its local balance?</li>
+            <li>What stops an old commitment transaction from being broadcast profitably?</li>
+            <li>What does the payment preimage prove, and to whom?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://developer.bitcoin.org/">https://developer.bitcoin.org/</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://developer.bitcoin.org/">https://developer.bitcoin.org/</a></li>
+          <li><a href="https://learnmeabitcoin.com/">https://learnmeabitcoin.com/</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://learnmeabitcoin.com/">Learn Me a Bitcoin — free technical explainers</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

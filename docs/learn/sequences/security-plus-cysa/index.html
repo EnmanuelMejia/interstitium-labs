@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before 
+<style>
+  .mod-index{columns:2;column-gap:2.5rem}
+  .mod-index li{break-inside:avoid;margin-bottom:.4rem}
+  @media (max-width:640px){.mod-index{columns:1}}
+  .il-gloss dt{font-weight:600}
+  .il-gloss dd{margin:0 0 .75rem 0}
+</style>
+</head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Security+ → CySA+ Combined Analyst Track | Interstitium Labs</title>
+<meta name="description" content="A ten-module study sequence combining the Security+ analyst foundation with the CySA+ analyst workflow: threats, architecture, cryptography, operations, governance, vulnerability management, systems security, SOC and SIEM, incident response, and reporting. Original study guide keyed to public CompTIA certification pages."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Security</p>
+    <h1 class="il-h">Security+ → CySA+ Combined Analyst Track</h1>
+    <p class="il-hero__sub">The analyst&#x27;s path from foundations to operations: Security+ threats, architecture, cryptography, operations, and governance — then CySA+ vulnerability management, systems security, SOC workflow, incident response, and reporting. Labs on your own equipment throughout.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Start the sequence</a>
+      <a class="il-btn" href="/learn/">Back to Learn</a>
+    </div>
+    <p class="il-hero__motto">Own systems only. Learn everything.</p>
+  </div>
+</header>
+<main>
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Study sequence</p>
+      <h2 class="il-h" id="overview-h">Overview</h2>
+      <div class="il-prose">
+      <p>Ten modules combining the Security+ analyst foundation — threats and vulnerabilities, architecture and design, cryptography and PKI, operations and incident response, governance risk and compliance — with the CySA+ analyst workflow — threat and vulnerability management, software and systems security, SOC operations and SIEM, incident response and forensics, compliance assessment and reporting. Every module pairs concepts with labs on your own equipment: Kali, OpenVAS, Wazuh, and deliberately vulnerable training applications.</p>
+      <p>It is for aspiring security analysts and IT practitioners moving into security operations. Basic networking and Linux comfort are assumed; the sequence teaches the security layer from there.</p>
+      <p>Prerequisites are a virtualization-capable machine, a Kali Linux VM, one or two lab VMs you own (for scanning targets and SIEM agents), and — critically — authorization discipline: every lab targets systems you own. The sequence&#x27;s first rule is that reconnaissance, scanning, and password work happen only against your own equipment and your own test hashes.</p>
+      <p>Work the Security+ modules 1 through 5 before the CySA+ modules 6 through 10; the second half assumes the first&#x27;s vocabulary. Labs build persistent artifacts — scan reports, SIEM dashboards, runbooks, assessment reports — that later modules reuse, so keep everything. The checkpoints are scenario-based; several ask you to argue a decision, because analysts get paid for judgment.</p>
+      </div>
+      <h3 class="il-h il-h--section">At a glance</h3>
+      <dl class="il-gloss">
+        <dt>Modules</dt><dd>10</dd>
+        <dt>Key concepts</dt><dd>70</dd>
+        <dt>Hands-on labs</dt><dd>40</dd>
+        <dt>Self-check questions</dt><dd>30</dd>
+        <dt>Format</dt><dd>Self-paced study sequence; labs use free and open tooling only.</dd>
+        <dt>Source material</dt><dd>Original study guide keyed to public documentation; official sources linked per module.</dd>
+      </dl>
+      <h3 class="il-h il-h--section">Module index</h3>
+      <ol class="il-list mod-index">
+        <li><a href="#module-1-security-module-1-threats-attacks-and-vulnerabilities"><strong>Module 1.</strong> Security+ · Module 1: Threats, Attacks, and Vulnerabilities</a></li>
+        <li><a href="#module-2-security-module-2-architecture-and-design"><strong>Module 2.</strong> Security+ · Module 2: Architecture and Design</a></li>
+        <li><a href="#module-3-security-module-3-implementation-cryptography-pki-wireless-and-secure-protocols"><strong>Module 3.</strong> Security+ · Module 3: Implementation — Cryptography, PKI, Wireless, and Secure Protocols</a></li>
+        <li><a href="#module-4-security-module-4-operations-and-incident-response"><strong>Module 4.</strong> Security+ · Module 4: Operations and Incident Response</a></li>
+        <li><a href="#module-5-security-module-5-governance-risk-and-compliance"><strong>Module 5.</strong> Security+ · Module 5: Governance, Risk, and Compliance</a></li>
+        <li><a href="#module-6-cysa-module-6-threat-and-vulnerability-management"><strong>Module 6.</strong> CySA+ · Module 6: Threat and Vulnerability Management</a></li>
+        <li><a href="#module-7-cysa-module-7-software-and-systems-security-security-operations-foundations"><strong>Module 7.</strong> CySA+ · Module 7: Software and Systems Security / Security Operations Foundations</a></li>
+        <li><a href="#module-8-cysa-module-8-security-operations-and-monitoring-soc-workflow-and-siem"><strong>Module 8.</strong> CySA+ · Module 8: Security Operations and Monitoring — SOC Workflow and SIEM</a></li>
+        <li><a href="#module-9-cysa-module-9-incident-response-lifecycle-and-forensics-basics"><strong>Module 9.</strong> CySA+ · Module 9: Incident Response — Lifecycle and Forensics Basics</a></li>
+        <li><a href="#module-10-cysa-module-10-compliance-assessment-and-reporting-communication"><strong>Module 10.</strong> CySA+ · Module 10: Compliance, Assessment, and Reporting/Communication</a></li>
+      </ol>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <div id="modules">
+<section class="il-section" id="module-1-security-module-1-threats-attacks-and-vulnerabilities" aria-labelledby="module-1-security-module-1-threats-attacks-and-vulnerabilities-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 1 of 10</p>
+    <h2 class="il-h" id="module-1-security-module-1-threats-attacks-and-vulnerabilities-h">Security+ · Module 1: Threats, Attacks, and Vulnerabilities</h2>
+    <div class="il-prose">
+      <p>The analyst&#x27;s vocabulary: threat actors, attack vectors, malware taxonomy, and the vulnerability landscape. This module builds the mental model everything else hangs on — who attacks, how they attack, and what makes systems vulnerable. Labs start with reconnaissance of your own equipment.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Classify threat actors by motivation, capability, and resources and explain how each shapes an organization&#x27;s risk picture.</li>
+        <li>Describe common attack families — social engineering, malware types, application attacks, network attacks — and how they achieve initial access.</li>
+        <li>Explain vulnerability research sources and why patching, hardening, and configuration management matter.</li>
+        <li>Run a safe reconnaissance lab against your own home network and identify exposed services.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Threat actor types: nation-state, hacktivist, organized crime, insider</h4>
+      <div class="il-prose"><p>Threat actors differ in motivation, capability, and resources, and each shapes the risk picture differently. Nation-states bring patience and zero-days; organized crime brings scale and ransomware-as-a-service; hacktivists bring visibility-driven disruption; insiders bring legitimate access that bypasses every perimeter. The lab&#x27;s classification exercise matters because defenses are prioritized against likely adversaries, not abstract ones. Know who would bother attacking you, and why.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Social engineering: phishing, vishing, smishing, pretexting, watering-hole</h4>
+      <div class="il-prose"><p>Social engineering attacks the human, not the machine: phishing by email, vishing by voice, smishing by text, pretexting with a fabricated scenario, watering-hole by compromising sites the target already visits. The checkpoint&#x27;s three red flags for non-technical staff — unexpected urgency, credential requests, mismatched sender details — are the practical defense. Technical controls help, but the user who does not click is the control that matters most. Train people with real samples, like the lab&#x27;s phishing triage drill.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Malware classes: ransomware, trojan, worm, rootkit, keylogger, logic bomb</h4>
+      <div class="il-prose"><p>Malware taxonomy is organized by behavior: ransomware encrypts for extortion, trojans masquerade as legitimate software, worms self-propagate across networks, rootkits hide privileged access, keyloggers capture keystrokes, logic bombs wait for a trigger. The worm-versus-trojan checkpoint question is the key distinction — self-propagation versus disguise — because containment differs: isolate the network for worms, rebuild the host for trojans. The lab&#x27;s comparison table makes the differences operational: vector, persistence, detection hint.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Application attacks: injection, XSS, directory traversal, replay</h4>
+      <div class="il-prose"><p>Application attacks exploit how software handles input: injection smuggles commands into queries, cross-site scripting smuggles scripts into other users&#x27; browsers, directory traversal escapes the intended file path, replay reuses captured valid transactions. Input validation, parameterized queries, and output encoding are the standard defenses — the same flaws reappear in the CySA+ software-security module from the analyst&#x27;s side. These are old vulnerabilities because the fix is discipline, not technology.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Network attacks: MITM, DoS/DDoS, DNS poisoning, rogue APs</h4>
+      <div class="il-prose"><p>Network attacks target the plumbing: man-in-the-middle intercepts or alters traffic in transit, denial-of-service exhausts capacity (distributed when sourced from many hosts), DNS poisoning redirects lookups to attacker infrastructure, rogue access points impersonate legitimate Wi-Fi. Encryption defeats interception, redundancy and filtering absorb floods, DNSSEC and monitoring catch poisoning. The home attack-surface audit in the lab finds which of these your own network is exposed to.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Vulnerability feeds and advisories (CVE, vendor bulletins)</h4>
+      <div class="il-prose"><p>Vulnerabilities are catalogued as CVEs with severity scores, and vendors publish bulletins with patches — the feeds are the security industry&#x27;s shared vocabulary. Monitoring them is how you learn about exposure before exploitation: the window between disclosure and patching is the attacker&#x27;s opportunity. The CySA+ modules build the operational side — scanning, prioritization, remediation tracking. Here the concept is the source: know where truth about vulnerabilities lives, and check it on a cadence.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Attack surface and the kill-chain concept</h4>
+      <div class="il-prose"><p>The attack surface is everything an attacker can reach: open ports, services, users, supply chain. The kill chain models the attacker&#x27;s progression — reconnaissance, weaponization, delivery, exploitation, installation, command and control, actions on objectives — so defenders can break the chain at the cheapest link. The lab&#x27;s home-network recon maps your surface; the chain tells you where to spend defense budget. Shrink the surface, and every later stage gets harder.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Recon lab</strong> — from a Kali VM, run nmap -sV -O against a lab target (your own router&#x27;s LAN side or a Metasploitable/VM target you own) and document every open service with a one-line risk note.</li>
+      <li><strong>Phishing triage drill</strong> — collect five real phishing samples from a public phishing corpus, then build a checklist of header/body indicators and score each sample.</li>
+      <li><strong>Malware taxonomy table</strong> — build a comparison table of eight malware classes with infection vector, persistence mechanism, and detection hint for each.</li>
+      <li><strong>Home attack-surface audit</strong> — enumerate every device on your home LAN, list open ports, and write a two-paragraph prioritized hardening list.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain, in your own words, the difference between a worm and a trojan, and give one realistic containment step for each.</li>
+        <li>Given an nmap result showing SMBv1 open on a workstation, name the risk and the two fastest mitigations.</li>
+        <li>Draft three bullet-point social-engineering red flags you would teach a non-technical employee.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/security" rel="noopener">www.comptia.org/certifications/security</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-2-security-module-2-architecture-and-design" aria-labelledby="module-2-security-module-2-architecture-and-design-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 2 of 10</p>
+    <h2 class="il-h" id="module-2-security-module-2-architecture-and-design-h">Security+ · Module 2: Architecture and Design</h2>
+    <div class="il-prose">
+      <p>Security is designed in, not bolted on. This module covers secure architecture patterns: zero trust, network segmentation, secure protocols, and the cloud security models. You will evaluate architectures against threat models and learn why the design phase is the cheapest place to fix a vulnerability.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Compare cloud models (IaaS/PaaS/SaaS) and deployment models, and state who secures what under the shared-responsibility model.</li>
+        <li>Apply defense-in-depth: segmentation, zoning, DMZ, and firewall placement in a small-network diagram.</li>
+        <li>Explain zero-trust principles and how identity-centric design differs from perimeter-based design.</li>
+        <li>Evaluate resiliency controls: redundancy, backups, and high availability for a home lab.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Cloud models and the shared-responsibility boundary</h4>
+      <div class="il-prose"><p>In IaaS you manage the OS upward and the provider secures the physical and virtualization layers; in PaaS the provider takes the runtime too; in SaaS you configure an application someone else fully operates. The shared-responsibility boundary moves with the model, and breaches happen in the gap between what each side assumed the other handled. The lab&#x27;s responsibility matrix for one IaaS and one SaaS service makes the boundary concrete. Never assume — map it per service.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Defense in depth and layered controls</h4>
+      <div class="il-prose"><p>Defense in depth assumes every control can fail, so controls layer: perimeter filtering, network segmentation, host hardening, application controls, data encryption, monitoring. A bypassed firewall meets a segmented network; a phished credential meets MFA; a compromised host meets EDR. No single layer is trusted alone. The home-network diagram lab practices layering on a small scale — the principle scales to enterprises unchanged.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Network segmentation, VLANs, subnets, DMZ, jump boxes</h4>
+      <div class="il-prose"><p>Segmentation divides the network into zones with controlled crossings: VLANs and subnets separate traffic logically, a DMZ hosts public-facing services isolated from the interior, and jump boxes are the single hardened entry point for administration. The lab&#x27;s IoT-isolation exercise is the home version of the same design. Flat networks let an attacker who breaches one device reach everything — the checkpoint asks why in two sentences, and lateral movement is the answer.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Zero-trust: never trust, always verify; microsegmentation</h4>
+      <div class="il-prose"><p>Zero trust discards the trusted-interior assumption: every access decision verifies identity, device health, and context, regardless of network location. Microsegmentation extends the idea to workloads — each service talks only to what it needs. The lab&#x27;s half-page zero-trust plan for a flat home LAN practices translating the slogan into controls. It is a design philosophy with real costs in identity infrastructure; adopt it where the asset value justifies the machinery.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Resiliency: HA, clustering, load balancing, RAID</h4>
+      <div class="il-prose"><p>Resiliency is designed survival: high availability and clustering keep services running through component failure, load balancing spreads work and absorbs node loss, RAID keeps storage alive through disk failure. Each protects against a specific failure class, and none protects against all of them — RAID is not backup, and clustering is not disaster recovery. The lab audits a home backup setup against 3-2-1 to find which failure classes are actually covered. Match the mechanism to the failure you fear.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Backup strategies and recovery objectives (RPO/RTO concepts)</h4>
+      <div class="il-prose"><p>Backups exist to meet recovery objectives: RPO bounds acceptable data loss, RTO bounds acceptable downtime, and the backup strategy — frequency, type, off-site copies, tested restores — is engineered to satisfy both. The database-admin sequence covers the mechanics in depth; here the concept is the planning frame. An untested backup is not a backup, and a backup that cannot meet the RTO is not a strategy. The lab&#x27;s 3-2-1 audit checks the strategy against its promises.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Secure design review basics for new systems</h4>
+      <div class="il-prose"><p>New systems should pass a security review before deployment: data classification, authentication design, network placement, logging, patching responsibility, and backup coverage. Catching a missing audit trail at design time costs a meeting; catching it after a breach costs an incident. The module&#x27;s labs — diagrams, matrices, write-ups — are the artifacts such a review produces. Build the review into the deployment process, not around it.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Network diagram lab</strong> — draw your home network in a diagramming tool, label trust zones, and propose one segmentation change that would isolate IoT devices.</li>
+      <li><strong>Zero-trust write-up</strong> — take a flat home LAN and write a half-page plan to make it zero-trust-flavored — identity checks, least privilege, microsegmentation.</li>
+      <li><strong>Cloud responsibility matrix</strong> — for one IaaS and one SaaS service you use, fill a table of who patches, who encrypts, who monitors.</li>
+      <li><strong>Resiliency check</strong> — audit your own backup setup against a 3-2-1 outline and note every gap.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Draw the shared-responsibility split for a database running on a cloud VM vs. a managed database service.</li>
+        <li>Name three places a DMZ would sit in a corporate network and what each protects.</li>
+        <li>Explain why flat networks make lateral movement easy, in two sentences.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/security" rel="noopener">www.comptia.org/certifications/security</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-3-security-module-3-implementation-cryptography-pki-wireless-and-secure-protocols" aria-labelledby="module-3-security-module-3-implementation-cryptography-pki-wireless-and-secure-protocols-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 3 of 10</p>
+    <h2 class="il-h" id="module-3-security-module-3-implementation-cryptography-pki-wireless-and-secure-protocols-h">Security+ · Module 3: Implementation — Cryptography, PKI, Wireless, and Secure Protocols</h2>
+    <div class="il-prose">
+      <p>Security controls have to be built and configured correctly. This module covers secure implementation: hardening systems, deploying wireless and VPN security, and the identity and access management that underpins everything. Labs focus on getting the configuration right the first time.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Distinguish symmetric from asymmetric encryption and state when each is appropriate.</li>
+        <li>Explain hashing, digital signatures, and how a PKI issues, validates, and revokes certificates.</li>
+        <li>Compare wireless security standards and secure remote-access protocols, and harden a home router accordingly.</li>
+        <li>Capture and inspect TLS and SSH handshakes in Wireshark to see cryptography in motion.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Symmetric vs asymmetric encryption use cases</h4>
+      <div class="il-prose"><p>Symmetric encryption uses one shared key for both directions — fast, ideal for bulk data, but key distribution is the hard problem. Asymmetric encryption uses key pairs — slow, ideal for key exchange and signatures, solving distribution at the cost of performance. Real systems hybridize: asymmetric to agree on a symmetric session key, symmetric for the data. The Wireshark lab watches a TLS handshake perform exactly this negotiation. Choose by the problem: bulk data symmetric, key exchange and identity asymmetric.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Hashing: integrity verification, password storage, salting</h4>
+      <div class="il-prose"><p>A cryptographic hash is a one-way fingerprint: the same input always yields the same digest, and any change avalanches through the output — the lab demonstrates this by flipping one byte. Hashing verifies integrity (did the file change?) and stores passwords (never store the password; store the hash). Salting adds unique randomness per password so identical passwords hash differently and rainbow tables die. The checkpoint asks what breaks without a salt: every shared password becomes visible at once.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Digital signatures and non-repudiation</h4>
+      <div class="il-prose"><p>A digital signature — hash the data, encrypt the hash with the private key — proves the data came from the key holder and has not changed. Verification with the public key gives authenticity and integrity; because only the holder could have signed, it gives non-repudiation — the signer cannot credibly deny it. Signatures underpin code signing, document signing, and certificate issuance itself. The concept to carry: encryption protects secrecy, signatures protect authenticity, and they solve different problems.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">PKI: CAs, certificate chains, CRLs and OCSP</h4>
+      <div class="il-prose"><p>Public-key infrastructure binds identities to public keys through certificate authorities: a CA signs certificates, chains of trust lead back to roots your system trusts, and revocation — certificate revocation lists or OCSP responders — handles compromised or expired certificates. The lab builds a root CA, issues and revokes a server certificate, and verifies the revocation. TLS, code signing, and VPNs all rest on this machinery. PKI&#x27;s security is the CA&#x27;s security: trust the root, verify the chain, check revocation.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Wireless security evolution and current best practice</h4>
+      <div class="il-prose"><p>Wireless security evolved from the broken (WEP, crackable in minutes) through the transitional (WPA, TKIP) to the current standard (WPA2 with AES, and WPA3 with stronger handshakes and forward secrecy). The checkpoint asks which to never deploy: WEP and WPA-TKIP, both cryptographically defeated. The lab audits a home router — encryption standard, WPS disabled, guest network isolated, admin password changed — because the access point is the network&#x27;s front door. Current best practice is WPA3 where clients support it, WPA2-AES otherwise, and never open or WEP.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">TLS, SSH, IPsec, and VPN types</h4>
+      <div class="il-prose"><p>TLS secures application traffic (HTTPS and much more), SSH secures interactive shell and file transfer, IPsec secures at the network layer for site-to-site and remote-access VPNs. VPN types split by purpose: remote-access for roaming users, site-to-site for linking networks. The selection principle is layer-appropriate encryption for every administrative and sensitive path — no plaintext management protocols, no unencrypted file transfer. The lab captures TLS and SSH handshakes to see the negotiation both perform.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Secure protocol selection for email, file transfer, and remote admin</h4>
+      <div class="il-prose"><p>Every legacy plaintext protocol has a secure replacement: Telnet yields to SSH, FTP to SFTP or FTPS, HTTP to HTTPS, SNMPv1/v2 to SNMPv3, SMTP/POP/IMAP wrapped in TLS. The rule is absolute for administration and credential-bearing traffic. The lab&#x27;s router hardening applies the same principle at home. When evaluating any protocol, the first question is what it sends in cleartext — if the answer includes credentials, it is disqualified.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>OpenSSL PKI lab</strong> — create your own root CA with OpenSSL, issue a server certificate, then revoke it and verify the revocation status.</li>
+      <li><strong>Hashing lab</strong> — hash the same file with two algorithms, change one byte, and document how the digest changes; then salt and hash a test password.</li>
+      <li><strong>Wireshark crypto lab</strong> — capture an HTTPS session and an SSH session; identify the handshake phases and the cipher suite negotiated.</li>
+      <li><strong>Router hardening</strong> — audit your own Wi-Fi configuration (encryption standard, WPS, guest network, admin password) and apply fixes.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain why passwords are hashed and salted rather than encrypted, and what goes wrong without a salt.</li>
+        <li>Describe what a certificate chain proves and what OCSP is for.</li>
+        <li>List the legacy wireless protocols you would never deploy today and why.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/security" rel="noopener">www.comptia.org/certifications/security</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-4-security-module-4-operations-and-incident-response" aria-labelledby="module-4-security-module-4-operations-and-incident-response-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 4 of 10</p>
+    <h2 class="il-h" id="module-4-security-module-4-operations-and-incident-response-h">Security+ · Module 4: Operations and Incident Response</h2>
+    <div class="il-prose">
+      <p>Day-to-day security operations: the tools, the tickets, the triage. This module covers vulnerability scanning workflows, penetration testing concepts, and the operational side of incident handling. You will practice the analyst&#x27;s daily rhythm on your own lab systems.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Apply identity and access management: MFA, least privilege, account lifecycle, and access-review cadence.</li>
+        <li>Explain host and network hardening: baselines, patching, endpoint controls, and secure configuration.</li>
+        <li>Walk the incident response lifecycle from preparation through lessons learned with a tabletop scenario.</li>
+        <li>Use digital-forensics fundamentals: order of volatility and evidence-handling discipline.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Identity: authentication factors, MFA, SSO, federation</h4>
+      <div class="il-prose"><p>Authentication factors are something you know, have, or are — and MFA requires two or more, so a stolen password alone is insufficient. Single sign-on centralizes authentication (one strong login, many applications); federation extends trust across organizational boundaries. The lab&#x27;s MFA audit inventories every owned account lacking it and rolls it out in priority order. Identity is the new perimeter: in a zero-trust direction, the strength of authentication is the strength of the boundary.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Access control models and least privilege</h4>
+      <div class="il-prose"><p>Access control answers who may do what: role-based assigns permissions to job functions, attribute-based evaluates policies against attributes, and discretionary/mandatory models govern classic OS and classified environments. Least privilege sits above the models — every identity gets the minimum access its job requires. The checkpoint asks for a concrete example from your own machines: the daily-driver account that is not an administrator is the pattern. Review access periodically, because privilege accumulates.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Account provisioning, deprovisioning, and periodic reviews</h4>
+      <div class="il-prose"><p>Accounts need a lifecycle: provisioned with correct access on arrival, modified on role change, and deprovisioned promptly on departure — orphaned accounts are attacker inventory. Periodic access reviews recertify that remaining access is still justified. Automate the lifecycle where possible; the failures are always in the manual gaps. The lab&#x27;s hardening checklist includes the account review because the cleanest privilege escalation is logging in as someone who left.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Hardening: baselines, patch management, endpoint protection</h4>
+      <div class="il-prose"><p>Hardening is reducing a system&#x27;s attack surface to a known-good baseline: unnecessary services disabled, secure configurations applied (CIS benchmarks are the reference), patches current, endpoint protection installed and monitored. The lab builds a benchmark-inspired checklist for a fresh Linux VM and verifies five controls. Baselines make drift detectable — the CySA+ modules operationalize that detection. Harden before connecting, not after the first scan.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Incident response lifecycle phases</h4>
+      <div class="il-prose"><p>The lifecycle runs preparation, detection and analysis, containment, eradication, recovery, and lessons learned — the checkpoint asks for one deliverable per phase: a plan, a validated alert, an isolated host, a clean rebuild, a restored service, an after-action report. The lab&#x27;s ransomware tabletop walks all six with named owners. Preparation decides the outcome more than heroics: the team that has rehearsed contains; the team that has not improvises under fire.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Order of volatility in evidence collection</h4>
+      <div class="il-prose"><p>Volatile evidence disappears in order: registers and cache first, then RAM, then network state, then disk, then logs and archives. Collection follows the same order — capture memory before pulling the plug, because a reboot destroys what RAM held. The lab&#x27;s drill lists the volatile evidence on a lab VM with the exact commands. Order of volatility is the difference between forensics and a reimaging that destroyed the evidence.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Chain of custody and legal hold basics</h4>
+      <div class="il-prose"><p>Chain of custody documents every hand that touches evidence — who collected it, when, how it was hashed and stored — so its integrity is defensible if the incident becomes a legal matter. A legal hold suspends normal deletion for relevant data. The checkpoint asks what breaks when custody is sloppy: admissibility, and with it the entire investigation&#x27;s credibility. Treat every serious incident as potentially legal from the first collection step.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>MFA audit</strong> — inventory every account you own that lacks MFA, enable it where possible, and document the rollout order you chose.</li>
+      <li><strong>Baseline lab</strong> — build a CIS-benchmark-inspired hardening checklist for a fresh Linux VM, apply it, and screenshot-verify five controls.</li>
+      <li><strong>Tabletop exercise</strong> — write a one-page ransomware scenario for a 20-person company and walk the response phases, naming who does what in each phase.</li>
+      <li><strong>Order-of-volatility drill</strong> — on a lab VM, list the volatile evidence you would collect first and the exact commands you would use.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Name the six phases of the incident response lifecycle and one deliverable each phase produces.</li>
+        <li>Explain least privilege with a concrete example from your own machines.</li>
+        <li>Describe what breaks in an investigation when chain of custody is sloppy.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/security" rel="noopener">www.comptia.org/certifications/security</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-5-security-module-5-governance-risk-and-compliance" aria-labelledby="module-5-security-module-5-governance-risk-and-compliance-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 5 of 10</p>
+    <h2 class="il-h" id="module-5-security-module-5-governance-risk-and-compliance-h">Security+ · Module 5: Governance, Risk, and Compliance</h2>
+    <div class="il-prose">
+      <p>Security operates inside a business. This module covers risk management frameworks, policies and standards, and the compliance regimes (PCI DSS, HIPAA, GDPR concepts) that shape security programs. You will learn to speak risk in the language executives understand.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain risk management vocabulary: threats, vulnerabilities, likelihood, impact, and risk treatment options.</li>
+        <li>Describe common control types and frameworks at a high level, and how policies flow down to standards and procedures.</li>
+        <li>Summarize privacy and data-classification concepts: handling sensitive data across its lifecycle.</li>
+        <li>Perform a mini risk assessment of your home lab and write three prioritized recommendations.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Risk assessment: qualitative vs quantitative thinking</h4>
+      <div class="il-prose"><p>Risk assessment estimates what could go wrong and what it would cost: qualitative uses scales (high/medium/low) for speed and communicability; quantitative uses numbers (annualized loss expectancy) for precision where data supports it. Both start from the same inputs — threats, vulnerabilities, likelihood, impact. The lab&#x27;s five-row risk register practices the qualitative form on a home lab. The method matters less than the discipline: enumerate, estimate, rank, act.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Risk treatment: accept, mitigate, transfer, avoid</h4>
+      <div class="il-prose"><p>Every risk gets one of four treatments: accept it (documented, conscious), mitigate it (controls reduce likelihood or impact), transfer it (insurance, contracts shift the cost), or avoid it (stop the risky activity). The checkpoint asks for a home-lab example of each — the exercise forces honesty about which risks you are actually accepting by inaction. Treatment decisions belong to risk owners, not to the security team alone.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Controls: technical, administrative, physical; preventive, detective, corrective</h4>
+      <div class="il-prose"><p>Controls are categorized two ways: by nature — technical (firewalls), administrative (policies), physical (locks) — and by function — preventive (stop), detective (alert), corrective (restore). A mature program layers all of them: the policy requires MFA (administrative, preventive), the system enforces it (technical, preventive), logs record bypasses (technical, detective), backups enable recovery (technical, corrective). The lab&#x27;s compliance mapping practices the categorization on real home-lab controls.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Policy hierarchy: policy → standard → procedure → guideline</h4>
+      <div class="il-prose"><p>Governance flows downward: policy states management&#x27;s intent (acceptable use), standards set the mandatory requirements, procedures give step-by-step instructions, guidelines offer recommended practice. The checkpoint asks for the policy/procedure difference: one says what and why, the other says how. The lab&#x27;s one-page acceptable-use policy practices writing at the policy level — plain language, enforceable, signed. Hierarchy keeps governance coherent instead of contradictory.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Data classification and handling requirements</h4>
+      <div class="il-prose"><p>Data classification tiers information — public, internal, confidential, restricted — and each tier carries handling rules: storage, transmission, retention, destruction. The lab classifies ten sample types and states the rules per tier. Classification drives everything downstream: encryption requirements, access controls, audit scope. You cannot protect what you have not classified, and the personal-data tiers are where privacy law attaches.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Privacy principles: minimization, purpose limitation, retention</h4>
+      <div class="il-prose"><p>Privacy discipline is minimization (collect only what you need), purpose limitation (use it only for why you collected it), and retention limits (delete it when the purpose expires). These principles appear across privacy regimes worldwide and shape handling requirements for personal data. The classification exercise applies them implicitly — the grocery list needs none of this; the medical record needs all of it. Design data flows to need as little personal data as possible.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Compliance drivers: industry regulations and contractual obligations</h4>
+      <div class="il-prose"><p>Compliance is the set of external obligations — industry regulations, privacy laws, contractual security requirements — translated into controls you can evidence. The module stays deliberately generic about which regulation, because the mechanism is the point: obligation becomes control, control produces evidence, evidence satisfies audit. The CySA+ final module builds the assessment and reporting side. Compliance is the floor, not the ceiling — meeting the letter while missing the spirit is the failure mode the last CySA+ module names.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Risk register lab</strong> — build a five-row risk register for your home lab (asset, threat, likelihood, impact, treatment) and rank the rows.</li>
+      <li><strong>Policy drafting</strong> — write a one-page acceptable-use policy for a family home network in plain language.</li>
+      <li><strong>Data classification exercise</strong> — classify ten sample data types (SSN, grocery list, medical record, etc.) and state handling rules for each tier.</li>
+      <li><strong>Compliance mapping</strong> — pick one well-known framework and map three of its control families to controls you could implement at home.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Define risk in one sentence using threat, vulnerability, and impact.</li>
+        <li>Name the four risk-treatment options and give a home-lab example of each.</li>
+        <li>Explain the difference between a policy and a procedure.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/security" rel="noopener">www.comptia.org/certifications/security</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-6-cysa-module-6-threat-and-vulnerability-management" aria-labelledby="module-6-cysa-module-6-threat-and-vulnerability-management-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 6 of 10</p>
+    <h2 class="il-h" id="module-6-cysa-module-6-threat-and-vulnerability-management-h">CySA+ · Module 6: Threat and Vulnerability Management</h2>
+    <div class="il-prose">
+      <p>Finding weaknesses before attackers do. This module covers the vulnerability management lifecycle: discovery, scanning, prioritization, remediation, and verification. You will run real scanners against your own lab systems and manage findings like a professional program.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Plan and execute an authorized vulnerability scan, then interpret and prioritize the findings.</li>
+        <li>Explain how threat intelligence feeds inform detection and how indicators of compromise are used.</li>
+        <li>Distinguish vulnerability scanning from penetration testing and define scope and rules of engagement.</li>
+        <li>Build a remediation tracking workflow from scan report to verified fix.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Vulnerability scanning: credentialed vs non-credentialed, agent vs agentless</h4>
+      <div class="il-prose"><p>Non-credentialed scans see what an outsider sees — open ports, banners, remotely testable flaws. Credentialed scans log in and inspect the system from inside: installed patches, configurations, local vulnerabilities — far more findings, as the checkpoint asks you to explain. Agent-based scanning installs a collector for continuous visibility; agentless scans over the network on a schedule. The lab runs an authenticated scan against an owned lab VM. Credentialed scanning&#x27;s risk is the credential itself: scope it, rotate it, never reuse a domain admin.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Scan scope, scheduling, and minimizing operational impact</h4>
+      <div class="il-prose"><p>Scans need defined scope (what is tested), authorization (whose systems), and scheduling that avoids production impact — full scans are I/O and network heavy. Scan in maintenance windows or throttled, segment by asset group, and exclude fragile systems (or scan them gently). The lab scans only owned lab VMs — authorization first is the rule that separates assessment from attack. Operational impact is a planning input, not a surprise.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Threat intelligence: strategic, operational, tactical; IoCs</h4>
+      <div class="il-prose"><p>Threat intelligence stratifies by consumer: strategic (trends for leadership), operational (campaigns and TTPs for defenders), tactical (indicators of compromise — hashes, IPs, domains — for detection). IoCs are the machine-readable end product: the lab writes Sigma-style detection logic from three public IoCs. Intelligence without a consumer is trivia; the analyst&#x27;s job is turning feeds into detections, blocks, and hunts. Validate IoCs before acting — stale indicators cause false positives.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Vulnerability prioritization: severity, exploitability, asset criticality</h4>
+      <div class="il-prose"><p>Severity scores are the starting point, not the verdict: prioritization multiplies severity by exploitability (is there a working exploit? is it exposed?) and asset criticality (what does this system protect?). The lab&#x27;s scoring rubric ranks 20 findings into fix-now, fix-soon, and accept. The checkpoint&#x27;s ordering question — critical on an internet-facing host versus high on an isolated test VM — tests exactly this multiplication. Patch everything eventually; patch the exploitable and exposed first.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Penetration testing phases and rules of engagement</h4>
+      <div class="il-prose"><p>Penetration testing simulates an adversary through phases — reconnaissance, exploitation, post-exploitation, reporting — but only inside written rules of engagement: scope, allowed techniques, time windows, emergency contacts, and no-go systems. The checkpoint asks what the ROE must contain before testing begins: everything that keeps the test from becoming an incident. Scanning finds known flaws; pentesting proves exploitability and chains them. Never confuse the two, and never test without authorization.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Remediation SLAs and exception handling</h4>
+      <div class="il-prose"><p>Findings need owners, due dates scaled to severity (the SLA), fix evidence, and rescan confirmation — the lab&#x27;s spreadsheet workflow runs two findings through exactly this. Exceptions — accepted risks with expiry dates — handle the unfixable without pretending they are fixed. A finding without an owner is a finding that will be rediscovered next quarter. The workflow&#x27;s purpose is closure: every finding ends fixed, excepted, or accepted, never merely reported.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Continuous monitoring vs point-in-time assessment</h4>
+      <div class="il-prose"><p>A scan is a photograph; continuous monitoring is a video feed — agents, log pipelines, and detection rules watching between assessments. Point-in-time assessments catch configuration drift and missed patches; continuous monitoring catches the attack in progress. Mature programs run both: the scan validates the baseline, the monitoring watches for deviation. The SIEM module builds the continuous side. Budget for both, because each misses what the other catches.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Scanner lab</strong> — install OpenVAS (or Nessus Essentials trial) and run an authenticated scan against a lab VM you own; export the report.</li>
+      <li><strong>Prioritization exercise</strong> — take 20 findings from your scan, build a scoring rubric (severity × exploitability × asset value), and rank them into fix-now / fix-soon / accept.</li>
+      <li><strong>IoC hunting</strong> — pick three public IoCs from a threat feed and write Sigma-style detection logic descriptions for each.</li>
+      <li><strong>Remediation tracker</strong> — build a simple spreadsheet workflow — finding, owner, due date, fix evidence, rescan result — and run two findings through it.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Explain why a credentialed scan finds more than a non-credentialed one, and one risk of credentialed scanning.</li>
+        <li>Given a critical finding on an internet-facing host and a high finding on an isolated test VM, justify your fix order.</li>
+        <li>Describe what must be in a penetration test&#x27;s rules of engagement before testing begins.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/cybersecurity-analyst" rel="noopener">www.comptia.org/certifications/cybersecurity-analyst</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-7-cysa-module-7-software-and-systems-security-security-operations-foundations" aria-labelledby="module-7-cysa-module-7-software-and-systems-security-security-operations-foundations-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 7 of 10</p>
+    <h2 class="il-h" id="module-7-cysa-module-7-software-and-systems-security-security-operations-foundations-h">CySA+ · Module 7: Software and Systems Security / Security Operations Foundations</h2>
+    <div class="il-prose">
+      <p>Applications are the attack surface most organizations actually expose. This module covers secure software practices, web application attacks, and host security — then puts you in the lab against deliberately vulnerable applications you run yourself.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain secure software concepts: SDLC security gates, common code flaws, and secure coding awareness for analysts.</li>
+        <li>Harden operating systems and applications using benchmarks, and verify configurations with a scanner.</li>
+        <li>Describe system and application logging requirements that make later SOC analysis possible.</li>
+        <li>Connect software vulnerabilities to the analyst&#x27;s job: triage, impact analysis, and patch validation.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SDLC phases and where security testing fits</h4>
+      <div class="il-prose"><p>Security testing belongs at every SDLC phase: threat modeling in design, static analysis during coding, dependency scanning at build, dynamic testing in test, and monitoring in production. The checkpoint asks where analyst vulnerability data feeds back into development: at triage (is this exploitable in our context?) and at patch validation (did the fix actually land?). Shifting left is cheaper — a design flaw caught in review costs a meeting; in production it costs an incident. Analysts close the loop between operations findings and development fixes.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Common software flaws: injection, broken auth, insecure deserialization, misconfig</h4>
+      <div class="il-prose"><p>The recurring flaw families are injection (untrusted input executed), broken authentication and access control, insecure deserialization (untrusted data reconstructed into objects), and security misconfiguration (defaults, verbose errors, open storage). The lab triggers three flaws safely in a deliberately vulnerable training app. Analysts do not fix code, but they triage its flaws: impact analysis and exploitability judgment are the analyst&#x27;s contribution. Know the families well enough to recognize them in scan output.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">OS and application hardening baselines</h4>
+      <div class="il-prose"><p>Hardening baselines — CIS benchmarks are the reference — define the secure configuration for operating systems and applications: services, permissions, logging, crypto settings. The lab runs an OpenSCAP or Lynis audit, remediates the top five findings, and re-runs to show improvement. Baselines make configuration a measurable state rather than an opinion. Drift from baseline is what the next concept detects.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Patch testing and deployment rings</h4>
+      <div class="il-prose"><p>Patches deploy in rings: test lab first, then a pilot group, then broad rollout — so a bad patch breaks the lab, not the business. The lab&#x27;s patch-validation drill patches one service, verifies the version, and re-scans to confirm the finding cleared. Rings trade speed for safety; emergency out-of-band patches compress the rings but never skip validation entirely. Track patch state per system, because unpatched is the default failure.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Log sources: OS, application, authentication, endpoint</h4>
+      <div class="il-prose"><p>Detection runs on logs: OS and authentication logs show logins and privilege use, application logs show transactions and errors, endpoint telemetry shows process and file behavior. The lab forwards Linux auth logs to the SIEM and verifies arrival with correct timestamps — because logs that do not arrive, or arrive with wrong time, are worse than useless. The checkpoint asks what logging a new web server needs before production: access, error, and authentication events at minimum, with time synchronized. No logs, no detection.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Configuration drift and compliance scanning</h4>
+      <div class="il-prose"><p>Drift is the slow divergence of systems from their hardened baseline — manual tweaks, emergency changes, forgotten reverts. Compliance scanning re-audits configurations against the baseline on a schedule and flags the divergence. The checkpoint asks how to detect drift on ten servers: scan them all against the same benchmark and diff. Drift detection turns hardening from a one-time project into a maintained state.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Supply-chain and third-party software risk awareness</h4>
+      <div class="il-prose"><p>Modern systems are assembled from third-party components, and each dependency is trusted code you did not write: compromised libraries, malicious updates, and abandoned packages are the attack surface. Awareness means inventorying dependencies, monitoring advisories, and assessing vendor security posture. The analyst&#x27;s role is impact analysis when a supply-chain disclosure lands: which systems include the component, and what is the exposure? Trust the supply chain exactly as far as you verify it.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Hardening verification</strong> — run an OpenSCAP or Lynis audit on a Linux VM, remediate the top five findings, and re-run to show improvement.</li>
+      <li><strong>Vulnerable-app lab</strong> — deploy a deliberately vulnerable training app (e.g., OWASP Juice Shop or DVWA) in an isolated VM and document three flaws you can trigger safely.</li>
+      <li><strong>Logging pipeline check</strong> — configure a Linux host to forward auth logs to your SIEM VM and verify events arrive with correct timestamps.</li>
+      <li><strong>Patch-validation drill</strong> — patch one service on a lab VM, verify the version changed, and re-scan to confirm the finding cleared.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Name two SDLC stages where an analyst&#x27;s vulnerability data feeds back into development.</li>
+        <li>Explain configuration drift and how you would detect it on ten servers.</li>
+        <li>Describe the logging you would require on a new web server before it goes to production.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/cybersecurity-analyst" rel="noopener">www.comptia.org/certifications/cybersecurity-analyst</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-8-cysa-module-8-security-operations-and-monitoring-soc-workflow-and-siem" aria-labelledby="module-8-cysa-module-8-security-operations-and-monitoring-soc-workflow-and-siem-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 8 of 10</p>
+    <h2 class="il-h" id="module-8-cysa-module-8-security-operations-and-monitoring-soc-workflow-and-siem-h">CySA+ · Module 8: Security Operations and Monitoring — SOC Workflow and SIEM</h2>
+    <div class="il-prose">
+      <p>The SOC is where telemetry becomes action. This module covers SIEM architecture and tuning, log sources and correlation, and the analyst workflow from alert to ticket to escalation. You will stand up a SIEM, feed it logs, and tune out the noise.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Describe SOC roles, tiers, and the alert lifecycle from detection through escalation or closure.</li>
+        <li>Deploy a home SIEM (Wazuh or Security Onion), ingest logs, and tune a noisy rule.</li>
+        <li>Perform alert triage: distinguish true positives, false positives, and benign positives with documented reasoning.</li>
+        <li>Write and refine detection logic, and explain baselining and anomaly detection concepts.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SOC structure: tier 1/2/3 responsibilities and handoffs</h4>
+      <div class="il-prose"><p>SOC tiers divide the work: tier 1 triages alerts and handles the known, tier 2 investigates the complex and hunts, tier 3 does deep forensics, malware analysis, and detection engineering. Handoffs carry context — what was observed, what was ruled out, what needs deeper skill. The checkpoint walks an alert from detection to escalation, naming what tier 1 documents at each step. Tiering is how a SOC scales human attention: the expensive analysts see only what survived triage.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Alert lifecycle: detection, triage, analysis, containment recommendation, closure</h4>
+      <div class="il-prose"><p>Every alert travels a lifecycle: a detection fires, triage decides whether it deserves attention, analysis determines what actually happened, the analyst recommends containment or escalation, and closure records the verdict with reasoning. The lab&#x27;s triage drill classifies ten alerts with one-line justifications each — the documentation habit that makes the lifecycle auditable. Alerts that skip triage become noise; analysis without documentation becomes rumor. Work the lifecycle or drown in the queue.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SIEM architecture: collection, parsing, correlation, storage</h4>
+      <div class="il-prose"><p>A SIEM collects logs from sources, parses them into a common schema, correlates events across sources into notable incidents, and stores them for investigation and retention. The lab deploys Wazuh or Security Onion, forwards sysmon and auth logs, and confirms events in the dashboard. Parsing quality decides everything downstream — unparsed logs are invisible to correlation. Architecture follows the data: if the logs do not arrive normalized, the SIEM is an expensive disk.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Tuning: whitelisting, thresholds, suppression, baselining</h4>
+      <div class="il-prose"><p>Detection rules need tuning to the environment: whitelist the known-good, set thresholds from baselined normal, suppress duplicates, and re-baseline as the environment changes. The lab finds its noisiest rule over 24 hours and writes a documented tuning change that cuts noise without blinding detection. Untuned rules produce the 500-fires-a-day scenario the checkpoint asks about — tune by understanding the legitimate activity, not by raising the threshold blindly. Tuning is continuous because environments drift.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">True positive vs false positive vs benign positive</h4>
+      <div class="il-prose"><p>A true positive is a real attack correctly detected; a false positive is a benign event incorrectly flagged; a benign positive is a real security-relevant event with an innocent explanation (the admin&#x27;s scan). The checkpoint asks for the false-versus-benign distinction with an example, because the response differs: false positives need rule fixes, benign positives need documentation. The triage drill practices the classification with reasoning attached. Precision in language drives precision in response.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Anomaly detection and behavioral baselines</h4>
+      <div class="il-prose"><p>Anomaly detection flags deviation from learned normal — unusual login times, impossible travel, abnormal data volumes — catching what signature rules miss. It depends entirely on the behavioral baseline: without a model of normal, everything is anomalous. Baselines need maintenance as roles and systems change, or yesterday&#x27;s normal becomes today&#x27;s alert storm. Use anomaly detection for the unknown-unknowns, signatures for the known-bad, and both for coverage.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Metrics: MTTD, MTTR, alert fidelity</h4>
+      <div class="il-prose"><p>SOC performance is measured: mean time to detect (how fast the SOC sees it), mean time to respond (how fast it acts), and alert fidelity (what fraction of alerts were worth attention). Improving MTTD/MTTR without fidelity just means failing faster and louder. Track the metrics to find the bottleneck — detection, triage, or response — and invest there. Numbers do not run the SOC, but they tell you where the SOC is slow.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>SIEM deploy</strong> — install Wazuh (manager + one agent) or Security Onion in VMs, forward sysmon/auth logs, and confirm events in the dashboard.</li>
+      <li><strong>Tuning lab</strong> — find your noisiest rule over 24 hours, investigate the cause, and write a documented tuning change that cuts noise without blinding detection.</li>
+      <li><strong>Triage drill</strong> — take ten alerts from your SIEM, classify each (TP/FP/benign positive), and write a one-line justification per alert.</li>
+      <li><strong>Detection authoring</strong> — write a custom rule for repeated failed SSH logins, test it against generated events, and verify it fires.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Walk an alert from initial detection to escalation decision, naming what a tier-1 analyst documents at each step.</li>
+        <li>Explain the difference between a false positive and a benign positive with an example.</li>
+        <li>Describe how you would tune a rule that fires 500 times a day on legitimate admin activity.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/cybersecurity-analyst" rel="noopener">www.comptia.org/certifications/cybersecurity-analyst</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-9-cysa-module-9-incident-response-lifecycle-and-forensics-basics" aria-labelledby="module-9-cysa-module-9-incident-response-lifecycle-and-forensics-basics-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 9 of 10</p>
+    <h2 class="il-h" id="module-9-cysa-module-9-incident-response-lifecycle-and-forensics-basics-h">CySA+ · Module 9: Incident Response — Lifecycle and Forensics Basics</h2>
+    <div class="il-prose">
+      <p>When prevention fails, response begins. This module covers the full incident lifecycle: preparation, detection and analysis, containment, eradication, recovery, and lessons learned. You will work tabletop scenarios and build runbooks — because the worst time to design a process is during an incident.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Execute the incident response lifecycle end-to-end on a simulated compromise in your lab.</li>
+        <li>Apply forensics fundamentals: evidence preservation, disk and memory acquisition concepts, and timeline analysis.</li>
+        <li>Practice containment and eradication decisions, including when to isolate vs. observe.</li>
+        <li>Produce a post-incident lessons-learned write-up with actionable improvements.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">IR lifecycle: preparation, detection/analysis, containment, eradication, recovery, lessons learned</h4>
+      <div class="il-prose"><p>Incident response runs preparation (plans, tools, rehearsals), detection and analysis (is this real, what is the scope), containment (stop the bleeding — isolate or segment), eradication (remove the cause), recovery (restore service, validate clean), and lessons learned (what changes). The lab plants indicators on a lab VM and runs the full lifecycle with documentation per phase. Preparation decides the outcome: the team that rehearsed contains in minutes, the team that did not debates while the attacker works.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Containment strategies: isolation, segmentation, kill-switch trade-offs</h4>
+      <div class="il-prose"><p>Containment choices trade evidence against damage: isolate the host now and you may tip off the attacker and lose volatile evidence; observe longer and exfiltration continues. Segmentation contains without full isolation; kill switches stop a service everywhere at once. The checkpoint&#x27;s exfiltration scenario forces the argument and a decision — there is no universally right answer, only a reasoned one for the situation. Decide fast, document the reasoning, and preserve what you can.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Evidence handling: imaging, hashing, write-blockers (conceptual)</h4>
+      <div class="il-prose"><p>Forensic evidence must be collected without altering it: image the disk through a write-blocker, hash the image immediately, and document every hand in the chain of custody. The lab&#x27;s hash-integrity drill images a lab disk (or directory tree), hashes before and after, and records the custody steps. A hash taken at collection proves the evidence presented later is the evidence collected. Conceptually simple, procedurally strict — sloppiness here voids everything built on it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Memory forensics basics: what lives in RAM and why it matters</h4>
+      <div class="il-prose"><p>RAM holds what disk does not: running processes, injected code, encryption keys, network connections, and malware that never touches disk. Fileless attacks live here entirely, which is why memory acquisition comes before anything that would clear it. The order-of-volatility drill from Security+ is the operational rule. Memory forensics is harder than disk forensics and increasingly where the evidence is — know what it can reveal and collect it before it is gone.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Timeline analysis: correlating events across sources</h4>
+      <div class="il-prose"><p>Timeline analysis merges timestamps from hosts, network, and SIEM into one ordered narrative — and the first malicious event is rarely where the alert fired. The lab exports logs from the compromised VM plus the SIEM, builds a merged timeline, and identifies the initial access. Time synchronization across sources is the prerequisite; without it, correlation is guesswork. The timeline is the investigation&#x27;s shared truth: every hypothesis is tested against it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Recovery validation and monitoring for re-infection</h4>
+      <div class="il-prose"><p>Recovery is not restoration — it is restoration plus proof: rebuild from known-good media, patch the exploited vector, change credentials, and then monitor specifically for re-infection before declaring victory. Attackers leave persistence; the incident is not over when service resumes. Validation criteria belong in the IR plan, not improvised afterward. Watch the recovered systems harder than the untouched ones, for longer than feels necessary.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Tabletop exercises and IR plan maintenance</h4>
+      <div class="il-prose"><p>Tabletops rehearse the plan without the incident: a facilitator presents a scenario, the team walks its decisions, and the gaps surface while the cost is only time. The lab&#x27;s ransomware tabletop from Security+ is the template. Plans rot — personnel change, systems change, contacts go stale — so maintenance is scheduled, not assumed. An IR plan exercised annually is a document; exercised quarterly, it is a capability.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Simulated compromise</strong> — plant indicators (a suspicious scheduled task, an unknown listening port, a modified binary hash) on a lab VM, then run the full IR lifecycle and document each phase.</li>
+      <li><strong>Timeline lab</strong> — export logs from the compromised VM plus your SIEM, build a merged timeline, and identify the first malicious event.</li>
+      <li><strong>Hash-integrity drill</strong> — image a lab disk (or copy a directory tree), hash before and after, and document the chain-of-custody steps you followed.</li>
+      <li><strong>Password-cracking concepts lab</strong> — generate your OWN test hashes (never anyone else&#x27;s), crack them with a dictionary attack in Hashcat or John, and write up what the results teach about password policy.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Your monitoring shows active data exfiltration: argue for immediate isolation vs. continued observation, then state which you choose and why.</li>
+        <li>List the evidence you collect before reimaging a compromised host, in priority order.</li>
+        <li>Explain what a lessons-learned session must produce to be worth holding.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/cybersecurity-analyst" rel="noopener">www.comptia.org/certifications/cybersecurity-analyst</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-10-cysa-module-10-compliance-assessment-and-reporting-communication" aria-labelledby="module-10-cysa-module-10-compliance-assessment-and-reporting-communication-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 10 of 10</p>
+    <h2 class="il-h" id="module-10-cysa-module-10-compliance-assessment-and-reporting-communication-h">CySA+ · Module 10: Compliance, Assessment, and Reporting/Communication</h2>
+    <div class="il-prose">
+      <p>The analyst&#x27;s work product is the assessment: evidence gathered, controls tested, findings reported. This closing module covers compliance frameworks, audit types, and the assessment methodology — plus how to write findings that drive action instead of collecting dust.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Explain how compliance requirements translate into assessable controls and evidence collection.</li>
+        <li>Plan and document a security assessment: scope, methodology, findings, and risk ratings.</li>
+        <li>Write executive-ready reports: incident reports, vulnerability assessment summaries, and remediation plans for non-technical readers.</li>
+        <li>Communicate risk and recommendations clearly in both written briefs and verbal-style summaries.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Compliance vs security: meeting the letter and the spirit</h4>
+      <div class="il-prose"><p>Compliance proves you meet the requirement; security means you are actually defended — and the two diverge whenever controls are built for the auditor instead of the attacker. The module&#x27;s honesty theme: evidence collected only for the audit, reports written only to satisfy, produce compliance without security. Do both: build controls that genuinely reduce risk, then evidence them. The auditor checks the control exists; the attacker checks whether it works.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Assessment types: gap analysis, audit support, control testing</h4>
+      <div class="il-prose"><p>Assessments come in flavors: gap analysis compares current state against a target framework, audit support gathers and presents evidence to external auditors, control testing verifies controls actually operate as designed. The lab&#x27;s assessment report — built on the Module 6 scan — practices the full shape: executive summary, methodology, prioritized findings, remediation roadmap. Match the assessment type to the question being asked; a gap analysis answers where we stand, control testing answers whether it works.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Evidence: what counts, how to collect and store it</h4>
+      <div class="il-prose"><p>Evidence is the artifact proving a control operates: configurations, logs, tickets, scan reports, attestations — collected systematically, stored tamper-evidently, retained per policy. The lab&#x27;s control-mapping exercise ties ten home-lab controls to objectives and names each one&#x27;s evidence. The checkpoint asks why evidence matters with no regulator asking: because the incident, the insurer, or the customer will ask eventually. Collect continuously; reconstructing history under pressure fails.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Risk-rated findings and executive summaries</h4>
+      <div class="il-prose"><p>Findings need risk ratings — likelihood times impact, in business language — so remediation prioritizes by what matters, not by what scanned highest. The executive summary translates the technical detail into decisions: what is the exposure, what does it cost to fix, what happens if we do not. The checkpoint&#x27;s CVE-to-executive rewrite is the core skill: strip the jargon, keep the consequence. Executives fund remediation they understand; they defer what they cannot parse.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Reporting structure: background, methodology, findings, recommendations</h4>
+      <div class="il-prose"><p>Reports follow a structure readers can navigate: background (scope and context), methodology (what was done and its limits), findings (what was discovered, risk-rated), recommendations (what to do, prioritized). The lab&#x27;s incident report practices the form on the Module 9 compromise — timeline, impact, actions, recommendations, manager-ready. Structure is respect for the reader&#x27;s time: the executive reads the summary, the engineer reads the findings, both find their section.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Metrics and KPIs for security programs</h4>
+      <div class="il-prose"><p>Programs need numbers that mean something: vulnerability remediation SLAs met, MTTD/MTTR trends, control coverage, training completion, incident counts by severity. Good metrics drive decisions — where to invest, what is improving. Vanity metrics (alerts closed, scans run) measure activity, not security. Choose KPIs tied to risk reduction and review them with leadership on a cadence. What gets measured gets funded; measure the right things.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Stakeholder communication and escalation paths</h4>
+      <div class="il-prose"><p>Communication needs defined paths: who is told what, when, through which channel — the analyst&#x27;s finding to the system owner, the incident to the response team, the breach to legal and leadership. The lab&#x27;s three-minute briefing drill practices the verbal form: concise, structured, decision-oriented. Escalation paths must exist before the incident, with names and backups. In a crisis, nobody should wonder who to call — the path is the plan.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Assessment report</strong> — using your Module 6 scan results, write a full vulnerability assessment report with executive summary, methodology, prioritized findings, and remediation roadmap.</li>
+      <li><strong>Incident report</strong> — write a formal incident report for your Module 9 simulated compromise — timeline, impact, actions taken, recommendations — suitable for a manager.</li>
+      <li><strong>Control-mapping exercise</strong> — map ten technical controls from your home lab to control objectives and note the evidence each produces.</li>
+      <li><strong>Briefing drill</strong> — record (or write verbatim) a three-minute verbal briefing of your incident report as if presenting to leadership.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Rewrite this technical finding for an executive: &#x27;CVE-XXXX on host X, CVSS 9.8, RCE via unauthenticated HTTP request.&#x27;</li>
+        <li>List the sections of an incident report and one sentence on what each must contain.</li>
+        <li>Explain why evidence collection matters even when no regulator is currently asking.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://www.comptia.org/certifications/cybersecurity-analyst" rel="noopener">www.comptia.org/certifications/cybersecurity-analyst</a></li>
+    </ul>
+  </div>
+</section>
+  </div>
+  <hr class="il-rule" />
+  <section class="il-section" id="resources" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Keep learning</p>
+      <h2 class="il-h" id="resources-h">Resources</h2>
+      <ul class="il-list">
+      <li><a href="https://www.comptia.org/certifications/security" rel="noopener"><strong>Official curriculum source (supplemental)</strong></a> — the public documentation this study guide is keyed to.<br /><span class="il-src">www.comptia.org/certifications/security</span></li>
+      <li><a href="https://owasp.org/" rel="noopener"><strong>OWASP</strong></a> — Free application-security projects, cheat sheets, and the Juice Shop training app used in Module 7&#x27;s lab.<br /><span class="il-src">owasp.org</span></li>
+      <li><a href="https://attack.mitre.org/" rel="noopener"><strong>MITRE ATT&amp;CK</strong></a> — The adversary-tactics knowledge base — the reference behind threat modeling and the detection logic in Module 8.<br /><span class="il-src">attack.mitre.org</span></li>
+      </ul>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <section class="il-section" id="about" aria-labelledby="about-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">About this guide</p>
+      <h2 class="il-h" id="about-h">About this guide</h2>
+      <div class="il-prose">
+        <p>This page is an original study guide by Interstitium Labs, keyed to the public CompTIA Security+ and CySA+ certification pages. It is not affiliated with or endorsed by CompTIA, and it does not reproduce CompTIA exam content — exam objectives and official materials live with CompTIA. Explanations here are our own distillation, written for study.</p>
+        <p>Every lab in this sequence runs on free tooling — public testnets, free database editions, and open-source software. Where a module touches security tooling, labs target only systems and data you own.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

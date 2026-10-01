@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Canonical <head> boilerplate for new track pages (theme system 2026-10-01).
+     Rules: (1) <script src="/assets/il-theme.js"> is the FIRST element inside <head>
+     (sets data-theme before paint; dark default; injects its own nav toggle).
+     (2) <link rel="stylesheet" href="/assets/il-theme.css"/> is the LAST
+     stylesheet before 
+<style>
+  .mod-index{columns:2;column-gap:2.5rem}
+  .mod-index li{break-inside:avoid;margin-bottom:.4rem}
+  @media (max-width:640px){.mod-index{columns:1}}
+  .il-gloss dt{font-weight:600}
+  .il-gloss dd{margin:0 0 .75rem 0}
+</style>
+</head>. (3) Never hardcode colors; use the editorial
+     tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
+     Keep the SW kill script + critical anti-blank CSS verbatim. -->
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>T-SQL Development (SQL Server) | Interstitium Labs</title>
+<meta name="description" content="An eight-module study sequence on T-SQL development for SQL Server: dialect differences, variables and batches, stored procedures, user-defined functions, triggers, error handling, dynamic SQL and injection defense, and the SSMS/Query Store workflow. Original study guide keyed to public Microsoft Learn T-SQL documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Data Systems</p>
+    <h1 class="il-h">T-SQL Development (SQL Server)</h1>
+    <p class="il-hero__sub">T-SQL for SQL Server: dialect differences, variables and batches, stored procedures, functions, triggers, error handling, dynamic SQL and injection defense, and the SSMS/Query Store workflow — on a lab instance you can break.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Start the sequence</a>
+      <a class="il-btn" href="/learn/">Back to Learn</a>
+    </div>
+    <p class="il-hero__motto">Know the dialect. Respect the engine.</p>
+  </div>
+</header>
+<main>
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Study sequence</p>
+      <h2 class="il-h" id="overview-h">Overview</h2>
+      <div class="il-prose">
+      <p>Eight modules of T-SQL for SQL Server: what actually differs from standard SQL, variables batches and control of flow, stored procedures, user-defined functions, triggers, error handling with TRY/CATCH, dynamic SQL and injection defense, and the SSMS/Query Store workflow. Built around SQL Server Developer Edition and a lab instance you are free to break.</p>
+      <p>It is for developers and DBAs working with SQL Server or Azure SQL. Core SQL fluency is assumed — the Core SQL Engineering sequence is the prerequisite — because this sequence teaches the dialect, not the language.</p>
+      <p>Prerequisites are SQL Server Developer Edition (free) or an Azure SQL database, SSMS or Azure Data Studio, and sample data such as the AdventureWorks databases linked in the resources. The labs assume a scratch database where you can create and drop objects freely.</p>
+      <p>Take Module 1 first — the dialect map orients everything after. Then work in order; procedures before functions before triggers reflects how the features compose. Time the performance comparisons honestly, attack the vulnerable lab before fixing it, and keep the Module 8 runbook as a living document.</p>
+      </div>
+      <h3 class="il-h il-h--section">At a glance</h3>
+      <dl class="il-gloss">
+        <dt>Modules</dt><dd>8</dd>
+        <dt>Key concepts</dt><dd>41</dd>
+        <dt>Hands-on labs</dt><dd>32</dd>
+        <dt>Self-check questions</dt><dd>24</dd>
+        <dt>Format</dt><dd>Self-paced study sequence; labs use free and open tooling only.</dd>
+        <dt>Source material</dt><dd>Original study guide keyed to public documentation; official sources linked per module.</dd>
+      </dl>
+      <h3 class="il-h il-h--section">Module index</h3>
+      <ol class="il-list mod-index">
+        <li><a href="#module-1-t-sql-vs-standard-sql-what-s-actually-different"><strong>Module 1.</strong> Module 1 — T-SQL vs Standard SQL: What&#x27;s Actually Different</a></li>
+        <li><a href="#module-2-variables-batches-and-control-of-flow"><strong>Module 2.</strong> Module 2 — Variables, Batches, and Control of Flow</a></li>
+        <li><a href="#module-3-stored-procedures-input-output-and-return"><strong>Module 3.</strong> Module 3 — Stored Procedures: Input, Output, and Return</a></li>
+        <li><a href="#module-4-user-defined-functions-scalar-and-table-valued"><strong>Module 4.</strong> Module 4 — User-Defined Functions: Scalar and Table-Valued</a></li>
+        <li><a href="#module-5-triggers-dml-and-instead-of"><strong>Module 5.</strong> Module 5 — Triggers: DML and INSTEAD OF</a></li>
+        <li><a href="#module-6-error-handling-try-catch-throw-and-transactions"><strong>Module 6.</strong> Module 6 — Error Handling: TRY/CATCH, THROW, and Transactions</a></li>
+        <li><a href="#module-7-dynamic-sql-and-injection-defense"><strong>Module 7.</strong> Module 7 — Dynamic SQL and Injection Defense</a></li>
+        <li><a href="#module-8-ssms-azure-data-studio-workflow-and-query-store-basics"><strong>Module 8.</strong> Module 8 — SSMS / Azure Data Studio Workflow and Query Store Basics</a></li>
+      </ol>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <div id="modules">
+<section class="il-section" id="module-1-t-sql-vs-standard-sql-what-s-actually-different" aria-labelledby="module-1-t-sql-vs-standard-sql-what-s-actually-different-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 1 of 8</p>
+    <h2 class="il-h" id="module-1-t-sql-vs-standard-sql-what-s-actually-different-h">Module 1 — T-SQL vs Standard SQL: What&#x27;s Actually Different</h2>
+    <div class="il-prose">
+      <p>T-SQL is SQL Server&#x27;s dialect, and the differences from standard SQL are exactly what this sequence teaches. This module maps the territory: TOP versus LIMIT, square-bracket identifiers, the type system, and the functions that differ. Everything after assumes this map.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Name the major T-SQL deviations from ANSI SQL syntax and semantics.</li>
+        <li>Predict how TOP, OFFSET/FETCH, and bracketed identifiers behave differently from other dialects.</li>
+        <li>Convert a LIMIT/OFFSET query and an ANSI quoting example into idiomatic T-SQL.</li>
+        <li>Explain when a &#x27;portable&#x27; query is and isn&#x27;t worth the effort.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">TOP (n) vs LIMIT; OFFSET/FETCH as the ANSI paging path</h4>
+      <div class="il-prose"><p>T-SQL pages with TOP (n) — the first n rows, unordered unless ORDER BY is present — or with the ANSI OFFSET/FETCH syntax (ORDER BY ... OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY), which requires ORDER BY. The lab runs the same paging query three ways — TOP, OFFSET/FETCH, and a ROW_NUMBER() window — and compares plans and logical reads. OFFSET/FETCH is the portable, deterministic choice for grids; TOP is the idiomatic quick form. Neither is deterministic without ORDER BY.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Bracketed [identifiers] vs double-quoted identifiers vs QUOTED_IDENTIFIER</h4>
+      <div class="il-prose"><p>T-SQL traditionally quotes identifiers with brackets ([Order Details]); ANSI uses double quotes, which T-SQL honors only with QUOTED_IDENTIFIER ON. The lab&#x27;s porting exercise converts backticks and double-quoted aliases to brackets, annotating each change. Brackets are the idiomatic T-SQL choice and survive reserved words and spaces in names. Pick one quoting style per codebase and enforce it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">NULL handling quirks and collation-dependent string comparison</h4>
+      <div class="il-prose"><p>NULL semantics in T-SQL follow ANSI when ANSI_NULLS is ON — NULL never equals NULL — but legacy databases with the setting OFF behave differently, which is why the lab probes the toggle. String comparison additionally depends on collation: case sensitivity and accent sensitivity vary by database and even by column. The lab joins tables with different collations to feel the failure. In T-SQL, comparison behavior is a configuration question, not just a logic question.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SET options (ANSI_NULLS, ANSI_PADDING) and why legacy databases break without them</h4>
+      <div class="il-prose"><p>SET options change statement behavior per session: ANSI_NULLS governs NULL comparison, ANSI_PADDING governs trailing-space handling in varchar, and others affect indexed views, computed columns, and more. Legacy databases and old code depend on specific settings, which is why the lab writes a one-paragraph rule for session options in every new script. Set them explicitly at the top of scripts; inherited connection defaults are how subtle bugs travel between environments.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">N-prefix for Unicode literals (N&#x27;text&#x27;) and the nvarchar default habit</h4>
+      <div class="il-prose"><p>In T-SQL, &#x27;text&#x27; is a non-Unicode literal and N&#x27;text&#x27; is Unicode — and comparing or assigning between varchar and nvarchar triggers implicit conversion with collation-dependent behavior. The checkpoint&#x27;s enmanuel-versus-N&#x27;enmanuel&#x27; question is exactly this trap. The habit to build: N-prefix every string literal, nvarchar every string column and variable, unless you have a measured reason otherwise. Unicode by default prevents the class of bug you only find in production with real names.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">@@ variables, system functions, and catalog views as dialect surface area</h4>
+      <div class="il-prose"><p>T-SQL exposes engine internals through @@ variables (@@ROWCOUNT, @@TRANCOUNT, @@ERROR), system functions, and catalog views (sys.tables, sys.dm_exec_query_stats) — a far richer introspection surface than ANSI provides. Working in T-SQL means learning this surface: it is how you inspect plans, sessions, and locks. The dialect&#x27;s power is inseparable from its proprietary surface; portability and introspection trade against each other.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Run the same paging query three ways</strong> — TOP, OFFSET/FETCH, and a ROW_NUMBER() window — and compare plans and logical reads; record which one you would use for a web grid.</li>
+      <li>Create two tables with different collations, run a JOIN and an equality filter, and document where the comparison fails or silently succeeds.</li>
+      <li><strong>Write a porting exercise</strong> — take a 20-line MySQL/Postgres-flavored script (LIMIT, backticks, AUTO_INCREMENT, double-quoted aliases) and rewrite it in T-SQL, annotating each changed line with why.</li>
+      <li><strong>Probe SET options</strong> — toggle ANSI_NULLS ON/OFF in a session and run NULL comparisons, then write a one-paragraph rule for how you will set session options in every new script.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Without looking: rewrite `SELECT * FROM Orders ORDER BY Id DESC LIMIT 10 OFFSET 20` in two T-SQL ways, and state which is guaranteed deterministic.</li>
+        <li>Explain to an imaginary Postgres peer why `WHERE Name = &#x27;enmanuel&#x27;` and `WHERE Name = N&#x27;enmanuel&#x27;` can behave differently on a varchar column with a non-default collation.</li>
+        <li>List three T-SQL-isms that would silently change meaning (not just error) if pasted into a standard-SQL engine.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/language-reference</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-2-variables-batches-and-control-of-flow" aria-labelledby="module-2-variables-batches-and-control-of-flow-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 2 of 8</p>
+    <h2 class="il-h" id="module-2-variables-batches-and-control-of-flow-h">Module 2 — Variables, Batches, and Control of Flow</h2>
+    <div class="il-prose">
+      <p>Variables, batches, and control-of-flow statements are T-SQL&#x27;s programming skeleton. This module covers DECLARE and SET, the GO batch separator, IF/WHILE logic, and the scoping rules that surprise newcomers. Labs build the scripting fluency every later module assumes.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Declare, assign, and scope variables correctly across batches and GO boundaries.</li>
+        <li>Use IF/ELSE, WHILE, CASE, and the BREAK/CONTINUE pattern without infinite loops.</li>
+        <li>Choose between scalar variables, table variables, and temp tables for scratch data.</li>
+        <li>Debug a batch by reading messages, PRINT output, and the actual execution plan.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">DECLARE/SET/SELECT assignment and the multi-row SELECT-assignment trap</h4>
+      <div class="il-prose"><p>Variables are declared with DECLARE, assigned with SET (one value) or SELECT (which can assign from a query). The trap: SELECT @x = col FROM t with five rows assigns the last row&#x27;s value silently — no error, arbitrary row. The checkpoint calls it a bug factory for good reason. Use SET for scalar assignment; use SELECT assignment only when you have guaranteed single-row semantics, and even then prefer SET.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Batches, GO, and why a variable dies at the batch boundary</h4>
+      <div class="il-prose"><p>A batch is the unit of compilation — everything between GO markers compiles and executes together — and variables live only within their batch. The lab deliberately crosses a GO boundary and captures the must-declare error, then writes the fix as a comment. GO is a client-tool separator, not a T-SQL statement; the engine never sees it. Structure scripts so each batch is self-contained, and never assume state survives the separator.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">IF/ELSE, WHILE loops, CASE expressions vs CASE statements</h4>
+      <div class="il-prose"><p>Control of flow is IF/ELSE for branching, WHILE for looping (with BREAK and CONTINUE), and CASE — which in T-SQL is an expression returning a value, not a statement. The lab&#x27;s WHILE loop batches a staging table in 100-row chunks with a BREAK on an error flag, verifying no infinite loop on empty input. WHILE loops in T-SQL are a last resort (set-based first), but batching and maintenance scripts need them; write the exit condition before the loop body.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Table variables vs #temp tables: scope, statistics, and recompilation trade-offs</h4>
+      <div class="il-prose"><p>Table variables (@t) live in memory-ish scope, have no column statistics, and do not trigger recompiles — fine for small sets. Temp tables (#t) get statistics and indexes, handle large sets better, but participate in recompilation. The lab loads 50,000 rows into each, joins against a real table, and compares estimated versus actual row counts to derive the rule of thumb. Small and simple: table variable. Large or joined: temp table. Measure when it matters.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">PRINT vs SELECT for debugging; RAISERROR (low severity) for progress messages</h4>
+      <div class="il-prose"><p>PRINT sends messages to the client without a result set — the quick debugging channel — while SELECT returns data. Low-severity RAISERROR with NOWAIT flushes progress messages immediately instead of buffering them to batch end, which is why long-running scripts use it for heartbeat output. The lab debugs by reading messages, PRINT output, and actual plans together. In production code, prefer proper logging tables; in development, PRINT and RAISERROR are the microscope.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Build a scratch-lab script that declares variables, assigns them via both SET and SELECT, then deliberately crosses a GO boundary — capture the exact error and write the fix in a comment.</li>
+      <li>Write a WHILE loop that processes a 1,000-row staging table in 100-row batches using a table variable as the work queue; add BREAK on an error flag and verify no infinite loop when the table is empty.</li>
+      <li><strong>Performance comparison lab</strong> — load 50k rows into a table variable and into a #temp table, join each against a real table, and compare estimated vs actual row counts in the plans; write the rule of thumb you would teach.</li>
+      <li>Refactor a 40-line batch that repeats the same subquery three times into one that computes it once into a variable; measure logical reads before and after.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>What does `SELECT @x = col FROM t` assign when `t` has 5 rows? Why is this a bug factory?</li>
+        <li>A variable works on line 10 but errors &#x27;must declare&#x27; on line 12 — name the most likely cause in one sentence.</li>
+        <li>Table variable vs #temp table: state one scenario where each is the better choice, with the reason.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/language-reference</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-3-stored-procedures-input-output-and-return" aria-labelledby="module-3-stored-procedures-input-output-and-return-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 3 of 8</p>
+    <h2 class="il-h" id="module-3-stored-procedures-input-output-and-return-h">Module 3 — Stored Procedures: Input, Output, and Return</h2>
+    <div class="il-prose">
+      <p>Procedures are T-SQL&#x27;s unit of reusable server-side logic. This module covers parameter passing, output parameters, return codes, and the plan-caching behavior that makes procedures fast. You will build a procedure library with proper contracts and error handling.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Write CREATE PROCEDURE with input parameters, OUTPUT parameters, and return codes used correctly.</li>
+        <li>Apply parameter defaults, named invocation, and the OUTPUT keyword at the call site.</li>
+        <li>Avoid the parameter-sniffing trap with local variables, OPTIMIZE FOR, or RECOMPILE — and know the cost of each.</li>
+        <li>Grant EXECUTE without granting direct table access (ownership chaining basics).</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Input vs OUTPUT parameters; RETURN codes are for status, not data</h4>
+      <div class="il-prose"><p>Input parameters feed the procedure; OUTPUT parameters return data to the caller (declared with OUTPUT at both definition and call site); the RETURN code is an integer status — 0 for success, nonzero for failure modes. The lab refactors a data-via-RETURN procedure into OUTPUT-plus-status to establish the convention. Returning result sets is the third channel, for row data. Three channels, three jobs: status, scalar data, row data — never mix them.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Default values, named vs positional invocation</h4>
+      <div class="il-prose"><p>Parameters can declare defaults, and callers can invoke by position (@a, @b) or by name (@CustomerId = 42). Named invocation survives parameter reordering and documents intent at the call site — the checkpoint asks why it makes refactoring safer, and the answer is that positions shift while names persist. The lab calls its procedure all three ways. Use named notation in production code; reserve positional for ad-hoc queries.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Parameter sniffing: what it is, when it helps, when it wrecks a plan</h4>
+      <div class="il-prose"><p>The optimizer compiles the procedure&#x27;s plan for the first parameter values it sees and reuses it — parameter sniffing. It helps when data is uniform (one good plan serves all) and wrecks when data is skewed (the plan built for the 5-order customer runs against the 100,000-order one). The lab builds the skew, observes the flip by varying the first call, and fixes it. When one procedure is fast for A and 50x slow for B on the same code path, sniffing is the prime suspect.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Local-variable copy, OPTION (RECOMPILE), OPTIMIZE FOR UNKNOWN — trade-offs</h4>
+      <div class="il-prose"><p>Parameter sniffing mitigations each cost something: copying the parameter to a local variable defeats sniffing but forfeits the good plan too; OPTION (RECOMPILE) builds a fresh plan per execution at CPU cost; OPTIMIZE FOR UNKNOWN uses average statistics, good for the typical case, bad for extremes. The lab fixes a skewed-data flip with a local-variable copy and re-measures. There is no free fix — choose the mitigation whose cost fits the procedure&#x27;s call pattern.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Ownership chaining and the EXECUTE AS options at a high level</h4>
+      <div class="il-prose"><p>Ownership chaining lets a procedure access tables its caller cannot, when caller, procedure, and tables share an owner — the lab grants only EXECUTE to a low-privilege login and verifies the caller gets results without SELECT rights. EXECUTE AS changes the execution context deliberately (CALLER, OWNER, a specified user). The concept is privilege encapsulation: users get the procedure&#x27;s controlled interface, not the tables&#x27; raw access. Design the chain before granting anything.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Write usp_GetOrdersByCustomer with @CustomerId INT and @OrderCount INT OUTPUT; call it three ways (positional, named, with OUTPUT variable) and confirm the output value.</li>
+      <li><strong>Parameter-sniffing lab</strong> — build a skewed table (one customer with 100k orders, many with 5), write a procedure filtering by @CustomerId, and observe the bad-plan flip by calling with different first parameters; fix it with a local-variable copy and re-measure.</li>
+      <li>Refactor a procedure that returns data via RETURN code into one using an OUTPUT parameter plus a status code; write a one-line comment at each call site explaining the convention.</li>
+      <li><strong>Security lab</strong> — create a low-privilege login/user, grant only EXECUTE on your procedure, and verify the caller can get results without SELECT rights on the base table.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>OUTPUT parameter vs RETURN code vs result set: give one correct use for each.</li>
+        <li>Your procedure is fast for customer A and 50x slower for customer B on the same code path — what is the prime suspect and what is the cheapest experiment to confirm it?</li>
+        <li>Why does calling with named parameters (`@CustomerId = 42`) make future refactoring safer than positional calls?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-procedure-transact-sql" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/statements/create…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-4-user-defined-functions-scalar-and-table-valued" aria-labelledby="module-4-user-defined-functions-scalar-and-table-valued-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 4 of 8</p>
+    <h2 class="il-h" id="module-4-user-defined-functions-scalar-and-table-valued-h">Module 4 — User-Defined Functions: Scalar and Table-Valued</h2>
+    <div class="il-prose">
+      <p>Scalar, inline table-valued, and multi-statement table-valued functions each have their place — and their performance traps. This module covers all three, the determinism rules, and why inline TVFs usually win. You will benchmark the types against each other.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Write scalar, inline table-valued, and multi-statement table-valued functions, and state the performance profile of each.</li>
+        <li>Predict where a scalar UDF in a WHERE/SELECT will kill performance and rewrite it.</li>
+        <li>Use CROSS APPLY with an inline TVF to replace a correlated subquery.</li>
+        <li>Decide function vs procedure vs view for a given requirement.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Scalar UDFs: row-by-row execution and why they poison query plans (pre-2019) and scalar UDF inlining (2019+)</h4>
+      <div class="il-prose"><p>Scalar UDFs historically executed row-by-row — invoked per row, invisible to the optimizer, plan poison. The lab times a formatting UDF over 100,000 rows against an inline-TVF rewrite and the gap is the lesson. SQL Server 2019+ inlines eligible scalar UDFs into the query plan, removing the penalty when the function qualifies — but ineligible functions still pay it. The rule survives inlining: scalar UDFs in hot paths need proof, not hope.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Inline TVFs: parameterizable views the optimizer can fold in</h4>
+      <div class="il-prose"><p>An inline table-valued function is a single SELECT with parameters — a parameterizable view. Because it is one statement, the optimizer folds it into the outer query and plans the whole thing together. The lab&#x27;s TopOrders function consumed via CROSS APPLY keeps a single efficient plan shape. Inline TVFs are the function form with (almost) no performance penalty: prefer them whenever the logic fits one query.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Multi-statement TVFs: flexible but opaque to the optimizer (fixed cardinality guesses)</h4>
+      <div class="il-prose"><p>A multi-statement TVF builds its result with control flow into a table variable and returns it — flexible, but the optimizer cannot see inside and guesses a fixed (historically tiny) row count. The lab observes the estimate-versus-actual gap in the plan and writes the code-review sentence it deserves. Use them when the logic genuinely needs procedural steps; expect plan-quality costs. The fixed guess poisons downstream joins, so keep their results small or materialize deliberately.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">CROSS APPLY / OUTER APPLY as the TVF join pattern</h4>
+      <div class="il-prose"><p>APPLY invokes a table-valued function per row of the left side — CROSS APPLY keeps rows where the function returns rows, OUTER APPLY keeps all left rows (NULLs where empty). It replaces correlated subqueries in the SELECT clause with a join the optimizer can reason about. The lab rewrites a correlated scalar subquery as CROSS APPLY against an inline TVF from memory. APPLY is the idiom that makes TVFs composable in queries.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Determinism and schemabinding where it matters</h4>
+      <div class="il-prose"><p>A deterministic function returns the same output for the same input — required for indexed views and persisted computed columns. SCHEMABINDING locks the function&#x27;s dependencies so underlying objects cannot change incompatibly, and it is a prerequisite for those performance features. Most functions need neither, but the ones that do fail cryptically without them. Declare determinism honestly; the optimizer trusts your declaration.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Write a scalar UDF that formats an order total, use it in a SELECT over 100k rows, and time it; then rewrite as an inline TVF with CROSS APPLY and compare elapsed time and plans.</li>
+      <li>Build an inline TVF TopOrders(@CustomerId, @N) returning the N most recent orders; consume it with CROSS APPLY over a customer list and verify the plan stays a single efficient shape.</li>
+      <li><strong>Multi-statement TVF lab</strong> — write one that builds a result via a table variable and control flow, use it in a join, and observe the plan&#x27;s row estimate vs actual; write the sentence you would put in a code review.</li>
+      <li><strong>Decision lab</strong> — for five small requirements (lookup formatting, parameterized report slice, audit stamp, running total, permission-filtered rowset) pick function/procedure/view and defend each choice in one line.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Why can the same logic run 100x faster as an inline TVF than as a scalar UDF in a SELECT list?</li>
+        <li>When would you deliberately choose a multi-statement TVF despite its optimizer cost?</li>
+        <li>Rewrite a correlated scalar subquery in the SELECT clause as a CROSS APPLY against an inline TVF — do it from memory.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/language-reference</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-5-triggers-dml-and-instead-of" aria-labelledby="module-5-triggers-dml-and-instead-of-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 5 of 8</p>
+    <h2 class="il-h" id="module-5-triggers-dml-and-instead-of-h">Module 5 — Triggers: DML and INSTEAD OF</h2>
+    <div class="il-prose">
+      <p>Triggers fire automatically on data changes — powerful, invisible, and easy to misuse. This module covers DML triggers, the inserted and deleted tables, INSTEAD OF triggers, and the discipline that keeps trigger logic maintainable. You will build audit triggers and learn their costs.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Write AFTER triggers using the inserted/deleted pseudo-tables for multi-row operations.</li>
+        <li>Use INSTEAD OF triggers to make non-updatable views updatable and to enforce complex rules.</li>
+        <li>Explain trigger firing order, nesting, and recursion settings and their dangers.</li>
+        <li>Argue for and against triggers vs constraints vs application logic for a given rule.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">inserted and deleted: set-based, possibly multi-row — never assume one row</h4>
+      <div class="il-prose"><p>Triggers expose the inserted and deleted pseudo-tables holding the new and old row versions — as sets, possibly containing many rows. The lab&#x27;s multi-row trap writes a trigger assuming one row, fires a 3-row insert, and documents exactly what breaks; the fix is set-based logic joining inserted. Production DML is multi-row (bulk loads, application batches), so single-row assumptions fail precisely when it matters. Every trigger must be correct for N rows, including zero.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">AFTER (FOR) vs INSTEAD OF: timing, what each can and cannot do</h4>
+      <div class="il-prose"><p>AFTER triggers fire after the DML completes (and can roll it back); INSTEAD OF triggers replace the DML entirely — the trigger&#x27;s code performs the actual writes. AFTER is for auditing and cascading logic on real tables; INSTEAD OF is for making views updatable and intercepting writes. The lab builds both: an AFTER audit logger and an INSTEAD OF view writer. The original INSERT never touches the base tables under INSTEAD OF — the trigger owns the write.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">UPDATE() and COLUMNS_UPDATED() for column-level logic</h4>
+      <div class="il-prose"><p>UPDATE(column) reports whether a specific column was part of the SET clause; COLUMNS_UPDATED() returns a bitmask of touched columns. They answer did the statement mention this column — not did the value change. The lab&#x27;s audit trigger can use them to log only meaningful columns. Use them to skip expensive logic when irrelevant columns were updated, not as change detection.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Nested triggers, recursive triggers, and sp_configure &#x27;nested triggers&#x27;</h4>
+      <div class="il-prose"><p>Triggers can fire other triggers (nesting) and, if enabled, themselves (recursion) — the lab wires two tables&#x27; triggers to update each other and observes the cascade, then writes the guard it would ship. The server&#x27;s nested-triggers setting gates the behavior globally. Recursion without a guard is an infinite loop wearing a trigger costume. Default posture: design triggers to never need recursion, and guard the ones that might.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Why triggers hide logic: debugging, performance, and the case for constraints first</h4>
+      <div class="il-prose"><p>Triggers execute invisibly — no call in the application code, nothing in the procedure — which makes behavior surprising and debugging hard. They also run per DML with plan and locking consequences the caller never sees. The checkpoint&#x27;s placement question is the discipline: CHECK constraints for simple rules, triggers for complex row logic, application for workflow. Triggers are the right tool sometimes; they are never the first tool. Prefer the visible mechanism.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Write an AFTER UPDATE trigger that logs every price change to an audit table with old/new values, user, and timestamp; test with a single-row and a 500-row UPDATE and verify both log correctly.</li>
+      <li><strong>INSTEAD OF lab</strong> — create a view joining two tables, make it updatable with an INSTEAD OF INSERT trigger that splits the row correctly; then attempt a bad insert and confirm your validation fires.</li>
+      <li><strong>Multi-row trap lab</strong> — write a trigger that naively assumes one row in inserted (scalar variable assignment), fire it with a 3-row insert, and document exactly what breaks; then fix it set-based.</li>
+      <li><strong>Recursion lab</strong> — on a scratch database, create two tables with triggers that update each other, enable recursive triggers, run one update, and observe; then write the guard (trigger_nestlevel or a flag table) you would ship.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Your trigger works in testing but misses rows in production — what is the single most likely cause?</li>
+        <li>INSTEAD OF trigger on a view: who performs the actual base-table writes, and what happens to the original INSERT?</li>
+        <li>Name one rule that belongs in a CHECK constraint, one that belongs in a trigger, and one that belongs in the application — with the reason for each.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/statements/create…</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-6-error-handling-try-catch-throw-and-transactions" aria-labelledby="module-6-error-handling-try-catch-throw-and-transactions-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 6 of 8</p>
+    <h2 class="il-h" id="module-6-error-handling-try-catch-throw-and-transactions-h">Module 6 — Error Handling: TRY/CATCH, THROW, and Transactions</h2>
+    <div class="il-prose">
+      <p>Production code expects failure. This module covers the TRY/CATCH model, THROW versus RAISERROR, error functions, and the transaction discipline that keeps partial failures from corrupting data. You will build procedures that fail cleanly and log usefully.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Structure TRY/CATCH blocks so no error path leaves a transaction open.</li>
+        <li>Use THROW vs RAISERROR correctly and re-throw with original context preserved.</li>
+        <li>Pair XACT_ABORT with explicit transactions and know what each setting changes.</li>
+        <li>Write an idempotent, retry-safe data-load procedure with proper rollback semantics.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">TRY/CATCH scope: what is catchable, batch-aborting vs statement-aborting errors</h4>
+      <div class="il-prose"><p>TRY/CATCH catches most runtime errors, but not all: compilation errors, batch-aborting errors (like broken connections), and errors of severity that terminate the batch escape the CATCH. Statement-aborting errors (constraint violations, divide by zero) are catchable. The lab&#x27;s money-transfer procedure proves the pattern: inject failure between debit and credit, and no partial commit survives. Know your error&#x27;s class before trusting the CATCH — test the failure you fear, not a convenient one.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">ERROR_NUMBER/MESSAGE/SEVERITY/STATE/LINE/PROCEDURE in the CATCH block</h4>
+      <div class="il-prose"><p>Inside CATCH, the ERROR_* functions report the caught error&#x27;s number, message, severity, state, line, and procedure — but only inside the CATCH block; outside, they return NULL. The lab&#x27;s logging procedure records all six for both a divide-by-zero and a foreign-key violation. Capture them immediately into variables or a log table. Diagnostics have a scope; respect it.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">THROW (no args) re-throw vs RAISERROR; custom error numbers &gt;= 50000</h4>
+      <div class="il-prose"><p>THROW with no arguments inside CATCH re-throws the original error with its context intact — the correct re-throw. RAISERROR with a copied message loses the original number, line, and state. Custom errors use numbers at or above 50000. The checkpoint asks why bare THROW beats RAISERROR: fidelity of context. Modern code uses THROW; RAISERROR survives for legacy and for low-severity informational messages.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">BEGIN/COMMIT/ROLLBACK TRAN, @@TRANCOUNT, and the nested-transaction myth</h4>
+      <div class="il-prose"><p>T-SQL transactions nest only in name: @@TRANCOUNT counts BEGINs, but there is one real transaction — inner COMMITs merely decrement the count, and only the outermost COMMIT commits. The checkpoint asks how many real transactions exist when a procedure calls another with its own BEGIN/COMMIT: one. The myth bites when an inner ROLLBACK resets the count to zero and the outer COMMIT then errors. Write transaction logic as if nesting does not exist, because functionally it does not.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SET XACT_ABORT ON and why most production procedures want it</h4>
+      <div class="il-prose"><p>XACT_ABORT ON makes any runtime error abort the batch and roll back the entire transaction; OFF leaves behavior error-dependent — some errors roll back the statement, some the batch, some nothing. The lab runs the same failing batch both ways and documents the difference. Most production procedures want ON because partial transactions are worse than failed ones. Put it in the team template and stop debating per procedure.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li>Write a money-transfer-style procedure (debit A, credit B) with TRY/CATCH; inject a failure between the two statements and prove with @@TRANCOUNT and a balance query that no partial commit survives.</li>
+      <li><strong>XACT_ABORT lab</strong> — run the same failing batch with XACT_ABORT OFF and ON, and document the difference in what rolls back; write the one-paragraph rule for your team&#x27;s template.</li>
+      <li><strong>Error-context lab</strong> — catch a divide-by-zero and a foreign-key violation, and build a logging procedure that records ERROR_NUMBER(), ERROR_MESSAGE(), ERROR_LINE(), and ERROR_PROCEDURE(); verify the log row for both.</li>
+      <li><strong>Idempotency lab</strong> — write a staging-to-fact loader that can be re-run safely after a mid-load failure (checkpoints table or MERGE semantics), and test by killing it halfway twice.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>After a CATCH block runs ROLLBACK, what is @@TRANCOUNT and why does that matter to the caller?</li>
+        <li>THROW; with no arguments inside a CATCH block does what — and why is that better than RAISERROR with a copied message?</li>
+        <li>A procedure opens a transaction, calls another procedure that also has BEGIN/COMMIT TRAN — how many real transactions are there, and what does the inner COMMIT actually do?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/language-reference</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-7-dynamic-sql-and-injection-defense" aria-labelledby="module-7-dynamic-sql-and-injection-defense-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 7 of 8</p>
+    <h2 class="il-h" id="module-7-dynamic-sql-and-injection-defense-h">Module 7 — Dynamic SQL and Injection Defense</h2>
+    <div class="il-prose">
+      <p>Dynamic SQL builds queries as strings — powerful and dangerous. This module covers sp_executesql, parameterization, and the injection attack patterns you must understand to defend against. You will attack a deliberately vulnerable lab procedure, then fix it properly.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Build dynamic SQL with sp_executesql and strongly-typed parameters instead of EXEC().</li>
+        <li>Sanitize object names with QUOTENAME and never concatenate user input into identifiers raw.</li>
+        <li>Demonstrate a working injection attack on a lab database, then close it.</li>
+        <li>Decide when dynamic SQL is justified (optional filters, dynamic pivots, DDL automation) vs when static SQL wins.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">sp_executesql with @params: plan reuse and type safety</h4>
+      <div class="il-prose"><p>sp_executesql takes a parameterized statement plus typed @params — the engine caches one plan per statement shape and binds values safely at execution. The lab builds the optional-filter report three ways and compares plans and reads: dynamic-with-params wins on skewed data where static OR-chains and recompile-everything do not. Typed parameters also enforce type safety at the boundary. Dynamic SQL is justified for optional filters, dynamic pivots, and DDL automation; everywhere else, static SQL wins on clarity alone.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">EXEC(&#x27;...&#x27;) string concatenation: the injection surface</h4>
+      <div class="il-prose"><p>EXEC with a concatenated string builds SQL by gluing user input into command text — every glued value is a potential injection payload. It also defeats plan reuse, since each distinct string is a new plan. The lab&#x27;s vulnerable search procedure is the specimen: attack it, watch it fall, then replace it. EXEC(&#x27;...&#x27;) has legitimate uses (DDL automation with no user input); user input is never one of them.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">QUOTENAME() for identifiers; parameterize values, quote names, never mix</h4>
+      <div class="il-prose"><p>Dynamic object names cannot be parameterized — so QUOTENAME() brackets them safely, escaping any embedded bracket. Values, by contrast, must be parameters, never quoted names. The lab&#x27;s table-name procedure demonstrates both the raw-concatenation injection and the QUOTENAME fix, plus the allow-list alternative (validate against sys.tables). The preference order is allow-list first, QUOTENAME second, raw concatenation never. Two kinds of input, two defenses, never mixed.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Classic payloads: `&#x27; OR 1=1 --`, stacked queries, and why parameterization kills them</h4>
+      <div class="il-prose"><p>The classic payloads exploit string concatenation: &#x27; OR 1=1 -- turns a login check into a tautology, stacked queries append a second statement (a DROP TABLE in the lab&#x27;s scratch demo). Parameterization kills them because parameters are never parsed as SQL — the engine treats the input as a value at the protocol level, whatever characters it contains. The lab attacks the vulnerable version, then re-runs both attacks against the parameterized rewrite and watches them fail. Understanding the payload is what makes the defense obvious.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Dynamic SQL scope: temp tables and variables don&#x27;t cross the EXEC boundary</h4>
+      <div class="il-prose"><p>Code run through sp_executesql or EXEC shares the session — so #temp tables created outside are visible inside — but not the batch scope: outer variables are invisible, and variables declared inside do not return. The lab documents the rule by testing both. Pass values in through sp_executesql&#x27;s @params; bring results out the same way or through the temp table. Scope bugs in dynamic SQL are silent until runtime, so learn the boundary deliberately.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Vulnerable-then-fixed lab</strong> — write a search procedure that concatenates @SearchTerm into the SQL string; attack it with `&#x27; OR &#x27;1&#x27;=&#x27;1` and a stacked `DROP TABLE` on a scratch table; then rewrite with sp_executesql parameters and re-run both attacks to prove they fail.</li>
+      <li><strong>QUOTENAME lab</strong> — write a procedure that takes a @TableName and returns row counts; first version concatenates raw (demonstrate injection via a crafted name), fixed version uses QUOTENAME; also show the allow-list alternative.</li>
+      <li><strong>Optional-filter lab</strong> — build a report procedure with 5 optional filters three ways — dynamic SQL with sp_executesql, static SQL with `(@p IS NULL OR col = @p)`, and OPTION (RECOMPILE); compare plans and reads on skewed data and write the guidance.</li>
+      <li><strong>Scope lab</strong> — create a #temp table in the outer batch, try to read it inside sp_executesql (works — same session), then try to reference an outer variable (fails); document the rule.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Why does sp_executesql with parameters defeat `&#x27; OR 1=1 --` while string concatenation does not? Answer at the level of how the engine treats the input.</li>
+        <li>You must accept a table name from the user. List the two safe approaches in order of preference.</li>
+        <li>A dynamic pivot query is slow on every run — what plan-cache behavior explains it, and what is the standard mitigation?</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener">learn.microsoft.com/en-us/sql/t-sql/language-reference</a></li>
+    </ul>
+  </div>
+</section>
+<hr class="il-rule" />
+<section class="il-section" id="module-8-ssms-azure-data-studio-workflow-and-query-store-basics" aria-labelledby="module-8-ssms-azure-data-studio-workflow-and-query-store-basics-h">
+  <div class="il-wrap">
+    <p class="il-eyebrow">Module 8 of 8</p>
+    <h2 class="il-h" id="module-8-ssms-azure-data-studio-workflow-and-query-store-basics-h">Module 8 — SSMS / Azure Data Studio Workflow and Query Store Basics</h2>
+    <div class="il-prose">
+      <p>The final module is the workflow: SSMS Object Explorer, the actual execution plan, Query Store, and Extended Events. You will capture a baseline, identify a regression, and document the fix — the complete performance-troubleshooting loop in the tools professionals use.</p>
+    </div>
+    <h3 class="il-h il-h--section">Objectives</h3>
+    <ul class="il-list">
+        <li>Set up a productive SSMS or Azure Data Studio workflow: templates, snippets, actual plans, and client statistics.</li>
+        <li>Enable and read Query Store: regressed queries, wait stats, and plan forcing.</li>
+        <li>Capture a baseline, introduce a regression on purpose, and identify it in Query Store.</li>
+        <li>Write a personal runbook: the 5 checks you run when &#x27;the database is slow&#x27;.</li>
+    </ul>
+    <h3 class="il-h il-h--section">Key concepts</h3>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">SSMS vs Azure Data Studio: when each shines; both are free</h4>
+      <div class="il-prose"><p>SSMS is the full Windows-native management studio — deep administration, graphical plans, mature tooling. Azure Data Studio is the lighter, cross-platform editor with notebooks, source control integration, and a modern extension model. The lab does the same plan capture in both and notes one strength per tool. Both are free; the choice is workflow, not budget. Learn one deeply, know the other exists.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Actual execution plans, live query stats, SET STATISTICS IO/TIME</h4>
+      <div class="il-prose"><p>Actual execution plans show what the engine did — operators, row counts, costs — versus estimated plans&#x27; predictions; live query stats animate long queries in flight. SET STATISTICS IO reports logical and physical reads per table; SET STATISTICS TIME reports parse, compile, and execution milliseconds. The lab captures plan plus IO/TIME as the baseline file for its slowest query. These three outputs are the evidence kit: capture them before asking anyone for help, as the checkpoint demands.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Query Store: query_id/plan_id model, runtime stats, wait categories</h4>
+      <div class="il-prose"><p>Query Store persists query history in the database: each query gets a query_id, each plan shape a plan_id, with runtime stats and wait categories recorded per plan. The model answers what changed: the checkpoint&#x27;s two-plan_ids scenario means the plan flipped, and remediation is forcing the good plan or fixing the statistics that caused the flip. Wait categories attribute the time — CPU, I/O, locks — so tuning starts from evidence. It is flight-data recording for queries; enable it on every database you care about.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Regressed queries report and plan forcing (and when to un-force)</h4>
+      <div class="il-prose"><p>The Regressed Queries report surfaces queries whose recent performance diverged from baseline — the lab finds its deliberately regressed workload there. Plan forcing pins the good plan_id as treatment, but the checkpoint insists it is treatment, not cure: the underlying cause (stale statistics, data skew, schema change) still needs investigation. Un-force when the cause is fixed and the optimizer chooses well again. Forcing without follow-up is how a good plan becomes tomorrow&#x27;s bad one.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Baselines: capturing &#x27;normal&#x27; before you need it</h4>
+      <div class="il-prose"><p>A baseline is the recorded normal — plan shapes, IO counts, durations — captured while the system is healthy. The lab&#x27;s Query Store exercise builds history with 20 workload runs, then introduces a regression on purpose and finds it in the Regressed Queries view. Without a baseline, every slowdown is a mystery; with one, it is a diff. Capture baselines for the queries that matter before the incident, because you cannot reconstruct normal afterward.</p></div>
+    <h3 class="il-h il-h--section">Hands-on labs</h3>
+    <ol class="il-list">
+      <li><strong>Tooling setup lab</strong> — install SSMS (or Azure Data Studio), configure &#x27;Include Actual Execution Plan&#x27; shortcut, save two code snippets (TRY/CATCH transaction template, sp_executesql template), and connect to your lab instance.</li>
+      <li><strong>Query Store lab</strong> — on a scratch database enable Query Store, run a workload 20 times to build history, then force a bad plan (hint or stats change) and find the regression in the &#x27;Regressed Queries&#x27; view; force the good plan and verify recovery.</li>
+      <li><strong>Slow-database drill</strong> — pick your slowest lab query from Module 4, capture its plan + STATISTICS IO/TIME output as a baseline file, then write the 5-step runbook you would follow if a teammate reported it slow tomorrow.</li>
+      <li><strong>Cross-tool lab</strong> — do the same plan capture in both SSMS and Azure Data Studio and note one thing each tool does better for your workflow.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Self-check</h3>
+    <ol class="il-list">
+        <li>Query Store shows two plan_ids for one query_id with very different avg durations — what happened, and what are your two remediation options?</li>
+        <li>Why is forcing a plan a treatment rather than a cure? State what you must still investigate.</li>
+        <li>Name the three SET/SHOW outputs you capture before asking anyone for help with a slow query.</li>
+    </ol>
+    <h3 class="il-h il-h--section">Module sources</h3>
+    <ul class="il-list">
+        <li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store" rel="noopener">learn.microsoft.com/en-us/sql/relational-databases/pe…</a></li>
+    </ul>
+  </div>
+</section>
+  </div>
+  <hr class="il-rule" />
+  <section class="il-section" id="resources" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">Keep learning</p>
+      <h2 class="il-h" id="resources-h">Resources</h2>
+      <ul class="il-list">
+      <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-reference" rel="noopener"><strong>Official curriculum source (supplemental)</strong></a> — the public documentation this study guide is keyed to.<br /><span class="il-src">learn.microsoft.com/en-us/sql/t-sql/language-reference</span></li>
+      <li><a href="https://github.com/Microsoft/sql-server-samples/releases/tag/adventureworks" rel="noopener"><strong>AdventureWorks sample databases (Microsoft)</strong></a> — Free sample databases for the procedure, function, trigger, and Query Store labs.<br /><span class="il-src">github.com/Microsoft/sql-server-samples/releases/tag/…</span></li>
+      </ul>
+    </div>
+  </section>
+  <hr class="il-rule" />
+  <section class="il-section" id="about" aria-labelledby="about-h">
+    <div class="il-wrap">
+      <p class="il-eyebrow">About this guide</p>
+      <h2 class="il-h" id="about-h">About this guide</h2>
+      <div class="il-prose">
+        <p>This page is an original study guide by Interstitium Labs, keyed to the public Microsoft Learn T-SQL documentation. It is not affiliated with or endorsed by Microsoft, and it does not reproduce Microsoft&#x27;s course content — the official documentation lives at the sources linked throughout. Explanations here are our own distillation, written for study.</p>
+        <p>Every lab in this sequence runs on free tooling — public testnets, free database editions, and open-source software. Where a module touches security tooling, labs target only systems and data you own.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

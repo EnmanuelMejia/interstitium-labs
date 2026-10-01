@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>XRP Ledger Engineering — Study Sequence | Interstitium Labs</title>
+<meta name="description" content="An on-site study sequence for XRP Ledger engineering: accounts and reserves, transactions and consensus, the native DEX, issued currencies, XLS-20 NFTs, XLS-30 AMMs, client development, and testnet workflow — with hands-on labs and self-checks."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Knowledge OS · Ledger Engineering</p>
+    <h1 class="il-h">XRP Ledger Engineering</h1>
+    <p class="il-hero__sub">Accounts, reserves, and consensus; the native DEX, issued currencies, NFTs, and AMMs — engineered from the public XRPL documentation into an original, hands-on study sequence.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the sequence</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What this sequence is, and how to work it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>What this is: a complete engineering study sequence for the XRP Ledger (XRPL), the open-source, permissionless blockchain network that settles payments in 3–5 seconds. It is built from the public XRPL documentation and teaches the ledger the way a builder needs it: the account and reserve model, the transaction lifecycle, the native decentralized exchange, issued currencies, NFTs (XLS-20), automated market makers (XLS-30), client development with xrpl.js and xrpl-py, and safe testnet practice.</p>
+        <p>Who it is for: developers who want to build payment apps, wallets, gateways, or market infrastructure on the XRP Ledger, and engineers who want a rigorous second example of how a production ledger differs from Bitcoin and Ethereum-style chains. You should be comfortable with a programming language (JavaScript or Python), basic cryptography concepts (public/private keys, signatures), and the command line.</p>
+        <p>Prerequisites: familiarity with JSON and REST/WebSocket APIs; a Node.js or Python environment you can install packages into; no prior blockchain experience is assumed, but the pace assumes you are an engineer, not a tourist. Everything on-ledger can be practiced for free on the XRPL Testnet, which dispenses worthless test XRP from public faucets.</p>
+        <p>How to use it: work the modules in order — each one builds on the last. Read the concepts, do the labs on Testnet (they are designed to be run, not read), and answer the self-check questions in writing before moving on. Keep the official XRPL documentation open as your reference while this guide does the teaching; the resource list at the end names it and the other free sources.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in study order.</h2>
+      </div>
+      <div class="il-modules">
+      <article class="il-module" aria-labelledby="m1-h">
+        <p class="il-eyebrow">Module 1</p>
+        <h3 class="il-h il-h--card" id="m1-h">Ledger Model: Accounts, Keys, Reserves, Sequences</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how an XRPL account is defined by its key pair and address.</li>
+            <li>Compute the total reserve requirement for an account owning N ledger objects.</li>
+            <li>Predict when a transaction is rejected for a stale or duplicate sequence number.</li>
+            <li>Distinguish base reserve from owner reserve and their purpose against spam.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Accounts are key pairs; the classic address is a base58check encoding of the account ID</h5>
+          <p>Every XRP Ledger account is defined by a public/private key pair using either the secp256k1 curve or ed25519. The &#x27;classic address&#x27; you share to receive funds — the string starting with &#x27;r&#x27; — is not the key itself: it is a base58check encoding of the 160-bit account ID, which is derived by hashing the public key, with a version byte and checksum folded in so typos are caught.</p>
+          <p>That derivation is one-way. Knowing an address lets anyone send funds to it or look up its ledger state, but spending from the account requires a digital signature produced by the private key. This separation — public address for receiving, private key for spending — is the same idea as Bitcoin addresses, with XRPL&#x27;s own encoding.</p>
+          <h5>The AccountRoot object: balance, sequence number, owned-object count</h5>
+          <p>On-ledger, an account is represented by an AccountRoot object — the root entry for that account in the ledger&#x27;s state tree. It stores three things you will touch constantly: the account&#x27;s XRP balance in drops, the next expected sequence number, and a count of how many ledger objects the account owns.</p>
+          <p>The owned-object count is not trivia: it is the input the reserve system uses. Every trust line, open offer, signer list, or ticket the account creates increments this count, and each increment raises the amount of XRP locked in reserve.</p>
+          <h5>Base reserve and owner reserve: the ledger&#x27;s anti-spam economics</h5>
+          <p>The base reserve is the minimum XRP balance every account must hold. It can never be spent down — an account cannot send its last drops — and it makes creating an account cost something real. Because the XRP burned or locked is small per account but the attacker needs millions of accounts to bloat the ledger, the economics of spam attacks collapse.</p>
+          <p>On top of the base reserve sits the owner reserve: additional XRP locked for every ledger object the account owns (trust lines, offers, signer lists, tickets). The total lockup is base reserve plus owner reserve times the owned-object count, which is why the Module 1 labs have you compute it by hand — you will feel the ledger&#x27;s state-pricing in your wallet.</p>
+          <h5>Sequence numbers: exactly one more, no gaps, no replays</h5>
+          <p>Every transaction an account submits must carry a sequence number exactly one greater than the account&#x27;s current sequence. Submit the next number and it applies; submit an old number and it is rejected as a duplicate; submit a skipped number and it is rejected as a gap. The network enforces this strictly, and there is no override.</p>
+          <p>This strict ordering is the replay protection. A signed transaction cannot be re-broadcast later to double-spend, because its sequence number is already consumed. It also means transactions from one account apply in a deterministic order — a property you rely on when chaining payments, and a constraint you route around with tickets (Module 2) when you need parallelism.</p>
+          <h5>Regular keys and signer lists: delegation and multi-party authorization</h5>
+          <p>The master key pair is the account&#x27;s root authority, and best practice is to disable it on operational accounts and keep it in cold storage. A regular key is a second key pair authorized to sign transactions for the account — typically held by a hot server or application while the master key never touches the network.</p>
+          <p>Signer lists go further: they assign weights to several keys and set a quorum threshold, so a transaction is valid only when it carries signatures whose combined weight meets the quorum. This is the ledger&#x27;s native multi-signature scheme — no smart contract needed — and it is how exchanges and custodians require, say, any two of three operators to approve a withdrawal.</p>
+          <h5>Drops: 1 XRP = 1,000,000 drops, the integer unit of fees and balances</h5>
+          <p>The ledger does all of its accounting in drops, the smallest XRP unit: one XRP equals one million drops. Balances in AccountRoot and fees on transactions are integers in drops — never decimals.</p>
+          <p>This matters in two ways. First, fee math is exact: a transaction fee is a small integer number of drops, so there is no floating-point rounding anywhere in consensus. Second, it lets fees scale cleanly: under load the network can raise the required fee from a handful of drops upward, and clients quote and compare fees as plain integers.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Generate wallets offline. In xrpl.js, derive one wallet from an ed25519 seed and one from a secp256k1 seed without touching the network; print both classic addresses and confirm they start with &#x27;r&#x27; but differ. Write down which curve you would choose for a new application and why (hint: consider ecosystem support and key-size tradeoffs).</li>
+            <li>Lab 2 — Read a live AccountRoot. Fund a fresh Testnet account from the faucet, then call account_info and record the Balance (in drops), Sequence, and OwnerCount fields. Convert the balance to XRP by dividing by 1,000,000 and confirm it matches what the faucet dispensed minus the funding transaction&#x27;s fee.</li>
+            <li>Lab 3 — Watch the reserve lockup grow. Create one trust line and one offer from your test account, then re-query account_info and recompute the total reserve as base reserve + owner reserve × OwnerCount. Confirm that your spendable balance (Balance minus reserve) shrank by exactly the expected amount.</li>
+            <li>Lab 4 — Prove sequence enforcement. Build two identical transactions with the same sequence number, submit the first, wait for validation, then submit the second and confirm it fails as a duplicate. Then submit a transaction with a skipped sequence number and confirm it is rejected too.</li>
+            <li>Lab 5 — Delegate with a regular key. Assign a regular key to your test account (SetRegularKey), then build and submit a Payment signed only with the regular key&#x27;s secret — not the master secret. Confirm it validates, then disable the master key on a throwaway account to see the recommended production posture.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>An account owns 3 trust lines and 2 open offers: write the formula for its total reserve requirement.</li>
+            <li>Why can an account never spend its base reserve, and what attack does that prevent?</li>
+            <li>A transaction with sequence 5 lands while the account is at sequence 7: accepted or rejected, and why?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m2-h">
+        <p class="il-eyebrow">Module 2</p>
+        <h3 class="il-h il-h--card" id="m2-h">Transactions, Signing, and Ledger Close</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe the lifecycle of a transaction from signing to validated ledger inclusion.</li>
+            <li>Choose between single signature, regular key, and multi-signing for a given authorization need.</li>
+            <li>Set fees and LastLedgerSequence correctly to bound a transaction&#x27;s retry window.</li>
+            <li>Use ticket batching to submit sequence-independent transactions in parallel.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>The anatomy of a transaction: type, Account, Sequence, Fee, LastLedgerSequence</h5>
+          <p>Every XRPL transaction declares its type (Payment, OfferCreate, TrustSet, and dozens more), the sending Account, a Sequence number (or a TicketSequence), a Fee in drops, and a LastLedgerSequence. The type selects which ledger logic runs; the account and sequence order it; the fee pays for processing; LastLedgerSequence is an expiry — if the transaction has not been included by that ledger index, it can never be included.</p>
+          <p>LastLedgerSequence is your safety net against zombie transactions. Without it, a transaction stuck in the queue could apply minutes later in a market that has moved. With it, you bound the retry window: after expiry you know the transaction is dead and can safely re-sign a replacement.</p>
+          <h5>Signing is client-side, over the canonical binary serialization</h5>
+          <p>Signing never happens on the network: your client serializes the transaction fields into the ledger&#x27;s canonical binary format and signs that blob with the private key. The network only ever sees the signed blob — private keys never leave your machine.</p>
+          <p>This is why wallet security is entirely a client-side discipline. A compromised signing server can drain an account, but no validator or API node can help an attacker, because none of them ever holds your secret. Hardware wallets and offline signing exist precisely to keep the key off networked machines.</p>
+          <h5>Multi-signing: weighted signer lists instead of one master signature</h5>
+          <p>When a signer list is configured, a transaction is authorized by attaching multiple signatures whose signer weights sum to at least the quorum. The transaction&#x27;s SigningPubKey is left empty and the Signers array carries each signature with its account — the ledger verifies each against the signer list and tallies the weights.</p>
+          <p>Compared with a single regular key, multi-signing trades convenience for distributed trust: no single operator can move funds alone. Compared with doing multi-sig in a smart contract on another chain, the XRPL version is a first-class protocol feature — cheaper, simpler, and enforced by consensus rather than by contract code.</p>
+          <h5>The transaction queue: where pending transactions wait</h5>
+          <p>Transactions that pass initial checks but are not yet in a validated ledger sit in each server&#x27;s transaction queue. A queued transaction reserves its sequence number, so later transactions from the same account queue behind it in order — one stuck transaction can hold up the whole account.</p>
+          <p>This is the failure mode to design around: if a transaction is queued during congestion, either wait it out, or let it expire via LastLedgerSequence and re-sign at a higher fee. Never blindly re-sign the same sequence at a higher fee while the original might still apply — that is how accidental double-payments happen.</p>
+          <h5>Ledger close: consensus every 3–5 seconds</h5>
+          <p>XRPL ledgers close roughly every 3–5 seconds through the ledger&#x27;s consensus process, in which a supermajority of validators agree on the exact set of transactions to include. There is no mining and no probabilistic finality: once a ledger is validated, its transactions are final.</p>
+          <p>For application design, this means confirmations are measured in seconds and a handful of ledgers, not blocks and block depth. Your client watches for the transaction to appear in a validated ledger (submitAndWait in the client libraries does exactly this), and then it is done.</p>
+          <h5>Result codes: tesSUCCESS, and the tec / tem / ter classes</h5>
+          <p>A transaction that applies cleanly returns tesSUCCESS. Failures fall into three classes you must read differently. tec codes (like tecPATH_DRY) mean the transaction was applied but claimed its fee and did nothing — it cost you money. tem codes mean the transaction was malformed and will never succeed no matter how often you retry — fix the construction. ter codes (like terQUEUED) are retryable: the transaction is fine but the network could not apply it right now.</p>
+          <p>The practical rule: tes means done, tec means paid-for-failure (fix your logic), tem means malformed (fix your code), ter means try again (fix your timing or fee). Getting this classification right is half of reliable XRPL application engineering.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Build, sign, submit. In xrpl.js, construct a Payment with autofill, print the fully signed blob&#x27;s fields (SigningPubKey, TxnSignature, Fee, Sequence, LastLedgerSequence), submit it, and wait for validation. Confirm each field&#x27;s value matches what you declared.</li>
+            <li>Lab 2 — Expiry in action. Submit an identical transaction with LastLedgerSequence set only 4 ledgers ahead; do not let it get included (or craft it so it cannot apply), and verify it expires unapplied. Then check that re-signing with a fresh sequence and new LastLedgerSequence works.</li>
+            <li>Lab 3 — Multi-sign a payment. On a test account, configure a signer list with two signers and a quorum of 2; build a Payment, collect both signatures, and submit it multi-signed. Verify in the transaction metadata that both signer accounts appear and the master key was not used.</li>
+            <li>Lab 4 — Tickets for parallel submission. Mint 3 tickets with TicketCreate, then submit 3 Payments using TicketSequence instead of Sequence, in any order. Confirm all three validate and that the account sequence advanced only by the ticket-creation transaction.</li>
+            <li>Lab 5 — Measure the close interval. Subscribe to the ledger stream and record the close times of 20 consecutive ledgers; compute the mean and spread. Write down what this implies for how long your application&#x27;s &#x27;payment pending&#x27; state should reasonably last.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>What is the difference between a tec-class and a ter-class result for fee accounting?</li>
+            <li>When does multi-signing beat a regular key for operational security?</li>
+            <li>Your transaction has not appeared after 10 ledgers: is LastLedgerSequence or the queue the first thing to check?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m3-h">
+        <p class="il-eyebrow">Module 3</p>
+        <h3 class="il-h il-h--card" id="m3-h">The Native DEX: Order Books, Offers, Pathfinding</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Place and cancel limit offers with OfferCreate and OfferCancel.</li>
+            <li>Read an order book with book_offers and interpret price, quality, and depth.</li>
+            <li>Execute a cross-currency payment using pathfinding and explain autobridging through XRP.</li>
+            <li>Set offer flags (tfSell, tfPassive, tfFillOrKill, tfImmediateOrCancel) to control execution behavior.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Order books and offers as first-class ledger objects</h5>
+          <p>The XRPL has a decentralized exchange built into the protocol itself — not a smart contract, but consensus-level logic. For every currency pair there is an order book, and offers are actual ledger objects owned by accounts (which is why they consume owner reserve), not off-chain intents that might vanish.</p>
+          <p>Because offers live on-ledger, they are visible to everyone via book_offers, they persist across ledger closes until filled, cancelled, or expired, and matching is deterministic: when a new offer or payment arrives, the engine matches it against the book at the best available quality before the transaction even finishes.</p>
+          <h5>Offer quality and the tfPassive flag</h5>
+          <p>Offers match at &#x27;quality&#x27; — the exchange rate of the offer, expressed as the ratio of what it gives versus what it takes. Better quality (a better price for the taker) matches first. When you place an offer, the engine walks the book from best quality downward, consuming matching offers until yours is filled or the book is exhausted at acceptable prices.</p>
+          <p>A tfPassive offer changes the taker&#x27;s side of that bargain: it will never consume existing offers at a worse rate than its own limit price. Market makers use passive offers to post liquidity without being &#x27;picked off&#x27; — the offer sits on the book and waits for someone to come to it, rather than crossing the spread to take liquidity at an unfavorable price.</p>
+          <h5>Autobridging through XRP</h5>
+          <p>If you want to trade currency A for currency B and there is no direct A/B order book with depth, the ledger can route the trade through XRP automatically: sell A for XRP on the A/XRP book, then sell that XRP for B on the XRP/B book, all inside one atomic transaction. This is autobridging, and it happens without you constructing the two legs by hand.</p>
+          <p>Autobridging is why XRP functions as the ledger&#x27;s bridge currency and why XRP order books tend to be the deepest. For a trader it means less fragmented liquidity; for an engineer it means cross-currency payments often settle through paths you never explicitly specified.</p>
+          <h5>Pathfinding across trust lines and order books</h5>
+          <p>A Payment does not have to be XRP-to-XRP or a direct offer take: the pathfinding engine (path_find / ripple_path_find) searches the graph of trust lines and order books for routes from sender to destination. A single payment can ripple through other people&#x27;s trust lines, hop across order books, and autobridge through XRP in combination.</p>
+          <p>You supply constraints — SendMax caps what you will spend, Amount states what the destination must receive — and the engine finds candidate paths. In production you always verify delivered_amount afterward, because the path that looked best when computed can shift as the ledger state changes between pathfinding and execution.</p>
+          <h5>Partial payments and delivered_amount</h5>
+          <p>With the tfPartialPayment flag, a Payment is allowed to deliver less than the requested Amount — the ledger reduces the delivered amount rather than failing, taking whatever the paths can provide. This is a feature for use cases like &#x27;send as much of this invoice as the liquidity allows,&#x27; but it is a footgun everywhere else.</p>
+          <p>The rule is absolute: if tfPartialPayment was set, you must read delivered_amount from the transaction metadata to learn what actually arrived, never trust the Amount field. Exchanges have lost money crediting Amount instead of delivered_amount; your code will not, because you will check.</p>
+          <h5>Offer expiration and the economics of stale orders</h5>
+          <p>Offers can carry an expiration (a ledger time after which they die), and every open offer locks owner reserve while it lives. This pairing is deliberate economic design: stale orders cost their owners money, so market makers are incentivized to cancel dead quotes rather than litter the book.</p>
+          <p>When you cancel (OfferCancel) or when an offer fully fills, the ledger object is deleted and the owner reserve is released back to spendable balance. Reserve accounting and order-book hygiene are the same mechanism viewed from two sides.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Make a market on Testnet. Issue a test IOU, then post a buy offer and a sell offer for the IOU/XRP pair from two accounts; read both sides back with book_offers and identify price, quality, and depth for each side of the book.</li>
+            <li>Lab 2 — Fill-or-kill. Place a tfFillOrKill offer sized larger than the book&#x27;s depth and confirm the ledger kills it instead of partially filling. Then place the same size without the flag and observe the partial fill plus the residual offer left on the book.</li>
+            <li>Lab 3 — Trace a path. Run path_find between two IOU-issuing test accounts and print the chosen route hop by hop; identify which hops are trust-line ripples and which are order-book takes.</li>
+            <li>Lab 4 — Cross-currency payment. Execute a Payment across currencies with SendMax set, then read delivered_amount from the metadata and compare it with Amount. Repeat with tfPartialPayment on a thin book and observe the delivered amount drop below Amount.</li>
+            <li>Lab 5 — Clean up and unlock. Enumerate your open offers with account_offers, cancel them all with OfferCancel, and confirm via account_info that the owner reserve was released and your spendable balance rose.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Why does a passive offer protect a market maker from being picked off?</li>
+            <li>A payment delivered less than Amount with no error: which flag was set and what must the recipient check?</li>
+            <li>Contrast consuming liquidity via OfferCreate versus via a path payment for a large size.</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m4-h">
+        <p class="il-eyebrow">Module 4</p>
+        <h3 class="il-h il-h--card" id="m4-h">Issued Currencies: Trust Lines, Issuing, Freezing</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Open a trust line with TrustSet and explain limit, quality, and rippling settings.</li>
+            <li>Issue an IOU and walk through the issuer/holder balance-sheet relationship.</li>
+            <li>Apply freeze settings at the trust-line and issuer-account level and predict their effects.</li>
+            <li>Configure NoRipple flags to control whether balances can transit through an account.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>IOUs exist only where a trust line authorizes them</h5>
+          <p>Anyone can issue a currency on the XRPL — dollars, loyalty points, stablecoins — but an IOU balance can only exist where the holder has explicitly authorized it. That authorization is the trust line: a ledger object created by the holder with TrustSet, naming the issuer&#x27;s account and the currency code, plus a limit on how much of that IOU the holder will carry.</p>
+          <p>No trust line, no balance. This opt-in design means you can never be sent an unwanted or scam token — a sharp contrast with chains where any contract can airdrop tokens into your address. The limit is denominated in the issued currency and caps the holder&#x27;s exposure to that issuer.</p>
+          <h5>Trust lines are bilateral; limits and quality are per-side</h5>
+          <p>A trust line is a bilateral ledger object: each side sets its own limit and its own quality settings independently. The holder&#x27;s limit says how much they will hold; the issuer&#x27;s side records how much has been issued against that line.</p>
+          <p>Because the object is shared but the settings are per-side, issuer and holder can have asymmetric views — the issuer may see the line as a liability it created, while the holder sees an asset they chose to accept. When you inspect a trust line via ledger_entry, you are reading both sides of that relationship at once.</p>
+          <h5>Rippling and the NoRipple flag</h5>
+          <p>Rippling lets a payment pass through an account&#x27;s trust lines on its way between other parties — your balance with issuer A decreases while your balance with issuer B increases, and you collect the spread. By default, trust lines allow rippling, which is what makes the payment graph connected.</p>
+          <p>The NoRipple flag blocks it: with NoRipple set on a trust line, payments cannot transit through that line. Gateways set NoRipple on customer trust lines by default so customer balances are endpoints, never conduits — nobody wants their users&#x27; balances used as liquidity for strangers&#x27; payments without consent.</p>
+          <h5>Freezing: per-trust-line and global</h5>
+          <p>Issuers can freeze an individual trust line (tfSetFreeze), which stops the holder from sending or receiving that IOU while frozen — the balance is immobilized, not destroyed. At the account level, an issuer can enable lsfGlobalFreeze, which freezes all of its issued currencies at once.</p>
+          <p>Freezing is the compliance lever: it lets a regulated issuer halt movement of its tokens during an investigation or in response to sanctions, without touching anyone&#x27;s XRP. The tradeoff is trust — holders of a freezable IOU are exposed to the issuer&#x27;s discretion, which is exactly why the flag is visible on-ledger for anyone to inspect before accepting the token.</p>
+          <h5>Authorized trust lines: lsfRequireAuth and the KYC handshake</h5>
+          <p>An issuer that enables lsfRequireAuth turns trust-line creation into a two-step handshake: the holder submits a TrustSet, but the line stays inert until the issuer explicitly authorizes that holder. Until authorization, no balance can be received on the line.</p>
+          <p>This is the on-ledger primitive for permissioned distribution — KYC-gated stablecoins, securities, loyalty programs with eligibility rules. The issuer keeps an allowlist of authorized holders, and the authorization itself is a ledger transaction anyone can audit.</p>
+          <h5>Clawback: issuer reclamation under defined conditions</h5>
+          <p>The clawback feature allows an issuer to reclaim its issued tokens from holders&#x27; trust lines under defined conditions. It is a stronger power than freezing — it reverses the issuance — and it exists for cases like fraud recovery or regulatory seizure where immobilization is not enough.</p>
+          <p>Like freezing, clawback is opt-in at the issuer level and visible on-ledger: holders can see before accepting an IOU whether the issuer reserved this power. The design philosophy is consistent throughout issued currencies — issuer powers are real, but they are declared in advance and auditable by anyone.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Issue your first IOU. Create two test accounts; from one (the holder) open a trust line to the other (the issuer) with TrustSet, then have the issuer send 100 units via Payment. Read both trust-line balances and confirm the issuer/holder accounting mirrors.</li>
+            <li>Lab 2 — Block rippling. Toggle NoRipple on the holder&#x27;s trust line, then attempt a rippling payment that would transit through that account and confirm the path engine refuses to route through it.</li>
+            <li>Lab 3 — Freeze and observe. As the issuer, freeze the trust line and confirm that sends from the holder fail while the freeze is active; unfreeze and confirm they succeed again. Note which result codes appear in each case.</li>
+            <li>Lab 4 — The authorization handshake. Enable RequireAuth on a fresh issuer account, walk a new holder through the two-step flow (holder TrustSet, then issuer authorization), and confirm the holder cannot receive funds before authorization but can after.</li>
+            <li>Lab 5 — Read the raw object. Fetch your trust line via ledger_entry and map every field in the response to its on-ledger meaning: limit, balance, flags, and both sides&#x27; settings.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>What happens to existing holder balances when an issuer enables global freeze?</li>
+            <li>Why would a gateway set NoRipple by default on customer trust lines?</li>
+            <li>An issuer wants KYC-gated distribution: which account flag and which trust-line flow implement it?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m5-h">
+        <p class="il-eyebrow">Module 5</p>
+        <h3 class="il-h il-h--card" id="m5-h">XLS-20 NFTs: Minting, Taxon, Transfer Fees</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Mint an NFToken with NFTokenMint and explain taxon, URI, and flag choices.</li>
+            <li>Set and reason about transfer fees within the protocol&#x27;s allowed range.</li>
+            <li>Trade an NFT using buy and sell NFTokenOffers, including brokered mode.</li>
+            <li>Burn an NFT and verify its removal from the owner&#x27;s directory.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>XLS-20: the on-ledger NFT standard</h5>
+          <p>XLS-20 is the XRP Ledger&#x27;s standard for non-fungible tokens, implemented as native transaction types rather than smart contracts: NFTokenMint, NFTokenCreateOffer, NFTokenAcceptOffer, NFTokenCancelOffer, and NFTokenBurn. Because the logic is protocol-level, minting and trading an NFT costs the same tiny fees as any other transaction.</p>
+          <p>Each NFToken is uniquely identified and owned by an account, enumerable via account_nfts. There is no contract address to trust and no contract bug to exploit — the ledger itself enforces the NFT rules.</p>
+          <h5>NFTokenMint: taxon, URI, and flags</h5>
+          <p>Minting takes a taxon — an issuer-defined grouping or series identifier, so a collection of 10,000 items can share one taxon — and an optional URI pointing at off-ledger metadata or media. The URI is typically an IPFS link or HTTPS URL; the ledger stores the pointer, not the content.</p>
+          <p>Four flags shape the token&#x27;s life at mint time: tfTransferable (it can be resold at all), tfBurnable (the issuer can burn it), tfOnlyXRP (it can only be sold for XRP, not IOUs), and tfTrustLine (it can be sold for IOUs, creating the needed trust line automatically). Choose these deliberately — some are immutable after mint.</p>
+          <h5>Transfer fees: set at mint, paid to the issuer on secondary sales</h5>
+          <p>The transfer fee is a royalty set at mint time, denominated in basis points up to the protocol maximum, and it flows to the issuer on every secondary sale. If you mint with a 5% fee, every resale automatically routes 5% of the sale price back to you.</p>
+          <p>The fee is immutable after minting, which is a guarantee to buyers: the royalty they see when purchasing is the royalty forever. No one — not even the issuer — can raise it later, which removes a whole class of bait-and-switch dynamics common in contract-based NFT royalties.</p>
+          <h5>NFToken offers: buy, sell, and brokered mode</h5>
+          <p>Trading uses NFTokenCreateOffer to post buy offers or sell offers (tfSellOffer marks the direction), and NFTokenAcceptOffer to settle a trade against a matching offer. A sell offer can be accepted by anyone; a buy offer can only be accepted by the token&#x27;s owner — the ledger checks ownership at accept time.</p>
+          <p>Brokered mode lets a third party bring a buy offer and a sell offer together and settle both in one transaction, splitting the proceeds. The broker earns the spread between the two offers as their fee — a native market-maker primitive for NFT marketplaces, with no escrow contract required.</p>
+          <h5>The lifecycle: burn and cancel complete it</h5>
+          <p>NFTokenCancelOffer removes an unwanted offer from the book, and NFTokenBurn destroys the token itself, removing it from the owner&#x27;s directory and decrementing their NFToken count. Burning is the only way an NFT leaves existence; there is no expiry.</p>
+          <p>Because every NFToken and every open offer is a ledger object consuming owner reserve, lifecycle hygiene has a direct economic payoff: burning unwanted test NFTs and cancelling stale offers releases locked XRP back to your spendable balance.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Mint. On Testnet, mint a transferable NFT with a taxon of your choosing and a URI; read it back via account_nfts and confirm the taxon, URI, and flags round-tripped correctly.</li>
+            <li>Lab 2 — Simple sale. Post a sell offer denominated in XRP with NFTokenCreateOffer, then accept it from a second account with NFTokenAcceptOffer; confirm ownership moved in the second account&#x27;s account_nfts listing.</li>
+            <li>Lab 3 — Brokered sale. Set up a seller offer and a buyer offer at different prices, then have a third account broker the trade in one NFTokenAcceptOffer; compute the broker&#x27;s spread from the before/after balances.</li>
+            <li>Lab 4 — Royalties. Mint an NFT with a nonzero transfer fee, sell it once, then sell it again; measure the fee deducted on the secondary sale and confirm it landed in the issuer&#x27;s account.</li>
+            <li>Lab 5 — Burn. Burn an unwanted test NFT with NFTokenBurn and confirm the owner&#x27;s NFToken count decremented and the token no longer appears in account_nfts.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>A buyer wants to pay in an IOU: which mint flag must be set, and what must the seller hold?</li>
+            <li>How does brokered mode divide proceeds between seller and broker?</li>
+            <li>Why is the transfer fee immutable after minting, and who benefits from that guarantee?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m6-h">
+        <p class="il-eyebrow">Module 6</p>
+        <h3 class="il-h il-h--card" id="m6-h">XLS-30 AMM: Pools, LP Tokens, Auction Slot</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Create an AMM pool with AMMCreate and explain the two-asset deposit requirement.</li>
+            <li>Deposit and withdraw liquidity, including single-asset operations and LP token accounting.</li>
+            <li>Compute a trade&#x27;s price impact from the constant-product invariant.</li>
+            <li>Describe the auction slot mechanism and who benefits from holding it.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>XLS-30: automated market maker pools as on-ledger accounts</h5>
+          <p>XLS-30 defines automated market maker pools that live on the ledger itself, each pool implemented as a special on-ledger account governed by the AMM engine. There is no smart contract holding the funds — the protocol&#x27;s consensus rules define how deposits, swaps, and withdrawals behave.</p>
+          <p>Because pools are protocol-native, they compose with everything else: the DEX&#x27;s pathfinding can route payments through AMM pools, and offers can trade against pool liquidity, all inside single atomic transactions.</p>
+          <h5>Two assets, one invariant: the constant-product (geometric mean) formula</h5>
+          <p>Each pool holds exactly two assets and prices every trade against a constant-product invariant — the product of the two reserve balances stays constant (equivalently, the geometric mean). When a trader swaps asset A for asset B, the pool gives B and takes A such that the product is preserved, which is what makes large trades move the price: the more you take of one side, the more expensive each additional unit becomes.</p>
+          <p>This is the same bonding-curve family as Uniswap-style AMMs. The practical consequence is slippage: your executed price degrades with size relative to pool depth, and the invariant — not an order book — is the counterparty.</p>
+          <h5>LP tokens: your share of the pool, as a ledger asset</h5>
+          <p>Liquidity providers deposit both assets and receive LP tokens proportional to their share of the pool — and LP tokens are themselves first-class ledger assets the provider holds. Your LP balance divided by total LP supply is your fraction of the pool&#x27;s reserves, redeemable at any time.</p>
+          <p>Because LP tokens are assets, they can be tracked, and in some designs transferred or used as collateral. The initial deposit must be in the pool&#x27;s current price ratio so the depositor does not shift the price against themselves — depositing off-ratio would be an instant donation to arbitrageurs.</p>
+          <h5>Single-asset deposits and withdrawals</h5>
+          <p>The AMM supports depositing or withdrawing just one of the two assets, with the pool math handling the conversion: a single-asset deposit is treated as if half were swapped into the other asset first, and the LP tokens (or assets out) are computed net of that implied swap&#x27;s slippage.</p>
+          <p>This is convenient — you can enter a pool holding only XRP — but it is not free: the implied swap pays the pool&#x27;s trading fee and suffers price impact, so single-sided operations always mint slightly fewer LP tokens (or return slightly fewer assets) than a balanced two-asset operation of equal value.</p>
+          <h5>Trading fees accrue to liquidity providers</h5>
+          <p>Every swap through the pool pays a trading fee, capped by the protocol, and that fee accrues to the liquidity providers — it stays in the pool, growing each LP&#x27;s redeemable share. Fees are the entire yield story for passive LPs: no staking rewards, no token emissions, just a cut of trading volume.</p>
+          <p>Setting the fee is a pool parameter with a direct tradeoff: higher fees earn more per trade but invite competitors to undercut with cheaper pools, and they widen the arbitrage band that keeps the pool&#x27;s price aligned with the wider market.</p>
+          <h5>The auction slot: discounted fees for a fixed window</h5>
+          <p>The auction slot is a unique mechanism: one account at a time can hold the slot, won by bidding with AMMBid, and the holder pays discounted trading fees for a fixed number of ledgers. The bid price goes into the pool, benefiting all LPs — the pool literally auctions off its own fee discount.</p>
+          <p>Slot holding is profitable for high-volume traders and arbitrageurs whose saved fees exceed their bid. For LPs, the auction is free income on top of trading fees. It is a neat piece of mechanism design: the actors who extract the most value from the pool pay the pool for the privilege.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Create a pool. On Testnet, use AMMCreate from a funded test account to create an XRP/IOU pool; record the pool account address and the initial LP tokens credited.</li>
+            <li>Lab 2 — Add liquidity. Deposit additional liquidity and record the LP tokens credited versus your computed pool share; confirm the pro-rata math.</li>
+            <li>Lab 3 — Swap and measure slippage. Execute a swap into the pool and compare the executed price against the pre-trade spot price; repeat with a larger size and plot how price impact grows.</li>
+            <li>Lab 4 — Single-asset withdrawal. Withdraw half your LP position as a single-asset withdrawal and verify the assets received; compute the implied cost versus a balanced withdrawal.</li>
+            <li>Lab 5 — Bid for the slot. Bid on the auction slot with AMMBid, win it, and observe the discounted-fee window on subsequent swaps; calculate whether your bid was profitable.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Why must the initial AMMCreate deposit both assets in the pool&#x27;s current price ratio?</li>
+            <li>A large swap moves the price: which invariant determines the new reserves?</li>
+            <li>When is holding the auction slot profitable, and what does the pool gain from auctioning it?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m7-h">
+        <p class="il-eyebrow">Module 7</p>
+        <h3 class="il-h il-h--card" id="m7-h">Client Development with xrpl.js and xrpl-py</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Connect to a public cluster over WebSocket and manage connection lifecycle.</li>
+            <li>Construct, autofill, sign, and submit transactions with submitAndWait.</li>
+            <li>Subscribe to ledger and transaction streams for real-time application updates.</li>
+            <li>Handle common API errors and implement retry logic for ter-class results.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>xrpl.js and xrpl-py: the official client libraries</h5>
+          <p>xrpl.js (Node.js) and xrpl-py (Python) are the official client libraries, maintained under the XRPLF organization. They wrap the WebSocket and JSON-RPC APIs with wallet management, transaction autofill, signing, and submission helpers — you work with Payment or TrustSet objects, not raw binary blobs.</p>
+          <p>Choosing between them is a stack decision, not a capability decision: both cover the full transaction set. Most production services pick the language their team already runs and keep the other handy for scripting.</p>
+          <h5>Connecting: WebSocket endpoints for mainnet, testnet, devnet</h5>
+          <p>Clients connect to wss endpoints; public clusters exist for mainnet, testnet, and devnet. The connection is long-lived: you open it, use it for many requests and subscriptions, and close it cleanly when done.</p>
+          <p>For anything beyond experiments, run your own connection management — reconnect with backoff, and never assume a dropped socket means a dropped transaction. A submit that timed out client-side may still have reached the network, which is why idempotency (sequence numbers, LastLedgerSequence) matters more than retry enthusiasm.</p>
+          <h5>autofill, sign, submit: the three-step pipeline</h5>
+          <p>autofill populates the fields you should not hand-compute: the current Fee, the account&#x27;s next Sequence, and a sensible LastLedgerSequence. sign applies the wallet&#x27;s key to the canonical serialization. submit sends the signed blob and returns the preliminary result.</p>
+          <p>The critical discipline from Module 2 applies here: never let a library autofill blindly in a production signing service. Verify the Fee against your policy, verify the Sequence matches your local nonce tracking, and set LastLedgerSequence explicitly from your own retry budget — autofill is a convenience for development, not a policy for production.</p>
+          <h5>submitAndWait: blocking until validated or expired</h5>
+          <p>submitAndWait wraps the pipeline and blocks until the transaction appears in a validated ledger or expires via LastLedgerSequence. It turns the asynchronous ledger into a synchronous call your application logic can reason about.</p>
+          <p>Design your timeouts around ledger close times (3–5 seconds): waiting a handful of ledgers is normal, waiting dozens means something is wrong. When it throws on expiration, the recovery sequence is fixed — check whether it actually applied (it may have), and only then re-sign with a fresh sequence.</p>
+          <h5>Request/response reads: account_info, account_tx, tx</h5>
+          <p>State reads go through request/response methods: account_info for current account state, account_tx for an account&#x27;s transaction history, tx for a single transaction by hash. These are your audit trail and your reconciliation source.</p>
+          <p>For history at scale, paginate with markers rather than pulling everything at once, and remember that public clusters are rate-limited and shared — a reporting workload belongs on reporting mode or your own node (Module 8), not on the public cluster.</p>
+          <h5>Subscriptions: push instead of poll</h5>
+          <p>Subscriptions push ledger closes and account transactions to your client without polling: subscribe to the ledger stream for close events, or to a specific account to be notified of every transaction affecting it. This is how wallets show incoming payments in real time and how services trigger business logic on settlement.</p>
+          <p>Prefer subscriptions over polling account_tx whenever freshness matters — polling burns rate limit and still lags. The one thing subscriptions do not give you is history: on startup, backfill with account_tx from your last processed ledger index, then let the subscription carry you forward.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — End-to-end script. Write an xrpl.js script that connects, funds a wallet via the faucet, sends 10 XRP to a second address, waits for validation, and disconnects cleanly. Log every step with ledger indices.</li>
+            <li>Lab 2 — Port to Python. Port the same flow to xrpl-py and write up the API differences you found in transaction construction, wallet handling, and async style.</li>
+            <li>Lab 3 — Live subscription. Subscribe to the transactions stream filtered to your test account and log incoming payments live; send yourself three payments from another account and confirm all three arrive in the log with correct delivered amounts.</li>
+            <li>Lab 4 — Retry wrapper. Implement a retry wrapper that resubmits on terQUEUED with exponential backoff and a max-attempts cap; test it by submitting during a deliberately congested moment or against a stub that returns terQUEUED twice.</li>
+            <li>Lab 5 — Account CLI. Build a small CLI that takes a classic address and prints its XRP balance, trust lines, and open offers. This is the seed of every block-explorer and wallet dashboard you will ever build.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>What fields must you never let a library autofill blindly in a production signing service?</li>
+            <li>Your submitAndWait throws on expiration: list the three recovery steps in order.</li>
+            <li>When is a WebSocket subscription preferable to polling account_tx?</li>
+          </ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m8-h">
+        <p class="il-eyebrow">Module 8</p>
+        <h3 class="il-h il-h--card" id="m8-h">Testnet Workflow and Node Operations</h3>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Stand up a safe test loop using faucets and funded Testnet/Devnet accounts.</li>
+            <li>Distinguish testnet, devnet, and mainnet endpoints and their reset behaviors.</li>
+            <li>Describe rippled operating modes and when each fits (full history vs. current ledger).</li>
+            <li>Choose an API access strategy: public cluster, reporting mode, or self-hosted node.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Testnet and Devnet: parallel networks with worthless XRP</h5>
+          <p>Testnet and Devnet are full parallel XRPL networks — same software, same transaction types, worthless XRP dispensed free by public faucets. Devnet typically runs pre-release amendments so developers can test against upcoming features; Testnet tracks the current production protocol more closely.</p>
+          <p>Fund liberally and experiment destructively: the entire point of these networks is to let you make every mistake from Modules 1–7 somewhere it costs nothing. Faucets rate-limit per address, so generate fresh test accounts rather than hammering one.</p>
+          <h5>Faucets and periodic resets</h5>
+          <p>Faucets fund new test accounts on demand — usually via a simple HTTPS endpoint or a wallet-generation call in the client libraries. Test networks reset periodically, wiping all state: accounts, trust lines, offers, and NFTs vanish and must be rebuilt.</p>
+          <p>Design your test workflow around resets from day one: keep setup scripts that rebuild your whole test environment (fund accounts, create trust lines, seed offers) in one run. If your workflow cannot survive a reset, it is a demo, not a test harness.</p>
+          <h5>Strict environment separation: test seeds never touch mainnet</h5>
+          <p>Never reuse test seeds or test patterns with real funds, and keep environments strictly separated — different config files, different environment variables, different code paths if you can manage it. The failure mode is not theoretical: test scripts pointed at mainnet endpoints have drained real accounts.</p>
+          <p>Three concrete separations to implement now: (1) network URLs come from environment config, never hardcoded; (2) mainnet credentials live in a secrets manager, test credentials in a local file; (3) your deployment pipeline requires an explicit, separate approval step for any mainnet transaction.</p>
+          <h5>rippled operating modes: validator, stock server, reporting mode</h5>
+          <p>rippled, the core server software, can run as a validator (participating in consensus), a stock server (a full node serving client API requests), or in reporting mode (a specialized node optimized for heavy API and historical-query workloads, without participating in consensus).</p>
+          <p>Choose by workload: run a validator only if you intend to participate in consensus governance; run a stock server for general application backend use; choose reporting mode when your product is read-heavy — exchanges, explorers, analytics — and the public clusters&#x27; rate limits are strangling you.</p>
+          <h5>History modes: full history versus online-delete</h5>
+          <p>A node can keep full history — every ledger since the network began — or run online-delete with configurable retention, discarding old ledgers beyond a window. Full history is enormously disk-hungry; online-delete keeps the node lean at the cost of not serving ancient data.</p>
+          <p>Match the mode to the use case: a wallet backend needs current state plus modest history; a tax or compliance product needs deep history and should either run full-history nodes or buy that data from a provider. Do not promise customers historical data your nodes cannot serve.</p>
+          <h5>Public clusters are shared and rate-limited</h5>
+          <p>The public API clusters are a shared commons: rate-limited, best-effort, and unsuitable as a production dependency. They exist for development, experimentation, and light use.</p>
+          <p>Production applications graduate through a clear ladder: prototype on the public cluster, grow onto reporting mode or a dedicated stock server you operate, and put that infrastructure behind your own API with your own rate limits and monitoring. If your uptime depends on someone else&#x27;s free endpoint, you do not have uptime.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Full cycle on Testnet. Fund two accounts from the faucet and run a complete issue-trust-pay-settle cycle entirely on Testnet: issuer creates IOU, holder trusts, issuer pays, holder pays a third party. Script it so it is re-runnable after a reset.</li>
+            <li>Lab 2 — Devnet comparison. Point the same script at Devnet and document every difference you observe: endpoint URLs, faucet behavior, amendment status, and any behavioral differences in the transactions.</li>
+            <li>Lab 3 — Reset drill. Simulate a testnet reset: wipe your test state and document which artifacts of your workflow survive (scripts, configs) and which must be rebuilt (accounts, trust lines, offers). Time the rebuild.</li>
+            <li>Lab 4 — History-mode design. Draft a rippled configuration choosing a history mode for a read-heavy analytics use case, with a written justification covering disk cost, query patterns, and retention window.</li>
+            <li>Lab 5 — Find the rate limit. Load-test your script against the public Testnet cluster (politely) and record where rate limits bite: which calls throttle first, what the backoff headers or errors look like, and what that implies for your production architecture.</li>
+          </ol>
+          <h4>Self-check questions</h4>
+          <ol>
+            <li>Your test account suddenly has zero balance and no history: what happened and what is the recovery?</li>
+            <li>A reporting-mode node versus a stock server: which serves your exchange&#x27;s order-book API?</li>
+            <li>Name three concrete separations between your test and mainnet workflows.</li>
+          </ol>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Resources</p>
+        <h2 class="il-h il-h--section" id="resources-h">Open and free sources.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://xrpl.org/docs.html">https://xrpl.org/docs.html</a> — the official curriculum this study guide is keyed to. The guide teaches the same ground in original prose; consult the source for the authoritative material.</li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://xrpl.org/docs.html">https://xrpl.org/docs.html</a></li>
+          <li><a href="https://github.com/XRPLF/xrpl.js">https://github.com/XRPLF/xrpl.js</a></li>
+          <li><a href="https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0020-non-fungible-tokens">https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0020-non-fungible-tokens</a></li>
+          <li><a href="https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0030-automated-market-maker">https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0030-automated-market-maker</a></li>
+          <li><a href="https://github.com/XRPLF/xrpl-py">https://github.com/XRPLF/xrpl-py</a></li>
+          <li><a href="https://xrpl.org/resources/dev-tools/xrp-faucets">https://xrpl.org/resources/dev-tools/xrp-faucets</a></li>
+        </ul>
+        <h3>Other free resources</h3>
+        <ul>
+          <li><a href="https://xrpl.org/">XRPL.org</a> — the documentation hub and conceptual guides behind the docs</li>
+          <li><a href="https://github.com/XRPLF">XRPLF on GitHub</a> — the foundation&#x27;s repositories: client libraries, standards drafts, and rippled itself</li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+      <div class="il-prose" style="margin-top:2rem">
+        <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public XRPL documentation. It teaches the same ground in original prose with hands-on labs; it does not reproduce the official docs. For the authoritative material, consult the official curriculum source above.</em></p>
+      </div>
+
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

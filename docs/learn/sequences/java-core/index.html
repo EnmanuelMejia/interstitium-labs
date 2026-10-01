@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Core Java Engineering (SE 17) | Interstitium Labs</title>
+<meta name="description" content="An original study guide to Core Java (SE 17): language fundamentals, OOP, exceptions, generics and collections, lambdas and streams, concurrency, I/O and JDBC, modules, JVM memory, and date/time — keyed to the official Oracle documentation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Programming Languages · Java</p>
+    <h1 class="il-h">Core Java Engineering (SE 17)</h1>
+    <p class="il-hero__sub">The Java language, its libraries, and its runtime — from primitive types to concurrency, generics, I/O, modules, and the JVM.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Java remains one of the world's most widely deployed languages: the enterprise backend, Android's historical foundation, big-data infrastructure, and a vast library ecosystem all run on it. Java SE 17 is a long-term-support release, and its feature set — records, sealed classes, pattern matching, modern switch, the module system — represents the modern language, not the Java of textbooks from 2005.</p>
+        <p>This sequence teaches Java as an engineer uses it. You start with language fundamentals — types, operators, control flow, strings — then object-oriented design with classes, interfaces, and records. Exceptions and resource management follow, then generics and the collections framework, functional programming with lambdas and streams, and concurrency with threads and executors. The final modules cover I/O, NIO.2, and JDBC, then the module system, JVM memory and garbage collection, localization, and the java.time API.</p>
+        <p>The Oracle Java tutorials and the official SE documentation are the authoritative references for exact semantics; this page teaches the concepts and the idioms that make that documentation useful.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Programmers learning Java as a first or second JVM language for backend or enterprise work.</li>
+          <li>Developers preparing for the Oracle Certified Professional Java SE 17 exam (1Z0-829) who want concepts, not just question drills.</li>
+          <li>Engineers from other languages who need Java's specific semantics — erasure, checked exceptions, the module system — explained comparatively.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>General programming experience in any language — variables, functions, control flow.</li>
+          <li>A JDK 17 installed with JAVA_HOME set, and a text editor or IDE you are comfortable with.</li>
+          <li>Willingness to write, compile, and run small programs constantly — Java is learned at the keyboard.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order; each builds on the previous one's vocabulary.</li>
+          <li>Type every example yourself and break it deliberately. Compiler errors are the fastest teacher Java offers — read them fully.</li>
+          <li>Do the labs as programs, not as reading. A streams pipeline you wrote and debugged teaches more than ten you read.</li>
+          <li>When this guide states a language rule, verify edge cases against the official tutorials — Java's semantics are precise and worth confirming.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">M1 — Language Fundamentals: Types, Operators, Control Flow</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Predict numeric promotion, casting, and overflow in mixed-type expressions.</li>
+            <li>Apply operator precedence and short-circuit semantics correctly.</li>
+            <li>Trace switch expressions, enhanced for loops, and labeled break/continue.</li>
+            <li>Choose between String, StringBuilder, and StringBuffer for a given task.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Primitive types and their default/overflow behavior (int, long, double).</h5>
+          <p>Java's primitives are fixed-size and fully specified: int is 32-bit two's complement, long 64-bit, double IEEE 754 floating point. Integer arithmetic overflows silently by wrapping around — Integer.MAX_VALUE + 1 is Integer.MIN_VALUE — with no exception, which makes overflow a logic bug rather than a crash.</p>
+          <p>Fields get default values (0, false, null) but local variables do not: using an uninitialized local is a compile error. The compiler's definite-assignment analysis catches a whole class of bugs before the program ever runs.</p>
+          <h5>Implicit widening vs. explicit narrowing casts and compound-assignment casts.</h5>
+          <p>Widening conversions (int to long, int to double) happen implicitly and safely. Narrowing (long to int, double to int) requires an explicit cast and can lose information — the cast is you telling the compiler &quot;I accept the risk.&quot;</p>
+          <p>Compound assignment hides a cast: b += 1 works on a byte where b = b + 1 fails to compile, because += includes an implicit narrowing cast. Convenient, but it can silently truncate — know that the cast is there.</p>
+          <h5>String immutability and the string constant pool.</h5>
+          <p>Strings are immutable: every &quot;modification&quot; creates a new String object. Literals with the same content share one instance in the string constant pool, so == on literals can appear to work — but == compares references, and equals() compares content. Always use equals() for content.</p>
+          <p>Immutability is what makes strings safe as map keys, thread-safe by construction, and eligible for pooling. The cost is that string concatenation in loops creates garbage — which is why StringBuilder exists.</p>
+          <h5>StringBuilder/StringBuffer capacity and thread-safety difference.</h5>
+          <p>StringBuilder is the mutable character buffer for building strings efficiently: appends mutate the buffer in place, avoiding the object churn of + in loops. StringBuffer is the same API with synchronized methods — thread-safe, and slower for it.</p>
+          <p>Prefer StringBuilder everywhere; StringBuffer's synchronization is almost never what you want (share the built string, not the builder). The benchmark lab makes the concatenation-vs-builder difference unmistakable.</p>
+          <h5>Text blocks and the &quot;\&quot; and &quot;\s&quot; whitespace handling.</h5>
+          <p>Text blocks (triple-quoted strings) express multi-line strings — JSON, SQL, HTML — without escape gymnastics. Incidental indentation is stripped based on the closing delimiter's position, so the literal aligns with your code.</p>
+          <p>Two escapes control whitespace precisely: a backslash at line end joins lines without the newline, and \s denotes a significant trailing space that formatters would otherwise strip. Together they make embedded languages readable and exact.</p>
+          <h5>Single- and multi-dimensional array initialization and covariance rules.</h5>
+          <p>Arrays are fixed-size, indexed from zero, with literal initialization (int[] a = {1, 2, 3}) and multi-dimensional forms that are arrays of arrays — rows can have different lengths. Array stores are checked at runtime: storing a String into a String[]-typed-as-Object[] reference throws ArrayStoreException.</p>
+          <p>That runtime check is array covariance: String[] is a subtype of Object[]. It is convenient and unsound — the hole generics were designed to close with compile-time checking instead.</p>
+          <h5>var type inference limits (local only, no null initializer).</h5>
+          <p>var infers the local variable's type from its initializer — var name = &quot;Ada&quot; is a String — reducing boilerplate without losing static typing. It works only for locals with initializers: no var fields, no var parameters, no var x = null (nothing to infer from).</p>
+          <p>var is still statically typed; it is not dynamic typing. Use it where the type is obvious from the right-hand side; spell the type out where inference would obscure meaning.</p>
+          <h5>JVM pass-by-value semantics for primitives and references.</h5>
+          <p>Java is strictly pass-by-value: methods receive copies of argument values. For primitives that means the caller's variable cannot change; for objects it means the reference is copied — the method can mutate the object's state through the copied reference but cannot reassign the caller's variable.</p>
+          <p>The confusion (&quot;is it pass by reference?&quot;) dissolves once you see the reference itself is the value being copied. Swap-methods fail, mutating-methods work — both follow from the one rule.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a program that prints promotion results for byte/short/char mixed arithmetic and explains each line.</strong><br/>Print the type and value of each mixed expression. byte + byte is int — the promotion rule surprises everyone once, and this lab is the once.</li>
+            <li><strong>Benchmark String concatenation vs. StringBuilder over 100k appends and record the delta.</strong><br/>Time both approaches. The order-of-magnitude difference is the reason the &quot;use StringBuilder in loops&quot; rule exists.</li>
+            <li><strong>Implement the same dispatch logic as a switch statement and as a switch expression returning a value; compare exhaustiveness handling with an enum.</strong><br/>Write both forms over an enum and observe the compiler enforcing exhaustiveness on the expression form. The expression form turns dispatch into a value — cleaner and safer.</li>
+            <li><strong>Fix a provided buggy array-resizing snippet without using collections; verify with assertions.</strong><br/>Manual array resizing teaches what ArrayList automates. The assertions prove the fix; the exercise proves why you normally reach for the collection.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What is the compile-time type and value of `(byte)(127 + 1)`?</li>
+            <li>Trace `int i = 0; System.out.println(i++ + ++i);` by hand, then run it.</li>
+            <li>When must you prefer StringBuilder over String in a loop, and why is StringBuffer rarely the right pick today?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">M2 — OOP: Classes, Inheritance, Interfaces, Records</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design a class hierarchy with correct constructor chaining and encapsulation.</li>
+            <li>Apply interface default/static/private methods and sealed hierarchies.</li>
+            <li>Use records, pattern matching for instanceof, and nested classes idiomatically.</li>
+            <li>Predict compile-time vs. runtime binding for overloaded vs. overridden methods.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Encapsulation: private fields, defensive copies, immutable class design.</h5>
+          <p>Encapsulation means the object controls its own state: fields are private, access goes through methods that enforce invariants. For mutable field types (dates, collections), return defensive copies — otherwise callers mutate your internals through the reference you handed them.</p>
+          <p>Immutable classes (all fields final, set at construction, no mutators) are the strongest form: inherently thread-safe, safe as map keys, and impossible to corrupt. Design immutable by default; mutability needs justification.</p>
+          <h5>Overloading (compile-time) vs. overriding (runtime) with covariant returns.</h5>
+          <p>Overloading is compile-time: the compiler picks among same-named methods by argument types. Overriding is runtime: a subclass method with the same signature replaces the parent's, and the actual object's version runs — virtual dispatch.</p>
+          <p>The exam-classic confusion: overload resolution uses the reference type, override dispatch uses the object type. Covariant returns let an override narrow the return type — a further precision the compiler verifies.</p>
+          <h5>final methods/classes, abstract classes vs. interfaces.</h5>
+          <p>final on a method forbids overriding; on a class forbids subclassing — design decisions that protect invariants and enable optimization. Abstract classes provide partial implementation plus abstract methods for subclasses to complete; interfaces (since Java 8) can also carry default and static methods.</p>
+          <p>Prefer interfaces for type contracts (a class can implement many) and abstract classes for shared implementation scaffolding. final is for API commitments you do not want reinterpreted.</p>
+          <h5>Default method conflicts and the diamond resolution rule.</h5>
+          <p>When a class implements two interfaces with the same default method, the compiler refuses to guess — the class must override the method and explicitly choose, typically via InterfaceName.super.method(). This is the diamond problem resolved by forcing explicitness.</p>
+          <p>The rule keeps multiple inheritance of behavior safe: ambiguity is a compile error at the definition site, never a silent runtime surprise. Explicit resolution documents which behavior won and why.</p>
+          <h5>Sealed classes and permitted subclasses (permits clause).</h5>
+          <p>Sealed classes restrict which classes may extend them, declared in the permits clause: sealed interface Payment permits Card, Cash, Crypto. The hierarchy becomes a closed, known set — the compiler knows every possible subtype.</p>
+          <p>Sealing enables exhaustive pattern matching in switch (the compiler verifies all permitted types are covered) and expresses domain modeling honestly: a payment is one of these, not an open-ended invitation.</p>
+          <h5>Records: canonical constructor, compact constructor, auto-generated accessors.</h5>
+          <p>Records are transparent data carriers: record Point(int x, int y) generates the fields, canonical constructor, accessors (x(), y()), equals, hashCode, and toString automatically. The compact constructor lets you validate or normalize parameters without repeating the field assignments.</p>
+          <p>Use records where the class is fundamentally its data — DTOs, value objects, tuple-like returns. Customize equals/hashCode/toString only when the generated semantics are wrong; the generated ones are correct for value semantics.</p>
+          <h5>instanceof pattern matching and effectively-final binding variables.</h5>
+          <p>Pattern matching for instanceof combines the test and the cast: if (obj instanceof String s) gives you s as a String in scope, no explicit cast. The binding variable is effectively final — you cannot reassign it — which keeps the pattern's meaning stable.</p>
+          <p>This removes the cast-then-use ceremony and its associated ClassCastException risk. Combined with sealed types and switch patterns, it turns type dispatch into clean, compiler-checked code.</p>
+          <h5>Nested classes: static nested, inner, local, anonymous — capture rules.</h5>
+          <p>Static nested classes are independent of any instance; inner (non-static) classes hold a hidden reference to the enclosing instance; local classes live inside methods; anonymous classes are one-shot implementations. Each has different access and lifecycle implications.</p>
+          <p>The capture rule: local and anonymous classes may use local variables only if final or effectively final — because the class instance may outlive the method call, so it captures a copy, and copies must not diverge from the original.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build a small geometry hierarchy (Shape → Rectangle/Circle) with an immutable value record for Point; enforce invariants in a compact constructor.</strong><br/>The compact constructor validates (non-negative dimensions) while the record stays immutable. Invariants enforced at construction is the OOP discipline in miniature.</li>
+            <li><strong>Create two interfaces with colliding default methods and resolve the conflict explicitly in an implementing class.</strong><br/>Trigger the diamond conflict deliberately, then resolve it with an explicit override. The compile error first, the resolution second — the rule learned by doing.</li>
+            <li><strong>Write a sealed interface hierarchy (Payment → Card/Cash/Crypto) and consume it with a switch over patterns.</strong><br/>Seal the hierarchy, then write an exhaustive switch the compiler verifies. Removing one case should break compilation — the exhaustiveness check made visible.</li>
+            <li><strong>Refactor a public-field class into an encapsulated immutable class; write a driver proving the old mutation vector is gone.</strong><br/>Start with the broken version (public mutable fields), attack it from the driver, then refactor and show the attack now fails to compile. Encapsulation as a demonstrated property.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Given `A a = new B();` where B overrides m(), which m() runs — and which overload is chosen at compile time?</li>
+            <li>List everything a record gives you for free and one thing you must customize yourself.</li>
+            <li>Why can an inner class reference a local variable only if it is final or effectively final?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">M3 — Exceptions, Assertions, and Resource Management</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Select checked vs. unchecked exceptions and design a clean throws contract.</li>
+            <li>Use try-with-resources, multi-catch, and precise rethrow correctly.</li>
+            <li>Enable and apply assertions for preconditions and invariants.</li>
+            <li>Handle suppressed exceptions from AutoCloseable.close().</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Throwable tree: Error vs. RuntimeException vs. checked Exception.</h5>
+          <p>Throwable splits three ways: Error for JVM-level failures you should not catch (OutOfMemoryError), RuntimeException for programming bugs the compiler does not force you to handle (NullPointerException, IllegalArgumentException), and checked exceptions for recoverable conditions the compiler forces callers to handle or declare (IOException).</p>
+          <p>The design philosophy: checked exceptions for conditions the caller can plausibly recover from, unchecked for bugs. Catch Error never; catch RuntimeException sparingly (at boundaries); handle or declare checked exceptions always.</p>
+          <h5>try-with-resources ordering, AutoCloseable contract, suppressed list.</h5>
+          <p>try-with-resources declares AutoCloseable resources in the try header; they close automatically in reverse order of declaration when the block exits. If both the body and a close() throw, the body's exception is primary and the close exception is added to its suppressed list — retrievable via getSuppressed().</p>
+          <p>This ordering matters: the exception you see is the one from the work, not from cleanup. Reverse-order closing means the last-opened resource (often dependent on earlier ones) closes first.</p>
+          <h5>Multi-catch restrictions (no subclass/superclass pairs).</h5>
+          <p>Multi-catch (catch (IOException | SQLException e)) handles several exception types in one block, with the parameter implicitly final. The restriction: you cannot list both a type and its subtype — catch (Exception | IOException e) is a compile error, because the subtype is already covered.</p>
+          <p>The alternatives the compiler wants are ordering (subclass catch first) or a common supertype. Multi-catch is for unrelated types sharing handling logic; related types want hierarchy-aware catches.</p>
+          <h5>Precise rethrow preserving the declared throws type.</h5>
+          <p>Precise rethrow lets a catch block rethrow a caught exception without widening the method's throws clause: if the try can only throw IOException and SQLException, catch (Exception e) { throw e; } still declares only those two. The compiler tracks the precise types the try can throw.</p>
+          <p>This keeps exception contracts honest: callers see the real checked exceptions, not a widened Exception. It is the compiler doing dataflow analysis on your behalf — trust it.</p>
+          <h5>Assertions: -ea flag, assert statement forms, when not to use them.</h5>
+          <p>Assertions (assert condition : message) check internal invariants during development; they are disabled by default and enabled with -ea. The two forms — with and without the detail message — both throw AssertionError when the condition fails and assertions are on.</p>
+          <p>Never use assertions for argument validation in public methods or for logic with side effects: with assertions off, the check vanishes, and public callers deserve real exceptions (IllegalArgumentException), not vanishable checks. Assertions are for &quot;this cannot happen&quot; invariants, not input validation.</p>
+          <h5>Custom exception classes and exception chaining (initCause).</h5>
+          <p>Custom exceptions model domain failures (InsufficientFundsException) with more meaning than generic types; chaining (via constructors taking a cause, or initCause) preserves the original exception beneath the domain one. The stack trace then tells the whole story: what failed at the low level, what it meant at the domain level.</p>
+          <p>Always chain: throwing a new exception without the cause destroys the diagnostic information. The cause chain is the exception system's version of &quot;show your work.&quot;</p>
+          <h5>Common API-thrown unchecked exceptions: NPE, IAE, CME, UOE.</h5>
+          <p>The standard library's unchecked vocabulary: NullPointerException (dereferenced null — increasingly preventable with Objects.requireNonNull), IllegalArgumentException (bad argument value), ConcurrentModificationException (structural modification during iteration, the fail-fast iterators' complaint), UnsupportedOperationException (immutable collections rejecting mutation).</p>
+          <p>Recognizing these by sight speeds debugging enormously: each names its cause. CME means you modified during iteration; UOE means you tried to mutate an unmodifiable view — the fix follows from the name.</p>
+          <h5>Finally semantics: return masking and interaction with thrown exceptions.</h5>
+          <p>A finally block runs no matter how the try exits — normal completion, exception, or return. The trap: a return (or throw) inside finally masks whatever the try was doing — the try's return value or exception is silently discarded.</p>
+          <p>Never return or throw from finally. Its job is cleanup that must happen; letting it hijack the outcome is a bug the compiler will not catch for you.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a resource pair (DB-handle + log-handle) where close() of the first throws; print the suppressed exception of the second.</strong><br/>Force both closes to throw and inspect which exception is primary and which is suppressed. The suppressed list is real API, not trivia — read it here.</li>
+            <li><strong>Refactor a try/finally cleanup chain into try-with-resources and verify identical behavior with a fault-injection test.</strong><br/>Convert the manual cleanup to try-with-resources, then inject faults in both versions and compare outcomes. Identical behavior with half the code is the argument.</li>
+            <li><strong>Enable -ea and write assertion-guarded preconditions for a sorting utility; show they are no-ops with assertions off.</strong><br/>Run with and without -ea and observe the assertions firing versus vanishing. The on/off duality is the reason assertions are not validation.</li>
+            <li><strong>Design a small checked-exception API (e.g., config loader) and a caller strategy that converts to a domain runtime exception at the boundary.</strong><br/>Throw checked inside, translate to unchecked domain exceptions at the module boundary with chaining. The boundary-translation pattern is how real APIs stay usable.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Two resources opened in try-with-resources both fail in close() — which exception is primary and which is suppressed?</li>
+            <li>Why is `catch (Exception e)` in library code usually a smell, and what should replace it?</li>
+            <li>Name three places assertions must never be used and explain why.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">M4 — Generics and Collections</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write generic classes, methods, and bounded type parameters.</li>
+            <li>Apply PECS (extends for producers, super for consumers) to wildcard signatures.</li>
+            <li>Choose the right List/Set/Map implementation for ordering, null, and lookup needs.</li>
+            <li>Sort with Comparator chains, reverse ordering, and null-safe handling.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Type erasure: bridge methods, instanceof/generic-array limits.</h5>
+          <p>Generics are a compile-time mechanism: after type checking, type parameters are erased to their bounds (usually Object), with casts inserted where needed. At runtime, List&lt;String&gt; and List&lt;Integer&gt; are the same class — which is why instanceof cannot test generic parameters and you cannot create arrays of parameterized types.</p>
+          <p>Bridge methods are the compiler's workaround for erasure in inheritance: synthetic methods preserving polymorphism when a subclass narrows a generic signature. Erasure is the price of backward compatibility; the restrictions are its visible edges.</p>
+          <h5>Bounded parameters (&lt;T extends Comparable&lt;T&gt;&gt;), generic methods vs. class generics.</h5>
+          <p>Bounded type parameters constrain what T can be: &lt;T extends Comparable&lt;T&gt;&gt; means &quot;T must be comparable to itself,&quot; enabling sorted algorithms to call compareTo. Generic methods declare their own type parameters (&lt;T&gt; T first(List&lt;T&gt; l)) independent of the class; class-level parameters scope to the instance.</p>
+          <p>Prefer generic methods when the type parameter belongs to one operation, class parameters when it defines the object's identity. Bounds are documentation the compiler enforces — use them to say what the code actually needs.</p>
+          <h5>Wildcards: ? extends T (read), ? super T (write), unbounded ?.</h5>
+          <p>Wildcards express use-site variance: List&lt;? extends Number&gt; is a list of some specific Number subtype — you can read Numbers from it but cannot safely add (the exact subtype is unknown). List&lt;? super Integer&gt; accepts Integers (you can write) but reads only as Object. This is PECS: Producer Extends, Consumer Super.</p>
+          <p>Unbounded List&lt;?&gt; means &quot;some list, unknown element type&quot; — readable as Object, writable only with null. Wildcards make APIs flexible: accept the widest type you can actually use.</p>
+          <h5>List (ArrayList/LinkedList), Set (HashSet/TreeSet/LinkedHashSet), Map (HashMap/TreeMap/LinkedHashMap) semantics.</h5>
+          <p>The collection taxonomy: Lists are ordered with duplicates (ArrayList for random access, LinkedList for deque operations); Sets are unique (HashSet unordered, LinkedHashSet insertion-ordered, TreeSet sorted); Maps are key-value (HashMap unordered, LinkedHashMap insertion-ordered, TreeMap sorted by key).</p>
+          <p>Choose by the properties you need — ordering, uniqueness, sortedness — not by habit. The wrong implementation is a latent bug: TreeSet on non-Comparable keys, HashMap iteration assumed ordered.</p>
+          <h5>equals/hashCode contract and its effect on HashSet/HashMap correctness.</h5>
+          <p>The contract: equal objects must have equal hash codes; hash-based collections bucket by hashCode then compare with equals. Violate it — equal objects with different hashes — and HashMap stores &quot;duplicates,&quot; lookups miss, and Sets misbehave in ways that look like corruption.</p>
+          <p>Always override both together, using the same significant fields. The lab's broken-pair-then-fixed exercise exists because this contract is the most violated rule in Java.</p>
+          <h5>Comparator.comparing chains, thenComparing, naturalOrdering, nullsFirst/nullsLast.</h5>
+          <p>Comparators compose: Comparator.comparing(Employee::getDepartment).thenComparing(Employee::getSalary).thenComparing(Employee::getName) builds multi-key ordering declaratively, with reversed(), naturalOrdering(), and nullsFirst/nullsLast handling edge cases.</p>
+          <p>Chained comparators replace pages of nested comparison logic with a readable pipeline. Null-handling wrappers belong at the chain level — sorting with nulls must be a deliberate decision, not an NPE.</p>
+          <h5>Unmodifiable wrappers vs. List.of/Set.of/Map.of immutables.</h5>
+          <p>Collections.unmodifiableList wraps a list with a read-only view (mutations throw UnsupportedOperationException, but the underlying list can still change); List.of creates a truly immutable list — no nulls allowed, structurally immutable. The factory methods (List.of, Set.of, Map.of) are the modern default for fixed data.</p>
+          <p>Prefer the factory immutables for constants and return values: they fail fast on null, cannot be mutated through any reference, and communicate &quot;this is fixed data&quot; in the type itself.</p>
+          <h5>Collections utility methods: binarySearch, shuffle, synchronizedList caveats.</h5>
+          <p>The Collections utility class offers algorithms as static methods: binarySearch on sorted lists, shuffle, sort, reverse. The synchronized wrappers (synchronizedList) make individual operations thread-safe — but compound actions like iteration still need external synchronization.</p>
+          <p>The caveat is the lesson: synchronizedList synchronizes methods, not sequences. Iterating a synchronized list without synchronizing on it is still a race. For real concurrent use, prefer the concurrent collections from java.util.concurrent.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Implement a generic bounded queue with a type-safe bulk-copy method using PECS; demonstrate a compile failure the wildcards prevent.</strong><br/>Write copy(List&lt;? extends T&gt; src, List&lt;? super T&gt; dest) and show the compiler rejecting an unsafe call. The prevented compile error is the wildcard's value, demonstrated.</li>
+            <li><strong>Write a broken equals/hashCode pair, observe HashSet duplicates, then fix and re-run.</strong><br/>Break the contract deliberately, watch the Set misbehave, fix it, watch it behave. The before-and-after is unforgettable.</li>
+            <li><strong>Sort employee records by department, salary-desc, name with null departments sorted last via a single Comparator chain.</strong><br/>One chained comparator expressing the full ordering policy, nulls handled explicitly. Declarative ordering replacing nested ifs.</li>
+            <li><strong>Benchmark HashMap vs. TreeMap lookups on 1M keys; explain the complexity gap in one paragraph.</strong><br/>Measure, then explain: O(1) amortized hashing versus O(log n) tree navigation. The paragraph forces the theory into words.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Can you add an Integer to a `List&lt;? extends Number&gt;`? To a `List&lt;? super Integer&gt;`? Explain both.</li>
+            <li>What breaks at runtime if two equal objects have different hash codes in a HashMap?</li>
+            <li>When does erasure force you to pass a Class&lt;T&gt; token explicitly?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">M5 — Functional Programming: Lambdas, Streams, Optional</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write lambdas and method references matching target functional interfaces.</li>
+            <li>Build stream pipelines: intermediate vs. terminal ops, lazy evaluation.</li>
+            <li>Collect with groupingBy, partitioningBy, and downstream collectors.</li>
+            <li>Use Optional as a return type without falling back to null-handling patterns.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Functional interfaces: Predicate, Function, Consumer, Supplier, Bi*/specialized primitives.</h5>
+          <p>A functional interface has exactly one abstract method — Predicate&lt;T&gt; tests, Function&lt;T,R&gt; transforms, Consumer&lt;T&gt; consumes, Supplier&lt;T&gt; produces, with Bi- variants taking two arguments and primitive specializations (IntPredicate, ToIntFunction) avoiding boxing.</p>
+          <p>These are the vocabulary of lambdas and streams: every lambda needs a target functional interface, and the standard ones cover nearly every shape. Learn the four core types cold; the rest are variations.</p>
+          <h5>@FunctionalInterface contract and default methods in FIs.</h5>
+          <p>The @FunctionalInterface annotation asks the compiler to verify the single-abstract-method contract — a compile error if violated. Functional interfaces may still carry default and static methods; only the abstract count matters.</p>
+          <p>The annotation is documentation enforced by the compiler. Write your own functional interfaces with it whenever a lambda target is domain-specific — the annotation keeps the contract honest as the interface evolves.</p>
+          <h5>Method references: static, bound, unbound, constructor references.</h5>
+          <p>Method references are compact lambdas: String::valueOf (static), instance::method (bound to an instance), String::length (unbound — the first parameter becomes the receiver), ArrayList::new (constructor). Each maps to the functional interface whose signature matches.</p>
+          <p>Prefer method references where they read clearly — list.forEach(System.out::println) — and lambdas where logic needs a body. The four forms cover every lambda shape; recognizing each by sight is the skill.</p>
+          <h5>Stream pipeline shape: source → intermediate (lazy) → terminal; single-use streams.</h5>
+          <p>A stream pipeline has three parts: a source (collection, generator), zero or more intermediate operations (filter, map — lazy, doing nothing until asked), and one terminal operation (collect, forEach, reduce — triggering execution). Streams are single-use: a terminal operation consumes the stream.</p>
+          <p>Laziness enables efficiency (short-circuiting, fusion of operations) and the single-use rule prevents the subtle bugs of reused pipelines. Internalize the shape and every pipeline you read becomes legible.</p>
+          <h5>map/flatMap, filter, distinct, sorted, peek debugging, reduce fold semantics.</h5>
+          <p>The core operators: map transforms one-to-one, flatMap transforms one-to-many and flattens (streams of streams into one stream), filter keeps matches, distinct dedupes, sorted orders, peek performs a side-effect (debugging) without altering the stream, reduce folds the stream into one value with an identity and accumulator.</p>
+          <p>flatMap is the one to practice: nested collections, Optional streams, parsing lines into words. reduce's fold semantics — identity, accumulator, combiner — generalize summation to any aggregation.</p>
+          <h5>Collectors: toList, toSet, toMap (merge fn), groupingBy, partitioningBy, joining, summarizing.</h5>
+          <p>Collectors are the terminal vocabulary: toList/toSet gather results, toMap needs a merge function for duplicate keys (decide the policy explicitly), groupingBy classifies into a Map&lt;K, List&lt;V&gt;&gt;, partitioningBy splits into true/false lists, joining concatenates strings, summarizing produces statistics.</p>
+          <p>The toMap merge function is the classic exam trap: duplicate keys without a merge function throw IllegalStateException. Always supply the merge policy — &quot;keep first,&quot; &quot;keep last,&quot; &quot;combine&quot; — as a deliberate decision.</p>
+          <h5>Optional: map/flatMap, orElse vs. orElseGet, orElseThrow; anti-patterns (get without isPresent).</h5>
+          <p>Optional is a container for &quot;value or absent&quot; — a return-type discipline replacing null returns. map transforms a present value, flatMap chains Optional-returning functions, orElse supplies a default (eagerly evaluated), orElseGet supplies it lazily via Supplier, orElseThrow raises on absence.</p>
+          <p>The rules: orElseGet when the default is expensive (orElse always computes it), never call get() without checking (use orElseThrow with a meaningful exception), and never use Optional as a field type or in collections — it is a return-type idiom.</p>
+          <h5>Primitive streams (IntStream) to avoid boxing; range/rangeClosed semantics.</h5>
+          <p>IntStream, LongStream, DoubleStream operate on primitives without boxing overhead — IntStream.range(0, n) is exclusive of n, rangeClosed inclusive. For numeric pipelines, primitive streams are both faster and clearer.</p>
+          <p>The range/rangeClosed distinction is a classic off-by-one source: range for zero-based iteration, rangeClosed when the endpoint is included. Boxed streams of numbers in hot loops are a performance smell; primitive streams are the fix.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Rewrite a nested-loop aggregation over orders into a single stream pipeline; verify identical output on 100k rows.</strong><br/>Convert the imperative version to filter/map/collect and diff the outputs. Identical results with declarative code is the streams value proposition, demonstrated.</li>
+            <li><strong>Build a multi-level report: group transactions by year then by type, with downstream summing and counting.</strong><br/>Nested groupingBy with downstream collectors produces the report in one expression. The resulting Map type signature is worth writing out by hand.</li>
+            <li><strong>Trace lazy evaluation with peek() to show intermediate ops never execute without a terminal op.</strong><br/>Build a pipeline with peek logging but no terminal op — nothing prints. Add the terminal — everything prints. Laziness observed directly.</li>
+            <li><strong>Refactor a null-returning DAO into Optional returns; write callers using map/orElseGet chains.</strong><br/>Convert the data-access layer to Optional, then rewrite callers without a single null check. The null-handling code that disappears is the point.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does `stream.forEach(...)` after a terminal op throw IllegalStateException?</li>
+            <li>When is orElseGet required instead of orElse, and what is the failure mode of using orElse?</li>
+            <li>Given groupingBy + mapping + counting, sketch the resulting Map type signature.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">M6 — Concurrency: Threads, Executors, Synchronization</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Create and manage threads via Thread, Runnable, Callable/Future.</li>
+            <li>Size and use ExecutorService pools; shut them down cleanly.</li>
+            <li>Guard shared state with synchronized, volatile, and java.util.concurrent locks.</li>
+            <li>Choose concurrent collections and atomics instead of manual locking.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Thread lifecycle: NEW → RUNNABLE → BLOCKED/WAITING → TERMINATED.</h5>
+          <p>A thread is born NEW, becomes RUNNABLE when started (eligible to run, not necessarily running), enters BLOCKED waiting for a monitor lock or WAITING/TIMED_WAITING for a condition or sleep, and ends TERMINATED. The transitions are driven by scheduling, locks, and the thread's own actions.</p>
+          <p>Reading thread dumps requires this vocabulary: a thread in BLOCKED is contending for a lock (find the lock owner), in WAITING is parked on a condition. The lifecycle is the map; the dump is the territory.</p>
+          <h5>Runnable vs. Callable; Future.get blocking, timeouts, cancellation.</h5>
+          <p>Runnable.run() returns nothing and throws no checked exceptions — fire-and-forget. Callable.call() returns a value and may throw — submit it to an executor and get a Future. Future.get() blocks until the result arrives (or throws the underlying exception wrapped); the timed get bounds the wait; cancel() attempts interruption.</p>
+          <p>Prefer Callable/Future (or higher-level APIs) over raw Threads for anything returning a result: the Future is the handle on the computation's outcome, timeout, and cancellation — the three things raw threads make awkward.</p>
+          <h5>ExecutorService types: fixed, cached, single, scheduled; shutdown vs. shutdownNow.</h5>
+          <p>Executors manage thread pools so you stop managing threads: fixed pool (bounded, for CPU work), cached pool (unbounded growth, for short tasks), single thread (ordered execution), scheduled (delayed/periodic tasks). Submit work; the pool schedules it.</p>
+          <p>Shutdown discipline: shutdown() stops accepting new tasks and finishes queued ones; shutdownNow() attempts to stop everything immediately. The reliable pattern is shutdown, awaitTermination with a timeout, then shutdownNow as the fallback — the lab's &quot;no task silently dropped&quot; sequence.</p>
+          <h5>synchronized methods/blocks, intrinsic locks, monitor enter/exit.</h5>
+          <p>Every Java object has an intrinsic lock (monitor): synchronized methods acquire the object's lock, synchronized blocks acquire a specified object's lock. Only one thread holds a monitor at a time; others block until it is released at block exit.</p>
+          <p>Synchronized blocks on private final lock objects are preferred over synchronized methods: they limit the lock's scope and prevent clients from acquiring your lock (a deadlock vector). Keep critical sections minimal — locks serialize, and serialization is the enemy of scaling.</p>
+          <h5>volatile visibility guarantee and its limits (no atomicity).</h5>
+          <p>volatile guarantees visibility: a write to a volatile field is immediately visible to all threads (no stale cached copies), and it establishes happens-before ordering. It does not guarantee atomicity: volatile count++ is still read-modify-write and still races.</p>
+          <p>Use volatile for flags (a stop signal) and for safely publishing immutable objects (the double-checked-locking fix). For counters and compound actions, use atomics or locks — visibility without atomicity is half the solution.</p>
+          <h5>java.util.concurrent: ConcurrentHashMap, CopyOnWriteArrayList, BlockingQueue.</h5>
+          <p>The concurrent collections are the practical answer to shared state: ConcurrentHashMap for lock-striped concurrent maps (with atomic computeIfAbsent), CopyOnWriteArrayList for read-heavy, rarely-modified lists, BlockingQueue (ArrayBlockingQueue, LinkedBlockingQueue) for producer-consumer handoff with built-in blocking.</p>
+          <p>These replace hand-rolled synchronized collections in nearly all cases: better concurrency, tested implementations, richer atomic operations. Reach for them before writing your own locking.</p>
+          <h5>AtomicInteger/Long/Reference and lock-free compare-and-set loops.</h5>
+          <p>Atomics provide lock-free thread-safe operations on single variables: getAndIncrement, compareAndSet (CAS) — &quot;set to new value only if currently expected value.&quot; Contended updates retry the CAS loop instead of blocking on a lock.</p>
+          <p>CAS loops scale better than locks under moderate contention and never deadlock (no locks held). They are the building block of lock-free algorithms — and of ConcurrentHashMap's internals.</p>
+          <h5>Race conditions, deadlock (lock ordering), livelock, thread-safety vs. safe publication.</h5>
+          <p>The failure taxonomy: race conditions (unsynchronized access producing wrong results — the lab's lost counter updates), deadlock (threads holding locks while waiting for each other's — fixed by consistent global lock ordering), livelock (threads busy responding to each other, making no progress).</p>
+          <p>Thread-safety means correct concurrent use; safe publication means making an object visible to other threads correctly (volatile, final fields, proper synchronization) — an object can be thread-safe yet broken if published unsafely. Both halves matter.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a counter incremented by 8 threads with no guard; observe lost updates, then fix with AtomicInteger and compare.</strong><br/>Run the racy version and watch the final count come up short — the lost updates are the race condition made visible. Then fix it and watch the count come out exact.</li>
+            <li><strong>Implement a producer/consumer with ArrayBlockingQueue and poison-pill shutdown; verify clean executor termination.</strong><br/>The blocking queue handles the handoff; the poison pill signals completion; the shutdown sequence terminates cleanly. The full lifecycle pattern in one lab.</li>
+            <li><strong>Induce a two-lock deadlock, capture a thread dump (jstack), then fix with consistent lock ordering.</strong><br/>Create the deadlock, find it in the thread dump (the JVM even detects and reports it), then impose lock ordering and watch it disappear. Diagnosis before cure.</li>
+            <li><strong>Build a ConcurrentHashMap-backed cache with computeIfAbsent; stress it and assert no duplicate computation.</strong><br/>Hammer the cache concurrently and verify the expensive computation ran once per key. The atomic compute is the guarantee — assert it under stress.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does volatile guarantee that plain fields lack — and what does it not guarantee?</li>
+            <li>Why is double-checked locking broken without volatile?</li>
+            <li>Name the shutdown sequence for an ExecutorService that guarantees no task is silently dropped.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">M7 — I/O, NIO.2, and JDBC</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Read/write files with the Files utility and the Path/Paths API.</li>
+            <li>Walk directory trees, match globs, and copy/move/delete safely with NIO.2.</li>
+            <li>Work with java.io streams, readers/writers, and serialization basics.</li>
+            <li>Connect, query, and transact with JDBC using prepared statements.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Path vs. File; relativize, resolve, normalize, toAbsolutePath.</h5>
+          <p>Path (NIO.2) is the modern file reference — an immutable, operations-rich object — replacing the legacy File class. resolve combines paths, relativize computes the relative path between two, normalize removes redundant . and .. elements, toAbsolutePath anchors a relative path.</p>
+          <p>Prefer Path for all new code: it integrates with the Files utility methods, handles symbolic links explicitly, and avoids File's well-known API flaws. File remains only for legacy interop.</p>
+          <h5>Files methods: readString/writeString, lines, copy, move, deleteIfExists.</h5>
+          <p>The Files utility class is the file-operation API: readString/writeString for whole-file text, lines for lazy streaming of lines, copy/move/deleteIfExists for the basics — all with options for link handling, attribute copying, and atomic moves.</p>
+          <p>These methods replace hand-rolled stream plumbing for common cases: a file copy is Files.copy with options, not a buffer loop. Reach for Files first; drop to streams only for custom processing.</p>
+          <h5>Files.walk / find with depth and BiPredicate; glob vs. regex matchers.</h5>
+          <p>Files.walk traverses a directory tree to a given depth (lazily, as a Stream&lt;Path&gt; that must be closed); Files.find adds a BiPredicate filter on path and attributes. PathMatcher supports glob syntax (**.java) and regex for name matching.</p>
+          <p>The walk stream holds directory handles open — use try-with-resources or the stream leaks. Glob for the common cases, regex when glob cannot express the pattern; both beat manual recursion.</p>
+          <h5>try-with-resources on streams; buffered vs. unbuffered I/O; charsets (UTF-8 default since 18).</h5>
+          <p>Streams are resources: always use try-with-resources so they close. Buffered streams (BufferedReader/Writer) batch system calls — unbuffered byte-at-a-time I/O is orders of magnitude slower. Since Java 18, the default charset is UTF-8 everywhere, ending the platform-default-charset portability bugs.</p>
+          <p>Specify StandardCharsets.UTF_8 explicitly anyway in library code: explicit beats ambient, and the code documents its assumption. Buffering and charset discipline are the two I/O performance/correctness fundamentals.</p>
+          <h5>Serialization: Serializable, serialVersionUID, transient, readObject/writeObject hooks.</h5>
+          <p>Java serialization converts object graphs to bytes: classes implement Serializable (a marker), declare a serialVersionUID to version the format, mark non-serializable fields transient, and can customize with readObject/writeObject. Mismatched serialVersionUID on deserialization throws InvalidClassException.</p>
+          <p>Treat serialization as a legacy mechanism: it is fragile across class changes and has a notorious security history (deserialization attacks). For new designs prefer explicit formats (JSON); understand serialization because the ecosystem still uses it.</p>
+          <h5>JDBC URL, DriverManager/Connection, Statement vs. PreparedStatement (SQL injection).</h5>
+          <p>JDBC connects via URL (jdbc:postgresql://host/db), obtains Connections from DriverManager (or better, a DataSource pool), and executes SQL through Statements. PreparedStatement precompiles SQL with ? placeholders — parameters are bound as data, never concatenated into the SQL string.</p>
+          <p>The PreparedStatement rule is absolute for user input: string-concatenated SQL is SQL injection by construction. Precompilation also improves performance for repeated executions. There is no legitimate reason to build SQL by concatenation with untrusted input.</p>
+          <h5>ResultSet types/concurrency; batch updates; transaction isolation, commit/rollback, savepoints.</h5>
+          <p>ResultSets come in types (forward-only default, scrollable) and concurrency modes (read-only, updatable). Batch updates group many DML statements into one round trip. Transactions group operations atomically: commit persists, rollback undoes, savepoints mark partial rollback points within a transaction.</p>
+          <p>The transaction discipline: disable auto-commit, execute the unit of work, commit on success, rollback on failure — with savepoints for complex multi-step units. Connection handling (always close, preferably via pool) is part of the same discipline.</p>
+          <h5>Connection pooling concepts and why DataSource beats DriverManager.</h5>
+          <p>Opening a database connection is expensive (TCP, authentication, session setup); pools maintain ready connections and lend them per operation. DataSource is the pooling-aware factory interface; DriverManager opens a fresh connection every time.</p>
+          <p>In any real application, DataSource (via HikariCP or the container) is mandatory: DriverManager-per-request collaps like under load and leaks connections on error paths. Pool sizing (max connections vs. database capacity) is the tuning parameter that matters.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a directory-tree scanner that finds files over 10MB using Files.find and prints a sorted size report.</strong><br/>Files.find with a size predicate, collected and sorted. The BiPredicate form keeps the traversal and the filter in one expression.</li>
+            <li><strong>Implement a robust file copy with attribute preservation and an atomic move fallback; handle AlreadyExists.</strong><br/>Copy with COPY_ATTRIBUTES, move with ATOMIC_MOVE where supported, catch the specific exceptions. The exception handling is the lesson — file operations fail in specific ways.</li>
+            <li><strong>Serialize a versioned object graph, change the class, and demonstrate serialVersionUID mismatch behavior.</strong><br/>Serialize, modify the class incompatibly, deserialize, and watch it fail. The failure demonstrates why serialization versioning is fragile — the argument for explicit formats.</li>
+            <li><strong>Build a JDBC CRUD app on an embedded/file database (H2 or SQLite) using only PreparedStatements; wrap transfers in a transaction with a rollback test.</strong><br/>Full CRUD with parameterized queries, then a transfer that fails midway and rolls back. The rollback test proves the transaction boundary is real.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why must PreparedStatement be used for any query containing user input?</li>
+            <li>What happens if you commit on a Connection whose auto-commit is already true — and why batch DML inside an explicit transaction?</li>
+            <li>Contrast Files.walk and Files.list for resource handling and depth control.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">M8 — Modules, JVM Memory/GC, Localization &amp; Date/Time</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Declare a module, require/export packages, and run a modular app.</li>
+            <li>Describe heap vs. stack vs. metaspace and the major GC phases.</li>
+            <li>Format and parse dates/times and numbers for locales; load resource bundles.</li>
+            <li>Diagnose a basic memory or locale issue with JDK tooling.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>module-info.java: requires, exports, opens, provides/uses (services); unnamed vs. automatic modules.</h5>
+          <p>The module system (JPMS) organizes code into modules with explicit boundaries declared in module-info.java: requires names dependencies, exports makes packages available for compile and runtime use, opens permits deep reflection (for frameworks), provides/uses wire service implementations.</p>
+          <p>The unnamed module (classpath code) reads everything but exports nothing explicitly; automatic modules (plain jars on the module path) get a name and export everything. Migration strategy: get everything working as automatic modules first, then modularize deliberately.</p>
+          <h5>jlink for custom runtime images; module path vs. classpath.</h5>
+          <p>jlink builds a custom runtime image containing only the modules your application needs — a minimal JRE for deployment, tens of megabytes instead of hundreds. The module path holds modular jars; the classpath holds everything else (unnamed module).</p>
+          <p>Custom runtimes are the deployment story for modular apps: ship exactly the platform you need. Module path for modules, classpath for legacy — and the unnamed module's read-everything behavior is why classpath code keeps working.</p>
+          <h5>Stack (frames, locals) vs. heap (young/old generations) vs. metaspace; GC roots.</h5>
+          <p>Threads execute on stacks: each method call pushes a frame with locals and operands; frames vanish on return. Objects live on the heap, divided into young generation (new objects, collected often) and old generation (survivors, collected rarely). Class metadata lives in metaspace (native memory, not heap).</p>
+          <p>GC roots — thread stacks, static fields, JNI references — are where the collector starts tracing reachability. Anything unreachable from the roots is garbage. This memory geography explains every GC behavior that follows.</p>
+          <h5>Mark-sweep-compact phases; stop-the-world pauses; Serial/G1/ZGC positioning at concept level.</h5>
+          <p>Collection follows mark (find live objects from roots), sweep (reclaim the dead), compact (defragment survivors) — with stop-the-world pauses halting application threads during critical phases. Serial is single-threaded (small heaps); G1 divides the heap into regions, collecting garbage-first with predictable pauses (the general default); ZGC targets sub-millisecond pauses on large heaps with concurrent compaction.</p>
+          <p>Choose by pause requirement, not by fashion: most applications are well served by the default G1; ZGC earns its complexity only when pause targets demand it. Measure pauses (GC logs) before tuning anything.</p>
+          <h5>java.time: LocalDate/Time/DateTime, ZonedDateTime, Instant, Duration vs. Period; immutable design.</h5>
+          <p>java.time fixes the Date/Calendar disaster with immutable, clearly-named types: LocalDate/Time/DateTime (no zone — wall-clock time), ZonedDateTime (with zone rules), Instant (a point on the timeline, UTC), Duration (time-based amount: hours, seconds), Period (date-based: years, months, days).</p>
+          <p>Immutability means every operation returns a new instance — no more spooky mutation. Duration vs. Period is the key distinction: 24 hours is a Duration; &quot;one day&quot; across a DST change is a Period. Choose by what you mean.</p>
+          <h5>DateTimeFormatter patterns, locale-sensitive parsing; ZoneId vs. ZoneOffset.</h5>
+          <p>DateTimeFormatter formats and parses with pattern letters (yyyy-MM-dd) or localized styles; parsing is locale-sensitive (month names differ by language). ZoneId names a zone with its rules (Europe/Paris, including DST history); ZoneOffset is just a fixed offset (+02:00) with no rules.</p>
+          <p>Prefer ZoneId for real zones — offsets cannot handle DST transitions. And never parse user-facing dates without an explicit locale: the default locale is an ambient assumption that breaks across machines.</p>
+          <h5>ResourceBundle fallback chain, property-file encoding, MessageFormat placeholders.</h5>
+          <p>ResourceBundle loads locale-specific resources with a fallback chain: fr_CA falls back to fr, then to the default bundle, then to the base — so you translate only what differs. Property files are UTF-8 (since Java 9); MessageFormat inserts arguments with {0} placeholders, handling pluralization and number formatting per locale.</p>
+          <p>The fallback chain is the design: partial translations degrade gracefully instead of crashing. Externalize every user-visible string from day one; retrofitting localization into hardcoded strings is the expensive version.</p>
+          <h5>NumberFormat/Currency per locale; jcmd/jmap/jstat as diagnostic entry points.</h5>
+          <p>NumberFormat and Currency format numbers per locale — decimal separators, grouping, currency symbols all vary (1.234,56 in German, $1,234.56 in US). Never format numbers for display with string concatenation; the locale rules are subtler than they look.</p>
+          <p>For JVM diagnostics: jcmd is the Swiss-army command (heap dumps, GC runs, VM flags), jmap takes heap histograms and dumps, jstat watches GC statistics live. These three are the entry points when the JVM misbehaves in production.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Split an app into two modules (api + impl with services); compile and run it from the module path, then jlink a minimal image.</strong><br/>Declare the modules, wire the service, run modular, then jlink a custom runtime. The shrunken runtime image is the payoff — see its size.</li>
+            <li><strong>Create a small leak (static list growth), capture a heap dump, and identify the dominator with jvisualvm or jmap histogram.</strong><br/>Grow the leak, dump the heap, find the dominator in the histogram. The dominator tree turns &quot;the app is slow&quot; into &quot;this collection holds everything.&quot;</li>
+            <li><strong>Format the same instant for three locales/time zones and round-trip parse each back to the same Instant.</strong><br/>Format across zones and locales, parse back, assert equality of the Instant. The round-trip proves the formatting layer is lossless when done right.</li>
+            <li><strong>Write a ResourceBundle trio (default, fr, fr_CA) and demonstrate fallback when a key is missing in fr_CA.</strong><br/>Omit a key from the fr_CA bundle and watch the fr value serve. The fallback chain working visibly is the localization safety net, demonstrated.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What is the difference between exports and opens in module-info, and which does reflection need?</li>
+            <li>Why is java.util.Date/Calendar avoided in new code — name two concrete defects?</li>
+            <li>Explain in two sentences what a GC pause is and which memory area the young generation optimizes.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://education.oracle.com/product/pexam_1Z0-829">https://education.oracle.com/product/pexam_1Z0-829</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://docs.oracle.com/javase/tutorial/">https://docs.oracle.com/javase/tutorial/</a></li>
+          <li><a href="https://docs.oracle.com/en/java/javase/index.html">https://docs.oracle.com/en/java/javase/index.html</a></li>
+          <li><a href="https://inside.java/">https://inside.java/</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://docs.oracle.com/javase/tutorial/">Oracle Java Tutorials</a></li>
+          <li><a href="https://inside.java/">Inside.java — the Java team's technical publication</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

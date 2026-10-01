@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Azure Administrator (AZ-104) | Interstitium Labs</title>
+<meta name="description" content="An original study guide for the Azure Administrator (AZ-104) domain: Entra identity, RBAC and policy, storage, compute, virtual networking, monitoring, backup and disaster recovery, and administration tooling — keyed to Microsoft Learn."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Cloud Administration · Microsoft Azure</p>
+    <h1 class="il-h">Azure Administrator (AZ-104)</h1>
+    <p class="il-hero__sub">Identity, governance, storage, compute, networking, monitoring, and recovery — the working administrator's map of Microsoft Azure.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Microsoft Azure is a public cloud platform: compute, storage, networking, and identity delivered as services you provision through the portal, the command line, or infrastructure-as-code. The administrator's job is to make those services correct, secure, observable, and recoverable — and to do it repeatedly, at scale, without click-ops heroics.</p>
+        <p>This sequence follows the AZ-104 administrator domain in a practitioner's order. You begin with identity, because everything in Azure is gated by Microsoft Entra ID: users, groups, licenses, Conditional Access, MFA. Then governance — the management-group, subscription, and resource-group hierarchy plus RBAC, policy, locks, and tags — the guardrails that keep a tenant sane. Storage and compute come next: choosing the right account kinds, replication, VM families, scale sets, and App Service. Virtual networking follows, then monitoring and alerting with Azure Monitor and KQL, then backup and disaster recovery, and finally the tooling craft: CLI, PowerShell, Bicep, cost management, and an exam-day strategy.</p>
+        <p>Everything here is keyed to Microsoft Learn, which is authoritative for exact portal behavior, CLI syntax, and current service details. This page teaches the concepts and the judgment; Learn supplies the canonical reference.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>System administrators moving on-premises Windows or hybrid workloads to Azure.</li>
+          <li>IT professionals preparing for the AZ-104 certification as working administrators, not just exam-takers.</li>
+          <li>Engineers who already understand networking and OS fundamentals and need the Azure-specific control plane.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Familiarity with core IT concepts: virtual machines, DNS, TCP/IP subnets, and Active Directory basics.</li>
+          <li>An Azure free account for the labs — nearly every lab here can run on free-tier or low-cost resources; set a budget alert before you start.</li>
+          <li>Comfort with either Bash or PowerShell for the CLI labs.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order; identity and governance underpin everything after them.</li>
+          <li>Do the labs in a dedicated lab subscription you can tear down. Azure bills by the meter — the budget-alert lab exists for a reason.</li>
+          <li>For each module, write the &quot;on paper&quot; artifacts (policy statements, DR plans, KQL queries) before touching the portal. Design first, click second.</li>
+          <li>Verify every CLI command and portal flow against current Microsoft Learn documentation; the cloud moves and this guide teaches concepts, not click paths.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Entra Identity Foundation</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Create and manage users, groups, and external guest accounts in Microsoft Entra ID.</li>
+            <li>Explain how licenses gate features like Conditional Access and Privileged Identity Management.</li>
+            <li>Describe hybrid identity concepts: password hash sync, pass-through auth, federation, and Seamless SSO.</li>
+            <li>Configure multifactor authentication enforcement for administrator accounts.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Tenant, directory, and administrative units</h5>
+          <p>A Microsoft Entra tenant is the dedicated instance of the identity service for your organization — the security boundary that holds your users, groups, and applications. The directory is the store itself; the tenant is your organization's isolated instance of it.</p>
+          <p>Administrative units let you delegate administration over a subset of users, groups, or devices without granting tenant-wide roles. They are how large organizations give a regional IT team control over their own people while keeping the global administrator role scarce.</p>
+          <h5>User types: member vs guest, and B2B invitations</h5>
+          <p>Member users are your organization's own identities; guest users are external collaborators invited through B2B. Guests get limited default permissions and are visibly marked, which keeps the trust boundary explicit.</p>
+          <p>A guest invitation alone grants no resource access — the invitation creates the identity, but access comes only from subsequent group memberships or role assignments. Identity and authorization are separate steps by design.</p>
+          <h5>Groups: security, Microsoft 365, dynamic membership rules</h5>
+          <p>Security groups exist for access control: assign a role or grant resource access to the group once, and membership changes propagate automatically. Microsoft 365 groups add a collaboration bundle (mailbox, SharePoint site, Teams) on top of the group.</p>
+          <p>Dynamic groups define membership with a rule — &quot;all users with department = Engineering&quot; — evaluated continuously. They eliminate the stale-membership problem for attributes the directory already knows, like department, job title, or user type.</p>
+          <h5>License tiers: Entra ID Free, P1, P2 and feature gates</h5>
+          <p>Entra ID comes in tiers, and the tier gates the features: Free covers basic user and group management; P1 unlocks Conditional Access, hybrid identity features, and dynamic groups; P2 adds Privileged Identity Management and Identity Protection risk-based policies.</p>
+          <p>This matters operationally because designs that assume Conditional Access or PIM simply do not work on a Free tenant. Know which features your tenant's licenses entitle you to before you promise them in a design.</p>
+          <h5>Conditional Access policy structure (signals, conditions, grant controls)</h5>
+          <p>Conditional Access is the policy engine that decides, per sign-in, whether access is granted, requires MFA, or is blocked. Each policy combines signals (who the user is, what device, what network, what risk level), conditions (which apps and users the policy applies to), and grant controls (require MFA, require compliant device, block).</p>
+          <p>The power — and the danger — is that policies compose: multiple policies apply to one sign-in, and the strictest grant control wins. Design policies as a small, reviewed set with a break-glass exclusion, and test in report-only mode before enforcing.</p>
+          <h5>MFA enforcement and SSPR concepts</h5>
+          <p>Multifactor authentication requires a second factor beyond the password — an authenticator app approval, a hardware key, a phone call — and administrator accounts should always require it, enforced by Conditional Access rather than by per-user settings.</p>
+          <p>Self-service password reset (SSPR) lets users recover their own accounts using registered authentication methods, which cuts help-desk load. Both MFA and SSPR depend on users having registered their methods in advance — enrollment is the part organizations always underestimate.</p>
+          <h5>Microsoft Entra Connect Sync object model basics</h5>
+          <p>Hybrid identity joins an on-premises Active Directory to Entra ID. Entra Connect Sync replicates user and group objects upward, joining them to cloud identities so one credential works in both worlds.</p>
+          <p>The sync engine maps on-premises attributes to cloud attributes according to sync rules, and the choice of authentication method — password hash sync, pass-through authentication, or federation — determines where the actual credential verification happens. Understand the object flow before troubleshooting sync errors, because most of them are attribute-mapping problems.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a free tenant; add two users and one guest, assign them to a security group.</strong><br/>Building the tenant yourself makes the member/guest distinction tangible. Invite a real external address as the guest so you see the B2B redemption flow end to end.</li>
+            <li><strong>Build a dynamic group with a rule based on department and verify membership updates.</strong><br/>Set the department attribute on your test users, write the rule, and watch membership resolve. Then change an attribute and confirm the group updates — the rule engine working visibly.</li>
+            <li><strong>Write a Conditional Access-style policy statement (on paper) requiring MFA for admins on risky sign-ins.</strong><br/>Writing the policy as sentences — &quot;when an administrator signs in from an unfamiliar location, require MFA&quot; — forces you to name the signals, conditions, and grant control explicitly before any portal clicking.</li>
+            <li><strong>Export users and group memberships with Azure PowerShell or az ad commands.</strong><br/>Scripted exports are the administrator's audit trail. Compare the CLI output against what the portal shows; the CLI teaches you the underlying object model the portal hides.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does a guest invitation alone not grant resource access?</li>
+            <li>Which identity sync option leaves the password in Microsoft Entra ID vs on-premises?</li>
+            <li>Name two features gated behind Entra ID P1/P2 licenses.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Governance: Subscriptions, RBAC, and Policy</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Organize tenants into management groups, subscriptions, and resource groups with a naming scheme.</li>
+            <li>Assign role-based access control using least-privilege built-in roles and custom roles.</li>
+            <li>Author and assign Azure Policy definitions and initiatives to enforce organizational standards.</li>
+            <li>Apply resource locks and tagging to protect and classify production resources.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Hierarchy: management group &gt; subscription &gt; resource group &gt; resource</h5>
+          <p>Azure organizes everything in a four-level hierarchy. Management groups sit at the top and let you apply policy and RBAC across many subscriptions at once. Subscriptions are the billing and quota boundary. Resource groups are the deployment and lifecycle boundary — you deploy, manage, and eventually delete resources as a group. Resources are the actual services.</p>
+          <p>Design the hierarchy before creating anything: management groups by organizational division, subscriptions by workload or environment, resource groups by application lifecycle. A hierarchy designed up front prevents the &quot;one subscription with 400 unrelated resources&quot; sprawl that is painful to untangle.</p>
+          <h5>RBAC model: security principal, role definition, scope, assignment; allow-model only</h5>
+          <p>Role-based access control has four parts: a security principal (user, group, or service identity), a role definition (the set of permitted actions), a scope (where it applies — management group, subscription, resource group, or resource), and the assignment tying them together.</p>
+          <p>RBAC is an allow model: there are no deny assignments, only the absence of permission — plus explicit Deny used internally by features like locks and blueprints. Effective permission is the union of all assignments across scopes, which is why auditing effective access means enumerating every assignment, not reading one.</p>
+          <h5>Built-in roles: Owner, Contributor, Reader, User Access Administrator</h5>
+          <p>The four foundational roles: Owner can manage everything including access; Contributor can manage everything except access; Reader can view everything but change nothing; User Access Administrator can manage access but not resources.</p>
+          <p>Default to the least of these that gets the job done, and prefer group assignments over individual ones. Owner is almost never the right answer for a human's day-to-day work — it exists for the rare cases where access management and resource management must coincide.</p>
+          <h5>Custom roles: actions, notActions, assignable scopes, JSON structure</h5>
+          <p>When no built-in role fits — &quot;this team may restart VMs but not resize them&quot; — you write a custom role as JSON: actions lists the permitted operations as provider/action strings, notActions carves out exceptions, and assignableScopes bounds where the role may be granted.</p>
+          <p>Custom roles are powerful and therefore review-worthy: an overly broad actions list with a wildcard quietly recreates Contributor. Keep custom roles narrow, name them for the job they enable, and re-certify them periodically.</p>
+          <h5>Azure Policy: definition, assignment, initiative, compliance vs remediation, deny/audit/deployIfNotExists effects</h5>
+          <p>Azure Policy is the guardrail engine: a policy definition states a rule (&quot;resource groups must carry a cost-center tag&quot;); an assignment applies it at a scope; an initiative bundles definitions into one assignable set, like a compliance standard.</p>
+          <p>Effects determine teeth: audit flags violations, deny blocks non-compliant deployments, deployIfNotExists remediates by deploying the missing configuration. Compliance is the dashboard — what fraction of resources conform; remediation is the action. Start new policies in audit mode, review the compliance picture, then escalate to deny.</p>
+          <h5>Locks: CanNotDelete vs ReadOnly, inheritance behavior</h5>
+          <p>Resource locks protect against accidents: CanNotDelete blocks deletion while allowing modification; ReadOnly blocks both modification and deletion. Locks inherit down the hierarchy — a lock on a resource group protects every resource inside it.</p>
+          <p>Locks are the last line of defense for production, and they apply to everyone including Owners, which is exactly the point. The classic failure they prevent is the 2 AM &quot;wrong resource group deleted&quot; incident.</p>
+          <h5>Tags: key-value metadata, tag policies, inheritance limits</h5>
+          <p>Tags are free-form key-value metadata on resources — environment, cost-center, owner — that power cost reporting, automation targeting, and policy. A tagging standard enforced by policy is what makes chargeback and lifecycle automation possible.</p>
+          <p>Tags do not inherit: a tag on a resource group does not flow to its resources, which surprises everyone once. Enforce tagging at creation time with policy, because retroactive tagging of a large estate is a project nobody wants.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a resource group; assign Reader at subscription scope to a test user and Contributor at RG scope.</strong><br/>Sign in as the test user and confirm: read-only outside the resource group, full control inside it. Feeling the scope boundary as the user is worth more than reading about it.</li>
+            <li><strong>Write a custom role JSON granting VM restart-only rights; assign it and verify denied actions fail.</strong><br/>Craft the actions list narrowly, assign the role, then attempt a forbidden action — like resizing the VM — and watch it fail. The failure is the proof the role is least-privilege.</li>
+            <li><strong>Assign a built-in policy requiring tags on resource groups; deploy a resource and check compliance.</strong><br/>Assign the policy in audit mode first, deploy an untagged resource, and read the compliance result. Then switch to deny and watch the same deployment get blocked.</li>
+            <li><strong>Place a CanNotDelete lock on a resource group and attempt deletion to observe the block.</strong><br/>Try to delete the locked resource group and read the denial. Then remove the lock and delete successfully — the lock is a guardrail, not a vault.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>A user is Reader at subscription scope and Contributor at RG scope — what is the effective permission in that RG?</li>
+            <li>What happens to resources when a lock is placed on their parent resource group?</li>
+            <li>Distinguish a policy definition from an initiative and an assignment.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Storage Engineering</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose storage account kind, performance tier, and replication for a workload's SLA and cost profile.</li>
+            <li>Manage blob access tiers and lifecycle policies to control cost and retention.</li>
+            <li>Secure data with shared access signatures, stored access policies, and network rules.</li>
+            <li>Configure Azure Files shares with identity-based access for lift-and-shift scenarios.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Account kinds: StorageV2, BlobStorage, FileStorage, Premium tiers</h5>
+          <p>The general-purpose v2 (StorageV2) account is the default choice — it supports blobs, files, queues, and tables with tiering. BlobStorage accounts are blob-optimized legacy kinds; FileStorage provides premium file shares; premium tiers trade cost for consistent low latency.</p>
+          <p>Choose the kind by workload: object storage with lifecycle needs wants StorageV2; latency-sensitive file shares want premium. The account kind is set at creation and constrains what the account can do, so decide deliberately.</p>
+          <h5>Replication: LRS, ZRS, GRS, GZRS, RA variants; RPO/RTO implications</h5>
+          <p>Replication is the durability dial. LRS keeps three copies in one datacenter — cheap, vulnerable to facility loss. ZRS spreads copies across availability zones in a region — resilient to datacenter failure. GRS replicates to a paired region — resilient to regional disaster. GZRS combines both. Read-access variants (RA-GRS) add a readable secondary endpoint.</p>
+          <p>Each step up the ladder costs more and changes your recovery story: RPO (how much data you can lose) and RTO (how long recovery takes) follow from the replication choice. Match the replication to the data's actual value, not to your anxiety.</p>
+          <h5>Blob tiers: Hot, Cool, Cold, Archive; rehydration behavior</h5>
+          <p>Blob access tiers price storage against retrieval: Hot for frequently accessed data, Cool for infrequently accessed, Cold for rarely accessed, Archive for data that can sit offline for hours. Moving down the tiers cuts storage cost and raises access cost and latency.</p>
+          <p>Archive is the extreme: data is offline and must be rehydrated — copied back to an online tier — before it can be read, which takes hours and costs. Lifecycle policies automate the descent; rehydration is always a deliberate, planned operation.</p>
+          <h5>Lifecycle management rules: filters, actions, tier-to-archive automation</h5>
+          <p>Lifecycle management applies rules to blobs by prefix, age, and type: after N days move to Cool, after M days to Archive, after Y days delete. The rules run daily and turn a cost policy into an automatic behavior.</p>
+          <p>Write the rules from your retention requirements, not from guesswork: compliance retention sets the delete floor, access patterns set the tiering thresholds. Test rules against a sample container before pointing them at production data.</p>
+          <h5>SAS types: service, account, user-delegation; least-privilege scoping</h5>
+          <p>A shared access signature is a time-boxed, permission-scoped token appended to a URL — it grants delegated access without sharing the account key. Service SAS delegates access to one service; account SAS to the whole account; user-delegation SAS is bound to a Microsoft Entra identity via OAuth instead of the account key.</p>
+          <p>Prefer user-delegation SAS: it inherits Entra identity, supports revocation by disabling the identity, and never exposes the account keys. Scope every SAS to the minimum permissions, resource, IP range, and expiry the task needs — a SAS is a bearer token, and bearer tokens leak.</p>
+          <h5>Storage firewall, private endpoints, service endpoints</h5>
+          <p>By default a storage account is reachable from the public internet with the key. The storage firewall restricts access to selected virtual networks and IP ranges; service endpoints extend the VNet identity to the storage service; private endpoints give the account a private IP inside your VNet so traffic never crosses the public internet.</p>
+          <p>Defense in depth here means: firewall on, private endpoint for sensitive data, and keys rotated — with Entra-based access (RBAC, user-delegation SAS) preferred over key-based access wherever possible.</p>
+          <h5>Azure Files: SMB/NFS shares, AD/Entra DS authentication, share snapshots</h5>
+          <p>Azure Files exposes SMB and NFS shares in the cloud — the lift-and-shift answer for applications that expect a file share. Shares can authenticate with storage keys or, properly, with identity: on-premises AD or Entra Domain Services, so access follows the user, not a shared key.</p>
+          <p>Share snapshots capture point-in-time copies for recovery without a full backup product. For traditional file-server workloads, the combination of identity-based access plus snapshots covers the essentials.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a StorageV2 account with GRS; upload blobs via AzCopy and verify redundancy setting.</strong><br/>AzCopy is the workhorse for bulk transfer; the portal confirms the redundancy you configured. Do both so you learn the tool and the verification.</li>
+            <li><strong>Set a lifecycle rule moving blobs to Cool after 30 days; dry-run evaluation logic on sample data.</strong><br/>Apply the rule to a test container with old and new blobs and confirm only the old ones are candidates. Lifecycle mistakes on production data are expensive; the test container is cheap.</li>
+            <li><strong>Generate a time-boxed, IP-restricted SAS for one container and test read vs write denial.</strong><br/>Create the SAS with read-only permission, then attempt a write with it and watch it fail. Then let it expire and watch reads fail too — the token lifecycle made visible.</li>
+            <li><strong>Mount an Azure Files share from a VM and from a workstation over SMB with a stored key.</strong><br/>Mounting from both places demonstrates the share is network-attached storage, not VM-local. Note where the key is stored and consider how you would replace it with identity-based access.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>When is ZRS preferable to GRS, and what does RA-GRS add?</li>
+            <li>What minimum privilege and expiry should a SAS carry, and why prefer user-delegation SAS?</li>
+            <li>How does Archive tier rehydration affect read latency and cost?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Compute: VMs, Scale Sets, and App Service</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Size, deploy, and harden Azure VMs including disks, availability options, and extensions.</li>
+            <li>Configure Virtual Machine Scale Sets with autoscale rules for elastic workloads.</li>
+            <li>Deploy web workloads to App Service plans with deployment slots and scaling rules.</li>
+            <li>Run simple containerized workloads on Azure Container Instances.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>VM series families, vCPU/RAM ratios, and generation 1 vs 2 images</h5>
+          <p>Azure VM sizes are grouped in series by workload profile: B-series for burstable low-cost workloads, D-series for general compute, E-series for memory-heavy, F-series for compute-heavy, and specialized families for GPU, HPC, and storage. The series letter encodes the vCPU-to-RAM ratio and the price curve.</p>
+          <p>Generation 2 images add UEFI boot, larger disks, and security features like secure boot over generation 1's BIOS boot. Default to generation 2 for new deployments; generation 1 remains for legacy images that require it.</p>
+          <h5>Availability sets (fault/update domains) vs availability zones vs SLA math</h5>
+          <p>Availability is engineered in layers. Availability sets spread VMs across fault domains (separate racks/power) and update domains (separate maintenance groups) within one datacenter. Availability zones spread VMs across physically separate datacenters in a region — protection against datacenter-level failure.</p>
+          <p>Zones beat sets for fault tolerance, and the SLA reflects it: Azure's published SLAs require the prescribed deployment pattern (two or more instances across zones, for example) — a single VM carries no high-availability SLA regardless of how carefully you built it.</p>
+          <h5>Managed disks: SSD/HDD tiers, disk encryption, snapshots</h5>
+          <p>Managed disks abstract the storage accounts away: you pick a tier — Standard HDD, Standard SSD, Premium SSD, Ultra — and Azure handles the rest. The tier sets the IOPS and throughput ceiling, so disk performance is a sizing decision, not a tuning exercise.</p>
+          <p>Encrypt disks (Azure Disk Encryption or encryption at host), and use snapshots for point-in-time copies before risky changes. A snapshot before a major upgrade is the cheapest insurance in the cloud.</p>
+          <h5>VM extensions: Custom Script, Azure Monitor agent, Desired State Configuration</h5>
+          <p>Extensions are small agents installed on the VM by the Azure fabric: Custom Script runs your script at provisioning time, the Azure Monitor agent ships telemetry, and Desired State Configuration enforces configuration. They install without you logging into the VM.</p>
+          <p>Extensions are the bootstrap path: a VM can go from bare image to configured, monitored member of the fleet with no interactive session. But every extension is also attack surface and failure surface — install only what the workload needs.</p>
+          <h5>VMSS: uniform vs flexible orchestration, instance protection, rolling upgrades</h5>
+          <p>Virtual Machine Scale Sets manage a fleet of identical VMs as one resource: autoscale rules add and remove instances by metric, and upgrades roll across the set. Uniform orchestration treats instances as identical and interchangeable; flexible orchestration allows mixed VM types and standalone-VM behaviors within the set.</p>
+          <p>Instance protection pins specific instances against scale-in, and rolling upgrades update the set in batches with health gates. Choose flexible when the fleet is heterogeneous or when you are migrating from standalone VMs; uniform when the workload is truly cattle.</p>
+          <h5>App Service plans: tier capabilities, scale-out rules, slots and slot swapping</h5>
+          <p>App Service is the managed web platform: you deploy code, Azure runs the servers. The App Service plan defines the VM size, count, and feature tier — Free/Shared for experiments, Basic/Standard for production workloads, Premium and Isolated for scale and network isolation.</p>
+          <p>Deployment slots give you staging environments that swap with production — including sticky &quot;slot settings&quot; for connection strings that must not swap. Scale-out rules add instances by metric. The platform handles patching and load balancing; you own the code and the configuration.</p>
+          <h5>ACI: container groups, restart policies, volume mounts</h5>
+          <p>Azure Container Instances run containers without managing any orchestrator: you describe a container group — image, CPU, memory, ports, environment — and it runs, billed per second. Restart policies (always, on failure, never) control what happens when the container exits.</p>
+          <p>ACI is the right answer for burst workloads, CI agents, and simple single-container jobs. It is not a Kubernetes replacement: no service discovery, no rolling updates, no complex networking — just containers, fast.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Deploy a B-series VM from the portal and the CLI; attach a data disk and enable disk encryption concepts review.</strong><br/>Doing the same deployment twice — once by clicking, once by scripting — teaches the mapping between portal concepts and CLI parameters. The CLI version is the one you keep.</li>
+            <li><strong>Create a 2-instance VMSS with a CPU-based autoscale rule; generate load and watch instance count change.</strong><br/>Generate synthetic load, watch the metric cross the threshold, and observe a new instance join the set. Autoscale is only real once you have watched it fire.</li>
+            <li><strong>Publish a static site to App Service; add a staging slot and perform a swap with slot settings.</strong><br/>Deploy to the staging slot, verify it, then swap — and confirm the sticky setting stayed with the slot. The swap is the zero-downtime deployment in its simplest form.</li>
+            <li><strong>Run a container group in ACI with an environment variable and a mounted Azure Files volume.</strong><br/>Pass configuration via environment and persistent data via the file share. The container stays stateless; the state lives in the volume — the pattern that makes containers safe.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why do availability zones beat availability sets for datacenter-level fault tolerance?</li>
+            <li>What must be true of app settings for them to be 'sticky' to a deployment slot?</li>
+            <li>When would VMSS flexible orchestration be chosen over uniform?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Virtual Networking</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design VNet address space, subnets, and delegation for multi-tier applications.</li>
+            <li>Control traffic with NSGs, ASGs, and route tables including forced tunneling concepts.</li>
+            <li>Connect networks via peering, VPN gateways, and understand ExpressRoute circuit concepts.</li>
+            <li>Provide name resolution with Azure DNS private zones and choose a load-balancing solution.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>VNet CIDR planning, subnet sizing, reserved addresses, delegated subnets</h5>
+          <p>A virtual network is your private address space in Azure, defined by CIDR blocks you choose. Plan it like real estate: large enough for growth, non-overlapping with on-premises ranges you will connect to, and subdivided into subnets per tier — web, app, data — sized with headroom.</p>
+          <p>Azure reserves a few addresses in each subnet (network, gateway, DNS, broadcast equivalents), and delegated subnets hand control of a subnet to a specific Azure service. The common failure is sizing subnets too tightly and discovering the service you need requires delegation space you did not leave.</p>
+          <h5>NSG rule evaluation: priority order, 5-tuple, default rules, service tags</h5>
+          <p>Network security groups filter traffic by rules evaluated in priority order — lower number wins — each matching on the 5-tuple: source, source port, destination, destination port, protocol. The first matching rule decides: allow or deny.</p>
+          <p>Default rules sit at the bottom: allow VNet-internal traffic and Azure load balancer probes, deny everything inbound from the internet. Service tags (like VirtualNetwork or AzureLoadBalancer) name Azure-defined address groups so rules survive IP changes. Design rule sets top-down: specific allows first, broad denies last, defaults as the backstop.</p>
+          <h5>Application Security Groups for workload-based grouping</h5>
+          <p>Application security groups let you tag VM network interfaces by workload role — &quot;web-servers,&quot; &quot;db-servers&quot; — and write NSG rules against those labels instead of IP ranges. When a new web server joins, it inherits the right rules by joining the group.</p>
+          <p>This decouples security policy from addressing: the rule &quot;web-servers may reach db-servers on 1433&quot; stays correct as instances come and go. Use ASGs wherever NSG rules would otherwise hardcode IPs that autoscale will invalidate.</p>
+          <h5>VNet peering: transitive routing limits, gateway transit, cross-region peering</h5>
+          <p>VNet peering connects two virtual networks with low-latency private connectivity, as if they were one network. Peering is explicitly non-transitive: if A peers with B and B peers with C, A cannot reach C through B — each relationship must be peered directly.</p>
+          <p>Gateway transit is the controlled exception: a peered VNet can use the other VNet's VPN or ExpressRoute gateway to reach on-premises, when configured. Cross-region peering extends the same model across regions. Design hub-and-spoke topologies with these rules in mind: the hub peers with every spoke, and transit is granted deliberately.</p>
+          <h5>VPN gateway SKUs, site-to-site vs point-to-site, BGP basics</h5>
+          <p>A VPN gateway connects your VNet to on-premises over encrypted IPsec tunnels. Site-to-site connects whole networks (branch office to Azure); point-to-site connects individual clients (remote workers to Azure). Gateway SKUs set the throughput and feature ceiling — size by expected traffic, not by optimism.</p>
+          <p>BGP (Border Gateway Protocol) exchanges routes dynamically between Azure and on-premises, so new subnets propagate automatically instead of requiring static route updates on both sides. For anything beyond a single static tunnel, BGP is worth the small configuration cost.</p>
+          <h5>ExpressRoute: circuits, peering types (private, Microsoft), FastPath</h5>
+          <p>ExpressRoute is a private, dedicated connection from your network to Azure through a connectivity provider — not over the public internet, with more predictable latency and throughput than VPN. A circuit is the provisioned connection; peering types define what it carries: private peering reaches your VNets, Microsoft peering reaches Microsoft 365 and other public services.</p>
+          <p>FastPath sends traffic directly to VMs in the VNet, bypassing the gateway for lower latency. ExpressRoute costs significantly more than VPN and takes weeks to provision — choose it for sustained high-throughput or compliance-driven private connectivity, not for convenience.</p>
+          <h5>DNS: Azure-provided vs private DNS zones, split-horizon concepts</h5>
+          <p>Every VNet gets Azure-provided DNS for internal name resolution, but private DNS zones give you authoritative control: define your own zone (corp.internal) whose records resolve only inside linked VNets. This is how private endpoints and internal services get stable names.</p>
+          <p>Split-horizon DNS serves different answers inside and outside: the same name resolves to a private IP internally and a public IP externally. It is the standard pattern for services reachable from both the office/VNet and the internet.</p>
+          <h5>Load Balancer (L4) vs Application Gateway (L7/WAF) vs Front Door vs Traffic Manager</h5>
+          <p>Azure has four load-balancing answers at different layers. Load Balancer is layer 4 — TCP/UDP distribution within a region, with inbound NAT and outbound rules. Application Gateway is layer 7 — HTTP routing, TLS termination, and an optional web application firewall. Front Door is the global layer-7 front end with edge caching and instant failover across regions. Traffic Manager is DNS-based global routing.</p>
+          <p>Choose by need: regional TCP spreading wants Load Balancer; HTTP routing and WAF want Application Gateway; multi-region web with fast failover wants Front Door; non-HTTP global distribution wants Traffic Manager. Matching the scenario to the layer is the whole decision.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build two peered VNets with a web tier and DB tier; enforce DB access with an NSG allowing only the web subnet.</strong><br/>This is the classic three-tier network in miniature: peering for connectivity, NSG for segmentation. Test that the web tier reaches the database and that a jump host in a third subnet does not.</li>
+            <li><strong>Add a route table sending internet egress through a virtual appliance hop to observe UDR behavior.</strong><br/>User-defined routes override Azure's default system routes. Forcing egress through an appliance demonstrates how traffic steering works — and how a misconfigured route blackholes everything.</li>
+            <li><strong>Create a private DNS zone resolving a private endpoint hostname inside the VNet.</strong><br/>Link the zone to the VNet, add the record, and resolve it from a VM inside. The private name resolving to a private IP is the moment private DNS clicks.</li>
+            <li><strong>Stand up an internal Load Balancer across two VMs and verify session distribution.</strong><br/>Send traffic through the load balancer and confirm both backends serve requests. Then stop one backend and watch health probes pull it from rotation.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>In what order are NSG rules evaluated, and which default rule denies inbound internet traffic?</li>
+            <li>Why is VNet peering non-transitive, and how does gateway transit change the design?</li>
+            <li>Match four scenarios to Load Balancer, Application Gateway, Front Door, and Traffic Manager.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Monitoring and Alerting</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Build an Azure Monitor observability baseline: metrics, logs, and the Activity log.</li>
+            <li>Write KQL queries in Log Analytics to answer operational questions.</li>
+            <li>Configure alert rules with action groups and sensible thresholds to avoid alert fatigue.</li>
+            <li>Use Network Watcher tools to diagnose connectivity and packet flow.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Data platform: metrics (time-series) vs logs (Log Analytics workspaces)</h5>
+          <p>Azure Monitor collects two fundamentally different telemetry types. Metrics are numeric time series — CPU percent, request count, disk queue depth — cheap to store, fast to query, ideal for alerting on thresholds. Logs are rich semi-structured records — every request, every sign-in, every deployment event — stored in Log Analytics workspaces and queried with KQL.</p>
+          <p>The discipline: alert on metrics, investigate with logs. Metrics tell you something is wrong within seconds; logs tell you why within minutes. Sending everything to logs is expensive; sending nothing to logs leaves you blind during incidents.</p>
+          <h5>KQL essentials: where, project, summarize, joins, timechart</h5>
+          <p>The Kusto Query Language is the read path for all Azure logs. Its core verbs compose like a pipeline: where filters rows, project selects columns, summarize aggregates (count, avg, percentiles) by groups, join correlates tables, and render timechart turns a time-bucketed aggregation into a graph.</p>
+          <p>Learn KQL by answering real questions — &quot;which users failed sign-in most this week?&quot; — not by memorizing verbs. A working analyst's KQL is twenty verbs used fluently, and every investigation sharpens it.</p>
+          <h5>Alert anatomy: signal, condition, evaluation frequency, action groups, alert processing rules</h5>
+          <p>An alert rule names a signal (a metric or log query), a condition (threshold, operator, aggregation window), and an evaluation frequency (how often to check). When the condition holds, the rule fires into action groups — the notification and webhook targets — optionally shaped by alert processing rules that suppress or schedule notifications.</p>
+          <p>The failure modes are all here: thresholds without aggregation windows flap, evaluation frequencies slower than the incident miss it, and action groups that page everyone for everything train everyone to ignore pages. Design alerts like you design code: deliberately, and with tests.</p>
+          <h5>Diagnostic settings: routing platform logs to workspaces, storage, or event hubs</h5>
+          <p>Azure resources do not log verbosely by default; diagnostic settings decide where each resource's platform logs and metrics go — a Log Analytics workspace for analysis, a storage account for cheap long-term retention, an event hub for streaming to external SIEMs.</p>
+          <p>Enable diagnostics as part of provisioning, not after the first incident. The logs you need during an outage are the ones you configured last quarter.</p>
+          <h5>Activity log vs resource logs vs Entra sign-in logs</h5>
+          <p>Three log streams answer three questions. The Activity log records control-plane operations — who created, deleted, or modified what, and when. Resource logs (diagnostic logs) record data-plane behavior — what the service itself did. Entra sign-in logs record authentication events — who signed in, from where, with what result.</p>
+          <p>Incident triage starts by picking the right stream: &quot;who deleted the resource?&quot; is the Activity log; &quot;why is the app returning 500s?&quot; is resource logs; &quot;was this account compromised?&quot; is sign-in logs.</p>
+          <h5>Network Watcher: IP flow verify, connection troubleshoot, packet capture, NSG diagnostics</h5>
+          <p>Network Watcher is the packet-level truth for Azure networking. IP flow verify answers &quot;would this NSG rule allow this packet?&quot; without sending traffic. Connection troubleshoot tests end-to-end TCP connectivity and names the blocking hop. Packet capture grabs real packets from a VM for Wireshark-level analysis.</p>
+          <p>When connectivity fails, work this toolkit in order: verify the NSG decision, test the connection, capture the packets. Guessing at routing tables before checking the NSG verdict wastes the most time.</p>
+          <h5>Azure Service Health vs Resource Health</h5>
+          <p>Service Health reports Azure-wide issues — region outages, planned maintenance — that affect your services from the outside. Resource Health reports the health of your specific resources as Azure sees them — is this VM actually running, or has the platform flagged it?</p>
+          <p>During an incident, check both: Service Health tells you whether to wait for Microsoft, Resource Health tells you whether the problem is yours. Conflating them sends you debugging your configuration during a platform outage.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Enable diagnostics on a VM sending metrics to a Log Analytics workspace; write KQL for top CPU processes.</strong><br/>Wire the diagnostics, generate load, then write the query that ranks processes by CPU. The full loop — configure, generate, query — is the observability muscle.</li>
+            <li><strong>Create a metric alert on VM CPU &gt; 80% for 5 minutes wired to an email action group.</strong><br/>Set the threshold, the aggregation window, and the action group, then trigger it with load. Receiving the actual alert email closes the loop between configuration and reality.</li>
+            <li><strong>Query the Activity log in KQL for all write operations in the last 24 hours.</strong><br/>The Activity log answers &quot;what changed?&quot; — the first question in any configuration-drift investigation. Practice reading it before you need it.</li>
+            <li><strong>Use IP flow verify to confirm an NSG rule blocks a test flow, then fix the rule and re-verify.</strong><br/>Verify the block, edit the rule, verify the allow. The before-and-after proves both the tool and your understanding of rule evaluation.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Write a KQL query returning failed sign-in attempts grouped by user in the last 7 days.</li>
+            <li>What three components must an alert rule define to fire reliably without noise?</li>
+            <li>Which Network Watcher tool proves whether an NSG allowed or denied a specific packet?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Backup and Disaster Recovery</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design backup policies in a Recovery Services vault for VMs, file shares, and SQL workloads.</li>
+            <li>Perform file-level and full-VM restores and validate recovery points.</li>
+            <li>Explain Azure Site Recovery replication, failover, and failback concepts.</li>
+            <li>Harden vaults against ransomware: soft delete, immutable vaults, and private endpoints.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Recovery Services vault vs Backup vault; MARS agent vs VM extension approaches</h5>
+          <p>Backup configuration lives in vaults: the Recovery Services vault is the classic vault for Azure VMs, on-premises servers via the MARS agent, and file shares; the newer Backup vault serves newer workload types. The vault holds the policies, the recovery points, and the access controls.</p>
+          <p>For Azure VMs, backup runs through the VM backup extension — no agent to install. For on-premises machines, the MARS (Microsoft Azure Recovery Services) agent does the job. Know which path your workload takes, because troubleshooting starts there.</p>
+          <h5>Backup policy: frequency, retention ranges (daily/weekly/monthly/yearly), GFS rotation</h5>
+          <p>A backup policy states how often to back up and how long to keep each recovery point. The GFS (grandfather-father-son) rotation keeps daily points for days, weekly points for weeks, monthly points for months, and yearly points for years — recent granularity where you need it, long history where compliance demands it.</p>
+          <p>Design retention from requirements: RPO sets the frequency, compliance sets the long tail. The policy is a cost decision as much as a safety decision — every retained point has a storage bill.</p>
+          <h5>Recovery points: crash-consistent vs application-consistent (VSS)</h5>
+          <p>A crash-consistent recovery point captures the disks as if the power had been cut — the data is there, but in-flight application state may not be. An application-consistent point uses VSS (Volume Shadow Copy Service) to quiesce applications first, so databases and transaction logs are in a clean state.</p>
+          <p>For databases and transactional workloads, application-consistent points are what make restores trustworthy. Crash-consistent is fine for stateless tiers; never assume it is fine for a database.</p>
+          <h5>Restore options: original location, alternate location, file-level recovery</h5>
+          <p>Recovery is not one operation: full-VM restore to the original location rebuilds the machine in place; alternate-location restore builds a copy beside production for validation; file-level recovery mounts the recovery point and extracts individual files without restoring the whole VM.</p>
+          <p>Practice all three before you need them. The restore you have rehearsed is the restore that works at 3 AM; the restore you are reading about for the first time is a gamble.</p>
+          <h5>Site Recovery: replication policy, RPO thresholds, test failover vs planned failover</h5>
+          <p>Azure Site Recovery replicates VMs to a second region continuously, with a replication policy defining the recovery-point frequency and retention. When disaster strikes, failover brings the replicated VMs up in the secondary region; failback reverses the direction when the primary recovers.</p>
+          <p>A test failover spins up the replicated VMs in an isolated network to prove the plan works — without touching production. A planned failover is the real thing, with an expected brief downtime. Test failovers are how DR plans stay honest; run them on a schedule.</p>
+          <h5>Soft delete, security PIN, immutability, cross-region restore</h5>
+          <p>Backups are a ransomware target, so vaults harden themselves: soft delete retains deleted backup data for a retention period so malicious deletion is recoverable; immutability locks recovery points against any deletion or modification; cross-region restore keeps a usable copy outside the primary region's fate.</p>
+          <p>Enable all three for production vaults. A backup that an attacker can delete is not a backup — it is a false sense of security with a storage bill.</p>
+          <h5>Backup storage redundancy: LRS vs GRS vault storage</h5>
+          <p>The vault's own storage can be locally redundant (LRS — three copies in one datacenter) or geo-redundant (GRS — replicated to a paired region). GRS costs more and protects against regional disaster; LRS is cheaper and sufficient when the vault's region is not your disaster scenario.</p>
+          <p>Match the vault redundancy to the disaster you are planning for. If the plan is &quot;survive losing this region,&quot; the backups must live somewhere that survives it too.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Enable VM backup with a custom policy (daily + weekly retention); trigger an on-demand backup.</strong><br/>Configure the policy from your retention requirements, then trigger an immediate backup to prove the pipeline works before the first scheduled run.</li>
+            <li><strong>Delete a test file inside the VM, then perform a file-level restore from the recovery point.</strong><br/>The delete-then-restore loop is the smallest complete backup test. If file-level recovery works, the chain from policy to recovery point to restore is proven.</li>
+            <li><strong>Walk through a Site Recovery test failover plan for a single VM on paper, listing rollback steps.</strong><br/>Write the plan as a runbook: prerequisites, failover steps, validation checks, and the rollback path. Paper plans reveal gaps that clicking through a wizard hides.</li>
+            <li><strong>Enable soft delete on the vault and attempt to delete a backup item to observe protection.</strong><br/>Try to destroy a backup and watch the vault refuse or retain it. The protection is only real if you have tested the attack it defends against.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What distinguishes a crash-consistent recovery point from an application-consistent one?</li>
+            <li>Why run a test failover instead of a planned failover when validating a DR plan?</li>
+            <li>Which vault settings protect backups from malicious deletion?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Administration Tooling and Exam Execution</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Work fluently in Azure CLI, Azure PowerShell, and Cloud Shell for day-to-day administration.</li>
+            <li>Read and parameterize ARM templates and Bicep files for repeatable deployments.</li>
+            <li>Manage subscriptions, quotas, cost alerts, and support requests as an administrator.</li>
+            <li>Apply an exam-day strategy: lab-first pacing, process of elimination, and flag-and-return discipline.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>az vs Az modules: subscription context, --query JMESPath, idempotent scripting</h5>
+          <p>The Azure CLI (az) and Azure PowerShell (Az modules) are the two scripting interfaces, and fluency in at least one is non-negotiable. Both operate in a subscription context — set it explicitly per command or per session, because running against the wrong subscription is a classic and expensive mistake.</p>
+          <p>The CLI's --query flag filters JSON output with JMESPath, turning verbose responses into scriptable values. Write scripts idempotently — create-if-missing rather than blind create — so re-runs converge instead of erroring.</p>
+          <h5>Cloud Shell: storage persistence, environment variables, editor integration</h5>
+          <p>Cloud Shell is a browser-based shell with the CLI, PowerShell, and common tools preinstalled and pre-authenticated to your tenant. It persists files in an attached storage account across sessions, so scripts and history survive.</p>
+          <p>It is the fastest path to a working Azure shell from any machine — but it is also a shared, ephemeral-feeling environment, so treat anything important as code stored in a repo, not as files in the shell.</p>
+          <h5>ARM template structure: parameters, variables, resources, outputs; deployment modes</h5>
+          <p>ARM templates declare Azure infrastructure as JSON: parameters are the inputs, variables the computed values, resources the things to create, outputs the values to return. The template is the deployment's source of truth, reviewed and versioned like code.</p>
+          <p>Deployment modes matter: complete mode makes the resource group match the template exactly (deleting anything not declared — powerful and dangerous), while incremental mode only adds or updates. Know which mode you are in before you deploy.</p>
+          <h5>Bicep: modules, symbolic names, what-if deployments, decompiling ARM</h5>
+          <p>Bicep is the modern infrastructure-as-code language for Azure: cleaner syntax than ARM JSON, compiling down to ARM templates. Modules compose deployments from reusable files, symbolic names replace fragile string references between resources, and existing ARM JSON can be decompiled into Bicep as a migration path.</p>
+          <p>The what-if operation previews exactly what a deployment would create, modify, or delete — the mandatory review step before any production deployment. Bicep plus what-if is the professional deployment workflow.</p>
+          <h5>Cost Management: budgets, alerts, cost analysis scopes, tagging for chargeback</h5>
+          <p>Cost Management turns the metered bill into actionable data: budgets set spending thresholds with alert actions at percentages of the budget, cost analysis breaks spend down by scope — subscription, resource group, tag — and tagging makes chargeback to teams possible.</p>
+          <p>Set budget alerts on every subscription on day one, including lab subscriptions. The tagging standard from the governance module is what makes cost analysis meaningful — untagged resources are unattributable spend.</p>
+          <h5>Quotas, support plans, and service limit requests</h5>
+          <p>Every subscription has quotas — caps on vCPUs per region, public IPs, storage accounts — that gate how much you can deploy. Hitting a quota looks like a deployment failure, so check quotas before diagnosing anything else when provisioning fails at scale.</p>
+          <p>Quotas can be raised through support requests, and support plans define how fast Microsoft responds. Know your plan's response times before an incident, not during one.</p>
+          <h5>Exam mechanics: case studies, labs, review screens; time budgeting per question</h5>
+          <p>The AZ-104 exam mixes multiple-choice questions with case studies — multi-question scenarios built on a shared business background — and hands-on lab tasks in a live Azure environment. The review screen lets you flag questions and return to them, which is a strategic tool, not an afterthought.</p>
+          <p>The exam-day discipline: answer confidently-known questions first, flag the uncertain ones, and return with remaining time — never leave a question blank, since there is no penalty for wrong answers. Budget your time per question up front and check the clock at the halfway mark.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a 10-line bash script using az CLI that creates an RG, VNet, and VM idempotently.</strong><br/>Guard each creation step with an existence check so the script converges on re-run. Ten lines of idempotent scripting beats fifty lines of click-ops documentation.</li>
+            <li><strong>Author a Bicep file deploying a storage account and App Service plan; run what-if before deploying.</strong><br/>Write the Bicep, run what-if, read the preview carefully, then deploy. The what-if output is the change review — treat discrepancies as findings, not noise.</li>
+            <li><strong>Create a budget alert at 80% of a $50 monthly cap scoped to your lab subscription.</strong><br/>The alert is your financial circuit breaker. Scope it to the lab subscription so experiments cannot surprise you, and confirm the notification arrives.</li>
+            <li><strong>Do a timed 20-question drill: answer, flag uncertain items, return once — measure accuracy vs speed.</strong><br/>Simulate the exam rhythm on practice questions: first pass for confident answers, flagged items on return, clock awareness throughout. The drill trains pacing, which is half the exam.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does a Bicep what-if run tell you that a plain deployment does not?</li>
+            <li>How do you scope an az command to a specific subscription without changing global context?</li>
+            <li>What is your personal time budget per question for a 45-question exam session?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/">https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/entra/identity/">https://learn.microsoft.com/en-us/entra/identity/</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview">https://learn.microsoft.com/en-us/azure/role-based-access-control/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview">https://learn.microsoft.com/en-us/azure/governance/policy/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/governance/management-groups/overview">https://learn.microsoft.com/en-us/azure/governance/management-groups/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview">https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/overview">https://learn.microsoft.com/en-us/azure/virtual-machines/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview">https://learn.microsoft.com/en-us/azure/app-service/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/container-instances/container-instances-overview">https://learn.microsoft.com/en-us/azure/container-instances/container-instances-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/overview">https://learn.microsoft.com/en-us/azure/azure-monitor/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-overview">https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104">https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/courses/az-104t00">https://learn.microsoft.com/en-us/training/courses/az-104t00</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104">AZ-104 study guide (official)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/courses/az-104t00">AZ-104 instructor-led course outline</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

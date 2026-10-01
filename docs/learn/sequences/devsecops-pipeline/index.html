@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: never render blank/unstyled, even if stylesheets fail */html{background:#f7f4ee}body{background:#f7f4ee!important;color:#16130e!important;min-height:100dvh}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>DevSecOps Pipeline Engineering | Interstitium Labs</title>
+<meta name="description" content="An original study guide to DevSecOps pipeline engineering: Git workflows, GitHub Actions CI, container scanning, secrets management, admission control, software supply chain (SBOMs, SLSA, Sigstore), deployment safety, and a secure-pipeline capstone."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <img src="/assets/chrome/sigil-decor.webp" alt="" fetchpriority="high" decoding="async"/>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Software Delivery · Security</p>
+    <h1 class="il-h">DevSecOps Pipeline Engineering</h1>
+    <p class="il-hero__sub">Security as a property of the delivery system: branching, CI, image scanning, secrets, policy, supply chain, and safe deployment — assembled into one pipeline.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main>
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>DevSecOps is the proposition that security is not a gate at the end of delivery but a property of the delivery system itself. Every commit should pass through automated checks — tests, scans, policy, provenance — so that what reaches production is not just working code but attested, reviewed, signed code whose path is auditable.</p>
+        <p>This sequence builds that system piece by piece on GitHub Actions, the most widely used CI platform. You start with Git branching and pull-request workflows — the human process the pipeline protects. Then CI fundamentals: workflows, jobs, runners, caching, and token security. From there the security layers stack up: container image scanning, secrets management, Kubernetes admission control with policy as code, and the software supply chain — SBOMs, SLSA provenance, and Sigstore signing. Deployment safety covers environments, approvals, and rollback strategies, and the capstone assembles everything into one end-to-end pipeline you then attack, to prove the gates hold.</p>
+        <p>The official GitHub Actions documentation is the authoritative reference for syntax; this page teaches the architecture and the judgment calls — what to gate, where, and why.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Software engineers who own or contribute to CI/CD pipelines and want security built in, not bolted on.</li>
+          <li>Platform and DevOps engineers designing paved-road delivery for development teams.</li>
+          <li>Security engineers who need to understand the delivery system they are asked to protect.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Comfortable with Git (branch, merge, rebase) and basic YAML.</li>
+          <li>A GitHub account and a sample application repository to pipeline-ify.</li>
+          <li>Basic container literacy — what an image is — helpful from module 3 onward.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order; each security layer assumes the pipeline mechanics of the previous ones.</li>
+          <li>Build the pipeline incrementally on your sample repo: by the capstone you should have a real, working secure pipeline, not notes about one.</li>
+          <li>For every gate you add, attempt the bypass the module suggests. A gate you have never attacked is a gate you are assuming.</li>
+          <li>Verify workflow syntax against the official GitHub Actions docs — the platform evolves and this guide teaches patterns, not versioned syntax.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Git Branching and Pull Request Workflows</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Compare trunk-based development against gitflow and select a model per release cadence</li>
+            <li>Enforce protected branches with required reviews, status checks, and signed commits</li>
+            <li>Apply code-review hygiene: small diffs, checklists, and reviewer responsibilities</li>
+            <li>Design merge strategies (merge, squash, rebase) that keep history auditable</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Trunk-based development with short-lived feature branches</h5>
+          <p>Trunk-based development keeps one main branch always releasable; developers merge small, short-lived branches — hours to a couple of days — directly into it, behind feature flags when work is incomplete. Integration is continuous because branches never live long enough to diverge painfully.</p>
+          <p>The discipline it demands is real: small diffs, comprehensive automated tests, and flags instead of long-lived branches. The payoff is that &quot;merge hell&quot; disappears and the pipeline, not a release manager, becomes the integration point.</p>
+          <h5>Gitflow branches, release branches, and hotfix flow</h5>
+          <p>Gitflow formalizes branches by purpose: develop for integration, feature branches for work, release branches for stabilization, main for production, hotfix branches for urgent production fixes. It suits scheduled releases with stabilization windows — mobile apps, enterprise software.</p>
+          <p>The cost is merge complexity and stale branches; the benefit is explicit release management. Choose gitflow when your release cadence needs stabilization branches; otherwise trunk-based is simpler and the industry default for continuous delivery.</p>
+          <h5>Branch protection rules: required reviews, dismissals, code-owner review</h5>
+          <p>Branch protection makes the main branch unpushable directly: changes arrive only via pull request, with required approving reviews, dismissal of stale approvals when new commits land, and mandatory review from code owners for sensitive paths.</p>
+          <p>These rules are the pipeline's human layer — automation cannot review design judgment. Require reviews proportionally to blast radius: infrastructure and security paths deserve code-owner gates.</p>
+          <h5>Required status checks blocking merge until CI passes</h5>
+          <p>Status checks wire CI results into the merge decision: the pull request cannot merge until the named checks — tests, lint, security scans — report success. A failing check is a hard block, not a suggestion.</p>
+          <p>This is what makes &quot;CI is informational&quot; versus &quot;CI is a gate&quot; a real distinction. Required checks turn the pipeline from a dashboard into a door, and the door only opens for green builds.</p>
+          <h5>Linear history vs merge commits and their audit tradeoffs</h5>
+          <p>Linear history (squash or rebase merges) keeps main as a straight line of discrete changes — easy to bisect, easy to read, easy to revert. Merge commits preserve the true branch topology, showing exactly what was developed together.</p>
+          <p>For audit, linear history wins on readability: each commit is one reviewed unit with one message. Merge commits win on fidelity. Most teams choose squash-merge for feature work (clean log) and keep merge commits for release branches (true history).</p>
+          <h5>Conventional commits and semantic release automation</h5>
+          <p>Conventional commits structure messages as type(scope): description — feat, fix, chore — which machines can parse. Semantic-release tooling reads those types to compute version numbers and generate changelogs automatically.</p>
+          <p>The value is automation you can trust: version bumps and release notes derived from commit history, not from someone remembering to write them. It requires commit-message discipline, enforced by linting in CI.</p>
+          <h5>CODEOWNERS routing for domain-expert review</h5>
+          <p>A CODEOWNERS file maps paths to the people or teams who must review changes there: security-sensitive directories route to the security team, infrastructure to platform. Combined with required code-owner review, it guarantees domain experts see risky changes.</p>
+          <p>Keep CODEOWNERS current — stale ownership routes reviews to people who left, which trains everyone to rubber-stamp. Ownership files are organizational truth; treat them as maintained documentation.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Initialize a repo, enable branch protection on main requiring one review and passing checks, and attempt a direct push to observe the denial</strong><br/>The denial is the lesson: protection rules are real enforcement, not documentation. Attempting the forbidden push teaches what the rule actually blocks.</li>
+            <li><strong>Run the same change through trunk-based (short branch, fast merge) and gitflow (develop/release) models and compare conflict surfaces</strong><br/>Implement one feature both ways and note where each model creates friction. The comparison teaches when each model earns its complexity.</li>
+            <li><strong>Add a CODEOWNERS file routing security-sensitive paths to a second reviewer and test with a PR touching those paths</strong><br/>Open a PR touching a guarded path and confirm the required reviewer appears. Ownership routing working visibly is worth more than reading the docs.</li>
+            <li><strong>Configure squash-merge with PR title linting and inspect the resulting linear history with git log --graph</strong><br/>Merge several PRs and read the resulting log: one commit per PR, messages linted. The clean graph is the artifact trunk-based teams live in.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>List the three conditions your branch protection rule requires before main accepts a merge</li>
+            <li>Explain when a release branch is justified over deploying straight from trunk</li>
+            <li>Identify which merge strategy preserves per-commit authorship for audit and why</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">CI with GitHub Actions: Workflows, Jobs, Runners</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Author workflows with triggers, jobs, steps, and dependency ordering from scratch</li>
+            <li>Choose between GitHub-hosted and self-hosted runners and harden runner configuration</li>
+            <li>Accelerate builds with dependency caching and matrix strategies</li>
+            <li>Secure workflows against injection via pinned actions and least-privilege tokens</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Workflow syntax: events, jobs, steps, needs, and conditional execution</h5>
+          <p>A workflow is YAML in .github/workflows: events (push, pull_request, schedule) trigger it; jobs are the parallel units of work; steps are the sequential commands within a job; needs declares job dependencies so tests run before deploys; if conditions gate steps on context.</p>
+          <p>This vocabulary is the whole mental model: events start, jobs parallelize, steps sequence, needs orders, conditions branch. Every workflow you will ever read is composed from these five ideas.</p>
+          <h5>Runner types: hosted labels, self-hosted registration, runner groups</h5>
+          <p>GitHub-hosted runners are ephemeral VMs per job — zero maintenance, billed per minute, with standard labels like ubuntu-latest. Self-hosted runners are your own machines registered to the repo or org — needed for special hardware, private networks, or cost control.</p>
+          <p>Runner groups manage pools of self-hosted runners with access policies. The security tradeoff is real: self-hosted runners that execute untrusted fork PRs can be compromised, so isolate them and never let them touch production credentials.</p>
+          <h5>Matrix builds across OS, language, and architecture axes</h5>
+          <p>A matrix strategy fans one job definition out across axes — operating systems, language versions, architectures — running each combination as a separate job. One workflow definition tests twelve configurations.</p>
+          <p>Matrices are how you prove portability, but they multiply minutes and failure surface. Include fail-fast decisions deliberately: stop everything on first failure for fast feedback, or run all combinations to map the full failure space.</p>
+          <h5>Caching dependencies vs artifacts vs Docker layer caching</h5>
+          <p>Caching stores reusable data between runs: dependency caches (npm, pip, Maven) skip downloads; artifacts pass files between jobs in one run; Docker layer caching reuses image layers across builds. Each has different scope, lifetime, and invalidation semantics.</p>
+          <p>Cache poisoning is the security consideration: a cache written by an untrusted run and read by a trusted one is a supply-chain vector. Scope caches narrowly and understand whose runs can write to the caches your deploys read.</p>
+          <h5>GITHUB_TOKEN permissions scoping and OIDC workload identity</h5>
+          <p>Every workflow gets a GITHUB_TOKEN, and its default permissions have historically been broad. Scope it explicitly per workflow or per job — contents: read for most CI, and nothing more unless proven necessary. An over-permissioned token in a compromised workflow is a repository-takeover vector.</p>
+          <p>For cloud access, prefer OIDC workload identity federation: the workflow mints short-lived cloud credentials from its GitHub identity, with no stored secrets at all. No static cloud keys means no static cloud keys to leak.</p>
+          <h5>Pinning actions to full commit SHAs to prevent supply-chain drift</h5>
+          <p>Third-party actions referenced by tag (actions/checkout@v4) resolve to whatever the tag points to today — tags are mutable, and a compromised or updated action changes your pipeline silently. Pinning to the full commit SHA freezes the exact code you reviewed.</p>
+          <p>SHA pinning plus automated update proposals (Dependabot/Renovate) gives you both stability and freshness: updates arrive as reviewed PRs, not silent drift. Treat action versions like dependency versions.</p>
+          <h5>Reusable workflows and composite actions for DRY pipelines</h5>
+          <p>Reusable workflows let one repository define a called workflow others invoke — the organization's standard secure pipeline as a callable unit. Composite actions bundle steps for reuse within workflows.</p>
+          <p>Standardization is a security strategy: when every team's pipeline is the blessed reusable workflow, every team gets the scanning, signing, and gating you built once. DRY pipelines are how DevSecOps scales beyond one team.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a workflow that lints, tests, and builds on push and PR, with jobs ordered via needs and a failing job blocking dependents</strong><br/>The needs chain is the pipeline skeleton: lint and test in parallel, build after both, deploy after build. Breaking the test job on purpose shows the dependents correctly refusing to run.</li>
+            <li><strong>Add a 3-axis matrix (two OSes, two runtimes) and measure wall-clock time with and without dependency caching enabled</strong><br/>Run the matrix twice and compare durations. The cache delta is usually dramatic — and measuring it teaches you what caching is actually worth before you cargo-cult it everywhere.</li>
+            <li><strong>Restrict GITHUB_TOKEN to read-only permissions and convert a workflow to OIDC-based cloud authentication with no stored credentials</strong><br/>Lock the token down, then replace a stored cloud secret with OIDC federation. Deleting the static key afterward is the satisfying part — the secret no longer exists to leak.</li>
+            <li><strong>Pin every third-party action in a workflow to a full SHA and enable Dependabot or Renovate to propose SHA updates</strong><br/>Resolve each action tag to its SHA, commit, and watch the update bot open PRs on new releases. The pipeline now updates through review, not drift.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Write the minimal YAML for a job that runs only on pull_request targeting main</li>
+            <li>Name two concrete risks of an overly permissive GITHUB_TOKEN in a fork-PR context</li>
+            <li>Explain why pinning to a major-version tag is weaker than pinning to a commit SHA</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Container Image Scanning and Base-Image Hygiene</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how vulnerability scanners match image layers against CVE feeds</li>
+            <li>Interpret scan severity output and set fail-on thresholds in CI gates</li>
+            <li>Reduce attack surface with minimal base images and multi-stage builds</li>
+            <li>Establish a base-image refresh cadence tied to upstream patch releases</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Layer-based scanning: package inventory vs CVE databases</h5>
+          <p>Image scanners unpack each layer, inventory the installed packages and versions, and match them against vulnerability databases (CVE feeds). A finding means &quot;this package version has a known vulnerability&quot; — it is a database join, not a penetration test.</p>
+          <p>Understand what the scanner cannot know: whether the vulnerable code path is reachable in your application, or whether the finding is a false positive from backported patches. Scanning finds candidates; triage decides what matters.</p>
+          <h5>Severity ratings, CVSS, and exploitability vs theoretical risk</h5>
+          <p>Findings carry severity ratings derived from CVSS scores — but CVSS measures the vulnerability's intrinsic properties, not your exposure. A critical CVE in a library function your application never calls is theoretical risk; a medium CVE in your internet-facing parser with a public exploit is the real fire.</p>
+          <p>Gate policies on severity as a starting point, but let exploitability — public exploit available, reachable code path, exposed service — drive actual prioritization. Severity is the sort key; exploitability is the decision.</p>
+          <h5>Distroless, slim, and Alpine base images and their tradeoffs</h5>
+          <p>Minimal bases shrink attack surface: distroless images contain only the application and its runtime — no shell, no package manager; slim variants trim the distribution; Alpine uses musl libc for tiny footprints. Fewer packages means fewer CVEs to triage.</p>
+          <p>The tradeoff is debuggability: no shell in the image means you cannot exec in to investigate. Choose distroless for stable production services, debuggable slim bases where you still need a shell, and measure the CVE delta — it is usually dramatic.</p>
+          <h5>Multi-stage builds separating build-time tooling from runtime</h5>
+          <p>Multi-stage Dockerfiles use one stage with the full toolchain to compile and a final stage that copies only the built artifact into a minimal base. Compilers, headers, and build caches never reach the production image.</p>
+          <p>This single pattern eliminates entire classes of findings: the CVEs were in the build tooling, and the build tooling is not shipped. If your production image contains gcc, the Dockerfile needs another stage.</p>
+          <h5>Fail-on-severity gates in the build pipeline</h5>
+          <p>The scanner runs in CI with a threshold: findings at or above the severity fail the build. The gate turns scanning from a report nobody reads into a door nobody bypasses — vulnerable images simply do not get built.</p>
+          <p>Set the threshold deliberately: blocking on critical is uncontroversial; blocking on low creates noise that trains developers to bypass the gate. Pair the gate with an exception workflow so legitimate false positives have a path that is not &quot;disable the scanner.&quot;</p>
+          <h5>Rebuild-on-base-update triggers vs patching in place</h5>
+          <p>When the base image patches a CVE, you rebuild your image from the new base — you do not patch the running container. Containers are immutable artifacts; the fix flows through the Dockerfile and the pipeline, producing a new image version.</p>
+          <p>Automate the trigger: watch base images for updates and rebuild on change. &quot;Patching in place&quot; on a running container is configuration drift with extra steps, and it evaporates on the next redeploy.</p>
+          <h5>False positives and vulnerability exception workflows</h5>
+          <p>Scanners misfire: backported security patches that keep the vulnerable version number, CVEs in code paths you do not ship, findings on test dependencies. An exception workflow records these with justification and expiry — accepted risk, documented, time-boxed.</p>
+          <p>Exceptions must expire. A permanent exception is a finding you agreed to forget; a 90-day exception with a named owner is risk management. Review the exception list on a cadence like any other risk register.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build two images of the same app — one from a full distro base, one distroless multi-stage — and compare layer counts and scan findings</strong><br/>Scan both and put the reports side by side. The finding-count delta is the most persuasive argument for minimal bases you will ever encounter.</li>
+            <li><strong>Wire a scanner into CI so a HIGH-or-above finding fails the build, then fix by upgrading one dependency and re-scan</strong><br/>Introduce a vulnerable dependency, watch the build fail, upgrade it, watch the build pass. The red-to-green loop is the gate working as designed.</li>
+            <li><strong>Rebuild the image after a base-image tag update and confirm the CVE count delta in the new scan report</strong><br/>Update the base tag, rebuild, re-scan, and diff the reports. The fixed findings disappearing is the rebuild-on-update workflow proven end to end.</li>
+            <li><strong>Document one false-positive finding and implement an allowlist/exception entry with expiry and justification</strong><br/>Find a genuine false positive in your scan, write the justification, set an expiry, and add the exception. Practicing the exception path keeps it from becoming the bypass path.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Describe what a scanner actually compares to produce a CVE finding on an image</li>
+            <li>Justify a fail-on threshold policy that blocks CRITICAL but allows LOW with tracking</li>
+            <li>Explain why multi-stage builds shrink both image size and vulnerability surface</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Secrets Management in Pipelines</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Keep secrets out of images, logs, and version control using dedicated secret stores</li>
+            <li>Implement rotation for CI credentials with zero-downtime cutover</li>
+            <li>Mask and redact secrets in pipeline output by default</li>
+            <li>Detect and remediate secrets already committed to history</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Secret stores and dynamic short-lived credentials vs static tokens</h5>
+          <p>Secrets belong in a dedicated secret store — a vault service, a cloud secret manager — not in repositories, images, or CI configuration. The modern pattern goes further: dynamic credentials minted per run with minutes-long lifetimes, so there is no long-lived token to steal at all.</p>
+          <p>Static tokens are a liability inventory: every one must be rotated, scoped, and monitored. Each static secret you replace with a dynamic credential is one fewer secret that can leak.</p>
+          <h5>OIDC federation: CI jobs minting cloud credentials without stored keys</h5>
+          <p>With OIDC federation, the CI platform (GitHub Actions) presents a signed identity token to the cloud provider, which mints short-lived credentials for that specific workflow run. No access keys are stored in CI secrets; the trust relationship is configured once on the cloud side.</p>
+          <p>This eliminates the entire class of &quot;leaked cloud key&quot; incidents for CI. The credential exists for minutes, scoped to the role the workflow needs — theft buys the attacker almost nothing.</p>
+          <h5>Log masking, redaction, and why echo debugging leaks credentials</h5>
+          <p>CI platforms mask known secret values in logs, replacing them with asterisks — but only values registered as secrets, and only exact matches. The classic leak is echo-debugging: printing a token to diagnose a failure, which lands the plaintext in the log forever.</p>
+          <p>Treat pipeline logs as a secret-handling surface: never print secrets, prefer masked debug output, and remember that anyone with log access effectively has the secrets the logs contain.</p>
+          <h5>Build-time secrets (BuildKit secret mounts) vs baked-in ENV layers</h5>
+          <p>Builds sometimes need secrets — private package registry credentials, signing keys. BuildKit secret mounts expose the secret to a single RUN step without persisting it in any layer; baked-in ARG or ENV values persist in image history forever, retrievable by anyone with the image.</p>
+          <p>The rule is absolute: secrets never become layers. If docker history or an image inspection can reveal it, it is compromised — even if a later layer &quot;deletes&quot; it, because layers are additive and history is readable.</p>
+          <h5>Rotation schedules, versioned secrets, and dual-active cutover</h5>
+          <p>Rotation replaces a credential on a schedule or on suspicion of compromise. The safe pattern is dual-active cutover: issue the new credential, deploy it alongside the old, verify, then revoke the old — so there is never a moment where nothing works.</p>
+          <p>Schedule rotations for the credentials that matter and rehearse the emergency rotation for the rest. A rotation procedure tested only during an incident is a procedure that will fail during an incident.</p>
+          <h5>Pre-commit hooks and push-time secret scanning</h5>
+          <p>Secret scanning at commit time (pre-commit hooks) and push time (platform scanning) catches credentials before they enter history. Prevention beats remediation by orders of magnitude: a secret caught pre-commit is a five-second fix.</p>
+          <p>Layer both: hooks for the developer's machine, platform scanning as the backstop. Neither is perfect — determined or obfuscated secrets slip through — which is why rotation and short lifetimes matter too.</p>
+          <h5>History rewriting tradeoffs when a secret is already committed</h5>
+          <p>Once a secret reaches shared history, assume it is compromised: revoke it first, then decide about history. Rewriting history (filter-repo) removes the secret from the current branch but not from forks, clones, or caches — and it disrupts every collaborator.</p>
+          <p>The priority order is fixed: revoke, rotate, then consider history surgery. Teams that rewrite history before revoking have fixed the cosmetic problem while the real one — the live credential — remains exploitable.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Refactor a workflow that echoes a token for debugging into one using masked secrets and verify the log shows redaction markers</strong><br/>Find the echo, remove it, use the secret properly, and confirm the log shows asterisks. The before-and-after log diff teaches the discipline permanently.</li>
+            <li><strong>Build a Docker image using a BuildKit secret mount and prove via image history inspection that the secret is absent from layers</strong><br/>Mount the secret at build time, then inspect every layer and the image history for the value. Its absence is the test — and contrast with an ARG version that leaks.</li>
+            <li><strong>Configure OIDC trust between a CI job and a cloud provider and delete the previously stored static access key</strong><br/>Set up the federation, migrate the workflow, verify it works, then delete the static key. The deletion is the point: the secret no longer exists.</li>
+            <li><strong>Plant a dummy secret, detect it with a pre-commit scanner, then practice rotation: issue new credential, dual-run, revoke old</strong><br/>Run the full lifecycle on a harmless dummy: detection, dual-active rotation, revocation. Rehearsed on dummies, reliable on real incidents.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain why ARG values can leak into image history while secret mounts do not</li>
+            <li>List the steps of a safe rotation when a CI deploy key is suspected compromised</li>
+            <li>State what to do — beyond revoking — when a secret reaches a public git history</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Admission Control and Policy as Code</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe how admission webhooks intercept Kubernetes object creation</li>
+            <li>Write OPA/Rego policies constraining images, resources, and security contexts</li>
+            <li>Deploy Gatekeeper constraints and audit existing clusters for violations</li>
+            <li>Structure policy libraries with versioning, testing, and CI enforcement</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Validating vs mutating admission webhooks in the API request lifecycle</h5>
+          <p>In Kubernetes, admission webhooks intercept object creation after authentication and authorization but before persistence. Validating webhooks approve or reject the request; mutating webhooks can modify it — injecting sidecars, setting defaults, adding labels.</p>
+          <p>Admission control is the cluster's last checkpoint: even a compromised CI pipeline or a kubectl command from a laptop must pass it. It is the control that does not depend on the requester behaving well.</p>
+          <h5>OPA as a general policy engine; Rego as its declarative language</h5>
+          <p>Open Policy Agent (OPA) is a general-purpose policy engine: you write rules in Rego, a declarative query language, and OPA evaluates them against JSON input — Kubernetes objects, Terraform plans, API requests. One policy language across many systems.</p>
+          <p>Rego reads like &quot;deny this when these conditions hold,&quot; which maps directly onto guardrails. Policies become versioned, tested code rather than tribal knowledge in a wiki.</p>
+          <h5>Gatekeeper: ConstraintTemplates, Constraints, and audit mode</h5>
+          <p>Gatekeeper brings OPA to Kubernetes admission: a ConstraintTemplate defines a policy type in Rego (e.g., &quot;images must come from approved registries&quot;), and Constraints instantiate it with parameters for specific scopes. The template is the rule shape; constraints are the rule instances.</p>
+          <p>Constraints can run in enforce mode (violations rejected) or audit mode (violations logged but admitted). New policies always start in audit: you discover what would break before you break it.</p>
+          <h5>Common guardrails: allowed registries, required labels, runAsNonRoot, readOnlyRootFilesystem</h5>
+          <p>The standard starter set: images only from approved registries (no random Docker Hub pulls in production), required labels for ownership and cost tracking, runAsNonRoot so containers do not run as root, readOnlyRootFilesystem so compromised processes cannot write to the image.</p>
+          <p>Each guardrail closes a real incident class. Together they encode &quot;production-ready&quot; as executable policy rather than checklist folklore.</p>
+          <h5>Deny-by-default vs warn/audit rollout for new policies</h5>
+          <p>Rolling a new constraint straight into deny mode breaks whatever was already violating it — often including system workloads you forgot. The rollout is: audit mode first, triage the violation list into fix-now versus exempt, then enforce.</p>
+          <p>Deny-by-default is the destination for mature policies, not the starting line. The audit phase is where you learn what your cluster actually contains, which is invariably surprising.</p>
+          <h5>Policy unit testing with opa test before cluster deployment</h5>
+          <p>Rego policies are code, so they get tests: opa test runs fixture-based unit tests asserting that given inputs produce the expected allow/deny decisions. Policies ship to the cluster only after their tests pass — in CI, like everything else.</p>
+          <p>Untested policy is a production incident waiting for a deploy. The test fixtures also document intent: &quot;this input must be denied because...&quot; is executable specification.</p>
+          <h5>Exemptions and namespaces scoping to avoid breaking system workloads</h5>
+          <p>System namespaces (kube-system and friends) need exemptions — the platform's own components predate your policies and cannot always comply. Scope constraints to workload namespaces and maintain an explicit, reviewed exemption list.</p>
+          <p>Every exemption is accepted risk with a name on it. Review exemptions on a cadence; exemptions that outlive their reason become holes.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Install Gatekeeper on a local cluster and apply a constraint requiring images from an approved registry; attempt a violating deploy and read the denial</strong><br/>Deploy something from a disallowed registry and read the admission denial. The denial message is the policy speaking — make sure it speaks clearly enough for a developer to act on.</li>
+            <li><strong>Write a Rego rule enforcing readOnlyRootFilesystem and non-root users, test it with opa test fixtures, then deploy as a ConstraintTemplate</strong><br/>Write the rule, write the tests, watch them pass, then deploy. The full policy-development loop, from editor to cluster, in one exercise.</li>
+            <li><strong>Run Gatekeeper in audit mode over an existing namespace and triage the violation list into fix-now vs exempt</strong><br/>Point audit mode at a real namespace and work the violation list. The triage decisions — fix, exempt, or rewrite the policy — are the actual job of policy ownership.</li>
+            <li><strong>Build a CI job that runs opa test and conftest against Kubernetes manifests on every PR before cluster admission ever sees them</strong><br/>Shift the policy left: manifests are checked in the PR, so violations never reach the cluster. Admission control becomes the backstop, not the first check.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Sketch the request path from kubectl apply to admission webhook decision</li>
+            <li>Explain why audit mode precedes enforce mode when rolling out a new constraint</li>
+            <li>Write the Rego logic, in plain words, that denies pods missing a resource limit</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Software Supply Chain: SBOMs, Provenance, Signing</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Generate SBOMs in SPDX and CycloneDX formats at build time</li>
+            <li>Explain SLSA provenance: what it attests and what it does not prove</li>
+            <li>Sign artifacts and container images and verify signatures before deploy</li>
+            <li>Use SBOMs to answer 'where is this vulnerable dependency running?'</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>SBOM formats: SPDX vs CycloneDX fields and use cases</h5>
+          <p>A software bill of materials (SBOM) lists every component in a built artifact — libraries, versions, licenses, suppliers. SPDX (an ISO standard) and CycloneDX (OWASP-originated) are the two dominant formats; both describe the same inventory with different field emphasis and tooling ecosystems.</p>
+          <p>Generate SBOMs at build time, when the dependency set is known exactly — reconstructing them later from a deployed artifact is forensics, not inventory. The SBOM is the answer to &quot;what is in this thing?&quot; asked at 2 AM during a zero-day.</p>
+          <h5>NTIA minimum elements for a usable SBOM</h5>
+          <p>The US NTIA defined minimum elements that make an SBOM actually usable: supplier name, component name, version, unique identifiers, dependency relationships, SBOM author, and timestamp. An SBOM missing these is a parts list without the parts that matter.</p>
+          <p>When evaluating vendor SBOMs, check for these elements first. A vendor SBOM without dependency relationships cannot answer &quot;is this vulnerable component reachable?&quot; — which is the question you will actually ask.</p>
+          <h5>Provenance attestation: builder identity, source, and build parameters</h5>
+          <p>Provenance is a signed statement about how an artifact was built: who built it (builder identity), from what source (repository and commit), with what parameters. It attests to the build's inputs and process — the artifact's birth certificate.</p>
+          <p>Provenance answers &quot;where did this come from and how?&quot; It does not prove the source code was secure or correct — a faithfully built artifact of vulnerable code has perfect provenance. Know what attestation proves and what it cannot.</p>
+          <h5>SLSA levels as a maturity ladder for build integrity</h5>
+          <p>SLSA (Supply-chain Levels for Software Artifacts) grades build integrity from level 1 (documented build process) through level 4 (hermetic, reproducible, two-party-reviewed builds). Each level adds tamper-resistance to the path from source to artifact.</p>
+          <p>Use SLSA as a roadmap, not a badge: level 2 (hosted builds with provenance) is achievable for most teams via GitHub Actions; level 3+ demands hermetic builders. Climb deliberately, starting where your threat model says it matters.</p>
+          <h5>Keyless signing with Sigstore: Fulcio, Rekor, and OIDC identity</h5>
+          <p>Sigstore signs artifacts without long-lived keys: Fulcio issues short-lived certificates bound to the signer's OIDC identity (their GitHub or Google identity), the signature goes on the artifact, and Rekor — a transparency log — records the signing event publicly.</p>
+          <p>Keyless signing removes key management, the historically hardest part of signing, and the transparency log makes signatures auditable. Verify signatures at the deploy gate: only signed artifacts proceed.</p>
+          <h5>Verification policy: admit only signed artifacts in the deploy gate</h5>
+          <p>Signing is pointless without verification. The deploy gate checks every artifact's signature (and provenance) before it reaches production — unsigned or badly-signed artifacts are rejected regardless of what CI said.</p>
+          <p>This closes the loop: the pipeline signs, the gate verifies, and an attacker who compromises artifact storage but cannot sign gets nothing deployed. Verification is the control; signing is just its prerequisite.</p>
+          <h5>Dependency inventory queries joining SBOMs to CVE feeds</h5>
+          <p>With SBOMs for every deployed image, a new CVE becomes a database query: which images contain this component at a vulnerable version, and where are they running? The answer arrives in minutes instead of after a week of asking teams.</p>
+          <p>This is the operational payoff of the whole supply-chain investment. Build the inventory before the zero-day, because during the zero-day there is no time to build it.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Generate an SBOM for a built image in both SPDX and CycloneDX formats and diff their coverage of the same dependency set</strong><br/>Generate both formats from one build and compare: same components, different field emphasis. The diff teaches what each format considers important.</li>
+            <li><strong>Emit SLSA-style provenance from a GitHub Actions build and inspect the attestation payload fields</strong><br/>Build with provenance enabled and read the attestation: builder, source, materials. The payload is the birth certificate — read it like one.</li>
+            <li><strong>Sign a container image with keyless Sigstore signing, then configure a verification step that rejects an unsigned rebuild</strong><br/>Sign the image, verify it, then try to deploy an unsigned rebuild and watch the gate reject it. The rejection is the control working.</li>
+            <li><strong>Simulate a CVE in a transitive dependency: query your SBOM inventory to list every image containing it</strong><br/>Pick a component, pretend it has a critical CVE, and query the inventory for affected images. The speed of the answer is the point of the exercise.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Name the three NTIA minimum SBOM elements you would check first in a vendor SBOM</li>
+            <li>Explain what provenance proves about an artifact and one thing it cannot prove</li>
+            <li>Describe the verification failure mode when an image is rebuilt but not re-signed</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Deployment Safety: Environments, Approvals, Rollback</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Model environment progression (dev, staging, production) with promotion gates</li>
+            <li>Require human approvals and separation of duties for production deploys</li>
+            <li>Implement automated rollback on failed health checks and failed canaries</li>
+            <li>Compare blue-green, canary, and rolling strategies on blast-radius terms</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Environment-scoped secrets, variables, and protection rules</h5>
+          <p>Environments (dev, staging, production) scope configuration: each has its own secrets and variables, so the production database password exists only in the production environment. Protection rules — required reviewers, wait timers — attach to environments, escalating friction with blast radius.</p>
+          <p>The progression dev to staging to production is a trust gradient: automation moves fast in dev, humans approve in production. Environment scoping is what makes &quot;the same pipeline, different safety&quot; possible.</p>
+          <h5>Required reviewers and wait timers on production deployments</h5>
+          <p>Production deployments require human approval from designated reviewers — a second pair of eyes on the exact artifact, its test results, and its change record. Wait timers add a mandatory pause, a cooling-off period for last-minute objections.</p>
+          <p>Approvals are not bureaucracy; they are the point where accountability is explicit. The approver should verify the artifact identity (digest, not tag), the provenance, and the rollback plan — then own the decision.</p>
+          <h5>Deployment strategies: rolling, blue-green, canary, and their failure modes</h5>
+          <p>Rolling updates replace instances gradually — simple, but a bad version poisons the fleet progressively. Blue-green runs two full environments and flips traffic at once — instant rollback by flipping back, at double the resource cost. Canary shifts a small traffic percentage to the new version first, watching metrics before proceeding.</p>
+          <p>Choose by blast radius and cost: canary for user-facing services where gradual exposure matters, blue-green where instant rollback matters most, rolling where simplicity wins. Every strategy needs its failure mode rehearsed, not just its happy path.</p>
+          <h5>Health checks, smoke tests, and automated rollback triggers</h5>
+          <p>Health checks (does the new version respond correctly?) and smoke tests (does the critical path work?) run automatically after deployment; failure triggers rollback without human intervention. The rollback target is the previous known-good version, and the trigger thresholds are defined in advance.</p>
+          <p>Automated rollback is the safety net under every deployment strategy. Define &quot;unhealthy&quot; precisely — error rate, latency percentile, failed checks — because a rollback trigger you cannot articulate is a rollback that fires on noise.</p>
+          <h5>Feature flags decoupling deploy from release</h5>
+          <p>Feature flags separate deploying code from releasing it: the code ships to production inert, and the flag activates it — for a percentage of users, a segment, or everyone. Rollback becomes flipping a flag, not redeploying.</p>
+          <p>Flags turn releases into experiments and incidents into toggles. The discipline they require is flag hygiene: remove dead flags, because a codebase full of stale conditionals is technical debt with runtime consequences.</p>
+          <h5>Immutable artifacts promoted unchanged between environments</h5>
+          <p>The artifact tested in staging must be bit-identical to the artifact deployed in production — promoted by digest, never rebuilt per environment. Rebuilding per environment invalidates everything the pipeline proved: the scan, the tests, the signature all attested to a different artifact.</p>
+          <p>Immutable promotion is the integrity chain made operational. Configuration varies per environment (via environment-scoped variables); the artifact does not.</p>
+          <h5>Deployment windows, freeze calendars, and emergency break-glass paths</h5>
+          <p>Deployment windows define when changes may go out; freeze calendars (holidays, peak events) define when they may not. These are organizational controls on change risk, and they work only if they are respected uniformly.</p>
+          <p>Break-glass paths exist for genuine emergencies: a documented, audited way to bypass the normal gates when production is down. Break-glass without audit is just a backdoor; with audit — who, when, why, reviewed after — it is a safety valve.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Configure three GitHub environments with escalating protection: dev auto-deploys, staging needs CI green, production needs a human approver</strong><br/>Build the trust gradient for real: watch a push flow untouched to dev, pause for CI at staging, and wait for your own approval at production. The escalating friction is the design.</li>
+            <li><strong>Deploy a canary release shifting 10% of traffic, inject a failing health check, and observe automatic rollback to the stable version</strong><br/>Break the canary deliberately and watch the system detect it and roll back. Automated rollback you have witnessed is a control you trust.</li>
+            <li><strong>Promote one immutable image digest through dev to staging to production without rebuilding, verifying digest equality at each step</strong><br/>Record the digest at build time and verify it is identical at every promotion. The equality check is the integrity chain, verified by hand.</li>
+            <li><strong>Write a runbook for a failed production deploy: detection signal, rollback command, verification query, and post-incident capture</strong><br/>Write the runbook before you need it: how you detect, the exact rollback command, how you verify recovery, and what gets captured for the post-incident review. Runbooks are written calmly or not at all.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Explain why rebuilding per environment breaks the integrity chain that provenance established</li>
+            <li>Choose a deployment strategy for a stateful database migration and justify the blast radius</li>
+            <li>List what an approver should verify before approving a production promotion</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Capstone: End-to-End Secure Pipeline</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Assemble every prior module into one pipeline on a sample application</li>
+            <li>Instrument the pipeline so each security gate produces an auditable record</li>
+            <li>Conduct a red-team review: attempt to bypass each gate and document results</li>
+            <li>Present the pipeline as a portfolio artifact with architecture diagram and threat model</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Pipeline as a system: gates composed in series with fail-closed defaults</h5>
+          <p>The capstone insight: the pipeline is a system, not a collection of tools. Gates compose in series — branch protection, CI, scan, secrets, SBOM, signing, admission, canary, approval — and each defaults to fail-closed: anything unproven does not proceed.</p>
+          <p>Design the composition deliberately: every gate should have a named owner, a bypass procedure for emergencies, and an audit record. A pipeline whose gates nobody owns is a pipeline whose gates will be bypassed casually.</p>
+          <h5>Audit trail: linking commits, scans, SBOMs, signatures, and approvals per release</h5>
+          <p>For every release, the pipeline should produce a linked evidence bundle: the commit SHA, the scan report, the SBOM, the provenance attestation, the signatures, and the approver identity — all referencing each other. This bundle is what auditors ask for and what incident responders need.</p>
+          <p>Build the bundle generation into the pipeline, not as a manual step. Evidence assembled by hand during an incident is evidence assembled under pressure — incomplete and suspect.</p>
+          <h5>Threat modeling the pipeline itself: runner compromise, cache poisoning, token theft</h5>
+          <p>The pipeline is infrastructure with its own threat model. Runner compromise turns CI into an attacker's code execution; cache poisoning injects malicious dependencies into trusted builds; token theft leverages over-permissioned credentials. Each was addressed in its module — the capstone connects them into one model.</p>
+          <p>Threat-model the pipeline the way you would any production system: enumerate assets (credentials, artifacts, signing keys), attackers (malicious PRs, compromised dependencies), and controls (isolation, pinning, least privilege). The pipeline deserves the same rigor as the product.</p>
+          <h5>Defense in depth: no single gate is the sole control</h5>
+          <p>No gate stands alone: branch protection can be bypassed by admins, scanners miss novel vulnerabilities, signatures do not vouch for code quality. Defense in depth means the pipeline remains safe when any one control fails — because the others still hold.</p>
+          <p>When you red-team the pipeline in the lab, you are testing exactly this: bypass one gate and confirm the next one catches what the first missed. A pipeline that fails open at any single point is a pipeline with a single point of failure.</p>
+          <h5>Metrics that matter: lead time, change failure rate, mean time to restore</h5>
+          <p>The DORA metrics measure the delivery system: lead time (commit to production), change failure rate (deploys causing incidents), mean time to restore (incident to recovery). They capture the speed-safety tradeoff the whole sequence navigates.</p>
+          <p>Track these for your capstone pipeline and watch them move as you add gates: lead time may rise slightly, change failure rate should fall. Metrics make the DevSecOps value proposition measurable instead of rhetorical.</p>
+          <h5>Portfolio presentation: diagram, decisions log, and residual risks</h5>
+          <p>Present the capstone as a portfolio artifact: an architecture diagram of the pipeline, a decisions log recording why each gate exists and what was considered, and an honest residual-risks section naming what the pipeline does not protect against.</p>
+          <p>The residual-risks section is what separates engineering from marketing. Every system has them; naming them proves you understand the system's limits, which is exactly what employers and collaborators need to see.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build the full pipeline: protected trunk, CI with pinned actions, image scan gate, OIDC secrets, SBOM plus signing, admission policy, canary deploy with approval</strong><br/>Assemble every module's work into one pipeline on your sample app. This is the integration exercise the whole sequence was building toward — expect it to take a focused session.</li>
+            <li><strong>Attempt five bypasses (direct push, unsigned image, unapproved prod deploy, secret in log, disallowed registry) and record which gate stopped each</strong><br/>Attack your own pipeline systematically and document the results. Each stopped bypass is a proven control; each successful bypass is a finding to fix.</li>
+            <li><strong>Generate a per-release audit bundle: commit SHA, scan report, SBOM, provenance, signatures, approver identity</strong><br/>Cut a release and assemble the evidence bundle the pipeline should produce automatically. If any piece is missing or manual, that is a pipeline gap to close.</li>
+            <li><strong>Publish the project with an architecture diagram, a decisions log, and an honest residual-risks section</strong><br/>Write it up as a portfolio piece: what you built, why each decision was made, and what remains unprotected. Honest residual risks are the mark of a serious engineer.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Trace one release end to end naming every gate it passed and the evidence each produced</li>
+            <li>Identify the single weakest gate in your pipeline and the compensating control covering it</li>
+            <li>Explain to a non-technical stakeholder why the approval gate exists without using jargon</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official curriculum below is supplemental — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://docs.github.com/en/actions">https://docs.github.com/en/actions</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://git-scm.com/doc">https://git-scm.com/doc</a></li>
+          <li><a href="https://trunkbaseddevelopment.com/">https://trunkbaseddevelopment.com/</a></li>
+          <li><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches">https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches</a></li>
+          <li><a href="https://docs.github.com/en/actions">https://docs.github.com/en/actions</a></li>
+          <li><a href="https://docs.github.com/en/actions/how-tos/write-workflows">https://docs.github.com/en/actions/how-tos/write-workflows</a></li>
+          <li><a href="https://docs.docker.com/build/ci/github-actions/">https://docs.docker.com/build/ci/github-actions/</a></li>
+          <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html</a></li>
+          <li><a href="https://www.openpolicyagent.org/docs">https://www.openpolicyagent.org/docs</a></li>
+          <li><a href="https://www.ntia.gov/page/software-bill-materials">https://www.ntia.gov/page/software-bill-materials</a></li>
+          <li><a href="https://slsa.dev/">https://slsa.dev/</a></li>
+          <li><a href="https://www.sigstore.dev/">https://www.sigstore.dev/</a></li>
+          <li><a href="https://spdx.dev/">https://spdx.dev/</a></li>
+          <li><a href="https://cyclonedx.org/">https://cyclonedx.org/</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://trunkbaseddevelopment.com/">Trunk-Based Development — branching patterns</a></li>
+          <li><a href="https://slsa.dev/">SLSA — supply-chain levels</a></li>
+          <li><a href="https://www.sigstore.dev/">Sigstore — keyless signing</a></li>
+          <li><a href="https://www.openpolicyagent.org/docs">Open Policy Agent — policy as code</a></li>
+          <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html">OWASP Secrets Management Cheat Sheet</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module titles, objectives, and reference links — follows the publicly documented curriculum of the official source linked above; the teaching prose is our own distillation. The official course content itself lives at the source, not here. We are not the vendor, not a certification body, and this guide confers no certification. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
