@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Mathematics for Machine Learning | Interstitium Labs</title>
+<meta name="description" content="An original study guide to the mathematics behind machine learning: linear algebra via Gilbert Strang's free MIT lectures, calculus via Highlights of Calculus, Jean Gallier's free algebra/topology/differential calculus/optimization manuscript, and verified-free probability pointers — a free, ordered study track."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/math-for-ml/"/>
+<meta property="og:title" content="Mathematics for Machine Learning | Interstitium Labs"/>
+<meta property="og:description" content="An original study guide to the mathematics behind machine learning: linear algebra via Strang's free MIT lectures, calculus via Highlights of Calculus, Gallier's free deep manuscript, and verified-free probability pointers."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/math-for-ml/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Machine Learning &middot; Mathematics</p>
+    <h1 class="il-h">Mathematics for Machine Learning</h1>
+    <p class="il-hero__sub">Linear algebra, calculus, optimization, and probability — the math spine an ML engineer actually needs, assembled entirely from free, openly licensed university materials.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Every machine learning system is mathematics made executable. Data is vectors and matrices. Models are parameterized functions. Training is calculus and optimization — following a gradient downhill until the loss stops falling. Inference is probability — choosing the likeliest output under uncertainty. A practitioner who cannot read this machinery will treat models as magic boxes; one who can, can debug them.</p>
+        <p>This sequence builds the working math spine an ML engineer actually needs, in the order you need it: linear algebra first (the language data is written in), then calculus (how models learn), then the deep theoretical spine of algebra, topology, and optimization theory, and finally probability and statistics (how models reason under uncertainty). Every resource on this page is genuinely free and was verified as freely downloadable on the date of publication — MIT OpenCourseWare lecture series, Professor Gilbert Strang's own teaching page at MIT, and Professor Jean Gallier's openly licensed manuscripts from the University of Pennsylvania.</p>
+        <p>This page is the study guide; the linked pages are the textbooks and lecture halls. The teaching prose below is our own original distillation — we never copy the source texts, we key you into them.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Software engineers moving into machine learning who need the math, not the hype.</li>
+          <li>ML practitioners who can train models but want to understand why training works.</li>
+          <li>Self-directed students who want a university-grade curriculum with zero tuition.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Comfortable with basic programming (Python or NumPy-level fluency helps, not required).</li>
+          <li>High-school algebra and comfort with functions; the sequence builds upward from there.</li>
+          <li>Nothing else — the first module assumes you are seeing linear algebra for the first time.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order: linear algebra is the vocabulary of everything after it.</li>
+          <li>Watch Strang's lectures with a notebook. Copy his derivations by hand — the hand is part of the learning.</li>
+          <li>Do the OCW problem sets. Watching someone do mathematics is entertainment; doing it yourself is education.</li>
+          <li>Gallier's manuscript is the deep reference — read the chapters on the topic you are studying, not cover to cover at first.</li>
+          <li>When this guide states a theorem or definition, the linked source is the authority — check it there.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">7 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Linear Algebra Foundations via Gilbert Strang</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what a matrix multiplication actually computes</li>
+            <li>Solve Ax = b by elimination and interpret the solution geometrically</li>
+            <li>Identify the four fundamental subspaces of a matrix</li>
+            <li>Compute eigenvalues, eigenvectors, and SVDs and say what each means for data</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why linear algebra comes first</h5>
+          <p>A dataset is a matrix: rows are examples, columns are features. A neural network layer is a matrix multiplication followed by a nonlinearity. A gradient is a vector. If you cannot read a matrix the way a programmer reads code, machine learning remains opaque — so the spine of this sequence starts here.</p>
+          <p>The good news: the finest introductory linear algebra teaching ever recorded is free. MIT's 18.06, taught by Professor Gilbert Strang, is available in full on OpenCourseWare, and the OCW Scholar edition (18.06SC) is specifically designed for independent study — it adds summary notes, problem-solving videos by an experienced MIT recitation instructor, problem sets with solutions, and exams with solutions.</p>
+          <h5>Elimination and the meaning of Ax = b</h5>
+          <p>Linear algebra's central equation is Ax = b: a matrix A maps an unknown vector x to a target vector b. Gaussian elimination — the algorithm of subtracting multiples of one equation from another — either finds the x or tells you why none exists. Geometrically, elimination factors A into LU: the order of operations becomes a factorization.</p>
+          <p>This is not abstract: every regression fit, every least-squares solve, every "find the parameters that explain the data" is Ax = b in disguise. Elimination is the first tool; understanding what it does to a matrix is the first fluency.</p>
+          <h5>The four fundamental subspaces</h5>
+          <p>Every m-by-n matrix has four associated subspaces: its column space (all possible outputs Ax), its nullspace (all x with Ax = 0), and the corresponding pair for its transpose. Strang's framework organizes the whole course around them — dimensions, bases, and the way the matrix maps the row space to the column space.</p>
+          <p>When a model overfits, when a system is underdetermined, when a data matrix is rank-deficient: these are all statements about these four subspaces. Learn to name them and you can name what is wrong with your data.</p>
+          <h5>Eigenvalues and eigenvectors</h5>
+          <p>An eigenvector of a matrix is a direction the matrix merely stretches: Ax = &lambda;x. The eigenvalues are the stretch factors. For symmetric matrices — covariance matrices, Hessians — the eigenvectors are the natural axes of the data, orthogonal and complete.</p>
+          <p>Principal component analysis is literally eigenvalue decomposition of the covariance matrix: find the directions of greatest variance, project onto them, discard the rest. Eigen thinking is the move from "a matrix is a table" to "a matrix is a transformation with preferred directions."</p>
+          <h5>Singular value decomposition (SVD)</h5>
+          <p>The SVD factors any matrix A as U&Sigma;V<sup>T</sup>: two rotations sandwiching a diagonal stretch. It is the master factorization — eigenvalues are the special case for square symmetric matrices. Truncating the smallest singular values gives the best low-rank approximation of A, which is how recommender systems, image compression, and latent-factor models actually work.</p>
+          <p>Strang's lecture notes and the 18.065 course (below) both put the SVD at the center of the ML story. If one factorization is worth internalizing completely, it is this one.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Work the 18.06SC problem set on elimination with pencil and paper</strong><br/>Do elimination by hand on a 3&times;3 system until the LU pattern is automatic. The OCW Scholar edition gives you the problems and the worked solutions.</li>
+            <li><strong>Implement the four subspaces in NumPy: given A, compute bases for column space, nullspace, row space, left nullspace</strong><br/>Reduce to row echelon form, identify pivots, construct the bases. The dimensions must satisfy the rank-nullity relationships — check them.</li>
+            <li><strong>Reproduce the SVD factorization: for a random matrix, compute U, &Sigma;, V<sup>T</sup> and verify A = U&Sigma;V<sup>T</sup> to numerical precision</strong><br/>Then truncate to rank 2 and measure the reconstruction error. The Eckart-Young optimality becomes tangible when you watch the error shrink as singular values grow.</li>
+            <li><strong>Run PCA from scratch on a small dataset using only your eigendecomposition of the covariance matrix</strong><br/>Compute the covariance, its eigenvectors, project the data, and plot variance explained per component. No library PCA call — your eigenvalues are the whole machine.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does a rank-deficient data matrix make least squares underdetermined?</li>
+            <li>What do the singular values tell you about the "effective dimensionality" of a dataset?</li>
+            <li>Why are covariance matrices' eigenvectors guaranteed orthogonal?</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">MIT OCW Scholar 18.06SC — Linear Algebra (Fall 2011): designed for independent study; lecture videos, summary notes, problem-solving videos, problem sets with solutions, exams with solutions</a></li>
+            <li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT OCW 18.06 — Linear Algebra (Spring 2010): the full lecture course</a></li>
+            <li><a href="https://math.mit.edu/~gs/LectureNotes/">Strang's Lecture Notes for Linear Algebra — free PDF notes from his MIT page</a></li>
+            <li><a href="https://math.mit.edu/linearalgebra">Strang's MIT linear algebra page — companion videos and materials for his text</a></li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Matrix Methods for Machine Learning: 18.065</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Connect least squares and regularization to the linear algebra of Module 1</li>
+            <li>Explain how PCA, the SVD, and deep learning's linear algebra fit one story</li>
+            <li>Describe what convolution and graph Laplacians contribute to learning systems</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>From 18.06 to 18.065: the ML bridge</h5>
+          <p>Strang later taught a dedicated course connecting linear algebra directly to learning from data — MIT's 18.065, "Matrix Methods in Data Analysis, Signal Processing, and Machine Learning" (Spring 2018), free on OCW. It re-tells linear algebra as the machinery underneath least squares, regularization, neural networks, and randomized linear algebra.</p>
+          <p>His MIT page also hosts materials for the companion book, <em>Linear Algebra and Learning from Data</em> (2019). The course is the recommended second pass: the same ideas from Module 1, now with the ML applications Strang explicitly draws out.</p>
+          <h5>Least squares as the fundamental ML solve</h5>
+          <p>Least squares is the workhorse of applied ML: given data A and targets b, choose x minimizing ||Ax &minus; b||&sup2;. The solution solves the normal equations A<sup>T</sup>Ax = A<sup>T</sup>b — the projection of b onto the column space of A. Regression, polynomial fitting, and the training step of many models are all this one computation.</p>
+          <p>The geometric view from Module 1 pays off here: "minimize the error" means "find the closest point in the column space," and the error vector is orthogonal to it. When least squares fails — overfitting — the fix is regularization, which the course treats as penalized projection.</p>
+          <h5>Regularization and the geometry of overfitting</h5>
+          <p>Ridge regression (Tikhonov) adds a penalty &lambda;||x||&sup2; to the least-squares objective, solving (A<sup>T</sup>A + &lambda;I)x = A<sup>T</sup>b. In SVD terms, this shrinks each singular value's contribution by &sigma;<sub>i</sub>/(&sigma;<sub>i</sub>&sup2; + &lambda;) — small singular directions, the ones that amplify noise, get damped most.</p>
+          <p>Regularization is the answer to the rank question from Module 1: when data directions are nearly collinear, unconstrained fits swing wildly; the penalty chooses the calm solution among near-fits. This is the first idea in all of ML where linear algebra and statistics shake hands.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Fit a polynomial regression to noisy data with and without ridge penalty; plot the learned curves for several &lambda;</strong><br/>Watch high-degree polynomials overfit at &lambda; = 0 and calm down as the penalty grows. The SVD shrinkage formula explains exactly what you see.</li>
+            <li><strong>Compare two least-squares solvers: normal equations vs QR vs SVD on an ill-conditioned A; measure which stays accurate</strong><br/>Construct a matrix with tiny singular values and observe the normal equations (squaring the condition number) degrade first. This is why production solvers use QR or SVD.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why do the normal equations become numerically dangerous when A is ill-conditioned?</li>
+            <li>Express ridge regression's effect in terms of the SVD of A.</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/">MIT OCW 18.065 — Matrix Methods in Data Analysis, Signal Processing, and Machine Learning (Spring 2018)</a></li>
+            <li><a href="https://math.mit.edu/learningfromdata">Strang's MIT page for <em>Linear Algebra and Learning from Data</em></a></li>
+            <li><a href="https://math.mit.edu/~gs/">Gilbert Strang's MIT homepage — hub for his free lectures, notes, and course links</a></li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Calculus via Highlights of Calculus</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what a derivative measures and compute the core rules by hand</li>
+            <li>Explain what a gradient is and why optimization follows its negative</li>
+            <li>Describe the chain rule as the mechanism behind backpropagation</li>
+            <li>Use integrals conceptually as accumulation — probability's language</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The short-video series that earns its name</h5>
+          <p>MIT's "Highlights of Calculus" (RES.18-005, Spring 2010) is Professor Strang distilling calculus to its essentials in a short series of videos — the OCW page organizes them into an introduction, five videos reviewing the key ideas of calculus with real-life applications, and twelve videos on differential calculus — with summary slides and practice problems. A fan-maintained YouTube playlist collects the lectures in one place, and OCW also hosts supporting notes and problems under its open license.</p>
+          <p>The series is aimed at students who need to understand calculus rather than merely compute it — exactly the ML engineer's position. You need calculus as a conceptual tool for gradients and optimization, not as a semester of hand-computed integrals.</p>
+          <h5>Derivatives: the rate of change, and the gradient</h5>
+          <p>A derivative measures how a function's output responds to a nudge of its input — the slope of the tangent line, the instantaneous rate. In one variable that is the whole story; in many variables it becomes the gradient: the vector of partial derivatives, pointing in the direction of steepest increase.</p>
+          <p>Training a neural network is, at the mathematical core, gradient descent: compute the gradient of the loss with respect to the parameters, then step the parameters in the opposite direction. Every advance in optimization — momentum, adaptive step sizes, second-order methods — is a refinement of this one idea. Get the gradient's meaning right and the rest of optimization is vocabulary.</p>
+          <h5>The chain rule: backpropagation's engine</h5>
+          <p>The chain rule says the derivative of a composition is the product of the derivatives: if y depends on u and u depends on x, then dy/dx = (dy/du)(du/dx). Backpropagation is this rule executed systematically across a network's layers — each layer's local derivatives multiply into the gradient for the whole network.</p>
+          <p>You do not need to hand-derive backprop for modern work (automatic differentiation handles it), but you do need the chain rule to understand why deep networks have the gradient pathologies they do — vanishing and exploding gradients are literally products of many small or large factors.</p>
+          <h5>Integrals as accumulation, integrals as probability</h5>
+          <p>The integral accumulates a quantity — area under a curve, total from a rate. For ML its conceptual role is probability: expectations are integrals of values weighted by densities, and the normalization requirement that probabilities integrate to one is the integral doing bookkeeping.</p>
+          <p>Hold the intuition ("integral = weighted accumulation") and carry it into Module 7, where expectations become the formal language of models under uncertainty.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Watch the five Highlights videos and do the accompanying practice problems by hand</strong><br/>Then re-derive each differentiation rule from the limit definition once. The re-derivation is the lab — it converts watched knowledge into owned knowledge.</li>
+            <li><strong>Implement gradient descent from scratch on a two-parameter quadratic loss; plot the parameter trajectory for several step sizes</strong><br/>Use a tiny step, a good step, and a too-large step. The divergence at the large step teaches the stability story that all adaptive optimizers address.</li>
+            <li><strong>Hand-derive the chain rule for a two-layer toy network's gradient with respect to one weight</strong><br/>Do it on paper, then verify with automatic differentiation. Matching the machine's gradient is the proof you understood the multiplication chain.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does gradient descent step in the negative gradient direction, not the positive?</li>
+            <li>How does the chain rule produce vanishing gradients in deep networks?</li>
+            <li>What does it mean, in words, to say an expectation is an integral?</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/">MIT OCW RES.18-005 — Highlights of Calculus (Spring 2010): short videos, summary slides, practice problems</a></li>
+            <li><a href="https://www.youtube.com/playlist?list=PLBE9407EA64E2C318">Highlights of Calculus — YouTube lecture playlist</a></li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">The Deep Spine: Gallier's Algebra, Topology, Differential Calculus, and Optimization</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how abstract algebra and topology underpin the structures ML uses</li>
+            <li>Describe differential calculus in higher dimensions: manifolds, Jacobians, Hessians</li>
+            <li>Connect optimization theory's conditions to the behavior of training algorithms</li>
+            <li>Use the manuscript as a reference spine for the whole sequence</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>A two-thousand-page open manuscript from UPenn</h5>
+          <p>Professor Jean Gallier (University of Pennsylvania, Computer and Information Science) and co-author Jocelyn Quaintance have made the full manuscript of <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em> freely downloadable from Gallier's books page — a book in progress, stated on that page as approximately 2218 pages in the 2026 edition, distributed under terms permitting free reproduction for any educational purpose (commercial reproduction prohibited; the page asks that it not be reposted elsewhere, with links to the page freely permitted).</p>
+          <p>This is the sequence's deep reference: where Strang gives you the working intuition, Gallier gives you the full theoretical foundation. Use it chapter-by-chapter alongside the other modules, not as a front-to-back read.</p>
+          <h5>Algebra: the structures under the symbols</h5>
+          <p>The algebra chapters develop groups, rings, vector spaces, and linear algebra from first principles with the rigor a computer scientist needs. For ML the payoff is conceptual precision: symmetry in data (groups), the exact algebraic properties of the vector spaces every model lives in, and the polynomial algebra behind kernel methods and algebraic approaches to learning.</p>
+          <p>Practical use: read these chapters when you want to know why the linear algebra from Module 1 is true, not just how to compute with it.</p>
+          <h5>Topology: shape, continuity, and what "close" means</h5>
+          <p>Topology studies the properties of spaces that survive stretching and bending — continuity, connectedness, compactness. For ML it is the language of manifolds (data lying on lower-dimensional curved surfaces), of convergence ("the iterates get arbitrarily close"), and of the loss landscape's shape.</p>
+          <p>The manifold hypothesis — that real-world data like images occupies a low-dimensional manifold inside its high-dimensional ambient space — is a topological claim, and it motivates dimensionality reduction, autoencoders, and geometric deep learning. Gallier's topology chapters give you the vocabulary to read that literature.</p>
+          <h5>Differential calculus in higher dimensions: Jacobians and Hessians</h5>
+          <p>Past the gradient lies the machinery of multivariable calculus: the Jacobian (the matrix of all first partials, generalizing the derivative to vector-valued functions) and the Hessian (the matrix of second partials, describing local curvature of the loss). The manuscript develops this theory carefully, including the inverse and implicit function theorems that underwrite so much of optimization and probabilistic modeling.</p>
+          <p>Newton's method, natural gradient, and second-order optimization all live here: they use the Hessian's curvature information to take smarter steps than the gradient alone permits. Even if you never implement one, understanding the Hessian explains why ill-conditioned curvature makes training slow.</p>
+          <h5>Optimization theory: what "optimal" guarantees exist</h5>
+          <p>The optimization chapters cover the conditions under which a point is optimal (first- and second-order conditions), convex sets and functions (where every local minimum is global — the friendly case), and the duality theory behind constrained optimization. Most deep learning is non-convex, but the convex theory is the reference point: it tells you what the well-behaved case looks like, so you can recognize the ways real training deviates from it.</p>
+          <p>Read the convex optimization chapters before tackling constrained problems (support vector machines, sparse models, portfolio-style constraints); read the optimality conditions when debugging why an optimizer stalls.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>From the manuscript, work the optimality-conditions chapter on a constrained quadratic: solve it by hand, then verify with Lagrange multipliers</strong><br/>The Karush-Kuhn-Tucker conditions stop being incantations once you have applied them to a concrete problem.</li>
+            <li><strong>Compute the Hessian of a two-parameter non-convex loss numerically; classify a stationary point as minimum, maximum, or saddle from its eigenvalues</strong><br/>This is Modules 1 and 3 meeting the deep spine: the Hessian's eigenvalues classify the geometry.</li>
+            <li><strong>Prove to yourself the convex fact that matters most: for a convex function, any stationary point is a global minimum — then name three ML objectives that are convex and three that are not</strong><br/>The classification exercise teaches the boundary between theory's guarantees and deep learning's wilds.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is convexity so valuable — what guarantee does it buy?</li>
+            <li>What does the manifold hypothesis claim about real datasets?</li>
+            <li>What do the Hessian's eigenvalues tell you about a critical point?</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">Gallier &amp; Quaintance — <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em>: full manuscript PDF, free for educational use (page states approx. 2218 pages, 2026 edition)</a></li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Optimization for ML: Gallier's Two Volumes and Convex Geometry</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Trace the path from linear algebra to optimization theory in Gallier's two-volume treatment</li>
+            <li>Explain what convex geometry contributes to linear programming and ML constraints</li>
+            <li>Map optimization theory onto the training loop you already know</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The published two-volume companion</h5>
+          <p>Before the big manuscript, Gallier and Quaintance published <em>Linear Algebra and Optimization with Applications to Machine Learning</em> as two volumes with World Scientific (2020) — Volume I: <em>Linear Algebra for Computer Vision, Robotics, and Machine Learning</em>; Volume II: <em>Fundamentals of Optimization Theory with Applications to Machine Learning</em>. Both volumes' full texts are freely downloadable as PDFs from Gallier's books page under the same educational-use terms as the manuscript.</p>
+          <p>These two volumes are the gentler on-ramp to Module 4's material: Volume I consolidates the linear algebra spine with ML applications in view, and Volume II is a focused treatment of optimization fundamentals. If the big manuscript's scope intimidates, start here.</p>
+          <h5>Convex geometry: the shapes behind the guarantees</h5>
+          <p>Gallier's books page also hosts an in-progress text on convex geometry — polyhedra, linear programming, shellings, Voronoi diagrams, and Delaunay triangulations. Convex geometry is the visual counterpart of convex optimization: polyhedra are the feasible sets of linear programs, and Voronoi/Delaunay structures appear in nearest-neighbor methods, clustering, and computational geometry pipelines that feed ML systems.</p>
+          <p>Linear programming deserves a nod from every ML student: it is the oldest tractable optimization, it is solvable exactly and efficiently, and its duality theory is the template for the duality in SVMs and constrained deep learning.</p>
+          <h5>Mapping theory onto the training loop</h5>
+          <p>Every training run is an optimization story: the loss function (Module 3's calculus), the parameter space (Module 1's vector spaces), the descent rule (gradient methods), the constraints (convex sets, Module 4), the stopping criteria (optimality conditions). This module is where the theory stops being "the math behind ML" and becomes the vocabulary you think in while training models.</p>
+          <p>The engineer's habit: when training misbehaves, classify the failure in optimization terms — bad conditioning (Hessian), bad geometry (non-convex landscape), bad constraints (infeasible projection), bad step (learning rate). The theory gives the taxonomy; the taxonomy gives the fix.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Solve a small linear program by hand (two variables, three constraints); identify the active constraints at the optimum and write the dual</strong><br/>Linear programming's geometry — optimum at a vertex, dual variables as constraint prices — is the seed of all constrained optimization.</li>
+            <li><strong>Train logistic regression twice: with a convex solver's guarantee in mind, compare full-batch gradient descent against a second-order method on conditioning vs wall-clock time</strong><br/>Feel the tradeoff the theory predicts: second-order steps are fewer but each is expensive.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What is a dual problem, and what does strong duality guarantee?</li>
+            <li>Why is a linear program's optimum always at a vertex of the feasible polyhedron?</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://www.cis.upenn.edu/~jean/gbooks/linalg.html">Gallier &amp; Quaintance — <em>Linear Algebra and Optimization with Applications to Machine Learning</em>, Volumes I and II: full PDFs, free for educational use</a></li>
+            <li><a href="https://www.cis.upenn.edu/~jean/gbooks/convexpoly.html">Gallier — <em>Aspects of Convex Geometry</em> (in progress): polyhedra, linear programming, Voronoi diagrams, Delaunay triangulations</a></li>
+            <li><a href="https://www.cis.upenn.edu/~jean/gbooks/">Gallier's books page — the full list of his free manuscripts</a></li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Probability and Statistics: Models Under Uncertainty</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain random variables, distributions, and expectation as ML's language of uncertainty</li>
+            <li>Describe maximum likelihood estimation as the principle behind most model fitting</li>
+            <li>Connect Bayes' rule to the probabilistic view of learning</li>
+            <li>Use a free OCW course as the structured next step</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why probability closes the spine</h5>
+          <p>Linear algebra describes data, calculus describes learning, optimization describes training — and probability describes the world being uncertain. Classifiers output probabilities. Generative models are distributions. The entire training objective of most modern models is a likelihood: the probability the model assigns to the observed data.</p>
+          <p>The conceptual load is modest but load-bearing: random variables (uncertain quantities with distributions), expectation (the average over uncertainty, via the integrals of Module 3), variance (the spread), and conditional probability (updating beliefs with evidence).</p>
+          <h5>Maximum likelihood: the fitting principle</h5>
+          <p>Maximum likelihood estimation says: choose the parameters that make the observed data most probable under your model. Take the logarithm (monotone, harmless), negate it, and you have a loss function — the negative log-likelihood that gradient descent minimizes. Logistic regression, language models, diffusion models: all are maximum likelihood in different clothes.</p>
+          <p>This is the moment the four pillars fuse: the model is a parameterized function (algebra), fit by minimizing a loss (calculus, optimization) that is a log-probability (statistics). One principle, four lenses.</p>
+          <h5>Bayes' rule: learning as belief updating</h5>
+          <p>Bayes' rule turns the likelihood around: given data, what should we believe about the parameters? It combines the likelihood (what the data says) with a prior (what we believed before) into a posterior (what we believe now). Regularization from Module 2 reappears here as a prior — penalizing large weights is asserting a prior belief that weights are small.</p>
+          <p>The Bayesian view completes the spine: optimization finds one good answer; probability describes the whole space of plausible answers and how evidence moves through it.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Derive the negative log-likelihood for coin-flip data and show the maximizer is the observed frequency</strong><br/>The smallest possible maximum-likelihood problem, done by hand. Everything larger is the same idea with more parameters.</li>
+            <li><strong>Fit a Gaussian to one-dimensional data by maximum likelihood; then fit it with a prior and observe the posterior shrink toward the prior mean</strong><br/>Maximum a posteriori estimation is the bridge from Module 2's ridge penalty to Bayesian thinking.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is minimizing negative log-likelihood equivalent to maximizing likelihood?</li>
+            <li>How is ridge regularization expressible as a Gaussian prior?</li>
+            <li>What does a posterior distribution represent that a point estimate does not?</li>
+          </ul>
+          <h4>Free anchor resources</h4>
+          <ul>
+            <li><a href="https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/">MIT OCW 18.05 — Introduction to Probability and Statistics (Spring 2022): full free course</a></li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Study track -->
+  <section class="il-section" id="track" aria-labelledby="track-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The path</p>
+        <h2 class="il-h il-h--section" id="track-h">A study track through the materials.</h2>
+        <p>Four phases, in order. The Strang lectures carry the intuition, Gallier carries the depth, and the OCW problem sets carry the practice. Skip nothing in Phase A; Phase D is reference reading for the rest of your career.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Phase A — The language: linear algebra (Modules 1–2)</h3>
+        <ul>
+          <li>Watch the 18.06SC lecture videos in order; do every problem set before checking solutions.</li>
+          <li>Read Strang's free Lecture Notes alongside — they compress each lecture to its essentials.</li>
+          <li>Take the 18.06SC exams under timed conditions; the solutions let you self-grade honestly.</li>
+          <li>Then watch 18.065, focused on the ML applications: least squares, regularization, SVD, neural-network linear algebra.</li>
+          <li>Milestone: you can derive the normal equations, explain the SVD's role in PCA, and solve Ax = b by elimination on paper.</li>
+        </ul>
+        <h3>Phase B — The engine: calculus (Module 3)</h3>
+        <ul>
+          <li>Watch the Highlights of Calculus series (introduction, the five key-idea videos, the twelve differential-calculus videos); do the practice problems.</li>
+          <li>Implement gradient descent from scratch and derive the chain rule for a two-layer network by hand.</li>
+          <li>Milestone: you can explain, without notes, why training is gradient descent and where backpropagation's gradients come from.</li>
+        </ul>
+        <h3>Phase C — The foundation: Gallier's manuscript (Modules 4–5)</h3>
+        <ul>
+          <li>Read the two-volume <em>Linear Algebra and Optimization with Applications to Machine Learning</em> as the consolidated second pass over Phases A–B.</li>
+          <li>Work the optimality-conditions and convexity chapters of the big manuscript; keep the algebra and topology chapters as the reference for the structures you meet in the literature.</li>
+          <li>Browse the convex geometry text for the polyhedra/linear-programming/Voronoi chapters as constrained problems and nearest-neighbor geometry come up in your work.</li>
+          <li>Milestone: you can classify a training failure in optimization terms and name the theoretical condition being violated.</li>
+        </ul>
+        <h3>Phase D — The world: probability and statistics (Module 6)</h3>
+        <ul>
+          <li>Work through MIT OCW 18.05 for the structured probability and statistics course.</li>
+          <li>Re-derive maximum likelihood for every model you train; write the Bayesian interpretation of every regularizer you use.</li>
+          <li>Milestone: you can explain any loss function you use as a log-probability and any regularizer as a prior.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Free and open sources, every one verified.</h2>
+        <p>Each link below was verified to resolve and to offer its materials freely as of October 2026. The linked pages are the textbooks and lecture halls — this page is the study guide. Where a source's terms change, the source is authoritative.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Strang's free MIT materials</h3>
+        <ul>
+          <li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/</a> — OCW Scholar linear algebra, built for independent study</li>
+          <li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</a> — the full 18.06 lecture course</li>
+          <li><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/">https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/</a> — 18.065 matrix methods for data analysis, signal processing, and machine learning</li>
+          <li><a href="https://math.mit.edu/~gs/">https://math.mit.edu/~gs/</a> — Gilbert Strang's MIT homepage, hub for his free lectures and notes</li>
+          <li><a href="https://math.mit.edu/~gs/LectureNotes/">https://math.mit.edu/~gs/LectureNotes/</a> — free Lecture Notes for Linear Algebra</li>
+          <li><a href="https://math.mit.edu/linearalgebra">https://math.mit.edu/linearalgebra</a> — companion page for his linear algebra materials</li>
+          <li><a href="https://math.mit.edu/learningfromdata">https://math.mit.edu/learningfromdata</a> — companion page for <em>Linear Algebra and Learning from Data</em></li>
+          <li><a href="https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/">https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/</a> — Highlights of Calculus, short videos with summary slides and practice problems</li>
+          <li><a href="https://www.youtube.com/playlist?list=PLBE9407EA64E2C318">https://www.youtube.com/playlist?list=PLBE9407EA64E2C318</a> — Highlights of Calculus lecture playlist on YouTube</li>
+        </ul>
+        <h3>Gallier's free manuscripts (University of Pennsylvania)</h3>
+        <ul>
+          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">https://www.cis.upenn.edu/~jean/gbooks/geomath.html</a> — <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em>, full manuscript free for educational use</li>
+          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/linalg.html">https://www.cis.upenn.edu/~jean/gbooks/linalg.html</a> — <em>Linear Algebra and Optimization with Applications to Machine Learning</em>, Volumes I and II, full PDFs free for educational use</li>
+          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/convexpoly.html">https://www.cis.upenn.edu/~jean/gbooks/convexpoly.html</a> — <em>Aspects of Convex Geometry</em> (in progress)</li>
+          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/">https://www.cis.upenn.edu/~jean/gbooks/</a> — the complete list of Gallier's free books</li>
+        </ul>
+        <h3>Probability and statistics</h3>
+        <ul>
+          <li><a href="https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/">https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/</a> — MIT OCW 18.05, full free course</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to public curricula.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its curriculum skeleton — module topics, objectives, and reference links — follows the publicly documented curricula of the linked sources; the teaching prose is our own distillation, and we never reproduce the source texts. The official course content itself lives at the source, not here. We are not affiliated with MIT, the University of Pennsylvania, Professor Strang, or Professor Gallier; we are not a university, not a certification body, and this guide confers no credit and no certification. Where a source's content or terms change, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

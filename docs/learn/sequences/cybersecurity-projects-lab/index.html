@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Cybersecurity Projects Lab | Interstitium Labs</title>
+<meta name="description" content="A hands-on cybersecurity study sequence: build real security tools — scanners, analyzers, SIEM dashboards, honeypots — from beginner to advanced, keyed to verified open-source repos, with honest role roadmaps for SOC Analyst, Pentester, and Security Engineer."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/cybersecurity-projects-lab/"/>
+<meta property="og:title" content="Cybersecurity Projects Lab | Interstitium Labs"/>
+<meta property="og:description" content="A hands-on cybersecurity study sequence: build real security tools — scanners, analyzers, SIEM dashboards, honeypots — from beginner to advanced, keyed to verified open-source repos, with honest role roadmaps for SOC Analyst, Pentester, and Security Engineer."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/cybersecurity-projects-lab/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Applied Security &middot; Project Lab</p>
+    <h1 class="il-h">Cybersecurity Projects Lab</h1>
+    <p class="il-hero__sub">Security is learned by building. This sequence works through real security tooling — scanners, analyzers, dashboards, honeypots — from first Python file to advanced adversary emulation, keyed to verified open-source repos.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Certifications test what you know; projects prove what you can do. This sequence is built around a simple premise: you understand a security control only after you have implemented one, and you understand an attack only after you have reproduced one in a lab you control. The work here is construction — writing and running real security tools — organized in four tiers of increasing depth, from single-file Python utilities to distributed detection systems.</p>
+        <p>The spine of the sequence is the open-source project collection at <a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects">CarterPerez-dev/Cybersecurity-Projects</a> on GitHub. It is a living repository (not a finished archive): its own badge reported 42 of a planned 70 projects carrying full source code as of this writing, licensed under AGPL-3.0, with the bulk of the implementations in Go and Python. Its four tiers — Foundations, Beginner, Intermediate, Advanced — map directly onto this page's four modules, and its <code>ROADMAPS</code> and <code>RESOURCES</code> directories supply the role-family roadmaps covered in the certification section below. Around that spine we anchor the wider ecosystem: deliberately vulnerable applications, adversary-emulation frameworks, detection labs, and free training platforms — every one verified as a live, reachable resource.</p>
+        <p>How this differs from its neighbors on this site: the <a href="/learn/sequences/security-plus-cysa/">Security+ &rarr; CySA+ track</a> teaches to exam objectives; the <a href="/learn/sequences/cissp/">CISSP</a> and <a href="/learn/sequences/cism/">CISM</a> sequences teach practitioner and management knowledge domains; the <a href="/learn/sequences/devsecops-pipeline/">DevSecOps pipeline</a> sequence teaches securing software delivery. This page teaches through the artifact — you finish it with a portfolio of working tools, not a set of answered questions. They complement each other; this one is where the keyboard gets warm.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Aspiring SOC analysts, pentesters, and security engineers who want a portfolio of built tooling alongside any exam study.</li>
+          <li>IT generalists and sysadmins moving into security who learn best by taking things apart and rebuilding them.</li>
+          <li>Career changers with basic programming comfort who want security skills grounded in working code, not slides.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Module 1 (Foundations) assumes nothing — it is built for someone who has barely used a terminal. The repo's Foundations projects are single heavily-commented Python files with companion <code>learn/</code> folders explaining concepts from zero.</li>
+          <li>Modules 2 and beyond assume you can read and write basic Python and operate a Linux command line. Familiarity with virtual machines helps enormously.</li>
+          <li>A machine (or VM) you control where you can install packages, run containers, and spin up lab networks. Never run these projects on systems you do not own.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order. Foundations teaches the primitives (hashes, headers, encryption); every later tier composes them.</li>
+          <li>Build every project twice: once by following the repo's finished source to understand it, once from a blank file from memory. The second pass is where the learning happens.</li>
+          <li>Keep an engineering journal per project — what the tool does, which attack or defense it models, and what broke while you built it. Interviewers ask about the breaking; this is where you prepare the answers.</li>
+          <li>Isolate offensive tooling. Scanners, beacons, persistence scanners, and credential tooling belong in a lab network or VM, against targets you own or are authorized to test. The lab-safety rules in each module are not decoration.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">4 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Foundations: Hashes, Headers, and Encrypted Vaults</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Identify hash algorithm families by their output shape and encoding</li>
+            <li>Audit a website's HTTP response for missing security headers and explain each one's purpose</li>
+            <li>Explain how a master password becomes an encryption key (key derivation) and why authenticated encryption matters</li>
+            <li>Read a heavily-commented security tool end to end and describe its control flow</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Hash families and the PHC string format</h5>
+          <p>A hash identifier works the way a naturalist identifies species: by observable traits — length, character set, prefix, delimiter structure. MD5 and SHA families produce fixed-length hex digests; modern password hashes (bcrypt, Argon2) are stored as PHC strings carrying the algorithm name, parameters, salt, and hash in one delimited field. Learning to read these encodings by eye is the first forensic reflex: you will see hash dumps in credential audits, breach data, and configuration files for the rest of your career.</p>
+          <h5>HTTP security headers as a defense layer</h5>
+          <p>Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, and their companions are server instructions that constrain what the browser is allowed to do with a page — the cheapest defense layer on the web, and the most commonly neglected. A headers scanner turns an abstract checklist into a scored audit: point it at a site and it tells you exactly which protections are missing. Running it against your own projects first makes the lesson personal.</p>
+          <h5>Argon2id key derivation and AES-GCM authenticated encryption</h5>
+          <p>A password manager's job is to turn a human-memorable secret into a cryptographic key without making the vault brute-forceable. Argon2id stretches the password with deliberate memory-hard work so that guessing is expensive; AES-GCM then encrypts the vault while simultaneously authenticating it, so tampering is detected instead of silently decrypted. This pair — memory-hard KDF plus authenticated encryption — is the standard construction for local secret storage, and implementing it teaches more than any diagram of the same.</p>
+          <h5>Reading production-quality code as a beginner</h5>
+          <p>The Foundations tier's teaching method deserves attention: the code itself is written to production standards while every line that introduces a new concept is annotated inline, with numpy-style docstrings on each function. Study the pattern — senior-level code, beginner-level explanation — because you will imitate it when you document your own projects, and clear security tooling is a professional asset.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build the hash identifier, then feed it real-world hash dumps</strong><br/>Write the classifier from scratch, then test it against sample hashes from public wordlist/hash-format documentation. Misclassifications teach the edge cases (truncated digests, ambiguous lengths) that a finished source file would hide.</li>
+            <li><strong>Audit five websites you use with the headers scanner and rank the results</strong><br/>Score the sites, then read each missing header's documentation to explain the concrete attack it would have mitigated. Pick one of your own projects and fix its headers until the scanner is satisfied.</li>
+            <li><strong>Implement the encrypted vault, then attack it</strong><br/>After the manager works, write a second script that tries to brute-force a weak master password against the vault file, and time how Argon2id's parameters change the economics. The defense makes sense only once you have priced the attack.</li>
+            <li><strong>Rewrite one Foundations project from memory in a single sitting</strong><br/>Close the source, rebuild the tool from your journal notes, and note where you get stuck. Those gaps are your actual knowledge boundaries — the finished file made them invisible.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Given a 60-character string starting with <code>$2b$12$</code>, what algorithm and cost do you expect?</li>
+            <li>Which header stops your page from being framed by an attacker's site, and what attack does that prevent?</li>
+            <li>Why is encrypting a vault with AES-CBC alone (no authentication) insufficient?</li>
+          </ul>
+          <h4>Lab safety</h4>
+          <ul>
+            <li>Foundations tooling is benign, but build the habit now: all projects run on your own machine, against your own targets, from here forward.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Beginner: Recon, Crypto Utilities, and Linux Security</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write a port scanner and explain what open, closed, and filtered responses reveal about a target</li>
+            <li>Perform basic vulnerability assessment: banner grabbing, service identification, and known-weakness matching</li>
+            <li>Audit a Linux host against hardening expectations (CIS-style checks) and interpret the findings</li>
+            <li>Capture and analyze network traffic, identifying protocols and anomalies by hand</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Port scanning as conversation, not brute force</h5>
+          <p>A port scan is a series of short conversations with a remote host: SYN, response, interpretation. An open port answers; a closed port refuses; a filtered port stays silent, and that silence is itself information (a firewall is eating your packets). Building the scanner yourself — sockets, timeouts, thread pools — teaches TCP behavior that reading about the three-way handshake never quite delivers, and it is the skill every later offensive technique assumes.</p>
+          <h5>Vulnerability scanning: identification before exploitation</h5>
+          <p>A vulnerability scanner does not hack anything; it inventories. Banner grabbing and service fingerprinting answer &quot;what is running here,&quot; and matching versions against known weakness patterns answers &quot;what might be wrong with it.&quot; This identification-first discipline is the professional shape of assessment work: you never touch what you have not first mapped, and the scanner is your mapmaker.</p>
+          <h5>Linux hardening audits and the CIS tradition</h5>
+          <p>Hardening benchmarks (the CIS benchmarks are the industry's common reference) turn &quot;secure the server&quot; into a checklist: file permissions, service states, kernel parameters, authentication policy. An auditing tool automates the checking and reports drift. Building one teaches you to think in desired-state terms — security as the gap between configured and correct — which is the mental model behind every compliance and configuration-management tool you will ever meet.</p>
+          <h5>Traffic analysis: reading the wire</h5>
+          <p>A network traffic analyzer sits between raw packets and understanding: capture, dissect, summarize. Learning to read DNS queries, TLS handshakes (including JA3/JA4-style fingerprinting concepts the intermediate tier revisits), and plaintext protocols by hand builds the packet-level intuition that makes later detection work possible. Wireshark shows you the same data; building the parser teaches you what Wireshark knows.</p>
+          <h5>Steganography, canary tokens, and defensive creativity</h5>
+          <p>Not every beginner project is offensive. Steganography tools hide data inside media (and their detectors find it); canary tokens are tripwires — files, URLs, or credentials that alert you when touched by an intruder. These projects teach the defensive imagination: security is not only walls, it is also alarms, decoys, and evidence.</p>
+          <h5>Dual-use awareness: keyloggers, beacons, and restraint</h5>
+          <p>This tier includes projects with obvious dual use — a keylogger records keystrokes, a C2 beacon phones home. They are included because defenders must understand the mechanisms they defend against, and the repo treats them as lab specimens. The rule is absolute and non-negotiable: they run only on systems you own, in isolated lab environments, and never against another person's machine. Curiosity about the mechanism is legitimate; deployment outside your own lab is not.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Scan your own lab VM with your port scanner, then compare against a professional scanner's output</strong><br/>Run your tool and a reference scanner against the same target and diff the results. Every discrepancy is a lesson in timeouts, packet crafting, or service behavior your implementation has not handled yet.</li>
+            <li><strong>Vulnerability-scan a deliberately vulnerable VM and document every finding by hand</strong><br/>Use Metasploitable or a similar intentionally-vulnerable target (see the project-lab section), run your scanner, and write up each finding as if for a client: what it is, why it matters, how to fix it. The write-up is the deliverable that assessment work actually sells.</li>
+            <li><strong>Harden-audit your own Linux machine and remediate the top five findings</strong><br/>Run your CIS-style auditor, take the five most serious findings, fix them, and re-run to confirm. Closing the loop — detect, remediate, verify — is the operational rhythm of defensive work.</li>
+            <li><strong>Capture an hour of your lab network's traffic and write an analyst's summary</strong><br/>With your analyzer, produce a one-page brief: which hosts talked to whom, which protocols dominated, and anything that looked anomalous. Analysts are paid for the summary, not the capture.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Your scanner reports a port as &quot;filtered&quot; rather than &quot;closed&quot; — what device behavior explains the difference?</li>
+            <li>Why does a vulnerability scanner's version-match produce false positives, and how do you confirm one?</li>
+            <li>Name two ways a canary token provides value that a firewall log does not.</li>
+          </ul>
+          <h4>Lab safety</h4>
+          <ul>
+            <li>Scanners and beacons stay inside your lab network. Scan only hosts you own or are explicitly authorized to test; unauthorized scanning is unlawful in many jurisdictions regardless of intent.</li>
+            <li>Keylogger and C2-beacon projects run on your own isolated VMs only. Delete or quarantine the artifacts when the lab is done — do not leave dual-use binaries on shared machines.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Intermediate: Detection, AppSec, and Supply-Chain Defense</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Build a SIEM-style dashboard: ingest log events, write detection rules, and triage alerts</li>
+            <li>Scan an API for common security weaknesses and explain the findings in terms of the OWASP API Security Top 10</li>
+            <li>Generate an SBOM for a project and match its components against known vulnerabilities</li>
+            <li>Detect leaked secrets in code and design a prevention workflow around the findings</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>SIEM thinking: from logs to detections to triage</h5>
+          <p>A SIEM dashboard project compresses the analyst's daily loop into code you write yourself: events flow in, parsing normalizes them, detection rules match patterns, and the dashboard surfaces alerts for triage. Building it teaches the central defensive discipline — that detection is a pipeline, not a product — and every SOC workflow you later encounter (the repo's SOC Analyst roadmap included) will be a scaled-up version of what you built here.</p>
+          <h5>API security as its own discipline</h5>
+          <p>Modern applications are APIs wearing a user interface, and APIs fail in their own characteristic ways: broken object-level authorization, excessive data exposure, missing rate limits, injection. An API security scanner automates the probing; understanding the OWASP API Security Top 10 gives the findings their names. This is the bridge between the beginner tier's network scanning and the professional application-security work the roadmaps describe.</p>
+          <h5>SBOMs and the software supply chain</h5>
+          <p>A software bill of materials lists every component your software is built from — and therefore every component whose vulnerabilities are your vulnerabilities. An SBOM generator plus a vulnerability matcher answers the question every organization dreads after a major disclosure: &quot;are we affected, and where?&quot; Building this tooling teaches supply-chain thinking: your attack surface includes code you did not write, maintained by people you have never met.</p>
+          <h5>Secrets scanning and the credential-leak lifecycle</h5>
+          <p>API keys and tokens leak into repositories constantly — committed by accident, then cloned, forked, and scraped forever. A secrets scanner finds them by pattern and entropy analysis; the harder lesson is the lifecycle around the finding: revoke, rotate, and prevent recurrence with pre-commit hooks and pipeline gates. The scanner is the easy part; the workflow is the security.</p>
+          <h5>TLS fingerprinting and container auditing</h5>
+          <p>JA3/JA4 fingerprinting identifies clients by the distinctive shape of their TLS handshakes — malware and scanners often have recognizable fingerprints, which makes this a passive detection technique with no agent required. Docker security auditing applies the hardening-audit mindset from Module 2 to containers: image provenance, runtime configuration, privilege boundaries. Both extend your detection surface into the infrastructure modern workloads actually run on.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Feed your SIEM dashboard a week of your lab's logs and write three detection rules</strong><br/>Generate normal lab traffic plus a few scripted attacks (a port scan, a brute-force login, an odd-hour admin action), then write rules that catch the attacks without drowning in false positives from the normal traffic. Tuning out the noise is the real skill.</li>
+            <li><strong>API-scan a deliberately vulnerable API and map findings to the OWASP API Security Top 10</strong><br/>Run your scanner against OWASP's vulnerable API projects or a local test API, then write each finding up with its Top 10 category, impact, and fix. The mapping exercise is what turns tool output into analyst judgment.</li>
+            <li><strong>Generate an SBOM for one of your own projects and triage its vulnerable components</strong><br/>Run your generator and matcher, then for each flagged component decide: upgrade, replace, or accept the risk with a written reason. Risk acceptance with documentation is a professional act; ignoring the report is not.</li>
+            <li><strong>Plant secrets in a test repository and measure your scanner's recall</strong><br/>Commit a dozen realistic secrets (fake keys in real formats) across a test repo, run the scanner, and score what it caught and missed. Then add a pre-commit hook and confirm the next commit is blocked. Measure, then prevent.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Your SIEM rule fires 400 times a day on legitimate admin logins — what tuning options do you have besides deleting the rule?</li>
+            <li>Why is broken object-level authorization the classic API vulnerability, and what test exposes it?</li>
+            <li>A critical CVE lands in a transitive dependency three levels deep — how does your SBOM workflow find every affected service?</li>
+          </ul>
+          <h4>Lab safety</h4>
+          <ul>
+            <li>API and vulnerability scanning stay pointed at your own lab targets. Credential-enumeration tooling from this tier is lab-only; never run it against real services or other people's infrastructure.</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Advanced: Adversary Emulation, Deception, and Detection Engineering</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Deploy a honeypot network and analyze the attack traffic it collects</li>
+            <li>Explain how adversary-emulation frameworks model real attacker behavior for defensive testing</li>
+            <li>Describe what a reverse-engineering workflow looks like on an unknown binary</li>
+            <li>Design a detection for one attacker technique and validate it against emulated activity</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Honeypots: instrumented deception</h5>
+          <p>A honeypot network is infrastructure designed to be attacked: fake services that log everything the intruder does. Unlike production systems, honeypots have no legitimate users, so every connection is suspicious by definition — which makes their logs the cleanest signal in security. Building one teaches deception as a defensive discipline and gives you real attacker traffic to analyze, the raw material of threat intelligence.</p>
+          <h5>Adversary emulation and the purple-team loop</h5>
+          <p>Frameworks like Atomic Red Team encode real attacker techniques as executable tests, so defenders can verify their detections against known-bad behavior on demand. This is the purple-team loop in miniature: emulate the adversary, check whether your monitoring caught it, fix the blind spot, repeat. The advanced tier's threat-detection projects live here — detection engineering as a practice of continuous, adversarial self-testing.</p>
+          <h5>Reverse engineering: reading the unreadable</h5>
+          <p>The reverse-engineering projects introduce the workflow of analyzing binaries without source: disassembly, control-flow reconstruction, identifying interesting functions, and dynamic analysis in a sandbox. You will not become a malware analyst in one module; you will learn what the discipline's first hour looks like, which is enough to triage a suspicious binary and know when to escalate it.</p>
+          <h5>Cryptography at the systems level: HSM emulation and secure channels</h5>
+          <p>An HSM emulator models the hardware that guards the world's most sensitive keys — tamper-resistant modules that perform cryptographic operations without ever exposing key material. Building an emulator teaches the key-management architecture that underpins everything from certificate authorities to payment systems. The encrypted-chat project alongside it applies the same primitives to a concrete problem: authenticated, confidential messaging between peers.</p>
+          <h5>Polyglot security engineering</h5>
+          <p>Note the advanced tier's language spread — Haskell reverse proxies, Zig scanners, Go tooling. Security engineering is polyglot by necessity: performance-critical scanners want systems languages, while glue and analysis live in Python and Go. The takeaway is not any one language but the habit of choosing the tool for the performance and safety profile the job demands.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Deploy the honeypot network, leave it exposed for a week, and write an attacker's diary</strong><br/>Document what arrived: which services were probed, which credentials were tried, which payloads were delivered. Then classify the activity — automated botnet noise versus targeted behavior — and present the findings as a threat briefing.</li>
+            <li><strong>Emulate five attacker techniques against your Module 3 SIEM and score your detections</strong><br/>Use an adversary-emulation framework to execute known techniques in your lab, then check which ones your dashboard caught. For each miss, write the detection rule that would have caught it and re-run. The before/after scorecard is detection engineering, demonstrated.</li>
+            <li><strong>Reverse-engineer a crackme or known-benign binary and document the workflow</strong><br/>Work a beginner crackme in a sandboxed VM: map the control flow, find the validation logic, and write up each step. Use only legal practice targets — never analyze malware outside a proper sandbox, and never distribute what you find.</li>
+            <li><strong>Build a capstone: one detection pipeline end to end</strong><br/>Combine the tiers — a scanner or honeypot as the sensor, your SIEM dashboard as the brain, and a written detection rule with a validation test. Present it as a portfolio piece: architecture diagram, code, sample alerts, and the emulation test proving it works.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does a honeypot's &quot;no legitimate users&quot; property make its logs more valuable than a production firewall's?</li>
+            <li>Your emulation test succeeds but no alert fires — is the problem the sensor, the rule, or the pipeline, and how do you isolate which?</li>
+            <li>What separates legal reverse-engineering practice from activity you should not touch?</li>
+          </ul>
+          <h4>Lab safety</h4>
+          <ul>
+            <li>Advanced tooling — honeypots, emulated C2, reverse-engineering sandboxes — runs in isolated lab networks only. Exposing a honeypot to the internet is itself a research decision with legal and abuse implications; understand your provider's terms and your jurisdiction's rules before you do it.</li>
+            <li>Handle any captured malware samples as hazardous material: sandboxed VM, no network route to production, snapshots for rollback, and no redistribution.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Project lab: ecosystem mapping -->
+  <section class="il-section" id="project-lab" aria-labelledby="project-lab-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The project lab</p>
+        <h2 class="il-h il-h--section" id="project-lab-h">Where to practice: the verified ecosystem.</h2>
+        <p>Tools you build need targets you are allowed to touch. The resources below are verified, open or free-tier, and legal to practice against. Every link was checked live; if one dies, the category description tells you what to look for in a replacement.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Deliberately vulnerable web applications</h3>
+        <ul>
+          <li><strong>OWASP Juice Shop</strong> — a modern, intentionally vulnerable web application (Node.js/Angular) covering the OWASP Top 10, packaged for local deployment. The standard target for practicing web attacks and for testing scanners you build in Modules 2 and 3. <a href="https://owasp.org/www-project-juice-shop/">owasp.org/www-project-juice-shop</a></li>
+          <li><strong>OWASP WebGoat</strong> — a deliberately insecure Java web application with structured lessons for each vulnerability class. Lesson-driven where Juice Shop is open-world; use it when you want guided exercises. <a href="https://owasp.org/www-project-webgoat/">owasp.org/www-project-webgoat</a></li>
+          <li><strong>DVWA (Damn Vulnerable Web Application)</strong> — a PHP/MySQL application with adjustable difficulty levels per vulnerability, useful for demonstrating the same flaw from trivially exploitable to properly defended. <a href="https://github.com/digininja/DVWA">github.com/digininja/DVWA</a></li>
+        </ul>
+        <h3>Free training platforms</h3>
+        <ul>
+          <li><strong>PortSwigger Web Security Academy</strong> — free, lab-backed web security training from the makers of Burp Suite, with interactive labs for each vulnerability class. The deepest free web-security curriculum available; pairs directly with Modules 2 and 3. <a href="https://portswigger.net/web-security">portswigger.net/web-security</a></li>
+          <li><strong>TryHackMe</strong> — guided, browser-based security labs and learning paths with a free tier covering beginner through intermediate rooms. Good for structured practice between building your own tools. <a href="https://tryhackme.com">tryhackme.com</a></li>
+          <li><strong>HackTheBox</strong> — hands-on hacking labs and machines with a free tier; the community writeups for retired machines are a study resource in their own right (read them after attempting the box, not before). <a href="https://www.hackthebox.com">hackthebox.com</a></li>
+        </ul>
+        <h3>Vulnerable virtual machines and detection labs</h3>
+        <ul>
+          <li><strong>Metasploitable 3</strong> — intentionally vulnerable virtual machines (Linux and Windows builds) designed as legal targets for scanning and exploitation practice. The canonical target for your Module 2 scanner labs. <a href="https://github.com/rapid7/metasploitable3">github.com/rapid7/metasploitable3</a></li>
+          <li><strong>DetectionLab</strong> — an automated lab that builds a Windows domain with logging, Splunk, and attack tooling pre-configured, designed for detection engineering. The natural home for your Module 3 and 4 detection work. <a href="https://github.com/clong/DetectionLab">github.com/clong/DetectionLab</a></li>
+          <li><strong>Security Onion</strong> — a free Linux distribution bundling network security monitoring, log management, and intrusion detection. Deploy it in your lab to see what a production-grade defensive stack looks like next to the SIEM dashboard you built yourself. <a href="https://github.com/Security-Onion-Solutions/securityonion">github.com/Security-Onion-Solutions/securityonion</a></li>
+        </ul>
+        <h3>Adversary emulation and purple-team tooling</h3>
+        <ul>
+          <li><strong>Atomic Red Team</strong> — a library of small, focused tests mapped to adversary techniques, executable on demand against your own lab. The engine of the purple-team loop described in Module 4. <a href="https://github.com/redcanaryco/atomic-red-team">github.com/redcanaryco/atomic-red-team</a></li>
+          <li><strong>PurpleSharp</strong> — an adversary-emulation tool for Windows environments, useful when your lab includes Windows targets and you want technique execution with telemetry. <a href="https://github.com/mvelazc0/PurpleSharp">github.com/mvelazc0/PurpleSharp</a></li>
+        </ul>
+        <h3>SOC training data and blue-team practice</h3>
+        <ul>
+          <li><strong>Splunk Boss of the SOC (BOTS) dataset</strong> — a large, realistic synthetic dataset of enterprise security logs with an attack narrative woven through it, released for the Boss of the SOC competition. Feed it to your Module 3 SIEM dashboard as realistic practice data. <a href="https://github.com/splunk/botsv3">github.com/splunk/botsv3</a></li>
+          <li><strong>LetsDefend</strong> — a blue-team training platform with free resources and simulated SOC alert investigations. Practice the triage workflow your dashboard project models. <a href="https://letsdefend.io">letsdefend.io</a> · <a href="https://github.com/letsdefend">github.com/letsdefend</a></li>
+        </ul>
+        <h3>The spine repository, again</h3>
+        <ul>
+          <li><strong>CarterPerez-dev/Cybersecurity-Projects</strong> — the 70-project collection (42 with full source at last check) this sequence is keyed to, AGPL-3.0 licensed. Note the license: AGPL-3.0 requires offering source to users if you run modified versions as a network service — fine for learning, worth knowing before you deploy anything built from it. <a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects">github.com/CarterPerez-dev/Cybersecurity-Projects</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Certification roadmaps -->
+  <section class="il-section" id="roadmaps" aria-labelledby="roadmaps-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Role roadmaps</p>
+        <h2 class="il-h il-h--section" id="roadmaps-h">Three role families, honestly described.</h2>
+        <p>The spine repository ships <a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects/tree/main/ROADMAPS">ten role roadmaps</a>; we cover the three this sequence prepares you for. Read these as orientations to the roles — what the work is, what the repository's roadmap suggests studying — not as promises. No page on this site certifies anyone; the certification names below belong to their vendors, and the vendors' own sites are authoritative on requirements, cost, and validity.</p>
+      </div>
+      <div class="il-prose">
+        <h3>SOC Analyst — the defensive watch floor</h3>
+        <p>A SOC (Security Operations Center) analyst monitors security telemetry, triages alerts, investigates suspicious activity, and escalates or contains incidents. It is the classic entry point into defensive security: shift work, alert queues, playbooks, and a constant stream of real events to learn from. Everything in Modules 1 through 3 feeds this role — traffic analysis, log triage, SIEM thinking — and the Module 4 capstone is a miniature version of the detection work senior analysts do.</p>
+        <p>The repository's SOC Analyst roadmap suggests a progression through vendor certifications including Security+, CySA+, GCIH, GCIA, and CISSP, with a multi-year timeline to senior level. Treat that list as one maintainer's suggested study order, not a hiring requirement: entry-level SOC postings vary widely, and demonstrated lab work (this sequence's portfolio) plus a foundational certification is a common and credible combination. Our own <a href="/learn/sequences/security-plus-cysa/">Security+ &rarr; CySA+ track</a> covers the exam-knowledge side of the first two names on that list.</p>
+        <h3>Pentester — authorized adversary</h3>
+        <p>A penetration tester is hired to break in — legally, under contract, with defined scope — and report how it was done so the flaws get fixed. The work blends technical depth (network, web, and increasingly cloud and API attack surface) with professional writing: the report is the product the client buys. Modules 2 and 3 build the technical substrate (recon, scanning, web and API assessment); the vulnerable applications and platforms in the project-lab section are where you practice the craft lawfully.</p>
+        <p>The repository's Pentester roadmap suggests Security+, PenTest+, CEH, OSCP, OSEP, and GXPN across a multi-year path to expert level. Note the shape of that list: it moves from knowledge exams toward hands-on, lab-exam certifications (OSCP and OSEP are earned by compromising machines in a timed lab, not by multiple choice). That shape is the honest signal — pentesting is a performance discipline, and the credentials that carry weight in it test performance. Nothing here substitutes for authorized practice; there is no shortcut past the lab hours.</p>
+        <h3>Security Engineer — building the defenses</h3>
+        <p>A security engineer designs and implements security controls: hardening systems, building detection pipelines, automating response, securing cloud infrastructure and delivery pipelines. It is the builder's role — closest in spirit to this sequence's project work — and it draws on both sides: you must understand attacks to design controls that survive them, and you must understand systems to build controls that survive production.</p>
+        <p>The repository's Security Engineer roadmap suggests Security+, CySA+, SecurityX, CISSP, and CCSP over a multi-year path to senior level, reflecting the role's breadth across architecture, cloud, and operations. This sequence's intermediate and advanced modules — SIEM construction, SBOM tooling, container auditing, detection engineering — are the portfolio evidence for this path, and our <a href="/learn/sequences/devsecops-pipeline/">DevSecOps pipeline sequence</a> covers the delivery-security half of the modern security engineer's remit.</p>
+        <h3>What roadmaps can and cannot do</h3>
+        <ul>
+          <li>A roadmap orients; it does not qualify. Employers hire for demonstrated capability, and capability is demonstrated by built work and, where relevant, vendor certifications earned from the vendors.</li>
+          <li>Certification names, requirements, and prices change. Verify everything against the vendor's current published information before spending money or time.</li>
+          <li>The repository's timelines (years to senior or expert level) are one maintainer's estimates. Your mileage will vary with prior experience, mentorship, and how many lab hours you actually put in — which is the variable this sequence exists to maximize.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" id="resources" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. Every external link below was verified live during research; the repositories and docs are the authorities on their own contents.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Spine repository</h3>
+        <ul>
+          <li><a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects">github.com/CarterPerez-dev/Cybersecurity-Projects</a> — project collection, roadmaps, and resources</li>
+          <li><a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects/tree/main/ROADMAPS">ROADMAPS directory</a> — the ten role roadmaps</li>
+          <li><a href="https://github.com/CarterPerez-dev/Cybersecurity-Projects/tree/main/RESOURCES">RESOURCES directory</a> — tools, courses, certifications, communities, frameworks</li>
+        </ul>
+        <h3>Vulnerable targets and training platforms</h3>
+        <ul>
+          <li><a href="https://owasp.org/www-project-juice-shop/">OWASP Juice Shop</a></li>
+          <li><a href="https://owasp.org/www-project-webgoat/">OWASP WebGoat</a></li>
+          <li><a href="https://github.com/digininja/DVWA">DVWA</a></li>
+          <li><a href="https://portswigger.net/web-security">PortSwigger Web Security Academy</a></li>
+          <li><a href="https://tryhackme.com">TryHackMe</a></li>
+          <li><a href="https://www.hackthebox.com">HackTheBox</a></li>
+        </ul>
+        <h3>Labs, emulation, and detection</h3>
+        <ul>
+          <li><a href="https://github.com/rapid7/metasploitable3">Metasploitable 3</a></li>
+          <li><a href="https://github.com/clong/DetectionLab">DetectionLab</a></li>
+          <li><a href="https://github.com/Security-Onion-Solutions/securityonion">Security Onion</a></li>
+          <li><a href="https://github.com/redcanaryco/atomic-red-team">Atomic Red Team</a></li>
+          <li><a href="https://github.com/mvelazc0/PurpleSharp">PurpleSharp</a></li>
+          <li><a href="https://github.com/splunk/botsv3">Splunk Boss of the SOC dataset</a></li>
+          <li><a href="https://letsdefend.io">LetsDefend</a></li>
+        </ul>
+        <h3>Adjacent sequences on this site</h3>
+        <ul>
+          <li><a href="/learn/sequences/security-plus-cysa/">Security+ &rarr; CySA+ Combined Analyst Track</a> — exam-knowledge side of the analyst path</li>
+          <li><a href="/learn/sequences/devsecops-pipeline/">DevSecOps Pipeline Engineering</a> — securing software delivery</li>
+          <li><a href="/learn/sequences/cissp/">CISSP Practitioner Study Sequence</a> — practitioner knowledge domains</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to public repos.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. Its project spine follows the publicly documented structure of the open-source repositories linked above; the teaching prose is our own distillation, and no repository, vendor, or community text is reproduced here. We are not affiliated with any repository maintainer, vendor, or certification body named on this page, and this guide confers no certification and qualifies no one for any role — it organizes practice. Where a linked repository changes, the repository is authoritative. Offensive tooling discussed here is for use only on systems you own or are explicitly authorized to test, in isolated lab environments.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
