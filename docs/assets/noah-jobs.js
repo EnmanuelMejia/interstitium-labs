@@ -27,11 +27,46 @@
       .replace(/\b(?:sk-[a-zA-Z0-9_-]{12,}|gh[pousr]_[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16})\b/g, '[redacted secret]')
       .replace(/\bBearer\s+[a-zA-Z0-9._~-]{12,}/gi, 'Bearer [redacted]').trim().slice(0, max || LIMITS.requirements);
   }
+  function markupText(value) {
+    // Display normalization only, never an HTML sanitizer. Callers use textContent.
+    // Walk once instead of repeatedly deleting regex matches that can join malformed tags.
+    var source = String(value || '').slice(0, LIMITS.storage), output = [], i = 0, ignored = '', depth = 0;
+    while (i < source.length) {
+      if (source.startsWith('<!--', i)) {
+        var comments = 1; i += 4;
+        while (i < source.length && comments) {
+          if (source.startsWith('<!--', i)) { comments++; i += 4; }
+          else if (source.startsWith('-->', i)) { comments--; i += 3; }
+          else i++;
+        }
+        continue;
+      }
+      var tag = source[i] === '<' && /^<\s*(\/?)\s*([a-z][a-z0-9:-]*)\b/i.exec(source.slice(i, i + 90));
+      if (tag) {
+        var end = i + tag[0].length, quote = '';
+        while (end < source.length) {
+          var char = source[end];
+          if (quote) { if (char === quote) quote = ''; }
+          else if (char === '"' || char === "'") quote = char;
+          else if (char === '>') break;
+          end++;
+        }
+        if (end === source.length) break;
+        var name = tag[2].toLowerCase(), closing = !!tag[1];
+        if (ignored) {
+          if (name === ignored) { depth += closing ? -1 : 1; if (!depth) ignored = ''; }
+        } else if (!closing && (name === 'script' || name === 'style')) { ignored = name; depth = 1; }
+        else if ((closing && /^(?:p|div|li|h[1-6])$/.test(name)) || name === 'br') output.push('\n');
+        else if (!closing && name === 'li') output.push('• ');
+        i = end + 1; continue;
+      }
+      if (!ignored) output.push(source[i]);
+      i++;
+    }
+    return output.join('');
+  }
   function plainText(value) {
-    return clean(String(value || '').replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '').replace(/<!--[\s\S]*?-->/g, '')
-      .replace(/<(?:\/p|\/div|br\s*\/?|\/li|\/h[1-6])\s*>/gi, '\n').replace(/<li\b[^>]*>/gi, '• ')
-      .replace(/<[^>]*>/g, '').replace(/&(?:nbsp|amp|lt|gt|quot|apos|#39);/gi, function (v) {
+    return clean(markupText(value).replace(/&(?:nbsp|amp|lt|gt|quot|apos|#39);/gi, function (v) {
         return { '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'", '&#39;': "'" }[v.toLowerCase()] || v;
       }).replace(/&#(x[0-9a-f]+|\d+);/gi, function (_, v) {
         var n = v[0].toLowerCase() === 'x' ? parseInt(v.slice(1), 16) : Number(v);

@@ -89,7 +89,9 @@ try {
     assert.equal(await page.locator('#review-title').innerText(), title);
     assert.equal(await card.getByRole('button', { name: /^Save / }).getAttribute('aria-pressed'), 'true');
     const source = await page.locator('#job-detail a.detail-source').getAttribute('href');
-    assert.ok(source.startsWith('https://remotive.com/'));
+    const sourceURL = new URL(source);
+    assert.equal(sourceURL.protocol, 'https:'); assert.equal(sourceURL.hostname, 'remotive.com');
+    assert.equal(sourceURL.port, ''); assert.equal(sourceURL.username, ''); assert.equal(sourceURL.password, '');
     return { count: feed.jobs.length, snapshotAt: feed.fetchedAt, reviewedTitle: title, reviewedSource: source, savedOnlyInDisposableBrowser: true };
   });
 
@@ -103,7 +105,15 @@ try {
     await page.locator('#review-noah').click(); await page.locator('#share-dialog').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#share-consent').isChecked(), false);
     reviewedPrompt = await page.locator('#share-preview').innerText();
-    assert.ok(reviewedPrompt.length <= 3900); assert.ok(reviewedPrompt.includes('https://remotive.com/'));
+    assert.ok(reviewedPrompt.length <= 3900);
+    const reviewedData = JSON.parse(reviewedPrompt.slice(reviewedPrompt.indexOf('{')));
+    assert.equal(reviewedData.postings.length, 1);
+    const postingURL = new URL(reviewedData.postings[0].url);
+    assert.equal(postingURL.protocol, 'https:'); assert.equal(postingURL.hostname, 'remotive.com');
+    assert.equal(postingURL.port, ''); assert.equal(postingURL.username, ''); assert.equal(postingURL.password, '');
+    const displayedSource = new URL(await page.locator('#job-detail a.detail-source').getAttribute('href'));
+    displayedSource.search = ''; displayedSource.hash = '';
+    assert.equal(postingURL.href, displayedSource.href, 'Reviewed posting URL must equal the selected source after the privacy filter');
     assert.ok(reviewedPrompt.includes('"statedSkills": ""') && reviewedPrompt.includes('"evidenceNotes": ""'));
     assert.equal(receipt.requestCount, 0);
     const responseEvent = page.waitForResponse(response => response.url() === endpointURL && response.request().method() === 'POST', { timeout: 25000 });
