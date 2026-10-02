@@ -12,6 +12,7 @@
   <script src="/assets/noah-session.js" defer></script>
   <script src="/assets/noah-ai.js" defer></script>
   <script src="/assets/noah-workflows.js" defer></script>
+  <script src="/assets/noah-skills.js" defer></script>
   <script src="/assets/noah-neural.js" defer></script>
   <script src="/assets/noah-workspace.js" defer></script>
 </head>
@@ -57,6 +58,29 @@
         <p class="eyebrow">BOUNDED EXECUTION</p><h2>From a topic to a study brief.</h2>
         <p class="lede">Search the actual curriculum, review the sources, then approve creation of a reading brief. Each completed step is saved. Work runs while this page is open; resume it here after an interruption.</p>
         <form id="workflow-form" action="/noah/" method="post"><label for="workflow-topic">Study topic</label><div class="inline-form"><input id="workflow-topic" name="topic" maxlength="160" required placeholder="Kubernetes, SQL, Python…"><button type="submit">Create workflow</button></div></form>
+      <section class="skills-library" aria-labelledby="skills-heading">
+        <p class="eyebrow">REUSABLE NOAH SKILLS</p>
+        <h3 id="skills-heading">Save a repeatable workflow.</h3>
+        <p class="skills-note">Skills use the currently approved site research and local study-brief tools. They run only while this page is open. No cloud computer or external account access is implied.</p>
+        <form id="skill-run-form" action="/noah/" method="post">
+          <label for="skill-choice">Skill</label>
+          <select id="skill-choice" name="skill" required></select>
+          <label for="skill-topic">Topic</label>
+          <input id="skill-topic" name="topic" maxlength="160" required placeholder="e.g. Kubernetes networking">
+          <button type="submit">Create task from skill</button>
+        </form>
+        <details class="skill-create">
+          <summary>Save a custom skill</summary>
+          <form id="skill-save-form" action="/noah/" method="post">
+            <label for="skill-name">Skill name</label>
+            <input id="skill-name" name="name" maxlength="80" required placeholder="My weekly SQL review">
+            <label for="skill-mode">Approved skill type</label>
+            <select id="skill-mode" name="mode"><option value="research">Curriculum research</option><option value="study-brief">Research + approved study brief</option></select>
+            <button type="submit">Save skill on this device</button>
+          </form>
+        </details>
+        <ul id="skill-list" class="skill-list" aria-label="Your saved skills"></ul>
+      </section>
         <div id="workflow-list" class="workflow-list"></div>
         <details class="tool-details"><summary>Available tools and permissions</summary><div id="tool-list"></div><p>Cloud computers and external connectors require an authenticated server runtime and provider authorization.</p></details>
       </section>
