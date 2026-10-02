@@ -25,6 +25,30 @@
 (function (g) {
   'use strict';
 
+  var sessionLoading = null, activitySequence = 0;
+  function sessionStore() { return g.IL && g.IL.noahSession || null; }
+  function ensureSession() {
+    if (sessionStore()) return Promise.resolve(sessionStore());
+    if (sessionLoading) return sessionLoading;
+    // Existing pages load this widget alone. Keep the memory module local to this origin.
+    sessionLoading = new Promise(function (resolve) {
+      var script = document.createElement('script');
+      script.src = '/assets/noah-session.js';
+      script.onload = function () {
+        if (g.IL && g.IL.noahAI) g.IL.noahAI.session = sessionStore();
+        resolve(sessionStore());
+      };
+      script.onerror = function () { resolve(null); };
+      document.head.appendChild(script);
+    });
+    return sessionLoading;
+  }
+  function setActivity(state) {
+    var store = sessionStore();
+    if (store) store.setActivity(state);
+    else if (g.dispatchEvent && g.CustomEvent) g.dispatchEvent(new g.CustomEvent('noah:activity', { detail: { state: state } }));
+  }
+
   /* ================= Local Socratic engine (unchanged doctrine) ====== */
 
   var TOPICS = [
@@ -225,9 +249,9 @@
      track, so every remote answer is screened before display:
      - IL-11 claims that are not explicit denials are replaced with the verified
        local answer (there is no such track on this site).
-     Remote answers are always labeled as remote; they never carry the on-device
-     notice. Returns { reply, replaced }. */
-  var REMOTE_NOTICE = 'Answered by the remote Noah endpoint — track names verified against this site\u2019s published pages; treat uncited claims as unverified.';
+     Successful remote answers are labeled as remote. A replacement uses the
+     local answer and says why it was replaced. Returns { reply, replaced }. */
+  var REMOTE_NOTICE = 'Answered by the remote Noah endpoint — verify factual claims against the cited sources.';
   function screenRemote(reply, text) {
     var r = String(reply == null ? '' : reply);
     if (/\bil-?11\b/i.test(r) && !/no\s+(such|il-?11)|doesn[’']t exist|not\s+a\s+(real|published)/i.test(r)) {
@@ -263,30 +287,152 @@
     return out;
   }
 
-  function askRemote(text, history) {
+  function askRemote(text, history, options) {
     var endpoint = getEndpoint();
-    var msgs = (history || []).concat([{ role: 'user', content: String(text) }]);
+    var store = sessionStore();
+    var msgs = store ? store.prepareRemoteMessages(text, history, options) :
+      (options && options.shareMemoryWithRemote === true && Array.isArray(history) ? history : []).filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'; })
+        .map(function (m) { return { role: m.role, content: m.content.slice(0, 4000) }; }).concat([{ role: 'user', content: String(text).slice(0, 4000) }]);
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timeout = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
+    function fallback() {
+      return ensureKB().then(function () {
+        var local = askLocal(text);
+        return { reply: local.reply, nudges: local.nudges, remote: false, fallback: true,
+          notice: local.notice + ' The remote service could not answer this request.' };
+      });
+    }
     return fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: msgs.slice(-12) })
+      body: JSON.stringify({ messages: msgs.slice(-12), context: store ? store.remoteContext(options) : undefined }),
+      signal: controller ? controller.signal : undefined
     }).then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {
-        if (out.res.ok && out.data && out.data.reply) {
-          var screened = screenRemote(out.data.reply, text);
-          return { reply: screened.reply, remote: true, remoteScreened: screened.replaced, notice: REMOTE_NOTICE };
+        if (out.res.ok && out.data && typeof out.data.reply === 'string' && out.data.reply.trim() && !out.data.fallback) {
+          var screened = screenRemote(out.data.reply.slice(0, 18000), text);
+          return { reply: screened.reply, remote: !screened.replaced, local: screened.replaced, remoteScreened: screened.replaced,
+            notice: screened.replaced ? LOCAL_NOTICE + ' A remote response was replaced because it described IL-11 as a published track.' : REMOTE_NOTICE };
         }
-        return ensureKB().then(function () {
-          var local = askLocal(text);
-          return { reply: local.reply, nudges: local.nudges, remote: false, notice: local.notice };
-        });
+        return fallback();
       })
-      .catch(function () {
-        return ensureKB().then(function () {
-          var local = askLocal(text);
-          return { reply: local.reply, nudges: local.nudges, remote: false, notice: local.notice };
-        });
+      .catch(fallback)
+      .then(function (out) { if (timeout) clearTimeout(timeout); return out; });
+  }
+
+  function answer(text, hist, options) {
+    text = typeof text === 'string' ? text.trim().slice(0, 4000) : '';
+    if (!text) return Promise.resolve({ reply: 'Enter a question to start.', remote: false, local: true, notice: LOCAL_NOTICE });
+    var requestSequence = ++activitySequence;
+    return ensureSession().then(function () {
+      setActivity('researching');
+      return ensureKB();
+    }).then(function () {
+      // A reviewed task such as job-description analysis can explicitly request the remote engine.
+      // This never grants permission to include stored history, notes, or page metadata.
+      if (options && options.forceRemote === true) return askRemote(text, hist || [], options);
+      var local = askLocal(text);
+      if (local.answered) return { reply: local.reply, nudges: local.nudges, remote: false, local: true, notice: local.notice };
+      return askRemote(text, hist || [], options);
+    }).then(function (out) {
+      if (requestSequence === activitySequence) {
+        setActivity(out.fallback ? 'error' : 'teaching');
+        setTimeout(function () { if (requestSequence === activitySequence) setActivity('idle'); }, 2800);
+      }
+      return out;
+    }).catch(function () {
+      if (requestSequence === activitySequence) setActivity('error');
+      return { reply: A_UNKNOWN, remote: false, fallback: true, notice: 'This request could not be completed. You can try again.' };
+    });
+  }
+
+  function converse(text, options) {
+    text = typeof text === 'string' ? text.trim().slice(0, 4000) : '';
+    return ensureSession().then(function (store) {
+      if (!text) return answer(text, [], options);
+      var context = store ? store.captureContext() : null;
+      var token = store ? store.generation() : null;
+      var previous = store ? store.snapshot().conversation : history.slice();
+      if (store) store.record('user', text, context, token);
+      else history.push({ role: 'user', content: text });
+      return answer(text, previous, options).then(function (out) {
+        if (store && token !== store.generation()) {
+          loadHistory();
+          return { reply: '', discarded: true, remote: false, local: true,
+            notice: 'The saved Noah conversation changed while this request was pending. Its reply was discarded. Previously processed AI requests cannot be withdrawn.' };
+        }
+        if (store) store.record('assistant', out.reply, context, token, { engine: out.remote ? 'remote' : 'device', notice: out.notice });
+        else history.push({ role: 'assistant', content: out.reply });
+        loadHistory();
+        return out;
       });
+    });
+  }
+
+  /* Small DOM-only reply formatter. AI text is never interpreted as HTML. */
+  function replyURL(value) {
+    if (typeof value !== 'string' || /[\u0000-\u0020\u007f\\]/.test(value)) return null;
+    if (value.slice(0, 2) === '//' || !/^(?:https:\/\/|\/)/i.test(value)) return null;
+    try {
+      var base = g.location && g.location.origin || 'https://interstitiumlabs.dev';
+      var parsed = new URL(value, base);
+      if (parsed.username || parsed.password) return null;
+      if (value.charAt(0) === '/') return parsed.origin === new URL(base).origin ? parsed.href : null;
+      return parsed.protocol === 'https:' ? parsed.href : null;
+    } catch (_) { return null; }
+  }
+  function replyInline(host, text, depth) {
+    if (depth > 3) { host.appendChild(document.createTextNode(text)); return; }
+    var pattern = /\[([^\]\n]{1,240})\]\(([^)\s]{1,2048})\)|\*\*([^\n]{1,500}?)\*\*|\x60([^\x60\n]{1,500})\x60/g;
+    var match, last = 0;
+    while ((match = pattern.exec(text))) {
+      host.appendChild(document.createTextNode(text.slice(last, match.index)));
+      if (match[1] !== undefined) {
+        var href = replyURL(match[2]);
+        if (href) {
+          var link = document.createElement('a'); link.href = href; link.textContent = match[1]; link.rel = 'noopener noreferrer';
+          host.appendChild(link);
+        } else host.appendChild(document.createTextNode(match[0]));
+      } else {
+        var child = document.createElement(match[3] !== undefined ? 'strong' : 'code');
+        if (match[3] !== undefined) replyInline(child, match[3], depth + 1);
+        else child.textContent = match[4];
+        host.appendChild(child);
+      }
+      last = pattern.lastIndex;
+    }
+    host.appendChild(document.createTextNode(text.slice(last)));
+  }
+  function renderReply(host, value) {
+    if (!host || !host.replaceChildren) return;
+    host.replaceChildren();
+    var lines = String(value == null ? '' : value).slice(0, 18000).replace(/\r\n?/g, '\n').split('\n');
+    var block = null, list = null, code = null;
+    lines.forEach(function (line) {
+      if (/^\s*\x60{3}/.test(line)) {
+        block = null; list = null;
+        if (code) code = null;
+        else { var pre = document.createElement('pre'); code = document.createElement('code'); pre.appendChild(code); host.appendChild(pre); }
+        return;
+      }
+      if (code) { code.appendChild(document.createTextNode(line + '\n')); return; }
+      if (!line.trim()) { block = null; list = null; return; }
+      var heading = /^(#{1,3})\s+(.+)$/.exec(line);
+      var item = /^\s*(?:[-*]|\d+\.)\s+(.+)$/.exec(line);
+      if (heading) {
+        block = null; list = null;
+        var title = document.createElement('h' + (heading[1].length + 2)); replyInline(title, heading[2], 0); host.appendChild(title);
+      } else if (item) {
+        block = null;
+        if (!list) { list = document.createElement('ul'); host.appendChild(list); }
+        var li = document.createElement('li'); replyInline(li, item[1], 0); list.appendChild(li);
+      } else {
+        list = null;
+        if (!block) { block = document.createElement('p'); host.appendChild(block); }
+        else block.appendChild(document.createElement('br'));
+        replyInline(block, line, 0);
+      }
+    });
   }
 
   /* ================= Chat widget =================================== */
@@ -308,6 +454,7 @@
     'background:linear-gradient(165deg,#0d141d 0%,#0a0f16 60%,#0c1219 100%);',
     'border:1px solid rgba(212,175,55,.28);box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 40px rgba(34,211,238,.08);',
     'opacity:0;transform:translateY(16px) scale(.98);pointer-events:none;transition:opacity .28s ease,transform .28s ease;}',
+    '#noah-panel[hidden]{display:none;}',
     '#noah-panel.open{opacity:1;transform:none;pointer-events:auto;}',
     '#noah-head{display:flex;align-items:center;gap:12px;padding:14px 16px;',
     'background:linear-gradient(120deg,rgba(212,175,55,.12),rgba(34,211,238,.08));border-bottom:1px solid rgba(212,175,55,.2);}',
@@ -348,18 +495,20 @@
     'border-radius:999px;padding:7px 13px;font-size:12.5px;cursor:pointer;white-space:nowrap;}',
     '.noah-chip:hover{background:rgba(34,211,238,.18);}',
     '#noah-form{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);}',
-    '#noah-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;',
-    'color:#eef3f8;padding:10px 13px;font-size:14px;outline:none;resize:none;font-family:inherit;max-height:96px;}',
+    '#noah-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.3);border-radius:12px;',
+    'color:#eef3f8;padding:10px 13px;font-size:1rem;resize:vertical;font-family:inherit;max-height:96px;min-width:0;}',
     '#noah-input:focus{border-color:rgba(34,211,238,.5);}',
     '#noah-send{background:linear-gradient(135deg,#d4af37,#a67c1a);border:none;border-radius:12px;color:#0a0f16;',
     'font-weight:700;padding:0 16px;cursor:pointer;font-size:14px;}',
     '#noah-send:disabled{opacity:.45;cursor:default;}',
+    '#noah-panel button{min-height:44px;}#noah-panel :is(button,a,textarea):focus-visible{outline:3px solid #a5e8fc;outline-offset:2px;}',
+    '#noah-foot a{color:#a5e8fc;}#noah-form label{font-size:.8rem;color:#dbe4ee;}',
+    '@media(prefers-reduced-motion:reduce){#noah-panel,#noah-panel *{animation:none!important;transition:none!important;}}',
     '#noah-foot{padding:8px 14px 10px;color:#5b6b7f;font-size:11px;text-align:center;}',
     '@media (max-width:480px){#noah-panel{right:12px;bottom:92px;}#noah-launcher{right:14px;bottom:14px;}}'
   ].join('\n');
 
   var AVATAR_SRC = '/assets/noah-avatar.png'; // apex-local avatar
-  var LS_KEY = 'noah-ai-history-v1';
   var CHIPS = ['What should I learn first?', 'How do I study with deep work?', 'Who built this site?', 'Explain a DevOps concept'];
 
   var els = {};
@@ -394,14 +543,20 @@
   }
 
   function loadHistory() {
-    try {
-      var raw = localStorage.getItem(LS_KEY);
-      if (raw) history = JSON.parse(raw).slice(-20) || [];
-    } catch (e) { history = []; }
+    var store = sessionStore();
+    if (store) history = store.snapshot().conversation;
+    else history = history.slice(-40);
   }
-  function saveHistory() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(history.slice(-20))); } catch (e) {}
+
+  function refreshWidgetHistory() {
+    if (!els.msgs || !sessionStore()) return;
+    loadHistory(); els.msgs.replaceChildren();
+    history.forEach(function (m) {
+      addMsg(m.role, m.role === 'user' ? esc(m.content) : mdLite(m.content), m.notice || (m.role === 'assistant' ? 'Saved earlier; answer source was not recorded.' : undefined));
+    });
+    if (busy) showTyping();
   }
+  if (g.addEventListener) g.addEventListener('noah:session', refreshWidgetHistory);
 
   function addMsg(role, html, notice) {
     var m = el('div', 'noah-msg ' + (role === 'user' ? 'user' : 'noah'), html);
@@ -410,6 +565,8 @@
       m.appendChild(n);
     }
     els.msgs.appendChild(m);
+    var rendered = els.msgs.querySelectorAll('.noah-msg');
+    for (var i = 0; i < rendered.length - 40; i++) rendered[i].remove();
     els.msgs.scrollTop = els.msgs.scrollHeight;
     return m;
   }
@@ -446,25 +603,27 @@
     setAvatarState('thinking');
     NoahStats.track('ask', detectTopic(text.toLowerCase()));
     addMsg('user', esc(text));
-    history.push({ role: 'user', content: text });
-    saveHistory();
     showTyping();
+    els.msgs.setAttribute('aria-busy', 'true');
     /* Local-first (2026-10-01, noah-recovery-2): the on-device knowledge bundle
        answers first, so the honesty guardrails can never be bypassed by trying the
        remote endpoint first. Remote is only a fallback for questions the site's
        curriculum genuinely doesn't cover, and its replies pass screenRemote(). */
-    ensureKB().then(function () {
-      var local = askLocal(text);
-      if (local.answered) {
-        deliver({ reply: local.reply, nudges: local.nudges, remote: false, local: true, notice: local.notice });
-        return;
-      }
-      askRemote(text, history.slice(0, -1)).then(deliver);
-    });
+    converse(text).then(deliver);
   }
 
   function deliver(out) {
     hideTyping();
+    els.msgs.setAttribute('aria-busy', 'false');
+    busy = false;
+    els.send.disabled = false;
+    if (out.discarded) {
+      refreshWidgetHistory();
+      addMsg('noah', esc(out.notice));
+      setAvatarState('idle');
+      if (!els.panel.hidden) els.input.focus();
+      return;
+    }
     NoahStats.track(out.local ? 'local' : (out.remote ? 'remote' : 'fallback'));
     setAvatarState('speaking');
     setTimeout(function () { if (!busy) setAvatarState('idle'); }, 2800);
@@ -473,13 +632,15 @@
       fallbackNoted = true;
       notice = (notice ? notice + ' ' : '') + 'Heads up: the remote Noah endpoint is unreachable — I\u2019m answering on-device from the site\u2019s curriculum.';
     }
-    addMsg('noah', mdLite(out.reply), notice);
+    if (sessionStore()) {
+      refreshWidgetHistory();
+      if (notice !== out.notice) {
+        var newest = els.msgs.querySelector('.noah-msg:last-child .noah-notice');
+        if (newest) newest.textContent = notice;
+      }
+    } else addMsg('noah', mdLite(out.reply), notice);
     if (out.nudges) renderNudges(out.nudges);
-    history.push({ role: 'assistant', content: out.reply });
-    saveHistory();
-    busy = false;
-    els.send.disabled = false;
-    els.input.focus();
+    if (!els.panel.hidden) els.input.focus();
   }
 
   /* ================= NoahStats: privacy-respecting analytics ==========
@@ -826,7 +987,7 @@
     if (document.getElementById('noah-launcher')) return;
     /* One canonical Noah per page: the full coach chat owns pages that mount it
        (coach, cinema). The floating widget would be a competing second chat UI. */
-    try { if (document.querySelector('[data-il-muse]')) return; } catch (e) {}
+    try { if (document.querySelector('[data-il-muse], [data-noah-workspace]')) return; } catch (e) {}
     var style = document.createElement('style');
     style.textContent = WIDGET_CSS;
     document.head.appendChild(style);
@@ -834,6 +995,8 @@
     var launcher = el('button', '', '<span class="noah-orb" aria-hidden="true"></span><span class="noah-ping"></span>');
     launcher.id = 'noah-launcher';
     launcher.setAttribute('aria-label', 'Chat with Noah AI');
+    launcher.setAttribute('aria-controls', 'noah-panel');
+    launcher.setAttribute('aria-expanded', 'false');
     launcher.addEventListener('click', toggle);
     avatarCtl.launcher = NoahAvatar.mount(launcher.querySelector('.noah-orb'), 52);
     launcher.addEventListener('pointermove', function (e) {
@@ -844,6 +1007,7 @@
 
     var panel = el('div', '');
     panel.id = 'noah-panel';
+    panel.hidden = true;
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'Noah AI chat');
     panel.innerHTML =
@@ -851,11 +1015,11 @@
       '<span class="noah-title"><span class="noah-name">Noah AI</span><br>' +
       '<span class="noah-status"><span class="noah-dot"></span><span id="noah-status-text">On-device · site curriculum</span></span></span>' +
       '<button id="noah-close" aria-label="Close chat">×</button></div>' +
-      '<div id="noah-msgs"></div>' +
+      '<div id="noah-msgs" role="log" aria-label="Noah conversation" aria-live="polite"></div>' +
       '<div id="noah-chips"></div>' +
-      '<form id="noah-form"><textarea id="noah-input" rows="1" placeholder="Ask Noah AI anything…" aria-label="Message Noah AI"></textarea>' +
+      '<form id="noah-form" method="post"><label for="noah-input">Message Noah</label><textarea id="noah-input" name="message" rows="1" maxlength="4000" placeholder="Ask Noah AI anything…" required></textarea>' +
       '<button id="noah-send" type="submit">Send</button></form>' +
-      '<div id="noah-foot">Noah AI · Interstitium Labs · answers from Enmanuel\'s distilled work</div>';
+      '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Memory stays in this browser. No cross-device sync.</div>';
     avatarCtl.head = NoahAvatar.mount(panel.querySelector('.noah-avatar'), 40);
 
     document.body.appendChild(launcher);
@@ -873,8 +1037,9 @@
     panel.querySelector('#noah-close').addEventListener('click', close);
     els.form.addEventListener('submit', function (e) { e.preventDefault(); sendText(els.input.value); els.input.value = ''; });
     els.input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); els.form.dispatchEvent(new Event('submit', { cancelable: true })); }
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); els.form.requestSubmit(); }
     });
+    panel.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); close(); } });
 
     adaptiveChips().forEach(function (c) {
       var b = el('button', 'noah-chip', esc(c));
@@ -889,7 +1054,7 @@
     var greeted = false;
     try { greeted = sessionStorage.getItem('noah-ai-greeted') === '1'; } catch (e) {}
     history.forEach(function (m) {
-      addMsg(m.role, m.role === 'user' ? esc(m.content) : mdLite(m.content));
+      addMsg(m.role, m.role === 'user' ? esc(m.content) : mdLite(m.content), m.notice || (m.role === 'assistant' ? 'Saved earlier; answer source was not recorded.' : undefined));
     });
     if (!history.length && !greeted) {
       var rg = returningGreeting();
@@ -905,26 +1070,32 @@
   }
 
   function open() {
-    buildWidget();
-    if (!els.panel) return; /* main coach chat owns this page — no floating widget */
-    els.panel.classList.add('open');
-    els.launcher.classList.remove('attn');
-    setTimeout(function () { els.input.focus(); }, 320);
+    return ensureSession().then(function () {
+      buildWidget();
+      if (!els.panel) return; /* main coach chat owns this page — no floating widget */
+      els.panel.hidden = false;
+      els.panel.classList.add('open');
+      els.launcher.setAttribute('aria-expanded', 'true');
+      els.launcher.classList.remove('attn');
+      setTimeout(function () { if (!els.panel.hidden) els.input.focus(); }, 320);
+    });
   }
   function close() {
-    if (els.panel) els.panel.classList.remove('open');
+    if (els.panel) { els.panel.classList.remove('open'); els.panel.hidden = true; els.launcher.setAttribute('aria-expanded', 'false'); els.launcher.focus(); }
   }
   function toggle() {
-    buildWidget();
-    if (!els.panel) return; /* main coach chat owns this page */
-    if (els.panel.classList.contains('open')) close(); else open();
+    return ensureSession().then(function () {
+      buildWidget();
+      if (!els.panel) return; /* main coach chat owns this page */
+      if (els.panel.classList.contains('open')) close(); else open();
+    });
   }
 
   /* ================= Boot ========================================== */
   function boot() {
     if (!document.body) return;
     try { ensureKB(); } catch (e) {} /* preload the answer bundle */
-    buildWidget();
+    ensureSession().then(buildWidget);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
@@ -938,15 +1109,12 @@
     open: open, close: close, toggle: toggle,
     /* Local-first (2026-10-01, noah-recovery-2): on-device bundle answers first;
        remote only as a screened fallback. Same result shape as before. */
-    ask: function (text, hist) {
-      return ensureKB().then(function () {
-        var local = askLocal(text);
-        if (local.answered) {
-          return { reply: local.reply, nudges: local.nudges, remote: false, local: true, notice: local.notice };
-        }
-        return askRemote(text, hist || []);
-      });
-    },
+    ask: answer,
+    converse: converse,
+    renderReply: renderReply,
+    session: sessionStore(),
+    ready: ensureSession,
+    activity: function () { var store = sessionStore(); return store ? store.activity() : 'idle'; },
     endpoint: getEndpoint
   };
   /* Shared on-device knowledge API for the coach page (il-coach.js). */

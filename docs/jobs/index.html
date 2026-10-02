@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d15">
+  <meta name="description" content="Browse public jobs, save postings on your device, and review your evidence with Noah AI.">
+  <title>Jobs &amp; career workspace · Interstitium Labs</title>
+  <link rel="canonical" href="https://interstitiumlabs.dev/jobs/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/noah-jobs.css">
+  <script src="/assets/noah-session.js" defer></script>
+  <script src="/assets/noah-ai.js" defer></script>
+  <script src="/assets/noah-jobs.js" defer></script>
+</head>
+<body data-noah-workspace data-noah-jobs>
+  <a class="skip" href="#jobs-workspace">Skip to jobs</a>
+  <header class="masthead">
+    <a class="brand" href="/"><img src="/assets/chrome/sigil-glyph.svg" alt="" width="40" height="40"><span>INTERSTITIUM LABS<small>CAREER WORKSPACE</small></span></a>
+    <nav aria-label="Site"><a href="/learn/">Learning OS</a><a href="/noah/">Noah AI</a><a href="https://learn.interstitiumlabs.dev">University</a></nav>
+    <span class="device-label">Saved on this device</span>
+  </header>
+  <main id="jobs-workspace" tabindex="-1">
+    <section class="intro">
+      <div><p class="eyebrow">NOAH / CAREER INTELLIGENCE</p><h1>Find the role.<br><em>Build the evidence.</em></h1><p class="lede">Browse real public openings or bring a posting. Compare the requirements with what you can demonstrate, then prepare your next step with Noah.</p></div>
+      <aside class="provider-bridge"><p class="eyebrow">YOUR JOBRIGHT BRIDGE</p><h2>Use your recommendations.</h2><p>Open Jobright in its own service. Bring a chosen posting here to review it with Noah.</p><a class="button secondary" href="https://jobright.ai/jobs/recommend" target="_blank" rel="noopener noreferrer">Open Jobright recommendations <span aria-hidden="true">↗</span></a><p class="fine">This workspace uses Remotive and your imports. It has no access to your Jobright account or recommendation feed.</p></aside>
+    </section>
+    <p id="jobs-status" class="status" role="status" aria-atomic="true">Your evidence and saved jobs stay in this browser. Public jobs load when you choose.</p>
+    <div class="workspace-grid">
+      <aside class="filters">
+        <p class="eyebrow">01 / YOUR SEARCH</p><h2>Choose a direction.</h2>
+        <form id="filter-form" action="/jobs/" method="get">
+          <label for="job-search">Title, company or keyword</label><input id="job-search" name="search" type="search" maxlength="120" autocomplete="off">
+          <label for="job-lane">Role family</label><select id="job-lane" name="lane"><option value="all" selected>All roles</option><option value="cloud">Cloud / DevOps / infrastructure</option><option value="support">IT support / operations</option><option value="software">Software development</option><option value="security">Security</option><option value="data">Data / analytics</option></select>
+          <label for="job-location">Location text</label><input id="job-location" name="location" maxlength="100" placeholder="e.g. United States or Worldwide">
+          <label for="job-level">Seniority</label><select id="job-level" name="level"><option value="all">All / verify requirements</option><option value="junior">Explicit junior / entry / intern</option><option value="not-senior">Exclude senior / lead titles</option></select>
+          <label for="job-type">Work type</label><select id="job-type" name="type"><option value="all">All types</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select>
+          <label for="job-source">Source</label><select id="job-source" name="source"><option value="all">All sources</option><option value="remotive">Remotive public feed</option><option value="import">My imports</option></select>
+          <label for="job-stage">My tracking stage</label><select id="job-stage" name="stage"><option value="all">Any stage</option><option value="preparing">Preparing</option><option value="applied">Applied · I recorded it</option><option value="interview">Interview</option><option value="closed">Closed / archived</option></select>
+          <label class="check" for="saved-only"><input id="saved-only" name="saved" type="checkbox"> Saved jobs only</label>
+          <button type="submit" class="secondary">Apply filters</button><button id="save-filters" type="button" class="quiet">Save these filters on device</button>
+        </form>
+        <details class="evidence"><summary>Your confirmed evidence</summary>
+          <form id="profile-form" action="/jobs/" method="post">
+            <p id="evidence-help" class="fine">Choose only facts you can support. Lab work remains learning evidence. Nothing here establishes paid experience.</p>
+            <label for="profile-goal">Target role</label><input id="profile-goal" name="goal" value="Junior cloud / DevOps" maxlength="100">
+            <label class="check" for="profile-support"><input id="profile-support" name="support" type="checkbox"> I can evidence IT support work</label>
+            <label class="check" for="profile-aplus"><input id="profile-aplus" name="aplus" type="checkbox"> I hold CompTIA A+</label>
+            <label class="check" for="profile-portfolio"><input id="profile-portfolio" name="portfolio" type="checkbox"> I have a learning portfolio / lab</label>
+            <label for="profile-skills">Skills demonstrated in work or projects</label><textarea id="profile-skills" name="skills" rows="3" maxlength="800" aria-describedby="evidence-help" placeholder="e.g. PowerShell, Windows troubleshooting"></textarea>
+            <label for="profile-notes">Evidence details</label><textarea id="profile-notes" name="notes" rows="3" maxlength="800" placeholder="e.g. A project link and what you built. Do not enter secrets."></textarea>
+            <button type="submit" class="secondary">Save my evidence</button>
+          </form>
+        </details>
+        <div class="device-tools"><button id="export-jobs" type="button" class="quiet">Export jobs &amp; evidence</button><button id="forget-jobs" type="button" class="quiet danger">Forget jobs &amp; evidence</button><p class="fine">Job reviews also enter Noah’s conversation. <a href="/noah/">Manage that history in Noah.</a></p></div>
+      </aside>
+      <section class="results">
+        <div class="section-head"><div><p class="eyebrow">02 / REAL OPENINGS</p><h2>Explore opportunities.</h2></div><button id="load-jobs" type="button">Load public jobs <span aria-hidden="true">↗</span></button></div>
+        <p class="feed-note">Source: <a href="https://remotive.com" target="_blank" rel="noopener noreferrer">Remotive</a> · remote listings · provider data delayed 24 hours. Load the website’s shared public snapshot; your evidence stays here.</p>
+        <p id="feed-state" class="fine">No feed loaded. You can import a posting below, including from Jobright.</p>
+        <div class="result-tools"><span id="result-count">0 jobs</span><button id="compare-jobs" type="button" class="quiet" disabled>Compare selected (0/2)</button></div>
+        <ul id="job-list" class="job-list" aria-label="Job results"></ul>
+        <div class="pagination"><button id="previous-jobs" type="button" class="quiet" disabled>Previous</button><span id="page-state">Page 1</span><button id="next-jobs" type="button" class="quiet" disabled>Next</button></div>
+        <details id="import-section" class="import-section" open><summary>Bring a job posting</summary>
+          <p class="fine">Paste the title, company, public link and requirements yourself. We do not fetch the link or connect to your accounts.</p>
+          <form id="import-form" action="/jobs/" method="post">
+            <div class="two-fields"><div><label for="import-title">Job title</label><input id="import-title" name="title" required maxlength="180"></div><div><label for="import-company">Company</label><input id="import-company" name="company" required maxlength="160"></div></div>
+            <label for="import-url">Public posting link (HTTPS)</label><input id="import-url" name="url" type="url" required maxlength="2000" placeholder="https://…">
+            <div class="two-fields"><div><label for="import-location">Candidate location (optional)</label><input id="import-location" name="location" maxlength="150"></div><div><label for="import-type">Work type</label><select id="import-type" name="type"><option value="">Not supplied</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select></div></div>
+            <label for="import-requirements">Requirements and relevant posting text</label><textarea id="import-requirements" name="requirements" rows="5" maxlength="8000" required placeholder="Paste the actual requirements. Omit private notes or contact details."></textarea>
+            <button type="submit">Import &amp; review on device</button>
+          </form>
+        </details>
+      </section>
+      <aside class="review">
+        <p class="eyebrow">03 / REVIEW WITH EVIDENCE</p><h2 id="review-title" tabindex="-1">Choose a posting.</h2>
+        <div id="job-detail"><p class="muted">Open a card to see the source, requirements and evidence checks. Select two cards to compare.</p></div>
+        <section class="noah-review"><p class="eyebrow">NOAH / CAREER COPILOT</p><h3>Your next considered step.</h3><p class="fine">Noah can explain gaps and draft preparation notes. Review the exact details before sharing with the university AI service.</p>
+          <label for="noah-action">Review task</label><select id="noah-action"><option value="fit">Explain fit &amp; uncertainties</option><option value="gaps">Make an evidence-building plan</option><option value="prepare">Prepare an application draft</option><option value="compare">Compare my two selected jobs</option></select>
+          <div class="review-actions"><button id="local-prep" type="button" class="secondary" disabled>Make local preparation notes</button><button id="review-noah" type="button" disabled>Review details for Noah</button></div>
+          <p id="noah-notice" class="fine">Sharing starts only after your consent. No applications or employer contact happen here.</p>
+          <div id="noah-response" class="response" tabindex="-1" hidden></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <footer><p>Interstitium Labs · Learn deliberately. Build with evidence.</p><p>Public listings and evidence checks do not establish eligibility. Verify the current posting and location requirements at the source.</p></footer>
+  <dialog id="share-dialog" aria-labelledby="share-title">
+    <h2 id="share-title">Review what Noah will receive.</h2><p>The text below includes your selected posting and stated evidence. It will be saved in your device’s shared Noah conversation and sent to the university AI service. Other history, memory and page details are excluded.</p>
+    <pre id="share-preview" class="share-preview"></pre>
+    <form id="share-form" action="/jobs/" method="post"><label class="check" for="share-consent"><input id="share-consent" name="consent" type="checkbox" required> I agree to send these details to Noah.</label><p id="share-error" class="fine" role="status"></p><div class="dialog-actions"><button id="cancel-share" type="button" class="quiet">Cancel</button><button id="send-noah" type="submit">Send these details</button></div></form>
+  </dialog>
+  <noscript><p class="noscript">Enable JavaScript for local filters, imports, saved jobs and Noah review. You can still <a href="https://jobright.ai/jobs/recommend" rel="noopener noreferrer" target="_blank">open Jobright recommendations</a> or <a href="https://remotive.com" rel="noopener noreferrer" target="_blank">browse Remotive</a>.</p></noscript>
+</body>
+</html>
