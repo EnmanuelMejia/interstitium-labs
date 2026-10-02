@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>AI Product Innovation: Deciding Where AI Creates Real Value | Interstitium Labs</title>
+<meta name="description" content="An original study guide distilled from the public curriculum shape of Stanford Online's AI-Powered Product Innovation: AI fundamentals for decision-makers, the sharp-edged vs. rough-edged framework, intelligence augmentation, differentiated AI products, responsible AI process, human-AI interaction psychology, and generative-agent user simulation."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/ai-product-innovation/"/>
+<meta property="og:title" content="AI Product Innovation: Deciding Where AI Creates Real Value | Interstitium Labs"/>
+<meta property="og:description" content="Original Interstitium exposition of durable AI product frameworks: sharp-edged vs. rough-edged problems, intelligence augmentation, the gravity-well problem, ethical review processes, and agent-based user simulation."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/ai-product-innovation/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; AI Product · Innovation Strategy</p>
+    <h1 class="il-h">AI Product Innovation</h1>
+    <p class="il-hero__sub">Deciding where AI creates real value: assessing what the models can and cannot do reliably, shaping problems to fit AI's strengths, augmenting rather than replacing people, and building products users actually adopt — distilled as original Interstitium exposition.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">Decisions, not demos.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The hard part of AI products is not building with the models — it is deciding <em>where</em> to point them. A product team that cannot tell a safe AI application from a dangerous one will ship confidently and fail publicly. A team that understands error tolerance, trust dynamics, human augmentation, and adoption psychology will place fewer, better bets. This sequence teaches the decision layer: the frameworks a product leader uses to judge where AI delivers real value, where it introduces risk, and how it should meet the human on the other side.</p>
+        <p>The spine of the sequence is a small set of durable frameworks, each our own exposition of ideas named in the source curriculum's public outline: the sharp-edged vs. rough-edged problem distinction (some failures are recoverable, some are catastrophic — AI's reliability profile maps onto that distinction), intelligence augmentation (designing AI that extends human capability instead of displacing it), the adoption problem (why users default to general-purpose tools and what pulls them back), structured ethical review early in the process, the psychology of human-AI interaction, and generative agents as simulated users for exploring decisions before deployment.</p>
+        <p>Who this sequence is for: product managers and product leaders, founders and innovation executives, designers moving from interface work to problem framing, and AI-adjacent professionals — engineers, data scientists, solution architects, program managers — who want a disciplined way to say yes or no to AI opportunities. No machine-learning background is assumed; the sequence explains the AI fundamentals its frameworks depend on in Module 0.</p>
+        <h3>Provenance and honesty framing</h3>
+        <ul>
+          <li>This is Interstitium's <strong>original treatment</strong>, distilled from the <strong>public curriculum shape</strong> of Stanford Online's six-week course <em>AI-Powered Product Innovation</em> (instructor of record: Professor Michael Bernstein, Stanford Computer Science). Framework names are cited as the course's named concepts; the teaching prose is entirely ours.</li>
+          <li>We are <strong>not affiliated</strong> with Stanford Online, and this guide confers no certificate. It does not reproduce the course's proprietary materials — assignments, forums, and readings stay inside the course.</li>
+          <li>Industry statistics quoted anywhere on this page are <strong>the course page's vendor citations</strong> (McKinsey, Accenture, IDC), not independently verified by us — they illustrate the problem's scale, not our findings. We keep them out of the frameworks themselves.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order: Modules 0–1 are the vocabulary (what AI does, where it fails safely) that every later framework assumes.</li>
+          <li>Apply each framework to a real product decision you care about — the sequence ends in a capstone-style evaluation you can run on your own opportunity.</li>
+          <li>Use the source links in the Resources section to reach the authoritative course page, the instructor's profile, and the named ethical-review tools; everything Stanford or Artefact publishes is the authority on itself.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">7 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 0</p>
+          <h3 class="il-h il-h--card">AI Fundamentals for Decision-Makers: What the Models Can and Cannot Do</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>State in plain language what generative models do: pattern-based generation, not understanding</li>
+            <li>Explain how large language models represent information, reason, and produce output — at the level a product decision needs</li>
+            <li>Evaluate real-world generative-AI deployments for what made them work or fail</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Capabilities, without the hype</h5>
+          <p>A modern generative model is a system trained on vast text (and often images, code, and audio) that learns to predict plausible continuations of whatever it is given. That mechanism produces genuinely useful behavior — fluent writing, code completion, summarization, translation, question-answering over supplied context — because many valuable tasks are, at bottom, plausible-continuation tasks. The decision-maker's question is always the same: is <em>this</em> task a plausible-continuation task, or does it demand something the mechanism does not provide?</p>
+          <h5>The failure modes that matter to products</h5>
+          <p>The same mechanism produces three product-relevant failure modes. Confabulation: the model generates fluent, confident text that is wrong — it optimizes for plausibility, not truth. Brittleness at the edges: performance degrades on inputs unlike the training distribution, and the degradation is silent, not announced. And capability unevenness: the model can be brilliant at a hard subtask and clumsy at an easy one, which breaks the human intuition that "smart at X means reliable at Y." Every framework later in this sequence is a way of managing these three facts.</p>
+          <h5>Reading a deployment honestly</h5>
+          <p>When you study a real AI deployment, ask three questions: what was the error cost when the model was wrong (annoying or catastrophic?), who absorbed that cost (the vendor, the user, a bystander?), and what human process caught or failed to catch the errors? Deployments that work almost always have an error-absorbing layer — a human review step, a reversible action, a low-stakes domain. Deployments that fail almost always trusted the model's output in a place where error was expensive.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Catalog three public AI product failures and three successes</strong><br/>For each, write one sentence on the error cost and who absorbed it. The pattern — cheap errors succeed, expensive errors fail — will emerge by the third case.</li>
+            <li><strong>Probe a model at its edges</strong><br/>Ask a current LLM a question just outside its likely training comfort zone, then verify the answer independently. Note how confidently wrong the confident-wrong answer sounds.</li>
+            <li><strong>Classify your own product's candidate tasks</strong><br/>List five tasks in a product you know and mark each as plausible-continuation-shaped or not. The marks are your first draft of Module 1's framework applied.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does "plausible continuation" predict both the model's strengths and its confabulation?</li>
+            <li>What three questions do you ask when reading an AI deployment?</li>
+            <li>What breaks when you assume "smart at the hard subtask" implies "reliable at the easy one"?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Sharp-Edged vs. Rough-Edged Problems: Where AI Belongs</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define sharp-edged and rough-edged problems in terms of error tolerance</li>
+            <li>Explain why AI's reliability profile makes the distinction decisive</li>
+            <li>Reframe a sharp-edged problem into a rough-edged workflow</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The framework</h5>
+          <p>A <strong>sharp-edged</strong> problem is one where an error cuts: medical dosing, financial settlement, legal filings — small mistakes have large, often irreversible consequences. A <strong>rough-edged</strong> problem is one where an error is sanded down by the process around it: a draft that a human edits, a recommendation a user can ignore, a brainstorm where bad ideas cost nothing. The distinction is not about difficulty — some rough-edged problems are very hard — it is about what happens when the system is wrong.</p>
+          <h5>Why AI performs differently on each type</h5>
+          <p>Generative AI is a rough-edged technology: it is fluent, fast, and sometimes wrong. In rough-edged workflows the wrongness is absorbed — the human edits the draft, ignores the bad suggestion, picks among options — and the fluency pays off. In sharp-edged workflows the wrongness propagates to the consequence, and no amount of fluency compensates. This is why the same model can be a triumph in one product and a liability in another: the difference was never the model, it was the edge of the problem.</p>
+          <h5>Turning sharp problems into rough ones</h5>
+          <p>The framework's most useful move is the reframe. A sharp-edged task ("the AI approves the loan") can often be restructured into a rough-edged workflow ("the AI prepares the dossier, flags anomalies, and drafts the rationale; a human approves"). The techniques: insert a human decision point where error is expensive, make AI outputs advisory rather than authoritative, decompose one irreversible action into several reversible steps, and add verification gates proportional to the stakes. Product design becomes edge-management.</p>
+          <h5>Forecasting capability evolution</h5>
+          <p>The framework also disciplines predictions about AI progress. Capabilities expand over time — tasks that are sharp-edged today because models are unreliable may become rough-edged as reliability improves or as better verification tooling appears. The question to ask is not "will AI do this?" but "what would have to become true — about reliability, verification, or workflow design — for this problem's edge to soften?" That question has an answer you can monitor; the other question has only vibes.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Classify ten AI product ideas by edge</strong><br/>Take ten ideas (yours or from the news) and sort them sharp vs. rough, with one sentence each on where the error cost lands.</li>
+            <li><strong>Reframe one sharp problem</strong><br/>Pick the sharpest idea from your list and redesign it as a rough-edged workflow with at least two error-absorbing layers. Write the before and after.</li>
+            <li><strong>Write a capability-watch memo</strong><br/>For one currently-sharp task, state what measurable change (reliability metric, verification tool, workflow innovation) would soften its edge — and what you would monitor to detect it.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Is the sharp/rough distinction about problem difficulty? Why not?</li>
+            <li>Why does the same model succeed in one product and fail in another?</li>
+            <li>What are two concrete techniques for softening a problem's edge?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Augmentation, Not Replacement: Intelligence as a Design Principle</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Distinguish automation (replacing the human) from augmentation (extending the human)</li>
+            <li>Explain why augmentation-centered products have a better success profile</li>
+            <li>Apply augmentation principles to a product decision</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Where AI products live or die: the human</h5>
+          <p>AI products succeed or fail at the human boundary. A system can be technically impressive and still die if it deskills its users, erodes their judgment, makes them distrust it, or asks them to take responsibility for decisions they no longer understand. The human factors — trust, usability, skill retention, accountability — are not soft concerns layered on top of the engineering; they are the product's operating environment.</p>
+          <h5>Intelligence augmentation as a principle</h5>
+          <p><strong>Intelligence augmentation</strong> is the design stance that AI should extend human capability rather than substitute for it: the system does what machines do well (recall, pattern-matching, tireless drafting) and the human does what humans do well (judgment, accountability, contextual understanding) — with the interface between them designed deliberately. Augmentation keeps the human's skills exercised, their judgment engaged, and their accountability intact, which is precisely what makes the system trustworthy enough to adopt.</p>
+          <h5>Why replacement strategies fail</h5>
+          <p>Replacement-first designs fail in predictable ways. They create <strong>automation bias</strong>: humans rubber-stamp machine outputs and stop checking, so errors that would have been caught sail through. They cause <strong>deskilling</strong>: the human's own competence atrophies, leaving nobody capable of catching the machine's failures. And they create <strong>accountability gaps</strong>: when the system errs, no human can explain why the decision was made, which is unacceptable in any domain where decisions need justification. Augmentation designs avoid all three by construction.</p>
+          <h5>Achieving augmentation in practice</h5>
+          <p>Augmentation is achieved through concrete design choices: keep the human as the decider with AI as the advisor; show the AI's reasoning or evidence, not just its conclusion; make disagreement easy (one-click reject, edit-in-place); calibrate the AI's expressed confidence to its actual reliability; and design the workflow so the human's expertise stays in the loop rather than atrophying on the sidelines. Each choice is a small interface decision with a large trust consequence.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Audit a product for augmentation vs. replacement</strong><br/>Pick an AI feature you use. For each interaction, mark whether the human decides (augmentation) or the system decides (replacement), and note where automation bias could creep in.</li>
+            <li><strong>Redesign one replacement interaction as augmentation</strong><br/>Take an auto-deciding feature and redesign it so the AI advises and the human decides — sketch the interface, the evidence shown, and the override path.</li>
+            <li><strong>Write the accountability memo</strong><br/>For a consequential AI-assisted decision, write who is accountable, what evidence the human saw, and what the human could have done differently. If you cannot write it, the design has a gap.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What three failure modes does replacement-first design predictably produce?</li>
+            <li>How does augmentation preserve the human's ability to catch machine errors?</li>
+            <li>Why is showing evidence, not just conclusions, an augmentation choice?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Differentiation: Escaping the Gravity Well of General-Purpose AI</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain why users default to general-purpose AI tools over specialized products</li>
+            <li>Describe the habit, friction, and channel forces behind adoption</li>
+            <li>Design a differentiation strategy for an AI product</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why so many AI products fail</h5>
+          <p>Many AI products fail not on technology but on adoption: the model works, the demo impresses, and then users do not come — or do not stay. The recurring causes are poor problem selection (Module 1's territory), trust breakdowns (Module 2's), and — this module's subject — a differentiation failure: the product offers nothing the user cannot already get from the general-purpose tool they already open every day.</p>
+          <h5>The gravity well</h5>
+          <p>The course names the central phenomenon the <strong>ChatGPT gravity well</strong>: general-purpose conversational AI sits at the center of users' habits, and specialized products must fight its pull. The pull has three components. <strong>Habit</strong>: the general tool is already in the user's daily loop. <strong>Friction</strong>: opening a second tool, learning its interface, and moving context into it costs effort the general tool does not charge. <strong>Channel</strong>: the general tool is where the user already is when the need arises. A specialized product competes against all three simultaneously.</p>
+          <h5>The psychology behind the pull</h5>
+          <p>The gravity well is not just laziness — it is how humans economize attention. Satisficing beats optimizing when the general tool is "good enough"; switching costs are real even when the alternative is better; and the general tool improves continuously, raising the bar the specialist must clear. Lessons from past technology waves rhyme: the platform with the distribution channel and the habit loop absorbs the point solutions that cannot defend a distinct job.</p>
+          <h5>How to escape it</h5>
+          <p>Escape requires differentiated value the general tool cannot easily replicate: deep workflow integration (living inside the tools where the work happens, not a separate destination), proprietary data or context the general model does not have, domain-specific reliability the generalist cannot promise, and compounding value — the product gets better with use in ways a stateless chat cannot. The test is blunt: if your product's value proposition can be pasted into the general tool as a prompt, you do not have a product yet.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run the paste test</strong><br/>Write your AI product's pitch as a prompt for a general-purpose model. If the model does a credible job, your differentiation is not yet real — write down what would make the test fail.</li>
+            <li><strong>Map the habit, friction, and channel forces</strong><br/>For a specialized AI product you admire, diagram the three gravity-well forces and how the product counters each one. Note which force is doing the heaviest work.</li>
+            <li><strong>Design a compounding-value loop</strong><br/>Sketch one mechanism by which your product improves with each use in a way a stateless general tool cannot replicate. Be specific about what accumulates and where it lives.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What are the three components of the gravity-well pull?</li>
+            <li>Why is "good enough" such a strong defense for the general tool?</li>
+            <li>What makes a differentiation claim survive the paste test?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Responsible AI by Process: Finding Risks Early</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain why ethical and societal risk is a product problem, not just a compliance one</li>
+            <li>Run two structured risk-identification techniques on a product concept</li>
+            <li>Describe the Ethics and Societal Review as an early-stage process</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why "I'm just an engineer" fails</h5>
+          <p>Ethical and societal considerations determine whether an AI product survives contact with the real world: a product that harms a user group, encodes a bias at scale, or erodes public trust does not get a second launch. These are product risks — adoption risks, reputation risks, regulatory risks — and they compound with scale, because AI products apply the same decision logic to millions of cases. Finding them early, when the product is still malleable, is orders of magnitude cheaper than finding them after deployment.</p>
+          <h5>Two techniques for identifying ethical issues</h5>
+          <p>The course names two structured techniques. <strong>Tarot Cards of Tech</strong> (Artefact's public card deck) prompts teams with provocative questions about a technology's second-order effects — who benefits, who is harmed, what happens at scale. The <strong>Black Mirror Writers' Room</strong> asks the team to imagine the product as the premise of a dystopian episode: what is the worst plausible version of this product's future? Both techniques work by breaking the team's optimism bias — the shared assumption that the product will be used as intended — and forcing the failure imagination early, when it is still cheap.</p>
+          <h5>Ethics and Societal Review as a structured process</h5>
+          <p>Beyond one-off exercises, the course introduces <strong>Ethics and Societal Review</strong> as a structured process for early-stage projects: a deliberate review step in the product process where the team identifies risks, articulates mitigation principles, and embeds responsible design decisions into the development plan before building hardens. The key properties are timing (early, while change is cheap), structure (a repeatable process, not a one-time workshop), and embedding (the mitigations become product requirements, not side documents).</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Run Tarot Cards of Tech on your product concept</strong><br/>Draw five cards from the public deck and answer each for your concept in writing. Note which answers surprised you — surprise is the technique working.</li>
+            <li><strong>Hold a Black Mirror Writers' Room</strong><br/>Write the one-paragraph episode premise for your product's worst plausible future, then list three design decisions that would prevent that episode from being made.</li>
+            <li><strong>Draft a one-page Ethics and Societal Review</strong><br/>For your concept: risks identified, mitigation principles, and the concrete product requirements each mitigation becomes. If a mitigation cannot become a requirement, it is not a mitigation.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does AI scale make ethical risk a product risk rather than a compliance checkbox?</li>
+            <li>What cognitive bias do both techniques attack, and why early?</li>
+            <li>What distinguishes a mitigation from a mitigation principle that never ships?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Humans Meet the Machine: The Psychology of AI Interaction</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain why people treat AI systems as social actors</li>
+            <li>Describe the Media Equation, the Uncanny Valley, and the Replicant Effect at product-design depth</li>
+            <li>Evaluate chatbot design choices for their trust and transparency effects</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The rogues' gallery: what goes wrong in chatbot interaction</h5>
+          <p>Chatbot products fail in characteristically human ways: users over-trust fluent systems, disclose things they would not tell a stranger, get angry at systems that feel evasive, and abandon systems that feel deceptive. These are not engineering bugs — they are the predictable output of human social psychology meeting a system that talks like a person. Designing the interaction means designing for the psychology, not just the language model.</p>
+          <h5>AI as social actor: the Media Equation</h5>
+          <p>The <strong>Media Equation</strong> (Reeves and Nass's research program) found that people respond to media — computers included — as if they were social actors: polite to machines, attributing personality to interfaces, applying social norms to non-social systems. The product consequence is direct: every conversational interface inherits a social contract. Users will trust, blame, and confide in your chatbot the way they would a person — so the chatbot's design choices (tone, name, avatar, first-person language) are social decisions with trust consequences.</p>
+          <h5>The Uncanny Valley and the Replicant Effect</h5>
+          <p>Two related phenomena discipline how human-like an AI should feel. The <strong>Uncanny Valley</strong> describes the dip in comfort when something is almost-but-not-quite human — near-human avatars and voices unsettle more than clearly artificial ones. The <strong>Replicant Effect</strong> is its product-design cousin: the more human-like an AI appears, the more users expect human-level understanding and accountability from it — expectations the system cannot meet, which converts into disproportionate disappointment and distrust when it fails. The design lesson: match the system's apparent humanity to its actual capability, and err toward transparency about what the user is talking to.</p>
+          <h5>AI's effect on human-to-human interaction</h5>
+          <p>The psychology extends beyond the user-AI dyad: AI mediates how people interact with each other — drafted messages, summarized conversations, auto-generated replies. Each mediation changes the social texture: efficiency gains against authenticity costs, and new norms forming around what counts as a "real" message. A product that inserts AI between people is redesigning social interaction, and should own that choice explicitly.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Audit a chatbot's social signals</strong><br/>Pick a conversational product and list every human-like signal it sends (name, pronouns, avatar, tone, apologies). For each, ask: does the system's capability justify the signal?</li>
+            <li><strong>Design the transparency layer</strong><br/>For one AI feature, write the exact words the product uses to tell the user what they are interacting with — and when. Test it on the Replicant Effect: does it set expectations the system can meet?</li>
+            <li><strong>Map the mediated-interaction effects</strong><br/>For a product where AI drafts messages between people, list who gains efficiency, who loses authenticity signals, and what new norm the product is quietly establishing.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is a chatbot's tone a trust decision rather than a style choice?</li>
+            <li>How do the Uncanny Valley and the Replicant Effect differ, and what common design advice follows from both?</li>
+            <li>What social cost does AI-mediated messaging impose, and who pays it?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Simulating Your Users: Generative Agents for Product Decisions</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what generative agents are and how they simulate user behavior</li>
+            <li>Describe the high-level architecture of a generative-agent simulation</li>
+            <li>Assess where agent simulations are useful and where their limits disqualify them</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why simulate human behavior at all</h5>
+          <p>Product decisions are bets on how users will behave — and user research is slow, expensive, and limited in the scenarios it can explore. Generative agents offer a complementary instrument: LLM-driven simulated users whose behavior can be observed across many scenarios quickly, letting a team explore how different designs might land before committing to builds or studies. The simulation does not replace user research; it front-loads the exploration so the real research tests better hypotheses.</p>
+          <h5>Generative agents: the architecture</h5>
+          <p>A generative agent, at the level this sequence needs, is an LLM wrapped in a memory and planning loop: a persona or profile defining who the agent is, a memory stream recording what it has experienced, and a reflection/planning mechanism that turns experience into behavior. The course's outline names the pieces a product leader should understand — the motivations for simulation, the agents themselves, their high-level architecture, and the questions of believability and long-term behavior. You do not need to build the loop to use the idea; you need to understand what the loop can and cannot guarantee.</p>
+          <h5>Believability and long-term behavior: the honest limits</h5>
+          <p>The limits are the point. Simulated users inherit the model's biases and blind spots — they are plausible-continuation machines (Module 0), so their "behavior" reflects patterns in training data, not the lived reality of your actual users. Long simulated runs drift: early coherence degrades as the context fills and the agent's persona thins. A simulation is useful for exploring the <em>space</em> of reactions and stress-testing designs against diverse personas; it is not evidence about what real users will do. Treat it as a hypothesis generator, never as a user study.</p>
+          <h5>Applications for product decisions</h5>
+          <p>The legitimate applications follow from the limits: exploring how different user segments might react to a concept, pressure-testing onboarding flows against varied personas, surfacing edge-case reactions a small research panel would miss, and rehearsing go-to-market messaging. In each case the output is a set of questions to take into real research — "the simulation suggests segment X may resist because Y; let's verify" — not a set of conclusions.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build three persona prompts for your product</strong><br/>Write detailed personas for three distinct user segments. Feed each the same product concept description and compare the reactions — note where the differences feel insightful and where they feel like stereotype regurgitation.</li>
+            <li><strong>Stress-test one design decision</strong><br/>Present the agents with two design alternatives and observe which each persona prefers and why. Write down the hypotheses the exercise generated — then mark each as "verify with real users."</li>
+            <li><strong>Find the simulation's failure point</strong><br/>Push one agent through a long, specific scenario and watch for drift: persona thinning, contradiction, generic responses. Document where believability broke — that boundary is the instrument's calibration.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does a generative agent's memory-and-planning loop add over a single prompt?</li>
+            <li>Why is a simulation a hypothesis generator and never a user study?</li>
+            <li>What are two signs that a long simulation run has drifted?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Capstone -->
+  <section class="il-section" id="capstone" aria-labelledby="capstone-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Applied synthesis</p>
+        <h2 class="il-h il-h--section" id="capstone-h">The capstone evaluation: run the frameworks on your own opportunity.</h2>
+      </div>
+      <div class="il-prose">
+        <p>The source course culminates in a capstone project: apply the frameworks to a real AI opportunity, from concept through validation — identifying intelligence-augmenting ideas, assessing feasibility and value, examining ethical and societal risks, and testing user response with generative simulations. This page gives you the same evaluation as a self-run exercise.</p>
+        <ol>
+          <li><strong>Frame the opportunity.</strong> State the product idea in one paragraph: who it serves, what it does, where AI sits in it.</li>
+          <li><strong>Classify the edge.</strong> Is the core AI task sharp-edged or rough-edged (Module 1)? If sharp, reframe it — insert human decision points, make outputs advisory, decompose irreversible actions.</li>
+          <li><strong>Check augmentation.</strong> Does the design extend the human or replace them (Module 2)? Name the decider, the evidence shown, and the override path. Write the accountability memo.</li>
+          <li><strong>Test differentiation.</strong> Run the paste test (Module 3): can a general-purpose model do a credible version of this? If yes, name the proprietary data, workflow integration, or compounding loop that the general tool cannot replicate.</li>
+          <li><strong>Run the ethical review.</strong> Draw Tarot Cards of Tech, hold the Black Mirror Writers' Room, and draft the one-page Ethics and Societal Review (Module 4). Convert every mitigation into a product requirement.</li>
+          <li><strong>Design the interaction.</strong> Audit the social signals your AI sends (Module 5). Match apparent humanity to actual capability; write the transparency layer.</li>
+          <li><strong>Simulate before you build.</strong> Build persona agents for your key segments, explore reactions, and convert every insight into a hypothesis marked "verify with real users" (Module 6).</li>
+          <li><strong>Decide.</strong> With all seven lenses applied, make the call: proceed, reshape, or kill. A framework that cannot say "kill" is decoration.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">The course page and the named tools.</h2>
+        <p>This page distills the <em>public curriculum shape</em> of the course — its named frameworks and module topics — in original prose. It does not reproduce the course's proprietary materials. Each source below is the authority on itself.</p>
+      </div>
+      <div class="il-prose">
+        <h3>The course</h3>
+        <ul>
+          <li><a href="https://programs.stanfordonline.global-alumni.com/ai-powered-product-innovation">Stanford Online — AI-Powered Product Innovation (course page)</a></li>
+          <li><a href="https://profiles.stanford.edu/michael-bernstein">Michael Bernstein — Stanford Computer Science profile</a></li>
+        </ul>
+        <h3>Named ethical-review tools</h3>
+        <ul>
+          <li><a href="https://tarotcardsoftech.artefactgroup.com">Tarot Cards of Tech — Artefact's public card deck</a></li>
+        </ul>
+        <h3>Adjacent research</h3>
+        <ul>
+          <li><a href="https://hai.stanford.edu/research">Stanford HAI — human-centered AI research</a></li>
+        </ul>
+        <h3>Honesty note on industry statistics</h3>
+        <p>The course page cites vendor research figures (McKinsey on AI initiative failure rates, Accenture on executive views of AI value, IDC on projected AI systems spending). We have not independently verified the underlying studies, so we do not repeat the numbers here as facts — they are the course's marketing claims, cited for scale, and should be checked against the original reports before anyone relies on them.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide; not affiliated with Stanford.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs, distilled from the publicly described curriculum shape of Stanford Online's <em>AI-Powered Product Innovation</em> course. The teaching prose is our own; framework names are cited as the course's named concepts. We are not affiliated with, endorsed by, or sponsored by Stanford University or Stanford Online, we are not a certification body, and this guide confers no certificate. Where the course page changes, it is authoritative. No proprietary course materials are reproduced here.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
