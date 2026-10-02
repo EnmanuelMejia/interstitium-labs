@@ -22,7 +22,7 @@ The [Jobright recommendations page](https://jobright.ai/jobs/recommend) remains 
 
 ## Validation and practical limits
 
-`node --test scripts/tests/noah-jobs.test.js`: **10 passed**, covering URL boundaries, HTML/credential handling, identity/deduplication, compound filters and manual stages, honest evidence matching, corrupt/blocked storage, consent prompt bounds, remote consent and context exclusion, local preparation and the actual attributed snapshot. `node --check` passed for the browser module and refresh script. A second refresh invocation reused the existing snapshot without another provider request.
+`node --test scripts/tests/noah-jobs.test.js`: **12 passed**, covering URL boundaries, HTML/credential handling, identity/deduplication, compound filters and manual stages, honest evidence matching, corrupt/blocked storage, consent prompt bounds, remote consent and context exclusion, local preparation and the actual attributed snapshot. `node --check` passed for the browser module and refresh script. A second refresh invocation reused the existing snapshot without another provider request.
 
 Browser flows, accessibility and viewport results are recorded by the shared `scripts/test-noah-browser.mjs` suite after integration. Local tests use a disposable browser and mocked remote responses; they are distinct from production deployment and real AI availability. The root audit independently received a successful generic career response from the existing university `/api/noah` endpoint with production-origin CORS; it transmitted no candidate profile or private account data.
 

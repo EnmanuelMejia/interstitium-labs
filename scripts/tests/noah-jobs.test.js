@@ -31,6 +31,15 @@ test('normalization removes HTML and familiar credential patterns, rejects incom
   assert.equal(jobs.normalizeJob({ title: 'Incomplete' }), null);
   assert.equal(jobs.normalizeJob({ ...p, source: 'remotive' }), null);
   assert.equal(jobs.normalizeJob({ ...p, url: 'https://remotive.com/remote-jobs/1' }, 'remotive').source, 'remotive');
+  for (const [raw, expected] of [
+    ['<script>one<script>two</script>three</script><p>Linux</p>', 'Linux'],
+    ['<style>.a{<style>.b{}</style>}</style><p>Windows</p>', 'Windows'],
+    ['<!--private<!--nested-->still private--><p>AWS</p>', 'AWS'],
+    ['<p title="a > b">PowerShell</p>', 'PowerShell'],
+    ['<script>unfinished', ''], ['<!--unfinished', '']
+  ]) assert.equal(jobs.plainText(raw), expected);
+  // Decoded markup is deliberately literal text. The UI's textContent sink is the safety boundary.
+  assert.equal(jobs.plainText('&lt;img src=x onerror=&quot;malicious()&quot;&gt;'), '<img src=x onerror="malicious()">');
 });
 
 test('duplicate canonical links update one posting and keep saved identity across tracking parameters', () => {

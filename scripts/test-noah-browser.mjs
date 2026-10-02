@@ -262,10 +262,31 @@ try {
       await view(page, name); const width = await page.evaluate(() => document.documentElement.scrollWidth); assert.ok(width <= 961);
       detail.push({ view: name, width, cssViewport: '960×540' });
     }
-    await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
-    for (const name of ['conversation', 'workflows', 'memory']) { await view(page, name); const width = await page.evaluate(() => document.documentElement.scrollWidth); assert.ok(width <= 961, name + ': ' + width); }
-    await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
-    return { cssZoomEquivalent: detail, textScale: '200%', physicalBrowserZoom: 'not directly measured' };
+    const textCases = [{ size: '200%', family: '' }, { size: '32px', family: 'sans-serif' }, { size: '32px', family: 'monospace' }];
+    const enlargedText = [];
+    try {
+      for (const textCase of textCases) {
+        await page.evaluate(value => { document.documentElement.style.fontSize = value.size; document.documentElement.style.fontFamily = value.family; }, textCase);
+        for (const name of ['conversation', 'workflows', 'memory']) {
+          await view(page, name);
+          const dimensions = await page.evaluate(() => {
+            const width = innerWidth, overflow = Array.from(document.querySelectorAll('body *')).map(element => {
+              const rect = element.getBoundingClientRect();
+              return { tag: element.tagName, id: element.id, class: typeof element.className === 'string' ? element.className : '',
+                left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+            }).filter(value => value.width > 0 && value.right > width + 1).slice(0, 12);
+            return { width, documentWidth: document.documentElement.scrollWidth, rootFont: getComputedStyle(document.documentElement).fontSize, overflow };
+          });
+          enlargedText.push({ view: name, ...textCase, ...dimensions });
+          assert.ok(dimensions.documentWidth <= 961, JSON.stringify(enlargedText.at(-1)));
+          const headerLinks = await page.locator('.masthead nav a').evaluateAll(elements => elements.map(element => {
+            const rect = element.getBoundingClientRect(); return { text: element.textContent, left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+          }));
+          assert.ok(headerLinks.every(link => link.width > 0 && link.height > 0 && link.left >= -1 && link.right <= 961), JSON.stringify(headerLinks));
+        }
+      }
+    } finally { await page.evaluate(() => { document.documentElement.style.fontSize = ''; document.documentElement.style.fontFamily = ''; }); }
+    return { cssZoomEquivalent: detail, enlargedText, textScale: '200% and 32px (200% of a 16px baseline)', physicalBrowserZoom: 'not directly measured' };
   });
 
   await check('Keyboard navigation, dialog escape and focus return', async () => {
@@ -357,10 +378,13 @@ try {
     await jobs.waitForFunction(() => !document.getElementById('load-jobs').disabled);
     state = await jobState(); const source = JSON.parse(await readFile(path.join(docs, 'assets/noah-jobs-feed.json'), 'utf8'));
     assert.equal(state.jobs.length, source.jobs.length); assert.ok(state.jobs.length > 0);
-    assert.ok(state.jobs.every(job => job.source === 'remotive' && job.url.startsWith('https://remotive.com/')));
+    assert.ok(state.jobs.every(job => {
+      const sourceURL = new URL(job.url);
+      return job.source === 'remotive' && sourceURL.protocol === 'https:' && sourceURL.origin === 'https://remotive.com' && sourceURL.pathname.startsWith('/remote-jobs/');
+    }));
     assert.match(await jobs.locator('#feed-state').innerText(), /Remotive|snapshot/i);
     assert.ok(jobsRequests.some(url => url.endsWith('/assets/noah-jobs-feed.json')));
-    assert.equal(jobsRequests.some(url => url.startsWith('https://remotive.com/api/')), false);
+    assert.equal(jobsRequests.some(value => { const url = new URL(value); return url.origin === 'https://remotive.com' && url.pathname.startsWith('/api/'); }), false);
     const card = jobs.locator('.job-card').first();
     await card.getByRole('button', { name: /^Save / }).click(); await card.getByRole('button', { name: /^Review / }).click();
     await jobs.locator('#detail-stage').selectOption('applied'); const selected = (await jobState()).saved[0];
@@ -375,7 +399,12 @@ try {
   await check('Imported jobs deduplicate, save, compare and produce evidence-based local preparation without a network call', async () => {
     const count = requests.length;
     await importJob(importedTitle, 'https://careers.example.com/qa-devops?gh_jid=123&utm_source=qa', 'QA fixture requirements: Python, Docker, Kubernetes, Linux. Eligibility must be confirmed.');
-    await importJob(importedTitle, 'https://careers.example.com/qa-devops?gh_jid=123', 'QA fixture requirements: Python, Docker, Kubernetes, Linux. Updated actual supplied text.');
+    const adversarialRequirements = 'QA fixture requirements: Python, Docker, Kubernetes, Linux. Updated actual supplied text.\n' +
+      'Encoded: &lt;img src=x onerror="window.qaJobInjected=true"&gt; &lt;script&gt;window.qaJobInjected=true&lt;/script&gt;.\n' +
+      'Nested: <script><script>window.qaJobInjected=true</script></script><style><style>.qaUnwantedStyle{display:none}</style></style>' +
+      '<!-- <script>window.qaJobInjected=true</script> -->safe-marker <img title=">" src=x onerror="window.qaJobInjected=true"><b>literal-label</b>.\n' +
+      'Malformed: <script>window.qaJobInjected=true';
+    await importJob(importedTitle, 'https://careers.example.com/qa-devops?gh_jid=123', adversarialRequirements);
     await importJob('QA Support Fixture', 'https://careers.example.com/qa-support', 'QA fixture requirements: Windows and PowerShell. IT support and CompTIA A+ requested.');
     let state = await jobState(); assert.equal(state.jobs.filter(job => job.source === 'import').length, 2);
     const evidenceDetails = jobs.locator('details').filter({ has: jobs.locator('#profile-form') });
@@ -384,6 +413,11 @@ try {
     await jobs.locator('#profile-portfolio').check(); await jobs.locator('#profile-form button[type=submit]').click();
     const card = jobs.locator('.job-card').filter({ has: jobs.getByRole('heading', { name: importedTitle, exact: true }) });
     await card.getByRole('button', { name: /^Save / }).click(); await card.getByRole('button', { name: /^Review / }).click();
+    const postingText = await jobs.locator('#job-detail .requirements').textContent();
+    assert.match(postingText, /safe-marker/); assert.match(postingText, /literal-label/);
+    assert.equal(postingText.includes('qaJobInjected'), false); assert.equal(postingText.includes('qaUnwantedStyle'), false);
+    assert.equal(await jobs.locator('#job-detail img, #job-detail script, #job-detail [onerror], .job-card img, .job-card script, .job-card [onerror]').count(), 0);
+    assert.equal(await jobs.evaluate(() => window.qaJobInjected === true), false);
     await jobs.locator('#detail-stage').selectOption('preparing'); await jobs.locator('#local-prep').click();
     assert.match(await jobs.locator('#noah-notice').innerText(), /No details were sent/);
     assert.match(await jobs.locator('#noah-response').innerText(), /Python|Docker/); assert.equal(requests.length, count);
@@ -391,8 +425,9 @@ try {
     await jobs.locator('#compare-jobs').click(); assert.equal(await jobs.locator('.compare-table').count(), 1);
     assert.match(await jobs.locator('.compare-table').innerText(), /QA Junior DevOps Fixture/);
     assert.match(await jobs.locator('.compare-table').innerText(), /QA Support Fixture/);
-    assert.equal(jobsRequests.some(url => url.startsWith('https://careers.example.com')), false);
-    return { importedPostings: 2, canonicalDuplicateAvoided: true, reviewedSourceNeverFetched: true, localRemoteRequests: 0 };
+    assert.equal(jobsRequests.some(value => new URL(value).origin === 'https://careers.example.com'), false);
+    return { importedPostings: 2, canonicalDuplicateAvoided: true, reviewedSourceNeverFetched: true, localRemoteRequests: 0,
+      adversarialEncodedNestedAndMalformedMarkup: 'No injected elements or execution; unwanted nested content absent' };
   });
 
   await check('Job sharing reviews the exact bounded prompt, requires fresh consent, excludes other Noah data, and preserves actual provenance', async () => {
@@ -405,6 +440,11 @@ try {
     assert.equal(await jobs.locator('#share-consent').isChecked(), false);
     const preview = await jobs.locator('#share-preview').innerText(); assert.ok(preview.length <= 3900);
     assert.match(preview, /QA Junior DevOps Fixture/); assert.match(preview, /learning evidence/);
+    const sourceURLs = Array.from(preview.matchAll(/"url":\s*"([^\s",]+)/g), match => new URL(match[1]));
+    assert.deepEqual(sourceURLs.map(url => ({ protocol: url.protocol, hostname: url.hostname, origin: url.origin, pathname: url.pathname, search: url.search, hash: url.hash })).sort((a, b) => a.pathname.localeCompare(b.pathname)), [
+      { protocol: 'https:', hostname: 'careers.example.com', origin: 'https://careers.example.com', pathname: '/qa-devops', search: '', hash: '' },
+      { protocol: 'https:', hostname: 'careers.example.com', origin: 'https://careers.example.com', pathname: '/qa-support', search: '', hash: '' }
+    ]);
     assert.equal(preview.includes('QA private unrelated'), false); assert.equal(preview.includes('QA private earlier'), false);
     assert.equal(preview.includes('gh_jid=123'), false); assert.equal(preview.includes('qa-jobs-fixture-secret'), false);
     await jobs.locator('#send-noah').click(); assert.equal(requests.length, count);

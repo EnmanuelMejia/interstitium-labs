@@ -11,7 +11,9 @@ const html = readFileSync('docs/noah/index.html', 'utf8');
 for (const file of files.filter(file => file !== 'noah-jobs.js')) assert.ok(html.includes(`/assets/${file}`), `${file} must be loaded`);
 const jobsHtml = readFileSync('docs/jobs/index.html', 'utf8');
 for (const file of ['noah-session.js', 'noah-ai.js', 'noah-jobs.js']) assert.ok(jobsHtml.includes(`/assets/${file}`));
-assert.ok(jobsHtml.includes('https://jobright.ai/jobs/recommend'));
+const jobLinks = Array.from(jobsHtml.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])([^"']+)\1/gi), match => new URL(match[2], 'https://interstitiumlabs.dev'));
+assert.ok(jobLinks.some(url => url.protocol === 'https:' && url.hostname === 'jobright.ai' && url.port === '' &&
+  url.pathname === '/jobs/recommend' && url.search === '' && url.hash === '' && url.username === '' && url.password === ''), 'Expected the exact Jobright recommendation link');
 assert.ok(jobsHtml.includes('id="share-consent"'));
 assert.ok(existsSync('docs/assets/noah-jobs.css'));
 assert.ok(html.indexOf('/assets/noah-session.js') < html.indexOf('/assets/noah-ai.js'));

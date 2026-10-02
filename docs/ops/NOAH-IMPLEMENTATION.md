@@ -21,7 +21,7 @@ AI-generated replies and imported postings remain untrusted text. Reply formatti
 
 ## Executed verification
 
-The disposable Edge browser regression run on 2026-10-02 passed **29 checks**: real public snapshot loading; import canonicalization; saving and manual tracking; comparison; exact-prompt sharing and privacy overrides; memory CRUD/export/forget; checkpoint resume/approval/artifact downloads; safe reply links; WebGL; and responsive navigation/layout. Tested widths were 360, 768, 1920, and 5120 pixels, plus a 200% zoom equivalent. New-workspace page/console errors were absent in that run.
+The disposable Edge browser regression run on 2026-10-02 passed **29 checks**: real public snapshot loading; import canonicalization; saving and manual tracking; comparison; exact-prompt sharing and privacy overrides; memory CRUD/export/forget; checkpoint resume/approval/artifact downloads; safe reply links; WebGL; and responsive navigation/layout. Tested widths were 360, 768, 1920, and 5120 pixels, plus a 200% zoom equivalent and explicit 32-pixel sans-serif/monospace text at a 960-pixel viewport. New-workspace page/console errors were absent in that run.
 
 Automated axe checks found zero violations in the tested Noah and jobs views. Some color-contrast checks were unresolved; this is not a full WCAG conformance claim. Browser viewports are emulated; physical devices and other browsers are not established by this receipt. Browser remote-response tests use a controlled mock to inspect exact request content.
 
