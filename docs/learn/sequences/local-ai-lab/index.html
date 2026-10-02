@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>The Local AI Lab: Running Models on Your Own Hardware | Interstitium Labs</title>
+<meta name="description" content="An original study guide to running AI locally: why local inference, quantization and the GGUF format, the runtime layer (llama.cpp, Ollama, LocalAI), desktop apps (LM Studio, Jan, GPT4All, TextGen), web interfaces (Open WebUI, koboldcpp), production serving (vLLM), hardware sizing, and a full install-to-API lab track."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/local-ai-lab/"/>
+<meta property="og:title" content="The Local AI Lab: Running Models on Your Own Hardware | Interstitium Labs"/>
+<meta property="og:description" content="An original study guide to running AI locally: quantization and GGUF, runtimes, desktop apps, web UIs, production serving, hardware sizing, and a full install-to-API lab track."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/local-ai-lab/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; AI Systems · Local Inference</p>
+    <h1 class="il-h">The Local AI Lab</h1>
+    <p class="il-hero__sub">Run capable AI models on your own hardware: quantization and the GGUF format, the runtime layer, desktop apps, web interfaces, honest production serving — and a lab track from first install to your own API.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">Your machine is the cloud.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Most people experience AI as an API endpoint: prompts travel to someone else's datacenter, and answers come back. But the open-weight era changed the equation — capable models can now run on ordinary hardware, fully offline, with no account, no per-token bill, and no third party reading your prompts. The machinery that makes this possible — quantization formats, cross-platform inference runtimes, desktop apps, self-hosted interfaces, and production serving stacks — is what this sequence teaches.</p>
+        <p>The field is layered, and the tools sit at different layers. An inference runtime (llama.cpp, Ollama, LocalAI) executes model weights on your hardware. A desktop app (LM Studio, Jan, GPT4All, TextGen) wraps a runtime in a friendly interface. A web UI (Open WebUI, koboldcpp) puts a chat surface in your browser. A serving stack (vLLM) is a different animal entirely — production-grade throughput for many concurrent users, not a desktop tool. This sequence is honest about which layer each tool occupies, because picking the wrong layer is the most common beginner mistake.</p>
+        <p>You will learn why local inference matters (privacy, latency, cost, sovereignty), how quantization and the GGUF format shrink models onto real hardware, how the runtimes differ, how to size hardware for a model, how to read a model license before using weights commercially, and — in the final lab track — how to go from a fresh install to a model you can both chat with and call as an API from your own code.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Engineers and technical users who want AI capability without sending data to third parties.</li>
+          <li>Developers building features on local models who need to understand runtimes, APIs, and hardware trade-offs.</li>
+          <li>Homelab and self-hosting practitioners extending their stack into local inference.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Comfortable with the command line on Windows, macOS, or Linux.</li>
+          <li>A machine with enough memory to hold a small model (see Module 7's qualitative tiers — ordinary laptops qualify for small models).</li>
+          <li>No GPU required to start; a GPU accelerates everything later. No machine-learning background needed — the sequence explains the ideas it uses.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order: the why (privacy, quantization) is the vocabulary the tooling chapters assume.</li>
+          <li>Install one runtime and run one model in Module 8's lab track — reading about inference is abstract; watching tokens stream from your own machine is concrete.</li>
+          <li>Every project linked below is the authority on itself. This guide teaches the mental models; the project's own docs are the reference for exact flags and versions.</li>
+          <li>Keep the honesty discipline this sequence models: categorize every tool by its layer, and check what each layer actually promises before adopting it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Why Local: Privacy, Latency, Cost, Sovereignty</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>State the privacy, latency, cost, and sovereignty arguments for local inference</li>
+            <li>Distinguish what local inference protects against and what it does not</li>
+            <li>Recognize when a cloud API remains the rational choice</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The API model and its data trail</h5>
+          <p>In the cloud-API model, every prompt leaves your machine: it is logged by the provider's infrastructure, subject to the provider's retention and training policies, billed per token, and unavailable when the network or the provider is down. For casual use that is a fine trade. For sensitive documents, proprietary code, or regulated data, it is a data trail you chose to create.</p>
+          <p>Local inference inverts the model: the weights live on your disk, the computation happens in your RAM, and prompts never leave the building. The attack surface shrinks from &quot;every system your provider operates&quot; to &quot;the machine in front of you.&quot;</p>
+          <h5>Privacy: prompts that never leave</h5>
+          <p>The privacy argument is the strongest one. A locally running model cannot phone home your documents, because there is no home to phone — assuming the application itself is honest, which is why this sequence favors open-source runtimes whose behavior is auditable. No terms-of-service change can retroactively expose prompts that were never transmitted.</p>
+          <p>This is not absolute: apps can bundle telemetry, plugins can call out, and anything you paste into a browser-based UI lives in that browser's context. Local is a necessary condition for prompt privacy, not a sufficient one — verify each application's network behavior rather than assuming &quot;local&quot; means &quot;silent.&quot;</p>
+          <h5>Latency: inference at memory speed</h5>
+          <p>Cloud inference adds round-trip latency to every interaction; local inference is bounded only by your hardware's memory bandwidth and compute. Small models on a modern laptop stream tokens with no network hop at all, which makes local models feel snappier than their size suggests for interactive work.</p>
+          <p>The honest qualifier: absolute throughput on consumer hardware is lower than a datacenter cluster's. Local wins on latency and responsiveness for single-user interactive use; it does not win on raw tokens-per-second against industrial infrastructure.</p>
+          <h5>Cost: hardware once, inference free</h5>
+          <p>Cloud inference is metered: every token costs money, forever. Local inference is capitalized: you pay for the hardware once (or you already own it), and then each additional prompt costs electricity. Heavy, sustained usage flips the economics decisively toward local.</p>
+          <p>The honest qualifier: the hardware has to be capable enough for the model you want, and capable hardware is not free. The cost argument holds when you already own the machine or when usage volume would otherwise generate a large API bill.</p>
+          <h5>Sovereignty: the open-weight era</h5>
+          <p>Open-weight models — weights published for download, as opposed to models available only behind an API — made local inference possible at all. A growing ecosystem of openly distributed models means you can choose, inspect, fine-tune, and keep running a model even if its publisher pivots, deprecates it, or changes its behavior. You hold the artifact, not a lease on someone else's.</p>
+          <p>Sovereignty is also about continuity: a local model works on a plane, in an outage, or after a vendor shuts down. The model on your disk does not get a deprecation email.</p>
+          <h5>When the cloud still wins</h5>
+          <p>Intellectual honesty requires the other side. Frontier-scale models do not fit on consumer hardware — if you need the largest models' capabilities, you rent them. Rapidly changing tasks benefit from providers' constant model updates; your local model is frozen at download. And if you have no hardware at all, the cloud is the only option. Choose the layer that fits the job.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write your threat model before installing anything</strong><br/>List what you want local AI for, what data you would feed it, and what &quot;private&quot; must mean for your use case. The list becomes the yardstick every tool choice is measured against.</li>
+            <li><strong>Audit one application's network behavior while running locally</strong><br/>Run a local model, then watch your machine's outbound connections while you chat with it. The exercise teaches the difference between &quot;runs locally&quot; and &quot;never transmits&quot; — a distinction marketing copy likes to blur.</li>
+            <li><strong>Price one month of your heaviest imagined usage as API tokens versus hardware you own</strong><br/>Estimate tokens per day, multiply by a provider's published per-token price, and compare against the sunk cost of your machine. The crossover point is usually lower than people expect.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What data trail does a cloud API prompt create that a local prompt does not?</li>
+            <li>Give one way a nominally &quot;local&quot; app could still leak your prompts.</li>
+            <li>When is paying for a cloud API the rational choice despite owning hardware?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Quantization and GGUF: Fitting Models on Real Hardware</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain quantization as a precision-for-memory trade</li>
+            <li>Describe what the GGUF container format carries and why it exists</li>
+            <li>Read a model card and license before downloading weights</li>
+            <li>Navigate the Hugging Face GGUF ecosystem as a model source</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Quantization: fewer bits per weight</h5>
+          <p>A model's weights are numbers, and numbers cost memory per bit of precision. Quantization stores those weights at reduced precision — commonly 8, 6, 5, 4, 3, or 2 bits per weight instead of 16 — trading a measured amount of output quality for a large reduction in memory and a speedup in inference. It is the single technique that moved capable models from datacenters onto laptops.</p>
+          <p>The trade is graceful, not cliff-like: moderate quantization preserves most capability, and the quality loss concentrates in the deepest cuts. This is why the ecosystem standardizes on a ladder of precision levels rather than one format — you pick the rung your hardware can afford.</p>
+          <h5>GGUF: the container format</h5>
+          <p>GGUF is the file format the llama.cpp ecosystem standardized on for distributing quantized models: one file carrying the model architecture metadata, the tokenizer, and the quantized weights together. It succeeded the older GGML format and is documented in the format specification the ggml project maintains. A &quot;GGUF model&quot; is a self-describing artifact any GGUF-capable runtime can load.</p>
+          <p>The practical consequence: model distribution converged on single downloadable files. You fetch one GGUF file and you have everything the runtime needs — no separate tokenizer downloads, no conversion step, no framework-specific packaging.</p>
+          <h5>The Hugging Face GGUF ecosystem</h5>
+          <p>Hugging Face hosts the distribution layer: model publishers and community members upload GGUF builds of open-weight models, often in several quantization levels per model so you can choose your trade-off. Community quantizers — including contributors who maintain the runtimes themselves — publish widely used quantized builds, and the original model publishers increasingly ship official GGUF variants.</p>
+          <p>Treat the model page as the source of truth: the quantization level, the base model it was built from, and the license all live on the model card. Download from publishers and quantizers with a track record, and verify checksums when provided.</p>
+          <h5>Model weight licensing, in general terms</h5>
+          <p>Model weights are intellectual property, and each model family ships its own license. Some families use permissive open-source licenses (Apache 2.0, MIT). Others — including well-known families like Llama, Gemma, Qwen, and Mistral releases — use custom licenses with their own terms around commercial use, redistribution, and attribution. Terms differ between families and between versions within a family.</p>
+          <p>The rule is procedural, not legal advice: read the model card's license before using weights in anything commercial, and treat &quot;open weights&quot; and &quot;open source&quot; as different claims. This guide states no legal conclusions; the license text on the model page is authoritative.</p>
+          <h5>Choosing a quantization level for your hardware</h5>
+          <p>The choice is a three-way negotiation between your available memory, your tolerance for quality loss, and your patience. More bits per weight means more memory and slower loading but closer-to-original quality; fewer bits means the opposite. Start at a middle rung, try your actual workload, and move down only if memory forces you or up only if quality disappoints you.</p>
+          <p>Context length interacts with the choice: longer contexts consume additional memory at runtime regardless of quantization, so a model that fits for short chats may strain under long documents. Size the whole workload, not just the weights.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Compare three quantization levels of one model family on Hugging Face</strong><br/>Find a model published in multiple GGUF quantizations, read the model cards, and note file sizes, stated base model, and license. The cards are the ecosystem's paperwork — learn to read them before downloading.</li>
+            <li><strong>Read the GGUF format specification's overview</strong><br/>Skim the ggml project's GGUF documentation to see what the container carries: metadata, tensor info, quantization types. Understanding the container demystifies every &quot;which file do I download&quot; question.</li>
+            <li><strong>Write a one-paragraph license summary for three model families</strong><br/>Pick three well-known open-weight families, read each model card's license section, and summarize in your own words what each permits. The differences between them are the point.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does a GGUF file contain besides the weights?</li>
+            <li>Why does quantization trade quality for memory rather than breaking the model outright?</li>
+            <li>What must you check on a model card before commercial use?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">The Runtime Layer: llama.cpp, Ollama, LocalAI</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain what an inference runtime does: load weights, run the model, stream tokens</li>
+            <li>Contrast llama.cpp (engine), Ollama (runtime + model library), and LocalAI (drop-in API engine)</li>
+            <li>Choose a runtime for a given use case</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>What a runtime actually does</h5>
+          <p>An inference runtime performs three jobs: it loads quantized weights from disk into memory, it executes the model's math layer by layer against your prompt (the &quot;forward pass&quot;), and it streams the generated tokens back as they are produced. Everything else — model downloading, chat interfaces, API compatibility — is convenience layered on top of these three jobs. When you compare runtimes, you are comparing how well they do the core three and how much convenience they add.</p>
+          <p>Keep this separation in mind and the ecosystem stops looking like a pile of competing apps and starts looking like what it is: a small number of engines with many interfaces.</p>
+          <h5>llama.cpp: the engine underneath</h5>
+          <p>llama.cpp is the foundational inference engine of the local-AI ecosystem: LLM inference written in plain C/C++ with no heavy framework dependencies, built on the ggml tensor library. It defined the GGUF format, pioneered the quantization ladder, and ships backends for the hardware people actually own — custom CUDA kernels for NVIDIA GPUs, HIP for AMD, Vulkan and SYCL for cross-vendor acceleration, and first-class Apple Silicon support via ARM NEON, Accelerate, and Metal. Many of the tools in this sequence build on llama.cpp or its ideas.</p>
+          <p>It also ships its own server: llama-server exposes an OpenAI-compatible REST API, so the same engine that runs on the command line can serve HTTP requests to your own code. Learn llama.cpp and you understand the substrate everything else stands on.</p>
+          <h5>Ollama: the runtime with a model library</h5>
+          <p>Ollama packages local inference as a product: a background service, a simple command line (<code>ollama pull</code> to fetch, <code>ollama run</code> to chat), a curated model library at ollama.com/library, and an OpenAI-compatible chat API on localhost. A Modelfile lets you customize a model's system prompt and parameters declaratively. It is the fastest path from &quot;nothing installed&quot; to &quot;chatting with a model,&quot; and its API makes it a natural backend for other tools.</p>
+          <p>Think of Ollama as the runtime for people who want the engine to behave like a service: install it, pull named models, and talk to a stable local endpoint instead of managing files and flags.</p>
+          <h5>LocalAI: the drop-in API engine</h5>
+          <p>LocalAI takes a different position: it is an open-source AI engine designed as a drop-in replacement for commercial APIs, offering OpenAI-, Anthropic-, and ElevenLabs-compatible endpoints across backends that cover not just text models but vision, voice, image, and video generation — on any hardware, with no GPU required. It adds the operational features an API deployment needs: API-key authentication, user quotas, and role-based access.</p>
+          <p>Choose LocalAI when your goal is &quot;my own private API that speaks the protocols my code already speaks&quot; — particularly if you want to point existing OpenAI-targeted code at a local endpoint without rewriting it.</p>
+          <h5>Choosing between them</h5>
+          <p>The choice follows the use case. Want to understand and control the engine, run on exotic hardware, or build on the reference implementation? Start with llama.cpp. Want the shortest path to a working local model with a model library and a chat API? Start with Ollama. Want a self-hosted, multi-user API endpoint that existing code can target unchanged, across modalities? Start with LocalAI. These are complementary positions on a spectrum, not rival factions — many practitioners run more than one.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Install one runtime and run your first local model</strong><br/>Pick the runtime that matches your use case from the guidance above, install it per its own docs, and get a small model generating text. The first locally generated token is the moment the whole sequence becomes real.</li>
+            <li><strong>Call the runtime's API from a script</strong><br/>Send an HTTP request to the local endpoint (Ollama's localhost API, llama-server, or LocalAI) from a short script in your language of choice. A runtime you can only chat with is a toy; a runtime you can call from code is infrastructure.</li>
+            <li><strong>Compare the same prompt across two runtimes</strong><br/>Run an equivalent model through two different runtimes and compare the experience: setup friction, speed, API shape. The comparison teaches you what each runtime's convenience layer actually buys.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What three jobs does every inference runtime perform?</li>
+            <li>Which runtime would you pick for multi-user API-keyed access, and why?</li>
+            <li>What does llama.cpp's backend list tell you about its hardware philosophy?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">The Desktop Layer: LM Studio, Jan, GPT4All, TextGen</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Describe what a desktop app adds over a raw runtime: discovery, GUI, local server mode</li>
+            <li>Contrast the four desktop apps' positions: discovery-first, offline-first, simplicity-first, power-user</li>
+            <li>Enable a desktop app's local server and point another tool at it</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>What the desktop layer adds</h5>
+          <p>A desktop app wraps an inference runtime in a human interface: a window instead of a terminal, visual model discovery and download instead of URLs and checksums, chat with history and settings instead of flags, and — critically — a local server mode that exposes the running model as an OpenAI-compatible endpoint other tools can consume. The runtime does the math; the app does the hospitality.</p>
+          <p>The honest framing: you are trading some control and transparency for convenience. A desktop app is the right choice when the user is a person who wants to chat, not an engineer who wants to tune; it is the wrong choice when you need scriptability, multi-user access, or to know exactly which binary is executing your weights.</p>
+          <h5>LM Studio: discovery-first (proprietary app, open tooling)</h5>
+          <p>LM Studio is a popular desktop application for discovering, downloading, and chatting with local models, with in-app search across Hugging Face's model catalog and a local server mode exposing an OpenAI-compatible API. An honest note on provenance: the desktop application itself is proprietary software distributed by the lmstudio-ai organization — it is not one of the organization's GitHub repositories. The org does publish open-source tooling alongside it (SDKs, engine components, and utilities), but the flagship app is a closed-source download. Evaluate it on its merits, and know what &quot;open&quot; does and does not cover.</p>
+          <h5>Jan: the offline-first desktop app</h5>
+          <p>Jan positions itself as the open-source ChatGPT replacement that runs fully offline on your computer — a desktop application whose headline feature is the absence of a network dependency. (Repository note: the project moved from the menloresearch organization to janhq; the old path redirects to the current one.) It is the choice to examine when the requirement is stated as &quot;works with the network cable unplugged.&quot;</p>
+          <h5>GPT4All: simplicity-first</h5>
+          <p>GPT4All's pitch is the shortest in the field: run capable models privately on everyday desktops and laptops, no GPU and no API calls required — download the application and start. It is explicitly open-source and available for commercial use, which matters for the licensing-conscious. When the audience is non-technical users who need local AI without a setup project, this is the app shaped for them.</p>
+          <h5>TextGen: the power-user desktop app</h5>
+          <p>TextGen (the current name of the project long known as oobabooga's text-generation-webui — the old repository path redirects to the new one) is the desktop app for people who outgrow simple chat: text, vision, tool-calling, and web search behind one interface, with an OpenAI/Anthropic-compatible API, portable builds for CUDA, Vulkan, ROCm, and CPU-only systems, and an extension system for deeper customization. Open source, no telemetry, and aimed squarely at tinkerers.</p>
+          <p>The pattern across all four: each app answers &quot;who is sitting in front of the machine?&quot; differently — the explorer (LM Studio), the offline purist (Jan), the casual user (GPT4All), the tinkerer (TextGen). Match the app to the human.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Install a desktop app, download a model through its UI, and chat</strong><br/>Use the app's own discovery flow rather than the command line. Notice what the UI hides from you — and ask whether anything it hides is something you needed to know.</li>
+            <li><strong>Enable local server mode and call it from another tool</strong><br/>Turn on the app's OpenAI-compatible server and point a second client at it — a script, or Open WebUI from the next module. The moment one tool consumes another's endpoint, the layered architecture of the ecosystem clicks into place.</li>
+            <li><strong>Compare model discovery across two apps</strong><br/>Search for the same model family in two different apps' discovery flows and compare what metadata each shows: quantization options, licenses, download sizes. Discovery UX is where apps differ most.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What does a desktop app add over the runtime it wraps?</li>
+            <li>Which app would you recommend to a non-technical user, and which to a tinkerer?</li>
+            <li>What is not open about LM Studio, and why does the distinction matter?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">The Web-UI Layer: Open WebUI and koboldcpp</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain why a browser-based interface is a separate layer from the runtime</li>
+            <li>Describe Open WebUI's provider-agnostic position, RAG, and Pipelines/Functions extensibility</li>
+            <li>Describe koboldcpp as a single-file runtime-plus-UI with a broad API surface</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Why the interface is its own layer</h5>
+          <p>A web UI does not run the model — it talks to something that does. This separation is the ecosystem's superpower: any chat interface that speaks the OpenAI-compatible protocol can sit in front of any runtime that serves it. You can swap the model, the runtime, or the interface independently, like changing the tires without rebuilding the engine. Understanding the interface as a client, not an engine, is what makes the whole stack composable.</p>
+          <h5>Open WebUI: the provider-agnostic home for AI</h5>
+          <p>Open WebUI is a self-hosted, extensible web platform for interacting with models — designed to run entirely offline and to connect to anything: local Ollama, any OpenAI-compatible API (LM Studio, vLLM, and others), or cloud providers, mixed freely. Its two most consequential features are local RAG — retrieval-augmented generation over your own documents, with vector-database backing, hybrid search, and reranking — and its extensibility model: Pipelines and Functions, a plugin system for injecting custom logic into the chat flow.</p>
+          <p>Think of Open WebUI as the interface you graduate to when one model in one window stops being enough: multiple backends, your documents searchable inside chat, and custom behavior you write yourself. The project's own documentation is the reference for the plugin system; this guide's job is to tell you the system exists and what it is for.</p>
+          <h5>koboldcpp: one file, zero install</h5>
+          <p>koboldcpp takes minimalism to the extreme: a single self-contained executable — no installation, no dependencies — that runs GGML and GGUF models on CPU or GPU with full or partial offloading, built on llama.cpp with the KoboldAI interface bundled in. Its API surface is unusually broad: KoboldAI, OpenAI-compatible, and Ollama-compatible endpoints, plus image-generation and speech endpoints, so one binary can serve many client types.</p>
+          <p>It even inverts the usual direction: launched without a model, its interface can act as a pure front end for cloud providers. The lesson of koboldcpp is architectural — the file you download can be the entire stack, runtime and interface fused, when the design prioritizes portability above all else.</p>
+          <h5>Composing the stack yourself</h5>
+          <p>The canonical composition this module teaches: a runtime serving an OpenAI-compatible endpoint (Ollama, llama-server, LocalAI, or a desktop app in server mode) with a web UI pointed at it (Open WebUI, or koboldcpp's interface). Each piece is replaceable; the protocol between them is the contract. Build this once and you will never again confuse &quot;the app I chat in&quot; with &quot;the thing running the model.&quot;</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Point Open WebUI at your runtime's endpoint</strong><br/>Run Open WebUI (via its documented install methods) connected to the runtime you installed in Module 3. Chat through the web UI while the model runs elsewhere on your machine — the split is the lesson.</li>
+            <li><strong>Load a document into Open WebUI's RAG and question it</strong><br/>Add a PDF or text file to the RAG system and ask questions answerable only from that document. Watching the model cite your own file makes retrieval-augmented generation concrete.</li>
+            <li><strong>Run koboldcpp as a single-file server and hit two different APIs on it</strong><br/>Launch koboldcpp with a GGUF model, then call both its OpenAI-compatible endpoint and its native API from scripts. One binary, multiple protocols — the API surface is the feature.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What protocol lets any web UI talk to any runtime?</li>
+            <li>What do Open WebUI Pipelines and Functions let you customize?</li>
+            <li>Why is koboldcpp's single-file design a meaningful architectural choice, not just convenience?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">The Serving Tier, Honestly Separated: vLLM</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Distinguish production serving from desktop inference by audience and requirements</li>
+            <li>Describe what vLLM optimizes for: throughput and memory efficiency at serving scale</li>
+            <li>State when vLLM is the wrong tool for a single user</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>A different audience</h5>
+          <p>This module exists because listicles keep filing vLLM next to desktop apps, and the filing is wrong. vLLM is a high-throughput, memory-efficient inference and serving engine for large language models — infrastructure for serving many concurrent requests efficiently, the kind of system you run when your model is a service with users. A desktop app answers &quot;how do I chat with a model on my laptop&quot;; vLLM answers &quot;how do I serve thousands of requests per GPU-hour.&quot; Different question, different tool, different operator.</p>
+          <p>The honest categorization matters because the failure mode is real: a beginner who installs a serving stack expecting a chat window finds configuration surface built for throughput engineering. Respect the layering and everyone is happier.</p>
+          <h5>What vLLM optimizes</h5>
+          <p>vLLM's documented design goals are serving throughput and efficient management of the attention key-value memory — the memory that grows with every concurrent request — via its PagedAttention technique, alongside high-throughput decoding strategies like parallel sampling and beam search. It exposes an OpenAI-compatible API server (plus Anthropic Messages and gRPC support), so applications written against those protocols can target it.</p>
+          <p>In plain terms: where a desktop runtime optimizes for &quot;one user, one model, now,&quot; vLLM optimizes for &quot;many users, sustained load, minimal waste.&quot; The techniques are about packing concurrent work onto expensive hardware efficiently.</p>
+          <h5>When vLLM is the right call</h5>
+          <p>You reach for vLLM when you have outgrown single-user inference: an internal service for a team, a product backend, a research setup running batched evaluations, a homelab serving a household. Its natural habitat is a machine with serious GPU memory and an operator comfortable with server software — the profile this sequence's earlier modules deliberately did not assume.</p>
+          <h5>When it is the wrong call</h5>
+          <p>If you are one person wanting to chat with a model on your own machine, vLLM is overkill — the desktop and runtime layers of Modules 3–5 are simpler, better documented for that job, and designed for your hardware. Adopting a serving stack for single-user chat is like renting a datacenter rack to host a personal blog: it works, and it misses the point.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write the decision memo: serving stack vs desktop runtime</strong><br/>Describe a hypothetical deployment (users, concurrency, hardware, operator skill) and argue in writing which layer fits. The deliverable is judgment, not a working install — knowing when not to use a tool is the skill.</li>
+            <li><strong>Read vLLM's architecture documentation at the level of its design goals</strong><br/>Skim the project's docs for what it promises (throughput, memory efficiency, API compatibility) and what it assumes (hardware, operator expertise). Compare those assumptions against Modules 3–5's tools.</li>
+            <li><strong>(Optional, hardware permitting) Serve one model via vLLM and compare the API surface to Ollama's</strong><br/>If you have a capable GPU, stand up vLLM's OpenAI-compatible server and call it with the same script you used against Ollama. Note how similar the client side looks — protocol compatibility hiding radically different machinery.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What question does vLLM answer that a desktop app does not?</li>
+            <li>Why is listing vLLM among &quot;desktop AI tools&quot; a category error?</li>
+            <li>What does PagedAttention manage, and why does it matter at serving scale?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Hardware Sizing: Qualitative Tiers, Honest Trade-offs</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain why memory — not raw compute — is the binding constraint for local inference</li>
+            <li>Describe the four hardware tiers and what each unlocks</li>
+            <li>Explain GPU offloading, unified memory, and backend choice (CUDA, ROCm/HIP, Vulkan, Metal)</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Memory is the binding constraint</h5>
+          <p>Local inference is a memory problem first and a compute problem second. The model's weights must live in memory (VRAM, system RAM, or unified memory) before a single token is generated, and the working memory for the current conversation grows on top. If the model does not fit in memory, it does not run — no amount of CPU speed compensates. This one fact governs every hardware decision in the sequence: size memory to the model, then worry about speed.</p>
+          <p>The corollary is hopeful: because the constraint is memory rather than exotic compute, ordinary machines with generous RAM run genuinely capable models. You do not need a datacenter; you need enough memory.</p>
+          <h5>Tier 1 — the CPU-only laptop</h5>
+          <p>The machine you already own. Modern runtimes run small quantized models entirely on CPU, and for short interactive chats the experience is usable — slower per token than GPU inference, but private, free, and available everywhere. This tier is where everyone should start: it proves the concept before any hardware decision, and it is sufficient for learning the entire software stack in this sequence.</p>
+          <h5>Tier 2 — unified memory (Apple Silicon and similar)</h5>
+          <p>Systems where CPU and GPU share one memory pool change the arithmetic: the &quot;VRAM vs RAM&quot; split disappears, and the whole pool is available to the model. Runtimes with first-class support for these architectures (llama.cpp's Metal/Accelerate path, for example) turn a laptop into a surprisingly capable inference machine for mid-size models. The tier's limit is the total pool size — generous, but fixed at purchase.</p>
+          <h5>Tier 3 — the consumer discrete GPU</h5>
+          <p>A gaming-class NVIDIA (or AMD) GPU dedicates its own fast VRAM to the model, with the CPU holding whatever does not fit — the standard &quot;partial offload&quot; arrangement, where some model layers run on the GPU and the rest on the CPU. GPU acceleration is where token speeds become genuinely comfortable for larger models. Backend choice follows the vendor: CUDA for NVIDIA, ROCm/HIP for AMD, Vulkan as the cross-vendor fallback.</p>
+          <h5>Tier 4 — the workstation and beyond</h5>
+          <p>Multiple GPUs, very large memory pools, server-class hardware — the tier where the biggest open-weight models become runnable and where serving stacks like vLLM earn their keep. This is enthusiast, professional, or organizational territory: the hardware is a deliberate investment, and the operator is expected to understand what they bought. Nothing in this sequence requires this tier; it is included so you can recognize it when your ambitions arrive there.</p>
+          <h5>Offloading and backend choice, in practice</h5>
+          <p>Partial offload is the pragmatic middle: the runtime places as many model layers as fit into GPU memory and runs the remainder on the CPU. More offloaded layers means faster inference, up to the limit of your VRAM; the setting is tunable per run, so you experiment rather than calculate. For backends, the rule is simple: use the vendor-native path your hardware offers (CUDA on NVIDIA, the Metal path on Apple Silicon, ROCm/HIP on AMD) and fall back to Vulkan or CPU when no native path exists.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Inventory your own hardware against the four tiers</strong><br/>Record your machine's RAM, GPU (if any), and VRAM/unified pool, and place yourself on the tier ladder. The placement tells you which model sizes are realistic before you download anything.</li>
+            <li><strong>Run one model at two offload settings and feel the difference</strong><br/>If you have a GPU, run the same model with full CPU inference and then with GPU offload enabled, and compare the subjective speed. The gap is the reason backends exist.</li>
+            <li><strong>Deliberately try a model that does not fit</strong><br/>Attempt to load a model larger than your memory and observe the failure mode (slow swap thrash or an out-of-memory error). Knowing what &quot;too big&quot; looks like is cheaper learned once, intentionally, than discovered mid-project.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is memory, not compute, the binding constraint?</li>
+            <li>What does partial offload do, and what limits it?</li>
+            <li>Which backend would you choose on NVIDIA, Apple Silicon, and AMD hardware respectively?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">The Lab Track: Install → Pull → Serve → Chat → API</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Execute the full local-inference pipeline end to end on your own machine</li>
+            <li>Serve a model over HTTP and consume it from both a UI and your own code</li>
+            <li>Document your stack so it is reproducible</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The pipeline as one motion</h5>
+          <p>Everything this sequence taught converges on five verbs: install a runtime, pull (download) a model, serve it over HTTP, chat with it through an interface, and call it as an API from your own code. Each verb exercises a different layer — runtime, distribution, networking, interface, programmability — and the complete motion is the difference between &quot;I read about local AI&quot; and &quot;I operate local AI.&quot; This module is the capstone: do all five, in order, on your machine.</p>
+          <h5>Step 1 — Install: one runtime, your choice</h5>
+          <p>Pick the runtime that matched your use case in Module 3 — Ollama for the shortest path, llama.cpp for engine-level control, LocalAI for a private multi-user API — and install it following the project's own documentation for your operating system. Verify the install with the project's own hello-world equivalent before proceeding. A verified install is the foundation; everything downstream assumes it.</p>
+          <h5>Step 2 — Pull: one small model, deliberately</h5>
+          <p>Fetch a small model suited to your hardware tier from Module 7 — small enough to leave headroom, from a publisher you trust, in a quantization level your memory affords. Read its model card first: base model, quantization, license. Note the file size and where it lands on disk. Deliberate selection now prevents the &quot;downloaded something enormous, machine unhappy&quot; failure mode later.</p>
+          <h5>Step 3 — Serve: the model as an HTTP endpoint</h5>
+          <p>Start the runtime's server mode — Ollama's background service, llama-server, LocalAI's API, or a desktop app's local server — and confirm the endpoint responds. The model is now a network service on your own machine: the same architectural shape as a cloud API, with the datacenter replaced by your desk. Record the host, port, and protocol; every later step addresses the model through this endpoint.</p>
+          <h5>Step 4 — Chat: an interface on the endpoint</h5>
+          <p>Point a chat interface at your endpoint — Open WebUI for the full-featured option, koboldcpp's bundled UI for the single-file option, or the runtime's own chat — and hold a real conversation. Load a document into RAG if your interface supports it. This is the user-facing proof that the stack works: a person, a browser, a model, no cloud.</p>
+          <h5>Step 5 — API: your code calls your model</h5>
+          <p>Write a short program in your preferred language that sends a prompt to your local endpoint and prints the response — using the OpenAI-compatible chat format most of these runtimes speak. Then change one parameter (temperature, system prompt, max tokens) and observe the effect. A model you can call from code is infrastructure you own; this step is where the sequence's knowledge becomes a capability you can build on.</p>
+          <h5>Document the stack</h5>
+          <p>Write down what you built: runtime and version, model name and quantization, endpoint address, interface used, hardware tier, and anything you had to troubleshoot. A local AI setup you cannot reproduce is a demo; a documented one is a lab. Keep the document — it is the starting point for every future experiment.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Complete the five-verb pipeline and record each step's output</strong><br/>Install, pull, serve, chat, API — in order, capturing the commands and responses. The record is both proof of completion and your personal runbook.</li>
+            <li><strong>Swap one layer and keep the rest working</strong><br/>Change exactly one component — a different model, a different interface, a different runtime serving the same protocol — and confirm the stack still works. The swap succeeding is the composability thesis of Module 5, demonstrated.</li>
+            <li><strong>Take the stack offline and verify it still works</strong><br/>Disconnect from the network and repeat the chat and API steps. Whatever keeps working is genuinely local; whatever breaks was secretly depending on the cloud. Note the difference.</li>
+            <li><strong>Write the one-page operator's guide for your stack</strong><br/>Startup order, endpoint addresses, model location, troubleshooting notes, shutdown procedure. Hand it to your future self — or to anyone you want to onboard.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Which layer does each of the five verbs exercise?</li>
+            <li>Why does the offline test distinguish genuinely local stacks from nominally local ones?</li>
+            <li>What would you change first if you needed to serve a second user?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The projects below are the authorities on themselves — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Runtimes and engines</h3>
+        <ul>
+          <li><a href="https://github.com/ggml-org/llama.cpp">ggml-org/llama.cpp — LLM inference in C/C++</a></li>
+          <li><a href="https://github.com/ollama/ollama">ollama/ollama — local model runtime and library</a></li>
+          <li><a href="https://ollama.com/library">Ollama model library</a></li>
+          <li><a href="https://docs.ollama.com">Ollama documentation</a></li>
+          <li><a href="https://github.com/mudler/LocalAI">mudler/LocalAI — open-source AI engine, OpenAI-compatible API</a></li>
+          <li><a href="https://localai.io">LocalAI documentation</a></li>
+          <li><a href="https://github.com/ggml-org/ggml/blob/master/docs/gguf.md">GGUF format specification (ggml project)</a></li>
+        </ul>
+        <h3>Desktop applications</h3>
+        <ul>
+          <li><a href="https://lmstudio.ai">LM Studio — desktop app with model search and local server</a></li>
+          <li><a href="https://github.com/lmstudio-ai">lmstudio-ai organization — open tooling and SDKs</a></li>
+          <li><a href="https://github.com/janhq/jan">janhq/jan — open-source offline desktop app</a></li>
+          <li><a href="https://jan.ai">Jan documentation</a></li>
+          <li><a href="https://github.com/nomic-ai/gpt4all">nomic-ai/gpt4all — local LLMs on everyday devices</a></li>
+          <li><a href="https://docs.gpt4all.io">GPT4All documentation</a></li>
+          <li><a href="https://github.com/oobabooga/textgen">oobabooga/textgen (TextGen) — power-user desktop app</a></li>
+        </ul>
+        <h3>Web interfaces</h3>
+        <ul>
+          <li><a href="https://github.com/open-webui/open-webui">open-webui/open-webui — self-hosted AI platform</a></li>
+          <li><a href="https://docs.openwebui.com">Open WebUI documentation (Pipelines, Functions, RAG)</a></li>
+          <li><a href="https://github.com/LostRuins/koboldcpp">LostRuins/koboldcpp — single-file GGUF runtime and UI</a></li>
+        </ul>
+        <h3>Serving tier</h3>
+        <ul>
+          <li><a href="https://github.com/vllm-project/vllm">vllm-project/vllm — high-throughput inference and serving engine</a></li>
+        </ul>
+        <h3>Model distribution</h3>
+        <ul>
+          <li><a href="https://huggingface.co">Hugging Face — model hub hosting GGUF builds</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide; not affiliated with any project.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. The teaching prose is our own distillation; the projects linked above are the authorities on themselves — their repositories and documentation are where exact flags, versions, and behavior live. We are not affiliated with, endorsed by, or sponsored by any of the projects named here, we are not a certification body, and this guide confers no certification. Where a project's documentation changes, the project is authoritative. Model licenses are summarized in general terms only and are not legal advice — read the license on each model card before commercial use.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

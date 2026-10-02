@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>The Main-Writer / Silent-Advisor Pattern | Interstitium Labs</title>
+<meta name="description" content="An original study guide to the main-writer / silent-advisor pattern for agentic coding: a community-reported configuration where one model owns the code, a silent advisor reviews the whole session at three trigger points, specialist subagents handle exploration and edits, and cheap triage routes trivial decisions — grounded in the official Claude Code docs and the agent-pattern research literature."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/agentic-coding-advisor/"/>
+<meta property="og:title" content="The Main-Writer / Silent-Advisor Pattern | Interstitium Labs"/>
+<meta property="og:description" content="One model writes the code; a silent advisor reads the whole session and speaks only at three trigger points. An original study guide to a community-reported agentic-coding configuration, keyed to the official docs and the research."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/agentic-coding-advisor/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+<link rel="stylesheet" href="/assets/il-editorial.css"/>
+<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
+<link rel="stylesheet" href="/assets/il-theme.css"/>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/" aria-current="page">Learn</a>
+      <a href="/#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/coach/">Noah AI</a>
+      <a href="/enroll/">Admissions</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/" aria-current="page">Learn</a>
+          <a href="/#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/coach/">Noah AI</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Agentic Coding &middot; Multi-Agent Systems</p>
+    <h1 class="il-h">The Main-Writer / Silent-Advisor Pattern</h1>
+    <p class="il-hero__sub">One model writes the code; a second one reads the whole session and stays silent except at three trigger points. A community-reported configuration for safer, cheaper, better-reviewed machine-written code — distilled here with the official docs and the research that backs it.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This pattern surfaced in a widely shared community post about agentic coding configurations (October 2026): a MAIN model owns the session and writes every line of code, while an ADVISOR model reads the whole session and stays silent except at three triggers — a plan is proposed, the same error returns twice, a task is marked done. Beneath them, explorer/worker/researcher subagents do the code-reading, editing, and documentation; a cheap triage router answers the trivial fork decisions so the expensive model only sees genuinely hard splits.</p>
+        <p>Be precise about what this is and is not. It is a <strong>community-reported configuration pattern</strong>, assembled from official primitives — subagents, hooks, plan mode, per-agent model selection — not an official product feature called an "advisor." The model names in the original post are the poster's own framing; this guide distills the architecture and names no brand names, because none were verified. The transferable idea is older than any tool: <strong>separate generation from verification</strong>, and spend your strongest, most expensive judgment only where it changes the outcome.</p>
+        <p>This sequence teaches the pattern as an engineer would build it: the four roles in your own words, the three trigger points as review contracts, the wiring options the official documentation actually supports, the research that explains why it works, and a lab in which you implement it with whatever agentic coding tool you use and measure what the advisor catches.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>Engineers who run an agentic coding tool (Claude Code or an equivalent) against non-trivial codebases and want a disciplined review structure around it.</li>
+          <li>Platform and tooling engineers configuring subagents, hooks, and review gates for a team.</li>
+          <li>Engineering leaders evaluating how to spend model budget: where the expensive model earns its tokens, and where a cheap one will do.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Working familiarity with at least one agentic coding tool: you have watched it plan, edit, and iterate.</li>
+          <li>Comfort reading tool documentation and configuration files (JSON/YAML frontmatter, shell hooks).</li>
+          <li>A scratch repository where you can run the lab without touching production code.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order — the vocabulary of the pattern (writer, advisor, triggers, crew, router) compounds.</li>
+          <li>Read the official documentation pages linked in Resources yourself. This guide maps the pattern onto official primitives; the docs are the authority on what those primitives can do, and they move fast.</li>
+          <li>Do the final lab end to end and keep the intervention log. The pattern's value is measurable only if you record what the advisor catches and what it gets wrong.</li>
+          <li>Whenever this guide describes a wiring option, verify it against your tool's current docs before asserting it — agentic tooling in 2026 is a moving target.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">6 modules, in order.</h2>
+      </div>
+      <div class="il-modules">
+        <article class="il-module">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">The Pattern, Distilled</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Name the four roles and the three trigger points in your own words</li>
+            <li>Draw the pattern's information flow: who reads what, who writes what, who stays silent</li>
+            <li>Explain why a single coding agent degrades without a verification structure</li>
+            <li>Map each pattern element to an official tool primitive — or mark where no primitive exists</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>The four roles</h5>
+          <p>The <strong>main writer</strong> owns the session and writes every line of code. The <strong>silent advisor</strong> reads the whole session — plans, tool calls, errors, diffs — and says nothing except at three trigger points. The <strong>specialist crew</strong> (explorer, worker, researcher) does bounded work at medium effort: reading codebases, making edits, writing docs. The <strong>cheap triage router</strong> answers trivial fork decisions — which file, which tool, retry or give up — so the expensive model only sees genuinely hard splits.</p>
+          <p>The shape is a hierarchy of judgment, not of authority. The writer does the work; the advisor and router exist to keep the writer's attention and the budget on the decisions that matter. Every role is defined by what it is allowed to touch, not by what it is capable of.</p>
+          <h5>Separation of generation from verification</h5>
+          <p>A model that wrote a plan is the worst possible judge of that plan: it shares the plan's assumptions, its context, and its blind spots. Reviewing your own output is not review — it is re-reading with the same eyes. The advisor exists to break that symmetry: a separate reader with a separate context, a narrower job, and no investment in the plan it critiques.</p>
+          <p>This is the pattern's first-principles claim. Everything else — the triggers, the silence, the cheap router — is mechanism around it. If you take one idea from this sequence, take this one: the verifier must not be the writer wearing a different hat.</p>
+          <h5>Reviewer blindness and the multi-agent evidence</h5>
+          <p>The academic cousin of this claim is the multi-agent debate literature: Du et al. found that multiple language-model instances proposing, debating, and converging on an answer improved mathematical and strategic reasoning and reduced hallucinated content compared to single-pass generation. The mechanism is the same as the advisor's: independent readers catch what the producer's own context cannot see.</p>
+          <p>Note the honest asymmetry: the debate literature studies debate, not silence. It supports the separation of verifier from generator; it does not prove the advisor's three triggers are the right triggers. The triggers are practitioner judgment, not theorems.</p>
+          <h5>Cost asymmetry</h5>
+          <p>Flagship-model tokens cost orders of magnitude more than small-model tokens, and the official documentation says so plainly: one stated purpose of subagents is to control costs by routing tasks to faster, cheaper models. The pattern's economics follow directly: put the strongest model where mistakes are most expensive (plans, hard splits, final verification) and cheap models where decisions are recoverable (which file to open, retry or give up, routine edits).</p>
+          <p>The router is the economic engine of the pattern. Without it, you get the advisor's quality at flagship prices for everything — which is just an expensive single agent with extra steps.</p>
+          <h5>The three triggers as contracts</h5>
+          <p>A trigger is a contract, not a vibe: a defined event, a defined question, a defined response format. (1) A plan is proposed — the question is whether it is the right move or merely the first one the writer thought of. (2) The same error returns twice — the question is whether the writer is conducting a stuck search or has hit a dead end. (3) A task is marked done — the question is what was missed while moving fast.</p>
+          <p>Vague triggers produce a nagging advisor. Contracts produce a review gate. Module 3 turns each trigger into an implementable check.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Draw the pattern's information flow on one page</strong><br/>Writer, advisor, crew, router: who reads what, who writes what, who speaks when. A pattern you cannot draw is a pattern you do not understand.</li>
+            <li><strong>Map each element to an official primitive in your tool's docs</strong><br/>For Claude Code: subagent files and frontmatter, hooks, plan mode, per-agent model selection. Where the docs support the element, cite the page; where they don't — the triage router's scoring logic, mostly — mark it as your own construction.</li>
+            <li><strong>Collect three failure stories from your own agentic-coding history</strong><br/>One bad plan the agent committed to, one error loop it thrashed in, one "done" that wasn't. Keep these; the lab measures the pattern against them.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is a separate advisor stronger than the writer reviewing its own plan?</li>
+            <li>Which pattern element is directly about cost, and which is directly about quality?</li>
+            <li>What distinguishes a trigger contract from a vague "review sometimes" instruction?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">The Main Writer: One Hand on the Keyboard</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define what the writer owns and what it must never delegate</li>
+            <li>Explain why every line flows through one session (coherence, not hierarchy)</li>
+            <li>Describe the failure mode the writer is prone to: plan fixation</li>
+            <li>Write a writer charter: evidence exposed, plans announced, edits owned</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Single ownership of the working tree</h5>
+          <p>The writer is the only role that changes code. Not because the other roles couldn't — a review agent with edit tools is a second writer, and two writers sharing a working tree without a merge discipline is a race condition. Single ownership means one session holds the plan, the diff, and the test results, so the codebase always reflects one coherent line of reasoning.</p>
+          <p>This is the pattern's discipline constraint, and it cuts against the instinct to parallelize everything. Exploration parallelizes beautifully; authorship does not. The crew reads in parallel and edits only when the writer explicitly hands them bounded work.</p>
+          <h5>The writer's charter: plans announced, evidence exposed</h5>
+          <p>The writer owes its reviewers legibility. Plans are announced before execution — what it intends, why, and what would prove it wrong. Evidence is exposed: command output, test results, and error text stay in the session rather than being summarized away. An advisor that cannot see the reasoning cannot review it.</p>
+          <p>This is also a context-hygiene discipline. The official subagent docs frame delegation as context isolation: side work lives in the subagent's own window and returns only a summary. That isolation is a feature for noise, but the writer must not isolate the signal — the decisions and their evidence stay where the advisor can read them.</p>
+          <h5>Plan fixation: the writer's characteristic failure</h5>
+          <p>Once a model has proposed a plan, executed three steps of it, and narrated its progress, abandoning that plan feels like wasted work — to the model and to the human watching. So it doesn't abandon it. It patches, works around, and reinterprets errors as obstacles on the one true path, long after a fresh look would have chosen differently. The first move becomes the only move.</p>
+          <p>Plan fixation is a commitment bias, and it is invisible from inside the writer's context: every step confirms the plan because the plan defines what counts as progress. Trigger 1 exists because nothing in the writer's own session can ask the question "is this the right move or just the first one?" — it takes an outside reader.</p>
+          <h5>What the writer must not do</h5>
+          <p>The writer does not review its own plan (that is the advisor's trigger 1), does not decide it is done (that is trigger 3), and does not make routing decisions about trivial forks when a cheap router exists (that is the router's job). Each "must not" is a place where the writer's judgment is weakest and someone else's is cheaper or cleaner.</p>
+          <p>Notice the pattern's economy: the writer is deliberately underpowered in judgment so that judgment lives where it is most reliable. A writer that second-guesses everything is slow; a writer that second-guesses nothing is dangerous. The triggers are the compromise.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a one-page writer charter for your scratch repo</strong><br/>Ownership rules, plan-announcement format, evidence discipline, the three "must nots." Put it where your tool reads project instructions.</li>
+            <li><strong>Run a medium task and deliberately log every plan commitment</strong><br/>Note each point where the writer chose a path. Afterwards, mark which choices were the first idea vs. a considered one. This is the baseline the advisor will be measured against.</li>
+            <li><strong>Reproduce one of your Module 1 failure stories with the charter in place</strong><br/>Check whether the charter alone — without any advisor — changes the outcome. It usually doesn't. That negative result is the honest justification for the advisor.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why does single authorship survive even though exploration parallelizes well?</li>
+            <li>What evidence must the writer keep in-session for the advisor to do its job?</li>
+            <li>How would you recognize plan fixation in a transcript you didn't write?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">The Silent Advisor: Three Triggers, Nothing More</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>State the three triggers as implementable contracts: event, question, response format</li>
+            <li>Explain why silence is a design feature (alert fatigue, attention, cost)</li>
+            <li>Define the advisor's contract: read-only, evidence-cited, never writes code</li>
+            <li>Identify the official wiring points for each trigger in your tooling</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Trigger 1 — a plan is proposed: the right move, or just the first one?</h5>
+          <p>The event is any plan announcement: a written plan, a proposed architecture, a multi-step approach stated before execution. The advisor's question is narrow — is this the right move, or merely the first one the writer thought of? — and its response is a verdict, not a rewrite: the plan stands, the plan stands with a named risk, or the plan needs a named alternative explored first.</p>
+          <p>The official analogue is plan mode: a research agent gathers context while the main conversation stays read-only, and the plan is presented before execution. The pattern adds the skeptical reader on top of that: plan mode produces the plan, the advisor interrogates it. The interrogation is the value — an unchallenged plan is just a prediction with confidence.</p>
+          <h5>Trigger 2 — the same error returns twice: stuck search or dead end?</h5>
+          <p>The event is repetition: the same error, or the same class of error, surfacing twice on the same line of attack. The advisor's question is diagnostic — is the writer conducting a stuck search (more attempts might work, but the strategy needs changing) or has it hit a dead end (the approach cannot work and must be abandoned)? The response names which one and proposes the pivot: change strategy, escalate, or stop.</p>
+          <p>The research analogue is verbal reflection: Shinn et al.'s Reflexion framework has agents verbally reflect on failure signals and store the reflections to condition later attempts, reaching 91% pass@1 on HumanEval against an 80% baseline — the paper's core lesson being that replan-after-failure beats retry-after-failure. Trigger 2 is that lesson operationalized: the second identical failure is the signal that retrying is no longer a plan.</p>
+          <h5>Trigger 3 — a task is marked done: what was missed while moving fast?</h5>
+          <p>The event is any completion claim: "done," tests pass, the summary is written. The advisor's question is a sweep for the casualties of speed: unrun tests, unhandled edge cases, requirements the plan quietly dropped, diffs that grew beyond the task's scope. The response is a punch list of specific misses, each cited to evidence in the session — never a vague "looks good."</p>
+          <p>This is the review gate. Per the official hooks reference, a hook can be a subagent that executes automatically at lifecycle points — and the Stop event fires when the agent finishes responding, with the hook able to return a decision. That is the honest official wiring for trigger 3: an advisor hook at Stop that reads the session and keeps the turn open when its review fails. No official feature is named "advisor"; the configuration is yours to build from these primitives.</p>
+          <h5>Why silence: alert fatigue, attention, cost</h5>
+          <p>An advisor that comments on everything is an advisor that gets ignored — the writer learns to skim it, and the human learns to dismiss it, exactly as engineers learn to dismiss noisy linters. Silence is load-bearing: it preserves the advisor's attention budget for the three moments that matter, and it preserves the writer's trust that when the advisor speaks, something is actually wrong.</p>
+          <p>Silence is also cost control. Every advisor read of the whole session is expensive tokens; constant chatter multiplies that by every turn. The triggers are a budget as much as a review policy: three paid reviews per task, not three hundred.</p>
+          <h5>The advisor's contract</h5>
+          <p>The advisor is read-only: it never writes code, never edits, never reroutes the plan itself. It speaks only at triggers, cites session evidence for every claim, and issues verdicts in a fixed format (verdict, evidence, consequence). It has no tools beyond reading — which is enforceable in the official configuration by restricting the subagent's tool set.</p>
+          <p>The contract's sharp edge is this: the advisor may be wrong. A hallucinated objection at trigger 1 costs a plan restart; a missed objection at trigger 3 costs a shipped bug. The lab measures both directions — interventions and false positives — because a review gate you cannot measure is a superstition.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write the advisor system prompt</strong><br/>Role, the three triggers as contracts, the response format, the read-only rule, the citation requirement. Keep it under a page — this prompt is the pattern's constitution.</li>
+            <li><strong>Implement trigger 2 as a failure counter on your scratch repo</strong><br/>Count repeated failures on one line of attack (a PostToolUseFailure hook counter is the official-shaped option; a manual checklist works where hooks don't). Define "same error" precisely before you start — fuzzy triggers are where advisors become nags.</li>
+            <li><strong>Replay a past "done" transcript through your trigger-3 checklist</strong><br/>Read an old session where the agent declared completion and list what a sweep would have caught. This calibrates your trigger-3 bar before it costs real tokens.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>For each trigger, what is the event, the question, and the response format?</li>
+            <li>Why does an always-talking advisor become less effective than a silent one?</li>
+            <li>What official primitive lets a hook read the session at completion time and keep the turn open?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">The Specialist Crew: Explorer, Worker, Researcher</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define the three crew roles and the bounded jobs each one owns</li>
+            <li>Explain context isolation as the crew's real benefit</li>
+            <li>Use the official built-in agents (Explore, Plan) and per-agent model selection to ground the design</li>
+            <li>Recognize over-delegation: when the crew costs more than it saves</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Explorer, worker, researcher — bounded jobs at medium effort</h5>
+          <p>The crew is the pattern's middle layer: specialist subagents that do bounded, well-specified work and return. The <strong>explorer</strong> reads and maps codebases without changing anything. The <strong>worker</strong> makes bounded edits — a function, a test file, a migration — with clear acceptance criteria. The <strong>researcher</strong> gathers documentation: API references, error-message archaeology, library behavior notes. Each runs at what the pattern calls "medium effort": enough to do the job properly, never an open-ended mandate to redesign the world.</p>
+          <p>"Medium effort" is practitioner language for bounded delegation. The official subagent configuration surface includes an <code>effort</code> field among its options, which gives the phrase a real configuration hook to investigate in your tooling — but the deeper point is the contract: every crew task has a defined question, a defined output, and a defined stop.</p>
+          <h5>The official anchors: Explore, Plan, and general-purpose</h5>
+          <p>Claude Code ships built-in agents that prefigure the crew. <strong>Explore</strong> is a fast, read-only agent for searching and analyzing codebases — Write and Edit denied — invoked at quick, medium, or very thorough levels. <strong>Plan</strong> is a read-only research agent used during plan mode so exploration output stays in a separate context while the main conversation stays read-only. The <strong>general-purpose</strong> agent handles complex multi-step work with the full tool set.</p>
+          <p>The pattern's crew maps onto these directly: explorer is Explore (or your own read-only variant), worker is a scoped general-purpose agent with a narrow brief, researcher is Plan's read-only research role generalized beyond plan mode. You are not inventing machinery — you are naming roles the machinery already supports.</p>
+          <h5>Context isolation is the real benefit</h5>
+          <p>The official docs frame subagents as context management: a side task that would flood the main conversation with search results, logs, or file contents runs in its own context window and returns only the summary. This is the crew's economic argument, and it is not about tokens alone — it is about the writer's attention. A main session buried under ten thousand lines of grep output cannot hold its plan in view.</p>
+          <p>The discipline this demands: the summary a crew agent returns must be an answer, not a data dump. "Here are the 400 lines I read" defeats the purpose; "the auth flow lives in these three files and the bug is a missing null check at line 142" is the purpose. Write the expected output format into each crew agent's definition.</p>
+          <h5>Pin the crew to cheaper models</h5>
+          <p>Exploration and bounded edits rarely need the strongest model, and the docs say so explicitly: subagents exist partly to control costs by routing tasks to faster, cheaper models — and a user-defined Explore override can run exploration on a lower-cost model via its <code>model</code> field. The crew is where the pattern's economics compound: the advisor's expensive reads happen three times per task, but the crew's cheap reads happen dozens of times.</p>
+          <p>The failure mode is a crew of flagships: every delegation at top-tier prices, no router, no pins. Then the "pattern" is just a single expensive agent wearing a trench coat. Model selection is a line item in every crew agent's definition, not an afterthought.</p>
+          <h5>Over-delegation and description bloat</h5>
+          <p>Two ways the crew goes wrong. <strong>Over-delegation</strong>: spawning agents for work the writer could do in one tool call — the round-trip cost (spawning, briefing, summarizing) exceeds the work. <strong>Description bloat</strong>: the docs warn that subagent descriptions consume context, with a startup warning past a combined threshold — keep descriptions short and move detail into the agent's system prompt, which only loads when it runs.</p>
+          <p>The rule of thumb: delegate when the side work would pollute the writer's context or exceed a few tool calls; do it yourself when the delegation overhead exceeds the task. The triage router (Module 5) is the mechanism that makes this call.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Define one crew agent as a file in your tool's agents directory</strong><br/>Name, one-line description, restricted tool set, pinned cheap model, expected output format. For Claude Code this is a Markdown file with YAML frontmatter under <code>.claude/agents/</code>.</li>
+            <li><strong>Run a read-only exploration at medium thoroughness on your scratch repo</strong><br/>Ask the explorer to map one subsystem and return a summary. Compare the main session's context before and after versus doing the exploration inline.</li>
+            <li><strong>Audit one past session for over-delegation candidates</strong><br/>Find three tool calls that should have been inline and three that should have been delegated. Write the rule you would give the router.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>What distinguishes the explorer's job from the worker's, and both from the researcher's?</li>
+            <li>Why is the returned summary — not the raw findings — the crew's real product?</li>
+            <li>What two costs does pinning crew agents to cheaper models control?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">The Cheap Triage Router: Trivial Forks, Hard Splits</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain cascade logic in your own words: cheap first, escalate on low confidence</li>
+            <li>Classify fork decisions as trivial (router) or hard (writer/advisor)</li>
+            <li>Describe the scorer problem: why a cheap judge must be calibrated</li>
+            <li>Sketch a router policy for your own sessions: rules, escalation criteria, logging</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Cascade logic: the cheapest adequate judge first</h5>
+          <p>A coding session is full of tiny fork decisions: which file to open first, which tool fits this lookup, whether to retry a flaky command or investigate it, whether this error is worth a second attempt. None of them needs the flagship model; each one the flagship answers is budget burned for nothing. The router's job is to answer the trivial ones cheaply and escalate only the genuinely hard splits — the decisions where the choice of branch changes the outcome.</p>
+          <p>This is cascade logic, and the research name for it is the LLM cascade. Chen, Zaharia, and Zou's FrugalGPT (2023) formalized it: start with a cheap model, have a lightweight scorer judge the reliability of its answer, and escalate to a stronger model only when the score falls below a threshold. Their experiments reported matching the best single model's performance with up to 98% cost reduction — or 4% better accuracy at equal cost. Those are the paper's findings on its benchmarks, not a promise about your codebase, but the shape of the result is the point: most queries are easy, and easy queries should be cheap.</p>
+          <h5>Trivial forks vs hard splits: the classification</h5>
+          <p>A trivial fork is a decision that is cheap to get wrong and cheap to detect: pick the wrong file, open it, see it's wrong, open the right one. A hard split is a decision where the wrong branch is expensive: choosing the architecture, deciding a bug is in your code vs. the library, abandoning a line of attack. The router owns the first class; the writer and advisor own the second.</p>
+          <p>The classification is the whole game, and it is the router's hardest job — because misclassifying a hard split as trivial is how cheap judgment does real damage. The router's policy must be conservative: when in doubt, escalate. A router that escalates too often is merely expensive; a router that escalates too rarely is dangerous.</p>
+          <h5>The scorer problem: confidence must be calibrated</h5>
+          <p>FrugalGPT's cascade works because its scorer is trained to predict answer reliability — the escalation decision rests on a measured score, not the cheap model's self-assurance. Language models are notoriously overconfident about their own answers, and a router that trusts a cheap model's "I'm sure" is a router that never escalates.</p>
+          <p>In practice, this means your triage policy needs external signals, not vibes: did the lookup return a file that exists, did the retried command change the error, does the proposed next step match the plan? The router's escalation criteria should be checkable facts. "The cheap model feels good about it" is not an escalation criterion; it is a hope.</p>
+          <h5>Router policy: rules, escalation criteria, logging</h5>
+          <p>A working router policy fits on an index card: which decision classes it owns (file choice, tool choice, retry-vs-investigate for known-flaky commands), the escalation triggers (second failure, any decision touching architecture or data, anything the policy doesn't classify), and a log of every routing decision with its outcome. The log is what lets you tune: which trivial classes are truly trivial, where the router hesitates, where it was wrong.</p>
+          <p>Note the honest limit: the original community post describes this router as a named role ("Jev" in the poster's framing — a label from the post, not a verified product), and the official tooling offers no turnkey "triage router." You build it from a cheap model, a written policy, and the discipline to log. The FrugalGPT paper gives you the theory; the implementation is yours.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Classify 20 fork decisions from a past session</strong><br/>Label each trivial or hard, and mark which ones the flagship model answered. This is your baseline waste measurement.</li>
+            <li><strong>Write the index-card router policy</strong><br/>Decision classes owned, escalation triggers, logging format. Keep it to one card — a policy nobody can remember is a policy nobody follows.</li>
+            <li><strong>Simulate the router on your next scratch-repo task</strong><br/>For each fork, write down the router's decision before the writer acts. Afterwards, score: correct routes, wrong routes, missed escalations. Tune the policy from the log, not from memory.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>Why is "when in doubt, escalate" the correct default for a triage router?</li>
+            <li>What makes a cheap model's self-reported confidence an unreliable escalation signal?</li>
+            <li>Which two numbers from the FrugalGPT experiments describe the cascade's payoff, and what was the experimental scope?</li>
+          </ul>
+        </article>
+        <article class="il-module">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Lab: Implement the Pattern End to End</h3>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Define the advisor role as a real configuration in your tooling</li>
+            <li>Wire all three triggers with the best available mechanism (hooks where supported, discipline where not)</li>
+            <li>Run a sample task on a scratch repo with the full pattern active</li>
+            <li>Measure what the advisor catches — and what it gets wrong</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Step 1 — define the advisor role</h5>
+          <p>Write the advisor as a real artifact, not an intention. For Claude Code: a subagent file with a read-only tool set, a pinned strong model, and the system prompt from Module 3 — the three triggers as contracts, the fixed verdict format, the citation requirement, the silence rule. For other tools: whatever your tooling offers for a review-only agent with full session read access. The artifact must be loadable, not aspirational.</p>
+          <p>Test the definition in isolation before the lab: feed it a past transcript and one synthetic trigger, and check that its output follows the verdict format. An advisor whose output you have to parse by hand is not a gate; it is a suggestion box.</p>
+          <h5>Step 2 — wire the three triggers</h5>
+          <p>Trigger 1 (plan proposed): the best-supported option is plan mode plus an explicit advisor invocation before execution begins — present the plan, run the advisor, record the verdict. Trigger 2 (same error twice): a failure counter — a PostToolUseFailure hook where hooks exist, a manual tally where they don't — with your precise definition of "same error" from Module 3. Trigger 3 (task marked done): a Stop hook that runs the advisor subagent over the session and returns a decision keeping the turn open when the review fails, per the official hooks reference; where hooks are unavailable, a hard rule that no task is marked done without an explicit advisor pass.</p>
+          <p>Document which triggers are enforced by machinery and which by discipline. Machinery is better — discipline degrades under deadline pressure, which is exactly when you need the advisor most. The gap between the two is your honest assessment of the implementation, not a failure.</p>
+          <h5>Step 3 — run a sample task</h5>
+          <p>Choose a task with a real plan, real failure potential, and a real definition of done: a small feature with tests on your scratch repo is ideal. Run it with the full pattern active — writer, advisor at the triggers, crew for exploration and bounded edits, router policy simulated for fork decisions. Keep the writer's charter visible and the trigger definitions in front of you.</p>
+          <p>Resist the urge to make the task easy so the pattern looks good. The lab measures the pattern against your Module 1 failure stories — run something shaped like the tasks that actually hurt you.</p>
+          <h5>Step 4 — measure what the advisor catches</h5>
+          <p>Keep an intervention log with one row per trigger firing: the trigger, the advisor's verdict, the evidence cited, what the writer did with it, and the outcome. Then score it honestly: true catches (the verdict prevented a real mistake), false positives (the verdict cost work for nothing), misses (a mistake the advisor should have caught at a trigger and didn't).</p>
+          <p>Three numbers come out of the lab: the catch rate, the false-positive rate, and the token cost of the advisor's reads versus the writer's. Those numbers are the pattern's report card for your setup — more informative than any community post, because they are yours. Tune one thing from the log (a trigger definition, the verdict format, an escalation threshold) and run again.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build the advisor artifact and test it on a past transcript</strong><br/>One trigger, one verdict, in format. Fix the format before the full run.</li>
+            <li><strong>Wire all three triggers and document machinery vs discipline</strong><br/>A table: trigger, mechanism, enforced-by. Gaps are findings, not shame.</li>
+            <li><strong>Run the sample task and keep the intervention log</strong><br/>Score catches, false positives, and misses. Tune one thing and run again.</li>
+            <li><strong>Write the one-page pattern assessment for your setup</strong><br/>Where it paid off, where it was overkill, what you would change. This page is the deliverable of the whole sequence.</li>
+          </ol>
+          <h4>Self-check</h4>
+          <ul>
+            <li>For each trigger, is yours enforced by machinery or by discipline — and what is the failure mode of each?</li>
+            <li>What three numbers does the intervention log produce, and what decision does each inform?</li>
+            <li>Why must the sample task resemble your real failure stories rather than an easy demo?</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Failure modes and honest limits -->
+  <section class="il-section" id="limits" aria-labelledby="limits-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Failure modes</p>
+        <h2 class="il-h il-h--section" id="limits-h">What the pattern fixes — and what it doesn't.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Failure modes the pattern addresses</h3>
+        <ul>
+          <li><strong>Plan fixation.</strong> The writer commits to the first workable plan and defends it against mounting evidence. Trigger 1 puts a skeptical reader on the plan before execution, when changing course is still cheap.</li>
+          <li><strong>Error-loop thrash.</strong> The same error returns, and the writer retries the same line of attack, burning context and tokens. Trigger 2 converts the second identical failure into a forced replan instead of a third attempt.</li>
+          <li><strong>Premature "done."</strong> Speed rewards declaration; testing, edge cases, and dropped requirements are the casualties. Trigger 3 is a completion gate with a cited punch list, not a feeling of finishedness.</li>
+          <li><strong>Reviewer blindness.</strong> The writer cannot see its own mistakes because it shares the plan's assumptions. The advisor's separate context breaks the symmetry — the same mechanism the multi-agent debate literature finds improves reasoning and factuality over single-pass generation.</li>
+          <li><strong>Trivial-decision cost thrash.</strong> Flagship tokens spent on which-file and retry-or-give-up decisions. The router and the pinned cheap crew keep expensive judgment for expensive decisions.</li>
+        </ul>
+        <h3>Honest limits</h3>
+        <ul>
+          <li><strong>Advisor latency.</strong> Every trigger fires a full-session read by a strong model. On long sessions that read is slow and expensive — the very cost the router is trying to control. Silence is the mitigation, and it is partial.</li>
+          <li><strong>Over-review.</strong> A trigger-happy advisor becomes the bottleneck: plans challenged on trivia, completions gated on style. Fuzzy trigger definitions ("review the plan" without the contract) are how advisors turn into nags. The intervention log from Module 6 is the tuning instrument.</li>
+          <li><strong>False positives and hallucinated objections.</strong> The advisor can be wrong — inventing problems, misreading evidence, demanding rework that changes nothing. A review gate you cannot measure is a superstition; measure both directions.</li>
+          <li><strong>Capability-gating.</strong> A weak advisor's critiques are noise. The reflection literature is explicit that the technique needs a model capable of useful self-critique; the same holds for other-critique. Pinning the advisor to a cheap model to save money defeats the purpose.</li>
+          <li><strong>When it is overkill.</strong> Single-file scripts, trivial refactors, tasks with no real plan and no failure surface — the pattern's overhead (four roles, three gates, an intervention log) exceeds its value. One model, well-prompted, is the right tool there. The pattern earns its keep on tasks where a wrong plan is expensive.</li>
+          <li><strong>It is a configuration, not a product.</strong> No official feature is named "advisor." The wiring is your assembly of documented primitives, and the triggers' exact design is practitioner judgment — the papers support the principles (separate verifier, reflect-after-failure, cascade cheap-first), not the three-trigger recipe.</li>
+          <li><strong>Tooling churn.</strong> Agentic coding tools evolve quickly; today's hook event or frontmatter field may be renamed tomorrow. Verify every wiring claim against the current official docs before building on it — the docs are authoritative, this guide is not.</li>
+          <li><strong>The seed is community lore.</strong> The pattern reached this guide through a widely shared community post whose model names are the poster's own framing — they are not verified products and are not repeated here as such. Treat the post as a design sketch from the field, and this guide as the attempt to ground it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+        <p>Free and open sources preferred throughout. The official documentation below is the authority on what the tooling primitives can do — this page is the study guide.</p>
+      </div>
+      <div class="il-prose">
+        <h3>Official documentation (authoritative for the primitives)</h3>
+        <ul>
+          <li><a href="https://code.claude.com/docs/en/sub-agents">Claude Code — Create custom subagents</a> — subagent files and frontmatter, built-in Explore/Plan/general-purpose agents, per-agent model selection, context isolation</li>
+          <li><a href="https://code.claude.com/docs/en/hooks">Claude Code — Hooks reference</a> — lifecycle events including Stop and SubagentStop; hooks may be shell commands, HTTP endpoints, MCP calls, LLM prompts, or subagents</li>
+        </ul>
+        <h3>Research literature (principles, not recipes)</h3>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2303.11366">Shinn et al. — Reflexion: Language Agents with Verbal Reinforcement Learning (NeurIPS 2023)</a> — verbal reflection on failure signals stored in episodic memory; replan-after-failure beats retry-after-failure</li>
+          <li><a href="https://arxiv.org/abs/2305.05176">Chen, Zaharia, Zou — FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance (2023)</a> — the LLM cascade: cheap model first, scored reliability, escalate on low confidence</li>
+          <li><a href="https://arxiv.org/abs/2305.14325">Du et al. — Improving Factuality and Reasoning in Language Models through Multiagent Debate (ICML 2024)</a> — independent instances propose, debate, and converge; separation of verifier from generator</li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://code.claude.com/docs/en/sub-agents">Subagent configuration options</a> — the full frontmatter surface (tools, model, effort, hooks, memory, isolation) for grounding the crew and advisor definitions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide describing a community pattern.</h2>
+      </div>
+      <div class="il-prose">
+        <p>This page is an original study guide written by Interstitium Labs. It describes a community-reported configuration pattern for agentic coding — a main writer, a silent advisor with three trigger points, specialist subagents, and a cheap triage router — grounded in the official tool documentation and the research literature linked above. It is not an official product feature unless the linked documentation verifies it as one; the model names in the originating community post are the poster's own framing and are not presented here as verified products. We are not affiliated with any vendor named or implied, not a certification body, and this guide confers no certification. Where the official documentation changes, the documentation is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+</footer>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
