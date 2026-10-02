@@ -64,7 +64,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <main id="main" class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-il-curriculum-surface="learn">
   <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">3D-first · WebGL · Blender · Unreal</p>
   <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Curriculum immersive stages.</h1>
-  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender Blender CLI polish landed 2026-10-01 via <code class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline</a> · <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="text-cyan" href="/coach/">Noah</a>.</p>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender CLI polish landed 2026-10-01 / 2026-10-02 via <code class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline</a> · <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="text-cyan" href="/coach/">Noah</a>.</p>
 
   <div class="mt-10 grid gap-6 lg:grid-cols-2">
     <div>
@@ -125,6 +125,30 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/service-mesh-sidecar.glb","webgpu":true,"frontier":"mesh"}'></div>
   </section>
 
+  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6">
+    <h2 class="font-display text-xl text-cyan">CKA storage CSI / PV (3D exceed)</h2>
+    <p class="mt-2 text-sm text-muted">Competitors mostly show flat PV/PVC tables. Authored <code class="text-cyan">storage-csi-pv.glb</code> — StorageClass → CSI driver → PV → PVC → Pod volumeMount + backend disks. Blender CLI polished 2026-10-02. Not a hosted storage fleet.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Storage CSI PV" data-il-scene="k8s"
+      data-gltf="/assets/immersive/storage-csi-pv.glb"
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/storage-csi-pv.glb","webgpu":true,"frontier":"cka-storage"}'></div>
+  </section>
+
+  <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6">
+    <h2 class="font-display text-xl text-gold">CKA Ingress / Gateway path (3D exceed)</h2>
+    <p class="mt-2 text-sm text-muted">Spatial <code class="text-cyan">ingress-gateway.glb</code> — Client → Ingress/Gateway (TLS + host/path rules) → Service → Endpoints/Pods. Blender CLI polished 2026-10-02. Flat Ingress YAML diagrams stay on peers.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Ingress gateway" data-il-scene="k8s"
+      data-gltf="/assets/immersive/ingress-gateway.glb"
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-ingress"}'></div>
+  </section>
+
+  <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6">
+    <h2 class="font-display text-xl">CKA HPA autoscaling (3D exceed)</h2>
+    <p class="mt-2 text-sm text-muted"><code class="text-cyan">hpa-autoscaling.glb</code> — metrics-server → HorizontalPodAutoscaler → Deployment/ReplicaSet replica stretch (current vs desired). Blender CLI polished 2026-10-02.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="HPA autoscaling" data-il-scene="k8s"
+      data-gltf="/assets/immersive/hpa-autoscaling.glb"
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/hpa-autoscaling.glb","webgpu":true,"frontier":"cka-hpa"}'></div>
+  </section>
+
   <section class="mt-12 rounded-xl border border-paper/10 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Unreal Pixel Streaming</h2>
     <p class="mt-2 text-sm text-muted">Honest client path — <a class="text-cyan" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. No signaling URL configured here → stub only. Set <code class="text-cyan">data-ps-signaling</code> or <code class="text-cyan">?signaling=</code> when UE5 streamer is up on a lab GPU host. Do not widen live CSP until that host exists.</p>
@@ -133,7 +157,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-cyan/20 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Noah / Lab Muse 3D (authored glTF)</h2>
-    <p class="mt-2 text-sm text-muted">Voice-reactive Dee/Monas — loads <code class="text-cyan">muse-dee-monas.glb</code> when present (amp → glow/breathe); procedural WebGL fallback. Exceeds flat Meta Muse–class chrome; local/OSS — no fake cloud. Full coach on <a class="text-cyan" href="/coach/">/coach/</a>.</p>
+    <p class="mt-2 text-sm text-muted">Voice-reactive Dee/Monas — loads <code class="text-cyan">muse-dee-monas.glb</code> when present (v1.5 amp → per-node emissive/scale/LOD); procedural WebGL fallback. Exceeds flat Meta Muse–class chrome; local/OSS — no fake cloud. Full coach on <a class="text-cyan" href="/coach/">/coach/</a>.</p>
     <div class="il-muse-3d-slot mt-4 min-h-[14rem]" data-muse-3d-slot data-imm-muse></div>
   </section>
 </main>

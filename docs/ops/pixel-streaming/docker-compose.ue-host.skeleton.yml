@@ -1,0 +1,47 @@
+# Interstitium Labs — UE Pixel Streaming HOST skeleton (FAIL CLOSED)
+# HONEST: this does NOT include Unreal Engine or stream video.
+# Copy to a GPU host that already has a UE5 Pixel Streaming binary, set
+# IL_UE_PIXEL_STREAMING_BIN to that binary path, then `docker compose up`.
+# Without the env var / binary, the entrypoint exits 1 — never fakes media.
+#
+#   export IL_UE_PIXEL_STREAMING_BIN=/path/to/real/UE/PixelStreaming.sh
+#   docker compose -f docker-compose.ue-host.skeleton.yml up
+#
+# Prefer bare-metal UE PIE on P920 when Docker GPU passthrough is unavailable.
+# Browser client: /immersive/pixel-stream/?signaling=ws://HOST:8888
+
+services:
+  il-ue-pixel-streaming-host:
+    image: ubuntu:24.04
+    # GPU reservation is host-specific; uncomment when nvidia-container-toolkit is real:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+    environment:
+      IL_UE_PIXEL_STREAMING_BIN: "${IL_UE_PIXEL_STREAMING_BIN:-}"
+      IL_PS_SIGNALING_PORT: "${IL_PS_SIGNALING_PORT:-8888}"
+    ports:
+      - "${IL_PS_SIGNALING_PORT:-8888}:8888"
+    volumes:
+      # Mount the host directory that contains the REAL UE binary (read-only).
+      - "${IL_UE_HOST_DIR:-/opt/il-ue}:/opt/il-ue:ro"
+    entrypoint:
+      - bash
+      - -lc
+      - |
+        set -euo pipefail
+        echo "[il-ue-ps] Interstitium Pixel Streaming host skeleton — fail closed"
+        if [[ -z "${IL_UE_PIXEL_STREAMING_BIN}" ]]; then
+          echo "[il-ue-ps] ERROR: IL_UE_PIXEL_STREAMING_BIN unset. Refusing to fake UE media." >&2
+          exit 1
+        fi
+        if [[ ! -x "${IL_UE_PIXEL_STREAMING_BIN}" ]]; then
+          echo "[il-ue-ps] ERROR: binary not executable: ${IL_UE_PIXEL_STREAMING_BIN}" >&2
+          exit 1
+        fi
+        echo "[il-ue-ps] launching real UE Pixel Streaming binary…"
+        exec "${IL_UE_PIXEL_STREAMING_BIN}"
+    labels:
+      interstitium.honest: "Requires real UE binary; exits 1 otherwise — never fakes video"

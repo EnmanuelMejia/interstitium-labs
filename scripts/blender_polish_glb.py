@@ -100,6 +100,13 @@ DEFAULT_TARGETS = (
     "cni-pod-network.glb",
     "rbac-authz-graph.glb",
     "service-mesh-sidecar.glb",
+    "storage-csi-pv.glb",
+    "ingress-gateway.glb",
+    "hpa-autoscaling.glb",
+    "rack-19u.glb",
+    "hermetic-monas.glb",
+    "sim-superlab.glb",
+    "k8s-cluster.glb",
 )
 
 

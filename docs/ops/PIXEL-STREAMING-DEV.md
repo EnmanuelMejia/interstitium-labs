@@ -76,3 +76,33 @@ python3 scripts/pixel-streaming/dev-signaling-echo.py --port 8888
 # open /immersive/pixel-stream/?signaling=ws://127.0.0.1:8888
 # Expect: Dev echo reachable — NOT UE media
 ```
+
+
+## P920 UE host checklist (2026-10-02) — fail closed without a real UE binary
+
+Honest gate: **none of these steps invent live Pixel Streaming media.** The browser client stays a stub until a real Unreal Engine 5 streamer answers signaling with an SDP offer + media track.
+
+| # | Check | Pass criteria | Fail behavior |
+|---|-------|---------------|---------------|
+| 1 | GPU host online | P920 / lab GPU box reachable; NVIDIA driver OK | Stop — do not widen CSP |
+| 2 | UE5 project present | Local `.uproject` with **Pixel Streaming** plugin enabled | Stop — kit glTF path remains the open-web 3D lane |
+| 3 | Signaling server | Epic/UE PS signaling listening (often `ws://127.0.0.1:8888`) | Client: Signaling error / reconnect backoff |
+| 4 | Dev echo only? | If using `scripts/pixel-streaming/dev-signaling-echo.py` or `docs/ops/pixel-streaming/docker-compose.yml` | Status may say signaling open — **no video**; labeled NOT UE media |
+| 5 | Real streamer | UE PIE/packaged streamer connected to same signaling | Client status → *Live Pixel Streaming track* |
+| 6 | Client URL | `/immersive/pixel-stream/?signaling=ws://HOST:PORT` | Without `?signaling=` → honest empty scaffold |
+| 7 | CSP | Localhost `ws`/`wss` only until public host exists | Do not widen live CSP preemptively |
+| 8 | Fleet claim | Hosted lab fleet still **absent** | Never claim KodeKloud-class fleets |
+
+### Fail-closed docker skeleton (optional)
+
+See `docs/ops/pixel-streaming/docker-compose.ue-host.skeleton.yml`. It **exits non-zero** unless `IL_UE_PIXEL_STREAMING_BIN` points at a real UE Pixel Streaming binary on the host. It never ships a fake video loop.
+
+### Bring-up order (honest)
+
+1. Prove WS reachability with the **dev echo** (not media).
+2. Attach a **real UE5** streamer on the GPU host.
+3. Only then treat status *Live Pixel Streaming track* as truth.
+4. Hosted multi-user fleet remains a separate product milestone — out of scope until provisioned.
+
+_Last checklist pass: 2026-10-02 (America/New_York). Musk verdict still requires live UE + hosted fleet for YES._
+

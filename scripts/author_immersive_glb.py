@@ -797,6 +797,242 @@ def scene_service_mesh_sidecar() -> list:
     return parts
 
 
+def scene_storage_csi_pv() -> list:
+    """Storage pedagogy — StorageClass → PV → PVC → Pod mount + CSI driver (CKA storage)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "storage-csi-pv", "cert": "CKA", "domain": "storage"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.2, 0.08, 3.4)
+    parts.append((floor, MAT_VOID, "storage-floor", {**ped, "label": "storage-plane"}))
+    # Backend disks (void/ink boxes left-back)
+    for i, x in enumerate((-1.8, -0.9, 0.0)):
+        disk = MeshBuilder()
+        disk.add_chamfer_box(x, 0.15, -1.2, 0.7, 0.45, 0.35, 0.025)
+        parts.append((disk, MAT_INK, f"backend-disk-{i}", {**ped, "label": f"volume-backend-{i}", "cka": "volume"}))
+        platter = MeshBuilder()
+        platter.add_cylinder(x, 0.42, -1.2, 0.22, 0.06, 16)
+        parts.append((platter, MAT_GOLD, f"platter-{i}", {**ped, "label": "block-device"}))
+    # StorageClass (gold cylinder elevated)
+    sc = MeshBuilder()
+    sc.add_cylinder(-0.9, 1.15, -0.35, 0.32, 0.4, 20)
+    parts.append((sc, MAT_GOLD, "storage-class", {**ped, "label": "StorageClass", "kind": "StorageClass"}))
+    sc_halo = MeshBuilder()
+    sc_halo.add_cylinder(-0.9, 0.9, -0.35, 0.48, 0.04, 20)
+    parts.append((sc_halo, MAT_CYAN, "sc-provisioner", {**ped, "label": "provisioner", "plugin": "csi"}))
+    # CSI driver node (cyan chamfer)
+    csi = MeshBuilder()
+    csi.add_chamfer_box(0.9, 0.55, -0.35, 0.85, 0.55, 0.55, 0.03)
+    parts.append((csi, MAT_CYAN, "csi-driver", {**ped, "label": "CSI driver", "cka": "csi"}))
+    csi_led = MeshBuilder()
+    csi_led.add_sphere(0.9, 0.95, -0.35, 0.08, 8, 10)
+    parts.append((csi_led, MAT_LED, "csi-controller", {**ped, "label": "csi-controller"}))
+    # PersistentVolumes (middle row)
+    for i, x in enumerate((-1.4, -0.2, 1.0)):
+        pv = MeshBuilder()
+        pv.add_chamfer_box(x, 0.35, 0.45, 0.7, 0.4, 0.4, 0.025)
+        parts.append((pv, MAT_PAPER if i == 0 else MAT_INK, f"pv-{i}", {
+            **ped, "label": f"PersistentVolume-{i}", "kind": "PersistentVolume", "phase": "Bound" if i < 2 else "Available"
+        }))
+    # PVCs (front-middle cyan)
+    for i, x in enumerate((-0.85, 0.55)):
+        pvc = MeshBuilder()
+        pvc.add_chamfer_box(x, 0.45, 1.15, 0.55, 0.32, 0.35, 0.02)
+        parts.append((pvc, MAT_CYAN, f"pvc-{i}", {**ped, "label": f"PersistentVolumeClaim-{i}", "kind": "PersistentVolumeClaim"}))
+    # Pod with volume mount (gold sphere + mount cylinder)
+    pod = MeshBuilder()
+    pod.add_sphere(1.7, 0.7, 1.15, 0.28, 12, 14)
+    parts.append((pod, MAT_GOLD, "consumer-pod", {**ped, "label": "Pod", "cka": "pod"}))
+    mount = MeshBuilder()
+    mount.add_cylinder(1.7, 0.28, 1.15, 0.08, 0.35, 10)
+    parts.append((mount, MAT_CYAN, "volume-mount", {**ped, "label": "volumeMount", "path": "/data"}))
+    # Node mount stub
+    node = MeshBuilder()
+    node.add_chamfer_box(1.7, 0.15, 0.35, 0.7, 0.35, 0.55, 0.02)
+    parts.append((node, MAT_INK, "worker-node", {**ped, "label": "Node volume attach"}))
+    # Edges: SC→CSI→PV→PVC→Pod and backend→PV
+    def link(a, b, name, mat_=MAT_CYAN):
+        x0, y0, z0 = a
+        x1, y1, z1 = b
+        mx, my, mz = (x0 + x1) / 2, (y0 + y1) / 2 + 0.06, (z0 + z1) / 2
+        dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+        length = math.sqrt(dx * dx + dy * dy + dz * dz) or 1
+        edge = MeshBuilder()
+        edge.add_box(mx, my, mz, max(0.08, length * 0.85), 0.03, 0.03)
+        parts.append((edge, mat_, name, {**ped, "label": "storage-edge"}))
+
+    link((-0.9, 1.15, -0.35), (0.9, 0.55, -0.35), "edge-sc-csi", MAT_GOLD)
+    link((0.9, 0.55, -0.35), (-1.4, 0.35, 0.45), "edge-csi-pv0")
+    link((0.9, 0.55, -0.35), (-0.2, 0.35, 0.45), "edge-csi-pv1")
+    link((-1.4, 0.35, 0.45), (-0.85, 0.45, 1.15), "edge-pv0-pvc0")
+    link((-0.2, 0.35, 0.45), (0.55, 0.45, 1.15), "edge-pv1-pvc1", MAT_GOLD)
+    link((0.55, 0.45, 1.15), (1.7, 0.7, 1.15), "edge-pvc-pod", MAT_LED)
+    link((-1.8, 0.15, -1.2), (-1.4, 0.35, 0.45), "edge-disk-pv0", MAT_GOLD)
+    link((-0.9, 0.15, -1.2), (-0.2, 0.35, 0.45), "edge-disk-pv1", MAT_GOLD)
+    # data beads along PVC→Pod
+    for t in range(5):
+        u = t / 4
+        x = 0.55 + (1.7 - 0.55) * u
+        y = 0.45 + (0.7 - 0.45) * u + 0.12 * math.sin(u * math.pi)
+        z = 1.15
+        bead = MeshBuilder()
+        bead.add_sphere(x, y, z, 0.04, 6, 8)
+        parts.append((bead, MAT_CYAN, f"io-bead-{t}", {**ped, "label": "read/write path"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.15, 0, 4.4, 0.1, 2.6)
+    parts.append((lod, MAT_VOID, "lod1-storage-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_ingress_gateway() -> list:
+    """Ingress path — Client → Ingress/Gateway → Service → Endpoints/Pods (CKA networking)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "ingress-gateway", "cert": "CKA", "domain": "networking"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.0, 0.08, 3.2)
+    parts.append((floor, MAT_VOID, "ingress-floor", {**ped, "label": "north-south-plane"}))
+    # External clients (front gold spheres)
+    for i, x in enumerate((-1.2, 0.0, 1.2)):
+        client = MeshBuilder()
+        client.add_sphere(x, 0.35, 1.35, 0.16, 10, 12)
+        parts.append((client, MAT_GOLD, f"client-{i}", {**ped, "label": f"client-{i}", "proto": "HTTPS"}))
+    # Ingress / Gateway controller (wide cyan bar)
+    ing = MeshBuilder()
+    ing.add_chamfer_box(0, 0.55, 0.45, 2.8, 0.35, 0.45, 0.03)
+    parts.append((ing, MAT_CYAN, "ingress-controller", {**ped, "label": "Ingress / Gateway", "kind": "Ingress"}))
+    # TLS termination LED
+    tls = MeshBuilder()
+    tls.add_sphere(0, 0.9, 0.45, 0.1, 8, 10)
+    parts.append((tls, MAT_LED, "tls-terminate", {**ped, "label": "TLS terminate"}))
+    # Host/path rules as paper chips on ingress
+    for i, x in enumerate((-0.9, 0.0, 0.9)):
+        rule = MeshBuilder()
+        rule.add_box(x, 0.75, 0.45, 0.45, 0.08, 0.2)
+        parts.append((rule, MAT_PAPER, f"rule-{i}", {**ped, "label": f"host/path-{i}", "cka": "ingress-rule"}))
+    # Services (middle)
+    for i, x in enumerate((-1.1, 1.1)):
+        svc = MeshBuilder()
+        svc.add_cylinder(x, 0.45, -0.35, 0.28, 0.4, 16)
+        parts.append((svc, MAT_GOLD, f"service-{i}", {**ped, "label": f"Service-{i}", "kind": "Service", "type": "ClusterIP"}))
+    # Pods / endpoints (back)
+    pods = [(-1.6, -1.25), (-0.7, -1.25), (0.7, -1.25), (1.6, -1.25)]
+    for i, (x, z) in enumerate(pods):
+        pod = MeshBuilder()
+        pod.add_sphere(x, 0.4, z, 0.18, 10, 12)
+        parts.append((pod, MAT_CYAN if i % 2 == 0 else MAT_INK, f"endpoint-pod-{i}", {
+            **ped, "label": f"Pod-{i}", "kind": "Pod"
+        }))
+    # Traffic beads: clients → ingress → services → pods
+    for ci, cx in enumerate((-1.2, 0.0, 1.2)):
+        for t in range(4):
+            u = t / 3
+            x = cx + (0 - cx) * u * 0.3
+            y = 0.35 + 0.2 * u
+            z = 1.35 + (0.45 - 1.35) * u
+            bead = MeshBuilder()
+            bead.add_sphere(x, y, z, 0.04, 6, 8)
+            parts.append((bead, MAT_GOLD, f"req-{ci}-{t}", {**ped, "label": "HTTP request"}))
+    for si, sx in enumerate((-1.1, 1.1)):
+        for t in range(5):
+            u = t / 4
+            x = 0 + (sx - 0) * u
+            y = 0.55 + 0.15 * math.sin(u * math.pi)
+            z = 0.45 + (-0.35 - 0.45) * u
+            bead = MeshBuilder()
+            bead.add_sphere(x, y, z, 0.045, 6, 8)
+            parts.append((bead, MAT_CYAN, f"route-{si}-{t}", {**ped, "label": "ingress→service"}))
+    # service to pods
+    for pi, (px, pz) in enumerate(pods):
+        sx = -1.1 if px < 0 else 1.1
+        for t in range(3):
+            u = t / 2
+            x = sx + (px - sx) * u
+            y = 0.45 + 0.1 * math.sin(u * math.pi)
+            z = -0.35 + (pz - (-0.35)) * u
+            bead = MeshBuilder()
+            bead.add_sphere(x, y, z, 0.035, 6, 8)
+            parts.append((bead, MAT_LED, f"ep-{pi}-{t}", {**ped, "label": "endpoint"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.12, 0, 4.2, 0.1, 2.5)
+    parts.append((lod, MAT_VOID, "lod1-ingress-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_hpa_autoscaling() -> list:
+    """HPA pedagogy — Metrics → HPA controller → Deployment replicas stretch (CKA workloads)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "hpa-autoscaling", "cert": "CKA", "domain": "workloads"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.0, 0.08, 3.2)
+    parts.append((floor, MAT_VOID, "hpa-floor", {**ped, "label": "autoscaling-plane"}))
+    # Metrics server (left gold)
+    metrics = MeshBuilder()
+    metrics.add_chamfer_box(-1.9, 0.55, 0.0, 0.7, 0.7, 0.7, 0.03)
+    parts.append((metrics, MAT_GOLD, "metrics-server", {**ped, "label": "metrics-server", "cka": "metrics"}))
+    for i in range(3):
+        bar = MeshBuilder()
+        h = 0.25 + i * 0.15
+        bar.add_box(-1.9 - 0.15 + i * 0.15, 0.15 + h / 2, 0.4, 0.1, h, 0.08)
+        parts.append((bar, MAT_CYAN, f"cpu-bar-{i}", {**ped, "label": "resource metric", "metric": "cpu|memory"}))
+    # HPA controller (center cyan cylinder)
+    hpa = MeshBuilder()
+    hpa.add_cylinder(0, 0.7, 0.0, 0.38, 0.55, 22)
+    parts.append((hpa, MAT_CYAN, "hpa-controller", {**ped, "label": "HorizontalPodAutoscaler", "kind": "HorizontalPodAutoscaler"}))
+    halo = MeshBuilder()
+    halo.add_cylinder(0, 0.4, 0.0, 0.55, 0.05, 22)
+    parts.append((halo, MAT_GOLD, "hpa-halo", {**ped, "label": "scale loop"}))
+    # Deployment / ReplicaSet spine
+    deploy = MeshBuilder()
+    deploy.add_chamfer_box(1.5, 0.85, -0.9, 1.6, 0.28, 0.4, 0.02)
+    parts.append((deploy, MAT_PAPER, "deployment", {**ped, "label": "Deployment", "kind": "Deployment"}))
+    rs = MeshBuilder()
+    rs.add_chamfer_box(1.5, 0.45, -0.9, 1.4, 0.2, 0.35, 0.02)
+    parts.append((rs, MAT_INK, "replicaset", {**ped, "label": "ReplicaSet", "kind": "ReplicaSet"}))
+    # Replicas stretching along +X (visual scale-out)
+    for i in range(5):
+        x = 0.7 + i * 0.4
+        z = 0.55
+        # taller / brighter as "desired" grows
+        scale = 0.7 + i * 0.12
+        pod = MeshBuilder()
+        pod.add_sphere(x, 0.35 * scale + 0.15, z, 0.14 * scale, 10, 12)
+        mat_ = MAT_CYAN if i < 3 else MAT_LED
+        parts.append((pod, mat_, f"replica-{i}", {
+            **ped, "label": f"replica-{i}", "desired": i >= 2, "cka": "pod"
+        }))
+        # stretch rail under replicas
+        rail = MeshBuilder()
+        rail.add_box(x, 0.02, z, 0.12, 0.04, 0.5)
+        parts.append((rail, MAT_GOLD if i >= 2 else MAT_VOID, f"scale-rail-{i}", {**ped, "label": "replica stretch"}))
+    # Metric → HPA → Deployment arcs
+    for t in range(6):
+        u = t / 5
+        x = -1.9 + (0 - (-1.9)) * u
+        y = 0.55 + 0.35 * math.sin(u * math.pi)
+        z = 0.0
+        bead = MeshBuilder()
+        bead.add_sphere(x, y, z, 0.045, 6, 8)
+        parts.append((bead, MAT_GOLD, f"metric-hop-{t}", {**ped, "label": "metrics scrape"}))
+    for t in range(6):
+        u = t / 5
+        x = 0 + (1.5 - 0) * u
+        y = 0.7 + 0.25 * math.sin(u * math.pi)
+        z = 0.0 + (-0.9 - 0.0) * u
+        bead = MeshBuilder()
+        bead.add_sphere(x, y, z, 0.045, 6, 8)
+        parts.append((bead, MAT_CYAN, f"scale-cmd-{t}", {**ped, "label": "scale decision"}))
+    # Desired vs current callouts
+    desired = MeshBuilder()
+    desired.add_chamfer_box(1.9, 1.35, 0.55, 0.55, 0.22, 0.3, 0.02)
+    parts.append((desired, MAT_GOLD, "desired-replicas", {**ped, "label": "desiredReplicas", "value": "5"}))
+    current = MeshBuilder()
+    current.add_chamfer_box(0.9, 1.35, 0.55, 0.55, 0.22, 0.3, 0.02)
+    parts.append((current, MAT_CYAN, "current-replicas", {**ped, "label": "currentReplicas", "value": "3"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.12, 0, 4.2, 0.1, 2.5)
+    parts.append((lod, MAT_VOID, "lod1-hpa-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
@@ -810,6 +1046,9 @@ SCENES = {
     "cni-pod-network.glb": scene_cni_pod_network,
     "rbac-authz-graph.glb": scene_rbac_authz_graph,
     "service-mesh-sidecar.glb": scene_service_mesh_sidecar,
+    "storage-csi-pv.glb": scene_storage_csi_pv,
+    "ingress-gateway.glb": scene_ingress_gateway,
+    "hpa-autoscaling.glb": scene_hpa_autoscaling,
 }
 
 
