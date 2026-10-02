@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-const files = ['noah-session.js', 'noah-ai.js', 'noah-workflows.js', 'noah-workspace.js', 'noah-neural.js', 'noah-jobs.js'];
+const files = ['noah-session.js', 'noah-ai.js', 'noah-workflows.js', 'noah-skills.js', 'noah-workspace.js', 'noah-neural.js', 'noah-jobs.js'];
 for (const file of files) {
   const run = spawnSync(process.execPath, ['--check', `docs/assets/${file}`], { encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);

@@ -2,6 +2,7 @@
   'use strict';
   var session = g.IL && g.IL.noahAI && g.IL.noahAI.session;
   var runner = g.NoahWorkflows;
+  var skills = g.NoahSkills;
   var $ = function (id) { return document.getElementById(id); };
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function announce(text) { $('announcement').textContent = text; }
@@ -37,7 +38,7 @@
   $('collapse-context').addEventListener('click', function () {
     var hidden = $('workspace').classList.toggle('no-context'); this.setAttribute('aria-expanded', String(!hidden)); this.textContent = hidden ? 'Show context panel' : 'Hide context panel';
   });
-  if (!session || !runner) { announce('The workspace could not load. Refresh the page; public learning pages remain available.'); $('send').disabled = true; return; }
+  if (!session || !runner || !skills) { announce('The workspace could not load. Refresh the page; public learning pages remain available.'); $('send').disabled = true; return; }
   function renderSession() {
     var state = session.snapshot(); var log = $('conversation');
     log.replaceChildren();
@@ -144,9 +145,48 @@
     event.preventDefault(); if (!this.reportValidity()) return;
     perform(function () { var topic = $('workflow-topic').value.trim(); runner.create({ title: topic, steps: [{ tool: 'catalog.search', input: { query: topic } }, { tool: 'artifact.study-plan', input: { query: topic } }] }); renderWorkflows(); announce('Workflow created. Run it when ready.'); });
   });
+  function renderSkills() {
+    var choice = $('skill-choice'), previous = choice.value, items = skills.list();
+    choice.replaceChildren();
+    items.forEach(function (skill) {
+      var option = node('option', skill.name + (skill.builtIn ? ' · built in' : ''), '');
+      option.value = skill.id;
+      choice.appendChild(option);
+    });
+    if (items.some(function (skill) { return skill.id === previous; })) choice.value = previous;
+    var list = $('skill-list'); list.replaceChildren();
+    var custom = items.filter(function (skill) { return !skill.builtIn; });
+    if (!custom.length) list.appendChild(node('li', 'No custom skills saved yet.', 'skills-note'));
+    custom.forEach(function (skill) {
+      var item = node('li', undefined, 'skill-item');
+      item.appendChild(node('span', skill.name + ' · ' + skills.modes[skill.mode].label));
+      item.appendChild(button('Remove skill', function () {
+        review('Remove this skill?', ['Remove “' + skill.name + '” from your device. Workflows already created from it are not deleted.'], function () {
+          skills.remove(skill.id); renderSkills(); announce('Saved skill removed.');
+        }, 'Remove skill');
+      }, 'quiet'));
+      list.appendChild(item);
+    });
+    if (!skills.persistent()) announce('Skills storage is unavailable. Built-in skills can still run, but custom skills cannot be saved.');
+  }
+  $('skill-save-form').addEventListener('submit', function (event) {
+    event.preventDefault(); if (!this.reportValidity()) return;
+    perform(function () {
+      skills.create({ name: $('skill-name').value, mode: $('skill-mode').value });
+      $('skill-save-form').reset(); renderSkills(); announce('Reusable skill saved on this device.');
+    });
+  });
+  $('skill-run-form').addEventListener('submit', function (event) {
+    event.preventDefault(); if (!this.reportValidity()) return;
+    perform(function () {
+      skills.launch($('skill-choice').value, $('skill-topic').value, runner);
+      renderWorkflows(); announce('Task created from your selected skill. Review and run it when ready.');
+    });
+  });
+  g.addEventListener('noah:skills', renderSkills);
   g.addEventListener('noah:workflow', renderWorkflows);
   Object.keys(runner.tools).forEach(function (key) { var info = runner.tools[key], row = node('div', undefined, 'tool-row'); row.appendChild(node('strong', info.label)); row.appendChild(node('span', info.scope + ' · ' + (info.ready ? info.permission : 'unavailable'))); $('tool-list').appendChild(row); });
   var labels = { idle: 'Ready', researching: 'Researching', teaching: 'Teaching', executing: 'Executing workflow', approval: 'Waiting for review', error: 'Needs attention', speaking: 'Speaking', listening: 'Listening' };
   g.addEventListener('noah:activity', function (event) { $('activity').textContent = labels[event.detail && event.detail.state] || 'Ready'; });
-  renderSession(); renderWorkflows();
+  renderSession(); renderWorkflows(); renderSkills();
 })(window);
