@@ -1,21 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head><script src="/assets/il-theme.js"></script>
-<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
-(function(){try{
-if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
-if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
-}catch(e){}})();</script>
-<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="robots" content="noindex,nofollow"/>
-<meta http-equiv="refresh" content="0;url=/labs/superlab/"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/labs/superlab/"/>
-<title>Portfolio moved into the Learning OS — Interstitium Labs</title>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
-<body>
-<h1>Portfolio moved into the Learning OS. Continue to <a href="/labs/superlab/">/labs/superlab/</a>.</h1>
-<script src="/assets/noah-ai.js" defer></script>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0f1d">
+<title>Engineering Portfolio | Enmanuel D. Mejia · Interstitium Labs</title>
+<meta name="description" content="Selected public engineering labs and original AI architecture research by Enmanuel D. Mejia.">
+<link rel="canonical" href="https://interstitiumlabs.dev/portfolio/"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="/assets/il-editorial.css"><link rel="stylesheet" href="/assets/il-editorial-theme.css"><link rel="stylesheet" href="/assets/il-theme.css">
+<style>
+.il-portfolio{max-width:75rem;margin:0 auto;padding:8rem clamp(1rem,4vw,3rem) 5rem}
+.il-portfolio__eyebrow{font:500 .7rem "JetBrains Mono",monospace;letter-spacing:.15em;color:var(--gold,#dbb556);text-transform:uppercase}
+.il-portfolio h1{font:600 clamp(2.1rem,5vw,4.4rem)/1.1 "Space Grotesk",sans-serif;letter-spacing:-.045em;margin:.8rem 0 1.1rem}
+.il-portfolio__lead{max-width:75ch;line-height:1.7;font-size:clamp(1rem,1.5vw,1.2rem);color:var(--ink-soft,#c0cad5)}
+.il-portfolio__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:2.4rem}
+.il-portfolio__card{display:flex;flex-direction:column;min-width:0;padding:clamp(1.2rem,2.5vw,2rem);background:#111a29;border:1px solid #465469;border-radius:.75rem}
+.il-portfolio__card:nth-child(1){border-top:3px solid #60d5d2}.il-portfolio__card:nth-child(2){border-top:3px solid #dbb556}
+.il-portfolio__card h2{font:600 clamp(1.4rem,2.5vw,2rem)/1.2 "Space Grotesk",sans-serif;letter-spacing:-.025em;margin:1rem 0}
+.il-portfolio__card p{line-height:1.65;color:#c0cad5}
+.il-portfolio__tag{font:500 .68rem "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.1em;color:#dbb556}
+.il-portfolio__actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:auto;padding-top:1.5rem}
+.il-portfolio__actions a{display:inline-flex;min-height:44px;align-items:center;padding:.5rem .85rem;color:#9aebef;border:1px solid #60758e;border-radius:.45rem;text-decoration:none}
+.il-portfolio__actions a:hover{border-color:#9aebef}
+.il-portfolio__note{margin-top:2.4rem;max-width:78ch;font-size:.85rem;line-height:1.7;color:var(--ink-soft,#bdc6ce)}
+@media(max-width:740px){.il-portfolio__grid{grid-template-columns:1fr}}@media(max-width:480px){.il-portfolio{padding-top:6.5rem}.il-portfolio__actions{display:grid}.il-portfolio__actions a{justify-content:center}}
+</style>
+<script src="/assets/il-theme.js" defer></script>
+</head><body>
+<a href="#main" class="il-skip">Skip to content</a>
+<nav class="il-pillnav" aria-label="Primary"><div class="il-pillnav__row">
+<a class="il-brand" href="/" aria-label="Interstitium Labs home"><img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"><span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span></a>
+<div class="il-pillnav__links"><a href="/learn/">Learn</a><a href="/paths/">Paths</a><a href="/noah/">Noah AI</a><a href="/portfolio/" aria-current="page">Portfolio</a><a href="/about/">About</a></div>
+<div style="display:flex;align-items:center;gap:.5rem"><details class="il-menu"><summary aria-label="Open menu">MENU</summary><div class="il-menu__sheet"><a href="/">Home</a><a href="/learn/">Learn</a><a href="/paths/">Paths</a><a href="/noah/">Noah AI</a><a href="/portfolio/" aria-current="page">Portfolio</a><a href="/about/">About</a></div></details><a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a></div>
+</div></nav>
+<main class="il-portfolio" id="main"><p class="il-portfolio__eyebrow">Enmanuel D. Mejia · Selected work</p><h1>Engineering, architecture, and evidence.</h1>
+<p class="il-portfolio__lead">Inspectable engineering labs and independently authored architecture research. Each project distinguishes completed work from proposed infrastructure and production claims.</p>
+<div class="il-portfolio__grid">
+<article class="il-portfolio__card"><span class="il-portfolio__tag">Architecture · September–October 2026</span><h2>Sovereign Hybrid AI for Manufacturing</h2>
+<p>A 37-page AI Implementation UltraPlan and 17-slide executive vision prepared for a SunDance USA candidate meeting. A data-residency-first hybrid architecture with a governed model gateway, four proposed agents, manufacturing integration research and phased rollout.</p>
+<p><strong>Scope:</strong> Completed research and presentation; proposal not deployed at SunDance.</p>
+<div class="il-portfolio__actions"><a href="/projects/sundance-ai-architecture/">Read case study →</a><a href="https://github.com/EnmanuelMejia/interstitium-labs/tree/main/case-studies/sundance-hybrid-ai" rel="noopener noreferrer">GitHub source ↗</a></div></article>
+<article class="il-portfolio__card"><span class="il-portfolio__tag">DevOps · Public laboratory</span><h2>DevOps SuperLab</h2>
+<p>A documented portfolio and interview demonstration for Kubernetes, kind, Kustomize, Argo CD, GitHub Actions, security policy gates, infrastructure automation and practical platform engineering.</p>
+<p><strong>Scope:</strong> Public learning and engineering lab, not claimed paid production tenure.</p>
+<div class="il-portfolio__actions"><a href="/labs/superlab/">Explore the lab →</a><a href="https://github.com/EnmanuelMejia/devops-superlab" rel="noopener noreferrer">GitHub source ↗</a></div></article>
+</div><p class="il-portfolio__note">Project descriptions identify the nature of each deliverable. No claimed client deployment, contracted engagement or measured outcome is inferred from a proposal or demonstration.</p></main>
+<script src="/assets/noah-ai.js" defer></script></body></html>
