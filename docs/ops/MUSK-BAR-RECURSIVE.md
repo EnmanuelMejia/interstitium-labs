@@ -1,7 +1,53 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-01 ~09:00 EDT (America/New_York)._  
+_Last updated: 2026-10-02 ~09:10 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-02 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? |
+| After this ship | **Closer / still NO** | Three new Blender-polished CKA pedagogy glTFs (storage CSI/PV, Ingress gateway, HPA) + kit polish promote (rack/hermetic/superlab) + Lab Muse 3D v1.5 amp→material/LOD + honest P920 UE host checklist. Still **no live UE host**, **no hosted lab fleet**. |
+| Fake YES risk | Rejected | Provenance honest: kit-v2 + Blender 4.2.3 CLI polish. PS UE skeleton fails closed without real binary. |
+
+## Scorecard (0–10) — 2026-10-02
+
+| Dimension | Prior (10-01) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 8.5 | **8.7** | Storage + Ingress + HPA spatial scenes on /immersive/ |
+| Motion / graphics | 8.4 | **8.5** | More Blender-CLI-polished surfaces; Muse v1.5 material amp |
+| Adaptive learning | 7 | 7 | Unchanged |
+| Live labs density | 6.0 | 6.0 | Still no hosted fleet (do not fake) |
+| Noah | 7.6 | **7.8** | Noah career workspace already on main; Muse amp exceed |
+| Model router | 5 | 5 | — |
+| Career prep | 7.5 | **8.0** | Noah jobs workspace landed via PR #12 (not this pass) |
+| Honesty / trust | 9.7 | **9.8** | UE host skeleton exits 1 without real binary |
+| Mobile / ultrawide | 6 | 6 | sync-mobile-web after ship |
+| Curriculum SoT | 8.0 | **8.3** | assets3d + mirror certs for storage/ingress/HPA |
+| Immersive / 3D gate | 8.2 | **8.5** | Three flat-diagram domains now spatial + polished |
+
+**Composite ~7.9/10. Musk YES? NO — Closer.** Remaining blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet**. Optional: hand-sculpted artist polish beyond CLI.
+
+## Shipped this pass (2026-10-02)
+
+1. **New pedagogical glTF** (kit-v2 → Blender CLI polish → promote): `storage-csi-pv.glb`, `ingress-gateway.glb`, `hpa-autoscaling.glb`
+2. **Promoted polish** on previously kit-only: `rack-19u.glb`, `hermetic-monas.glb`, `sim-superlab.glb` (`k8s-cluster.glb` already polished alias — skipped)
+3. **Wired** `/immersive/` sections + `curriculum-os/assets3d.json` + `mirror.json` certs
+4. **Lab Muse 3D v1.5.0** — per-node ampRole (core/accent/body/lod) → emissive boost, differential breathe, LOD hide when amp high
+5. **Pixel Streaming honesty** — P920 UE host checklist in `PIXEL-STREAMING-DEV.md` + fail-closed `docker-compose.ue-host.skeleton.yml`
+6. Built on main after Noah PR #12 merge (e4d5907) — no regression of Noah assets
+
+## Competitor delta (this pass)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Spatial **storage / Ingress / HPA** pedagogy peers keep as flat 2D; Muse amp→material/LOD |
+| A Cloud Guru / Skillsoft / LF training | Catalog breadth + some hosted sandboxes | IL 3D-first CKA graph scenes + honest UE bring-up path |
+| Killercoda | Instant browser terminals | IL spatial cert stage (no fake fleet) |
+| Meta Muse | Voice UX polish / product chrome | IL authored Dee/Monas glTF with amp→emissive/scale/LOD — local/OSS, no fake cloud |
+
+---
 
 ## Verdict — 2026-10-01 Musk-bar pass
 

@@ -1,7 +1,7 @@
 /**
  * IL Muse 3D — voice-reactive crystalline Monas / orrery stage (Interstitium original).
  * Self-contained WebGL (CSP-safe; no CDN). Optional authored glTF (/assets/immersive/muse-dee-monas.glb)
- * via ILSceneKit.parseGlb — voice amp drives emissive/scale on named nodes (exceed Meta Muse honesty:
+ * via ILSceneKit.parseGlb — voice amp drives per-node emissive/scale/LOD (v1.5 exceed Meta Muse honesty:
  * local/OSS, no fake cloud). Driven by Noah status: idle | listening | thinking | speaking.
  * NOT Meta Muse assets/code. NOT a photoreal scraped portrait.
  */
@@ -473,6 +473,12 @@
         mesh.name = m.name || ('muse-' + mi);
         mesh.color = (m.material && m.material.color) ? m.material.color : CYAN;
         mesh.emissive = (m.material && m.material.emissive) ? m.material.emissive : [0.05, 0.18, 0.15];
+        /* Amp role for voice-reactive material/LOD (v1.5 exceed Meta Muse flat chrome) */
+        var nm = String(mesh.name).toLowerCase();
+        if (/core|crystal|heart|orb/.test(nm)) mesh.ampRole = 'core';
+        else if (/gold|dee|ring|halo|monas|sigil/.test(nm)) mesh.ampRole = 'accent';
+        else if (/lod|proxy|floor/.test(nm)) mesh.ampRole = 'lod';
+        else mesh.ampRole = 'body';
         out.push(mesh);
       }
       if (!out.length) { authored.ok = false; authored.loading = false; return; }
@@ -480,7 +486,7 @@
       authored.ok = true;
       authored.loading = false;
       var badge = root.querySelector('[data-muse-badge]');
-      if (badge) badge.textContent = 'Dee · authored glTF · voice-reactive';
+      if (badge) badge.textContent = 'Dee · authored glTF · amp→material/LOD';
       try {
         if (g.ILSceneKit && ILSceneKit.emitSceneEvent) {
           ILSceneKit.emitSceneEvent('il-muse-glb', { url: defaultGltf, meshes: out.length, ok: true });
@@ -668,14 +674,47 @@
       var scaleAmp = 1 + amp * 0.08;
 
       if (authored.ok && authored.meshes.length) {
-        /* Authored muse-dee-monas.glb — voice amp → glow + gentle breathe (exceed flat Muse) */
+        /* Authored muse-dee-monas.glb — amp → per-node emissive/scale/LOD (v1.5 exceed Meta Muse) */
         var ai;
         for (ai = 0; ai < authored.meshes.length; ai++) {
           var am = authored.meshes[ai];
+          var role = am.ampRole || 'body';
+          /* Hide LOD proxies when amp is high (detail path); show proxy only when amp low */
+          if (role === 'lod') {
+            if (amp > 0.22) continue;
+          }
           var spinA = spin * (0.25 + (ai % 5) * 0.05);
           var yOff = bob * (0.4 + (ai % 3) * 0.1);
-          mat4FromRTS(uModel, 0.05, spinA, 0.02, 0, yOff, 0, scaleAmp, scaleAmp, scaleAmp);
-          drawMesh(am, am.color || accent, em, glow * (0.55 + amp * 0.6), uModel);
+          var roleScale = scaleAmp;
+          var roleGlow = glow * (0.55 + amp * 0.6);
+          var roleEm = em;
+          if (role === 'core') {
+            roleScale = 1 + amp * 0.16;
+            roleGlow = glow * (0.85 + amp * 1.15);
+            roleEm = [
+              Math.min(1, (em[0] || 0) + amp * 0.55),
+              Math.min(1, (em[1] || 0) + amp * 0.85),
+              Math.min(1, (em[2] || 0) + amp * 0.75)
+            ];
+            yOff += amp * 0.04;
+          } else if (role === 'accent') {
+            roleScale = 1 + amp * 0.11;
+            roleGlow = glow * (0.7 + amp * 0.95);
+            roleEm = [
+              Math.min(1, GOLD[0] * (0.55 + amp * 0.9)),
+              Math.min(1, GOLD[1] * (0.55 + amp * 0.7)),
+              Math.min(1, GOLD[2] * (0.4 + amp * 0.5))
+            ];
+            spinA *= (1 + amp * 0.35);
+          } else if (role === 'lod') {
+            roleGlow = glow * 0.25;
+            roleScale = 1;
+          } else {
+            roleScale = 1 + amp * 0.06;
+            roleGlow = glow * (0.5 + amp * 0.45);
+          }
+          mat4FromRTS(uModel, 0.05, spinA, 0.02, 0, yOff, 0, roleScale, roleScale, roleScale);
+          drawMesh(am, am.color || accent, roleEm, roleGlow, uModel);
         }
       } else {
         mat4FromRTS(uModel, 0.25, spin * 0.7, 0.1, 0, 0.28 + bob, 0, scaleAmp, scaleAmp, scaleAmp);
@@ -839,7 +878,7 @@
     syncFromApp: syncFromApp,
     attachCinema: attachCinema,
     DEFAULT_GLTF: '/assets/immersive/muse-dee-monas.glb',
-    VERSION: '1.4.0',
+    VERSION: '1.5.0',
     CYAN: '#5EEAD4',
     GOLD: '#D4A853',
     VOID: '#070B16',

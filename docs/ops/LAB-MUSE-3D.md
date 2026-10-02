@@ -84,3 +84,7 @@ We do **not** claim Meta’s product, models, or connectors. Interaction pattern
 
 **Do not merge canvases.** Product law is 3D-first for curriculum (`IMMERSIVE-3D-CURRICULUM.md`); Muse 3D does not satisfy that law by itself.
 
+## 2026-10-02 — Lab Muse 3D v1.5.0
+
+Per-node `ampRole` (core / accent / body / lod) on authored `muse-dee-monas.glb`: voice amp drives differential emissive boost, breathe scale, and LOD proxy hide when amp is high. Exceeds flat Meta Muse chrome; still local/OSS — no fake cloud. Badge: *Dee · authored glTF · amp→material/LOD*.
+
