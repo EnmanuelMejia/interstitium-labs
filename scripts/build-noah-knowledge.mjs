@@ -12,12 +12,15 @@
  */
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const DOCS = new URL('../docs/', import.meta.url).pathname;
-const OUT = new URL('../docs/assets/noah-knowledge.json', import.meta.url).pathname;
+const DOCS = fileURLToPath(new URL('../docs/', import.meta.url));
+const OUT = fileURLToPath(new URL('../docs/assets/noah-knowledge.json', import.meta.url));
 
 const ROOTS = ['learn', 'paths', 'academy'];
 const EXTRA = [
+  'noah/index.html',
+  'jobs/index.html',
   'coach/index.html',
   'labs/index.html',
   'labs/superlab/index.html',

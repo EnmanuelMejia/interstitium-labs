@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-01T20:29:08Z",
+  "scope": "Read-only historical production snapshot before Project Noah changes",
+  "cloudMutationsPerformed": false,
+  "authentication": {
+    "cloudflareConnectorRead": "verified",
+    "cloudflareConnectorWrite": "not exercised",
+    "localWranglerAuthentication": "not verified",
+    "userAuthentication": "not verified"
+  },
+  "surfaces": [
+    {
+      "hostname": "interstitiumlabs.dev",
+      "worker": "solitary-sound-015a",
+      "routing": "custom domain",
+      "assetsDirectory": "docs",
+      "compatibilityDate": "2026-09-23",
+      "activeVersion": "b9a4d6dc-1e87-43a7-af26-b768cb3b8bb3",
+      "versionNumber": 115,
+      "activeDeployment": "9cd28481-5c7e-4365-945c-1af71f67df56",
+      "deploymentCreatedAt": "2026-10-01T16:35:25.257943Z",
+      "trafficPercent": 100,
+      "bindings": [],
+      "secretNames": [],
+      "source": {
+        "provider": "github",
+        "repository": "EnmanuelMejia/interstitium-labs",
+        "branch": "main",
+        "commit": "db3e74f99220deed6550a95bb3b6278a2b2629f9",
+        "buildId": "8b7f025c-db14-4923-9817-f8e971d39267",
+        "buildOutcome": "success",
+        "rootDirectory": "/",
+        "buildCommand": "",
+        "deployCommand": "npx wrangler deploy --assets docs",
+        "productionBranches": ["main"],
+        "pathIncludes": ["*"],
+        "versionLinkEvidence": "Build log Current Version ID matches active version"
+      },
+      "previousObservedVersion": "784a6aac-0890-42c0-8736-4c59aed4d900"
+    },
+    {
+      "hostnames": ["app.interstitiumlabs.dev", "api.interstitiumlabs.dev"],
+      "worker": "interstitium-labs",
+      "routing": "custom domains",
+      "compatibilityDate": "2026-09-19",
+      "activeVersion": "9b1a40d1-46df-4a0f-ac6e-f86092c2aa7f",
+      "activeDeployment": "4fbdaf6d-9395-486b-bf5c-56479bf4b250",
+      "deploymentCreatedAt": "2026-09-20T00:09:50.184504Z",
+      "trafficPercent": 100,
+      "bindings": [
+        {"name": "AI_MODEL", "type": "plain_text"},
+        {"name": "API_LIMIT", "type": "ratelimit"},
+        {"name": "APP_ENV", "type": "plain_text"},
+        {"name": "APP_ORIGIN", "type": "plain_text"},
+        {"name": "ASSETS", "type": "assets"},
+        {"name": "DB", "type": "d1"}
+      ],
+      "secretNames": [],
+      "sourceCommit": "unverified",
+      "workersBuildEntriesObserved": 0,
+      "previousObservedVersion": null
+    },
+    {
+      "hostname": "learn.interstitiumlabs.dev",
+      "worker": "interstitium-labs-university",
+      "routing": "zone route learn.interstitiumlabs.dev/*",
+      "compatibilityDate": "2026-09-30",
+      "activeVersion": "69dd82ba-2d6c-4812-94a5-d30728537940",
+      "activeDeployment": "6f86d6d1-e24b-42a7-b155-bd69d6c67a03",
+      "deploymentCreatedAt": "2026-10-01T17:52:23.088774Z",
+      "trafficPercent": 100,
+      "bindings": [
+        {"name": "AI", "type": "ai"},
+        {"name": "NOAH_STATS", "type": "kv_namespace", "resourceName": "noah-stats"}
+      ],
+      "secretNames": [],
+      "sourceCommit": "unverified",
+      "workersBuildEntriesObserved": 0,
+      "previousObservedVersion": "b1adb047-db62-4cd2-a88e-3afe437bd8aa"
+    }
+  ],
+  "publicChecks": [
+    {"url": "https://interstitiumlabs.dev/", "status": 200},
+    {"url": "https://app.interstitiumlabs.dev/", "status": 200},
+    {"url": "https://api.interstitiumlabs.dev/api/health", "status": 200, "ok": true, "database": "connected"},
+    {"url": "https://learn.interstitiumlabs.dev/", "status": 200},
+    {"url": "https://interstitiumlabs.dev/coach/", "status": 200, "voicePolicy": "both disabled global and self route policies returned"},
+    {"url": "https://interstitiumlabs.dev/cinema/", "status": 200, "voicePolicy": "both disabled global and self route policies returned"}
+  ],
+  "pagesProjectsObserved": 0,
+  "recovery": {
+    "d1BookmarkRead": "succeeded; exact bookmark intentionally omitted",
+    "d1BackupCreated": false,
+    "kvBackupCreated": false,
+    "restorePerformed": false,
+    "codeRollbackRestoresBoundData": false
+  },
+  "practiceRuntimeGaps": [
+    "scripts directory absent despite package script and Vite references",
+    "migrations directory absent",
+    "Vite imports missing grok-pwa-plugin.mjs, app-env-plugin.mjs, migration-plan.mjs",
+    "Nitro preset vercel; no practice-local Worker configuration"
+  ],
+  "assetLicenseProvenance": "not established by this audit",
+  "dependencies": {
+    "ffmpeg": "9.0.2 executable verified",
+    "androidAdb": "37.0.1 executable verified",
+    "androidEmulator": "executable present; not started",
+    "androidBuildTools": "36.0.0 directory present; build not performed",
+    "androidStudioJava": "executable present",
+    "androidCommandLineTools": "not found in usual SDK directory",
+    "blender": "not found by bounded PATH, standard install directory, and exact uninstall-entry checks",
+    "portableBlenderCandidate": {
+      "supplementalResearchDate": "2026-10-01",
+      "version": "5.2.2",
+      "officialPortal": "https://www.blender.org/download/release/Blender5.2/blender-5.2.2-windows-x64.zip/",
+      "zipUrl": "https://mirror.blender.org/release/Blender5.2/blender-5.2.2-windows-x64.zip",
+      "manifestUrl": "https://mirror.blender.org/release/Blender5.2/blender-5.2.2.sha256",
+      "sha256": "3849d17a682cba006075aaa3f3597ecb5c9c30ec31035b2e092c53e40679b535",
+      "contentLengthBytes": 404453484,
+      "headStatus": 200,
+      "manifestStatus": 200,
+      "downloaded": false,
+      "executed": false
+    }
+  },
+  "protectedOutOfScope": ["enmanuel-mejia portfolio Worker", "unrelated domains and mail/DNS", "private and family services"],
+  "limitations": [
+    "Status 200 is not proof of authentication, agent capability, storage isolation, or inference success",
+    "Cloudflare connector write access and local CLI authentication were not verified",
+    "Snapshot must be refreshed before deployment or recovery",
+    "No user records or KV content were read"
+  ]
+}
