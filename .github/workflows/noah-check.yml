@@ -1,0 +1,43 @@
+name: Noah web checks
+on:
+  pull_request:
+    branches: [main]
+    paths: ["docs/**", "scripts/**", "package*.json", ".github/workflows/noah-check.yml"]
+  push:
+    branches: [main]
+    paths: ["docs/**", "scripts/**", "package*.json", ".github/workflows/noah-check.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: noah-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm audit --audit-level=high
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+        env:
+          NOAH_TEST_BROWSER: chromium
+      - name: Keep browser verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: noah-browser-verification
+          path: |
+            test-results/
+            deploy-shots/noah-*.png
+            deploy-shots/jobs-*.png
+          if-no-files-found: ignore
+          retention-days: 7

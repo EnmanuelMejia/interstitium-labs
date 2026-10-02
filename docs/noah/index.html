@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080d15">
+  <meta name="description" content="Noah AI workspace: contextual learning, user-controlled memory, and resumable study workflows at Interstitium Labs.">
+  <title>Noah AI workspace · Interstitium Labs</title>
+  <link rel="canonical" href="https://interstitiumlabs.dev/noah/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/noah-workspace.css">
+  <script src="/assets/noah-session.js" defer></script>
+  <script src="/assets/noah-ai.js" defer></script>
+  <script src="/assets/noah-workflows.js" defer></script>
+  <script src="/assets/noah-neural.js" defer></script>
+  <script src="/assets/noah-workspace.js" defer></script>
+</head>
+<body data-noah-workspace>
+  <a class="skip" href="#workspace">Skip to workspace</a>
+  <header class="masthead">
+    <a class="brand" href="/"><img src="/assets/chrome/sigil-glyph.svg" width="40" height="40" alt=""><span>INTERSTITIUM LABS<small lang="la">SCIENTIA OMNIA VINCIT</small></span></a>
+    <nav aria-label="Site"><a href="/learn/">Learning OS</a><a href="/jobs/">Jobs</a><a href="/paths/">Paths</a><a href="https://learn.interstitiumlabs.dev">University</a></nav>
+    <span class="scope">Personal workspace · this device</span>
+  </header>
+  <main id="workspace" class="workspace" tabindex="-1">
+    <aside id="workspace-nav" class="rail" aria-label="Workspace navigation">
+      <p class="eyebrow">RESIDENT INTELLIGENCE</p>
+      <h1>Noah AI<span class="version">01 / FOUNDATION</span></h1>
+      <p class="rail-intro">Think clearly.<br>Build with evidence.</p>
+      <nav class="view-nav" aria-label="Noah workspace">
+        <button type="button" data-view="conversation" aria-pressed="true"><span>01</span> Conversation</button>
+        <button type="button" data-view="workflows" aria-pressed="false"><span>02</span> Workflows</button>
+        <button type="button" data-view="memory" aria-pressed="false"><span>03</span> Memory &amp; goals</button>
+      </nav>
+      <div class="rail-links"><h2>Connected workspaces</h2><a href="/jobs/">Jobs &amp; career preparation <span>↗</span></a><a href="/coach/">Contextual tutor <span>↗</span></a><a href="/labs/">Engineering labs <span>↗</span></a><a href="/immersive/">Immersive curriculum <span>↗</span></a></div>
+      <details class="layout-controls"><summary>Workspace layout</summary><label for="rail-width">Navigation width</label><input id="rail-width" type="range" min="220" max="420" value="260"><label for="context-width">Context width</label><input id="context-width" type="range" min="260" max="540" value="330"><button id="collapse-context" type="button" aria-expanded="true" aria-controls="context-panel">Hide context panel</button></details>
+      <p class="scope-note">Conversations and saved notes belong to this browser. Shared devices share this workspace.</p>
+    </aside>
+    <div class="center">
+      <figure class="neural-stage">
+        <canvas id="noah-neural" aria-hidden="true"></canvas>
+        <div class="neural-fallback" id="neural-fallback"><img src="/assets/chrome/sigil-glyph.svg" alt="" width="110" height="110"></div>
+        <div class="stage-caption"><span class="eyebrow">NOAH / INTERCONNECTED INTELLIGENCE</span><figcaption>A connected neural structure. Motion reflects Noah’s current activity.</figcaption></div>
+        <div class="stage-controls"><span id="activity" role="status">Ready</span><button id="motion-toggle" type="button" aria-pressed="false">Pause motion</button></div>
+      </figure>
+      <section id="view-conversation" class="view">
+        <div class="section-head"><div><p class="eyebrow">A CONTINUOUS THREAD</p><h2>Bring your next question.</h2></div><button id="clear-chat" type="button" class="quiet">Clear conversation</button></div>
+        <p class="lede">Explore a concept, test a hypothesis, or choose a study room. Noah uses the existing site knowledge and AI endpoint.</p>
+        <div id="conversation" class="conversation" role="log" aria-label="Conversation" aria-live="off"><p class="empty">Start with what you know, and where the uncertainty begins.</p></div>
+        <form id="chat-form" action="/noah/" method="post">
+          <label for="message">Message Noah</label>
+          <textarea id="message" name="message" rows="3" maxlength="4000" required placeholder="I’m learning SQL joins. Here is my hypothesis…" aria-describedby="chat-help"></textarea>
+          <div class="compose-bottom"><p id="chat-help">Site answers stay on this device. Other questions use the university AI service.</p><button type="submit" id="send">Send message <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </section>
+      <section id="view-workflows" class="view" hidden>
+        <p class="eyebrow">BOUNDED EXECUTION</p><h2>From a topic to a study brief.</h2>
+        <p class="lede">Search the actual curriculum, review the sources, then approve creation of a reading brief. Each completed step is saved. Work runs while this page is open; resume it here after an interruption.</p>
+        <form id="workflow-form" action="/noah/" method="post"><label for="workflow-topic">Study topic</label><div class="inline-form"><input id="workflow-topic" name="topic" maxlength="160" required placeholder="Kubernetes, SQL, Python…"><button type="submit">Create workflow</button></div></form>
+        <div id="workflow-list" class="workflow-list"></div>
+        <details class="tool-details"><summary>Available tools and permissions</summary><div id="tool-list"></div><p>Cloud computers and external connectors require an authenticated server runtime and provider authorization.</p></details>
+      </section>
+      <section id="view-memory" class="view" hidden>
+        <div class="section-head"><div><p class="eyebrow">YOU CONTROL THE CONTEXT</p><h2>Memory &amp; goals.</h2></div><button id="export-session" type="button" class="quiet">Export my data</button></div>
+        <p class="lede">Save only what you want Noah to retain. You can edit, forget, or export it. Clearing conversation history leaves these explicit notes intact.</p>
+        <form id="memory-form" action="/noah/" method="post"><label for="memory-kind">Save as</label><select id="memory-kind" name="kind"><option value="note">Memory note</option><option value="goal">Learning goal</option></select><label for="memory-text">What should Noah remember?</label><textarea id="memory-text" name="text" required maxlength="600" rows="2" placeholder="I learn best by working through one example at a time."></textarea><button type="submit">Save on this device</button></form>
+        <div id="memory-list" class="memory-list"></div>
+        <fieldset class="preferences"><legend>Context sent with AI questions</legend><label><input type="checkbox" id="share-memory"> Share saved conversation, notes, and goals with remote Noah</label><label><input type="checkbox" id="share-context"> Include the current page’s public lesson context</label><p>These choices apply to remote replies. Saved context is treated as user input. No form fields, private files, or URL queries are captured. Common credential patterns are redacted; avoid putting sensitive information in messages or notes.</p></fieldset>
+        <div class="danger-zone"><h3>Reset this Noah workspace</h3><p>Deletes the Noah conversation, notes, and goals from this browser. Workflows are managed separately. This cannot delete requests already processed by the AI service.</p><button id="reset-session" type="button" class="quiet">Review reset</button></div>
+      </section>
+      <p id="announcement" class="announcement" role="status" aria-live="polite"></p>
+      <noscript><p class="announcement">The interactive workspace needs JavaScript. All public <a href="/learn/">learning pages</a> remain available.</p></noscript>
+    </div>
+    <aside id="context-panel" class="context" aria-label="Current context">
+      <p class="eyebrow">THE WORKING CONTEXT</p><h2>One intelligence.<br>Your context.</h2>
+      <div class="context-block"><h3>Current room</h3><p id="page-context">Noah workspace</p><span class="tag">Public page only</span></div>
+      <div class="context-block"><h3>Saved goals</h3><ul id="goal-summary"><li>No goals saved yet.</li></ul></div>
+      <div class="context-block"><h3>What is connected</h3><ul class="capability-list"><li><span class="signal"></span> Site curriculum</li><li><span class="signal"></span> Device memory</li><li><span class="signal"></span> Local study workflows</li><li><span class="pending"></span> Cloud execution · unavailable</li><li><span class="pending"></span> Account sync · unavailable</li></ul></div>
+      <div class="context-block"><h3>Editable visual source</h3><p>The neural structure is original procedural 3D geometry.</p><a href="/assets/noah/noah-neural.glb" download>Download 3D model <span>↗</span></a><p><a href="/assets/noah/noah-neural.blend" download>Download Blender source</a><br><a href="/assets/noah/noah-neural-poster.webp" download>Download 5120 × 1440 render</a><br><a href="/assets/noah/noah-neural-loop.mp4" target="_blank" rel="noopener noreferrer">Watch the 20-second neural film</a></p></div>
+      <p id="storage-status" class="scope-note">Checking device storage…</p>
+    </aside>
+  </main>
+  <dialog id="review-dialog" aria-labelledby="review-title"><h2 id="review-title">Review action</h2><div id="review-body"></div><div class="dialog-actions"><button id="review-cancel" type="button" class="quiet">Cancel</button><button id="review-approve" type="button">Approve once</button></div></dialog>
+  <dialog id="edit-dialog" aria-labelledby="edit-title"><h2 id="edit-title">Edit saved memory</h2><form id="edit-form" method="dialog"><label for="edit-text">Saved text</label><textarea id="edit-text" name="text" maxlength="600" rows="4" required></textarea><div class="dialog-actions"><button id="edit-cancel" type="button" class="quiet">Cancel</button><button type="submit">Save changes</button></div></form></dialog>
+</body>
+</html>
