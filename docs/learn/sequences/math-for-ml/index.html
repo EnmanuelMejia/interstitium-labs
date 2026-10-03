@@ -128,7 +128,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     <div class="il-wrap">
       <div class="il-section__head">
         <p class="il-eyebrow">The curriculum</p>
-        <h2 class="il-h il-h--section" id="modules-h">7 modules, in order.</h2>
+        <h2 class="il-h il-h--section" id="modules-h">6 modules, in order.</h2>
       </div>
       <div class="il-modules">
         <article class="il-module">
@@ -175,7 +175,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">MIT OCW Scholar 18.06SC — Linear Algebra (Fall 2011): designed for independent study; lecture videos, summary notes, problem-solving videos, problem sets with solutions, exams with solutions</a></li>
             <li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT OCW 18.06 — Linear Algebra (Spring 2010): the full lecture course</a></li>
             <li><a href="https://math.mit.edu/~gs/LectureNotes/">Strang's Lecture Notes for Linear Algebra — free PDF notes from his MIT page</a></li>
-            <li><a href="https://math.mit.edu/linearalgebra">Strang's MIT linear algebra page — companion videos and materials for his text</a></li>
+            <li><a href="https://math.mit.edu/linearalgebra">Strang's MIT linear algebra page — now routes to the companion pages for the 5th/6th editions of his text</a></li>
           </ul>
         </article>
         <article class="il-module">
@@ -197,6 +197,19 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <h5>Regularization and the geometry of overfitting</h5>
           <p>Ridge regression (Tikhonov) adds a penalty &lambda;||x||&sup2; to the least-squares objective, solving (A<sup>T</sup>A + &lambda;I)x = A<sup>T</sup>b. In SVD terms, this shrinks each singular value's contribution by &sigma;<sub>i</sub>/(&sigma;<sub>i</sub>&sup2; + &lambda;) — small singular directions, the ones that amplify noise, get damped most.</p>
           <p>Regularization is the answer to the rank question from Module 1: when data directions are nearly collinear, unconstrained fits swing wildly; the penalty chooses the calm solution among near-fits. This is the first idea in all of ML where linear algebra and statistics shake hands.</p>
+          <h5>Lecture-by-lecture: where the ML topics live</h5>
+          <p>The canonical video home is the official MIT OCW YouTube playlist (36 videos: an intro, an interview, and Lectures 1&ndash;27 and 30&ndash;36 &mdash; Lectures 28 and 29 were in-class labs and were not recorded). Every video is licensed CC BY-NC-SA with Gilbert Strang as instructor. Here is where this guide's topics land:</p>
+          <ul>
+            <li><strong>Least squares:</strong> Lecture 9, "Four Ways to Solve Least Squares Problems," is the anchor; Lectures 8 (norms), 10 (difficulties with Ax = b), and 11 support it.</li>
+            <li><strong>Regularization:</strong> Lecture 11, "Minimizing &#x2016;x&#x2016; Subject to Ax = b" &mdash; the minimum-norm solution is the regularization-flavored choice among near-fits. No lecture is titled "regularization"; our characterization of it as penalized projection rests on Lectures 9 and 11.</li>
+            <li><strong>SVD and PCA:</strong> Lectures 6 ("Singular Value Decomposition (SVD)") and 7 ("Eckart-Young: The Closest Rank k Matrix to A"), with 12 and 17 on computation and decaying spectra. There is no lecture titled "PCA" &mdash; PCA arrives as the truncated rank-k approximation, and Strang's own lecture notes make the identification explicit (the closest-rank-k section is titled "Principal Component Analysis").</li>
+            <li><strong>Convolution and Fourier:</strong> Lectures 30&ndash;32 &mdash; rank-one completion and cyclic convolution, circulant matrices whose eigenvectors are the Fourier matrix columns, and "ImageNet is a Convolutional Neural Network," the convolution rule for CNNs.</li>
+            <li><strong>Graph Laplacians:</strong> Lecture 35, "Finding Clusters in Graphs," backed by the lecture notes' sections on the graph incidence matrix, the Laplacian A<sup>T</sup>A, and cluster finding.</li>
+            <li><strong>Deep learning:</strong> Lectures 26 (structure of neural nets), 27 (backpropagation and the chain rule), 32 (CNNs), and 33 (the learning function that stochastic gradient descent optimizes).</li>
+            <li><strong>Randomized linear algebra:</strong> Lecture 13, "Randomized Matrix Multiplication" &mdash; sketching for very large matrices.</li>
+            <li><strong>Optimization:</strong> Lectures 20&ndash;25 (gradient descent, momentum, stochastic gradient descent, linear programming and two-person games) plus Lectures 14&ndash;19 on the matrix calculus around optimization (derivatives of inverses and singular values, saddle points).</li>
+          </ul>
+          <p>One boundary to respect: the course's intro names statistics among its four topics, but no recorded lecture is titled statistics &mdash; the recorded content is linear algebra, optimization, and deep learning. Probability stays home in Module 6's 18.05.</p>
           <h4>Hands-on labs</h4>
           <ol>
             <li><strong>Fit a polynomial regression to noisy data with and without ridge penalty; plot the learned curves for several &lambda;</strong><br/>Watch high-degree polynomials overfit at &lambda; = 0 and calm down as the penalty grows. The SVD shrinkage formula explains exactly what you see.</li>
@@ -210,6 +223,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <h4>Free anchor resources</h4>
           <ul>
             <li><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/">MIT OCW 18.065 — Matrix Methods in Data Analysis, Signal Processing, and Machine Learning (Spring 2018)</a></li>
+            <li><a href="https://www.youtube.com/playlist?list=PLUl4u3cNGP63oMNUHXqIUcrkS2PivhN3k">MIT 18.065 — official OCW YouTube playlist (Spring 2018): the canonical video home; intro, interview, and Lectures 1–27 and 30–36 (Lectures 28–29 were unrecorded in-class labs)</a></li>
             <li><a href="https://math.mit.edu/learningfromdata">Strang's MIT page for <em>Linear Algebra and Learning from Data</em></a></li>
             <li><a href="https://math.mit.edu/~gs/">Gilbert Strang's MIT homepage — hub for his free lectures, notes, and course links</a></li>
           </ul>
@@ -226,7 +240,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ul>
           <h4>Key concepts, explained</h4>
           <h5>The short-video series that earns its name</h5>
-          <p>MIT's "Highlights of Calculus" (RES.18-005, Spring 2010) is Professor Strang distilling calculus to its essentials in a short series of videos — the OCW page organizes them into an introduction, five videos reviewing the key ideas of calculus with real-life applications, and twelve videos on differential calculus — with summary slides and practice problems. A fan-maintained YouTube playlist collects the lectures in one place, and OCW also hosts supporting notes and problems under its open license.</p>
+          <p>MIT's "Highlights of Calculus" (RES.18-005, Spring 2010) is Professor Strang distilling calculus to its essentials in a short series of videos — the OCW page organizes them into an introduction, five videos reviewing the key ideas of calculus with real-life applications, and twelve videos on differential calculus — with summary slides and practice problems. A YouTube playlist collects the lectures in one place, and OCW also hosts supporting notes and problems under its open license.</p>
           <p>The series is aimed at students who need to understand calculus rather than merely compute it — exactly the ML engineer's position. You need calculus as a conceptual tool for gradients and optimization, not as a semester of hand-computed integrals.</p>
           <h5>Derivatives: the rate of change, and the gradient</h5>
           <p>A derivative measures how a function's output responds to a nudge of its input — the slope of the tangent line, the instantaneous rate. In one variable that is the whole story; in many variables it becomes the gradient: the vector of partial derivatives, pointing in the direction of steepest increase.</p>
@@ -267,7 +281,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ul>
           <h4>Key concepts, explained</h4>
           <h5>A two-thousand-page open manuscript from UPenn</h5>
-          <p>Professor Jean Gallier (University of Pennsylvania, Computer and Information Science) and co-author Jocelyn Quaintance have made the full manuscript of <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em> freely downloadable from Gallier's books page — a book in progress, stated on that page as approximately 2218 pages in the 2026 edition, distributed under terms permitting free reproduction for any educational purpose (commercial reproduction prohibited; the page asks that it not be reposted elsewhere, with links to the page freely permitted).</p>
+          <p>Professor Jean Gallier (University of Pennsylvania, Computer and Information Science) and co-author Jocelyn Quaintance have made the full manuscript of <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em> freely downloadable from Gallier's books page — officially still a work in progress (the page lives under his "Books in Progress" heading). The page states "approx. 2218 pages (2026)"; the September 29, 2026 PDF build we verified measures 2,220 pages. It is distributed under terms permitting free reproduction for any educational purpose (commercial reproduction prohibited; the book itself may not be reposted for download anywhere else, though links to the page are expressly permitted).</p>
           <p>This is the sequence's deep reference: where Strang gives you the working intuition, Gallier gives you the full theoretical foundation. Use it chapter-by-chapter alongside the other modules, not as a front-to-back read.</p>
           <h5>Algebra: the structures under the symbols</h5>
           <p>The algebra chapters develop groups, rings, vector spaces, and linear algebra from first principles with the rigor a computer scientist needs. For ML the payoff is conceptual precision: symmetry in data (groups), the exact algebraic properties of the vector spaces every model lives in, and the polynomial algebra behind kernel methods and algebraic approaches to learning.</p>
@@ -281,9 +295,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <h5>Optimization theory: what "optimal" guarantees exist</h5>
           <p>The optimization chapters cover the conditions under which a point is optimal (first- and second-order conditions), convex sets and functions (where every local minimum is global — the friendly case), and the duality theory behind constrained optimization. Most deep learning is non-convex, but the convex theory is the reference point: it tells you what the well-behaved case looks like, so you can recognize the ways real training deviates from it.</p>
           <p>Read the convex optimization chapters before tackling constrained problems (support vector machines, sparse models, portfolio-style constraints); read the optimality conditions when debugging why an optimizer stalls.</p>
+          <h5>A chapter map: where to read what</h5>
+          <p>The manuscript runs 55 chapters in ten parts. We verified the table of contents of the September 29, 2026 build directly &mdash; here is where this sequence's topics live, by chapter:</p>
+          <ul>
+            <li><strong>Linear algebra foundations:</strong> Chapters 3–4 (vector spaces, bases, linear maps), 6–9 (direct sums, determinants, LU/Cholesky elimination, norms and condition numbers), 12–13 (Euclidean spaces, least-squares foundations, QR), and 22–23 (the SVD, polar form, pseudo-inverses and their least-squares applications).</li>
+            <li><strong>Algebra:</strong> Chapter 2 (groups, rings, fields) for the primer; Part IV, Chapters 30–36, for the deep treatment — polynomials and principal ideal domains, unique factorization, tensors, modules over a PID, and canonical forms.</li>
+            <li><strong>Topology:</strong> Chapter 37 (metric and topological spaces, continuity, compactness, connectedness), with Chapter 38's fractal detour as the application chapter. A boundary to note: despite the book's title, there is no standalone differential-manifolds chapter — the manifold-adjacent material (tangent spaces, vector fields, covariant derivatives) lives in Chapter 39's sections.</li>
+            <li><strong>Differential calculus:</strong> Chapter 39 — directional and total derivatives, Jacobian matrices, the implicit and inverse function theorems, Taylor's formula, and second- and higher-order derivatives (where the Hessian lives; no section is titled "Hessian").</li>
+            <li><strong>Optimization theory:</strong> Chapter 40 (extrema, first- and second-derivative tests, Lagrange multipliers, convexity-based optimality); Chapters 44–47 (convex sets, cones, polyhedra; linear programs; the simplex algorithm; LP duality); Chapters 48–49 (Hilbert spaces; existence of minimizers, gradient descent, Newton, conjugate gradients); Chapter 50 — the KKT chapter, with the Karush–Kuhn–Tucker conditions, Lagrangian duality, and hard-margin SVMs as the running example; Chapter 51 on subgradients and convex functions; and Chapter 52 on dual ascent and ADMM. Chapters marked with the authors' ~ flag (Chapter 51, three sections of Chapter 34) are still officially incomplete, though Chapter 51 carries full sections and problems.</li>
+            <li><strong>ML applications:</strong> Part IX — Chapter 53 (positive-definite kernels, kernel PCA), Chapter 54 (soft-margin SVMs in five formulations, each solved via ADMM), and Chapter 55 (ridge, lasso, elastic net).</li>
+            <li><strong>Bonus cross-links:</strong> Chapters 20–21 (graph Laplacians, spectral graph drawing) pair with 18.065's Lecture 35; Chapter 5 (Haar wavelets, Hadamard matrices) with the signal-processing side of 18.065; Appendices A–C (orthogonal families in Hilbert spaces, Matlab programs, Zorn's lemma).</li>
+          </ul>
           <h4>Hands-on labs</h4>
           <ol>
-            <li><strong>From the manuscript, work the optimality-conditions chapter on a constrained quadratic: solve it by hand, then verify with Lagrange multipliers</strong><br/>The Karush-Kuhn-Tucker conditions stop being incantations once you have applied them to a concrete problem.</li>
+            <li><strong>From the manuscript's Chapter 40 (Extrema of Real-Valued Functions), work the constrained-quadratic problem: solve it by hand, then verify with Lagrange multipliers</strong><br/>The Karush–Kuhn–Tucker conditions — the full treatment is in Chapter 50 — stop being incantations once you have applied them to a concrete problem.</li>
             <li><strong>Compute the Hessian of a two-parameter non-convex loss numerically; classify a stationary point as minimum, maximum, or saddle from its eigenvalues</strong><br/>This is Modules 1 and 3 meeting the deep spine: the Hessian's eigenvalues classify the geometry.</li>
             <li><strong>Prove to yourself the convex fact that matters most: for a convex function, any stationary point is a global minimum — then name three ML objectives that are convex and three that are not</strong><br/>The classification exercise teaches the boundary between theory's guarantees and deep learning's wilds.</li>
           </ol>
@@ -402,7 +427,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h3>Phase C — The foundation: Gallier's manuscript (Modules 4–5)</h3>
         <ul>
           <li>Read the two-volume <em>Linear Algebra and Optimization with Applications to Machine Learning</em> as the consolidated second pass over Phases A–B.</li>
-          <li>Work the optimality-conditions and convexity chapters of the big manuscript; keep the algebra and topology chapters as the reference for the structures you meet in the literature.</li>
+          <li>Work the optimality-conditions (Chapters 40 and 50) and convexity (Chapters 44 and 51) chapters of the big manuscript; keep the algebra (Chapters 2, 30–36) and topology (Chapter 37) chapters as the reference for the structures you meet in the literature.</li>
           <li>Browse the convex geometry text for the polyhedra/linear-programming/Voronoi chapters as constrained problems and nearest-neighbor geometry come up in your work.</li>
           <li>Milestone: you can classify a training failure in optimization terms and name the theoretical condition being violated.</li>
         </ul>
@@ -432,16 +457,17 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/</a> — OCW Scholar linear algebra, built for independent study</li>
           <li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</a> — the full 18.06 lecture course</li>
           <li><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/">https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/</a> — 18.065 matrix methods for data analysis, signal processing, and machine learning</li>
+          <li><a href="https://www.youtube.com/playlist?list=PLUl4u3cNGP63oMNUHXqIUcrkS2PivhN3k">https://www.youtube.com/playlist?list=PLUl4u3cNGP63oMNUHXqIUcrkS2PivhN3k</a> — MIT 18.065 official OCW YouTube playlist, the canonical video home (Lectures 1–27, 30–36; 28–29 were unrecorded in-class labs)</li>
           <li><a href="https://math.mit.edu/~gs/">https://math.mit.edu/~gs/</a> — Gilbert Strang's MIT homepage, hub for his free lectures and notes</li>
           <li><a href="https://math.mit.edu/~gs/LectureNotes/">https://math.mit.edu/~gs/LectureNotes/</a> — free Lecture Notes for Linear Algebra</li>
-          <li><a href="https://math.mit.edu/linearalgebra">https://math.mit.edu/linearalgebra</a> — companion page for his linear algebra materials</li>
+          <li><a href="https://math.mit.edu/linearalgebra">https://math.mit.edu/linearalgebra</a> — Strang's MIT linear algebra page (now routes to the companion pages for the 5th/6th editions of his text)</li>
           <li><a href="https://math.mit.edu/learningfromdata">https://math.mit.edu/learningfromdata</a> — companion page for <em>Linear Algebra and Learning from Data</em></li>
           <li><a href="https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/">https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/</a> — Highlights of Calculus, short videos with summary slides and practice problems</li>
           <li><a href="https://www.youtube.com/playlist?list=PLBE9407EA64E2C318">https://www.youtube.com/playlist?list=PLBE9407EA64E2C318</a> — Highlights of Calculus lecture playlist on YouTube</li>
         </ul>
         <h3>Gallier's free manuscripts (University of Pennsylvania)</h3>
         <ul>
-          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">https://www.cis.upenn.edu/~jean/gbooks/geomath.html</a> — <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em>, full manuscript free for educational use</li>
+          <li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">https://www.cis.upenn.edu/~jean/gbooks/geomath.html</a> — <em>Algebra, Topology, Differential Calculus, and Optimization Theory for Computer Science and Machine Learning</em>, full manuscript free for educational use (page states "approx. 2218 pages (2026)"; the Sept 29, 2026 PDF build measures 2,220 pages; officially still a work in progress)</li>
           <li><a href="https://www.cis.upenn.edu/~jean/gbooks/linalg.html">https://www.cis.upenn.edu/~jean/gbooks/linalg.html</a> — <em>Linear Algebra and Optimization with Applications to Machine Learning</em>, Volumes I and II, full PDFs free for educational use</li>
           <li><a href="https://www.cis.upenn.edu/~jean/gbooks/convexpoly.html">https://www.cis.upenn.edu/~jean/gbooks/convexpoly.html</a> — <em>Aspects of Convex Geometry</em> (in progress)</li>
           <li><a href="https://www.cis.upenn.edu/~jean/gbooks/">https://www.cis.upenn.edu/~jean/gbooks/</a> — the complete list of Gallier's free books</li>
