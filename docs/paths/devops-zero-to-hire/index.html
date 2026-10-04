@@ -277,6 +277,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 
+<section class="mx-auto max-w-6xl px-5 py-12 sm:px-8" aria-label="Frequently asked questions">
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">FAQ</p>
+  <h2 id="faq" class="mt-3 font-display text-2xl tracking-[-0.02em] text-paper">Frequently asked questions</h2>
+  <ul class="mt-6 space-y-5 text-sm text-muted">
+    <li><strong class="text-paper">Why start with Linux + Git instead of Kubernetes?</strong><br/>Because every later phase assumes the baseline: bash, permissions, ssh, and git are the vocabulary that containers, CI, and K8s are written in. The path is sequenced so phase 4&#x27;s interview surface rests on phase 1&#x27;s muscle memory.</li>
+    <li><strong class="text-paper">When do I not need Kubernetes yet?</strong><br/>When a compose file, a VM, or a platform-as-a-service does the job — the path&#x27;s own side-quest. Reaching for K8s before you need it is the most expensive junior mistake in DevOps.</li>
+    <li><strong class="text-paper">Why did my SSH key auth fail?</strong><br/>Usually permissions (~/.ssh at 700, keys at 600), a key format mismatch, or the agent not holding the key. The Noah side-quest walks the triage instead of handing you the answer.</li>
+    <li><strong class="text-paper">Readiness vs liveness — explain it to a hiring manager?</strong><br/>Readiness removes the pod from Service endpoints (no traffic); liveness restarts the container. One controls traffic, the other controls restarts — conflating them causes cascading outages.</li>
+    <li><strong class="text-paper">What is the Argo sync loop?</strong><br/>Desired state lives in Git; the Argo agent watches the repo and converges the cluster to match it. Draw it as a loop — Git → agent → cluster → drift detection → back to Git — because interviewers ask for the picture.</li>
+    <li><strong class="text-paper">How long does the path take?</strong><br/>About 16 weeks, beginner to intermediate, with a proveable artifact in the first 2–3 weeks. Each phase ends with portfolio proof, not a completion badge.</li>
+  </ul>
+</section>
+
+
 <section class="border-t border-paper/10 bg-ink/40" aria-label="Lesson map">
   <div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
     <p class="il-kicker">Go deeper</p>
