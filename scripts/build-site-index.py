@@ -30,7 +30,7 @@ BASE_URL = "https://interstitiumlabs.dev"
 # First path segment(s) excluded from sitemap + search. Mirrors robots.txt Disallow.
 EXCLUDED_PREFIXES = (
     "brand/", "ops/", "admin/", "_imports/", "analytics/", "measure/",
-    "academy/", "desk/",
+    "academy/", "desk/", "assets/",
 )
 
 SITEMAP_OUT = os.path.join(DOCS, "sitemap.xml")

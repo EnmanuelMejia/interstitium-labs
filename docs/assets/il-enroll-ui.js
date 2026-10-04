@@ -71,12 +71,17 @@
 
     grid.innerHTML =
       '<article class="rounded-xl border border-paper/10 bg-panel p-6 sm:p-8 lg:col-span-3">' +
-      '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">Enterprise empty state</p>' +
+      '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">Enrollment opens soon</p>' +
       '<h2 class="mt-3 font-display text-2xl tracking-[-0.02em]">Seats not for sale yet</h2>' +
-      '<p class="mt-4 max-w-2xl text-sm leading-relaxed text-muted">Tier cards stay informational only while payments are inactive. Placeholder Stripe / PayPal URLs are never rendered as buy buttons.</p>' +
+      '<p class="mt-4 max-w-2xl text-sm leading-relaxed text-muted">Pricing is shown for planning — checkout opens when enrollment goes live. Join the waitlist and we will email you first.</p>' +
       '<ul class="mt-6 grid gap-3 sm:grid-cols-3">' +
       (cfg.tiers || [])
         .map(function (t) {
+          var feats = (t.features || [])
+            .map(function (f) {
+              return "<li>" + f + "</li>";
+            })
+            .join("");
           return (
             '<li class="rounded-lg bg-void/60 p-4 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">' +
             '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">' +
@@ -88,6 +93,12 @@
             '<p class="mt-1 font-display text-xl text-muted">' +
             (t.publishablePrice || "") +
             "</p>" +
+            '<p class="mt-2 text-sm leading-relaxed text-muted">' +
+            (t.blurb || "") +
+            "</p>" +
+            '<ul class="mt-3 space-y-1 text-sm text-muted">' +
+            feats +
+            "</ul>" +
             "</li>"
           );
         })
