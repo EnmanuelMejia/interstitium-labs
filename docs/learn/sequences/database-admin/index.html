@@ -12,6 +12,57 @@
   .il-gloss dt{font-weight:600}
   .il-gloss dd{margin:0 0 .75rem 0}
 </style>
+<style>
+
+/* IL sequence widgets — CSS-only interactive labs (no JS required) */
+.ilw{border:1px solid rgba(232,238,245,.13);border-radius:.9rem;padding:1.05rem 1.15rem;margin:1.5rem 0;background:rgba(10,15,30,.55)}
+.ilw-q{margin:0 0 .7rem;font-size:.95rem}
+.ilw-code{background:#070b16;border:1px solid rgba(232,238,245,.1);border-radius:.6rem;padding:.85rem 1rem;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.6;color:#e8eef5;white-space:pre}
+.ilw-code .ilw-ln{color:#5b6b85;user-select:none}
+.ilw-opts{display:grid;gap:.5rem;margin-top:.85rem}
+.ilw-in{position:absolute;opacity:0;pointer-events:none}
+.ilw-lab{display:flex;gap:.65rem;align-items:flex-start;border:1px solid rgba(232,238,245,.15);border-radius:.6rem;padding:.6rem .75rem;cursor:pointer;font-size:.9rem;line-height:1.45}
+.ilw-lab:hover{border-color:rgba(126,212,224,.5)}
+.ilw-lab code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.8rem}
+.ilw-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none;margin-top:.1rem}
+.ilw-fb{display:none;margin:0;font-size:.84rem;color:#c9d4e3;border-left:3px solid #f87171;padding:.4rem .8rem;background:rgba(248,113,113,.06);border-radius:0 .5rem .5rem 0}
+.ilw-fb strong{color:#fca5a5}
+.ilw-in:checked+.ilw-lab{border-color:#f87171;background:rgba(248,113,113,.05)}
+.ilw-in.ilw-ok:checked+.ilw-lab{border-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in:checked+.ilw-lab+.ilw-fb{display:block}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb{border-left-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb strong{color:#6ee7b7}
+.ilw-note{margin:.75rem 0 0;font-size:.76rem;color:#8b96ab}
+.ilw-reveal{margin-top:.7rem;border:1px dashed rgba(232,238,245,.2);border-radius:.6rem;padding:.6rem .8rem}
+.ilw-reveal summary{cursor:pointer;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#7ed4e0}
+.ilw-reveal code{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:#e8eef5}
+/* answer keys on self-checks */
+.ilw-ans{margin:.55rem 0 0;border-left:2px solid rgba(212,175,55,.5);padding:.15rem 0 .15rem .8rem}
+.ilw-ans summary{cursor:pointer;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#d4af37}
+.ilw-ans .ilw-ansbody{margin-top:.45rem;font-size:.88rem;color:#c9d4e3}
+.ilw-ans .ilw-ansbody code{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#e8eef5;background:rgba(232,238,245,.07);padding:.05rem .3rem;border-radius:.3rem}
+/* module figures */
+.il-fig{margin:1.4rem 0 1.6rem;border:1px solid rgba(232,238,245,.1);border-radius:.8rem;background:rgba(7,11,22,.6);padding:1rem}
+.il-fig svg{display:block;width:100%;height:auto}
+.il-fig figcaption{margin-top:.6rem;font-size:.78rem;color:#8b96ab;text-align:center}
+/* progress */
+.ilw-done{margin:.7rem 0 0;font-size:.85rem;color:#8b96ab}
+.ilw-done input{accent-color:#d4af37;width:1rem;height:1rem;vertical-align:-.15rem}
+.il-progressbox{border:1px solid rgba(212,175,55,.35);border-radius:.9rem;padding:1rem 1.2rem;margin:1.6rem 0;background:rgba(212,175,55,.05)}
+.il-progressbox p{margin:0 0 .6rem;font-size:.9rem}
+.il-bar{height:.55rem;border-radius:99px;background:rgba(232,238,245,.1);overflow:hidden}
+.il-bar>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#d4af37,#7ed4e0);transition:width .4s}
+/* exam mount */
+.il-exam .il-kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#7ed4e0}
+.il-exam-choices{display:grid;gap:.55rem}
+.il-exam-choice{appearance:none;cursor:pointer;text-align:left;border-radius:.8rem;border:1px solid rgba(232,238,245,.13);background:rgba(7,11,22,.65);color:#e8eef5;padding:.8rem 1rem;font-size:.93rem;display:flex;gap:.7rem;align-items:flex-start}
+.il-exam-choice:hover{border-color:rgba(126,212,224,.45)}
+.il-exam-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none}
+.il-exam-miss{border:1px solid rgba(232,238,245,.12);border-radius:.8rem;padding:1rem;margin-bottom:.8rem;background:rgba(10,15,30,.5);list-style:none}
+ul.il-exam-remediate{padding:0}
+@media (max-width:480px){.ilw{padding:.9rem}.ilw-code{font-size:.74rem}}
+
+</style>
 </head>. (3) Never hardcode colors; use the editorial
      tokens (var(--paper), var(--ink), var(--muted), var(--gold), ...).
      Keep the SW kill script + critical anti-blank CSS verbatim. -->
@@ -142,13 +193,17 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <li><a href="#module-8-capacity-planning-and-maintenance"><strong>Module 8.</strong> Capacity Planning and Maintenance</a></li>
       </ol>
     </div>
-  </section>
+  
+<div class="il-progressbox" role="status"><p><strong>Your progress:</strong> <span data-il-count-scope="database-admin.v1" data-il-count-total="8">0/8</span> modules complete — saved in this browser.</p><div class="il-bar" role="progressbar" aria-label="Sequence progress" aria-valuemin="0" aria-valuemax="8"><div data-il-bar="database-admin.v1"></div></div></div>
+</section>
   <hr class="il-rule" />
   <div id="modules">
 <section class="il-section" id="module-1-installation-and-configuration" aria-labelledby="module-1-installation-and-configuration-h">
   <div class="il-wrap">
     <p class="il-eyebrow">Module 1 of 8</p>
     <h2 class="il-h" id="module-1-installation-and-configuration-h">Installation and Configuration</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 215" role="img" aria-label="Separate volumes for data and log files" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">volume A — data files</text><rect x="40" y="45" width="240" height="70" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="160" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">random I/O</text><text x="160" y="95" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">.mdf / .ndf</text><text x="480" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">volume B — log files</text><rect x="360" y="45" width="240" height="70" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="480" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">sequential I/O</text><text x="480" y="95" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">.ldf</text><rect x="40" y="140" width="560" height="60" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="163" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">separate volumes: competing I/O patterns + a disk death takes only one</text><text x="320" y="185" text-anchor="middle" font-size="11" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">max memory unbounded on a shared host → the engine starves the OS</text></svg><figcaption>Fig. M1 — Data and log have opposite I/O patterns; isolate them and cap memory.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-1"> <span>Mark module 1 complete</span></label></p>
     <div class="il-prose">
       <p>Every DBA journey starts with an install done right. This module walks through SQL Server and Oracle Database installation and initial configuration — editions, collations, character sets, storage layout — and the post-install hardening checklist. Your lab journal starts here; document every choice.</p>
     </div>
@@ -184,13 +239,32 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Create a sample database with data and log files on separate paths; sketch the resulting file layout.</li>
       <li>Stand up a second containerized instance with a different collation/character set and note what breaks when applications assume the default.</li>
     </ol>
+<div class="ilw" role="group" aria-label="Max memory is left at default (unbounded) on a shared host. ">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Max memory is left at default (unbounded) on a shared host. What happens first?</p>
+<pre class="ilw-code"><code>-- SQL Server, max server memory = 2147483647 (default)
+-- host shared with two other applications</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m1" id="ilw-dba-m1-0">
+<label class="ilw-lab" for="ilw-dba-m1-0"><span class="ilw-key">A</span><span>The engine grows until the OS pages — everything slows, including the database</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> SQL Server consumes what it is allowed. Unbounded on a shared host, it starves the OS and the neighbors; paging punishes everyone. Cap max server memory on day one and leave the OS breathing room.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m1" id="ilw-dba-m1-1">
+<label class="ilw-lab" for="ilw-dba-m1-1"><span class="ilw-key">B</span><span>Nothing — the engine self-limits to physical RAM</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It does not self-limit usefully; the default is effectively unbounded. The OS paging is the limiter, and it is a terrible one.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m1" id="ilw-dba-m1-2">
+<label class="ilw-lab" for="ilw-dba-m1-2"><span class="ilw-key">C</span><span>Queries fail with out-of-memory errors immediately</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Engines degrade before they fail: memory grants queue, then paging, then pain. Errors are the last symptom, not the first.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m1" id="ilw-dba-m1-3">
+<label class="ilw-lab" for="ilw-dba-m1-3"><span class="ilw-key">D</span><span>Only the other applications suffer</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The database suffers too — a paging OS cannot serve buffer pool requests promptly. Shared fate.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>Explain in your own words why data files and log files should live on separate volumes.</li>
-        <li>What happens if the engine&#x27;s max memory setting is left unbounded on a shared host, and how would you detect it?</li>
-        <li>Name three features gated to paid editions and describe how you would plan around each on a free edition.</li>
-        <li>Rebuild your container instance from scratch using only your setup notes. Did anything require guessing?</li>
-    </ol>
+    <ol class="il-list"><li>Explain in your own words why data files and log files should live on separate volumes.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Data files do <strong>random</strong> I/O (scattered reads/writes across the database); log files do <strong>sequential</strong> I/O (append-only writes). Mixing them on one volume makes the two patterns fight for the same spindles/throughput — and a single disk failure takes <em>both</em>, destroying the database and its recovery log together. Separate volumes isolate the I/O patterns and the failure domains.</div></details></li><li>What happens if the engine&#x27;s max memory setting is left unbounded on a shared host, and how would you detect it?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The engine will consume host memory until the OS starts paging — the entire server (database included) slows to a crawl, and on a shared host every tenant suffers. Detect it with memory counters: OS-level paging rates, the engine's memory grants pending, and host memory pressure metrics. The fix is a cap (max server memory) that leaves the OS breathing room — set it on day one, not during the incident.</div></details></li><li>Name three features gated to paid editions and describe how you would plan around each on a free edition.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Typical paid-edition gates: online index rebuilds, advanced HA (multi-node AGs), and enterprise auditing/compression. Plan-arounds on free editions: schedule <em>offline</em> rebuilds in maintenance windows; use log shipping or basic replication instead of AGs; compress at the application layer and audit with lighter-weight traces. The planning principle: list every paid feature the design assumes, then write the free-edition substitute <em>before</em> committing to the architecture.</div></details></li><li>Rebuild your container instance from scratch using only your setup notes. Did anything require guessing?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">If anything required guessing, the notes are incomplete — and 'guessing' in a rebuild is how configuration drift is born. The standard is: a second person (or future you) rebuilds from the notes alone with zero improvisation. Every guessed step becomes a checklist item: exact version, exact settings, exact order. Rebuildable from notes is the definition of infrastructure as documentation.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -203,23 +277,25 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 2 of 8</p>
     <h2 class="il-h" id="module-2-backup-and-recovery-h">Backup and Recovery</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 225" role="img" aria-label="Backup chain with RPO and RTO" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">the backup chain — every link matters</text><rect x="15" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="62" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">FULL</text><text x="62" y="92" text-anchor="middle" font-size="9" fill="#7ed4e0" font-family="'Space Grotesk','Inter',sans-serif">Sun 02:00</text><defs><marker id="ilm1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="110" y1="77" x2="118" y2="77" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm1)"/><rect x="118" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="165" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">DIFF</text><text x="165" y="92" text-anchor="middle" font-size="9" fill="#7ed4e0" font-family="'Space Grotesk','Inter',sans-serif">daily</text><defs><marker id="ilm2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="213" y1="77" x2="221" y2="77" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm2)"/><rect x="221" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="268" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">LOG</text><text x="268" y="92" text-anchor="middle" font-size="9" fill="#34d399" font-family="'Space Grotesk','Inter',sans-serif">every 15 min</text><defs><marker id="ilm3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="316" y1="77" x2="324" y2="77" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm3)"/><rect x="324" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="371" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">LOG</text><text x="371" y="92" text-anchor="middle" font-size="9" fill="#34d399" font-family="'Space Grotesk','Inter',sans-serif">every 15 min</text><defs><marker id="ilm4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="419" y1="77" x2="427" y2="77" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm4)"/><rect x="427" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="474" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">LOG ✗ missing</text><text x="474" y="92" text-anchor="middle" font-size="9" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">gap!</text><defs><marker id="ilm5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="522" y1="77" x2="530" y2="77" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm5)"/><rect x="530" y="50" width="95" height="55" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="577" y="72" text-anchor="middle" font-size="10" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">LOG</text><text x="577" y="92" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">every 15 min</text><text x="320" y="135" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">RPO 15 min → log backups every ≤15 min · RTO 2 h → restore drill must beat 2 h</text><rect x="40" y="155" width="560" height="55" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="178" text-anchor="middle" font-size="12" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">one missing log backup: point-in-time restore dies at the gap</text><text x="320" y="200" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">backup on the same disk as the database is not a backup — it is a copy</text></svg><figcaption>Fig. M2 — The chain is only as restorable as its weakest link.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-2"> <span>Mark module 2 complete</span></label></p>
     <div class="il-prose">
       <p>Backups are the one DBA skill that gets tested at 3 AM. This module covers the full backup taxonomy — full, differential, transaction log, RMAN — and the recovery models that determine what you can restore. You will prove your backups work by restoring them, because an untested backup is a rumor.</p>
     </div>
     <h3 class="il-h il-h--section">Objectives</h3>
     <ul class="il-list">
         <li>Distinguish full, differential, and log/incremental backups and explain when each is used.</li>
-        <li>Translate business RPO/RTO statements into a concrete backup schedule.</li>
+        <li>Translate business <code>RPO</code>/<code>RTO</code> statements into a concrete backup schedule.</li>
         <li>Perform complete point-in-time restores in a lab and verify data integrity afterward.</li>
         <li>Adopt the discipline that an untested backup is not a backup: schedule and document restore drills.</li>
     </ul>
     <h3 class="il-h il-h--section">Key concepts</h3>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Full vs differential vs transaction-log/incremental backups and when each is used</h4>
-      <div class="il-prose"><p>A full backup copies everything; a differential copies what changed since the last full; a log or incremental backup copies the smallest unit of change since the last backup of its kind. Fulls are the restore foundation, differentials shorten restore chains, and log backups enable point-in-time recovery. The lab takes all three and records size and duration, because the trade-off is concrete: smaller, faster backups mean longer, more fragile restore chains. Choose the mix that fits your RPO, not your comfort.</p></div>
+      <div class="il-prose"><p>A full backup copies everything; a differential copies what changed since the last full; a log or incremental backup copies the smallest unit of change since the last backup of its kind. Fulls are the restore foundation, differentials shorten restore chains, and log backups enable point-in-time recovery. The lab takes all three and records size and duration, because the trade-off is concrete: smaller, faster backups mean longer, more fragile restore chains. Choose the mix that fits your <code>RPO</code>, not your comfort.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Recovery models (simple vs full logging) and their trade-offs</h4>
-      <div class="il-prose"><p>The recovery model decides how much of the transaction log the engine keeps. Simple recovery truncates the log aggressively — smaller logs, but no point-in-time restore. Full recovery keeps the log chain intact, enabling restore to any moment, at the cost of log management discipline. The lab breaks a chain on purpose to feel exactly what full recovery demands. Pick the model per database, per RPO — never by default.</p></div>
-      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">RPO: how much data the business can afford to lose; RTO: how fast you must be back</h4>
-      <div class="il-prose"><p>Recovery Point Objective is the maximum acceptable data loss, measured in time: RPO of 15 minutes means backups (or log shipping) must capture everything at least that often. Recovery Time Objective is the maximum acceptable downtime: RTO of 2 hours means the whole restore must complete inside two hours. These are business statements first, and the backup schedule is their translation into engineering. The checkpoint&#x27;s RPO-15/RTO-2 exercise is the core DBA planning skill.</p></div>
+      <div class="il-prose"><p>The recovery model decides how much of the transaction log the engine keeps. Simple recovery truncates the log aggressively — smaller logs, but no point-in-time restore. Full recovery keeps the log chain intact, enabling restore to any moment, at the cost of log management discipline. The lab breaks a chain on purpose to feel exactly what full recovery demands. Pick the model per database, per <code>RPO</code> — never by default.</p></div>
+      <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem"><code>RPO</code>: how much data the business can afford to lose; <code>RTO</code>: how fast you must be back</h4>
+      <div class="il-prose"><p>Recovery Point Objective is the maximum acceptable data loss, measured in time: <code>RPO</code> of 15 minutes means backups (or log shipping) must capture everything at least that often. Recovery Time Objective is the maximum acceptable downtime: <code>RTO</code> of 2 hours means the whole restore must complete inside two hours. These are business statements first, and the backup schedule is their translation into engineering. The checkpoint&#x27;s <code>RPO</code>-15/<code>RTO</code>-2 exercise is the core DBA planning skill.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Point-in-time recovery and why the log chain must stay unbroken</h4>
       <div class="il-prose"><p>Point-in-time recovery replays the log chain from the last full backup forward to a chosen moment — the minute before someone dropped a table, in the lab&#x27;s disaster simulation. Every link in the chain must be present and in order; one missing or out-of-sequence log backup ends the replay there. That is why the lab deliberately breaks a chain and documents the failure: the chain is the recovery. Protect it with the same seriousness as the data.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Backup verification: checksums, test restores, and treating untested backups as no backups</h4>
@@ -238,13 +314,31 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Script an automated nightly backup with a verification step that restores to a staging database and reports success or failure.</li>
       <li>Run a consistency check against a lab database and interpret the output line by line.</li>
     </ol>
+<div class="ilw" role="group" aria-label="RPO is 15 minutes. Which schedule meets it?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> RPO is 15 minutes. Which schedule meets it?</p>
+<pre class="ilw-code"><code>-- business: RPO 15 min, RTO 2 h</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m2" id="ilw-dba-m2-0">
+<label class="ilw-lab" for="ilw-dba-m2-0"><span class="ilw-key">A</span><span>Weekly full + daily differential + log backups every 15 minutes</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> RPO 15 min demands log backups at least every 15 minutes — only the log chain bounds data loss that tightly. Fulls/diffs bound the RTO (fewer files to restore). Each piece serves one of the two numbers.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m2" id="ilw-dba-m2-1">
+<label class="ilw-lab" for="ilw-dba-m2-1"><span class="ilw-key">B</span><span>Daily full backups only</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> A daily full bounds data loss at 24 hours, not 15 minutes. RPO blown by 23h45m.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m2" id="ilw-dba-m2-2">
+<label class="ilw-lab" for="ilw-dba-m2-2"><span class="ilw-key">C</span><span>Weekly full + hourly log backups</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Hourly logs bound loss at 60 minutes — 4x over the RPO. The log frequency is the RPO lever.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m2" id="ilw-dba-m2-3">
+<label class="ilw-lab" for="ilw-dba-m2-3"><span class="ilw-key">D</span><span>Continuous full backups every 15 minutes</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Fulls every 15 minutes would work logically but is absurd operationally — the log chain exists precisely for this.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>A business states RPO 15 minutes and RTO 2 hours. Sketch the backup schedule and justify each piece.</li>
-        <li>One log backup in the middle of the chain is missing. Which restores are still possible, and which are lost?</li>
-        <li>Why is a backup file stored on the same disk as the database not a real backup?</li>
-        <li>Perform your restore drill from your notes alone and time it against the stated RTO.</li>
-    </ol>
+    <ol class="il-list"><li>A business states <code>RPO</code> 15 minutes and <code>RTO</code> 2 hours. Sketch the backup schedule and justify each piece.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">RPO 15 minutes means never losing more than 15 minutes of data: take <strong>log backups every 15 minutes</strong> (or tighter). RTO 2 hours means restorable within 2 hours: one weekly <strong>full</strong>, daily <strong>differentials</strong> (so restores need few files), and a <strong>tested</strong> restore procedure timed under 2 hours. Each piece justifies itself against one of the two numbers — anything that serves neither is ceremony.</div></details></li><li>One log backup in the middle of the chain is missing. Which restores are still possible, and which are lost?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Restores are possible <strong>up to the gap</strong>: full + differentials + log chain intact through the last good log backup. Everything after the missing log is lost for point-in-time recovery — the chain is broken, and later logs cannot be applied without their predecessor. You can still restore the full/differential plus logs <em>before</em> the gap. The missing middle is unrecoverable by definition.</div></details></li><li>Why is a backup file stored on the same disk as the database not a real backup?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Because a backup's job is surviving the disasters that kill the original — disk failure, server loss, site loss. A 'backup' on the same disk dies in the same disk failure that takes the database: correlated fate. A real backup lives on separate media, ideally off-site/off-disk, with its own integrity checks. Same-disk copies are convenience, not recovery.</div></details></li><li>Perform your restore drill from your notes alone and time it against the stated <code>RTO</code>.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">If the drill took longer than the RTO, the RTO is fiction — the drill exists to falsify the plan. Time every phase (locate media, restore full, apply diffs/logs, recover, validate app connectivity) and attack the slowest one: fewer files (more frequent differentials), faster storage, or parallel restores. An RTO you have never timed is a hope with a number attached.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -257,6 +351,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 3 of 8</p>
     <h2 class="il-h" id="module-3-high-availability-and-replication-h">High Availability and Replication</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 225" role="img" aria-label="Synchronous versus asynchronous replication" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">synchronous</text><rect x="40" y="45" width="240" height="80" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="160" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">primary waits for standby</text><text x="160" y="92" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">zero data loss · +latency</text><text x="480" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">asynchronous</text><rect x="360" y="45" width="240" height="80" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="480" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">primary never waits</text><text x="480" y="92" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">lag possible · no latency tax</text><rect x="40" y="150" width="560" height="60" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="173" text-anchor="middle" font-size="12" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">standby 45 min behind + primary dies = up to 45 min of data gone (RPO blown)</text><text x="320" y="195" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">failover must be rehearsed — the first real failover is not a drill</text></svg><figcaption>Fig. M3 — Sync buys zero data loss with latency; async buys speed with lag.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-3"> <span>Mark module 3 complete</span></label></p>
     <div class="il-prose">
       <p>Downtime is the DBA&#x27;s report card. This module covers the availability ladder from log shipping to Always On availability groups and Oracle Data Guard, plus replication topologies. You will build a replica, break a primary, and fail over — in the lab, where breaking things is the point.</p>
     </div>
@@ -265,11 +361,11 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <li>Compare failover clustering, synchronous replicas, and asynchronous replication in plain language.</li>
         <li>Explain the difference between high availability and disaster recovery.</li>
         <li>Describe Always On availability concepts and Data Guard concepts at the concept level.</li>
-        <li>Design an HA/DR topology for a given RPO/RTO on paper.</li>
+        <li>Design an HA/DR topology for a given <code>RPO</code>/<code>RTO</code> on paper.</li>
     </ul>
     <h3 class="il-h il-h--section">Key concepts</h3>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">High availability (uptime) vs disaster recovery (survivability): different problems, different tools</h4>
-      <div class="il-prose"><p>High availability keeps the service running through component failures — measured in uptime, served by clustering and synchronous replicas. Disaster recovery brings the service back after a site-level catastrophe — measured in RPO/RTO, served by asynchronous copies in another location. One is about not falling over; the other is about getting back up. The tools overlap but the designs do not, and confusing them produces a system that does neither well.</p></div>
+      <div class="il-prose"><p>High availability keeps the service running through component failures — measured in uptime, served by clustering and synchronous replicas. Disaster recovery brings the service back after a site-level catastrophe — measured in <code>RPO</code>/<code>RTO</code>, served by asynchronous copies in another location. One is about not falling over; the other is about getting back up. The tools overlap but the designs do not, and confusing them produces a system that does neither well.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Synchronous vs asynchronous replication and the durability/latency trade-off</h4>
       <div class="il-prose"><p>Synchronous replication waits for the secondary to acknowledge before committing: zero data loss on failover, at the cost of latency on every write and fragility when the secondary lags. Asynchronous replication commits locally and ships changes after: fast writes, but a failure can lose whatever had not shipped yet. The checkpoint&#x27;s one-paragraph exercise — why zero data loss costs latency — is the whole trade-off in miniature. There is no free choice here, only an informed one.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Failover vs switchover; automatic vs manual promotion</h4>
@@ -279,25 +375,43 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Readable secondaries and offloading reporting workloads</h4>
       <div class="il-prose"><p>Many replica technologies let secondaries serve read queries, which turns the HA investment into a performance asset: reporting and analytics move off the primary. The catch is replication lag — a report on a secondary can be minutes behind, and some secondaries only support snapshot isolation. Design the workload split knowing the lag exists, and monitor it as a first-class metric rather than discovering it in a confused stakeholder meeting.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Replication lag: how to measure it and when to alert on it</h4>
-      <div class="il-prose"><p>Lag is the distance, in time or log volume, between what the primary has committed and what the secondary has applied. The lab applies a write load and measures it directly. Alert thresholds should be tied to the RPO the topology was designed for: if the design promises one hour, alert well before one hour, not at it. Lag that grows unboundedly is not a metric anomaly; it is the DR plan silently expiring.</p></div>
+      <div class="il-prose"><p>Lag is the distance, in time or log volume, between what the primary has committed and what the secondary has applied. The lab applies a write load and measures it directly. Alert thresholds should be tied to the <code>RPO</code> the topology was designed for: if the design promises one hour, alert well before one hour, not at it. Lag that grows unboundedly is not a metric anomaly; it is the DR plan silently expiring.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Failover drills: planned rehearsals vs real failures</h4>
       <div class="il-prose"><p>A failover that has never been rehearsed is a plan, not a capability. Drills surface the undocumented steps — the DNS change, the connection-string update, the job that only exists on the primary — while the stakes are low. The lab&#x27;s manual promotion is a drill, and its documentation is the artifact. Schedule drills the way you schedule backups: the disaster will not wait for a convenient quarter.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">The cost/complexity ladder: single instance, log shipping, replicas, clusters</h4>
-      <div class="il-prose"><p>HA/DR options form a ladder of cost and complexity: a single well-backed-up instance, log shipping to a standby, synchronous replicas, full failover clustering. Each rung buys less data loss and faster recovery at the price of money, operational burden, and new failure modes. The honest engineering move is to climb only as high as the RPO/RTO demands — the lab&#x27;s small-business topology exercise is practice in stopping at the right rung.</p></div>
+      <div class="il-prose"><p>HA/DR options form a ladder of cost and complexity: a single well-backed-up instance, log shipping to a standby, synchronous replicas, full failover clustering. Each rung buys less data loss and faster recovery at the price of money, operational burden, and new failure modes. The honest engineering move is to climb only as high as the <code>RPO</code>/<code>RTO</code> demands — the lab&#x27;s small-business topology exercise is practice in stopping at the right rung.</p></div>
     <h3 class="il-h il-h--section">Hands-on labs</h3>
     <ol class="il-list">
       <li>Build log-shipping-style replication between two free-edition instances using scheduled backup/restore jobs (the concept behind asynchronous DR).</li>
       <li>Apply a write load to the primary and measure replication lag on the standby.</li>
       <li><strong>Simulate a primary failure</strong> — promote the standby manually and document every step and decision.</li>
       <li>Research which HA features are unavailable in free editions and write a one-page brief on what would require a paid edition.</li>
-      <li>Design an HA/DR topology on paper for a fictional small business with RPO 1 hour and RTO 4 hours, and defend it in writing.</li>
+      <li>Design an HA/DR topology on paper for a fictional small business with <code>RPO</code> 1 hour and <code>RTO</code> 4 hours, and defend it in writing.</li>
     </ol>
+<div class="ilw" role="group" aria-label="The standby is 45 minutes behind when the primary dies. Impa">
+<p class="ilw-q"><strong>Lab check — predict.</strong> The standby is 45 minutes behind when the primary dies. Impact?</p>
+<pre class="ilw-code"><code>-- async replication, standby lag 45 min, primary hard down</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m3" id="ilw-dba-m3-0">
+<label class="ilw-lab" for="ilw-dba-m3-0"><span class="ilw-key">A</span><span>Up to 45 minutes of committed transactions are lost; RTO starts now</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Async means the primary never waited — the lag is real data loss on failover. The RPO is blown; now the RTO clock (failover + validation) runs. The post-mortem question: why did lag alerting not fire at 5 minutes?</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m3" id="ilw-dba-m3-1">
+<label class="ilw-lab" for="ilw-dba-m3-1"><span class="ilw-key">B</span><span>No data loss — the standby catches up after failover</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> There is nothing to catch up <em>from</em> — the primary is dead. Unreplicated transactions are gone.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m3" id="ilw-dba-m3-2">
+<label class="ilw-lab" for="ilw-dba-m3-2"><span class="ilw-key">C</span><span>Only uncommitted transactions are lost</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Committed-but-unreplicated transactions are lost too. 'Committed' meant durable on the primary, not on the standby.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m3" id="ilw-dba-m3-3">
+<label class="ilw-lab" for="ilw-dba-m3-3"><span class="ilw-key">D</span><span>The standby refuses to promote with lag</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It promotes fine — with the lag baked in. Refusing would be safer-looking and worse.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>Synchronous replication offers zero data loss but costs latency. Explain why in one paragraph.</li>
-        <li>Your standby is 45 minutes behind when the primary dies. What is the business impact in RPO/RTO terms?</li>
-        <li>Why must a failover be rehearsed before it is ever needed?</li>
-    </ol>
+    <ol class="il-list"><li>Synchronous replication offers zero data loss but costs latency. Explain why in one paragraph.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Synchronous replication makes the primary <strong>wait for the standby's acknowledgment</strong> before confirming the commit — that network round trip is added to every transaction's latency. Zero data loss is purchased with latency because 'durable on both' cannot be confirmed faster than the slowest acknowledgment. There is no free lunch in distributed durability: pick your trade.</div></details></li><li>Your standby is 45 minutes behind when the primary dies. What is the business impact in <code>RPO</code>/<code>RTO</code> terms?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Business impact: up to <strong>45 minutes of committed transactions are gone</strong> (RPO blown — the RPO was presumably far smaller), and the RTO clock starts now (failover + DNS/app cutover + validation). The standby being behind turns a failover into a data-loss event; the post-mortem question is why lag alerting did not fire at 5 minutes, not at 45.</div></details></li><li>Why must a failover be rehearsed before it is ever needed?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Because failover is a <em>procedure</em>, not a feature: DNS changes, connection strings, application behavior on a promoted standby, and the human coordination all have failure modes that only rehearsal exposes. An unrehearsed failover discovers its bugs during the outage — when every minute costs money and every mistake compounds. Rehearse on a schedule; the drill is part of the HA system.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -310,6 +424,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 4 of 8</p>
     <h2 class="il-h" id="module-4-security-hardening-h">Security Hardening</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 250" role="img" aria-label="Defense in depth for database security" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">layers, not one magic switch</text><rect x="120" y="50" width="400" height="34" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="180" y="72" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">disk encryption</text><text x="505" y="72" text-anchor="end" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">protects stolen hardware</text><rect x="120" y="92" width="400" height="34" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="180" y="114" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">TDE — database encryption</text><text x="505" y="114" text-anchor="end" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">protects data files at rest</text><rect x="120" y="134" width="400" height="34" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="180" y="156" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">column encryption</text><text x="505" y="156" text-anchor="end" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">protects specific sensitive columns</text><rect x="120" y="176" width="400" height="34" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="180" y="198" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">least privilege</text><text x="505" y="198" text-anchor="end" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">app gets only what it needs</text><text x="320" y="235" text-anchor="middle" font-size="12" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">encrypted backup on a new server fails → the certificate/key did not travel with it</text></svg><figcaption>Fig. M4 — Encryption layers stack; keys must be backed up separately from data.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-4"> <span>Mark module 4 complete</span></label></p>
     <div class="il-prose">
       <p>A database holds the organization&#x27;s crown jewels. This module covers authentication, authorization, encryption (at rest and in transit), auditing, and the hardening checklists for both platforms. You will lock down a lab instance and then try to break in — from the outside, as an attacker would.</p>
     </div>
@@ -326,7 +442,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Authentication modes: OS/integrated logins vs database-native logins</h4>
       <div class="il-prose"><p>Integrated authentication delegates identity to the OS or directory — one credential store, centralized policy, no passwords in connection strings. Database-native logins are portable and simple but create a second credential lifecycle to manage. The right mix depends on the environment: domain-joined fleets favor integrated, heterogeneous or cloud workloads often need native. Know which mode each login uses, because the audit and rotation story differs completely.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Server roles vs database roles vs custom application roles</h4>
-      <div class="il-prose"><p>Built-in privileged roles are convenient and dangerous: they bundle far more power than any application needs. The discipline is custom database roles that grant exactly the application&#x27;s required permissions, with server-level roles reserved for actual administrators. The lab replaces a db_owner-style grant with a tailored role. Roles are the unit of least privilege — design them before you need them, not after an incident.</p></div>
+      <div class="il-prose"><p>Built-in privileged roles are convenient and dangerous: they bundle far more power than any application needs. The discipline is custom database roles that grant exactly the application&#x27;s required permissions, with server-level roles reserved for actual administrators. The lab replaces a <code>db_owner</code>-style grant with a tailored role. Roles are the unit of least privilege — design them before you need them, not after an incident.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Auditing: capturing logins, schema changes, and access to sensitive tables</h4>
       <div class="il-prose"><p>Auditing answers who did what, when: successful and failed logins, schema changes, and access to sensitive tables are the baseline capture set. The lab enables auditing, performs suspicious actions, then finds them in the trail — because an audit log you cannot read is decoration. Size and retention are part of the design: audit data grows, and a full audit volume that halts the engine is its own incident. For personal-data stores, the audit trail is also a compliance artifact.</p></div>
       <h4 class="il-h" style="font-size:1.05rem;margin-top:1.4rem">Encryption at rest (transparent data encryption concepts) and key management basics</h4>
@@ -345,13 +461,32 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Enable at-rest encryption on a lab database, then back it up and restore it elsewhere to observe the key/certificate dependency firsthand.</li>
       <li>Run a hardening checklist against your lab instance, remediate every finding, and document each remediation.</li>
     </ol>
+<div class="ilw" role="group" aria-label="The application connects as db_owner. Your move?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> The application connects as db_owner. Your move?</p>
+<pre class="ilw-code"><code>-- app login: member of db_owner
+-- finding from the security review</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m4" id="ilw-dba-m4-0">
+<label class="ilw-lab" for="ilw-dba-m4-0"><span class="ilw-key">A</span><span>Replace with least privilege: dedicated login, role with only needed permissions</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> A compromised app with <code>db_owner</code> is a compromised database — it can drop tables, read everything, disable auditing. Least privilege contains the blast radius: execute on its procedures, select on its views, nothing else.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m4" id="ilw-dba-m4-1">
+<label class="ilw-lab" for="ilw-dba-m4-1"><span class="ilw-key">B</span><span>Keep db_owner — the app needs flexibility</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> 'Flexibility' is the attacker's flexibility. Apps need permissions, not power.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m4" id="ilw-dba-m4-2">
+<label class="ilw-lab" for="ilw-dba-m4-2"><span class="ilw-key">C</span><span>Switch to sa — simpler to manage</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Escalating the finding is not remediating it.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m4" id="ilw-dba-m4-3">
+<label class="ilw-lab" for="ilw-dba-m4-3"><span class="ilw-key">D</span><span>Remove the login — the app can use the DBA&#x27;s account</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Shared DBA credentials destroy accountability and hand the app the keys to everything.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>Why is a db_owner/DBA-level account for an application a finding, and what do you replace it with?</li>
-        <li>You restore an encrypted backup to a new server and it fails. What is missing, and why?</li>
-        <li>Which events belong in the audit trail for a database that holds personal data?</li>
-        <li>Explain the difference between encrypting the disk and encrypting the database itself.</li>
-    </ol>
+    <ol class="il-list"><li>Why is a <code>db_owner</code>/DBA-level account for an application a finding, and what do you replace it with?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A <code>db_owner</code>/DBA-level application account can do anything — drop tables, read every row, disable auditing. A finding because it violates <strong>least privilege</strong>: a compromised app becomes a compromised database. Replace it with a dedicated login mapped to a role holding <em>only</em> the permissions the app needs (execute on its procedures, select on its views) — and nothing else. The app should not even be able to see objects it never touches.</div></details></li><li>You restore an encrypted backup to a new server and it fails. What is missing, and why?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The <strong>certificate or asymmetric key</strong> (and its backup) is missing: TDE/database encryption keys live outside the backup. Restoring encrypted data without the key is restoring noise. Why: encryption is designed so that stealing the files is useless — the key is the actual secret, backed up separately, stored separately. No key, no data — working as designed, against you.</div></details></li><li>Which events belong in the audit trail for a database that holds personal data?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">For personal data, the audit trail must capture: <strong>who</strong> accessed what (successful <em>and failed</em> logins), <strong>what</strong> changed (DML on personal-data tables, with before/after where required), <strong>privilege changes</strong> (grant/revoke, role membership), and <strong>schema changes</strong>. The test of an audit trail: can you answer 'who saw this person's record last Tuesday?' — if not, it is logging, not auditing.</div></details></li><li>Explain the difference between encrypting the disk and encrypting the database itself.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Disk encryption protects against <strong>stolen hardware</strong> — the files are unreadable off the machine, but while the server runs, the database sees plaintext. Database encryption (TDE) protects the <strong>files themselves</strong> — data files, backups, and snapshots are encrypted at rest, so a stolen backup file is useless without the key. Different threats, different layers: disk encryption stops the thief with the server; TDE stops the thief with the backup tape.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -364,6 +499,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 5 of 8</p>
     <h2 class="il-h" id="module-5-monitoring-and-alerting-h">Monitoring and Alerting</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 215" role="img" aria-label="Baselines, wait shifts, blocking versus deadlock" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">baseline first</text><rect x="40" y="45" width="240" height="70" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="160" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">CPU 40% · I/O 20%</text><text x="160" y="95" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">your &#x27;normal&#x27;</text><text x="480" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">tonight: waits shift to I/O</text><rect x="360" y="45" width="240" height="70" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="480" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">CPU 10% · I/O 80%</text><text x="480" y="95" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">something changed</text><rect x="40" y="140" width="280" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="180" y="163" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">blocking: waits, resolves</text><text x="180" y="185" text-anchor="middle" font-size="11" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">deadlock: cycle, engine kills one</text><rect x="340" y="140" width="260" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="470" y="163" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">3 AM log growth → runbook:</text><text x="470" y="185" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">open txn? log backups? disk?</text></svg><figcaption>Fig. M5 — You cannot spot abnormal without a baseline; blocking waits, deadlock kills.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-5"> <span>Mark module 5 complete</span></label></p>
     <div class="il-prose">
       <p>You cannot fix what you cannot see. This module covers the monitoring stack: wait statistics and dynamic management views on SQL Server, AWR and ADDM on Oracle, and the alerting discipline that separates signal from noise. You will build a monitoring baseline and a paging policy.</p>
     </div>
@@ -399,13 +536,31 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Fill a scratch volume safely inside a container and watch space monitoring react; document the remediation steps.</li>
       <li>Build a one-page dashboard (even a spreadsheet) from your baseline metrics.</li>
     </ol>
+<div class="ilw" role="group" aria-label="3 AM: transaction-log space alert. First three checks, in or">
+<p class="ilw-q"><strong>Lab check — predict.</strong> 3 AM: transaction-log space alert. First three checks, in order?</p>
+<pre class="ilw-code"><code>-- alert: transaction log 90% full, growing</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m5" id="ilw-dba-m5-0">
+<label class="ilw-lab" for="ilw-dba-m5-0"><span class="ilw-key">A</span><span>Open transactions → log backup health → disk growth rate</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> The runbook order: something <em>holding</em> the log (open/orphaned transaction), then something <em>not truncating</em> it (broken log backups), then capacity. Growing the file first just feeds the leak until the 4 AM page.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m5" id="ilw-dba-m5-1">
+<label class="ilw-lab" for="ilw-dba-m5-1"><span class="ilw-key">B</span><span>Grow the log file immediately</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> An open transaction will eat the new space too. Diagnose before expanding.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m5" id="ilw-dba-m5-2">
+<label class="ilw-lab" for="ilw-dba-m5-2"><span class="ilw-key">C</span><span>Restart the database — it clears the log</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Restarting does not truncate a log held by an open transaction, and it creates an outage to 'fix' a space issue.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m5" id="ilw-dba-m5-3">
+<label class="ilw-lab" for="ilw-dba-m5-3"><span class="ilw-key">D</span><span>Delete the log file — it regenerates</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Deleting the active log file corrupts the database. This is never the answer.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>Wait statistics shift overnight from CPU to I/O. What changed, and what do you check first?</li>
-        <li>Your space alert fires at 3 AM for transaction-log growth. What does the runbook say?</li>
-        <li>How do you tell blocking apart from a deadlock, and why does the distinction matter?</li>
-        <li>Define &#x27;normal&#x27; for your lab server in three sentences using your own baseline.</li>
-    </ol>
+    <ol class="il-list"><li>Wait statistics shift overnight from CPU to I/O. What changed, and what do you check first?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The workload's bottleneck moved: something now waits on storage instead of CPU — new query shape, data growth past memory, degraded disks, or a noisy neighbor. Check first: <strong>which waits</strong> (PAGEIOLATCH? IO_COMPLETION?), <strong>what changed</strong> at the shift time (deployments, jobs, data loads), and <strong>disk latency counters</strong> (is the storage actually slower, or is the engine just asking more?). Wait stats say <em>what</em>; the timeline says <em>why</em>.</div></details></li><li>Your space alert fires at 3 AM for transaction-log growth. What does the runbook say?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The runbook says, in order: (1) check for <strong>open transactions</strong> holding the log hostage (long-running or orphaned); (2) verify <strong>log backups are actually running</strong> (a broken log backup chain grows the log forever); (3) check <strong>disk space</strong> and growth rate; (4) only then consider growing the file or the disk. Never just 'add space' first — an open transaction will eat that too, and you will get the same page at 4 AM.</div></details></li><li>How do you tell blocking apart from a deadlock, and why does the distinction matter?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><strong>Blocking</strong> is orderly waiting: session A waits for session B's lock, and it resolves when B finishes — monitor and tune. A <strong>deadlock</strong> is a cycle (A waits on B waits on A): nobody can finish, so the engine picks a victim and kills it. The distinction matters because blocking is a performance problem (find the head blocker) while deadlocking is a correctness/design problem (fix the access order). Different disease, different cure.</div></details></li><li>Define &#x27;normal&#x27; for your lab server in three sentences using your own baseline.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">'Normal' for the lab server, in three sentences: baseline CPU sits near X% with waits dominated by Y during business hours; the transaction log grows Z GB/day with log backups every 15 minutes keeping it flat; the top-5 wait types are [list], and anything outside them is the investigation trigger. Without your own numbers, every alert is either noise or a surprise — the baseline converts both into signal.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -418,6 +573,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 6 of 8</p>
     <h2 class="il-h" id="module-6-performance-troubleshooting-basics-h">Performance Troubleshooting Basics</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 210" role="img" aria-label="Performance troubleshooting order of operations" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">the troubleshooting order</text><rect x="20" y="50" width="145" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="92" y="72" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">1. plan</text><text x="92" y="95" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">read the actual plan</text><defs><marker id="ilm6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="165" y1="80" x2="175" y2="80" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm6)"/><rect x="175" y="50" width="145" height="60" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="247" y="72" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">2. stats</text><text x="247" y="95" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">stale statistics?</text><defs><marker id="ilm7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="320" y1="80" x2="330" y2="80" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm7)"/><rect x="330" y="50" width="145" height="60" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="402" y="72" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">3. sniffing</text><text x="402" y="95" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">one customer slow?</text><defs><marker id="ilm8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="475" y1="80" x2="485" y2="80" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm8)"/><rect x="485" y="50" width="145" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="557" y="72" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">4. index</text><text x="557" y="95" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">is it even used?</text><rect x="20" y="135" width="600" height="60" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="158" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">added an index, nothing improved → check the plan actually uses it</text><text x="320" y="180" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">&#x27;add hardware&#x27; is wrong when the plan is wrong — hardware rents the inefficiency</text></svg><figcaption>Fig. M6 — Plan first, hardware last.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-6"> <span>Mark module 6 complete</span></label></p>
     <div class="il-prose">
       <p>Slow queries are where DBA theory meets reality. This module teaches a repeatable troubleshooting method: identify the bottleneck, read the execution plan, fix the statistics or the index or the query — in that order. You will work real slow-query scenarios and document each diagnosis.</p>
     </div>
@@ -453,13 +610,32 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Build a skewed dataset to demonstrate parameter sniffing behavior and document two mitigations at the concept level.</li>
       <li>Write a one-page incident report for a lab slowdown you induced, including timeline and root cause.</li>
     </ol>
+<div class="ilw" role="group" aria-label="One customer slow, everyone else fast. First hypothesis?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> One customer slow, everyone else fast. First hypothesis?</p>
+<pre class="ilw-code"><code>-- same procedure, same code path
+-- customer A: 50 ms; customer B: 2500 ms</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m6" id="ilw-dba-m6-0">
+<label class="ilw-lab" for="ilw-dba-m6-0"><span class="ilw-key">A</span><span>Parameter sniffing / data skew — compare the actual plans</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> One-customer slowness on shared code is a plan problem until proven otherwise: the cached plan fits everyone else's distribution. Pull both actual plans; test <code>OPTION (RECOMPILE)</code> on the slow one.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m6" id="ilw-dba-m6-1">
+<label class="ilw-lab" for="ilw-dba-m6-1"><span class="ilw-key">B</span><span>Add more CPU to the server</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Hardware does not discriminate by customer. Asymmetric slowness is logical, not physical.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m6" id="ilw-dba-m6-2">
+<label class="ilw-lab" for="ilw-dba-m6-2"><span class="ilw-key">C</span><span>The network to customer B</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Network latency shows in wait stats as network waits, not as a 50x execution gap on the server.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m6" id="ilw-dba-m6-3">
+<label class="ilw-lab" for="ilw-dba-m6-3"><span class="ilw-key">D</span><span>Rebuild all indexes</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Rebuilding everything for one customer's slowness is surgery for a splinter — and it would not fix a sniffed plan anyway.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>A query is slow for one customer but fast for everyone else. What is your first hypothesis?</li>
-        <li>You added an index and nothing improved. What do you check next?</li>
-        <li>When is &#x27;add more hardware&#x27; the wrong answer to a slow query?</li>
-        <li>Explain the most expensive operator in a query plan to a non-DBA in plain language.</li>
-    </ol>
+    <ol class="il-list"><li>A query is slow for one customer but fast for everyone else. What is your first hypothesis?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">First hypothesis: <strong>parameter sniffing</strong> (or skewed data) — the cached plan was compiled for everyone else's values and is poison for this customer's distribution. Check the actual plan for the slow customer vs a fast one; test with <code>OPTION (RECOMPILE)</code>. One-customer slowness on shared code is a plan problem until proven otherwise — not a hardware problem, not a network problem.</div></details></li><li>You added an index and nothing improved. What do you check next?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Next: verify the plan <strong>actually uses the index</strong> (actual execution plan, not estimated) — then check <strong>statistics</strong> freshness, then whether the predicate is sargable (functions on the column defeat seeks). An unused index is pure write overhead; a used-but-unhelpful one points at statistics or selectivity. 'Added index, no change' almost always means the plan never touched it.</div></details></li><li>When is &#x27;add more hardware&#x27; the wrong answer to a slow query?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">'Add hardware' is wrong when the bottleneck is <strong>logical</strong>: a bad plan, a missing index, a blocking chain, or a chatty application doing 10,000 round trips. Hardware rents inefficiency by the month — a faster server running a table scan is still a table scan. Scale the hardware when the plan is good and the workload genuinely exceeds capacity; fix the plan first, always.</div></details></li><li>Explain the most expensive operator in a query plan to a non-DBA in plain language.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Plain-language version: 'The most expensive operator is the one that touches the most data in the dumbest way — usually a full table scan, which reads <em>every row</em> to find a few, like searching a library by reading every book. The plan shows where the engine spends its time; the scan is where it spends it all.' The non-DBA needs the intuition (touch less data), not the operator name.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -472,6 +648,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 7 of 8</p>
     <h2 class="il-h" id="module-7-migration-planning-and-execution-h">Migration Planning and Execution</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 218" role="img" aria-label="Migration pipeline and the login trap" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">migration: rehearsed, measured, reversible</text><rect x="15" y="50" width="114" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="72" y="77" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">assess</text><defs><marker id="ilm9" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="129" y1="72" x2="139" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm9)"/><rect x="139" y="50" width="114" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="196" y="77" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">test restore</text><defs><marker id="ilm10" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="253" y1="72" x2="263" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm10)"/><rect x="263" y="50" width="114" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="320" y="77" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">rehearse cutover</text><defs><marker id="ilm11" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="377" y1="72" x2="387" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm11)"/><rect x="387" y="50" width="114" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="444" y="77" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">cutover</text><defs><marker id="ilm12" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="501" y1="72" x2="511" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm12)"/><rect x="511" y="50" width="114" height="44" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="568" y="77" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">validate</text><rect x="15" y="120" width="610" height="60" rx="8" fill="#0d1626" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="320" y="143" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">logins live in master, not in the database backup → migrate them separately</text><text x="320" y="165" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">or every user becomes an orphaned user on the new server</text><text x="320" y="200" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">deprecated feature in use → rewrite it · replace it · delay · extended support — decide, don&#x27;t drift</text></svg><figcaption>Fig. M7 — Logins are server-level; backups are database-level. Migrate both.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-7"> <span>Mark module 7 complete</span></label></p>
     <div class="il-prose">
       <p>Databases outlive their versions. This module covers upgrade paths, compatibility levels, migration strategies (backup/restore, log shipping cutover, Data Migration Assistant), and rollback planning. You will rehearse a full migration in the lab, including the rollback nobody wants to need.</p>
     </div>
@@ -507,13 +685,31 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Run a timed dry-run cutover from a checklist, then hold a retrospective on what slipped.</li>
       <li>Write a rollback plan for your migration and mark the point of no return.</li>
     </ol>
+<div class="ilw" role="group" aria-label="Assessment flags a deprecated feature in active use. Best re">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Assessment flags a deprecated feature in active use. Best response?</p>
+<pre class="ilw-code"><code>-- migration assessment: DEPRECATED feature, used by 3 procedures</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m7" id="ilw-dba-m7-0">
+<label class="ilw-lab" for="ilw-dba-m7-0"><span class="ilw-key">A</span><span>Decide explicitly: rewrite, replace, delay, or extended support — before migrating</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Deprecated means removal is scheduled; 'actively used' means the breakage will find you. Each option has a cost; 'migrate and hope' has the highest one. Decide, schedule, execute.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m7" id="ilw-dba-m7-1">
+<label class="ilw-lab" for="ilw-dba-m7-1"><span class="ilw-key">B</span><span>Migrate now, deal with it if it breaks</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It will break on the vendor's schedule, not yours — during production, not during the migration window.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m7" id="ilw-dba-m7-2">
+<label class="ilw-lab" for="ilw-dba-m7-2"><span class="ilw-key">C</span><span>Ignore — deprecated features keep working forever</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Deprecated is a promise of removal, not a rumor. The assessment flagged it because the clock is ticking.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m7" id="ilw-dba-m7-3">
+<label class="ilw-lab" for="ilw-dba-m7-3"><span class="ilw-key">D</span><span>Cancel the migration</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> One deprecated feature does not cancel a migration; it scopes a work item. Proportion the response.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>The assessment flags a deprecated feature that is actively used. What are your options?</li>
-        <li>After migration the app connects, but one report returns wrong results. Where do you look first?</li>
-        <li>Why must logins be migrated separately from the database backup?</li>
-        <li>Define &#x27;migration success&#x27; in measurable terms before the cutover begins.</li>
-    </ol>
+    <ol class="il-list"><li>The assessment flags a deprecated feature that is actively used. What are your options?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Options, in escalating order: (1) <strong>rewrite</strong> the usage onto the supported replacement before migrating; (2) <strong>replace</strong> the feature with an equivalent (different mechanism, same outcome); (3) <strong>delay</strong> the migration until the rewrite is done; (4) pay for <strong>extended support</strong> as a bridge. What you cannot do is migrate and hope — deprecated means removal is scheduled, and 'actively used' means the breakage will find you.</div></details></li><li>After migration the app connects, but one report returns wrong results. Where do you look first?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Look first at <strong>behavioral changes in the new version</strong>: collation, compatibility level, date/time handling, and implicit conversions. 'Connects fine but wrong results' is the signature of a semantic change, not a connectivity problem — the query runs, the engine just means something slightly different by it now. Diff the compatibility-level behavior changes against every query the report touches.</div></details></li><li>Why must logins be migrated separately from the database backup?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Because logins are <strong>server-level principals</strong> (stored in master), while the database backup contains only <strong>database-level users</strong>. Restore the database without migrating logins and every user becomes <em>orphaned</em> — the name exists in the database, but no login maps to it. Migrate logins (with their SIDs/password hashes) separately, then remap. Backup = data; logins = identity; both must travel.</div></details></li><li>Define &#x27;migration success&#x27; in measurable terms before the cutover begins.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">'Migration success' in measurable terms: cutover completed within the window; zero data loss (row counts and checksums match); application error rate at or below pre-migration baseline for 24 hours; performance within X% of baseline on the top-10 queries; rollback procedure tested and on standby. If it is not measured, the cutover meeting will define success by exhaustion — 'we're too tired to roll back' is not a criterion.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -526,6 +722,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <div class="il-wrap">
     <p class="il-eyebrow">Module 8 of 8</p>
     <h2 class="il-h" id="module-8-capacity-planning-and-maintenance-h">Capacity Planning and Maintenance</h2>
+<figure class="il-fig"><svg viewBox="0 0 640 258" role="img" aria-label="Growth forecast and maintenance thresholds" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">capacity: forecast, don&#x27;t react</text><rect x="40" y="130" width="36" height="20" fill="#7ed4e0" opacity="0.8"/><rect x="88" y="121" width="36" height="29" fill="#7ed4e0" opacity="0.8"/><rect x="136" y="112" width="36" height="38" fill="#7ed4e0" opacity="0.8"/><rect x="184" y="103" width="36" height="47" fill="#7ed4e0" opacity="0.8"/><rect x="232" y="94" width="36" height="56" fill="#7ed4e0" opacity="0.8"/><rect x="280" y="85" width="36" height="65" fill="#7ed4e0" opacity="0.8"/><rect x="328" y="76" width="36" height="74" fill="#7ed4e0" opacity="0.8"/><rect x="376" y="67" width="36" height="83" fill="#7ed4e0" opacity="0.8"/><rect x="424" y="58" width="36" height="92" fill="#7ed4e0" opacity="0.8"/><rect x="472" y="49" width="36" height="101" fill="#f87171" opacity="0.8"/><rect x="520" y="40" width="36" height="110" fill="#f87171" opacity="0.8"/><rect x="568" y="31" width="36" height="119" fill="#f87171" opacity="0.8"/><text x="320" y="170" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">log volume → 80% in 60 days: add space · grow slower · archive sooner — pick early</text><rect x="40" y="190" width="560" height="55" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="212" text-anchor="middle" font-size="12" fill="#34d399" font-family="'JetBrains Mono',ui-monospace,monospace">5% fragmentation: leave it — rebuilds start paying around 30%+</text><text x="320" y="232" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">skipped stats for a month → the optimizer plans against last month&#x27;s data</text></svg><figcaption>Fig. M8 — Forecast the curve; maintain on thresholds, not on anxiety.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="database-admin.v1:module-8"> <span>Mark module 8 complete</span></label></p>
     <div class="il-prose">
       <p>The DBA&#x27;s job ends where the platform engineer&#x27;s begins: forecasting growth, automating the routine, and making yourself unnecessary for daily operations. This closing module covers capacity models, trend analysis, and the automation — jobs, scripts, runbooks — that turns administration into engineering.</p>
     </div>
@@ -561,13 +759,31 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Run maintenance during a simulated business-hours load and measure the impact on concurrent user queries.</li>
       <li><strong>Write the maintenance runbook</strong> — what runs, when, expected duration, and how to back out.</li>
     </ol>
+<div class="ilw" role="group" aria-label="Fragmentation is 5% on a large index. Rebuild?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Fragmentation is 5% on a large index. Rebuild?</p>
+<pre class="ilw-code"><code>-- sys.dm_db_index_physical_stats: avg_fragmentation_in_percent = 5</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-dba-m8" id="ilw-dba-m8-0">
+<label class="ilw-lab" for="ilw-dba-m8-0"><span class="ilw-key">A</span><span>No — below ~30% the rebuild costs more than it buys</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Rebuilds cost locks, log, and time; at 5% the query benefit is unmeasurable. Set the threshold (~30%), document it, monitor. Maintenance on thresholds, not on anxiety.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m8" id="ilw-dba-m8-1">
+<label class="ilw-lab" for="ilw-dba-m8-1"><span class="ilw-key">B</span><span>Yes — any fragmentation hurts</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> 5% fragmentation does not measurably hurt. 'Any' is not a threshold; it is a compulsion.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m8" id="ilw-dba-m8-2">
+<label class="ilw-lab" for="ilw-dba-m8-2"><span class="ilw-key">C</span><span>Yes — rebuilds are free during maintenance windows</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Offline rebuilds lock; online rebuilds cost resources and log. Nothing is free; spend the budget where it pays.</p>
+<input class="ilw-in" type="radio" name="ilw-dba-m8" id="ilw-dba-m8-3">
+<label class="ilw-lab" for="ilw-dba-m8-3"><span class="ilw-key">D</span><span>Drop and recreate the index instead</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Dropping loses the index entirely mid-operation — strictly worse than a rebuild, for zero benefit at 5%.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
     <h3 class="il-h il-h--section">Self-check</h3>
-    <ol class="il-list">
-        <li>Fragmentation measures 5% on a large index. Do you rebuild? Justify with the trade-offs.</li>
-        <li>Your forecast shows the log volume hitting 80% full in 60 days. What are your options?</li>
-        <li>A maintenance job overlaps business hours and blocks users. How do you reschedule it safely?</li>
-        <li>What breaks if statistics updates are skipped for a month?</li>
-    </ol>
+    <ol class="il-list"><li>Fragmentation measures 5% on a large index. Do you rebuild? Justify with the trade-offs.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">No — do not rebuild at 5%. Rebuilds (especially offline) cost locks, log, and time; below ~30% fragmentation the query benefit is unmeasurable while the maintenance cost is real. The trade: reorganize/rebuild pays only when fragmentation is high <em>and</em> the index is actually scanned heavily. At 5%, the right action is monitoring — set the threshold, document it, move on.</div></details></li><li>Your forecast shows the log volume hitting 80% full in 60 days. What are your options?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Options: (1) <strong>add capacity</strong> now, while it is cheap and calm; (2) <strong>slow the growth</strong> — find what is filling the log (open transactions? missing log backups? new workload?) and fix the cause; (3) <strong>archive/purge</strong> on policy — move old data out on a schedule. The wrong option is waiting 60 days: capacity emergencies are always more expensive than capacity plans.</div></details></li><li>A maintenance job overlaps business hours and blocks users. How do you reschedule it safely?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Never just move it and hope: (1) check <strong>dependencies</strong> (does anything chain off this job?); (2) move it to a proven-quiet window with a <strong>test run</strong> first; (3) keep the old schedule <strong>documented and reversible</strong>; (4) watch the first run in the new slot. Maintenance that blocks users is a scheduling bug, and rescheduling without verification just moves the bug to a new hour.</div></details></li><li>What breaks if statistics updates are skipped for a month?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The optimizer starts planning against <strong>last month's data distribution</strong>: row estimates go stale, plans go wrong, and performance degrades in ways that look like everything except statistics. What breaks is plan quality — silently, gradually, everywhere. Statistics maintenance is not hygiene theater; it is the optimizer's eyesight.</div></details></li></ol>
     <h3 class="il-h il-h--section">Module sources</h3>
     <ul class="il-list">
         <li><a href="https://learn.microsoft.com/en-us/sql/database-engine/" rel="noopener">learn.microsoft.com/en-us/sql/database-engine</a></li>
@@ -598,6 +814,36 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="final-exam-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Final assessment</p>
+        <h2 class="il-h il-h--section" id="final-exam-h">Scenario exam — prove the sequence.</h2>
+      </div>
+      <div class="il-prose">Fourteen original scenario questions — the decisions database administrators actually make: RPO/RTO math, broken chains, lagging standbys, least privilege, and the troubleshooting order. Misses remediate into <a href="/adapt/">Adapt</a> and <a href="/coach/">Noah</a>. These scenarios are written for this sequence; they are not real exam questions from any certification.</div>
+      <div data-il-exam="database-admin"></div>
+      <script type="application/json" data-il-exam-bank>[{"id": "ex-dba-volumes", "domain": "Installation", "stem": "Why do data files and log files belong on separate volumes?", "choices": [{"key": "A", "text": "Opposite I/O patterns (random vs sequential) plus separate failure domains"}, {"key": "B", "text": "The engine requires it — it will not start otherwise"}, {"key": "C", "text": "Log files are larger than data files"}, {"key": "D", "text": "It is purely cosmetic"}], "answer": "A", "why": "Random vs sequential I/O compete on one volume; one disk death taking both destroys the DB and its recovery log.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20storage%20layout%20(DBA%20Module%201)."}}, {"id": "ex-dba-memory", "domain": "Installation", "stem": "Max memory left unbounded on a shared host. First symptom?", "choices": [{"key": "A", "text": "OS paging — the engine starves the host and everything slows"}, {"key": "B", "text": "Immediate out-of-memory query errors"}, {"key": "C", "text": "Nothing — the engine self-limits"}, {"key": "D", "text": "Only other apps suffer"}], "answer": "A", "why": "The default cap is effectively infinite. Detect via paging counters and memory-grant waits; cap on day one.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20memory%20configuration%20(DBA%20Module%201)."}}, {"id": "ex-dba-rpo", "domain": "Backup & Recovery", "stem": "RPO 15 minutes. Which backup schedule meets it?", "choices": [{"key": "A", "text": "Weekly full + daily differential + log backups every 15 min"}, {"key": "B", "text": "Daily fulls only"}, {"key": "C", "text": "Weekly full + hourly logs"}, {"key": "D", "text": "Full backup every 15 minutes"}], "answer": "A", "why": "Only the log chain bounds loss to 15 min. Fulls/diffs bound the RTO.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20RPO/RTO%20backup%20design%20(DBA%20Module%202)."}}, {"id": "ex-dba-gap", "domain": "Backup & Recovery", "stem": "One log backup in the middle of the chain is missing. What is lost?", "choices": [{"key": "A", "text": "Point-in-time recovery after the gap — the chain cannot skip a link"}, {"key": "B", "text": "Nothing — later logs compensate"}, {"key": "C", "text": "The full backup is invalidated"}, {"key": "D", "text": "Only the differential is lost"}], "answer": "A", "why": "Log restores are sequential. Everything up to the gap restores; everything after the gap is unrecoverable point-in-time.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20log%20chain%20(DBA%20Module%202)."}}, {"id": "ex-dba-samedisk", "domain": "Backup & Recovery", "stem": "Why is a backup on the same disk as the database not a real backup?", "choices": [{"key": "A", "text": "Correlated fate — the disk failure that kills the DB kills the 'backup'"}, {"key": "B", "text": "Backup files cannot be read from the same disk"}, {"key": "C", "text": "It is slower"}, {"key": "D", "text": "It is — same-disk is fine"}], "answer": "A", "why": "A backup must survive the disasters that kill the original: separate media, ideally off-site.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20what%20makes%20a%20backup%20real%20(DBA%20Module%202)."}}, {"id": "ex-dba-sync", "domain": "High Availability", "stem": "Synchronous replication costs latency because…", "choices": [{"key": "A", "text": "The primary waits for the standby's acknowledgment before confirming commit"}, {"key": "B", "text": "Sync replicas compress data"}, {"key": "C", "text": "Sync requires more CPU"}, {"key": "D", "text": "It doesn't — sync is free"}], "answer": "A", "why": "Zero data loss = confirmed on both = a network round trip per commit. The latency is the price.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20sync%20vs%20async%20replication%20(DBA%20Module%203)."}}, {"id": "ex-dba-lag", "domain": "High Availability", "stem": "Async standby 45 min behind; primary dies. Business impact?", "choices": [{"key": "A", "text": "Up to 45 min of committed transactions lost; RTO clock starts"}, {"key": "B", "text": "No loss — standby catches up"}, {"key": "C", "text": "Only uncommitted transactions lost"}, {"key": "D", "text": "Standby refuses to promote"}], "answer": "A", "why": "Unreplicated = gone. Committed on the primary is not committed on the standby.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20replication%20lag%20and%20RPO%20(DBA%20Module%203)."}}, {"id": "ex-dba-least", "domain": "Security", "stem": "Application runs as db_owner. The finding and the fix?", "choices": [{"key": "A", "text": "Violates least privilege — replace with a role holding only needed permissions"}, {"key": "B", "text": "No finding — apps need db_owner"}, {"key": "C", "text": "Escalate to sa for simplicity"}, {"key": "D", "text": "Share the DBA account instead"}], "answer": "A", "why": "A compromised app with db_owner is a compromised database. Contain the blast radius.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20least%20privilege%20(DBA%20Module%204)."}}, {"id": "ex-dba-key", "domain": "Security", "stem": "Encrypted backup restored to a new server fails. Missing?", "choices": [{"key": "A", "text": "The certificate/key — backed up and stored separately from the data"}, {"key": "B", "text": "The backup is corrupt"}, {"key": "C", "text": "The server needs more RAM"}, {"key": "D", "text": "Encryption doesn't survive restore by design"}], "answer": "A", "why": "Keys live outside the backup by design. No key, no data — working as intended, against you.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20encryption%20key%20management%20(DBA%20Module%204)."}}, {"id": "ex-dba-waits", "domain": "Monitoring", "stem": "Wait stats shift overnight from CPU to I/O. First move?", "choices": [{"key": "A", "text": "Identify which waits, what changed at the shift time, and disk latency counters"}, {"key": "B", "text": "Add CPU immediately"}, {"key": "C", "text": "Restart the server"}, {"key": "D", "text": "Ignore — waits always fluctuate"}], "answer": "A", "why": "Waits say what, the timeline says why. Check the shift's cause before spending.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20wait%20statistics%20(DBA%20Module%205)."}}, {"id": "ex-dba-block", "domain": "Monitoring", "stem": "Blocking vs deadlock — why does the distinction matter?", "choices": [{"key": "A", "text": "Blocking waits and resolves (tune the head blocker); deadlock cycles and the engine kills a victim (fix access order)"}, {"key": "B", "text": "They are the same thing"}, {"key": "C", "text": "Deadlocks resolve themselves"}, {"key": "D", "text": "Blocking always needs a kill"}], "answer": "A", "why": "Different diseases, different cures: performance tuning vs access-order design.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20blocking%20vs%20deadlock%20(DBA%20Module%205)."}}, {"id": "ex-dba-sniff", "domain": "Performance", "stem": "Slow for one customer, fast for everyone else. First hypothesis?", "choices": [{"key": "A", "text": "Parameter sniffing / skew — compare actual plans"}, {"key": "B", "text": "Add hardware"}, {"key": "C", "text": "Network latency"}, {"key": "D", "text": "Rebuild all indexes"}], "answer": "A", "why": "Asymmetric slowness on shared code = plan problem. Hardware doesn't discriminate by customer.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20troubleshooting%20order%20(DBA%20Module%206)."}}, {"id": "ex-dba-orphan", "domain": "Migration", "stem": "After migration, the app connects but logins fail. Cause?", "choices": [{"key": "A", "text": "Orphaned users — logins live in master and weren't migrated with the database"}, {"key": "B", "text": "The backup was corrupt"}, {"key": "C", "text": "The app connection string is wrong (but it connects)"}, {"key": "D", "text": "Migration always breaks logins — expected"}], "answer": "A", "why": "Server-level logins don't travel in database backups. Migrate them separately with SIDs.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20login%20migration%20(DBA%20Module%207)."}}, {"id": "ex-dba-frag", "domain": "Maintenance", "stem": "Index fragmentation at 5%. Rebuild?", "choices": [{"key": "A", "text": "No — rebuilds pay off around 30%+; at 5% monitor against the threshold"}, {"key": "B", "text": "Yes — any fragmentation hurts"}, {"key": "C", "text": "Yes — rebuilds are free"}, {"key": "D", "text": "Drop the index instead"}], "answer": "A", "why": "Maintenance on thresholds, not anxiety. The rebuild's cost exceeds its benefit at 5%.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20maintenance%20thresholds%20(DBA%20Module%208)."}}]</script>
+    </div>
+  </section>
+
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="continue-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Next steps</p>
+        <h2 class="il-h il-h--section" id="continue-h">Continue the journey.</h2>
+      </div>
+      <div class="il-prose"><p>No dead ends: the sequence continues. Take your capstone proof and your exam score into the next track.</p></div>
+      <div class="il-center" style="margin-top:1.6rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <a class="il-btn il-btn--gold" href="/learn/sequences/creative-coding/">Continue to → Creative Coding</a>
+        <a class="il-btn" href="/learn/">All tracks</a>
+      </div>
+    </div>
+  </section>
+
 </main>
 <footer class="no-print border-t border-paper/10">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
@@ -612,5 +858,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </footer>
 <script src="/assets/noah-ai.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-progress.js" defer></script>
 </body>
 </html>
