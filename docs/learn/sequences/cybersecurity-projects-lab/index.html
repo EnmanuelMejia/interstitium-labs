@@ -29,6 +29,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+.il-media{margin:1.4rem 0 1.8rem;border:1px solid rgba(242,237,225,.12);border-radius:.75rem;background:#0d1424;padding:1rem;overflow-x:auto}
+.il-media svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.il-media figcaption{margin-top:.6rem;font-size:.78rem;color:#9aa3b5;text-align:center}
+.il-check-key{margin-top:.6rem;border:1px solid rgba(232,182,76,.35);border-radius:.6rem;background:rgba(232,182,76,.05)}
+.il-check-key summary{cursor:pointer;padding:.55rem .8rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#e8b64c;font-family:inherit}
+.il-check-key__body{padding:.2rem 1rem 1rem;font-size:.92rem;color:#d9d4c7}
+.il-check-key__body p{margin:.5rem 0}
+.il-lab-station{border:1px solid rgba(103,232,249,.3);border-radius:.9rem;background:rgba(103,232,249,.04);padding:1.2rem;margin:1.2rem 0}
+.il-lab-station h4{color:#67e8f9}
+.il-lab-widget{margin:1.2rem 0;padding:1rem;border:1px solid rgba(242,237,225,.12);border-radius:.7rem;background:rgba(10,15,29,.5)}
+.il-lab-widget h5{margin:.2rem 0 .6rem;font-size:1rem;color:#f2ede1}
+.il-lab-widget label{display:block;margin:.5rem 0;font-size:.9rem}
+.il-lab-widget select,.il-lab-widget input[type=text],.il-lab-widget input[type=number]{background:#0a0f1d;border:1px solid rgba(242,237,225,.25);color:#f2ede1;border-radius:.4rem;padding:.45rem .6rem;font-size:.9rem;max-width:22rem;width:100%}
+.il-lab-widget button{cursor:pointer;background:#e8b64c;color:#0a0f1d;border:0;border-radius:.5rem;padding:.55rem 1rem;font-weight:600;font-size:.85rem;letter-spacing:.04em}
+.il-lab-widget button:hover{filter:brightness(1.08)}
+.il-lab-result{margin-top:.8rem;padding:.8rem 1rem;border-radius:.6rem;border:1px solid rgba(242,237,225,.15);background:#0d1424;font-size:.92rem}
+.il-lab-result.good{border-color:rgba(134,239,172,.5)}
+.il-lab-result.warn{border-color:rgba(232,182,76,.6)}
+.il-lab-result.bad{border-color:rgba(248,113,113,.6)}
+.il-logline{font-family:ui-monospace,monospace;font-size:.8rem;padding:.3rem .5rem;border-radius:.35rem;cursor:pointer;border:1px solid transparent;margin:.15rem 0}
+.il-logline:hover{border-color:rgba(103,232,249,.4)}
+.il-logline.sel-ioc{background:rgba(134,239,172,.12);border-color:rgba(134,239,172,.5)}
+.il-logline.sel-fp{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.5)}
+.il-rubric{width:100%;border-collapse:collapse;font-size:.88rem;margin:.6rem 0}
+.il-rubric th,.il-rubric td{border:1px solid rgba(242,237,225,.15);padding:.5rem .6rem;text-align:left;vertical-align:top}
+.il-rubric th{background:rgba(232,182,76,.08);color:#e8b64c}
+.il-checklist label{display:flex;gap:.5rem;align-items:flex-start;margin:.45rem 0;font-size:.9rem}
+.il-checklist input[type=checkbox]{margin-top:.2rem;transform:scale(1.2)}
+.il-progress{border:1px solid rgba(242,237,225,.12);border-radius:.8rem;padding:1.1rem;margin:1.2rem 0;background:rgba(10,15,29,.5)}
+.il-progress__bar{height:.6rem;border-radius:.3rem;background:rgba(242,237,225,.1);overflow:hidden;margin:.6rem 0}
+.il-progress__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#e8b64c,#67e8f9);transition:width .4s}
+.il-progress__mods{list-style:none;margin:.6rem 0 0;padding:0;columns:2;column-gap:2rem;font-size:.88rem}
+@media(max-width:640px){.il-progress__mods{columns:1}}
+.il-progress__mods li{margin:.3rem 0;break-inside:avoid}
+.il-progress__mods label{display:flex;gap:.5rem;align-items:flex-start;cursor:pointer}
+.il-nextsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin-top:1rem}
+.il-nextcard{border:1px solid rgba(242,237,225,.14);border-radius:.8rem;padding:1.1rem;background:rgba(13,20,36,.6);text-decoration:none!important;display:block}
+.il-nextcard:hover{border-color:rgba(232,182,76,.55)}
+.il-nextcard .il-eyebrow{margin:0 0 .4rem}
+.il-nextcard h4{margin:.2rem 0 .5rem;color:#f2ede1;font-size:1.02rem}
+.il-nextcard p{font-size:.88rem;color:#9aa3b5;margin:0}
+.il-disclaimer{border-left:3px solid #e8b64c;padding:.8rem 1.1rem;margin:1.4rem 0;background:rgba(232,182,76,.05);font-size:.9rem;color:#d9d4c7}
+</style>
 
 </head>
 <body>
@@ -144,9 +188,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">4 modules, in order.</h2>
       </div>
       <div class="il-modules">
-        <article class="il-module">
+        <article id="cybersecurity-projects-lab-mod-1" class="il-module">
           <p class="il-eyebrow">Module 1</p>
           <h3 class="il-h il-h--card">Foundations: Hashes, Headers, and Encrypted Vaults</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hash verification flow"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Integrity — hash, then compare</text><rect x="20" y="70" width="150" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="95" y="98" text-anchor="middle" font-weight="700">FILE</text><text class="d" x="95" y="118" text-anchor="middle">any content</text><rect x="230" y="70" width="150" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="305" y="98" text-anchor="middle" font-weight="700">HASH IT</text><text class="d" x="305" y="118" text-anchor="middle">one-way fingerprint</text><rect x="440" y="70" width="150" height="70" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="515" y="98" text-anchor="middle" font-weight="700">COMPARE</text><text class="d" x="515" y="118" text-anchor="middle">match = intact</text><line x1="170" y1="105" x2="230" y2="105" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><line x1="380" y1="105" x2="440" y2="105" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><text class="d" x="20" y="180">One flipped byte avalanches through the digest — that is the whole point.</text><text class="d" x="20" y="202">Encrypted vaults add the second property: confidentiality for secrets at rest.</text><rect x="20" y="222" width="600" height="56" rx="8" fill="none" stroke="#e8b64c" stroke-dasharray="6,4"/><text class="d" x="36" y="248">Lab rule: verify downloads against published hashes before you trust them — supply-chain hygiene starts here.</text></svg>
+<figcaption>Hash-then-compare: the integrity check behind every verified download.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Identify hash algorithm families by their output shape and encoding</li>
@@ -181,9 +229,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Foundations tooling is benign, but build the habit now: all projects run on your own machine, against your own targets, from here forward.</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="cybersecurity-projects-lab-mod-2" class="il-module">
           <p class="il-eyebrow">Module 2</p>
           <h3 class="il-h il-h--card">Beginner: Recon, Crypto Utilities, and Linux Security</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Recon funnel"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Recon — the funnel narrows, authorization first</text><polygon points="80,70 560,70 460,140 180,140" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="320" y="100" text-anchor="middle" font-weight="700">PASSIVE — OSINT, DNS, public records</text><polygon points="180,140 460,140 380,210 260,210" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="320" y="172" text-anchor="middle" font-weight="700" font-size="12">ACTIVE — scanning your own targets</text><polygon points="260,210 380,210 320,270 320,270" fill="#e8b64c"/><text class="t" x="320" y="242" text-anchor="middle" font-size="12" fill="#0a0f1d">ENUMERATION</text><text class="d" x="20" y="310">Every lab targets systems you own. Authorization discipline is the first skill —</text><text class="d" x="20" y="330">recon without it is not practice, it is a crime.</text></svg>
+<figcaption>The recon funnel: passive to active to enumeration — only against systems you own.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Write a port scanner and explain what open, closed, and filtered responses reveal about a target</li>
@@ -223,9 +275,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Keylogger and C2-beacon projects run on your own isolated VMs only. Delete or quarantine the artifacts when the lab is done — do not leave dual-use binaries on shared machines.</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="cybersecurity-projects-lab-mod-3" class="il-module">
           <p class="il-eyebrow">Module 3</p>
           <h3 class="il-h il-h--card">Intermediate: Detection, AppSec, and Supply-Chain Defense</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detection pipeline"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Detection engineering — telemetry becomes alerts</text><g><rect x="14" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="86" y="98" text-anchor="middle" font-weight="700">Telemetry</text><text class="d" x="86" y="120" text-anchor="middle">logs, flows, EDR</text><line x1="158" y1="108" x2="170" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="170" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="242" y="98" text-anchor="middle" font-weight="700">Normalize</text><text class="d" x="242" y="120" text-anchor="middle">one schema</text><line x1="314" y1="108" x2="326" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="326" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="398" y="98" text-anchor="middle" font-weight="700">Detect</text><text class="d" x="398" y="120" text-anchor="middle">rule fires</text><line x1="470" y1="108" x2="482" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="482" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="554" y="98" text-anchor="middle" font-weight="700">Triage</text><text class="d" x="554" y="120" text-anchor="middle">analyst decides</text></g><path d="M 590 146 C 590 230, 60 230, 40 150" fill="none" stroke="#e8b64c" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#am)"/><text class="d" x="320" y="222" text-anchor="middle">Triage verdicts tune the rules — false positives are engineering feedback.</text><text class="d" x="20" y="262">Supply-chain defense: inventory dependencies (SBOM thinking), verify signatures,</text><text class="d" x="20" y="284">pin versions. AppSec: the same injection flaws from the analyst side — now you fix them.</text></svg>
+<figcaption>The detection pipeline with the triage feedback loop that tunes it.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Build a SIEM-style dashboard: ingest log events, write detection rules, and triage alerts</li>
@@ -262,9 +318,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>API and vulnerability scanning stay pointed at your own lab targets. Credential-enumeration tooling from this tier is lab-only; never run it against real services or other people's infrastructure.</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="cybersecurity-projects-lab-mod-4" class="il-module">
           <p class="il-eyebrow">Module 4</p>
           <h3 class="il-h il-h--card">Advanced: Adversary Emulation, Deception, and Detection Engineering</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Purple team loop"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Purple team — emulate, detect, improve, repeat</text><circle cx="320" cy="165" r="100" fill="none" stroke="#f87171" stroke-width="2"/><text class="t" x="320" y="78" text-anchor="middle" font-weight="700">EMULATE</text><text class="d" x="320" y="96" text-anchor="middle">adversary technique</text><text class="t" x="448" y="171" text-anchor="middle" font-weight="700">DETECT</text><text class="d" x="448" y="189" text-anchor="middle">did the rule fire?</text><text class="t" x="320" y="272" text-anchor="middle" font-weight="700">IMPROVE</text><text class="d" x="320" y="290" text-anchor="middle">tune / add rule</text><text class="t" x="192" y="171" text-anchor="middle" font-weight="700">PLAN</text><text class="d" x="192" y="189" text-anchor="middle">scope + safety</text><rect x="20" y="300" width="600" height="44" rx="8" fill="none" stroke="#e8b64c" stroke-dasharray="6,4"/><text class="d" x="36" y="327">Deception (honeypots, canaries) inverts the game: the attacker does the recon — on your bait.</text></svg>
+<figcaption>The purple-team loop: plan, emulate, detect, improve — with deception as the inverted game.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Deploy a honeypot network and analyze the attack traffic it collects</li>
@@ -446,6 +506,150 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+
+<hr class="il-rule"/>
+<section class="il-section" id="lab-station" aria-labelledby="lab-station-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Validated labs</p>
+<h2 class="il-h il-h--section" id="lab-station-h">Lab validation station.</h2>
+<div class="il-prose"><p>These exercises run entirely in your browser. Work each one, read the feedback, and retry until the reasoning is automatic — nothing here requires leaving this page.</p></div>
+
+<div class="il-lab-station">
+<h4>Lab A — Authorization check: allowed or forbidden?</h4>
+<p>Mark each as <strong>allowed</strong> (green) or <strong>forbidden</strong> (red). Authorization discipline is the first professional skill.</p>
+<div class="il-lab-widget" data-il-widget="scope">
+<div class="il-checklist" data-il-scope-q>
+<label><input type="checkbox" data-ok="1"/> Scanning your own home router's LAN side with written self-authorization in your lab journal</label>
+<label><input type="checkbox" data-ok="0"/> Running nmap against your employer's production network "to help them out" without asking</label>
+<label><input type="checkbox" data-ok="1"/> Testing password strength against hashes you generated yourself</label>
+<label><input type="checkbox" data-ok="0"/> Trying default credentials on a neighbor's smart camera "to warn them"</label>
+<label><input type="checkbox" data-ok="1"/> Emulating adversary techniques inside your isolated lab VMs</label>
+<label><input type="checkbox" data-ok="0"/> Phishing your coworkers as a "surprise drill" without management approval</label>
+</div>
+<button type="button" data-il-scope-go>Check my judgment</button>
+<div class="il-lab-result" data-il-scope-out aria-live="polite">Check the allowed ones, then verify.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="scope"]');if(!w)return;
+var out=w.querySelector('[data-il-scope-out]');
+w.querySelector('[data-il-scope-go]').addEventListener('click',function(){
+var boxes=w.querySelectorAll('[data-il-scope-q] input'),hit=0,total=0,bad=[];
+boxes.forEach(function(b){var ok=b.getAttribute('data-ok')==='1';if(ok)total++;
+if(b.checked&&ok)hit++;if(b.checked&&!ok)bad.push(1);if(!b.checked&&ok)bad.push(2);});
+out.className='il-lab-result '+(hit===total&&bad.length===0?'good':'bad');
+var msg='<strong>'+hit+' / '+total+' allowed actions identified.</strong> ';
+if(hit===total&&bad.length===0)msg+='Clean judgment. The rule is simple: written authorization, defined scope — or it does not happen.';
+else msg+='Review the misses: "helping out," "warning them," and "surprise drills" are the classic rationalizations. Authorization is paperwork, not vibes.';
+out.innerHTML=msg;
+try{localStorage.setItem('il.lab.cpl.scope',JSON.stringify({t:Date.now(),score:hit}))}catch(e){}
+});
+})();
+</script>
+</div>
+<div class="il-lab-station">
+<h4>Lab B — Portfolio artifact validator</h4>
+<p>Check what each module's portfolio artifact actually contains. The validator scores completeness — hiring managers read for evidence, not adjectives.</p>
+<div class="il-lab-widget" data-il-widget="artifacts">
+<div class="il-checklist" data-il-art-q>
+<p style="font-size:.85rem;color:#e8b64c;margin:.6rem 0 .2rem">Foundations artifact</p>
+<label><input type="checkbox"/> README states what was built and the tools used</label>
+<label><input type="checkbox"/> Writeup documents one thing that failed and how it was fixed</label>
+<label><input type="checkbox"/> Evidence: hashes, configs, or screenshots included</label>
+<label><input type="checkbox"/> Scope note: "home lab" labeled honestly, no inflated claims</label>
+<p style="font-size:.85rem;color:#e8b64c;margin:.6rem 0 .2rem">Beginner artifact</p>
+<label><input type="checkbox"/> Scan/report artifacts preserved (not just conclusions)</label>
+<label><input type="checkbox"/> Findings written with risk, fix, and evidence</label>
+<label><input type="checkbox"/> Authorization documented (self-authorization journal entry)</label>
+<label><input type="checkbox"/> One remediation actually implemented and verified</label>
+<p style="font-size:.85rem;color:#e8b64c;margin:.6rem 0 .2rem">Intermediate artifact</p>
+<label><input type="checkbox"/> Detection rule includes the tuning decisions and false-positive analysis</label>
+<label><input type="checkbox"/> AppSec fix shows before/after with verification</label>
+<label><input type="checkbox"/> Dependency decisions documented with dates</label>
+<label><input type="checkbox"/> Writeup a non-technical reader could follow</label>
+<p style="font-size:.85rem;color:#e8b64c;margin:.6rem 0 .2rem">Advanced artifact</p>
+<label><input type="checkbox"/> Emulation report: technique, detection result, gap found</label>
+<label><input type="checkbox"/> Rule improvement verified by re-running the emulation</label>
+<label><input type="checkbox"/> Deception deployment monitored (not decorative)</label>
+<label><input type="checkbox"/> Portfolio description labels the lab as a lab</label>
+</div>
+<button type="button" data-il-art-go>Validate my portfolio</button>
+<div class="il-lab-result" data-il-art-out aria-live="polite">Check what your artifacts contain, then validate.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="artifacts"]');if(!w)return;
+var out=w.querySelector('[data-il-art-out]');
+w.querySelector('[data-il-art-go]').addEventListener('click',function(){
+var boxes=w.querySelectorAll('[data-il-art-q] input'),n=0;boxes.forEach(function(b){if(b.checked)n++;});
+var pct=Math.round(n/boxes.length*100);
+out.className='il-lab-result '+(pct>=85?'good':(pct>=60?'warn':'bad'));
+var msg='<strong>'+n+' / '+boxes.length+' ('+pct+'%) portfolio-complete.</strong> ';
+if(pct>=85)msg+='Ship it: this is evidence a hiring manager can evaluate.';
+else if(pct>=60)msg+='Close: the unchecked items are exactly what separates "did a lab" from "can show the work."';
+else msg+='Not yet: artifacts without evidence, scope notes, and failure writeups read as claims, not proof.';
+out.innerHTML=msg;
+try{localStorage.setItem('il.lab.cpl.artifacts',JSON.stringify({t:Date.now(),score:n,of:boxes.length}))}catch(e){}
+});
+})();
+</script>
+</div>
+
+</div>
+</section>
+<hr class="il-rule"/>
+<section class="il-section" id="final-exam" aria-labelledby="final-exam-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="final-exam-h">Scenario exam.</h2>
+<div class="il-prose"><p>Twelve original scenario questions drawn from this sequence. Your score persists in this browser; misses remediate back into the modules above and into Noah for coaching. This exam is original practice material — it confers no certificate and is not affiliated with any vendor or certification body.</p></div>
+<div class="il-progress" data-il-progress="cybersecurity-projects-lab">
+<p class="il-eyebrow">Your progress</p>
+<div class="il-progress__bar"><span data-il-progress-fill></span></div>
+<p data-il-progress-label></p>
+<ul class="il-progress__mods">
+<li><label><input type="checkbox" data-il-mod="m1"/> Module 1 · Foundations: Hashes, Headers, and Encrypted Vaults</label></li>
+<li><label><input type="checkbox" data-il-mod="m2"/> Module 2 · Beginner: Recon, Crypto Utilities, and Linux Security</label></li>
+<li><label><input type="checkbox" data-il-mod="m3"/> Module 3 · Intermediate: Detection, AppSec, and Supply-Chain Defense</label></li>
+<li><label><input type="checkbox" data-il-mod="m4"/> Module 4 · Advanced: Adversary Emulation, Deception, and Detection Engineering</label></li>
+</ul>
+</div>
+<div data-il-exam="cybersecurity-projects-lab">
+<script type="application/json" data-il-exam-bank>[{"id": "cpl-ex-auth", "domain": "Foundations", "stem": "A friend asks you to \"practice your nmap skills\" on their small business network — verbally, no paperwork. What do you do?", "choices": [{"key": "A", "text": "Decline until there is written authorization defining scope, targets, and timeframe — verbal permission is not authorization you can prove"}, {"key": "B", "text": "Scan it — verbal permission from the owner is enough"}, {"key": "C", "text": "Scan only the router, which is harmless"}, {"key": "D", "text": "Scan it at night so nobody notices"}], "answer": "A", "why": "Authorization discipline is the first professional skill: written scope protects both parties, defines what is in-bounds, and is the artifact you produce if anything is questioned. \"They said I could\" has no evidentiary weight.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-2", "coach": "/coach/?prompt=Authorization%20for%20security%20testing%3A%20why%20verbal%20permission%20is%20not%20enough"}}, {"id": "cpl-ex-hash", "domain": "Foundations", "stem": "You download a vulnerable VM for the lab, but the published SHA256 does not match the file you got. What do you do?", "choices": [{"key": "A", "text": "Do not run it — a hash mismatch means the file is not what the publisher released; re-download from the official source"}, {"key": "B", "text": "Run it anyway — hashes mismatch all the time"}, {"key": "C", "text": "Run it in a VM, which makes it safe regardless"}, {"key": "D", "text": "Edit the published hash to match your file"}], "answer": "A", "why": "The hash is the publisher's tamper-evidence seal. A mismatch means corruption or substitution — running it anyway imports unknown code into your lab. Verification before execution is supply-chain hygiene at its most basic.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-1", "coach": "/coach/?prompt=Hash%20verification%3A%20what%20a%20mismatch%20means%20and%20what%20to%20do"}}, {"id": "cpl-ex-vault", "domain": "Foundations", "stem": "Your lab notes contain API keys for your vulnerable test apps. Where do they live?", "choices": [{"key": "A", "text": "In an encrypted vault (password manager / encrypted store) — never in notes, chat, or the repo"}, {"key": "B", "text": "In the repo README so the lab is reproducible"}, {"key": "C", "text": "In chat with yourself for quick access"}, {"key": "D", "text": "It does not matter — they are only test keys"}], "answer": "A", "why": "Test keys become real keys the moment they are reused or the lab mirrors production. Secrets in repos and chats leak through clones, screenshots, and backups; a vault is the only habit that scales.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-1", "coach": "/coach/?prompt=Secret%20handling%20in%20lab%20work%3A%20vaults%20vs%20repos%20and%20chat"}}, {"id": "cpl-ex-recon", "domain": "Beginner", "stem": "Your recon of your own home lab finds an open telnet port on the router. What is the correct writeup?", "choices": [{"key": "A", "text": "Risk: cleartext credential exposure and trivial takeover; fix: disable telnet, use SSH; evidence: the scan output and the before/after config"}, {"key": "B", "text": "\"Telnet is old\" — no further detail needed"}, {"key": "C", "text": "Open a ticket with the router vendor"}, {"key": "D", "text": "Leave it — it is only the home lab"}], "answer": "A", "why": "A finding without risk, fix, and evidence is a note, not a writeup. Telnet's specific sin is cleartext credentials; the fix is protocol replacement; the evidence is what makes the writeup portfolio-grade.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-2", "coach": "/coach/?prompt=Writing%20findings%3A%20risk%2C%20remediation%2C%20and%20evidence"}}, {"id": "cpl-ex-crypto", "domain": "Beginner", "stem": "A crypto utility you built encrypts files with a hardcoded key \"for convenience.\" What is the verdict?", "choices": [{"key": "A", "text": "Broken by design — anyone with the binary has the key; derive keys from passphrases or use the OS key store"}, {"key": "B", "text": "Fine for a lab utility"}, {"key": "C", "text": "Fine as long as the binary is not shared"}, {"key": "D", "text": "Fix by obfuscating the key string"}], "answer": "A", "why": "Hardcoded keys are not secrets — binaries are readable. Obfuscation is not encryption. The lesson generalizes: key management is the system, the cipher is just a component.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-2", "coach": "/coach/?prompt=Key%20management%3A%20why%20hardcoded%20keys%20are%20broken%20by%20design"}}, {"id": "cpl-ex-linux", "domain": "Beginner", "stem": "After hardening your lab Linux VM, which verification proves the work?", "choices": [{"key": "A", "text": "Re-running the checks: the unnecessary services are gone, the firewall drops probes, and login attempts are logged — evidence, not intention"}, {"key": "B", "text": "Feeling confident about the configuration"}, {"key": "C", "text": "The VM still boots"}, {"key": "D", "text": "A single screenshot of the desktop"}], "answer": "A", "why": "Hardening claims require verification: services actually disabled, firewall actually dropping, logs actually recording. \"I configured it\" is intention; the re-run is evidence.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-2", "coach": "/coach/?prompt=Hardening%20verification%3A%20proving%20controls%20work%2C%20not%20just%20configuring%20them"}}, {"id": "cpl-ex-detect", "domain": "Intermediate", "stem": "Your new detection rule fires on every admin login. What do you do?", "choices": [{"key": "A", "text": "Tune it: add context (impossible travel, unusual host, off-hours) so it fires on anomalous logins — a rule everyone ignores detects nothing"}, {"key": "B", "text": "Keep it — more alerts means better detection"}, {"key": "C", "text": "Delete the rule"}, {"key": "D", "text": "Forward all the alerts to the team chat"}], "answer": "A", "why": "Detection engineering is signal design: the rule's intent is catching compromised credentials, not narrating logins. Context converts noise into signal; deletion loses the intent; ignoring it loses everything.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-3", "coach": "/coach/?prompt=Detection%20tuning%3A%20from%20noisy%20rule%20to%20useful%20signal"}}, {"id": "cpl-ex-appsec", "domain": "Intermediate", "stem": "Your intentionally vulnerable app has a SQL injection flaw you planted for practice. A classmate asks for the \"solution.\" What do you share?", "choices": [{"key": "A", "text": "The fix pattern (parameterized queries, input validation) and how to verify it — the defensive lesson, not an exploit walkthrough optimized for reuse"}, {"key": "B", "text": "The full exploit payload for realism"}, {"key": "C", "text": "Nothing — security knowledge should be hoarded"}, {"key": "D", "text": "The app with the flaw silently removed"}], "answer": "A", "why": "The lab's purpose is defensive skill: recognizing the flaw class and applying the fix pattern. Sharing exploit payloads optimized for reuse serves no defensive purpose; sharing the fix pattern does.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-3", "coach": "/coach/?prompt=AppSec%20practice%3A%20learning%20the%20fix%2C%20not%20just%20the%20exploit"}}, {"id": "cpl-ex-supply", "domain": "Intermediate", "stem": "A dependency in your project has a critical CVE, but the fixed version breaks your build. What is the practitioner move?", "choices": [{"key": "A", "text": "Assess exploitability in your context, apply mitigations (isolate, restrict input), pin a plan to upgrade — and document the decision with a date"}, {"key": "B", "text": "Stay on the vulnerable version indefinitely"}, {"key": "C", "text": "Remove the dependency without checking what breaks"}, {"key": "D", "text": "Hide the CVE from the project README"}], "answer": "A", "why": "Supply-chain defense is risk management, not version-chasing: assess whether the vulnerable code path is reachable in your use, mitigate what you can, and track the upgrade as dated work — not as a silent acceptance.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-3", "coach": "/coach/?prompt=Supply-chain%20triage%3A%20vulnerable%20dependency%20with%20a%20breaking%20fix"}}, {"id": "cpl-ex-purple", "domain": "Advanced", "stem": "Your adversary emulation ran clean — no alerts fired. What is the correct conclusion?", "choices": [{"key": "A", "text": "A detection gap was found: document the technique, write or tune the rule, re-run to verify — the gap is the deliverable"}, {"key": "B", "text": "The environment is secure"}, {"key": "C", "text": "The emulation was flawed — discard the result"}, {"key": "D", "text": "Run it again louder until something fires"}], "answer": "A", "why": "In purple-team work, silence is data: it maps exactly where the adversary is invisible. The loop is emulate → measure → improve → re-verify; \"we are secure\" is the one conclusion an undetected emulation never supports.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-4", "coach": "/coach/?prompt=Purple-team%20loop%3A%20what%20a%20silent%20emulation%20really%20means"}}, {"id": "cpl-ex-deception", "domain": "Advanced", "stem": "You deploy a honeypot with fake credentials on the lab network. What makes it valuable rather than decorative?", "choices": [{"key": "A", "text": "It is monitored with alerts: any interaction is high-fidelity signal because legitimate users have no reason to touch it"}, {"key": "B", "text": "It looks realistic"}, {"key": "C", "text": "It has many open ports"}, {"key": "D", "text": "It is deployed and forgotten"}], "answer": "A", "why": "Deception's value is signal quality: nobody legitimate touches the bait, so every touch is suspicious — near-zero false positives. An unmonitored honeypot is a decoration that teaches nothing.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-4", "coach": "/coach/?prompt=Deception%3A%20why%20monitoring%20makes%20the%20honeypot%20valuable"}}, {"id": "cpl-ex-portfolio", "domain": "Advanced", "stem": "You are writing up the lab for your portfolio. Which description is honest?", "choices": [{"key": "A", "text": "\"Built a home-lab detection pipeline (lab environment): wrote 6 Sigma-style rules, tuned false positives from 40/day to 3/day, documented the tuning decisions\""}, {"key": "B", "text": "\"Enterprise SOC detection engineer — reduced alerts 99% in production\""}, {"key": "C", "text": "\"Cybersecurity expert with years of incident response experience\""}, {"key": "D", "text": "\"Hacked into multiple networks to test security\""}], "answer": "A", "why": "Portfolio honesty compounds: label labs as labs, quantify what you actually did, and document decisions. Inflated claims (B, C) collapse under one interview question; (D) describes a crime. The honest version is also the more impressive one — it shows judgment.", "remediate": {"adapt": "#cybersecurity-projects-lab-mod-4", "coach": "/coach/?prompt=Portfolio%20honesty%3A%20labeling%20labs%20as%20labs"}}]</script>
+</div>
+</div>
+</section>
+<script src="/assets/il-exam.js"></script>
+
+<script>
+(function(){
+var slug='cybersecurity-projects-lab', key='il.progress.'+slug+'.v1';
+function load(){try{var r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return{done:[]}}
+function save(s){try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+var box=document.querySelector('[data-il-progress="'+slug+'"]');if(!box)return;
+var fill=box.querySelector('[data-il-progress-fill]'),lbl=box.querySelector('[data-il-progress-label]');
+var boxes=box.querySelectorAll('[data-il-mod]');
+function paint(){var s=load(),n=boxes.length,c=0;
+boxes.forEach(function(b){var on=s.done.indexOf(b.getAttribute('data-il-mod'))>=0;b.checked=on;if(on)c++});
+var pct=n?Math.round(c/n*100):0;if(fill)fill.style.width=pct+'%';
+if(lbl)lbl.textContent=c+' / '+n+' modules complete · '+pct+'%';}
+boxes.forEach(function(b){b.addEventListener('change',function(){var s=load(),id=b.getAttribute('data-il-mod'),i=s.done.indexOf(id);
+if(b.checked&&i<0)s.done.push(id);if(!b.checked&&i>=0)s.done.splice(i,1);save(s);paint();
+try{var f=JSON.parse(localStorage.getItem('il.evidence.feed.v1')||'[]');f.unshift({t:Date.now(),kind:'progress',text:slug+': '+s.done.length+'/'+boxes.length+' modules'});if(f.length>48)f.length=48;localStorage.setItem('il.evidence.feed.v1',JSON.stringify(f))}catch(e){}});});
+paint();
+})();
+</script><hr class="il-rule"/>
+<section class="il-section" id="next-steps" aria-labelledby="next-steps-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Continue to</p>
+<h2 class="il-h il-h--section" id="next-steps-h">Where this sequence leads.</h2>
+<div class="il-nextsteps">
+<a class="il-nextcard" href="/learn/sequences/security-plus-cysa/"><p class="il-eyebrow">Foundations</p><h4>Security+ / CySA+ Study Sequence →</h4><p>The analyst vocabulary behind every project here: threats, operations, SOC workflow.</p></a>
+<a class="il-nextcard" href="/learn/sequences/cissp/"><p class="il-eyebrow">Depth</p><h4>CISSP — Practitioner Study Sequence →</h4><p>The full-spectrum judgment that turns projects into practitioner fluency.</p></a>
+<a class="il-nextcard" href="/learn/sequences/agent-stack-ops/"><p class="il-eyebrow">Adjacent craft</p><h4>Agent Stack Ops →</h4><p>Apply the same pipeline thinking — telemetry, evals, observability — to AI agent systems.</p></a>
+</div>
+</div>
+</section>
 </main>
 
 <footer class="no-print border-t border-paper/10">
