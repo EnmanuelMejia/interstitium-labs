@@ -29,9 +29,10 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/assets/il-seq.css"/>
 
 </head>
-<body>
+<body data-il-seq="bitcoin-protocol">
 <a class="il-skip" href="#main">Skip to content</a>
 
 <!-- Floating pill nav -->
@@ -144,9 +145,25 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
       </div>
       <div class="il-modules">
-        <article class="il-module">
+        <article class="il-module" id="m1" data-il-module>
           <p class="il-eyebrow">Module 1</p>
           <h3 class="il-h il-h--card">Money and the Ledger: UTXO Model</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 200" role="img" aria-label="UTXO lifecycle diagram">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="20" y="70" width="120" height="60" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="80" y="94" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">Coinbase UTXO</text>
+<text x="80" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">6.25 BTC</text>
+<rect x="260" y="20" width="120" height="60" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="320" y="44" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">Tx A</text>
+<text x="320" y="62" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">in: 6.25 &rarr; out: 2.0</text>
+<text x="320" y="76" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">out: 4.249 (change)</text>
+<rect x="500" y="70" width="120" height="60" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="560" y="94" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">Tx B</text>
+<text x="560" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">spends 4.249</text>
+<path d="M140,100 L250,55" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah)"/>
+<path d="M380,60 L495,95" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah)"/>
+<text x="320" y="160" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">Each output becomes a new UTXO — or is consumed forever. The 0.001 difference is the fee.</text>
+</svg><figcaption>UTXO lifecycle: spent outputs vanish, new ones are born, the fee is the unaccounted remainder.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Contrast UTXO-based ledgers with account-based ledgers</li>
@@ -189,10 +206,23 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Given a 0.5 BTC input and two outputs (0.3 + 0.15 BTC), what happened to the remainder?</li>
             <li>What distinguishes a coinbase output from a regular output?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m1" data-title="Module 1 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m1-q1", "stem": "Bitcoin has no accounts at the protocol level. What is the unit of value a transaction spends?", "choices": [{"key": "A", "text": "An unspent transaction output (UTXO), identified by txid + output index"}, {"key": "B", "text": "An account balance entry in a global state trie"}, {"key": "C", "text": "A wallet file on the sender's disk"}, {"key": "D", "text": "A coinbase reward voucher"}], "answer": "A", "feedback": {"A": "Correct: value exists only as UTXOs; wallets sum them into a 'balance'.", "B": "That is Ethereum's account model, not Bitcoin's.", "C": "Wallets are local software; the protocol knows only UTXOs.", "D": "Coinbase outputs are one kind of UTXO, not the unit itself."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}, {"id": "btc-m1-q2", "stem": "A transaction input references a previous output by:", "choices": [{"key": "A", "text": "Outpoint: the previous txid plus the output index (vout)"}, {"key": "B", "text": "The recipient's address and amount"}, {"key": "C", "text": "A wallet label and timestamp"}, {"key": "D", "text": "The block hash and Merkle proof"}], "answer": "A", "feedback": {"A": "Correct: the outpoint uniquely names one UTXO in history.", "B": "Inputs never name addresses or amounts directly.", "C": "Labels are wallet-local, not consensus.", "D": "Merkle proofs are for SPV, not input references."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m2" data-il-module>
           <p class="il-eyebrow">Module 2</p>
           <h3 class="il-h il-h--card">Transactions: Inputs, Outputs, and Sighash</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 220" role="img" aria-label="Transaction structure diagram">
+<rect x="20" y="40" width="600" height="46" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="40" y="68" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">version (4 B)</text>
+<text x="220" y="68" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">inputs[]: outpoint (36 B) + scriptSig + nSequence</text>
+<text x="40" y="80" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">each input references a prior UTXO by txid + index</text>
+<rect x="20" y="100" width="600" height="46" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="40" y="128" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">outputs[]: value (8 B, sats) + scriptPubKey (the lock)</text>
+<rect x="20" y="160" width="600" height="34" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="40" y="182" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">locktime (4 B) — earliest block/height this tx may confirm</text>
+<text x="320" y="212" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">No account balances anywhere: a transaction only consumes and creates UTXOs.</text>
+</svg><figcaption>Transaction anatomy: inputs reference old UTXOs, outputs create new ones, locktime gates confirmation.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Dissect raw transaction structure field by field</li>
@@ -235,10 +265,30 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Why does the witness not count toward legacy block size?</li>
             <li>What does nLockTime prevent, and what does it not prevent?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m2" data-title="Module 2 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m2-q1", "stem": "Which sighash flag lets a signer commit to all outputs while allowing others to add inputs later?", "choices": [{"key": "A", "text": "SIGHASH_ALL | SIGHASH_ANYONECANPAY"}, {"key": "B", "text": "SIGHASH_NONE"}, {"key": "C", "text": "SIGHASH_ALL alone"}, {"key": "D", "text": "SIGHASH_SINGLE"}], "answer": "A", "feedback": {"A": "Correct: ANYONECANPAY signs only your input; ALL locks every output.", "B": "NONE commits to no outputs at all.", "C": "ALL alone commits to the full input set too.", "D": "SINGLE commits to the one output at your input's index."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}, {"id": "btc-m2-q2", "stem": "400 weight units of non-witness data plus 400 weight units of witness data gives:", "choices": [{"key": "A", "text": "2000 weight units total, i.e. 500 vbytes"}, {"key": "B", "text": "800 vbytes"}, {"key": "C", "text": "200 vbytes"}, {"key": "D", "text": "Weight units equal vbytes here"}], "answer": "A", "feedback": {"A": "Correct: 4*400 + 1*400 = 2000 WU; vsize = WU/4 = 500.", "B": "You must weight non-witness bytes at 4x.", "C": "Division by 4, not by 10.", "D": "Only if there were no witness discount."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m3" data-il-module>
           <p class="il-eyebrow">Module 3</p>
           <h3 class="il-h il-h--card">Script: Locking, Unlocking, and Standard Types</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 240" role="img" aria-label="P2PKH script stack evaluation">
+<defs><marker id="ah3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="40" y="20" width="240" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="160" y="42" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">scriptSig (the key)</text>
+<text x="160" y="60" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">&lt;sig&gt; &lt;pubkey&gt;</text>
+<rect x="360" y="20" width="240" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="480" y="42" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">scriptPubKey (the lock)</text>
+<text x="480" y="60" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">DUP HASH160 &lt;hash&gt; EQUALVERIFY CHECKSIG</text>
+<rect x="220" y="120" width="200" height="100" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="320" y="142" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">stack &darr;</text>
+<text x="320" y="162" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">&lt;sig&gt;</text>
+<text x="320" y="180" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">&lt;pubkey&gt; &rarr; HASH160</text>
+<text x="320" y="198" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">matches &lt;hash&gt;? &rarr; CHECKSIG</text>
+<text x="320" y="214" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">TRUE &rarr; spendable</text>
+<path d="M160,72 L300,118" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah3)"/>
+<path d="M480,72 L340,118" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah3)"/>
+<text x="320" y="236" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">Concatenated and executed: signature valid + pubkey hashes to the locked hash.</text>
+</svg><figcaption>P2PKH script execution: the spender's key must satisfy the lock — signature valid, pubkey hash matches.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Trace script execution for a P2PKH spend</li>
@@ -281,10 +331,31 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What goes wrong if CSV is applied to the wrong input's sequence?</li>
             <li>Give one case where a consensus-valid script is still non-standard.</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m3" data-title="Module 3 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m3-q1", "stem": "A P2PKH output is locked to hash H. The spender provides <sig> and <pubkey>. Which statement about validation is exactly right?", "choices": [{"key": "A", "text": "The script hashes <pubkey> with HASH160 and requires it to equal H, then verifies <sig> against <pubkey>"}, {"key": "B", "text": "The script decrypts H with <pubkey> to recover the address"}, {"key": "C", "text": "Any signature is accepted as long as <pubkey> is well-formed"}, {"key": "D", "text": "The script compares <sig> directly to H"}], "answer": "A", "feedback": {"A": "Right: DUP HASH160 <H> EQUALVERIFY CHECKSIG — the pubkey must hash to the locked value, and the signature must verify.", "B": "No decryption happens; H is a hash, not ciphertext, and hashes cannot be reversed.", "C": "CHECKSIG verifies the signature cryptographically against the transaction and the pubkey.", "D": "The signature is checked against the pubkey, not against the hash — they are different objects."}, "why": "Script is a predicate: pubkey-hash match plus valid signature."}, {"id": "btc-m3-q2", "stem": "A vault contract uses OP_CHECKSEQUENCEVERIFY with a relative timelock of 144 blocks on the spending path. What does this enforce?", "choices": [{"key": "A", "text": "The spending input must be at least 144 blocks old — the output cannot move until enough blocks bury it"}, {"key": "B", "text": "The transaction is only valid at exactly block height + 144"}, {"key": "C", "text": "The output value is locked to 144 sats"}, {"key": "D", "text": "The script expires after 144 blocks and the funds burn"}], "answer": "A", "feedback": {"A": "Right: CSV enforces a minimum age of the output being spent, in blocks (or time) — a relative, not absolute, timelock.", "B": "That would be an absolute locktime (nLockTime / CLTV); CSV is relative to the output's confirmation.", "C": "The number is a delay, not an amount — it never touches the value.", "D": "Nothing burns; after the delay the normal spending path simply becomes valid."}, "why": "CSV = relative timelock: age of the UTXO, not a calendar date."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m4" data-il-module>
           <p class="il-eyebrow">Module 4</p>
           <h3 class="il-h il-h--card">Keys, Signatures, and Addresses</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 170" role="img" aria-label="Key derivation pipeline">
+<defs><marker id="ah4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="10" y="60" width="120" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="70" y="82" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">private key</text>
+<text x="70" y="100" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">256-bit secret</text>
+<rect x="180" y="60" width="120" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="240" y="82" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">&times; G (secp256k1)</text>
+<text x="240" y="100" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">public key</text>
+<rect x="350" y="60" width="120" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="410" y="82" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">SHA256+RIPEMD160</text>
+<text x="410" y="100" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">160-bit hash</text>
+<rect x="520" y="60" width="110" height="52" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="575" y="82" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">Base58Check</text>
+<text x="575" y="100" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">address</text>
+<path d="M130,86 L176,86" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah4)"/>
+<path d="M300,86 L346,86" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah4)"/>
+<path d="M470,86 L516,86" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah4)"/>
+<text x="320" y="150" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">One-way at every step: an address never reveals the public key, let alone the private key.</text>
+</svg><figcaption>Key derivation pipeline: each arrow is one-way; addresses reveal nothing about keys.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Derive a public key from a private key on secp256k1</li>
@@ -327,10 +398,27 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Why is sharing an xpub with a third party a privacy leak?</li>
             <li>What breaks if a signature commits to the wrong sighash preimage?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m4" data-title="Module 4 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m4-q1", "stem": "An xpub is shared with an accounting service so it can generate fresh receive addresses. What is the precise risk if one child private key also leaks?", "choices": [{"key": "A", "text": "The xpub plus one child private key can reveal the master private key — the whole wallet is compromised"}, {"key": "B", "text": "Only that one address is at risk; the xpub reveals nothing else"}, {"key": "C", "text": "The accounting service can now spend all funds"}, {"key": "D", "text": "There is no risk: xpubs are hardened by default"}], "answer": "A", "feedback": {"A": "Right: non-hardened derivation lets anyone combine a parent xpub with any child private key to recover the parent private key — then every key.", "B": "The xpub alone cannot spend, but it turns a single child-key leak into a master-key leak.", "C": "The xpub alone grants watch-only power, not spending — the leak scenario is different and worse.", "D": "Only hardened derivation (index >= 2^31) breaks this link; standard account chains are non-hardened."}, "why": "xpub + child privkey = parent privkey: never mix them across trust boundaries."}, {"id": "btc-m4-q2", "stem": "A merchant reuses one Bitcoin address for all customer payments for a year. What is the concrete harm?", "choices": [{"key": "A", "text": "Every payment is linkable on the public ledger — anyone can total the merchant's revenue and cluster customer behavior"}, {"key": "B", "text": "The address expires and later payments are lost"}, {"key": "C", "text": "Reuse weakens the ECDSA signature"}, {"key": "D", "text": "Miners charge higher fees for reused addresses"}], "answer": "A", "feedback": {"A": "Right: the ledger is public forever; one address turns every payment into one trivially analyzable cluster.", "B": "Addresses never expire — reuse is a privacy failure, not a loss of funds.", "C": "Signature security does not degrade with reuse; the issue is linkability, not cryptography.", "D": "Fees depend on tx size and fee rate, not on address history."}, "why": "Address reuse converts pseudonymity into a public accounting book."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m5" data-il-module>
           <p class="il-eyebrow">Module 5</p>
           <h3 class="il-h il-h--card">Mining and Consensus</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 210" role="img" aria-label="Mining puzzle diagram">
+<defs><marker id="ah5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="40" y="40" width="220" height="120" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="150" y="64" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">block header (80 B)</text>
+<text x="150" y="86" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">prev block hash</text>
+<text x="150" y="104" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">merkle root</text>
+<text x="150" y="122" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">timestamp, bits (target)</text>
+<text x="150" y="140" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">nonce (varied)</text>
+<rect x="380" y="60" width="220" height="80" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="490" y="86" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">SHA256(SHA256(header))</text>
+<text x="490" y="108" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">valid iff hash &lt; target</text>
+<text x="490" y="126" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">target retargets every 2016 blocks</text>
+<path d="M260,100 L376,100" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah5)"/>
+<text x="320" y="192" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">No shortcut exists: finding a valid nonce is pure trial and error, verifiable instantly by everyone.</text>
+</svg><figcaption>Proof of work: vary the nonce until the double-SHA256 of the header falls below the target.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain proof-of-work as a leader-election lottery</li>
@@ -373,10 +461,32 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>How does the difficulty adjustment respond to hashrate doubling?</li>
             <li>What is a merkle proof and why does it let light clients verify inclusion?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m5" data-title="Module 5 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m5-q1", "stem": "A miner wants to spend a coinbase output 50 blocks after mining it. Consensus says:", "choices": [{"key": "A", "text": "Wait — coinbase outputs mature after 100 confirmations"}, {"key": "B", "text": "Spendable immediately"}, {"key": "C", "text": "Spendable after 6 confirmations like any output"}, {"key": "D", "text": "Coinbase outputs can never be spent"}], "answer": "A", "feedback": {"A": "Correct: the 100-block maturity rule guards against reorged rewards.", "B": "No grace period is skipped for the block producer.", "C": "6 confirmations is a wallet convention, not the maturity rule.", "D": "Coinbase outputs are spendable once mature."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}, {"id": "btc-m5-q2", "stem": "The block subsidy halves every:", "choices": [{"key": "A", "text": "210,000 blocks, converging issuance toward 21M BTC"}, {"key": "B", "text": "21,000 blocks"}, {"key": "C", "text": "4 calendar years exactly by timestamp"}, {"key": "D", "text": "1,000,000 blocks"}], "answer": "A", "feedback": {"A": "Correct: the halving interval is block-count based, ~4 years.", "B": "Too frequent by 10x.", "C": "It is block height, not wall-clock, that triggers it.", "D": "Far too sparse."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m6" data-il-module>
           <p class="il-eyebrow">Module 6</p>
           <h3 class="il-h il-h--card">P2P Networking and the Mempool</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 200" role="img" aria-label="Mempool fee-rate ordering">
+<defs><marker id="ah6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="30" y="30" width="150" height="130" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="105" y="52" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">mempool</text>
+<text x="105" y="72" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">tx: 85 sat/vB</text>
+<text x="105" y="92" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">tx: 42 sat/vB</text>
+<text x="105" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">tx: 12 sat/vB</text>
+<text x="105" y="132" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">tx: 3 sat/vB</text>
+<rect x="300" y="30" width="150" height="130" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="375" y="52" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">next block</text>
+<text x="375" y="72" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">85 sat/vB</text>
+<text x="375" y="92" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">42 sat/vB</text>
+<text x="375" y="112" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">(1M vB limit)</text>
+<rect x="500" y="60" width="110" height="70" rx="6" fill="#0d1117" stroke="#8a93a6" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text x="555" y="84" text-anchor="middle" fill="#8a93a6" font-size="11" font-family="system-ui,sans-serif">evicted:</text>
+<text x="555" y="104" text-anchor="middle" fill="#8a93a6" font-size="11" font-family="system-ui,sans-serif">3 sat/vB</text>
+<path d="M180,95 L296,95" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah6)"/>
+<path d="M180,130 L450,130 L500,95" stroke="#8a93a6" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#ah6)"/>
+<text x="320" y="186" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">Miners maximize fee revenue per block: your confirmation time is a fee-rate auction.</text>
+</svg><figcaption>The mempool as a fee-rate auction: miners fill the 1M vByte block from the top down.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Describe how nodes discover peers and gossip transactions</li>
@@ -419,10 +529,30 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>How does replace-by-fee change the fee-bumping options for a stuck transaction?</li>
             <li>What does headers-first sync protect a new node against?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m6" data-title="Module 6 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m6-q1", "stem": "Your low-fee transaction did not signal RBF and is stuck. The legitimate fix is:", "choices": [{"key": "A", "text": "Child-pays-for-parent: confirm it inside a high-fee child transaction package"}, {"key": "B", "text": "Double-spend the input with a higher fee"}, {"key": "C", "text": "Rebroadcast the same bytes repeatedly"}, {"key": "D", "text": "Wait — nothing can ever unstick it"}], "answer": "A", "feedback": {"A": "Correct: miners take the package; the child's fee pays for the parent.", "B": "That is a double-spend attempt, not a fix.", "C": "Rebroadcasting changes nothing about miner incentives.", "D": "CPFP exists precisely for this case."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}, {"id": "btc-m6-q2", "stem": "Nodes refuse to relay a 200-sat output. Why?", "choices": [{"key": "A", "text": "Dust policy: it costs more in fees to spend than it is worth, and every node stores it forever"}, {"key": "B", "text": "The 21M cap forbids small outputs"}, {"key": "C", "text": "Outputs must exceed 1000 sats by consensus"}, {"key": "D", "text": "Segwit forbids outputs under 1k sats"}], "answer": "A", "feedback": {"A": "Correct: uneconomic outputs bloat the UTXO set all full nodes keep.", "B": "The supply cap is unrelated to output size.", "C": "Dust is policy/standardness, not a consensus amount rule.", "D": "Segwit has no minimum output rule."}, "why": "See the module lesson above; the feedback on each choice explains the reasoning."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m7" data-il-module>
           <p class="il-eyebrow">Module 7</p>
           <h3 class="il-h il-h--card">Node Operation: Full, Pruned, and RPC</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 190" role="img" aria-label="Node type comparison">
+<rect x="30" y="30" width="175" height="120" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="117" y="54" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">full node</text>
+<text x="117" y="76" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">all blocks</text>
+<text x="117" y="96" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">full UTXO set</text>
+<text x="117" y="116" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">validates everything</text>
+<rect x="232" y="30" width="175" height="120" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="320" y="54" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">pruned node</text>
+<text x="320" y="76" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">recent blocks</text>
+<text x="320" y="96" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">full UTXO set</text>
+<text x="320" y="116" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">validates everything</text>
+<rect x="435" y="30" width="175" height="120" rx="6" fill="#0d1117" stroke="#8a93a6" stroke-width="1.5"/>
+<text x="522" y="54" text-anchor="middle" fill="#8a93a6" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">SPV / light</text>
+<text x="522" y="76" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">headers only</text>
+<text x="522" y="96" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">no UTXO set</text>
+<text x="522" y="116" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">trusts full nodes</text>
+<text x="320" y="174" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">Pruning discards history, not security: a pruned node enforces every rule from genesis.</text>
+</svg><figcaption>Node types: pruning saves disk, not trust — a pruned node still validates every rule.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Choose full vs pruned node configurations for a use case</li>
@@ -465,10 +595,30 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What must you back up to recover funds from a descriptor wallet?</li>
             <li>Which bitcoin.conf settings reduce bandwidth without weakening validation?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m7" data-title="Module 7 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m7-q1", "stem": "A pruned node operator claims 'I only keep 5 GB, so I trust miners more than a full node does.' The correction?", "choices": [{"key": "A", "text": "Pruning discards old block data, not validation — it verified every rule from genesis before discarding"}, {"key": "B", "text": "Pruned nodes skip script validation to save CPU"}, {"key": "C", "text": "Pruned nodes cannot check new transactions"}, {"key": "D", "text": "The claim is correct: less data means less security"}], "answer": "A", "feedback": {"A": "Right: prune mode validates the full history once, then drops what it no longer needs. The UTXO set and rules are identical.", "B": "No — script validation happens during initial sync for every block.", "C": "New transactions are validated against the same UTXO set a full node keeps.", "D": "Disk usage and security are independent here; the security comes from validation, not storage."}, "why": "Pruning is a storage optimization applied after full validation."}, {"id": "btc-m7-q2", "stem": "During initial block download, your node receives headers first, then blocks. Why this order?", "choices": [{"key": "A", "text": "Headers commit to the most-work chain cheaply, so the node knows which blocks are worth downloading and validating"}, {"key": "B", "text": "Headers contain the transactions in compressed form"}, {"key": "C", "text": "Blocks cannot be stored before their headers exist on disk"}, {"key": "D", "text": "It is purely cosmetic; either order works identically"}], "answer": "A", "feedback": {"A": "Right: 80-byte headers let the node find the best chain with minimal bandwidth before committing to full block downloads.", "B": "Headers carry no transactions — just the 80-byte header fields.", "C": "Storage order is not the point; the point is choosing the right chain before spending bandwidth.", "D": "Order matters: downloading blocks for a stale fork would waste gigabytes."}, "why": "Headers-first IBD: locate the most-work chain, then download only its blocks."}]</script>
         </article>
-        <article class="il-module">
+        <article class="il-module" id="m8" data-il-module>
           <p class="il-eyebrow">Module 8</p>
           <h3 class="il-h il-h--card">Lightning Network Overview</h3>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 640 210" role="img" aria-label="Lightning channel lifecycle">
+<defs><marker id="ah8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4a017" stroke-width="1.5"/></marker></defs>
+<rect x="20" y="70" width="150" height="70" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="95" y="94" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">funding tx</text>
+<text x="95" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">2-of-2 multisig</text>
+<text x="95" y="128" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">on-chain</text>
+<rect x="245" y="70" width="150" height="70" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="320" y="94" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">commitment txs</text>
+<text x="320" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">updated off-chain</text>
+<text x="320" y="128" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">revocation keys punish cheats</text>
+<rect x="470" y="70" width="150" height="70" rx="6" fill="#0d1117" stroke="#d4a017" stroke-width="1.5"/>
+<text x="545" y="94" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold" font-family="system-ui,sans-serif">close tx</text>
+<text x="545" y="112" text-anchor="middle" fill="#e6e9ef" font-size="11" font-family="system-ui,sans-serif">final balances</text>
+<text x="545" y="128" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">on-chain</text>
+<path d="M170,105 L241,105" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah8)"/>
+<path d="M395,105 L466,105" stroke="#d4a017" stroke-width="1.5" marker-end="url(#ah8)"/>
+<text x="320" y="180" text-anchor="middle" fill="#8a93a6" font-size="10" font-family="system-ui,sans-serif">Only open and close touch the chain; everything between is instant, private, and enforceable.</text>
+</svg><figcaption>Lightning channel lifecycle: two on-chain transactions bracket unlimited off-chain payments.</figcaption></figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain how a payment channel moves value off-chain</li>
@@ -511,6 +661,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What stops an old commitment transaction from being broadcast profitably?</li>
             <li>What does the payment preimage prove, and to whom?</li>
           </ul>
+<div class="il-check" data-il-check data-id="btc-m8" data-title="Module 8 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "btc-m8-q1", "stem": "Alice and Bob open a Lightning channel funded 60/40. After five off-chain payments the balance is 20/80. What does the blockchain show?", "choices": [{"key": "A", "text": "Only the funding transaction — the five payments are private commitment updates, invisible until close"}, {"key": "B", "text": "All five payments as separate on-chain transactions"}, {"key": "C", "text": "The funding transaction plus a hash of each payment"}, {"key": "D", "text": "Nothing: channels exist entirely off-chain"}], "answer": "A", "feedback": {"A": "Right: commitment transactions are exchanged, not broadcast. The chain sees open and (eventually) close only.", "B": "That would defeat the purpose — Lightning exists precisely to keep these off-chain.", "C": "No hashes are posted; the chain learns nothing about intermediate states.", "D": "The funding output is a real on-chain 2-of-2 UTXO — the channel is anchored to the chain."}, "why": "Lightning: on-chain anchor, off-chain updates, on-chain settlement."}, {"id": "btc-m8-q2", "stem": "An HTLC routes a payment across three channels with the same hash H but decreasing timelocks. Why must the timelocks decrease along the route?", "choices": [{"key": "A", "text": "Each hop needs time to claim on-chain if the next hop stalls — the outer hop must expire later than the inner one"}, {"key": "B", "text": "Decreasing timelocks make the payment faster"}, {"key": "C", "text": "The hash preimage expires"}, {"key": "D", "text": "Timelocks are cosmetic in HTLCs"}], "answer": "A", "feedback": {"A": "Right: the safety margin cascades — if your downstream hop goes silent, you must still have time to settle on-chain before your own incoming HTLC expires.", "B": "Timelocks bound worst-case settlement time; they do not speed up the happy path.", "C": "The preimage has no expiry; the timelocks protect the funds while it is unknown.", "D": "Remove the staggered timelocks and an intermediary can be left paying out with no way to be reimbursed."}, "why": "Staggered timelocks give each hop a guaranteed window to enforce on-chain."}]</script>
         </article>
       </div>
     </div>
@@ -560,6 +712,102 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+<section class="il-section" id="labs" aria-labelledby="labs-h">
+<div class="il-wrap">
+<div class="il-section__head">
+<p class="il-eyebrow">In-browser labs</p>
+<h2 class="il-h il-h--section" id="labs-h">Validate it yourself.</h2>
+<p class="il-lede">Two calculators with instant feedback — the same arithmetic miners and wallets do.</p>
+</div>
+</div>
+</section>
+
+<section class="il-section" id="lab-fee" data-il-module aria-label="Fee-rate lab">
+<div class="il-wrap">
+<h3 class="il-h il-h--card">Lab: fee-rate and confirmation math</h3>
+<p class="il-prose">Miners rank by <strong>sat/vB</strong>. Enter a transaction's size and fee; the lab computes the rate and judges it against a simulated mempool.</p>
+<div class="il-lab">
+<div class="il-lab__row">
+<label>Size (vbytes) <input id="lab-fee-size" type="number" value="220" min="1"/></label>
+<label>Fee (sats) <input id="lab-fee-amt" type="number" value="4400" min="0"/></label>
+<button class="il-btn il-btn--gold" id="lab-fee-go">Compute</button>
+</div>
+<div class="il-lab__out" id="lab-fee-out" aria-live="polite"></div>
+<p class="il-lab__hint">Try: 220 vB / 220 sats (1 sat/vB — the floor), then 220 vB / 22000 sats (100 sat/vB — urgent).</p>
+</div>
+</div>
+</section>
+<section class="il-section" id="lab-subsidy" data-il-module aria-label="Subsidy schedule lab">
+<div class="il-wrap">
+<h3 class="il-h il-h--card">Lab: the subsidy schedule</h3>
+<p class="il-prose">Block subsidy halves every 210,000 blocks from 50 BTC. Enter any block height; the lab returns the subsidy at that height and the era.</p>
+<div class="il-lab">
+<div class="il-lab__row">
+<label>Block height <input id="lab-sub-h" type="number" value="840000" min="0"/></label>
+<button class="il-btn il-btn--gold" id="lab-sub-go">Compute</button>
+</div>
+<div class="il-lab__out" id="lab-sub-out" aria-live="polite"></div>
+<p class="il-lab__hint">Try 0 (genesis era), 210000 (first halving), 840000 (fourth), 6930000 (last halving era).</p>
+</div>
+</div>
+</section>
+<script>
+(function(){
+"use strict";
+function out(id, ok, html){ var e=document.getElementById(id); e.className="il-lab__out show "+(ok===true?"is-ok":ok===false?"is-no":"is-info"); e.innerHTML=html; }
+var gf=document.getElementById("lab-fee-go");
+if(gf) gf.addEventListener("click", function(){
+  var size=parseFloat(document.getElementById("lab-fee-size").value), fee=parseFloat(document.getElementById("lab-fee-amt").value);
+  if(!(size>0)||!(fee>=0)||!isFinite(size)||!isFinite(fee)){ out("lab-fee-out", false, "Enter a positive size and a nonnegative fee."); return; }
+  var rate=fee/size, r=Math.round(rate*100)/100;
+  var verdict = rate<1 ? ["is-no","<b>Below the relay floor.</b> Most nodes will not even relay a sub-1 sat/vB transaction — it will never reach miners."]
+    : rate<5 ? ["is-info","<b>Slow lane.</b> Confirms in quiet mempools; expect hours to days during congestion. Consider RBF to bump it."]
+    : rate<30 ? ["is-info","<b>Standard.</b> Should confirm within a few blocks under normal conditions."]
+    : ["is-ok","<b>Priority.</b> Outbids most of the mempool — next-block territory."];
+  out("lab-fee-out", verdict[0]==="is-ok"?true:verdict[0]==="is-no"?false:"info",
+    "Fee rate: <b>"+r+" sat/vB</b> ("+fee+" sats / "+size+" vB)<br/>"+verdict[1]);
+});
+var gs=document.getElementById("lab-sub-go");
+if(gs) gs.addEventListener("click", function(){
+  var h=parseInt(document.getElementById("lab-sub-h").value,10);
+  if(isNaN(h)||h<0){ out("lab-sub-out", false, "Enter a nonnegative block height."); return; }
+  var era=Math.floor(h/210000), sub=50/Math.pow(2,era);
+  var txt = era>=33 ? "Subsidy is <b>0 BTC</b> — the subsidy era has ended (era "+era+"); miners earn fees only."
+    : "Era "+era+": subsidy = <b>"+(sub>=1?sub:(sub).toFixed(8).replace(/0+$/,"").replace(/\.$/,""))+" BTC</b> per block.";
+  var next = era<33 ? "<br/>Next halving at block "+((era+1)*210000)+"." : "";
+  out("lab-sub-out", "info", txt+next);
+});
+})();
+</script>
+<section class="il-section" id="exam" aria-labelledby="exam-h">
+<div class="il-wrap">
+<div class="il-section__head">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="exam-h">Prove it: the Bitcoin scenario exam.</h2>
+<p class="il-lede">Twelve scenarios across all eight modules — wallet discrepancies, fee math, script debugging, key-management incidents, mining economics, mempool behavior, node operations, Lightning disputes. Misses link back to the module that teaches the fix.</p>
+</div>
+<div data-il-exam></div>
+<script type="application/json" data-il-exam-bank>[{"id": "bitcoin-protocol-ex-01", "domain": "UTXO model", "stem": "Two wallets show different balances for the same seed phrase: one shows 1.2 BTC, the other 0.9 BTC. Both are synced. What is the most likely explanation?", "choices": [{"key": "A", "text": "One wallet is not scanning for a change-address type the seed actually used — its UTXO set view is incomplete"}, {"key": "B", "text": "The blockchain forked and each wallet follows a different fork"}, {"key": "C", "text": "Bitcoin balances are approximate by design"}, {"key": "D", "text": "One wallet is deducting future fees"}], "answer": "A", "why": "A balance is a wallet's computed view over the UTXO set; missing address types (e.g., bech32 change) hide real UTXOs.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m1", "coach": "/coach/?prompt=Why%20two%20wallets%20can%20disagree%20on%20a%20balance%20for%20the%20same%20seed"}}, {"id": "bitcoin-protocol-ex-02", "domain": "UTXO model", "stem": "A transaction consumes a 2.0 BTC UTXO and creates outputs of 1.2 BTC and 0.79 BTC. The fee and the likely purpose of the second output?", "choices": [{"key": "A", "text": "0.01 BTC fee; the 0.79 output is change returning to the sender"}, {"key": "B", "text": "0.01 BTC fee; the 0.79 output is a donation to miners"}, {"key": "C", "text": "0.11 BTC fee; both outputs pay the recipient"}, {"key": "D", "text": "No fee; Bitcoin transactions are free"}], "answer": "A", "why": "Fee = inputs − outputs = 0.01; the second output is the sender's change — fees are implicit, never a field.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m1", "coach": "/coach/?prompt=How%20Bitcoin%20fees%20work%3A%20implicit%2C%20inputs%20minus%20outputs"}}, {"id": "bitcoin-protocol-ex-03", "domain": "Transactions", "stem": "You sign a partially-constructed CoinJoin with SIGHASH_SINGLE | ANYONECANPAY. What did you authorize, exactly?", "choices": [{"key": "A", "text": "Only your input and the one output at the same index — anyone may add more inputs afterwards"}, {"key": "B", "text": "The entire transaction, frozen exactly as-is"}, {"key": "C", "text": "Only your input; outputs can be changed freely"}, {"key": "D", "text": "Nothing — that flag combination is invalid"}], "answer": "A", "why": "SINGLE commits to the output at the input's index; ANYONECANPAY leaves other inputs open — the classic crowdfunding/coinjoin primitive.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m2", "coach": "/coach/?prompt=Sighash%20flags%3A%20what%20SINGLE%20and%20ANYONECANPAY%20commit%20to"}}, {"id": "bitcoin-protocol-ex-04", "domain": "Transactions", "stem": "A 2-input P2WPKH transaction is 373 vbytes with a fee of 7,460 sats. The fee rate and whether it qualifies as high-priority during congestion?", "choices": [{"key": "A", "text": "20 sat/vB — competitive; miners sort by fee rate so this outbids the mempool tail"}, {"key": "B", "text": "2 sat/vB — it will confirm eventually"}, {"key": "C", "text": "20 sat/byte of raw weight — miscomputed"}, {"key": "D", "text": "7,460 sat/vB — the fee total is the rate"}], "answer": "A", "why": "7460/373 = 20 sat/vB; fee rate (not absolute fee) is what the mempool auction ranks.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m2", "coach": "/coach/?prompt=Fee%20rates%3A%20vbytes%2C%20sat%2FvB%2C%20and%20mempool%20ordering"}}, {"id": "bitcoin-protocol-ex-05", "domain": "Script", "stem": "A legacy P2PKH spend keeps failing with 'mandatory-script-verify-flag-failed' even though the key is correct. A plausible cause?", "choices": [{"key": "A", "text": "The signature was made over the wrong sighash preimage — e.g., the unsigned tx was modified after signing"}, {"key": "B", "text": "P2PKH outputs cannot be spent at all"}, {"key": "C", "text": "The private key must be converted to WIF first"}, {"key": "D", "text": "The UTXO is too old to spend"}], "answer": "A", "why": "Signature verification covers the exact serialized transaction; any post-signing modification invalidates it.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m3", "coach": "/coach/?prompt=Debugging%20script%20failures%3A%20sighash%20preimage%20mismatches"}}, {"id": "bitcoin-protocol-ex-06", "domain": "Keys", "stem": "A support ticket: 'I gave a website my xpub to track payments; now they sent me someone else's money to my address.' What actually happened and the risk?", "choices": [{"key": "A", "text": "Nothing was stolen — but the site can now see every current and future address of that account; move funds to a fresh seed if that visibility is unacceptable"}, {"key": "B", "text": "The xpub let them spend the funds — the wallet is drained"}, {"key": "C", "text": "xpubs expire after one use"}, {"key": "D", "text": "The money is lost because xpubs are receive-only"}], "answer": "A", "why": "xpub = full watch-only visibility over the account; no spending power, but total loss of address privacy.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m4", "coach": "/coach/?prompt=xpub%20sharing%3A%20watch-only%20visibility%20and%20its%20privacy%20cost"}}, {"id": "bitcoin-protocol-ex-07", "domain": "Mining", "stem": "Block 840,000 has just been mined. A miner asks what changed about their revenue model that morning. The precise answer?", "choices": [{"key": "A", "text": "The fourth halving cut the subsidy to 3.125 BTC — revenue now depends more on fees than before"}, {"key": "B", "text": "The subsidy ended; miners now earn fees only"}, {"key": "C", "text": "Block time doubled to 20 minutes"}, {"key": "D", "text": "Difficulty reset to 1"}], "answer": "A", "why": "Halving schedule: 50 → 25 → 12.5 → 6.25 → 3.125 at block 840,000; the fee share of revenue steps up each halving.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m5", "coach": "/coach/?prompt=The%20halving%20schedule%20and%20miner%20revenue"}}, {"id": "bitcoin-protocol-ex-08", "domain": "Mining", "stem": "A miner finds a block with a valid nonce but the block is rejected by every node. The most common rookie cause?", "choices": [{"key": "A", "text": "The coinbase reward exceeded the allowed subsidy + fees — e.g., claiming 6.25 after the halving"}, {"key": "B", "text": "The nonce was too small"}, {"key": "C", "text": "The block was found too quickly"}, {"key": "D", "text": "Mining is no longer allowed after the halving"}], "answer": "A", "why": "Consensus rules cap the coinbase; nodes reject blocks that mint even one satoshi over the limit, regardless of valid PoW.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m5", "coach": "/coach/?prompt=Consensus%20rules%3A%20valid%20proof-of-work%20is%20necessary%20but%20not%20sufficient"}}, {"id": "bitcoin-protocol-ex-09", "domain": "Mempool", "stem": "Your 5 sat/vB transaction has sat unconfirmed for 3 days while 1 sat/vB transactions confirm. The likely mechanism?", "choices": [{"key": "A", "text": "Your transaction was evicted from mempools during a spike and never rebroadcast — fee rate alone does not guarantee retention"}, {"key": "B", "text": "Miners are censoring your address"}, {"key": "C", "text": "5 sat/vB is below the consensus minimum"}, {"key": "D", "text": "Transactions expire after 24 hours by consensus"}], "answer": "A", "why": "Mempools are finite and evict the lowest fee-rate txs under pressure; a dropped tx must be rebroadcast (or fee-bumped).", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m6", "coach": "/coach/?prompt=Mempool%20eviction%20and%20why%20low-fee%20transactions%20disappear"}}, {"id": "bitcoin-protocol-ex-10", "domain": "Nodes", "stem": "You need to verify a 2015 payment claim but your pruned node starts from 2023. What is the correct move?", "choices": [{"key": "A", "text": "Fetch the historical block data from an archival source and verify it against your validated headers — or run a full archival node"}, {"key": "B", "text": "Trust the claimant; pruned nodes cannot verify history"}, {"key": "C", "text": "Pruned nodes retain all history in compressed form"}, {"key": "D", "text": "Ask a miner to re-mine the block"}], "answer": "A", "why": "Pruned nodes discard old block bodies; verifying old claims needs the data from somewhere you can check against headers.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m7", "coach": "/coach/?prompt=Pruned%20nodes%20and%20historical%20verification"}}, {"id": "bitcoin-protocol-ex-11", "domain": "Lightning", "stem": "Your channel peer broadcasts an old commitment state where they held more funds. What protects you, and what must you do?", "choices": [{"key": "A", "text": "Your revocation key for that state lets you claim all channel funds as penalty — but you must be watching to act within the timelock"}, {"key": "B", "text": "Nothing — the chain accepts the first broadcast state as final"}, {"key": "C", "text": "The funding multisig prevents any unilateral close"}, {"key": "D", "text": "Lightning has no penalty mechanism"}], "answer": "A", "why": "Revocation keys make cheating punishable by total loss; the catch is you must monitor (or hire a watchtower) before the timelock expires.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m8", "coach": "/coach/?prompt=Lightning%20penalties%3A%20revocation%20keys%20and%20watchtowers"}}, {"id": "bitcoin-protocol-ex-12", "domain": "Lightning", "stem": "A routed payment fails with 'temporary channel failure' on an intermediate hop. The most likely meaning?", "choices": [{"key": "A", "text": "That channel lacks outbound liquidity in the payment's direction right now — retry with a different route or smaller amount"}, {"key": "B", "text": "The invoice expired"}, {"key": "C", "text": "Your node is offline"}, {"key": "D", "text": "Lightning payments never fail partially"}], "answer": "A", "why": "Channels are directional in liquidity; a hop can be solvent overall yet unable to forward in the needed direction.", "remediate": {"adapt": "/learn/sequences/bitcoin-protocol/#m8", "coach": "/coach/?prompt=Lightning%20liquidity%3A%20why%20routes%20fail%20and%20retries%20work"}}]</script>
+<div class="il-honest"><strong>Honest framing.</strong> Every lesson on this page is original prose written for Interstitium Labs — no copied vendor text, no reproduced exam questions. External documentation is linked as reference, never as the lesson. Practice content here is original; a passing score confers no certificate and claims no affiliation with any project, foundation, or vendor.</div>
+</div>
+</section>
+<hr class="il-rule"/>
+
+<section class="il-section" id="continue" aria-labelledby="continue-h">
+<div class="il-wrap">
+<div class="il-continue">
+<p class="il-eyebrow">Continue to &rarr;</p>
+<h2 id="continue-h">From the base chain to programmable ledgers.</h2>
+<p>You can now read Bitcoin at the byte level — UTXOs, scripts, mining, and the fee market. The XRPL sequence applies the same rigor to a different architecture: accounts instead of UTXOs, federated consensus instead of mining, and a built-in exchange instead of second layers.</p>
+<div class="il-continue__row">
+<a class="il-btn il-btn--gold" href="/learn/sequences/xrpl-engineering/">XRPL engineering &rarr;</a>
+<a class="il-btn il-btn--ghost" href="/adapt/">Adaptive path</a>
+<a class="il-btn il-btn--ghost" href="/practice/">Practice wing</a>
+</div>
+</div>
+</div>
+</section>
+
 </main>
 
 <footer class="no-print border-t border-paper/10">
@@ -574,6 +822,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     </div>
   </div>
 </footer>
+<script src="/assets/il-check.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-seq.js" defer></script>
 <script src="/assets/noah-ai.js" defer></script>
 </body>
 </html>
