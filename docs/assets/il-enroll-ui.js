@@ -22,6 +22,11 @@
       e.preventDefault();
       var name = form.elements.name.value.trim();
       var email = form.elements.email.value.trim();
+      var tier = "prep-sprint";
+      try {
+        var tierEl = form.querySelector('input[name="tier"]:checked');
+        if (tierEl && tierEl.value) tier = tierEl.value;
+      } catch (e) {}
       err.hidden = true;
       err.textContent = "";
       if (!name || !email) {
@@ -37,7 +42,7 @@
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ name: name, email: email }),
+        body: JSON.stringify({ name: name, email: email, tier: tier }),
       })
         .then(function (res) {
           return res.json().then(function (data) {

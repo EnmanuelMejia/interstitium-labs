@@ -244,11 +244,8 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    push('bot', live ? liveAssistPreface(ctx) : 'Interstitium Coach (local rules). Topics: CIDR, Git, K8s, Terraform, CI/CD, Linux. I will not answer-dump — show your work.');
-
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var q = (input.value || '').trim();
+    function ask(q) {
+      q = (q || '').trim();
       if (!q) return;
       push('user', q);
       input.value = '';
@@ -261,6 +258,32 @@
           if (g.ILGame && g.ILGame.award) g.ILGame.award('coach_ask', 5, { id: 'coach:' + Date.now() });
         } catch (e) {}
       });
+    }
+
+    push('bot', live ? liveAssistPreface(ctx) : 'Interstitium Coach (local rules). Topics: CIDR, Git, K8s, Terraform, CI/CD, Linux. I will not answer-dump — show your work.');
+
+    /* ?prompt= deep links (exam remediation, side-quests): prefill the input
+       AND start the Socratic session with it, so the link actually does something. */
+    try {
+      var qp = (g.location && g.location.search) ? g.location.search.replace(/^\?/, '').split('&') : [];
+      var promptQ = '';
+      for (var pi = 0; pi < qp.length; pi++) {
+        var kv = qp[pi].split('=');
+        if (decodeURIComponent(kv[0] || '') === 'prompt') { promptQ = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')); break; }
+      }
+      if (promptQ) {
+        input.value = promptQ;
+        ask(promptQ);
+        /* consume the param so back/forward doesn't re-fire the session */
+        try { g.history.replaceState(null, '', g.location.pathname + g.location.hash); } catch (e2) {}
+      }
+    } catch (e3) {}
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var q = (input.value || '').trim();
+      if (!q) return;
+      ask(q);
     });
 
     shell.appendChild(left);

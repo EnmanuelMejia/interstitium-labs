@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Start — 3-Minute Skill Check — Interstitium Labs</title>
+<meta name="description" content="Ten questions, instant feedback, and your first recommended path. New-student onboarding for Interstitium Labs."/>
+<meta name="theme-color" content="#070B16"/><link rel="manifest" href="/manifest.webmanifest"/><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Interstitium"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/start/"/>
+<link rel="alternate" hreflang="en" href="https://interstitiumlabs.dev/start/?lang=en" data-il-hreflang="1"/>
+<link rel="alternate" hreflang="x-default" href="https://interstitiumlabs.dev/start/" data-il-hreflang="1"/>
+<meta property="og:title" content="Start — 3-Minute Skill Check — Interstitium Labs"/>
+<meta property="og:description" content="Ten questions, instant feedback, and your first recommended path."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/start/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+
+
+
+<link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="stylesheet" href="/assets/il-ux.css"/>
+
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/assets/il-mobile390.css"/>
+<style>
+  .il-q { scroll-margin-top: 6rem; }
+  .il-q__opt { display:flex; gap:.65rem; align-items:flex-start; width:100%; text-align:left; cursor:pointer; border:1px solid rgba(232,238,245,.12); border-radius:.75rem; background:rgba(10,15,29,.6); padding:.8rem .95rem; font-size:.875rem; line-height:1.5; color:#e8eef5; }
+  .il-q__opt:hover:not(:disabled) { border-color:rgba(201,162,39,.55); }
+  .il-q__opt:disabled { cursor:default; opacity:.85; }
+  .il-q__opt.is-right { border-color:#34d399; background:rgba(52,211,153,.08); }
+  .il-q__opt.is-wrong { border-color:#f87171; background:rgba(248,113,113,.08); }
+  .il-q__key { font-family:"JetBrains Mono",monospace; font-size:.7rem; border:1px solid rgba(232,238,245,.25); border-radius:.35rem; padding:.1rem .45rem; color:#8b9bb4; flex:none; margin-top:.1rem; }
+  .il-q__why { display:none; margin-top:.75rem; border-left:3px solid #c9a227; padding:.5rem .9rem; font-size:.82rem; line-height:1.6; color:#c7d2e4; background:rgba(201,162,39,.06); border-radius:0 .5rem .5rem 0; }
+  .il-q__why.show { display:block; }
+  .il-start__bar { height:.5rem; border-radius:999px; background:rgba(232,238,245,.1); overflow:hidden; }
+  .il-start__bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,#c9a227,#5eead4); transition:width .3s ease; }
+</style>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<a class="il-skip" href="#main">Skip to content</a>
+<div class="flex min-h-dvh flex-col bg-void text-paper">
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="/paths/">Paths</a>
+      <a href="/paths/roles/">Role Tracks</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/labs/">Labs</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/coach/">Coach</a>
+      <a href="/play/">Play</a>
+      <a href="/cinema/">Cinema</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/adapt/">Adapt</a>
+      <a href="/about/">About Us</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/">Learn</a>
+          <a href="/paths/">Paths</a>
+          <a href="/paths/roles/">Role Tracks</a>
+          <a href="/prep/drills/">Practice & Exams</a>
+          <a href="/labs/">Labs</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/coach/">Coach</a>
+          <a href="/play/">Play</a>
+          <a href="/cinema/">Cinema</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/adapt/">Adapt</a>
+          <a href="/enroll/">Enroll</a>
+          <a href="/about/">About Us</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Start</li></ol></nav>
+<main id="main" class="il-fluid-type flex-1" data-il-auto-reveal>
+<section class="relative isolate overflow-hidden border-b border-paper/10">
+  <div class="il-hero-field" data-il-starfield aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Start · New-student onboarding</p>
+    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">The 3-minute skill check.</h1>
+    <p class="mt-5 max-w-2xl text-base leading-relaxed text-muted">Ten questions across the domains every ops and data role assumes. Instant feedback on every answer — then we read your weakest and strongest areas and point you at your first path. No account, no email, results stay in your browser.</p>
+    <noscript><div class="mt-6 max-w-2xl rounded-xl border border-gold/40 bg-panel p-5 text-sm text-paper"><p><strong>The check needs JavaScript.</strong> Without it: <a class="text-cyan" href="/adapt/">open /adapt/</a> for the adaptive placement engine, or <a class="text-cyan" href="/paths/">browse all paths</a> directly. Every path page lists its first phase and first lesson sequence.</p></div></noscript>
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-5 py-12 sm:px-8" id="start-quiz" hidden>
+  <div class="flex items-center justify-between gap-4">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold" id="start-count">Question 1 of 10</p>
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted" id="start-score">0 correct</p>
+  </div>
+  <div class="il-start__bar mt-3" role="progressbar" aria-label="Quiz progress"><i id="start-bar"></i></div>
+  <div id="start-questions" class="mt-8 space-y-8"></div>
+</section>
+
+<section class="mx-auto max-w-3xl px-5 pb-16 sm:px-8" id="start-result" hidden>
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Your result</p>
+  <h2 class="mt-3 font-display text-3xl tracking-[-0.02em] text-paper">Your first path</h2>
+  <p class="mt-3 text-sm text-muted" id="start-summary"></p>
+  <div class="mt-6 grid gap-3 sm:grid-cols-2" id="start-domains"></div>
+  <article class="mt-8 rounded-xl border border-gold/40 bg-panel p-6 sm:p-8" id="start-rec">
+    <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Recommended first path</p>
+    <h3 class="mt-2 font-display text-2xl text-paper" id="start-rec-name"></h3>
+    <p class="mt-3 text-sm leading-relaxed text-muted" id="start-rec-why"></p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="#" id="start-rec-path" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-xs font-medium uppercase tracking-[0.14em] text-void">Open the path</a>
+      <a href="#" id="start-rec-lesson" class="inline-flex h-11 items-center rounded-lg border border-cyan/40 px-5 font-display text-xs font-medium uppercase tracking-[0.14em] text-cyan">Start first lesson &rarr;</a>
+    </div>
+    <p class="mt-4 text-xs text-muted">Then <a class="text-cyan" href="/adapt/">/adapt/</a> keeps sequencing you from your weakest domain — your check results were saved there as a starting point.</p>
+  </article>
+  <div class="mt-6 flex flex-wrap gap-3">
+    <button type="button" id="start-retake" class="inline-flex h-10 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-paper">Retake the check</button>
+    <a href="/paths/" class="inline-flex h-10 items-center rounded-lg border border-paper/15 px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-paper">All paths</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  /* IL onboarding — 10-question skill self-assessment.
+     Domains reuse the adaptive engine's topic-mastery model (il-adaptive.js):
+     each answer writes a mastery estimate into il.adaptive.v1 topics, so
+     /adapt/ can sequence from the check result on the next visit. */
+  var QUESTIONS = [
+    { domain: 'Linux shell', topic: 'linux-shell',
+      q: 'A server disk is full. What is the best FIRST investigation step?',
+      opts: ['Delete /var/log/* immediately to free space', 'Run df -h, then du to find the heavy directory', 'Reboot the server', 'chmod -R 777 /var so apps can write'],
+      right: 1,
+      why: 'df -h shows which filesystem is full; du finds the directory. Deleting logs blindly destroys incident evidence, a reboot rarely fixes a full disk, and chmod 777 is a security incident.' },
+    { domain: 'Linux permissions', topic: 'linux-perms',
+      q: 'A deploy script must be executable by its owner only, and readable only by its owner. Which mode?',
+      opts: ['chmod 755', 'chmod 700', 'chmod 644', 'chmod 777'],
+      right: 1,
+      why: '700 = rwx for owner, nothing for group or others. 755 lets anyone execute it; 644 is not executable; 777 is never the answer.' },
+    { domain: 'Networking / CIDR', topic: 'net-cidr',
+      q: 'You need about 50 usable host IPs on one subnet. Smallest standard CIDR that fits?',
+      opts: ['10.0.0.0/24', '10.0.0.0/25', '10.0.0.0/26', '10.0.0.0/30'],
+      right: 2,
+      why: '/26 gives 64 addresses (62 usable) — enough for 50 with room to grow. /24 wastes ~200 addresses; /25 also works but is bigger than needed; /30 gives only 2 usable hosts.' },
+    { domain: 'Git', topic: 'git-basics',
+      q: 'You made 3 commits on main instead of a feature branch. Nothing is pushed. Safest fix?',
+      opts: ['git branch feature (keeps the work), then move main back', 'git push --force origin main', 'Delete the .git directory and start over', 'Keep committing to main — it is fine'],
+      right: 0,
+      why: 'Branch off the tip to keep the work, then reset main to its original point. Force-pushing main rewrites shared history; deleting .git destroys everything.' },
+    { domain: 'Containers', topic: 'ctr-images',
+      q: 'Every source-code change invalidates your whole Docker build cache. Best fix?',
+      opts: ['COPY the source earlier in the Dockerfile', 'COPY dependency manifests first, install, then COPY source last', 'Use :latest tags everywhere', 'Put everything in one giant RUN'],
+      right: 1,
+      why: 'Layer cache: stable layers (dependency installs) go first, volatile layers (your source) go last. Copying source early busts the cache on every edit.' },
+    { domain: 'Python', topic: 'py-scripts',
+      q: 'A Python script parses a 4 GB log file and dies out of memory. Best first change?',
+      opts: ['Load the whole file — RAM is cheap', 'Stream it line by line, processing lazily', 'Buy a bigger machine', 'Rewrite it in assembly'],
+      right: 1,
+      why: 'Iterate the file object instead of read()-ing it whole. Ops data is unbounded — the engineer who can mine logs without loading the world into memory wins.' },
+    { domain: 'Data / SQL', topic: 'sql-core',
+      q: '“Customers with more than 3 orders.” Which query shape is correct?',
+      opts: ['SELECT customer, COUNT(*) FROM orders WHERE COUNT(*) > 3', 'SELECT customer FROM orders GROUP BY customer HAVING COUNT(*) > 3', 'SELECT DISTINCT customer FROM orders', 'SELECT customer FROM orders ORDER BY COUNT(*) DESC'],
+      right: 1,
+      why: 'Aggregates cannot be filtered in WHERE — GROUP BY first, then HAVING. DISTINCT does not count; ORDER BY does not filter.' },
+    { domain: 'Security', topic: 'sec-least',
+      q: 'A CI job must push images to ONE private registry. Least-privilege setup?',
+      opts: ['Short-lived token scoped to push on that registry only', 'Long-lived admin key committed in the repo', 'Root cloud credentials on the runner', 'Disable registry auth so the job never fails'],
+      right: 0,
+      why: 'Scope plus short lifetime: the token can only push to that one registry and expires fast. Admin keys in repos and root creds on runners are classic breach material.' },
+    { domain: 'Cloud', topic: 'cloud-iam',
+      q: 'Shared responsibility on IaaS: who patches the guest operating system?',
+      opts: ['The cloud provider, always', 'You, the customer', 'Nobody — the OS is managed', 'The CDN in front of it'],
+      right: 1,
+      why: 'The provider secures the cloud (hardware, hypervisor, network fabric); you secure what you put in it — including guest OS patching.' },
+    { domain: 'Kubernetes', topic: 'k8s-pods',
+      q: 'A Pod is CrashLoopBackOff. What are the first three checks?',
+      opts: ['kubectl describe pod → logs → events / probes / image config', 'Delete the cluster and rebuild', 'Scale to 100 replicas immediately', 'Wait — it will fix itself'],
+      right: 0,
+      why: 'Describe + logs + events locate probe, config, or image faults fast. Deleting or scaling a broken workload multiplies the problem.' }
+  ];
+
+  var PATHS = {
+    'devops-zero-to-hire': {
+      name: 'DevOps Zero → Hire',
+      pathUrl: '/paths/devops-zero-to-hire/',
+      lessonUrl: '/learn/sequences/docker-containers/#modules',
+      blurb: 'Linux + Git baseline first, then containers and CI, then a K8s-lite GitOps demo. Built for exactly where a foundations-first learner starts.'
+    },
+    'data-analyst-to-ml': {
+      name: 'Data Analyst → ML',
+      pathUrl: '/paths/data-analyst-to-ml/',
+      lessonUrl: '/learn/sequences/sql-core/#module-1-ddl-and-dml-fundamentals',
+      blurb: 'Analyst foundations → tools mastery → an ML literacy bridge. Your strongest signals are in data; this path turns them into portfolio proof.'
+    },
+    'secops-blue-team': {
+      name: 'SecOps Blue Team',
+      pathUrl: '/paths/secops-blue-team/',
+      lessonUrl: '/learn/sequences/security-plus-cysa/#module-1-security-module-1-threats-attacks-and-vulnerabilities',
+      blurb: 'Your foundations are solid and security is the gap to close — detection, triage, and defense-in-depth with honest lab work.'
+    },
+    'kubernetes-sre': {
+      name: 'Kubernetes SRE',
+      pathUrl: '/paths/kubernetes-sre/',
+      lessonUrl: '/learn/sequences/k8s-cka/#module-1',
+      blurb: 'Containers and K8s are your strongest area — go deeper into policy, reliability, and the SRE interview surface.'
+    },
+    'devsecops-mastery': {
+      name: 'DevSecOps Mastery',
+      pathUrl: '/paths/devsecops-mastery/',
+      lessonUrl: '/learn/sequences/devsecops-pipeline/#modules',
+      blurb: 'Broad strength across the board — the 52-week deep path with weekly build artifacts and AZ/CKA/CKS-shaped readiness.'
+    }
+  };
+
+  function recommend(answers) {
+    var get = function (t) { for (var i = 0; i < answers.length; i++) if (answers[i].topic === t) return answers[i].correct; return false; };
+    var total = 0, i;
+    for (i = 0; i < answers.length; i++) if (answers[i].correct) total++;
+    var weak = [], strong = [];
+    for (i = 0; i < answers.length; i++) { (answers[i].correct ? strong : weak).push(answers[i].domain); }
+    var foundWeak = (!get('linux-shell') ? 1 : 0) + (!get('linux-perms') ? 1 : 0) + (!get('git-basics') ? 1 : 0);
+    var id, why;
+    if (total <= 3 || foundWeak >= 2) {
+      id = 'devops-zero-to-hire';
+      why = 'Your foundations (Linux shell, permissions, Git) are the weakest link right now — and that is exactly where this path starts. Shoring those up first makes everything after it (containers, CI, K8s) land faster.';
+    } else if (!get('sec-least')) {
+      id = 'secops-blue-team';
+      why = 'Your platform foundations are solid; security thinking is the gap. This path closes it with detection, triage, and defense-in-depth labs.';
+    } else if (get('sql-core') && get('py-scripts')) {
+      id = 'data-analyst-to-ml';
+      why = 'Your strongest signals are in Python and data. This path turns that into shipped analysis notebooks and analyst-shaped interview readiness.';
+    } else if (get('ctr-images') && get('k8s-pods') && total >= 6) {
+      id = 'kubernetes-sre';
+      why = 'Containers and Kubernetes are your strongest domain. Go deeper: policy, reliability, and the SRE interview surface.';
+    } else if (total >= 8) {
+      id = 'devsecops-mastery';
+      why = 'Broad strength across domains — you are ready for the deep 52-week path with weekly build artifacts.';
+    } else {
+      id = 'devops-zero-to-hire';
+      why = 'A mixed spread with room to grow — start at the foundations-first path and let /adapt/ keep sequencing from your weakest domain.';
+    }
+    return { id: id, why: why, total: total, weak: weak, strong: strong };
+  }
+
+  function seedAdaptive(answers) {
+    /* Reuse the il-adaptive.js topic-mastery model: write mastery estimates
+       into il.adaptive.v1 so /adapt/ starts from the check result. */
+    try {
+      var raw = null;
+      try { raw = localStorage.getItem('il.adaptive.v1'); } catch (e) {}
+      var s = raw ? JSON.parse(raw) : null;
+      if (!s || s.v !== 1) {
+        s = { v: 1, placed: false, theta: 0, se: 1, n: 0, topics: {}, exposure: {}, recentIds: [], pathId: null, challengeCorrect: 0, history: [], updatedAt: Date.now() };
+      }
+      s.topics = s.topics || {};
+      answers.forEach(function (a) {
+        var t = s.topics[a.topic] || (s.topics[a.topic] = { mastery: 0.2, exposure: 0, streak: 0, lastSeen: 0, status: 'locked' });
+        t.mastery = a.correct ? 0.8 : 0.3;
+        t.exposure = (t.exposure || 0) + 1;
+        t.streak = a.correct ? 1 : 0;
+        t.lastSeen = Date.now();
+        t.status = a.correct ? 'learning' : 'ready';
+      });
+      s.history = s.history || [];
+      s.history.push({ at: Date.now(), kind: 'onboarding-check', n: answers.length });
+      s.updatedAt = Date.now();
+      try { localStorage.setItem('il.adaptive.v1', JSON.stringify(s)); } catch (e) {}
+    } catch (e) {}
+  }
+
+  var quiz = document.getElementById('start-quiz');
+  var qwrap = document.getElementById('start-questions');
+  var result = document.getElementById('start-result');
+  var count = document.getElementById('start-count');
+  var scoreEl = document.getElementById('start-score');
+  var bar = document.getElementById('start-bar');
+  if (!quiz || !qwrap) return;
+  quiz.hidden = false;
+
+  var answers = [];
+  var correct = 0;
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  QUESTIONS.forEach(function (Q, qi) {
+    var art = document.createElement('article');
+    art.className = 'il-q rounded-xl border border-paper/10 bg-panel p-5 sm:p-6';
+    art.id = 'q-' + qi;
+    var html = '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-cyan">' + esc(Q.domain) + ' · Question ' + (qi + 1) + '</p>' +
+      '<h2 class="mt-2 font-display text-lg text-paper">' + esc(Q.q) + '</h2><div class="mt-4 grid gap-2">';
+    Q.opts.forEach(function (o, oi) {
+      html += '<button type="button" class="il-q__opt" data-q="' + qi + '" data-o="' + oi + '"><span class="il-q__key">' + 'ABCD'[oi] + '</span><span>' + esc(o) + '</span></button>';
+    });
+    html += '</div><div class="il-q__why" id="why-' + qi + '" role="status"></div>';
+    art.innerHTML = html;
+    qwrap.appendChild(art);
+  });
+
+  qwrap.addEventListener('click', function (ev) {
+    var btn = ev.target.closest ? ev.target.closest('.il-q__opt') : null;
+    if (!btn || btn.disabled) return;
+    var qi = +btn.getAttribute('data-q'), oi = +btn.getAttribute('data-o');
+    var Q = QUESTIONS[qi];
+    var art = document.getElementById('q-' + qi);
+    var opts = art.querySelectorAll('.il-q__opt');
+    for (var i = 0; i < opts.length; i++) opts[i].disabled = true;
+    var ok = (oi === Q.right);
+    btn.classList.add(ok ? 'is-right' : 'is-wrong');
+    if (!ok) opts[Q.right].classList.add('is-right');
+    var why = document.getElementById('why-' + qi);
+    why.innerHTML = '<strong class="text-paper">' + (ok ? 'Correct.' : 'Not quite — the right answer is ' + 'ABCD'[Q.right] + '.') + '</strong> ' + esc(Q.why);
+    why.classList.add('show');
+    answers.push({ domain: Q.domain, topic: Q.topic, correct: ok });
+    if (ok) correct++;
+    var done = answers.length;
+    count.textContent = 'Question ' + Math.min(done + 1, 10) + ' of 10';
+    scoreEl.textContent = correct + ' correct';
+    bar.style.width = (done / 10 * 100) + '%';
+    if (done === QUESTIONS.length) {
+      setTimeout(showResult, 600);
+      var next = document.getElementById('start-result');
+      if (next) setTimeout(function () { next.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 900);
+    } else {
+      var nxt = document.getElementById('q-' + done);
+      if (nxt) setTimeout(function () { nxt.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 900);
+    }
+  });
+
+  function showResult() {
+    var r = recommend(answers);
+    var p = PATHS[r.id];
+    result.hidden = false;
+    document.getElementById('start-summary').textContent =
+      'You answered ' + r.total + ' of 10 correctly. ' +
+      (r.weak.length ? 'Weakest: ' + r.weak.slice(0, 3).join(', ') + '. ' : 'No weak domains. ') +
+      (r.strong.length ? 'Strongest: ' + r.strong.slice(0, 3).join(', ') + '.' : '');
+    var dom = document.getElementById('start-domains');
+    dom.innerHTML = '';
+    answers.forEach(function (a) {
+      var d = document.createElement('div');
+      d.className = 'rounded-lg border px-3 py-2 text-xs ' + (a.correct ? 'border-emerald-400/40 text-emerald-300' : 'border-red-400/40 text-red-300');
+      d.textContent = (a.correct ? '✓ ' : '✕ ') + a.domain;
+      dom.appendChild(d);
+    });
+    document.getElementById('start-rec-name').textContent = p.name;
+    document.getElementById('start-rec-why').textContent = r.why;
+    document.getElementById('start-rec-path').href = p.pathUrl;
+    var lesson = document.getElementById('start-rec-lesson');
+    lesson.href = p.lessonUrl;
+    lesson.textContent = 'Start first lesson →';
+    /* Persist + seed adaptive engine (il-adaptive.js topic-mastery model). */
+    try {
+      localStorage.setItem('il.onboarding.v1', JSON.stringify({ at: new Date().toISOString(), total: r.total, answers: answers, weak: r.weak, strong: r.strong, recommended: r.id }));
+    } catch (e) {}
+    seedAdaptive(answers);
+  }
+
+  document.getElementById('start-retake').addEventListener('click', function () {
+    answers = []; correct = 0;
+    count.textContent = 'Question 1 of 10';
+    scoreEl.textContent = '0 correct';
+    bar.style.width = '0';
+    result.hidden = true;
+    var arts = qwrap.querySelectorAll('.il-q');
+    for (var i = 0; i < arts.length; i++) {
+      var opts = arts[i].querySelectorAll('.il-q__opt');
+      for (var j = 0; j < opts.length; j++) { opts[j].disabled = false; opts[j].classList.remove('is-right', 'is-wrong'); }
+      var w = arts[i].querySelector('.il-q__why');
+      if (w) { w.classList.remove('show'); w.innerHTML = ''; }
+    }
+    quiz.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+})();
+</script>
+
+</main>
+<footer class="no-print border-t border-paper/10">
+  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
+    <div class="flex items-start gap-4">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+    </div>
+    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+      <span>interstitiumlabs.dev</span>
+      <span>Scientia Omnia Vincit</span>
+      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
+    </div>
+  </div>
+  <!-- lang switcher also auto-injected by ILi18n -->
+</footer>
+</div>
+<script src="/assets/il-compat.js" defer></script>
+<script src="/assets/il-pwa.js?v=heal2" defer></script>
+<script src="/analytics/config.js" defer></script>
+<script src="/assets/il-analytics.js" defer></script>
+<script src="/assets/il-fx.js?v=heal2" defer></script>
+<script src="/assets/il-motion.js" defer></script>
+<script src="/assets/il-i18n.js" defer></script>
+<script src="/assets/il-game.js" defer></script>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
