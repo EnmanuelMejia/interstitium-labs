@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<rs.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Sign in — Interstitium Labs</title>
+<meta name="description" content="Sign in to your Interstitium Labs learner account with a one-time email link. No password to remember; progress syncs across devices."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/account/"/>
+<meta property="og:title" content="Sign in — Interstitium Labs"/>
+<meta property="og:description" content="One-time email sign-in. Your progress, labs, and certificates follow you across devices."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/account/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  .il-auth-box{max-width:26rem;margin:0 auto;background:rgba(12,18,34,.72);border:1px solid rgba(232,238,245,.12);border-radius:1rem;padding:1.75rem}
+  .il-auth-title{font-size:1.5rem;margin:.5rem 0 .25rem}
+  .il-auth-hint{font-size:.875rem;color:#9aa3b2;margin:.5rem 0 1rem}
+  .il-field{display:block;margin:0 0 1rem}
+  .il-field>span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#9aa3b2;margin-bottom:.4rem}
+  .il-field input{width:100%;height:2.9rem;border-radius:.6rem;border:1px solid rgba(232,238,245,.2);background:#0a0f1d;color:#f2ede1;padding:0 .9rem;font-size:1rem}
+  .il-btn{display:inline-flex;align-items:center;justify-content:center;height:2.9rem;padding:0 1.25rem;border-radius:.6rem;background:#f2ede1;color:#0a0f1d;font-weight:600;font-size:.9rem;border:0;cursor:pointer;text-decoration:none}
+  .il-btn:disabled{opacity:.55;cursor:wait}
+  .il-btn-ghost{background:transparent;color:#f2ede1;border:1px solid rgba(232,238,245,.25)}
+  .il-link{background:none;border:0;color:#7dd3fc;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0}
+  .il-auth-error{color:#fca5a5;font-size:.85rem;margin:.5rem 0}
+  .il-auth-email{font-size:1.05rem;margin:.5rem 0 1rem;overflow-wrap:anywhere}
+  .il-auth-actions{display:flex;gap:.75rem;flex-wrap:wrap}
+  .il-kicker{font-size:.68rem;text-transform:uppercase;letter-spacing:.2em;color:#c9a227}
+</style>
+</head>
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="/paths/">Paths</a>
+      <a href="/progress/">My Progress</a>
+      <a href="/certificates/">Certificates</a>
+      <a href="/about/">About Us</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Sign in</li></ol></nav>
+<main style="max-width:72rem;margin:0 auto;padding:2rem 1.5rem 4rem">
+  <p class="il-kicker">Account</p>
+  <h1>Sign in</h1>
+  <p style="max-width:38rem">Your learner account syncs progress, lab completions, and assessment scores across devices — no password. Enter your email and we send a one-time sign-in link.</p>
+  <div class="mt-6" data-il-auth></div>
+  <noscript><p style="max-width:38rem">Sign-in needs JavaScript enabled. Your coursework pages remain fully readable without it.</p></noscript>
+  <p class="il-auth-hint" style="max-width:38rem;margin-top:2rem">Privacy: we store your email, progress records, and certificates on our Cloudflare edge store. Export or delete anytime from <a href="/progress/">your dashboard</a>.</p>
+</main>
+<script src="/assets/il-account.js"></script>
+</body>
+</html>
