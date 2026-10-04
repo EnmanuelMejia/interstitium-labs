@@ -19,8 +19,20 @@
   function save(s) { try { g.localStorage.setItem(STORAGE, JSON.stringify(s)); } catch (e) {} }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function shuffle(arr) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function bankFor(root) {
+    /* Per-page bank: <script type="application/json" data-il-exam-bank>[{id,domain,stem,choices,answer,why,remediate}]</script>
+       placed inside or next to the [data-il-exam] mount. Falls back to the built-in BANK. */
+    try {
+      var el = root.querySelector('script[data-il-exam-bank]');
+      if (!el && root.parentElement) el = root.parentElement.querySelector('script[data-il-exam-bank]');
+      if (el) { var b = JSON.parse(el.textContent); if (b && b.length >= 4) return b; }
+    } catch (e) {}
+    return BANK;
+  }
   function mount(root) {
-    var state = { items: shuffle(BANK).slice(0, 6), idx: 0, answers: {}, finished: false };
+    var QBANK = bankFor(root);
+    var PERPAGE = Math.min(QBANK.length, 12);
+    var state = { items: shuffle(QBANK).slice(0, PERPAGE), idx: 0, answers: {}, finished: false };
     function render() {
       if (state.finished) {
         var correct = 0; var miss = [];
@@ -41,7 +53,7 @@
         }
         html += '</div>'; root.innerHTML = html;
         var retry = root.querySelector('[data-il-exam-retry]');
-        if (retry) retry.addEventListener('click', function () { state = { items: shuffle(BANK).slice(0, 6), idx: 0, answers: {}, finished: false }; render(); });
+        if (retry) retry.addEventListener('click', function () { state = { items: shuffle(QBANK).slice(0, PERPAGE), idx: 0, answers: {}, finished: false }; render(); });
         return;
       }
       var q = state.items[state.idx];
