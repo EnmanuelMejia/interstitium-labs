@@ -64,21 +64,9 @@
   }
 
   if (!live) {
-    status.innerHTML =
-      '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Registration opening soon</p>' +
-      '<p class="mt-2 max-w-2xl text-paper">Checkout is not live yet. No payment links are offered on this page. Join the waitlist and we will email you when Prep Sprint and path seats open.</p>' +
-      '<form id="waitlist-form" class="mt-6 grid max-w-xl gap-3" action="/api/waitlist" method="post">' +
-      '<div><label for="wl-name" class="mb-1 block text-xs uppercase tracking-[0.14em] text-muted">Name</label>' +
-      '<input id="wl-name" name="name" type="text" required maxlength="120" autocomplete="name" class="w-full rounded-lg border border-paper/15 bg-void/60 px-4 py-3 text-sm text-paper" placeholder="Ada Lovelace"/></div>' +
-      '<div><label for="wl-email" class="mb-1 block text-xs uppercase tracking-[0.14em] text-muted">Email</label>' +
-      '<input id="wl-email" name="email" type="email" required maxlength="254" autocomplete="email" class="w-full rounded-lg border border-paper/15 bg-void/60 px-4 py-3 text-sm text-paper" placeholder="you@example.com"/></div>' +
-      '<p id="wl-error" class="text-sm text-red-400" role="alert" hidden></p>' +
-      '<div><button type="submit" class="inline-flex h-11 items-center justify-center rounded-lg bg-paper px-6 font-display text-xs font-medium uppercase tracking-[0.14em] text-void hover:bg-paper/90">Join the waitlist</button></div>' +
-      '<p class="text-xs text-muted">Name and email are stored only to notify you when seats open. No spam, no sale of details.</p>' +
-      "</form>" +
-      '<p class="mt-3 text-sm text-muted">' +
-      (cfg.disclaimer || "") +
-      "</p>";
+    // Waitlist form is static HTML (works without JS); just bind + disclaimer.
+    var disc = document.getElementById("enroll-disclaimer");
+    if (disc && cfg.disclaimer) disc.textContent = cfg.disclaimer;
     bindWaitlistForm(status);
 
     grid.innerHTML =
