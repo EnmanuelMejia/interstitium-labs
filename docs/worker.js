@@ -115,18 +115,6 @@ export default {
       return handleWaitlist(request, env);
     }
 
-    try {
-      return await env.ASSETS.fetch(request);
-    } catch (e) {
-      return new Response(
-        "assets-fallback-error: " +
-          (e && e.message ? e.message : String(e)) +
-          " | hasASSETS=" +
-          !!env.ASSETS +
-          " | envKeys=" +
-          Object.keys(env || {}).join(","),
-        { status: 500, headers: { "content-type": "text/plain" } }
-      );
-    }
+    return env.ASSETS.fetch(request);
   },
 };
