@@ -386,7 +386,7 @@
         '<p>Connect a Unreal Pixel Streaming host — set signaling when UE5 streamer is up on lab GPU host.</p>' +
         '<p class="il-scene-kit__ps-hint">Pass <code>?signaling=</code>, <code>data-ps-signaling</code>, or open ' +
         '<a class="il-scene-kit__ps-link" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. ' +
-        'See <a class="il-scene-kit__ps-link" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline</a>.</p>' +
+        'Unreal Pixel Streaming: bring up a local signaling host to mount a live stream; the client never invents UE video.</p>' +
         '</div>';
       return { mode: 'stub', signaling: null };
     }

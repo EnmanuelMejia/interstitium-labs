@@ -10,13 +10,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>499P9 Cinema Canvas — Interstitium Labs</title>
-<meta name="description" content="Ultrawide 32:9 multi-pane Learn | Lab | Noah learning canvas for Philips 499P9."/>
+<title>Cinema — Interstitium Labs</title>
+<meta name="description" content="Watch the Interstitium Labs media reels in a real HTML5 player — the hero cinematic loop and the Noah neural loop."/>
 <meta name="theme-color" content="#070B16"/>
 <link rel="manifest" href="/manifest.webmanifest"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/cinema/"/>
-<meta property="og:title" content="499P9 Cinema Canvas — Interstitium Labs"/>
-<meta property="og:description" content="Ultrawide 32:9 multi-pane Learn | Lab | Noah learning canvas for Philips 499P9."/>
+<meta property="og:title" content="Cinema — Interstitium Labs"/>
+<meta property="og:description" content="Watch the Interstitium Labs media reels in a real HTML5 player — the hero cinematic loop and the Noah neural loop."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/cinema/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta property="og:type" content="website"/>
@@ -58,7 +58,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     <div class="il-pillnav__links">
       <a href="/learn/">Learn</a>
       <a href="/paths/">Paths</a>
-      <a href="/paths/roles/">Roles</a>
+      <a href="/paths/roles/">Role Tracks</a>
       <a href="/prep/drills/">Practice</a>
       <a href="/labs/">Labs</a>
       <a href="/noah/">Noah AI</a>
@@ -85,7 +85,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <a href="/cinema/">Cinema</a>
           <a href="/jobs/">Jobs</a>
           <a href="/adapt/">Adapt</a>
-          <a href="/enroll/">Admissions</a>
+          <a href="/enroll/">Enroll</a>
           <a href="/about/">About Us</a>
           <a href="https://learn.interstitiumlabs.dev">University</a>
         </div>
@@ -96,43 +96,108 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 </nav>
 <nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Cinema</li></ol></nav>
 <main id="main" class="il-fluid-type flex-1" data-il-auto-reveal>
-<section class="il-cinema-hero border-b border-paper/10 px-5 py-8 sm:px-8">
-  <p class="il-kicker">499P9 · 32:9 · cinema learning canvas</p>
-  <h1 class="mt-2 font-display text-3xl tracking-[-0.03em]">Learn · Lab · Noah — three panes, one sitting.</h1>
-  <p class="mt-3 max-w-3xl text-sm text-muted">On ultrawide (≥2560px / aspect ≥2.5), panes sit side-by-side. On narrower screens they stack. No fake multiplayer — your local progress only.</p>
+<style>
+  .il-cinema-player{aspect-ratio:16/9;background:#000;border-radius:.9rem;overflow:hidden;position:relative}
+  .il-cinema-player video{width:100%;height:100%;display:block}
+  .il-cinema-player:fullscreen{border-radius:0}
+  .il-cinema-player:fullscreen video{object-fit:contain}
+  .il-cinema-playlist{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .il-cinema-item{display:flex;gap:.9rem;align-items:center;text-align:left;border:1px solid rgba(232,238,245,.12);border-radius:.75rem;padding:.7rem;background:rgba(12,18,34,.6);cursor:pointer;color:inherit;width:100%}
+  .il-cinema-item:hover{border-color:rgba(201,162,39,.55)}
+  .il-cinema-item[aria-current="true"]{border-color:#c9a227;box-shadow:0 0 0 1px #c9a227}
+  .il-cinema-item img{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:.5rem;background:#000;flex:none}
+  .il-cinema-controls{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+</style>
+<section class="border-b border-paper/10 px-5 py-10 sm:px-8">
+  <div class="mx-auto max-w-6xl">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Cinema</p>
+    <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Reels, presented properly.</h1>
+    <p class="mt-3 max-w-3xl text-sm leading-relaxed text-muted">The site&rsquo;s real media, in a real player. Pick a reel below — fullscreen is one click away, and everything here is an actual file on this site, not a placeholder.</p>
+  </div>
 </section>
-<section class="il-cinema" data-il-cinema>
-  <div class="il-cinema-pane" data-pane="learn">
-    <header class="il-cinema-pane-h"><span>Learn</span><a href="/paths/devops-zero-to-hire/">Path →</a></header>
-    <div class="il-cinema-pane-b">
-      <p class="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-gold">Curriculum pane</p>
-      <h2 class="mt-2 font-display text-xl">DevOps zero → hire</h2>
-      <p class="mt-2 text-sm text-muted">Stages, gates, STAR. Open the path or Adapt for fringe items.</p>
-      <ul class="mt-4 space-y-2 text-sm text-muted">
-        <li><a class="text-cyan" href="/adapt/#session">Adaptive session</a></li>
-        <li><a class="text-cyan" href="/paths/">All paths</a></li>
-        <li><a class="text-cyan" href="/learn/">Curriculum OS</a></li>
-        <li><a class="text-cyan" href="/exam/">Scenario exam</a></li>
-        <li><a class="text-cyan" href="/os/">Time-to-hire OS</a></li>
+<section class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+  <div class="il-cinema-player" id="cinema-stage">
+    <video id="cinema-video" controls preload="metadata" playsinline poster="/assets/chrome/hero-cinematic-poster.jpg" aria-describedby="cinema-caption">
+      <source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/>
+      <p>Your browser cannot play this video. <a class="text-cyan" href="/assets/chrome/hero-cinematic-loop.mp4">Download the file directly</a>.</p>
+    </video>
+  </div>
+  <div class="il-cinema-controls mt-4">
+    <button type="button" id="cinema-fs" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void hover:bg-paper/90">Enter fullscreen</button>
+    <p id="cinema-caption" class="text-sm text-muted"><strong class="text-paper" id="cinema-title">Hero cinematic loop</strong> &mdash; <span id="cinema-desc">the cinematic loop behind the site&rsquo;s homepage hero, muted and looping.</span></p>
+  </div>
+  <h2 class="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Reel selector</h2>
+  <div class="il-cinema-playlist mt-4" role="list">
+    <button type="button" class="il-cinema-item" role="listitem" aria-current="true"
+      data-src="/assets/chrome/hero-cinematic-loop.mp4"
+      data-poster="/assets/chrome/hero-cinematic-poster.jpg"
+      data-title="Hero cinematic loop"
+      data-desc="the cinematic loop behind the site&rsquo;s homepage hero, muted and looping.">
+      <img src="/assets/chrome/hero-cinematic-poster.jpg" alt="" loading="lazy"/>
+      <span><strong class="font-display text-base text-paper">Hero cinematic loop</strong><br/><span class="text-xs text-muted">Site hero background &middot; MP4</span></span>
+    </button>
+    <button type="button" class="il-cinema-item" role="listitem" aria-current="false"
+      data-src="/assets/noah/noah-neural-loop.mp4"
+      data-poster="/assets/noah/noah-neural-poster.webp"
+      data-title="Noah neural loop"
+      data-desc="a looping render of the Noah neural avatar.">
+      <img src="/assets/noah/noah-neural-poster.webp" alt="" loading="lazy"/>
+      <span><strong class="font-display text-base text-paper">Noah neural loop</strong><br/><span class="text-xs text-muted">Noah avatar render &middot; MP4</span></span>
+    </button>
+  </div>
+  <noscript>
+    <div class="mt-8 rounded-xl border border-paper/10 bg-panel p-6">
+      <p class="text-sm text-muted">JavaScript is off, so the reel selector is unavailable — but the videos play directly:</p>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li><a class="text-cyan" href="/assets/chrome/hero-cinematic-loop.mp4">Hero cinematic loop (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/noah/noah-neural-loop.mp4">Noah neural loop (MP4)</a></li>
       </ul>
     </div>
-  </div>
-  <div class="il-cinema-pane" data-pane="lab">
-    <header class="il-cinema-pane-h"><span>Lab</span><a href="/labs/superlab/">SuperLab →</a></header>
-    <div class="il-cinema-pane-b">
-      <p class="font-mono text-[0.58rem] uppercase tracking-[0.16em] text-gold">Proof pane</p>
-      <h2 class="mt-2 font-display text-xl">SuperLab + CotD</h2>
-      <p class="mt-2 text-sm text-muted">kind · Kustomize · Argo · Gatekeeper. Challenge of the Day for verify rhythm.</p>
-      <div class="mt-4" data-il-challenge></div>
-    </div>
-  </div>
-  <div class="il-cinema-pane il-cinema-pane--muse" data-pane="muse">
-    <header class="il-cinema-pane-h"><span>Noah</span><a href="/coach/">Noah →</a></header>
-    <div class="il-cinema-pane-b il-cinema-muse-host">
-      <div data-il-muse></div>
-    </div>
-  </div>
+  </noscript>
 </section>
+<script>
+(function(){
+  var video = document.getElementById('cinema-video');
+  var stage = document.getElementById('cinema-stage');
+  var fsBtn = document.getElementById('cinema-fs');
+  var titleEl = document.getElementById('cinema-title');
+  var descEl = document.getElementById('cinema-desc');
+  if(!video || !stage) return;
+  function setFsLabel(){
+    var fs = document.fullscreenElement === stage;
+    fsBtn.textContent = fs ? 'Exit fullscreen' : 'Enter fullscreen';
+    fsBtn.setAttribute('aria-pressed', fs ? 'true' : 'false');
+  }
+  function toggleFs(){
+    if(document.fullscreenElement === stage){
+      if(document.exitFullscreen) document.exitFullscreen();
+    } else if(stage.requestFullscreen){
+      stage.requestFullscreen();
+    } else if(video.webkitEnterFullscreen){
+      video.webkitEnterFullscreen();
+    }
+  }
+  fsBtn.addEventListener('click', toggleFs);
+  video.addEventListener('dblclick', toggleFs);
+  document.addEventListener('fullscreenchange', setFsLabel);
+  var items = document.querySelectorAll('.il-cinema-item');
+  items.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      items.forEach(function(b){ b.setAttribute('aria-current','false'); });
+      btn.setAttribute('aria-current','true');
+      var wasPaused = video.paused;
+      video.pause();
+      var src = video.querySelector('source');
+      src.setAttribute('src', btn.getAttribute('data-src'));
+      video.setAttribute('poster', btn.getAttribute('data-poster'));
+      titleEl.textContent = btn.getAttribute('data-title');
+      descEl.innerHTML = btn.getAttribute('data-desc');
+      video.load();
+      if(!wasPaused){ video.play().catch(function(){}); }
+    });
+  });
+})();
+</script>
 </main>
 <footer class="no-print border-t border-paper/10">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">

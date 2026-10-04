@@ -6,12 +6,10 @@
  * or anywhere else in this static repo — Payment Links only.
  *
  * After editing: commit, push, and wait for Cloudflare Workers Assets deploy.
- * See /ops/payments.md and /admin/.
  */
 window.IL_ENROLL = {
   currency: "USD",
   paymentsLive: false,
-  waitlistMailto: "mailto:edmejia@pm.me?subject=Interstitium%20Labs%20waitlist",
   // Flip paymentsLive to true only after live links are pasted and tested.
   disclaimer:
     "Waitlist mode: checkout is intentionally offline. Card and PayPal stay inactive until live Payment Links are pasted and paymentsLive is set true.",
