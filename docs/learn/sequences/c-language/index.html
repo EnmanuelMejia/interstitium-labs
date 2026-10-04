@@ -30,6 +30,57 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
 
+<style>
+
+/* IL sequence widgets — CSS-only interactive labs (no JS required) */
+.ilw{border:1px solid rgba(232,238,245,.13);border-radius:.9rem;padding:1.05rem 1.15rem;margin:1.5rem 0;background:rgba(10,15,30,.55)}
+.ilw-q{margin:0 0 .7rem;font-size:.95rem}
+.ilw-code{background:#070b16;border:1px solid rgba(232,238,245,.1);border-radius:.6rem;padding:.85rem 1rem;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.6;color:#e8eef5;white-space:pre}
+.ilw-code .ilw-ln{color:#5b6b85;user-select:none}
+.ilw-opts{display:grid;gap:.5rem;margin-top:.85rem}
+.ilw-in{position:absolute;opacity:0;pointer-events:none}
+.ilw-lab{display:flex;gap:.65rem;align-items:flex-start;border:1px solid rgba(232,238,245,.15);border-radius:.6rem;padding:.6rem .75rem;cursor:pointer;font-size:.9rem;line-height:1.45}
+.ilw-lab:hover{border-color:rgba(126,212,224,.5)}
+.ilw-lab code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.8rem}
+.ilw-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none;margin-top:.1rem}
+.ilw-fb{display:none;margin:0;font-size:.84rem;color:#c9d4e3;border-left:3px solid #f87171;padding:.4rem .8rem;background:rgba(248,113,113,.06);border-radius:0 .5rem .5rem 0}
+.ilw-fb strong{color:#fca5a5}
+.ilw-in:checked+.ilw-lab{border-color:#f87171;background:rgba(248,113,113,.05)}
+.ilw-in.ilw-ok:checked+.ilw-lab{border-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in:checked+.ilw-lab+.ilw-fb{display:block}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb{border-left-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb strong{color:#6ee7b7}
+.ilw-note{margin:.75rem 0 0;font-size:.76rem;color:#8b96ab}
+.ilw-reveal{margin-top:.7rem;border:1px dashed rgba(232,238,245,.2);border-radius:.6rem;padding:.6rem .8rem}
+.ilw-reveal summary{cursor:pointer;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#7ed4e0}
+.ilw-reveal code{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:#e8eef5}
+/* answer keys on self-checks */
+.ilw-ans{margin:.55rem 0 0;border-left:2px solid rgba(212,175,55,.5);padding:.15rem 0 .15rem .8rem}
+.ilw-ans summary{cursor:pointer;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#d4af37}
+.ilw-ans .ilw-ansbody{margin-top:.45rem;font-size:.88rem;color:#c9d4e3}
+.ilw-ans .ilw-ansbody code{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#e8eef5;background:rgba(232,238,245,.07);padding:.05rem .3rem;border-radius:.3rem}
+/* module figures */
+.il-fig{margin:1.4rem 0 1.6rem;border:1px solid rgba(232,238,245,.1);border-radius:.8rem;background:rgba(7,11,22,.6);padding:1rem}
+.il-fig svg{display:block;width:100%;height:auto}
+.il-fig figcaption{margin-top:.6rem;font-size:.78rem;color:#8b96ab;text-align:center}
+/* progress */
+.ilw-done{margin:.7rem 0 0;font-size:.85rem;color:#8b96ab}
+.ilw-done input{accent-color:#d4af37;width:1rem;height:1rem;vertical-align:-.15rem}
+.il-progressbox{border:1px solid rgba(212,175,55,.35);border-radius:.9rem;padding:1rem 1.2rem;margin:1.6rem 0;background:rgba(212,175,55,.05)}
+.il-progressbox p{margin:0 0 .6rem;font-size:.9rem}
+.il-bar{height:.55rem;border-radius:99px;background:rgba(232,238,245,.1);overflow:hidden}
+.il-bar>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#d4af37,#7ed4e0);transition:width .4s}
+/* exam mount */
+.il-exam .il-kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#7ed4e0}
+.il-exam-choices{display:grid;gap:.55rem}
+.il-exam-choice{appearance:none;cursor:pointer;text-align:left;border-radius:.8rem;border:1px solid rgba(232,238,245,.13);background:rgba(7,11,22,.65);color:#e8eef5;padding:.8rem 1rem;font-size:.93rem;display:flex;gap:.7rem;align-items:flex-start}
+.il-exam-choice:hover{border-color:rgba(126,212,224,.45)}
+.il-exam-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none}
+.il-exam-miss{border:1px solid rgba(232,238,245,.12);border-radius:.8rem;padding:1rem;margin-bottom:.8rem;background:rgba(10,15,30,.5);list-style:none}
+ul.il-exam-remediate{padding:0}
+@media (max-width:480px){.ilw{padding:.9rem}.ilw-code{font-size:.74rem}}
+
+</style>
 </head>
 <body>
 <a class="il-skip" href="#main">Skip to content</a>
@@ -110,10 +161,12 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <p>What this is: a complete systems-programming study sequence for the C language, built from the public C language reference. It covers the full arc from source text to running program — the translation pipeline, pointers and dynamic memory, arrays and strings, structs and unions, file I/O, build tooling, debugging with gdb, and the discipline of undefined behavior — ending in a capstone that demands a sanitizer-clean, Makefile-built utility.</p>
         <p>Who it is for: programmers who can already write code in some language and want the ground truth underneath — operating systems, embedded systems, high-performance computing, and anyone who wants to understand what higher-level languages are hiding. It is also the prerequisite foundation for the companion Modern C++ Engineering sequence.</p>
         <p>Prerequisites: comfort with programming fundamentals (variables, loops, functions) in any language; a Linux or macOS machine (or WSL) with gcc, make, and gdb installed; willingness to read compiler errors as instruction rather than insult. No prior C experience is assumed.</p>
-        <p>How to use it: work the modules in order, and do the labs — C is not learned by reading about pointers. Compile everything with the full warning set from the start (-Wall -Wextra -Werror -std=c11 -pedantic), run every test under AddressSanitizer and UBSan, and keep a personal log of each bug the tools catch. The checkpoints are written to be answered in writing; the capstone is the proof.</p>
+        <p>How to use it: work the modules in order, and do the labs — C is not learned by reading about pointers. Compile everything with the full warning set from the start (<code>-Wall -Wextra -Werror -std=c11 -pedantic</code>), run every test under <code>AddressSanitizer</code> and <code>UBSan</code>, and keep a personal log of each bug the tools catch. The checkpoints are written to be answered in writing; the capstone is the proof.</p>
       </div>
     </div>
-  </section>
+  
+<div class="il-progressbox" role="status"><p><strong>Your progress:</strong> <span data-il-count-scope="c-language.v1" data-il-count-total="8">0/8</span> modules complete — saved in this browser.</p><div class="il-bar" role="progressbar" aria-label="Sequence progress" aria-valuemin="0" aria-valuemax="8"><div data-il-bar="c-language.v1"></div></div></div>
+</section>
 
   <hr class="il-rule"/>
   <section class="il-section" aria-labelledby="outcomes-h">
@@ -144,56 +197,82 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <article class="il-module" aria-labelledby="m1-h">
         <p class="il-eyebrow">Module 1</p>
         <h3 class="il-h il-h--card" id="m1-h">The Translation Pipeline — From Source to Executable</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 220" role="img" aria-label="C translation pipeline: source to executable" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="70" width="96" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="66" y="98" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.c</text><rect x="140" y="70" width="96" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="188" y="98" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.i</text><rect x="262" y="70" width="96" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="310" y="98" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.s</text><rect x="384" y="70" width="96" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="432" y="98" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.o</text><rect x="506" y="70" width="96" height="46" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="554" y="98" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a.out</text><defs><marker id="ilm1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="114" y1="93" x2="140" y2="93" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm1)"/><text x="129" y="60" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">cpp  -E</text><defs><marker id="ilm2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="236" y1="93" x2="262" y2="93" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm2)"/><text x="251" y="60" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">cc1  -S</text><defs><marker id="ilm3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="358" y1="93" x2="384" y2="93" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm3)"/><text x="373" y="60" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">as  -c</text><defs><marker id="ilm4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="480" y1="93" x2="506" y2="93" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm4)"/><text x="495" y="60" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">ld</text><text x="320" y="150" text-anchor="middle" font-size="13" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">Four logical phases — invoke each one yourself while learning:</text><text x="320" y="176" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">gcc -E main.c | wc -l        gcc -S -O0 main.c        nm main.o</text><text x="320" y="202" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">preprocess  →  compile  →  assemble  →  link (+ libc)</text></svg><figcaption>Fig. M1 — The four translation phases and the artifacts each one produces.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-1"> <span>Mark module 1 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
             <li>Describe the four logical translation phases: preprocessing, compilation to assembly, assembly to object code, and linking.</li>
-            <li>Use preprocessor directives (#include, #define, #ifdef, include guards) correctly and explain that inclusion is textual expansion.</li>
+            <li>Use preprocessor directives (<code>#include</code>, <code>#define</code>, #ifdef, include guards) correctly and explain that inclusion is textual expansion.</li>
             <li>Separate declarations from definitions across headers and source files to avoid multiple-definition linker errors.</li>
             <li>Produce and inspect intermediate artifacts: preprocessed output (-E), assembly (-S), and object-file symbol tables (nm).</li>
           </ul>
           <h4>Key concepts</h4>
           <h5>Translation phases: preprocessing, compilation, assembly, linking</h5>
-          <p>A C program becomes an executable in four logical phases. The preprocessor handles directives (#include, #define, conditionals) as pure text manipulation. The compiler translates each preprocessed translation unit into assembly. The assembler turns assembly into object code — machine instructions plus a symbol table. The linker combines object files and libraries, resolves symbol references, and emits the executable.</p>
-          <p>You will invoke these phases separately throughout this sequence (gcc -E, -S, -c), because seeing the intermediate artifacts is the fastest way to stop thinking of compilation as magic. When a build breaks, knowing which phase broke tells you where to look.</p>
+          <p>A C program becomes an executable in four logical phases. The preprocessor handles directives (<code>#include</code>, <code>#define</code>, conditionals) as pure text manipulation. The compiler translates each preprocessed translation unit into assembly. The assembler turns assembly into object code — machine instructions plus a symbol table. The linker combines object files and libraries, resolves symbol references, and emits the executable.</p>
+          <p>You will invoke these phases separately throughout this sequence (<code>gcc -E</code>, <code>-S</code>, <code>-c</code>), because seeing the intermediate artifacts is the fastest way to stop thinking of compilation as magic. When a build breaks, knowing which phase broke tells you where to look.</p>
           <h5>The preprocessor is textual expansion</h5>
-          <p>#include literally pastes the header&#x27;s text into your file; #define performs token substitution before the compiler ever sees the code. There is no type checking, no scoping in the C sense — just text in, text out.</p>
-          <p>This explains entire classes of bugs: a macro argument with side effects gets evaluated multiple times because it is substituted multiple times, and an #include inside a function is legal (if horrifying) because by the time the compiler runs, it is just text. Run gcc -E once and the preprocessor&#x27;s innocence — and danger — becomes obvious.</p>
-          <h5>Include guards and the #pragma once idiom</h5>
-          <p>Headers get included from multiple places, and without protection the same declarations would be pasted in twice, causing redefinition errors. The classic guard wraps the header in #ifndef HEADER_H / #define HEADER_H / #endif so the second inclusion expands to nothing.</p>
-          <p>#pragma once is the widely supported shorthand: one line at the top of the header, same effect, no symbol to invent. It is not part of the C standard, but every major compiler honors it; many codebases use both — guards for portability, pragma once for speed and simplicity.</p>
+          <p><code>#include</code> literally pastes the header&#x27;s text into your file; <code>#define</code> performs token substitution before the compiler ever sees the code. There is no type checking, no scoping in the C sense — just text in, text out.</p>
+          <p>This explains entire classes of bugs: a macro argument with side effects gets evaluated multiple times because it is substituted multiple times, and an <code>#include</code> inside a function is legal (if horrifying) because by the time the compiler runs, it is just text. Run <code>gcc -E</code> once and the preprocessor&#x27;s innocence — and danger — becomes obvious.</p>
+          <h5>Include guards and the <code>#pragma once</code> idiom</h5>
+          <p>Headers get included from multiple places, and without protection the same declarations would be pasted in twice, causing redefinition errors. The classic guard wraps the header in <code>#ifndef HEADER_H</code> / <code>#define</code> HEADER_H</code> / <code>#endif</code> so the second inclusion expands to nothing.</p>
+          <p><code>#pragma once</code> is the widely supported shorthand: one line at the top of the header, same effect, no symbol to invent. It is not part of the C standard, but every major compiler honors it; many codebases use both — guards for portability, pragma once for speed and simplicity.</p>
           <h5>Declarations versus definitions</h5>
-          <p>A declaration says &#x27;this thing exists, with this type&#x27; — extern int x; or int f(void);. A definition additionally creates it: int x = 0; or the full function body. Headers carry declarations; exactly one source file carries each definition.</p>
-          <p>This split is what makes separate compilation possible: every translation unit learns the shapes of things from declarations, and the linker later wires them to the single definition. The printf you call is declared in &lt;stdio.h&gt; and defined inside libc — you compile against the promise and link against the reality.</p>
+          <p>A declaration says 'this thing exists, with this type' — extern int x; or int f(void);. A definition additionally creates it: int x = 0; or the full function body. Headers carry declarations; exactly one source file carries each definition.</p>
+          <p>This split is what makes separate compilation possible: every translation unit learns the shapes of things from declarations, and the linker later wires them to the single definition. The printf you call is declared in <code>&lt;stdio.h&gt;</code> and defined inside libc — you compile against the promise and link against the reality.</p>
           <h5>External vs internal linkage: extern and static</h5>
           <p>A file-scope name has external linkage by default: it is visible to the linker across translation units. Mark it static and it gets internal linkage — visible only within its own translation unit, invisible to the linker and to other files.</p>
           <p>static at file scope is your encapsulation tool in C: helper functions and module-private variables marked static cannot collide with same-named symbols elsewhere and cannot be called from outside. Reach for it by default; use external linkage only for the deliberate public interface.</p>
           <h5>One definition per program for external symbols</h5>
-          <p>If two translation units each define the same externally-linked symbol — two int counter = 0; at file scope — the linker must reject the program with a &#x27;multiple definition&#x27; error, because it cannot know which one you meant. Exactly one definition must exist across the whole program.</p>
+          <p>If two translation units each define the same externally-linked symbol — two int counter = 0; at file scope — the linker must reject the program with a '<code>multiple definition</code>' error, because it cannot know which one you meant. Exactly one definition must exist across the whole program.</p>
           <p>This rule is the linker&#x27;s only real job beyond copying bytes: matching every undefined reference to exactly one definition. Internalize it and linker errors stop being mysterious — they are always either zero definitions (undefined reference) or more than one (multiple definition).</p>
           <h5>Object files, symbol tables, and the linker&#x27;s job</h5>
           <p>An object file (.o) is machine code plus a symbol table: a list of symbols it defines (marked T for text/code, D for data) and symbols it needs but does not define (marked U for undefined). The nm tool prints this table, and reading it is a core debugging skill.</p>
           <p>The linker collects all object files, matches every U against a T or D somewhere, lays out the final memory image, and writes the executable. When it complains, nm on your .o files shows you exactly which side of the contract is broken.</p>
           <h5>Static libraries and link order basics</h5>
           <p>A static library (.a) is just an archive of object files. The linker pulls from it only the members needed to satisfy currently-undefined symbols — which is why order matters: put -lfoo after the object files that need it, because the linker processes inputs left to right and will not go back.</p>
-          <p>The classic symptom is &#x27;undefined reference to sqrt&#x27; when -lm comes before your .o files. The fix is never to add flags randomly; it is to understand that the linker is a single left-to-right pass and order your inputs accordingly.</p>
+          <p>The classic symptom is '<code>undefined reference to sqrt</code>' when <code>-lm</code> comes before your .o files. The fix is never to add flags randomly; it is to understand that the linker is a single left-to-right pass and order your inputs accordingly.</p>
           <h4>Hands-on labs</h4>
           <ol>
             <li>Lab 1 — Compile in stages. Write a two-file program (main.c calling add(), declared in calc.h and defined in calc.c). Compile each file with gcc -c, link the .o files manually, then run nm on each object file and identify which symbols are defined (T/D) versus undefined (U).</li>
-            <li>Lab 2 — See the preprocessor&#x27;s output. Run gcc -E on a file that includes &lt;stdio.h&gt; and pipe it to wc -l to see how much text one include pulls in. Then write a small header with and without an include guard, include it twice from one .c file, and observe the compile error the unguarded version produces.</li>
-            <li>Lab 3 — Provoke the linker. Deliberately place a non-static function definition in a header included by two .c files, link them, and record the linker&#x27;s &#x27;multiple definition&#x27; error verbatim. Fix it by moving the definition into exactly one .c file and leaving only the declaration in the header.</li>
-            <li>Lab 4 — Read assembly. Compile a simple program with gcc -S -O0 and read the generated .s file: find the function label, the prologue, a call instruction to a library function, and the return sequence. Annotate each in a comment.</li>
+            <li>Lab 2 — See the preprocessor&#x27;s output. Run <code>gcc -E</code> on a file that includes <code>&lt;stdio.h&gt;</code> and pipe it to wc -l to see how much text one include pulls in. Then write a small header with and without an include guard, include it twice from one .c file, and observe the compile error the unguarded version produces.</li>
+            <li>Lab 3 — Provoke the linker. Deliberately place a non-static function definition in a header included by two .c files, link them, and record the linker&#x27;s '<code>multiple definition</code>' error verbatim. Fix it by moving the definition into exactly one .c file and leaving only the declaration in the header.</li>
+            <li>Lab 4 — Read assembly. Compile a simple program with gcc -S <code>-O0</code> and read the generated .s file: find the function label, the prologue, a call instruction to a library function, and the return sequence. Annotate each in a comment.</li>
           </ol>
+<div class="ilw" role="group" aria-label="What does this print?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does this print?</p>
+<pre class="ilw-code"><code>#include &lt;stdio.h&gt;
+#define ADD(a, b) a + b
+int main(void) {
+    printf(&quot;%d\n&quot;, ADD(1, 2) * 3);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m1" id="ilw-c-m1-0">
+<label class="ilw-lab" for="ilw-c-m1-0"><span class="ilw-key">A</span><span>9 — the macro adds, then multiplies</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> If ADD were a function you would be right — but it is textual substitution: <code>ADD(1, 2) * 3</code> expands to <code>1 + 2 * 3</code>, and <code>*</code> binds tighter than <code>+</code>.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m1" id="ilw-c-m1-1">
+<label class="ilw-lab" for="ilw-c-m1-1"><span class="ilw-key">B</span><span>7</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> The preprocessor pastes tokens, it does not do arithmetic: <code>1 + 2 * 3 = 7</code>. This is exactly why real macros parenthesize every parameter and the whole body.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m1" id="ilw-c-m1-2">
+<label class="ilw-lab" for="ilw-c-m1-2"><span class="ilw-key">C</span><span>6</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That would need the multiplication to happen first and the addition second — no operator precedence produces 6 here. Re-expand the macro by hand: <code>1 + 2 * 3</code>.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m1" id="ilw-c-m1-3">
+<label class="ilw-lab" for="ilw-c-m1-3"><span class="ilw-key">D</span><span>It fails to compile</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The preprocessor is perfectly happy pasting these tokens, and the result is valid C. The program compiles cleanly — and prints the surprising answer.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Without compiling: two files, a.c and b.c, each contain &#x27;int counter = 0;&#x27; at file scope and both are linked into one program. State what the linker will do and why, then build it to verify your prediction.</li>
-            <li>Explain in your own words why a declaration may appear in many translation units while a definition must appear in exactly one, and name one example of each from the C standard library (for instance, the printf declaration in &lt;stdio.h&gt; versus its definition inside libc).</li>
-          </ol>
+          <li>Without compiling: two files, a.c and b.c, each contain '<code>int counter = 0;</code>' at file scope and both are linked into one program. State what the linker will do and why, then build it to verify your prediction.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Linker error: <code>multiple definition of 'counter'</code>. Both lines are <em>definitions</em> with external linkage, so the program contains two definitions of one symbol — the linker must reject it. Fix: keep exactly one definition (<code>int counter = 0;</code>) and declare it in the other file with <code>extern int counter;</code>.</div></details></li><li>Explain in your own words why a declaration may appear in many translation units while a definition must appear in exactly one, and name one example of each from the C standard library (for instance, the printf declaration in <code>&lt;stdio.h&gt;</code> versus its definition inside libc).
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A declaration is a promise — <code>int f(void);</code> or <code>extern int x;</code> tells the compiler the type so it can type-check calls; it creates no storage, so it may appear in every translation unit. A definition creates the thing — storage or a body — so exactly one may exist program-wide. <code>printf</code> is <em>declared</em> in <code>&lt;stdio.h&gt;</code> and <em>defined</em> inside libc.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m2-h">
         <p class="il-eyebrow">Module 2</p>
         <h3 class="il-h il-h--card" id="m2-h">Pointers and Dynamic Memory</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 300" role="img" aria-label="C memory layout: stack, heap, segments, and a pointer between them" xmlns="http://www.w3.org/2000/svg"><line x1="60" y1="24" x2="60" y2="276" stroke="#8b96ab" stroke-width="2"/><text x="60" y="16" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">high addresses</text><text x="60" y="292" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">low addresses</text><rect x="110" y="30" width="220" height="120" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="220" y="52" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">stack (grows down)</text><text x="220" y="78" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">main frame</text><rect x="130" y="90" width="180" height="30" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="220" y="110" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">int *p = 0x55a1…</text><text x="220" y="140" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">char buf[64]</text><rect x="110" y="190" width="220" height="70" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="220" y="212" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">heap (grows up)</text><rect x="130" y="222" width="180" height="26" rx="8" fill="#1a1408" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="220" y="240" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">malloc(24) block</text><defs><marker id="ilm5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="330" y1="105" x2="330" y2="222" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm5)"/><text x="420" y="165" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">p points here</text><rect x="400" y="30" width="200" height="60" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="500" y="55" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">text + rodata</text><text x="500" y="74" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">&quot;string literals live here&quot;</text><rect x="400" y="100" width="200" height="50" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="500" y="122" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">data / bss</text><text x="500" y="140" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">globals, statics</text><circle cx="500" cy="225" r="26" fill="none" stroke="#f87171" stroke-width="2"/><line x1="482" y1="207" x2="518" y2="243" stroke="#f87171" stroke-width="2"/><text x="500" y="270" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">NULL — never dereference</text></svg><figcaption>Fig. M2 — Where your bytes live: stack frames, the heap, and read-only segments.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-2"> <span>Mark module 2 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -223,7 +302,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>This is the single most valuable three-line pattern in C memory management. Write it from muscle memory, every time.</p>
           <h5>Dangling pointers, double free, use-after-free</h5>
           <p>A dangling pointer points at memory whose lifetime ended — a freed block or a dead stack frame. Using it is use-after-free; freeing it again is double free. Both are undefined behavior, both are exploitable, and both are silent until they are catastrophic.</p>
-          <p>The defenses are boring and effective: set pointers to NULL after freeing (so a second free is a safe no-op and a use crashes loudly), establish who owns each allocation, and run every test under AddressSanitizer, which catches all three with precise diagnostics.</p>
+          <p>The defenses are boring and effective: set pointers to NULL after freeing (so a second free is a safe no-op and a use crashes loudly), establish who owns each allocation, and run every test under <code>AddressSanitizer</code>, which catches all three with precise diagnostics.</p>
           <h5>Ownership conventions: who allocates, who frees</h5>
           <p>Every allocation needs a documented owner: the function that allocates either frees it, or transfers ownership to its caller, and the convention must be written down — in the function&#x27;s contract comment, not in anyone&#x27;s head. const-qualified pointers (const char *) are part of this: they advertise &#x27;I will not modify or take ownership of this.&#x27;</p>
           <p>C has no garbage collector and no borrow checker, so ownership conventions are the memory-safety system. The capstone README will ask you to state yours explicitly; start practicing the habit in every function you write from this module on.</p>
@@ -234,21 +313,48 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Lab 3 — Meet the sanitizer. Write two small buggy programs: one that leaks memory in a loop and one that calls free twice on the same pointer. Build both with -fsanitize=address and record the exact diagnostic each report gives you — learn what ASan output looks like before you need it.</li>
             <li>Lab 4 — The dangling local. Write a function that returns a pointer to a local variable. Compile without -w, read the -Wreturn-local-addr warning, then fix the design by switching to caller-provided storage and explain why that fix is correct.</li>
           </ol>
+<div class="ilw" role="group" aria-label="What does this print on a typical 64-bit system?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does this print on a typical 64-bit system?</p>
+<pre class="ilw-code"><code>#include &lt;stdio.h&gt;
+void f(int arr[10]) {
+    printf(&quot;%zu\n&quot;, sizeof(arr) / sizeof(arr[0]));
+}
+int main(void) {
+    int a[10];
+    f(a);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m2" id="ilw-c-m2-0">
+<label class="ilw-lab" for="ilw-c-m2-0"><span class="ilw-key">A</span><span>10</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That is what the author intended — but <code>int arr[10]</code> as a parameter is adjusted to <code>int *arr</code>. The <code>10</code> is documentation, not a type.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m2" id="ilw-c-m2-1">
+<label class="ilw-lab" for="ilw-c-m2-1"><span class="ilw-key">B</span><span>2</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Inside <code>f</code>, <code>arr</code> is a pointer: <code>sizeof(arr)</code> is 8, <code>sizeof(arr[0])</code> is 4, and 8/4 = 2. The array decayed at the call boundary.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m2" id="ilw-c-m2-2">
+<label class="ilw-lab" for="ilw-c-m2-2"><span class="ilw-key">C</span><span>8</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> 8 is <code>sizeof(arr)</code> alone — but the code divides by <code>sizeof(arr[0])</code> (4). Do the division.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m2" id="ilw-c-m2-3">
+<label class="ilw-lab" for="ilw-c-m2-3"><span class="ilw-key">D</span><span>1</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That would need numerator and denominator equal — they are 8 and 4. The decay turns the array into a pointer, and pointers have their own size.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Given &#x27;int *p = malloc(4 * sizeof *p);&#x27; explain in writing why &#x27;sizeof *p&#x27; is more maintainable than &#x27;sizeof(int)&#x27;, then change the allocation to zero-initialized memory with calloc and justify when zero-initialization matters.</li>
-            <li>Run your Lab 2 vector under AddressSanitizer with a driver that pushes 10,000 elements and pops them all: it must report zero errors, and you must be able to point at the exact line where each allocation is released.</li>
-          </ol>
+          <li>Given '<code>int *p = malloc(4 * sizeof *p);</code>' explain in writing why '<code>sizeof *p</code>' is more maintainable than '<code>sizeof(int)</code>', then change the allocation to zero-initialized memory with calloc and justify when zero-initialization matters.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>sizeof *p</code> derives the size from the pointer's own type, so if <code>p</code> later becomes <code>long *p</code> the allocation silently stays correct. <code>sizeof(int)</code> hardcodes the type: after the same refactor it under-allocates and you get a heap overflow the compiler will never flag. Never repeat a type name the compiler already knows.</div></details></li><li>Run your Lab 2 vector under <code>AddressSanitizer</code> with a driver that pushes 10,000 elements and pops them all: it must report zero errors, and you must be able to point at the exact line where each allocation is released.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">AddressSanitizer (with <code>-fsanitize=address</code>) intercepts every allocation: pushing 10,000 elements must show no heap-buffer-overflow, and popping all of them must end with <code>free()</code> on every block — ASan's leak checker (on by default on Linux) reports any block still reachable at exit. Zero reports plus zero leaks is the bar; also point at the exact line where each freed pointer was allocated.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m3-h">
         <p class="il-eyebrow">Module 3</p>
         <h3 class="il-h il-h--card" id="m3-h">Arrays and Strings</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 225" role="img" aria-label="Array memory layout and pointer arithmetic scaling" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">int a[8];   // 8 × 4 bytes, contiguous</text><rect x="40" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="70" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[0]</text><text x="70" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x100</text><rect x="110" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="140" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[1]</text><text x="140" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x104</text><rect x="180" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="210" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[2]</text><text x="210" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x108</text><rect x="250" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="280" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[3]</text><text x="280" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x10c</text><rect x="320" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="350" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[4]</text><text x="350" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x110</text><rect x="390" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="420" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[5]</text><text x="420" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x114</text><rect x="460" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="490" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[6]</text><text x="490" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x118</text><rect x="530" y="55" width="60" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="560" y="74" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a[7]</text><text x="560" y="96" text-anchor="middle" font-size="9" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">0x11c</text><defs><marker id="ilm6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="70" y1="130" x2="70" y2="99" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm6)"/><text x="150" y="148" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">char *p = a;  →  p points at a[0]</text><defs><marker id="ilm7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="280" y1="130" x2="280" y2="99" stroke="#d4af37" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ilm7)"/><text x="400" y="148" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">p + 3 → a[3]:  +3 × sizeof(*p)</text><text x="320" y="185" text-anchor="middle" font-size="13" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">sizeof(a) = 32        sizeof(p) = 8</text><text x="320" y="210" text-anchor="middle" font-size="12" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">the array decays to a pointer — the size information is lost</text></svg><figcaption>Fig. M3 — Arrays are contiguous; pointer arithmetic scales by the element size.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-3"> <span>Mark module 3 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain when an array decays to a pointer and when it does not (sizeof, unary &amp;, string-literal initialization).</li>
-            <li>Manipulate C strings as NUL-terminated char arrays using &lt;string.h&gt; safely, with bounded operations and explicit length checks.</li>
+            <li>Manipulate C strings as NUL-terminated char arrays using <code>&lt;string.h&gt;</code> safely, with bounded operations and explicit length checks.</li>
             <li>Compare stack arrays, variable-length arrays, and heap arrays, and choose correctly for a given size and lifetime.</li>
             <li>Write functions that take array parameters together with explicit size arguments instead of trusting a bare pointer.</li>
           </ul>
@@ -279,21 +385,40 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>The rule: VLAs for small, bounded, trusted sizes only. Anything user-controlled or potentially large goes on the heap with malloc, where failure is detectable. Convenience is not worth an uncatchable crash.</p>
           <h4>Hands-on labs</h4>
           <ol>
-            <li>Lab 1 — sizeof laboratory. Write a program that prints sizeof for &#x27;char buf[64];&#x27; and for a &#x27;char *p&#x27; pointing at it. Explain the different results in a code comment stating the decay rule precisely.</li>
-            <li>Lab 2 — Safe line reader. Implement fgets into a fixed buffer, detect a missing newline to grow the buffer dynamically, and handle EOF. Test on a 10 KB single-line input and on an empty file — both must work.</li>
+            <li>Lab 1 — sizeof laboratory. Write a program that prints sizeof for '<code>char buf[64];</code>' and for a '<code>char *p</code>' pointing at it. Explain the different results in a code comment stating the decay rule precisely.</li>
+            <li>Lab 2 — Safe line reader. Implement <code>fgets</code> into a fixed buffer, detect a missing newline to grow the buffer dynamically, and handle EOF. Test on a 10 KB single-line input and on an empty file — both must work.</li>
             <li>Lab 3 — Bound the unbounded. Take a program using strcpy/strcat and rewrite it with snprintf/strncat using explicit size math. Construct a test input where the unbounded version overflows and show the bounded version truncating safely instead.</li>
             <li>Lab 4 — The read-only literal. Write &#x27;char *s = &quot;literal&quot;; s[0] = &#x27;x&#x27;;&#x27;, build and run it, observe the crash, then fix it by declaring a writable char array instead. Write down what the crash taught you.</li>
           </ol>
+<div class="ilw" role="group" aria-label="Which line contains the bug? Click it.">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Which line contains the bug? Click it.</p>
+<pre class="ilw-code"><code><span class="ilw-ln"> 1</span>  char buf[8];
+<span class="ilw-ln"> 2</span>  strcpy(buf, &quot;hello world&quot;);
+<span class="ilw-ln"> 3</span>  printf(&quot;%s\n&quot;, buf);</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m3" id="ilw-c-m3-0">
+<label class="ilw-lab" for="ilw-c-m3-0"><span class="ilw-key">1</span><span>Line 1 — the declaration</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The declaration is fine: an 8-byte stack buffer is a legitimate object. The bug is what gets <em>put into</em> it.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m3" id="ilw-c-m3-1">
+<label class="ilw-lab" for="ilw-c-m3-1"><span class="ilw-key">2</span><span>Line 2 — the copy</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> <code>"hello world"</code> is 11 characters plus the terminator: 12 bytes into an 8-byte buffer. <code>strcpy</code> never checks the destination size; that is the whole bug class this module exists to kill.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m3" id="ilw-c-m3-2">
+<label class="ilw-lab" for="ilw-c-m3-2"><span class="ilw-key">3</span><span>Line 3 — the print</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> <code>printf</code> just reads what is there — by line 3 the damage is done. The overflow happened at the unbounded copy on line 2.</p>
+</div>
+<p class="ilw-note">Click the line you believe holds the bug — feedback appears instantly.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Hand-trace this: &#x27;char a[10]; char *p = a;&#x27;. List which of sizeof(a), sizeof(p), &amp;a, a+1, and &amp;a+1 differ from each other and why. Verify with a small printing program.</li>
-            <li>Write a function &#x27;void reverse(char *s)&#x27; that reverses a string in place using no &lt;string.h&gt; calls except strlen, then prove it handles the empty string and a single-character string correctly.</li>
-          </ol>
+          <li>Hand-trace this: '<code>char a[10]; char *p = a;</code>'. List which of <code>sizeof(a)</code>, <code>sizeof(p)</code>, <code>&amp;a</code>, <code>a+1</code>, and <code>&amp;a+1</code> differ from each other and why. Verify with a small printing program.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>sizeof(a)</code> is 10 (the whole array); <code>sizeof(p)</code> is 8 (just a pointer, typical 64-bit). <code>&amp;a</code> has type <code>char (*)[10]</code> — pointer to the whole array — while <code>a+1</code> is <code>&amp;a[1]</code>, a <code>char*</code>. <code>&amp;a+1</code> advances by the whole array (10 bytes); <code>a+1</code> advances one element. <code>&amp;a</code> and <code>a</code> share an address value but not a type — and the type is what arithmetic obeys.</div></details></li><li>Write a function '<code>void reverse(char *s)</code>' that reverses a string in place using no <code>&lt;string.h&gt;</code> calls except strlen, then prove it handles the empty string and a single-character string correctly.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Walk two pointers from opposite ends toward the middle, swapping as you go; stop when they meet or cross. For the empty string <code>strlen</code> returns 0, so the end pointer starts before the beginning and the loop body never executes — the string is trivially reversed. Also guard against <code>NULL</code> input explicitly: reversing nothing should be a no-op, not a segfault.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m4-h">
         <p class="il-eyebrow">Module 4</p>
         <h3 class="il-h il-h--card" id="m4-h">Structs, Unions, and Enums</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 165" role="img" aria-label="Struct padding versus union overlap" xmlns="http://www.w3.org/2000/svg"><text x="160" y="28" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">struct { char a; int b; char c; }</text><rect x="20" y="50" width="36" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="38" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a</text><text x="38" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">1B</text><rect x="56" y="50" width="108" height="46" rx="8" fill="#141b30" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="110" y="70" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">pad</text><text x="110" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">3B</text><rect x="164" y="50" width="144" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="236" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">b</text><text x="236" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">4B</text><rect x="308" y="50" width="36" height="46" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="326" y="70" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">c</text><text x="326" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">1B</text><rect x="344" y="50" width="108" height="46" rx="8" fill="#141b30" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="398" y="70" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">pad</text><text x="398" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">3B</text><text x="160" y="125" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">offsets: a@0  b@4  c@8     sizeof = 12</text><text x="160" y="148" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">padding keeps int aligned — reorder members to shrink it</text><text x="480" y="28" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">union { int i; double d; }</text><rect x="370" y="50" width="220" height="46" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><rect x="370" y="50" width="110" height="46" rx="8" fill="none" stroke="#7ed4e0" stroke-width="1.0" opacity="1.0"/><text x="425" y="70" text-anchor="middle" font-size="12" fill="#7ed4e0" font-family="'JetBrains Mono',ui-monospace,monospace">i</text><text x="480" y="70" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">d (all 8 bytes)</text><text x="480" y="90" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">sizeof = 8</text><text x="480" y="125" text-anchor="middle" font-size="12" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">one storage, two views — last write wins</text><text x="480" y="148" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">read the member you did NOT store: fragile</text></svg><figcaption>Fig. M4 — Structs pad for alignment; unions overlay every member on the same bytes.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-4"> <span>Mark module 4 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -307,7 +432,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>Struct members are laid out in declaration order, but each member must start at an address that is a multiple of its alignment requirement — so the compiler inserts invisible padding bytes between members and possibly at the end. struct { char a; int b; char c; } is typically 12 bytes, not 6.</p>
           <p>This is why member order matters: grouping members by descending alignment (doubles, then ints, then chars) minimizes padding. The checkpoint&#x27;s reorder exercise — char, char, int, double versus the scattered original — makes the savings concrete and measurable.</p>
           <h5>offsetof and reasoning about member addresses</h5>
-          <p>The offsetof macro (from &lt;stddef.h&gt;) gives the byte offset of a member within its struct — the tool for reasoning about layout without guessing. Combined with sizeof, it lets you verify your hand-computed layouts against reality.</p>
+          <p>The offsetof macro (from <code>&lt;stddef.h&gt;</code>) gives the byte offset of a member within its struct — the tool for reasoning about layout without guessing. Combined with sizeof, it lets you verify your hand-computed layouts against reality.</p>
           <p>Use offsetof whenever you serialize structs, compute field positions in binary formats, or argue about padding in a code review. &#x27;I measured it&#x27; beats &#x27;I think the compiler does&#x27; every time.</p>
           <h5>Designated initializers and compound literals</h5>
           <p>Designated initializers (.x = 1, .y = 2) initialize struct members by name instead of position — immune to member reordering and self-documenting. Unmentioned members are zero-initialized, which is often exactly what you want.</p>
@@ -329,25 +454,49 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>One allocation means one free, no pointer chasing, and cache-friendly locality — the classic packet-header pattern. The rules: the flexible member must be last, the struct cannot be copied by value meaningfully, and sizeof excludes the flexible part.</p>
           <h4>Hands-on labs</h4>
           <ol>
-            <li>Lab 1 — Measure the padding. Define &#x27;struct { char a; double b; char c; int d; }&#x27;, print sizeof and offsetof of each member, then reorder to &#x27;char, char, int, double&#x27; and compare: compute the bytes saved and explain where the padding went.</li>
+            <li>Lab 1 — Measure the padding. Define '<code>struct { char a; double b; char c; int d; }</code>', print sizeof and offsetof of each member, then reorder to &#x27;char, char, int, double&#x27; and compare: compute the bytes saved and explain where the padding went.</li>
             <li>Lab 2 — Tagged union. Implement a tagged union &#x27;Value&#x27; with an int kind field and a union of { long i; double d; char *s; }. Write make/print/free functions that switch on kind, freeing the string member only when kind says it is a string — and prove a misuse is caught.</li>
             <li>Lab 3 — Enum state machine. Build an enum-driven word counter with states START, IN_WORD, IN_SPACE, fed character by character through a transition function. Test on empty input, all-spaces, and words with multiple separators.</li>
             <li>Lab 4 — Flexible array member. Model a variable-length packet with a flexible array member struct: allocate with a single malloc of sizeof(struct) + payload bytes, write the payload, read it back, and free once.</li>
           </ol>
+<div class="ilw" role="group" aria-label="What does this print on a typical 64-bit ABI?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does this print on a typical 64-bit ABI?</p>
+<pre class="ilw-code"><code>#include &lt;stdio.h&gt;
+struct S { char a; int b; char c; };
+int main(void) {
+    printf(&quot;%zu\n&quot;, sizeof(struct S));
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m4" id="ilw-c-m4-0">
+<label class="ilw-lab" for="ilw-c-m4-0"><span class="ilw-key">A</span><span>6 — the sum of the members</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Members are 1 + 4 + 1 = 6 bytes of <em>data</em>, but the compiler inserts padding so <code>b</code> sits on a 4-byte boundary and the struct size is a multiple of 4.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m4" id="ilw-c-m4-1">
+<label class="ilw-lab" for="ilw-c-m4-1"><span class="ilw-key">B</span><span>9</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> 1 + 3 pad + 4 + 1 = 9 gets the interior right, but forgets the trailing padding: the struct size must be a multiple of its strictest alignment (4).</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m4" id="ilw-c-m4-2">
+<label class="ilw-lab" for="ilw-c-m4-2"><span class="ilw-key">C</span><span>12</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> <code>a@0</code>, 3 bytes padding, <code>b@4–7</code>, <code>c@8</code>, 3 bytes trailing padding: 12. Draw it once and you will never forget.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m4" id="ilw-c-m4-3">
+<label class="ilw-lab" for="ilw-c-m4-3"><span class="ilw-key">D</span><span>16</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That would need 8-byte alignment pressure (e.g. a <code>double</code> member). With only an <code>int</code> as the strictest member, 12 suffices.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>On a typical 64-bit ABI, compute by hand the sizeof and each member offsetof for &#x27;struct { char a; int b; char c; }&#x27;, then verify with a program that prints offsetof for all three members.</li>
-            <li>Explain in writing why reading a union member other than the one most recently stored is fragile, and describe the tagged-union discipline (a kind field checked before every access) that makes unions safe.</li>
-          </ol>
+          <li>On a typical 64-bit ABI, compute by hand the sizeof and each member offsetof for '<code>struct { char a; int b; char c; }</code>', then verify with a program that prints offsetof for all three members.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Layout on a typical 64-bit System V ABI: <code>a</code> at offset 0 (1 byte), 3 bytes padding so <code>b</code> lands on a 4-byte boundary at offset 4, <code>b</code> occupies 4–7, <code>c</code> at offset 8, then 3 bytes trailing padding so the struct size is a multiple of the strictest alignment (4). <code>sizeof</code> = 12; offsets 0, 4, 8. Verify with <code>offsetof</code> from <code>&lt;stddef.h&gt;</code>.</div></details></li><li>Explain in writing why reading a union member other than the one most recently stored is fragile, and describe the tagged-union discipline (a kind field checked before every access) that makes unions safe.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A union stores every member at offset 0, so reading a member you did not just write reinterprets the same bytes under a different type — for many type pairs that yields a trap representation or an implementation-defined value, which is why it is fragile. The tagged-union discipline stores a <code>kind</code> field alongside the union and checks it before every access, so the program can only ever read the member that was written.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m5-h">
         <p class="il-eyebrow">Module 5</p>
         <h3 class="il-h il-h--card" id="m5-h">File I/O</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 210" role="img" aria-label="Layered file I/O: stdio buffering over system calls" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="70" width="135" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="87" y="95" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">program</text><text x="87" y="113" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">FILE *fp</text><rect x="175" y="70" width="135" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="242" y="95" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">stdio buffer</text><text x="242" y="113" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">4 KiB</text><rect x="330" y="70" width="135" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="397" y="95" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">write()</text><text x="397" y="113" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">syscall</text><rect x="485" y="70" width="135" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="552" y="95" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">kernel page cache</text><text x="552" y="113" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">→ disk</text><defs><marker id="ilm8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="155" y1="100" x2="175" y2="100" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm8)"/><text x="165" y="62" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">fwrite</text><defs><marker id="ilm9" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="310" y1="100" x2="330" y2="100" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm9)"/><text x="320" y="62" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">fflush</text><defs><marker id="ilm10" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="465" y1="100" x2="485" y2="100" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm10)"/><text x="475" y="62" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">write</text><defs><marker id="ilm11" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b96ab" stroke-width="1.6"/></marker></defs><line x1="485" y1="140" x2="155" y2="140" stroke="#8b96ab" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ilm11)"/><text x="320" y="165" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">fread path (dashed) — buffering works both ways</text><text x="320" y="195" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">fflush pushes the buffer to the kernel — fclose does it for you</text></svg><figcaption>Fig. M5 — Your bytes cross three layers before they reach the disk.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-5"> <span>Mark module 5 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
-            <li>Open, read, write, and close files with the &lt;stdio.h&gt; stream API, checking every call for failure.</li>
+            <li>Open, read, write, and close files with the <code>&lt;stdio.h&gt;</code> stream API, checking every call for failure.</li>
             <li>Distinguish text versus binary mode, buffered versus unbuffered I/O, and line-oriented versus block-oriented reads.</li>
             <li>Handle I/O errors robustly: check ferror/feof, report with perror/strerror, and never treat a short read as EOF.</li>
             <li>Use file positioning (fseek/ftell/rewind) and write streaming programs that handle files larger than RAM.</li>
@@ -363,7 +512,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>fgets reads one line (stopping at newline or buffer-full) and is the right tool for text; fread/fwrite move raw byte blocks and are the right tool for binary data and bulk copies. Mixing them on one stream without repositioning is asking for confusion.</p>
           <p>The line-oriented/block distinction drives the capstone&#x27;s design: streaming text processing uses fgets-style line reads, while the binary record lab uses fread with fseek. Pick the API that matches the data&#x27;s shape.</p>
           <h5>The feof/ferror discipline: the read controls the loop</h5>
-          <p>feof reports that a previous read hit end-of-file — it does not predict the next read. while (!feof(f)) processes one phantom extra iteration because feof only becomes true after a read fails. The correct loop tests the read itself: while (fgets(buf, sizeof buf, f) != NULL).</p>
+          <p>feof reports that a previous read hit end-of-file — it does not predict the next read. while (!<code>feof(f)</code>) processes one phantom extra iteration because feof only becomes true after a read fails. The correct loop tests the read itself: while (<code>fgets(buf, sizeof buf, f)</code> != NULL).</p>
           <p>After the loop, feof versus ferror tells you why it stopped: clean EOF or an I/O error. Programs that never check ferror silently treat disk errors as end-of-file — data loss wearing an EOF costume.</p>
           <h5>errno, perror, and strerror</h5>
           <p>When a library call fails, it typically returns an error indicator and sets errno to a code naming the failure. perror(msg) prints your message plus the human-readable errno string to stderr; strerror(errno) gives you the string for logging or formatting.</p>
@@ -384,21 +533,44 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Lab 3 — Copy with verification. Write a file-copy program using fread/fwrite with a 64 KB buffer; compare sha256sum of source and copy, then extend the program to correctly handle a short write from fwrite (loop until all bytes are written).</li>
             <li>Lab 4 — Format-string warning. Write a program that passes a user-supplied string as the printf format argument, observe the -Wformat-security warning, then fix it with &quot;%s&quot; and confirm the warning disappears.</li>
           </ol>
+<div class="ilw" role="group" aria-label="Which line contains the bug? Click it.">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Which line contains the bug? Click it.</p>
+<pre class="ilw-code"><code><span class="ilw-ln"> 1</span>  while (!feof(f)) {
+<span class="ilw-ln"> 2</span>      fgets(buf, sizeof buf, f);
+<span class="ilw-ln"> 3</span>      process(buf);
+<span class="ilw-ln"> 4</span>  }</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m5" id="ilw-c-m5-0">
+<label class="ilw-lab" for="ilw-c-m5-0"><span class="ilw-key">1</span><span>Line 1 — the loop condition</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> <code>feof</code> is set only <em>after</em> a read fails, so the loop executes once too often and <code>process</code> sees the previous line twice. Let the read control the loop: <code>while (fgets(buf, sizeof buf, f) != NULL)</code>.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m5" id="ilw-c-m5-1">
+<label class="ilw-lab" for="ilw-c-m5-1"><span class="ilw-key">2</span><span>Line 2 — the read</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The read itself is correct and bounded. The bug is that a <em>failed</em> read does not stop the loop — that is the condition's job, on line 1.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m5" id="ilw-c-m5-2">
+<label class="ilw-lab" for="ilw-c-m5-2"><span class="ilw-key">3</span><span>Line 3 — the processing</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> <code>process(buf)</code> is innocent; it just processes whatever is in the buffer. The defect is upstream: the loop lets it run on stale data.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m5" id="ilw-c-m5-3">
+<label class="ilw-lab" for="ilw-c-m5-3"><span class="ilw-key">4</span><span>Line 4 — the brace</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The brace is fine. The classic <code>while (!feof(f))</code> bug lives entirely in the condition on line 1.</p>
+</div>
+<p class="ilw-note">Click the line you believe holds the bug — feedback appears instantly.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Explain the bug in &#x27;while (!feof(f)) { fgets(buf, sizeof buf, f); process(buf); }&#x27;, rewrite the loop so the read itself controls iteration, and test both versions on a file whose last line has no trailing newline.</li>
-            <li>Write a function that safely replaces a file&#x27;s contents: write to a temporary file, fflush, then rename it over the original. Explain in writing why each step matters for crash safety.</li>
-          </ol>
+          <li>Explain the bug in '<code>while (!<code>feof(f)</code>) { <code>fgets(buf, sizeof buf, f)</code>; process(buf); }</code>', rewrite the loop so the read itself controls iteration, and test both versions on a file whose last line has no trailing newline.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>feof</code> is only set <em>after</em> a read fails, so the loop runs one extra time: the final <code>fgets</code> fails, <code>buf</code> still holds the previous line, and <code>process(buf)</code> processes it twice (or processes stale data on an empty file). Let the read control the loop: <code>while (fgets(buf, sizeof buf, f) != NULL) process(buf);</code> — the failed read ends iteration before anything is processed.</div></details></li><li>Write a function that safely replaces a file&#x27;s contents: write to a temporary file, fflush, then rename it over the original. Explain in writing why each step matters for crash safety.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Write to a temporary file in the same directory, <code>fflush</code> it (push the stdio buffer into the kernel), optionally <code>fsync</code>, then <code>rename</code> it over the original. A crash mid-write leaves the original intact because the temp file is the only thing half-written; <code>fflush</code> guarantees the bytes actually left your process; <code>rename</code> is atomic on POSIX, so concurrent readers see the old file or the new file — never a torn half.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m6-h">
         <p class="il-eyebrow">Module 6</p>
         <h3 class="il-h il-h--card" id="m6-h">Build Tooling — gcc Flags and make</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 225" role="img" aria-label="Build dependency graph driven by a Makefile" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="40" width="110" height="40" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="85" y="65" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.c</text><rect x="30" y="110" width="110" height="40" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="85" y="135" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">util.c</text><rect x="30" y="180" width="110" height="40" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="85" y="205" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">util.h</text><defs><marker id="ilm12" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="140" y1="60" x2="220" y2="60" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm12)"/><defs><marker id="ilm13" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="140" y1="130" x2="220" y2="130" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm13)"/><text x="150" y="30" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">header →</text><text x="90" y="165" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">included</text><rect x="220" y="40" width="110" height="40" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="275" y="65" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.o</text><rect x="220" y="110" width="110" height="40" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="275" y="135" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">util.o</text><text x="275" y="175" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">%.o : %.c  pattern rule</text><defs><marker id="ilm14" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="330" y1="60" x2="430" y2="85" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm14)"/><defs><marker id="ilm15" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="330" y1="130" x2="430" y2="100" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm15)"/><rect x="430" y="70" width="110" height="50" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="485" y="92" text-anchor="middle" font-size="13" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">app</text><text x="485" y="110" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">$(CC) -o app</text><rect x="400" y="150" width="210" height="60" rx="8" fill="#0d1a12" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="505" y="172" text-anchor="middle" font-size="12" fill="#34d399" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">make targets</text><text x="505" y="192" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">all · debug · release · clean</text></svg><figcaption>Fig. M6 — make rebuilds only what changed, following the dependency graph.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-6"> <span>Mark module 6 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
             <li>Compile and link multi-file projects from the command line with explicit -c, -o, -I, -L, and -l steps in the correct order.</li>
-            <li>Use warning and language-standard flags (-Wall -Wextra -Werror -std=c11 -pedantic) and explain what each major class catches.</li>
+            <li>Use warning and language-standard flags (<code>-Wall -Wextra -Werror -std=c11 -pedantic</code>) and explain what each major class catches.</li>
             <li>Write a Makefile with targets, prerequisites, recipes, variables, and pattern rules, and explain the TAB-before-recipe rule.</li>
             <li>Apply -g, optimization levels, and sanitizers (-fsanitize=address,undefined) as a standard debug and hardening workflow.</li>
           </ul>
@@ -408,21 +580,21 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>The build labs drill this until it is reflex, because every build system — make, CMake, or otherwise — is automation around exactly these two steps.</p>
           <h5>-I, -L, and link order: -l after the objects that need it</h5>
           <p>-I adds header search paths for the compiler; -L adds library search paths for the linker; -lfoo links libfoo. And because the linker processes inputs left to right, libraries come after the object files that reference them.</p>
-          <p>&#x27;undefined reference to sqrt&#x27; with -lm present almost always means -lm was placed before the objects. The fix is ordering, not more flags — understand the single-pass linker and this error becomes a thirty-second fix forever.</p>
+          <p>'<code>undefined reference to sqrt</code>' with <code>-lm</code> present almost always means <code>-lm</code> was placed before the objects. The fix is ordering, not more flags — understand the single-pass linker and this error becomes a thirty-second fix forever.</p>
           <h5>Warning flags: -Wall -Wextra -Werror; standards: -std=c11 -pedantic</h5>
           <p>-Wall and -Wextra enable the warning families that catch real bugs (unused variables, suspicious comparisons, missing cases); -Werror promotes warnings to errors so they cannot be ignored. -std=c11 -pedantic pins the language dialect and rejects non-standard extensions.</p>
           <p>This combination is the sequence&#x27;s mandatory baseline — the capstone requires building clean under it. Warnings are the compiler telling you about bugs it can already see; -Werror is you agreeing to listen.</p>
           <h5>-g versus optimization levels</h5>
-          <p>-g embeds debug information (variable names, line mappings) for gdb; optimization levels -O0 through -O3 (and -Os for size) trade compile time and debuggability for runtime speed. -O0 compiles fast and debugs faithfully; -O2 is the standard &#x27;ship it&#x27; level.</p>
-          <p>The standard practice from Module 7: debug at -O0, ship at -O2, and never try to make sense of &#x27;optimized out&#x27; variables when you could just rebuild without optimization.</p>
+          <p>-g embeds debug information (variable names, line mappings) for gdb; optimization levels <code>-O0</code> through -O3 (and -Os for size) trade compile time and debuggability for runtime speed. <code>-O0</code> compiles fast and debugs faithfully; <code>-O2</code> is the standard &#x27;ship it&#x27; level.</p>
+          <p>The standard practice from Module 7: debug at <code>-O0</code>, ship at <code>-O2</code>, and never try to make sense of '<code>optimized out</code>' variables when you could just rebuild without optimization.</p>
           <h5>Sanitizers as standard workflow: -fsanitize=address,undefined</h5>
-          <p>AddressSanitizer instruments memory accesses to catch overflows, use-after-free, and leaks at runtime with precise reports; UndefinedBehaviorSanitizer catches signed overflow, misaligned access, null dereference, and the other UB classes from Module 8. The cost is roughly 2x slowdown — irrelevant during development.</p>
-          <p>Treat sanitizer builds as a second compiler you always run: the labs require ASan+UBSan-clean runs because tests that pass without sanitizers routinely hide memory bugs. A green test suite plus a clean sanitizer run is the actual definition of &#x27;works.&#x27;</p>
+          <p><code>AddressSanitizer</code> instruments memory accesses to catch overflows, use-after-free, and leaks at runtime with precise reports; UndefinedBehaviorSanitizer catches signed overflow, misaligned access, null dereference, and the other UB classes from Module 8. The cost is roughly 2x slowdown — irrelevant during development.</p>
+          <p>Treat sanitizer builds as a second compiler you always run: the labs require ASan+<code>UBSan</code>-clean runs because tests that pass without sanitizers routinely hide memory bugs. A green test suite plus a clean sanitizer run is the actual definition of &#x27;works.&#x27;</p>
           <h5>Make: targets, prerequisites, recipes; $@ $&lt; $^</h5>
           <p>A Makefile rule reads &#x27;target: prerequisites&#x27; followed by TAB-indented recipes. The automatic variables compress the common cases: $@ is the target name, $&lt; is the first prerequisite, $^ is all prerequisites. A compile rule becomes &#x27;$(CC) $(CFLAGS) -c $&lt; -o $@&#x27; — generic across every source file.</p>
           <p>The TAB-before-recipe rule is make&#x27;s most infamous gotcha: spaces do not work, and the error message (&#x27;missing separator&#x27;) never says so plainly. Now you know.</p>
           <h5>Pattern rules, variables, .PHONY</h5>
-          <p>Pattern rules (%.o: %.c) say how to build any object from its source, so you write the compile logic once. Variables (CC, CFLAGS) centralize toolchain choices. .PHONY marks targets like clean and all that are not files, so make runs their recipes even if a file named &#x27;clean&#x27; exists.</p>
+          <p>Pattern rules (<code>%.o: %.c</code>) say how to build any object from its source, so you write the compile logic once. Variables (CC, CFLAGS) centralize toolchain choices. .PHONY marks targets like clean and all that are not files, so make runs their recipes even if a file named &#x27;clean&#x27; exists.</p>
           <p>These three features turn a Makefile from a list of commands into a maintainable build description — and they are exactly what the capstone Makefile must demonstrate.</p>
           <h5>Incremental rebuilds: why make rebuilds only what changed</h5>
           <p>make compares timestamps: a target rebuilds only if a prerequisite is newer than it. Touch one .c file and only its .o recompiles, then the program relinks — on a large project this is the difference between a two-second and a twenty-minute build.</p>
@@ -430,20 +602,40 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <h4>Hands-on labs</h4>
           <ol>
             <li>Lab 1 — Three ways to build. Take a three-file project and build it three ways: a single gcc invocation, manual &#x27;gcc -c&#x27; steps plus an explicit link, and a Makefile you write. Confirm all three produce identical program behavior.</li>
-            <li>Lab 2 — Pattern rules and incrementals. Write a Makefile with a &#x27;%.o: %.c&#x27; pattern rule, CC/CFLAGS variables, and a .PHONY clean target. Touch one .c file and demonstrate that only its .o rebuilds before relinking.</li>
-            <li>Lab 3 — Warning-zero. Take a warning-laden program and iterate with &#x27;-Wall -Wextra -Werror -std=c11 -pedantic&#x27; until it builds clean. Keep a log of each warning fixed and what it was telling you — this log is a personal bug taxonomy.</li>
-            <li>Lab 4 — Sanitizers then optimization. Build your Module 2 vector program with &#x27;-fsanitize=address,undefined -g&#x27;, run your test driver, fix every report, then rebuild with &#x27;-O2 -DNDEBUG&#x27; and compare runtime on a large input. Note what changed and what did not.</li>
+            <li>Lab 2 — Pattern rules and incrementals. Write a Makefile with a &#x27;<code>%.o: %.c</code>&#x27; pattern rule, CC/CFLAGS variables, and a .PHONY clean target. Touch one .c file and demonstrate that only its .o rebuilds before relinking.</li>
+            <li>Lab 3 — Warning-zero. Take a warning-laden program and iterate with &#x27;<code>-Wall -Wextra -Werror -std=c11 -pedantic</code>&#x27; until it builds clean. Keep a log of each warning fixed and what it was telling you — this log is a personal bug taxonomy.</li>
+            <li>Lab 4 — Sanitizers then optimization. Build your Module 2 vector program with &#x27;-fsanitize=address,undefined -g&#x27;, run your test driver, fix every report, then rebuild with &#x27;<code>-O2</code> -DNDEBUG&#x27; and compare runtime on a large input. Note what changed and what did not.</li>
           </ol>
+<div class="ilw" role="group" aria-label="You run this build command. What happens?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> You run this build command. What happens?</p>
+<pre class="ilw-code"><code>gcc -lm main.o util.o -o app</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m6" id="ilw-c-m6-0">
+<label class="ilw-lab" for="ilw-c-m6-0"><span class="ilw-key">A</span><span>It builds fine — flag order does not matter</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> For compiler flags it mostly does not — but <code>-l</code> is a <em>linker</em> instruction, and the linker processes inputs strictly left to right.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m6" id="ilw-c-m6-1">
+<label class="ilw-lab" for="ilw-c-m6-1"><span class="ilw-key">B</span><span>Link fails: undefined reference to sqrt</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> When the linker reaches <code>-lm</code>, no undefined symbols exist yet, so it extracts nothing from the archive; <code>sqrt</code> stays unresolved. Put <code>-lm</code> <em>after</em> the object files.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m6" id="ilw-c-m6-2">
+<label class="ilw-lab" for="ilw-c-m6-2"><span class="ilw-key">C</span><span>Compile error in main.c</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Compilation already happened — <code>main.o</code> exists. This failure is at link time, which is exactly why the message says 'undefined reference' and not a syntax error.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m6" id="ilw-c-m6-3">
+<label class="ilw-lab" for="ilw-c-m6-3"><span class="ilw-key">D</span><span>The -lm flag is silently ignored</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It is not ignored — it is <em>processed</em>, just too early to be useful. The linker consulted libm and found nothing it needed at that moment.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Given the link error &#x27;undefined reference to sqrt&#x27;, state the exact fix and explain why &#x27;-lm&#x27; must appear after the object files on the gcc command line.</li>
-            <li>From memory, write a minimal correct Makefile for main.c + util.c + util.h with separate debug (CFLAGS_DEBUG) and release (CFLAGS_RELEASE) flag sets, then verify it builds both.</li>
-          </ol>
+          <li>Given the link error '<code>undefined reference to sqrt</code>', state the exact fix and explain why &#x27;<code>-lm</code>&#x27; must appear after the object files on the gcc command line.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Append <code>-lm</code> <em>after</em> the object files: <code>gcc main.o util.o -lm -o app</code>. The linker makes a single left-to-right pass and only extracts archive members (<code>libm.a</code>) to satisfy symbols that are <em>currently undefined</em>; with <code>-lm</code> first, nothing is undefined yet, so the math library is skipped and <code>sqrt</code> stays unresolved.</div></details></li><li>From memory, write a minimal correct Makefile for main.c + util.c + util.h with separate debug (CFLAGS_DEBUG) and release (CFLAGS_RELEASE) flag sets, then verify it builds both.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A minimal correct Makefile names the compiler and flags as variables, builds objects with a pattern rule, links them, and offers both flag sets:<br><code>CC = gcc<br>CFLAGS_DEBUG = -g -O0 -Wall -Wextra -Werror -std=c11<br>CFLAGS_RELEASE = -O2 -Wall -Wextra -Werror -std=c11<br>debug: CFLAGS = $(CFLAGS_DEBUG)<br>release: CFLAGS = $(CFLAGS_RELEASE)<br>app: main.o util.o<br>&nbsp;&nbsp;$(CC) $(CFLAGS) -o app main.o util.o<br>%.o: %.c util.h<br>&nbsp;&nbsp;$(CC) $(CFLAGS) -c $&lt; -o $@<br>.PHONY: clean<br>clean:<br>&nbsp;&nbsp;rm -f app *.o</code></div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m7-h">
         <p class="il-eyebrow">Module 7</p>
         <h3 class="il-h il-h--card" id="m7-h">Debugging with gdb</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 265" role="img" aria-label="Debugging a segfault: stack frames under gdb" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="30" width="230" height="50" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="145" y="60" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">frame 2 · main</text><rect x="30" y="92" width="230" height="50" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="145" y="122" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">frame 1 · process</text><rect x="30" y="154" width="230" height="50" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="145" y="184" text-anchor="middle" font-size="12" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">frame 0 · parse  ← crashed here</text><defs><marker id="ilm16" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b96ab" stroke-width="1.6"/></marker></defs><line x1="275" y1="55" x2="275" y2="92" stroke="#8b96ab" stroke-width="2" marker-end="url(#ilm16)"/><defs><marker id="ilm17" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b96ab" stroke-width="1.6"/></marker></defs><line x1="275" y1="117" x2="275" y2="154" stroke="#8b96ab" stroke-width="2" marker-end="url(#ilm17)"/><text x="340" y="60" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">calls</text><text x="340" y="122" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">calls</text><text x="375" y="45" text-anchor="start" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">(gdb) run</text><text x="375" y="65" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">Program received signal SIGSEGV</text><text x="375" y="85" text-anchor="start" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">(gdb) bt</text><text x="375" y="105" text-anchor="start" font-size="11" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">#0  parse (buf=0x0)</text><text x="375" y="125" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">#1  process (n=3)</text><text x="375" y="145" text-anchor="start" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">#2  main ()</text><text x="375" y="165" text-anchor="start" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">(gdb) frame 0</text><text x="375" y="185" text-anchor="start" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">(gdb) info locals</text><text x="375" y="205" text-anchor="start" font-size="11" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">buf = 0x0  &lt;- the NULL that killed it</text></svg><figcaption>Fig. M7 — The backtrace is the map: frame 0 is where it died, info locals says why.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-7"> <span>Mark module 7 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -453,9 +645,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Combine gdb with core dumps and sanitizer output to localize bugs faster.</li>
           </ul>
           <h4>Key concepts</h4>
-          <h5>Debug info with -g; -O0 is the debugging optimization level</h5>
+          <h5>Debug info with -g; <code>-O0</code> is the debugging optimization level</h5>
           <p>-g embeds the mapping between machine code and your source — variable names, types, line numbers — that gdb reads. Without it you are debugging assembly with no symbols.</p>
-          <p>-O0 (no optimization) keeps the generated code in one-to-one correspondence with your source: variables live where you expect, lines execute in order. Higher optimization levels reorder, eliminate, and merge — great for shipping, actively hostile to debugging. Rebuild at -O0 before you reach for gdb; the ten seconds it costs saves hours of confusion.</p>
+          <p><code>-O0</code> (no optimization) keeps the generated code in one-to-one correspondence with your source: variables live where you expect, lines execute in order. Higher optimization levels reorder, eliminate, and merge — great for shipping, actively hostile to debugging. Rebuild at <code>-O0</code> before you reach for gdb; the ten seconds it costs saves hours of confusion.</p>
           <h5>Core workflow: break, run, next, step, finish, continue</h5>
           <p>break sets a breakpoint at a line or function; run starts the program; next executes one line (stepping over calls); step descends into a call; finish runs to the end of the current function; continue resumes until the next breakpoint. These six commands cover ninety percent of debugging sessions.</p>
           <p>The rhythm is: break where it goes wrong, run to get there, then next/step through the suspect code watching state change. Everything else in gdb is specialization of this loop.</p>
@@ -475,7 +667,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>A core dump is the program&#x27;s memory at the moment of death, written to disk. Enable with ulimit -c unlimited, then gdb ./prog core gives you the backtrace and full state without re-running — invaluable when the crash is rare or the environment is gone.</p>
           <p>Post-mortem debugging is a production skill: the crashed process on a customer machine cannot be re-run under your debugger, but its core can be analyzed on yours. Always know how to get a core from your systems.</p>
           <h5>Sanitizer output plus gdb: two tools, one workflow</h5>
-          <p>ASan/UBSan reports tell you what went wrong and the exact stack trace; gdb lets you explore the live state around it. The combined workflow: reproduce under the sanitizer, note the faulting line, then re-run under gdb with a breakpoint just before it to inspect the state that led there.</p>
+          <p>ASan/<code>UBSan</code> reports tell you what went wrong and the exact stack trace; gdb lets you explore the live state around it. The combined workflow: reproduce under the sanitizer, note the faulting line, then re-run under gdb with a breakpoint just before it to inspect the state that led there.</p>
           <p>Neither tool replaces the other. Sanitizers find bugs your eyes miss; gdb explains bugs the sanitizer only points at. The capstone README asks you to document one real bug found this way — start collecting candidates in these labs.</p>
           <h4>Hands-on labs</h4>
           <ol>
@@ -484,22 +676,41 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Lab 3 — Core dump post-mortem. Enable core dumps (&#x27;ulimit -c unlimited&#x27;), crash a program, then load the core file in gdb and produce the backtrace without re-running the program. Write down the exact commands.</li>
             <li>Lab 4 — The silent logic bug. Debug a wrong-output-no-crash bug using a conditional breakpoint that stops only on the failing iteration of a 1,000-record loop. Record the condition you used and what it revealed.</li>
           </ol>
+<div class="ilw" role="group" aria-label="You built at &lt;code&gt;-O2&lt;/code&gt; and gdb says &lt;code&gt;$1 = &amp;lt;op">
+<p class="ilw-q"><strong>Lab check — predict.</strong> You built at <code>-O2</code> and gdb says <code>$1 = &lt;optimized out&gt;</code> for your key variable. What is the right move?</p>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m7" id="ilw-c-m7-0">
+<label class="ilw-lab" for="ilw-c-m7-0"><span class="ilw-key">A</span><span>Add printf calls everywhere instead</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> <code>printf</code>-debugging at <code>-O2</code> changes timing and can hide the bug — and it teaches you nothing about the optimizer's view of your code.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m7" id="ilw-c-m7-1">
+<label class="ilw-lab" for="ilw-c-m7-1"><span class="ilw-key">B</span><span>Rebuild with -O0 -g and debug there</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> At <code>-O0</code> the binary mirrors your source: every variable has a home, line numbers do not jump. Fix the bug in the faithful build, then re-verify at the shipping optimization level.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m7" id="ilw-c-m7-2">
+<label class="ilw-lab" for="ilw-c-m7-2"><span class="ilw-key">C</span><span>Run gdb with sudo</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Privilege has nothing to do with it — the variable genuinely has no storage location in the optimized binary. <code>sudo</code> cannot materialize it.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m7" id="ilw-c-m7-3">
+<label class="ilw-lab" for="ilw-c-m7-3"><span class="ilw-key">D</span><span>Delete the binary and rebuild identically</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Rebuilding the same way reproduces the same optimized binary and the same <code>&lt;optimized out&gt;</code>. Change the flags, not the luck.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>From a gdb backtrace of a three-deep call stack, use &#x27;frame N&#x27; and &#x27;info locals&#x27; to identify which frame holds the buggy variable and display its value. Do this on your Lab 1 crashing program.</li>
-            <li>Explain in writing why debugging at -O2 shows &#x27;optimized out&#x27; variables and jumping line numbers, and state the standard practice: debug at -O0, ship at -O2.</li>
-          </ol>
+          <li>From a <code>gdb</code> backtrace of a three-deep call stack, use '<code>frame N</code>' and '<code>info locals</code>' to identify which frame holds the buggy variable and display its value. Do this on your Lab 1 crashing program.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Run the program under gdb, and at the segfault use <code>bt</code> (backtrace) to list frames. <code>frame N</code> selects the frame you suspect — usually frame 0, where it died, or the first frame of <em>your</em> code. <code>info locals</code> then shows every local in that frame; the buggy variable is the one violating an invariant (a <code>NULL</code> pointer about to be dereferenced, a negative index, a wild pointer). <code>print expr</code> tests hypotheses.</div></details></li><li>Explain in writing why debugging at <code>-O2</code> shows '<code>optimized out</code>' variables and jumping line numbers, and state the standard practice: debug at <code>-O0</code>, ship at <code>-O2</code>.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">At <code>-O2</code> the compiler inlines functions, reorders and eliminates code, and keeps values in registers instead of named storage — so a variable can genuinely have no location to print (<code>optimized out</code>) and the line number jumps as merged code executes. Standard practice: develop and debug at <code>-O0 -g</code> where the binary mirrors the source, fix the bug there, then re-verify the fix under the shipping optimization level.</div></details></li></ol>
         </div>
       </article>
       <article class="il-module" aria-labelledby="m8-h">
         <p class="il-eyebrow">Module 8</p>
         <h3 class="il-h il-h--card" id="m8-h">Undefined Behavior and Safe-Coding Discipline</h3>
+<figure class="il-fig"><figure class="il-fig"><svg viewBox="0 0 640 230" role="img" aria-label="Three classic undefined behaviors" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="30" width="195" height="150" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="112" y="55" text-anchor="middle" font-size="12" fill="#f87171" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">signed overflow</text><text x="112" y="85" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">int x = INT_MAX;</text><text x="112" y="108" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">x = x + 1;</text><line x1="92" y1="125" x2="132" y2="165" stroke="#f87171" stroke-width="2.5"/><line x1="92" y1="165" x2="132" y2="125" stroke="#f87171" stroke-width="2.5"/><text x="112" y="195" text-anchor="middle" font-size="11" fill="#f87171" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">UNDEFINED</text><rect x="225" y="30" width="195" height="150" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="322" y="55" text-anchor="middle" font-size="12" fill="#f87171" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">use after free</text><text x="322" y="85" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">free(p);</text><text x="322" y="108" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">*p = 1;</text><line x1="302" y1="125" x2="342" y2="165" stroke="#f87171" stroke-width="2.5"/><line x1="302" y1="165" x2="342" y2="125" stroke="#f87171" stroke-width="2.5"/><text x="322" y="195" text-anchor="middle" font-size="11" fill="#f87171" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">UNDEFINED</text><rect x="435" y="30" width="195" height="150" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="532" y="55" text-anchor="middle" font-size="12" fill="#f87171" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">data race</text><text x="532" y="85" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">thread A:  x++</text><text x="532" y="108" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">thread B:  x++</text><line x1="512" y1="125" x2="552" y2="165" stroke="#f87171" stroke-width="2.5"/><line x1="512" y1="165" x2="552" y2="125" stroke="#f87171" stroke-width="2.5"/><text x="532" y="195" text-anchor="middle" font-size="11" fill="#f87171" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">UNDEFINED</text><text x="320" y="215" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">UB means the standard imposes no requirements — &#x27;works on my machine&#x27; proves nothing</text></svg><figcaption>Fig. M8 — Undefined behavior is a contract violation, not a bug with a defined outcome.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="c-language.v1:module-8"> <span>Mark module 8 complete</span></label></p>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
             <li>Define undefined behavior and explain why the compiler is permitted to assume it never happens, with optimization consequences.</li>
             <li>Recognize the major UB classes: invalid dereference, out-of-bounds access, use-after-free/double-free, signed integer overflow, uninitialized reads, data races, strict-aliasing violations, and unsequenced modifications.</li>
-            <li>Use UBSan, ASan, compiler warnings, and static analysis to detect UB during development instead of in production.</li>
+            <li>Use <code>UBSan</code>, ASan, compiler warnings, and static analysis to detect UB during development instead of in production.</li>
             <li>Apply safe-coding discipline: initialize at declaration, validate all inputs, bound every loop and copy, check every fallible call, prefer size-aware APIs.</li>
           </ul>
           <h4>Key concepts</h4>
@@ -508,7 +719,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>The checkpoint&#x27;s classification drill is the whole taxonomy in five cases: (a) undefined — unsequenced modification; (b) unspecified — argument order; (c) implementation-defined — documented by your compiler; (d) undefined — null dereference; (e) undefined — shift by the width. Only (c) is portable-by-documentation.</p>
           <h5>The compiler may assume UB never happens — and optimizes on that assumption</h5>
           <p>This is the deep reason UB is dangerous: the optimizer is permitted to reason &#x27;this program has no UB, therefore...&#x27; and transform code accordingly. A null check after a dereference can be deleted (dereferencing null would be UB, so the pointer &#x27;must&#x27; be non-null). Signed overflow &#x27;cannot happen,&#x27; so a + b &gt; a folds to true.</p>
-          <p>The result: UB does not just crash — it makes the compiler generate code for a different program than the one you wrote, and the miscompilation changes with optimization level. &#x27;Works at -O0, breaks at -O2&#x27; is the signature scent of UB.</p>
+          <p>The result: UB does not just crash — it makes the compiler generate code for a different program than the one you wrote, and the miscompilation changes with optimization level. &#x27;Works at <code>-O0</code>, breaks at <code>-O2</code>&#x27; is the signature scent of UB.</p>
           <h5>Major UB classes: bad dereference, out-of-bounds, lifetime, signed overflow</h5>
           <p>The greatest-hits list: dereferencing null or invalid pointers; reading/writing past object bounds; lifetime errors (use-after-free, double free, returning stack addresses); signed integer overflow; reading uninitialized memory; data races; modifying a variable twice between sequence points (x = x++); strict-aliasing violations.</p>
           <p>You have met most of these in earlier labs — deliberately. This module names the family they belong to and explains why the sanitizer reports you collected are not style suggestions but correctness verdicts.</p>
@@ -516,29 +727,53 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           <p>Reading uninitialized memory is UB even if you &#x27;just&#x27; get garbage — the value is indeterminate and the compiler may exploit that. Data races (unsynchronized concurrent access with a write) are UB in the language model, not merely a timing hazard. And x = x++ is UB because the standard does not sequence the two modifications — there is no &#x27;order it happens in&#x27; to rely on.</p>
           <p>The common thread: in each case the programmer assumes an operational detail the standard deliberately leaves open, and the optimizer is free to disagree with the assumption.</p>
           <h5>Strict aliasing and effective type</h5>
-          <p>The compiler may assume that pointers of different types do not point to the same memory (with narrow exceptions like char*), and it reorders and caches accesses based on that assumption. Writing through int* and reading through float* violates the rule — at -O0 it &#x27;works,&#x27; at -O2 the read can return a stale cached value.</p>
-          <p>The fixes are memcpy (the blessed type-punning tool — modern compilers optimize it away) or a union. The lab&#x27;s -O0/-O2 comparison makes the abstract rule viscerally concrete.</p>
-          <h5>Detection tooling: UBSan, ASan, -Wall -Wextra, -fanalyzer</h5>
-          <p>UBSan (-fsanitize=undefined) instruments the classic UB classes and reports them at runtime with file and line. ASan covers the memory-safety subset. -Wall -Wextra catch several at compile time (-Wsequence-point flags x = x++). GCC&#x27;s -fanalyzer adds static path analysis.</p>
+          <p>The compiler may assume that pointers of different types do not point to the same memory (with narrow exceptions like char*), and it reorders and caches accesses based on that assumption. Writing through int* and reading through float* violates the rule — at <code>-O0</code> it &#x27;works,&#x27; at <code>-O2</code> the read can return a stale cached value.</p>
+          <p>The fixes are memcpy (the blessed type-punning tool — modern compilers optimize it away) or a union. The lab&#x27;s <code>-O0</code>/<code>-O2</code> comparison makes the abstract rule viscerally concrete.</p>
+          <h5>Detection tooling: <code>UBSan</code>, ASan, -Wall -Wextra, -fanalyzer</h5>
+          <p><code>UBSan</code> (-fsanitize=undefined) instruments the classic UB classes and reports them at runtime with file and line. ASan covers the memory-safety subset. -Wall -Wextra catch several at compile time (-Wsequence-point flags x = x++). GCC&#x27;s -fanalyzer adds static path analysis.</p>
           <p>No single tool catches everything — the hardening workflow layers them: warnings at compile time, sanitizers at test time, and -fanalyzer as a periodic audit. The Module 8 lab runs the full stack against hostile inputs.</p>
           <h5>Checked arithmetic and explicit bounds as defensive patterns</h5>
           <p>Where overflow is possible, check before operating: for addition, verify b &lt;= INT_MAX - a rather than computing a + b and testing the result (the computation itself would be the UB). For indexing, validate against the known size before touching the array.</p>
-          <p>These patterns feel paranoid until the first UBSan report on a &#x27;can&#x27;t happen&#x27; input. Defensive arithmetic is not pessimism — it is the admission that inputs are adversarial and the optimizer is literal.</p>
+          <p>These patterns feel paranoid until the first <code>UBSan</code> report on a &#x27;can&#x27;t happen&#x27; input. Defensive arithmetic is not pessimism — it is the admission that inputs are adversarial and the optimizer is literal.</p>
           <h5>Safe-coding discipline: initialize, validate, check, bound</h5>
           <p>The module&#x27;s closing discipline, and the sequence&#x27;s: initialize every variable at declaration; validate all inputs at the boundary; bound every loop and every copy; check every fallible call; prefer size-aware APIs (snprintf over sprintf, fgets over gets — which no longer exists for good reason).</p>
           <p>None of this is exciting. All of it is what separates C that survives contact with users from C that survives only the demo. The capstone&#x27;s sanitizer-clean requirement is this discipline made gradable.</p>
           <h4>Hands-on labs</h4>
           <ol>
-            <li>Lab 1 — Signed overflow, caught. Write a program adding two ints from stdin; trigger signed overflow, capture the UBSan report with -fsanitize=undefined, then rewrite with a checked-add that detects overflow before it happens and verify UBSan stays silent.</li>
-            <li>Lab 2 — Sequence points. Write &#x27;i = i++ + ++i;&#x27; and &#x27;a[i] = i++;&#x27;, compile with -Wall -Wsequence-point, read the warnings, then rewrite each with explicit temporaries in well-defined evaluation order.</li>
-            <li>Lab 3 — Strict aliasing, observed. Write the int*/float* aliasing violation, compare behavior at -O0 versus -O2, then fix with memcpy and confirm identical behavior at -O2. Write down what changed.</li>
-            <li>Lab 4 — Full hardening pass. Take your Module 5 file tool through the complete gauntlet: -Wall -Wextra -Werror, ASan+UBSan clean on hostile inputs, every allocation and I/O call checked, all inputs validated. Document anything the earlier version got away with.</li>
+            <li>Lab 1 — Signed overflow, caught. Write a program adding two ints from stdin; trigger signed overflow, capture the <code>UBSan</code> report with -fsanitize=undefined, then rewrite with a checked-add that detects overflow before it happens and verify <code>UBSan</code> stays silent.</li>
+            <li>Lab 2 — Sequence points. Write '<code>i = i++ + ++i;</code>' and '<code>a[i] = i++;</code>', compile with <code>-Wall -Wsequence-point</code>, read the warnings, then rewrite each with explicit temporaries in well-defined evaluation order.</li>
+            <li>Lab 3 — Strict aliasing, observed. Write the int*/float* aliasing violation, compare behavior at <code>-O0</code> versus <code>-O2</code>, then fix with memcpy and confirm identical behavior at <code>-O2</code>. Write down what changed.</li>
+            <li>Lab 4 — Full hardening pass. Take your Module 5 file tool through the complete gauntlet: -Wall -Wextra -Werror, ASan+<code>UBSan</code> clean on hostile inputs, every allocation and I/O call checked, all inputs validated. Document anything the earlier version got away with.</li>
           </ol>
+<div class="ilw" role="group" aria-label="Compiled with &lt;code&gt;-fsanitize=undefined&lt;/code&gt;, what happen">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Compiled with <code>-fsanitize=undefined</code>, what happens at runtime?</p>
+<pre class="ilw-code"><code>#include &lt;stdio.h&gt;
+#include &lt;limits.h&gt;
+int main(void) {
+    int x = INT_MAX;
+    x = x + 1;
+    printf(&quot;%d\n&quot;, x &gt; 0);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-c-m8" id="ilw-c-m8-0">
+<label class="ilw-lab" for="ilw-c-m8-0"><span class="ilw-key">A</span><span>Prints 1</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> On x86 the wraparound would give a negative number, so <code>x &gt; 0</code> is false — but more importantly, signed overflow is <em>undefined</em>: the standard guarantees no outcome at all.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m8" id="ilw-c-m8-1">
+<label class="ilw-lab" for="ilw-c-m8-1"><span class="ilw-key">B</span><span>Prints 0</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Tempting — wraparound would print 0 — but with UBSan the program never gets to the <code>printf</code>. The sanitizer aborts at the overflow itself.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-c-m8" id="ilw-c-m8-2">
+<label class="ilw-lab" for="ilw-c-m8-2"><span class="ilw-key">C</span><span>UBSan halts with a signed-integer-overflow report</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> <code>Runtime error: signed integer overflow</code> with file and line. This is the sanitizer doing its job: turning silent UB into a loud, located report. Fix with a pre-check or a wider type.</p>
+<input class="ilw-in" type="radio" name="ilw-c-m8" id="ilw-c-m8-3">
+<label class="ilw-lab" for="ilw-c-m8-3"><span class="ilw-key">D</span><span>Compile error</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Signed overflow is perfectly legal <em>syntax</em> — the compiler accepts it without complaint (maybe a <code>-Wstrict-overflow</code> note). The undefinedness is semantic, not syntactic.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check questions</h4>
-          <ol>
-            <li>Classify each as undefined, unspecified, or implementation-defined behavior, with a one-sentence justification: (a) x = x++ (b) the order in which function arguments are evaluated (c) sizeof(int) (d) dereferencing a null pointer (e) shifting a 32-bit int left by 32.</li>
-            <li>Explain in writing why &#x27;it works on my machine&#x27; is not evidence of correctness for a program containing undefined behavior, citing one optimizer behavior you personally observed in these labs.</li>
-          </ol>
+          <li>Classify each as undefined, unspecified, or implementation-defined behavior, with a one-sentence justification: (a) x = x++ (b) the order in which function arguments are evaluated (c) sizeof(int) (d) dereferencing a null pointer (e) shifting a 32-bit int left by 32.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">(a) <code>x = x++</code> — <strong>undefined</strong>: <code>x</code> is modified twice (and read) with no sequence point between, so the standard imposes no requirements at all. (b) The order of function-argument evaluation — <strong>unspecified</strong>: the compiler must pick <em>some</em> order, but any order is conforming. (c) e.g. the size of <code>int</code> — <strong>implementation-defined</strong>: the implementation must document its choice (commonly 4 bytes). Only (a) licenses the optimizer to do literally anything.</div></details></li><li>Explain in writing why 'it works on my machine' is not evidence of correctness for a program containing undefined behavior, citing one optimizer behavior you personally observed in these labs.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Undefined behavior means the standard places <em>no requirements</em> on the implementation — and optimizers actively assume UB never happens, deleting 'impossible' branches (like your overflow check) or reordering code around the assumption. 'Works on my machine' is one compiler, one flag set, one input: it cannot prove the absence of a construct the standard defines as meaningless. Sanitizers (<code>-fsanitize=address,undefined</code>) turn the invisible into a loud, line-numbered report.</div></details></li></ol>
         </div>
       </article>
       </div>
@@ -546,7 +781,21 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </section>
 
   <hr class="il-rule"/>
-  <section class="il-section" aria-labelledby="capstone-h">
+  
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="final-exam-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Final assessment</p>
+        <h2 class="il-h il-h--section" id="final-exam-h">Scenario exam — prove the sequence.</h2>
+      </div>
+      <div class="il-prose">Twelve original scenario questions across every module — the same bug classes you met in the labs, now wearing disguises. Your score is saved in this browser and misses remediate into <a href="/adapt/">Adapt</a> and <a href="/coach/">Noah</a>. These scenarios are written for this sequence; they are not real exam questions from any certification.</div>
+      <div data-il-exam="c-language"></div>
+      <script type="application/json" data-il-exam-bank>[{"id": "ex-c-link", "domain": "Translation & Linkage", "stem": "Two translation units each define ‘int counter = 0;’ at file scope. You link them. What happens, and what is the correct fix?", "choices": [{"key": "A", "text": "Linker error: multiple definition of ‘counter’ — keep one definition, declare extern in the other file"}, {"key": "B", "text": "It links fine; the linker merges the two counters"}, {"key": "C", "text": "Compiler error in the second file"}, {"key": "D", "text": "It links, but counter silently becomes two separate variables"}], "answer": "A", "why": "Two external-linkage definitions of one symbol violate the one-definition rule; the linker must reject the program.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20one%20definition%20rule,%20extern%20declarations,%20and%20linker%20multiple-definition%20errors%20(C%20Module%201)."}}, {"id": "ex-c-macro", "domain": "Preprocessor", "stem": "A legacy header defines ‘#define MUL(a, b) a * b’. What does ‘MUL(2 + 3, 4)’ evaluate to, and why?", "choices": [{"key": "A", "text": "20 — the macro multiplies the sums"}, {"key": "B", "text": "14 — it expands to 2 + 3 * 4 and * binds tighter"}, {"key": "C", "text": "24 — both arguments are evaluated twice"}, {"key": "D", "text": "Compile error — macros cannot take expressions"}], "answer": "B", "why": "Textual substitution yields 2 + 3 * 4 = 14. Parenthesize every macro parameter and the whole body.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20preprocessor%20textual%20expansion%20and%20macro%20parenthesization%20pitfalls%20(C%20Module%201)."}}, {"id": "ex-c-malloc-n", "domain": "Dynamic Memory", "stem": "You must allocate space for n ints, where n is read from the user at runtime. Which is the correct, defensive allocation?", "choices": [{"key": "A", "text": "int *p = malloc(n * sizeof *p); if (!p) handle the failure;"}, {"key": "B", "text": "int *p = malloc(n);"}, {"key": "C", "text": "int *p = (int *)malloc(n * sizeof(int)); — the cast makes it safe"}, {"key": "D", "text": "int *p = malloc(n * sizeof(int)); with no NULL check — malloc never fails on modern systems"}], "answer": "A", "why": "n * sizeof *p scales by element size, stays correct if the type changes, and the NULL check handles exhaustion.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20malloc%20sizing%20idioms%20and%20NULL-check%20discipline%20(C%20Module%202)."}}, {"id": "ex-c-realloc", "domain": "Dynamic Memory", "stem": "Growing a buffer: ‘p = realloc(p, new_size);’. What is wrong with this line?", "choices": [{"key": "A", "text": "Nothing — this is the standard growth idiom"}, {"key": "B", "text": "On failure realloc returns NULL and the original block is leaked — use a temporary pointer"}, {"key": "C", "text": "realloc cannot grow a block, only shrink it"}, {"key": "D", "text": "new_size must be a compile-time constant"}], "answer": "B", "why": "Assigning NULL over p loses the only handle to the original block. Use tmp = realloc(p, n); if (tmp) p = tmp;", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20safe%20realloc%20with%20a%20temporary%20pointer%20(C%20Module%202)."}}, {"id": "ex-c-strlit", "domain": "Strings & UB", "stem": "‘char *s = \"abc\"; s[0] = 'A';’ What happens?", "choices": [{"key": "A", "text": "s becomes \"Abc\" — string literals are mutable"}, {"key": "B", "text": "Undefined behavior — string literals typically live in read-only memory"}, {"key": "C", "text": "Compile error — assignment through char* is forbidden"}, {"key": "D", "text": "It works, but only on the first call"}], "answer": "B", "why": "Modifying a string literal is undefined behavior; literals typically reside in a read-only segment. Use char s[] = \"abc\"; for a mutable copy.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20string%20literal%20storage%20and%20why%20writing%20to%20one%20is%20UB%20(C%20Module%203)."}}, {"id": "ex-c-onepast", "domain": "Pointers", "stem": "‘int a[4]; int *end = a + 4;’ Which statement is true?", "choices": [{"key": "A", "text": "Forming a+4 is legal (one past the end); dereferencing *end is undefined"}, {"key": "B", "text": "a+4 itself is undefined behavior"}, {"key": "C", "text": "*end reads the 5th element, which is zero-initialized"}, {"key": "D", "text": "a+4 wraps around to a[0]"}], "answer": "A", "why": "One-past-the-end pointers may be formed and compared, never dereferenced. That is exactly how loop sentinels work.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20one-past-the-end%20pointers%20and%20valid%20pointer%20arithmetic%20(C%20Module%202)."}}, {"id": "ex-c-struct", "domain": "Structs & Layout", "stem": "On a typical 64-bit ABI, what is ‘sizeof(struct { double d; char c; })’?", "choices": [{"key": "A", "text": "9 — the sum of the members"}, {"key": "B", "text": "12"}, {"key": "C", "text": "16 — d@0–7, c@8, 7 bytes trailing padding for 8-byte alignment"}, {"key": "D", "text": "10 — with 1 byte of padding"}], "answer": "C", "why": "double needs 8-byte alignment; the struct size rounds up to a multiple of 8. Padding is alignment, not waste you can wish away.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20struct%20padding,%20alignment,%20and%20offsetof%20(C%20Module%204)."}}, {"id": "ex-c-feof", "domain": "File I/O", "stem": "Which loop correctly processes every line of a text file exactly once?", "choices": [{"key": "A", "text": "while (!feof(f)) { fgets(buf, sizeof buf, f); process(buf); }"}, {"key": "B", "text": "while (fgets(buf, sizeof buf, f) != NULL) process(buf);"}, {"key": "C", "text": "do { fgets(buf, sizeof buf, f); process(buf); } while (!feof(f));"}, {"key": "D", "text": "for (;;) { process(buf); if (feof(f)) break; fgets(buf, sizeof buf, f); }"}], "answer": "B", "why": "feof is set only after a failed read, so feof-controlled loops process the last line twice. Let the read's return value control iteration.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20why%20while(!feof(f))%20is%20wrong%20and%20the%20read-controlled%20loop%20(C%20Module%205)."}}, {"id": "ex-c-fopen", "domain": "File I/O", "stem": "‘FILE *f = fopen(path, \"r\"); fgets(buf, sizeof buf, f);’ The file might not exist. What is missing?", "choices": [{"key": "A", "text": "Nothing — fopen creates the file if missing"}, {"key": "B", "text": "A NULL check on f before use — fopen returns NULL on failure and fgets(NULL) is UB"}, {"key": "C", "text": "fopen needs a third argument for the buffer size"}, {"key": "D", "text": "buf must be allocated with malloc first"}], "answer": "B", "why": "Every allocation and I/O call is checked in this sequence: if (!f) { perror(path); ... }. Unchecked NULL flows straight into a crash.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20checking%20fopen%20and%20every%20I/O%20call%20(C%20Module%205)."}}, {"id": "ex-c-linkorder", "domain": "Build Tooling", "stem": "‘gcc -lm main.o util.o -o app’ fails with ‘undefined reference to sqrt’. The fix?", "choices": [{"key": "A", "text": "Move -lm after the object files: gcc main.o util.o -lm -o app"}, {"key": "B", "text": "Add -lm twice, before and after"}, {"key": "C", "text": "Replace -lm with -static"}, {"key": "D", "text": "Put #include <math.h> in every file"}], "answer": "A", "why": "The linker is a single left-to-right pass; archives only satisfy currently-undefined symbols. Order is semantics, not style.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20static%20libraries%20and%20linker%20left-to-right%20order%20(C%20Module%206)."}}, {"id": "ex-c-gdb", "domain": "Debugging", "stem": "Your program segfaults. What is the productive first gdb session?", "choices": [{"key": "A", "text": "gdb ./app → run → bt → frame 0 → info locals / print suspects"}, {"key": "B", "text": "Add printfs and recompile at -O3"}, {"key": "C", "text": "Run it repeatedly until it stops crashing"}, {"key": "D", "text": "Delete the binary and rebuild with different flags at random"}], "answer": "A", "why": "run reproduces under the debugger, bt maps the crash, frame selects it, locals/print identify the violated invariant.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20the%20gdb%20crash%20workflow%20—%20run,%20bt,%20frame,%20locals%20(C%20Module%207)."}}, {"id": "ex-c-ubsan", "domain": "Undefined Behavior", "stem": "UBSan reports ‘signed integer overflow’ on ‘x = x + 1’ where x is INT_MAX. What does this tell you?", "choices": [{"key": "A", "text": "The CPU wrapped around; add a comment and move on"}, {"key": "B", "text": "The program has undefined behavior — the optimizer may now do anything, including deleting your overflow check"}, {"key": "C", "text": "It is harmless as long as you compile without -O2"}, {"key": "D", "text": "Cast to unsigned after the addition to fix it"}], "answer": "B", "why": "Signed overflow is UB, not wraparound. Fix with a pre-addition check or a wider/unsigned type — never by observing one platform's behavior.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20signed%20overflow%20is%20UB%20and%20how%20sanitizers%20expose%20it%20(C%20Module%208)."}}, {"id": "ex-c-freestack", "domain": "Dynamic Memory", "stem": "‘int x = 5; int *p = &x; free(p);’ What is wrong?", "choices": [{"key": "A", "text": "Nothing — free works on any pointer"}, {"key": "B", "text": "free may only be called on pointers from the malloc family (or NULL); freeing a stack address is undefined"}, {"key": "C", "text": "x must be declared static first"}, {"key": "D", "text": "free needs the size: free(p, sizeof(int))"}], "answer": "B", "why": "free on a non-heap pointer is undefined behavior — typically heap corruption or an immediate abort. Ownership discipline: free exactly what malloc gave you.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20free%20only%20what%20the%20malloc%20family%20returned%20(C%20Module%202)."}}, {"id": "ex-c-guard", "domain": "Translation & Linkage", "stem": "A header with no include guard is included by two source files, each including it twice. The likely result?", "choices": [{"key": "A", "text": "Redefinition compile errors — the declarations are pasted in twice per translation unit"}, {"key": "B", "text": "It compiles fine; the preprocessor deduplicates"}, {"key": "C", "text": "A linker error about duplicate symbols"}, {"key": "D", "text": "The program runs twice as fast"}], "answer": "A", "why": "#include is textual pasting; without a guard the contents appear twice and redeclare the same names. Guard or #pragma once every header.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me:%20include%20guards%20and%20textual%20inclusion%20(C%20Module%201)."}}]</script>
+    </div>
+  </section>
+
+<section class="il-section" aria-labelledby="capstone-h">
     <div class="il-wrap">
       <div class="il-section__head">
         <p class="il-eyebrow">Capstone</p>
@@ -554,7 +803,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
       <div class="il-prose">
         <p>The capstone pulls every module together: build wfreq, a word-frequency counter that streams arbitrarily large text files in constant memory, stores results in a dynamically grown hash table of heap-allocated strings, and writes a sorted report to an output file.</p>
-        <p>Requirements, from the curriculum: at least four translation units (main, table, io, util) plus headers, built by a Makefile you write with debug and release targets; clean under gcc -Wall -Wextra -Werror -std=c11 -pedantic; zero reports from AddressSanitizer and UBSan on a 1 GB input and on hostile inputs (empty file, no trailing newline, a 10 MB single line, binary bytes); every allocation and I/O call checked; and a README explaining your ownership conventions and how you debugged at least one real bug with gdb.</p>
+        <p>Requirements, from the curriculum: at least four translation units (main, table, io, util) plus headers, built by a Makefile you write with debug and release targets; clean under gcc <code>-Wall -Wextra -Werror -std=c11 -pedantic</code>; zero reports from <code>AddressSanitizer</code> and <code>UBSan</code> on a 1 GB input and on hostile inputs (empty file, no trailing newline, a 10 MB single line, binary bytes); every allocation and I/O call checked; and a README explaining your ownership conventions and how you debugged at least one real bug with gdb.</p>
         <p>Budget your time honestly: the hash table and the streaming I/O are each a solid day&#x27;s work, the Makefile and sanitizer-clean runs another day, and the README writeup is where the learning crystallizes. This is the program that proves you can write C like an engineer.</p>
       </div>
     </div>
@@ -600,6 +849,22 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public C language reference. It teaches the same ground in original prose with hands-on labs; it does not reproduce the official reference. For the authoritative material, consult the official curriculum source above.</em></p>
       </div>
 
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="continue-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Next steps</p>
+        <h2 class="il-h il-h--section" id="continue-h">Continue the journey.</h2>
+      </div>
+      <div class="il-prose"><p>No dead ends: the sequence continues. Take your capstone proof and your exam score into the next track.</p></div>
+      <div class="il-center" style="margin-top:1.6rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <a class="il-btn il-btn--gold" href="/learn/sequences/cpp-engineering/">Continue to → Modern C++ Engineering</a>
+        <a class="il-btn" href="/learn/">All tracks</a>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="no-print border-t border-paper/10">
@@ -615,5 +880,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </footer>
 <script src="/assets/noah-ai.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-progress.js" defer></script>
 </body>
 </html>
