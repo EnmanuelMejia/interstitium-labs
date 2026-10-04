@@ -29,6 +29,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+.il-media{margin:1.4rem 0 1.8rem;border:1px solid rgba(242,237,225,.12);border-radius:.75rem;background:#0d1424;padding:1rem;overflow-x:auto}
+.il-media svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.il-media figcaption{margin-top:.6rem;font-size:.78rem;color:#9aa3b5;text-align:center}
+.il-check-key{margin-top:.6rem;border:1px solid rgba(232,182,76,.35);border-radius:.6rem;background:rgba(232,182,76,.05)}
+.il-check-key summary{cursor:pointer;padding:.55rem .8rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#e8b64c;font-family:inherit}
+.il-check-key__body{padding:.2rem 1rem 1rem;font-size:.92rem;color:#d9d4c7}
+.il-check-key__body p{margin:.5rem 0}
+.il-lab-station{border:1px solid rgba(103,232,249,.3);border-radius:.9rem;background:rgba(103,232,249,.04);padding:1.2rem;margin:1.2rem 0}
+.il-lab-station h4{color:#67e8f9}
+.il-lab-widget{margin:1.2rem 0;padding:1rem;border:1px solid rgba(242,237,225,.12);border-radius:.7rem;background:rgba(10,15,29,.5)}
+.il-lab-widget h5{margin:.2rem 0 .6rem;font-size:1rem;color:#f2ede1}
+.il-lab-widget label{display:block;margin:.5rem 0;font-size:.9rem}
+.il-lab-widget select,.il-lab-widget input[type=text],.il-lab-widget input[type=number]{background:#0a0f1d;border:1px solid rgba(242,237,225,.25);color:#f2ede1;border-radius:.4rem;padding:.45rem .6rem;font-size:.9rem;max-width:22rem;width:100%}
+.il-lab-widget button{cursor:pointer;background:#e8b64c;color:#0a0f1d;border:0;border-radius:.5rem;padding:.55rem 1rem;font-weight:600;font-size:.85rem;letter-spacing:.04em}
+.il-lab-widget button:hover{filter:brightness(1.08)}
+.il-lab-result{margin-top:.8rem;padding:.8rem 1rem;border-radius:.6rem;border:1px solid rgba(242,237,225,.15);background:#0d1424;font-size:.92rem}
+.il-lab-result.good{border-color:rgba(134,239,172,.5)}
+.il-lab-result.warn{border-color:rgba(232,182,76,.6)}
+.il-lab-result.bad{border-color:rgba(248,113,113,.6)}
+.il-logline{font-family:ui-monospace,monospace;font-size:.8rem;padding:.3rem .5rem;border-radius:.35rem;cursor:pointer;border:1px solid transparent;margin:.15rem 0}
+.il-logline:hover{border-color:rgba(103,232,249,.4)}
+.il-logline.sel-ioc{background:rgba(134,239,172,.12);border-color:rgba(134,239,172,.5)}
+.il-logline.sel-fp{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.5)}
+.il-rubric{width:100%;border-collapse:collapse;font-size:.88rem;margin:.6rem 0}
+.il-rubric th,.il-rubric td{border:1px solid rgba(242,237,225,.15);padding:.5rem .6rem;text-align:left;vertical-align:top}
+.il-rubric th{background:rgba(232,182,76,.08);color:#e8b64c}
+.il-checklist label{display:flex;gap:.5rem;align-items:flex-start;margin:.45rem 0;font-size:.9rem}
+.il-checklist input[type=checkbox]{margin-top:.2rem;transform:scale(1.2)}
+.il-progress{border:1px solid rgba(242,237,225,.12);border-radius:.8rem;padding:1.1rem;margin:1.2rem 0;background:rgba(10,15,29,.5)}
+.il-progress__bar{height:.6rem;border-radius:.3rem;background:rgba(242,237,225,.1);overflow:hidden;margin:.6rem 0}
+.il-progress__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#e8b64c,#67e8f9);transition:width .4s}
+.il-progress__mods{list-style:none;margin:.6rem 0 0;padding:0;columns:2;column-gap:2rem;font-size:.88rem}
+@media(max-width:640px){.il-progress__mods{columns:1}}
+.il-progress__mods li{margin:.3rem 0;break-inside:avoid}
+.il-progress__mods label{display:flex;gap:.5rem;align-items:flex-start;cursor:pointer}
+.il-nextsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin-top:1rem}
+.il-nextcard{border:1px solid rgba(242,237,225,.14);border-radius:.8rem;padding:1.1rem;background:rgba(13,20,36,.6);text-decoration:none!important;display:block}
+.il-nextcard:hover{border-color:rgba(232,182,76,.55)}
+.il-nextcard .il-eyebrow{margin:0 0 .4rem}
+.il-nextcard h4{margin:.2rem 0 .5rem;color:#f2ede1;font-size:1.02rem}
+.il-nextcard p{font-size:.88rem;color:#9aa3b5;margin:0}
+.il-disclaimer{border-left:3px solid #e8b64c;padding:.8rem 1.1rem;margin:1.4rem 0;background:rgba(232,182,76,.05);font-size:.9rem;color:#d9d4c7}
+</style>
 
 </head>
 <body>
@@ -114,6 +158,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+<div class="il-disclaimer" role="note"><strong>Honest framing.</strong> This is an original, independent study sequence built from public certification documentation. It is not affiliated with, endorsed by, or sponsored by any certification body or vendor; it confers no certificate and grants no credential. All practice questions, scenarios, and labs are original — they are not real exam questions and nothing here reproduces proprietary exam content. Official sources are linked per module as further study.</div>
 
   <hr class="il-rule"/>
   <section class="il-section" aria-labelledby="outcomes-h">
@@ -142,9 +187,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">7 modules, in study order.</h2>
       </div>
       <div class="il-modules">
-      <article class="il-module" aria-labelledby="m1-h">
+      <article class="il-module" id="cism-mod-1" aria-labelledby="m1-h">
         <p class="il-eyebrow">Module 1</p>
         <h3 class="il-h il-h--card" id="m1-h">Governance Foundations: Culture, Strategy, and the Security Charter</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Security governance reporting structure"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Governance reporting — who the CISO answers to matters</text><rect x="245" y="60" width="150" height="56" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="320" y="84" text-anchor="middle" font-weight="700">BOARD</text><text class="d" x="320" y="102" text-anchor="middle">owns risk appetite</text><rect x="245" y="150" width="150" height="56" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="320" y="174" text-anchor="middle" font-weight="700">CEO</text><text class="d" x="320" y="192" text-anchor="middle">accountable executive</text><rect x="80" y="240" width="150" height="56" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="155" y="264" text-anchor="middle" font-weight="700">CIO</text><text class="d" x="155" y="282" text-anchor="middle">runs the systems</text><rect x="410" y="240" width="150" height="56" rx="8" fill="#e8b64c"/><text class="b" x="485" y="264" text-anchor="middle">CISO</text><text class="d" x="485" y="282" text-anchor="middle" fill="#0a0f1d">challenges the systems</text><line x1="320" y1="116" x2="320" y2="150" stroke="#e8b64c" stroke-width="2"/><line x1="320" y1="206" x2="485" y2="240" stroke="#86efac" stroke-width="2.5"/><line x1="320" y1="206" x2="155" y2="240" stroke="#9aa3b5" stroke-width="1.5" stroke-dasharray="6,4"/><text class="d" x="20" y="330">Solid green: CISO → CEO/Board — the challenge function survives bad news.</text><text class="d" x="20" y="348">Dashed gray: CISO → CIO only — the auditor reports to the audited. Governance risk.</text></svg>
+<figcaption>Governance reporting lines: the CISO needs a path to the board independent of the CIO.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -181,15 +230,22 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: The CEO wants the CISO to report to the CIO with no dotted line to the board. As the security manager, what governance risks do you raise and what alternative do you recommend?</li>
-            <li>Scenario: A business unit launches a customer-facing app without a security review. What governance mechanisms should have caught this, and what management action do you take now?</li>
-            <li>Self-test: List five elements that belong in a security charter and explain, for each, what management decision it enables.</li>
-          </ol>
+<li>Scenario: The CEO wants the CISO to report to the CIO with no dotted line to the board. As the security manager, what governance risks do you raise and what alternative do you recommend?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> raises the <em>structural conflict</em> — the CISO would audit systems owned by the person they report to, so serious deficiencies get softened before reaching the board; budget capture is the second risk. <strong>Alternative:</strong> CISO reports to the CEO (or a board risk committee) with a dotted line to the CIO for operational coordination. <strong>Weak answer:</strong> treats it as a title/prestige issue, or sees no risk.</p></div></details></li>
+<li>Scenario: A business unit launches a customer-facing app without a security review. What governance mechanisms should have caught this, and what management action do you take now?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> names the mechanisms that should have caught it — architecture review board, procurement/vendor onboarding gate, change management — and the <strong>management action now:</strong> retrofit a risk assessment (accept, mitigate, or restrict the app) and fix the gates; no blame-first response, which only drives future launches underground. <strong>Weak answer:</strong> punishment as the whole response, or ignoring the live app.</p></div></details></li>
+<li>Self-test: List five elements that belong in a security charter and explain, for each, what management decision it enables.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer lists five</strong> (e.g., mission and scope; authority granted; roles — board, CEO, CISO; risk appetite reference; reporting and escalation cadence) and for <strong>each states the decision it enables</strong> (budget approval, escalation path, prioritization conflicts). <strong>Weak answer:</strong> lists elements with no link to decisions — a charter that enables nothing is decoration.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m2-h">
+      <article class="il-module" id="cism-mod-2" aria-labelledby="m2-h">
         <p class="il-eyebrow">Module 2</p>
         <h3 class="il-h il-h--card" id="m2-h">Governance in Practice: Metrics, Maturity, and Stakeholder Management</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Leading versus lagging security metrics"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Metrics — leading tells you where you are going</text><rect x="20" y="60" width="290" height="200" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="165" y="88" text-anchor="middle" font-weight="700">LAGGING</text><text class="d" x="165" y="112" text-anchor="middle">breaches suffered</text><text class="d" x="165" y="132" text-anchor="middle">incidents last quarter</text><text class="d" x="165" y="152" text-anchor="middle">audit findings count</text><text class="d" x="165" y="186" text-anchor="middle">Report the past.</text><text class="d" x="165" y="206" text-anchor="middle">Cannot be managed —</text><text class="d" x="165" y="226" text-anchor="middle">only explained.</text><rect x="330" y="60" width="290" height="200" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="475" y="88" text-anchor="middle" font-weight="700">LEADING</text><text class="d" x="475" y="112" text-anchor="middle">MTTR for critical vulns</text><text class="d" x="475" y="132" text-anchor="middle">% assets with owner</text><text class="d" x="475" y="152" text-anchor="middle">phish report rate</text><text class="d" x="475" y="186" text-anchor="middle">Predict the future.</text><text class="d" x="475" y="206" text-anchor="middle">Can be managed —</text><text class="d" x="475" y="226" text-anchor="middle">this is the dashboard.</text><text class="d" x="20" y="296">99% patch compliance (lagging-flavored) with rising MTTR means the 1% is where the risk lives.</text><text class="d" x="20" y="316">Measure behavior and speed, not just completion.</text></svg>
+<figcaption>Leading vs lagging indicators: manage the dashboard, explain the history.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -226,14 +282,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: Your dashboard shows patch compliance at 99% but mean time to remediate critical vulnerabilities is rising. What management questions do you ask, and which metric would you add?</li>
-            <li>Scenario: The audit committee asks whether the security program is &#x27;good enough.&#x27; How do you answer using maturity assessment and metrics rather than opinion?</li>
-          </ol>
+<li>Scenario: Your dashboard shows patch compliance at 99% but mean time to remediate critical vulnerabilities is rising. What management questions do you ask, and which metric would you add?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer asks:</strong> which assets miss the SLA? Are criticals aging on crown jewels? Is the 1% unpatched concentrated or scattered? <strong>Metric to add:</strong> MTTR segmented by criticality tier (and % of criticals remediated within SLA). <strong>Weak answer:</strong> celebrates 99% or deletes the uncomfortable metric.</p></div></details></li>
+<li>Scenario: The audit committee asks whether the security program is &#x27;good enough.&#x27; How do you answer using maturity assessment and metrics rather than opinion?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> presents maturity ratings per domain, trend lines, and the gap against the board's own risk appetite — then frames the decision: 'here is where we stand, here is the direction, here is whether that matches your appetite.' Evidence, not opinion; the committee decides what 'enough' means. <strong>Weak answer:</strong> a confident yes/no with no evidence.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m3-h">
+      <article class="il-module" id="cism-mod-3" aria-labelledby="m3-h">
         <p class="il-eyebrow">Module 3</p>
         <h3 class="il-h il-h--card" id="m3-h">Risk Fundamentals: Identifying, Classifying, and Valuing Information Assets and Threats</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Asset identification to threat mapping flow"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Risk fundamentals — from asset to threat, in order</text><rect x="14" y="70" width="144" height="80" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="86" y="98" text-anchor="middle" font-weight="700">Identify</text><text class="d" x="86" y="120" text-anchor="middle">inventory everything</text><line x1="158" y1="110" x2="170" y2="110" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="170" y="70" width="144" height="80" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="242" y="98" text-anchor="middle" font-weight="700">Classify</text><text class="d" x="242" y="120" text-anchor="middle">tier by sensitivity</text><line x1="314" y1="110" x2="326" y2="110" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="326" y="70" width="144" height="80" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="398" y="98" text-anchor="middle" font-weight="700">Value</text><text class="d" x="398" y="120" text-anchor="middle">business worth</text><line x1="470" y1="110" x2="482" y2="110" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="482" y="70" width="144" height="80" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="554" y="98" text-anchor="middle" font-weight="700">Threat-map</text><text class="d" x="554" y="120" text-anchor="middle">who wants it, how</text><text class="d" x="20" y="190">You cannot protect what you have not inventoried, cannot prioritize what you have not valued,</text><text class="d" x="20" y="210">and cannot defend against threats you have not named. Skip a step and the later ones are fiction.</text><rect x="20" y="230" width="600" height="60" rx="8" fill="none" stroke="#e8b64c" stroke-dasharray="6,4"/><text class="d" x="36" y="256">Classification conflicts (two units, one database) resolve through the data-governance process —</text><text class="d" x="36" y="276">the business owner of the data decides; interim rule: the higher classification wins.</text></svg>
+<figcaption>Asset → classification → valuation → threat mapping: each step depends on the last.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -270,14 +332,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: Your board will fund exactly one initiative this quarter: a $60k endpoint-protection upgrade OR a $60k vendor-risk-management program. The company has suffered one phishing compromise (contained) and is about to sign three new SaaS vendors. Write a half-page recommendation naming the initiative you fund, the risk you are accepting by defunding the other, and how you would measure success in 90 days.</li>
-            <li>Scenario: Two business units classify the same shared database differently. What management process resolves the conflict, and who owns the decision?</li>
-          </ol>
+<li>Scenario: Your board will fund exactly one initiative this quarter: a $60k endpoint-protection upgrade OR a $60k vendor-risk-management program. The company has suffered one phishing compromise (contained) and is about to sign three new SaaS vendors. Write a half-page recommendation naming the initiative you fund, the risk you are accepting by defunding the other, and how you would measure success in 90 days.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer (management voice):</strong> funds the <em>vendor-risk-management program</em> — the contained phishing incident suggests endpoint controls function, while three new SaaS vendors are expanding, unassessed third-party risk. Names the <strong>residual risk</strong> of deferring the endpoint upgrade and the <strong>90-day measure</strong> (reviews completed, click-rate trend). <strong>Weak answer:</strong> no residual-risk statement.</p></div></details></li>
+<li>Scenario: Two business units classify the same shared database differently. What management process resolves the conflict, and who owns the decision?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> the conflict resolves through the <strong>data-governance process</strong>, and the <strong>business owner of the data decides</strong> — not IT, not the loudest unit. Interim rule: the higher classification wins (fail-secure). <strong>Weak answer:</strong> IT decides, or the two units negotiate indefinitely.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m4-h">
+      <article class="il-module" id="cism-mod-4" aria-labelledby="m4-h">
         <p class="il-eyebrow">Module 4</p>
         <h3 class="il-h il-h--card" id="m4-h">Risk Assessment and Treatment: The Risk Register and the Business Case</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Risk register to business case"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">From risk register to business case</text><rect x="20" y="60" width="180" height="220" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="110" y="88" text-anchor="middle" font-weight="700">RISK REGISTER</text><text class="d" x="110" y="112" text-anchor="middle">risk · owner</text><text class="d" x="110" y="132" text-anchor="middle">likelihood × impact</text><text class="d" x="110" y="152" text-anchor="middle">treatment decision</text><text class="d" x="110" y="172" text-anchor="middle">residual risk</text><text class="d" x="110" y="196" text-anchor="middle">review date</text><text class="d" x="110" y="230" text-anchor="middle">A living document,</text><text class="d" x="110" y="250" text-anchor="middle">not a spreadsheet</text><text class="d" x="110" y="270" text-anchor="middle">of surprises.</text><line x1="200" y1="170" x2="250" y2="170" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="250" y="60" width="370" height="220" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="435" y="88" text-anchor="middle" font-weight="700">BUSINESS CASE</text><text class="d" x="270" y="118">1. The risk, in business terms (money, time, trust)</text><text class="d" x="270" y="142">2. Expected loss without action (honest range, not false precision)</text><text class="d" x="270" y="166">3. Cost of the treatment</text><text class="d" x="270" y="190">4. Residual risk after treatment — owned and dated</text><text class="d" x="270" y="218">"Nothing bad has happened" is luck or working controls —</text><text class="d" x="270" y="240">the case prices the luck running out.</text><text class="d" x="270" y="264">Interim acceptance: documented, expiring, compensating controls.</text></svg>
+<figcaption>The risk register feeds the business case: risk → expected loss → treatment cost → residual risk.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -314,14 +382,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: The CFO asks whether a $250K security tool is worth it when &#x27;nothing bad has happened.&#x27; Build the management argument using risk treatment and cost-of-breach concepts.</li>
-            <li>Scenario: A critical risk exceeds the organization&#x27;s risk appetite but the fix takes nine months. What treatment path do you recommend and how do you document interim acceptance?</li>
-          </ol>
+<li>Scenario: The CFO asks whether a $250K security tool is worth it when &#x27;nothing bad has happened.&#x27; Build the management argument using risk treatment and cost-of-breach concepts.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong argument:</strong> expected loss without the tool (an honest range, not false precision) vs. the $250K cost, ending with the <strong>residual-risk statement the CFO owns by declining</strong>. 'Nothing bad has happened' is addressed directly: luck, or controls that are working — the case prices the luck running out. <strong>Weak answer:</strong> fear, peer pressure, or vague compliance.</p></div></details></li>
+<li>Scenario: A critical risk exceeds the organization&#x27;s risk appetite but the fix takes nine months. What treatment path do you recommend and how do you document interim acceptance?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong path:</strong> <strong>documented interim acceptance</strong> — the appetite breach is formally recorded, time-boxed to the fix date, owned by an accountable executive, with compensating controls reducing exposure meanwhile. The nine-month fix is tracked to completion. <strong>Weak answer:</strong> silent acceptance, hidden risk, or redefined appetite.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m5-h">
+      <article class="il-module" id="cism-mod-5" aria-labelledby="m5-h">
         <p class="il-eyebrow">Module 5</p>
         <h3 class="il-h il-h--card" id="m5-h">Building the Program: Strategy, Resources, Standards, and Controls</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Program building blocks"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Building the program — four blocks, one strategy</text><rect x="14" y="60" width="144" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="86" y="92" text-anchor="middle" font-weight="700">STRATEGY</text><text class="d" x="86" y="116" text-anchor="middle">where we are going</text><rect x="170" y="60" width="144" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="242" y="92" text-anchor="middle" font-weight="700">RESOURCES</text><text class="d" x="242" y="116" text-anchor="middle">people + budget</text><rect x="326" y="60" width="144" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="398" y="92" text-anchor="middle" font-weight="700">STANDARDS</text><text class="d" x="398" y="116" text-anchor="middle">mandatory rules</text><rect x="482" y="60" width="144" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="554" y="92" text-anchor="middle" font-weight="700">CONTROLS</text><text class="d" x="554" y="116" text-anchor="middle">implemented defense</text><text class="d" x="20" y="190">A 40% budget cut does not change the strategy — it changes the sequence: protect crown jewels first,</text><text class="d" x="20" y="210">defer the rest explicitly, and communicate the resulting residual risk in writing.</text><text class="d" x="20" y="240">Sourcing (build vs. buy vs. managed service) is decided on coverage, expertise depth, visibility,</text><text class="d" x="20" y="260">3-year cost, and exit — never on sticker price alone.</text><text class="d" x="20" y="290">Strategy without resources is a wish list. Resources without standards are chaos.</text></svg>
+<figcaption>Program building blocks: strategy, resources, standards, controls — sequenced under constraints.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -358,14 +432,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: The board approved strategy but cut the requested budget by 40%. As security manager, how do you reprioritize the roadmap and communicate the resulting residual risk?</li>
-            <li>Scenario: A vendor proposes a managed detection service to replace two planned hires. What management criteria guide your sourcing recommendation?</li>
-          </ol>
+<li>Scenario: The board approved strategy but cut the requested budget by 40%. As security manager, how do you reprioritize the roadmap and communicate the resulting residual risk?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> re-sequences rather than spreads thin — <strong>crown-jewel controls first</strong>, explicit deferrals with dates, and the resulting <strong>residual risk communicated to the board in writing</strong> (converting a silent shortfall into an explicit decision). <strong>Weak answer:</strong> even cuts across everything, or proceeding as if the budget were whole.</p></div></details></li>
+<li>Scenario: A vendor proposes a managed detection service to replace two planned hires. What management criteria guide your sourcing recommendation?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong criteria:</strong> 24/7 coverage, expertise depth vs. the planned hires, visibility and control retained, 3-year total cost, and <strong>exit strategy</strong>. Recommendation follows the criteria, not the sticker price. <strong>Weak answer:</strong> decides on year-one cost alone, or treats outsourcing as categorically unacceptable.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m6-h">
+      <article class="il-module" id="cism-mod-6" aria-labelledby="m6-h">
         <p class="il-eyebrow">Module 6</p>
         <h3 class="il-h il-h--card" id="m6-h">Running the Program: Awareness, Operations, and Assurance</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Program assurance loop"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Running the program — the assurance loop</text><circle cx="320" cy="170" r="105" fill="none" stroke="#67e8f9" stroke-width="2"/><text class="t" x="320" y="80" text-anchor="middle" font-weight="700">PLAN</text><text class="d" x="320" y="98" text-anchor="middle">awareness calendar</text><text class="t" x="455" y="176" text-anchor="middle" font-weight="700">DO</text><text class="d" x="455" y="194" text-anchor="middle">operate controls</text><text class="t" x="320" y="278" text-anchor="middle" font-weight="700">CHECK</text><text class="d" x="320" y="296" text-anchor="middle">audit + metrics</text><text class="t" x="185" y="176" text-anchor="middle" font-weight="700">ACT</text><text class="d" x="185" y="194" text-anchor="middle">fix root causes</text><text class="d" x="20" y="320">Flat phishing metrics after two quarters: the conclusion is that training alone is insufficient —</text><text class="d" x="20" y="340">shift weight to technical controls and targeted coaching. A third-year repeat finding means the</text></svg>
+<figcaption>The assurance loop: plan, do, check, act — repeat findings signal broken remediation ownership.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -402,14 +482,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: Phishing simulation click rates stay flat after two quarters of training. What management conclusions do you draw and what program changes do you propose?</li>
-            <li>Scenario: An audit finds the same control deficiency for the third year running. What does this tell you about program management, and what do you change structurally?</li>
-          </ol>
+<li>Scenario: Phishing simulation click rates stay flat after two quarters of training. What management conclusions do you draw and what program changes do you propose?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong conclusions:</strong> two quarters of flat metrics = the training program is not changing behavior — a <strong>program failure, not a user failure</strong>. Changes: shift weight to technical controls (filtering, phishing-resistant MFA), targeted coaching for repeat clickers, and measure <strong>reporting rate</strong> alongside click rate. <strong>Weak answer:</strong> more of the same training.</p></div></details></li>
+<li>Scenario: An audit finds the same control deficiency for the third year running. What does this tell you about program management, and what do you change structurally?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> a third-year repeat means <strong>remediation ownership is broken</strong> — findings without owners, dates, and consequences recur by design. Structural change: named owner, tracked corrective-action plan, consequence for recurrence; fix the accountability machinery, not just the control. <strong>Weak answer:</strong> disputes the auditor or accepts the finding again.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m7-h">
+      <article class="il-module" id="cism-mod-7" aria-labelledby="m7-h">
         <p class="il-eyebrow">Module 7</p>
         <h3 class="il-h il-h--card" id="m7-h">Incident Management: Preparation, Response Leadership, and Recovery</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Incident command structure"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Incident leadership — one commander, clear lanes</text><rect x="245" y="60" width="150" height="60" rx="8" fill="#e8b64c"/><text class="b" x="320" y="86" text-anchor="middle">INCIDENT</text><text class="b" x="320" y="104" text-anchor="middle">COMMANDER</text><line x1="320" y1="120" x2="120" y2="160" stroke="#67e8f9" stroke-width="2"/><line x1="320" y1="120" x2="320" y2="160" stroke="#67e8f9" stroke-width="2"/><line x1="320" y1="120" x2="520" y2="160" stroke="#67e8f9" stroke-width="2"/><rect x="45" y="160" width="150" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="120" y="186" text-anchor="middle" font-weight="700" font-size="12">TECHNICAL LEAD</text><text class="d" x="120" y="206" text-anchor="middle">contain + eradicate</text><rect x="245" y="160" width="150" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="320" y="186" text-anchor="middle" font-weight="700" font-size="12">LEGAL</text><text class="d" x="320" y="206" text-anchor="middle">privilege + notification</text><rect x="445" y="160" width="150" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="520" y="186" text-anchor="middle" font-weight="700" font-size="12">COMMS / PR</text><text class="d" x="520" y="206" text-anchor="middle">one voice outward</text><text class="d" x="20" y="262">Legal wants silence, PR wants a statement: the decision is owned by the CEO with legal advising —</text><text class="d" x="20" y="282">the commander supplies facts, not spin. Pre-agree the comms playbook before the incident.</text><text class="d" x="20" y="312">Tabletop finds untested restores → immediate test, named owner, scheduled cadence, and the gap</text><text class="d" x="20" y="332">reported upward with exposure and dates. "Jobs are green" is not a recovery strategy.</text></svg>
+<figcaption>Incident command: one commander, technical/legal/comms lanes, pre-agreed decision ownership.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -446,9 +532,11 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Scenario: During a suspected data breach, legal wants silence while PR wants a proactive statement. As the security manager leading response, how do you structure the decision and who owns it?</li>
-            <li>Scenario: The tabletop reveals the backup restoration procedure has never been tested. What management actions follow, and how do you report this gap upward?</li>
-          </ol>
+<li>Scenario: During a suspected data breach, legal wants silence while PR wants a proactive statement. As the security manager leading response, how do you structure the decision and who owns it?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> the incident commander supplies <strong>verified facts</strong>; the comms decision is <strong>owned by the CEO with legal advising</strong>, executed per the pre-agreed playbook. Constraints: notification laws and their clocks, what is actually verified vs. suspected. <strong>Weak answer:</strong> the security manager decides alone, or legal and PR improvise mid-incident.</p></div></details></li>
+<li>Scenario: The tabletop reveals the backup restoration procedure has never been tested. What management actions follow, and how do you report this gap upward?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong actions:</strong> immediate test restore, named owner, scheduled cadence with evidence, root-cause on why testing never happened. <strong>Upward report:</strong> the gap, the exposure it creates, and the remediation plan with dates — 'the jobs are green' is reported as the false assurance it was. <strong>Weak answer:</strong> schedules a test someday with no owner.</p></div></details></li>
+</ol>
         </div>
       </article>
       </div>
@@ -495,6 +583,146 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public CISM certification pages published by ISACA. It teaches the same ground in original prose with scenario-driven labs; it does not reproduce ISACA&#x27;s official materials. For the authoritative certification requirements, exam outline, and experience criteria, consult the official curriculum source above.</em></p>
       </div>
 
+
+<hr class="il-rule"/>
+<section class="il-section" id="lab-station" aria-labelledby="lab-station-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Validated labs</p>
+<h2 class="il-h il-h--section" id="lab-station-h">Lab validation station.</h2>
+<div class="il-prose"><p>These exercises run entirely in your browser. Work each one, read the feedback, and retry until the reasoning is automatic — nothing here requires leaving this page.</p></div>
+
+<div class="il-lab-station">
+<h4>Lab A — Governance maturity self-score</h4>
+<p>Rate your (fictional or real) organization 1–5 on each statement. The result maps to a maturity level — and tells you what "good enough" would actually require.</p>
+<div class="il-lab-widget" data-il-widget="matscore">
+<div class="il-checklist" data-il-mat-q>
+<label><input type="checkbox" data-v="1"/> The board has set a written risk appetite the security program is measured against.</label>
+<label><input type="checkbox" data-v="1"/> The CISO (or security lead) has a reporting path to the board independent of IT operations.</label>
+<label><input type="checkbox" data-v="1"/> Every critical asset has a named business owner.</label>
+<label><input type="checkbox" data-v="1"/> The risk register is reviewed on a schedule, with treatment decisions and dates.</label>
+<label><input type="checkbox" data-v="1"/> Security metrics are leading indicators (MTTR, reporting rate), not just compliance percentages.</label>
+<label><input type="checkbox" data-v="1"/> Audit findings have named owners, corrective-action plans, and do not repeat year over year.</label>
+<label><input type="checkbox" data-v="1"/> Incident roles (commander, legal, comms, technical) are assigned before an incident.</label>
+<label><input type="checkbox" data-v="1"/> Backup restores are tested on a schedule with evidence.</label>
+</div>
+<button type="button" data-il-mat-go>Score maturity</button>
+<div class="il-lab-result" data-il-mat-out aria-live="polite">Check each statement that is true, then score.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="matscore"]');if(!w)return;
+var out=w.querySelector('[data-il-mat-out]');
+w.querySelector('[data-il-mat-go]').addEventListener('click',function(){
+var n=w.querySelectorAll('[data-il-mat-q] input:checked').length;
+var lvl,cls,adv;
+if(n<=2){lvl='Initial — ad hoc';cls='bad';adv='Security depends on heroes. First moves: name asset owners, start a risk register, assign incident roles.';}
+else if(n<=4){lvl='Managed — reactive';cls='warn';adv='Basics exist but are person-dependent. Next: written risk appetite, scheduled register reviews, leading metrics.';}
+else if(n<=6){lvl='Defined — consistent';cls='warn';adv='Processes are defined. Next: independent reporting line, corrective-action tracking that kills repeat findings.';}
+else{lvl='Measured — governed';cls='good';adv='The machinery runs. Next: trend the metrics, benchmark maturity per domain, and keep testing the things everyone assumes work (restores, playbooks).';}
+out.className='il-lab-result '+cls;
+out.innerHTML='<strong>'+n+'/8 — '+lvl+'.</strong><br/>'+adv+'<br/><span style="color:#9aa3b5">This is a self-assessment for study, not a certification of any program.</span>';
+try{localStorage.setItem('il.lab.cism.maturity',JSON.stringify({t:Date.now(),score:n}))}catch(e){}
+});
+})();
+</script>
+</div>
+<div class="il-lab-station">
+<h4>Lab B — Risk appetite statement builder</h4>
+<p>Boards struggle to write risk appetite. Choose a posture per category and generate a draft statement — then critique it: is it specific enough to decide anything?</p>
+<div class="il-lab-widget" data-il-widget="appetite">
+<label>Customer data confidentiality
+<select data-il-ap-c><option value="zero">Zero tolerance — no accepted residual risk</option><option value="low" selected>Low — accept only with compensating controls</option><option value="moderate">Moderate — accept where mitigation is disproportionate</option></select></label>
+<label>Service availability
+<select data-il-ap-a><option value="zero">Zero tolerance</option><option value="low" selected>Low</option><option value="moderate">Moderate</option></select></label>
+<label>Regulatory compliance
+<select data-il-ap-r><option value="zero" selected>Zero tolerance</option><option value="low">Low</option><option value="moderate">Moderate</option></select></label>
+<label>Innovation / speed of delivery
+<select data-il-ap-i><option value="zero">Zero tolerance</option><option value="low">Low</option><option value="moderate" selected>Moderate</option></select></label>
+<button type="button" data-il-ap-go>Draft the statement</button>
+<div class="il-lab-result" data-il-ap-out aria-live="polite">Choose a posture per category, then draft.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="appetite"]');if(!w)return;
+var out=w.querySelector('[data-il-ap-out]');
+function val(s){return w.querySelector(s).value;}
+w.querySelector('[data-il-ap-go]').addEventListener('click',function(){
+var c=val('[data-il-ap-c]'),a=val('[data-il-ap-a]'),r=val('[data-il-ap-r]'),i=val('[data-il-ap-i]');
+function line(k,v){return {'zero':'no accepted residual risk',low:'residual risk accepted only with documented compensating controls',moderate:'residual risk accepted where mitigation cost is disproportionate to the exposure'}[v];}
+var zeros=[c,a,r,i].filter(function(v){return v==='zero'}).length;
+out.className='il-lab-result '+(zeros>=3?'warn':'good');
+out.innerHTML='<strong>Draft risk appetite statement</strong><br/>'
++'&ldquo;The organization accepts <strong>'+line(0,c)+'</strong> for customer data confidentiality; '
++'<strong>'+line(0,a)+'</strong> for service availability; '
++'<strong>'+line(0,r)+'</strong> for regulatory compliance; and '
++'<strong>'+line(0,i)+'</strong> for innovation speed. Any risk exceeding these postures requires documented interim acceptance by an accountable owner.&rdquo;'
++'<br/><br/><strong>Critique prompt:</strong> '+(zeros>=3
+?'Three or more "zero tolerance" postures is usually appetite theater — no organization operates at zero residual risk. Which one would you relax first, and what compensating control makes that honest?'
+:'A credible draft. Now test it: would this statement decide the $60k funding question from Module 3? If not, it needs numbers.');
+try{localStorage.setItem('il.lab.cism.appetite',JSON.stringify({t:Date.now(),c:c,a:a,r:r,i:i}))}catch(e){}
+});
+})();
+</script>
+</div>
+
+</div>
+</section>
+<hr class="il-rule"/>
+<section class="il-section" id="final-exam" aria-labelledby="final-exam-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="final-exam-h">Scenario exam.</h2>
+<div class="il-prose"><p>Twelve original scenario questions drawn from this sequence. Your score persists in this browser; misses remediate back into the modules above and into Noah for coaching. This exam is original practice material — it confers no certificate and is not affiliated with any vendor or certification body.</p></div>
+<div class="il-progress" data-il-progress="cism">
+<p class="il-eyebrow">Your progress</p>
+<div class="il-progress__bar"><span data-il-progress-fill></span></div>
+<p data-il-progress-label></p>
+<ul class="il-progress__mods">
+<li><label><input type="checkbox" data-il-mod="m1"/> Module 1 · Governance Foundations: Culture, Strategy, and the Security Charter</label></li>
+<li><label><input type="checkbox" data-il-mod="m2"/> Module 2 · Governance in Practice: Metrics, Maturity, and Stakeholder Management</label></li>
+<li><label><input type="checkbox" data-il-mod="m3"/> Module 3 · Risk Fundamentals: Identifying, Classifying, and Valuing Information Assets and Threats</label></li>
+<li><label><input type="checkbox" data-il-mod="m4"/> Module 4 · Risk Assessment and Treatment: The Risk Register and the Business Case</label></li>
+<li><label><input type="checkbox" data-il-mod="m5"/> Module 5 · Building the Program: Strategy, Resources, Standards, and Controls</label></li>
+<li><label><input type="checkbox" data-il-mod="m6"/> Module 6 · Running the Program: Awareness, Operations, and Assurance</label></li>
+<li><label><input type="checkbox" data-il-mod="m7"/> Module 7 · Incident Management: Preparation, Response Leadership, and Recovery</label></li>
+</ul>
+</div>
+<div data-il-exam="cism">
+<script type="application/json" data-il-exam-bank>[{"id": "cism-ex-reportline", "domain": "Governance Foundations", "stem": "The CEO wants the CISO to report to the CIO with no dotted line to the board, \"to keep things simple.\" As security manager, what governance risk do you raise?", "choices": [{"key": "A", "text": "The challenge function is captured: the CISO audits systems the CIO owns, so bad news gets filtered before it reaches the board"}, {"key": "B", "text": "No risk — simpler reporting always improves security"}, {"key": "C", "text": "The risk is only about the CISO's title prestige"}, {"key": "D", "text": "The risk is that the CIO will have too much work"}], "answer": "A", "why": "Governance requires the control function to be independent of the function it oversees. A CISO reporting only to the CIO faces a structural conflict: reporting a serious deficiency means criticizing their own boss's operation. The alternative is a direct or dotted line to the CEO/board.", "remediate": {"adapt": "#cism-mod-1", "coach": "/coach/?prompt=CISO%20reporting%20lines%3A%20why%20independence%20from%20the%20CIO%20matters"}}, {"id": "cism-ex-shadowapp", "domain": "Governance Foundations", "stem": "A business unit launches a customer-facing app with no security review. The review board, procurement gate, and change process all missed it. What is the management response?", "choices": [{"key": "A", "text": "Retrofit a risk assessment now (accept, mitigate, or restrict), then fix the gates that missed it — the process failure is the real finding"}, {"key": "B", "text": "Punish the business unit publicly to set an example"}, {"key": "C", "text": "Ignore it — the app is already live and working"}, {"key": "D", "text": "Shut the app down immediately with no assessment"}], "answer": "A", "why": "The launched app is a risk to be assessed, not a crime to be punished — punishment drives future launches further underground. The systemic fix is closing the governance gap (architecture review, procurement, change control) that let it bypass review.", "remediate": {"adapt": "#cism-mod-1", "coach": "/coach/?prompt=Governance%20mechanisms%3A%20what%20should%20catch%20unreviewed%20launches"}}, {"id": "cism-ex-mttr", "domain": "Governance in Practice", "stem": "The dashboard shows 99% patch compliance, but mean time to remediate critical vulnerabilities is rising. What do you conclude and which metric do you add?", "choices": [{"key": "A", "text": "Compliance measures breadth, not speed: add MTTR segmented by criticality tier — the 1% unpatched likely holds the crown jewels"}, {"key": "B", "text": "The dashboard is fine — 99% is an A grade"}, {"key": "C", "text": "Remove the MTTR metric so the dashboard stays green"}, {"key": "D", "text": "Add more compliance percentages until the board is satisfied"}], "answer": "A", "why": "Averages hide the risk: 99% compliance with rising MTTR means criticals on important assets are aging. Segmenting MTTR by criticality exposes where the exposure actually accumulates — that is the number the board should see.", "remediate": {"adapt": "#cism-mod-2", "coach": "/coach/?prompt=Leading%20vs%20lagging%20metrics%3A%20why%20MTTR%20by%20tier%20beats%20raw%20compliance"}}, {"id": "cism-ex-goodenough", "domain": "Governance in Practice", "stem": "The audit committee asks whether the security program is \"good enough.\" How do you answer?", "choices": [{"key": "A", "text": "With maturity ratings per domain, trend metrics, and comparison against the board-approved risk appetite — evidence, not opinion"}, {"key": "B", "text": "\"Yes, we are good enough\" — confidence reassures the committee"}, {"key": "C", "text": "\"No security program is ever good enough\" — humility is safer"}, {"key": "D", "text": "Defer to the external auditor's opinion alone"}], "answer": "A", "why": "\"Good enough\" is a risk-appetite question, and appetite is the board's own decision. Maturity assessment shows where the program stands, trends show direction, and appetite shows whether the position is acceptable — that turns the question into a governance decision instead of a guess.", "remediate": {"adapt": "#cism-mod-2", "coach": "/coach/?prompt=Maturity%20assessment%3A%20answering%20%22is%20the%20program%20good%20enough%22%20with%20evidence"}}, {"id": "cism-ex-classconflict", "domain": "Risk Fundamentals", "stem": "Two business units classify the same shared database differently — one \"internal,\" one \"restricted.\" What resolves it?", "choices": [{"key": "A", "text": "The data-governance process: the business owner of the data decides; interim rule is the higher classification wins"}, {"key": "B", "text": "IT picks whichever is cheaper to implement"}, {"key": "C", "text": "Average the two classifications"}, {"key": "D", "text": "Whoever complains loudest wins"}], "answer": "A", "why": "Classification is an ownership decision, not a technical one, and the governance process exists precisely for conflicts. The interim higher-classification rule is fail-secure: under-protection is the risk, over-protection is merely cost.", "remediate": {"adapt": "#cism-mod-3", "coach": "/coach/?prompt=Classification%20conflicts%3A%20ownership%2C%20process%2C%20and%20the%20fail-secure%20interim%20rule"}}, {"id": "cism-ex-cfo", "domain": "Risk Assessment and Treatment", "stem": "The CFO asks whether a $250K security tool is worth it when \"nothing bad has happened.\" What is the core of your management argument?", "choices": [{"key": "A", "text": "Expected loss without the tool (honest range) versus cost with it, plus the residual risk the CFO would own by declining — \"nothing happened\" is luck or working controls"}, {"key": "B", "text": "Fear: describe the worst breach imaginable in vivid detail"}, {"key": "C", "text": "Peer pressure: competitors all bought it"}, {"key": "D", "text": "Compliance: the auditor might ask about it someday"}], "answer": "A", "why": "A business case compares priced alternatives: the expected loss range without treatment against the tool's cost, ending in a residual-risk statement with a named owner. Fear and peer pressure are not analysis; the CFO's job is allocating capital against risk, so speak that language.", "remediate": {"adapt": "#cism-mod-4", "coach": "/coach/?prompt=Building%20the%20business%20case%3A%20expected%20loss%2C%20treatment%20cost%2C%20residual%20risk"}}, {"id": "cism-ex-appetite", "domain": "Risk Assessment and Treatment", "stem": "A critical risk exceeds the organization's risk appetite, but the permanent fix takes nine months. What treatment path do you recommend?", "choices": [{"key": "A", "text": "Documented interim risk acceptance — expiring, owned, with compensating controls — while the nine-month fix is tracked to completion"}, {"key": "B", "text": "Accept it permanently; nine months is too long to track"}, {"key": "C", "text": "Hide it from the register until the fix ships"}, {"key": "D", "text": "Declare the risk within appetite by redefining appetite"}], "answer": "A", "why": "Appetite breaches cannot wait nine months unaddressed, but they also cannot be fixed by wishing. Interim acceptance is the honest middle: formally documented, time-boxed, owned, with compensating controls reducing exposure while the real fix progresses.", "remediate": {"adapt": "#cism-mod-4", "coach": "/coach/?prompt=Interim%20risk%20acceptance%3A%20documenting%20appetite%20breaches%20with%20expiry"}}, {"id": "cism-ex-budgetcut", "domain": "Building the Program", "stem": "The board approves the security strategy but cuts the requested budget by 40%. How do you respond?", "choices": [{"key": "A", "text": "Re-sequence the roadmap: protect crown-jewel controls first, defer the rest explicitly, and communicate the resulting residual risk to the board in writing"}, {"key": "B", "text": "Spread the cut evenly — every initiative gets 60% funding"}, {"key": "C", "text": "Proceed as if the budget were whole and hope for the best"}, {"key": "D", "text": "Resign in protest"}], "answer": "A", "why": "Even cuts produce uniform mediocrity: everything half-done, nothing effective. Prioritization concentrates reduced resources where risk is highest, and the written residual-risk communication converts a silent shortfall into an explicit board decision.", "remediate": {"adapt": "#cism-mod-5", "coach": "/coach/?prompt=Reprioritizing%20under%20budget%20cuts%3A%20sequencing%20and%20written%20residual%20risk"}}, {"id": "cism-ex-sourcing", "domain": "Building the Program", "stem": "A vendor proposes a managed detection service to replace two planned hires. What criteria guide your sourcing recommendation?", "choices": [{"key": "A", "text": "Coverage (24/7?), expertise depth, visibility and control retained, 3-year total cost, and exit strategy — not sticker price alone"}, {"key": "B", "text": "Whichever is cheaper this fiscal year"}, {"key": "C", "text": "Whichever the vendor's reference customers chose"}, {"key": "D", "text": "Always hire — outsourcing security is never acceptable"}], "answer": "A", "why": "Sourcing is a multi-criterion decision: a cheaper service that cannot see your environment or that you cannot exit is not cheaper. The analysis must cover operational fit (coverage, expertise), retained control, true multi-year cost, and reversibility.", "remediate": {"adapt": "#cism-mod-5", "coach": "/coach/?prompt=Sourcing%20decisions%3A%20build%20vs%20buy%20vs%20managed%20service%20criteria"}}, {"id": "cism-ex-phishflat", "domain": "Running the Program", "stem": "Phishing simulation click rates stay flat after two quarters of training. What management conclusion do you draw?", "choices": [{"key": "A", "text": "Training alone is insufficient: shift weight to technical controls (filtering, phishing-resistant MFA) and targeted coaching for repeat clickers; measure reporting rate, not just clicks"}, {"key": "B", "text": "Double the training hours — more of the same will eventually work"}, {"key": "C", "text": "Fire the employees who click"}, {"key": "D", "text": "Stop measuring — the metric is discouraging"}], "answer": "A", "why": "Flat metrics after sustained effort are a program failure, not a user failure. The management response reallocates: technical controls carry the weight training cannot, coaching targets the repeat population, and reporting rate measures the behavior that actually stops incidents.", "remediate": {"adapt": "#cism-mod-6", "coach": "/coach/?prompt=When%20awareness%20metrics%20flatline%3A%20program%20conclusions%20and%20reallocation"}}, {"id": "cism-ex-repeatfinding", "domain": "Running the Program", "stem": "An audit finds the same control deficiency for the third year running. What does this tell you, structurally?", "choices": [{"key": "A", "text": "Remediation ownership is broken: assign a named owner, a tracked corrective-action plan with dates, and consequences for recurrence — the root cause was never addressed"}, {"key": "B", "text": "The auditors are being picky — dispute the finding"}, {"key": "C", "text": "Accept the finding again; it will resolve itself"}, {"key": "D", "text": "Change auditors"}], "answer": "A", "why": "A three-year repeat is not a control problem, it is a management-system problem: findings without owners, dates, and consequences recur by design. The structural fix is accountability machinery, not another remediation promise.", "remediate": {"adapt": "#cism-mod-6", "coach": "/coach/?prompt=Repeat%20audit%20findings%3A%20what%20recurrence%20reveals%20about%20program%20management"}}, {"id": "cism-ex-breachcomms", "domain": "Incident Management", "stem": "During a suspected breach, legal wants silence while PR wants a proactive statement. As the security manager leading response, how do you structure this?", "choices": [{"key": "A", "text": "The commander supplies verified facts; the decision is owned by the CEO with legal advising, per the pre-agreed comms playbook — notification laws and evidence state set the constraints"}, {"key": "B", "text": "The security manager decides unilaterally — it is a security incident"}, {"key": "C", "text": "Let legal and PR argue it out during the incident"}, {"key": "D", "text": "Say nothing ever — silence is always safest"}], "answer": "A", "why": "Comms decisions during a breach are business-legal decisions with regulatory clocks attached, not technical ones. The playbook must pre-assign ownership (CEO/legal) and constraints (notification laws, what is verified) so the incident does not become a governance argument mid-crisis.", "remediate": {"adapt": "#cism-mod-7", "coach": "/coach/?prompt=Incident%20leadership%3A%20decision%20ownership%20when%20legal%20and%20PR%20disagree"}}]</script>
+</div>
+</div>
+</section>
+<script src="/assets/il-exam.js"></script>
+
+<script>
+(function(){
+var slug='cism', key='il.progress.'+slug+'.v1';
+function load(){try{var r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return{done:[]}}
+function save(s){try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+var box=document.querySelector('[data-il-progress="'+slug+'"]');if(!box)return;
+var fill=box.querySelector('[data-il-progress-fill]'),lbl=box.querySelector('[data-il-progress-label]');
+var boxes=box.querySelectorAll('[data-il-mod]');
+function paint(){var s=load(),n=boxes.length,c=0;
+boxes.forEach(function(b){var on=s.done.indexOf(b.getAttribute('data-il-mod'))>=0;b.checked=on;if(on)c++});
+var pct=n?Math.round(c/n*100):0;if(fill)fill.style.width=pct+'%';
+if(lbl)lbl.textContent=c+' / '+n+' modules complete · '+pct+'%';}
+boxes.forEach(function(b){b.addEventListener('change',function(){var s=load(),id=b.getAttribute('data-il-mod'),i=s.done.indexOf(id);
+if(b.checked&&i<0)s.done.push(id);if(!b.checked&&i>=0)s.done.splice(i,1);save(s);paint();
+try{var f=JSON.parse(localStorage.getItem('il.evidence.feed.v1')||'[]');f.unshift({t:Date.now(),kind:'progress',text:slug+': '+s.done.length+'/'+boxes.length+' modules'});if(f.length>48)f.length=48;localStorage.setItem('il.evidence.feed.v1',JSON.stringify(f))}catch(e){}});});
+paint();
+})();
+</script><hr class="il-rule"/>
+<section class="il-section" id="next-steps" aria-labelledby="next-steps-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Continue to</p>
+<h2 class="il-h il-h--section" id="next-steps-h">Where this sequence leads.</h2>
+<div class="il-nextsteps">
+<a class="il-nextcard" href="/learn/sequences/cissp/"><p class="il-eyebrow">Technical breadth</p><h4>CISSP — Practitioner Study Sequence →</h4><p>The practitioner companion: all eight CBK domains with hands-on labs and scenario judgment.</p></a>
+<a class="il-nextcard" href="/learn/sequences/ai-product-innovation/"><p class="il-eyebrow">Decision-making</p><h4>AI Product Innovation →</h4><p>Practice the same risk-appetite and stakeholder muscles on AI product decisions.</p></a>
+<a class="il-nextcard" href="/learn/sequences/cybersecurity-projects-lab/"><p class="il-eyebrow">Hands-on proof</p><h4>Cybersecurity Projects Lab →</h4><p>Build the portfolio artifacts that prove program-building skill: runbooks, registers, tabletop reports.</p></a>
+</div>
+</div>
+</section>
 </main>
 
 <footer class="no-print border-t border-paper/10">

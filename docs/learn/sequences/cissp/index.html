@@ -29,6 +29,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+.il-media{margin:1.4rem 0 1.8rem;border:1px solid rgba(242,237,225,.12);border-radius:.75rem;background:#0d1424;padding:1rem;overflow-x:auto}
+.il-media svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.il-media figcaption{margin-top:.6rem;font-size:.78rem;color:#9aa3b5;text-align:center}
+.il-check-key{margin-top:.6rem;border:1px solid rgba(232,182,76,.35);border-radius:.6rem;background:rgba(232,182,76,.05)}
+.il-check-key summary{cursor:pointer;padding:.55rem .8rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#e8b64c;font-family:inherit}
+.il-check-key__body{padding:.2rem 1rem 1rem;font-size:.92rem;color:#d9d4c7}
+.il-check-key__body p{margin:.5rem 0}
+.il-lab-station{border:1px solid rgba(103,232,249,.3);border-radius:.9rem;background:rgba(103,232,249,.04);padding:1.2rem;margin:1.2rem 0}
+.il-lab-station h4{color:#67e8f9}
+.il-lab-widget{margin:1.2rem 0;padding:1rem;border:1px solid rgba(242,237,225,.12);border-radius:.7rem;background:rgba(10,15,29,.5)}
+.il-lab-widget h5{margin:.2rem 0 .6rem;font-size:1rem;color:#f2ede1}
+.il-lab-widget label{display:block;margin:.5rem 0;font-size:.9rem}
+.il-lab-widget select,.il-lab-widget input[type=text],.il-lab-widget input[type=number]{background:#0a0f1d;border:1px solid rgba(242,237,225,.25);color:#f2ede1;border-radius:.4rem;padding:.45rem .6rem;font-size:.9rem;max-width:22rem;width:100%}
+.il-lab-widget button{cursor:pointer;background:#e8b64c;color:#0a0f1d;border:0;border-radius:.5rem;padding:.55rem 1rem;font-weight:600;font-size:.85rem;letter-spacing:.04em}
+.il-lab-widget button:hover{filter:brightness(1.08)}
+.il-lab-result{margin-top:.8rem;padding:.8rem 1rem;border-radius:.6rem;border:1px solid rgba(242,237,225,.15);background:#0d1424;font-size:.92rem}
+.il-lab-result.good{border-color:rgba(134,239,172,.5)}
+.il-lab-result.warn{border-color:rgba(232,182,76,.6)}
+.il-lab-result.bad{border-color:rgba(248,113,113,.6)}
+.il-logline{font-family:ui-monospace,monospace;font-size:.8rem;padding:.3rem .5rem;border-radius:.35rem;cursor:pointer;border:1px solid transparent;margin:.15rem 0}
+.il-logline:hover{border-color:rgba(103,232,249,.4)}
+.il-logline.sel-ioc{background:rgba(134,239,172,.12);border-color:rgba(134,239,172,.5)}
+.il-logline.sel-fp{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.5)}
+.il-rubric{width:100%;border-collapse:collapse;font-size:.88rem;margin:.6rem 0}
+.il-rubric th,.il-rubric td{border:1px solid rgba(242,237,225,.15);padding:.5rem .6rem;text-align:left;vertical-align:top}
+.il-rubric th{background:rgba(232,182,76,.08);color:#e8b64c}
+.il-checklist label{display:flex;gap:.5rem;align-items:flex-start;margin:.45rem 0;font-size:.9rem}
+.il-checklist input[type=checkbox]{margin-top:.2rem;transform:scale(1.2)}
+.il-progress{border:1px solid rgba(242,237,225,.12);border-radius:.8rem;padding:1.1rem;margin:1.2rem 0;background:rgba(10,15,29,.5)}
+.il-progress__bar{height:.6rem;border-radius:.3rem;background:rgba(242,237,225,.1);overflow:hidden;margin:.6rem 0}
+.il-progress__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#e8b64c,#67e8f9);transition:width .4s}
+.il-progress__mods{list-style:none;margin:.6rem 0 0;padding:0;columns:2;column-gap:2rem;font-size:.88rem}
+@media(max-width:640px){.il-progress__mods{columns:1}}
+.il-progress__mods li{margin:.3rem 0;break-inside:avoid}
+.il-progress__mods label{display:flex;gap:.5rem;align-items:flex-start;cursor:pointer}
+.il-nextsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin-top:1rem}
+.il-nextcard{border:1px solid rgba(242,237,225,.14);border-radius:.8rem;padding:1.1rem;background:rgba(13,20,36,.6);text-decoration:none!important;display:block}
+.il-nextcard:hover{border-color:rgba(232,182,76,.55)}
+.il-nextcard .il-eyebrow{margin:0 0 .4rem}
+.il-nextcard h4{margin:.2rem 0 .5rem;color:#f2ede1;font-size:1.02rem}
+.il-nextcard p{font-size:.88rem;color:#9aa3b5;margin:0}
+.il-disclaimer{border-left:3px solid #e8b64c;padding:.8rem 1.1rem;margin:1.4rem 0;background:rgba(232,182,76,.05);font-size:.9rem;color:#d9d4c7}
+</style>
 
 </head>
 <body>
@@ -114,6 +158,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+<div class="il-disclaimer" role="note"><strong>Honest framing.</strong> This is an original, independent study sequence built from public certification documentation. It is not affiliated with, endorsed by, or sponsored by any certification body or vendor; it confers no certificate and grants no credential. All practice questions, scenarios, and labs are original — they are not real exam questions and nothing here reproduces proprietary exam content. Official sources are linked per module as further study.</div>
 
   <hr class="il-rule"/>
   <section class="il-section" aria-labelledby="outcomes-h">
@@ -142,9 +187,29 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">8 modules, in study order.</h2>
       </div>
       <div class="il-modules">
-      <article class="il-module" aria-labelledby="m1-h">
+      <article class="il-module" id="cissp-mod-1" aria-labelledby="m1-h">
         <p class="il-eyebrow">Module 1</p>
         <h3 class="il-h il-h--card" id="m1-h">Security and Risk Management</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five by five risk matrix">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.c{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style></defs>
+<text class="t" x="20" y="30" font-weight="700">Risk matrix — likelihood × impact</text>
+<text class="d" x="20" y="50">Qualitative ranking: honest about uncertainty, fast in a workshop.</text>
+<g transform="translate(120,80)">
+<text class="d" x="170" y="-12" text-anchor="middle">Impact →</text>
+<text class="d" x="-14" y="140" text-anchor="middle" transform="rotate(-90,-14,140)">↑ Likelihood</text>
+<rect x="0" y="184" width="56" height="44" fill="#1d3a2f" stroke="#0a0f1d"/><text class="c" x="28" y="211" text-anchor="middle">1</text><rect x="58" y="184" width="56" height="44" fill="#1d3a2f" stroke="#0a0f1d"/><text class="c" x="86" y="211" text-anchor="middle">2</text><rect x="116" y="184" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="144" y="211" text-anchor="middle">3</text><rect x="174" y="184" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="202" y="211" text-anchor="middle">4</text><rect x="232" y="184" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="260" y="211" text-anchor="middle">5</text><text class="d" x="-8" y="211" text-anchor="end">1 · Rare</text><rect x="0" y="138" width="56" height="44" fill="#1d3a2f" stroke="#0a0f1d"/><text class="c" x="28" y="165" text-anchor="middle">2</text><rect x="58" y="138" width="56" height="44" fill="#1d3a2f" stroke="#0a0f1d"/><text class="c" x="86" y="165" text-anchor="middle">4</text><rect x="116" y="138" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="144" y="165" text-anchor="middle">6</text><rect x="174" y="138" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="202" y="165" text-anchor="middle">8</text><rect x="232" y="138" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="260" y="165" text-anchor="middle">10</text><text class="d" x="-8" y="165" text-anchor="end">2 · Unlikely</text><rect x="0" y="92" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="28" y="119" text-anchor="middle">3</text><rect x="58" y="92" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="86" y="119" text-anchor="middle">6</text><rect x="116" y="92" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="144" y="119" text-anchor="middle">9</text><rect x="174" y="92" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="202" y="119" text-anchor="middle">12</text><rect x="232" y="92" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="260" y="119" text-anchor="middle">15</text><text class="d" x="-8" y="119" text-anchor="end">3 · Possible</text><rect x="0" y="46" width="56" height="44" fill="#4a3d1a" stroke="#0a0f1d"/><text class="c" x="28" y="73" text-anchor="middle">4</text><rect x="58" y="46" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="86" y="73" text-anchor="middle">8</text><rect x="116" y="46" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="144" y="73" text-anchor="middle">12</text><rect x="174" y="46" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="202" y="73" text-anchor="middle">16</text><rect x="232" y="46" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="260" y="73" text-anchor="middle">20</text><text class="d" x="-8" y="73" text-anchor="end">4 · Likely</text><rect x="0" y="0" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="28" y="27" text-anchor="middle">5</text><rect x="58" y="0" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="86" y="27" text-anchor="middle">10</text><rect x="116" y="0" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="144" y="27" text-anchor="middle">15</text><rect x="174" y="0" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="202" y="27" text-anchor="middle">20</text><rect x="232" y="0" width="56" height="44" fill="#5a2a2a" stroke="#0a0f1d"/><text class="c" x="260" y="27" text-anchor="middle">25</text><text class="d" x="-8" y="27" text-anchor="end">5 · Almost certain</text><text class="d" x="28" y="246" text-anchor="middle">1</text><text class="d" x="28" y="260" text-anchor="middle">Negligible</text><text class="d" x="86" y="246" text-anchor="middle">2</text><text class="d" x="86" y="260" text-anchor="middle">Minor</text><text class="d" x="144" y="246" text-anchor="middle">3</text><text class="d" x="144" y="260" text-anchor="middle">Moderate</text><text class="d" x="202" y="246" text-anchor="middle">4</text><text class="d" x="202" y="260" text-anchor="middle">Major</text><text class="d" x="260" y="246" text-anchor="middle">5</text><text class="d" x="260" y="260" text-anchor="middle">Catastrophic</text></g>
+<g transform="translate(430,80)">
+<text class="t" x="0" y="0" font-weight="700">Bands → treatment</text>
+<rect x="0" y="12" width="18" height="18" fill="#1d3a2f" stroke="#86efac"/><text class="d" x="26" y="26">1–4 Low — accept, monitor</text>
+<rect x="0" y="38" width="18" height="18" fill="#4a3d1a" stroke="#e8b64c"/><text class="d" x="26" y="52">5–9 Medium — mitigate on plan</text>
+<rect x="0" y="64" width="18" height="18" fill="#5a2a2a" stroke="#f87171"/><text class="d" x="26" y="78">10–25 High/Critical — treat now</text>
+<text class="d" x="0" y="112">The product is the treatment</text>
+<text class="d" x="0" y="128">decision + monitoring —</text>
+<text class="d" x="0" y="144">not the score itself.</text>
+</g></svg>
+<figcaption>Qualitative risk matrix: likelihood × impact bands drive treatment decisions.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -187,15 +252,41 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Your board will fund exactly one initiative this quarter: a $60k endpoint-protection upgrade OR a $60k vendor-risk-management program. The company has suffered one phishing compromise (contained) and is about to sign three new SaaS vendors. Write a half-page recommendation naming the initiative you fund, the risk you are accepting by defunding the other, and how you would measure success in 90 days.</li>
-            <li>A department head asks you to approve an exception allowing unencrypted USB drives for a field team that works where there is no network connectivity. Draft the exception request as the department head would submit it (business justification, compensating controls, expiry date) and then your decision memo as the security manager (approve, approve-with-conditions, or deny — with the residual risk stated plainly).</li>
-            <li>A regulator and a major customer each demand evidence of your risk process within 30 days, but your risk register is three years out of date. Write the two-week recovery plan: who you interview, what artifacts you produce, and what you will honestly tell each requester about gaps.</li>
-          </ol>
+<li>Your board will fund exactly one initiative this quarter: a $60k endpoint-protection upgrade OR a $60k vendor-risk-management program. The company has suffered one phishing compromise (contained) and is about to sign three new SaaS vendors. Write a half-page recommendation naming the initiative you fund, the risk you are accepting by defunding the other, and how you would measure success in 90 days.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> funds the <em>vendor-risk-management program</em>. The contained phishing incident suggests endpoint controls already function; three new SaaS vendors represent expanding, unassessed third-party risk. <strong>Residual risk accepted:</strong> endpoint compromise remains possible — state it plainly, with compensating focus on phishing-resistant MFA. <strong>90-day metric:</strong> security reviews completed for all three vendors + phishing click rate trend.</p><p><strong>Weak answer:</strong> picks the endpoint upgrade without comparing the risk trajectories, or never names what is accepted by defunding the other.</p></div></details></li>
+<li>A department head asks you to approve an exception allowing unencrypted USB drives for a field team that works where there is no network connectivity. Draft the exception request as the department head would submit it (business justification, compensating controls, expiry date) and then your decision memo as the security manager (approve, approve-with-conditions, or deny — with the residual risk stated plainly).
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer includes:</strong> the department head's business justification (offline field work is legitimate), compensating controls (hardware-encrypted drives, inventory, DLP, no sensitive classifications), a <em>time-boxed expiry</em> with review date, and your decision memo stating the residual risk plainly. Approval-with-conditions is usually right; outright denial needs a workable alternative.</p><p><strong>Weak answer:</strong> approves or denies with no expiry, no compensating controls, or no stated residual risk.</p></div></details></li>
+<li>A regulator and a major customer each demand evidence of your risk process within 30 days, but your risk register is three years out of date. Write the two-week recovery plan: who you interview, what artifacts you produce, and what you will honestly tell each requester about gaps.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong plan:</strong> week 1 — interview process and system owners (not just IT), pull incident history and audit reports as risk evidence; week 2 — draft register, treatment decisions, and a one-page residual-risk brief. <strong>Honesty rule:</strong> tell both requesters what is rebuilt vs. still a gap, with dates — a fabricated register is worse than an admitted gap.</p><p><strong>Weak answer:</strong> copies an old template, interviews nobody, or hides the gaps.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m2-h">
+      <article class="il-module" id="cissp-mod-2" aria-labelledby="m2-h">
         <p class="il-eyebrow">Module 2</p>
         <h3 class="il-h il-h--card" id="m2-h">Asset Security</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Data lifecycle with protection states">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style>
+<marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Data lifecycle — controls follow the state</text>
+<g>
+<rect x="20" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="66" y="96" text-anchor="middle" font-weight="700">Create</text><text class="d" x="66" y="116" text-anchor="middle">classify at birth</text><line x1="112" y1="102" x2="122" y2="102" stroke="#67e8f9" stroke-width="2" marker-end="url(#a2)"/><rect x="122" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="168" y="96" text-anchor="middle" font-weight="700">Store</text><text class="d" x="168" y="116" text-anchor="middle">encrypt at rest</text><line x1="214" y1="102" x2="224" y2="102" stroke="#67e8f9" stroke-width="2" marker-end="url(#a2)"/><rect x="224" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="270" y="96" text-anchor="middle" font-weight="700">Use</text><text class="d" x="270" y="116" text-anchor="middle">endpoint + memory</text><line x1="316" y1="102" x2="326" y2="102" stroke="#67e8f9" stroke-width="2" marker-end="url(#a2)"/><rect x="326" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="372" y="96" text-anchor="middle" font-weight="700">Share</text><text class="d" x="372" y="116" text-anchor="middle">TLS in transit</text><line x1="418" y1="102" x2="428" y2="102" stroke="#67e8f9" stroke-width="2" marker-end="url(#a2)"/><rect x="428" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="474" y="96" text-anchor="middle" font-weight="700">Archive</text><text class="d" x="474" y="116" text-anchor="middle">retention clock</text><line x1="520" y1="102" x2="530" y2="102" stroke="#67e8f9" stroke-width="2" marker-end="url(#a2)"/><rect x="530" y="70" width="92" height="64" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="576" y="96" text-anchor="middle" font-weight="700">Destroy</text><text class="d" x="576" y="116" text-anchor="middle">verify + record</text></g>
+<g transform="translate(20,170)">
+<text class="t" x="0" y="0" font-weight="700">Three states, three control families</text>
+<rect x="0" y="14" width="190" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/>
+<text class="b" x="95" y="40" text-anchor="middle" fill="#e8b64c" style="fill:#e8b64c">AT REST</text>
+<text class="d" x="95" y="62" text-anchor="middle">encryption · access</text><text class="d" x="95" y="80" text-anchor="middle">control · media handling</text>
+<rect x="205" y="14" width="190" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/>
+<text class="t" x="300" y="40" text-anchor="middle" font-weight="700" style="fill:#e8b64c">IN TRANSIT</text>
+<text class="d" x="300" y="62" text-anchor="middle">TLS · network controls</text><text class="d" x="300" y="80" text-anchor="middle">certificate validation</text>
+<rect x="410" y="14" width="190" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/>
+<text class="t" x="505" y="40" text-anchor="middle" font-weight="700" style="fill:#e8b64c">IN USE</text>
+<text class="d" x="505" y="62" text-anchor="middle">endpoint controls · memory</text><text class="d" x="505" y="80" text-anchor="middle">protection · least privilege</text>
+<text class="d" x="0" y="130">Encrypting the database does not protect the API response in flight.</text>
+<text class="d" x="0" y="148">Design coverage across all three states — or accept the gap explicitly.</text>
+</g></svg>
+<figcaption>Data lifecycle stages with the control family each state demands.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -238,15 +329,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Marketing wants to keep customer records indefinitely &#x27;for analytics&#x27;; legal wants a 2-year retention ceiling. Draft the decision memo: state the classification of the data, who decides (owner vs custodian), the retention rule you recommend, and the control that makes each party&#x27;s concern moot.</li>
-            <li>You inherit a shared drive where a predecessor stored customer PII alongside public marketing assets with identical permissions. Write the 30-day remediation plan: how you classify, who you consult before restricting access, and how you handle the discovery that two departed employees still have access.</li>
-            <li>A regulator asks how you would prove a specific record was destroyed. Describe the destruction workflow and the evidence artifact you would produce — then explain what changes if the record lives in a cloud provider&#x27;s backups.</li>
-          </ol>
+<li>Marketing wants to keep customer records indefinitely &#x27;for analytics&#x27;; legal wants a 2-year retention ceiling. Draft the decision memo: state the classification of the data, who decides (owner vs custodian), the retention rule you recommend, and the control that makes each party&#x27;s concern moot.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong memo:</strong> the <em>data owner</em> decides — legal/compliance owns regulatory retention risk, marketing is a stakeholder; the custodian (IT) implements. Recommend the 2-year ceiling with a legal-hold override, and moot marketing's concern with anonymized/aggregated analytics data. <strong>Weak answer:</strong> lets IT decide, or splits the difference with no owner named.</p></div></details></li>
+<li>You inherit a shared drive where a predecessor stored customer PII alongside public marketing assets with identical permissions. Write the 30-day remediation plan: how you classify, who you consult before restricting access, and how you handle the discovery that two departed employees still have access.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong plan:</strong> days 1–3 — revoke the departed employees' access (highest priority: orphaned accounts are attacker inventory); inventory and classify the drive contents; consult data owners <em>before</em> restricting (to avoid breaking legitimate work); quarantine PII to restricted shares; document decisions. <strong>Weak answer:</strong> restricts access without consulting owners, or leaves departed accounts for later.</p></div></details></li>
+<li>A regulator asks how you would prove a specific record was destroyed. Describe the destruction workflow and the evidence artifact you would produce — then explain what changes if the record lives in a cloud provider&#x27;s backups.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong answer:</strong> the evidence artifact is a <em>destruction certificate</em> — method, date, media identifier, verifier signature. For cloud backups: provider attestation, contract terms on deletion, and the provider's backup retention windows. <strong>Key line:</strong> if you cannot enumerate every copy (including snapshots and replicas), you cannot claim destruction — only a documented process.</p><p><strong>Weak answer:</strong> 'we deleted the file' with no artifact, or ignores provider-side copies.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m3-h">
+      <article class="il-module" id="cissp-mod-3" aria-labelledby="m3-h">
         <p class="il-eyebrow">Module 3</p>
         <h3 class="il-h il-h--card" id="m3-h">Security Architecture and Engineering</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Defense in depth layers">
+<defs><style>.t{font:14px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.c{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style></defs>
+<text class="t" x="20" y="30" font-weight="700">Defense in depth — every layer assumed breachable</text>
+<g transform="translate(150,60)">
+<rect x="0" y="0" width="340" height="280" rx="14" fill="none" stroke="#f87171" stroke-width="2"/>
+<text class="d" x="12" y="24">Perimeter — firewall · filtering</text>
+<rect x="18" y="34" width="304" height="226" rx="12" fill="none" stroke="#e8b64c" stroke-width="2"/>
+<text class="d" x="30" y="56">Network — segmentation · IDS</text>
+<rect x="36" y="66" width="268" height="176" rx="10" fill="none" stroke="#67e8f9" stroke-width="2"/>
+<text class="d" x="48" y="88">Host — hardening · EDR</text>
+<rect x="54" y="98" width="232" height="126" rx="8" fill="none" stroke="#86efac" stroke-width="2"/>
+<text class="d" x="66" y="120">Application — auth · input validation</text>
+<rect x="72" y="130" width="196" height="76" rx="8" fill="#e8b64c"/>
+<text class="c" x="170" y="160" text-anchor="middle">DATA</text>
+<text class="c" x="170" y="180" text-anchor="middle">crown jewels</text>
+</g>
+<g transform="translate(20,60)">
+<text class="t" x="0" y="0" font-weight="700">Reading it</text>
+<text class="d" x="0" y="22">Attacker starts outside,</text>
+<text class="d" x="0" y="40">peels inward. Each layer</text>
+<text class="d" x="0" y="58">must slow, detect, or</text>
+<text class="d" x="0" y="76">stop — none is trusted</text>
+<text class="d" x="0" y="94">alone.</text>
+<text class="d" x="0" y="126">A bypassed firewall meets</text>
+<text class="d" x="0" y="144">a segmented network; a</text>
+<text class="d" x="0" y="162">phished credential meets</text>
+<text class="d" x="0" y="180">MFA; a compromised host</text>
+<text class="d" x="0" y="198">meets EDR.</text>
+</g></svg>
+<figcaption>Defense in depth: concentric controls from perimeter to the data itself.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -289,15 +415,48 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>You must choose the cloud deployment model for a regulated workload: public cloud with strong controls vs private cloud on aging hardware the team knows well. Write the decision memo weighing shared-responsibility boundaries, key-management options, and exit strategy — then state your recommendation and the one assumption that would flip it.</li>
-            <li>A vendor proposes a &#x27;military-grade&#x27; proprietary cipher for a new product. Write your reply: the evaluation questions you ask, the standard you require instead, and the business-risk sentence you would put in front of the product owner.</li>
-            <li>Your company is moving to zero-trust network access. Draft the phased rollout plan that keeps the help desk from drowning: which users migrate first, what breaks on day one, and how you measure that the new model is actually stricter than the VPN it replaces.</li>
-          </ol>
+<li>You must choose the cloud deployment model for a regulated workload: public cloud with strong controls vs private cloud on aging hardware the team knows well. Write the decision memo weighing shared-responsibility boundaries, key-management options, and exit strategy — then state your recommendation and the one assumption that would flip it.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong memo:</strong> draws the shared-responsibility boundary for each option (you own data, identities, and configuration in both), compares key management (provider-managed vs. customer-held keys), and plans exit before entry. States a recommendation <em>and the one assumption that would flip it</em> (e.g., 'if the hardware refresh is funded, private cloud wins on control'). <strong>Weak answer:</strong> picks on vibes, or never states the flip-assumption.</p></div></details></li>
+<li>A vendor proposes a &#x27;military-grade&#x27; proprietary cipher for a new product. Write your reply: the evaluation questions you ask, the standard you require instead, and the business-risk sentence you would put in front of the product owner.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong reply:</strong> asks for peer review, published analysis, and the threat model; requires a vetted standard algorithm (AES, RSA/ECC, SHA-2/SHA-3) instead; includes the business-risk sentence: 'an unreviewed proprietary cipher is an unquantifiable risk we would own alone.' Polite, final, documented. <strong>Weak answer:</strong> accepts 'military-grade' as evidence, or rejects without stating the required standard.</p></div></details></li>
+<li>Your company is moving to zero-trust network access. Draft the phased rollout plan that keeps the help desk from drowning: which users migrate first, what breaks on day one, and how you measure that the new model is actually stricter than the VPN it replaces.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong plan:</strong> phases — pilot with IT/security first, then high-risk users, then everyone; day-one breakage named (legacy apps, printers, IoT) with workarounds; help-desk runbooks written <em>before</em> rollout; success measured by policy-denial rates and lateral-movement tests proving the new model is stricter than the VPN. <strong>Weak answer:</strong> big-bang migration with no pilot and no stricter-ness metric.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m4-h">
+      <article class="il-module" id="cissp-mod-4" aria-labelledby="m4-h">
         <p class="il-eyebrow">Module 4</p>
         <h3 class="il-h il-h--card" id="m4-h">Communication and Network Security</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Segmented network zones">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style>
+<marker id="a4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e8b64c"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Segmented network — trust boundaries with justification</text>
+<rect x="20" y="60" width="110" height="200" rx="8" fill="#141b2e" stroke="#f87171" stroke-dasharray="6,4"/>
+<text class="t" x="75" y="86" text-anchor="middle" font-weight="700">INTERNET</text>
+<text class="d" x="75" y="108" text-anchor="middle">untrusted</text>
+<rect x="160" y="60" width="130" height="200" rx="8" fill="#141b2e" stroke="#e8b64c"/>
+<text class="t" x="225" y="86" text-anchor="middle" font-weight="700">DMZ</text>
+<text class="d" x="225" y="108" text-anchor="middle">web · mail relay</text>
+<text class="d" x="225" y="126" text-anchor="middle">public-facing only</text>
+<rect x="320" y="60" width="140" height="200" rx="8" fill="#141b2e" stroke="#67e8f9"/>
+<text class="t" x="390" y="86" text-anchor="middle" font-weight="700">CORPORATE</text>
+<text class="d" x="390" y="108" text-anchor="middle">workstations</text>
+<text class="d" x="390" y="126" text-anchor="middle">no inbound from DMZ</text>
+<rect x="490" y="60" width="130" height="200" rx="8" fill="#e8b64c"/>
+<text class="b" x="555" y="86" text-anchor="middle">MGMT</text>
+<text class="d" x="555" y="108" text-anchor="middle" fill="#0a0f1d">jump boxes</text>
+<text class="d" x="555" y="126" text-anchor="middle" fill="#0a0f1d">out-of-band</text>
+<line x1="130" y1="160" x2="160" y2="160" stroke="#e8b64c" stroke-width="2" marker-end="url(#a4)"/>
+<line x1="290" y1="160" x2="320" y2="160" stroke="#e8b64c" stroke-width="2" marker-end="url(#a4)"/>
+<line x1="460" y1="200" x2="490" y2="200" stroke="#e8b64c" stroke-width="2" marker-end="url(#a4)"/>
+<text class="d" x="145" y="150">FW</text><text class="d" x="305" y="150">FW</text><text class="d" x="470" y="190">FW</text>
+<text class="d" x="20" y="292">Every boundary needs its two-sentence justification:</text>
+<text class="d" x="20" y="310">"so that X cannot reach Y." Blast radius is the entire argument.</text>
+<text class="d" x="20" y="328">Guest Wi-Fi would sit in its own zone: client isolation, no route to corporate.</text>
+</svg>
+<figcaption>Segmented zones — Internet, DMZ, corporate, management — with firewall crossings.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -340,15 +499,53 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>At 2 AM the monitoring system alerts on unusual outbound traffic from a database server to an external host. Write the first-hour decision log: what you check before waking anyone, the containment call you make at minute 30, and the evidence you preserve before the containment changes it.</li>
-            <li>The business wants to allow a new video-conferencing tool that uses peer-to-peer connections through the firewall. Write the network-security review: the ports/protocols question you ask the vendor, the firewall change you propose (and refuse), and the monitoring you add as a condition of approval.</li>
-            <li>Two branch offices need always-on connectivity. Compare site-to-site VPN vs private line in a half-page recommendation: the security properties that differ, the failure modes, and which you choose for a site handling payment data.</li>
-          </ol>
+<li>At 2 AM the monitoring system alerts on unusual outbound traffic from a database server to an external host. Write the first-hour decision log: what you check before waking anyone, the containment call you make at minute 30, and the evidence you preserve before the containment changes it.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong log:</strong> minutes 0–15 — validate the alert (rule history, asset baseline, flow data) <em>before</em> waking anyone; minutes 15–30 — capture volatile evidence (memory, connections); minute 30 — contain by isolating the host's network (not powering off); preserve evidence before containment changes it. <strong>Weak answer:</strong> wakes the CISO first, pulls the plug immediately, or contains without preserving evidence.</p></div></details></li>
+<li>The business wants to allow a new video-conferencing tool that uses peer-to-peer connections through the firewall. Write the network-security review: the ports/protocols question you ask the vendor, the firewall change you propose (and refuse), and the monitoring you add as a condition of approval.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong review:</strong> asks the vendor for exact ports/protocols, encryption in transit, and authentication; <em>refuses</em> direct inbound P2P through the firewall (proposes relay/TURN or client-mediated connections); approves conditionally with monitoring (DNS, flow anomalies, data-volume baselines). <strong>Weak answer:</strong> approves as-is, or refuses without offering the workable alternative.</p></div></details></li>
+<li>Two branch offices need always-on connectivity. Compare site-to-site VPN vs private line in a half-page recommendation: the security properties that differ, the failure modes, and which you choose for a site handling payment data.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong recommendation:</strong> compares security properties honestly — private line gives physical-path separation (no internet exposure), VPN gives encryption over untrusted transport; failure modes differ (carrier outage vs. key/endpoint compromise). For payment data: private line, or VPN only with strong endpoint and key controls. States the choice <em>and</em> the reasoning. <strong>Weak answer:</strong> 'VPN is cheaper' as the whole argument.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m5-h">
+      <article class="il-module" id="cissp-mod-5" aria-labelledby="m5-h">
         <p class="il-eyebrow">Module 5</p>
         <h3 class="il-h il-h--card" id="m5-h">Identity and Access Management (IAM)</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Identity lifecycle and authentication chain">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.b{font:12px sans-serif;fill:#0a0f1d;font-weight:700}</style>
+<marker id="a5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Identity lifecycle — joiner → mover → leaver</text>
+<g>
+<rect x="20" y="60" width="150" height="80" rx="8" fill="#141b2e" stroke="#86efac"/>
+<text class="t" x="95" y="88" text-anchor="middle" font-weight="700">JOINER</text>
+<text class="d" x="95" y="108" text-anchor="middle">least-privilege defaults</text>
+<text class="d" x="95" y="126" text-anchor="middle">prompt provisioning</text>
+<rect x="200" y="60" width="150" height="80" rx="8" fill="#141b2e" stroke="#e8b64c"/>
+<text class="t" x="275" y="88" text-anchor="middle" font-weight="700">MOVER</text>
+<text class="d" x="275" y="108" text-anchor="middle">access updated on</text>
+<text class="d" x="275" y="126" text-anchor="middle">role change — the step</text>
+<rect x="380" y="60" width="150" height="80" rx="8" fill="#141b2e" stroke="#f87171"/>
+<text class="t" x="455" y="88" text-anchor="middle" font-weight="700">LEAVER</text>
+<text class="d" x="455" y="108" text-anchor="middle">immediate revocation</text>
+<text class="d" x="455" y="126" text-anchor="middle">privileged first</text>
+<line x1="170" y1="100" x2="200" y2="100" stroke="#67e8f9" stroke-width="2" marker-end="url(#a5)"/>
+<line x1="350" y1="100" x2="380" y2="100" stroke="#67e8f9" stroke-width="2" marker-end="url(#a5)"/>
+</g>
+<g transform="translate(20,170)">
+<text class="t" x="0" y="0" font-weight="700">The authentication chain — breaks at its weakest link</text>
+<rect x="0" y="16" width="130" height="56" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="65" y="40" text-anchor="middle">Identify</text><text class="d" x="65" y="58" text-anchor="middle">who are you</text>
+<rect x="150" y="16" width="130" height="56" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="215" y="40" text-anchor="middle">Authenticate</text><text class="d" x="215" y="58" text-anchor="middle">prove it (MFA)</text>
+<rect x="300" y="16" width="130" height="56" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="365" y="40" text-anchor="middle">Authorize</text><text class="d" x="365" y="58" text-anchor="middle">what may you do</text>
+<rect x="450" y="16" width="130" height="56" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="515" y="40" text-anchor="middle">Account</text><text class="d" x="515" y="58" text-anchor="middle">tamper-evident logs</text>
+<line x1="130" y1="44" x2="150" y2="44" stroke="#67e8f9" stroke-width="2" marker-end="url(#a5)"/>
+<line x1="280" y1="44" x2="300" y2="44" stroke="#67e8f9" stroke-width="2" marker-end="url(#a5)"/>
+<line x1="430" y1="44" x2="450" y2="44" stroke="#67e8f9" stroke-width="2" marker-end="url(#a5)"/>
+<text class="d" x="0" y="104">Privilege should be an event, not a state: just-in-time elevation, ticketed, expiring.</text>
+<text class="d" x="0" y="122">Shared credentials destroy attribution — eliminate them where accountability matters.</text>
+</g></svg>
+<figcaption>Joiner/mover/leaver lifecycle and the identify → authenticate → authorize → account chain.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -391,15 +588,35 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>A manager asks for standing administrator access &#x27;to be efficient&#x27; for their 40-person team. Write your response: the alternative you offer (just-in-time elevation), the approval workflow, and the audit trail that makes the manager&#x27;s request unnecessary — without using the word &#x27;no&#x27; in the first paragraph.</li>
-            <li>HR reports a same-day termination of a privileged IT administrator who may be disgruntled. Write the 60-minute deprovisioning runbook in order: accounts, tokens, VPN, physical access, shared credentials — and the one step teams always forget.</li>
-            <li>The SSO provider has a 4-hour outage during month-end close. Write the after-action decision: do you keep the emergency bypass accounts you created, change their policy, or delete them — and what control prevents the bypass from becoming permanent?</li>
-          </ol>
+<li>A manager asks for standing administrator access &#x27;to be efficient&#x27; for their 40-person team. Write your response: the alternative you offer (just-in-time elevation), the approval workflow, and the audit trail that makes the manager&#x27;s request unnecessary — without using the word &#x27;no&#x27; in the first paragraph.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong response:</strong> first paragraph contains no 'no' — it offers just-in-time elevation: time-boxed admin for a ticketed reason, manager approval workflow, session recording. The audit trail (who elevated, when, what they did) makes standing access unnecessary and gives the manager something better than asked for. <strong>Weak answer:</strong> leads with refusal, or grants standing admin to 'be reasonable.'</p></div></details></li>
+<li>HR reports a same-day termination of a privileged IT administrator who may be disgruntled. Write the 60-minute deprovisioning runbook in order: accounts, tokens, VPN, physical access, shared credentials — and the one step teams always forget.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong runbook order:</strong> 1) disable VPN/remote access, 2) revoke tokens and active sessions, 3) disable accounts (privileged first), 4) rotate shared/service credentials the admin knew, 5) collect physical access, 6) review logs for prior abuse. <strong>The forgotten step:</strong> shared credentials and API keys the admin had memorized or stored — and personal devices holding certificates. <strong>Weak answer:</strong> disables the AD account and calls it done.</p></div></details></li>
+<li>The SSO provider has a 4-hour outage during month-end close. Write the after-action decision: do you keep the emergency bypass accounts you created, change their policy, or delete them — and what control prevents the bypass from becoming permanent?
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong decision:</strong> delete the emergency bypass accounts — they were a controlled exception, not a new normal. If any must persist, give them expiry dates, MFA, alerting on use, and a named owner. <strong>The control:</strong> automatic expiry plus a re-attestation that forces an explicit decision instead of silent permanence. <strong>Weak answer:</strong> keeps them 'just in case' with no expiry.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m6-h">
+      <article class="il-module" id="cissp-mod-6" aria-labelledby="m6-h">
         <p class="il-eyebrow">Module 6</p>
         <h3 class="il-h il-h--card" id="m6-h">Security Assessment and Testing</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vulnerability management pipeline">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style>
+<marker id="a6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Vulnerability management — a loop, not a scan</text>
+<g>
+<rect x="14" y="60" width="112" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="70" y="88" text-anchor="middle" font-weight="700">Discover</text><text class="d" x="70" y="110" text-anchor="middle">scan inventory</text><line x1="126" y1="98" x2="138" y2="98" stroke="#67e8f9" stroke-width="2" marker-end="url(#a6)"/><rect x="138" y="60" width="112" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="194" y="88" text-anchor="middle" font-weight="700">Validate</text><text class="d" x="194" y="110" text-anchor="middle">kill false positives</text><line x1="250" y1="98" x2="262" y2="98" stroke="#67e8f9" stroke-width="2" marker-end="url(#a6)"/><rect x="262" y="60" width="112" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="318" y="88" text-anchor="middle" font-weight="700">Prioritize</text><text class="d" x="318" y="110" text-anchor="middle">exploitability × criticality</text><line x1="374" y1="98" x2="386" y2="98" stroke="#67e8f9" stroke-width="2" marker-end="url(#a6)"/><rect x="386" y="60" width="112" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="442" y="88" text-anchor="middle" font-weight="700">Remediate</text><text class="d" x="442" y="110" text-anchor="middle">patch / mitigate</text><line x1="498" y1="98" x2="510" y2="98" stroke="#67e8f9" stroke-width="2" marker-end="url(#a6)"/><rect x="510" y="60" width="112" height="76" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="566" y="88" text-anchor="middle" font-weight="700">Verify</text><text class="d" x="566" y="110" text-anchor="middle">re-scan to close</text><path d="M 620 136 C 620 220, 40 220, 24 120" fill="none" stroke="#e8b64c" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#a6)"/>
+<text class="d" x="320" y="216" text-anchor="middle">Findings that survive remediation re-enter discovery — nothing closes without verification.</text>
+</g>
+<g transform="translate(20,240)">
+<text class="t" x="0" y="0" font-weight="700">Triage order</text>
+<text class="d" x="0" y="22">1. Internet-facing + known exploit → patch first.</text>
+<text class="d" x="0" y="42">2. Crown-jewel assets + high severity → patch second.</text>
+<text class="d" x="0" y="62">3. Everything else → scheduled window, tracked to closure.</text>
+</g></svg>
+<figcaption>The vulnerability management loop: discover, validate, prioritize, remediate, verify.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -442,15 +659,36 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Your vulnerability scan returns 400 findings across 60 servers with a two-person team and a 30-day patch window. Write the prioritization memo: your triage criteria (exploitability, asset criticality, exposure), the top-10 list with owners, and what you tell the auditor about the remaining 390.</li>
-            <li>A penetration-test proposal offers a no-holds-barred test of the production environment next week. Write your reply: the scope boundaries you require, the rules of engagement, the authorization paperwork, and the one test type you refuse on production — with the alternative you propose.</li>
-            <li>An internal audit finds the backup restores have never been tested. The backup admin says &#x27;the jobs are green.&#x27; Write the finding as an auditor would (criteria, condition, cause, effect, recommendation) and then the manager&#x27;s 90-day corrective-action plan.</li>
-          </ol>
+<li>Your vulnerability scan returns 400 findings across 60 servers with a two-person team and a 30-day patch window. Write the prioritization memo: your triage criteria (exploitability, asset criticality, exposure), the top-10 list with owners, and what you tell the auditor about the remaining 390.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong memo:</strong> triage criteria — exploitability (public exploit? wormable?), asset criticality (internet-facing, crown jewels), exposure (reachable?). Top-10: internet-facing criticals with known exploits first; lab/isolated systems last. 30-day plan: staged patching with re-scan verification — nothing closes without proof. <strong>Weak answer:</strong> sorts by CVSS alone, or patches to shrink the count.</p></div></details></li>
+<li>A penetration-test proposal offers a no-holds-barred test of the production environment next week. Write your reply: the scope boundaries you require, the rules of engagement, the authorization paperwork, and the one test type you refuse on production — with the alternative you propose.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong reply:</strong> requires scope boundaries (production off-limits or a defined window), rules of engagement (targets, hours, emergency-stop contact), signed authorization paperwork (legal sign-off), and names one forbidden test — e.g., denial-of-service or non-consensual social engineering of staff. <strong>Weak answer:</strong> accepts the proposal as written, or forbids nothing.</p></div></details></li>
+<li>An internal audit finds the backup restores have never been tested. The backup admin says &#x27;the jobs are green.&#x27; Write the finding as an auditor would (criteria, condition, cause, effect, recommendation) and then the manager&#x27;s 90-day corrective-action plan.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong finding (auditor voice):</strong> Criteria — policy requires tested restores. Condition — restores never tested. Cause — no test schedule or owner. Effect — recovery capability unproven; a failed restore is discovered during a real incident. Recommendation — quarterly restore tests with evidence. Factual, no snark. <strong>Weak answer:</strong> 'backups might not work' with no structure.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m7-h">
+      <article class="il-module" id="cissp-mod-7" aria-labelledby="m7-h">
         <p class="il-eyebrow">Module 7</p>
         <h3 class="il-h il-h--card" id="m7-h">Security Operations</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SOC incident response workflow">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style>
+<marker id="a7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f87171"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Incident response — the workflow under pressure</text>
+<g>
+<rect x="12" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="59" y="88" text-anchor="middle" font-weight="700">Detect</text><text class="d" x="59" y="108" text-anchor="middle">alert validated</text><text class="d" x="59" y="126" text-anchor="middle">1</text><line x1="106" y1="99" x2="116" y2="99" stroke="#f87171" stroke-width="2" marker-end="url(#a7)"/><rect x="116" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="163" y="88" text-anchor="middle" font-weight="700">Triage</text><text class="d" x="163" y="108" text-anchor="middle">scope + severity</text><text class="d" x="163" y="126" text-anchor="middle">2</text><line x1="210" y1="99" x2="220" y2="99" stroke="#f87171" stroke-width="2" marker-end="url(#a7)"/><rect x="220" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="267" y="88" text-anchor="middle" font-weight="700">Contain</text><text class="d" x="267" y="108" text-anchor="middle">isolate, keep evidence</text><text class="d" x="267" y="126" text-anchor="middle">3</text><line x1="314" y1="99" x2="324" y2="99" stroke="#f87171" stroke-width="2" marker-end="url(#a7)"/><rect x="324" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="371" y="88" text-anchor="middle" font-weight="700">Eradicate</text><text class="d" x="371" y="108" text-anchor="middle">remove cause</text><text class="d" x="371" y="126" text-anchor="middle">4</text><line x1="418" y1="99" x2="428" y2="99" stroke="#f87171" stroke-width="2" marker-end="url(#a7)"/><rect x="428" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="475" y="88" text-anchor="middle" font-weight="700">Recover</text><text class="d" x="475" y="108" text-anchor="middle">restore + monitor</text><text class="d" x="475" y="126" text-anchor="middle">5</text><line x1="522" y1="99" x2="532" y2="99" stroke="#f87171" stroke-width="2" marker-end="url(#a7)"/><rect x="532" y="60" width="94" height="78" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="579" y="88" text-anchor="middle" font-weight="700">Lessons</text><text class="d" x="579" y="108" text-anchor="middle">blameless review</text><text class="d" x="579" y="126" text-anchor="middle">6</text></g>
+<g transform="translate(20,180)">
+<text class="t" x="0" y="0" font-weight="700">Commander discipline</text>
+<text class="d" x="0" y="24">Containment must be proportionate: isolate the affected segment, not the whole business —</text>
+<text class="d" x="0" y="44">unless the blast radius demands it. Evidence before eradication: memory and disk images</text>
+<text class="d" x="0" y="64">first, rebuild second. Every decision logged with a timestamp and a name.</text>
+<rect x="0" y="86" width="600" height="56" rx="8" fill="none" stroke="#e8b64c" stroke-dasharray="6,4"/>
+<text class="d" x="16" y="110">Order of volatility: registers/cache → RAM → network state → disk → logs. Capture in that order.</text>
+<text class="d" x="16" y="130">A reboot destroys what RAM held — collect memory before pulling the plug.</text>
+</g></svg>
+<figcaption>Incident response workflow with commander discipline and order of volatility.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -493,15 +731,42 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>Ransomware is encrypting file shares at 3 AM; the on-call engineer wants to pull the network cable on the whole site, which would also kill the order-processing system during peak season. Write the incident-commander decision: contain now or contain surgically, who you wake, and the first three evidence-preservation orders.</li>
-            <li>A developer&#x27;s laptop with customer data is stolen from a car. Write the first-24-hours plan: the notifications you owe (and to whom, in what order), the technical containment steps, and the question you ask legal before you say anything publicly.</li>
-            <li>Your SIEM fires 2,000 alerts a day and the analysts ignore most of them. Write the tuning proposal: which three alert classes you suppress or re-threshold first, the detection gap each change creates, and the compensating control you add for the riskiest gap.</li>
-          </ol>
+<li>Ransomware is encrypting file shares at 3 AM; the on-call engineer wants to pull the network cable on the whole site, which would also kill the order-processing system during peak season. Write the incident-commander decision: contain now or contain surgically, who you wake, and the first three evidence-preservation orders.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong decision:</strong> as incident commander you isolate the affected file-share segment (pull its VLAN), <em>not</em> the whole site — containment proportionate to blast radius, preserving order processing. Preserve evidence (memory/disk images) before rebuilding. Log every decision with timestamp and name. <strong>Weak answer:</strong> pulls the site cable (business harm without security gain) or does nothing to keep the business happy.</p></div></details></li>
+<li>A developer&#x27;s laptop with customer data is stolen from a car. Write the first-24-hours plan: the notifications you owe (and to whom, in what order), the technical containment steps, and the question you ask legal before you say anything publicly.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong 24-hour plan:</strong> technical — remote lock/wipe, revoke sessions and certificates, rotate credentials that were on the device; notifications in order — internal (manager, legal, privacy/DPO), then affected individuals and regulators per applicable law; <strong>ask legal first:</strong> 'what is our breach-notification threshold and clock in each relevant jurisdiction?' <strong>Weak answer:</strong> notifies customers before containing, or never asks legal.</p></div></details></li>
+<li>Your SIEM fires 2,000 alerts a day and the analysts ignore most of them. Write the tuning proposal: which three alert classes you suppress or re-threshold first, the detection gap each change creates, and the compensating control you add for the riskiest gap.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong proposal:</strong> suppress or re-threshold three noisy classes (e.g., successful interactive logons, AV signature updates, expected admin scans) — and for <em>each</em>, name the detection gap it creates and the compensating control (UEBA analytics, weekly threat hunts, canary tokens). Tuning without gap analysis is blindness by optimization. <strong>Weak answer:</strong> suppresses alerts with no gap assessment.</p></div></details></li>
+</ol>
         </div>
       </article>
-      <article class="il-module" aria-labelledby="m8-h">
+      <article class="il-module" id="cissp-mod-8" aria-labelledby="m8-h">
         <p class="il-eyebrow">Module 8</p>
         <h3 class="il-h il-h--card" id="m8-h">Software Development Security</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shift-left secure pipeline">
+<defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}.g{font:12px sans-serif;fill:#86efac;font-weight:700}</style>
+<marker id="a8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs>
+<text class="t" x="20" y="30" font-weight="700">Shift-left pipeline — gates before merge, not after breach</text>
+<g>
+<rect x="14" y="60" width="112" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="70" y="88" text-anchor="middle" font-weight="700">Code</text><text class="d" x="70" y="108" text-anchor="middle">IDE checks</text><line x1="126" y1="95" x2="138" y2="95" stroke="#67e8f9" stroke-width="2" marker-end="url(#a8)"/><rect x="138" y="60" width="112" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="194" y="88" text-anchor="middle" font-weight="700">Commit</text><text class="d" x="194" y="108" text-anchor="middle">pre-commit hooks</text><line x1="250" y1="95" x2="262" y2="95" stroke="#67e8f9" stroke-width="2" marker-end="url(#a8)"/><rect x="262" y="60" width="112" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="318" y="88" text-anchor="middle" font-weight="700">Build</text><text class="d" x="318" y="108" text-anchor="middle">SAST + SCA</text><line x1="374" y1="95" x2="386" y2="95" stroke="#67e8f9" stroke-width="2" marker-end="url(#a8)"/><rect x="386" y="60" width="112" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="442" y="88" text-anchor="middle" font-weight="700">Test</text><text class="d" x="442" y="108" text-anchor="middle">DAST + secrets</text><line x1="498" y1="95" x2="510" y2="95" stroke="#67e8f9" stroke-width="2" marker-end="url(#a8)"/><rect x="510" y="60" width="112" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="566" y="88" text-anchor="middle" font-weight="700">Deploy</text><text class="d" x="566" y="108" text-anchor="middle">signed + monitored</text></g>
+<g transform="translate(14,160)">
+<rect x="0" y="0" width="196" height="120" rx="8" fill="#141b2e" stroke="#86efac"/>
+<text class="g" x="98" y="26" text-anchor="middle">GATE: SAST</text>
+<text class="d" x="98" y="48" text-anchor="middle">blocks known-bad</text><text class="d" x="98" y="66" text-anchor="middle">patterns at build</text>
+<text class="d" x="98" y="88" text-anchor="middle">false positives need</text><text class="d" x="98" y="106" text-anchor="middle">documented suppression</text>
+<rect x="208" y="0" width="196" height="120" rx="8" fill="#141b2e" stroke="#86efac"/>
+<text class="g" x="306" y="26" text-anchor="middle">GATE: SCA</text>
+<text class="d" x="306" y="48" text-anchor="middle">flags vulnerable</text><text class="d" x="306" y="66" text-anchor="middle">dependencies</text>
+<text class="d" x="306" y="88" text-anchor="middle">ship/no-ship memo</text><text class="d" x="306" y="106" text-anchor="middle">on critical CVEs</text>
+<rect x="416" y="0" width="196" height="120" rx="8" fill="#141b2e" stroke="#86efac"/>
+<text class="g" x="514" y="26" text-anchor="middle">GATE: secrets</text>
+<text class="d" x="514" y="48" text-anchor="middle">rejects committed</text><text class="d" x="514" y="66" text-anchor="middle">keys and tokens</text>
+<text class="d" x="514" y="88" text-anchor="middle">rotation runbook</text><text class="d" x="514" y="106" text-anchor="middle">when one escapes</text>
+<text class="d" x="0" y="148">A gate that never blocks is decoration. Tune until it catches real issues — then keep it fast.</text>
+</g></svg>
+<figcaption>Shift-left pipeline: security gates at code, commit, build, test, and deploy.</figcaption>
+</figure>
         <div class="il-prose">
           <h4>Learning objectives</h4>
           <ul>
@@ -544,10 +809,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
           </ol>
           <h4>Self-check questions</h4>
           <ol>
-            <li>A critical vulnerability is announced in a library your flagship product ships, on the eve of a major release. Write the ship/no-ship memo: the exploitability questions you ask engineering, the mitigations that would let you ship, and the residual-risk statement the CTO signs.</li>
-            <li>A security researcher emails you a vulnerability report with a 90-day disclosure deadline and a proof of concept. Draft the response plan: intake, validation, severity assignment, remediation timeline, and the coordinated-disclosure reply — including what you do if engineering disputes the severity.</li>
-            <li>Your team wants to adopt an AI coding assistant. Write the secure-use policy: what code it may touch, what data it may see, the review gate before AI-generated code merges, and the one prohibition you hold even if it slows the team down.</li>
-          </ol>
+<li>A critical vulnerability is announced in a library your flagship product ships, on the eve of a major release. Write the ship/no-ship memo: the exploitability questions you ask engineering, the mitigations that would let you ship, and the residual-risk statement the CTO signs.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong memo:</strong> exploitability questions — is the vulnerable code path reachable? authentication required? public exploit? Mitigations that permit shipping — disable the feature, WAF/virtual patch, upgrade. Ends with a <em>residual-risk statement the CTO signs</em> — the signature is the point: risk accepted by an owner, not by the schedule. <strong>Weak answer:</strong> ships on hope, or blocks with no path forward.</p></div></details></li>
+<li>A security researcher emails you a vulnerability report with a 90-day disclosure deadline and a proof of concept. Draft the response plan: intake, validation, severity assignment, remediation timeline, and the coordinated-disclosure reply — including what you do if engineering disputes the severity.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong plan:</strong> intake (acknowledge, assign, track), validation (reproduce the PoC), severity assignment (technical severity + business context), remediation timeline working back from the 90-day deadline, coordinated-disclosure reply. <strong>If engineering disputes severity:</strong> independent reproduction, documented evidence, escalation to the risk owner — severity is decided by evidence, not by org chart. <strong>Weak answer:</strong> ignores the report or lets the dispute stall silently.</p></div></details></li>
+<li>Your team wants to adopt an AI coding assistant. Write the secure-use policy: what code it may touch, what data it may see, the review gate before AI-generated code merges, and the one prohibition you hold even if it slows the team down.
+<details class="il-check-key"><summary>Answer key &amp; rationale</summary><div class="il-check-key__body"><p><strong>Strong policy:</strong> the assistant may touch new, non-sensitive code; it may see no secrets, credentials, or customer PII in prompts; all AI-generated code passes human review before merge; <strong>the hard prohibition:</strong> no AI-generated authentication, authorization, or cryptography code merges without senior security review — held even when it slows the team. <strong>Weak answer:</strong> a vague 'use responsibly' with no gates.</p></div></details></li>
+</ol>
         </div>
       </article>
       </div>
@@ -595,6 +863,141 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public CISSP certification pages published by ISC2. It teaches the same ground in original prose with scenario-driven labs; it does not reproduce ISC2&#x27;s official materials. For the authoritative certification requirements, exam outline, and experience criteria, consult the official curriculum source above. Note: CISSP is a credential for experienced security practitioners — ISC2 requires verified professional experience for certification.</em></p>
       </div>
 
+
+<hr class="il-rule"/>
+<section class="il-section" id="lab-station" aria-labelledby="lab-station-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Validated labs</p>
+<h2 class="il-h il-h--section" id="lab-station-h">Lab validation station.</h2>
+<div class="il-prose"><p>These exercises run entirely in your browser. Work each one, read the feedback, and retry until the reasoning is automatic — nothing here requires leaving this page.</p></div>
+
+<div class="il-lab-station">
+<h4>Lab A — Risk-scoring calculator</h4>
+<p>Score a risk the way the Module 1 labs demand: pick likelihood and impact, read the band, and apply the treatment rule. This is the same matrix as the Module 1 diagram.</p>
+<div class="il-lab-widget" data-il-widget="riskcalc">
+<label>Likelihood (1 = rare, 5 = almost certain)
+<select data-il-rc-l><option value="1">1 — Rare</option><option value="2">2 — Unlikely</option><option value="3" selected>3 — Possible</option><option value="4">4 — Likely</option><option value="5">5 — Almost certain</option></select></label>
+<label>Impact (1 = negligible, 5 = catastrophic)
+<select data-il-rc-i><option value="1">1 — Negligible</option><option value="2">2 — Minor</option><option value="3" selected>3 — Moderate</option><option value="4">4 — Major</option><option value="5">5 — Catastrophic</option></select></label>
+<button type="button" data-il-rc-go>Score this risk</button>
+<div class="il-lab-result" data-il-rc-out aria-live="polite">Choose likelihood and impact, then score.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="riskcalc"]');if(!w)return;
+var L=w.querySelector('[data-il-rc-l]'),I=w.querySelector('[data-il-rc-i]'),out=w.querySelector('[data-il-rc-out]');
+function band(s){if(s<=4)return['Low','good','Accept and monitor. Document the acceptance; revisit on the review cycle.'];
+if(s<=9)return['Medium','warn','Mitigate on a planned timeline. Assign an owner and a date — "someday" is acceptance in disguise.'];
+if(s<=16)return['High','bad','Treat now: mitigate, transfer, or avoid. Brief residual risk to the accountable owner in writing.'];
+return['Critical','bad','Treat immediately. Escalate to leadership today; interim compensating controls until the fix lands.'];}
+w.querySelector('[data-il-rc-go]').addEventListener('click',function(){
+var s=(+L.value)*(+I.value),b=band(s);
+out.className='il-lab-result '+b[1];
+out.innerHTML='<strong>Score '+s+' — '+b[0]+'.</strong><br/>'+b[2]+'<br/><span style="color:#9aa3b5">The product is the treatment decision and the monitoring, not the score.</span>';
+try{localStorage.setItem('il.lab.cissp.riskcalc',JSON.stringify({t:Date.now(),score:s,band:b[0]}))}catch(e){}
+});
+})();
+</script>
+</div>
+<div class="il-lab-station">
+<h4>Lab B — Capstone rubric: score your own scenario answers</h4>
+<p>Every essay check in this sequence is graded against the same five criteria. Score your latest written answer honestly (0–3 per criterion), then read the verdict. A practitioner who cannot self-evaluate cannot improve.</p>
+<div class="il-lab-widget" data-il-widget="rubric">
+<table class="il-rubric">
+<thead><tr><th>Criterion</th><th>0 — missing</th><th>1 — weak</th><th>2 — solid</th><th>3 — practitioner-grade</th><th>Your score</th></tr></thead>
+<tbody>
+<tr><td><strong>Decision</strong> — a clear recommendation, not a summary</td><td>No decision taken</td><td>Decision hedged</td><td>Decision stated</td><td>Decision stated with the one assumption that would flip it</td><td><select data-il-rb="0"><option>0</option><option>1</option><option>2</option><option>3</option></select></td></tr>
+<tr><td><strong>Residual risk</strong> — what remains after your plan</td><td>Not mentioned</td><td>Implied</td><td>Named</td><td>Named, owned by a person, time-boxed</td><td><select data-il-rb="1"><option>0</option><option>1</option><option>2</option><option>3</option></select></td></tr>
+<tr><td><strong>Business consequence</strong> — every conclusion ends in one</td><td>Purely technical</td><td>Consequence vague</td><td>Consequence stated</td><td>Consequence in the stakeholder's language (money, time, trust)</td><td><select data-il-rb="2"><option>0</option><option>1</option><option>2</option><option>3</option></select></td></tr>
+<tr><td><strong>Evidence &amp; honesty</strong> — gaps admitted, not hidden</td><td>Gaps hidden</td><td>Gaps softened</td><td>Gaps stated</td><td>Gaps stated with remediation dates</td><td><select data-il-rb="3"><option>0</option><option>1</option><option>2</option><option>3</option></select></td></tr>
+<tr><td><strong>Actionability</strong> — someone could execute this</td><td>Not executable</td><td>Partial steps</td><td>Ordered steps</td><td>Ordered steps with owners and a verification step</td><td><select data-il-rb="4"><option>0</option><option>1</option><option>2</option><option>3</option></select></td></tr>
+</tbody></table>
+<button type="button" data-il-rb-go>Score my answer</button>
+<div class="il-lab-result" data-il-rb-out aria-live="polite">Score each criterion, then press the button.</div>
+<div class="il-checklist" style="margin-top:1rem">
+<p style="font-size:.85rem;color:#9aa3b5">Self-scoring checklist — confirm before you submit to yourself:</p>
+<label><input type="checkbox"/> I wrote the answer before reading the key.</label>
+<label><input type="checkbox"/> I named a decision-maker or owner somewhere in the answer.</label>
+<label><input type="checkbox"/> I stated what I am accepting, not just what I am fixing.</label>
+<label><input type="checkbox"/> A non-technical stakeholder could understand the consequence.</label>
+</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="rubric"]');if(!w)return;
+var sels=w.querySelectorAll('[data-il-rb]'),out=w.querySelector('[data-il-rb-out]');
+w.querySelector('[data-il-rb-go]').addEventListener('click',function(){
+var t=0;sels.forEach(function(s){t+=+s.value});
+var v,cls;
+if(t>=12){v='Practitioner-grade ('+t+'/15). This answer would survive a tough audience. Archive it as portfolio evidence.';cls='good';}
+else if(t>=8){v='Solid ('+t+'/15). Strengthen the weakest criterion — usually residual risk or the business consequence — and re-score.';cls='warn';}
+else{v='Not yet defensible ('+t+'/15). Re-read the module, rewrite with the rubric beside you, and score again. The rubric is the lesson.';cls='bad';}
+out.className='il-lab-result '+cls;out.innerHTML='<strong>'+v+'</strong>';
+try{localStorage.setItem('il.lab.cissp.rubric',JSON.stringify({t:Date.now(),score:t}))}catch(e){}
+});
+})();
+</script>
+</div>
+
+</div>
+</section>
+<hr class="il-rule"/>
+<section class="il-section" id="final-exam" aria-labelledby="final-exam-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="final-exam-h">Scenario exam.</h2>
+<div class="il-prose"><p>Twelve original scenario questions drawn from this sequence. Your score persists in this browser; misses remediate back into the modules above and into Noah for coaching. This exam is original practice material — it confers no certificate and is not affiliated with any vendor or certification body.</p></div>
+<div class="il-progress" data-il-progress="cissp">
+<p class="il-eyebrow">Your progress</p>
+<div class="il-progress__bar"><span data-il-progress-fill></span></div>
+<p data-il-progress-label></p>
+<ul class="il-progress__mods">
+<li><label><input type="checkbox" data-il-mod="m1"/> Module 1 · Security and Risk Management</label></li>
+<li><label><input type="checkbox" data-il-mod="m2"/> Module 2 · Asset Security</label></li>
+<li><label><input type="checkbox" data-il-mod="m3"/> Module 3 · Security Architecture and Engineering</label></li>
+<li><label><input type="checkbox" data-il-mod="m4"/> Module 4 · Communication and Network Security</label></li>
+<li><label><input type="checkbox" data-il-mod="m5"/> Module 5 · Identity and Access Management (IAM)</label></li>
+<li><label><input type="checkbox" data-il-mod="m6"/> Module 6 · Security Assessment and Testing</label></li>
+<li><label><input type="checkbox" data-il-mod="m7"/> Module 7 · Security Operations</label></li>
+<li><label><input type="checkbox" data-il-mod="m8"/> Module 8 · Software Development Security</label></li>
+</ul>
+</div>
+<div data-il-exam="cissp">
+<script type="application/json" data-il-exam-bank>[{"id": "cissp-ex-riskaccept", "domain": "Security and Risk Management", "stem": "A legacy VPN concentrator has a known, unpatched vulnerability. The vendor is end-of-life, replacement takes six months, and the business cannot operate without remote access. What is the defensible management decision?", "choices": [{"key": "A", "text": "Document formal risk acceptance by the accountable owner, add compensating controls (restricted access, monitoring, MFA), and track the replacement project with a deadline"}, {"key": "B", "text": "Accept the risk silently — documenting it only creates liability"}, {"key": "C", "text": "Disconnect the VPN immediately regardless of business impact"}, {"key": "D", "text": "Buy cyber-insurance and consider the risk transferred"}], "answer": "A", "why": "Risk acceptance is legitimate only when it is conscious, documented, owned by the accountable party, time-boxed, and paired with compensating controls. Silent acceptance is negligence with better PR, and insurance transfers financial loss — not the breach itself.", "remediate": {"adapt": "#cissp-mod-1", "coach": "/coach/?prompt=Risk%20acceptance%3A%20what%20makes%20it%20defensible%20vs%20negligent%3F"}}, {"id": "cissp-ex-bia", "domain": "Security and Risk Management", "stem": "A business impact analysis ranks order processing above the marketing site. The recovery budget is then cut in half. What should change first?", "choices": [{"key": "A", "text": "Re-rank processes by criticality and re-derive RTO/RPO — the cut changes which recoveries the budget can actually meet"}, {"key": "B", "text": "Keep the same RTO/RPO targets and hope the team works faster"}, {"key": "C", "text": "Protect the marketing site first because it is customer-visible"}, {"key": "D", "text": "Split the remaining budget evenly across all processes"}], "answer": "A", "why": "RTO/RPO are promises the budget must be able to keep. Cutting the budget without re-ranking produces targets you cannot meet — which is worse than honest, longer objectives, because leadership plans around the fiction.", "remediate": {"adapt": "#cissp-mod-1", "coach": "/coach/?prompt=BIA%3A%20how%20do%20RTO%20and%20RPO%20change%20when%20the%20recovery%20budget%20is%20cut%3F"}}, {"id": "cissp-ex-classify", "domain": "Asset Security", "stem": "Developers routinely copy production customer records into a test environment \"to debug faster.\" The data owner is the VP of Product. Who decides whether this stops, and what is the core argument?", "choices": [{"key": "A", "text": "The VP of Product decides — ownership means classification and acceptable risk; the argument is that test environments lack production controls, so the data is under-protected relative to its classification"}, {"key": "B", "text": "The developers decide — they own the debugging workflow"}, {"key": "C", "text": "IT decides unilaterally by blocking the copy at the firewall"}, {"key": "D", "text": "Nobody needs to decide — test data copies are standard practice"}], "answer": "A", "why": "Classification and acceptable risk are owner decisions; custodians implement. The substantive point: data in a weaker-controlled environment is protected below its classification — the fix is masked/synthetic test data, not willpower.", "remediate": {"adapt": "#cissp-mod-2", "coach": "/coach/?prompt=Data%20owner%20vs%20custodian%3A%20who%20decides%20on%20production%20data%20in%20test%20environments%3F"}}, {"id": "cissp-ex-keymgmt", "domain": "Security Architecture and Engineering", "stem": "A code review finds an AWS access key committed to the application repository six months ago. The key is still active. What is the correct sequence?", "choices": [{"key": "A", "text": "Revoke the key immediately, rotate to a secrets manager, audit what the key touched, then purge it from history"}, {"key": "B", "text": "Delete the commit from history first so nobody else sees the key"}, {"key": "C", "text": "Leave it — the repository is private so the exposure is contained"}, {"key": "D", "text": "Email the team asking everyone to stop using the key"}], "answer": "A", "why": "The key is compromised the moment it entered version control — git history is forever and clones multiply. Revocation comes before cleanup because every minute the key lives is exploit time; then remove the class of failure with a secrets manager.", "remediate": {"adapt": "#cissp-mod-3", "coach": "/coach/?prompt=Key%20management%20lifecycle%3A%20what%20to%20do%20when%20a%20secret%20is%20committed%20to%20a%20repo%3F"}}, {"id": "cissp-ex-blp", "domain": "Security Architecture and Engineering", "stem": "A system enforces Bell-LaPadula. A user cleared to \"Secret\" opens a document marked \"Top Secret.\" What must the reference monitor do, and why?", "choices": [{"key": "A", "text": "Deny the read — Bell-LaPadula forbids read-up to protect confidentiality"}, {"key": "B", "text": "Allow the read but log it — availability matters more"}, {"key": "C", "text": "Allow the read and downgrade the document to Secret"}, {"key": "D", "text": "Deny the read — Bell-LaPadula forbids write-down to protect integrity"}], "answer": "A", "why": "Bell-LaPadula protects confidentiality with \"no read up, no write down.\" A Secret-cleared subject reading a Top Secret object is read-up — the exact flow the model exists to prevent. (Write-down is the other rule; integrity is Biba's concern.)", "remediate": {"adapt": "#cissp-mod-3", "coach": "/coach/?prompt=Bell-LaPadula%20vs%20Biba%20vs%20Clark-Wilson%3A%20what%20does%20each%20protect%3F"}}, {"id": "cissp-ex-firewall", "domain": "Communication and Network Security", "stem": "A firewall ruleset has \"allow HTTPS from anywhere to the web servers\" at line 5 and \"deny all inbound\" at line 40. A new admin adds \"allow SSH from anywhere to the web servers\" at line 45 to fix a lockout. What is wrong?", "choices": [{"key": "A", "text": "The SSH rule is shadowed by the earlier deny-all — rules evaluate top-down, first match wins, so the lockout is not fixed and the intent is undocumented"}, {"key": "B", "text": "Nothing — the last rule always overrides earlier ones"}, {"key": "C", "text": "The HTTPS rule is now broken by the SSH rule"}, {"key": "D", "text": "Rule order does not matter on modern firewalls"}], "answer": "A", "why": "Firewall rules evaluate top-down with first-match-wins. A rule below a deny-all never fires — the classic shadowing error. The fix is placing the allow above the deny (or better: scoped to a jump box), and every ruleset needs tested rule hygiene, not assumptions.", "remediate": {"adapt": "#cissp-mod-4", "coach": "/coach/?prompt=Firewall%20rule%20hygiene%3A%20order%2C%20shadowing%2C%20and%20default-deny%20testing."}}, {"id": "cissp-ex-splittunnel", "domain": "Communication and Network Security", "stem": "Remote users complain the full-tunnel VPN is slow, and IT proposes split tunneling so internet traffic bypasses the VPN. As security manager, what is your primary concern and your condition for approval?", "choices": [{"key": "A", "text": "Concern: the endpoint becomes a bridge between the untrusted internet and the corporate network; condition: endpoint controls (EDR, firewall, DNS filtering) verified on every device before split traffic is allowed"}, {"key": "B", "text": "Concern: none — split tunneling is strictly more secure than full tunnel"}, {"key": "C", "text": "Concern: bandwidth costs; condition: none needed"}, {"key": "D", "text": "Concern: user privacy; condition: log all personal traffic"}], "answer": "A", "why": "Split tunneling removes the inspection and policy enforcement the tunnel provided for internet-bound traffic, and a compromised endpoint can bridge both networks. The condition is endpoint security strong enough to carry the weight the tunnel used to carry.", "remediate": {"adapt": "#cissp-mod-4", "coach": "/coach/?prompt=VPN%20architectures%3A%20what%20split%20tunneling%20changes%20about%20your%20trust%20assumptions."}}, {"id": "cissp-ex-jit", "domain": "Identity and Access Management", "stem": "A manager demands standing domain-admin rights for their 40-person team \"to be efficient.\" What do you offer instead, and why is it better?", "choices": [{"key": "A", "text": "Just-in-time elevation: time-boxed admin for a ticketed reason, with approval and session recording — privilege becomes an event, not a standing target"}, {"key": "B", "text": "Standing admin for the manager only, as a compromise"}, {"key": "C", "text": "Standing admin for everyone — efficiency is a business requirement"}, {"key": "D", "text": "No admin for anyone, ever, with no alternative"}], "answer": "A", "why": "Standing privilege is standing risk: 40 always-on admins is 40 persistent targets and 40 potential misconfigurations. JIT preserves the efficiency (elevation in minutes) while removing the persistent exposure — plus an audit trail the manager's request lacked.", "remediate": {"adapt": "#cissp-mod-5", "coach": "/coach/?prompt=Privileged%20access%20management%3A%20vaulting%2C%20session%20recording%2C%20just-in-time%20elevation."}}, {"id": "cissp-ex-mfarecovery", "domain": "Identity and Access Management", "stem": "After rolling out phishing-resistant MFA (security keys) company-wide, the help desk creates a \"quick reset\" process: any caller who knows an employee's birth date gets a temporary bypass. What failed?", "choices": [{"key": "A", "text": "The enrollment/recovery process — the MFA deployment is only as strong as its weakest reset path, and this one is weaker than the password it replaced"}, {"key": "B", "text": "Nothing — help-desk efficiency is part of the MFA rollout"}, {"key": "C", "text": "The choice of security keys — SMS codes would have avoided this"}, {"key": "D", "text": "The employees — they should never lose their keys"}], "answer": "A", "why": "Authentication strength is determined by the weakest path to the account, and recovery is a path. A birth-date bypass reduces the entire MFA investment to a public fact. Recovery procedures must be protected like the front door — verified identity, ticketed, audited.", "remediate": {"adapt": "#cissp-mod-5", "coach": "/coach/?prompt=MFA%3A%20enrollment%20and%20recovery%20pitfalls%20that%20void%20the%20deployment."}}, {"id": "cissp-ex-triage", "domain": "Security Assessment and Testing", "stem": "A scan returns 400 findings, two-person team, 30-day window. Which finding do you patch first?", "choices": [{"key": "A", "text": "A critical RCE with a public exploit on the internet-facing VPN gateway"}, {"key": "B", "text": "A critical finding on an isolated lab VM with no network route to production"}, {"key": "C", "text": "The 200 low-severity findings, to shrink the count fastest"}, {"key": "D", "text": "Findings in alphabetical order by hostname for fairness"}], "answer": "A", "why": "Triage is exploitability × exposure × asset criticality. Internet-facing plus public exploit is the combination that gets breached this week; severity scores alone do not capture exposure, and count-shrinking optimizes the report instead of the risk.", "remediate": {"adapt": "#cissp-mod-6", "coach": "/coach/?prompt=Vulnerability%20triage%3A%20exploitability%2C%20asset%20criticality%2C%20and%20exposure."}}, {"id": "cissp-ex-ir", "domain": "Security Operations", "stem": "At 3 AM a server is confirmed compromised and actively beaconing. The on-call engineer wants to pull the power immediately. What do you order first, and why?", "choices": [{"key": "A", "text": "Capture volatile evidence first (memory, network state) in order of volatility, then isolate — a power cut destroys RAM-resident evidence the investigation needs"}, {"key": "B", "text": "Pull the power immediately — evidence is secondary to stopping the bleeding"}, {"key": "C", "text": "Wait until morning so the full team can watch"}, {"key": "D", "text": "Reimage the server immediately to restore service"}], "answer": "A", "why": "Order of volatility governs collection: RAM and network state vanish on power loss. Isolation (network containment) stops the bleeding without destroying evidence; power-off and reimaging destroy it. Minutes of disciplined collection save weeks of blind investigation.", "remediate": {"adapt": "#cissp-mod-7", "coach": "/coach/?prompt=Order%20of%20volatility%20and%20containment%20discipline%20during%20active%20incidents."}}, {"id": "cissp-ex-sdlc", "domain": "Software Development Security", "stem": "The SAST gate flags a critical SQL injection in a release candidate the night before launch. Engineering says it is a false positive and wants to ship. What is the correct handling?", "choices": [{"key": "A", "text": "Block the merge until the finding is verified — if it is truly a false positive, document the suppression with the reasoning; the gate does not yield to schedule pressure"}, {"key": "B", "text": "Ship and fix it in the next sprint — the launch date is committed"}, {"key": "C", "text": "Disable the SAST gate — it is clearly too noisy"}, {"key": "D", "text": "Let engineering self-certify without review"}], "answer": "A", "why": "A gate that yields to schedule pressure is decoration. The disciplined path handles both outcomes: real finding gets fixed before it ships to attackers; false positive gets documented suppression, which improves the gate. \"Ship now, fix later\" ships the vulnerability to everyone.", "remediate": {"adapt": "#cissp-mod-8", "coach": "/coach/?prompt=Pipeline%20gates%3A%20SAST%2C%20SCA%2C%20and%20secrets%20detection%20with%20documented%20suppressions."}}]</script>
+</div>
+</div>
+</section>
+<script src="/assets/il-exam.js"></script>
+
+<script>
+(function(){
+var slug='cissp', key='il.progress.'+slug+'.v1';
+function load(){try{var r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return{done:[]}}
+function save(s){try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+var box=document.querySelector('[data-il-progress="'+slug+'"]');if(!box)return;
+var fill=box.querySelector('[data-il-progress-fill]'),lbl=box.querySelector('[data-il-progress-label]');
+var boxes=box.querySelectorAll('[data-il-mod]');
+function paint(){var s=load(),n=boxes.length,c=0;
+boxes.forEach(function(b){var on=s.done.indexOf(b.getAttribute('data-il-mod'))>=0;b.checked=on;if(on)c++});
+var pct=n?Math.round(c/n*100):0;if(fill)fill.style.width=pct+'%';
+if(lbl)lbl.textContent=c+' / '+n+' modules complete · '+pct+'%';}
+boxes.forEach(function(b){b.addEventListener('change',function(){var s=load(),id=b.getAttribute('data-il-mod'),i=s.done.indexOf(id);
+if(b.checked&&i<0)s.done.push(id);if(!b.checked&&i>=0)s.done.splice(i,1);save(s);paint();
+try{var f=JSON.parse(localStorage.getItem('il.evidence.feed.v1')||'[]');f.unshift({t:Date.now(),kind:'progress',text:slug+': '+s.done.length+'/'+boxes.length+' modules'});if(f.length>48)f.length=48;localStorage.setItem('il.evidence.feed.v1',JSON.stringify(f))}catch(e){}});});
+paint();
+})();
+</script><hr class="il-rule"/>
+<section class="il-section" id="next-steps" aria-labelledby="next-steps-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Continue to</p>
+<h2 class="il-h il-h--section" id="next-steps-h">Where this sequence leads.</h2>
+<div class="il-nextsteps">
+<a class="il-nextcard" href="/learn/sequences/cism/"><p class="il-eyebrow">Management track</p><h4>CISM — Information Security Manager →</h4><p>The governance companion: risk appetite, program building, and incident leadership in the manager's voice.</p></a>
+<a class="il-nextcard" href="/learn/sequences/cybersecurity-projects-lab/"><p class="il-eyebrow">Hands-on proof</p><h4>Cybersecurity Projects Lab →</h4><p>Turn this sequence's labs into portfolio artifacts: detection rules, hardened builds, and documented engagements.</p></a>
+<a class="il-nextcard" href="/learn/sequences/security-plus-cysa/"><p class="il-eyebrow">Foundations check</p><h4>Security+ / CySA+ Study Sequence →</h4><p>If any module felt thin on analyst fundamentals, shore it up here before the final exam.</p></a>
+</div>
+</div>
+</section>
 </main>
 
 <footer class="no-print border-t border-paper/10">
