@@ -1,10 +1,16 @@
 # Interstitium Labs — edge redirects.
-# Workers Static Assets honors _redirects; the worker module (docs/worker.js)
-# repeats /os and /proof as code-level 301s as a fallback.
-/os    /learn/     301
-/os/   /learn/     301
+# Served two ways:
+#   1. This _redirects file (edge, Workers Static Assets).
+#   2. docs/worker.js code-level 301s as the backstop: /os and /proof have no
+#      asset files, so those requests miss the asset bundle and reach the worker.
+# Deploy notes (2026-10-04):
+#   - The API deploy passes explicit bindings, which replaces the auto-injected
+#     assets binding — the deploy config must also include
+#     {"type":"assets","name":"ASSETS"} or env.ASSETS is undefined in worker.js.
+#   - run_worker_first must stay UNSET: when set, the worker serves every
+#     request via env.ASSETS and the _headers file is silently bypassed
+#     (no CSP, no HSTS, no X-Robots-Tag). Default assets-first keeps _headers.
+/os       /learn/     301
+/os/      /learn/     301
 /proof    /evidence/  301
 /proof/   /evidence/  301
-# NOTE (2026-10-04): the API deploy passes explicit bindings, which replaces the
-# auto-injected assets binding — the deploy config must also include
-# {"type":"assets","name":"ASSETS"} or env.ASSETS is undefined in worker.js.
