@@ -30,6 +30,57 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
 
+<style>
+
+/* IL sequence widgets — CSS-only interactive labs (no JS required) */
+.ilw{border:1px solid rgba(232,238,245,.13);border-radius:.9rem;padding:1.05rem 1.15rem;margin:1.5rem 0;background:rgba(10,15,30,.55)}
+.ilw-q{margin:0 0 .7rem;font-size:.95rem}
+.ilw-code{background:#070b16;border:1px solid rgba(232,238,245,.1);border-radius:.6rem;padding:.85rem 1rem;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.6;color:#e8eef5;white-space:pre}
+.ilw-code .ilw-ln{color:#5b6b85;user-select:none}
+.ilw-opts{display:grid;gap:.5rem;margin-top:.85rem}
+.ilw-in{position:absolute;opacity:0;pointer-events:none}
+.ilw-lab{display:flex;gap:.65rem;align-items:flex-start;border:1px solid rgba(232,238,245,.15);border-radius:.6rem;padding:.6rem .75rem;cursor:pointer;font-size:.9rem;line-height:1.45}
+.ilw-lab:hover{border-color:rgba(126,212,224,.5)}
+.ilw-lab code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.8rem}
+.ilw-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none;margin-top:.1rem}
+.ilw-fb{display:none;margin:0;font-size:.84rem;color:#c9d4e3;border-left:3px solid #f87171;padding:.4rem .8rem;background:rgba(248,113,113,.06);border-radius:0 .5rem .5rem 0}
+.ilw-fb strong{color:#fca5a5}
+.ilw-in:checked+.ilw-lab{border-color:#f87171;background:rgba(248,113,113,.05)}
+.ilw-in.ilw-ok:checked+.ilw-lab{border-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in:checked+.ilw-lab+.ilw-fb{display:block}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb{border-left-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb strong{color:#6ee7b7}
+.ilw-note{margin:.75rem 0 0;font-size:.76rem;color:#8b96ab}
+.ilw-reveal{margin-top:.7rem;border:1px dashed rgba(232,238,245,.2);border-radius:.6rem;padding:.6rem .8rem}
+.ilw-reveal summary{cursor:pointer;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#7ed4e0}
+.ilw-reveal code{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:#e8eef5}
+/* answer keys on self-checks */
+.ilw-ans{margin:.55rem 0 0;border-left:2px solid rgba(212,175,55,.5);padding:.15rem 0 .15rem .8rem}
+.ilw-ans summary{cursor:pointer;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#d4af37}
+.ilw-ans .ilw-ansbody{margin-top:.45rem;font-size:.88rem;color:#c9d4e3}
+.ilw-ans .ilw-ansbody code{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#e8eef5;background:rgba(232,238,245,.07);padding:.05rem .3rem;border-radius:.3rem}
+/* module figures */
+.il-fig{margin:1.4rem 0 1.6rem;border:1px solid rgba(232,238,245,.1);border-radius:.8rem;background:rgba(7,11,22,.6);padding:1rem}
+.il-fig svg{display:block;width:100%;height:auto}
+.il-fig figcaption{margin-top:.6rem;font-size:.78rem;color:#8b96ab;text-align:center}
+/* progress */
+.ilw-done{margin:.7rem 0 0;font-size:.85rem;color:#8b96ab}
+.ilw-done input{accent-color:#d4af37;width:1rem;height:1rem;vertical-align:-.15rem}
+.il-progressbox{border:1px solid rgba(212,175,55,.35);border-radius:.9rem;padding:1rem 1.2rem;margin:1.6rem 0;background:rgba(212,175,55,.05)}
+.il-progressbox p{margin:0 0 .6rem;font-size:.9rem}
+.il-bar{height:.55rem;border-radius:99px;background:rgba(232,238,245,.1);overflow:hidden}
+.il-bar>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#d4af37,#7ed4e0);transition:width .4s}
+/* exam mount */
+.il-exam .il-kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#7ed4e0}
+.il-exam-choices{display:grid;gap:.55rem}
+.il-exam-choice{appearance:none;cursor:pointer;text-align:left;border-radius:.8rem;border:1px solid rgba(232,238,245,.13);background:rgba(7,11,22,.65);color:#e8eef5;padding:.8rem 1rem;font-size:.93rem;display:flex;gap:.7rem;align-items:flex-start}
+.il-exam-choice:hover{border-color:rgba(126,212,224,.45)}
+.il-exam-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none}
+.il-exam-miss{border:1px solid rgba(232,238,245,.12);border-radius:.8rem;padding:1rem;margin-bottom:.8rem;background:rgba(10,15,30,.5);list-style:none}
+ul.il-exam-remediate{padding:0}
+@media (max-width:480px){.ilw{padding:.9rem}.ilw-code{font-size:.74rem}}
+
+</style>
 </head>
 <body>
 <a class="il-skip" href="#main">Skip to content</a>
@@ -132,7 +183,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         </ul>
       </div>
     </div>
-  </section>
+  
+<div class="il-progressbox" role="status"><p><strong>Your progress:</strong> <span data-il-count-scope="creative-coding.v1" data-il-count-total="5">0/5</span> modules complete — saved in this browser.</p><div class="il-bar" role="progressbar" aria-label="Sequence progress" aria-valuemin="0" aria-valuemax="5"><div data-il-bar="creative-coding.v1"></div></div></div>
+</section>
 
   <hr class="il-rule"/>
 
@@ -144,9 +197,11 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">5 modules plus a build lab, in order.</h2>
       </div>
       <div class="il-modules">
-        <article class="il-module">
+        <article class="il-module" id="ccmod-1">
           <p class="il-eyebrow">Module 1</p>
           <h3 class="il-h il-h--card">The Canvas as a Medium: 2D Immediate-Mode Drawing</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 205" role="img" aria-label="Immediate-mode drawing and the transform stack" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">immediate mode — no scene</text><rect x="40" y="45" width="240" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="160" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">draw calls → pixels</text><text x="160" y="92" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">nothing remembers your shape</text><text x="480" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">the transform stack</text><rect x="360" y="45" width="240" height="60" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="480" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">save() … restore()</text><text x="480" y="92" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">push/pop discipline or drift</text><rect x="40" y="130" width="560" height="60" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="153" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">&#x27;moving&#x27; a shape = clearing + redrawing it somewhere else, every frame</text><text x="320" y="175" text-anchor="middle" font-size="11" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">rotate/translate without save/restore → transforms accumulate into a spiral</text></svg><figcaption>Fig. M1 — Canvas forgets; you redraw. The transform stack is your only memory.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="creative-coding.v1:module-1"> <span>Mark module 1 complete</span></label></p>
           <h4>Learning objectives</h4>
           <ul>
             <li>Set up a canvas, get its 2D context, and draw basic shapes from code</li>
@@ -174,17 +229,41 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><strong>Fix the blur: handle device pixel ratio and compare before/after screenshots</strong><br/>Scale the canvas backing store by the display's pixel ratio, keep the CSS size fixed, and screenshot both versions at 200% zoom. The difference is the lesson.</li>
             <li><strong>Write a one-paragraph alt-text description of your composition, then implement describe()-style text output</strong><br/>Describe what a sighted viewer sees — structure, motion, palette — in plain words, and put it where assistive technology can reach it. This habit ships with every piece you make from now on.</li>
           </ol>
+<div class="ilw" role="group" aria-label="What renders after 60 frames?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What renders after 60 frames?</p>
+<pre class="ilw-code"><code>function draw() {
+  rotate(0.05);
+  translate(100, 0);
+  rect(0, 0, 40, 40);
+}  // no save()/restore(), no background()</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cc-m1" id="ilw-cc-m1-0">
+<label class="ilw-lab" for="ilw-cc-m1-0"><span class="ilw-key">A</span><span>A spiral of rectangles drifting off — transforms accumulate every frame</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Each frame rotates and translates <em>on top of the previous frame's transform</em>: the coordinate system walks away in a spiral. Without <code>save()</code>/<code>restore()</code> (or <code>resetMatrix()</code>), there is no such thing as 'the same' transform twice.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m1" id="ilw-cc-m1-1">
+<label class="ilw-lab" for="ilw-cc-m1-1"><span class="ilw-key">B</span><span>One rectangle rotating in place</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That needs the transform reset each frame. Here nothing resets — the rotation compounds.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m1" id="ilw-cc-m1-2">
+<label class="ilw-lab" for="ilw-cc-m1-2"><span class="ilw-key">C</span><span>Nothing — the code errors</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It runs fine. The failure is visual, not an exception — the worst kind for a beginner.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m1" id="ilw-cc-m1-3">
+<label class="ilw-lab" for="ilw-cc-m1-3"><span class="ilw-key">D</span><span>A clean row of 60 rectangles</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That would need a fresh transform per rectangle (<code>save/restore</code> inside the loop). This accumulates instead.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check</h4>
-          <ul>
-            <li>Why can you not &quot;move&quot; a shape on a canvas without redrawing it?</li>
-            <li>What goes wrong in a sketch that rotates and translates without push/pop discipline?</li>
-            <li>When would you reach for raw Canvas 2D instead of p5.js, and vice versa?</li>
-          </ul>
+          <ul><li>Why can you not &quot;move&quot; a shape on a canvas without redrawing it?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Canvas is <strong>immediate-mode</strong>: it keeps no scene graph, no shape objects, no memory of what you drew — each drawing call just sets pixels. 'Moving' a shape therefore means clearing the canvas (or the region) and drawing the shape again at a new position, every frame. Retained-mode systems (DOM, SVG) remember objects; canvas remembers nothing.</div></details></li><li>What goes wrong in a sketch that rotates and translates without push/pop discipline?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Without <code>save()</code>/<code>restore()</code> discipline, each frame's <code>rotate()</code>/<code>translate()</code> <strong>accumulates</strong> on the transform from the previous frame: the coordinate system drifts, rotates further each frame, and the drawing spirals off into chaos (or off-canvas). The fix: <code>save()</code> before local transforms, <code>restore()</code> after — every frame, no exceptions.</div></details></li><li>When would you reach for raw Canvas 2D instead of p5.js, and vice versa?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Raw Canvas 2D when you need <strong>control and zero dependencies</strong>: custom render loops, tiny payloads, learning how the machine actually draws. p5.js when you want <strong>vocabulary and speed of expression</strong>: <code>setup()</code>/<code>draw()</code>, built-in vector/noise/color helpers, and a community of examples. Prototype in p5.js; drop to raw canvas when the abstraction costs more than it saves.</div></details></li></ul>
         </article>
 
-        <article class="il-module">
+        <article class="il-module" id="ccmod-2">
           <p class="il-eyebrow">Module 2</p>
           <h3 class="il-h il-h--card">Motion and Time: requestAnimationFrame, Easing, Noise</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 205" role="img" aria-label="The animation loop, timestamps, and easing" xmlns="http://www.w3.org/2000/svg"><text x="140" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">requestAnimationFrame</text><rect x="30" y="45" width="220" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="140" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">callback(timestamp)</text><text x="140" y="92" text-anchor="middle" font-size="10" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">ignore the timestamp?</text><text x="450" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">easing</text><rect x="340" y="45" width="220" height="60" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="450" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">linear vs easeInOut</text><text x="450" y="92" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">same distance, different feel</text><rect x="30" y="130" width="580" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="153" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">random() = jitter · noise() = organic — noise is smooth between samples</text><text x="320" y="175" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">frame-rate-independent motion integrates the timestamp, not the frame count</text></svg><figcaption>Fig. M2 — Time comes from the timestamp; feel comes from easing and noise.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="creative-coding.v1:module-2"> <span>Mark module 2 complete</span></label></p>
           <h4>Learning objectives</h4>
           <ul>
             <li>Drive a draw loop with requestAnimationFrame and explain why it beats setInterval</li>
@@ -212,17 +291,41 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><strong>Steer a wanderer with noise instead of random(): a dot that drifts organically for 60 seconds</strong><br/>Sample a noise field for the heading each frame and compare the trail to a purely random walk. The random one jitters; the noise one wanders. Keep the sketch.</li>
             <li><strong>Recreate the wanderer's trail with pure CSS: a div that traces a path via @keyframes</strong><br/>Hand-author keyframes approximating an organic path (or generate them with JS once and paste the result). Note where CSS stops being expressive — that boundary is the next module's starting line.</li>
           </ol>
+<div class="ilw" role="group" aria-label="Two machines: 60 Hz and 120 Hz. What differs?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Two machines: 60 Hz and 120 Hz. What differs?</p>
+<pre class="ilw-code"><code>let x = 0;
+function draw() {
+  x += 2;          // no timestamp used
+  circle(x, 100, 20);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cc-m2" id="ilw-cc-m2-0">
+<label class="ilw-lab" for="ilw-cc-m2-0"><span class="ilw-key">A</span><span>The 120 Hz machine moves the circle twice as fast</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Motion integrated per <em>frame</em> instead of per <em>second</em>: double the frames, double the speed. The timestamp exists to fix this — <code>x += speed * dt</code> moves identically on every display.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m2" id="ilw-cc-m2-1">
+<label class="ilw-lab" for="ilw-cc-m2-1"><span class="ilw-key">B</span><span>Nothing — requestAnimationFrame normalizes speed</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> <code>requestAnimationFrame</code> normalizes <em>timing</em>, not your math. It calls you per frame; what you do with the frame is yours.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m2" id="ilw-cc-m2-2">
+<label class="ilw-lab" for="ilw-cc-m2-2"><span class="ilw-key">C</span><span>The 60 Hz machine is faster — fewer frames, bigger steps</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Backwards: the step is constant (2px), so more frames = more distance per second.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m2" id="ilw-cc-m2-3">
+<label class="ilw-lab" for="ilw-cc-m2-3"><span class="ilw-key">D</span><span>The circle moves at the same speed on both</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Only if the code used the timestamp. It does not.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check</h4>
-          <ul>
-            <li>What breaks if you re-request the animation callback unconditionally but never use the timestamp?</li>
-            <li>Why does noise-driven motion read as organic where random() reads as jittery?</li>
-            <li>Name one job best left to CSS animation and one that demands canvas + JS.</li>
-          </ul>
+          <ul><li>What breaks if you re-request the animation callback unconditionally but never use the timestamp?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Two failures: (1) the animation speed becomes <strong>frame-rate-dependent</strong> — 120 Hz machines run it twice as fast as 60 Hz ones; (2) you lose pause/resume correctness and any time-based easing. The timestamp is the only honest clock: integrate motion over <em>elapsed time</em> (<code>dt</code>), never over frame count. Unconditional re-request without timestamp use is a treadmill with no speedometer.</div></details></li><li>Why does noise-driven motion read as organic where random() reads as jittery?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>random()</code> returns <strong>uncorrelated</strong> values — each sample independent, so motion jumps discontinuously (jitter). Perlin/simplex <code>noise()</code> returns <strong>correlated</strong> values — nearby inputs give nearby outputs, so the motion wanders smoothly, like wind or water. Organic motion is correlated motion; jitter is what randomness actually looks like.</div></details></li><li>Name one job best left to CSS animation and one that demands canvas + JS.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">CSS animation owns <strong>UI transitions</strong> (fades, slides, transforms the compositor can do cheaply off-main-thread). Canvas + JS owns <strong>procedural, stateful, per-frame</strong> work: particle systems, data-driven drawing, anything where each frame is computed, not interpolated. The rule: if the browser can interpolate it declaratively, let it; if you must compute it, take the canvas.</div></details></li></ul>
         </article>
 
-        <article class="il-module">
+        <article class="il-module" id="ccmod-3">
           <p class="il-eyebrow">Module 3</p>
           <h3 class="il-h il-h--card">Emergence: Simple Rules, Complex Behavior</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 220" role="img" aria-label="Emergence from simple rules and the O(n squared) wall" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">three rules → a flock (boids)</text><rect x="40" y="50" width="175" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="127" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">separation</text><rect x="235" y="50" width="175" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="322" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">alignment</text><rect x="430" y="50" width="175" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="517" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">cohesion</text><text x="320" y="125" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">more agents ≠ richer — past the density sweet spot it reads as noise</text><rect x="40" y="145" width="560" height="60" rx="8" fill="#0d1626" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="168" text-anchor="middle" font-size="12" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">O(n²) pair checks: 1,000 agents ≈ 500,000 checks per frame</text><text x="320" y="190" text-anchor="middle" font-size="11" fill="#34d399" font-family="'JetBrains Mono',ui-monospace,monospace">standard fix: spatial hash / grid — check neighbors, not everyone</text></svg><figcaption>Fig. M3 — Complexity emerges from rules; performance dies on pairwise checks.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="creative-coding.v1:module-3"> <span>Mark module 3 complete</span></label></p>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain emergence: why tiny local rules produce global lifelike structure</li>
@@ -250,17 +353,39 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><strong>Give one agent legs: six anchored segments with plant-and-step foot logic</strong><br/>Implement the foot alternation described above in your own code. It will look wrong for a while; tune the step threshold and arc height until it skitters.</li>
             <li><strong>Run a parameter sweep: 20 seeds &times; 3 noise scales, and curate the best three</strong><br/>Capture a still from each run, log seed + parameters, and pick three keepers. Write one sentence for each about why it works. That is the curation habit.</li>
           </ol>
+<div class="ilw" role="group" aria-label="1,000 agents, all-pairs check each frame. Cost per frame?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> 1,000 agents, all-pairs check each frame. Cost per frame?</p>
+<pre class="ilw-code"><code>for (a of agents) for (b of agents) {
+  if (a !== b) checkPair(a, b);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cc-m3" id="ilw-cc-m3-0">
+<label class="ilw-lab" for="ilw-cc-m3-0"><span class="ilw-key">A</span><span>~1,000,000 pair checks — O(n²), and it will hurt</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> A million checks per frame at 60 fps is 60M/second — the frame budget dies here. The standard fix is spatial partitioning: a uniform grid or spatial hash so each agent checks only nearby cells, toward O(n).</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m3" id="ilw-cc-m3-1">
+<label class="ilw-lab" for="ilw-cc-m3-1"><span class="ilw-key">B</span><span>~1,000 checks — one per agent</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The inner loop runs per outer agent: n × n, not n. Nested loops multiply.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m3" id="ilw-cc-m3-2">
+<label class="ilw-lab" for="ilw-cc-m3-2"><span class="ilw-key">C</span><span>~500 checks — pairs are symmetric</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Symmetry halves it (~500k), which is still catastrophic. And the code as written does not exploit symmetry.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m3" id="ilw-cc-m3-3">
+<label class="ilw-lab" for="ilw-cc-m3-3"><span class="ilw-key">D</span><span>It depends on the agents&#x27; speed</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The <em>count</em> of checks depends only on n. Speed affects the result, not the cost.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check</h4>
-          <ul>
-            <li>Why does adding more agents sometimes make the web look worse, not richer?</li>
-            <li>What is the plant-and-step foot rule actually optimizing for, visually?</li>
-            <li>At what agent count does the O(n&sup2;) pair check start hurting, and what is the standard fix?</li>
-          </ul>
+          <ul><li>Why does adding more agents sometimes make the web look worse, not richer?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Because emergence has a <strong>density sweet spot</strong>: each agent's neighbors are its visual context, and past a point the screen saturates — individual motion becomes unreadable and the whole reads as static noise. More agents also cost O(n²) pair checks, so you pay performance for the privilege of the mush. Richness comes from rule-tuning and negative space, not headcount.</div></details></li><li>What is the plant-and-step foot rule actually optimizing for, visually?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The plant-and-step rule (grow a little, step back and look) optimizes for <strong>perceptual judgment over parameter fiddling</strong>: generative work is evaluated by eye, and the rule forces regular visual checkpoints instead of tuning blind. It prevents the classic failure — an hour of parameter tweaks that drifted away from anything good without anyone noticing.</div></details></li><li>At what agent count does the O(n&sup2;) pair check start hurting, and what is the standard fix?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">It starts hurting in the low hundreds on modest hardware (500 agents ≈ 125k checks/frame; 1000 ≈ 500k) — the exact number depends on the machine, but the curve is quadratic, so it arrives fast. Standard fix: <strong>spatial partitioning</strong> (uniform grid / spatial hash) — each agent checks only neighbors in nearby cells, dropping the cost toward O(n). Measure first; partition when the pair loop dominates the frame.</div></details></li></ul>
         </article>
 
-        <article class="il-module">
+        <article class="il-module" id="ccmod-4">
           <p class="il-eyebrow">Module 4</p>
           <h3 class="il-h il-h--card">Color and Composition for Screens</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 230" role="img" aria-label="Color mapping and fade trails" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">color as data</text><rect x="40" y="45" width="240" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="160" y="68" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">state → hue</text><text x="160" y="92" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">randomness becomes readable</text><rect x="40" y="125" width="100" height="30" fill="#f87171" rx="6"/><rect x="150" y="125" width="100" height="30" fill="#fbbf24" rx="6"/><rect x="260" y="125" width="100" height="30" fill="#34d399" rx="6"/><rect x="370" y="125" width="100" height="30" fill="#7ed4e0" rx="6"/><rect x="480" y="125" width="100" height="30" fill="#a78bfa" rx="6"/><text x="480" y="175" text-anchor="middle" font-size="11" fill="#d4af37" font-family="'JetBrains Mono',ui-monospace,monospace">fade trails:</text><text x="480" y="195" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">translucent rect each frame</text><text x="160" y="175" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">fast fade = crisp · slow fade = dreamy</text><text x="320" y="215" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">fragment shaders: per-pixel math canvas paths cannot practically do</text></svg><figcaption>Fig. M4 — Map state to color; fade with alpha; shaders for per-pixel work.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="creative-coding.v1:module-4"> <span>Mark module 4 complete</span></label></p>
           <h4>Learning objectives</h4>
           <ul>
             <li>Choose limited palettes and map data (speed, age, distance) to color</li>
@@ -288,17 +413,41 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><strong>Rebalance a chaotic run: add a gentle centering force and compare clips</strong><br/>Take a run that wanders into the corners and dies, add the weakest centering force that keeps agents in frame, and compare 30-second clips. Notice how little force it takes.</li>
             <li><strong>Complete one Book of Shaders chapter (shaping functions) and port one pattern to your sketch</strong><br/>Work through the chapter in the book's own editor, then reproduce one shaping function as a canvas-drawn element. Feel the jump from shapes to fields.</li>
           </ol>
+<div class="ilw" role="group" aria-label="What does the translucent overlay do over time?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does the translucent overlay do over time?</p>
+<pre class="ilw-code"><code>function draw() {
+  fill(0, 0, 0, 12);       // alpha 12/255
+  rect(0, 0, width, height);
+  drawAgents();            // bright agents
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cc-m4" id="ilw-cc-m4-0">
+<label class="ilw-lab" for="ilw-cc-m4-0"><span class="ilw-key">A</span><span>Motion trails — old positions fade out gradually</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Each frame paints a nearly-transparent black veil instead of clearing: past frames decay exponentially, leaving trails. The alpha is the memory dial — lower alpha, longer memory. This is the standard trail technique.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m4" id="ilw-cc-m4-1">
+<label class="ilw-lab" for="ilw-cc-m4-1"><span class="ilw-key">B</span><span>Nothing visible — alpha 12 is invisible</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> One coat is nearly invisible; sixty coats per second accumulate. Persistence is the effect.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m4" id="ilw-cc-m4-2">
+<label class="ilw-lab" for="ilw-cc-m4-2"><span class="ilw-key">C</span><span>The screen goes black immediately</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Alpha 12 per frame takes ~a second to approach black — and the agents redraw bright every frame on top.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m4" id="ilw-cc-m4-3">
+<label class="ilw-lab" for="ilw-cc-m4-3"><span class="ilw-key">D</span><span>It clears the canvas like background(0)</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Full clear needs alpha 255 (or <code>background()</code>). This is a fade, not a clear — that is the whole point.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check</h4>
-          <ul>
-            <li>Why does mapping color to simulation state make randomness readable?</li>
-            <li>What is the visible difference between a fast-fade and a slow-fade piece, and when would you want each?</li>
-            <li>What can a fragment shader do per pixel that canvas path drawing cannot do practically?</li>
-          </ul>
+          <ul><li>Why does mapping color to simulation state make randomness readable?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Because color becomes a <strong>legend</strong>: the eye cannot track a thousand random agents, but it can read a thousand <em>colored</em> agents — hue encodes speed, age, or flock ID, turning noise into structure. Mapping state to color is visualization's oldest trick: the randomness stays, but it becomes legible. Randomness you can read is data; randomness you cannot is decoration.</div></details></li><li>What is the visible difference between a fast-fade and a slow-fade piece, and when would you want each?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A <strong>fast fade</strong> (low-alpha overlay or full clear) gives crisp, immediate motion — each frame stands alone, good for precise or energetic pieces. A <strong>slow fade</strong> (higher persistence) leaves trails — motion smears into ribbons, good for dreamy, flowing work. Choose by the feeling: trails are memory; the fade rate is how long the piece remembers.</div></details></li><li>What can a fragment shader do per pixel that canvas path drawing cannot do practically?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A fragment shader runs <strong>per pixel, in parallel, on the GPU</strong>: raymarched 3D, reaction-diffusion, fluid sims, anything where every pixel needs its own computation. Canvas path drawing is CPU-bound vector work — one path at a time. What shaders do practically: millions of per-pixel operations per frame; what canvas cannot: the same without melting the frame budget.</div></details></li></ul>
         </article>
 
-        <article class="il-module">
+        <article class="il-module" id="ccmod-5">
           <p class="il-eyebrow">Module 5</p>
           <h3 class="il-h il-h--card">Shipping It: Performance Budgets and Respecting the Viewer</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 215" role="img" aria-label="Frame budget, reduced motion, and credits" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">the 16.7 ms budget</text><rect x="40" y="50" width="560" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><rect x="48" y="58" width="380" height="28" fill="#34d399" opacity="0.5" rx="4"/><text x="240" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">your drawing: ~11 ms ✓</text><rect x="428" y="58" width="164" height="28" fill="#f87171" opacity="0.5" rx="4"/><text x="510" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">over ✗</text><text x="320" y="120" text-anchor="middle" font-size="12" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">dropped frames → measure FIRST (devtools, draw-call count), then optimize</text><rect x="40" y="140" width="280" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="180" y="163" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">reduced motion:</text><text x="180" y="185" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">static frame, opt-in to animate</text><rect x="340" y="140" width="260" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="470" y="163" text-anchor="middle" font-size="11" fill="#e8eef5" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">credits:</text><text x="470" y="185" text-anchor="middle" font-size="10" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">libraries, fonts, data, inspirations</text></svg><figcaption>Fig. M5 — 60 fps is a budget; respect viewers who opt out of motion.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="creative-coding.v1:module-5"> <span>Mark module 5 complete</span></label></p>
           <h4>Learning objectives</h4>
           <ul>
             <li>Measure frame time and set a performance budget your piece must hold</li>
@@ -323,12 +472,30 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li><strong>Add a quality ladder: two agent budgets chosen by a quick device heuristic</strong><br/>Ship a full and a lite configuration, chosen at load. Verify the lite version holds the frame budget on the weakest machine you can borrow.</li>
             <li><strong>Publish the piece: single HTML file, title, description, tools, license, and credits</strong><br/>Put it online (any static host), write the one-paragraph artist statement, and link it from your portfolio. This is the sequence's graduation deliverable.</li>
           </ol>
+<div class="ilw" role="group" aria-label="The sketch drops frames. What do you do FIRST?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> The sketch drops frames. What do you do FIRST?</p>
+<pre class="ilw-code"><code>-- 60fps target, actual ~25fps, complex generative piece</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cc-m5" id="ilw-cc-m5-0">
+<label class="ilw-lab" for="ilw-cc-m5-0"><span class="ilw-key">A</span><span>Measure — profile a frame, count draw calls, find the hot spot</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Unmeasured optimization optimizes the wrong thing: the bottleneck is usually <code>shadowBlur</code>, state churn, or layout thrash — not the math you suspect. Devtools first, hypotheses second.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m5" id="ilw-cc-m5-1">
+<label class="ilw-lab" for="ilw-cc-m5-1"><span class="ilw-key">B</span><span>Reduce the agent count</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Maybe right, maybe not — and it changes the artwork. Measure first; cut only what the profile blames.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m5" id="ilw-cc-m5-2">
+<label class="ilw-lab" for="ilw-cc-m5-2"><span class="ilw-key">C</span><span>Switch to WebGL</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> A rewrite is the most expensive 'optimization'. The canvas might be fine; the code might not.</p>
+<input class="ilw-in" type="radio" name="ilw-cc-m5" id="ilw-cc-m5-3">
+<label class="ilw-lab" for="ilw-cc-m5-3"><span class="ilw-key">D</span><span>Buy a faster machine</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Your viewers' machines are the target, not yours. Optimize for the hardware you do not control.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
           <h4>Self-check</h4>
-          <ul>
-            <li>What is the first thing you check when a sketch drops frames, and why measure before optimizing?</li>
-            <li>What should a reduced-motion viewer get instead of the animated piece, and why is opt-in the right default?</li>
-            <li>What belongs in a published piece's credits besides your name?</li>
-          </ul>
+          <ul><li>What is the first thing you check when a sketch drops frames, and why measure before optimizing?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">First check: <strong>what is actually slow</strong> — open devtools, count draw calls, profile a frame. Measure before optimizing because the bottleneck is rarely where intuition says: it might be shadowBlur, or save/restore churn, or layout thrash beside the canvas — not the 'complex' math you suspect. Optimizing unmeasured is how you spend a day speeding up 2% of the frame.</div></details></li><li>What should a reduced-motion viewer get instead of the animated piece, and why is opt-in the right default?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A reduced-motion viewer should get the <strong>static final frame</strong> (or a calm, non-animated composition) — the piece's meaning without its motion. Opt-in is the right default because motion can cause vestibular distress: <code>prefers-reduced-motion</code> is a medical signal, not a preference toggle. Animate only for those who ask; everyone else gets the still.</div></details></li><li>What belongs in a published piece's credits besides your name?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Besides your name: the <strong>libraries and their licenses</strong> (p5.js, shaders, fonts), <strong>data sources</strong> (if the piece visualizes data), <strong>typefaces</strong>, and <strong>inspirations/references</strong> (the tutorial, paper, or artwork it descends from). Credits are provenance: they let the next person learn from your piece the way you learned from others'.</div></details></li></ul>
         </article>
       </div>
     </div>
@@ -408,6 +575,36 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="final-exam-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Final assessment</p>
+        <h2 class="il-h il-h--section" id="final-exam-h">Scenario exam — prove the sequence.</h2>
+      </div>
+      <div class="il-prose">Twelve original scenario questions — the judgment calls creative coders actually make: transform discipline, time-driven motion, emergence tuning, and frame budgets. Misses remediate into <a href="/adapt/">Adapt</a> and <a href="/coach/">Noah</a>. These scenarios are written for this sequence; they are not real exam questions from any certification.</div>
+      <div data-il-exam="creative-coding"></div>
+      <script type="application/json" data-il-exam-bank>[{"id": "ex-cc-move", "domain": "Canvas", "stem": "Why can't you 'move' a shape on a canvas?", "choices": [{"key": "A", "text": "Immediate mode: the canvas keeps no shape objects — you clear and redraw each frame"}, {"key": "B", "text": "Canvas shapes are immutable by spec"}, {"key": "C", "text": "You can — shapes have x/y properties"}, {"key": "D", "text": "Only p5.js allows moving shapes"}], "answer": "A", "why": "No scene graph, no retained objects. Motion is redraw-at-new-position, every frame.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20immediate-mode%20drawing%20(Creative%20Module%201)."}}, {"id": "ex-cc-stack", "domain": "Canvas", "stem": "rotate() each frame with no save()/restore(). Result?", "choices": [{"key": "A", "text": "Transforms accumulate — the drawing spirals/drifts"}, {"key": "B", "text": "Clean rotation in place"}, {"key": "C", "text": "A runtime error"}, {"key": "D", "text": "Nothing renders"}], "answer": "A", "why": "The transform stack persists across frames. Push/pop discipline (or reset) is mandatory.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20transform%20stack%20(Creative%20Module%201)."}}, {"id": "ex-cc-p5", "domain": "Canvas", "stem": "When do you reach for raw Canvas 2D over p5.js?", "choices": [{"key": "A", "text": "Zero-dependency control and tiny payloads; p5.js for expressive speed"}, {"key": "B", "text": "Raw canvas is always faster to write"}, {"key": "C", "text": "p5.js cannot do animation"}, {"key": "D", "text": "They are identical — pick randomly"}], "answer": "A", "why": "Prototype in p5.js; drop to raw canvas when the abstraction costs more than it saves.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20canvas%20vs%20p5.js%20trade-offs%20(Creative%20Module%201)."}}, {"id": "ex-cc-ts", "domain": "Motion", "stem": "Animation ignores the rAF timestamp. Consequence?", "choices": [{"key": "A", "text": "Frame-rate-dependent speed — 120 Hz runs 2x faster than 60 Hz"}, {"key": "B", "text": "None — rAF normalizes speed"}, {"key": "C", "text": "The animation won't start"}, {"key": "D", "text": "Colors desaturate"}], "answer": "A", "why": "Integrate over elapsed time (dt), never frame count. The timestamp is the honest clock.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20timestamp-driven%20motion%20(Creative%20Module%202)."}}, {"id": "ex-cc-noise", "domain": "Motion", "stem": "Why does noise() read as organic where random() reads as jittery?", "choices": [{"key": "A", "text": "Noise is correlated — nearby inputs give nearby outputs; random is uncorrelated"}, {"key": "B", "text": "Noise is faster to compute"}, {"key": "C", "text": "random() is deprecated"}, {"key": "D", "text": "They are the same function"}], "answer": "A", "why": "Organic motion is correlated motion. Jitter is what true randomness looks like.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20noise%20vs%20random%20(Creative%20Module%202)."}}, {"id": "ex-cc-css", "domain": "Motion", "stem": "Which job belongs to CSS animation rather than canvas?", "choices": [{"key": "A", "text": "UI fades/slides the compositor can interpolate off-main-thread"}, {"key": "B", "text": "A 10,000-particle flocking simulation"}, {"key": "C", "text": "Per-frame procedural drawing"}, {"key": "D", "text": "Data-driven generative art"}], "answer": "A", "why": "Declarative interpolation → CSS. Computed per-frame state → canvas + JS.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20CSS/canvas%20boundary%20(Creative%20Module%202)."}}, {"id": "ex-cc-agents", "domain": "Emergence", "stem": "Adding more agents made the piece look worse. Why?", "choices": [{"key": "A", "text": "Past the density sweet spot, motion saturates into unreadable noise"}, {"key": "B", "text": "Agents slow down with crowding"}, {"key": "C", "text": "The canvas has an agent limit"}, {"key": "D", "text": "More agents always help — you have a bug"}], "answer": "A", "why": "Richness comes from rule-tuning and negative space, not headcount. Plus O(n²) cost.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20emergence%20density%20(Creative%20Module%203)."}}, {"id": "ex-cc-n2", "domain": "Emergence", "stem": "1,000 agents with all-pairs checks per frame. Fix?", "choices": [{"key": "A", "text": "Spatial partitioning (grid/hash) — check neighbors, not everyone"}, {"key": "B", "text": "Halve the frame rate"}, {"key": "C", "text": "Use fewer colors"}, {"key": "D", "text": "Nothing — 1M checks/frame is fine"}], "answer": "A", "why": "O(n²) → ~O(n) via spatial hashing. The standard fix for the pair-check wall.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20beating%20O(n²)%20(Creative%20Module%203)."}}, {"id": "ex-cc-color", "domain": "Color", "stem": "Why map simulation state to color?", "choices": [{"key": "A", "text": "It makes randomness legible — hue encodes state the eye can track"}, {"key": "B", "text": "Color is faster than grayscale"}, {"key": "C", "text": "Monitors require color"}, {"key": "D", "text": "It reduces file size"}], "answer": "A", "why": "Color as legend: randomness you can read is data; otherwise decoration.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20color%20as%20data%20(Creative%20Module%204)."}}, {"id": "ex-cc-trails", "domain": "Color", "stem": "Translucent black rect each frame instead of clear. Effect?", "choices": [{"key": "A", "text": "Motion trails — past frames decay exponentially"}, {"key": "B", "text": "Identical to a full clear"}, {"key": "C", "text": "Instant black screen"}, {"key": "D", "text": "No visible change"}], "answer": "A", "why": "Alpha is the memory dial: lower alpha, longer trails. The standard trail technique.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20fade%20trails%20(Creative%20Module%204)."}}, {"id": "ex-cc-shader", "domain": "Color", "stem": "What can a fragment shader do that canvas paths practically cannot?", "choices": [{"key": "A", "text": "Per-pixel parallel math on the GPU — millions of ops per frame"}, {"key": "B", "text": "Draw rectangles faster"}, {"key": "C", "text": "Load images"}, {"key": "D", "text": "Nothing — they are equivalent"}], "answer": "A", "why": "CPU-bound path drawing is one-path-at-a-time; shaders are per-pixel parallel.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20when%20shaders%20win%20(Creative%20Module%204)."}}, {"id": "ex-cc-perf", "domain": "Shipping", "stem": "The sketch drops frames. First step?", "choices": [{"key": "A", "text": "Measure — profile the frame and find the actual hot spot"}, {"key": "B", "text": "Cut the particle count in half"}, {"key": "C", "text": "Rewrite in WebGL"}, {"key": "D", "text": "Ship it — viewers have fast machines"}], "answer": "A", "why": "Unmeasured optimization optimizes the wrong thing. Devtools before hypotheses.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20performance%20measurement%20(Creative%20Module%205)."}}]</script>
+    </div>
+  </section>
+
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="continue-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Next steps</p>
+        <h2 class="il-h il-h--section" id="continue-h">Continue the journey.</h2>
+      </div>
+      <div class="il-prose"><p>No dead ends: the sequence continues. Take your capstone proof and your exam score into the next track.</p></div>
+      <div class="il-center" style="margin-top:1.6rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <a class="il-btn il-btn--gold" href="/learn/">Continue to → All Tracks</a>
+        <a class="il-btn" href="/learn/">All tracks</a>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="no-print border-t border-paper/10">
@@ -423,5 +620,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </footer>
 <script src="/assets/noah-ai.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-progress.js" defer></script>
 </body>
 </html>
