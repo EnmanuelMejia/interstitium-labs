@@ -1,83 +1,17 @@
-<!DOCTYPE html><html lang="en" class="antialiased"><head><script src="/assets/il-theme.js"></script>
-<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
-(function(){try{
-if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
-if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
-}catch(e){}})();</script>
-<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Time-to-hire OS — Interstitium Labs</title><meta name="description" content="Adapt → Path → Lab → Noah → Proof dashboard."/>
-<link rel="canonical" href="https://interstitiumlabs.dev/os/"/>
-<meta name="theme-color" content="#070B16"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-motion.css"/><link rel="stylesheet" href="/assets/il-fx.css"/>
-<link rel="stylesheet" href="/assets/il-responsive.css"/><link rel="stylesheet" href="/assets/il-compat.css"/>
-<link rel="stylesheet" href="/assets/il-ux.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/>
-<link rel="stylesheet" href="/assets/il-wow.css"/>
-<link rel="stylesheet" href="/assets/il-genahead.css"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head><body class="min-h-dvh bg-void text-paper">
-<a class="il-skip" href="#main">Skip to content</a><div class="flex min-h-dvh flex-col">
-<!-- Floating pill nav -->
-<nav class="il-pillnav" aria-label="Primary">
-  <div class="il-pillnav__row">
-    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
-      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
-    </a>
-    <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
-      <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
-      <a href="/about/">About Us</a>
-      <a href="https://learn.interstitiumlabs.dev">University</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:.5rem">
-      <details class="il-menu">
-        <summary aria-label="Open menu">MENU</summary>
-        <div class="il-menu__sheet">
-          <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
-          <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
-          <a href="/enroll/">Admissions</a>
-          <a href="/about/">About Us</a>
-          <a href="https://learn.interstitiumlabs.dev">University</a>
-        </div>
-      </details>
-      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
-    </div>
-  </div>
-</nav>
-<main id="main" class="flex-1"><section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8"><p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Time-to-hire OS</p><h1 class="mt-4 font-display text-4xl tracking-[-0.03em]">One loop to hireable proof.</h1></div></section><section class="mx-auto max-w-6xl px-5 py-12 sm:px-8"><div data-il-os></div></section></main>
-<footer class="no-print border-t border-paper/10">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
-  </div>
-  <!-- lang switcher also auto-injected by ILi18n -->
-</footer>
-</div><script src="/assets/il-compat.js" defer></script>
-<script src="/assets/il-game.js" defer></script>
-<script src="/assets/il-fx.js?v=heal2" defer></script>
-<script src="/assets/il-motion.js" defer></script>
-<script src="/assets/il-pwa.js?v=heal2" defer></script>
-<script src="/analytics/config.js" defer></script>
-<script src="/assets/il-analytics.js" defer></script>
-<script src="/assets/il-i18n.js" defer></script>
-<script src="/assets/il-os.js" defer></script><script src="/assets/noah-ai.js" defer></script>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>(function(){try{if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}}catch(e){}})();</script>
+<style>html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta http-equiv="refresh" content="0;url=/learn/"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/"/>
+<title>Time-to-hire OS moved into the Learning OS — Interstitium Labs</title>
+<link rel="stylesheet" href="/assets/il-unified.css"/></head>
+<body>
+<h1>Time-to-hire OS has moved into the Learning OS. Continue to <a href="/learn/">/learn/</a>.</h1>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>

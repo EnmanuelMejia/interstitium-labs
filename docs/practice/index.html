@@ -27,9 +27,10 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   button.row { background: transparent; color: inherit; text-align: left; border-bottom: 1px solid rgba(232,238,245,.12); border-radius: 0; }
   td { padding: 0.5rem 0.75rem 0.5rem 0; vertical-align: top; }
 </style>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+</head>
 <body>
 <a class="il-skip" href="#main">Skip to content</a>
 
@@ -42,10 +43,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     </a>
     <div class="il-pillnav__links">
       <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
       <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
+      <a href="/paths/roles/">Roles</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/labs/">Labs</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/coach/">Coach</a>
+      <a href="/play/">Play</a>
+      <a href="/cinema/">Cinema</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/adapt/">Adapt</a>
       <a href="/about/">About Us</a>
       <a href="https://learn.interstitiumlabs.dev">University</a>
     </div>
@@ -54,9 +61,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
           <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
           <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
+          <a href="/paths/roles/">Role Tracks</a>
+          <a href="/prep/drills/">Practice & Exams</a>
+          <a href="/labs/">Labs</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/coach/">Coach</a>
+          <a href="/play/">Play</a>
+          <a href="/cinema/">Cinema</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/adapt/">Adapt</a>
           <a href="/enroll/">Admissions</a>
           <a href="/about/">About Us</a>
           <a href="https://learn.interstitiumlabs.dev">University</a>
@@ -69,14 +83,20 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <main id="main">
   <p class="il-kicker">One site</p>
   <h1>The practice wing</h1>
-  <p>The Learning OS and the practice are the same product. Learn, paths, prep, and the academy stay on this host. Placement and the bench run on this page. Noah’s frontier turn does not: this host cannot call a model. The disk waits until tomorrow.</p>
+  <p class="il-lede">This is where reading turns into readiness. The practice wing runs the full assessment loop right here in your browser: a short placement probe that finds your true level, a bench of targeted drills aimed at your weakest domains, and an audit that shows exactly what changed. Placement and the bench run on this page, in plain text, with no model calls — so nothing waits on a network round-trip or a fake API key. When you want a coach, <a class="text-cyan" href="/coach/">Noah</a> takes the frontier turn; when you want a path, <a class="text-cyan" href="/learn/">Learn</a> owns the curriculum. Everything else — rooms, probes, feedback — lives below.</p>
+  <section>
+    <h2>The loop: place → bench → mastery</h2>
+    <p>Most study systems hand you a fixed set of questions and call it a day. The wing works the way skill is actually built: <strong>placement</strong> first, so your time goes where it hurts most; a <strong>bench</strong> of focused reps on the weakest domain the probe exposed; then a <strong>mastery check</strong> — the audit — that tells you whether the weak spot is closed or needs another round. One cycle closes one gap. Repeat the loop and the gaps shrink in a visible, checkable order: you always know what you're working on and why, because the placement result is the reason for everything the bench serves next.</p>
+  </section>
   <nav id="rooms"></nav>
   <section>
     <h2>Place</h2>
+    <p>The placement probe is short on purpose: a handful of text-only questions drawn from the arithmetic, algebra, rates, and logarithms that real operations and interviews keep assuming you know — request rates, error budgets, tail latencies, doubling curves, classic host math. Difficulty adapts as you answer, so the probe finds the edge of what you can do instead of wasting your time confirming what you already can. It takes minutes, it runs locally, and its output is a plain verdict: which domains are solid and which one goes on the bench next.</p>
     <div id="place"></div>
   </section>
   <section>
     <h2>Bench</h2>
+    <p>The bench is your weakest domain with a workbench in front of it. It ships a SQL bench that runs <code>SELECT</code> against your own readings — the notes and extracts you've been studying — so drills stay anchored to real material instead of drifting into generic trivia. Write a query, run it, read the output, refine: the same loop an on-call engineer runs against a metrics store, only here the dataset is your curriculum. Weak-domain drills are the second half of placement: the probe names the gap, the bench closes it, and the audit below is the receipt.</p>
     <label for="sql">SELECT on readings</label>
     <textarea id="sql" rows="3" spellcheck="false"></textarea>
     <button id="run" type="button">Run</button>
@@ -84,7 +104,12 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </section>
   <section>
     <h2 data-i18n="cta.audit">Audit</h2>
+    <p>The audit closes the loop. It reads your placement and bench results and gives you the honest state of play: what moved, what didn't, and which domain the next cycle should target. Treat it like a coach's film review after the session, not a grade — the point is remediation, not a score to screenshot. Read it, take the next bench assignment seriously, and place again when the audit says the gap is closed.</p>
     <div id="audit"></div>
+  </section>
+  <section>
+    <h2>What you take away</h2>
+    <p>One cycle of the wing hands you three things: a measured placement instead of a guess about your level, a named weakest domain with drills already running against it, and an audit trail that shows your progress in concrete terms — not hours logged, but gaps closed. Run the loop before you touch <a class="text-cyan" href="/adapt/">the adaptive path</a>, and you'll enter it with the weakest domains already on the record, which is exactly what the adaptive fringe needs to spend your time well.</p>
   </section>
 </main>
 <script src="/assets/il-practice-wing.js"></script>

@@ -1,0 +1,75 @@
+<!--
+  Interstitium Labs — canonical nav fragment (il-unified-nav.html)
+  ==================================================================
+  Drop-in replacement for every page's nav. Inline directly after
+  <body> (plus the .il-skip link), or JS-inject into a placeholder:
+      <div id="il-nav"></div>
+      fetch('/assets/il-unified-nav.html').then(r=>r.text()).then(h=>{
+        document.getElementById('il-nav').innerHTML = h;
+      });
+  Requires /assets/il-unified.css (loads .il-pillnav + .il-menu).
+  The theme toggle button is injected into the pill nav by il-theme.js
+  — do not hand-add it here.
+
+  GROUPING:
+    Desktop row (.il-pillnav__links, ≥900px): flat core trail —
+    Learn, Paths, Noah AI, Coach, Jobs, About + gold Enroll CTA.
+    Mobile sheet (.il-menu__sheet): full grouped sitemap.
+  Mark the current page with aria-current="page" on its link.
+-->
+<a class="il-skip" href="#main">Skip to content</a>
+
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="/paths/">Paths</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/coach/">Coach</a>
+      <a href="/play/">Play</a>
+      <a href="/cinema/">Cinema</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/adapt/">Adapt</a>
+      <a href="/about/">About</a>
+      <a href="https://learn.interstitiumlabs.dev">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <div class="il-menu__group">Learn</div>
+          <a href="/learn/">Learning OS</a>
+          <a href="/learn/sequences/">Sequences</a>
+          <a href="/paths/">Paths</a>
+          <a href="/paths/roles/">Role Tracks</a>
+          <a href="/prep/drills/">Practice &amp; Exams</a>
+          <a href="/library/">Library</a>
+
+          <div class="il-menu__group">Build</div>
+          <a href="/labs/">Labs</a>
+          <a href="/immersive/">Immersive</a>
+          <a href="/adapt/">Adapt</a>
+
+          <div class="il-menu__group">Guides</div>
+          <a href="/noah/">Noah AI</a>
+          <a href="/coach/">Coach</a>
+
+          <div class="il-menu__group">Experience</div>
+          <a href="/play/">Play</a>
+          <a href="/cinema/">Cinema</a>
+          <a href="/jobs/">Jobs</a>
+
+          <div class="il-menu__group">Interstitium</div>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Admissions</a>
+          <a href="https://learn.interstitiumlabs.dev">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>

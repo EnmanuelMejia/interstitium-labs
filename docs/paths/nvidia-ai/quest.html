@@ -55,17 +55,19 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 @media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 <link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-responsive.css"/>
-<link rel="stylesheet" href="/assets/il-chrome.css"/>
+
+
 <link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
 <link rel="stylesheet" href="/assets/il-ultrawide.css"/>
 <link rel="stylesheet" href="/assets/il-hdr.css"/>
-<link rel="stylesheet" href="/assets/il-motion.css"/>
-<link rel="stylesheet" href="/assets/il-fx.css"/>
-<link rel="stylesheet" href="/assets/il-compat.css"/>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+</head>
 <body>
 <a class="il-skip" href="#main">Skip to content</a>
 
@@ -113,8 +115,12 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 <header>
 <p class="sub"><a href="/paths/nvidia-ai/" style="color:var(--cyan);text-decoration:none">← NVIDIA AI path</a></p>
 <h1>NVIDIA AI Quest</h1>
-<p class="sub">10 free courses · XP · badges · streak · local only · plan from <a href="https://chat.deepseek.com/share/uv485uqbfcjzgxf38l" target="_blank" rel="noopener" style="color:var(--cyan)">uv485uq</a></p>
+<p class="sub">10 free courses · XP · badges · streak · local only · companion to <a href="/paths/nvidia-ai/" style="color:var(--cyan)">the NVIDIA AI path</a> · plan from <a href="https://chat.deepseek.com/share/uv485uqbfcjzgxf38l" target="_blank" rel="noopener" style="color:var(--cyan)">uv485uq</a></p>
 </header>
+<section style="margin-bottom:1.5rem">
+<p style="font-size:.8rem;text-transform:uppercase;letter-spacing:.18em;color:var(--gold);margin:0 0 .65rem">The quest log</p>
+<p class="sub" style="max-width:60ch">Ten quests in three phases. Phase 1 builds AI literacy — what generative models are, how neural networks learn, what agents do, and where robots meet AI. Phase 2 goes applied: accelerated data workflows, AI in digital health, AI infrastructure operations, and digital twins. Phase 3 is the deep end: edge AI on real hardware and retrieval-augmented agents you can actually build. Each quest card lists its learning objectives and the Interstitium study material that backs it — the <a href="/paths/nvidia-ai/" style="color:var(--cyan)">NVIDIA AI path</a> plus the <a href="/learn/sequences/local-ai-lab/" style="color:var(--cyan)">Local AI Lab</a>, <a href="/learn/sequences/math-for-ml/" style="color:var(--cyan)">Mathematics for ML</a>, <a href="/learn/sequences/agentic-coding-advisor/" style="color:var(--cyan)">Agentic Coding Advisor</a>, <a href="/learn/sequences/agent-stack-ops/" style="color:var(--cyan)">Agent Stack Ops</a>, and <a href="/learn/sequences/ai-product-innovation/" style="color:var(--cyan)">AI Product Innovation</a> sequences. This is preparation, not certification — NVIDIA runs the courses; we run the map.</p>
+</section>
 <div class="stats">
 <div class="stat"><b id="xp">0</b><span>XP</span></div>
 <div class="stat"><b id="lvl">Recruit</b><span>Rank</span></div>
@@ -132,16 +138,36 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
 <script>
 const STORAGE_KEY='il.progress.nvidia.quest';
 const COURSES=[
-{id:1,title:'Generative AI Explained',phase:1,hours:2,xp:60,url:'https://lnkd.in/gBb3peXi'},
-{id:2,title:'Building A Brain in 10 Minutes',phase:1,hours:0.2,xp:20,url:'https://lnkd.in/gCaA-XKp'},
-{id:3,title:'Agentic AI Explained',phase:1,hours:1,xp:40,url:'https://lnkd.in/guBtU3-k'},
-{id:4,title:"A Beginner's Guide to Autonomous Robots",phase:1,hours:1,xp:40,url:'https://lnkd.in/g5sVKrWu'},
-{id:5,title:'Data Science Workflows with Zero Code Changes',phase:2,hours:1,xp:50,url:'https://lnkd.in/gF7eVk2V'},
-{id:6,title:'NVIDIA Tools for Generative AI in Digital Health',phase:2,hours:2,xp:60,url:'https://lnkd.in/gaMUhSVR'},
-{id:7,title:'AI Infrastructure and Operations Fundamentals',phase:2,hours:8,xp:250,url:'https://lnkd.in/gKTS6uMS'},
-{id:8,title:'An Introduction to Developing With NVIDIA Omniverse',phase:2,hours:2,xp:60,url:'https://lnkd.in/gmS-kc3p'},
-{id:9,title:'Getting Started with AI on Jetson Nano',phase:3,hours:8,xp:250,url:'https://lnkd.in/gnmrhBJm'},
-{id:10,title:'Building RAG Agents with LLMs',phase:3,hours:8,xp:250,url:'https://lnkd.in/gcK2ZJ4a'},
+{id:1,title:'Generative AI Explained',phase:1,hours:2,xp:60,url:'https://lnkd.in/gBb3peXi',
+ obj:['Explain in plain language what a large language model predicts and why it is not a database','Describe how generative models are trained and where their knowledge stops','Name two failure modes — confident wrong answers and invented citations — and how to catch them'],
+ study:[['NVIDIA AI path','/paths/nvidia-ai/'],['Local AI Lab','/learn/sequences/local-ai-lab/']]},
+{id:2,title:'Building A Brain in 10 Minutes',phase:1,hours:0.2,xp:20,url:'https://lnkd.in/gCaA-XKp',
+ obj:['Describe what a neural network is at a conceptual level: inputs, weights, activation','Explain why training is iterative adjustment rather than programming','Relate the 10-minute model to the math behind real networks without pretending to master it'],
+ study:[['Mathematics for Machine Learning','/learn/sequences/math-for-ml/'],['Local AI Lab','/learn/sequences/local-ai-lab/']]},
+{id:3,title:'Agentic AI Explained',phase:1,hours:1,xp:40,url:'https://lnkd.in/guBtU3-k',
+ obj:['Distinguish an agentic system from a single chat completion: tools, memory, loops','Sketch how an agent plans, calls a tool, and checks its own result','Name one safety risk of autonomous tool use and one mitigation'],
+ study:[['Agentic Coding Advisor','/learn/sequences/agentic-coding-advisor/'],['Agent Stack Ops','/learn/sequences/agent-stack-ops/']]},
+{id:4,title:"A Beginner's Guide to Autonomous Robots",phase:1,hours:1,xp:40,url:'https://lnkd.in/g5sVKrWu',
+ obj:['Explain the perception → decision → action loop that defines an autonomous system','Describe where the AI runs in a robot: on-device, edge, or cloud — and why it matters','Identify one way robotics and generative AI are starting to combine'],
+ study:[['NVIDIA AI path','/paths/nvidia-ai/'],['AI Product Innovation','/learn/sequences/ai-product-innovation/']]},
+{id:5,title:'Data Science Workflows with Zero Code Changes',phase:2,hours:1,xp:50,url:'https://lnkd.in/gF7eVk2V',
+ obj:['Explain how accelerated computing speeds a data-science workflow without rewriting code','Describe where the bottleneck moves when compute stops being the constraint','Decide when acceleration is worth the cost versus when the data is the real problem'],
+ study:[['Local AI Lab','/learn/sequences/local-ai-lab/'],['NVIDIA AI path','/paths/nvidia-ai/']]},
+{id:6,title:'NVIDIA Tools for Generative AI in Digital Health',phase:2,hours:2,xp:60,url:'https://lnkd.in/gaMUhSVR',
+ obj:['Describe how generative AI is applied to health data: summarization, coding, search','Explain why health data raises the stakes for model accuracy and privacy','Identify one NVIDIA tool category used in digital-health AI pipelines'],
+ study:[['AI Product Innovation','/learn/sequences/ai-product-innovation/'],['NVIDIA AI path','/paths/nvidia-ai/']]},
+{id:7,title:'AI Infrastructure and Operations Fundamentals',phase:2,hours:8,xp:250,url:'https://lnkd.in/gKTS6uMS',
+ obj:['Describe what makes GPU infrastructure different from general compute for AI workloads','Explain the lifecycle of an AI model in production: deploy, monitor, update','Relate AI infrastructure operations to SRE thinking: SLIs, capacity, failure modes'],
+ study:[['Agent Stack Ops','/learn/sequences/agent-stack-ops/'],['NVIDIA AI path','/paths/nvidia-ai/']]},
+{id:8,title:'An Introduction to Developing With NVIDIA Omniverse',phase:2,hours:2,xp:60,url:'https://lnkd.in/gmS-kc3p',
+ obj:['Explain what a digital twin is and why simulation precedes deployment','Describe the role of 3D collaboration and physics simulation in AI development','Identify one industry use case where Omniverse-style simulation changes the workflow'],
+ study:[['NVIDIA AI path','/paths/nvidia-ai/'],['Local AI Lab','/learn/sequences/local-ai-lab/']]},
+{id:9,title:'Getting Started with AI on Jetson Nano',phase:3,hours:8,xp:250,url:'https://lnkd.in/gnmrhBJm',
+ obj:['Explain edge AI: why some inference must run on-device instead of in the cloud','Describe the constraints of edge hardware: power, memory, latency','Plan a small edge-AI project: dataset, model choice, and deployment steps'],
+ study:[['Local AI Lab','/learn/sequences/local-ai-lab/'],['NVIDIA AI path','/paths/nvidia-ai/']]},
+{id:10,title:'Building RAG Agents with LLMs',phase:3,hours:8,xp:250,url:'https://lnkd.in/gcK2ZJ4a',
+ obj:['Explain retrieval-augmented generation: why grounding cuts hallucinations','Sketch a RAG pipeline: chunk, embed, retrieve, generate, cite','Combine RAG with an agent loop and describe where evaluation fits'],
+ study:[['Agentic Coding Advisor','/learn/sequences/agentic-coding-advisor/'],['Agent Stack Ops','/learn/sequences/agent-stack-ops/'],['Local AI Lab','/learn/sequences/local-ai-lab/']]},
 ];
 const PHASES={1:'Phase 1 · Foundations (Weeks 1–3)',2:'Phase 2 · Applied skills (Weeks 4–7)',3:'Phase 3 · Advanced (Weeks 8–10)'};
 const LEVELS=[{min:0,name:'Recruit'},{min:100,name:'Cadet'},{min:250,name:'Specialist'},{min:450,name:'Operator'},{min:700,name:'Architect'},{min:950,name:'AI Ranger'},{min:1140,name:'NVIDIA Master'}];
@@ -211,7 +237,12 @@ function render(){
       const done=!!state.completed[c.id];
       const div=document.createElement('div');
       div.className='card'+(done?' done':'')+(next&&next.id===c.id?' next':'');
-      div.innerHTML='<div style="flex:1"><h3>'+(done?'✓ ':'')+c.title+'</h3><p class="meta">'+c.xp+' XP · ~'+c.hours+' h'+(next&&next.id===c.id?' · START HERE':'')+'</p><a href="'+c.url+'" target="_blank" rel="noopener">Open course ↗</a></div><button class="'+(done?'ghost':'primary')+'" type="button">'+(done?'Undo':'Mark complete')+'</button>';
+      const objs=(c.obj||[]).map(o=>'<li>'+o+'</li>').join('');
+      const study=(c.study||[]).map(s=>'<a href="'+s[1]+'">'+s[0]+'</a>').join(' · ');
+      div.innerHTML='<div style="flex:1"><h3>'+(done?'✓ ':'')+c.title+'</h3><p class="meta">'+c.xp+' XP · ~'+c.hours+' h'+(next&&next.id===c.id?' · START HERE':'')+'</p>'+
+      '<p class="meta" style="color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-size:.68rem;margin-top:.5rem">Quest objectives</p><ul style="font-size:.82rem;color:var(--paper);margin:.25rem 0 .5rem;padding-left:1.1rem">'+objs+'</ul>'+
+      '<p class="meta">Study with: '+study+'</p>'+
+      '<a href="'+c.url+'" target="_blank" rel="noopener">Open course ↗</a></div><button class="'+(done?'ghost':'primary')+'" type="button">'+(done?'Undo':'Mark complete')+'</button>';
       div.querySelector('button').onclick=()=>toggle(c.id);
       sec.appendChild(div);
     });
