@@ -8,8 +8,11 @@
 #     assets binding — the deploy config must also include
 #     {"type":"assets","name":"ASSETS"} or env.ASSETS is undefined in worker.js.
 #   - run_worker_first must stay UNSET: when set, the worker serves every
-#     request via env.ASSETS and the _headers file is silently bypassed
-#     (no CSP, no HSTS, no X-Robots-Tag). Default assets-first keeps _headers.
+#     request via env.ASSETS and the _headers file is silently bypassed.
+#   - NOTE: _headers is currently INERT in this API deploy path even unset
+#     (verified 2026-10-04: no CSP/X-Robots-Tag/Cache-Control rules applied).
+#     Per-page <meta http-equiv> carries CSP; worker.js injects X-Robots-Tag
+#     for operator prefixes; meta robots covers admin/ops HTML.
 /os       /learn/     301
 /os/      /learn/     301
 /proof    /evidence/  301
