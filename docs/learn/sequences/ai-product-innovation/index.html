@@ -29,6 +29,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+.il-media{margin:1.4rem 0 1.8rem;border:1px solid rgba(242,237,225,.12);border-radius:.75rem;background:#0d1424;padding:1rem;overflow-x:auto}
+.il-media svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.il-media figcaption{margin-top:.6rem;font-size:.78rem;color:#9aa3b5;text-align:center}
+.il-check-key{margin-top:.6rem;border:1px solid rgba(232,182,76,.35);border-radius:.6rem;background:rgba(232,182,76,.05)}
+.il-check-key summary{cursor:pointer;padding:.55rem .8rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#e8b64c;font-family:inherit}
+.il-check-key__body{padding:.2rem 1rem 1rem;font-size:.92rem;color:#d9d4c7}
+.il-check-key__body p{margin:.5rem 0}
+.il-lab-station{border:1px solid rgba(103,232,249,.3);border-radius:.9rem;background:rgba(103,232,249,.04);padding:1.2rem;margin:1.2rem 0}
+.il-lab-station h4{color:#67e8f9}
+.il-lab-widget{margin:1.2rem 0;padding:1rem;border:1px solid rgba(242,237,225,.12);border-radius:.7rem;background:rgba(10,15,29,.5)}
+.il-lab-widget h5{margin:.2rem 0 .6rem;font-size:1rem;color:#f2ede1}
+.il-lab-widget label{display:block;margin:.5rem 0;font-size:.9rem}
+.il-lab-widget select,.il-lab-widget input[type=text],.il-lab-widget input[type=number]{background:#0a0f1d;border:1px solid rgba(242,237,225,.25);color:#f2ede1;border-radius:.4rem;padding:.45rem .6rem;font-size:.9rem;max-width:22rem;width:100%}
+.il-lab-widget button{cursor:pointer;background:#e8b64c;color:#0a0f1d;border:0;border-radius:.5rem;padding:.55rem 1rem;font-weight:600;font-size:.85rem;letter-spacing:.04em}
+.il-lab-widget button:hover{filter:brightness(1.08)}
+.il-lab-result{margin-top:.8rem;padding:.8rem 1rem;border-radius:.6rem;border:1px solid rgba(242,237,225,.15);background:#0d1424;font-size:.92rem}
+.il-lab-result.good{border-color:rgba(134,239,172,.5)}
+.il-lab-result.warn{border-color:rgba(232,182,76,.6)}
+.il-lab-result.bad{border-color:rgba(248,113,113,.6)}
+.il-logline{font-family:ui-monospace,monospace;font-size:.8rem;padding:.3rem .5rem;border-radius:.35rem;cursor:pointer;border:1px solid transparent;margin:.15rem 0}
+.il-logline:hover{border-color:rgba(103,232,249,.4)}
+.il-logline.sel-ioc{background:rgba(134,239,172,.12);border-color:rgba(134,239,172,.5)}
+.il-logline.sel-fp{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.5)}
+.il-rubric{width:100%;border-collapse:collapse;font-size:.88rem;margin:.6rem 0}
+.il-rubric th,.il-rubric td{border:1px solid rgba(242,237,225,.15);padding:.5rem .6rem;text-align:left;vertical-align:top}
+.il-rubric th{background:rgba(232,182,76,.08);color:#e8b64c}
+.il-checklist label{display:flex;gap:.5rem;align-items:flex-start;margin:.45rem 0;font-size:.9rem}
+.il-checklist input[type=checkbox]{margin-top:.2rem;transform:scale(1.2)}
+.il-progress{border:1px solid rgba(242,237,225,.12);border-radius:.8rem;padding:1.1rem;margin:1.2rem 0;background:rgba(10,15,29,.5)}
+.il-progress__bar{height:.6rem;border-radius:.3rem;background:rgba(242,237,225,.1);overflow:hidden;margin:.6rem 0}
+.il-progress__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#e8b64c,#67e8f9);transition:width .4s}
+.il-progress__mods{list-style:none;margin:.6rem 0 0;padding:0;columns:2;column-gap:2rem;font-size:.88rem}
+@media(max-width:640px){.il-progress__mods{columns:1}}
+.il-progress__mods li{margin:.3rem 0;break-inside:avoid}
+.il-progress__mods label{display:flex;gap:.5rem;align-items:flex-start;cursor:pointer}
+.il-nextsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin-top:1rem}
+.il-nextcard{border:1px solid rgba(242,237,225,.14);border-radius:.8rem;padding:1.1rem;background:rgba(13,20,36,.6);text-decoration:none!important;display:block}
+.il-nextcard:hover{border-color:rgba(232,182,76,.55)}
+.il-nextcard .il-eyebrow{margin:0 0 .4rem}
+.il-nextcard h4{margin:.2rem 0 .5rem;color:#f2ede1;font-size:1.02rem}
+.il-nextcard p{font-size:.88rem;color:#9aa3b5;margin:0}
+.il-disclaimer{border-left:3px solid #e8b64c;padding:.8rem 1.1rem;margin:1.4rem 0;background:rgba(232,182,76,.05);font-size:.9rem;color:#d9d4c7}
+</style>
 
 </head>
 <body>
@@ -137,9 +181,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">7 modules, in order.</h2>
       </div>
       <div class="il-modules">
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-1" class="il-module">
           <p class="il-eyebrow">Module 0</p>
           <h3 class="il-h il-h--card">AI Fundamentals for Decision-Makers: What the Models Can and Cannot Do</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Model capabilities map"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">What the models can and cannot do — the decision-maker's map</text><rect x="20" y="60" width="290" height="200" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="165" y="88" text-anchor="middle" font-weight="700">CAN</text><text class="d" x="165" y="112" text-anchor="middle">draft, summarize, translate</text><text class="d" x="165" y="132" text-anchor="middle">classify, extract, explain</text><text class="d" x="165" y="152" text-anchor="middle">brainstorm, prototype</text><text class="d" x="165" y="186" text-anchor="middle">Pattern work at scale —</text><text class="d" x="165" y="206" text-anchor="middle">fast, cheap, tireless.</text><rect x="330" y="60" width="290" height="200" rx="8" fill="#141b2e" stroke="#f87171"/><text class="t" x="475" y="88" text-anchor="middle" font-weight="700">CANNOT (reliably)</text><text class="d" x="475" y="112" text-anchor="middle">guarantee factual truth</text><text class="d" x="475" y="132" text-anchor="middle">reason about your business</text><text class="d" x="475" y="152" text-anchor="middle">own consequences</text><text class="d" x="475" y="186" text-anchor="middle">Judgment, accountability,</text><text class="d" x="475" y="206" text-anchor="middle">and truth stay human.</text><text class="d" x="20" y="300">Every product decision in this sequence starts here: which column does the job live in?</text><text class="d" x="20" y="322">Build in the left column; keep humans firmly in the right.</text></svg>
+<figcaption>The decision-maker's map: pattern work belongs to models; judgment stays human.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>State in plain language what generative models do: pattern-based generation, not understanding</li>
@@ -166,9 +214,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What breaks when you assume "smart at the hard subtask" implies "reliable at the easy one"?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-2" class="il-module">
           <p class="il-eyebrow">Module 1</p>
           <h3 class="il-h il-h--card">Sharp-Edged vs. Rough-Edged Problems: Where AI Belongs</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sharp versus rough edged problems"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Sharp-edged vs. rough-edged — where AI belongs</text><rect x="20" y="60" width="290" height="180" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="165" y="88" text-anchor="middle" font-weight="700">SHARP-EDGED</text><text class="d" x="165" y="112" text-anchor="middle">errors are costly</text><text class="d" x="165" y="132" text-anchor="middle">medical, legal, financial</text><text class="d" x="165" y="152" text-anchor="middle">decisions with consequences</text><text class="d" x="165" y="186" text-anchor="middle">AI assists; humans decide.</text><text class="d" x="165" y="206" text-anchor="middle">Verification is the product.</text><rect x="330" y="60" width="290" height="180" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="475" y="88" text-anchor="middle" font-weight="700">ROUGH-EDGED</text><text class="d" x="475" y="112" text-anchor="middle">errors are cheap</text><text class="d" x="475" y="132" text-anchor="middle">drafts, ideas, summaries</text><text class="d" x="475" y="152" text-anchor="middle">first passes</text><text class="d" x="475" y="186" text-anchor="middle">AI leads; humans skim.</text><text class="d" x="475" y="206" text-anchor="middle">Speed is the product.</text><text class="d" x="20" y="280">Misclassification is the product failure: sharp-edged work shipped with rough-edged rigor</text><text class="d" x="20" y="302">is how AI incidents happen. Classify the problem before choosing the autonomy level.</text></svg>
+<figcaption>Sharp-edged problems need human decision; rough-edged problems reward AI speed.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Define sharp-edged and rough-edged problems in terms of error tolerance</li>
@@ -197,9 +249,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What are two concrete techniques for softening a problem's edge?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-3" class="il-module">
           <p class="il-eyebrow">Module 2</p>
           <h3 class="il-h il-h--card">Augmentation, Not Replacement: Intelligence as a Design Principle</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Augmentation ladder"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Augmentation, not replacement — the ladder</text><rect x="60" y="60" width="520" height="50" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="80" y="90" font-weight="700">TOOL</text><text class="d" x="280" y="90">does what you say</text><rect x="100" y="122" width="440" height="50" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="120" y="152" font-weight="700">COPILOT</text><text class="d" x="320" y="152">suggests, you choose</text><rect x="140" y="184" width="360" height="50" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="160" y="214" font-weight="700">AGENT</text><text class="d" x="360" y="214">acts within bounds</text><rect x="180" y="246" width="280" height="50" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="200" y="276" font-weight="700">HUMAN COMMAND</text><text class="d" x="400" y="276">owns the outcome</text><text class="d" x="20" y="322">Climb deliberately: each rung trades control for leverage. The top rung never moves.</text></svg>
+<figcaption>The augmentation ladder: more leverage per rung, but human command never moves.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Distinguish automation (replacing the human) from augmentation (extending the human)</li>
@@ -228,9 +284,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Why is showing evidence, not just conclusions, an augmentation choice?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-4" class="il-module">
           <p class="il-eyebrow">Module 3</p>
           <h3 class="il-h il-h--card">Differentiation: Escaping the Gravity Well of General-Purpose AI</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Differentiation moats"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Differentiation — escaping the gravity well</text><circle cx="320" cy="150" r="70" fill="#141b2e" stroke="#9aa3b5"/><text class="d" x="320" y="146" text-anchor="middle">general-purpose</text><text class="d" x="320" y="164" text-anchor="middle">AI: the well</text><circle cx="320" cy="150" r="120" fill="none" stroke="#e8b64c" stroke-dasharray="6,4"/><text class="t" x="320" y="52" text-anchor="middle" font-weight="700">DATA MOAT</text><text class="d" x="320" y="70" text-anchor="middle">proprietary, hard to replicate</text><text class="t" x="120" y="250" text-anchor="middle" font-weight="700">WORKFLOW MOAT</text><text class="d" x="120" y="268" text-anchor="middle">embedded in how work gets done</text><text class="t" x="520" y="250" text-anchor="middle" font-weight="700">DISTRIBUTION</text><text class="d" x="520" y="268" text-anchor="middle">you own the channel</text><text class="d" x="20" y="310">A thin wrapper on someone else's model is pulled into the well. Moats are what stays out.</text></svg>
+<figcaption>Differentiation moats — data, workflow, distribution — against the general-purpose gravity well.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain why users default to general-purpose AI tools over specialized products</li>
@@ -259,9 +319,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What makes a differentiation claim survive the paste test?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-5" class="il-module">
           <p class="il-eyebrow">Module 4</p>
           <h3 class="il-h il-h--card">Responsible AI by Process: Finding Risks Early</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Responsible AI process"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Responsible AI by process — finding risks early</text><g><rect x="14" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="86" y="98" text-anchor="middle" font-weight="700">Identify</text><text class="d" x="86" y="120" text-anchor="middle">name the harms</text><line x1="158" y1="108" x2="170" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="170" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="242" y="98" text-anchor="middle" font-weight="700">Assess</text><text class="d" x="242" y="120" text-anchor="middle">likelihood × severity</text><line x1="314" y1="108" x2="326" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="326" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="398" y="98" text-anchor="middle" font-weight="700">Mitigate</text><text class="d" x="398" y="120" text-anchor="middle">design controls</text><line x1="470" y1="108" x2="482" y2="108" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><rect x="482" y="70" width="144" height="76" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="554" y="98" text-anchor="middle" font-weight="700">Monitor</text><text class="d" x="554" y="120" text-anchor="middle">watch in production</text></g><path d="M 590 146 C 590 230, 60 230, 40 150" fill="none" stroke="#e8b64c" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#am)"/><text class="d" x="320" y="222" text-anchor="middle">Production monitoring feeds back into identification — risks emerge after launch.</text><text class="d" x="20" y="262">Ethics by process, not by poster: named risks, assessed severity, designed mitigations,</text><text class="d" x="20" y="284">monitored outcomes. A risk found in design costs a meeting; in production, an incident.</text></svg>
+<figcaption>Responsible AI as process: identify, assess, mitigate, monitor — with a production feedback loop.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain why ethical and societal risk is a product problem, not just a compliance one</li>
@@ -288,9 +352,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What distinguishes a mitigation from a mitigation principle that never ships?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-6" class="il-module">
           <p class="il-eyebrow">Module 5</p>
           <h3 class="il-h il-h--card">Humans Meet the Machine: The Psychology of AI Interaction</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trust calibration"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Humans meet the machine — calibrate trust</text><line x1="80" y1="260" x2="560" y2="260" stroke="#9aa3b5"/><line x1="80" y1="260" x2="80" y2="80" stroke="#9aa3b5"/><text class="d" x="320" y="290" text-anchor="middle">system capability →</text><text class="d" x="40" y="170" transform="rotate(-90,40,170)" text-anchor="middle">user trust →</text><line x1="80" y1="260" x2="560" y2="80" stroke="#86efac" stroke-width="2" stroke-dasharray="6,4"/><text class="d" x="480" y="100">calibrated</text><path d="M 80 260 C 250 240, 350 120, 560 110" fill="none" stroke="#f87171" stroke-width="2"/><text class="d" x="420" y="200">over-trust: the danger zone</text><path d="M 80 260 C 250 258, 400 250, 560 240" fill="none" stroke="#e8b64c" stroke-width="2"/><text class="d" x="420" y="262">under-trust: the waste zone</text><text class="d" x="20" y="330">Design for calibration: show uncertainty, make verification cheap, never imply certainty.</text></svg>
+<figcaption>Trust calibration: over-trust is the danger zone, under-trust the waste zone.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain why people treat AI systems as social actors</li>
@@ -319,9 +387,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What social cost does AI-mediated messaging impose, and who pays it?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="ai-product-innovation-mod-7" class="il-module">
           <p class="il-eyebrow">Module 6</p>
           <h3 class="il-h il-h--card">Simulating Your Users: Generative Agents for Product Decisions</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Generative agents simulation loop"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Simulating your users — generative agents for product decisions</text><rect x="40" y="80" width="160" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="120" y="108" text-anchor="middle" font-weight="700">PERSONAS</text><text class="d" x="120" y="128" text-anchor="middle">grounded in research</text><rect x="240" y="80" width="160" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="320" y="108" text-anchor="middle" font-weight="700">SIMULATE</text><text class="d" x="320" y="128" text-anchor="middle">agents use the prototype</text><rect x="440" y="80" width="160" height="70" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="520" y="108" text-anchor="middle" font-weight="700">DECIDE</text><text class="d" x="520" y="128" text-anchor="middle">patterns inform bets</text><line x1="200" y1="115" x2="240" y2="115" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><line x1="400" y1="115" x2="440" y2="115" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><text class="d" x="20" y="190">The honest caveat, stated plainly: simulated users are hypotheses, not evidence.</text><text class="d" x="20" y="212">They generate questions for real research — they do not replace it. A simulation that</text><text class="d" x="20" y="234">"validates" your roadmap is a mirror, not a window. Use it to explore, then go talk to humans.</text></svg>
+<figcaption>Generative agents simulate to generate hypotheses — real research still decides.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain what generative agents are and how they simulate user behavior</li>
@@ -426,6 +498,162 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+
+<hr class="il-rule"/>
+<section class="il-section" id="lab-station" aria-labelledby="lab-station-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Validated labs</p>
+<h2 class="il-h il-h--section" id="lab-station-h">Lab validation station.</h2>
+<div class="il-prose"><p>These exercises run entirely in your browser. Work each one, read the feedback, and retry until the reasoning is automatic — nothing here requires leaving this page.</p></div>
+
+<div class="il-lab-station">
+<h4>Lab A — Sharp or rough? Classify the opportunity</h4>
+<p>Classify each product problem as <strong>sharp-edged</strong> (errors costly → human decides) or <strong>rough-edged</strong> (errors cheap → AI leads).</p>
+<div class="il-lab-widget" data-il-widget="sharp">
+<div data-il-sh-q>
+<p><strong>1.</strong> Drafting personalized outreach emails for sales reps to review.</p>
+<label><select data-il-sh="0"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+<p><strong>2.</strong> Flagging potentially fraudulent insurance claims for investigators.</p>
+<label><select data-il-sh="1"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+<p><strong>3.</strong> Summarizing long meeting recordings for attendees.</p>
+<label><select data-il-sh="2"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+<p><strong>4.</strong> Recommending medication dosages to clinicians.</p>
+<label><select data-il-sh="3"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+<p><strong>5.</strong> Generating first-draft product descriptions for a catalog.</p>
+<label><select data-il-sh="4"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+<p><strong>6.</strong> Screening job applications to auto-reject candidates.</p>
+<label><select data-il-sh="5"><option value="">— classify —</option><option value="sharp">Sharp-edged</option><option value="rough">Rough-edged</option></select></label>
+</div>
+<button type="button" data-il-sh-go>Check my classifications</button>
+<div class="il-lab-result" data-il-sh-out aria-live="polite">Classify each problem, then check.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="sharp"]');if(!w)return;
+var out=w.querySelector('[data-il-sh-out]');
+var answers=['rough','sharp','rough','sharp','rough','sharp'];
+var why=['Outreach drafts: cheap errors, human reviews — speed is the product.',
+'Fraud flags: accusations have consequences — the investigator decides, AI assists.',
+'Meeting summaries: attendees were there; errors are checkable and cheap.',
+'Medication dosage: errors can kill — human decides, verification is the product.',
+'Catalog drafts: cheap errors, editor reviews — rough-edged.',
+'Auto-rejecting candidates: livelihoods at stake — sharp-edged, human decides, bias process required.'];
+w.querySelector('[data-il-sh-go]').addEventListener('click',function(){
+var sels=w.querySelectorAll('[data-il-sh]'),c=0,notes=[];
+sels.forEach(function(s,i){if(s.value===answers[i])c++;else notes.push((i+1)+'. '+why[i]);});
+out.className='il-lab-result '+(c===6?'good':(c>=4?'warn':'bad'));
+out.innerHTML='<strong>'+c+' / 6 correct.</strong>'+(notes.length?'<br/>'+notes.join('<br/>'):'<br/>Clean classification — you sort by consequence cost, not by AI enthusiasm.');
+try{localStorage.setItem('il.lab.aip.sharp',JSON.stringify({t:Date.now(),score:c}))}catch(e){}
+});
+})();
+</script>
+</div>
+<div class="il-lab-station">
+<h4>Lab B — Responsible-AI risk worksheet</h4>
+<p>Score three risks for your (real or hypothetical) AI feature: likelihood × severity, then read the process verdict. This is the Module 5 worksheet, executable.</p>
+<div class="il-lab-widget" data-il-widget="rai">
+<div data-il-rai-q>
+<p><strong>Risk 1 — Harmful or false output reaching users</strong></p>
+<label>Likelihood <select data-il-rai="0l"><option value="1">1 — rare</option><option value="2">2 — unlikely</option><option value="3" selected>3 — possible</option><option value="4">4 — likely</option><option value="5">5 — almost certain</option></select></label>
+<label>Severity <select data-il-rai="0s"><option value="1">1 — negligible</option><option value="2">2 — minor</option><option value="3" selected>3 — moderate</option><option value="4">4 — major</option><option value="5">5 — catastrophic</option></select></label>
+<p><strong>Risk 2 — Biased outcomes for a protected group</strong></p>
+<label>Likelihood <select data-il-rai="1l"><option value="1">1 — rare</option><option value="2">2 — unlikely</option><option value="3" selected>3 — possible</option><option value="4">4 — likely</option><option value="5">5 — almost certain</option></select></label>
+<label>Severity <select data-il-rai="2s"><option value="1">1 — negligible</option><option value="2">2 — minor</option><option value="3">3 — moderate</option><option value="4" selected>4 — major</option><option value="5">5 — catastrophic</option></select></label>
+<p><strong>Risk 3 — Over-trust: users stop verifying consequential outputs</strong></p>
+<label>Likelihood <select data-il-rai="2l"><option value="1">1 — rare</option><option value="2">2 — unlikely</option><option value="3">3 — possible</option><option value="4" selected>4 — likely</option><option value="5">5 — almost certain</option></select></label>
+<label>Severity <select data-il-rai="2s2"><option value="1">1 — negligible</option><option value="2">2 — minor</option><option value="3" selected>3 — moderate</option><option value="4">4 — major</option><option value="5">5 — catastrophic</option></select></label>
+</div>
+<button type="button" data-il-rai-go>Score the risks</button>
+<div class="il-lab-result" data-il-rai-out aria-live="polite">Score each risk, then read the verdict.</div>
+<div class="il-checklist" style="margin-top:1rem">
+<p style="font-size:.85rem;color:#9aa3b5">Process checklist — the worksheet is only step two of four:</p>
+<label><input type="checkbox"/> Each risk has a named owner.</label>
+<label><input type="checkbox"/> Each risk has a designed mitigation, not just a hope.</label>
+<label><input type="checkbox"/> Each risk has a production metric that would reveal it.</label>
+<label><input type="checkbox"/> The register has a review date.</label>
+</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="rai"]');if(!w)return;
+var out=w.querySelector('[data-il-rai-out]');
+function v(s){return parseInt(w.querySelector(s).value,10);}
+w.querySelector('[data-il-rai-go]').addEventListener('click',function(){
+var r1=v('[data-il-rai="0l"]')*v('[data-il-rai="0s"]'),
+    r2=v('[data-il-rai="1l"]')*v('[data-il-rai="2s"]'),
+    r3=v('[data-il-rai="2l"]')*v('[data-il-rai="2s2"]');
+var mx=Math.max(r1,r2,r3);
+function band(s){return s<=4?'low':(s<=9?'medium':'high');}
+var verdict,cls;
+if(mx<=4){verdict='All risks low. Proceed — but the checklist below still applies: unnamed risks are unmanaged risks.';cls='good';}
+else if(mx<=9){verdict='Highest risk is medium ('+mx+'). Proceed with designed mitigations, named owners, and production metrics for each risk.';cls='warn';}
+else{verdict='A high risk ('+mx+') is present. Do not launch until it is mitigated or formally accepted by an accountable owner with a review date.';cls='bad';}
+out.className='il-lab-result '+cls;
+out.innerHTML='<strong>Risk scores: harmful output '+r1+' ('+band(r1)+'), bias '+r2+' ('+band(r2)+'), over-trust '+r3+' ('+band(r3)+').</strong><br/>'+verdict;
+try{localStorage.setItem('il.lab.aip.rai',JSON.stringify({t:Date.now(),max:mx}))}catch(e){}
+});
+})();
+</script>
+</div>
+
+</div>
+</section>
+<hr class="il-rule"/>
+<section class="il-section" id="final-exam" aria-labelledby="final-exam-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="final-exam-h">Scenario exam.</h2>
+<div class="il-prose"><p>Twelve original scenario questions drawn from this sequence. Your score persists in this browser; misses remediate back into the modules above and into Noah for coaching. This exam is original practice material — it confers no certificate and is not affiliated with any vendor or certification body.</p></div>
+<div class="il-progress" data-il-progress="ai-product-innovation">
+<p class="il-eyebrow">Your progress</p>
+<div class="il-progress__bar"><span data-il-progress-fill></span></div>
+<p data-il-progress-label></p>
+<ul class="il-progress__mods">
+<li><label><input type="checkbox" data-il-mod="m1"/> Module 1 · AI Fundamentals for Decision-Makers: What the Models Can and Cannot Do</label></li>
+<li><label><input type="checkbox" data-il-mod="m2"/> Module 2 · Sharp-Edged vs. Rough-Edged Problems: Where AI Belongs</label></li>
+<li><label><input type="checkbox" data-il-mod="m3"/> Module 3 · Augmentation, Not Replacement: Intelligence as a Design Principle</label></li>
+<li><label><input type="checkbox" data-il-mod="m4"/> Module 4 · Differentiation: Escaping the Gravity Well of General-Purpose AI</label></li>
+<li><label><input type="checkbox" data-il-mod="m5"/> Module 5 · Responsible AI by Process: Finding Risks Early</label></li>
+<li><label><input type="checkbox" data-il-mod="m6"/> Module 6 · Humans Meet the Machine: The Psychology of AI Interaction</label></li>
+<li><label><input type="checkbox" data-il-mod="m7"/> Module 7 · Simulating Your Users: Generative Agents for Product Decisions</label></li>
+</ul>
+</div>
+<div data-il-exam="ai-product-innovation">
+<script type="application/json" data-il-exam-bank>[{"id": "aip-ex-map", "domain": "AI Fundamentals", "stem": "Your support team wants an AI to \"handle refunds automatically, including edge cases.\" Using the capability map, what is your response?", "choices": [{"key": "A", "text": "Refunds are sharp-edged (money, consequences): AI drafts and gathers context, but edge cases stay human-decided with verification"}, {"key": "B", "text": "Approve full automation — the model can handle it"}, {"key": "C", "text": "Reject AI entirely for support"}, {"key": "D", "text": "Automate and remove the audit trail to save costs"}], "answer": "A", "why": "Money movement with edge cases sits in the \"cannot reliably\" column: judgment, accountability, and truth. The product shape is augmentation — AI does the pattern work (draft, summarize, retrieve), humans own the consequential decision.", "remediate": {"adapt": "#ai-product-innovation-mod-1", "coach": "/coach/?prompt=The%20capability%20map%3A%20which%20column%20the%20job%20lives%20in"}}, {"id": "aip-ex-sharp", "domain": "Sharp vs Rough", "stem": "Two proposals: (1) AI drafts marketing headlines for human review; (2) AI approves loan applications. Classify each.", "choices": [{"key": "A", "text": "(1) rough-edged — errors are cheap and a human skims; (2) sharp-edged — errors are costly and consequential, requiring human decision"}, {"key": "B", "text": "Both rough-edged — AI is ready for both"}, {"key": "C", "text": "Both sharp-edged — AI should do neither"}, {"key": "D", "text": "(1) sharp-edged, (2) rough-edged"}], "answer": "A", "why": "Classification precedes autonomy choice. Headlines: cheap errors, human skim — speed is the product. Loans: costly errors, regulated, consequential — verification and human decision are the product. Inverting them is how AI incidents happen.", "remediate": {"adapt": "#ai-product-innovation-mod-2", "coach": "/coach/?prompt=Sharp%20vs%20rough%3A%20classifying%20before%20choosing%20autonomy"}}, {"id": "aip-ex-augment", "domain": "Augmentation", "stem": "A radiology startup pitches \"AI that replaces radiologists.\" What is the sounder product position?", "choices": [{"key": "A", "text": "Augmentation: AI triages and highlights, radiologists decide — the liability, trust, and accountability structure demands human command"}, {"key": "B", "text": "Full replacement — it is cheaper"}, {"key": "C", "text": "No AI at all — too risky"}, {"key": "D", "text": "Replacement, but do not tell the hospitals"}], "answer": "A", "why": "Sharp-edged domains keep humans in command for structural reasons: liability, trust, and accountability cannot be automated away. Augmentation captures most of the leverage (speed, coverage) without the replacement fantasy's risks.", "remediate": {"adapt": "#ai-product-innovation-mod-3", "coach": "/coach/?prompt=Augmentation%20as%20design%20principle%3A%20climbing%20the%20ladder%20deliberately"}}, {"id": "aip-ex-moat", "domain": "Differentiation", "stem": "Your startup is \"a chat UI over a foundation model API\" with no proprietary data. What is the strategic risk?", "choices": [{"key": "A", "text": "The gravity well: no moat — the model provider or any competitor can replicate the product; differentiation must come from data, workflow embedding, or distribution"}, {"key": "B", "text": "No risk — first-mover advantage is permanent"}, {"key": "C", "text": "The risk is only about pricing"}, {"key": "D", "text": "Switch to a bigger model to differentiate"}], "answer": "A", "why": "A thin wrapper has no defensibility: the underlying capability is a commodity getting cheaper. Moats are structural — proprietary data, workflow embedding, owned distribution. \"Bigger model\" is still someone else's model.", "remediate": {"adapt": "#ai-product-innovation-mod-4", "coach": "/coach/?prompt=Differentiation%3A%20data%2C%20workflow%2C%20and%20distribution%20moats"}}, {"id": "aip-ex-workflow", "domain": "Differentiation", "stem": "Which is the stronger moat: a slightly better prompt, or integration into the customer's existing approval workflow?", "choices": [{"key": "A", "text": "Workflow integration — prompts are replicable in an afternoon; embedded workflow creates switching costs and daily habit"}, {"key": "B", "text": "The better prompt — prompt engineering is defensible IP"}, {"key": "C", "text": "Neither matters"}, {"key": "D", "text": "Both are equally strong"}], "answer": "A", "why": "Prompts are not moats: they leak, get copied, and improve for everyone simultaneously. Workflow embedding changes how work gets done — that is structural, habitual, and expensive to rip out.", "remediate": {"adapt": "#ai-product-innovation-mod-4", "coach": "/coach/?prompt=Workflow%20moats%3A%20why%20embedding%20beats%20prompting"}}, {"id": "aip-ex-rai", "domain": "Responsible AI", "stem": "During design review, someone names a harm: the hiring assistant may disadvantage non-native English writers. What is the correct process response?", "choices": [{"key": "A", "text": "Assess it (likelihood × severity), design mitigations (bias testing, human review of rejections), assign an owner, and monitor the metric in production"}, {"key": "B", "text": "Note it in the meeting minutes and move on"}, {"key": "C", "text": "Cancel the project immediately"}, {"key": "D", "text": "Argue the harm is hypothetical and ignore it"}], "answer": "A", "why": "Responsible AI is process: identify → assess → mitigate → monitor. The named harm enters the register, gets assessed honestly, earns designed mitigations, and gets a production metric. Minutes without action are ethics theater.", "remediate": {"adapt": "#ai-product-innovation-mod-5", "coach": "/coach/?prompt=Responsible%20AI%20by%20process%3A%20from%20named%20harm%20to%20monitored%20mitigation"}}, {"id": "aip-ex-monitor", "domain": "Responsible AI", "stem": "The hiring assistant launched with mitigations. Six months later, rejection rates for one group drift upward. What does the process require?", "choices": [{"key": "A", "text": "The monitoring loop fires: investigate the drift, treat it as a new identified risk, reassess, and adjust mitigations — risks emerge after launch"}, {"key": "B", "text": "Nothing — launch-time assessment is sufficient forever"}, {"key": "C", "text": "Hide the metric"}, {"key": "D", "text": "Blame the training data vendor"}], "answer": "A", "why": "The process has a feedback loop for exactly this: production monitoring feeds back into identification. A launched system is not a finished ethical analysis — drift is the signal the loop exists to catch.", "remediate": {"adapt": "#ai-product-innovation-mod-5", "coach": "/coach/?prompt=The%20monitoring%20loop%3A%20risks%20that%20emerge%20after%20launch"}}, {"id": "aip-ex-trust", "domain": "Human-AI Interaction", "stem": "Users follow your AI assistant's suggestions 98% of the time, including on sharp-edged decisions. What is happening, and what do you change?", "choices": [{"key": "A", "text": "Over-trust (automation bias): redesign for calibration — show uncertainty, make verification cheap, add friction on consequential actions"}, {"key": "B", "text": "Excellent adoption — change nothing"}, {"key": "C", "text": "Remove the AI — users cannot be trusted"}, {"key": "D", "text": "Make the AI more confident to match user trust"}], "answer": "A", "why": "98% compliance on consequential decisions is not success — it is the danger zone: users have stopped verifying. Calibration design (uncertainty display, cheap verification, consequential friction) restores the human to the decision.", "remediate": {"adapt": "#ai-product-innovation-mod-6", "coach": "/coach/?prompt=Trust%20calibration%3A%20designing%20against%20automation%20bias"}}, {"id": "aip-ex-undertrust", "domain": "Human-AI Interaction", "stem": "Your well-tested assistant is ignored by users who do everything manually. What is the diagnosis?", "choices": [{"key": "A", "text": "Under-trust: the waste zone — investigate the cause (past failures, opaque behavior, poor onboarding) and rebuild calibration with transparency and small wins"}, {"key": "B", "text": "The assistant is useless — delete it"}, {"key": "C", "text": "Force users to use it via policy"}, {"key": "D", "text": "Users are irrational — ignore them"}], "answer": "A", "why": "Under-trust wastes the investment: capability exists but nobody uses it. The fix is diagnostic (why the distrust?) then calibration (transparency, verifiable small wins) — not mandates, which breed resentment without trust.", "remediate": {"adapt": "#ai-product-innovation-mod-6", "coach": "/coach/?prompt=Under-trust%3A%20diagnosing%20and%20rebuilding%20calibration"}}, {"id": "aip-ex-sim", "domain": "Generative Agents", "stem": "Your generative-agent simulation \"validates\" the new pricing page. What do you do with this result?", "choices": [{"key": "A", "text": "Treat it as hypotheses for real research: the simulation generates questions, but only human users provide evidence — go run the tests with people"}, {"key": "B", "text": "Ship the pricing page — validated is validated"}, {"key": "C", "text": "Discard simulation entirely as useless"}, {"key": "D", "text": "Run the simulation 100 more times for statistical significance"}], "answer": "A", "why": "The honest caveat: simulated users are hypotheses, not evidence. More simulation runs produce more confident hypotheses, not validation — a mirror, not a window. The simulation's value is cheap exploration before expensive real research.", "remediate": {"adapt": "#ai-product-innovation-mod-7", "coach": "/coach/?prompt=Generative%20agents%3A%20hypotheses%2C%20not%20evidence"}}, {"id": "aip-ex-persona", "domain": "Generative Agents", "stem": "What makes a simulation persona useful rather than fictional?", "choices": [{"key": "A", "text": "Grounding in real research: personas built from actual user interviews, support tickets, and behavioral data — not invented demographics"}, {"key": "B", "text": "Detailed backstories — the richer the fiction, the better"}, {"key": "C", "text": "Personas are always fictional — embrace it"}, {"key": "D", "text": "The number of personas — more is better"}], "answer": "A", "why": "A persona's value comes from its grounding: real research compressed into a usable form. Invented backstories produce confident fiction — the simulation then explores your imagination, not your market.", "remediate": {"adapt": "#ai-product-innovation-mod-7", "coach": "/coach/?prompt=Persona%20grounding%3A%20research%20in%2C%20hypotheses%20out"}}, {"id": "aip-ex-capstone", "domain": "Capstone", "stem": "Capstone: run the frameworks on your own product opportunity. What is the correct sequence?", "choices": [{"key": "A", "text": "Capability map (which column?) → sharp/rough classification → augmentation level → moat analysis → risk process → trust calibration plan"}, {"key": "B", "text": "Build first, classify later"}, {"key": "C", "text": "Start with the pricing page"}, {"key": "D", "text": "Skip to simulation — it is the most fun"}], "answer": "A", "why": "The frameworks compose in order: capability tells you what the model can do, sharp/rough sets the autonomy, augmentation sets the human's place, moats test defensibility, the risk process surfaces harms, and trust calibration designs the interaction. Each step constrains the next.", "remediate": {"adapt": "#ai-product-innovation-mod-1", "coach": "/coach/?prompt=Capstone%3A%20composing%20the%20frameworks%20in%20order"}}]</script>
+</div>
+</div>
+</section>
+<script src="/assets/il-exam.js"></script>
+
+<script>
+(function(){
+var slug='ai-product-innovation', key='il.progress.'+slug+'.v1';
+function load(){try{var r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return{done:[]}}
+function save(s){try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+var box=document.querySelector('[data-il-progress="'+slug+'"]');if(!box)return;
+var fill=box.querySelector('[data-il-progress-fill]'),lbl=box.querySelector('[data-il-progress-label]');
+var boxes=box.querySelectorAll('[data-il-mod]');
+function paint(){var s=load(),n=boxes.length,c=0;
+boxes.forEach(function(b){var on=s.done.indexOf(b.getAttribute('data-il-mod'))>=0;b.checked=on;if(on)c++});
+var pct=n?Math.round(c/n*100):0;if(fill)fill.style.width=pct+'%';
+if(lbl)lbl.textContent=c+' / '+n+' modules complete · '+pct+'%';}
+boxes.forEach(function(b){b.addEventListener('change',function(){var s=load(),id=b.getAttribute('data-il-mod'),i=s.done.indexOf(id);
+if(b.checked&&i<0)s.done.push(id);if(!b.checked&&i>=0)s.done.splice(i,1);save(s);paint();
+try{var f=JSON.parse(localStorage.getItem('il.evidence.feed.v1')||'[]');f.unshift({t:Date.now(),kind:'progress',text:slug+': '+s.done.length+'/'+boxes.length+' modules'});if(f.length>48)f.length=48;localStorage.setItem('il.evidence.feed.v1',JSON.stringify(f))}catch(e){}});});
+paint();
+})();
+</script><hr class="il-rule"/>
+<section class="il-section" id="next-steps" aria-labelledby="next-steps-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Continue to</p>
+<h2 class="il-h il-h--section" id="next-steps-h">Where this sequence leads.</h2>
+<div class="il-nextsteps">
+<a class="il-nextcard" href="/learn/sequences/agent-stack-ops/"><p class="il-eyebrow">Build it</p><h4>Agent Stack Ops →</h4><p>Turn product decisions into operated systems: the agent loop, evals, observability.</p></a>
+<a class="il-nextcard" href="/learn/sequences/local-ai-lab/"><p class="il-eyebrow">Power it locally</p><h4>Local AI Lab →</h4><p>Run the models behind your product on your own hardware.</p></a>
+<a class="il-nextcard" href="/learn/sequences/agentic-coding-advisor/"><p class="il-eyebrow">Build faster</p><h4>Agentic Coding Advisor →</h4><p>The coding pattern that multiplies the team building the product.</p></a>
+</div>
+</div>
+</section>
 </main>
 
 <footer class="no-print border-t border-paper/10">

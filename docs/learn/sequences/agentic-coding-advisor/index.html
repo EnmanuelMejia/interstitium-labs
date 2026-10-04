@@ -29,6 +29,50 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+.il-media{margin:1.4rem 0 1.8rem;border:1px solid rgba(242,237,225,.12);border-radius:.75rem;background:#0d1424;padding:1rem;overflow-x:auto}
+.il-media svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.il-media figcaption{margin-top:.6rem;font-size:.78rem;color:#9aa3b5;text-align:center}
+.il-check-key{margin-top:.6rem;border:1px solid rgba(232,182,76,.35);border-radius:.6rem;background:rgba(232,182,76,.05)}
+.il-check-key summary{cursor:pointer;padding:.55rem .8rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#e8b64c;font-family:inherit}
+.il-check-key__body{padding:.2rem 1rem 1rem;font-size:.92rem;color:#d9d4c7}
+.il-check-key__body p{margin:.5rem 0}
+.il-lab-station{border:1px solid rgba(103,232,249,.3);border-radius:.9rem;background:rgba(103,232,249,.04);padding:1.2rem;margin:1.2rem 0}
+.il-lab-station h4{color:#67e8f9}
+.il-lab-widget{margin:1.2rem 0;padding:1rem;border:1px solid rgba(242,237,225,.12);border-radius:.7rem;background:rgba(10,15,29,.5)}
+.il-lab-widget h5{margin:.2rem 0 .6rem;font-size:1rem;color:#f2ede1}
+.il-lab-widget label{display:block;margin:.5rem 0;font-size:.9rem}
+.il-lab-widget select,.il-lab-widget input[type=text],.il-lab-widget input[type=number]{background:#0a0f1d;border:1px solid rgba(242,237,225,.25);color:#f2ede1;border-radius:.4rem;padding:.45rem .6rem;font-size:.9rem;max-width:22rem;width:100%}
+.il-lab-widget button{cursor:pointer;background:#e8b64c;color:#0a0f1d;border:0;border-radius:.5rem;padding:.55rem 1rem;font-weight:600;font-size:.85rem;letter-spacing:.04em}
+.il-lab-widget button:hover{filter:brightness(1.08)}
+.il-lab-result{margin-top:.8rem;padding:.8rem 1rem;border-radius:.6rem;border:1px solid rgba(242,237,225,.15);background:#0d1424;font-size:.92rem}
+.il-lab-result.good{border-color:rgba(134,239,172,.5)}
+.il-lab-result.warn{border-color:rgba(232,182,76,.6)}
+.il-lab-result.bad{border-color:rgba(248,113,113,.6)}
+.il-logline{font-family:ui-monospace,monospace;font-size:.8rem;padding:.3rem .5rem;border-radius:.35rem;cursor:pointer;border:1px solid transparent;margin:.15rem 0}
+.il-logline:hover{border-color:rgba(103,232,249,.4)}
+.il-logline.sel-ioc{background:rgba(134,239,172,.12);border-color:rgba(134,239,172,.5)}
+.il-logline.sel-fp{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.5)}
+.il-rubric{width:100%;border-collapse:collapse;font-size:.88rem;margin:.6rem 0}
+.il-rubric th,.il-rubric td{border:1px solid rgba(242,237,225,.15);padding:.5rem .6rem;text-align:left;vertical-align:top}
+.il-rubric th{background:rgba(232,182,76,.08);color:#e8b64c}
+.il-checklist label{display:flex;gap:.5rem;align-items:flex-start;margin:.45rem 0;font-size:.9rem}
+.il-checklist input[type=checkbox]{margin-top:.2rem;transform:scale(1.2)}
+.il-progress{border:1px solid rgba(242,237,225,.12);border-radius:.8rem;padding:1.1rem;margin:1.2rem 0;background:rgba(10,15,29,.5)}
+.il-progress__bar{height:.6rem;border-radius:.3rem;background:rgba(242,237,225,.1);overflow:hidden;margin:.6rem 0}
+.il-progress__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#e8b64c,#67e8f9);transition:width .4s}
+.il-progress__mods{list-style:none;margin:.6rem 0 0;padding:0;columns:2;column-gap:2rem;font-size:.88rem}
+@media(max-width:640px){.il-progress__mods{columns:1}}
+.il-progress__mods li{margin:.3rem 0;break-inside:avoid}
+.il-progress__mods label{display:flex;gap:.5rem;align-items:flex-start;cursor:pointer}
+.il-nextsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin-top:1rem}
+.il-nextcard{border:1px solid rgba(242,237,225,.14);border-radius:.8rem;padding:1.1rem;background:rgba(13,20,36,.6);text-decoration:none!important;display:block}
+.il-nextcard:hover{border-color:rgba(232,182,76,.55)}
+.il-nextcard .il-eyebrow{margin:0 0 .4rem}
+.il-nextcard h4{margin:.2rem 0 .5rem;color:#f2ede1;font-size:1.02rem}
+.il-nextcard p{font-size:.88rem;color:#9aa3b5;margin:0}
+.il-disclaimer{border-left:3px solid #e8b64c;padding:.8rem 1.1rem;margin:1.4rem 0;background:rgba(232,182,76,.05);font-size:.9rem;color:#d9d4c7}
+</style>
 
 </head>
 <body>
@@ -144,9 +188,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <h2 class="il-h il-h--section" id="modules-h">6 modules, in order.</h2>
       </div>
       <div class="il-modules">
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-1" class="il-module">
           <p class="il-eyebrow">Module 1</p>
           <h3 class="il-h il-h--card">The Pattern, Distilled</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agentic coding pattern overview"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">The pattern, distilled — four roles, one keyboard</text><rect x="230" y="60" width="180" height="70" rx="8" fill="#e8b64c"/><text class="t" x="320" y="88" text-anchor="middle" fill="#0a0f1d" font-weight="700">MAIN WRITER</text><text class="d" x="320" y="108" text-anchor="middle" fill="#0a0f1d">one hand on the keyboard</text><rect x="40" y="170" width="160" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="120" y="198" text-anchor="middle" font-weight="700">SILENT ADVISOR</text><text class="d" x="120" y="218" text-anchor="middle">three triggers only</text><rect x="240" y="170" width="160" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="320" y="198" text-anchor="middle" font-weight="700">SPECIALIST CREW</text><text class="d" x="320" y="218" text-anchor="middle">explorer · worker · researcher</text><rect x="440" y="170" width="160" height="70" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="520" y="198" text-anchor="middle" font-weight="700">TRIAGE ROUTER</text><text class="d" x="520" y="218" text-anchor="middle">cheap model decides</text><line x1="320" y1="130" x2="120" y2="170" stroke="#67e8f9" stroke-width="1.5"/><line x1="320" y1="130" x2="320" y2="170" stroke="#67e8f9" stroke-width="1.5"/><line x1="320" y1="130" x2="520" y2="170" stroke="#67e8f9" stroke-width="1.5"/><text class="d" x="20" y="280">The human writes; the pattern multiplies the human. The advisor speaks only on trigger;</text><text class="d" x="20" y="302">the crew takes delegated subtasks; the router spends the cheap model on trivial forks</text><text class="d" x="20" y="324">and the strong model on hard splits. Cost and attention are the resources being managed.</text></svg>
+<figcaption>The four roles: main writer, silent advisor, specialist crew, triage router.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Name the four roles and the three trigger points in your own words</li>
@@ -183,9 +231,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What distinguishes a trigger contract from a vague "review sometimes" instruction?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-2" class="il-module">
           <p class="il-eyebrow">Module 2</p>
           <h3 class="il-h il-h--card">The Main Writer: One Hand on the Keyboard</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Main writer flow"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">The main writer — the human stays in the loop</text><rect x="40" y="80" width="150" height="60" rx="8" fill="#e8b64c"/><text class="t" x="115" y="106" text-anchor="middle" fill="#0a0f1d" font-weight="700">YOU WRITE</text><rect x="245" y="80" width="150" height="60" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="320" y="106" text-anchor="middle" font-weight="700">AGENT DRAFTS</text><rect x="450" y="80" width="150" height="60" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="525" y="106" text-anchor="middle" font-weight="700">YOU REVIEW</text><line x1="190" y1="110" x2="245" y2="110" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><line x1="395" y1="110" x2="450" y2="110" stroke="#67e8f9" stroke-width="2" marker-end="url(#am)"/><path d="M 525 140 C 525 200, 115 200, 115 140" fill="none" stroke="#e8b64c" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#am)"/><text class="d" x="320" y="192" text-anchor="middle">every AI contribution returns to human judgment before it merges</text><text class="d" x="20" y="240">One hand on the keyboard means authorship stays human: the agent proposes, you dispose.</text><text class="d" x="20" y="262">The failure mode this kills: autopilot code nobody read and nobody owns.</text></svg>
+<figcaption>The main-writer loop: human writes, agent drafts, human reviews — always.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Define what the writer owns and what it must never delegate</li>
@@ -219,9 +271,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>How would you recognize plan fixation in a transcript you didn't write?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-3" class="il-module">
           <p class="il-eyebrow">Module 3</p>
           <h3 class="il-h il-h--card">The Silent Advisor: Three Triggers, Nothing More</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Silent advisor triggers"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">The silent advisor — three triggers, nothing more</text><rect x="200" y="60" width="240" height="60" rx="8" fill="#141b2e" stroke="#9aa3b5"/><text class="t" x="320" y="86" text-anchor="middle" font-weight="700">ADVISOR</text><text class="d" x="320" y="106" text-anchor="middle">silent by default</text><line x1="200" y1="120" x2="140" y2="160" stroke="#67e8f9" stroke-width="2"/><line x1="320" y1="120" x2="320" y2="160" stroke="#67e8f9" stroke-width="2"/><line x1="440" y1="120" x2="500" y2="160" stroke="#67e8f9" stroke-width="2"/><rect x="60" y="160" width="160" height="70" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="140" y="188" text-anchor="middle" font-weight="700" font-size="12">TRIGGER 1</text><text class="d" x="140" y="210" text-anchor="middle">you ask</text><rect x="240" y="160" width="160" height="70" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="320" y="188" text-anchor="middle" font-weight="700" font-size="12">TRIGGER 2</text><text class="d" x="320" y="210" text-anchor="middle">risk detected</text><rect x="420" y="160" width="160" height="70" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="500" y="188" text-anchor="middle" font-weight="700" font-size="12">TRIGGER 3</text><text class="d" x="500" y="210" text-anchor="middle">stuck pattern</text><text class="d" x="20" y="270">An advisor that chatters is a distraction engine. Silence is the default; speech is earned</text><text class="d" x="20" y="292">by trigger: explicit request, detected risk (security, data loss), or a stuck pattern</text><text class="d" x="20" y="314">the writer is repeating. Three triggers — nothing more.</text></svg>
+<figcaption>The silent advisor speaks only on three triggers: asked, risk detected, or stuck.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>State the three triggers as implementable contracts: event, question, response format</li>
@@ -258,9 +314,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What official primitive lets a hook read the session at completion time and keep the turn open?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-4" class="il-module">
           <p class="il-eyebrow">Module 4</p>
           <h3 class="il-h il-h--card">The Specialist Crew: Explorer, Worker, Researcher</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Specialist crew roles"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">The specialist crew — delegated, bounded subtasks</text><rect x="14" y="70" width="194" height="100" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="111" y="98" text-anchor="middle" font-weight="700">EXPLORER</text><text class="d" x="111" y="120" text-anchor="middle">maps the codebase</text><text class="d" x="111" y="142" text-anchor="middle" font-size="11">read-only, reports back</text><rect x="220" y="70" width="194" height="100" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="317" y="98" text-anchor="middle" font-weight="700">WORKER</text><text class="d" x="317" y="120" text-anchor="middle">executes the plan</text><text class="d" x="317" y="142" text-anchor="middle" font-size="11">bounded diff, reviewed</text><rect x="426" y="70" width="194" height="100" rx="8" fill="#141b2e" stroke="#67e8f9"/><text class="t" x="523" y="98" text-anchor="middle" font-weight="700">RESEARCHER</text><text class="d" x="523" y="120" text-anchor="middle">answers questions</text><text class="d" x="523" y="142" text-anchor="middle" font-size="11">docs, versions, APIs</text><text class="d" x="20" y="210">Delegation is bounded: the explorer never writes, the worker never redesigns,</text><text class="d" x="20" y="232">the researcher never decides. Each returns to the main writer for judgment.</text><text class="d" x="20" y="262">Unbounded delegation is how "the agent refactored the auth system overnight" happens.</text></svg>
+<figcaption>Specialist crew roles with bounded mandates: explore, execute, research — then report back.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Define the three crew roles and the bounded jobs each one owns</li>
@@ -297,9 +357,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>What two costs does pinning crew agents to cheaper models control?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-5" class="il-module">
           <p class="il-eyebrow">Module 5</p>
           <h3 class="il-h il-h--card">The Cheap Triage Router: Trivial Forks, Hard Splits</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Triage router decision tree"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">The cheap triage router — spend models like money</text><rect x="220" y="60" width="200" height="60" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="320" y="86" text-anchor="middle" font-weight="700">TASK ARRIVES</text><text class="d" x="320" y="106" text-anchor="middle">cheap model classifies</text><line x1="270" y1="120" x2="180" y2="160" stroke="#67e8f9" stroke-width="2"/><line x1="370" y1="120" x2="460" y2="160" stroke="#67e8f9" stroke-width="2"/><rect x="80" y="160" width="200" height="90" rx="8" fill="#141b2e" stroke="#86efac"/><text class="t" x="180" y="188" text-anchor="middle" font-weight="700">TRIVIAL FORK</text><text class="d" x="180" y="210" text-anchor="middle">cheap model handles</text><text class="d" x="180" y="230" text-anchor="middle">pennies per task</text><rect x="360" y="160" width="200" height="90" rx="8" fill="#141b2e" stroke="#e8b64c"/><text class="t" x="460" y="188" text-anchor="middle" font-weight="700">HARD SPLIT</text><text class="d" x="460" y="210" text-anchor="middle">strong model handles</text><text class="d" x="460" y="230" text-anchor="middle">dollars per task</text><text class="d" x="20" y="290">The router's own cost must be trivial — a cheap classifier earning its keep on every fork.</text><text class="d" x="20" y="312">Misrouted hard tasks are the failure mode: the router needs its own eval and fallback.</text></svg>
+<figcaption>The triage router: a cheap classifier forks trivial work away from the expensive model.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Explain cascade logic in your own words: cheap first, escalate on low confidence</li>
@@ -333,9 +397,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
             <li>Which two numbers from the FrugalGPT experiments describe the cascade's payoff, and what was the experimental scope?</li>
           </ul>
         </article>
-        <article class="il-module">
+        <article id="agentic-coding-advisor-mod-6" class="il-module">
           <p class="il-eyebrow">Module 6</p>
           <h3 class="il-h il-h--card">Lab: Implement the Pattern End to End</h3>
+<figure class="il-media" role="img">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End to end lab"><defs><style>.t{font:13px sans-serif;fill:#f2ede1}.d{font:12px sans-serif;fill:#9aa3b5}</style><marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#67e8f9"/></marker></defs><text class="t" x="20" y="30" font-weight="700">Lab: implement the pattern end to end</text><g><rect x="12" y="70" width="112" height="76" rx="8" fill="#e8b64c"/><text class="t" x="68" y="98" text-anchor="middle" font-weight="700" font-size="12" fill="#0a0f1d">Writer</text><text class="d" x="68" y="120" text-anchor="middle" fill="#0a0f1d">you drive</text><line x1="124" y1="108" x2="136" y2="108" stroke="#e8b64c" stroke-width="2" marker-end="url(#am)"/><rect x="136" y="70" width="112" height="76" rx="8" fill="#e8b64c"/><text class="t" x="192" y="98" text-anchor="middle" font-weight="700" font-size="12" fill="#0a0f1d">Advisor</text><text class="d" x="192" y="120" text-anchor="middle" fill="#0a0f1d">3 triggers</text><line x1="248" y1="108" x2="260" y2="108" stroke="#e8b64c" stroke-width="2" marker-end="url(#am)"/><rect x="260" y="70" width="112" height="76" rx="8" fill="#e8b64c"/><text class="t" x="316" y="98" text-anchor="middle" font-weight="700" font-size="12" fill="#0a0f1d">Crew</text><text class="d" x="316" y="120" text-anchor="middle" fill="#0a0f1d">delegate</text><line x1="372" y1="108" x2="384" y2="108" stroke="#e8b64c" stroke-width="2" marker-end="url(#am)"/><rect x="384" y="70" width="112" height="76" rx="8" fill="#e8b64c"/><text class="t" x="440" y="98" text-anchor="middle" font-weight="700" font-size="12" fill="#0a0f1d">Router</text><text class="d" x="440" y="120" text-anchor="middle" fill="#0a0f1d">fork cheap</text><line x1="496" y1="108" x2="508" y2="108" stroke="#e8b64c" stroke-width="2" marker-end="url(#am)"/><rect x="508" y="70" width="112" height="76" rx="8" fill="#e8b64c"/><text class="t" x="564" y="98" text-anchor="middle" font-weight="700" font-size="12" fill="#0a0f1d">Ship</text><text class="d" x="564" y="120" text-anchor="middle" fill="#0a0f1d">reviewed merge</text></g><text class="d" x="20" y="190">Build it in order: writer discipline first, then the advisor's triggers, then one crew</text><text class="d" x="20" y="212">member, then the router. Each stage demoed before the next is added.</text><text class="d" x="20" y="242">Honest limits travel with the pattern: it does not fix bad requirements, and the router</text><text class="d" x="20" y="264">can misroute. Document both in your lab writeup.</text></svg>
+<figcaption>Implement in order: writer, advisor, crew, router — each demoed before the next.</figcaption>
+</figure>
           <h4>Learning objectives</h4>
           <ul>
             <li>Define the advisor role as a real configuration in your tooling</li>
@@ -454,6 +522,141 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       </div>
     </div>
   </section>
+
+<hr class="il-rule"/>
+<section class="il-section" id="lab-station" aria-labelledby="lab-station-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Validated labs</p>
+<h2 class="il-h il-h--section" id="lab-station-h">Lab validation station.</h2>
+<div class="il-prose"><p>These exercises run entirely in your browser. Work each one, read the feedback, and retry until the reasoning is automatic — nothing here requires leaving this page.</p></div>
+
+<div class="il-lab-station">
+<h4>Lab A — Triage router economics</h4>
+<p>Model the router's savings with <strong>illustrative cost units</strong> (not vendor prices — the arithmetic is the lesson). 100 tasks arrive; the router forks a share to the cheap model.</p>
+<div class="il-lab-widget" data-il-widget="routerecon">
+<label>Tasks per day <input type="number" data-il-rr-n value="100" min="1" max="100000"/></label>
+<label>Share the router marks trivial (0–100%) <input type="number" data-il-rr-s value="60" min="0" max="100"/></label>
+<label>Cheap-model cost per task (units) <input type="number" data-il-rr-c value="1" min="0" step="0.1"/></label>
+<label>Strong-model cost per task (units) <input type="number" data-il-rr-f value="20" min="0" step="0.5"/></label>
+<label>Router cost per task (units) <input type="number" data-il-rr-r value="0.2" min="0" step="0.05"/></label>
+<button type="button" data-il-rr-go>Model the economics</button>
+<div class="il-lab-result" data-il-rr-out aria-live="polite">Enter the workload, then model it.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="routerecon"]');if(!w)return;
+var out=w.querySelector('[data-il-rr-out]');
+function v(s){return parseFloat(w.querySelector(s).value)||0;}
+w.querySelector('[data-il-rr-go]').addEventListener('click',function(){
+var n=v('[data-il-rr-n]'),s=v('[data-il-rr-s]')/100,c=v('[data-il-rr-c]'),f=v('[data-il-rr-f]'),r=v('[data-il-rr-r]');
+var allStrong=n*f, withRouter=n*(s*c+(1-s)*f+r), saved=allStrong-withRouter, pct=allStrong?Math.round(saved/allStrong*100):0;
+out.className='il-lab-result '+(saved>0?'good':'warn');
+out.innerHTML='<strong>All-strong: '+allStrong.toFixed(0)+' units/day · With router: '+withRouter.toFixed(0)+' units/day · Saved: '+saved.toFixed(0)+' ('+pct+'%).</strong><br/>'
++'The router earns its keep when <em>s&times;(f-c) &gt; r</em> — the trivial share times the per-task spread must beat the routing cost.'
++(s<0.2?'<br/><span style="color:#e8b64c">Warning: a trivial share under 20% means the router is mostly overhead — check the fork rate.</span>':'')
++'<br/><span style="color:#9aa3b5">Illustrative units for the exercise — plug in your own measured costs for real decisions.</span>';
+try{localStorage.setItem('il.lab.aca.router',JSON.stringify({t:Date.now(),saved:+saved.toFixed(1)}))}catch(e){}
+});
+})();
+</script>
+</div>
+<div class="il-lab-station">
+<h4>Lab B — Failure-mode matcher</h4>
+<p>Match each failure mode to the pattern element that addresses it.</p>
+<div class="il-lab-widget" data-il-widget="fmmatch">
+<div data-il-fm-q>
+<p><strong>1.</strong> Nobody can explain the new auth module; review quality collapsed.</p>
+<label><select data-il-fm="0"><option value="">— pick —</option><option value="a">Main writer</option><option value="b">Silent advisor</option><option value="c">Specialist crew</option><option value="d">Triage router</option></select></label>
+<p><strong>2.</strong> The agent deletes production data while "cleaning up."</p>
+<label><select data-il-fm="1"><option value="">— pick —</option><option value="a">Main writer</option><option value="b">Silent advisor</option><option value="c">Specialist crew</option><option value="d">Triage router</option></select></label>
+<p><strong>3.</strong> "Modernize the payment module" becomes an unreviewed rewrite.</p>
+<label><select data-il-fm="2"><option value="">— pick —</option><option value="a">Main writer</option><option value="b">Silent advisor</option><option value="c">Specialist crew</option><option value="d">Triage router</option></select></label>
+<p><strong>4.</strong> Every task burns strong-model budget, including typo fixes.</p>
+<label><select data-il-fm="3"><option value="">— pick —</option><option value="a">Main writer</option><option value="b">Silent advisor</option><option value="c">Specialist crew</option><option value="d">Triage router</option></select></label>
+<p><strong>5.</strong> You loop on the same failing test for an hour, blind to the fixture bug.</p>
+<label><select data-il-fm="4"><option value="">— pick —</option><option value="a">Main writer</option><option value="b">Silent advisor</option><option value="c">Specialist crew</option><option value="d">Triage router</option></select></label>
+</div>
+<button type="button" data-il-fm-go>Check my matches</button>
+<div class="il-lab-result" data-il-fm-out aria-live="polite">Match each failure to its pattern element, then check.</div>
+</div>
+<script>
+(function(){
+var w=document.querySelector('[data-il-widget="fmmatch"]');if(!w)return;
+var out=w.querySelector('[data-il-fm-out]');
+var answers=['a','b','c','d','b'];
+var why=['Unowned, unexplained code: the main writer restores authorship — human reviews everything.',
+'Irreversible risk while you work: the advisor's risk-detected trigger should have fired.',
+'Unbounded delegation: the crew needs bounded mandates — scope, files, reviewed diff.',
+'Budget burn on trivia: the router forks trivial work to the cheap model.',
+'Stuck pattern: the advisor's third trigger earns its interruption.'];
+w.querySelector('[data-il-fm-go]').addEventListener('click',function(){
+var sels=w.querySelectorAll('[data-il-fm]'),c=0,notes=[];
+sels.forEach(function(s,i){if(s.value===answers[i])c++;else notes.push('Failure '+(i+1)+': '+why[i]);});
+out.className='il-lab-result '+(c===5?'good':(c>=3?'warn':'bad'));
+out.innerHTML='<strong>'+c+' / 5 correct.</strong>'+(notes.length?'<br/>'+notes.join('<br/>'):'<br/>Clean matches — you see which element owns which failure.');
+try{localStorage.setItem('il.lab.aca.fmmatch',JSON.stringify({t:Date.now(),score:c}))}catch(e){}
+});
+})();
+</script>
+</div>
+
+</div>
+</section>
+<hr class="il-rule"/>
+<section class="il-section" id="final-exam" aria-labelledby="final-exam-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="final-exam-h">Scenario exam.</h2>
+<div class="il-prose"><p>Twelve original scenario questions drawn from this sequence. Your score persists in this browser; misses remediate back into the modules above and into Noah for coaching. This exam is original practice material — it confers no certificate and is not affiliated with any vendor or certification body.</p></div>
+<div class="il-progress" data-il-progress="agentic-coding-advisor">
+<p class="il-eyebrow">Your progress</p>
+<div class="il-progress__bar"><span data-il-progress-fill></span></div>
+<p data-il-progress-label></p>
+<ul class="il-progress__mods">
+<li><label><input type="checkbox" data-il-mod="m1"/> Module 1 · The Pattern, Distilled</label></li>
+<li><label><input type="checkbox" data-il-mod="m2"/> Module 2 · The Main Writer: One Hand on the Keyboard</label></li>
+<li><label><input type="checkbox" data-il-mod="m3"/> Module 3 · The Silent Advisor: Three Triggers, Nothing More</label></li>
+<li><label><input type="checkbox" data-il-mod="m4"/> Module 4 · The Specialist Crew: Explorer, Worker, Researcher</label></li>
+<li><label><input type="checkbox" data-il-mod="m5"/> Module 5 · The Cheap Triage Router: Trivial Forks, Hard Splits</label></li>
+<li><label><input type="checkbox" data-il-mod="m6"/> Module 6 · Lab: Implement the Pattern End to End</label></li>
+</ul>
+</div>
+<div data-il-exam="agentic-coding-advisor">
+<script type="application/json" data-il-exam-bank>[{"id": "aca-ex-pattern", "domain": "The Pattern", "stem": "A team adopts AI coding tools and velocity rises — but review quality collapses and nobody can explain the new auth module. Which pattern element addresses this, and how?", "choices": [{"key": "A", "text": "The main writer: one hand on the keyboard — the human authors and reviews everything; the agent proposes, the human disposes"}, {"key": "B", "text": "The triage router — route auth code to the cheaper model"}, {"key": "C", "text": "The silent advisor — let it chatter constantly for coverage"}, {"key": "D", "text": "Remove all AI tooling"}], "answer": "A", "why": "Unexplained, unowned code is the autopilot failure mode. The main-writer discipline restores authorship: every AI contribution passes through human judgment before merging. The pattern manages attention, not just tokens.", "remediate": {"adapt": "#agentic-coding-advisor-mod-2", "coach": "/coach/?prompt=The%20main%20writer%3A%20why%20authorship%20stays%20human"}}, {"id": "aca-ex-triggers", "domain": "Silent Advisor", "stem": "Your silent advisor has been quiet for two hours while you refactor. When should it speak?", "choices": [{"key": "A", "text": "Only on trigger: you ask it, it detects a genuine risk (e.g., you are about to delete data), or you are repeating a stuck pattern"}, {"key": "B", "text": "Every 15 minutes with a status update"}, {"key": "C", "text": "Whenever it has an opinion about your code style"}, {"key": "D", "text": "Never — delete the advisor"}], "answer": "A", "why": "Three triggers, nothing more: explicit request, detected risk, stuck pattern. An advisor that chatters is a distraction engine; one that never speaks is decoration. The discipline is in the trigger design.", "remediate": {"adapt": "#agentic-coding-advisor-mod-3", "coach": "/coach/?prompt=The%20silent%20advisor%3A%20the%20three%20triggers%20and%20why%20silence%20is%20the%20default"}}, {"id": "aca-ex-crew", "domain": "Specialist Crew", "stem": "You delegate \"modernize the payment module\" to the worker agent with no bounds. What is the failure, and the fix?", "choices": [{"key": "A", "text": "Unbounded delegation: the worker may redesign, re-architect, or break contracts; fix with a bounded mandate — specific files, specific change, reviewed diff"}, {"key": "B", "text": "No failure — workers should have full autonomy"}, {"key": "C", "text": "The failure is using a worker at all"}, {"key": "D", "text": "The failure is not delegating enough"}], "answer": "A", "why": "Crew members have bounded mandates for a reason: the explorer reads, the worker executes a plan, the researcher answers. \"Modernize the module\" is a redesign disguised as a task — the bound (scope, files, review) is what keeps delegation safe.", "remediate": {"adapt": "#agentic-coding-advisor-mod-4", "coach": "/coach/?prompt=Specialist%20crew%3A%20bounded%20mandates%20for%20each%20role"}}, {"id": "aca-ex-router", "domain": "Triage Router", "stem": "Your triage router sends 95% of tasks to the strong model. What do you conclude?", "choices": [{"key": "A", "text": "The router is not earning its keep: either the classification is broken, the task mix is genuinely hard, or the \"trivial\" bar is set wrong — measure and fix the fork rate"}, {"key": "B", "text": "The router is working perfectly"}, {"key": "C", "text": "Remove the router and use the strong model for everything"}, {"key": "D", "text": "The cheap model is too expensive"}], "answer": "A", "why": "A router that forks nothing is overhead without benefit. The fork rate is the router's own metric: investigate whether classification, task mix, or threshold is wrong. The router needs its own eval — unmeasured routing is wishful spending.", "remediate": {"adapt": "#agentic-coding-advisor-mod-5", "coach": "/coach/?prompt=The%20triage%20router%3A%20fork%20rate%20as%20the%20router%27s%20own%20metric"}}, {"id": "aca-ex-cost", "domain": "Triage Router", "stem": "Why must the triage router itself be a cheap model?", "choices": [{"key": "A", "text": "The router runs on every task — its cost multiplies across the whole workload, so it must be near-free to earn its keep"}, {"key": "B", "text": "Cheap models classify better than strong ones"}, {"key": "C", "text": "Strong models cannot do classification"}, {"key": "D", "text": "It does not matter which model routes"}], "answer": "A", "why": "The router is the one component that touches 100% of tasks. If routing costs as much as doing, the savings evaporate. Economics, not capability, dictates the choice — classification is well within a cheap model's reach.", "remediate": {"adapt": "#agentic-coding-advisor-mod-5", "coach": "/coach/?prompt=Router%20economics%3A%20why%20the%20classifier%20must%20be%20cheap"}}, {"id": "aca-ex-explorer", "domain": "Specialist Crew", "stem": "You need to understand a 200-file legacy service before changing it. Which crew member, and with what bounds?", "choices": [{"key": "A", "text": "The explorer: read-only, maps structure and data flow, reports back — never writes"}, {"key": "B", "text": "The worker: rewrite the service while learning it"}, {"key": "C", "text": "The researcher: ask it to guess the architecture"}, {"key": "D", "text": "No crew member — read all 200 files yourself in one sitting"}], "answer": "A", "why": "The explorer's mandate is read-only reconnaissance: structure, entry points, data flow — reported back for human judgment. Read-only is the safety property: exploration cannot break what it cannot write.", "remediate": {"adapt": "#agentic-coding-advisor-mod-4", "coach": "/coach/?prompt=The%20explorer%3A%20read-only%20reconnaissance%20with%20a%20report-back"}}, {"id": "aca-ex-stuck", "domain": "Silent Advisor", "stem": "You have rewritten the same function three times and the tests still fail the same way. The advisor pings you. Which trigger fired, and is it correct to speak?", "choices": [{"key": "A", "text": "Stuck-pattern trigger — correct: repetition without progress is exactly when an outside perspective earns its interruption"}, {"key": "B", "text": "No trigger — the advisor should stay silent forever"}, {"key": "C", "text": "The \"you ask\" trigger — you must have asked"}, {"key": "D", "text": "The advisor is malfunctioning"}], "answer": "A", "why": "The stuck-pattern trigger exists for this moment: the writer is looping, and a nudge (\"have you checked the test fixture, not the function?\") can break it. This is earned speech — the interruption has a reason.", "remediate": {"adapt": "#agentic-coding-advisor-mod-3", "coach": "/coach/?prompt=Stuck-pattern%20trigger%3A%20when%20repetition%20earns%20an%20interruption"}}, {"id": "aca-ex-review", "domain": "The Pattern", "stem": "The worker returns a 400-line diff that \"implements the feature.\" What is the correct next step?", "choices": [{"key": "A", "text": "Review it like any human-authored diff: read it, run the tests, check the contracts — then merge or send back"}, {"key": "B", "text": "Merge it — the worker is usually right"}, {"key": "C", "text": "Reject it — AI code is never trustworthy"}, {"key": "D", "text": "Merge it and review later if there are bugs"}], "answer": "A", "why": "The pattern's invariant: every contribution, human or agent, passes through review before merging. \"Usually right\" is how unowned code enters the codebase; \"never trustworthy\" wastes the tool. Review is the constant.", "remediate": {"adapt": "#agentic-coding-advisor-mod-1", "coach": "/coach/?prompt=Review%20invariance%3A%20every%20diff%20gets%20read%2C%20whoever%20wrote%20it"}}, {"id": "aca-ex-limits", "domain": "Honest Limits", "stem": "The pattern is fully implemented, but the team still ships the wrong features. What does this reveal about the pattern's limits?", "choices": [{"key": "A", "text": "The pattern multiplies implementation capacity — it does not fix bad requirements or wrong product decisions"}, {"key": "B", "text": "The pattern is broken — remove it"}, {"key": "C", "text": "The router needs to be stronger"}, {"key": "D", "text": "The advisor needs more triggers"}], "answer": "A", "why": "Honest limits travel with the pattern: it addresses how code gets written, not what should be built. Wrong features fast is still wrong. The pattern is a force multiplier on direction — direction remains a human product decision.", "remediate": {"adapt": "#agentic-coding-advisor-mod-1", "coach": "/coach/?prompt=Honest%20limits%3A%20what%20the%20pattern%20does%20not%20fix"}}, {"id": "aca-ex-fallback", "domain": "Triage Router", "stem": "The router misclassifies a hard security-sensitive task as trivial and the cheap model produces a subtly wrong fix. What safeguard was missing?", "choices": [{"key": "A", "text": "Router fallback: confidence thresholds with escalation to the strong model, plus the invariant that security-sensitive code always gets human review regardless of route"}, {"key": "B", "text": "A stronger cheap model"}, {"key": "C", "text": "No safeguard — misrouting is acceptable"}, {"key": "D", "text": "Removing the cheap model entirely"}], "answer": "A", "why": "Misrouting is the router's known failure mode, so the design includes the defense: confidence-gated escalation and a review invariant for sensitive code. The router optimizes cost; the safeguards bound the cost of being wrong.", "remediate": {"adapt": "#agentic-coding-advisor-mod-5", "coach": "/coach/?prompt=Router%20failure%20modes%3A%20confidence%20gating%20and%20escalation"}}, {"id": "aca-ex-researcher", "domain": "Specialist Crew", "stem": "You need to know whether library X 3.2 supports a specific API before committing to it. Who do you ask, and what do you not let them do?", "choices": [{"key": "A", "text": "The researcher: answer from docs and versions — but it does not decide the dependency; the decision stays with you"}, {"key": "B", "text": "The worker: have it upgrade the library immediately"}, {"key": "C", "text": "The explorer: have it rewrite the library"}, {"key": "D", "text": "Nobody — guess"}], "answer": "A", "why": "The researcher answers questions from documentation; decisions stay human. Letting the researcher decide the dependency would be unbounded delegation through the back door.", "remediate": {"adapt": "#agentic-coding-advisor-mod-4", "coach": "/coach/?prompt=The%20researcher%3A%20answers%20questions%2C%20never%20decides"}}, {"id": "aca-ex-lab", "domain": "Lab", "stem": "You are implementing the pattern end to end. What is the correct build order?", "choices": [{"key": "A", "text": "Writer discipline first, then advisor triggers, then one crew member, then the router — each stage demoed before the next is added"}, {"key": "B", "text": "Router first — cost matters most"}, {"key": "C", "text": "Everything at once — faster"}, {"key": "D", "text": "Crew first — delegation is the point"}], "answer": "A", "why": "Each layer depends on the previous one's discipline: the advisor assumes a writer who reviews; the crew assumes bounded delegation habits; the router assumes you can tell trivial from hard. Staged builds isolate which layer broke when something fails.", "remediate": {"adapt": "#agentic-coding-advisor-mod-6", "coach": "/coach/?prompt=Lab%3A%20the%20staged%20build%20order%20and%20why%20it%20matters"}}]</script>
+</div>
+</div>
+</section>
+<script src="/assets/il-exam.js"></script>
+
+<script>
+(function(){
+var slug='agentic-coding-advisor', key='il.progress.'+slug+'.v1';
+function load(){try{var r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return{done:[]}}
+function save(s){try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+var box=document.querySelector('[data-il-progress="'+slug+'"]');if(!box)return;
+var fill=box.querySelector('[data-il-progress-fill]'),lbl=box.querySelector('[data-il-progress-label]');
+var boxes=box.querySelectorAll('[data-il-mod]');
+function paint(){var s=load(),n=boxes.length,c=0;
+boxes.forEach(function(b){var on=s.done.indexOf(b.getAttribute('data-il-mod'))>=0;b.checked=on;if(on)c++});
+var pct=n?Math.round(c/n*100):0;if(fill)fill.style.width=pct+'%';
+if(lbl)lbl.textContent=c+' / '+n+' modules complete · '+pct+'%';}
+boxes.forEach(function(b){b.addEventListener('change',function(){var s=load(),id=b.getAttribute('data-il-mod'),i=s.done.indexOf(id);
+if(b.checked&&i<0)s.done.push(id);if(!b.checked&&i>=0)s.done.splice(i,1);save(s);paint();
+try{var f=JSON.parse(localStorage.getItem('il.evidence.feed.v1')||'[]');f.unshift({t:Date.now(),kind:'progress',text:slug+': '+s.done.length+'/'+boxes.length+' modules'});if(f.length>48)f.length=48;localStorage.setItem('il.evidence.feed.v1',JSON.stringify(f))}catch(e){}});});
+paint();
+})();
+</script><hr class="il-rule"/>
+<section class="il-section" id="next-steps" aria-labelledby="next-steps-h">
+<div class="il-wrap">
+<p class="il-eyebrow">Continue to</p>
+<h2 class="il-h il-h--section" id="next-steps-h">Where this sequence leads.</h2>
+<div class="il-nextsteps">
+<a class="il-nextcard" href="/learn/sequences/agent-stack-ops/"><p class="il-eyebrow">The full stack</p><h4>Agent Stack Ops →</h4><p>The production discipline behind the pattern: evals, observability, and the loop that tightens.</p></a>
+<a class="il-nextcard" href="/learn/sequences/local-ai-lab/"><p class="il-eyebrow">Power it locally</p><h4>Local AI Lab →</h4><p>Run the models behind the pattern on your own hardware.</p></a>
+<a class="il-nextcard" href="/learn/sequences/ai-product-innovation/"><p class="il-eyebrow">Decide with it</p><h4>AI Product Innovation →</h4><p>Where AI-assisted building belongs in product strategy — and where it does not.</p></a>
+</div>
+</div>
+</section>
 </main>
 
 <footer class="no-print border-t border-paper/10">
