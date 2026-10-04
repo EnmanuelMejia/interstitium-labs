@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>My Progress — Interstitium Labs</title>
+<meta name="description" content="Your learning dashboard: per-path progress across this device and your synced account, your evidence portfolio, certificates, and state export/import."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/progress/"/>
+<meta property="og:title" content="My Progress — Interstitium Labs"/>
+<meta property="og:url" content="https://interstitiumlabs.dev/progress/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<style>
+  .il-kicker{font-size:.68rem;text-transform:uppercase;letter-spacing:.2em;color:#c9a227}
+  .il-card{background:rgba(12,18,34,.72);border:1px solid rgba(232,238,245,.12);border-radius:1rem;padding:1.25rem}
+  .il-btn{display:inline-flex;align-items:center;justify-content:center;min-height:2.6rem;padding:.5rem 1.1rem;border-radius:.6rem;background:#f2ede1;color:#0a0f1d;font-weight:600;font-size:.85rem;border:0;cursor:pointer;text-decoration:none}
+  .il-btn:disabled{opacity:.55;cursor:wait}
+  .il-btn-ghost{background:transparent;color:#f2ede1;border:1px solid rgba(232,238,245,.25)}
+  .il-link{background:none;border:0;color:#7dd3fc;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0}
+  .il-bar{height:.55rem;border-radius:999px;background:rgba(232,238,245,.12);overflow:hidden}
+  .il-bar>i{display:block;height:100%;background:linear-gradient(90deg,#c9a227,#7dd3fc);border-radius:999px;transition:width .4s ease}
+  .il-grid{display:grid;gap:1rem}
+  @media(min-width:640px){.il-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(min-width:1024px){.il-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .il-stat-num{font-size:2rem;font-weight:700;font-family:"Space Grotesk",sans-serif}
+  .il-ev-kind{display:inline-block;font-size:.62rem;text-transform:uppercase;letter-spacing:.16em;color:#0a0f1d;background:#c9a227;border-radius:.35rem;padding:.15rem .5rem;font-weight:700}
+  .il-ev-date{font-size:.75rem;color:#9aa3b2;font-family:"JetBrains Mono",monospace}
+  textarea.il-ta{width:100%;min-height:8rem;border-radius:.6rem;border:1px solid rgba(232,238,245,.2);background:#0a0f1d;color:#f2ede1;padding:.8rem;font-family:"JetBrains Mono",monospace;font-size:.75rem}
+  .il-muted{color:#9aa3b2;font-size:.85rem}
+  .il-err{color:#fca5a5;font-size:.85rem}
+  .il-ok{color:#86efac;font-size:.85rem}
+</style>
+</head>
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="/paths/">Paths</a>
+      <a href="/progress/" aria-current="page">My Progress</a>
+      <a href="/certificates/">Certificates</a>
+      <a href="/about/">About Us</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">My Progress</li></ol></nav>
+<main style="max-width:72rem;margin:0 auto;padding:2rem 1.5rem 4rem" data-il-auth-required>
+  <p class="il-kicker">Dashboard</p>
+  <div style="display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap">
+    <h1>My Progress</h1>
+    <span class="il-muted" data-il-account-email></span>
+    <button type="button" class="il-btn il-btn-ghost" data-il-signout style="margin-left:auto">Sign out</button>
+  </div>
+  <p class="il-muted" style="max-width:44rem">One view of everything you've done: local work on this device, synced account records, your evidence portfolio, and certificates. Progress persists on this device even without an account; sign-in adds cross-device sync.</p>
+
+  <section aria-label="Summary" class="il-grid mt-6" id="il-stats">
+    <div class="il-card"><p class="il-kicker">Paths started</p><p class="il-stat-num" data-il-stat="paths">–</p></div>
+    <div class="il-card"><p class="il-kicker">Items completed (this device)</p><p class="il-stat-num" data-il-stat="done">–</p></div>
+    <div class="il-card"><p class="il-kicker">Evidence entries</p><p class="il-stat-num" data-il-stat="evidence">–</p></div>
+    <div class="il-card"><p class="il-kicker">Certificates</p><p class="il-stat-num" data-il-stat="certs">–</p></div>
+    <div class="il-card"><p class="il-kicker">Account sync</p><p class="il-stat-num" style="font-size:1.1rem" data-il-stat="sync">–</p><p class="il-muted" data-il-stat="syncsub"></p></div>
+  </section>
+
+  <section aria-label="Sync" class="il-card mt-6">
+    <h2 class="text-xl font-semibold">Sync to account</h2>
+    <p class="il-muted">Pushes this device's per-path completion counts to your account (merges, never overwrites). Runs automatically on first sign-in.</p>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
+      <button type="button" class="il-btn" data-il-sync-now>Sync now</button>
+      <span class="il-muted" data-il-sync-status role="status"></span>
+    </div>
+  </section>
+
+  <section aria-label="Paths" class="mt-8">
+    <h2 class="text-xl font-semibold">Per-path progress</h2>
+    <p class="il-muted">Local bars count completed checklist items on this device; account bars come from your synced record.</p>
+    <div class="il-grid mt-4" data-il-path-grid></div>
+  </section>
+
+  <section aria-label="Evidence portfolio" class="mt-8">
+    <h2 class="text-xl font-semibold">Evidence portfolio</h2>
+    <p class="il-muted">Challenges, demos, and lab work you've verified on this device — your portfolio of proof.</p>
+    <div class="il-grid mt-4" data-il-ev-grid></div>
+  </section>
+
+  <section aria-label="Certificates" class="mt-8">
+    <h2 class="text-xl font-semibold">Certificates</h2>
+    <div class="il-grid mt-4" data-il-cert-grid></div>
+    <p class="mt-4"><a class="il-btn il-btn-ghost" href="/certificates/">Issue a certificate</a></p>
+  </section>
+
+  <section aria-label="Export and import" class="mt-8">
+    <h2 class="text-xl font-semibold">Export / import learner state</h2>
+    <p class="il-muted" style="max-width:44rem">Export downloads a JSON snapshot of every <code>il.*</code> value on this device plus your account record. Import restores <code>il.*</code> keys on this device and merges the snapshot into your account. Keep the file safe — it is your offline backup.</p>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
+      <button type="button" class="il-btn" data-il-export>Export JSON</button>
+      <label class="il-btn il-btn-ghost" style="cursor:pointer">Import JSON<input type="file" accept="application/json,.json" data-il-import-file hidden/></label>
+    </div>
+    <p class="il-err mt-2" data-il-io-error hidden></p>
+    <p class="il-ok mt-2" data-il-io-ok hidden></p>
+  </section>
+</main>
+<script src="/assets/il-account.js"></script>
+<script>
+(function () {
+  "use strict";
+  var PREFIX = "il.progress.";
+
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function pretty(slug) { return String(slug).split(/[-_./]+/).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" "); }
+  function $(sel) { return document.querySelector(sel); }
+  function setStat(k, v) { var el = document.querySelector('[data-il-stat="' + k + '"]'); if (el) el.textContent = v; }
+
+  function collectLocalScopes() {
+    var scopes = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k || k.indexOf(PREFIX) !== 0) continue;
+        var rest = k.slice(PREFIX.length).split(".");
+        var scope = rest[0];
+        if (!scopes[scope]) scopes[scope] = { done: 0, total: 0 };
+        if (localStorage.getItem(k) === "1") scopes[scope].done++;
+        scopes[scope].total++;
+      }
+    } catch (e) {}
+    return scopes;
+  }
+
+  /** Resolve a scope to a real page: /paths/<scope>/ or /learn/sequences/<scope>/.
+      Returns {title, href, total} where total = checklist items on that page. */
+  function resolveScope(scope) {
+    var cands = ["/paths/" + scope + "/", "/learn/sequences/" + scope + "/"];
+    function tryNext(idx) {
+      if (idx >= cands.length) return Promise.resolve(null);
+      return fetch(cands[idx], { credentials: "same-origin" }).then(function (res) {
+        if (!res.ok) return tryNext(idx + 1);
+        return res.text().then(function (html) {
+          var doc;
+          try { doc = new DOMParser().parseFromString(html, "text/html"); }
+          catch (e) { return null; }
+          var title = (doc.querySelector("title") || {}).textContent || pretty(scope);
+          title = title.replace(/\s*[—|-]\s*Interstitium Labs.*$/i, "").trim() || pretty(scope);
+          var total = 0;
+          try {
+            var nodes = doc.querySelectorAll('[data-il-progress^="' + scope + ':"]');
+            total = nodes.length;
+          } catch (e) {}
+          return { title: title, href: cands[idx], total: total };
+        });
+      }).catch(function () { return tryNext(idx + 1); });
+    }
+    return tryNext(0);
+  }
+
+  function bar(pct) {
+    pct = Math.max(0, Math.min(100, Math.round(pct)));
+    return '<div class="il-bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pct + '%"></i></div>';
+  }
+
+  function renderPaths(localScopes, serverProgress) {
+    var grid = $("[data-il-path-grid]");
+    if (!grid) return;
+    var keys = {};
+    Object.keys(localScopes).forEach(function (s) { keys[s] = 1; });
+    if (serverProgress) {
+      Object.keys(serverProgress).forEach(function (k) {
+        if (k === "__updated_at" || k === "local_mirror") return;
+        var v = serverProgress[k];
+        if (v && typeof v === "object") keys[k] = 1;
+      });
+    }
+    var slugs = Object.keys(keys).sort();
+    if (!slugs.length) {
+      grid.innerHTML = '<div class="il-card"><p class="il-muted">Nothing yet. Work through any <a href="/paths/" style="color:#7dd3fc">learning path</a> and your progress will appear here.</p></div>';
+      setStat("paths", "0");
+      return;
+    }
+    setStat("paths", String(slugs.length));
+    grid.innerHTML = slugs.map(function (s) {
+      return '<div class="il-card" data-il-path-card="' + esc(s) + '">' +
+        '<h3 class="font-semibold" data-il-path-title>' + esc(pretty(s)) + "</h3>" +
+        '<p class="il-muted" data-il-path-link></p>' +
+        '<div class="mt-3"><p class="il-muted">This device</p>' + bar(0) + '<p class="il-muted mt-1" data-il-path-local></p></div>' +
+        '<div class="mt-3"><p class="il-muted">Account</p><div data-il-path-server><p class="il-muted">—</p></div></div></div>';
+    }).join("");
+    var totalDone = 0;
+    slugs.forEach(function (s) {
+      var card = grid.querySelector('[data-il-path-card="' + s + '"]');
+      var local = localScopes[s];
+      var done = local ? local.done : 0;
+      totalDone += done;
+      var server = serverProgress && serverProgress[s];
+      function paint(total, href, title) {
+        if (title) card.querySelector("[data-il-path-title]").textContent = title;
+        if (href) card.querySelector("[data-il-path-link]").innerHTML = '<a class="il-link" href="' + esc(href) + '">Open path</a>';
+        var label = card.querySelector("[data-il-path-local]");
+        if (total > 0) {
+          card.querySelectorAll(".il-bar")[0].innerHTML = '<i style="width:' + Math.min(100, Math.round(done / total * 100)) + '%"></i>';
+          label.textContent = done + " of " + total + " items completed";
+        } else {
+          label.textContent = done + " items completed";
+        }
+        var srvBox = card.querySelector("[data-il-path-server]");
+        if (server && typeof server === "object" && typeof server.done === "number" && typeof server.total === "number" && server.total > 0) {
+          srvBox.innerHTML = bar(server.done / server.total * 100) + '<p class="il-muted mt-1">' + server.done + " of " + server.total + " items (synced)</p>";
+        } else if (server && typeof server === "object") {
+          srvBox.innerHTML = '<p class="il-muted">Synced record present</p>';
+        } else {
+          srvBox.innerHTML = '<p class="il-muted">Not synced yet</p>';
+        }
+      }
+      if (local) {
+        resolveScope(s).then(function (r) {
+          paint(r ? r.total : 0, r ? r.href : null, r ? r.title : null);
+        });
+      } else {
+        paint(server && typeof server.total === "number" ? server.total : 0, null, null);
+      }
+    });
+    setStat("done", String(totalDone));
+  }
+
+  function renderEvidence() {
+    var grid = $("[data-il-ev-grid]");
+    var items = [];
+    try { items = JSON.parse(localStorage.getItem("il.evidence.feed.v1") || "[]") || []; } catch (e) {}
+    if (!Array.isArray(items)) items = [];
+    setStat("evidence", String(items.length));
+    if (!items.length) {
+      grid.innerHTML = '<div class="il-card"><p class="il-muted">No evidence yet. Complete challenges, demos, or labs — verified work lands here as your portfolio.</p></div>';
+      return;
+    }
+    grid.innerHTML = items.slice(0, 24).map(function (it) {
+      var d = "";
+      try { d = new Date(it.t).toISOString().slice(0, 10); } catch (e) {}
+      return '<div class="il-card"><span class="il-ev-kind">' + esc(it.kind || "work") + '</span> ' +
+        '<span class="il-ev-date">' + esc(d) + "</span>" +
+        '<p class="mt-2" style="font-size:.9rem">' + esc(it.text || "") + "</p></div>";
+    }).join("");
+  }
+
+  function renderCerts(list) {
+    var grid = $("[data-il-cert-grid]");
+    setStat("certs", String(list.length));
+    if (!list.length) {
+      grid.innerHTML = '<div class="il-card"><p class="il-muted">No certificates yet. Finish a path, then issue one — completion certificates are verifiable and free.</p></div>';
+      return;
+    }
+    grid.innerHTML = list.map(function (c) {
+      var d = "";
+      try { d = new Date(c.issued_at).toISOString().slice(0, 10); } catch (e) {}
+      return '<div class="il-card"><p class="il-kicker">Certificate</p>' +
+        '<h3 class="font-semibold">' + esc(pretty(c.path)) + "</h3>" +
+        '<p class="il-ev-date">' + esc(c.id) + " · issued " + esc(d) + "</p>" +
+        '<p class="mt-2"><a class="il-link" href="/certificates/?id=' + encodeURIComponent(c.id) + '">View / verify</a></p></div>';
+    }).join("");
+  }
+
+  function refreshServer() {
+    if (!window.ILAccount) return;
+    ILAccount.me().then(function (email) {
+      if (!email) {
+        setStat("sync", "Local only");
+        var sub = document.querySelector('[data-il-stat="syncsub"]');
+        if (sub) sub.textContent = "Sign in keeps devices in sync";
+        return;
+      }
+      setStat("sync", "Signed in");
+      ILAccount.getProgress().then(function (p) {
+        var sub = document.querySelector('[data-il-stat="syncsub"]');
+        if (sub) sub.textContent = "Updated " + (p.__updated_at ? String(p.__updated_at).slice(0, 10) : "—");
+        renderPaths(collectLocalScopes(), p);
+        var st = $('[data-il-sync-status]');
+        if (st) st.textContent = "";
+      }).catch(function () {
+        var sub = document.querySelector('[data-il-stat="syncsub"]');
+        if (sub) sub.textContent = "Account reachable, record empty";
+        renderPaths(collectLocalScopes(), null);
+      });
+      fetch("/api/certificates", { credentials: "same-origin" }).then(function (r) { return r.json(); }).then(function (r) {
+        renderCerts(r && r.ok && Array.isArray(r.certificates) ? r.certificates : []);
+      }).catch(function () { renderCerts([]); });
+    });
+  }
+
+  function wireSync() {
+    var btn = document.querySelector("[data-il-sync-now]");
+    var st = document.querySelector("[data-il-io-error]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var status = document.querySelector("[data-il-sync-status]");
+      status.textContent = "Syncing…";
+      btn.disabled = true;
+      var scopes = collectLocalScopes();
+      var payload = {};
+      Object.keys(scopes).forEach(function (s) {
+        resolveScope(s).then(function () {}); // totals computed lazily; store counts now
+        payload[s] = { done: scopes[s].done, local_items: scopes[s].total, updated_at: new Date().toISOString() };
+      });
+      ILAccount.putProgress(payload).then(function () {
+        status.textContent = "Synced " + Object.keys(payload).length + " path(s).";
+        btn.disabled = false;
+        refreshServer();
+      }).catch(function (e) {
+        status.textContent = "Sync failed: " + (e && e.message ? e.message : "error");
+        btn.disabled = false;
+      });
+    });
+  }
+
+  function wireExportImport() {
+    var expBtn = document.querySelector("[data-il-export]");
+    var impFile = document.querySelector("[data-il-import-file]");
+    var errEl = document.querySelector("[data-il-io-error]");
+    var okEl = document.querySelector("[data-il-io-ok]");
+    function showErr(m) { errEl.textContent = m; errEl.hidden = false; okEl.hidden = true; }
+    function showOk(m) { okEl.textContent = m; okEl.hidden = false; errEl.hidden = true; }
+    if (expBtn) expBtn.addEventListener("click", function () {
+      var mirror = {};
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf("il.") === 0) mirror[k] = localStorage.getItem(k);
+        }
+      } catch (e) {}
+      ILAccount.me().then(function (email) {
+        return ILAccount.getProgress().catch(function () { return null; }).then(function (server) {
+          return {
+            format: "il-learner-state.v1",
+            exported_at: new Date().toISOString(),
+            email: email,
+            device: mirror,
+            account: server,
+          };
+        });
+      }).then(function (snap) {
+        var blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "interstitium-labs-learner-state.json";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+        showOk("Exported " + Object.keys(mirror).length + " local item(s).");
+      }).catch(function () { showErr("Export failed."); });
+    });
+    if (impFile) impFile.addEventListener("change", function () {
+      var f = impFile.files && impFile.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var snap;
+        try { snap = JSON.parse(reader.result); }
+        catch (e) { showErr("That file is not valid JSON."); impFile.value = ""; return; }
+        if (!snap || typeof snap !== "object" || !snap.device || typeof snap.device !== "object") {
+          showErr("That file is not an Interstitium Labs learner-state export."); impFile.value = ""; return;
+        }
+        var count = 0;
+        try {
+          Object.keys(snap.device).forEach(function (k) {
+            if (k.indexOf("il.") !== 0) return;
+            localStorage.setItem(k, String(snap.device[k]));
+            count++;
+          });
+        } catch (e) { showErr("Import failed writing to this device."); impFile.value = ""; return; }
+        // Merge account-side progress too, when signed in.
+        var push = snap.account && typeof snap.account === "object"
+          ? ILAccount.putProgress(snap.account).catch(function () {})
+          : Promise.resolve();
+        push.then(function () {
+          showOk("Imported " + count + " item(s) to this device" + (snap.account ? " and merged the account record." : "."));
+          impFile.value = "";
+          setTimeout(function () { location.reload(); }, 1200);
+        });
+      };
+      reader.readAsText(f);
+    });
+  }
+
+  document.addEventListener("il:signedin", function () { refreshServer(); });
+  // Initial paint uses local data immediately; server data layers in after gate.
+  renderPaths(collectLocalScopes(), null);
+  renderEvidence();
+  wireSync();
+  wireExportImport();
+  if (window.ILAccount) refreshServer();
+})();
+</script>
+</body>
+</html>
