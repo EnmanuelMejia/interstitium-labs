@@ -12,6 +12,16 @@
  * KV binding required: WAITLIST (namespace id in deploy config).
  */
 
+var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
+
+function needsNoindex(path) {
+  for (var i = 0; i < NOINDEX_PREFIXES.length; i++) {
+    var pre = NOINDEX_PREFIXES[i];
+    if (path === pre.slice(0, -1) || path.indexOf(pre) === 0) return true;
+  }
+  return false;
+}
+
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var MAX_BODY = 8192;
 var WAITLIST_SUCCESS_PATH = "/enroll/success.html";
@@ -115,6 +125,18 @@ export default {
       return handleWaitlist(request, env);
     }
 
-    return env.ASSETS.fetch(request);
+    var res = await env.ASSETS.fetch(request);
+    // _headers is not applied by this API deploy path, so gate operator
+    // prefixes here (mirrors the _headers X-Robots-Tag intent).
+    if (needsNoindex(path)) {
+      var h = new Headers(res.headers);
+      h.set("X-Robots-Tag", "noindex, nofollow");
+      return new Response(res.body, {
+        status: res.status,
+        statusText: res.statusText,
+        headers: h,
+      });
+    }
+    return res;
   },
 };
