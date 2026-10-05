@@ -1,7 +1,7 @@
 {
-  "v": 3,
-  "updated": "2026-09-30T09:05:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR). Blender polish: scripts/blender_polish_glb.py. Procedural WebGL fallback. Unreal via Pixel Streaming client (no fake fleet).",
+  "v": 4,
+  "updated": "2026-10-05T09:05:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet).",
   "engines": [
     "webgl",
     "webgpu",
@@ -15,21 +15,24 @@
       "kind": "lecture",
       "gltf": "/assets/immersive/lecture-k8s-control-plane.glb",
       "procedural": true,
-      "scene": "k8s"
+      "scene": "k8s",
+      "polish": "blender-cli"
     },
     {
       "id": "lecture-hermetic",
       "kind": "lecture",
       "gltf": "/assets/immersive/hermetic-monas.glb",
       "procedural": true,
-      "scene": "hermetic"
+      "scene": "hermetic",
+      "polish": "blender-cli"
     },
     {
       "id": "cert-default",
       "kind": "cert",
       "gltf": "/assets/immersive/cert-cka.glb",
       "procedural": true,
-      "scene": "k8s"
+      "scene": "k8s",
+      "polish": "blender-cli"
     },
     {
       "id": "cert-etcd-quorum",
@@ -37,21 +40,24 @@
       "gltf": "/assets/immersive/cka-etcd-quorum.glb",
       "procedural": true,
       "scene": "k8s",
-      "frontier": "cka-etcd"
+      "frontier": "cka-etcd",
+      "polish": "blender-cli"
     },
     {
       "id": "sim-default",
       "kind": "sim",
       "gltf": "/assets/immersive/sim-superlab.glb",
       "procedural": true,
-      "scene": "k8s"
+      "scene": "k8s",
+      "polish": "blender-cli"
     },
     {
       "id": "lab-default",
       "kind": "non-cert",
       "gltf": "/assets/immersive/rack-19u.glb",
       "procedural": true,
-      "scene": "rack"
+      "scene": "rack",
+      "polish": "blender-cli"
     },
     {
       "id": "muse-dee",
@@ -59,7 +65,116 @@
       "gltf": "/assets/immersive/muse-dee-monas.glb",
       "procedural": true,
       "scene": "hermetic",
-      "voiceReactive": true
+      "voiceReactive": true,
+      "polish": "blender-cli"
+    },
+    {
+      "id": "cert-cni-pod-network",
+      "kind": "cert",
+      "gltf": "/assets/immersive/cni-pod-network.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-cni",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-01",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-rbac-authz",
+      "kind": "cert",
+      "gltf": "/assets/immersive/rbac-authz-graph.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-rbac",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-01",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "lecture-service-mesh",
+      "kind": "lecture",
+      "gltf": "/assets/immersive/service-mesh-sidecar.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "mesh",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-01",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-storage-csi",
+      "kind": "cert",
+      "gltf": "/assets/immersive/storage-csi-pv.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-storage",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-02",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-ingress-gateway",
+      "kind": "cert",
+      "gltf": "/assets/immersive/ingress-gateway.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-ingress",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-02",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-hpa-autoscaling",
+      "kind": "cert",
+      "gltf": "/assets/immersive/hpa-autoscaling.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-hpa",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-02",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-network-policy",
+      "kind": "cert",
+      "gltf": "/assets/immersive/network-policy-isolation.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-netpol",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-05",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-secrets-configmaps",
+      "kind": "cert",
+      "gltf": "/assets/immersive/secrets-configmaps.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-config",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-05",
+      "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-scheduling-affinity",
+      "kind": "cert",
+      "gltf": "/assets/immersive/scheduling-affinity.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-scheduling",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-05",
+      "gallery": "/immersive/"
     }
   ],
   "scaffolds": {
@@ -68,5 +183,22 @@
     "cert_lab_3d_shell": "/labs/?shell=cert",
     "pixel_streaming_client": "/immersive/pixel-stream/",
     "blender_polish": "scripts/blender_polish_glb.py"
+  },
+  "cka_coverage": {
+    "spatial": [
+      "etcd",
+      "cni",
+      "rbac",
+      "mesh",
+      "storage-csi",
+      "ingress",
+      "hpa",
+      "network-policy",
+      "secrets-configmaps",
+      "scheduling"
+    ],
+    "hostedFleet": false,
+    "liveUnrealHost": false,
+    "muskVerdict": "Closer/NO until live UE host + hosted fleet exist"
   }
 }

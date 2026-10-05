@@ -1,7 +1,38 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-02 ~09:10 EDT (America/New_York)._  
+_Last updated: 2026-10-05 ~09:15 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-05 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Weekend shipped flat AI/learn sequences with zero new spatial .glb — **no**. |
+| After this ship | **Closer / still NO** | Three new Blender-polished CKA glTFs close the last flat CKA gaps: **NetworkPolicy isolation**, **Secrets vs ConfigMaps**, **Scheduling (affinity/taints/tolerations)**. `/learn/` lecture stage now loads authored `lecture-k8s-control-plane.glb` (pending/procedural-only scaffold retired). Scene manifest v4 covers every authored scene. Still **no live UE host**, **no hosted lab fleet**. |
+| Fake YES risk | Rejected | Kit-v2 + Blender 4.2.3 CLI polish only. PS checklist re-run 2026-10-05 fails closed (no GPU / UE binary on box). |
+
+## Scorecard (0–10) — 2026-10-05
+
+| Dimension | Prior (10-02) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 8.7 | **8.8** | /learn/ hero stage is now authored glTF, not procedural |
+| Motion / graphics | 8.5 | **8.6** | Translucent BLEND shield (first alpha material in kit) |
+| Live labs density | 6.0 | 6.0 | Still no hosted fleet (do not fake) |
+| Honesty / trust | 9.8 | 9.8 | Checklist date bumped with real fail-closed evidence |
+| Curriculum SoT | 8.3 | **8.5** | assets3d + mirror certs + manifest v4 complete |
+| Immersive / 3D gate | 8.5 | **8.8** | CKA spatial coverage: etcd, CNI, RBAC, mesh, CSI, Ingress, HPA, NetworkPolicy, Secrets/ConfigMaps, Scheduling |
+
+**Composite ~8.0/10. Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet**.
+
+## Competitor delta (2026-10-05)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud | Hosted labs + AI Tutor in-lab | Spatial NetworkPolicy allow/deny, Secret-vs-ConfigMap mounts, scheduler filter/score/bind — peers ship flat diagrams + terminals |
+| Killercoda | Instant browser terminals | 10 CKA domains as authored 3D scenes (no fake fleet) |
+| A Cloud Guru | Catalog breadth + sandboxes | 3D-first CKA graph scenes with pedagogical node labels |
+
+---
 
 ## Verdict — 2026-10-02 Musk-bar pass
 

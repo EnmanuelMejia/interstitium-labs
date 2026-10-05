@@ -225,6 +225,10 @@ def pack_glb(meshes_with_mats: list[tuple], scene_extras: dict | None = None) ->
         entry = {"name": key, "pbrMetallicRoughness": pbr}
         if mat.get("emissiveFactor"):
             entry["emissiveFactor"] = list(mat["emissiveFactor"])
+        if float(pbr["baseColorFactor"][3]) < 1.0:
+            # translucent pedagogy shells (e.g. NetworkPolicy shield)
+            entry["alphaMode"] = "BLEND"
+            entry["doubleSided"] = True
         materials.append(entry)
         return idx
 
@@ -1034,6 +1038,271 @@ def scene_hpa_autoscaling() -> list:
 
 
 
+MAT_DENY = mat("il-deny", (0.86, 0.26, 0.24, 1.0), 0.1, 0.5, (0.28, 0.04, 0.03))
+MAT_MUTED = mat("il-muted", (0.32, 0.36, 0.42, 1.0), 0.05, 0.8)
+MAT_SHIELD = mat("il-shield", (0.369, 0.918, 0.831, 0.55), 0.05, 0.2, (0.06, 0.24, 0.2))
+MAT_SECRET = mat("il-secret-gold", GOLD, 0.6, 0.22, (0.32, 0.22, 0.05))
+MAT_TAINT = mat("il-taint", (0.95, 0.55, 0.18, 1.0), 0.15, 0.45, (0.25, 0.12, 0.02))
+
+
+def _edge(parts, a, b, name, mat_, ped, label, thick=0.035, lift=0.06, extra=None):
+    """Axis-aligned bead chain edge from a→b (kit-v2 style, readable at LOD0)."""
+    x0, y0, z0 = a
+    x1, y1, z1 = b
+    dist = math.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) or 1.0
+    steps = max(3, int(dist / 0.22))
+    mb = MeshBuilder()
+    for t in range(steps + 1):
+        u = t / steps
+        mb.add_sphere(
+            x0 + (x1 - x0) * u,
+            y0 + (y1 - y0) * u + lift * math.sin(u * math.pi),
+            z0 + (z1 - z0) * u,
+            thick,
+            6,
+            8,
+        )
+    parts.append((mb, mat_, name, {**ped, "label": label, **(extra or {})}))
+
+
+def scene_network_policy_isolation() -> list:
+    """NetworkPolicy isolation — namespaces, pods, policy shield, allowed (cyan) vs denied (red/muted) edges."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "network-policy-isolation", "cert": "CKA", "domain": "networking"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.4, 0.08, 3.6)
+    parts.append((floor, MAT_VOID, "netpol-floor", {**ped, "label": "cluster-network-plane"}))
+    # Namespace pads: frontend (left), backend (center, protected), monitoring (right)
+    namespaces = [("frontend", -1.85, MAT_INK), ("backend", 0.0, MAT_INK), ("untrusted", 1.85, MAT_MUTED)]
+    pod_pos = {}
+    for ns, nx, m in namespaces:
+        pad = MeshBuilder()
+        pad.add_chamfer_box(nx, -0.7, 0, 1.55, 0.18, 2.4, 0.03)
+        parts.append((pad, m, f"ns-{ns}", {**ped, "label": f"Namespace/{ns}", "kind": "Namespace"}))
+        for pi, pz in enumerate((-0.6, 0.6)):
+            pod = MeshBuilder()
+            pod.add_sphere(nx, -0.3, pz, 0.2, 12, 14)
+            pm = MAT_GOLD if ns == "backend" else (MAT_CYAN if ns == "frontend" else MAT_MUTED)
+            app = {"frontend": "web", "backend": "api", "untrusted": "scanner"}[ns]
+            parts.append((pod, pm, f"pod-{ns}-{pi}", {
+                **ped, "label": f"Pod {app}-{pi}", "kind": "Pod", "labels": f"app={app}", "namespace": ns
+            }))
+            pod_pos[(ns, pi)] = (nx, -0.3, pz)
+    # NetworkPolicy shield around backend: ring + translucent dome posts
+    ring = MeshBuilder()
+    ring.add_cylinder(0, -0.55, 0, 1.15, 0.05, 32)
+    parts.append((ring, MAT_SHIELD, "netpol-shield-ring", {
+        **ped, "label": "NetworkPolicy podSelector app=api", "kind": "NetworkPolicy", "policyTypes": "Ingress"
+    }))
+    for i in range(12):
+        a = (i / 12) * math.pi * 2
+        post = MeshBuilder()
+        post.add_cylinder(math.cos(a) * 1.15, 0.05, math.sin(a) * 1.15, 0.035, 1.2, 8)
+        parts.append((post, MAT_SHIELD, f"netpol-shield-post-{i}", {**ped, "label": "policy boundary"}))
+    crown = MeshBuilder()
+    crown.add_cylinder(0, 0.68, 0, 1.15, 0.04, 32, capped=False)
+    parts.append((crown, MAT_SHIELD, "netpol-shield-crown", {**ped, "label": "default-deny ingress"}))
+    # Policy manifest tablet
+    tablet = MeshBuilder()
+    tablet.add_chamfer_box(0, 1.1, -1.35, 1.2, 0.5, 0.06, 0.02)
+    parts.append((tablet, MAT_PAPER, "netpol-manifest", {
+        **ped, "label": "ingress.from: namespaceSelector name=frontend · ports: 8080/TCP"
+    }))
+    # Allowed edges: frontend → backend (cyan)
+    for pi in range(2):
+        _edge(parts, pod_pos[("frontend", pi)], pod_pos[("backend", pi)], f"edge-allow-{pi}", MAT_CYAN, ped,
+              "ALLOW frontend→api :8080", 0.04, 0.35, {"verdict": "allow"})
+    # Denied edges: untrusted → backend (red, stops at shield)
+    for pi in range(2):
+        sx, sy, sz = pod_pos[("untrusted", pi)]
+        stop = (1.2, sy, sz * 0.9)
+        _edge(parts, (sx, sy, sz), stop, f"edge-deny-{pi}", MAT_DENY, ped,
+              "DENY untrusted→api (no matching rule)", 0.04, 0.25, {"verdict": "deny"})
+        x = MeshBuilder()
+        x.add_box(1.22, sy + 0.12, stop[2], 0.06, 0.32, 0.32)
+        parts.append((x, MAT_DENY, f"deny-block-{pi}", {**ped, "label": "dropped at policy", "verdict": "deny"}))
+    # Egress to DNS stays allowed (muted dashed hint)
+    dns = MeshBuilder()
+    dns.add_chamfer_box(0, -0.35, 1.55, 0.5, 0.3, 0.3, 0.02)
+    parts.append((dns, MAT_PAPER, "kube-dns", {**ped, "label": "kube-dns :53 (egress allow)"}))
+    _edge(parts, pod_pos[("backend", 1)], (0, -0.35, 1.55), "edge-egress-dns", MAT_LED, ped,
+          "egress DNS allow", 0.03, 0.15, {"verdict": "allow"})
+    # CNI enforcement node (policy enforced by CNI, not apiserver)
+    cni = MeshBuilder()
+    cni.add_cylinder(-1.85, 0.75, -1.35, 0.25, 0.25, 18)
+    parts.append((cni, MAT_LED, "cni-enforcer", {**ped, "label": "CNI enforces (Calico/Cilium)", "cka": "cni"}))
+    lod = MeshBuilder()
+    lod.add_box(0, -0.4, 0, 5.0, 0.12, 3.0)
+    parts.append((lod, MAT_VOID, "lod1-netpol-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_secrets_configmaps() -> list:
+    """Secrets vs ConfigMaps — Pod with mounted Secret (gold/emissive) + ConfigMap (paper) volumes, env + volumeMount edges."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "secrets-configmaps", "cert": "CKA", "domain": "workloads"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.0, 0.08, 3.2)
+    parts.append((floor, MAT_VOID, "cfg-floor", {**ped, "label": "config-plane"}))
+    # etcd vault (Secrets stored base64 / encrypted-at-rest optional)
+    etcd = MeshBuilder()
+    etcd.add_cylinder(0, 0.2, -1.25, 0.35, 0.6, 22)
+    parts.append((etcd, MAT_INK, "etcd-store", {**ped, "label": "etcd (EncryptionConfiguration at rest)"}))
+    # Secret object (gold, emissive vault)
+    secret = MeshBuilder()
+    secret.add_chamfer_box(-1.5, 0.45, -0.2, 0.8, 0.6, 0.6, 0.04)
+    parts.append((secret, MAT_SECRET, "secret-db-creds", {
+        **ped, "label": "Secret db-creds (type Opaque, base64)", "kind": "Secret"
+    }))
+    lock = MeshBuilder()
+    lock.add_cylinder(-1.5, 0.92, -0.2, 0.1, 0.18, 14)
+    parts.append((lock, MAT_DEE_GOLD, "secret-lock", {**ped, "label": "RBAC-gated get secrets"}))
+    for i in range(3):
+        key = MeshBuilder()
+        key.add_box(-1.5 - 0.22 + i * 0.22, 0.45, 0.13, 0.12, 0.3, 0.04)
+        parts.append((key, MAT_GOLD, f"secret-key-{i}", {**ped, "label": ["username", "password", "tls.key"][i]}))
+    # ConfigMap object (paper sheets)
+    cm = MeshBuilder()
+    cm.add_chamfer_box(1.5, 0.4, -0.2, 0.8, 0.5, 0.6, 0.03)
+    parts.append((cm, MAT_PAPER, "configmap-app-config", {
+        **ped, "label": "ConfigMap app-config (plaintext)", "kind": "ConfigMap"
+    }))
+    for i in range(3):
+        sheet = MeshBuilder()
+        sheet.add_box(1.5, 0.72 + i * 0.05, -0.2 + (i - 1) * 0.06, 0.62, 0.025, 0.42)
+        parts.append((sheet, MAT_PAPER, f"configmap-sheet-{i}", {
+            **ped, "label": ["LOG_LEVEL", "app.properties", "nginx.conf"][i]
+        }))
+    # Pod (center) with container + volumes
+    pod = MeshBuilder()
+    pod.add_chamfer_box(0, -0.12, 1.0, 1.4, 0.22, 0.8, 0.03)
+    parts.append((pod, MAT_INK, "pod-shell", {**ped, "label": "Pod api-0", "kind": "Pod"}))
+    podring = MeshBuilder()
+    podring.add_cylinder(0, 0.45, 1.0, 0.36, 0.04, 24, capped=False)
+    parts.append((podring, MAT_CYAN, "pod-boundary", {**ped, "label": "Pod sandbox"}))
+    ctr = MeshBuilder()
+    ctr.add_sphere(0, 0.45, 1.0, 0.24, 12, 14)
+    parts.append((ctr, MAT_CYAN, "container-app", {**ped, "label": "container app"}))
+    # Volume mounts (cylinders on pod faces)
+    vsec = MeshBuilder()
+    vsec.add_cylinder(-0.55, 0.35, 1.0, 0.13, 0.5, 14)
+    parts.append((vsec, MAT_SECRET, "volume-secret", {
+        **ped, "label": "volume secret → /etc/creds (tmpfs, readOnly)", "mountPath": "/etc/creds"
+    }))
+    vcm = MeshBuilder()
+    vcm.add_cylinder(0.55, 0.35, 1.0, 0.13, 0.5, 14)
+    parts.append((vcm, MAT_PAPER, "volume-configmap", {
+        **ped, "label": "volume configMap → /etc/config", "mountPath": "/etc/config"
+    }))
+    # env chips (envFrom / valueFrom)
+    for i, (lbl, m) in enumerate((("env DB_PASS ← secretKeyRef", MAT_GOLD), ("env LOG_LEVEL ← configMapKeyRef", MAT_PAPER))):
+        chip = MeshBuilder()
+        chip.add_box(-0.25 + i * 0.5, 0.92, 1.0, 0.36, 0.07, 0.2)
+        parts.append((chip, m, f"env-chip-{i}", {**ped, "label": lbl}))
+    # volumeMount edges
+    _edge(parts, (-1.5, 0.45, -0.2), (-0.55, 0.35, 1.0), "edge-secret-mount", MAT_SECRET, ped,
+          "volumeMount secret", 0.045, 0.3, {"source": "Secret"})
+    _edge(parts, (1.5, 0.4, -0.2), (0.55, 0.35, 1.0), "edge-configmap-mount", MAT_CYAN, ped,
+          "volumeMount configMap", 0.045, 0.3, {"source": "ConfigMap"})
+    _edge(parts, (0, 0.2, -1.25), (-1.5, 0.45, -0.2), "edge-etcd-secret", MAT_INK, ped,
+          "stored in etcd", 0.03, 0.12)
+    _edge(parts, (0, 0.2, -1.25), (1.5, 0.4, -0.2), "edge-etcd-configmap", MAT_INK, ped,
+          "stored in etcd", 0.03, 0.12)
+    # kubelet projection node
+    kubelet = MeshBuilder()
+    kubelet.add_chamfer_box(0, -0.55, 1.0, 1.8, 0.2, 1.1, 0.03)
+    parts.append((kubelet, MAT_VOID, "node-kubelet", {**ped, "label": "kubelet projects volumes (tmpfs for Secret)"}))
+    led = MeshBuilder()
+    led.add_sphere(0.8, -0.35, 1.5, 0.06, 8, 10)
+    parts.append((led, MAT_LED, "kubelet-led", {**ped, "label": "kubelet"}))
+    lod = MeshBuilder()
+    lod.add_box(0, 0.1, 0, 4.2, 0.1, 2.6)
+    parts.append((lod, MAT_VOID, "lod1-config-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
+def scene_scheduling_affinity() -> list:
+    """Scheduling — kube-scheduler, worker nodes with affinity/taint badges, pending vs bound pods."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "scheduling-affinity", "cert": "CKA", "domain": "scheduling"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.4, 0.08, 3.6)
+    parts.append((floor, MAT_VOID, "sched-floor", {**ped, "label": "scheduling-plane"}))
+    # kube-scheduler (gold cylinder, back center)
+    sched = MeshBuilder()
+    sched.add_cylinder(0, 0.75, -1.3, 0.38, 0.6, 24)
+    parts.append((sched, MAT_GOLD, "kube-scheduler", {**ped, "label": "kube-scheduler (filter → score → bind)", "cka": "scheduler"}))
+    halo = MeshBuilder()
+    halo.add_cylinder(0, 0.4, -1.3, 0.6, 0.05, 24)
+    parts.append((halo, MAT_CYAN, "scheduler-halo", {**ped, "label": "scheduling cycle"}))
+    # filter/score phase chips
+    for i, lbl in enumerate(("Filter (predicates)", "Score (priorities)", "Bind")):
+        chip = MeshBuilder()
+        chip.add_box(-0.55 + i * 0.55, 1.22, -1.3, 0.45, 0.08, 0.18)
+        parts.append((chip, MAT_PAPER if i < 2 else MAT_LED, f"sched-phase-{i}", {**ped, "label": lbl}))
+    # Worker nodes with badges
+    nodes = [
+        ("node-a", -1.8, {"labels": "disktype=ssd zone=us-east-1a", "taint": None}, MAT_CYAN),
+        ("node-b", 0.0, {"labels": "zone=us-east-1b", "taint": "gpu=true:NoSchedule"}, MAT_INK),
+        ("node-c", 1.8, {"labels": "disktype=hdd", "taint": "maintenance:NoExecute"}, MAT_INK),
+    ]
+    for name, nx, meta, m in nodes:
+        n = MeshBuilder()
+        n.add_chamfer_box(nx, -0.35, 0.35, 1.2, 0.7, 1.0, 0.04)
+        parts.append((n, m, name, {**ped, "label": name, "kind": "Node", **{k: v for k, v in meta.items() if v}}))
+        badge = MeshBuilder()
+        badge.add_box(nx - 0.3, 0.08, 0.86, 0.45, 0.14, 0.04)
+        parts.append((badge, MAT_LED if "ssd" in meta["labels"] else MAT_PAPER, f"{name}-label-badge", {
+            **ped, "label": meta["labels"], "badge": "nodeLabel"
+        }))
+        if meta["taint"]:
+            t = MeshBuilder()
+            t.add_cylinder(nx + 0.38, 0.12, 0.86, 0.12, 0.06, 6)
+            parts.append((t, MAT_TAINT, f"{name}-taint", {**ped, "label": f"taint {meta['taint']}", "badge": "taint"}))
+            tt = MeshBuilder()
+            tt.add_box(nx + 0.38, 0.12, 0.9, 0.04, 0.16, 0.02)
+            parts.append((tt, MAT_DENY, f"{name}-taint-mark", {**ped, "label": "repels pods without toleration"}))
+    # Bound pod on node-a (nodeAffinity disktype=ssd satisfied)
+    bound = MeshBuilder()
+    bound.add_sphere(-1.8, 0.28, 0.35, 0.22, 12, 14)
+    parts.append((bound, MAT_CYAN, "pod-bound-affinity", {
+        **ped, "label": "Pod web (nodeAffinity disktype=ssd) → Bound node-a", "phase": "Running", "nodeName": "node-a"
+    }))
+    # Pod with toleration bound to node-b
+    tol = MeshBuilder()
+    tol.add_sphere(0.0, 0.28, 0.35, 0.22, 12, 14)
+    parts.append((tol, MAT_GOLD, "pod-bound-toleration", {
+        **ped, "label": "Pod trainer (toleration gpu=true:NoSchedule) → Bound node-b", "phase": "Running", "nodeName": "node-b"
+    }))
+    tring = MeshBuilder()
+    tring.add_cylinder(0.0, 0.28, 0.35, 0.3, 0.03, 20, capped=False)
+    parts.append((tring, MAT_TAINT, "toleration-ring", {**ped, "label": "tolerations[] matches taint"}))
+    # Pending pod hovering (no node satisfies requiredDuringScheduling)
+    pend = MeshBuilder()
+    pend.add_sphere(1.0, 1.25, 1.35, 0.22, 12, 14)
+    parts.append((pend, MAT_MUTED, "pod-pending", {
+        **ped, "label": "Pod db (nodeAffinity disktype=nvme) → Pending · 0/3 nodes available", "phase": "Pending"
+    }))
+    pend_note = MeshBuilder()
+    pend_note.add_chamfer_box(1.0, 1.7, 1.35, 0.9, 0.22, 0.06, 0.02)
+    parts.append((pend_note, MAT_DENY, "event-failed-scheduling", {
+        **ped, "label": "Event FailedScheduling: node(s) didn't match affinity / had untolerated taint"
+    }))
+    # Scheduler decision edges
+    _edge(parts, (0, 0.75, -1.3), (-1.8, 0.28, 0.35), "edge-bind-node-a", MAT_CYAN, ped,
+          "bind → node-a (affinity score)", 0.04, 0.45, {"verdict": "bind"})
+    _edge(parts, (0, 0.75, -1.3), (0.0, 0.28, 0.35), "edge-bind-node-b", MAT_GOLD, ped,
+          "bind → node-b (tolerates taint)", 0.04, 0.4, {"verdict": "bind"})
+    _edge(parts, (1.0, 1.25, 1.35), (1.8, 0.1, 0.5), "edge-reject-node-c", MAT_DENY, ped,
+          "filtered: NoExecute taint + label mismatch", 0.035, 0.15, {"verdict": "reject"})
+    _edge(parts, (0, 0.75, -1.3), (1.0, 1.25, 1.35), "edge-sched-pending", MAT_MUTED, ped,
+          "queued: unschedulable", 0.03, 0.2, {"verdict": "pending"})
+    lod = MeshBuilder()
+    lod.add_box(0, -0.2, 0, 5.0, 0.12, 3.0)
+    parts.append((lod, MAT_VOID, "lod1-sched-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1049,6 +1318,9 @@ SCENES = {
     "storage-csi-pv.glb": scene_storage_csi_pv,
     "ingress-gateway.glb": scene_ingress_gateway,
     "hpa-autoscaling.glb": scene_hpa_autoscaling,
+    "network-policy-isolation.glb": scene_network_policy_isolation,
+    "secrets-configmaps.glb": scene_secrets_configmaps,
+    "scheduling-affinity.glb": scene_scheduling_affinity,
 }
 
 
