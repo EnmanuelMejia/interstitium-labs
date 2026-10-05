@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-02T09:05:00-04:00",
+  "updated": "2026-10-05T09:05:00-04:00",
   "musk_rule": "Would Elon be impressed by my mediocrity? If mediocrity would impress nobody \u2014 REPLACE and ship.",
   "law": "Notion = Curriculum OS SoT. Runtime = Interstitium immersive 3d-first (Unreal/Blender/Godot/glTF + Lab Muse). NEVER Notion embeds as 3D runtime.",
   "notion": {
@@ -345,6 +345,72 @@
         "webgpu": true,
         "frontier": "cka-hpa"
       }
+    },
+    {
+      "id": "cert-cka-network-policy-isolation",
+      "name": "CKA NetworkPolicy Isolation 3D",
+      "slug": "cert-cka-network-policy-isolation",
+      "lang": "EN",
+      "publishStatus": "published",
+      "vendor": "CNCF",
+      "examCode": "CKA",
+      "trackSlug": "k8s-cka-exceed",
+      "labShellUrl": "/labs/",
+      "surfaceUrl": "/immersive/",
+      "gltf": "/assets/immersive/network-policy-isolation.glb",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/network-policy-isolation.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-netpol"
+      }
+    },
+    {
+      "id": "cert-cka-secrets-configmaps",
+      "name": "CKA Secrets and ConfigMaps 3D",
+      "slug": "cert-cka-secrets-configmaps",
+      "lang": "EN",
+      "publishStatus": "published",
+      "vendor": "CNCF",
+      "examCode": "CKA",
+      "trackSlug": "k8s-cka-exceed",
+      "labShellUrl": "/labs/",
+      "surfaceUrl": "/immersive/",
+      "gltf": "/assets/immersive/secrets-configmaps.glb",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/secrets-configmaps.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-config"
+      }
+    },
+    {
+      "id": "cert-cka-scheduling-affinity",
+      "name": "CKA Scheduling Affinity Taints 3D",
+      "slug": "cert-cka-scheduling-affinity",
+      "lang": "EN",
+      "publishStatus": "published",
+      "vendor": "CNCF",
+      "examCode": "CKA",
+      "trackSlug": "k8s-cka-exceed",
+      "labShellUrl": "/labs/",
+      "surfaceUrl": "/immersive/",
+      "gltf": "/assets/immersive/scheduling-affinity.glb",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/scheduling-affinity.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-scheduling"
+      }
     }
   ],
   "assets3d": [
@@ -359,7 +425,8 @@
       "gltfPath": "/assets/immersive/lecture-k8s-control-plane.glb",
       "triBudget": 80000,
       "sceneId": "lecture-default",
-      "notes": "Placeholder until Blender export lands; procedural fallback live"
+      "notes": "Kit-v2 authored glTF + Blender CLI polish 2026-10-01; procedural fallback only if fetch fails. Not hand-sculpted.",
+      "polish": "blender-cli-2026-10-01"
     },
     {
       "id": "cert-cka-shell",
@@ -372,7 +439,8 @@
       "gltfPath": "/assets/immersive/cert-cka.glb",
       "triBudget": 60000,
       "sceneId": "cert-default",
-      "notes": "Cert lab 3D shell \u2014 procedural now"
+      "notes": "Kit-v2 authored CKA shell glTF + Blender CLI polish 2026-10-01; procedural fallback only if fetch fails.",
+      "polish": "blender-cli-2026-10-01"
     },
     {
       "id": "sim-superlab",
@@ -439,7 +507,49 @@
       "sceneId": "cka-hpa",
       "notes": "metrics-server to HPA to Deployment replica stretch. Kit-v2 + Blender CLI polish 2026-10-02.",
       "polish": "blender-cli-2026-10-02"
+    },
+    {
+      "id": "network-policy-isolation",
+      "name": "NetworkPolicy Isolation",
+      "slug": "network-policy-isolation",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "cert",
+      "engine": "blender-gltf",
+      "gltfPath": "/assets/immersive/network-policy-isolation.glb",
+      "triBudget": 95000,
+      "sceneId": "cka-netpol",
+      "polish": "blender-cli-2026-10-05",
+      "notes": "CKA networking: namespaces, pods, NetworkPolicy shield (podSelector app=api), ALLOW edges (cyan) vs DENY edges (red, dropped at shield), DNS egress allow, CNI enforcer. Kit-v2 + Blender CLI polish 2026-10-05."
+    },
+    {
+      "id": "secrets-configmaps",
+      "name": "Secrets vs ConfigMaps",
+      "slug": "secrets-configmaps",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "cert",
+      "engine": "blender-gltf",
+      "gltfPath": "/assets/immersive/secrets-configmaps.glb",
+      "triBudget": 80000,
+      "sceneId": "cka-config",
+      "polish": "blender-cli-2026-10-05",
+      "notes": "Pod with Secret volume (emissive gold, tmpfs, RBAC-gated) vs ConfigMap volume (paper), env secretKeyRef/configMapKeyRef chips, volumeMount edges, etcd store. Kit-v2 + Blender CLI polish 2026-10-05."
+    },
+    {
+      "id": "scheduling-affinity",
+      "name": "Scheduling Affinity / Taints",
+      "slug": "scheduling-affinity",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "cert",
+      "engine": "blender-gltf",
+      "gltfPath": "/assets/immersive/scheduling-affinity.glb",
+      "triBudget": 90000,
+      "sceneId": "cka-scheduling",
+      "polish": "blender-cli-2026-10-05",
+      "notes": "kube-scheduler filter/score/bind, nodes with label badges + taints, pod bound via nodeAffinity, pod bound via toleration, Pending pod + FailedScheduling event. Kit-v2 + Blender CLI polish 2026-10-05."
     }
   ],
-  "refreshedAt": "2026-10-02T09:05:00-04:00"
+  "refreshedAt": "2026-10-05T09:05:00-04:00"
 }
