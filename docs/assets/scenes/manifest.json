@@ -1,7 +1,7 @@
 {
-  "v": 4,
-  "updated": "2026-10-05T09:05:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet).",
+  "v": 5,
+  "updated": "2026-10-06T09:40:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates.",
   "engines": [
     "webgl",
     "webgpu",
@@ -41,7 +41,8 @@
       "procedural": true,
       "scene": "k8s",
       "frontier": "cka-etcd",
-      "polish": "blender-cli"
+      "polish": "blender-cli",
+      "sim": "etcd-quorum"
     },
     {
       "id": "sim-default",
@@ -175,6 +176,32 @@
       "polish": "blender-cli",
       "polishedOn": "2026-10-05",
       "gallery": "/immersive/"
+    },
+    {
+      "id": "cert-aws-multi-az",
+      "kind": "cert",
+      "gltf": "/assets/immersive/aws-vpc-multi-az.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "aws-saa-resilience",
+      "cert": "AWS SAA-C03 / CLF-C02",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-06",
+      "gallery": "/immersive/#aws-az-failure",
+      "sim": "aws-az-failure"
+    },
+    {
+      "id": "cert-aws-iam-eval",
+      "kind": "cert",
+      "gltf": "/assets/immersive/aws-iam-policy-eval.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "aws-saa-security",
+      "cert": "AWS SAA-C03 / CLF-C02",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-06",
+      "gallery": "/immersive/#aws-iam-eval",
+      "sim": "iam-eval"
     }
   ],
   "scaffolds": {
@@ -200,5 +227,32 @@
     "hostedFleet": false,
     "liveUnrealHost": false,
     "muskVerdict": "Closer/NO until live UE host + hosted fleet exist"
+  },
+  "sims": {
+    "runtime": "/assets/il-immersive-sims.js",
+    "player": "/assets/il-immersive-3d.js (v1.4.0, data-il-sim)",
+    "list": [
+      "etcd-quorum",
+      "aws-az-failure",
+      "iam-eval"
+    ],
+    "predictThenReveal": true,
+    "analytics": [
+      "immersive_sim_predict",
+      "immersive_sim_state"
+    ],
+    "storage": "localStorage il.immersiveSims.v1 (device only)",
+    "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet."
+  },
+  "aws_coverage": {
+    "spatial": [
+      "vpc-multi-az",
+      "iam-policy-eval"
+    ],
+    "interactive": [
+      "aws-az-failure",
+      "iam-eval"
+    ],
+    "liveAwsSandbox": false
   }
 }

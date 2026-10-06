@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-05T09:05:00-04:00",
+  "updated": "2026-10-06T09:40:00-04:00",
   "musk_rule": "Would Elon be impressed by my mediocrity? If mediocrity would impress nobody \u2014 REPLACE and ship.",
   "law": "Notion = Curriculum OS SoT. Runtime = Interstitium immersive 3d-first (Unreal/Blender/Godot/glTF + Lab Muse). NEVER Notion embeds as 3D runtime.",
   "notion": {
@@ -236,6 +236,72 @@
         "webgpu": true
       },
       "gltf": "/assets/immersive/rack-19u.glb"
+    },
+    {
+      "id": "lab-sim-etcd-quorum",
+      "name": "etcd Quorum Failure Drill (interactive 3D)",
+      "slug": "lab-sim-etcd-quorum",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Kill members/leader, predict whether writes survive, scene re-tints from Raft quorum rules (in-browser; no live cluster)",
+      "surfaceUrl": "/paths/k8s-cka-exceed/",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/cka-etcd-quorum.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-etcd",
+        "sim": "etcd-quorum"
+      },
+      "gltf": "/assets/immersive/cka-etcd-quorum.glb"
+    },
+    {
+      "id": "lab-sim-aws-az-failure",
+      "name": "AWS Multi-AZ Failure Drill (interactive 3D)",
+      "slug": "lab-sim-aws-az-failure",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "aws-cloud-practitioner-plus",
+      "summary": "Fail an AZ, predict, watch ALB drain / ASG relaunch / RDS Multi-AZ failover (rules engine; no AWS account)",
+      "surfaceUrl": "/paths/aws-cloud-practitioner-plus/",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/aws-vpc-multi-az.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "aws-saa-resilience",
+        "sim": "aws-az-failure"
+      },
+      "gltf": "/assets/immersive/aws-vpc-multi-az.glb"
+    },
+    {
+      "id": "lab-sim-iam-eval",
+      "name": "AWS IAM Policy Evaluation Walk (interactive 3D)",
+      "slug": "lab-sim-iam-eval",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "aws-cloud-ops",
+      "summary": "Toggle Deny/SCP/resource/identity/boundary statements; the deciding gate lights up (single-account flow, simplified)",
+      "surfaceUrl": "/paths/aws-cloud-ops/",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/aws-iam-policy-eval.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "aws-saa-security",
+        "sim": "iam-eval"
+      },
+      "gltf": "/assets/immersive/aws-iam-policy-eval.glb"
     }
   ],
   "certs": [
@@ -262,22 +328,25 @@
     },
     {
       "id": "cert-aws-cp-plus",
-      "name": "AWS CP+ Cert Stage",
+      "name": "AWS CP+ Multi-AZ Failure Sim",
       "slug": "cert-aws-cp-plus",
       "lang": "EN",
-      "publishStatus": "review",
+      "publishStatus": "published",
       "vendor": "AWS",
       "examCode": "CLF-C02",
       "trackSlug": "aws-cloud-practitioner-plus",
       "labShellUrl": "/labs/",
       "surfaceUrl": "/paths/aws-cloud-practitioner-plus/",
+      "gltf": "/assets/immersive/aws-vpc-multi-az.glb",
       "immersive": {
         "mode": "3d-first",
-        "engine": "three",
-        "asset": "procedural:rack",
+        "engine": "gltf",
+        "asset": "/assets/immersive/aws-vpc-multi-az.glb",
         "captions": true,
         "fallback": "reduced-motion",
-        "webgpu": true
+        "webgpu": true,
+        "frontier": "aws-saa-resilience",
+        "sim": "aws-az-failure"
       }
     },
     {
@@ -410,6 +479,52 @@
         "fallback": "reduced-motion",
         "webgpu": true,
         "frontier": "cka-scheduling"
+      }
+    },
+    {
+      "id": "cert-aws-saa-multi-az",
+      "name": "AWS SAA Multi-AZ Resilience 3D Sim",
+      "slug": "cert-aws-saa-multi-az",
+      "lang": "EN",
+      "publishStatus": "published",
+      "vendor": "AWS",
+      "examCode": "SAA-C03",
+      "trackSlug": "aws-cloud-ops",
+      "labShellUrl": "/labs/",
+      "surfaceUrl": "/immersive/",
+      "gltf": "/assets/immersive/aws-vpc-multi-az.glb",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/aws-vpc-multi-az.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "aws-saa-resilience",
+        "sim": "aws-az-failure"
+      }
+    },
+    {
+      "id": "cert-aws-saa-iam-eval",
+      "name": "AWS SAA IAM Policy Evaluation 3D Sim",
+      "slug": "cert-aws-saa-iam-eval",
+      "lang": "EN",
+      "publishStatus": "published",
+      "vendor": "AWS",
+      "examCode": "SAA-C03",
+      "trackSlug": "aws-cloud-ops",
+      "labShellUrl": "/labs/",
+      "surfaceUrl": "/paths/aws-cloud-ops/",
+      "gltf": "/assets/immersive/aws-iam-policy-eval.glb",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/aws-iam-policy-eval.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "aws-saa-security",
+        "sim": "iam-eval"
       }
     }
   ],
@@ -549,7 +664,37 @@
       "sceneId": "cka-scheduling",
       "polish": "blender-cli-2026-10-05",
       "notes": "kube-scheduler filter/score/bind, nodes with label badges + taints, pod bound via nodeAffinity, pod bound via toleration, Pending pod + FailedScheduling event. Kit-v2 + Blender CLI polish 2026-10-05."
+    },
+    {
+      "id": "aws-vpc-multi-az",
+      "name": "AWS VPC Multi-AZ (ALB \u00b7 ASG \u00b7 RDS)",
+      "slug": "aws-vpc-multi-az",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "cert",
+      "engine": "blender-gltf",
+      "gltfPath": "/assets/immersive/aws-vpc-multi-az.glb",
+      "triBudget": 120000,
+      "sceneId": "aws-saa-multi-az",
+      "polish": "blender-cli-2026-10-06",
+      "sim": "aws-az-failure",
+      "notes": "VPC across us-east-1a/1b: IGW, ALB nodes, zonal NAT, ASG EC2 + hidden sim-* surge capacity, RDS primary + synchronous standby, endpoint CNAME. Kit-v2 + Blender CLI polish 2026-10-06 (extras preserved). Interactive AZ-failure sim; no AWS account."
+    },
+    {
+      "id": "aws-iam-policy-eval",
+      "name": "AWS IAM Policy Evaluation Gates",
+      "slug": "aws-iam-policy-eval",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "cert",
+      "engine": "blender-gltf",
+      "gltfPath": "/assets/immersive/aws-iam-policy-eval.glb",
+      "triBudget": 110000,
+      "sceneId": "aws-saa-iam-eval",
+      "polish": "blender-cli-2026-10-06",
+      "sim": "iam-eval",
+      "notes": "Request walks explicit Deny \u2192 SCP/RCP \u2192 resource policy \u2192 identity policy \u2192 permissions boundary \u2192 session policy \u2192 ALLOW / implicit deny / explicit deny pedestals. Kit-v2 + Blender CLI polish 2026-10-06. Interactive sim (single-account flow, simplified)."
     }
   ],
-  "refreshedAt": "2026-10-05T09:05:00-04:00"
+  "refreshedAt": "2026-10-06T09:40:00-04:00"
 }

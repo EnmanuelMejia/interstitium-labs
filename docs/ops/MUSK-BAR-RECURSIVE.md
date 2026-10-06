@@ -1,7 +1,47 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-05 ~09:15 EDT (America/New_York)._  
+_Last updated: 2026-10-06 ~09:55 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-06 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Ten CKA scenes were **static dioramas** (clips only nudged glow), AWS track was `procedural:rack` in “review”, and an audit found the /immersive/ grid drawing a procedural pedestal under a “Three/glTF” badge, `/learn/` falling back to procedural (scene-kit load order), every /immersive/ host re-stamped with one `.glb`, LOD1 duplicates double-drawn, and 18 WebGL contexts on one page (Chromium cap 16) — **no**. |
+| After this ship | **Closer / still NO** | **State now changes the scene**: etcd quorum, AWS Multi-AZ failure, IAM evaluation sims with predict-then-reveal + analytics + next-drill. **AWS SAA/CCP goes 3D-first** (two new Blender-polished glTFs wired into both AWS paths + curriculum OS). Render honesty bugs fixed and covered by tests. Still **no live UE host**, **no hosted lab fleet / live AWS sandbox**. |
+| Fake YES risk | Rejected | Sims are an in-browser rules engine over authored glTF and every caption says so. No AWS account, no cluster, no GPU host. |
+
+## Scorecard (0–10) — 2026-10-06
+
+| Dimension | Prior (10-05) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 8.8 | **9.0** | Failure re-tints the architecture live; ASG surge instances appear |
+| Motion / graphics | 8.6 | **8.8** | LOD1 overdraw/z-fight + proxy slabs gone; eased per-node tint |
+| Live labs density | 6.0 | **6.5** | 3 interactive sims (rules engine) — still no hosted fleet |
+| Adaptive learning | 7 | **7.3** | Predict accuracy + latency → next drill; analytics events |
+| Honesty / trust | 9.8 | **9.9** | Removed a false “Three/glTF” badge + silent procedural fallbacks |
+| Curriculum SoT | 8.5 | **8.8** | AWS certs/labs/assets3d + manifest v5 `sims` block |
+| Immersive / 3D gate | 8.8 | **9.1** | 3D-first now spans CKA **and** AWS SAA/CCP; scenes are interactive |
+
+**Composite ~8.3/10. Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cloud sandbox**.
+
+## Competitor delta (2026-10-06, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| AWS Cloud Quest v2.0 (Aug 11 2026) | 3D city, AI customer dialogs, 130+ live AWS builds, badges | Cloud Quest's 3D is the city; the architecture is a flat solution diagram. IL's architecture **is** the 3D object and reacts to AZ failure / IAM statements, with predict-then-reveal |
+| KodeKloud SAA design challenge + AWS playground | Real AWS sandbox | Their design challenge is drag-and-drop 2D; IL ships spatial failure drills (no sandbox — honest) |
+| A Cloud Guru / Pluralsight | 1,800+ labs, sandboxes | IL interactive 3D cert stages for CKA + AWS (catalog far smaller) |
+| KodeKloud CKA | Hosted labs + AI Tutor | etcd quorum loss drill in 3D with Raft-correct outcomes |
+
+## Shipped this pass (2026-10-06)
+
+1. **AWS SAA/CCP 3D-first**: `aws-vpc-multi-az.glb`, `aws-iam-policy-eval.glb` (kit-v2 → Blender 4.2.3 CLI polish, extras now preserved) on `/immersive/`, `/paths/aws-cloud-practitioner-plus/`, `/paths/aws-cloud-ops/`; `cert-aws-cp-plus` review → published with glTF
+2. **Interactive sims** (`il-immersive-sims.js` + player v1.4.0): `etcd-quorum`, `aws-az-failure`, `iam-eval` — also on `/paths/k8s-cka-exceed/` hero
+3. **Render honesty fixes**: LOD1 skip, lazy WebGL contexts, scene-kit boot order, data-kind delegation, curriculum-sync stamping
+4. **Tests**: `scripts/tests/immersive-sims.test.js` in `npm test` (CI); `npm run test:immersive:browser`
+
+---
 
 ## Verdict — 2026-10-05 Musk-bar pass
 

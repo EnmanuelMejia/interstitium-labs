@@ -131,6 +131,16 @@
     var kit = K();
     var kind = opts.kind || host.getAttribute('data-kind') || host.getAttribute('data-il-immersive') || 'lecture';
     if (kind === '1' || kind === 'true') kind = 'lecture';
+    /* 2026-10-06 honesty fix: this pedestal player never drew authored meshes, yet labelled itself
+     * "Three/glTF" once the .glb fetched. Hand authored .glb hosts to the curriculum player
+     * (il-immersive-3d.js) which really renders them; keep this stage for procedural/PS hosts. */
+    var glbUrl0 = opts.gltf || host.getAttribute('data-gltf') || '';
+    if (glbUrl0 && /\.glb($|\?)/i.test(glbUrl0) && g.ILImmersive3D && g.ILImmersive3D.mount &&
+        !host.getAttribute('data-il-scene') && !(opts.pixelStream || host.getAttribute('data-ps-signaling'))) {
+      host.setAttribute('data-il-scene', /rack|non-cert/.test(String(kind)) || /rack/.test(glbUrl0) ? 'rack' : 'k8s');
+      host.setAttribute('data-il-delegated', 'immersive-3d');
+      return g.ILImmersive3D.mount(host);
+    }
     var meta = kindDefaults(kind);
     var gltfUrl = opts.gltf || host.getAttribute('data-gltf') || '';
     var psUrl = opts.pixelStream || host.getAttribute('data-ps-signaling') || '';
@@ -185,7 +195,8 @@
       kit.emitSceneEvent('il-immersive-gltf-pending', { url: gltfUrl, kind: kind });
       kit.loadGltf(gltfUrl).then(function (res) {
         if (res && res.ok) {
-          if (engineEl) engineEl.textContent = 'Three/glTF';
+          /* fetched + parsed, but this stage draws procedural geometry — say so */
+          if (engineEl) engineEl.textContent = 'WebGL · procedural (glTF parsed, not drawn here)';
           stage.setAttribute('data-gltf-loaded', '1');
           kit.emitSceneEvent('il-immersive-gltf', { url: gltfUrl, ok: true });
         }
@@ -351,7 +362,7 @@
     mountAll: mountAll,
     boot: boot,
     kindDefaults: kindDefaults,
-    VERSION: '1.0.0'
+    VERSION: '1.1.0'
   };
 
   if (g.ILMuse3D) {

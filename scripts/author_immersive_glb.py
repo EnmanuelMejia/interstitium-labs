@@ -1303,6 +1303,163 @@ def scene_scheduling_affinity() -> list:
     return parts
 
 
+# ── AWS SAA / CCP spatial track (2026-10-06) ──────────────────────────────
+# Naming contract for interactive sims (docs/assets/il-immersive-sims.js):
+#   az-a-* / az-b-*  → per-AZ resources (sim tints them on AZ failure)
+#   sim-*            → hidden until a sim state reveals them (e.g. ASG surge)
+#   gate-<id>-*      → IAM evaluation gates (sim lights the gate that decides)
+MAT_AWS_ORANGE = mat("il-aws-orange", (0.96, 0.60, 0.16, 1.0), 0.25, 0.4, (0.22, 0.11, 0.02))
+
+
+def _rail_frame(parts, cx, cy, cz, sx, sz, name, mat_, ped, label, rail=0.045):
+    """Flat rectangular boundary (four rails) — readable VPC/subnet edge that never occludes contents."""
+    mb = MeshBuilder()
+    hx, hz = sx / 2, sz / 2
+    mb.add_box(cx, cy, cz - hz, sx, rail, rail)
+    mb.add_box(cx, cy, cz + hz, sx, rail, rail)
+    mb.add_box(cx - hx, cy, cz, rail, rail, sz)
+    mb.add_box(cx + hx, cy, cz, rail, rail, sz)
+    parts.append((mb, mat_, name, {**ped, "label": label}))
+
+
+def scene_aws_vpc_multi_az() -> list:
+    """AWS SAA — VPC across two AZs: IGW → ALB → ASG EC2 (private app subnets) → RDS Multi-AZ (sync standby)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "aws-vpc-multi-az", "cert": "AWS SAA-C03 / CLF-C02",
+                  "domain": "resilient-architectures"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.92, 0.1, 5.8, 0.08, 4.6)
+    parts.append((floor, MAT_VOID, "region-floor", {**ped, "label": "Region us-east-1"}))
+    _rail_frame(parts, 0, -0.84, 0.1, 5.5, 3.5, "vpc-boundary", MAT_AWS_ORANGE, ped, "VPC 10.0.0.0/16")
+    rows = (("public", -1.05, MAT_CYAN, "10.0.{n}.0/24 public (route 0.0.0.0/0 → IGW)"),
+            ("app", 0.1, MAT_INK, "10.0.1{n}.0/24 private app (0.0.0.0/0 → NAT)"),
+            ("data", 1.2, MAT_INK, "10.0.2{n}.0/24 private data (no internet route)"))
+    for az, ax, n in (("a", -1.38, 1), ("b", 1.38, 2)):
+        pad = MeshBuilder()
+        pad.add_chamfer_box(ax, -0.82, 0.1, 2.5, 0.06, 3.3, 0.02)
+        parts.append((pad, MAT_INK, f"az-{az}-pad", {**ped, "label": f"Availability Zone us-east-1{az}", "kind": "AZ"}))
+        for row, rz, m, lbl in rows:
+            tile = MeshBuilder()
+            tile.add_chamfer_box(ax, -0.74, rz, 2.25, 0.07, 0.82, 0.02)
+            parts.append((tile, m if row == "public" else MAT_MUTED, f"az-{az}-subnet-{row}",
+                          {**ped, "label": lbl.format(n=n), "kind": "Subnet"}))
+    # Internet gateway + users outside the VPC
+    users = MeshBuilder()
+    users.add_sphere(0, 0.55, -2.35, 0.2, 12, 14)
+    parts.append((users, MAT_PAPER, "internet-users", {**ped, "label": "Internet clients"}))
+    igw = MeshBuilder()
+    igw.add_cylinder(0, 0.05, -1.82, 0.26, 0.42, 6)
+    parts.append((igw, MAT_AWS_ORANGE, "igw", {**ped, "label": "Internet Gateway (one per VPC, HA by design)"}))
+    _edge(parts, (0, 0.5, -2.3), (0, 0.15, -1.85), "edge-users-igw", MAT_PAPER, ped, "HTTPS 443", 0.035, 0.1)
+    # ALB spans both public subnets (one node per AZ)
+    alb = MeshBuilder()
+    alb.add_chamfer_box(0, -0.42, -1.05, 3.9, 0.14, 0.26, 0.02)
+    parts.append((alb, MAT_GOLD, "alb", {**ped, "label": "Application Load Balancer (cross-zone, health checks)"}))
+    for az, ax in (("a", -1.38), ("b", 1.38)):
+        node = MeshBuilder()
+        node.add_sphere(ax, -0.2, -1.05, 0.16, 12, 14)
+        parts.append((node, MAT_LED, f"az-{az}-alb-node", {**ped, "label": f"ALB node us-east-1{az}"}))
+        nat = MeshBuilder()
+        nat.add_cylinder(ax + (-0.82 if az == "a" else 0.82), -0.5, -1.05, 0.15, 0.32, 14)
+        parts.append((nat, MAT_AWS_ORANGE, f"az-{az}-nat", {**ped, "label": f"NAT gateway (zonal) us-east-1{az}"}))
+    _edge(parts, (0, 0.0, -1.8), (-1.38, -0.2, -1.05), "edge-igw-alb-a", MAT_CYAN, ped, "IGW → ALB", 0.035, 0.2)
+    _edge(parts, (0, 0.0, -1.8), (1.38, -0.2, -1.05), "edge-igw-alb-b", MAT_CYAN, ped, "IGW → ALB", 0.035, 0.2)
+    # ASG boundary across both app subnets
+    _rail_frame(parts, 0, -0.62, 0.1, 5.1, 0.95, "asg-boundary", MAT_GOLD, ped,
+                "Auto Scaling group (min 2 · desired 4 · max 6) spread across AZs", 0.03)
+    for az, ax in (("a", -1.38), ("b", 1.38)):
+        for i, dx in enumerate((-0.48, 0.48)):
+            ec2 = MeshBuilder()
+            ec2.add_chamfer_box(ax + dx, -0.42, 0.1, 0.5, 0.42, 0.42, 0.04)
+            parts.append((ec2, MAT_CYAN, f"az-{az}-ec2-{i}", {
+                **ped, "label": f"EC2 web-{az}{i} (target healthy)", "kind": "EC2"}))
+            _edge(parts, (ax, -0.25, -1.0), (ax + dx, -0.2, 0.05), f"az-{az}-edge-alb-ec2-{i}", MAT_CYAN, ped,
+                  "ALB → target :8080", 0.03, 0.15)
+        # Hidden surge capacity — revealed when the other AZ fails and the ASG rebalances here
+        for i, dz in enumerate((-0.3, 0.3)):
+            surge = MeshBuilder()
+            surge.add_chamfer_box(ax + (0.0), -0.42, 0.1 + dz, 0.34, 0.3, 0.26, 0.03)
+            parts.append((surge, MAT_LED, f"sim-az-{az}-ec2-surge-{i}", {
+                **ped, "label": f"ASG replacement instance in us-east-1{az}", "simOnly": True}))
+    # RDS Multi-AZ: primary in a, synchronous standby in b
+    for az, ax, m, role in (("a", -1.38, MAT_GOLD, "primary (writer)"), ("b", 1.38, MAT_INK, "standby (sync, no reads)")):
+        db = MeshBuilder()
+        db.add_cylinder(ax, -0.38, 1.2, 0.34, 0.52, 24)
+        parts.append((db, m, f"az-{az}-rds", {**ped, "label": f"RDS {role} us-east-1{az}", "kind": "RDS"}))
+        ring = MeshBuilder()
+        ring.add_cylinder(ax, -0.08, 1.2, 0.36, 0.04, 24, capped=False)
+        parts.append((ring, MAT_LED if az == "a" else MAT_MUTED, f"az-{az}-rds-role-ring",
+                      {**ped, "label": "writer endpoint" if az == "a" else "standby"}))
+        for i, dx in enumerate((-0.48, 0.48)):
+            _edge(parts, (ax + dx, -0.3, 0.3), (-1.38, -0.2, 1.05), f"az-{az}-edge-ec2-db-{i}", MAT_INK, ped,
+                  "app → RDS endpoint :5432", 0.025, 0.12)
+    _edge(parts, (-1.04, -0.38, 1.2), (1.04, -0.38, 1.2), "edge-rds-sync-replication", MAT_GOLD, ped,
+          "synchronous replication (Multi-AZ)", 0.04, 0.18)
+    endpoint = MeshBuilder()
+    endpoint.add_chamfer_box(0, 0.25, 1.75, 1.5, 0.2, 0.06, 0.02)
+    parts.append((endpoint, MAT_PAPER, "rds-endpoint-dns", {
+        **ped, "label": "mydb.xxxx.us-east-1.rds.amazonaws.com (CNAME flips on failover)"}))
+    return parts
+
+
+def _gate(parts, gx, gid, mat_, ped, label, tablet_label):
+    """IAM evaluation gate: two posts + lintel + policy tablet; every mesh prefixed gate-<gid>-."""
+    for side, dz in (("l", -0.55), ("r", 0.55)):
+        post = MeshBuilder()
+        post.add_chamfer_box(gx, -0.25, dz, 0.16, 1.2, 0.16, 0.02)
+        parts.append((post, mat_, f"gate-{gid}-post-{side}", {**ped, "label": label}))
+    lintel = MeshBuilder()
+    lintel.add_chamfer_box(gx, 0.42, 0, 0.2, 0.14, 1.3, 0.02)
+    parts.append((lintel, mat_, f"gate-{gid}-lintel", {**ped, "label": label}))
+    tablet = MeshBuilder()
+    tablet.add_chamfer_box(gx, 0.82, 0, 0.06, 0.42, 0.9, 0.02)
+    parts.append((tablet, MAT_PAPER, f"gate-{gid}-policy", {**ped, "label": tablet_label}))
+
+
+def scene_aws_iam_policy_eval() -> list:
+    """AWS IAM policy evaluation — request walks Deny → SCP/RCP → resource policy → identity → boundary → session gates."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "aws-iam-policy-eval", "cert": "AWS SAA-C03 / CLF-C02",
+                  "domain": "secure-architectures"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.0, 0.08, 3.2)
+    parts.append((floor, MAT_VOID, "iam-floor", {**ped, "label": "IAM policy evaluation (single account)"}))
+    lane = MeshBuilder()
+    lane.add_chamfer_box(-0.1, -0.82, 0, 5.4, 0.06, 0.7, 0.02)
+    parts.append((lane, MAT_INK, "iam-request-lane", {**ped, "label": "request context"}))
+    req = MeshBuilder()
+    req.add_sphere(-2.55, -0.3, 0, 0.24, 14, 16)
+    parts.append((req, MAT_PAPER, "iam-request", {
+        **ped, "label": "Request: principal=role/app · action=s3:DeleteObject · resource=arn:aws:s3:::prod-bucket/*"}))
+    gates = (
+        (-1.75, "explicit-deny", MAT_DENY, "1 · Any explicit Deny?", "\"Effect\": \"Deny\" in ANY policy wins"),
+        (-0.95, "scp", MAT_AWS_ORANGE, "2 · Organizations SCP / RCP allow?", "SCPs cap the account; never grant"),
+        (-0.15, "resource-policy", MAT_GOLD, "3 · Resource-based policy allow?", "bucket policy Principal=arn (same account)"),
+        (0.65, "identity-policy", MAT_CYAN, "4 · Identity-based policy allow?", "role / user / group policies"),
+        (1.45, "permission-boundary", MAT_LED, "5 · Permissions boundary allow?", "boundary = max, never grants"),
+        (2.2, "session-policy", MAT_MUTED, "6 · Session policy allow?", "AssumeRole Policy / federation"),
+    )
+    prev = (-2.3, -0.3, 0)
+    for gx, gid, m, lbl, tab in gates:
+        _gate(parts, gx, gid, m, ped, lbl, tab)
+        _edge(parts, prev, (gx - 0.12, -0.3, 0), f"flow-to-{gid}", MAT_CYAN, ped, "evaluate next", 0.03, 0.06)
+        prev = (gx + 0.12, -0.3, 0)
+    # Decision pedestals at the end of the lane
+    for dz, did, m, lbl in ((-0.95, "allow", MAT_CYAN, "ALLOW"),
+                            (0.0, "implicit-deny", MAT_MUTED, "implicit deny (no matching Allow)"),
+                            (0.95, "explicit-deny", MAT_DENY, "EXPLICIT DENY")):
+        ped_ = MeshBuilder()
+        ped_.add_cylinder(2.75, -0.62, dz, 0.24, 0.36, 20)
+        parts.append((ped_, m, f"decision-{did}", {**ped, "label": lbl, "kind": "Decision"}))
+        orb = MeshBuilder()
+        orb.add_sphere(2.75, -0.3, dz, 0.13, 10, 12)
+        parts.append((orb, m, f"decision-{did}-orb", {**ped, "label": lbl}))
+    # Deny short-circuit rail: from the deny gate straight to the explicit-deny pedestal
+    _edge(parts, (-1.75, 0.55, 0.55), (2.75, -0.2, 0.95), "deny-short-circuit", MAT_DENY, ped,
+          "explicit Deny short-circuits evaluation", 0.03, 0.5)
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1321,6 +1478,8 @@ SCENES = {
     "network-policy-isolation.glb": scene_network_policy_isolation,
     "secrets-configmaps.glb": scene_secrets_configmaps,
     "scheduling-affinity.glb": scene_scheduling_affinity,
+    "aws-vpc-multi-az.glb": scene_aws_vpc_multi_az,
+    "aws-iam-policy-eval.glb": scene_aws_iam_policy_eval,
 }
 
 
