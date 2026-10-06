@@ -267,6 +267,14 @@
 
       var meshes = [];
       var meshDefs = json.meshes || [];
+      /* 2026-10-06: map mesh index → owning node (name + extras) so players can address
+       * pedagogy nodes (sims) and skip Blender *_LOD1 duplicates. Kit/Blender bake world space. */
+      var nodeOf = {};
+      var nodeDefs = json.nodes || [];
+      for (var ni = 0; ni < nodeDefs.length; ni++) {
+        var nd = nodeDefs[ni];
+        if (nd && nd.mesh != null && nodeOf[nd.mesh] == null) nodeOf[nd.mesh] = nd;
+      }
       for (var mi = 0; mi < meshDefs.length; mi++) {
         var prims = meshDefs[mi].primitives || [];
         for (var pi = 0; pi < prims.length; pi++) {
@@ -305,7 +313,10 @@
             positions: positions,
             normals: normals,
             indices: indices,
-            material: mc
+            material: mc,
+            node: (nodeOf[mi] && nodeOf[mi].name) || meshDefs[mi].name || ('mesh-' + mi),
+            extras: (nodeOf[mi] && nodeOf[mi].extras) || null,
+            lod: /(_LOD1$|^lod1-)/i.test((nodeOf[mi] && nodeOf[mi].name) || '') ? 1 : 0
           });
         }
       }
@@ -453,7 +464,7 @@
     pixelStreamEmbed: pixelStreamEmbed,
     onSpeakAmp: onSpeakAmp,
     emitSceneEvent: emitSceneEvent,
-    VERSION: '1.3.0'
+    VERSION: '1.4.0'
   };
 
   /* Muse 3D may re-export kit when both present */

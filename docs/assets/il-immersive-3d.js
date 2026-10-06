@@ -4,6 +4,9 @@
  * Procedural scenes: hermetic | rack | k8s | math (math reuses the hermetic geometric renderer). Native .glb load via ILSceneKit.parseGlb (no Three CDN).
  * NOT Noah avatar — that is il-muse-3d.js (coach familiar only).
  * Sibling optional: il-scene-kit.js + il-immersive.js (data-kind hosts / demo /immersive/).
+ * v1.4.0 (2026-10-06): skips Blender *_LOD1 duplicates (no z-fight/double draw), addresses glTF nodes by name,
+ * and mounts interactive sims (il-immersive-sims.js, data-il-sim) whose state re-tints / reveals authored nodes.
+ * Boot waits for ILSceneKit when a page loads it after this file (fixes silent procedural fallback).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -277,6 +280,7 @@
     if (eng) cfg.engine = eng;
     if (el.getAttribute('data-il-webgpu') === '1') cfg.webgpu = true;
     cfg.gltf = el.getAttribute('data-gltf') || el.getAttribute('data-gltf-pending') || '';
+    cfg.sim = el.getAttribute('data-il-sim') || (j && j.sim) || '';
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
@@ -390,9 +394,45 @@
 
     this._buildButtons();
     this._bindOrbit();
-    this._initGL();
-    this._probeGlb();
+    this._lazyGL();
   }
+
+  /* v1.4.0: browsers cap live WebGL contexts (~16 in Chromium; oldest silently lost). Pages like
+   * /immersive/ mount 17+ stages, so contexts are created when a stage nears the viewport and
+   * released (WEBGL_lose_context) when it leaves; parsed glTF stays in memory and re-uploads. */
+  ScenePlayer.prototype._lazyGL = function (){
+    var self = this;
+    if (!g.IntersectionObserver) { this._wake(); return; }
+    this._io = new g.IntersectionObserver(function (entries){
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) self._wake(); else self._sleep();
+      }
+    }, { rootMargin: '240px 0px' });
+    this._io.observe(this.stage);
+  };
+
+  ScenePlayer.prototype._wake = function (){
+    if (!this.alive || this.gl) return;
+    this._initGL();
+    if (!this.gl) return;
+    if (this._parsed) this._uploadAuthored();
+    else if (!this._probed) { this._probed = true; this._probeGlb(); }
+  };
+
+  ScenePlayer.prototype._sleep = function (){
+    if (!this.gl) return;
+    if (this.raf) g.cancelAnimationFrame(this.raf);
+    this.raf = 0;
+    try {
+      var ext = this.gl.getExtension('WEBGL_lose_context');
+      if (ext) ext.loseContext();
+    } catch (e) { /* ignore */ }
+    if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
+    this.gl = null;
+    this.canvas = null;
+    this._authored = null;
+    this.root.setAttribute('data-il-gl', 'sleeping');
+  };
 
   function clipLabel(scene, id, fallback){
     return t('immersive.clip.' + scene + '.' + id, fallback);
@@ -500,6 +540,7 @@
     }
     this.gl = gl;
     this.canvas = canvas;
+    this.root.setAttribute('data-il-gl', 'awake');
     this.prog = program(gl);
     if (!this.prog) { this.root.classList.add('is-reduced'); return; }
     this.box = upload(gl, boxMesh());
@@ -510,7 +551,10 @@
     this._paintHud();
     this._resize();
     var self = this;
-    g.addEventListener('resize', function (){ self._resize(); });
+    if (!this._resizeBound) {
+      this._resizeBound = true;
+      g.addEventListener('resize', function (){ self._resize(); });
+    }
     this._loop();
   };
 
@@ -591,27 +635,11 @@
         self._paintHud();
         return;
       }
-      var uploaded = [];
-      for (var i = 0; i < parsed.meshes.length; i++) {
-        var m = parsed.meshes[i];
-        var mesh = {
-          pos: m.positions,
-          nrm: m.normals,
-          idx: m.indices instanceof Uint16Array ? m.indices : new Uint16Array(m.indices)
-        };
-        var vao = upload(self.gl, mesh);
-        vao.color = (m.material && m.material.color) || CYAN;
-        vao.emissive = (m.material && m.material.emissive) || vao.color;
-        vao.name = m.name || ('mesh-' + i);
-        uploaded.push(vao);
-      }
-      self._authored = uploaded;
-      self._authoredOk = true;
-      self.cap.textContent = (self.cap.textContent || '') + ' · authored .glb (' + uploaded.length + ' meshes).';
-      self._paintHud();
+      self._parsed = parsed;
+      self._uploadAuthored();
       try {
         if (g.ILSceneKit && g.ILSceneKit.emitSceneEvent) {
-          g.ILSceneKit.emitSceneEvent('il-immersive-glb', { url: asset, meshes: uploaded.length, ok: true });
+          g.ILSceneKit.emitSceneEvent('il-immersive-glb', { url: asset, meshes: parsed.meshes.length, ok: true });
         }
       } catch (e2) { /* ignore */ }
     }
@@ -642,16 +670,241 @@
     }
   };
 
+  /** Upload parsed glTF meshes into the live context (first load or after a sleep/wake cycle). */
+  ScenePlayer.prototype._uploadAuthored = function (){
+    var parsed = this._parsed;
+    if (!parsed || !this.gl) return; /* asleep: _wake() re-enters here */
+    var reupload = !!this._uploadedOnce;
+    this._uploadedOnce = true;
+    var uploaded = [];
+    for (var i = 0; i < parsed.meshes.length; i++) {
+      var m = parsed.meshes[i];
+      var name = m.node || m.name || ('mesh-' + i);
+      var lod = m.lod != null ? m.lod : (/(_LOD1$|^lod1-)/i.test(name) ? 1 : 0);
+      if (lod) { uploaded.push({ name: name, lod: 1 }); continue; } /* never upload LOD1 duplicates */
+      var vao = upload(this.gl, {
+        pos: m.positions,
+        nrm: m.normals,
+        idx: m.indices instanceof Uint16Array ? m.indices : new Uint16Array(m.indices)
+      });
+      vao.color = (m.material && m.material.color) || CYAN;
+      vao.emissive = (m.material && m.material.emissive) || vao.color;
+      vao.name = name;
+      vao.lod = 0;
+      vao.cur = vao.color.slice(0, 3);
+      vao.curGlow = null;
+      uploaded.push(vao);
+    }
+    this._authored = uploaded;
+    this._authoredOk = true;
+    if (!reupload) {
+      var lod0 = uploaded.filter(function (v) { return !v.lod; }).length;
+      this._baseCaption = (this.cap.textContent || '') + ' · authored .glb (' + lod0 + ' nodes' +
+        (uploaded.length > lod0 ? ', ' + (uploaded.length - lod0) + ' LOD1 skipped' : '') + ').';
+      this.cap.textContent = this._baseCaption;
+      this._initSim();
+    } else if (this._sim) {
+      this._simApply('init');
+    }
+    this._paintHud();
+  };
+
   ScenePlayer.prototype._renderAuthored = function (P, V, time, amp){
     if (!this._authored || !this._authored.length) return;
     var glowBase = 0.12 + amp * 0.35;
+    var k = 0.12; /* per-frame ease toward sim target */
     for (var i = 0; i < this._authored.length; i++) {
       var vao = this._authored[i];
-      var col = vao.color || CYAN;
+      if (vao.lod) continue; /* Blender LOD1 duplicate / kit proxy — never overdraw LOD0 */
+      var st = vao.simStyle || null;
+      if (st && st.hide) continue;
+      if (!st && /^sim-/.test(vao.name)) continue; /* sim-only nodes stay hidden without a sim */
+      var base = vao.color || CYAN;
       var glow = glowBase;
       /* gentle pulse on gold-ish materials */
-      if (col[0] > 0.7 && col[1] > 0.5 && col[1] < 0.8) glow = 0.2 + amp * 0.45;
-      this._drawObject(vao, 0, 0, 0, 1, 1, 1, 0, col, glow, time, P, V);
+      if (base[0] > 0.7 && base[1] > 0.5 && base[1] < 0.8) glow = 0.2 + amp * 0.45;
+      var target = (st && st.color) ? st.color : base;
+      if (st && st.glow != null) glow = st.glow * (st.pulse ? (0.55 + 0.45 * Math.abs(Math.sin(time * 3.4))) : 1);
+      var c = vao.cur || (vao.cur = base.slice(0, 3));
+      c[0] += (target[0] - c[0]) * k; c[1] += (target[1] - c[1]) * k; c[2] += (target[2] - c[2]) * k;
+      vao.curGlow = vao.curGlow == null ? glow : vao.curGlow + (glow - vao.curGlow) * 0.2;
+      this._drawObject(vao, 0, 0, 0, 1, 1, 1, 0, c, vao.curGlow, time, P, V);
+    }
+  };
+
+  /* ── Interactive sims (state changes the scene) ───────────────────────── */
+  function simStore(){
+    try { return JSON.parse(g.localStorage.getItem('il.immersiveSims.v1') || '{}') || {}; } catch (e) { return {}; }
+  }
+  function simSave(db){
+    try { g.localStorage.setItem('il.immersiveSims.v1', JSON.stringify(db)); } catch (e) { /* private mode */ }
+  }
+  function simTrack(name, props){
+    try { if (g.ILAnalytics && g.ILAnalytics.track) g.ILAnalytics.track(name, props); } catch (e) { /* ignore */ }
+    try { if (g.ILSceneKit && g.ILSceneKit.emitSceneEvent) g.ILSceneKit.emitSceneEvent('il-immersive-sim', { name: name, detail: props }); } catch (e2) { /* ignore */ }
+  }
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  ScenePlayer.prototype._initSim = function (){
+    var S = g.ILImmersiveSims;
+    if (!this.cfg.sim || !S || !S.get) return;
+    var sim = S.get(this.cfg.sim);
+    if (!sim || this._sim) return;
+    var self = this;
+    this._sim = sim;
+    this._simState = S.merge(sim.initial, {});
+    this.root.classList.add('il-immersive--sim');
+    if (this.controls) this.controls.hidden = true; /* generic procedural clips are meaningless on a sim stage */
+    this.root.setAttribute('data-il-sim-ready', sim.id);
+
+    var panel = el('div', 'il-immersive__sim');
+    panel.setAttribute('data-il-no-body', '');
+    var head = el('div', 'il-immersive__sim-head');
+    head.appendChild(el('span', 'il-immersive__sim-kicker', 'Interactive sim · ' + sim.cert));
+    head.appendChild(el('span', 'il-immersive__sim-title', sim.title));
+    this._simVerdict = el('span', 'il-immersive__sim-verdict', '');
+    head.appendChild(this._simVerdict);
+    panel.appendChild(head);
+
+    var scen = el('div', 'il-immersive__sim-row');
+    scen.setAttribute('role', 'group');
+    scen.setAttribute('aria-label', 'Scenarios');
+    sim.scenarios.forEach(function (sc){
+      var b = el('button', 'il-immersive__sim-btn', sc.label);
+      b.type = 'button';
+      b.setAttribute('data-il-sim-scenario', sc.id);
+      b.addEventListener('click', function (){ self._simScenario(sc); });
+      scen.appendChild(b);
+    });
+    panel.appendChild(scen);
+
+    var tog = el('div', 'il-immersive__sim-row il-immersive__sim-row--toggles');
+    tog.setAttribute('role', 'group');
+    tog.setAttribute('aria-label', 'Free play toggles');
+    this._simToggles = {};
+    sim.toggles.forEach(function (t){
+      var b = el('button', 'il-immersive__sim-toggle', '');
+      b.type = 'button';
+      b.setAttribute('data-il-sim-toggle', t.id);
+      b.addEventListener('click', function (){
+        self._simState[t.id] = !self._simState[t.id];
+        self._simPredictClose();
+        self._simApply('toggle:' + t.id);
+      });
+      self._simToggles[t.id] = { btn: b, def: t };
+      tog.appendChild(b);
+    });
+    panel.appendChild(tog);
+
+    this._simPredict = el('div', 'il-immersive__sim-predict');
+    this._simPredict.hidden = true;
+    panel.appendChild(this._simPredict);
+    this._simResult = el('p', 'il-immersive__sim-result', '');
+    this._simResult.setAttribute('aria-live', 'polite');
+    panel.appendChild(this._simResult);
+    this._simScore = el('p', 'il-immersive__sim-score', '');
+    panel.appendChild(this._simScore);
+    panel.appendChild(el('p', 'il-immersive__sim-honesty', S.honesty || 'In-browser rules engine; no live infrastructure.'));
+
+    var fb = this.root.querySelector('.il-immersive__fallback');
+    this.root.insertBefore(panel, fb || null);
+    this._simPanel = panel;
+    this._simApply('init');
+    this._simRenderScore();
+  };
+
+  ScenePlayer.prototype._simApply = function (reason){
+    var S = g.ILImmersiveSims, sim = this._sim;
+    if (!S || !sim) return;
+    var d = sim.derive(this._simState);
+    this._simDerived = d;
+    for (var i = 0; i < (this._authored || []).length; i++) {
+      var v = this._authored[i];
+      v.simStyle = S.styleFor(v.name, d.rules);
+    }
+    for (var id in this._simToggles) {
+      var tg = this._simToggles[id], on = !!this._simState[id];
+      tg.btn.textContent = tg.def.label + ': ' + (on ? tg.def.on : tg.def.off);
+      tg.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    this._simVerdict.textContent = d.verdict;
+    this._simVerdict.setAttribute('data-verdict', d.verdict);
+    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)';
+    this.root.setAttribute('data-il-sim-verdict', d.verdict);
+    if (reason && reason !== 'init') simTrack('immersive_sim_state', { sim: sim.id, reason: reason, verdict: d.verdict });
+  };
+
+  ScenePlayer.prototype._simPredictClose = function (){
+    if (this._simPredict) { this._simPredict.hidden = true; this._simPredict.innerHTML = ''; }
+    this._simPending = null;
+  };
+
+  ScenePlayer.prototype._simScenario = function (sc){
+    var self = this, S = g.ILImmersiveSims;
+    if (!sc.predict) {
+      this._simPredictClose();
+      this._simState = S.merge(this._simState, sc.set);
+      this._simResult.textContent = '';
+      this._simApply('scenario:' + sc.id);
+      return;
+    }
+    /* Predict-then-reveal: the scene does not change until the learner commits. */
+    this._simPredictClose();
+    this._simPending = { sc: sc, t0: (g.performance && performance.now()) || Date.now() };
+    var box = this._simPredict;
+    box.appendChild(el('p', 'il-immersive__sim-q', 'Predict first: ' + sc.predict.q));
+    sc.predict.options.forEach(function (opt, idx){
+      var b = el('button', 'il-immersive__sim-opt', opt);
+      b.type = 'button';
+      b.setAttribute('data-il-sim-option', String(idx));
+      b.addEventListener('click', function (){ self._simCommit(idx); });
+      box.appendChild(b);
+    });
+    box.hidden = false;
+    this._simResult.textContent = '';
+    try { box.querySelector('button').focus(); } catch (e) { /* ignore */ }
+  };
+
+  ScenePlayer.prototype._simCommit = function (choice){
+    var p = this._simPending, S = g.ILImmersiveSims, sim = this._sim;
+    if (!p || !S) return;
+    var ms = Math.round(((g.performance && performance.now()) || Date.now()) - p.t0);
+    var res = S.scorePredict(sim.id, p.sc.id, choice);
+    this._simPredictClose();
+    this._simState = S.merge(this._simState, p.sc.set);
+    this._simApply('scenario:' + p.sc.id);
+    var db = simStore();
+    var rec = db[sim.id] || (db[sim.id] = { attempts: 0, correct: 0, scenarios: {} });
+    var sr = rec.scenarios[p.sc.id] || (rec.scenarios[p.sc.id] = { a: 0, c: 0, lastMs: 0 });
+    rec.attempts += 1; sr.a += 1; sr.lastMs = ms;
+    if (res && res.correct) { rec.correct += 1; sr.c += 1; }
+    simSave(db);
+    this._simResult.textContent = (res && res.correct ? 'Correct. ' : 'Not quite — answer: “' + p.sc.predict.options[res ? res.answer : 0] + '”. ') + (res ? res.why : '');
+    this._simResult.setAttribute('data-correct', res && res.correct ? '1' : '0');
+    simTrack('immersive_sim_predict', { sim: sim.id, scenario: p.sc.id, correct: !!(res && res.correct), ms: ms });
+    this._simRenderScore();
+  };
+
+  ScenePlayer.prototype._simRenderScore = function (){
+    var sim = this._sim; if (!sim || !this._simScore) return;
+    var rec = simStore()[sim.id] || { attempts: 0, correct: 0, scenarios: {} };
+    var next = null;
+    for (var i = 0; i < sim.scenarios.length; i++) {
+      var sc = sim.scenarios[i];
+      if (!sc.predict) continue;
+      var r = rec.scenarios[sc.id];
+      if (!r || r.c === 0) { next = sc; break; }
+    }
+    this._simScore.textContent = 'Predictions ' + rec.correct + '/' + rec.attempts + ' correct (stored on this device)' +
+      (next ? ' · next drill: ' + next.label : ' · all drills mastered');
+    var btns = this._simPanel.querySelectorAll('[data-il-sim-scenario]');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].setAttribute('data-next', next && btns[j].getAttribute('data-il-sim-scenario') === next.id ? '1' : '0');
     }
   };
 
@@ -798,13 +1051,20 @@
     }
   }
 
+  var booted = false;
   function boot(){
+    if (booted) return;
+    booted = true;
     scaffoldDefaults();
     mountAll();
   }
 
-  if (g.document && g.document.readyState === 'loading') {
+  /* Deferred pages sometimes load il-scene-kit.js AFTER this file. Mounting before the kit exists
+   * meant "no native GLB parser" → silent procedural fallback. Wait for DOMContentLoaded (all
+   * deferred scripts have run by then) unless the kit is already present or the page is complete. */
+  if (g.document && (g.document.readyState === 'loading' || (!g.ILSceneKit && g.document.readyState !== 'complete'))) {
     g.document.addEventListener('DOMContentLoaded', boot);
+    g.addEventListener('load', boot);
   } else {
     boot();
   }
@@ -819,12 +1079,14 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.3.0',
+    version: '1.4.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
     webgpuFlag: true,
     gltfLectureHook: true,
-    nativeGlb: true
+    nativeGlb: true,
+    lodSkip: true,
+    sims: true
   };
 })(typeof window !== 'undefined' ? window : this);

@@ -6,6 +6,17 @@
 
 **Companion:** Noah voice-reactive familiar (`LAB-MUSE-3D.md`) shares `ILSceneKit` with the immersive player.
 
+## What shipped (2026-10-06) — interactive sims + render fixes
+
+| Layer | Change |
+|-------|--------|
+| `/assets/il-immersive-sims.js` (new, UMD) | Rules engines that drive authored scenes: `etcd-quorum` (Raft floor(n/2)+1), `aws-az-failure` (ALB drain · ASG rebalance · RDS Multi-AZ failover), `iam-eval` (explicit Deny → SCP/RCP → resource → identity → boundary → session). Predict-then-reveal; `immersive_sim_predict` / `immersive_sim_state` analytics; per-device mastery in `localStorage` (`il.immersiveSims.v1`) picks the next drill. |
+| `il-immersive-3d.js` v1.4.0 | `data-il-sim` panel; per-node tint/glow/pulse/reveal eased each frame; **skips `*_LOD1` / `lod1-*`** (no more double draw / z-fight / proxy slabs through scenes); **lazy WebGL contexts** (create near viewport, `WEBGL_lose_context` when off-screen — /immersive/ had hit Chromium's 16-context cap); boot waits for `ILSceneKit` (pages that loaded the kit after the player silently fell back to procedural — e.g. `/learn/`). |
+| `il-scene-kit.js` v1.4.0 | `parseGlb` returns owning node `name`, `extras`, `lod` per mesh. |
+| `il-immersive.js` v1.1.0 | `data-kind` hosts with an authored `.glb` delegate to the curriculum player (they previously drew a procedural pedestal while the badge said “Three/glTF”). |
+| `il-curriculum-sync.js` 1.2.1 | Element's own `data-gltf`/title/kind win over the surface default (every /immersive/ host had been re-stamped with one `.glb`; the Unreal stub got a glTF). |
+| Tests | `scripts/tests/immersive-sims.test.js` (rules + glb validity + sim↔node contract, in `npm test`/CI) · `npm run test:immersive:browser` (headless Chromium, WebGL, predict→reveal). |
+
 ## What shipped (2026-09-29)
 
 | Layer | Asset | Status |

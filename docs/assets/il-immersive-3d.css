@@ -213,3 +213,56 @@
 @media (prefers-reduced-motion: reduce) {
   .il-immersive__badge[data-il-gfx] { animation: none; }
 }
+
+/* ── Interactive sims (v1.4.0 · 2026-10-06) — state changes the authored scene ── */
+.il-immersive__sim {
+  padding: 0.7rem 0.9rem 0.85rem;
+  border-top: 1px solid color-mix(in srgb, #D4A853 22%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, #070B16 70%, transparent), #070B16);
+  font-size: 0.78rem;
+  color: #e8eef5;
+}
+.il-immersive__sim-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.75rem; }
+.il-immersive__sim-kicker {
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.55rem;
+  text-transform: uppercase; letter-spacing: 0.18em; color: #D4A853;
+}
+.il-immersive__sim-title { font-family: "Space Grotesk", system-ui, sans-serif; font-weight: 600; }
+.il-immersive__sim-verdict {
+  margin-left: auto; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.55rem;
+  text-transform: uppercase; letter-spacing: 0.14em; padding: 0.2rem 0.55rem; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #5EEAD4 40%, transparent); color: #5EEAD4;
+}
+.il-immersive__sim-verdict[data-verdict="degraded"],
+.il-immersive__sim-verdict[data-verdict="implicit-deny"] { color: #F28C2E; border-color: color-mix(in srgb, #F28C2E 50%, transparent); }
+.il-immersive__sim-verdict[data-verdict="down"],
+.il-immersive__sim-verdict[data-verdict="explicit-deny"] { color: #ff6b5e; border-color: color-mix(in srgb, #ff6b5e 55%, transparent); }
+.il-immersive__sim-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+.il-immersive__sim-btn,
+.il-immersive__sim-toggle,
+.il-immersive__sim-opt {
+  font: inherit; font-size: 0.72rem; cursor: pointer; color: #e8eef5;
+  background: color-mix(in srgb, #5EEAD4 8%, transparent);
+  border: 1px solid color-mix(in srgb, #5EEAD4 30%, transparent);
+  border-radius: 0.55rem; padding: 0.4rem 0.65rem; min-height: 2.25rem;
+}
+.il-immersive__sim-btn[data-next="1"] { border-color: #D4A853; box-shadow: 0 0 0 1px color-mix(in srgb, #D4A853 45%, transparent); }
+.il-immersive__sim-toggle { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.64rem; }
+.il-immersive__sim-toggle[aria-pressed="false"] { color: #ff9b90; border-color: color-mix(in srgb, #ff6b5e 45%, transparent); background: color-mix(in srgb, #ff6b5e 8%, transparent); }
+.il-immersive__sim-btn:focus-visible,
+.il-immersive__sim-toggle:focus-visible,
+.il-immersive__sim-opt:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 2px; }
+.il-immersive__sim-predict {
+  margin-top: 0.6rem; padding: 0.6rem; border-radius: 0.6rem;
+  border: 1px dashed color-mix(in srgb, #D4A853 45%, transparent);
+  display: grid; gap: 0.4rem;
+}
+.il-immersive__sim-predict[hidden] { display: none; }
+.il-immersive .il-immersive__sim .il-immersive__sim-q { margin: 0; font-weight: 600; font-size: 0.8rem; line-height: 1.4; }
+.il-immersive__sim-opt { text-align: left; }
+.il-immersive .il-immersive__sim .il-immersive__sim-result { margin: 0.55rem 0 0; min-height: 1em; font-size: 0.78rem; line-height: 1.45; }
+.il-immersive__sim-result[data-correct="1"] { color: #5EEAD4; }
+.il-immersive__sim-result[data-correct="0"] { color: #F2B36B; }
+.il-immersive .il-immersive__sim .il-immersive__sim-score,
+.il-immersive .il-immersive__sim .il-immersive__sim-honesty { margin: 0.35rem 0 0; font-size: 0.66rem; line-height: 1.4; max-width: none; color: color-mix(in srgb, #e8eef5 62%, transparent); }
+html[data-theme="light"] .il-immersive__sim { color: #e8eef5; }
