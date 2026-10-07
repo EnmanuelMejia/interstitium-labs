@@ -14,12 +14,12 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta name="description" content="A full engineering study sequence for Linux system administration: shell fluency, filesystems, permissions, packaging, systemd, networking, users and security, scripting, and troubleshooting."/>
 <meta name="theme-color" content="#0a0f1d"/>
 <meta name="color-scheme" content="dark"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/linux-sysadmin/"
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/linux-sysadmin/"/>
 <meta property="og:title" content="Linux System Administration | Interstitium Labs"/>
 <meta property="og:description" content="A full engineering study sequence for Linux system administration: shell fluency, filesystems, permissions, packaging, systemd, networking, users and security, scripting, and troubleshooting."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/linux-sysadmin/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
-<meta property="og:type" content="website"/>/>
+<meta property="og:type" content="website"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
@@ -289,6 +289,75 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <div class="il-center" style="margin-top:1.5rem">
           <a class="il-btn il-btn--gold" href="/learn/sequences/docker-containers/">Continue to Docker Containers &rarr;</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <!-- Template sections: concept glossary / worked procedure / project brief / as-of -->
+  <section class="il-section" id="glossary" aria-labelledby="glossary-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Concept glossary</p>
+        <h2 class="il-h il-h--section" id="glossary-h">The words this sequence uses.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li><strong>umask</strong> — the subtractive mask on new files and directories: files start from 666, directories from 777, and the umask clears the bits it names (umask 027 &rarr; files 640, directories 750).</li>
+          <li><strong>inode</strong> — the filesystem's per-file record; millions of tiny files can exhaust inodes (df -i shows 100% used) while blocks still show free — "disk full" has three causes: bytes, inodes, quotas.</li>
+          <li><strong>fstab</strong> — /etc/fstab makes mounts persistent across boots (device, mountpoint, type, options, dump, pass); the options field's <code>nofail</code> keeps a missing data disk from dropping the machine to emergency shell.</li>
+          <li><strong>systemd</strong> — the init and service system: units, services, timers (Persistent=true catches up missed runs where cron silently skips), and the journal; the Type= of a unit must match the process's actual behavior.</li>
+          <li><strong>pipefail / PIPESTATUS</strong> — a pipeline's exit status is its last stage's; <code>set -o pipefail</code> makes any stage's failure propagate, and PIPESTATUS holds every stage's status — robust scripts use pipefail always.</li>
+          <li><strong>ACL</strong> — POSIX access control lists (getfacl/setfacl) for per-user and per-group entries beyond owner/group/other; the mask entry caps the effective rights of all named entries.</li>
+          <li><strong>setuid</strong> — the special bit (4) that runs an executable with its owner's privileges (passwd updating /etc/shadow is the canonical example) — an audit staple, not root-by-default.</li>
+          <li><strong>OOM killer</strong> — the kernel's out-of-memory killer; "Out of memory: Killed process" in dmesg is its unmistakable signature — fix capacity or containment, not the app.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="worked-procedure" aria-labelledby="procedure-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Worked procedure</p>
+        <h2 class="il-h il-h--section" id="procedure-h">Work an incident the Module-9 way.</h2>
+      </div>
+      <div class="il-prose">
+        <ol>
+          <li><strong>State the symptom precisely.</strong> "Writes fail" is a complaint; "df -h shows 40% free, df -i shows 100% used, writes fail with ENOSPC" is a diagnosis-ready symptom.</li>
+          <li><strong>Read the logs first.</strong> Check the journal (<code>journalctl</code>) and the kernel log (<code>dmesg</code>) — the OOM killer, failed units, and fsck findings all announce themselves there.</li>
+          <li><strong>Reproduce safely.</strong> Snapshot your lab VM, then reproduce the failure on demand — the only way to learn recovery is to need it, and snapshots make breaking fearless.</li>
+          <li><strong>Isolate by layer.</strong> Disk: df -h vs df -i. Permissions: walk up the path checking the x bit on every directory. Services: systemctl status and the unit's Type=. Network: ping the gateway, then ping beyond it — the fault is at or beyond the gateway.</li>
+          <li><strong>Fix, verify, document.</strong> Apply the fix, re-run the exact failing command to confirm, and write the sequence into your lab journal — it becomes your personal runbook and your interview stories.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="project-brief" aria-labelledby="brief-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Project brief</p>
+        <h2 class="il-h il-h--section" id="brief-h">The portfolio brief for this sequence.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>Deliverable:</strong> publish a "new server bootstrap" script plus your troubleshooting runbook as a portfolio repo — the bootstrap automates a fresh machine (partitions, mounts, users, sudo, firewall, SSH hardening), and the runbook records one real incident per module with symptom, isolation steps, fix, and verification.</p>
+        <p><strong>Acceptance:</strong> score 90%+ on the scenario exam above, then a peer can run your bootstrap on a fresh VM and get a working, hardened server. Lab = lab; the repo is skill evidence, not production tenure.</p>
+        <div class="il-center" style="margin-top:1.5rem">
+          <a class="il-btn il-btn--gold" href="/learn/sequences/docker-containers/">Continue to Docker Containers &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="asof-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">As of &middot; limits</p>
+        <h2 class="il-h il-h--section" id="asof-h">As of 2026-10-07.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Independent study guide keyed to the public Linux Foundation Certified System Administrator (LFCS) curriculum; all teaching prose is written fresh for this site, preferring free and open sources. This guide confers no certification and reproduces no exam content. Where the official curriculum changes, the official source is authoritative — verify current LFCS domains before citing them.</p>
       </div>
     </div>
   </section>

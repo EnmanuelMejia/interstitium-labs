@@ -164,6 +164,48 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </section>
 
+<section class="border-t border-paper/10 bg-ink/40"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Concept glossary</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">The words the labs use</h2>
+<ul class="mt-6 grid gap-3 md:grid-cols-2 text-sm text-muted">
+<li><strong class="text-paper">SuperLab</strong> — the flagship open portfolio lab: kind &middot; Kustomize &middot; Argo CD &middot; GitHub Actions &middot; Gatekeeper. Cloneable proof you can screen-share — not paid production tenure.</li>
+<li><strong class="text-paper">Scenario card</strong> — a guided checklist (exact commands included) for one failure mode or workflow: GitOps sync, Gatekeeper deny, GHA build failure, kind cold start.</li>
+<li><strong class="text-paper">Playground vs guided</strong> — the guided scenario cards run on your machine or in SuperLab; the playground is the deep SuperLab itself. We do not claim a hosted multi-cloud sandbox fleet.</li>
+<li><strong class="text-paper">Noah Live Assist</strong> — in-lab, Socratic coaching: paste errors, get nudges, optional local Ollama router. No fake API keys.</li>
+<li><strong class="text-paper">Challenge of the Day</strong> — the daily proof ritual: one SuperLab check, every day, logged locally.</li>
+<li><strong class="text-paper">kind</strong> — Kubernetes-in-Docker: the local cluster engine behind the SuperLab quickstart (make kind-up).</li>
+<li><strong class="text-paper">GitOps</strong> — the deploy model: desired state lives in git (Kustomize overlays, app-of-apps) and Argo CD syncs the cluster to it.</li>
+<li><strong class="text-paper">Policy gate</strong> — admission control (Gatekeeper constraints, Conftest checks) that refuses bad workloads before they land — the lab's honesty layer.</li>
+</ul>
+</div></section>
+
+<section class="border-t border-paper/10"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Worked procedure</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">Work one lab scenario, start to finish</h2>
+<ol class="mt-6 list-decimal space-y-3 pl-5 text-sm text-muted">
+<li><strong class="text-paper">Pick a scenario card.</strong> Choose the failure mode you want to rehearse: broken GitOps sync, Gatekeeper deny, red GHA build, or a cold kind start.</li>
+<li><strong class="text-paper">Read the checklist, then run it.</strong> Work the card's exact commands on your machine or inside the SuperLab — the cards assume the <a class="text-cyan" href="/labs/superlab/#quickstart">SuperLab quickstart</a> (make bootstrap &rarr; make kind-up).</li>
+<li><strong class="text-paper">Get stuck on purpose.</strong> When a step fails, paste the error into <strong class="text-paper">Noah Live Assist</strong> above and take the Socratic nudge — the debugging is the lesson, not the happy path.</li>
+<li><strong class="text-paper">Verify the fix.</strong> Re-run the card's verification command (kubectl get, argocd app get, or the CI re-run) until the scenario is green.</li>
+<li><strong class="text-paper">Log the proof.</strong> Note the scenario, the failure, and the fix in your evidence log — that entry is what you narrate in an interview, with the SuperLab screen-shared behind it.</li>
+</ol>
+</div></section>
+
+<section class="border-t border-paper/10 bg-ink/40"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Project brief</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">The lab portfolio brief</h2>
+<p class="mt-4 max-w-2xl text-sm text-muted"><strong class="text-paper">Deliverable:</strong> a cloned, running SuperLab plus a lab journal — every scenario card worked with its failure and fix, one interview-ready walkthrough (clone &rarr; bootstrap &rarr; kind-up &rarr; GitOps &rarr; policy), and the Challenge-of-the-Day streak to prove cadence.</p>
+<p class="mt-3 max-w-2xl text-sm text-muted"><strong class="text-paper">Acceptance:</strong> you can bring the cluster up cold, break a scenario on demand, fix it live, and explain what each gate refused and why. Honest labels throughout: lab = lab, never production tenure.</p>
+<div class="mt-6 flex flex-wrap gap-3">
+<a href="/labs/superlab/" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void">Enter SuperLab</a>
+<a href="/labs/challenge/" class="inline-flex h-10 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-cyan">Challenge of the Day</a>
+</div>
+</div></section>
+
+<section class="border-t border-paper/10"><div class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">As of &middot; limits</p>
+<p class="mt-3 max-w-2xl text-sm text-muted"><strong class="text-paper">As of 2026-10-07:</strong> the flagship open lab is the DevOps SuperLab (cloneable, local-first). Full hands-on multi-cloud playgrounds need hosted VMs we do not operate yet — the scenario cards are checklist plus terminal paths into the cloneable SuperLab, portfolio-grade rather than a SaaS sandbox fleet. All progress and XP stay in your browser.</p>
+</div></section>
 </main>
 
 
@@ -248,15 +290,24 @@ kubectl get nodes -o wide</pre>
   </div>
 </section>
 
-<footer class="no-print border-t border-paper/10">
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="no-print border-t border-paper/10 il-footer-3d">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
     <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+      <img class="il-sigil-3d" src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
     </div>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <span>Created by Interstitium Labs &middot; &copy; 2026 Interstitium Labs</span>
+      <span class="il-emboss">interstitiumlabs.dev</span>
+      <span class="il-emboss">Scientia Omnia Vincit</span>
+      <span class="il-emboss">Created by Interstitium Labs &middot; &copy; 2026 Interstitium Labs</span>
       <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/university/" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
     </div>
   </div>

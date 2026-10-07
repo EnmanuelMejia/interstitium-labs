@@ -14,7 +14,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta name="description" content="A full engineering study sequence for Kubernetes cluster administration: architecture, kubeadm installs, etcd, upgrades, workloads, networking, storage, security, and troubleshooting."/>
 <meta name="theme-color" content="#0a0f1d"/>
 <meta name="color-scheme" content="dark"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/k8s-cka/"
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/k8s-cka/"/>
 <meta property="og:title" content="Kubernetes Certified Administrator | Interstitium Labs"/>
 <meta property="og:description" content="A full engineering study sequence for Kubernetes cluster administration: architecture, kubeadm installs, etcd, upgrades, workloads, networking, storage, security, and troubleshooting."/>
 <meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/k8s-cka/"/>
@@ -287,6 +287,77 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
         <div class="il-center" style="margin-top:1.5rem">
           <a class="il-btn il-btn--gold" href="/learn/sequences/k8s-ckad/">Continue to Kubernetes Certified Application Developer &rarr;</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <!-- Template sections: concept glossary / worked procedure / project brief / as-of -->
+  <section class="il-section" id="glossary" aria-labelledby="glossary-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Concept glossary</p>
+        <h2 class="il-h il-h--section" id="glossary-h">The words this sequence uses.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li><strong>kube-apiserver</strong> — the cluster's front door: every read and write goes through it; the scheduler, controller-manager, and kubelets are all its clients.</li>
+          <li><strong>etcd</strong> — the authoritative cluster state store; everything you must back up lives here. Quorum math is why odd member counts are used — lose quorum and the cluster stops accepting writes.</li>
+          <li><strong>kubelet</strong> — the agent on every node that runs pods as instructed; <strong>kube-proxy</strong> implements the Service networking the kubelet's pods rely on.</li>
+          <li><strong>CRI</strong> — the Container Runtime Interface contract between the kubelet and the runtime; <strong>CNI</strong> plugins satisfy the pod networking requirement (every pod gets an IP, pods talk without NAT).</li>
+          <li><strong>kubeadm</strong> — the bootstrap tool: init, join, bootstrap tokens, and certificates take a cluster from bare metal to joined nodes.</li>
+          <li><strong>kubeconfig</strong> — the credential and endpoint file that authenticates you to the cluster; losing control of it is losing control of the cluster.</li>
+          <li><strong>QoS classes</strong> — Guaranteed, Burstable, BestEffort: derived from resource requests versus limits; they decide which pods die first under pressure.</li>
+          <li><strong>Taints and tolerations</strong> — taints repel pods from nodes, tolerations permit them; NoSchedule and NoExecute effects control whether existing pods are evicted.</li>
+          <li><strong>NetworkPolicy</strong> — the default-deny posture for pod traffic: ingress and egress rules that make the network deny by default and allow by exception.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="worked-procedure" aria-labelledby="procedure-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Worked procedure</p>
+        <h2 class="il-h il-h--section" id="procedure-h">The etcd backup-and-restore drill.</h2>
+      </div>
+      <div class="il-prose">
+        <ol>
+          <li><strong>Confirm quorum health first.</strong> Check etcd member status — with odd member counts (3, 5), the cluster tolerates losing a minority. Never drill restores on an already-degraded cluster.</li>
+          <li><strong>Take the snapshot.</strong> Save with the endpoints, CA, cert, and key flags: <code>etcdctl snapshot save</code> against the etcd endpoint with <code>--cacert</code>, <code>--cert</code>, and <code>--key</code> — etcd's TLS means backups need the same credentials as clients.</li>
+          <li><strong>Verify the snapshot.</strong> Run snapshot status on the saved file; a backup you have not verified is a rumor.</li>
+          <li><strong>Restore to a fresh data directory.</strong> Restore the snapshot into a new data directory, then point the etcd static pod (or unit) at it — stacked and external topologies differ here, so follow the topology you built.</li>
+          <li><strong>Rejoin and verify.</strong> Restart etcd, confirm the member rejoins the cluster, check quorum, and list a known key — state recovered is state you can read back.</li>
+          <li><strong>Write the runbook.</strong> Record the exact flags, the data-dir paths, and the verification outputs — this drill's runbook is the portfolio artifact.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="project-brief" aria-labelledby="brief-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Project brief</p>
+        <h2 class="il-h il-h--section" id="brief-h">The portfolio brief for this sequence.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>Deliverable:</strong> publish your kubeadm build notes, your etcd backup runbook (from the drill above), and one troubleshooting war story as a portfolio repo — the war story walks from symptom (crashlooping pod, denied traffic, dead node) through isolation to root cause.</p>
+        <p><strong>Acceptance:</strong> score 90%+ on the scenario exam above, then a peer can follow your build notes to a working kubeadm cluster and run your restore drill. Lab = lab; the repo is skill evidence, not production tenure.</p>
+        <div class="il-center" style="margin-top:1.5rem">
+          <a class="il-btn il-btn--gold" href="/learn/sequences/k8s-ckad/">Continue to Kubernetes Certified Application Developer &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="asof-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">As of &middot; limits</p>
+        <h2 class="il-h il-h--section" id="asof-h">As of 2026-10-07.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Independent study guide keyed to the public Certified Kubernetes Administrator (CKA) curriculum; all teaching prose is written fresh for this site, preferring free and open sources. This guide confers no certification and reproduces no exam content. Kubernetes moves fast — where the official curriculum changes, the official source is authoritative; verify current CKA domains before citing them.</p>
       </div>
     </div>
   </section>

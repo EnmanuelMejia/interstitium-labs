@@ -101,7 +101,7 @@
    "code": "IL-20",
    "title": "Sets & Propositional Logic",
    "weight": 1,
-   "summary": "Sets, set operations, propositions, connectives, truth tables, quantifiers, and the logical language every proof in this course is written in.",
+   "summary": "Welcome to IL-20, Mathematics for Engineers & Scientists. I'm your instructor for this course, and this is Module 1: Sets & Propositional Logic. Over the next few lessons we're going to build the logical language every proof in this course is written in — sets and their operations, propositions and connectives, truth tables, and quantifiers. By the end you'll read and write statements like ∃x ∀y P(x,y) without flinching, and you'll never confuse necessary with sufficient again.",
    "objectives": [
     "Use set notation and the core operations: union, intersection, difference, complement",
     "Evaluate compound propositions with truth tables",
@@ -110,20 +110,20 @@
    ],
    "notes": [
     {
-     "title": "Sets and operations",
-     "body": "A **set** is a collection of distinct objects. `x ∈ A` means x is an element of A. Key operations:\n- **Union** `A ∪ B`: everything in A or B\n- **Intersection** `A ∩ B`: everything in both\n- **Difference** `A \\ B`: everything in A but not B\n- **Complement** `Aᶜ`: everything in the universe not in A\n- **Power set** `P(A)`: the set of all subsets; if `|A| = n`, then `|P(A)| = 2^n`."
+     "title": "Concepts",
+     "body": "- **set** — a collection of distinct objects; `x ∈ A` means x is an element of A.\n- **union** — `A ∪ B`: everything in A or B.\n- **intersection** — `A ∩ B`: everything in both A and B.\n- **difference** — `A \\ B`: everything in A but not B.\n- **complement** — `Aᶜ`: everything in the universe not in A.\n- **power set** — `P(A)`: the set of all subsets; if `|A| = n`, then `|P(A)| = 2^n`.\n- **proposition** — a statement that is either true or false, never both.\n- **negation** — `¬p`: true exactly when p is false.\n- **conjunction** — `p ∧ q`: true only when both are true.\n- **disjunction** — `p ∨ q`: true when at least one is true (inclusive or).\n- **implication** — `p → q`: false only when p is true and q is false. This is not causation — it is a truth-functional claim: ‘it is not the case that p holds and q fails.’\n- **biconditional** — `p ↔ q`: true when p and q agree.\n- **universal quantifier** — `∀x P(x)`: P holds for every x.\n- **existential quantifier** — `∃x P(x)`: P holds for at least one x. Negating a quantifier flips it: `¬∀x P(x)` is equivalent to `∃x ¬P(x)`; `∃x ∀y P(x,y)` is generally not the same as `∀y ∃x P(x,y)` — order matters. In the definition of a limit, the `∃δ ∀x` ordering is the whole point.\n- **sufficient condition** — in `p → q`, p is sufficient for q.\n- **necessary condition** — in `p → q`, q is necessary for p. Conflating them is the most common logical error in engineering arguments: ‘the tests pass’ is not sufficient for ‘the code is correct’, and ‘the code is correct’ is not necessary for ‘the tests pass.’\n- **contrapositive** — `¬q → ¬p`: logically equivalent to the original implication `p → q`.\n- **De Morgan's laws** — `(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ`; `¬(p ∨ q) ≡ ¬p ∧ ¬q`: complement flips union/intersection; negation flips and/or."
     },
     {
-     "title": "Propositions and connectives",
-     "body": "A **proposition** is a statement that is either true or false, never both. Connectives:\n- **Negation** `¬p`: true exactly when p is false\n- **Conjunction** `p ∧ q`: true only when both are true\n- **Disjunction** `p ∨ q`: true when at least one is true (inclusive or)\n- **Implication** `p → q`: false only when p is true and q is false\n- **Biconditional** `p ↔ q`: true when p and q agree.\nImplication `p → q` is **not** the same as causation — it is a truth-functional claim: 'it is not the case that p holds and q fails.'"
+     "title": "Hands-on procedure",
+     "body": "Evaluate a compound proposition with a truth table — the mechanical procedure that settles any finite logical question:\n1. Count the distinct propositional variables (n); your table needs 2^n rows.\n2. List every combination of truth values, one row per combination.\n3. Work inside-out: compute each connective's column from its input columns.\n4. Read the final column — that is the proposition's truth value for each assignment.\n5. To test equivalence, build both tables side by side and compare final columns.\nWorked example: `(p ∨ q) → (p ∧ q)`. Row (T,T): T→T = T. Row (T,F): antecedent T, consequent F, so T→F = F. Row (F,T): same, F. Row (F,F): F→F = T. The implication is false exactly on the mixed rows — which is why you check every row, not the ones that feel typical."
     },
     {
-     "title": "Quantifiers",
-     "body": "**Universal** `∀x P(x)`: P holds for every x. **Existential** `∃x P(x)`: P holds for at least one x.\nNegating a quantifier flips it: `¬∀x P(x)` is equivalent to `∃x ¬P(x)`; `∃x ∀y P(x,y)` is generally **not** the same as `∀y ∃x P(x,y)` — order matters. In the definition of a limit, the `∃δ ∀x` ordering is the whole point."
+     "title": "Project brief",
+     "body": "Specify the access rules for a small internal tool as propositions. Define two sets — users and resources — and write the authorization rule as a compound proposition over membership statements (e.g., `admin ∨ (owner ∧ ¬suspended)`). Build its truth table, then use De Morgan's laws to write the exact negation of your rule, and prove the two tables are complements. Deliverable: the rule, both truth tables, and one paragraph arguing whether your rule makes access the necessary or the sufficient condition — and which direction is safer when the rule is wrong."
     },
     {
-     "title": "Necessary vs sufficient",
-     "body": "`p → q` says p is **sufficient** for q and q is **necessary** for p. Conflating them is the most common logical error in engineering arguments: 'the tests pass' is not sufficient for 'the code is correct', and 'the code is correct' is not necessary for 'the tests pass.'"
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -162,7 +162,7 @@
       "p=F, q=F"
      ],
      "answer": 1,
-     "explain": "p=T,q=F gives antecedent (T∨F)=T and consequent (T∧F)=F, so T→F is false. (Same for p=F,q=T.)"
+     "explain": "p=T,q=F gives antecedent (T∨F)=T and consequent (T∧F)=F, so T→F is false. (Same for p=F,q=T.) (Concepts section: implication truth table.)"
     },
     {
      "q": "A ¬B ∩ (A ∪ B) equals:",
@@ -173,7 +173,7 @@
       "∅"
      ],
      "answer": 2,
-     "explain": "Elements of A that are also in A∪B but not in B: exactly A \\ B."
+     "explain": "Elements of A that are also in A∪B but not in B: exactly A \\ B. (Concepts section: set difference and intersection.)"
     },
     {
      "q": "The statement '∃x ∀y P(x,y)' says:",
@@ -184,7 +184,7 @@
       "P holds for no pair"
      ],
      "answer": 1,
-     "explain": "The existential comes first: a single x that works uniformly for all y — a much stronger claim than ∀y∃x."
+     "explain": "The existential comes first: a single x that works uniformly for all y — a much stronger claim than ∀y∃x. (Concepts section: quantifier order.)"
     },
     {
      "q": "'The build succeeds' is claimed to imply 'tests pass'. Tests fail. What follows?",
@@ -195,7 +195,7 @@
       "The claim is disproven"
      ],
      "answer": 1,
-     "explain": "Modus tollens: (build → tests) ∧ ¬tests ⊢ ¬build."
+     "explain": "Modus tollens: (build → tests) ∧ ¬tests ⊢ ¬build. (Concepts section: modus tollens on necessary/sufficient.)"
     }
    ]
   },
@@ -204,7 +204,7 @@
    "code": "IL-20",
    "title": "Proof Methods",
    "weight": 1,
-   "summary": "Direct proof, contrapositive, contradiction, and mathematical induction — the four moves that prove theorems, verify algorithms, and certify loop invariants.",
+   "summary": "Welcome to Module 2: Proof Methods. I'm your instructor, and this is the module where mathematics becomes a skill instead of a spectator sport. We're going to drill the four moves that prove theorems, verify algorithms, and certify loop invariants — direct proof, contrapositive, contradiction, and mathematical induction. By the end you'll look at a claim like ‘the sum of the first n odd numbers is n²’ and reach for the right tool without hesitation.",
    "objectives": [
     "Prove a statement directly from definitions",
     "Use contrapositive and contradiction correctly",
@@ -213,20 +213,20 @@
    ],
    "notes": [
     {
-     "title": "Direct proof",
-     "body": "Assume the hypotheses, unpack **definitions**, and derive the conclusion by valid steps. Example: to prove the sum of two even integers is even, write them as `2k` and `2m`; their sum is `2(k+m)`, which is even by definition. Direct proof fails when the definitions give you nothing to grab — then reach for contrapositive or contradiction."
+     "title": "Concepts",
+     "body": "- **direct proof** — assume the hypotheses, unpack definitions, and derive the conclusion by valid steps. Example: write two even integers as `2k` and `2m`; their sum is `2(k+m)`, even by definition. Reach for contrapositive or contradiction when the definitions give you nothing to grab.\n- **contrapositive** — to prove `p → q`, prove `¬q → ¬p` instead; useful when the negated conclusion is easier to work with (e.g., parity-style results like ‘if n² is even then n is even’).\n- **proof by contradiction** — assume p and `¬q` together, then derive a statement that contradicts a known fact or itself; then `¬q` is impossible, so q holds.\n- **mathematical induction** — to prove P(n) for all natural n ≥ n₀: prove the base case P(n₀), then the inductive step (assume P(k), prove P(k+1)).\n- **base case** — the proof of P(n₀), where the induction starts.\n- **inductive hypothesis** — the assumption P(k) for a fixed k, made inside the inductive step.\n- **inductive step** — the derivation of P(k+1) from the inductive hypothesis.\n- **strong induction** — the hypothesis assumes P(j) for all j ≤ k; needed when P(k+1) depends on earlier cases, e.g., Fibonacci.\n- **loop invariant** — a property true before and after each loop iteration, proved by induction on the iteration count.\n- **recurrence relation** — a sequence defined by earlier terms, e.g., mergesort's `T(n) = 2T(n/2) + n`, solved and verified by the induction pattern.\n- **begging the question** — circular reasoning: using the conclusion as a premise — the most common flaw in novice proofs."
     },
     {
-     "title": "Contrapositive and contradiction",
-     "body": "**Contrapositive**: prove `¬q → ¬p` instead of `p → q`. Useful when the negated conclusion is easier to work with (e.g., proving '√2 is irrational' style results via parity).\n**Contradiction**: assume p and `¬q`, derive a statement that contradicts a known fact or itself. Then `¬q` is impossible, so q holds."
+     "title": "Hands-on procedure",
+     "body": "Carry out an induction proof, step by step:\n1. State P(n) precisely and choose n₀.\n2. Prove the base case P(n₀) by direct computation.\n3. Write the inductive hypothesis: assume P(k) for a fixed k.\n4. Derive P(k+1) from it, showing every algebraic step — no leaps.\n5. Conclude: P(n) holds for all n ≥ n₀.\nWorked example: `1 + 2 + ... + n = n(n+1)/2`. Base n=1: 1 = 1·2/2. Step: assume the formula for k, then adding (k+1) to both sides gives k(k+1)/2 + (k+1) = (k+1)(k+2)/2 — exactly the formula at k+1. Done."
     },
     {
-     "title": "Mathematical induction",
-     "body": "To prove P(n) for all natural n ≥ n₀:\n1. **Base case**: prove P(n₀).\n2. **Inductive step**: assume P(k) (the inductive hypothesis) and prove P(k+1).\nThen P(n) holds for all n ≥ n₀. Classic: `1 + 2 + ... + n = n(n+1)/2`. Base n=1: 1 = 1·2/2. Step: adding (k+1) to k(k+1)/2 gives (k+1)(k+2)/2. Strong induction lets the hypothesis assume P(j) for all j ≤ k."
+     "title": "Project brief",
+     "body": "Prove a loop invariant for a small algorithm of your choice — for example, binary search's ‘if the target is present, it lies in [lo, hi]’, or insertion sort's ‘the prefix is sorted’. Write the base case (invariant holds before the first iteration), the inductive step (each iteration preserves it), and the conclusion (the invariant plus the exit condition implies correctness). Deliverable: the invariant, the two proofs, and one paragraph naming the exact line where a plausible bug would break the step — induction finds bugs by forcing you to name what each iteration preserves."
     },
     {
-     "title": "Induction in engineering",
-     "body": "Induction is the proof method for **loop invariants** and **recurrences**: prove the invariant holds before the loop (base), and that each iteration preserves it (step). Recurrence relations like `T(n) = 2T(n/2) + n` (mergesort) are solved and verified by the same pattern."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -261,7 +261,7 @@
       "The statement for all n"
      ],
      "answer": 1,
-     "explain": "We assume P(k) for an arbitrary fixed k and derive P(k+1)."
+     "explain": "We assume P(k) for an arbitrary fixed k and derive P(k+1). (Concepts section: the inductive hypothesis.)"
     },
     {
      "q": "Which proof strategy fits 'If n² is even then n is even'?",
@@ -272,7 +272,7 @@
       "Proof by cases on divisibility by 4"
      ],
      "answer": 1,
-     "explain": "Direct proof stalls (no handle on n); the contrapositive is easy: odd n = 2k+1 gives n² = 4k²+4k+1, odd."
+     "explain": "Direct proof stalls (no handle on n); the contrapositive is easy: odd n = 2k+1 gives n² = 4k²+4k+1, odd. (Hands-on procedure section: choosing a proof strategy.)"
     },
     {
      "q": "A proof that assumes the conclusion is guilty of:",
@@ -283,7 +283,7 @@
       "Case analysis"
      ],
      "answer": 1,
-     "explain": "Using the conclusion as a premise is circular — the most common flaw in novice proofs."
+     "explain": "Using the conclusion as a premise is circular — the most common flaw in novice proofs. (Concepts section: circular reasoning.)"
     },
     {
      "q": "1 + 3 + 5 + ... + (2n−1) equals:",
@@ -294,7 +294,7 @@
       "n³"
      ],
      "answer": 0,
-     "explain": "Sum of the first n odd numbers is n² — provable by induction."
+     "explain": "Sum of the first n odd numbers is n² — provable by induction. (Hands-on procedure section: the odd-numbers induction.)"
     }
    ]
   },
@@ -303,7 +303,7 @@
    "code": "IL-20",
    "title": "Counting & Combinatorics",
    "weight": 1,
-   "summary": "Product and sum rules, permutations, combinations, the binomial theorem, and the pigeonhole principle — the mathematics of 'how many'.",
+   "summary": "Welcome to Module 3: Counting & Combinatorics. I'm your instructor, and this module answers the question ‘how many?’ — the mathematics behind password spaces, hash collisions, and every probability computation you'll meet in Module 12. Product and sum rules, permutations, combinations, the binomial theorem, and the pigeonhole principle: by the end you'll count an 8-bit string space in your sleep and know exactly why 367 people guarantee a shared birthday.",
    "objectives": [
     "Apply the product and sum rules to counting problems",
     "Distinguish permutations from combinations",
@@ -312,20 +312,20 @@
    ],
    "notes": [
     {
-     "title": "Product and sum rules",
-     "body": "**Product rule**: if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. **Sum rule**: if two tasks are disjoint, total = sum of their counts. An n-bit string has `2^n` possibilities (product rule); counting them is the same as counting subsets of an n-element set."
+     "title": "Concepts",
+     "body": "- **product rule** — if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. An n-bit string has `2^n` possibilities; counting them is the same as counting subsets of an n-element set.\n- **sum rule** — if two tasks are disjoint, the total count is the sum of their counts.\n- **permutation** — `P(n,k) = n!/(n−k)!`: ordered selection of k from n.\n- **combination** — `C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n.\n- **ordering test** — rule of thumb: ask ‘does rearranging change the outcome?’ If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720.\n- **binomial theorem** — `(x+y)^n = Σ C(n,k) x^(n−k) y^k` for k=0..n.\n- **Pascal's identity** — `C(n,k) = C(n−1,k−1) + C(n−1,k)`: builds the triangle row by row.\n- **subset count** — setting x=y=1 in the binomial theorem gives `Σ C(n,k) = 2^n`: the number of subsets of an n-element set, matching the product rule.\n- **pigeonhole principle** — if n+1 items go into n boxes, some box holds at least 2 items. Generalization: with N items and k boxes, some box holds at least ⌈N/k⌉ items. Used constantly in hashing (collisions are unavoidable when keys exceed slots), scheduling, and lower-bound arguments."
     },
     {
-     "title": "Permutations vs combinations",
-     "body": "**Permutation** P(n,k) = n!/(n−k)! — ordered selection of k from n. **Combination** C(n,k) = n!/(k!(n−k)!) — unordered selection. Rule of thumb: ask 'does rearranging change the outcome?' If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720."
+     "title": "Hands-on procedure",
+     "body": "Choose the right counting formula:\n1. Ask the ordering question: does rearranging change the outcome? Yes → permutation `P(n,k)`; no → combination `C(n,k)`.\n2. Is repetition allowed? Then it's the product rule: n^k (e.g., passwords).\n3. Are the cases disjoint alternatives? Add them (sum rule).\n4. Compute: expand the factorials and cancel before multiplying.\nWorked example: unordered 4-person team from 9 people. Order within the team doesn't matter → combination: C(9,4) = 9!/(4!5!) = (9·8·7·6)/(4·3·2·1) = 126."
     },
     {
-     "title": "Binomial theorem",
-     "body": "`(x+y)^n = Σ C(n,k) x^(n−k) y^k` for k=0..n. Pascal's identity `C(n,k) = C(n−1,k−1) + C(n−1,k)` builds the triangle. Setting x=y=1 gives `Σ C(n,k) = 2^n` — the number of subsets of an n-element set, matching the product rule."
+     "title": "Project brief",
+     "body": "You are sizing a system. (a) A password policy requires length 6 over 26 lowercase letters — compute the password space and, assuming an attacker tries 10^9 guesses per second, the expected time to exhaust it. (b) A hash table has k slots and will hold N keys — use the generalized pigeonhole principle to state exactly when collisions become unavoidable and how many items the fullest slot must hold. Deliverable: both computations with the formula choice justified by the ordering/repetition test from the Hands-on procedure section."
     },
     {
-     "title": "Pigeonhole principle",
-     "body": "If n+1 items go into n boxes, some box holds at least 2 items. Generalization: with N items and k boxes, some box holds at least ⌈N/k⌉ items. Used constantly in hashing (collisions are unavoidable when keys exceed slots), scheduling, and lower-bound arguments."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -364,7 +364,7 @@
       "36"
      ],
      "answer": 1,
-     "explain": "C(9,4) = 9!/(4!5!) = 126. Order within the team doesn't matter."
+     "explain": "C(9,4) = 9!/(4!5!) = 126. Order within the team doesn't matter. (Hands-on procedure section: order doesn't matter, so combine.)"
     },
     {
      "q": "With 367 people in a room, by the pigeonhole principle:",
@@ -375,7 +375,7 @@
       "Two have the same name"
      ],
      "answer": 1,
-     "explain": "367 people, 366 possible birthdays (incl. Feb 29): some date is shared."
+     "explain": "367 people, 366 possible birthdays (incl. Feb 29): some date is shared. (Concepts section: pigeonhole with 366 boxes.)"
     },
     {
      "q": "The coefficient of x³ in (x+2)^5 is:",
@@ -386,7 +386,7 @@
       "80"
      ],
      "answer": 2,
-     "explain": "C(5,3)·x³·2² = 10·4·x³ = 40x³."
+     "explain": "C(5,3)·x³·2² = 10·4·x³ = 40x³. (Concepts section: the binomial theorem.)"
     },
     {
      "q": "Passwords of length 6 over 26 lowercase letters: how many?",
@@ -397,7 +397,7 @@
       "P(26,6)"
      ],
      "answer": 2,
-     "explain": "Each of 6 positions has 26 independent choices: 26^6 (product rule with repetition)."
+     "explain": "Each of 6 positions has 26 independent choices: 26^6 (product rule with repetition). (Hands-on procedure section: repetition allowed, use the product rule.)"
     }
    ]
   },
@@ -406,7 +406,7 @@
    "code": "IL-20",
    "title": "Relations & Functions",
    "weight": 1,
-   "summary": "Injective, surjective, and bijective functions; composition and inverses; equivalence relations and partitions — the language of mappings between structures.",
+   "summary": "Welcome to Module 4: Relations & Functions. I'm your instructor. Functions are the mappings between structures — every API, every hash table, every encoding is one — and this module gives you the precise vocabulary: injective, surjective, bijective, composition, inverses, equivalence relations, and partitions. By the end you'll classify any mapping on sight and understand why congruence classes mod n are the foundation of the cryptography in Module 12's successor courses.",
    "objectives": [
     "Classify functions as injective, surjective, or bijective",
     "Compose functions and find inverses",
@@ -415,20 +415,20 @@
    ],
    "notes": [
     {
-     "title": "Function properties",
-     "body": "f: A → B is **injective** (one-to-one) if f(x₁)=f(x₂) implies x₁=x₂ — distinct inputs map to distinct outputs. **Surjective** (onto) if every y in B has some x with f(x)=y — the image covers B. **Bijective** if both: a perfect pairing, which is exactly when an **inverse** f⁻¹: B → A exists."
+     "title": "Concepts",
+     "body": "- **injective** — f: A → B is one-to-one if f(xᵢ)=f(x₂) implies xᵢ=x₂: distinct inputs map to distinct outputs.\n- **surjective** — onto: every y in B has some x with f(x)=y — the image covers B.\n- **bijective** — both injective and surjective: a perfect pairing, which is exactly when an inverse exists.\n- **inverse** — `f⁻¹: B → A` undoes f; exists if and only if f is bijective.\n- **composition** — `(g∘f)(x) = g(f(x))`: apply f first, then g. Associative but generally not commutative — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order).\n- **equivalence relation** — a relation ~ on A that is reflexive (x~x), symmetric (x~y ⇒ y~x), and transitive (x~y, y~z ⇒ x~z).\n- **equivalence class / partition** — every equivalence relation partitions A into disjoint equivalence classes.\n- **congruence mod n** — x ≡ y (mod n) iff n divides x−y; partitions the integers into n residue classes — the foundation of modular arithmetic used in cryptography.\n- **partial order** — reflexive, antisymmetric (x≤y, y≤x ⇒ x=y), transitive: replace symmetric with antisymmetric. Task-dependency graphs, version ordering, and type hierarchies are partial orders; topological sort linearizes them."
     },
     {
-     "title": "Composition",
-     "body": "(g∘f)(x) = g(f(x)): apply f first, then g. Composition is **associative** but generally **not commutative** — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order)."
+     "title": "Hands-on procedure",
+     "body": "Classify a function f: A → B:\n1. Injectivity: does f(xᵢ)=f(x₂) force xᵢ=x₂? Hunt for a counterexample — two distinct inputs with the same output.\n2. Surjectivity: pick an arbitrary y in B and try to solve f(x)=y. If some y has no preimage, not surjective.\n3. Both hold → bijective: an inverse exists, and finite A, B have equal cardinality.\nWorked example: f(x) = x³ − x on ℝ. f(0)=f(1)=f(−1)=0, so not injective. But it is a continuous cubic with limits ±∞, hence attains every real value: surjective. Verdict: surjective only."
     },
     {
-     "title": "Equivalence relations",
-     "body": "A relation ~ on A is an **equivalence relation** if it is: **reflexive** (x~x), **symmetric** (x~y ⇒ y~x), **transitive** (x~y, y~z ⇒ x~z). Every equivalence relation **partitions** A into disjoint equivalence classes. Example: congruence mod n partitions the integers into n residue classes — the foundation of modular arithmetic used in cryptography."
+     "title": "Project brief",
+     "body": "Model an organization's user→role assignment as a function. Classify it (injective? surjective? bijective?) and justify each answer with the Hands-on procedure. Then define the equivalence relation ‘same clearance level’ on users, list its equivalence classes, and show they partition the user set. Deliverable: the classification with counterexamples where it fails, the classes, and one paragraph on what breaks operationally if the assignment function is not surjective onto the roles that must be staffed."
     },
     {
-     "title": "Partial orders (glimpse)",
-     "body": "Replace symmetric with **antisymmetric** (x≤y, y≤x ⇒ x=y) and you get a **partial order** — reflexive, antisymmetric, transitive. Task-dependency graphs, version ordering, and type hierarchies are partial orders; topological sort linearizes them."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -463,7 +463,7 @@
       "Neither"
      ],
      "answer": 1,
-     "explain": "f(0)=f(1)=f(−1)=0, so not injective; as a continuous cubic with limits ±∞ it attains every real value, so surjective."
+     "explain": "f(0)=f(1)=f(−1)=0, so not injective; as a continuous cubic with limits ±∞ it attains every real value, so surjective. (Hands-on procedure section: injectivity and surjectivity checks.)"
     },
     {
      "q": "Which relation on ℤ is an equivalence relation?",
@@ -474,7 +474,7 @@
       "xRy iff x+y > 0"
      ],
      "answer": 1,
-     "explain": "Same parity: reflexive, symmetric, transitive. < is not symmetric; divisibility is not symmetric; x+y>0 fails reflexivity (0+0>0 false)."
+     "explain": "Same parity: reflexive, symmetric, transitive. < is not symmetric; divisibility is not symmetric; x+y>0 fails reflexivity (0+0>0 false). (Concepts section: equivalence relation properties.)"
     },
     {
      "q": "(g∘f)(x) means:",
@@ -485,7 +485,7 @@
       "g(x)+f(x)"
      ],
      "answer": 1,
-     "explain": "Rightmost applies first: (g∘f)(x) = g(f(x))."
+     "explain": "Rightmost applies first: (g∘f)(x) = g(f(x)). (Concepts section: composition order.)"
     },
     {
      "q": "If f: A → B is bijective and |A| = 7, then |B| =",
@@ -496,7 +496,7 @@
       "Cannot determine"
      ],
      "answer": 2,
-     "explain": "A bijection pairs elements one-to-one, so the sets have equal cardinality."
+     "explain": "A bijection pairs elements one-to-one, so the sets have equal cardinality. (Concepts section: bijections preserve cardinality.)"
     }
    ]
   },
@@ -505,7 +505,7 @@
    "code": "IL-20",
    "title": "Linear Algebra I — Vectors & Spaces",
    "weight": 1,
-   "summary": "Vectors, dot products, vector spaces, span, and linear independence — the geometric core behind graphics, ML features, and simulation.",
+   "summary": "Welcome to Module 5: Linear Algebra I — Vectors & Spaces. I'm your instructor, and we're entering the engine room: vectors, dot products, vector spaces, span, and linear independence — the geometric core behind graphics, ML features, and simulation. By the end you'll test independence mechanically, describe any subspace by its basis, and see why the projection formula is secretly doing least-squares fitting.",
    "objectives": [
     "Add, scale, and take dot products of vectors",
     "Test a set for linear independence",
@@ -514,20 +514,20 @@
    ],
    "notes": [
     {
-     "title": "Vectors and the dot product",
-     "body": "A vector **v** in ℝⁿ is an ordered n-tuple. Addition and scalar multiplication are componentwise. The **dot product** `u·v = Σ uᵢvᵢ` measures alignment: `u·v = |u||v|cos θ`. The **norm** `|v| = √(v·v)`. Two nonzero vectors are **orthogonal** iff their dot product is 0."
+     "title": "Concepts",
+     "body": "- **vector** — an ordered n-tuple in ℝⁿ; addition and scalar multiplication are componentwise.\n- **dot product** — `u·v = Σ uᵢvᵢ = |u||v|cos θ`: measures alignment of u and v.\n- **norm** — `|v| = √(v·v)`: the length of v.\n- **orthogonal** — two nonzero vectors are orthogonal iff their dot product is 0.\n- **vector space** — a set closed under addition and scalar multiplication, satisfying the vector axioms (associativity, zero vector, additive inverses, distributivity). Examples: ℝⁿ, matrices of fixed size, polynomials of degree ≤ n, functions ℝ → ℝ. Closure is the key test: is the sum of two members always a member?\n- **span** — the set of all linear combinations of a given set of vectors.\n- **linear independence** — vᵢ..ₖ are independent if `cᵢvᵢ+…+cₖvₖ = 0` forces all cᵢ = 0: no vector is a combination of the others. Any n+1 vectors in ℝⁿ are dependent.\n- **basis** — an independent spanning set; every vector has a unique coordinate representation in a basis.\n- **dimension** — the number of vectors in any basis; dim(ℝⁿ) = n.\n- **projection** — `proj_v(u) = ((u·v)/(v·v)) v`. This single formula powers least-squares fitting, Gram–Schmidt orthogonalization, and similarity search: the dot product with a unit vector is the signed length of the projection."
     },
     {
-     "title": "Vector spaces",
-     "body": "A **vector space** is a set closed under addition and scalar multiplication, satisfying the vector axioms (associativity, zero vector, additive inverses, distributivity). Examples: ℝⁿ, matrices of fixed size, polynomials of degree ≤ n, functions ℝ → ℝ. Closure is the key test: is the sum of two members always a member?"
+     "title": "Hands-on procedure",
+     "body": "Test a set of vectors for linear independence:\n1. Write `cᵢvᵢ + … + cₖvₖ = 0`.\n2. Expand into one scalar equation per coordinate — a homogeneous system in the cᵢ.\n3. Solve it. Only the trivial solution (all cᵢ = 0) → independent.\n4. A nontrivial solution → dependent; the solution itself exhibits one vector as a combination of the others.\nWorked example: (1,2), (3,4) in ℝ². cᵢ(1,2)+c₂(3,4)=(0,0) gives cᵢ+3c₂=0 and 2cᵢ+4c₂=0. From the first, cᵢ=−3c₂; substituting: −6c₂+4c₂=0 ⇒ c₂=0, cᵢ=0. Independent."
     },
     {
-     "title": "Span and linear independence",
-     "body": "The **span** of a set is all its linear combinations. Vectors v₁..vₖ are **linearly independent** if `c₁v₁+…+cₖvₖ = 0` forces all cᵢ = 0 — no vector is a combination of the others. A **basis** is an independent spanning set; every vector has a **unique** coordinate representation in a basis. dim(ℝⁿ) = n."
+     "title": "Project brief",
+     "body": "Build a tiny similarity search. Represent five short documents as term-frequency vectors over a shared vocabulary, normalize each to a unit vector, and rank the documents by cosine similarity (dot product) against a query vector. Deliverable: the vectors, the ranked list, and one paragraph explaining — via the projection formula — why the dot product with a unit vector measures ‘how much of the query lies along each document’, and what breaks when two vocabulary terms are linearly dependent."
     },
     {
-     "title": "Projection",
-     "body": "The projection of u onto v is `proj_v(u) = ((u·v)/(v·v)) v`. This single formula powers least-squares fitting, Gram–Schmidt orthogonalization, and attention-free similarity search: the dot product with a unit vector is the signed length of the projection."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -566,7 +566,7 @@
       "Need more info"
      ],
      "answer": 0,
-     "explain": "c₁(1,2)+c₂(3,4)=(0,0) gives c₁+3c₂=0, 2c₁+4c₂=0 ⇒ only c₁=c₂=0."
+     "explain": "c₁(1,2)+c₂(3,4)=(0,0) gives c₁+3c₂=0, 2c₁+4c₂=0 ⇒ only c₁=c₂=0. (Hands-on procedure section: solving the dependence system.)"
     },
     {
      "q": "Angle between (1,0) and (1,1)?",
@@ -577,7 +577,7 @@
       "90°"
      ],
      "answer": 1,
-     "explain": "cos θ = 1/(1·√2) = 1/√2 ⇒ θ = 45°."
+     "explain": "cos θ = 1/(1·√2) = 1/√2 ⇒ θ = 45°. (Concepts section: the dot product and angle.)"
     },
     {
      "q": "Which set is a basis of ℝ³?",
@@ -588,7 +588,7 @@
       "{(1,2,3)}"
      ],
      "answer": 2,
-     "explain": "Three vectors in ℝ³ that are independent and span — the standard basis. The others are too few or dependent."
+     "explain": "Three vectors in ℝ³ that are independent and span — the standard basis. The others are too few or dependent. (Concepts section: basis criteria.)"
     },
     {
      "q": "proj of (3,4) onto (1,0)?",
@@ -599,7 +599,7 @@
       "(1,0)"
      ],
      "answer": 0,
-     "explain": "((3,4)·(1,0))/((1,0)·(1,0)) · (1,0) = 3(1,0) = (3,0)."
+     "explain": "((3,4)·(1,0))/((1,0)·(1,0)) · (1,0) = 3(1,0) = (3,0). (Concepts section: the projection formula.)"
     }
    ]
   },
@@ -608,7 +608,7 @@
    "code": "IL-20",
    "title": "Linear Algebra II — Matrices",
    "weight": 1,
-   "summary": "Matrix multiplication, transposes, determinants, inverses, and rank — the computational engine of applied mathematics.",
+   "summary": "Welcome to Module 6: Linear Algebra II — Matrices. I'm your instructor. Matrices are the computational engine of applied mathematics: multiplication, transposes, determinants, inverses, and rank. By the end you'll multiply with correct dimensions in your sleep, invert a 2×2 by hand, read rank as ‘how much redundancy is in this system’, and — most practically — you'll know why you never compute an explicit inverse to solve Ax=b.",
    "objectives": [
     "Multiply matrices with correct dimensions",
     "Compute 2×2 and 3×3 determinants",
@@ -617,20 +617,20 @@
    ],
    "notes": [
     {
-     "title": "Matrix multiplication",
-     "body": "If A is m×n and B is n×p, then AB is m×p with `(AB)ᵢⱼ = Σₖ AᵢₖBₖⱼ` — row i of A dotted with column j of B. The inner dimensions must match. Multiplication is **associative** and distributes over addition, but is **not commutative**: AB ≠ BA in general. `(AB)ᵛ = BᵛAᵛ` — order reverses, like function composition."
+     "title": "Concepts",
+     "body": "- **matrix multiplication** — if A is m×n and B is n×p, then AB is m×p with `(AB)ᵢⱼ = Σₖ AᵢₖBₖⱼ`: row i of A dotted with column j of B. The inner dimensions must match. Associative and distributive, but not commutative: AB ≠ BA in general.\n- **transpose** — `(AB)ᵛ = BᵛAᵛ`: order reverses, like function composition.\n- **determinant** — measures signed volume scaling. 2×2: `det [[a,b],[c,d]] = ad − bc`. 3×3: cofactor expansion along any row or column. det(A) ≠ 0 iff A is invertible; det(AB) = det(A)det(B). A zero determinant means the transformation collapses at least one dimension.\n- **inverse** — A⁻¹ satisfies AA⁻¹ = A⁻¹A = I. 2×2: `[[a,b],[c,d]]⁻¹ = (1/(ad−bc)) [[d,−b],[−c,a]]`. For larger matrices use Gauss–Jordan elimination on [A|I]. `(AB)⁻¹ = B⁻¹A⁻¹`. Practical rule: never compute an explicit inverse to solve Ax=b — factor instead (LU/QR); inversion is slower and less stable.\n- **rank** — the number of linearly independent rows = number of independent columns = dimension of the column space. For Ax=b: rank(A) = rank([A|b]) means a solution exists; rank(A) = n (full column rank) means it is unique. Rank deficiency signals redundancy — or multicollinearity in data."
     },
     {
-     "title": "Determinants",
-     "body": "The determinant measures signed volume scaling. 2×2: `det [[a,b],[c,d]] = ad − bc`. 3×3: cofactor expansion along any row/column. det(A) ≠ 0 iff A is invertible; det(AB) = det(A)det(B). A zero determinant means the transformation collapses at least one dimension."
+     "title": "Hands-on procedure",
+     "body": "Invert a 2×2 matrix and verify:\n1. Compute det = ad − bc. If it is 0, stop — the matrix is not invertible.\n2. Apply the formula: `(1/det) [[d, −b], [−c, a]]`.\n3. Multiply A·A⁻¹ and confirm you get the identity — never trust an unchecked inverse.\nWorked example: [[2,1],[1,3]]. det = 2·3−1·1 = 5. Inverse = (1/5)[[3,−1],[−1,2]]. Verify: [[2,1],[1,3]]·(1/5)[[3,−1],[−1,2]] = (1/5)[[5,0],[0,5]] = I. ✓"
     },
     {
-     "title": "Inverses",
-     "body": "A⁻¹ satisfies AA⁻¹ = A⁻¹A = I. 2×2: `[[a,b],[c,d]]⁻¹ = (1/(ad−bc)) [[d,−b],[−c,a]]`. For larger matrices use Gauss–Jordan elimination on [A|I]. `(AB)⁻¹ = B⁻¹A⁻¹`. Never compute an explicit inverse to solve Ax=b in practice — factor instead (LU/QR); inversion is slower and less stable."
+     "title": "Project brief",
+     "body": "Set up a small linear system from a blend problem: two raw materials with known compositions must be mixed to hit target percentages. Write it as Ax=b, solve by Gaussian elimination with partial pivoting (show the row operations), and verify A·x = b. Then write one paragraph explaining why you solved it by elimination rather than forming A⁻¹ — citing the stability and cost reasons from the Concepts section — and what the rank of A tells you about whether the blend is uniquely determined."
     },
     {
-     "title": "Rank",
-     "body": "**Rank** = number of linearly independent rows = number of independent columns = dimension of the column space. For Ax=b: rank(A) = rank([A|b]) means a solution exists; rank(A) = n (full column rank) means it is unique. Rank deficiency signals redundancy — or multicollinearity in data."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -669,7 +669,7 @@
       "[[2,4],[1,3]]"
      ],
      "answer": 0,
-     "explain": "Multiplying by the identity leaves A unchanged."
+     "explain": "Multiplying by the identity leaves A unchanged. (Concepts section: the identity matrix.)"
     },
     {
      "q": "det of [[3,1],[2,4]]?",
@@ -680,7 +680,7 @@
       "5"
      ],
      "answer": 0,
-     "explain": "3·4 − 1·2 = 12 − 2 = 10."
+     "explain": "3·4 − 1·2 = 12 − 2 = 10. (Hands-on procedure section: the 2×2 determinant.)"
     },
     {
      "q": "A is 3×2, B is 2×4. Shape of AB?",
@@ -691,7 +691,7 @@
       "Undefined"
      ],
      "answer": 1,
-     "explain": "Inner dims agree (2); outer dims give 3×4."
+     "explain": "Inner dims agree (2); outer dims give 3×4. (Concepts section: the dimension rule for products.)"
     },
     {
      "q": "If rank(A) = 2 for a 4×3 matrix A, then Ax = 0 has:",
@@ -702,7 +702,7 @@
       "Exactly 2 solutions"
      ],
      "answer": 1,
-     "explain": "3 columns but rank 2 ⇒ columns dependent ⇒ nontrivial null space ⇒ infinitely many solutions."
+     "explain": "3 columns but rank 2 ⇒ columns dependent ⇒ nontrivial null space ⇒ infinitely many solutions. (Concepts section: rank and the null space.)"
     }
    ]
   },
@@ -711,7 +711,7 @@
    "code": "IL-20",
    "title": "Linear Algebra III — Eigenvalues",
    "weight": 1,
-   "summary": "Eigenvalues, eigenvectors, diagonalization, and symmetric matrices — the structure behind PCA, stability analysis, and PageRank.",
+   "summary": "Welcome to Module 7: Linear Algebra III — Eigenvalues. I'm your instructor, and this is where matrices reveal their hidden structure: eigenvalues, eigenvectors, diagonalization, and symmetric matrices. This is the mathematics behind PCA, stability analysis, and PageRank. By the end you'll solve det(A − λI) = 0 in your sleep and read ‘λᵏ grows or decays?’ as the fate of every linear dynamical system.",
    "objectives": [
     "Solve det(A − λI) = 0 for eigenvalues",
     "Find eigenvectors for a given eigenvalue",
@@ -720,20 +720,20 @@
    ],
    "notes": [
     {
-     "title": "Eigenvalues and eigenvectors",
-     "body": "A nonzero vector v is an **eigenvector** of A with **eigenvalue** λ if `Av = λv` — A stretches v without rotating it. Eigenvalues solve the **characteristic equation** `det(A − λI) = 0`. For 2×2 this is a quadratic; its roots are the eigenvalues (possibly complex)."
+     "title": "Concepts",
+     "body": "- **eigenvector** — a nonzero vector v with `Av = λv`: A stretches v without rotating it.\n- **eigenvalue** — the scalar λ in `Av = λv`.\n- **characteristic equation** — `det(A − λI) = 0`; its roots are the eigenvalues. For 2×2 this is a quadratic; roots may be complex.\n- **diagonalization** — A = PDP⁻¹ with D diagonal: then Aᵏ = PDᵏP⁻¹, and powers become trivial. Sufficient condition: n distinct eigenvalues for an n×n matrix. This is why eigenvalues govern long-term behavior — Markov chains, linear recurrences, and dynamical systems all reduce to ‘λᵏ grows or decays?’\n- **spectral theorem** — every real symmetric matrix has real eigenvalues and an orthonormal eigenbasis. Covariance matrices are symmetric, so PCA's principal components are real, orthogonal directions — no complex arithmetic, no defective cases.\n- **trace** — trace(A) = sum of diagonal entries = sum of eigenvalues.\n- **determinant via eigenvalues** — det(A) = product of eigenvalues.\n- **sanity-check example** — for [[4,1],[2,3]]: trace 7 and det 10, so the eigenvalues sum to 7 and multiply to 10 — they are 5 and 2."
     },
     {
-     "title": "Diagonalization",
-     "body": "A is **diagonalizable** if A = PDP⁻¹ with D diagonal: then Aᵏ = PDᵏP⁻¹, and powers become trivial. A sufficient condition: n distinct eigenvalues for an n×n matrix. Diagonalization is why eigenvalues govern long-term behavior — Markov chains, linear recurrences, and dynamical systems all reduce to 'λᵏ grows or decays?'"
+     "title": "Hands-on procedure",
+     "body": "Find the eigenvalues of a 2×2 matrix:\n1. Form A − λI.\n2. Compute its determinant — a quadratic in λ.\n3. Solve the quadratic; the roots are the eigenvalues (possibly complex).\n4. Sanity-check: do they sum to the trace and multiply to the determinant?\nWorked example: [[4,1],[2,3]]. det(A−λI) = (4−λ)(3−λ)−2 = λ²−7λ+10 = (λ−5)(λ−2). Eigenvalues 5 and 2; check: 5+2=7=trace ✓, 5·2=10=det ✓."
     },
     {
-     "title": "Symmetric matrices",
-     "body": "The **spectral theorem**: every real symmetric matrix has real eigenvalues and an orthonormal eigenbasis. Covariance matrices are symmetric, so PCA's principal components are real, orthogonal directions — no complex arithmetic, no defective cases."
+     "title": "Project brief",
+     "body": "Analyze a 2-state Markov chain — e.g., customers switching between two brands each month with a given transition matrix. Find its eigenvalues and eigenvectors, diagonalize the transition matrix, and predict the long-run market share. Deliverable: the eigenvalues, the diagonalized form, the steady state, and one paragraph explaining which eigenvalue governs the transient decay and how fast the chain forgets its starting state (| λ₂ |^k)."
     },
     {
-     "title": "Trace and determinant via eigenvalues",
-     "body": "**Trace**(A) = sum of diagonal entries = sum of eigenvalues. **det**(A) = product of eigenvalues. Quick sanity checks: for [[4,1],[2,3]], trace 7 and det 10, so eigenvalues sum to 7 and multiply to 10 — they are 5 and 2."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -768,7 +768,7 @@
       "10 and 1"
      ],
      "answer": 0,
-     "explain": "Diagonal matrix: eigenvalues are the diagonal entries."
+     "explain": "Diagonal matrix: eigenvalues are the diagonal entries. (Concepts section: diagonal matrices.)"
     },
     {
      "q": "Eigenvalues of [[4,1],[2,3]]?",
@@ -779,7 +779,7 @@
       "7 and 0"
      ],
      "answer": 1,
-     "explain": "det(A−λI) = (4−λ)(3−λ)−2 = λ²−7λ+10 = (λ−5)(λ−2)."
+     "explain": "det(A−λI) = (4−λ)(3−λ)−2 = λ²−7λ+10 = (λ−5)(λ−2). (Hands-on procedure section: the characteristic quadratic.)"
     },
     {
      "q": "An eigenvector v of A with eigenvalue 3 satisfies:",
@@ -790,7 +790,7 @@
       "det(A) = 3"
      ],
      "answer": 1,
-     "explain": "Definition: Av = λv with v ≠ 0."
+     "explain": "Definition: Av = λv with v ≠ 0. (Concepts section: the eigenvector definition.)"
     },
     {
      "q": "A real symmetric 3×3 matrix must have:",
@@ -801,7 +801,7 @@
       "A zero eigenvalue"
      ],
      "answer": 1,
-     "explain": "Spectral theorem: real eigenvalues, orthonormal eigenbasis. Distinctness and det=1 are not guaranteed."
+     "explain": "Spectral theorem: real eigenvalues, orthonormal eigenbasis. Distinctness and det=1 are not guaranteed. (Concepts section: the spectral theorem.)"
     }
    ]
   },
@@ -810,7 +810,7 @@
    "code": "IL-20",
    "title": "Calculus I — Limits & Derivatives",
    "weight": 1,
-   "summary": "Limits, continuity, the derivative as a rate of change, and the differentiation rules — the mathematics of change.",
+   "summary": "Welcome to Module 8: Calculus I — Limits & Derivatives. I'm your instructor. This is the mathematics of change: limits, continuity, the derivative as a rate of change, and the differentiation rules. The chain rule you drill here is the same chain rule that backpropagation computes — every ML gradient in Module 16 traces back to this module. By the end you'll differentiate composites mechanically and locate extrema with confidence.",
    "objectives": [
     "Evaluate limits including indeterminate forms",
     "Differentiate using product, quotient, and chain rules",
@@ -819,20 +819,20 @@
    ],
    "notes": [
     {
-     "title": "Limits and continuity",
-     "body": "`lim(x→a) f(x) = L` means f(x) can be made arbitrarily close to L by taking x close to a. f is **continuous** at a if the limit equals f(a). Indeterminate forms 0/0 or ∞/∞: try factoring, rationalizing, or **l'Hôpital's rule** — differentiate numerator and denominator separately (check the form first!)."
+     "title": "Concepts",
+     "body": "- **limit** — `lim(x→a) f(x) = L` means f(x) can be made arbitrarily close to L by taking x close to a.\n- **continuity** — f is continuous at a if the limit equals f(a).\n- **indeterminate form** — 0/0 or ∞/∞: try factoring, rationalizing, or l'Hôpital's rule — differentiate numerator and denominator separately (check the form first!).\n- **l'Hôpital's rule** — for 0/0 or ∞/∞: lim f/g = lim f'/g' (if the latter exists).\n- **derivative** — `f'(x) = lim(h→0) [f(x+h) − f(x)]/h`: instantaneous rate of change, slope of the tangent line.\n- **power rule** — `(xⁿ)' = nxⁿ⁻¹`.\n- **product rule** — `(uv)' = u'v + uv'`.\n- **quotient rule** — `(u/v)' = (u'v − uv')/v²`.\n- **chain rule** — `[f(g(x))]' = f'(g(x))·g'(x)`: the workhorse — it is also what backpropagation computes.\n- **key derivatives** — memorize: `(eˣ)' = eˣ`; `(ln x)' = 1/x`; `(sin x)' = cos x`; `(cos x)' = −sin x`; `(aˣ)' = aˣ ln a`; `(arctan x)' = 1/(1+x²)`. Every ML loss gradient is built from these plus the chain rule.\n- **critical point** — f'(x) = 0 or undefined.\n- **first derivative test** — a sign change of f' classifies max/min.\n- **second derivative test** — at a critical point c: f''(c) > 0 ⇒ local min; f''(c) < 0 ⇒ local max.\n- **global extrema** — on a closed interval, check the critical points and the endpoints: global extrema live at critical points or boundaries."
     },
     {
-     "title": "The derivative",
-     "body": "`f'(x) = lim(h→0) [f(x+h) − f(x)]/h` — instantaneous rate of change, slope of the tangent line. Rules: **power** `(xⁿ)' = nxⁿ⁻¹`; **product** `(uv)' = u'v + uv'`; **quotient** `(u/v)' = (u'v − uv')/v²`; **chain** `[f(g(x))]' = f'(g(x))·g'(x)`. The chain rule is the workhorse — it is also what backpropagation computes."
+     "title": "Hands-on procedure",
+     "body": "Differentiate a composite function and find its extrema:\n1. Identify the outer and inner functions (peel the layers).\n2. Differentiate outside-in: derivative of the outer at the inner, times the inner's derivative — repeat for each layer.\n3. Set f'(x) = 0 (and note where f' is undefined) to find critical points.\n4. Classify each with the second derivative test; for a closed interval, also evaluate the endpoints.\nWorked example: f(x) = x³ − 3x. f'(x) = 3x² − 3 = 0 ⇒ x² = 1 ⇒ x = ±1. f''(x) = 6x: f''(−1) = −6 < 0 ⇒ local max at −1; f''(1) = 6 > 0 ⇒ local min at 1."
     },
     {
-     "title": "Key derivatives",
-     "body": "Memorize: `(eˣ)' = eˣ`; `(ln x)' = 1/x`; `(sin x)' = cos x`; `(cos x)' = −sin x`; `(aˣ)' = aˣ ln a`; `(arctan x)' = 1/(1+x²)`. Every ML loss gradient is built from these plus the chain rule."
+     "title": "Project brief",
+     "body": "Optimize a cylindrical can of fixed volume V: choose radius r and height h to minimize the surface area (material cost). Write area as a function of r alone, differentiate, find the critical point, classify it, and check the boundary behavior as r → 0 and r → ∞. Deliverable: the model, the derivative work, the optimal h/r ratio, and one paragraph on why the endpoint check mattered — or didn't — for this problem."
     },
     {
-     "title": "Optimization",
-     "body": "**Critical points**: f'(x) = 0 or undefined. **First derivative test**: sign change of f' classifies max/min. **Second derivative test**: f''(c) > 0 ⇒ local min; f''(c) < 0 ⇒ local max at a critical point c. On a closed interval, also check the endpoints — global extrema live at critical points or boundaries."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -871,7 +871,7 @@
       "x³ cos x − 3x² sin x"
      ],
      "answer": 1,
-     "explain": "Product rule: (x³)' sin x + x³ (sin x)' = 3x² sin x + x³ cos x."
+     "explain": "Product rule: (x³)' sin x + x³ (sin x)' = 3x² sin x + x³ cos x. (Hands-on procedure section: the product rule.)"
     },
     {
      "q": "d/dx [e^(2x)] =",
@@ -882,7 +882,7 @@
       "e^(x²)"
      ],
      "answer": 1,
-     "explain": "Chain rule: derivative of 2x is 2, so 2e^(2x)."
+     "explain": "Chain rule: derivative of 2x is 2, so 2e^(2x). (Concepts section: the chain rule.)"
     },
     {
      "q": "lim(x→0) sin(x)/x =",
@@ -893,7 +893,7 @@
       "Does not exist"
      ],
      "answer": 1,
-     "explain": "The fundamental trigonometric limit equals 1 (l'Hôpital also gives cos(0)/1 = 1)."
+     "explain": "The fundamental trigonometric limit equals 1 (l'Hôpital also gives cos(0)/1 = 1). (Concepts section: the fundamental trigonometric limit.)"
     },
     {
      "q": "Critical points of f(x) = x³ − 3x?",
@@ -904,7 +904,7 @@
       "None"
      ],
      "answer": 1,
-     "explain": "f'(x) = 3x² − 3 = 0 ⇒ x² = 1 ⇒ x = ±1."
+     "explain": "f'(x) = 3x² − 3 = 0 ⇒ x² = 1 ⇒ x = ±1. (Hands-on procedure section: finding critical points.)"
     }
    ]
   },
@@ -913,7 +913,7 @@
    "code": "IL-20",
    "title": "Calculus II — Integration",
    "weight": 1,
-   "summary": "Antiderivatives, the Fundamental Theorem, integration techniques, and improper integrals — accumulation made rigorous.",
+   "summary": "Welcome to Module 9: Calculus II — Integration. I'm your instructor. If derivatives are the mathematics of change, integrals are the mathematics of accumulation: antiderivatives, the Fundamental Theorem, integration techniques, and improper integrals. By the end you'll move fluently between a rate and its total — and you'll see why expected value in Module 12 is exactly the average-value idea from this module wearing a probability costume.",
    "objectives": [
     "State and apply the Fundamental Theorem of Calculus",
     "Integrate by substitution and by parts",
@@ -922,20 +922,20 @@
    ],
    "notes": [
     {
-     "title": "The Fundamental Theorem",
-     "body": "**FTC Part 1**: if F(x) = ∫[a→x] f(t) dt, then F'(x) = f(x) — differentiation undoes accumulation. **FTC Part 2**: `∫x[a→b] f = F(b) − F(a)` for any antiderivative F. This is why we can evaluate definite integrals by finding antiderivatives instead of Riemann sums."
+     "title": "Concepts",
+     "body": "- **antiderivative** — F with F' = f; determined up to an additive constant.\n- **FTC Part 1** — if F(x) = ∫[a→x] f(t) dt, then F'(x) = f(x): differentiation undoes accumulation.\n- **FTC Part 2** — `∫x[a→b] f = F(b) − F(a)` for any antiderivative F: evaluate definite integrals by finding antiderivatives instead of Riemann sums.\n- **substitution** — `∫ f(g(x)) g'(x) dx = ∫ f(u) du` with u = g(x): the chain rule in reverse.\n- **integration by parts** — `∫ u dv = uv − ∫ v du`: choose u by LIATE priority.\n- **LIATE** — Logarithmic, Inverse trig, Algebraic, Trigonometric, Exponential: the priority order for choosing u in integration by parts.\n- **partial fractions** — split rational functions into integrable pieces.\n- **improper integral** — an integral over an infinite interval or with a singularity, defined by limits. `∫[1→∞] (1/x²) dx = lim(b→∞) [1 − 1/b] = 1` — converges. But `∫[1→∞] (1/x) dx` diverges (grows like ln b). Always split at each singularity and take limits separately.\n- **area between curves** — `∫ (top − bottom) dx`.\n- **volume of revolution** — disks: `π∫ [f(x)]² dx`.\n- **average value** — of f on [a,b]: `(1/(b−a)) ∫[a→b] f`. Expected value in probability is exactly this idea with a density function."
     },
     {
-     "title": "Techniques",
-     "body": "**Substitution**: `∫ f(g(x)) g'(x) dx = ∫ f(u) du` with u = g(x) — the chain rule in reverse. **Integration by parts**: `∫ u dv = uv − ∫ v du` — choose u by LIATE priority (Log, Inverse trig, Algebraic, Trig, Exponential). **Partial fractions** split rational functions into integrable pieces."
+     "title": "Hands-on procedure",
+     "body": "Evaluate `∫ x·eˣ dx` by parts, then a definite version:\n1. Choose u and dv by LIATE: u = x (algebraic beats exponential), dv = eˣ dx.\n2. Compute du = dx and v = eˣ.\n3. Apply uv − ∫v du: xeˣ − ∫eˣ dx.\n4. Finish: xeˣ − eˣ + C = (x−1)eˣ + C.\n5. For a definite integral, evaluate the antiderivative at the bounds (FTC Part 2) — or carry the bounds through the substitution/parts steps.\nCheck: differentiate (x−1)eˣ: product rule gives eˣ + (x−1)eˣ = xeˣ ✓."
     },
     {
-     "title": "Improper integrals",
-     "body": "Integrals over infinite intervals or with singularities are defined by **limits**: `∫[1→∞] (1/x²) dx = lim(b→∞) [1 − 1/b] = 1` — converges. But `∫[1→∞] (1/x) dx` diverges (grows like ln b). Always split at each singularity and take limits separately."
+     "title": "Project brief",
+     "body": "A server's network throughput is modeled by r(t) = 50 + 30 sin(πt/12) MB/s over a 24-hour period. Compute the total data transferred (integrate r over [0,24]) and the average throughput (average value), showing the substitution you used. Then consider the improper integral that arises for a decaying tail r(t) = 100e^(−t/10): set it up as a limit and decide convergence. Deliverable: both totals, the limit computation, and one paragraph on when ‘integrate the rate’ is the right model versus ‘sum the samples’."
     },
     {
-     "title": "Applications",
-     "body": "Area between curves: `∫ (top − bottom) dx`. Volume of revolution (disks): `π∫ [f(x)]² dx`. **Average value** of f on [a,b]: `(1/(b−a)) ∫[a→b] f`. Expected value in probability is exactly this idea with a density function."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -970,7 +970,7 @@
       "eˣ + C"
      ],
      "answer": 1,
-     "explain": "Parts with u=x, dv=eˣdx: xeˣ − ∫eˣdx = (x−1)eˣ + C."
+     "explain": "Parts with u=x, dv=eˣdx: xeˣ − ∫eˣdx = (x−1)eˣ + C. (Hands-on procedure section: integration by parts.)"
     },
     {
      "q": "∫[0→π] sin x dx =",
@@ -981,7 +981,7 @@
       "π"
      ],
      "answer": 2,
-     "explain": "[−cos x]₀^π = −cos(π) + cos(0) = 1 + 1 = 2."
+     "explain": "[−cos x]₀^π = −cos(π) + cos(0) = 1 + 1 = 2. (Concepts section: FTC Part 2.)"
     },
     {
      "q": "d/dx ∫[2→x²] e^t dt =",
@@ -992,7 +992,7 @@
       "2x"
      ],
      "answer": 1,
-     "explain": "FTC Part 1 + chain rule: e^(x²) · d/dx(x²) = 2xe^(x²)."
+     "explain": "FTC Part 1 + chain rule: e^(x²) · d/dx(x²) = 2xe^(x²). (Concepts section: FTC Part 1 with the chain rule.)"
     },
     {
      "q": "Average value of f(x) = x² on [0,2]?",
@@ -1003,7 +1003,7 @@
       "4"
      ],
      "answer": 1,
-     "explain": "(1/2)∫[0→2] x² dx = (1/2)(8/3) = 4/3."
+     "explain": "(1/2)∫[0→2] x² dx = (1/2)(8/3) = 4/3. (Concepts section: average value.)"
     }
    ]
   },
@@ -1012,7 +1012,7 @@
    "code": "IL-20",
    "title": "Sequences & Series",
    "weight": 1,
-   "summary": "Convergence tests, power series, and Taylor expansions — how functions become computable polynomials.",
+   "summary": "Welcome to Module 10: Sequences & Series. I'm your instructor. Infinite sums are how functions become computable: convergence tests tell you when a series means something, power series give you intervals of validity, and Taylor expansions turn eˣ and sin x into polynomials your hardware can actually evaluate. By the end you'll wield the ratio test like a reflex and bound approximation error the way calculators guarantee digits.",
    "objectives": [
     "Test series for convergence with the standard tests",
     "Find radius and interval of convergence",
@@ -1021,20 +1021,20 @@
    ],
    "notes": [
     {
-     "title": "Convergence tests",
-     "body": "**Divergence test**: if aₙ ⇛ 0, Σaₙ diverges. **Integral test**: compare Σf(n) with ∫f. **p-series** Σ1/nᵖ converges iff p > 1. **Ratio test**: L = lim |aₙ₊₁/aₙ|; L<1 converges, L>1 diverges, L=1 inconclusive. **Alternating series test**: decreasing terms → 0 implies convergence."
+     "title": "Concepts",
+     "body": "- **divergence test** — if aₙ does not tend to 0, Σaₙ diverges. (Terms → 0 is necessary, not sufficient.)\n- **integral test** — compare Σf(n) with ∫f for positive decreasing f.\n- **p-series** — Σ1/nᵖ converges iff p > 1.\n- **ratio test** — L = lim |aₙ₊₁/aₙ|: L<1 converges, L>1 diverges, L=1 inconclusive.\n- **alternating series test** — decreasing terms tending to 0 imply convergence.\n- **absolute vs conditional convergence** — absolute: Σ|aₙ| converges. Conditional: Σaₙ converges but Σ|aₙ| diverges (e.g., the alternating harmonic series).\n- **power series** — `Σ cₙ(x−a)ⁿ` converges on an interval around a.\n- **radius of convergence** — from the ratio test: converge for |x−a|<R, diverge outside; check endpoints individually. Example: `Σ xⁿ/n!` has R = ∞.\n- **Taylor series** — `f(x) = Σ fⁿ(a)/n! · (x−a)ⁿ`.\n- **Maclaurin series (essentials)** — `eˣ = Σ xⁿ/n!`; `sin x = Σ (−1)ⁿ x^(2n+1)/(2n+1)!`; `cos x = Σ (−1)ⁿ x^(2n)/(2n)!`; `1/(1−x) = Σ xⁿ` for |x|<1; `ln(1+x) = Σ (−1)ⁿ⁺¹ xⁿ/n` for |x|<1, x≠−1.\n- **Taylor's inequality** — |Rₙ(x)| ≤ M|x−a|ⁿ⁺¹/(n+1)! where M bounds |fⁿ⁺¹|: pick n so the bound beats your tolerance — this is how calculators guarantee digits.\n- **alternating series error bound** — the error is at most the first dropped term."
     },
     {
-     "title": "Power series",
-     "body": "`Σ cₙ(x−a)ⁿ` converges on an interval around a. The **ratio test** gives the **radius of convergence** R: converge for |x−a|<R, diverge outside; check endpoints individually. Example: `Σ xⁿ/n!` has R = ∞."
+     "title": "Hands-on procedure",
+     "body": "Decide whether a series converges:\n1. Do the terms tend to 0? If not → diverges (divergence test). Stop.\n2. Recognize a p-series or geometric series → decide immediately.\n3. Factorials or exponentials in n → ratio test.\n4. Alternating signs with decreasing terms → alternating series test; then check Σ|aₙ| for absolute vs conditional.\nWorked example: Σ 1/n². Terms → 0 ✓. It is a p-series with p=2 > 1 → converges (absolutely, since all terms are positive)."
     },
     {
-     "title": "Taylor series",
-     "body": "`f(x) = Σ fⁿ(a)/n! · (x−a)ⁿ`. Maclaurin (a=0) essentials: `eˣ = Σ xⁿ/n!`; `sin x = Σ (−1)ⁿ x^(2n+1)/(2n+1)!`; `cos x = Σ (−1)ⁿ x^(2n)/(2n)!`; `1/(1−x) = Σ xⁿ` for |x|<1; `ln(1+x) = Σ (−1)ⁿ⁺¹ xⁿ/n` for |x|<1, x≠−1."
+     "title": "Project brief",
+     "body": "Approximate sin(0.5) with a Maclaurin polynomial and guarantee the error below 10⁻⁶. Choose n using Taylor's inequality (bound the next derivative on the interval), compute the partial sum, and state the certified error bound. Deliverable: your n, the approximation, the bound, and one paragraph on why the alternating-series bound would have been simpler here — and the case where it wouldn't apply."
     },
     {
-     "title": "Error bounds",
-     "body": "**Taylor's inequality**: |Rₙ(x)| ≤ M|x−a|ⁿ⁺¹/(n+1)! where M bounds |fⁿ⁺¹|. This is how calculators guarantee digits: pick n so the bound beats your tolerance. Alternating series have an even simpler bound — the error is at most the first dropped term."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1069,7 +1069,7 @@
       "It is geometric"
      ],
      "answer": 1,
-     "explain": "p-series with p=2 > 1 converges. (Terms → 0 is necessary, not sufficient.)"
+     "explain": "p-series with p=2 > 1 converges. (Terms → 0 is necessary, not sufficient.) (Concepts section: p-series.)"
     },
     {
      "q": "Radius of convergence of Σ xⁿ/n!?",
@@ -1080,7 +1080,7 @@
       "∞"
      ],
      "answer": 3,
-     "explain": "|aₙ₊₁/aₙ| = 1/(n+1) → 0 < 1 for all x."
+     "explain": "|aₙ₊₁/aₙ| = 1/(n+1) → 0 < 1 for all x. (Concepts section: the ratio test on the exponential series.)"
     },
     {
      "q": "Coefficient of x³ in the Maclaurin series of sin x?",
@@ -1091,7 +1091,7 @@
       "−1/2"
      ],
      "answer": 1,
-     "explain": "sin x = x − x³/3! + … = x − x³/6 + …."
+     "explain": "sin x = x − x³/3! + … = x − x³/6 + …. (Concepts section: the Maclaurin series of sin x.)"
     },
     {
      "q": "Σ (−1)ⁿ/n (n≥1) converges:",
@@ -1102,7 +1102,7 @@
       "Only for even n"
      ],
      "answer": 1,
-     "explain": "Alternating harmonic series: converges by AST, but Σ1/n diverges — conditional."
+     "explain": "Alternating harmonic series: converges by AST, but Σ1/n diverges — conditional. (Concepts section: conditional convergence.)"
     }
    ]
   },
@@ -1111,7 +1111,7 @@
    "code": "IL-20",
    "title": "Multivariable Calculus",
    "weight": 1,
-   "summary": "Partial derivatives, gradients, the chain rule in higher dimensions, and optimization of functions of several variables.",
+   "summary": "Welcome to Module 11: Multivariable Calculus. I'm your instructor. Real problems have many variables: partial derivatives, gradients, the chain rule in higher dimensions, and optimization of functions of several variables. The gradient you meet here is the same object gradient descent follows in Module 16 — this module is where you learn what it means. By the end you'll find and classify critical points in 2D and optimize under constraints with Lagrange multipliers.",
    "objectives": [
     "Compute partial derivatives and gradients",
     "Use the gradient for direction of steepest ascent",
@@ -1120,20 +1120,20 @@
    ],
    "notes": [
     {
-     "title": "Partial derivatives and the gradient",
-     "body": "`∂f/∂x` treats other variables as constants. The **gradient** `∇f = ⟨f_x, f_y, f_z⟩` points in the direction of **steepest increase**; its magnitude is the slope in that direction. The **directional derivative** in unit direction u is `D_u f = ∇f · u`."
+     "title": "Concepts",
+     "body": "- **partial derivative** — `∂f/∂x` treats the other variables as constants.\n- **gradient** — `∇f = ⟨f_x, f_y, f_z⟩`: points in the direction of steepest increase; its magnitude is the slope in that direction.\n- **directional derivative** — in unit direction u: `D_u f = ∇f · u`.\n- **multivariable chain rule** — if z = f(x,y) with x(t), y(t): `dz/dt = f_x dx/dt + f_y dy/dt`.\n- **total differential** — `dz = f_x dx + f_y dy`: the linear approximation — the seed of error propagation: small input errors scale by the partial derivatives.\n- **critical point (2D)** — `∇f = 0` (or undefined).\n- **second derivative test (D test)** — with `D = f_xx f_yy − (f_xy)²`: D>0 and f_xx>0 ⇒ min; D>0 and f_xx<0 ⇒ max; D<0 ⇒ saddle point; D=0 inconclusive.\n- **saddle point** — a critical point that is a min in one direction and a max in another; the generic obstacle in neural-network training.\n- **Lagrange multipliers** — to optimize f(x,y) subject to g(x,y)=c, solve `∇f = λ∇g` together with the constraint. Geometrically: at the optimum the level curves are tangent. Example: maximize xy subject to x+y=10 ⇒ solving gives x=y=5, value 25."
     },
     {
-     "title": "Chain rule and differentials",
-     "body": "If z = f(x,y) with x(t), y(t): `dz/dt = f_x dx/dt + f_y dy/dt`. The **total differential** `dz = f_x dx + f_y dy` is the linear approximation — the seed of error propagation: small input errors scale by the partial derivatives."
+     "title": "Hands-on procedure",
+     "body": "Find and classify the critical points of f(x,y):\n1. Compute f_x and f_y; set both to zero and solve — these are the critical points.\n2. Compute the second partials f_xx, f_yy, f_xy.\n3. At each critical point evaluate D = f_xx f_yy − (f_xy)².\n4. Classify: D>0 and f_xx>0 ⇒ local min; D>0 and f_xx<0 ⇒ local max; D<0 ⇒ saddle; D=0 ⇒ inconclusive, investigate directly.\nWorked example: f(x,y) = x² − y². ∇f = ⟨2x, −2y⟩ = 0 ⇒ (0,0). f_xx=2, f_yy=−2, f_xy=0 ⇒ D = (2)(−2) − 0 = −4 < 0 — saddle point."
     },
     {
-     "title": "Critical points in 2D",
-     "body": "Critical point: `∇f = 0` (or undefined). **Second derivative test** with `D = f_xx f_yy − (f_xy)²`: D>0 and f_xx>0 ⇒ min; D>0 and f_xx<0 ⇒ max; D<0 ⇒ **saddle point**; D=0 inconclusive. Saddles are the generic obstacle in neural-network training."
+     "title": "Project brief",
+     "body": "A factory's output is modeled by P(x,y) = 40x + 60y − x² − 2y² (x, y = labor and machine hours in hundreds), subject to the budget constraint 10x + 20y = 200. Solve with Lagrange multipliers: set up ∇P = λ∇g, solve the system with the constraint, and verify the solution is a maximum. Deliverable: the optimal (x, y), the maximum output, λ, and one paragraph interpreting λ as the shadow price — how much extra output one more budget dollar buys at the optimum."
     },
     {
-     "title": "Lagrange multipliers",
-     "body": "To optimize f(x,y) subject to g(x,y)=c, solve `∇f = λ∇g` together with the constraint. Geometrically: at the optimum the level curves are tangent. Example: maximize xy subject to x+y=10 ⇒ ⟨1/y⟩... solving gives x=y=5, value 25."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1168,7 +1168,7 @@
       "2x + 3y²"
      ],
      "answer": 1,
-     "explain": "Treat y as constant: derivative of x²y is 2xy; y³ is constant w.r.t. x."
+     "explain": "Treat y as constant: derivative of x²y is 2xy; y³ is constant w.r.t. x. (Hands-on procedure section: computing partial derivatives.)"
     },
     {
      "q": "Gradient of f(x,y) = x² + y² at (1,2)?",
@@ -1179,7 +1179,7 @@
       "⟨5,0⟩"
      ],
      "answer": 1,
-     "explain": "∇f = ⟨2x, 2y⟩ = ⟨2,4⟩ at (1,2)."
+     "explain": "∇f = ⟨2x, 2y⟩ = ⟨2,4⟩ at (1,2). (Concepts section: the gradient.)"
     },
     {
      "q": "f(x,y)=x²−y² at (0,0) is a:",
@@ -1190,7 +1190,7 @@
       "Global min"
      ],
      "answer": 2,
-     "explain": "f_xx=2, f_yy=−2, f_xy=0 ⇒ D = −4 < 0 — saddle."
+     "explain": "f_xx=2, f_yy=−2, f_xy=0 ⇒ D = −4 < 0 — saddle. (Hands-on procedure section: the D test.)"
     },
     {
      "q": "Maximize f=xy subject to x+y=10 (x,y≥0):",
@@ -1201,7 +1201,7 @@
       "100 at (10,10)"
      ],
      "answer": 0,
-     "explain": "Lagrange: y=λ, x=λ ⇒ x=y=5, f=25. (10,10) violates the constraint."
+     "explain": "Lagrange: y=λ, x=λ ⇒ x=y=5, f=25. (10,10) violates the constraint. (Concepts section: Lagrange multipliers.)"
     }
    ]
   },
@@ -1210,7 +1210,7 @@
    "code": "IL-20",
    "title": "Probability",
    "weight": 1,
-   "summary": "Axioms, conditional probability, Bayes' theorem, random variables, and expectation — reasoning under uncertainty.",
+   "summary": "Welcome to Module 12: Probability. I'm your instructor, and we're now reasoning under uncertainty: axioms, conditional probability, Bayes' theorem, random variables, and expectation. The single most valuable idea here is Bayes' rule done honestly — prior, likelihood, posterior — because base-rate neglect is the classic applied error, and you are about to see exactly how a 99%-accurate test can still be wrong 91% of the time.",
    "objectives": [
     "Apply the probability axioms and counting to probability",
     "Compute conditional probabilities and use Bayes' theorem",
@@ -1219,20 +1219,20 @@
    ],
    "notes": [
     {
-     "title": "Axioms and basic rules",
-     "body": "**Kolmogorov axioms**: P(A) ≥ 0; P(S) = 1; disjoint events add. Consequences: P(Aᶜ) = 1 − P(A); **addition rule** P(A∪B) = P(A)+P(B)−P(A∩B). Two events are **independent** iff P(A∩B) = P(A)P(B) — independence is a property of the probability measure, not of intuition."
+     "title": "Concepts",
+     "body": "- **Kolmogorov axioms** — P(A) ≥ 0; P(S) = 1; disjoint events add.\n- **complement rule** — P(Aᶜ) = 1 − P(A).\n- **addition rule** — P(A∪B) = P(A)+P(B)−P(A∩B).\n- **independence** — A and B are independent iff P(A∩B) = P(A)P(B): a property of the probability measure, not of intuition.\n- **conditional probability** — `P(A|B) = P(A∩B)/P(B)`.\n- **law of total probability** — P(B) = Σ P(B|Aᵢ)P(Aᵢ).\n- **Bayes' theorem** — `P(A|B) = P(B|A)P(A)/P(B)`: update prior belief P(A) with evidence B.\n- **base-rate neglect** — ignoring P(A): the classic applied error. A 99%-accurate test on a 1-in-10,000 condition still yields mostly false positives.\n- **random variable** — X maps outcomes to numbers.\n- **expectation** — E[X] = Σ xᵢP(X=xᵢ) (discrete) or ∫ x f(x)dx (continuous): the long-run average.\n- **linearity of expectation** — E[aX+bY] = aE[X]+bE[Y], even when X and Y are dependent.\n- **variance** — Var(X) = E[(X−E[X])²] = E[X²]−E[X]².\n- **standard deviation** — σ = √Var(X).\n- **binomial distribution** — Binomial(n,p): P(X=k) = C(n,k)pᵏ(1−p)ⁿ⁻ᵏ; E[X]=np, Var=np(1−p).\n- **normal distribution** — N(μ,σ²): the bell curve; the 68–95–99.7 rule for ±1,2,3 σ. Standardize with Z = (X−μ)/σ. The normal is the limit of sums — which is the Central Limit Theorem, next module."
     },
     {
-     "title": "Conditional probability and Bayes",
-     "body": "`P(A|B) = P(A∩B)/P(B)`. **Law of total probability**: P(B) = Σ P(B|Aᵢ)P(Aᵢ). **Bayes' theorem**: `P(A|B) = P(B|A)P(A)/P(B)` — update prior belief P(A) with evidence B. Base-rate neglect (ignoring P(A)) is the classic applied error: a 99%-accurate test on a 1-in-10,000 condition still yields mostly false positives."
+     "title": "Hands-on procedure",
+     "body": "Run a Bayes update end to end:\n1. Name the prior: P(condition) before seeing evidence.\n2. Name the likelihoods: P(positive | condition) and P(positive | no condition).\n3. Compute the total probability of the evidence via the law of total probability.\n4. Posterior = prior × likelihood / total.\nWorked example: a test is 99% accurate (1% false-positive rate); 1 in 1000 people have the condition. P(positive) = 0.99×0.001 + 0.01×0.999 = 0.01098. Posterior = 0.99×0.001/0.01098 ≈ 0.09 — about 9%. The base rate dominates: most positives are false positives."
     },
     {
-     "title": "Random variables, expectation, variance",
-     "body": "A **random variable** X maps outcomes to numbers. **Expectation** E[X] = Σ xᵢP(X=xᵢ) (discrete) or ∫ x f(x)dx (continuous) — the long-run average. Linearity: E[aX+bY] = aE[X]+bE[Y] even when dependent. **Variance** Var(X) = E[(X−E[X])²] = E[X²]−E[X]²; standard deviation σ = √Var."
+     "title": "Project brief",
+     "body": "You are the analyst asked to sign off on a screening program. A test with 99% sensitivity and 99% specificity is proposed for a condition with prevalence 1 in 10,000, then for a high-risk subpopulation with prevalence 1 in 50. Compute the positive predictive value in both cases with the Hands-on procedure, and write the one-page memo you'd send the decision-maker: the two numbers, what changes between them, and your recommendation on whether a positive result alone should trigger action. Deliverable: both posteriors and the memo."
     },
     {
-     "title": "Binomial and normal",
-     "body": "**Binomial**(n,p): P(X=k) = C(n,k)pᵏ(1−p)ⁿ⁻ᵏ; E[X]=np, Var=np(1−p). **Normal** N(μ,σ²): the bell curve; the **68–95–99.7 rule** for ±1,2,3 σ. Standardize with Z = (X−μ)/σ. The normal is the limit of sums — which is the Central Limit Theorem, next module."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1271,7 +1271,7 @@
       "0.1%"
      ],
      "answer": 2,
-     "explain": "Bayes: (0.99·0.001)/(0.99·0.001 + 0.01·0.999) ≈ 0.00099/0.01098 ≈ 9%. Base rates dominate."
+     "explain": "Bayes: (0.99·0.001)/(0.99·0.001 + 0.01·0.999) ≈ 0.00099/0.01098 ≈ 9%. Base rates dominate. (Hands-on procedure section: the Bayes update.)"
     },
     {
      "q": "Roll two fair dice. P(sum = 7)?",
@@ -1282,7 +1282,7 @@
       "5/36"
      ],
      "answer": 0,
-     "explain": "6 of 36 outcomes: (1,6),(2,5),...,(6,1). 6/36 = 1/6."
+     "explain": "6 of 36 outcomes: (1,6),(2,5),...,(6,1). 6/36 = 1/6. (Concepts section: counting equally likely outcomes.)"
     },
     {
      "q": "X takes values 1,2,3 with probabilities 0.2,0.5,0.3. E[X] =",
@@ -1293,7 +1293,7 @@
       "1.8"
      ],
      "answer": 1,
-     "explain": "1(0.2)+2(0.5)+3(0.3) = 0.2+1.0+0.9 = 2.1."
+     "explain": "1(0.2)+2(0.5)+3(0.3) = 0.2+1.0+0.9 = 2.1. (Concepts section: expectation.)"
     },
     {
      "q": "If P(A)=0.4, P(B)=0.5, and A,B independent, P(A∪B) =",
@@ -1304,7 +1304,7 @@
       "0.45"
      ],
      "answer": 2,
-     "explain": "0.4+0.5−0.4·0.5 = 0.9−0.2 = 0.7."
+     "explain": "0.4+0.5−0.4·0.5 = 0.9−0.2 = 0.7. (Concepts section: independence and the addition rule.)"
     }
    ]
   },
@@ -1313,7 +1313,7 @@
    "code": "IL-20",
    "title": "Statistics",
    "weight": 1,
-   "summary": "Sampling, the Central Limit Theorem, confidence intervals, and hypothesis testing — inference from data to populations.",
+   "summary": "Welcome to Module 13: Statistics. I'm your instructor. Probability told you how uncertainty behaves; statistics tells you how to learn from data anyway: sampling, the Central Limit Theorem, confidence intervals, and hypothesis testing. The two sentences that matter most: a 95% confidence interval describes the procedure, not the parameter — and a p-value is P(data | H₀), never P(H₀ | data). Get those right and you'll avoid the two most expensive misreadings in applied science.",
    "objectives": [
     "Explain the Central Limit Theorem and its conditions",
     "Construct and interpret a confidence interval",
@@ -1322,20 +1322,20 @@
    ],
    "notes": [
     {
-     "title": "Sampling and the CLT",
-     "body": "A **statistic** (e.g., sample mean x̄) estimates a **parameter** (μ). The **Central Limit Theorem**: for iid samples with mean μ and finite variance σ², x̄ is approximately N(μ, σ²/n) for large n — regardless of the population's shape. Standard error of the mean = σ/√n. This is why averages of enough data behave normally."
+     "title": "Concepts",
+     "body": "- **statistic** — a quantity computed from the sample (e.g., the sample mean x̄); estimates a parameter.\n- **parameter** — the unknown population quantity (e.g., μ) the statistic estimates.\n- **Central Limit Theorem** — for iid samples with mean μ and finite variance σ², x̄ is approximately N(μ, σ²/n) for large n — regardless of the population's shape. This is why averages of enough data behave normally.\n- **standard error** — of the mean: σ/√n.\n- **confidence interval** — 95% CI for μ: `x̄ ± z*·σ/√n` (z* ≈ 1.96; use t* for small n or estimated σ). Correct interpretation: 95% of intervals constructed this way capture the true μ — not ‘there is a 95% chance μ is in this interval.’ Width shrinks as 1/√n: quadrupling the sample halves the width.\n- **hypothesis test** — H₀ (null) vs H₁ (alternative).\n- **p-value** — P(data at least this extreme | H₀ true): not P(H₀ true | data).\n- **rejection rule** — reject H₀ if p < α (often 0.05).\n- **Type I error** — rejecting a true H₀ (rate α): a false positive.\n- **Type II error** — failing to reject a false H₀: a false negative (missing a real effect).\n- **power** — 1 − P(Type II error).\n- **practical vs statistical significance** — a tiny effect can be statistically significant with enough data; always report effect sizes with uncertainty, not just p-values.\n- **correlation** — measures linear association (−1 ≤ r ≤ 1); never establishes causation. Confounders, reverse causation, and selection effects produce correlations without causation. The honest pipeline: randomize (experiments), control (regression), or instrument."
     },
     {
-     "title": "Confidence intervals",
-     "body": "A 95% CI for μ: `x̄ ± z*·σ/√n` (z* ≈ 1.96; use t* for small n or estimated σ). Correct interpretation: **95% of intervals constructed this way capture the true μ** — not 'there is a 95% chance μ is in this interval.' Width shrinks as 1/√n: quadrupling the sample halves the width."
+     "title": "Hands-on procedure",
+     "body": "Run a hypothesis test for two proportions (the A/B-test workhorse):\n1. State H₀ (no difference) and H₁, and fix α = 0.05 before looking at the data.\n2. Compute the pooled proportion, the standard error of the difference, and the z-statistic.\n3. Convert z to a p-value.\n4. Reject H₀ iff p < α; then report the effect size and its confidence interval — the p-value alone is not a conclusion.\nWorked sketch: A converts 120/2000, B converts 150/2000. The two-proportion z-test gives p ≈ 0.04 < 0.05 ⇒ reject H₀ at 5%: evidence B differs, direction favoring B — while reporting the 1.5-percentage-point effect size and its CI."
     },
     {
-     "title": "Hypothesis testing",
-     "body": "H₀ (null) vs H₁ (alternative). The **p-value** = P(data this extreme | H₀ true) — **not** P(H₀ true | data). Reject H₀ if p < α (often 0.05). **Type I error**: rejecting a true H₀ (rate α). **Type II error**: missing a real effect; **power** = 1 − P(Type II). Practical significance ≠ statistical significance."
+     "title": "Project brief",
+     "body": "Design the analysis plan for an A/B test before any data is collected: two page variants, expected baseline conversion 6%, minimum detectable effect 1.5 percentage points. Choose the test (two-proportion z), pre-register α, compute the required sample size per variant for 80% power, and write the decision rule — including what you will conclude if p = 0.06. Deliverable: the plan, the sample-size computation, and one paragraph on why the decision rule is written before the data arrives (hint: the Concepts section on p-values)."
     },
     {
-     "title": "Correlation is not causation",
-     "body": "Correlation measures linear association (−1 ≤ r ≤ 1). Confounders, reverse causation, and selection effects produce correlations without causation. The honest pipeline: randomize (experiments), control (regression), or instrument — and report effect sizes with uncertainty, not just p-values."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1374,7 +1374,7 @@
       "The sample mean is 5.9"
      ],
      "answer": 1,
-     "explain": "Frequentist CIs describe the procedure's long-run capture rate, not a probability about this fixed interval."
+     "explain": "Frequentist CIs describe the procedure's long-run capture rate, not a probability about this fixed interval. (Concepts section: confidence-interval interpretation.)"
     },
     {
      "q": "p = 0.03 with α = 0.05. Decision?",
@@ -1385,7 +1385,7 @@
       "Increase α"
      ],
      "answer": 1,
-     "explain": "p < α ⇒ reject the null at the 5% level."
+     "explain": "p < α ⇒ reject the null at the 5% level. (Hands-on procedure section: the rejection rule.)"
     },
     {
      "q": "Standard error of the mean for σ=10, n=100?",
@@ -1396,7 +1396,7 @@
       "100"
      ],
      "answer": 1,
-     "explain": "σ/√n = 10/10 = 1."
+     "explain": "σ/√n = 10/10 = 1. (Concepts section: standard error.)"
     },
     {
      "q": "Two variables correlate at r=0.9. This proves:",
@@ -1407,7 +1407,7 @@
       "The relationship is nonlinear"
      ],
      "answer": 1,
-     "explain": "Correlation alone never establishes causation — confounders and reverse causation remain open."
+     "explain": "Correlation alone never establishes causation — confounders and reverse causation remain open. (Concepts section: correlation is not causation.)"
     }
    ]
   },
@@ -1416,7 +1416,7 @@
    "code": "IL-20",
    "title": "Graphs & Recurrences",
    "weight": 1,
-   "summary": "Graph terminology, trees, traversal orders, and solving recurrence relations — the discrete structures behind networks and algorithms.",
+   "summary": "Welcome to Module 14: Graphs & Recurrences. I'm your instructor. Networks and algorithms live here: graph terminology, trees, traversal orders, and solving recurrence relations. BFS and DFS are the two verbs of graph algorithms, trees are the data structure that keeps showing up, and recurrences like T(n) = 2T(n/2)+n are how you prove an algorithm's cost. By the end you'll trace a traversal by hand and solve a linear recurrence by characteristic equation.",
    "objectives": [
     "Use graph vocabulary: degree, path, cycle, connectivity",
     "Characterize trees and count their edges",
@@ -1425,20 +1425,20 @@
    ],
    "notes": [
     {
-     "title": "Graph basics",
-     "body": "A **graph** G=(V,E): vertices and edges. **Degree** of v = incident edges. **Handshaking lemma**: Σ deg(v) = 2|E| — every edge contributes 2. A **path** with no repeated vertices; a **cycle** returns to start. **Connected** = a path exists between every pair. A **complete graph** Kₙ has n(n−1)/2 edges."
+     "title": "Concepts",
+     "body": "- **graph** — G=(V,E): vertices and edges.\n- **degree** — of v: the number of incident edges.\n- **handshaking lemma** — Σ deg(v) = 2|E|: every edge contributes 2.\n- **path** — a walk with no repeated vertices; a **cycle** returns to its start.\n- **connected** — a path exists between every pair of vertices.\n- **complete graph** — Kₙ has n(n−1)/2 edges.\n- **tree** — a connected acyclic graph. Equivalent characterizations: connected with n−1 edges; acyclic with n−1 edges; exactly one simple path between any two vertices.\n- **spanning tree** — a tree on all of G's vertices; minimum spanning trees (Kruskal/Prim) minimize total edge weight.\n- **BFS** — breadth-first search (queue): explores level by level — finds shortest paths in unweighted graphs.\n- **DFS** — depth-first search (stack/recursion): goes deep first — detects cycles, produces topological orderings.\n- **traversal cost** — both BFS and DFS visit each vertex and edge once: O(V+E). Choose BFS for shortest-path, DFS for structure (components, cycles, topo sort).\n- **recurrence relation** — defines a sequence by earlier terms: Fibonacci `Fₙ = Fₙ₊₁ + Fₙ₊₂`, F₀=0, F₁=1.\n- **characteristic equation** — for aₙ = cᵢaₙ₊₁ + c₂aₙ₊₂, solve r² = cᵢr + c₂.\n- **divide-and-conquer recurrence** — e.g., T(n) = 2T(n/2)+n solves to Θ(n log n): mergesort's recurrence. The Master Theorem generalizes this."
     },
     {
-     "title": "Trees",
-     "body": "A **tree** is a connected acyclic graph. Equivalent characterizations: connected with n−1 edges; acyclic with n−1 edges; exactly one simple path between any two vertices. A **spanning tree** of G is a tree on all of G's vertices — minimum spanning trees (Kruskal/Prim) minimize total edge weight."
+     "title": "Hands-on procedure",
+     "body": "Solve a linear recurrence with constant coefficients:\n1. Assume aₙ = rⁿ and substitute into the recurrence.\n2. Divide out the lowest power of r to get the characteristic equation.\n3. Solve for r; the general solution is a linear combination of the rⁿ terms (multiply by n for repeated roots).\n4. Use the base cases to solve for the constants.\nWorked example: aₙ = 5aₙ₊₁ − 6aₙ₊₂. Assume rⁿ: rⁿ = 5rⁿ⁻¹ − 6rⁿ⁻² ⇒ r² = 5r − 6 ⇒ r = 2, 3. General solution: aₙ = A·2ⁿ + B·3ⁿ; fit A, B to a₀, a₁."
     },
     {
-     "title": "BFS and DFS",
-     "body": "**BFS** (queue): explores level by level — finds shortest paths in unweighted graphs. **DFS** (stack/recursion): goes deep first — detects cycles, produces topological orderings. Both visit each vertex and edge once: O(V+E). Choose BFS for shortest-path, DFS for structure (components, cycles, topo sort)."
+     "title": "Project brief",
+     "body": "Model a software build's task dependencies as a directed graph: 12 tasks with given prerequisites. (a) Produce a topological ordering via DFS and prove it is valid (every prerequisite precedes its dependent). (b) A recursive build step costs T(n) = 2T(n/2)+n on n files — solve the recurrence and state the asymptotic cost. Deliverable: the graph, the ordering with the DFS trace, the solved recurrence, and one paragraph on what a cycle in the dependency graph would mean operationally."
     },
     {
-     "title": "Recurrence relations",
-     "body": "Define sequences by earlier terms: Fibonacci `Fₙ = Fₙ₋₁ + Fₙ₋₂`, F₀=0, F₁=1. **Linear recurrences** with constant coefficients solve via the **characteristic equation**: for aₙ = c₁aₙ₋₁ + c₂aₙ₋₂, solve r² = c₁r + c₂. Divide-and-conquer recurrences like T(n) = 2T(n/2)+n solve to Θ(n log n) — the Master Theorem generalizes this."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1477,7 +1477,7 @@
       "66"
      ],
      "answer": 1,
-     "explain": "Any tree on n vertices has exactly n−1 edges."
+     "explain": "Any tree on n vertices has exactly n−1 edges. (Concepts section: trees.)"
     },
     {
      "q": "Sum of degrees in a graph with 9 edges?",
@@ -1488,7 +1488,7 @@
       "4.5"
      ],
      "answer": 1,
-     "explain": "Handshaking lemma: Σdeg = 2|E| = 18."
+     "explain": "Handshaking lemma: Σdeg = 2|E| = 18. (Concepts section: the handshaking lemma.)"
     },
     {
      "q": "Which finds shortest paths in an unweighted graph?",
@@ -1499,7 +1499,7 @@
       "Kruskal's"
      ],
      "answer": 1,
-     "explain": "BFS explores in increasing distance from the source — first visit is via a shortest path."
+     "explain": "BFS explores in increasing distance from the source — first visit is via a shortest path. (Concepts section: BFS.)"
     },
     {
      "q": "Characteristic equation of aₙ = 5aₙ₋₁ − 6aₙ₋₂?",
@@ -1510,7 +1510,7 @@
       "r² + 5r − 6 = 0"
      ],
      "answer": 1,
-     "explain": "Assume aₙ = rⁿ: rⁿ = 5rⁿ⁻¹ − 6rⁿ⁻² ⇒ r² = 5r − 6."
+     "explain": "Assume aₙ = rⁿ: rⁿ = 5rⁿ⁻¹ − 6rⁿ⁻² ⇒ r² = 5r − 6. (Hands-on procedure section: the characteristic equation.)"
     }
    ]
   },
@@ -1519,7 +1519,7 @@
    "code": "IL-20",
    "title": "Numerical Methods",
    "weight": 1,
-   "summary": "Bisection, Newton's method, numerical integration, and error analysis — computing answers when closed forms don't exist.",
+   "summary": "Welcome to Module 15: Numerical Methods. I'm your instructor. Closed forms fail more often than textbooks admit — this module is the honest toolkit for computing answers anyway: bisection, Newton's method, numerical integration, and error analysis. The mantra: guarantee first (bracket the root), then go fast (Newton inside the bracket). By the end you'll bound errors before you compute and distinguish a bad algorithm from a hard problem.",
    "objectives": [
     "Bracket a root with bisection and bound its error",
     "Apply Newton's method and state its convergence requirement",
@@ -1528,20 +1528,20 @@
    ],
    "notes": [
     {
-     "title": "Bisection",
-     "body": "If f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. **Guaranteed but linear** convergence — slow and sure. Always check the sign-change precondition; without it, bisection proves nothing."
+     "title": "Concepts",
+     "body": "- **bisection** — if f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. Guaranteed but linear convergence — slow and sure. Always check the sign-change precondition; without it, bisection proves nothing.\n- **Newton's method** — `xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)`: follow the tangent line to its x-intercept. Near a simple root it converges quadratically (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts diverge or cycle — pair with bisection bracketing for safety.\n- **trapezoidal rule** — h/2 · [f₀ + 2fᵢ + … + 2fₙ₊₁ + fₙ], error O(h²).\n- **Simpson's rule** — (n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too.\n- **truncation error** — error from the method's approximation (e.g., stopping a series, discretizing an integral).\n- **roundoff error** — error from finite floating-point precision.\n- **conditioning** — sensitivity of the problem itself: solving near-singular systems amplifies input errors.\n- **condition number** — κ(A) = ||A||·||A⁻¹|| bounds the blowup. A stable algorithm on an ill-conditioned problem still gives garbage: distinguish the two."
     },
     {
-     "title": "Newton's method",
-     "body": "`xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)` — follow the tangent line to its x-intercept. Near a simple root it converges **quadratically** (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts diverge or cycle — pair with bisection bracketing for safety."
+     "title": "Hands-on procedure",
+     "body": "Bracket a root, then polish it:\n1. Find [a,b] with f(a)f(b) < 0 — the sign change guarantees a root exists.\n2. Bisect to a coarse tolerance: n steps give error ≤ (b−a)/2ⁿ.\n3. Switch to Newton's method inside the bracket for quadratic convergence.\n4. Guard every Newton step: if f'(xₙ) ≈ 0 or the iterate leaves the bracket, fall back to bisection.\nWorked example: one Newton step for f(x)=x²−2 from x₀=1: x₁ = 1 − (1−2)/2 = 1 + 0.5 = 1.5 — already within 0.09 of √2."
     },
     {
-     "title": "Numerical integration",
-     "body": "**Trapezoidal rule**: h/2 · [f₀ + 2f₁ + … + 2fₙ₋₁ + fₙ], error O(h²). **Simpson's rule** (n even): h/3 · [f₀ + 4f₁ + 2f₂ + … + 4fₙ₋₁ + fₙ], error O(h⁴) — halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too."
+     "title": "Project brief",
+     "body": "Ship a root-finder for a sensor calibration curve f on [0,5] with f(0) < 0 < f(5), f smooth, f' cheap to evaluate, and a required accuracy of 10⁻⁹. Specify the method sequence (bracket → bisect → Newton), compute how many bisection steps reach 10⁻³ before switching, bound the final error, and list the failure modes you guard against (zero derivative, leaving the bracket, multiple roots). Deliverable: the procedure, the step counts, and one paragraph on why ‘Newton from x=0 immediately’ was rejected."
     },
     {
-     "title": "Error and conditioning",
-     "body": "Two error sources: **truncation** (method's approximation) and **roundoff** (finite precision). **Conditioning** measures sensitivity: solving near-singular systems amplifies input errors — the condition number κ(A) = ||A||·||A⁻¹|| bounds the blowup. A stable algorithm on an ill-conditioned problem still gives garbage: distinguish the two."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1576,7 +1576,7 @@
       "It depends on f"
      ],
      "answer": 0,
-     "explain": "(b−a)/2ⁿ = 1/1024 ≈ 0.001."
+     "explain": "(b−a)/2ⁿ = 1/1024 ≈ 0.001. (Concepts section: the bisection error bound.)"
     },
     {
      "q": "One Newton step for f(x)=x²−2 from x₀=1:",
@@ -1587,7 +1587,7 @@
       "2"
      ],
      "answer": 1,
-     "explain": "x₁ = 1 − (1−2)/(2) = 1 + 0.5 = 1.5."
+     "explain": "x₁ = 1 − (1−2)/(2) = 1 + 0.5 = 1.5. (Hands-on procedure section: one Newton step.)"
     },
     {
      "q": "Halving h in Simpson's rule roughly divides error by:",
@@ -1598,7 +1598,7 @@
       "16"
      ],
      "answer": 3,
-     "explain": "Error is O(h⁴): (1/2)⁴ = 1/16."
+     "explain": "Error is O(h⁴): (1/2)⁴ = 1/16. (Concepts section: Simpson's O(h⁴) error.)"
     },
     {
      "q": "Newton's method can fail when:",
@@ -1609,7 +1609,7 @@
       "Starting exactly at the root"
      ],
      "answer": 0,
-     "explain": "Division by f'(xₙ): a zero derivative blows up the step (also bad for flat regions and poor starts)."
+     "explain": "Division by f'(xₙ): a zero derivative blows up the step (also bad for flat regions and poor starts). (Concepts section: Newton's failure modes.)"
     }
    ]
   },
@@ -1618,7 +1618,7 @@
    "code": "IL-20",
    "title": "Linear Systems & Optimization",
    "weight": 1,
-   "summary": "Gaussian elimination, LU factorization, least squares, and gradient descent — solving systems and minimizing objectives at scale.",
+   "summary": "Welcome to Module 16: Linear Systems & Optimization — the final module. I'm your instructor, and we close the course where engineering lives: solving Ax=b at scale and minimizing objectives. Gaussian elimination, LU factorization, least squares, and gradient descent — the last one being the engine of neural-network training, built from the chain rule you learned in Module 8 and the gradients from Module 11. By the end you'll solve systems like a library does and tune a learning rate without superstition.",
    "objectives": [
     "Solve Ax=b by Gaussian elimination with back substitution",
     "Formulate and solve a least-squares problem",
@@ -1627,20 +1627,20 @@
    ],
    "notes": [
     {
-     "title": "Gaussian elimination",
-     "body": "Forward elimination reduces [A|b] to upper-triangular form using row operations (swap, scale, add multiples); **back substitution** solves from the bottom up. Cost: O(n³). **Partial pivoting** (swap in the largest available pivot) controls roundoff — never divide by a tiny pivot when a larger one is available."
+     "title": "Concepts",
+     "body": "- **Gaussian elimination** — forward elimination reduces [A|b] to upper-triangular form using row operations (swap, scale, add multiples); back substitution solves from the bottom up. Cost: O(n³).\n- **partial pivoting** — swap in the largest available pivot: controls roundoff — never divide by a tiny pivot when a larger one is available.\n- **LU factorization** — elimination factors A = LU (lower × upper, with row permutations). Factor once at O(n³), then solve each new right-hand side at O(n²) via Ly=b, Ux=y. This is what libraries actually do — `numpy.linalg.solve` uses LU-style factorization, not explicit inversion.\n- **least squares** — for overdetermined Ax ≈ b, minimize ||Ax−b||². Geometrically: project b onto the column space of A.\n- **normal equations** — `AᵛAx = Aᵛb`: setting the least-squares gradient to zero.\n- **QR preference** — in practice prefer QR factorization over the normal equations: the normal equations square the condition number (κ(AᵛA) = κ(A)²), amplifying numerical error.\n- **gradient descent** — `x ← x − α∇f(x)`: step downhill. For convex f with Lipschitz gradient, a small enough learning rate α converges; too large diverges.\n- **learning rate** — the step-size α: too large ⇒ oscillation or divergence (overshooting the minimum); too small ⇒ slow but steady.\n- **stochastic gradient descent** — uses one sample's gradient per step: noisy but fast per iteration, the engine of neural-network training. The gradient itself comes from the chain rule (Module 8)."
     },
     {
-     "title": "LU factorization",
-     "body": "Elimination factors A = LU (lower × upper, with row permutations). Factor once at O(n³), then solve each new right-hand side at O(n²) via Ly=b, Ux=y. This is what libraries actually do — `numpy.linalg.solve` uses LU-style factorization, not explicit inversion."
+     "title": "Hands-on procedure",
+     "body": "Solve Ax=b by elimination with back substitution:\n1. Write the augmented matrix [A|b].\n2. Forward elimination: for each column, pivot (swap in the largest available entry), then eliminate below — reaching upper-triangular form.\n3. Back substitution: solve the last row, substitute upward.\n4. Verify: multiply A·x and confirm it equals b.\nWorked example: [[2,1],[1,3]] [x,y]ᵛ = [5,6]ᵛ. Eliminate: row2 ← row2 − 0.5·row1 ⇒ [[2,1],[0,2.5]] | [5,3.5]. Back-substitute: y = 3.5/2.5 = 7/5; 2x = 5 − 7/5 = 18/5 ⇒ x = 9/5. Verify: 2(9/5)+7/5 = 25/5 = 5 ✓; 9/5+3(7/5) = 30/5 = 6 ✓."
     },
     {
-     "title": "Least squares",
-     "body": "For overdetermined Ax ≈ b, minimize ||Ax−b||². Setting the gradient to zero gives the **normal equations** `AᵛAx = Aᵛb`. Geometrically: project b onto the column space of A. In practice prefer **QR factorization** — the normal equations square the condition number (κ(AᵛA) = κ(A)²), amplifying numerical error."
+     "title": "Project brief",
+     "body": "Fit a least-squares line to a small dataset (six (x,y) points of your choosing, roughly linear with noise) twice: once via the normal equations AᵛAx = Aᵛb, once via QR factorization. Compare the solutions and explain — via the condition-number squaring from the Concepts section — why they can differ on ill-conditioned data. Then run five gradient-descent steps by hand on f(x) = x²+4x+6 with α = 0.1 from x=5 and report the trajectory toward the true minimum at x=−2. Deliverable: both fits, the comparison paragraph, and the descent trajectory."
     },
     {
-     "title": "Gradient descent",
-     "body": "`x ← x − α∇f(x)`: step downhill. For convex f with Lipschitz gradient, a small enough **learning rate** α converges; too large diverges. **Stochastic** GD uses one sample's gradient per step — noisy but fast per iteration, the engine of neural-network training. The gradient itself comes from the chain rule (module 8)."
+     "title": "Honesty note",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
     }
    ],
    "cards": [
@@ -1679,7 +1679,7 @@
       "x=3, y=−1"
      ],
      "answer": 1,
-     "explain": "det=5; x=(5·3−1·6)/5=9/5; y=(2·6−1·5)/5=7/5."
+     "explain": "det=5; x=(5·3−1·6)/5=9/5; y=(2·6−1·5)/5=7/5. (Hands-on procedure section: elimination.)"
     },
     {
      "q": "Gradient descent with too-large learning rate α:",
@@ -1690,7 +1690,7 @@
       "Has no effect"
      ],
      "answer": 1,
-     "explain": "Overshooting the minimum repeatedly — the classic divergence mode."
+     "explain": "Overshooting the minimum repeatedly — the classic divergence mode. (Concepts section: learning-rate overshoot.)"
     },
     {
      "q": "After one LU factorization of A, each additional solve costs:",
@@ -1701,7 +1701,7 @@
       "O(1)"
      ],
      "answer": 1,
-     "explain": "Forward/back substitution on triangular factors is O(n²)."
+     "explain": "Forward/back substitution on triangular factors is O(n²). (Concepts section: LU factorization.)"
     },
     {
      "q": "Least squares minimizes:",
@@ -1712,7 +1712,7 @@
       "rank(A)"
      ],
      "answer": 1,
-     "explain": "The squared Euclidean residual — equivalently the projection residual."
+     "explain": "The squared Euclidean residual — equivalently the projection residual. (Concepts section: least squares.)"
     }
    ]
   }
