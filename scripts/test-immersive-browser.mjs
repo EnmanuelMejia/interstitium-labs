@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -75,7 +75,8 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
   return `${info.authored}/${want} authored · ${info.delegated} delegated · ${info.uniqueGlb} distinct glb · max ${maxAwake} live contexts`;
 });
 
-for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down']]) {
+for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
+  ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -113,6 +114,20 @@ await check('AZ toggle: lose us-east-1a with Multi-AZ → degraded + ASG surge r
   assert.equal(shown, 2);
   await page.close();
   return 'surge nodes visible: ' + shown;
+});
+
+await check('RBAC toggle: RoleBinding → ClusterRoleBinding grants cluster-scoped nodes → allow', async () => {
+  const { page } = await open('/immersive/');
+  await page.locator('[data-il-sim="rbac-authz"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="rbac-authz"]');
+  await host.waitFor({ timeout: 30000 });
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'degraded');
+  await host.locator('[data-il-sim-toggle="b2Cluster"]').click();
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'allow');
+  const order = await host.evaluate(el => { el.querySelector('[data-il-sim-scenario="wrong-ns"]').click(); return [...el.querySelectorAll('[data-il-sim-option]')].map(b => b.getAttribute('data-il-sim-option')).join(''); });
+  assert.equal([...order].sort().join(''), '012', 'options are a permutation of original indices');
+  await page.close();
+  return 'degraded → allow · option order ' + order;
 });
 
 for (const p of ['/learn/', '/paths/aws-cloud-practitioner-plus/', '/paths/aws-cloud-ops/', '/paths/k8s-cka-exceed/']) {

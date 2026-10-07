@@ -1,7 +1,7 @@
 {
   "v": 5,
-  "updated": "2026-10-06T09:40:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates.",
+  "updated": "2026-10-07T09:40:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt.",
   "engines": [
     "webgl",
     "webgpu",
@@ -224,17 +224,28 @@
       "secrets-configmaps",
       "scheduling"
     ],
+    "interactive": [
+      "etcd-quorum",
+      "netpol-isolation",
+      "rbac-authz",
+      "sched-taints",
+      "hpa-scale"
+    ],
     "hostedFleet": false,
     "liveUnrealHost": false,
     "muskVerdict": "Closer/NO until live UE host + hosted fleet exist"
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.4.0, data-il-sim)",
+    "player": "/assets/il-immersive-3d.js (v1.5.0, data-il-sim; options shuffled per attempt)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
-      "iam-eval"
+      "iam-eval",
+      "netpol-isolation",
+      "rbac-authz",
+      "sched-taints",
+      "hpa-scale"
     ],
     "predictThenReveal": true,
     "analytics": [
@@ -242,7 +253,8 @@
       "immersive_sim_state"
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
-    "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet."
+    "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
+    "runtime_version": "1.1.0"
   },
   "aws_coverage": {
     "spatial": [

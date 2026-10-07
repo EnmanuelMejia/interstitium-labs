@@ -6,6 +6,8 @@
  * Sibling optional: il-scene-kit.js + il-immersive.js (data-kind hosts / demo /immersive/).
  * v1.4.0 (2026-10-06): skips Blender *_LOD1 duplicates (no z-fight/double draw), addresses glTF nodes by name,
  * and mounts interactive sims (il-immersive-sims.js, data-il-sim) whose state re-tints / reveals authored nodes.
+ * v1.5.0 (2026-10-07): predict-then-reveal options shuffle per attempt (keyed answer no longer positional);
+ * hosts four more CKA sims (netpol-isolation, rbac-authz, sched-taints, hpa-scale).
  * Boot waits for ILSceneKit when a page loads it after this file (fixes silent procedural fallback).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
@@ -831,6 +833,8 @@
       var tg = this._simToggles[id], on = !!this._simState[id];
       tg.btn.textContent = tg.def.label + ': ' + (on ? tg.def.on : tg.def.off);
       tg.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      var risk = tg.def.risk || 'off';
+      tg.btn.setAttribute('data-risk', risk === 'none' ? '0' : ((risk === 'on') === on ? '1' : '0'));
     }
     this._simVerdict.textContent = d.verdict;
     this._simVerdict.setAttribute('data-verdict', d.verdict);
@@ -858,7 +862,10 @@
     this._simPending = { sc: sc, t0: (g.performance && performance.now()) || Date.now() };
     var box = this._simPredict;
     box.appendChild(el('p', 'il-immersive__sim-q', 'Predict first: ' + sc.predict.q));
-    sc.predict.options.forEach(function (opt, idx){
+    /* Shuffle display order per attempt so the keyed answer is never positional; data-il-sim-option keeps the original index. */
+    var order = (S.shuffleOrder ? S.shuffleOrder(sc.predict.options.length) : sc.predict.options.map(function (_, i){ return i; }));
+    order.forEach(function (idx){
+      var opt = sc.predict.options[idx];
       var b = el('button', 'il-immersive__sim-opt', opt);
       b.type = 'button';
       b.setAttribute('data-il-sim-option', String(idx));
@@ -1079,7 +1086,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.4.0',
+    version: '1.5.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
