@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Path — Interstitium Labs</title>
+<meta name="description" content="Interstitium Labs path detail: modules, official sources, assessments, and the adaptive sitting.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/path/">
+<meta property="og:title" content="Interstitium Labs — Learning University">
+<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Interstitium Labs — Learning University">
+<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/path/">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+<style>
+.il-lessons{margin-top:1rem;border-top:1px solid var(--line);padding-top:0.8rem}
+.lessons-h,.checks-h{font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);margin:0.6rem 0}
+details.lesson{border:1px solid var(--line);border-radius:8px;margin:0.5rem 0;background:rgba(255,255,255,0.015)}
+details.lesson>summary{cursor:pointer;padding:0.7rem 0.9rem;font-weight:600}
+details.lesson>summary .n{color:var(--gold,#c9a227);margin-right:0.4rem}
+.lesson-body{padding:0 1rem 1rem}
+.worked{border-left:3px solid var(--gold,#c9a227);padding:0.4rem 0.8rem;margin:0.8rem 0;background:rgba(201,162,39,0.06)}
+.worked .sol{color:var(--ink-dim)}
+details.check{margin:0.4rem 0}
+details.check>summary{cursor:pointer;color:var(--ink)}
+details.check>summary::-webkit-details-marker{color:var(--gold,#c9a227)}
+/* Phased tabbed curriculum (IK layout pattern, Interstitium skin) */
+.phase-tabs{display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0 0}
+.phase-tab{font:inherit;font-size:0.85rem;letter-spacing:0.04em;padding:0.55rem 0.95rem;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-dim);cursor:pointer}
+.phase-tab:hover{color:var(--ink);border-color:var(--gold-dim,#8a6d1f)}
+.phase-tab[aria-selected="true"]{color:#0a0c10;background:var(--gold,#c9a227);border-color:var(--gold,#c9a227);font-weight:700}
+.phase-panel{display:none;border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.2rem;margin-top:0.9rem;background:rgba(255,255,255,0.015)}
+.phase-panel.active{display:block}
+.phase-weeks{font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 0.6rem}
+.phase-outcome{border-left:3px solid var(--gold,#c9a227);padding:0.5rem 0.9rem;margin:1rem 0 0;background:rgba(201,162,39,0.06)}
+.phase-outcome b{color:var(--gold,#c9a227)}
+.suited-list{list-style:none;padding:0;margin:0.8rem 0;display:grid;gap:0.45rem}
+.suited-list li{padding-left:1.4rem;position:relative;color:var(--ink)}
+.suited-list li::before{content:"›";position:absolute;left:0.2rem;color:var(--gold,#c9a227);font-weight:700}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-top:1rem}
+</style>
+</head>
+<body>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="block" aria-labelledby="path-h">
+    <div class="wrap" data-catalog-slot id="path-wrap">
+      <p class="eyebrow"><a href="paths.html">Paths</a> <span class="dot">·</span> <span id="path-acad-crumb"></span></p>
+      <h1 id="path-h"></h1>
+      <p class="lede" id="path-sub"></p>
+      <div id="path-tags" style="margin:0.8rem 0"></div>
+      <div id="path-suited"></div>
+      <dl class="kv" style="margin-top:1rem">
+        <dt>Hours</dt><dd id="path-hours"></dd>
+        <dt>Difficulty</dt><dd id="path-diff"></dd>
+        <dt>Track</dt><dd id="path-type"></dd>
+        <dt>Status</dt><dd id="path-status"></dd>
+      </dl>
+      <div id="path-tools"></div>
+      <div class="hero-cta-row" style="margin-top:1.4rem">
+        <a class="btn" id="cta-sitting" href="#">Start a sitting</a>
+        <a class="btn btn-ghost" href="enroll.html">Enroll</a>
+      </div>
+
+      <div id="path-phases"></div>
+
+      <h2 style="margin-top:2.6rem">Modules</h2>
+      <div id="modules"></div>
+
+      <div id="path-projects"></div>
+
+      <div id="open-shelf-wrap"></div>
+
+      <h2 style="margin-top:2.2rem">Assessments</h2>
+      <div id="assessments"></div>
+
+      <div class="notice" style="margin-top:2rem">
+        <strong>Orchestrate, don't clone.</strong> Deepens link to official vendor portals and references —
+        Interstitium provides the adaptive spine, the katas, and the evidence log, never a photocopy of anyone's PDF.
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  function sourceItem(s) {
+    var li = document.createElement('li');
+    var name = IL.esc(s.name || 'Source');
+    var body = (/^https?:\/\//.test(s.url || ''))
+      ? '<a href="' + IL.esc(s.url) + '" rel="noopener">' + name + '</a>'
+      : name;
+    li.innerHTML = body + (s.note ? '<span class="note">' + IL.esc(s.note) + '</span>' : '');
+    return li;
+  }
+
+  function lessonHtml(l, idx) {
+    var body = (l.body || []).map(function (par) {
+      return '<p>' + IL.esc(par) + '</p>';
+    }).join('');
+    var worked = (l.worked || []).map(function (w) {
+      return '<div class="worked"><p><b>Worked example.</b> ' + IL.esc(w.problem) + '</p>' +
+        '<p class="sol">' + IL.esc(w.solution) + '</p></div>';
+    }).join('');
+    var checks = (l.checks || []).map(function (c) {
+      return '<details class="check"><summary>' + IL.esc(c.q) + '</summary><p>' + IL.esc(c.a) + '</p></details>';
+    }).join('');
+    return '<details class="lesson"><summary><span class="n">' + (idx + 1) + '.</span> ' +
+      IL.esc(l.title) + '</summary><div class="lesson-body">' + body + worked +
+      (checks ? '<p class="checks-h">Check yourself</p>' + checks : '') + '</div></details>';
+  }
+
+  function shelfHtml(items) {
+    return items.map(function (s) {
+      var name = IL.esc(s.name || 'Resource');
+      var link = (/^https?:\/\//.test(s.url || ''))
+        ? '<a href="' + IL.esc(s.url) + '" rel="noopener">' + name + '</a>' : name;
+      return '<li>' + link +
+        (s.license ? ' <span class="pill">' + IL.esc(s.license) + '</span>' : '') +
+        (s.note ? '<span class="note">' + IL.esc(s.note) + '</span>' : '') + '</li>';
+    }).join('');
+  }
+
+  function render() {
+    var id = IL.qs('id');
+    var wrap = document.getElementById('path-wrap');
+    var p = id && IL.pathById(id);
+    if (!p) {
+      document.title = 'Path not found — Interstitium Labs';
+      wrap.innerHTML = '<div class="empty-state"><h3>Path not found</h3>' +
+        '<p>No path matches <span style="font-family:var(--mono)">' + IL.esc(id || '(none)') + '</span>. ' +
+        '<a href="paths.html">Browse all paths</a>.</p></div>';
+      return;
+    }
+    document.title = p.title + ' — Interstitium Labs';
+    var acad = IL.academyByCode(p.academy);
+    document.getElementById('path-acad-crumb').textContent = p.academy || '';
+    document.getElementById('path-h').textContent = p.title;
+    document.getElementById('path-sub').textContent = p.subtitle || '';
+    document.getElementById('path-tags').innerHTML = (p.tags || []).map(function (t) {
+      return '<span class="tag skill">' + IL.esc(t) + '</span>';
+    }).join('');
+    document.getElementById('path-hours').textContent = IL.fmtHours(p.hours);
+    document.getElementById('path-diff').textContent = p.difficulty || '—';
+    document.getElementById('path-type').textContent = p.type || '—';
+    document.getElementById('path-status').textContent = p.status || '—';
+    document.getElementById('cta-sitting').href = 'learn.html?id=' + encodeURIComponent(p.id);
+
+    /* Best suited for (IK layout pattern) */
+    var suitedBox = document.getElementById('path-suited');
+    var suited = p.suited_for || [];
+    suitedBox.innerHTML = suited.length
+      ? '<h2 style="margin-top:1.6rem;font-size:1.05rem">Best suited for</h2>' +
+        '<ul class="suited-list">' +
+        suited.map(function (s) { return '<li>' + IL.esc(s) + '</li>'; }).join('') +
+        '</ul>'
+      : '';
+
+    /* Tools you'll learn (IK layout pattern) */
+    var toolsBox = document.getElementById('path-tools');
+    var tools = p.tools || [];
+    toolsBox.innerHTML = tools.length
+      ? '<h2 style="margin-top:1.8rem;font-size:1.05rem">Tools you\'ll learn</h2>' +
+        '<div style="margin-top:0.6rem">' +
+        tools.map(function (t) { return '<span class="tag">' + IL.esc(t) + '</span>'; }).join('') +
+        '</div>'
+      : '';
+
+    /* Phased tabbed curriculum (IK layout pattern) */
+    var phasesBox = document.getElementById('path-phases');
+    var phases = p.phases || [];
+    if (phases.length) {
+      var tabsHtml = '<div class="phase-tabs" role="tablist" aria-label="Phased curriculum">';
+      var panelsHtml = '';
+      phases.forEach(function (ph, i) {
+        var pid = 'phase-' + i;
+        tabsHtml += '<button type="button" class="phase-tab" role="tab" id="tab-' + pid + '"' +
+          ' aria-selected="' + (i === 0 ? 'true' : 'false') + '" aria-controls="' + pid + '" data-phase="' + i + '">' +
+          IL.esc(ph.name || ('Phase ' + (i + 1))) + '</button>';
+        var ptopics = (ph.topics || []).map(function (t) {
+          return '<span class="tag">' + IL.esc(t) + '</span>';
+        }).join('');
+        panelsHtml += '<div class="phase-panel' + (i === 0 ? ' active' : '') + '" role="tabpanel" id="' + pid + '"' +
+          ' aria-labelledby="tab-' + pid + '"' + (i === 0 ? '' : ' hidden') + '>' +
+          '<p class="phase-weeks">' + IL.esc(ph.weeks || '') + '</p>' +
+          '<div>' + ptopics + '</div>' +
+          (ph.outcome ? '<p class="phase-outcome"><b>Outcome:</b> ' + IL.esc(ph.outcome) + '</p>' : '') +
+          '</div>';
+      });
+      tabsHtml += '</div>';
+      phasesBox.innerHTML = '<h2 style="margin-top:2.4rem">Phased curriculum</h2>' + tabsHtml + panelsHtml;
+      phasesBox.querySelectorAll('.phase-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = btn.getAttribute('data-phase');
+          phasesBox.querySelectorAll('.phase-tab').forEach(function (b) {
+            b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+          });
+          phasesBox.querySelectorAll('.phase-panel').forEach(function (pn, j) {
+            var on = String(j) === idx;
+            pn.classList.toggle('active', on);
+            if (on) pn.removeAttribute('hidden'); else pn.setAttribute('hidden', '');
+          });
+        });
+      });
+    } else {
+      phasesBox.innerHTML = '';
+    }
+
+    var mbox = document.getElementById('modules');
+    mbox.innerHTML = '';
+    (p.modules || []).forEach(function (m) {
+      var d = document.createElement('div');
+      d.className = 'module';
+      d.id = 'module-' + String(m.id || '').replace(/[^a-z0-9-]/gi, '-');
+      var topics = (m.topics || []).map(function (t) {
+        return '<span class="tag">' + IL.esc(t) + '</span>';
+      }).join('');
+      d.innerHTML = '<div class="kind">' + IL.esc(m.kind || 'module') + '</div>' +
+        '<h3>' + IL.esc(m.title) + '</h3>' +
+        (m.il_provides ? '<p style="color:var(--ink-dim)">' + IL.esc(m.il_provides) + '</p>' : '') +
+        (topics ? '<div>' + topics + '</div>' : '') +
+        ((m.lab && m.lab.url)
+          ? '<p style="margin-top:0.9rem"><a class="btn btn-sm btn-gold" href="' + IL.esc(m.lab.url) + '">' +
+            IL.esc(m.lab.label || 'Open the lab') + '</a></p>'
+          : '') +
+        ((m.lessons && m.lessons.length)
+          ? '<div class="il-lessons"><p class="lessons-h">Distilled lessons — original instruction</p>' +
+            m.lessons.map(lessonHtml).join('') + '</div>'
+          : '');
+      var ul = document.createElement('ul');
+      ul.className = 'source-list';
+      ul.setAttribute('aria-label', 'Official sources for ' + m.title);
+      (m.sources || []).forEach(function (s) { ul.appendChild(sourceItem(s)); });
+      if (!(m.sources || []).length) {
+        var li = document.createElement('li');
+        li.textContent = 'Sources being attributed — none listed yet.';
+        ul.appendChild(li);
+      }
+      d.appendChild(ul);
+      mbox.appendChild(d);
+    });
+    if (!(p.modules || []).length) {
+      mbox.innerHTML = '<div class="empty-state"><h3>Modules being published</h3><p>Module detail for this path is still being written.</p></div>';
+    }
+
+    /* Guided projects vs Capstone projects showcases (IK layout pattern) */
+    function projCard(m) {
+      var anchor = 'module-' + String(m.id || '').replace(/[^a-z0-9-]/gi, '-');
+      return '<article class="card"><div class="code">' + IL.esc(m.kind || 'project') + '</div>' +
+        '<h3>' + IL.esc(m.title) + '</h3>' +
+        (m.il_provides ? '<p>' + IL.esc(m.il_provides) + '</p>' : '') +
+        '<p style="margin-top:0.8rem"><a class="btn btn-sm btn-ghost" href="#' + anchor + '">Open the module</a></p></article>';
+    }
+    var projBox = document.getElementById('path-projects');
+    var guided = (p.modules || []).filter(function (m) { return m.kind === 'guided-project'; });
+    var stones = (p.modules || []).filter(function (m) { return m.kind === 'capstone'; });
+    var projHtml = '';
+    if (guided.length) {
+      projHtml += '<h2 style="margin-top:2.4rem">Guided projects</h2>' +
+        '<p style="color:var(--ink-dim)">Build alongside the spine — scoped, mentored, and finished inside the path.</p>' +
+        '<div class="proj-grid">' + guided.map(projCard).join('') + '</div>';
+    }
+    if (stones.length) {
+      projHtml += '<h2 style="margin-top:2.4rem">Capstone projects</h2>' +
+        '<p style="color:var(--ink-dim)">Prove it end to end — the portfolio-grade build this path is remembered by.</p>' +
+        '<div class="proj-grid">' + stones.map(projCard).join('') + '</div>';
+    }
+    projBox.innerHTML = projHtml;
+
+    var shelfWrap = document.getElementById('open-shelf-wrap');
+    if (shelfWrap) {
+      shelfWrap.innerHTML = (p.open_shelf && p.open_shelf.length)
+        ? '<h2 style="margin-top:2.2rem">The open shelf</h2>' +
+          '<p style="color:var(--ink-dim)">Free and open alternatives that stand beside the official sources — textbooks, simulators, and references you can use without paying or pirating.</p>' +
+          '<ul class="source-list">' + shelfHtml(p.open_shelf) + '</ul>'
+        : '';
+    }
+
+    var abox = document.getElementById('assessments');
+    abox.innerHTML = '';
+    (p.assessments || []).forEach(function (a) {
+      var c = document.createElement('article');
+      c.className = 'card';
+      var nq = (a.items || []).length;
+      var runnable = a.questions != null ? a.questions >= 10 : nq >= 10;
+      c.innerHTML =
+        '<div class="code">' + IL.esc(a.kind || 'assessment') + '</div>' +
+        '<h3>' + IL.esc(a.title) + '</h3>' +
+        '<div class="meta"><span><b>' + (a.questions != null ? a.questions : nq) + ' questions</b></span>' +
+        '<span>' + (a.minutes != null ? a.minutes + ' min' : 'untimed') + '</span></div>' +
+        '<p style="margin-top:0.8rem">' +
+        (runnable
+          ? '<a class="btn btn-sm btn-gold" href="assess.html?a=' + IL.esc(a.id) + '">Run assessment</a>'
+          : '<span class="pill soon">authoring</span>') + '</p>';
+      abox.appendChild(c);
+    });
+    if (!(p.assessments || []).length) {
+      abox.innerHTML = '<div class="empty-state"><h3>No assessments yet</h3><p>Timed assessments for this path are still being authored.</p></div>';
+    }
+  }
+  IL.renderPage = render;
+  IL.onCatalog(render);
+})();
+</script>
+<script src="js/noah.js"></script>
+</body>
+</html>

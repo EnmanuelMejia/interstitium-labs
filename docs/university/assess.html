@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assessment Center — Interstitium Labs</title>
+<meta name="description" content="Timed simulations: aptitude batteries, gate assessments, diagnostics. Countdown, per-question navigation, Socratic feedback.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/assess/">
+<meta property="og:title" content="Interstitium Labs — Learning University">
+<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Interstitium Labs — Learning University">
+<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/assess/">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+</head>
+<body>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="block" aria-labelledby="as-h">
+    <div class="wrap" data-catalog-slot id="assess-wrap">
+      <p class="eyebrow">Adaptive OS <span class="dot">·</span> Assessment center</p>
+      <h1 id="as-h">Timed simulations</h1>
+      <p class="lede" id="as-lede">Aptitude batteries, gates, diagnostics. Wrong answers get Socratic tips — never an answer dump first.</p>
+      <div id="assess-body" style="margin-top:1.6rem"></div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script src="js/adaptive.js"></script>
+<script src="js/noah.js"></script>
+<script>
+(function () {
+  'use strict';
+  var A = function () { return window.IL.adaptive; };
+  var aid = IL.qs('a');
+  var body = document.getElementById('assess-body');
+
+  function mmss(s) {
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  /* Palantir-grade confirm dialog — never the native confirm().
+     Focus-trapped, Escape-aware, returns focus to the opener. */
+  function ilConfirm(title, message, okLabel) {
+    return new Promise(function (resolve) {
+      var done = false;
+      var opener = document.activeElement;
+      function close(val) {
+        if (done) return;
+        done = true;
+        document.removeEventListener('keydown', onKey, true);
+        if (bd.parentNode) bd.parentNode.removeChild(bd);
+        if (opener && opener.focus) { try { opener.focus(); } catch (e) {} }
+        resolve(val);
+      }
+      var bd = IL.el('div', { 'class': 'il-dialog-backdrop' });
+      var dlg = IL.el('div', { 'class': 'il-dialog', role: 'alertdialog', 'aria-modal': 'true', 'aria-label': title });
+      dlg.innerHTML = '<h3>' + IL.esc(title) + '</h3><p>' + IL.esc(message) + '</p>';
+      var row = IL.el('div', { 'class': 'row' });
+      var cancel = IL.el('button', { 'class': 'btn btn-sm btn-ghost', type: 'button', text: 'Keep working' });
+      var ok = IL.el('button', { 'class': 'btn btn-sm', type: 'button', text: okLabel || 'Submit' });
+      cancel.addEventListener('click', function () { close(false); });
+      ok.addEventListener('click', function () { close(true); });
+      bd.addEventListener('click', function (e) { if (e.target === bd) close(false); });
+      function onKey(e) {
+        if (e.key === 'Escape') { e.stopPropagation(); close(false); return; }
+        if (e.key === 'Enter' && document.activeElement !== cancel) { e.stopPropagation(); close(true); return; }
+        // Focus trap: Tab cycles between the dialog's buttons.
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          e.stopPropagation();
+          var btns = [cancel, ok];
+          var i = btns.indexOf(document.activeElement);
+          var n = e.shiftKey ? (i <= 0 ? btns.length - 1 : i - 1) : (i === -1 || i === btns.length - 1 ? 0 : i + 1);
+          btns[n].focus();
+        }
+      }
+      document.addEventListener('keydown', onKey, true);
+      row.appendChild(cancel); row.appendChild(ok);
+      dlg.appendChild(row); bd.appendChild(dlg);
+      document.body.appendChild(bd);
+      ok.focus();
+    });
+  }
+
+  function listView() {
+    document.title = 'Assessment Center — Interstitium Labs';
+    var list = IL.assessments();
+    body.innerHTML = '';
+    if (!list.length) {
+      body.innerHTML = '<div class="empty-state"><h3>Assessments being authored</h3>' +
+        '<p>Timed assessments ship with the path catalog. Every timed assessment carries at least ten authored items with explanations — nothing placeholder.</p></div>';
+      return;
+    }
+    var grid = IL.el('div', { 'class': 'grid grid-3' });
+    list.forEach(function (a) {
+      var n = (a.items || []).length;
+      var c = IL.el('article', { 'class': 'card' });
+      c.innerHTML =
+        '<div class="code">' + IL.esc(a.kind || 'assessment') + '</div>' +
+        '<h3>' + IL.esc(a.title) + '</h3>' +
+        '<p>' + IL.esc(a.pathTitle || '') + '</p>' +
+        '<div class="meta"><span><b>' + n + ' questions</b></span>' +
+        '<span>' + (a.minutes != null ? a.minutes + ' min' : 'untimed') + '</span></div>' +
+        '<p style="margin-top:0.8rem">' +
+        (n >= 10
+          ? '<a class="btn btn-sm btn-gold" href="assess.html?a=' + IL.esc(a.id) + '">Run assessment</a>'
+          : '<span class="pill soon">authoring</span>') + '</p>';
+      grid.appendChild(c);
+    });
+    body.appendChild(grid);
+  }
+
+  function runnerView(a) {
+    document.title = a.title + ' — Assessment Center';
+    var items = a.items || [];
+    body.innerHTML = '';
+    if (items.length < 10) {
+      body.innerHTML = '<div class="empty-state"><h3>Still being authored</h3>' +
+        '<p>This assessment does not yet carry its full item bank. <a href="assess.html">Back to the center</a>.</p></div>';
+      return;
+    }
+    var ctrl = A().timed(a);
+    var head = IL.el('div');
+    head.innerHTML = '<h2>' + IL.esc(a.title) + '</h2>' +
+      '<p style="color:var(--ink-dim)">' + IL.esc(a.pathTitle || '') + ' · ' + items.length +
+      ' questions' + (a.minutes ? ' · ' + a.minutes + ' minutes' : '') + '</p>';
+    body.appendChild(head);
+
+    var timer = IL.el('div', { 'class': 'timer', role: 'timer',
+      'aria-label': ctrl.timed ? 'Time remaining' : 'Untimed assessment' });
+    timer.textContent = ctrl.timed ? mmss(ctrl.remaining()) : 'Untimed — take the time the material deserves.';
+    if (!ctrl.timed) timer.classList.add('untimed');
+    body.appendChild(timer);
+    var totalSecs = Math.max(1, (a.minutes || 0) * 60);
+    var track = null;
+    if (a.minutes) {
+      track = IL.el('div', { 'class': 'timer-track', 'aria-hidden': 'true' });
+      track.appendChild(IL.el('i', {}));
+      body.appendChild(track);
+    }
+
+    var nav = IL.el('div', { 'class': 'qnav', role: 'group', 'aria-label': 'Question navigation' });
+    body.appendChild(nav);
+    var qbox = IL.el('div');
+    body.appendChild(qbox);
+    var actions = IL.el('div', { 'class': 'quiz-actions' });
+    var prev = IL.el('button', { 'class': 'btn btn-sm btn-ghost', type: 'button', text: 'Previous' });
+    var next = IL.el('button', { 'class': 'btn btn-sm btn-ghost', type: 'button', text: 'Next' });
+    var flag = IL.el('button', { 'class': 'btn btn-sm btn-ghost', type: 'button', text: 'Flag for review' });
+    var submit = IL.el('button', { 'class': 'btn btn-sm', type: 'button', text: 'Submit assessment' });
+    actions.appendChild(prev); actions.appendChild(next); actions.appendChild(flag); actions.appendChild(submit);
+    body.appendChild(actions);
+
+    var idx = 0;
+    var flagged = {};
+    var finished = false;
+    var sel = new Array(items.length).fill(null); // local mirror of controller state
+
+    function drawNav() {
+      nav.innerHTML = '';
+      items.forEach(function (it, i) {
+        var b = IL.el('button', {
+          type: 'button',
+          'aria-label': 'Question ' + (i + 1) + (sel[i] !== null ? ', answered' : ', unanswered') + (flagged[i] ? ', flagged' : ''),
+          text: String(i + 1)
+        });
+        if (sel[i] !== null) b.classList.add('answered');
+        if (i === idx) b.classList.add('current');
+        if (flagged[i]) b.classList.add('flagged');
+        b.addEventListener('click', function () { var d = i < idx ? -1 : 1; idx = i; draw(d); });
+        nav.appendChild(b);
+      });
+    }
+
+    function draw(dir) {
+      var it = items[idx];
+      qbox.innerHTML = '';
+      var qd = IL.el('div', { 'class': 'question ' + (dir < 0 ? 'q-enter-back' : 'q-enter-fwd') });
+      var h = IL.el('h3', { text: 'Question ' + (idx + 1) + ' — ' + it.q, tabindex: '-1' });
+      qd.appendChild(h);
+      var ul = IL.el('ul', { 'class': 'choices', role: 'radiogroup', 'aria-label': 'Question ' + (idx + 1) });
+      (it.choices || []).forEach(function (c, ci) {
+        var lab = IL.el('label', sel[idx] === ci ? { 'class': 'picked' } : {});
+        var radio = IL.el('input', { type: 'radio', name: 'aq' + idx, value: String(ci) });
+        if (sel[idx] === ci) radio.checked = true;
+        radio.addEventListener('change', function () { pick(ci); });
+        lab.appendChild(radio);
+        if (ci < 9) {
+          var k = IL.el('kbd', { 'class': 'key-hint', 'aria-hidden': 'true', text: String(ci + 1) });
+          lab.appendChild(k);
+        }
+        lab.appendChild(document.createTextNode(c));
+        ul.appendChild(lab);
+      });
+      qd.appendChild(ul);
+      qbox.appendChild(qd);
+      prev.disabled = idx === 0;
+      next.disabled = idx === items.length - 1;
+      h.focus({ preventScroll: true });
+      drawNav();
+    }
+
+    function pick(ci) {
+      if (finished) return;
+      sel[idx] = ci;
+      ctrl.answer(idx, ci);
+      var labs = qbox.querySelectorAll('.choices label');
+      Array.prototype.forEach.call(labs, function (l, li) { l.classList.toggle('picked', li === ci); });
+      var r = qbox.querySelectorAll('.choices input[type="radio"]')[ci];
+      if (r) r.checked = true;
+      drawNav();
+    }
+
+    function toggleFlag() {
+      flagged[idx] = !flagged[idx];
+      flag.textContent = flagged[idx] ? 'Unflag question' : 'Flag for review';
+      drawNav();
+    }
+
+    prev.addEventListener('click', function () { if (idx > 0) { idx--; draw(-1); } });
+    next.addEventListener('click', function () { if (idx < items.length - 1) { idx++; draw(1); } });
+    flag.addEventListener('click', toggleFlag);
+    // keyboard: [ and ] move between questions, 1-9 answer, f flags
+    document.addEventListener('keydown', function onKey(e) {
+      if (finished) { document.removeEventListener('keydown', onKey); return; }
+      if (document.querySelector('.il-dialog-backdrop')) return; // modal open: keys belong to it
+      if (e.target && e.target.matches && e.target.matches('input, textarea, select')) return;
+      if (e.key === '[' && idx > 0) { idx--; draw(-1); }
+      else if (e.key === ']' && idx < items.length - 1) { idx++; draw(1); }
+      else if (e.key === 'f' || e.key === 'F') { toggleFlag(); }
+      else {
+        var n = parseInt(e.key, 10);
+        var choices = (items[idx].choices || []).length;
+        if (n >= 1 && n <= Math.min(9, choices)) pick(n - 1);
+      }
+    });
+
+    var tick = null;
+    if (ctrl.timed) {
+      tick = setInterval(function () {
+        var s = ctrl.remaining();
+        timer.textContent = mmss(s);
+        timer.classList.toggle('low', s < 300 && s > 0);
+        if (track) {
+          var fill = track.firstChild;
+          fill.style.width = Math.max(0, (s / totalSecs) * 100) + '%';
+          fill.classList.toggle('low', s < 300 && s > 0);
+        }
+        if (s <= 0) { clearInterval(tick); tick = null; doSubmit(true); }
+      }, 500);
+    }
+
+    function doSubmit(auto) {
+      if (finished) return;
+      var un = sel.filter(function (x) { return x === null; }).length;
+      if (!auto && un > 0) {
+        ilConfirm('Submit assessment?',
+          un + ' question(s) unanswered.' + (ctrl.timed ? ' The timer keeps running while you decide.' : ''),
+          'Submit anyway').then(function (ok) { if (ok) finishSubmit(false); });
+        return;
+      }
+      finishSubmit(auto);
+    }
+
+    function finishSubmit(auto) {
+      finished = true;
+      clearInterval(tick);
+      var res = ctrl.submit();
+      // fringe update: fold per-topic results into the path's sitting state
+      try {
+        var key = 'il_sitting_' + (a.pathId || 'free');
+        var st = JSON.parse(localStorage.getItem(key) || 'null') || { topics: [], mastery: {}, sm2: {} };
+        Object.keys(res.perTopic || {}).forEach(function (t) {
+          var pt = res.perTopic[t];
+          A().record(st, t, pt.score >= 0.5, 0.7);
+          if (st.topics.indexOf(t) === -1) st.topics.push(t);
+        });
+        localStorage.setItem(key, JSON.stringify(st));
+      } catch (e) {}
+      // assessment-history ledger (surfaced on courses.html)
+      try {
+        var HK = 'il_assess_history_v1';
+        var hist = JSON.parse(localStorage.getItem(HK) || '[]');
+        hist.push({ id: a.id, title: a.title || a.id, kind: a.kind || 'assessment',
+          pct: Math.round(res.score * 100), passed: !!res.passed,
+          correct: res.correct, total: res.total, at: Date.now() });
+        localStorage.setItem(HK, JSON.stringify(hist.slice(-60)));
+      } catch (e) {}
+      showResult(res, auto);
+    }
+    submit.addEventListener('click', function () { doSubmit(false); });
+
+    function showResult(res, auto) {
+      body.innerHTML = '';
+      var wrap = IL.el('div', { 'class': 'quiz-shell' });
+      var pct = Math.round(res.score * 100);
+      var CIRC = 2 * Math.PI * 52;
+      var NS = 'http://www.w3.org/2000/svg';
+      var h2 = IL.el('h2', { text: (res.passed ? 'Passed' : 'Not passed') + ' — ' + pct + '%' });
+      wrap.appendChild(h2);
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 120 120');
+      svg.setAttribute('class', 'score-svg');
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'Score ' + pct + ' percent, ' + res.correct + ' of ' + res.total + ' correct');
+      var defs = document.createElementNS(NS, 'defs');
+      var grad = document.createElementNS(NS, 'linearGradient');
+      grad.setAttribute('id', 'scoreGrad');
+      grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+      grad.setAttribute('x2', '1'); grad.setAttribute('y2', '1');
+      /* Token-correct gradient endpoints: --cyan #62d8e9 / --gold #c9a227,
+         with darker 100% stops for ring depth. */
+      [['0%', res.passed ? '#62d8e9' : '#c9a227'], ['100%', res.passed ? '#0e7490' : '#a67c1a']].forEach(function (st) {
+        var s = document.createElementNS(NS, 'stop');
+        s.setAttribute('offset', st[0]); s.setAttribute('stop-color', st[1]);
+        grad.appendChild(s);
+      });
+      defs.appendChild(grad); svg.appendChild(defs);
+      [['ring-bg', 0], ['ring-fg', CIRC]].forEach(function (cfg) {
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', '60'); c.setAttribute('cy', '60'); c.setAttribute('r', '52');
+        c.setAttribute('class', cfg[0]);
+        if (cfg[0] === 'ring-fg') {
+          c.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+          c.setAttribute('stroke-dashoffset', CIRC.toFixed(1));
+        }
+        svg.appendChild(c);
+      });
+      var t1 = document.createElementNS(NS, 'text');
+      t1.setAttribute('x', '60'); t1.setAttribute('y', '60'); t1.setAttribute('class', 'ring-pct');
+      t1.textContent = '0%';
+      var t2 = document.createElementNS(NS, 'text');
+      t2.setAttribute('x', '60'); t2.setAttribute('y', '78'); t2.setAttribute('class', 'ring-sub');
+      t2.textContent = res.correct + ' / ' + res.total;
+      svg.appendChild(t1); svg.appendChild(t2);
+      wrap.appendChild(svg);
+      var note = IL.el('p', {
+        text: (auto ? 'Time expired — auto-submitted. ' : '') +
+          'Your fringe was updated from every miss. Review the explanations, work the fringe, re-attempt.'
+      });
+      note.style.color = 'var(--ink-dim)';
+      wrap.appendChild(note);
+      // animate ring + count-up
+      var reduced = false;
+      try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      var fg = svg.querySelector('.ring-fg');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          fg.setAttribute('stroke-dashoffset', (CIRC * (1 - res.score)).toFixed(1));
+          if (reduced) { t1.textContent = pct + '%'; return; }
+          var t0 = null;
+          (function count(t) {
+            if (!t0) t0 = t;
+            var p = Math.min((t - t0) / 1100, 1);
+            t1.textContent = Math.round(pct * (1 - Math.pow(1 - p, 3))) + '%';
+            if (p < 1) requestAnimationFrame(count);
+          })(performance.now());
+        });
+      });
+      items.forEach(function (it, i) {
+        var ok = sel[i] === it.answer;
+        var qd = IL.el('div', { 'class': 'question' });
+        var h = IL.el('h3', { text: (ok ? 'Correct — ' : 'Missed — ') + 'Question ' + (i + 1) + ' — ' + it.q });
+        h.style.color = ok ? 'var(--cyan)' : 'var(--gold-bright)';
+        qd.appendChild(h);
+        var ul = IL.el('ul', { 'class': 'choices' });
+        (it.choices || []).forEach(function (c, ci) {
+          var li = IL.el('li', {
+            text: c + (ci === it.answer ? ' — correct' : ''),
+            style: 'border:1px solid var(--line-soft);border-radius:6px;padding:0.5rem 0.8rem;' +
+              (ci === it.answer ? 'border-color:var(--cyan-dim);color:var(--cyan);' : '')
+          });
+          ul.appendChild(li);
+        });
+        qd.appendChild(ul);
+        if (it.explain) qd.appendChild(IL.el('div', { 'class': 'explain', text: it.explain }));
+        wrap.appendChild(qd);
+      });
+      var row = IL.el('div', { 'class': 'quiz-actions' });
+      var again = IL.el('a', { 'class': 'btn', href: 'assess.html?a=' + encodeURIComponent(a.id), text: 'Re-attempt' });
+      var fringe = IL.el('a', { 'class': 'btn btn-ghost', href: 'learn.html?id=' + encodeURIComponent(a.pathId || ''), text: 'Work the fringe' });
+      row.appendChild(again); row.appendChild(fringe);
+      wrap.appendChild(row);
+      body.appendChild(wrap);
+      wrap.querySelector('h2').setAttribute('tabindex', '-1');
+      wrap.querySelector('h2').focus({ preventScroll: true });
+    }
+
+    draw();
+  }
+
+  function render() {
+    if (!aid) { listView(); return; }
+    var a = IL.assessmentById(aid);
+    if (!a) {
+      body.innerHTML = '<div class="empty-state"><h3>Assessment not found</h3>' +
+        '<p>No assessment matches <span style="font-family:var(--mono)">' + IL.esc(aid) + '</span>. ' +
+        '<a href="assess.html">Back to the center</a>.</p></div>';
+      return;
+    }
+    runnerView(a);
+  }
+  IL.renderPage = render;
+  IL.onCatalog(render);
+})();
+</script>
+</body>
+</html>

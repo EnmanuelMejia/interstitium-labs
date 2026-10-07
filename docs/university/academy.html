@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academy — Interstitium Labs</title>
+<meta name="description" content="Interstitium Labs academy detail: paths, hours, and the adaptive route through one academy.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/academy/">
+<meta property="og:title" content="Interstitium Labs — Learning University">
+<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Interstitium Labs — Learning University">
+<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/academy/">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+</head>
+<body>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="block" aria-labelledby="acad-h">
+    <div class="wrap" data-catalog-slot id="acad-wrap">
+      <p class="eyebrow"><a href="index.html#academies">Academies</a> <span class="dot">·</span> <span id="acad-code-crumb"></span></p>
+      <h1 id="acad-h"></h1>
+      <p class="lede" id="acad-blurb"></p>
+      <div id="acad-course-cta" style="margin-top:1.1rem"></div>
+      <dl class="kv" style="margin-top:1.2rem">
+        <dt>Hours</dt><dd id="acad-hours"></dd>
+        <dt>Paths</dt><dd id="acad-npaths"></dd>
+      </dl>
+      <h2 style="margin-top:2.2rem">Paths in this academy</h2>
+      <div class="grid grid-3" id="acad-paths" style="margin-top:1.2rem"></div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* Academies with an interactive 6-tab course shell (Phase 2 unification). */
+  var COURSE_SLUGS = {
+    'IL-11': 'il-11-zero-trust-endpoint-defense',
+    'IL-12': 'il-12-ai-engineering',
+    'IL-13': 'il-13-software-engineering-interview-prep',
+    'IL-14': 'il-14-sre-devops-cloud-security-interview-prep',
+    'IL-15': 'il-15-data-engineering-analytics-interview-prep',
+    'IL-16': 'il-16-machine-learning-ai-engineering',
+    'IL-17': 'il-17-agentic-ai-engineering',
+    'IL-18': 'il-18-technical-leadership-interview-prep',
+    'IL-19': 'il-19-multicloud-devops-ai-bootcamp',
+    'IL-20': 'il-20-mathematics',
+    'IL-21': 'il-21-humanities',
+    'IL-22': 'il-22-esoteric-secret-knowledge',
+    'IL-23': 'il-23-frontier-knowledge'
+  };
+  function render() {
+    var code = IL.qs('id');
+    var wrap = document.getElementById('acad-wrap');
+    var a = code && IL.academyByCode(code);
+    if (!a) {
+      document.title = 'Academy not found — Interstitium Labs';
+      wrap.innerHTML = '<div class="empty-state"><h3>Academy not found</h3>' +
+        '<p>No academy matches <span style="font-family:var(--mono)">' + IL.esc(code || '(none)') + '</span>. ' +
+        'The standing index is IL-01 through IL-23 — <a href="index.html#academies">browse the academies</a>.</p></div>';
+      return;
+    }
+    document.title = a.code + ' · ' + a.name + ' — Interstitium Labs';
+    document.getElementById('acad-code-crumb').textContent = a.code;
+    document.getElementById('acad-h').textContent = a.code + ' · ' + a.name;
+    document.getElementById('acad-blurb').textContent = a.blurb || a.tagline || '';
+    var cta = document.getElementById('acad-course-cta');
+    if (cta) {
+      cta.innerHTML = COURSE_SLUGS[a.code]
+        ? '<a class="btn" href="course.html?course=' + IL.esc(COURSE_SLUGS[a.code]) + '">' +
+          'Launch the interactive course — 6-tab shell, Noah AI tutor</a>'
+        : '';
+    }
+    document.getElementById('acad-hours').textContent = IL.fmtHours(a.hours);
+    var paths = IL.pathsForAcademy(a.code);
+    document.getElementById('acad-npaths').textContent = String(paths.length);
+
+    var box = document.getElementById('acad-paths');
+    box.innerHTML = '';
+    if (!paths.length) {
+      box.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Paths incoming</h3>' +
+        '<p>Paths for ' + IL.esc(a.code) + ' are still being published — nothing here is placeholder. ' +
+        'Meanwhile, the adaptive engine below runs on any topic you name.</p>' +
+        '<p><a class="btn btn-ghost" href="learn.html">Open a free sitting</a></p></div>';
+    } else {
+      paths.forEach(function (p) {
+        var c = document.createElement('article');
+        c.className = 'card';
+        c.innerHTML =
+          '<div class="code">' + IL.esc(p.type || '') + '</div>' +
+          '<h3><a href="path.html?id=' + IL.esc(p.id) + '">' + IL.esc(p.title) + '</a></h3>' +
+          '<p>' + IL.esc(p.subtitle || '') + '</p>' +
+          '<div class="meta"><span><b>' + IL.esc(IL.fmtHours(p.hours)) + '</b></span>' +
+          '<span>' + IL.esc(p.difficulty || '') + '</span></div>';
+        box.appendChild(c);
+      });
+    }
+  }
+  IL.renderPage = render;
+  IL.onCatalog(render);
+})();
+</script>
+<script src="js/noah.js"></script>
+</body>
+</html>
