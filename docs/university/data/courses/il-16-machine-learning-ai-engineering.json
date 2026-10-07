@@ -163,6 +163,14 @@
     {
      "front": "In one sentence, what does The Applied ML Workflow teach you to do?",
      "back": "The loop every applied ML engineer actually runs. Theory paths teach algorithms; this module teaches the sequence — and the discipline that keeps results honest."
+    },
+    {
+     "front": "What belongs in an iteration log?",
+     "back": "Each experiment's hypothesis, data/code version, hyperparameters, validation score, and what you learned — one row per idea, including the failures. The log turns tuning from wandering into evidence. The line: 'If it isn't in the log, the experiment didn't happen.'"
+    },
+    {
+     "front": "How do you pick the first metric?",
+     "back": "Choose the metric that matches the decision: the business cost of each error type decides between precision, recall, RMSE, or ranking measures. Start with the simplest defensible one and state its blind spots. The line: 'The metric is the first modeling decision — everything else optimizes it.'"
     }
    ],
    "quiz": [
@@ -180,35 +188,79 @@
     {
      "q": "The main value of a simple baseline is:",
      "choices": [
+      "It needs no data",
       "It usually wins",
       "It sets the minimum bar later models must beat",
-      "It satisfies reviewers",
-      "It needs no data"
+      "It satisfies reviewers"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Baselines turn ‘is this good?’ into a measurable comparison."
     },
     {
      "q": "Experiment discipline includes:",
      "choices": [
-      "Trying one idea",
-      "Fixed seeds, versioned data/code, and run logs",
       "Deleting failed runs",
-      "Tuning on the test set"
+      "Tuning on the test set",
+      "Trying one idea",
+      "Fixed seeds, versioned data/code, and run logs"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Reproducibility and fair comparison need seeds, versions, and logs."
     },
     {
      "q": "You should stop tuning when:",
      "choices": [
-      "The deadline arrives no matter what",
       "Validation gains flatten or cost more than they are worth",
       "Training loss hits zero",
-      "You feel done"
+      "You feel done",
+      "The deadline arrives no matter what"
+     ],
+     "answer": 0,
+     "explain": "Diminishing returns plus cost is the rational stop rule — then ship or reframe."
+    },
+    {
+     "q": "Tuning hyperparameters directly on the test set is a mistake because:",
+     "choices": [
+      "It is slower than tuning on validation",
+      "Repeated use turns the test set into a second validation set, inflating the reported score",
+      "Most libraries forbid it",
+      "It causes overfitting on the training data"
      ],
      "answer": 1,
-     "explain": "Diminishing returns plus cost is the rational stop rule — then ship or reframe."
+     "explain": "The test set must stay untouched until the final evaluation; tuning against it leaks information and the 'test score' becomes optimistic. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The honest stop rule for a tuning loop is:",
+     "choices": [
+      "When the deadline arrives, regardless of the curve",
+      "When training loss reaches zero",
+      "When validation gains flatten or cost more than they are worth",
+      "After exactly 100 experiments"
+     ],
+     "answer": 2,
+     "explain": "Diminishing returns plus compute cost is the rational stop; zero training loss usually means overfitting. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A baseline model is valuable mainly because it:",
+     "choices": [
+      "Requires no data",
+      "Impresses stakeholders",
+      "Usually beats complex models",
+      "Sets the minimum bar every later model must beat"
+     ],
+     "answer": 3,
+     "explain": "Baselines turn 'is this good?' into a measurable comparison — without one, gains are unanchored. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Experiment discipline does NOT include:",
+     "choices": [
+      "Versioned data and code",
+      "Deleting failed runs to keep the log clean",
+      "A log of every run's config and score",
+      "Fixed random seeds"
+     ],
+     "answer": 1,
+     "explain": "Failed runs are evidence — deleting them hides negative results and breaks fair comparison. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -267,18 +319,26 @@
     {
      "front": "In one sentence, what does Feature Engineering teach you to do?",
      "back": "Features beat algorithms most of the time. Hands-on transformations plus the audit that catches target leakage before it becomes a fake 0.99."
+    },
+    {
+     "front": "When do you bin or bucketize a continuous feature?",
+     "back": "When the relationship is nonlinear and trees or linear models would struggle — age bands, price tiers — or when you need robustness to outliers and drift. The cost is lost granularity, so compare binned vs raw on validation. The line: 'Binning trades resolution for robustness; I let validation price the trade.'"
+    },
+    {
+     "front": "How do you discuss feature importance versus feature selection?",
+     "back": "Importance ranks what the model uses; selection decides what to keep. Use importance plus ablation (remove and re-measure) to select, and watch for correlated features splitting credit. The line: 'Importance is a hint, ablation is the verdict.'"
     }
    ],
    "quiz": [
     {
      "q": "Target encoding done on the full dataset before splitting causes:",
      "choices": [
-      "Faster training",
       "Target leakage — the encoding carries label information into training",
       "Better generalization",
-      "Nothing"
+      "Nothing",
+      "Faster training"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Encodings that learn from the target must be computed inside CV folds, never on all data upfront."
     },
     {
@@ -295,24 +355,68 @@
     {
      "q": "One-hot vs target encoding tradeoff:",
      "choices": [
+      "Target encoding needs no data",
       "One-hot always wins",
       "One-hot is safe but explodes with cardinality; target encoding is compact but leaks if mishandled",
-      "They are identical",
-      "Target encoding needs no data"
+      "They are identical"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "The choice balances dimensionality against leakage risk and must match the validation discipline."
     },
     {
      "q": "A leakage audit checks:",
      "choices": [
-      "Model size",
-      "Whether each feature’s information was available at prediction time",
       "Training speed",
-      "Library versions"
+      "Library versions",
+      "Model size",
+      "Whether each feature’s information was available at prediction time"
+     ],
+     "answer": 3,
+     "explain": "Every feature gets an availability-timestamp check against the label — the audit that catches fake 0.99s."
+    },
+    {
+     "q": "Target leakage happens when:",
+     "choices": [
+      "The model is too large",
+      "A feature contains information only available after the prediction time",
+      "Labels are imbalanced",
+      "Training is too slow"
      ],
      "answer": 1,
-     "explain": "Every feature gets an availability-timestamp check against the label — the audit that catches fake 0.99s."
+     "explain": "Features must respect causality: anything known only after the target is realized leaks the answer. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "One-hot encoding's main cost on high-cardinality categoricals is:",
+     "choices": [
+      "It requires target labels",
+      "It loses ordering information",
+      "It explodes feature dimensionality and sparsity",
+      "It cannot handle unseen categories"
+     ],
+     "answer": 2,
+     "explain": "Thousands of categories become thousands of sparse columns; embeddings or hashing scale better. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A datetime feature violates causality when it:",
+     "choices": [
+      "Has missing values",
+      "Spans multiple timezones",
+      "Is stored as a string",
+      "Uses information from after the prediction moment"
+     ],
+     "answer": 3,
+     "explain": "Features must be computable at prediction time from history only; future data is leakage by another name. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The strongest argument that features beat algorithms is:",
+     "choices": [
+      "Informative features simplify the decision boundary any model must learn",
+      "Feature engineering needs no domain knowledge",
+      "Models cannot use raw data",
+      "Algorithms are all identical"
+     ],
+     "answer": 0,
+     "explain": "Good representations make the problem easy for many algorithms; no algorithm rescues bad features. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -371,29 +475,37 @@
     {
      "front": "In one sentence, what does Model Evaluation teach you to do?",
      "back": "Evaluation as engineering, not ceremony: which metric, which slice, which mistakes cost money — and the discipline of reporting on a held-out set exactly once."
+    },
+    {
+     "front": "Why prefer PR curves over ROC on imbalanced data?",
+     "back": "ROC can look excellent while precision is terrible, because true negatives dominate the false-positive rate denominator. Precision-recall keeps the focus on the rare class you actually care about. The line: 'On skewed data, ROC flatters; precision-recall tells the truth.'"
+    },
+    {
+     "front": "What does a learning curve tell you?",
+     "back": "Plot training and validation score versus data size: converging lines mean more data won't help; a wide gap means variance (get data, regularize); both low means bias (bigger model, better features). The line: 'The learning curve diagnoses whether to feed the model data or change the model.'"
     }
    ],
    "quiz": [
     {
      "q": "For fraud at 0.1% prevalence, the honest primary metric is:",
      "choices": [
-      "Accuracy",
-      "Precision/recall or a cost-weighted metric",
       "R²",
-      "Training loss"
+      "Training loss",
+      "Accuracy",
+      "Precision/recall or a cost-weighted metric"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Accuracy is dominated by negatives; the metric must encode the asymmetric cost of misses vs false alarms."
     },
     {
      "q": "A confusion matrix is read properly when you:",
      "choices": [
-      "Look at accuracy only",
       "Examine per-class error patterns: which classes confuse, FP vs FN rates",
       "Ignore the off-diagonal",
-      "Average everything"
+      "Average everything",
+      "Look at accuracy only"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The off-diagonal cells are the story — they show exactly how the model fails."
     },
     {
@@ -410,13 +522,57 @@
     {
      "q": "Error analysis by slice means:",
      "choices": [
+      "Retraining once",
       "Averaging all errors",
       "Breaking errors down by segment to find where the model fails users",
-      "Deleting bad rows",
-      "Retraining once"
+      "Deleting bad rows"
+     ],
+     "answer": 2,
+     "explain": "Averages hide the slice — cohort, region, or input type — where the model is actually broken."
+    },
+    {
+     "q": "Accuracy can be 99% and useless on imbalanced data because:",
+     "choices": [
+      "Accuracy is computed incorrectly",
+      "A model predicting only the majority class scores 99% while learning nothing",
+      "The test set is too small",
+      "Precision is undefined"
      ],
      "answer": 1,
-     "explain": "Averages hide the slice — cohort, region, or input type — where the model is actually broken."
+     "explain": "On 99-to-1 data, the trivial majority classifier looks perfect — accuracy hides the failure on the rare class. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A confusion matrix tells you what accuracy hides by showing:",
+     "choices": [
+      "The optimal threshold",
+      "Training time",
+      "The breakdown of true/false positives and negatives",
+      "Feature importance"
+     ],
+     "answer": 2,
+     "explain": "The four cells reveal which error types dominate, which is what cost-sensitive decisions need. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "You need calibrated probabilities (not just rankings) when:",
+     "choices": [
+      "The data is balanced",
+      "You use a linear model",
+      "You only need a class label",
+      "Decisions use expected values, e.g. bid = p(conversion) x value"
+     ],
+     "answer": 3,
+     "explain": "Expected-value math needs true probabilities; a well-ranked but miscalibrated model gives wrong bids. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Error analysis by slice means:",
+     "choices": [
+      "Measuring performance on meaningful subgroups to find where the model fails",
+      "Removing outliers",
+      "Training on subsets",
+      "Splitting the data randomly"
+     ],
+     "answer": 0,
+     "explain": "Aggregate metrics hide subgroup failures; slicing by segment reveals who the model underserves. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -475,40 +631,48 @@
     {
      "front": "In one sentence, what does ML Pipelines teach you to do?",
      "back": "Pipelines are where leakage dies and reproducibility is born: every transformation inside the pipeline, versioned, and re-runnable by someone else."
+    },
+    {
+     "front": "Why version datasets alongside code?",
+     "back": "A model is a function of data and code — rerunning old code on new data is not reproduction. Version the data snapshot (hash, query, or artifact) with the code commit so every experiment is replayable. The line: 'Code without its data version is a recipe without ingredients.'"
+    },
+    {
+     "front": "What does a pipeline contract look like?",
+     "back": "The agreed schema, types, ranges, and freshness of each pipeline stage's output — checked at every handoff. Contracts turn silent data drift into loud failures. The line: 'Contracts make data problems arrive as errors, not as wrong predictions.'"
     }
    ],
    "quiz": [
     {
      "q": "Putting preprocessing inside the pipeline prevents:",
      "choices": [
+      "Missing values",
       "Slow training",
       "Leakage, by fitting transformations on train only within each fold",
-      "Large models",
-      "Missing values"
+      "Large models"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "The pipeline refits transformers per split — statistics from validation/test never reach training."
     },
     {
      "q": "A ColumnTransformer is used for:",
      "choices": [
-      "Model selection",
-      "Applying different preprocessing to different column groups in one step",
       "Plotting",
-      "Hyperparameter search"
+      "Hyperparameter search",
+      "Model selection",
+      "Applying different preprocessing to different column groups in one step"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Mixed data types need mixed preprocessing — scaling numerics while encoding categoricals, leak-free."
     },
     {
      "q": "Serialize preprocessing with the model because:",
      "choices": [
-      "It is smaller",
       "Serving must apply the identical transformations or predictions are wrong",
       "It trains faster",
-      "It is required by law"
+      "It is required by law",
+      "It is smaller"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "A model without its preprocessing pipeline is undeployable — the transform is part of the artifact."
     },
     {
@@ -521,6 +685,50 @@
      ],
      "answer": 1,
      "explain": "Orchestrators add observability, retries, and reproducibility that cron cannot provide."
+    },
+    {
+     "q": "Preprocessing must live inside the pipeline because:",
+     "choices": [
+      "It runs faster",
+      "Fitting transforms on the full data before splitting leaks test information into training",
+      "Libraries require it",
+      "It uses less memory"
+     ],
+     "answer": 1,
+     "explain": "Scalers and encoders fit on all data leak statistics across the split; pipelines fit them per-fold correctly. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Serializing preprocessing with the model matters because:",
+     "choices": [
+      "It is required for versioning",
+      "It speeds up training",
+      "Serving must apply the identical transforms or inputs shift silently",
+      "It reduces model size"
+     ],
+     "answer": 2,
+     "explain": "Training-serving skew from mismatched preprocessing is a classic production bug; ship them together. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Batch scoring beats online serving when:",
+     "choices": [
+      "Traffic is unpredictable",
+      "Latency budget is milliseconds",
+      "Predictions must be instant",
+      "Decisions can wait for the next scheduled run and volume is large"
+     ],
+     "answer": 3,
+     "explain": "Batch is simpler and cheaper; choose it whenever the decision's time sensitivity allows. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "You move from cron retrains to an orchestrator when:",
+     "choices": [
+      "Dependencies, retries, and backfills make cron fragile and unobservable",
+      "Training takes over an hour",
+      "You use GPUs",
+      "You have more than one model"
+     ],
+     "answer": 0,
+     "explain": "Cron can't express DAG dependencies or retry semantics; orchestrators add visibility and reliability. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -579,6 +787,14 @@
     {
      "front": "In one sentence, what does Deployment Practice teach you to do?",
      "back": "Deployment for one engineer: a model behind an API, inputs validated, predictions logged — the minimum viable production system."
+    },
+    {
+     "front": "What is a canary deployment for models?",
+     "back": "Route a small slice of live traffic to the new model and compare its predictions and business metrics against the incumbent before full rollout. Canaries catch serving bugs and metric regressions with limited blast radius. The line: 'Canary the model: let 5% of traffic prove it before 100% trusts it.'"
+    },
+    {
+     "front": "How do you monitor data drift in production?",
+     "back": "Track input feature distributions against the training baseline — PSI, KS tests, or simple percentile bands — and alert when they move. Drift means the world changed; the model's assumptions may be stale. The line: 'Drift monitoring watches the world, not the model — the model just inherits the world's changes.'"
     }
    ],
    "quiz": [
@@ -596,35 +812,79 @@
     {
      "q": "Input validation at the API boundary exists to:",
      "choices": [
+      "Charge money",
       "Slow requests",
       "Enforce the app–model contract so bad rows never become silent bad predictions",
-      "Log users",
-      "Charge money"
+      "Log users"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Schema, range, and type checks catch the drift and bugs that models silently absorb."
     },
     {
      "q": "A shadow deployment lets you:",
      "choices": [
-      "Hide the model",
-      "Score live traffic without serving decisions, comparing safely before cutover",
       "Train faster",
-      "Avoid logging"
+      "Avoid logging",
+      "Hide the model",
+      "Score live traffic without serving decisions, comparing safely before cutover"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Shadow mode measures production behavior with zero user impact — the safe comparison."
     },
     {
      "q": "Log predictions because:",
      "choices": [
-      "Storage is cheap",
       "They enable audit, drift detection, error analysis, and future training data",
       "It is fun",
-      "Regulators demand it always"
+      "Regulators demand it always",
+      "Storage is cheap"
+     ],
+     "answer": 0,
+     "explain": "You cannot debug, monitor, or improve what you did not record."
+    },
+    {
+     "q": "Validating model inputs at the API boundary protects against:",
+     "choices": [
+      "Slow training",
+      "Silent failures from malformed or drifted features",
+      "Overfitting",
+      "High cloud bills"
      ],
      "answer": 1,
-     "explain": "You cannot debug, monitor, or improve what you did not record."
+     "explain": "Schema and range checks turn bad inputs into loud errors instead of wrong predictions. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Logging predictions in production enables:",
+     "choices": [
+      "Lower latency",
+      "Faster inference",
+      "Debugging, auditing, and building future training sets from real traffic",
+      "Smaller models"
+     ],
+     "answer": 2,
+     "explain": "Prediction logs are the raw material for monitoring, error analysis, and retraining. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A shadow deployment means:",
+     "choices": [
+      "Deploying without tests",
+      "Hiding the model from users",
+      "Running the model only at night",
+      "Scoring live traffic without serving the results, to compare against the incumbent"
+     ],
+     "answer": 3,
+     "explain": "Shadow mode measures real-world behavior with zero user impact before any rollout. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A rollback plan must include:",
+     "choices": [
+      "The previous artifact version, the trigger metric, and who executes the switch",
+      "More GPUs",
+      "Retraining from scratch",
+      "A press release"
+     ],
+     "answer": 0,
+     "explain": "Rollback is a rehearsed procedure: what version, what signal, who acts. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -683,18 +943,26 @@
     {
      "front": "In one sentence, what does ML Practice Capstone teach you to do?",
      "back": "One end-to-end system that proves the loop: framed, baselined, evaluated honestly, and served — the portfolio piece this path exists to produce."
+    },
+    {
+     "front": "How do you choose a capstone dataset?",
+     "back": "Real, messy, and scoped: public enough to share, dirty enough to need wrangling, small enough to finish in the time you have. A well-known dataset with an underexplored question beats a novel dataset you can't clean. The line: 'Pick a dataset you can finish, then find the question it almost answers.'"
+    },
+    {
+     "front": "What does 'reproducible' mean for a capstone?",
+     "back": "A stranger can rerun everything: pinned dependencies, fixed seeds, scripts that run top to bottom, and data with a documented source. Notebooks must re-execute cleanly. The line: 'Reproducible means the README is a recipe, not a memoir.'"
     }
    ],
    "quiz": [
     {
      "q": "A good capstone problem is one where:",
      "choices": [
-      "Data is unavailable",
       "Data exists, the question is real, and the scope is finishable",
       "It uses the fanciest model",
-      "Nobody has tried it"
+      "Nobody has tried it",
+      "Data is unavailable"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Finishable with real data beats ambitious and abandoned — the loop must complete."
     },
     {
@@ -711,24 +979,68 @@
     {
      "q": "Stating limits in the writeup:",
      "choices": [
+      "Confuses readers",
       "Weakens the project",
       "Separates practitioner work from demos — honest bounds on what was proven",
-      "Is optional",
-      "Confuses readers"
+      "Is optional"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Named limits are a strength: they show you know what you did not prove."
     },
     {
      "q": "Held-out evaluation with stated limits means:",
      "choices": [
-      "Test on training data",
-      "Evaluate once on untouched data and report the boundaries of the claim",
       "Skip evaluation",
-      "Use accuracy only"
+      "Use accuracy only",
+      "Test on training data",
+      "Evaluate once on untouched data and report the boundaries of the claim"
+     ],
+     "answer": 3,
+     "explain": "One honest measurement plus explicit limits is the capstone’s credibility."
+    },
+    {
+     "q": "A good capstone problem is one that is:",
+     "choices": [
+      "Novel and unsolved",
+      "Scoped to finish, with data you can actually obtain",
+      "The largest dataset available",
+      "Guaranteed to beat baselines"
      ],
      "answer": 1,
-     "explain": "One honest measurement plus explicit limits is the capstone’s credibility."
+     "explain": "Finishable with real data beats ambitious and incomplete; scope is the first deliverable. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Stating limits in the writeup is important because:",
+     "choices": [
+      "It excuses low scores",
+      "It shortens the report",
+      "Honest limits build credibility and show you measured properly",
+      "Reviewers require apologies"
+     ],
+     "answer": 2,
+     "explain": "Every model has limits; naming them proves you evaluated rather than marketed. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "The deployed demo needs, at minimum:",
+     "choices": [
+      "Real-time video",
+      "A payment system",
+      "A mobile app",
+      "A working inference path on new inputs plus a clear statement of what it does"
+     ],
+     "answer": 3,
+     "explain": "The demo proves the model works outside the notebook; scope the interface to the essentials. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The iteration log proves:",
+     "choices": [
+      "Each modeling decision was tested against evidence, including what failed",
+      "The final model is optimal",
+      "You used the latest algorithms",
+      "You worked long hours"
+     ],
+     "answer": 0,
+     "explain": "The log is the audit trail of disciplined experimentation — hypotheses, results, lessons. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -787,29 +1099,37 @@
     {
      "front": "When are ensembles not worth the cost?",
      "back": "When a simple model is within noise of the ensemble on the business metric — then serving cost, latency, and complexity buy nothing."
+    },
+    {
+     "front": "What is out-of-bag error?",
+     "back": "In bagging, each tree trains on a bootstrap sample — the samples left out are 'out-of-bag' and serve as a free validation set for that tree. Aggregating OOB predictions estimates test error without a separate split. The line: 'OOB is validation you get for free from bootstrapping.'"
+    },
+    {
+     "front": "How do you tune gradient boosting without overfitting?",
+     "back": "Constrain the complexity first: shallow trees, low learning rate, subsampling, then early-stop on a validation set with a patience count. Tune in that order — early stopping is the honest guardrail. The line: 'Shrink, subsample, early-stop — then tune.'"
     }
    ],
    "quiz": [
     {
      "q": "Bagging primarily reduces:",
      "choices": [
-      "Bias",
-      "Variance",
       "Training time",
-      "Features"
+      "Features",
+      "Bias",
+      "Variance"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Averaging decorrelated models cancels variance; bias is roughly unchanged."
     },
     {
      "q": "Gradient boosting builds each tree on:",
      "choices": [
-      "Random data",
       "The residuals of the ensemble so far",
       "The original labels",
-      "Noise"
+      "Noise",
+      "Random data"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Sequential error correction — each learner targets what remains wrong."
     },
     {
@@ -826,13 +1146,57 @@
     {
      "q": "XGBoost tuning should start with:",
      "choices": [
+      "The objective only",
       "All parameters at once",
       "Learning rate, depth, sampling, and rounds with early stopping",
-      "The seed",
-      "The objective only"
+      "The seed"
+     ],
+     "answer": 2,
+     "explain": "A few high-leverage knobs plus early stopping capture most of the gain."
+    },
+    {
+     "q": "Bagging reduces variance because:",
+     "choices": [
+      "It uses bigger models",
+      "Averaging many noisy, decorrelated predictors cancels their individual errors",
+      "It trains on more data",
+      "It removes bias"
      ],
      "answer": 1,
-     "explain": "A few high-leverage knobs plus early stopping capture most of the gain."
+     "explain": "Averaging independent-ish errors shrinks variance; bias is largely unchanged. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Random forests are a strong default mainly because:",
+     "choices": [
+      "They work only on images",
+      "They never overfit",
+      "They handle mixed types, need little tuning, and resist overfitting via bagging plus feature subsampling",
+      "They are the fastest model"
+     ],
+     "answer": 2,
+     "explain": "Robust out-of-the-box behavior on tabular data is why practitioners reach for them first. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Gradient boosting differs from bagging in that it:",
+     "choices": [
+      "Averages independent models",
+      "Cannot overfit",
+      "Trains trees in parallel on bootstrap samples",
+      "Trains trees sequentially, each correcting the previous trees' residual errors"
+     ],
+     "answer": 3,
+     "explain": "Boosting is sequential error-correction; bagging is parallel variance-reduction. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Stacking without leakage requires:",
+     "choices": [
+      "Generating base-model predictions via cross-validation so the meta-learner trains on out-of-fold outputs",
+      "Averaging the base models",
+      "Only two base models",
+      "Using the test set for the meta-learner"
+     ],
+     "answer": 0,
+     "explain": "Training the meta-learner on in-fold predictions leaks; out-of-fold predictions keep it honest. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -891,40 +1255,48 @@
     {
      "front": "In one sentence, what does Probabilistic ML teach you to do?",
      "back": "Point predictions hide risk. This module teaches the probabilistic view — calibrated probabilities and uncertainty — that separates models from decision tools."
+    },
+    {
+     "front": "What is the difference between aleatoric and epistemic uncertainty?",
+     "back": "Aleatoric uncertainty is noise in the data itself — irreducible no matter how much data you collect. Epistemic uncertainty is ignorance of the true model — shrinkable with more data. Know which you're facing before promising better predictions. The line: 'Aleatoric is the dice; epistemic is not knowing the dice — collect data only against the second.'"
+    },
+    {
+     "front": "How do you explain a posterior predictive distribution?",
+     "back": "Instead of one point prediction, integrate predictions over the posterior of the parameters — the result is a distribution that carries both data noise and parameter uncertainty. It answers 'what might we see?' not just 'what's most likely?' The line: 'Posterior predictive: the forecast plus an honest admission of how much we don't know.'"
     }
    ],
    "quiz": [
     {
      "q": "Bayes’ rule updates:",
      "choices": [
+      "Models into ensembles",
       "Nothing",
       "Prior beliefs into posteriors as evidence arrives",
-      "Data into noise",
-      "Models into ensembles"
+      "Data into noise"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Posterior ∝ likelihood × prior — the disciplined way to learn from evidence."
     },
     {
      "q": "Naive Bayes remains useful as:",
      "choices": [
-      "The final model always",
-      "A fast baseline, especially on sparse text-like data",
       "A deep network",
-      "A clustering method"
+      "A clustering method",
+      "The final model always",
+      "A fast baseline, especially on sparse text-like data"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Two minutes to a respectable bar that fancier models must beat."
     },
     {
      "q": "Use expected-value thinking when:",
      "choices": [
-      "You have no probabilities",
       "Uncertainty must be converted into decisions via probability × payoff",
       "Data is clean",
-      "Models are linear"
+      "Models are linear",
+      "You have no probabilities"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Point predictions hide risk; expected value turns uncertainty into action."
     },
     {
@@ -937,6 +1309,50 @@
      ],
      "answer": 1,
      "explain": "Elegant uncertainty quantification, but cubic scaling limits size."
+    },
+    {
+     "q": "Bayes' rule gives you the discipline of:",
+     "choices": [
+      "Always using uniform priors",
+      "Updating prior beliefs with observed evidence to get posterior beliefs",
+      "Avoiding probability",
+      "Maximizing likelihood only"
+     ],
+     "answer": 1,
+     "explain": "Posterior is proportional to likelihood times prior — principled belief updating. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Naive Bayes remains a useful baseline because:",
+     "choices": [
+      "It handles images best",
+      "Its independence assumption is always true",
+      "It trains fast, needs little data, and is surprisingly strong on text",
+      "It cannot overfit"
+     ],
+     "answer": 2,
+     "explain": "Speed and data-efficiency make it the baseline to beat, especially for classification on text. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A well-calibrated classifier's predicted probabilities:",
+     "choices": [
+      "Are perfectly ranked",
+      "Need no validation",
+      "Are always above 0.9",
+      "Match observed frequencies — among predictions of 0.7, about 70% are positive"
+     ],
+     "answer": 3,
+     "explain": "Calibration is about the numbers meaning what they say, distinct from ranking quality. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Gaussian processes are worth a glance when:",
+     "choices": [
+      "Data is scarce and you want principled uncertainty estimates",
+      "You need the fastest inference",
+      "Features are images",
+      "You have millions of rows"
+     ],
+     "answer": 0,
+     "explain": "GPs give Bayesian uncertainty but scale cubically — small-data regimes are their home. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -995,6 +1411,14 @@
     {
      "front": "In one sentence, what does Deep Architectures teach you to do?",
      "back": "Deep learning for the tabular practitioner: the architectures worth knowing, the training discipline that makes them converge, and honest guidance on when trees still win."
+    },
+    {
+     "front": "What is the dead-neuron problem in ReLUs?",
+     "back": "A ReLU outputs zero for all negative inputs; if a neuron's weights push it permanently negative, its gradient is zero forever and it never recovers — it 'dies'. Leaky ReLU / ELU or careful initialization keep units alive. The line: 'Dead ReLUs are silent forever; leaky variants keep a whisper of gradient.'"
+    },
+    {
+     "front": "How do you read a loss curve?",
+     "back": "Smooth decline with train/val tracking is healthy; train falling while val rises is overfitting; both flat is underfitting or too-small a learning rate; spikes suggest unstable optimization. The line: 'The loss curve is the model's diary — train/val divergence is the headline.'"
     }
    ],
    "quiz": [
@@ -1012,35 +1436,79 @@
     {
      "q": "Entity embeddings are for:",
      "choices": [
+      "Dimensionality reduction of pixels",
       "Images",
       "High-cardinality categoricals, learning similarity between categories",
-      "Text only",
-      "Dimensionality reduction of pixels"
+      "Text only"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Dense learned vectors beat giant one-hots for things like zip codes or SKUs."
     },
     {
      "q": "The practical training discipline is:",
      "choices": [
-      "Train once",
-      "Schedules with warmup, early stopping on validation, checkpoints",
       "Max epochs always",
-      "No validation"
+      "No validation",
+      "Train once",
+      "Schedules with warmup, early stopping on validation, checkpoints"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Keep the best model, not the last — and survive interrupted runs."
     },
     {
      "q": "Transfer learning fits when:",
      "choices": [
-      "Data is huge",
       "A pretrained model’s representations beat what your small dataset could learn",
       "You have no data",
-      "Models are linear"
+      "Models are linear",
+      "Data is huge"
+     ],
+     "answer": 0,
+     "explain": "Adapt strong representations instead of reinventing them from scarce data."
+    },
+    {
+     "q": "Trees still beat deep learning on tabular data when:",
+     "choices": [
+      "The dataset has millions of images",
+      "Features are heterogeneous with irregular interactions and data is modest",
+      "You have unlimited compute",
+      "The task is translation"
      ],
      "answer": 1,
-     "explain": "Adapt strong representations instead of reinventing them from scarce data."
+     "explain": "Gradient-boosted trees dominate messy tabular data; deep learning wins on perceptual, large-scale tasks. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "In an MLP, depth, width, and normalization respectively control:",
+     "choices": [
+      "Learning rate, momentum, decay",
+      "Speed, memory, accuracy",
+      "Representational capacity, capacity per layer, and training stability",
+      "Regularization, dropout, batch size"
+     ],
+     "answer": 2,
+     "explain": "Depth composes features, width widens each layer's capacity, normalization stabilizes optimization. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Entity embeddings for high-cardinality categoricals beat one-hot because:",
+     "choices": [
+      "They need no training",
+      "They work only for text",
+      "They are always smaller",
+      "They learn dense representations capturing similarity between categories"
+     ],
+     "answer": 3,
+     "explain": "Learned dense vectors share statistical strength across similar categories instead of isolated sparse columns. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Transfer learning is the right call when:",
+     "choices": [
+      "Your task resembles the pretraining task and your labeled data is limited",
+      "You need full interpretability",
+      "Compute is free",
+      "You have more data than the pretrained model saw"
+     ],
+     "answer": 0,
+     "explain": "Pretrained representations transfer knowledge you couldn't afford to learn from your small dataset. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1099,18 +1567,26 @@
     {
      "front": "In one sentence, what does Optimization teach you to do?",
      "back": "Optimization as resource allocation: which optimizer, which schedule, and how much tuning budget a problem earns — tracked, not guessed."
+    },
+    {
+     "front": "What is learning-rate scheduling?",
+     "back": "Changing the learning rate during training — warmup then decay, cosine annealing, or step drops — to take big steps early and fine steps late. Schedules let you start aggressive and finish precise. The line: 'Schedule the learning rate like a landing: fast approach, gentle touchdown.'"
+    },
+    {
+     "front": "Why do you normalize inputs before optimizing?",
+     "back": "Features on wildly different scales stretch the loss landscape into a narrow valley — gradient descent zigzags and converges slowly. Standardizing inputs makes the landscape round and the optimizer's steps efficient. The line: 'Normalize inputs and the optimizer walks downhill; skip it and it zigzags across a canyon.'"
     }
    ],
    "quiz": [
     {
      "q": "Adam’s practical edge over SGD is:",
      "choices": [
-      "Guaranteed optima",
       "Per-parameter adaptive rates needing less schedule tuning",
       "No gradients needed",
-      "Convex-only"
+      "Convex-only",
+      "Guaranteed optima"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Adaptive moments make Adam convenient, though well-tuned SGD can generalize better."
     },
     {
@@ -1127,24 +1603,68 @@
     {
      "q": "A tuning budget is:",
      "choices": [
+      "Only for big teams",
       "Unlimited search",
       "A pre-committed compute/time limit per problem, tracked with sweeps",
-      "A guess",
-      "Only for big teams"
+      "A guess"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Optimization as resource allocation: decide what the problem earns, then spend it deliberately."
     },
     {
      "q": "Prefer Bayesian optimization over random search when:",
      "choices": [
-      "Evaluations are cheap",
-      "Each evaluation is expensive and the space is moderate-dimensional",
       "Never",
-      "Always"
+      "Always",
+      "Evaluations are cheap",
+      "Each evaluation is expensive and the space is moderate-dimensional"
+     ],
+     "answer": 3,
+     "explain": "Surrogate-guided search pays off when samples are precious; random search is the cheap baseline."
+    },
+    {
+     "q": "Adam's practical advantage over plain SGD is:",
+     "choices": [
+      "It never needs tuning",
+      "Adaptive per-parameter learning rates that converge faster on messy, sparse problems",
+      "It guarantees global optima",
+      "It uses no learning rate"
      ],
      "answer": 1,
-     "explain": "Surrogate-guided search pays off when samples are precious; random search is the cheap baseline."
+     "explain": "Adam adapts step sizes per parameter, which helps with sparse gradients and scale differences. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Learning-rate warmup helps because:",
+     "choices": [
+      "It replaces scheduling",
+      "It speeds up data loading",
+      "Starting with small steps avoids early destructive updates while weights are random",
+      "It reduces memory use"
+     ],
+     "answer": 2,
+     "explain": "Large steps on randomly initialized weights can diverge; warmup ramps up safely. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Larger batch sizes affect generalization by:",
+     "choices": [
+      "Having no effect",
+      "Eliminating the need for regularization",
+      "Always improving it",
+      "Reducing gradient noise, which can lead to sharper minima that generalize worse"
+     ],
+     "answer": 3,
+     "explain": "Small-batch noise acts as implicit regularization; very large batches can converge to sharper minima. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Prefer Bayesian optimization over random search when:",
+     "choices": [
+      "Each evaluation is expensive and you can afford the surrogate model's overhead",
+      "You have no budget",
+      "The space is tiny",
+      "Each evaluation is cheap"
+     ],
+     "answer": 0,
+     "explain": "Bayesian methods spend compute choosing the next point — worth it only when trials are costly. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1203,29 +1723,37 @@
     {
      "front": "In one sentence, what does Model Interpretation teach you to do?",
      "back": "Opening the black box enough to trust and explain it: global and local interpretation methods, their limits, and the stakeholder-facing story."
+    },
+    {
+     "front": "What do local explanations add over global ones?",
+     "back": "Global importance says which features matter overall; local explanations (LIME, SHAP per-instance) say why this specific prediction happened. Audits, appeals, and debugging need the local story. The line: 'Global tells you the model's habits; local tells you its reasoning for this case.'"
+    },
+    {
+     "front": "How do you detect a model relying on a spurious feature?",
+     "back": "Ablate it: remove or shuffle the suspect feature and watch performance; check slices where the spurious correlation breaks; inspect explanations for the feature dominating where it shouldn't. The line: 'Spurious features fail the ablation test — performance that vanishes with one feature was never real.'"
     }
    ],
    "quiz": [
     {
      "q": "Feature importance hides:",
      "choices": [
-      "Nothing",
-      "Interactions, correlated-feature splitting, and direction of effect",
       "The model type",
-      "The data size"
+      "The data size",
+      "Nothing",
+      "Interactions, correlated-feature splitting, and direction of effect"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Importance is a rough summary — correlated features split credit arbitrarily."
     },
     {
      "q": "SHAP values provide:",
      "choices": [
-      "Global accuracy",
       "Per-prediction feature attributions grounded in Shapley values",
       "Hyperparameters",
-      "Smaller models"
+      "Smaller models",
+      "Global accuracy"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Local explanations: how much each feature pushed this specific prediction."
     },
     {
@@ -1242,13 +1770,57 @@
     {
      "q": "Explain to stakeholders by:",
      "choices": [
+      "Hiding limits",
       "Reciting the algorithm",
       "Leading with decision-relevant drivers and uncertainty, not internals",
-      "Showing code",
-      "Hiding limits"
+      "Showing code"
+     ],
+     "answer": 2,
+     "explain": "The stakeholder story is which inputs drive outcomes and where the model is unsure."
+    },
+    {
+     "q": "Feature importance measures — and hides:",
+     "choices": [
+      "Nothing; it is complete",
+      "Which features the model relies on, but not how they interact or whether the reliance is causal",
+      "Only linear effects",
+      "The training data"
      ],
      "answer": 1,
-     "explain": "The stakeholder story is which inputs drive outcomes and where the model is unsure."
+     "explain": "Importance ranks usage, not mechanism; correlated features split credit and interactions stay invisible. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Partial dependence plots show:",
+     "choices": [
+      "Training loss",
+      "The full data distribution",
+      "The marginal effect of a feature on predictions, averaging over the others",
+      "Feature correlations"
+     ],
+     "answer": 2,
+     "explain": "PDPs isolate one feature's average influence — useful but they average away interactions. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "SHAP values at practitioner depth are:",
+     "choices": [
+      "A type of neural network",
+      "Unusable for trees",
+      "Global importances only",
+      "Per-prediction, theoretically grounded attributions of each feature's contribution"
+     ],
+     "answer": 3,
+     "explain": "Shapley-based attributions give consistent local explanations, with fast exact algorithms for trees. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "When explaining a model to stakeholders, lead with:",
+     "choices": [
+      "What it predicts, how well, and where it fails — in business terms",
+      "The loss function",
+      "The optimizer settings",
+      "The architecture diagram"
+     ],
+     "answer": 0,
+     "explain": "Stakeholders need decisions and risks, not internals; lead with behavior and limits. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1307,40 +1879,48 @@
     {
      "front": "In one sentence, what does Advanced ML Project teach you to do?",
      "back": "A guided project on a genuinely difficult problem: ensembles, systematic tuning, and ablations that prove which pieces earned their keep."
+    },
+    {
+     "front": "How do you budget compute for the project?",
+     "back": "Estimate before you spend: time one training run, multiply by the experiments you plan, add a 2x buffer, and cap the tuning budget per idea. Kill expensive ideas early with cheap proxies. The line: 'Budget compute like money: estimate the run, price the sweep, cap the spend.'"
+    },
+    {
+     "front": "What makes an ablation honest?",
+     "back": "Change exactly one thing versus a fixed baseline, keep seeds and data identical, and report the delta with variance — not the best of five runs. An ablation isolates cause; a sloppy one just adds noise. The line: 'One variable, fixed everything else, reported with error bars — that's an ablation.'"
     }
    ],
    "quiz": [
     {
      "q": "An ablation study:",
      "choices": [
+      "Tunes the seed",
       "Removes data",
       "Removes/swaps one component at a time to measure its contribution",
-      "Adds layers",
-      "Tunes the seed"
+      "Adds layers"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Credit assignment: prove which pieces earned their keep."
     },
     {
      "q": "Pick a project dataset that is:",
      "choices": [
-      "Tiny and clean",
-      "Hard and real — messy, sizable, nontrivial signal",
       "Synthetic",
-      "Secret"
+      "Secret",
+      "Tiny and clean",
+      "Hard and real — messy, sizable, nontrivial signal"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Real difficulty is where engineering choices become visible."
     },
     {
      "q": "Error analysis should focus on:",
      "choices": [
-      "The average",
       "The hardest slices, where the model fails users",
       "Training error",
-      "The easiest rows"
+      "The easiest rows",
+      "The average"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Averages hide failure; slices direct the next effort where it matters."
     },
     {
@@ -1353,6 +1933,50 @@
      ],
      "answer": 1,
      "explain": "Results plus limits plus what-next — the shape practitioners trust."
+    },
+    {
+     "q": "An ablation isolates cause by:",
+     "choices": [
+      "Trying many ideas at once",
+      "Changing exactly one component versus a fixed baseline with seeds and data held constant",
+      "Reporting the best run",
+      "Removing the baseline"
+     ],
+     "answer": 1,
+     "explain": "One variable changed, everything else fixed, delta reported with variance — that's the discipline. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A 'hard and real' dataset for this project is one that is:",
+     "choices": [
+      "Already solved",
+      "Perfectly clean",
+      "Messy, realistic, and large enough that naive approaches visibly struggle",
+      "Tiny and synthetic"
+     ],
+     "answer": 2,
+     "explain": "Real difficulty — noise, size, structure — is what makes the project demonstrate skill. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Error analysis on the hardest slices matters because:",
+     "choices": [
+      "It is required for publication",
+      "Slices are easier",
+      "It improves the average a lot",
+      "Aggregate metrics hide the failures that would matter in deployment"
+     ],
+     "answer": 3,
+     "explain": "The worst slices are where users get hurt; averages hide them. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "A practitioner-respecting writeup contains:",
+     "choices": [
+      "Problem, approach, ablations, error analysis, limits, and reproduction notes",
+      "Marketing copy",
+      "The full dataset",
+      "Only the final score"
+     ],
+     "answer": 0,
+     "explain": "Practitioners judge method and honesty, not just the headline number. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -1411,6 +2035,14 @@
     {
      "front": "In one sentence, what does NumPy and pandas teach you to do?",
      "back": "The two libraries under everything: array thinking with NumPy and table wrangling with pandas, taught as daily practice, not reference tours."
+    },
+    {
+     "front": "What is the difference between a view and a copy?",
+     "back": "A view shares memory with the original array — modifying it changes the source; a copy is independent. pandas' SettingWithCopyWarning exists because chained indexing makes this ambiguous. The line: 'When in doubt, .copy() — explicit independence beats silent aliasing.'"
+    },
+    {
+     "front": "When do you use apply, and when do you avoid it?",
+     "back": "Use apply for genuinely row-wise logic that has no vectorized form; avoid it for anything NumPy or pandas can do natively — it's a Python loop in disguise and orders of magnitude slower. The line: 'apply is the escape hatch, not the front door — vectorize first.'"
     }
    ],
    "quiz": [
@@ -1428,35 +2060,79 @@
     {
      "q": "groupby-aggregation answers:",
      "choices": [
+      "How to merge",
       "What is the shape",
       "Split-apply-combine questions: per-group summaries",
-      "How to plot",
-      "How to merge"
+      "How to plot"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "The workhorse for per-category statistics."
     },
     {
      "q": "Tidy data means:",
      "choices": [
-      "No missing values",
-      "One observation per row, one variable per column",
       "Sorted rows",
-      "Small files"
+      "Small files",
+      "No missing values",
+      "One observation per row, one variable per column"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Tidy shape makes every downstream operation predictable."
     },
     {
      "q": "Debug data code by checking:",
      "choices": [
-      "Only errors",
       "Shapes and dtypes at each step, with asserts on invariants",
       "The docs",
-      "The seed"
+      "The seed",
+      "Only errors"
+     ],
+     "answer": 0,
+     "explain": "Silent shape/dtype changes are where data bugs live."
+    },
+    {
+     "q": "Broadcasting in NumPy lets you:",
+     "choices": [
+      "Send data over a network",
+      "Operate on arrays of different but compatible shapes without explicit loops",
+      "Compile code faster",
+      "Read CSV files"
      ],
      "answer": 1,
-     "explain": "Silent shape/dtype changes are where data bugs live."
+     "explain": "Broadcasting aligns trailing dimensions, turning scalar-per-row math into vectorized ops. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A pandas view versus a copy matters because:",
+     "choices": [
+      "Views use more memory",
+      "Views are always faster",
+      "Modifying a view silently changes the original data",
+      "Copies cannot be indexed"
+     ],
+     "answer": 2,
+     "explain": "Aliased memory means edits propagate unexpectedly — hence SettingWithCopyWarning and explicit .copy(). Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Tidy data principles require:",
+     "choices": [
+      "No missing values",
+      "CSV storage",
+      "Wide format always",
+      "Each variable a column, each observation a row, each value a cell"
+     ],
+     "answer": 3,
+     "explain": "The tidy rectangle makes every pandas verb behave predictably. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The first debugging move for surprising DataFrame output is:",
+     "choices": [
+      "Inspect shape, dtypes, head, and null counts before blaming the logic",
+      "Rewrite in pure Python",
+      "Increase memory",
+      "Restart the kernel"
+     ],
+     "answer": 0,
+     "explain": "Most 'logic bugs' are shape/dtype surprises; the quick inspection usually finds them. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -1515,18 +2191,26 @@
     {
      "front": "In one sentence, what does Visualization teach you to do?",
      "back": "Plots as instruments: the charts that reveal skewed distributions, outliers, and label errors before they become model bugs."
+    },
+    {
+     "front": "What is small multiples' strength?",
+     "back": "Faceting the same chart across categories (one panel per segment) makes comparisons the reader does effortlessly — trends across regions, cohorts, or time. It scales where overlaid lines become spaghetti. The line: 'Small multiples turn comparison into a glance.'"
+    },
+    {
+     "front": "How do you visualize missing data?",
+     "back": "Plot the missingness itself: a heatmap of nulls by column, or missingness rates grouped by a key variable. Patterns in what's missing are often the story — missing-not-at-random changes everything. The line: 'Missing data is data about your data collection — chart it.'"
     }
    ],
    "quiz": [
     {
      "q": "Histograms and box plots reveal:",
      "choices": [
-      "Relationships",
       "Distributions: shape, spread, outliers",
       "Correlations",
-      "Missingness only"
+      "Missingness only",
+      "Relationships"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The first look at any column — skew and outliers surface immediately."
     },
     {
@@ -1543,24 +2227,68 @@
     {
      "q": "Scatter and pair plots reveal:",
      "choices": [
+      "Dtypes",
       "Distributions",
       "Relationships between variables",
-      "Missing data",
-      "Dtypes"
+      "Missing data"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Correlation and structure at a glance across feature pairs."
     },
     {
      "q": "Exploratory plots catch:",
      "choices": [
-      "Nothing new",
-      "Skew, outliers, impossible values, label errors before they become model bugs",
       "The best model",
-      "Hyperparameters"
+      "Hyperparameters",
+      "Nothing new",
+      "Skew, outliers, impossible values, label errors before they become model bugs"
+     ],
+     "answer": 3,
+     "explain": "Plots are instruments — data problems show visually first."
+    },
+    {
+     "q": "Learning Matplotlib's object model (Figure/Axes) matters because:",
+     "choices": [
+      "It is faster",
+      "Explicit control of figures and axes is required for multi-panel and publication plots",
+      "pyplot is deprecated",
+      "It needs less code"
      ],
      "answer": 1,
-     "explain": "Plots are instruments — data problems show visually first."
+     "explain": "The OO interface gives deterministic control that pyplot's implicit state can't. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Histograms and KDE plots reveal:",
+     "choices": [
+      "Missingness",
+      "Correlations",
+      "The shape of a distribution — skew, modes, outliers",
+      "Time trends"
+     ],
+     "answer": 2,
+     "explain": "Distribution plots show what summary statistics hide: shape and anomalies. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "An honest axis in a chart means:",
+     "choices": [
+      "No gridlines",
+      "Log scale always",
+      "Always starting at zero",
+      "A scale that doesn't visually exaggerate differences — zero baselines for bar lengths, declared breaks otherwise"
+     ],
+     "answer": 3,
+     "explain": "Truncated axes exaggerate; honesty is about not misleading the eye. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Exploratory plots catch data problems such as:",
+     "choices": [
+      "Impossible values, gaps, and distribution shifts that tables of numbers hide",
+      "Missing imports",
+      "Wrong file paths",
+      "Slow code"
+     ],
+     "answer": 0,
+     "explain": "A quick plot surfaces outliers and anomalies that summary stats smooth over. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1619,29 +2347,37 @@
     {
      "front": "In one sentence, what does The scikit-learn API teach you to do?",
      "back": "One consistent API for all of classical ML: fit on train, predict on new data — plus the pipeline habit that prevents leakage from day one."
+    },
+    {
+     "front": "What does cross_val_score actually do?",
+     "back": "It clones the estimator, trains and scores it on each fold of the split, and returns one score per fold — estimating how the model generalizes. It does not tune anything; tuning needs a search wrapper. The line: 'cross_val_score measures; GridSearchCV tunes.'"
+    },
+    {
+     "front": "How do you tune hyperparameters with GridSearchCV discipline?",
+     "back": "Wrap the full pipeline (preprocessing inside), search a coarse grid first, refine around the winner, and keep an untouched test set for the final number. Report the search space, not just the winner. The line: 'Pipeline in, coarse-to-fine grid, test set untouched — that's the discipline.'"
     }
    ],
    "quiz": [
     {
      "q": "The estimator contract is:",
      "choices": [
-      "fit on test",
-      "fit learns from train; predict applies to new data",
       "predict before fit",
-      "No contract"
+      "No contract",
+      "fit on test",
+      "fit learns from train; predict applies to new data"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "One consistent API: fit, predict, transform."
     },
     {
      "q": "train_test_split with stratify:",
      "choices": [
-      "Shuffles only",
       "Preserves class balance in the held-out split",
       "Removes outliers",
-      "Scales features"
+      "Scales features",
+      "Shuffles only"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Stratification keeps the split representative — critical for imbalanced targets."
     },
     {
@@ -1658,13 +2394,57 @@
     {
      "q": "Form the pipeline habit early because:",
      "choices": [
+      "It plots",
       "It is trendy",
       "Preprocessing inside the fold becomes the default — leakage prevention for free",
-      "It is faster",
-      "It plots"
+      "It is faster"
+     ],
+     "answer": 2,
+     "explain": "Habits formed on toy problems protect you on real ones."
+    },
+    {
+     "q": "The estimator contract in scikit-learn is:",
+     "choices": [
+      "fit returns predictions",
+      "fit learns parameters, predict/transform apply them; fit returns self for chaining",
+      "All models are pipelines",
+      "Estimators cannot be cloned"
      ],
      "answer": 1,
-     "explain": "Habits formed on toy problems protect you on real ones."
+     "explain": "The uniform fit/predict/transform API is what makes pipelines and search composable. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "train_test_split matters because:",
+     "choices": [
+      "It balances classes",
+      "It shuffles the data",
+      "Evaluating on data the model trained on gives an optimistic, meaningless score",
+      "It is faster"
+     ],
+     "answer": 2,
+     "explain": "Held-out evaluation is the only honest measure; training scores are vanity. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A classification report's per-class precision and recall tell you:",
+     "choices": [
+      "Feature importance",
+      "The best threshold",
+      "Training time per class",
+      "Which classes the model confuses and in which direction errors lean"
+     ],
+     "answer": 3,
+     "explain": "Per-class metrics reveal the failure modes that accuracy averages away. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Forming the pipeline habit early prevents:",
+     "choices": [
+      "Preprocessing leakage and training-serving skew from ad-hoc transform code",
+      "Overfitting",
+      "High memory use",
+      "Slow training"
+     ],
+     "answer": 0,
+     "explain": "Pipelines bind transforms to the model so every fold and deployment repeats them identically. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1723,40 +2503,48 @@
     {
      "front": "In one sentence, what does The Python ML Ecosystem teach you to do?",
      "back": "The working environment around the libraries: isolated envs, notebook hygiene, and debugging data code by shapes and dtypes."
+    },
+    {
+     "front": "What is a requirements file for?",
+     "back": "It pins every dependency to an exact version so the environment rebuilds identically — requirements.txt or a lock file. 'It works on my machine' is the failure a lock file prevents. The line: 'Pin it or lose it: the lock file is the environment's memory.'"
+    },
+    {
+     "front": "How do you structure an ML project directory?",
+     "back": "Separate concerns: data/ (never committed), notebooks/ (exploration, numbered), src/ (importable code), models/ (artifacts), configs/ (parameters), tests/. If someone can't find the training entry point in 30 seconds, restructure. The line: 'Notebooks explore, src/ ships — never confuse the two.'"
     }
    ],
    "quiz": [
     {
      "q": "Virtual environments give you:",
      "choices": [
+      "Free GPUs",
       "Speed",
       "Isolated, reproducible dependencies per project",
-      "More RAM",
-      "Free GPUs"
+      "More RAM"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Reproducibility starts with knowing exactly what is installed."
     },
     {
      "q": "Jupyter discipline means:",
      "choices": [
-      "Never use notebooks",
-      "Explore in notebooks, then refactor working code into scripts",
       "Only scripts",
-      "No comments"
+      "No comments",
+      "Never use notebooks",
+      "Explore in notebooks, then refactor working code into scripts"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Notebooks are the lab; scripts are the product."
     },
     {
      "q": "Read a traceback:",
      "choices": [
-      "Top-down",
       "Bottom-up: error line first, then your frames upward",
       "Ignore it",
-      "Restart the kernel"
+      "Restart the kernel",
+      "Top-down"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The bottom line names the error; your code’s frames name the cause."
     },
     {
@@ -1769,6 +2557,50 @@
      ],
      "answer": 1,
      "explain": "Guessing wastes effort; measurement finds the real bottleneck."
+    },
+    {
+     "q": "Virtual environments for ML projects exist to:",
+     "choices": [
+      "Speed up code",
+      "Isolate dependency versions per project so upgrades in one don't break another",
+      "Reduce disk use",
+      "Enable GPUs"
+     ],
+     "answer": 1,
+     "explain": "Dependency conflicts are the classic 'works on my machine' cause; venvs isolate them. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Jupyter discipline means:",
+     "choices": [
+      "Hiding all code",
+      "Never using notebooks",
+      "Numbered, top-to-bottom re-runnable notebooks with outputs cleared before committing",
+      "One giant notebook"
+     ],
+     "answer": 2,
+     "explain": "Out-of-order execution makes notebooks lie; re-runnable order is the discipline. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Reading tracebacks in library code starts with:",
+     "choices": [
+      "Reinstalling the library",
+      "Ignoring warnings",
+      "The first line",
+      "The last lines naming your call, then walking up to find which of your inputs broke"
+     ],
+     "answer": 3,
+     "explain": "The bottom shows the error, your frame shows the cause; library internals are usually innocent. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Profiling ML code before optimizing matters because:",
+     "choices": [
+      "Guesses about bottlenecks are usually wrong; measure first, then optimize the hot path",
+      "Profilers are required",
+      "It reduces code size",
+      "Optimization is fun"
+     ],
+     "answer": 0,
+     "explain": "Premature optimization wastes effort on cold code; profiles point at the real cost. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1827,6 +2659,14 @@
     {
      "front": "In one sentence, what does Working with Real Data teach you to do?",
      "back": "Data never arrives clean: the ingestion skills — messy files, APIs, a glance of SQL — that turn ‘the data’ into a DataFrame."
+    },
+    {
+     "front": "How do you handle inconsistent date formats?",
+     "back": "Never parse by guessing: sample the raw values, identify the formats present, parse with explicit format strings per pattern, and coerce failures to NaT with a logged count. Timezone-naive vs aware must be decided once, up front. The line: 'Dates get one canonical format — I declare it before parsing.'"
+    },
+    {
+     "front": "What goes in a data README?",
+     "back": "Source and pull date, schema with types, known quirks (encoding, missingness, duplicates), the grain of each table, and who to ask when it's wrong. Future-you will thank present-you. The line: 'The data README is the contract between you and the next person who touches the data.'"
     }
    ],
    "quiz": [
@@ -1844,35 +2684,79 @@
     {
      "q": "SQL at a glance is for:",
      "choices": [
+      "Serving",
       "Modeling",
       "Extracting exactly the slice you need with SELECT/WHERE/JOIN/GROUP BY",
-      "Plotting",
-      "Serving"
+      "Plotting"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Pull the slice, not the warehouse."
     },
     {
      "q": "Sample large datasets for exploration because:",
      "choices": [
-      "Samples are exact",
-      "Exploration is fast on a representative sample; full scans are for pipelines",
       "It is required",
-      "Memory is infinite"
+      "Memory is infinite",
+      "Samples are exact",
+      "Exploration is fast on a representative sample; full scans are for pipelines"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Ask questions cheaply, then run the final pipeline once on everything."
     },
     {
      "q": "Document data assumptions because:",
      "choices": [
-      "It is busywork",
       "Units, timezones, and missingness meanings become bugs or onboarding gifts",
       "Nobody reads docs",
-      "It slows you"
+      "It slows you",
+      "It is busywork"
+     ],
+     "answer": 0,
+     "explain": "Unwritten assumptions are future incidents."
+    },
+    {
+     "q": "CSVs in the wild go wrong via:",
+     "choices": [
+      "Being too fast to parse",
+      "Mixed encodings, inconsistent delimiters, type inference surprises, and silent truncation",
+      "Excessive cleanliness",
+      "Perfect schemas"
      ],
      "answer": 1,
-     "explain": "Unwritten assumptions are future incidents."
+     "explain": "Real CSVs are adversarial; inspect before you trust the parser's guesses. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Sampling large datasets for exploration is justified because:",
+     "choices": [
+      "Memory is infinite",
+      "Full data is never needed",
+      "A representative sample answers 'what's in here?' in seconds instead of hours",
+      "Sampling improves accuracy"
+     ],
+     "answer": 2,
+     "explain": "Exploration needs speed; validate findings on full data only at the end. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "'SQL at a glance' for extraction means:",
+     "choices": [
+      "Writing all logic in SQL",
+      "Exporting whole tables",
+      "Avoiding SQL",
+      "Using SELECT with filters and aggregations to profile and subset before pulling data into Python"
+     ],
+     "answer": 3,
+     "explain": "Let the database do the heavy filtering; pull only what you'll analyze. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Documenting data assumptions protects you when:",
+     "choices": [
+      "An upstream change silently invalidates them — the doc tells you what to recheck",
+      "You have no stakeholders",
+      "The data is small",
+      "Data is perfect"
+     ],
+     "answer": 0,
+     "explain": "Assumptions rot; written ones can be re-verified when pipelines change. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -1931,18 +2815,26 @@
     {
      "front": "In one sentence, what does ML Python Project teach you to do?",
      "back": "A small complete project: raw data to evaluated model, with the exploration, the baseline, and an honest account of what worked."
+    },
+    {
+     "front": "How do you present results without overselling?",
+     "back": "Report the metric with its baseline, the error bars, and the slices where it fails — then state plainly what you would not claim. Honest limits are a feature of the writeup, not a weakness. The line: 'State the number, the baseline, and what you refuse to claim.'"
+    },
+    {
+     "front": "What do you do when the data is worse than expected?",
+     "back": "Document exactly what's broken, shrink the question to what the data can answer, and show what a better dataset would unlock. Adapting scope to data quality is a professional skill, not a failure. The line: 'Bad data narrows the question — it doesn't end the project.'"
     }
    ],
    "quiz": [
     {
      "q": "Pick a dataset you can:",
      "choices": [
-      "Brag about",
       "Finish — right-sized, documented, clear target",
       "Keep secret",
-      "Never evaluate"
+      "Never evaluate",
+      "Brag about"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Completed beats impressive-but-abandoned."
     },
     {
@@ -1959,24 +2851,68 @@
     {
      "q": "Three improvement attempts means:",
      "choices": [
+      "Three plots",
       "Random tweaks",
       "Three deliberate changes, each measured",
-      "Three models",
-      "Three plots"
+      "Three models"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Iteration with evidence, not vibes."
     },
     {
      "q": "Honest evaluation requires:",
      "choices": [
-      "Training accuracy",
-      "Baseline, held-out test touched once, matched metric, stated limits",
       "No baseline",
-      "Accuracy only"
+      "Accuracy only",
+      "Training accuracy",
+      "Baseline, held-out test touched once, matched metric, stated limits"
+     ],
+     "answer": 3,
+     "explain": "The full honesty package — that is what the writeup reports."
+    },
+    {
+     "q": "Picking a dataset you can finish means:",
+     "choices": [
+      "Choosing the biggest one",
+      "Sized to your time, obtainable, and messy enough to need real work",
+      "Only using toy data",
+      "Avoiding public data"
      ],
      "answer": 1,
-     "explain": "The full honesty package — that is what the writeup reports."
+     "explain": "An unfinished ambitious project proves less than a finished scoped one. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Honest evaluation in the project requires:",
+     "choices": [
+      "Only the best metric",
+      "Reporting training accuracy",
+      "A held-out test set, a baseline, and error bars — reported even when unflattering",
+      "Tuning on the test set"
+     ],
+     "answer": 2,
+     "explain": "Honesty about the number is what makes the project credible. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "'Three concrete improvement attempts' means:",
+     "choices": [
+      "Three models from a list",
+      "Three hyperparameter values",
+      "Three random ideas",
+      "Three hypothesized, implemented, and measured changes with results — including failures"
+     ],
+     "answer": 3,
+     "explain": "Documented attempts with measured outcomes show iterative skill, not luck. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The final writeup proves:",
+     "choices": [
+      "You can frame a problem, test ideas with discipline, and report honestly",
+      "The dataset was easy",
+      "You worked alone",
+      "You used deep learning"
+     ],
+     "answer": 0,
+     "explain": "The writeup is evidence of process: framing, method, measurement, limits. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -2035,29 +2971,37 @@
     {
      "front": "How do you read a model architecture like an engineer?",
      "back": "Layers, hidden size, heads, context length, parameter count — then map each to cost, latency, and capability implications."
+    },
+    {
+     "front": "What does multi-head attention add over single-head?",
+     "back": "Each head learns a different relation — syntax, coreference, position — in its own subspace, and the model combines them. One head is one lens; many heads are a compound eye. The line: 'Multi-head attention lets the model attend to different kinds of relationships at once.'"
+    },
+    {
+     "front": "Why do positional encodings matter?",
+     "back": "Attention is permutation-invariant — without position information, 'dog bites man' and 'man bites dog' look identical. Positional encodings (sinusoidal or rotary) inject order back in. The line: 'Attention sees sets; positional encodings restore sequence.'"
     }
    ],
    "quiz": [
     {
      "q": "Self-attention computes, per token:",
      "choices": [
-      "A fixed vector",
-      "A weighted mix of all tokens’ values, weights from query-key similarity",
       "Only the previous token",
-      "Random weights"
+      "Random weights",
+      "A fixed vector",
+      "A weighted mix of all tokens’ values, weights from query-key similarity"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "softmax(QKᵀ/√d)V — context gathered as weighted mixing."
     },
     {
      "q": "Decoder-only architectures dominate because:",
      "choices": [
-      "They are older",
       "One next-token-prediction stack scales cleanly for understanding and generation",
       "They are smaller",
-      "They need no data"
+      "They need no data",
+      "They are older"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Simplicity at scale won — the modern default."
     },
     {
@@ -2074,13 +3018,57 @@
     {
      "q": "Quantization is viable when:",
      "choices": [
+      "Only for training",
       "Never",
       "Quality checks after compression confirm affordable precision loss",
-      "Always",
-      "Only for training"
+      "Always"
+     ],
+     "answer": 2,
+     "explain": "Smaller and faster is only free if your evals say so."
+    },
+    {
+     "q": "Self-attention as an implementable operation is:",
+     "choices": [
+      "A recurrent loop over tokens",
+      "Scaled dot-product of queries against keys, softmaxed, then used to weight values",
+      "A convolution over the sequence",
+      "Random sampling"
      ],
      "answer": 1,
-     "explain": "Smaller and faster is only free if your evals say so."
+     "explain": "QK^T / sqrt(d), softmax, times V — the operation you can write in a dozen lines. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Decoder-only architectures became the modern default because:",
+     "choices": [
+      "Encoders were proven wrong",
+      "They train faster on images",
+      "A single causal stack scales cleanly to generative pretraining at massive scale",
+      "They need no position info"
+     ],
+     "answer": 2,
+     "explain": "Causal language modeling on one stack proved the scalable recipe; encoders remain for understanding tasks. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Long context costs:",
+     "choices": [
+      "Only disk space",
+      "Only training time",
+      "Nothing extra",
+      "Memory for the KV cache growing with tokens, plus roughly quadratic attention compute"
+     ],
+     "answer": 3,
+     "explain": "Every extra token adds cache memory and attention work — context is a priced resource. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The KV cache exists to:",
+     "choices": [
+      "Avoid recomputing key/value projections for already-generated tokens during decoding",
+      "Store training data",
+      "Speed up backprop",
+      "Compress the model"
+     ],
+     "answer": 0,
+     "explain": "Caching K/V turns each decode step from O(n^2) recompute into O(n) incremental work. Covered in this module's 'Concepts'."
     }
    ]
   },
@@ -2139,40 +3127,48 @@
     {
      "front": "In one sentence, what does Pretraining and Fine-Tuning teach you to do?",
      "back": "The adaptation workflow: curate instruction data, adapt efficiently with LoRA, and measure honestly — because fine-tuning can also make models worse."
+    },
+    {
+     "front": "What is catastrophic forgetting in fine-tuning?",
+     "back": "Aggressive fine-tuning can overwrite pretrained knowledge — the model gets better at the new task and worse at everything else. Mitigations: small learning rates, replay of general data, parameter-efficient methods like LoRA. The line: 'Fine-tune too hard and the model forgets what it knew to learn what you taught.'"
+    },
+    {
+     "front": "When is full fine-tuning worth the cost?",
+     "back": "When the task needs deep behavioral change across many layers and you have the data and compute to justify it — otherwise LoRA/PEFT gets most of the gain for a fraction of the cost. The line: 'Full fine-tuning for deep change; adapters for everything else.'"
     }
    ],
    "quiz": [
     {
      "q": "Pretraining teaches:",
      "choices": [
+      "Nothing",
       "Task skills",
       "Broad statistical patterns of language from massive text",
-      "Your task",
-      "Nothing"
+      "Your task"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "General representations — task behavior comes from adaptation."
     },
     {
      "q": "Instruction-tuning success depends most on:",
      "choices": [
-      "GPU count",
-      "Data curation quality and diversity",
       "Model size",
-      "Luck"
+      "Luck",
+      "GPU count",
+      "Data curation quality and diversity"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "The model learns the behavior distribution you show it."
     },
     {
      "q": "LoRA adapts by:",
      "choices": [
-      "Retraining everything",
       "Training low-rank update matrices with base weights frozen",
       "Deleting layers",
-      "More data only"
+      "More data only",
+      "Retraining everything"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Parameter-efficient: a fraction of trainable weights."
     },
     {
@@ -2185,6 +3181,50 @@
      ],
      "answer": 1,
      "explain": "Tuning can make models worse — only measurement tells."
+    },
+    {
+     "q": "Pretraining teaches a model primarily:",
+     "choices": [
+      "Your specific task",
+      "Broad statistical structure of language from next-token prediction at scale",
+      "Human preferences",
+      "Tool use"
+     ],
+     "answer": 1,
+     "explain": "Next-token prediction over vast text builds general linguistic and world knowledge; tasks come later. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Instruction-tuning data curation matters most because:",
+     "choices": [
+      "It replaces pretraining",
+      "More data is always better",
+      "The model learns behavior and format from these examples — quality shapes the assistant",
+      "It is the cheapest step"
+     ],
+     "answer": 2,
+     "explain": "Garbage demonstrations teach garbage behavior; curation is the lever. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "LoRA in one line is:",
+     "choices": [
+      "A new architecture",
+      "Data augmentation",
+      "Full retraining",
+      "Training low-rank adapter matrices while freezing the base weights"
+     ],
+     "answer": 3,
+     "explain": "Low-rank updates capture task adaptation with a fraction of the parameters. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "You know fine-tuning helped when:",
+     "choices": [
+      "Held-out task evals improve versus the base model with no regression on guardrail evals",
+      "It ran to completion",
+      "The model is larger",
+      "Training loss decreased"
+     ],
+     "answer": 0,
+     "explain": "Task gains plus no regressions — training loss alone proves nothing about capability. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -2243,6 +3283,14 @@
     {
      "front": "In one sentence, what does Alignment Techniques teach you to do?",
      "back": "Alignment taught as engineering choices with tradeoffs: helpfulness vs safety, and the honest limits of tuning a model's values."
+    },
+    {
+     "front": "What is a reward model?",
+     "back": "A learned function that scores outputs by human preference — trained on ranked comparisons, then used to steer the policy model in RLHF or to rank candidates at inference. It encodes 'what humans liked' as a number. The line: 'The reward model is preference turned into a gradient.'"
+    },
+    {
+     "front": "How do you red-team an aligned model?",
+     "back": "Probe systematically for jailbreaks, instruction conflicts, and edge cases: adversarial prompts, multi-turn traps, encoded requests, and role-play frames. Document every break, fix, and re-test. The line: 'Red-teaming is quality assurance for behavior — assume it breaks until proven otherwise.'"
     }
    ],
    "quiz": [
@@ -2260,35 +3308,79 @@
     {
      "q": "DPO’s advantage over RLHF is:",
      "choices": [
+      "No math",
       "More GPUs",
       "Direct preference optimization without a separate reward model + RL loop",
-      "Less data",
-      "No math"
+      "Less data"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Preference pairs become a classification-style loss — simpler machinery."
     },
     {
      "q": "Alignment changes behavior but does not:",
      "choices": [
-      "Affect style",
-      "Reliably remove underlying capabilities or harmful knowledge",
       "Affect refusals",
-      "Cost anything"
+      "Cost anything",
+      "Affect style",
+      "Reliably remove underlying capabilities or harmful knowledge"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Honest limits: tuning shapes behavior; it does not guarantee capability removal."
     },
     {
      "q": "System prompts are:",
      "choices": [
-      "Sufficient alone",
       "The cheapest, weakest, most flexible runtime policy control",
       "Useless",
-      "Permanent"
+      "Permanent",
+      "Sufficient alone"
+     ],
+     "answer": 0,
+     "explain": "Last line of policy — steer without retraining, but do not rely on them alone."
+    },
+    {
+     "q": "RLHF at a glance is:",
+     "choices": [
+      "Supervised learning on labels",
+      "Training a reward model from human preferences, then optimizing the policy against it",
+      "Filtering the dataset",
+      "Prompt engineering"
      ],
      "answer": 1,
-     "explain": "Last line of policy — steer without retraining, but do not rely on them alone."
+     "explain": "Preference comparisons become a reward signal that steers generation toward human-judged quality. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "DPO matters because it:",
+     "choices": [
+      "Removes the need for data",
+      "Needs a reward model",
+      "Aligns directly on preference pairs without training a separate reward model or RL loop",
+      "Only works for images"
+     ],
+     "answer": 2,
+     "explain": "Direct Preference Optimization turns alignment into a supervised-style objective — simpler and more stable. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Alignment changes model behavior but does NOT:",
+     "choices": [
+      "Change tone",
+      "Affect formatting",
+      "Affect refusal style",
+      "Guarantee truthfulness or remove all harmful capabilities — it shapes tendencies, not certainties"
+     ],
+     "answer": 3,
+     "explain": "Honest scope: alignment steers, it doesn't solve; jailbreaks and hallucinations persist. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "System prompts are the last line of policy because:",
+     "choices": [
+      "They set the model's role and constraints for the session, applied before any user input",
+      "They are encrypted",
+      "They replace training",
+      "Users never see them"
+     ],
+     "answer": 0,
+     "explain": "The system message frames every interaction; user input can't precede it. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -2347,18 +3439,26 @@
     {
      "front": "In one sentence, what does GenAI Evaluation teach you to do?",
      "back": "Evaluation is the hard part of GenAI: benchmarks leak and judges flatter. This module teaches task evals, regression suites, and healthy skepticism."
+    },
+    {
+     "front": "What is an eval harness?",
+     "back": "Repeatable infrastructure for scoring models: versioned prompts, fixed datasets, metric computation, and run-to-run comparison. Without a harness, every evaluation is a one-off opinion. The line: 'A harness turns evaluation from an event into a habit.'"
+    },
+    {
+     "front": "How do you evaluate factuality?",
+     "back": "Check claims against trusted sources: retrieval-grounded verification, claim decomposition with per-claim checks, and human spot-audits on samples. Never trust the model to grade its own facts. The line: 'Factuality is verified against sources, never against vibes.'"
     }
    ],
    "quiz": [
     {
      "q": "Benchmarks hide:",
      "choices": [
-      "Nothing",
       "Contamination, prompt sensitivity, and task mismatch",
       "The model size",
-      "The vendor"
+      "The vendor",
+      "Nothing"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Standardized snapshots — not measurements of your system on your task."
     },
     {
@@ -2375,24 +3475,68 @@
     {
      "q": "LLM-as-judge is risky because judges:",
      "choices": [
+      "Are free",
       "Are slow",
       "Are biased, flattered by style, and gameable",
-      "Cannot read",
-      "Are free"
+      "Cannot read"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Useful signal — but calibrate against human judgment."
     },
     {
      "q": "Regression suites exist to:",
      "choices": [
-      "Slow releases",
-      "Catch silent breakage from every model/prompt change",
       "Impress",
-      "Replace humans"
+      "Replace humans",
+      "Slow releases",
+      "Catch silent breakage from every model/prompt change"
+     ],
+     "answer": 3,
+     "explain": "The gate that catches what demos miss."
+    },
+    {
+     "q": "Benchmarks measure — and hide:",
+     "choices": [
+      "Nothing; they are complete",
+      "Standardized capability slices, while hiding task-specific quality, cost, and failure modes",
+      "Only speed",
+      "Human preferences"
      ],
      "answer": 1,
-     "explain": "The gate that catches what demos miss."
+     "explain": "Benchmarks are proxies; your task's evals are the ground truth. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Task-specific evals beat generic benchmarks because:",
+     "choices": [
+      "Benchmarks are wrong",
+      "They are cheaper",
+      "They score what your users actually experience, including your data and constraints",
+      "They need no labels"
+     ],
+     "answer": 2,
+     "explain": "Your deployment's quality is defined by your task, not a public leaderboard. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "A key risk of LLM-as-judge is:",
+     "choices": [
+      "It costs nothing",
+      "It needs no prompts",
+      "It is too slow",
+      "The judge shares the candidate's biases — verbosity, style — and can be gamed"
+     ],
+     "answer": 3,
+     "explain": "Self-preference and style biases make uncalibrated judges unreliable; calibrate against humans. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "Keep regression suites for model updates because:",
+     "choices": [
+      "A 'better' model can silently break previously working behaviors — suites catch it",
+      "They reduce cost",
+      "Vendors require them",
+      "They speed up training"
+     ],
+     "answer": 0,
+     "explain": "Version changes need the same safety net as code changes. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -2451,29 +3595,37 @@
     {
      "front": "In one sentence, what does Inference and Serving teach you to do?",
      "back": "Serving what you tuned: batching, quantized deployment, and the per-request cost math that decides whether the system is viable."
+    },
+    {
+     "front": "What is speculative decoding?",
+     "back": "A small draft model proposes tokens and the large model verifies them in parallel — accepting correct runs and correcting the rest. It speeds up inference without changing outputs. The line: 'Speculative decoding: draft fast, verify in bulk, keep the same answers.'"
+    },
+    {
+     "front": "How do you handle long-context requests?",
+     "back": "Budget explicitly: context costs memory (KV cache grows with tokens) and latency (attention is quadratic-ish), so truncate, summarize, or retrieve selectively — and price it per request. The line: 'Long context is a budget line item: tokens, memory, latency, dollars.'"
     }
    ],
    "quiz": [
     {
      "q": "Batching trades:",
      "choices": [
-      "Nothing",
-      "Throughput up vs latency up — tune to your SLA",
       "Quality for speed",
-      "Memory for disk"
+      "Memory for disk",
+      "Nothing",
+      "Throughput up vs latency up — tune to your SLA"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Bigger batches serve more per second but each request waits longer."
     },
     {
      "q": "After quantized deployment you must:",
      "choices": [
-      "Celebrate",
       "Verify quality on your eval set",
       "Retrain",
-      "Increase batch"
+      "Increase batch",
+      "Celebrate"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Compression is only free if the metrics confirm it."
     },
     {
@@ -2490,13 +3642,57 @@
     {
      "q": "Cost per 1k requests needs:",
      "choices": [
+      "Hope",
       "A guess",
       "Tokens in/out × price at your real traffic mix, plus overhead",
-      "Vendor claims",
-      "Hope"
+      "Vendor claims"
+     ],
+     "answer": 2,
+     "explain": "The viability math — model it before promising the feature."
+    },
+    {
+     "q": "The batching tradeoff in serving is:",
+     "choices": [
+      "Batching always helps",
+      "Larger batches raise throughput but add queueing latency for the first request",
+      "Batching reduces quality",
+      "No tradeoff exists"
      ],
      "answer": 1,
-     "explain": "The viability math — model it before promising the feature."
+     "explain": "Throughput versus latency: batch for efficiency, stream small for responsiveness. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "vLLM-class serving gives you:",
+     "choices": [
+      "Training speedups",
+      "Better models",
+      "Paged KV-cache memory management and continuous batching for high-throughput inference",
+      "Free GPUs"
+     ],
+     "answer": 2,
+     "explain": "PagedAttention plus continuous batching is the throughput recipe for LLM serving. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "After quantized deployment you must check:",
+     "choices": [
+      "The license",
+      "The logo",
+      "Only speed",
+      "That quality on your evals didn't regress — quantization trades precision for efficiency"
+     ],
+     "answer": 3,
+     "explain": "Lower precision can degrade outputs; verify on your task, not just benchmarks. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Modeling cost per thousand requests requires:",
+     "choices": [
+      "Tokens in/out per request, price per token, plus infra overhead amortized over volume",
+      "Only the model size",
+      "The training cost",
+      "Guessing"
+     ],
+     "answer": 0,
+     "explain": "Unit economics come from measured token counts times priced rates. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -2555,40 +3751,48 @@
     {
      "front": "In one sentence, what does GenAI Capstone teach you to do?",
      "back": "A complete GenAI system with its own evaluation suite: the adaptation, the measurements, and an honest catalog of where it still fails."
+    },
+    {
+     "front": "How do you choose the base model?",
+     "back": "Match the model to the job: capability on your task's evals, context length, cost per call, latency, and license terms for your use case. Benchmark candidates on your data, not on public leaderboards. The line: 'Leaderboards are marketing; your eval suite is the interview.'"
+    },
+    {
+     "front": "What does a responsible launch checklist include?",
+     "back": "Harm review, failure-mode tests, guardrails and monitoring, a rollback plan, user-facing disclosures, and an owner for incidents. Launch readiness is a document, not a feeling. The line: 'If it isn't written down, it isn't launch-ready.'"
     }
    ],
    "quiz": [
     {
      "q": "Scope a finishable GenAI system by:",
      "choices": [
+      "No evals",
       "Adding features",
       "One task, one data source, one eval set — a thin working slice",
-      "Biggest model",
-      "No evals"
+      "Biggest model"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "A thin slice that works beats a platform that does not."
     },
     {
      "q": "Choose RAG over fine-tuning when:",
      "choices": [
-      "Knowledge changes or needs citations",
-      "Style needs changing",
       "Always",
-      "Never"
+      "Never",
+      "Knowledge changes or needs citations",
+      "Style needs changing"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Retrieve for changing/grounded knowledge; fine-tune for behavior."
     },
     {
      "q": "A failure catalog is:",
      "choices": [
-      "Embarrassing",
       "Documented misses naming the fix and the proving eval — the roadmap",
       "Optional",
-      "Secret"
+      "Secret",
+      "Embarrassing"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Honest failure records drive the next iteration."
     },
     {
@@ -2601,6 +3805,50 @@
      ],
      "answer": 1,
      "explain": "Honest engineering: what works, what does not, and the boundaries."
+    },
+    {
+     "q": "Scoping a GenAI system you can finish starts with:",
+     "choices": [
+      "The biggest model",
+      "One user task, one eval, and a fixed timebox — then cut everything else",
+      "Every feature",
+      "No evals"
+     ],
+     "answer": 1,
+     "explain": "GenAI projects sprawl; the scope document is the defense. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The fine-tune versus retrieve decision hinges on:",
+     "choices": [
+      "Hype",
+      "Model size",
+      "Whether the knowledge is stable and behavioral (fine-tune) or changing and factual (retrieve)",
+      "Cost only"
+     ],
+     "answer": 2,
+     "explain": "Retrieval handles fresh facts cheaply; fine-tuning teaches durable behavior. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A failure catalog is valuable because:",
+     "choices": [
+      "Users like reading it",
+      "It replaces evals",
+      "It documents success",
+      "Named, counted failure modes turn anecdotes into a prioritized fix list"
+     ],
+     "answer": 3,
+     "explain": "You can't fix what you haven't classified; the catalog directs effort. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "The demo writeup must state:",
+     "choices": [
+      "What was built, measured results with evals, limits, and what you'd do next",
+      "The code in full",
+      "Nothing",
+      "Only the highlights"
+     ],
+     "answer": 0,
+     "explain": "Honest scope — results, limits, next steps — is what makes the demo credible. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -2659,6 +3907,14 @@
     {
      "front": "In one sentence, what does NLP Pipelines teach you to do?",
      "back": "Text pipelines are decisions, not defaults: every normalization choice changes what the model can learn — choose deliberately, document always."
+    },
+    {
+     "front": "When do you lowercase, and when don't you?",
+     "back": "Lowercase for case-insensitive matching (search, topic models); preserve case when it carries meaning — named entities, acronyms, sentence starts. The decision is task-specific, not a default. The line: 'Case is information; I only discard it when the task says it's noise.'"
+    },
+    {
+     "front": "How do you handle emojis and social text?",
+     "back": "Normalize deliberately: emojis carry sentiment and shouldn't be silently stripped; expand or map them, handle hashtags and mentions as tokens, and expect misspellings. Social text needs its own preprocessing path. The line: 'Social text is a dialect — process it with its own rules.'"
     }
    ],
    "quiz": [
@@ -2676,35 +3932,79 @@
     {
      "q": "Chunk long documents because:",
      "choices": [
+      "It is faster only",
       "It is trendy",
       "Context windows are finite and attention dilutes over length",
-      "Models hate long text",
-      "It is faster only"
+      "Models hate long text"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Chunking with overlap preserves answerable units within model limits."
     },
     {
      "q": "Mixed-language text needs:",
      "choices": [
-      "Nothing special",
-      "Language detection first, then routing to the right pipeline",
       "Translation always",
-      "Deletion"
+      "Deletion",
+      "Nothing special",
+      "Language detection first, then routing to the right pipeline"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Tokenizers and rules assume a language — detect, then route."
     },
     {
      "q": "Reproducibility for text requires versioning:",
      "choices": [
-      "Nothing",
       "Cleaning rules, tokenizer, and chunking parameters",
       "Only the model",
-      "The hardware"
+      "The hardware",
+      "Nothing"
+     ],
+     "answer": 0,
+     "explain": "Text preprocessing is code — version it like code."
+    },
+    {
+     "q": "Text pipelines are decisions, not defaults, because:",
+     "choices": [
+      "Defaults are always wrong",
+      "Tokenization, casing, and cleaning choices change what the model can learn",
+      "Pipelines are slow",
+      "Defaults cost money"
      ],
      "answer": 1,
-     "explain": "Text preprocessing is code — version it like code."
+     "explain": "Each preprocessing choice is a modeling decision with downstream effects. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Tokenization choices propagate downstream by:",
+     "choices": [
+      "Removing stopwords",
+      "Changing file sizes",
+      "Determining the vocabulary, sequence lengths, and what counts as a 'word' for every later stage",
+      "Speeding up GPUs"
+     ],
+     "answer": 2,
+     "explain": "Everything downstream consumes tokens; the tokenizer defines the atoms. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Chunk long documents for models because:",
+     "choices": [
+      "Chunks train faster only",
+      "It is traditional",
+      "Models dislike long text",
+      "Context limits and attention costs force splitting, with overlap preserving cross-chunk meaning"
+     ],
+     "answer": 3,
+     "explain": "Finite context windows plus quadratic-ish attention make chunking with overlap the standard. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Pipeline reproducibility for text requires:",
+     "choices": [
+      "Pinned tokenizer versions, fixed preprocessing code, and recorded random seeds",
+      "More data",
+      "Cloud GPUs",
+      "A fast machine"
+     ],
+     "answer": 0,
+     "explain": "Tokenizer or cleaning changes silently alter inputs; pin everything. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -2763,18 +4063,26 @@
     {
      "front": "In one sentence, what does Embeddings teach you to do?",
      "back": "Embeddings as the working representation of modern NLP: search, cluster, and classify with vectors — evaluated on your data, not a leaderboard."
+    },
+    {
+     "front": "What is the anisotropy problem?",
+     "back": "In some embedding spaces, vectors cluster in a narrow cone — everything looks similar — which degrades similarity search. Fixes include normalization, centering, or better training objectives. The line: 'Anisotropy is when the embedding space collapses; similarity needs room to vary.'"
+    },
+    {
+     "front": "How do you choose embedding dimensionality?",
+     "back": "Bigger captures more nuance but costs storage, memory, and search latency; the practical move is to benchmark candidate sizes on your retrieval task and pick the smallest that doesn't hurt. The line: 'Dimension is a price — I buy only what my task's evals justify.'"
     }
    ],
    "quiz": [
     {
      "q": "Sentence embeddings map text to:",
      "choices": [
-      "Word counts",
       "Dense vectors where similarity is geometric closeness",
       "Parse trees",
-      "Tokens"
+      "Tokens",
+      "Word counts"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Cosine similarity then approximates meaning similarity."
     },
     {
@@ -2791,24 +4099,68 @@
     {
      "q": "Clustering embeddings is useful for:",
      "choices": [
+      "Nothing",
       "Labeling everything",
       "Discovering topic structure in unlabeled text",
-      "Training",
-      "Nothing"
+      "Training"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Discovery before labeling — see the landscape, then annotate."
     },
     {
      "q": "ANN indexes exist because:",
      "choices": [
-      "They are trendy",
-      "Exact nearest-neighbor search is too slow at scale; approximation is sub-linear",
       "They improve quality",
-      "They train models"
+      "They train models",
+      "They are trendy",
+      "Exact nearest-neighbor search is too slow at scale; approximation is sub-linear"
+     ],
+     "answer": 3,
+     "explain": "Scale demands approximate search — the engineering behind semantic search."
+    },
+    {
+     "q": "A sentence embedding is:",
+     "choices": [
+      "A summary sentence",
+      "A fixed-size dense vector representing a sentence's meaning for similarity math",
+      "A translation",
+      "A keyword list"
      ],
      "answer": 1,
-     "explain": "Scale demands approximate search — the engineering behind semantic search."
+     "explain": "Dense vectors place similar meanings near each other in space. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Similarity search over embedding indexes works by:",
+     "choices": [
+      "Random sampling",
+      "Keyword matching",
+      "Approximate nearest-neighbor search (e.g. HNSW) over stored vectors",
+      "Full scans always"
+     ],
+     "answer": 2,
+     "explain": "ANN indexes trade a little recall for orders-of-magnitude speed. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Evaluate embeddings on your task, not benchmarks, because:",
+     "choices": [
+      "Benchmarks are too easy",
+      "Your task is unique",
+      "Benchmarks are secret",
+      "Embedding quality is task-relative — retrieval, clustering, and classification rank models differently"
+     ],
+     "answer": 3,
+     "explain": "The embedding that wins a generic benchmark may lose on your data. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "Multilingual embeddings buy you:",
+     "choices": [
+      "A shared space where queries in one language retrieve documents in another",
+      "Smaller models",
+      "Perfect translation",
+      "Faster training"
+     ],
+     "answer": 0,
+     "explain": "Cross-lingual alignment enables search across languages without translation pipelines. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -2867,29 +4219,37 @@
     {
      "front": "In one sentence, what does Sequence Models teach you to do?",
      "back": "The unglamorous NLP that pays: classification and extraction pipelines where label quality — not architecture — is usually the binding constraint."
+    },
+    {
+     "front": "What is the BIO tagging scheme?",
+     "back": "A labeling convention for spans: B- marks the beginning of an entity, I- continues it, O is outside any entity. It turns span extraction into per-token classification. The line: 'BIO turns 'find the names' into a token-labeling problem.'"
+    },
+    {
+     "front": "How do you handle class imbalance in text classification?",
+     "back": "The same three levers as elsewhere: class weights in the loss, threshold tuning on the PR curve, and resampling — plus checking that the minority class has enough quality labels. The line: 'Imbalance in text is still a cost problem: weight it, threshold it, label it.'"
     }
    ],
    "quiz": [
     {
      "q": "Classical NLP still wins when:",
      "choices": [
-      "Data is huge",
-      "Labels are few, latency is tight, interpretability matters",
       "Never",
-      "GPUs are free"
+      "GPUs are free",
+      "Data is huge",
+      "Labels are few, latency is tight, interpretability matters"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "TF-IDF plus a linear model remains brutally effective on small tasks."
     },
     {
      "q": "For NER, think in:",
      "choices": [
-      "Tokens",
       "Spans — entities are multi-token units and evaluation cares about exact spans",
       "Characters",
-      "Sentences"
+      "Sentences",
+      "Tokens"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Token accuracy misleads; span-level F1 is the honest metric."
     },
     {
@@ -2906,13 +4266,57 @@
     {
      "q": "Active learning:",
      "choices": [
+      "Needs no model",
       "Labels everything",
       "Labels the most uncertain examples — max information per annotation dollar",
-      "Is passive",
-      "Needs no model"
+      "Is passive"
+     ],
+     "answer": 2,
+     "explain": "Spend the labeling budget where the model learns most."
+    },
+    {
+     "q": "Classical NLP still wins small tasks when:",
+     "choices": [
+      "Data is massive",
+      "Labeled data is scarce and the task is well-bounded — TF-IDF plus linear models are cheap and strong",
+      "GPUs are free",
+      "Always"
      ],
      "answer": 1,
-     "explain": "Spend the labeling budget where the model learns most."
+     "explain": "Simple baselines beat heavy models on small, clean classification tasks. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Thinking in spans, not tokens, for NER matters because:",
+     "choices": [
+      "Tokens are outdated",
+      "Tokens are slow",
+      "Entities are multi-token units; span-level F1 is the honest metric, not per-token accuracy",
+      "Spans need no labels"
+     ],
+     "answer": 2,
+     "explain": "Per-token accuracy inflates with O-tags; entity spans are what users care about. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Label quality is the ceiling nobody tunes past because:",
+     "choices": [
+      "Labels are cheap",
+      "Tuning is obsolete",
+      "Models are perfect",
+      "No model reliably exceeds the consistency of its own training labels"
+     ],
+     "answer": 3,
+     "explain": "Noisy labels cap achievable performance; fix the data before the model. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Active learning helps labeling budgets by:",
+     "choices": [
+      "Selecting the most informative examples — where the model is uncertain — for human labeling",
+      "Removing humans",
+      "Random sampling",
+      "Labeling everything"
+     ],
+     "answer": 0,
+     "explain": "Uncertainty sampling gets more signal per label dollar. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -2971,40 +4375,48 @@
     {
      "front": "In one sentence, what does LLMs for NLP Tasks teach you to do?",
      "back": "Using LLMs as NLP components: where prompting beats training, where it loses on cost — and the hybrid patterns that get both."
+    },
+    {
+     "front": "What is prompt brittleness?",
+     "back": "Small prompt changes causing large output swings — the model overfits to phrasing. Defenses: few-shot examples that stabilize format, structured-output constraints, and testing prompt variants. The line: 'Brittle prompts are untested code; I version and test them.'"
+    },
+    {
+     "front": "How do you validate LLM-generated labels?",
+     "back": "Audit a stratified sample with human review, measure agreement (and where the model systematically errs), and never let the model label its own eval set. The line: 'LLM labels are draft labels — humans sign off on the sample.'"
     }
    ],
    "quiz": [
     {
      "q": "Few-shot classification beats training when:",
      "choices": [
+      "Cost is zero",
       "Labels are abundant",
       "Labels are few, classes shift, or prototyping speed matters",
-      "Never",
-      "Cost is zero"
+      "Never"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Prompting wins flexibility; training wins unit cost at scale."
     },
     {
      "q": "Structured extraction needs:",
      "choices": [
-      "Longer prompts",
-      "Constrained output — schemas/JSON mode the downstream code can parse",
       "Higher temperature",
-      "More examples only"
+      "More examples only",
+      "Longer prompts",
+      "Constrained output — schemas/JSON mode the downstream code can parse"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "The output contract makes LLM results machine-usable."
     },
     {
      "q": "Audit LLM-labeled data by:",
      "choices": [
-      "Trusting it",
       "Measuring a sample against human labels",
       "Counting rows",
-      "Speed"
+      "Speed",
+      "Trusting it"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Speed is only a win if quality survives the audit."
     },
     {
@@ -3017,6 +4429,50 @@
      ],
      "answer": 1,
      "explain": "Pair model fluency with rule-based guarantees where correctness matters."
+    },
+    {
+     "q": "Zero/few-shot classification beats training when:",
+     "choices": [
+      "You have millions of labels",
+      "Labels are scarce and the task fits the model's pretrained abilities",
+      "You need tiny models",
+      "Latency is critical"
+     ],
+     "answer": 1,
+     "explain": "Prompting skips the data-collection phase when pretraining already covers the task. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Getting structured extraction from an LLM requires:",
+     "choices": [
+      "Fine-tuning always",
+      "Larger models only",
+      "Constrained output formats — JSON schemas, function calling — plus validation of every field",
+      "More prompts"
+     ],
+     "answer": 2,
+     "explain": "Free text isn't a data structure; schemas plus validation make it one. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The LLM-labeling speed-vs-quality audit means:",
+     "choices": [
+      "Labeling faster",
+      "Skipping humans",
+      "Trusting the LLM",
+      "Measuring LLM labels against human labels on a sample before relying on them at scale"
+     ],
+     "answer": 3,
+     "explain": "LLM labels are drafts until the audit quantifies their error profile. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "The hybrid LLM-plus-verifier pattern is:",
+     "choices": [
+      "An LLM proposes and a cheaper deterministic check (rules, retrieval, smaller model) verifies",
+      "A bigger prompt",
+      "Human review of everything",
+      "Two LLMs chatting"
+     ],
+     "answer": 0,
+     "explain": "Generation is cheap and fallible; verification is where reliability comes from. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -3075,6 +4531,14 @@
     {
      "front": "In one sentence, what does Information Retrieval teach you to do?",
      "back": "Finding the right passage before the model reads it: lexical and dense retrieval, hybrid combinations, and retrieval metrics that predict RAG quality."
+    },
+    {
+     "front": "What is the index build tradeoff?",
+     "back": "Dense indexes cost compute to build and memory to serve but answer fast; larger chunks improve recall but hurt precision; reindexing cadence trades freshness against cost. The line: 'Indexing trades build cost for query speed — I size it to the freshness the task needs.'"
+    },
+    {
+     "front": "How do you handle queries with no good answer?",
+     "back": "Design for the miss: a relevance threshold below which you abstain or say so, fallback to broader search, and log the misses to improve coverage. Silent bad answers are the worst outcome. The line: 'No good answer is itself an answer — I design the abstention path.'"
     }
    ],
    "quiz": [
@@ -3092,35 +4556,79 @@
     {
      "q": "Dense retrieval adds:",
      "choices": [
+      "Nothing",
       "Exact matching",
       "Semantic matching of paraphrases sharing no terms",
-      "Speed",
-      "Nothing"
+      "Speed"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Embeddings capture meaning BM25’s term overlap misses."
     },
     {
      "q": "recall@k measures:",
      "choices": [
-      "Precision",
-      "Whether the gold passage is in the top-k — predicting RAG quality",
       "Latency",
-      "Cost"
+      "Cost",
+      "Precision",
+      "Whether the gold passage is in the top-k — predicting RAG quality"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "The retrieval metric that forecasts downstream answer quality."
     },
     {
      "q": "Rerank on:",
      "choices": [
-      "All documents",
       "The shortlist — cross-encoders are precise but expensive per doc",
       "Nothing",
-      "The query only"
+      "The query only",
+      "All documents"
+     ],
+     "answer": 0,
+     "explain": "Two-stage: fast retriever for recall, strong reranker for precision."
+    },
+    {
+     "q": "BM25 still matters because:",
+     "choices": [
+      "It is new",
+      "Lexical matching excels at rare terms, codes, and names where dense models blur distinctions",
+      "It needs GPUs",
+      "It replaces embeddings"
      ],
      "answer": 1,
-     "explain": "Two-stage: fast retriever for recall, strong reranker for precision."
+     "explain": "Exact-term signals complement semantic ones — especially for identifiers. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Dense retrieval adds over BM25:",
+     "choices": [
+      "Exact matches",
+      "Speed only",
+      "Semantic matching — finding relevant text that shares no keywords with the query",
+      "Lower cost"
+     ],
+     "answer": 2,
+     "explain": "Embeddings capture meaning beyond terms; BM25 captures terms beyond meaning. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Hybrid search (BM25 + dense) wins because:",
+     "choices": [
+      "It halves cost",
+      "Vendors recommend it",
+      "It is simpler",
+      "The two signals fail on different queries, so their combination is more robust"
+     ],
+     "answer": 3,
+     "explain": "Complementary failure modes make the fusion stronger than either alone. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Recall@k measures:",
+     "choices": [
+      "The fraction of relevant documents retrieved within the top k results",
+      "Speed",
+      "Index size",
+      "Precision"
+     ],
+     "answer": 0,
+     "explain": "Retrieval's first job is not missing the answer; recall@k quantifies that. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -3179,18 +4687,26 @@
     {
      "front": "In one sentence, what does Advanced NLP Project teach you to do?",
      "back": "One real text system, three approaches compared: the tradeoff table — quality, cost, latency — is the deliverable that matters."
+    },
+    {
+     "front": "How do you define the annotation guideline?",
+     "back": "Write the rulebook before labeling: exact definitions, edge-case examples, tie-breaking rules, and a process for disagreements. The guideline is what makes two annotators produce the same labels. The line: 'The guideline is the label's specification — vague rules, vague data.'"
+    },
+    {
+     "front": "What goes in the final demo?",
+     "back": "The problem, a live example with visible failure cases, the tradeoff table (accuracy vs cost vs latency), and an honest limits slide. Demos that only show successes get hard questions. The line: 'Demo the failures too — they prove you measured.'"
     }
    ],
    "quiz": [
     {
      "q": "A ‘real mess’ text problem has:",
      "choices": [
-      "Clean data",
       "Typos, mixed languages, shifting topics — benchmark-sanitized away",
       "No users",
-      "One language"
+      "One language",
+      "Clean data"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Real language is messy; the project should face that."
     },
     {
@@ -3207,24 +4723,68 @@
     {
      "q": "Compare approaches on:",
      "choices": [
+      "Speed only",
       "Different eval sets",
       "The same eval set — fair comparison needs shared ground",
-      "Vibes",
-      "Speed only"
+      "Vibes"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Same data, same metrics, or the comparison is meaningless."
     },
     {
      "q": "Linguistic error analysis names:",
      "choices": [
-      "Nothing",
-      "Failure classes like negation or jargon — telling you if any model can fix it",
       "The best model",
-      "The data size"
+      "The data size",
+      "Nothing",
+      "Failure classes like negation or jargon — telling you if any model can fix it"
+     ],
+     "answer": 3,
+     "explain": "Some failures are linguistic, not architectural — name them."
+    },
+    {
+     "q": "A 'real mess' text problem for the project is one with:",
+     "choices": [
+      "Clean benchmark data",
+      "Noisy, inconsistent real-world text where preprocessing decisions actually matter",
+      "Only English news",
+      "Perfect labels"
      ],
      "answer": 1,
-     "explain": "Some failures are linguistic, not architectural — name them."
+     "explain": "Mess is the point — it forces the pipeline decisions the course teaches. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The comparison deliverable shows:",
+     "choices": [
+      "The dataset",
+      "One model",
+      "Baselines versus your approach on shared evals, with the delta attributed to specific choices",
+      "Training curves"
+     ],
+     "answer": 2,
+     "explain": "Comparisons with attributed deltas prove which ideas worked. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Error analysis on linguistic failures means:",
+     "choices": [
+      "Fixing typos",
+      "More data",
+      "Counting errors",
+      "Grouping mistakes by language phenomenon — negation, coreference, slang — to find systematic gaps"
+     ],
+     "answer": 3,
+     "explain": "Linguistic categories turn error lists into actionable patterns. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "The tradeoff table is the deliverable that matters because:",
+     "choices": [
+      "It makes accuracy-vs-cost-vs-latency explicit, which is how real deployment decisions get made",
+      "It is required",
+      "Models need tables",
+      "Tables look professional"
+     ],
+     "answer": 0,
+     "explain": "Practitioners decide on tradeoffs, not single metrics. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -3283,29 +4843,37 @@
     {
      "front": "In one sentence, what does LLM APIs in Practice teach you to do?",
      "back": "LLM APIs as infrastructure: the calling patterns, the output contracts, and the cost/latency budgets that decide whether a feature survives contact with users."
+    },
+    {
+     "front": "What is idempotency for LLM calls?",
+     "back": "Making repeated calls safe: deduplicating by request key, caching deterministic outputs, and designing retries that don't double-charge or double-act. Non-deterministic models make this harder — so you engineer it. The line: 'Retries without idempotency are duplicate actions waiting to happen.'"
+    },
+    {
+     "front": "How do you version prompts?",
+     "back": "Treat prompts as code: in version control, with changelogs, pinned to model versions, and covered by evals that catch regressions. 'Tweaked the prompt' should be a diff, not a memory. The line: 'Prompts are code — versioned, reviewed, and tested.'"
     }
    ],
    "quiz": [
     {
      "q": "The two budgets for LLM features are:",
      "choices": [
-      "Time and money generally",
-      "Cost and latency — per-request token math and p95 response time",
       "GPUs and RAM",
-      "Users and data"
+      "Users and data",
+      "Time and money generally",
+      "Cost and latency — per-request token math and p95 response time"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Features live or die on both budgets."
     },
     {
      "q": "Structured output matters because:",
      "choices": [
-      "It looks nice",
       "Downstream code needs parseable contracts, not free text",
       "It is faster",
-      "It is cheaper"
+      "It is cheaper",
+      "It looks nice"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Schemas turn model text into reliable system components."
     },
     {
@@ -3322,13 +4890,57 @@
     {
      "q": "Streaming improves:",
      "choices": [
+      "Cost",
       "Total latency",
       "Perceived latency — time-to-first-token drops sharply",
-      "Quality",
-      "Cost"
+      "Quality"
+     ],
+     "answer": 2,
+     "explain": "Users read while the rest generates; UX wins even when totals match."
+    },
+    {
+     "q": "Demanding structured output from LLM APIs matters because:",
+     "choices": [
+      "It looks nicer",
+      "Downstream code needs parseable, schema-validated data — free text breaks pipelines",
+      "It is faster",
+      "Models prefer it"
      ],
      "answer": 1,
-     "explain": "Users read while the rest generates; UX wins even when totals match."
+     "explain": "JSON mode plus schema validation turns model output into reliable inputs. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The two budgets for LLM features are:",
+     "choices": [
+      "CPU and RAM",
+      "Time and money",
+      "Latency and cost per request — both must fit the product's constraints",
+      "Tokens and users"
+     ],
+     "answer": 2,
+     "explain": "Every LLM feature ships against a latency SLA and a unit-cost ceiling. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Handling LLM API failures requires:",
+     "choices": [
+      "Ignoring errors",
+      "More API keys",
+      "Bigger prompts",
+      "Retries with backoff, timeouts, fallbacks, and idempotency so failures degrade gracefully"
+     ],
+     "answer": 3,
+     "explain": "APIs fail; the feature must degrade, not crash. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Streaming responses improves UX because:",
+     "choices": [
+      "Users see progress immediately instead of waiting for the full generation",
+      "It uses less memory",
+      "It improves quality",
+      "It is cheaper"
+     ],
+     "answer": 0,
+     "explain": "Perceived latency drops dramatically when tokens appear as they're generated. Covered in this module's 'Concepts'."
     }
    ]
   },
@@ -3387,40 +4999,48 @@
     {
      "front": "In one sentence, what does Retrieval-Augmented Generation teach you to do?",
      "back": "The production pattern behind most LLM apps, built by hand: retrieve, rerank, generate with citations — plus the failure catalog and fixes."
+    },
+    {
+     "front": "What is query rewriting for?",
+     "back": "Reformulating the user's question — expanding abbreviations, adding context, splitting compound questions — before retrieval, so the search sees a better query than the raw input. The line: 'Users ask badly; rewriting asks well on their behalf.'"
+    },
+    {
+     "front": "How do you handle multi-hop questions?",
+     "back": "Decompose into sub-questions, retrieve for each, and synthesize — possibly iteratively, using intermediate answers to guide the next retrieval. Single-shot retrieval fails when the answer spans documents. The line: 'Multi-hop questions get multi-step retrieval — one hop per sub-question.'"
     }
    ],
    "quiz": [
     {
      "q": "RAG by hand is:",
      "choices": [
+      "Prompting",
       "One API call",
       "Chunk → embed → index → retrieve → rerank → generate with citations",
-      "Fine-tuning",
-      "Prompting"
+      "Fine-tuning"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Each stage is tunable and measurable — that is the point of building it by hand."
     },
     {
      "q": "Chunking trades:",
      "choices": [
-      "Nothing",
-      "Small/precise vs large/rich-and-noisy — overlap and structure help",
       "Speed only",
-      "Cost only"
+      "Cost only",
+      "Nothing",
+      "Small/precise vs large/rich-and-noisy — overlap and structure help"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Chunk size shapes what retrieval can find and what generation must sift."
     },
     {
      "q": "Citations in RAG:",
      "choices": [
-      "Decorate output",
       "Ground answers in sources — verifiable by users, auditable by you",
       "Slow things",
-      "Are optional"
+      "Are optional",
+      "Decorate output"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The antidote to confident hallucination."
     },
     {
@@ -3433,6 +5053,50 @@
      ],
      "answer": 1,
      "explain": "Bad grounding is a retrieval failure; fix the retriever."
+    },
+    {
+     "q": "The RAG pipeline by hand is:",
+     "choices": [
+      "Train, validate, test",
+      "Chunk documents, embed, index, retrieve top-k for the query, generate grounded on them",
+      "Prompt, hope, ship",
+      "Fine-tune everything"
+     ],
+     "answer": 1,
+     "explain": "Retrieve-then-generate is the architecture; each stage has its own failure modes. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Chunking strategies trade off:",
+     "choices": [
+      "Quality versus quality",
+      "Speed versus cost",
+      "Context completeness (bigger chunks) against retrieval precision (smaller, focused chunks)",
+      "Nothing"
+     ],
+     "answer": 2,
+     "explain": "Chunks too big dilute relevance; too small lose context. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Reranking on top of retrieval helps because:",
+     "choices": [
+      "It replaces retrieval",
+      "It needs no model",
+      "It is cheaper",
+      "A precise cross-encoder re-scores the cheap retriever's candidates more accurately"
+     ],
+     "answer": 3,
+     "explain": "Two-stage retrieval: fast recall, then expensive precision on the shortlist. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Citations matter in RAG because:",
+     "choices": [
+      "They let users verify claims against sources, bounding hallucination damage",
+      "They are required by law",
+      "They speed up generation",
+      "They look academic"
+     ],
+     "answer": 0,
+     "explain": "Grounding is only trustworthy if the user can check the ground. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -3491,6 +5155,14 @@
     {
      "front": "In one sentence, what does Evaluation Harnesses teach you to do?",
      "back": "Shipping without evals is hoping. This module builds the harness: golden cases, automated regression checks, and traces that make failures debuggable."
+    },
+    {
+     "front": "What is a failure taxonomy?",
+     "back": "A named, counted classification of how the system fails — retrieval miss, hallucination, tool error, format break — so fixes target the biggest category first. Untaxonomized failures get anecdotal fixes. The line: 'Count your failures by type; fix the biggest bucket first.'"
+    },
+    {
+     "front": "How do you measure judge agreement?",
+     "back": "Have the LLM judge and humans score the same sample, then compute agreement (Cohen's kappa or simple concordance) — and recalibrate or constrain the judge where they diverge. The line: 'An uncalibrated judge is an opinion; agreement with humans makes it a measurement.'"
     }
    ],
    "quiz": [
@@ -3508,35 +5180,79 @@
     {
      "q": "Run regression evals on every change because:",
      "choices": [
+      "Auditors ask",
       "It is ritual",
       "Silent breakage from tweaks is the norm — the suite is the gate",
-      "It is fast",
-      "Auditors ask"
+      "It is fast"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "What demos miss, the suite catches."
     },
     {
      "q": "LLM judges are:",
      "choices": [
-      "Perfect",
-      "Cheap and scalable but biased and gameable — calibrate with humans",
       "Useless",
-      "Free of bias"
+      "Free of bias",
+      "Perfect",
+      "Cheap and scalable but biased and gameable — calibrate with humans"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Useful signal with known failure modes — handle accordingly."
     },
     {
      "q": "Tracing gives you:",
      "choices": [
-      "Logs only",
       "The full per-request pipeline — prompts, retrieval, tools, latencies",
       "Metrics",
-      "Nothing"
+      "Nothing",
+      "Logs only"
+     ],
+     "answer": 0,
+     "explain": "Debuggable failures instead of mysterious ones."
+    },
+    {
+     "q": "A golden dataset is:",
+     "choices": [
+      "Expensive data",
+      "A curated, versioned set of inputs with expected outputs that every change is tested against",
+      "Training data",
+      "User data"
      ],
      "answer": 1,
-     "explain": "Debuggable failures instead of mysterious ones."
+     "explain": "Goldens turn 'did we break it?' into a runnable check. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Regression evals on every change catch:",
+     "choices": [
+      "Latency",
+      "New features",
+      "Previously working behaviors that a prompt, model, or code change silently broke",
+      "Cost increases"
+     ],
+     "answer": 2,
+     "explain": "AI systems regress like code; evals are the test suite. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "LLM judges are useful — and dangerous — because:",
+     "choices": [
+      "They are free",
+      "They never err",
+      "They are slow",
+      "They scale evaluation but inherit biases that must be calibrated against human judgment"
+     ],
+     "answer": 3,
+     "explain": "Scale with calibration, not blind trust. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "Tracing gives you:",
+     "choices": [
+      "The full step-by-step record of prompts, tool calls, and outputs for debugging",
+      "Lower costs",
+      "Better prompts",
+      "Faster models"
+     ],
+     "answer": 0,
+     "explain": "You can't debug what you can't see; traces make agent behavior inspectable. Covered in this module's 'Hands-on procedure'."
     }
    ]
   },
@@ -3595,18 +5311,26 @@
     {
      "front": "In one sentence, what does Tool Use in Features teach you to do?",
      "back": "Letting the model act: tool schemas as contracts, narrow tool design, and the testing discipline for features where the model calls your code."
+    },
+    {
+     "front": "What is the ReAct pattern?",
+     "back": "Interleaving reasoning traces with actions: the model thinks, acts (calls a tool), observes the result, and repeats. It grounds the model's plans in real tool outputs. The line: 'ReAct: reason, act, observe — the loop that keeps agents honest.'"
+    },
+    {
+     "front": "How do you prevent prompt injection via tools?",
+     "back": "Treat tool outputs as untrusted data, never as instructions: sandbox tool results, validate before acting, and keep privilege boundaries so a poisoned document can't trigger sensitive actions. The line: 'Tool output is data, not orders — I never let it outrank the system prompt.'"
     }
    ],
    "quiz": [
     {
      "q": "Function-calling schemas are:",
      "choices": [
-      "Optional hints",
       "Typed JSON contracts the model fills and your code validates",
       "Python code",
-      "Prompts"
+      "Prompts",
+      "Optional hints"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Contracts, not suggestions — validation is mandatory."
     },
     {
@@ -3623,24 +5347,68 @@
     {
      "q": "Least privilege means:",
      "choices": [
+      "One tool",
       "Admin access",
       "Each tool gets only the permissions its job needs",
-      "No tools",
-      "One tool"
+      "No tools"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Bound the blast radius of model mistakes."
     },
     {
      "q": "Test tool-using features like:",
      "choices": [
-      "Nothing special",
-      "Any integration surface: unit, integration with mocks, adversarial red-teaming",
       "Only manually",
-      "Never"
+      "Never",
+      "Nothing special",
+      "Any integration surface: unit, integration with mocks, adversarial red-teaming"
+     ],
+     "answer": 3,
+     "explain": "The model calling your code is an integration — test it as one."
+    },
+    {
+     "q": "Function-calling schemas are:",
+     "choices": [
+      "Documentation",
+      "Machine-readable contracts (name, parameters, types) that let the model invoke tools reliably",
+      "Prompts",
+      "Tests"
      ],
      "answer": 1,
-     "explain": "The model calling your code is an integration — test it as one."
+     "explain": "Schemas turn 'call this tool' from a hope into a protocol. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A well-designed tool for model use is:",
+     "choices": [
+      "Stateful and broad",
+      "As powerful as possible",
+      "Narrow, idempotent, well-described, and reversible where it matters",
+      "Undocumented"
+     ],
+     "answer": 2,
+     "explain": "Models use tools better when each tool does one safe, clear thing. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Least privilege for model-invoked tools means:",
+     "choices": [
+      "Admin access",
+      "Read-only everything",
+      "No tools at all",
+      "Each tool gets only the permissions its job needs — limiting blast radius of mistakes or injection"
+     ],
+     "answer": 3,
+     "explain": "A model with a delete-everything tool is an incident waiting for a prompt. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Testing tool-using features requires:",
+     "choices": [
+      "Mocked tools for determinism plus recorded real-tool integration tests",
+      "Manual testing only",
+      "No testing",
+      "Only unit tests"
+     ],
+     "answer": 0,
+     "explain": "Mocks give determinism; integration tests catch real-world drift. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -3699,29 +5467,37 @@
     {
      "front": "In one sentence, what does Shipping AI Features teach you to do?",
      "back": "The other 90% of an AI feature: flags, guardrails, honest UX, feedback loops, and cost controls — the parts demos skip and launches need."
+    },
+    {
+     "front": "What is a kill switch for AI features?",
+     "back": "A fast, tested path to disable the model-backed behavior instantly — feature flag, fallback to the old path, and an alert that fires when it's used. Ship the off-ramp before the feature. The line: 'The kill switch ships before the feature — off must be one click.'"
+    },
+    {
+     "front": "How do you handle latency budgets?",
+     "back": "Set a per-request budget, measure p50/p99 (not the mean), and design fallbacks for the tail: timeouts, cached responses, degraded modes. Users feel the tail, not the average. The line: 'Budget the p99, not the mean — the tail is the user experience.'"
     }
    ],
    "quiz": [
     {
      "q": "Feature flags for AI behavior enable:",
      "choices": [
-      "Slower ships",
-      "Kill switches and gradual rollouts for nondeterministic systems",
       "More features",
-      "Less testing"
+      "Less testing",
+      "Slower ships",
+      "Kill switches and gradual rollouts for nondeterministic systems"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Ship dark, ramp with evidence, revert instantly."
     },
     {
      "q": "UX for uncertainty includes:",
      "choices": [
-      "Hiding it",
       "Confidence display, citations, corrections, undo",
       "More text",
-      "Faster output"
+      "Faster output",
+      "Hiding it"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Honest interfaces for probabilistic outputs."
     },
     {
@@ -3738,13 +5514,57 @@
     {
      "q": "AI cost controls include:",
      "choices": [
+      "No monitoring",
       "Hoping",
       "Budgets, caching, routing to cheap models, alerts",
-      "Bigger models",
-      "No monitoring"
+      "Bigger models"
+     ],
+     "answer": 2,
+     "explain": "Cost as a designed constraint, not an invoice surprise."
+    },
+    {
+     "q": "Feature-flagging model-backed behavior lets you:",
+     "choices": [
+      "Ship faster code",
+      "Roll out gradually, A/B test, and kill-switch without redeploying",
+      "Avoid testing",
+      "Reduce model size"
      ],
      "answer": 1,
-     "explain": "Cost as a designed constraint, not an invoice surprise."
+     "explain": "Flags decouple deployment from release — the safety pattern for AI features. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Guardrails for AI features include:",
+     "choices": [
+      "More logging",
+      "Faster GPUs",
+      "Input/output filters, policy checks, and fallback paths for rejected or failed generations",
+      "Bigger models"
+     ],
+     "answer": 2,
+     "explain": "Guardrails bound behavior: what goes in, what comes out, what happens on failure. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Designing UX for uncertainty means:",
+     "choices": [
+      "Always showing probabilities",
+      "Removing choices",
+      "Hiding the AI",
+      "Showing confidence, offering alternatives, and making corrections easy"
+     ],
+     "answer": 3,
+     "explain": "Users handle uncertainty well when the interface admits it. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Feedback logging becomes eval data when:",
+     "choices": [
+      "Thumbs up/down and corrections are reviewed, labeled, and folded into regression evals",
+      "Users complain",
+      "It is deleted",
+      "It is stored"
+     ],
+     "answer": 0,
+     "explain": "Production feedback is the cheapest labeled data — if you curate it. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -3803,40 +5623,48 @@
     {
      "front": "In one sentence, what does AI Feature Project teach you to do?",
      "back": "One real AI feature in a real app: integrated, evaluated, guarded, and budgeted — the portfolio piece that reads like production experience."
+    },
+    {
+     "front": "How do you demo an AI feature honestly?",
+     "back": "Show a real task end-to-end, include a failure case and how the system handles it, and state the eval numbers behind the claims. A demo is a claim; evidence makes it credible. The line: 'Honest demos show the failure mode — that's what makes the success believable.'"
+    },
+    {
+     "front": "What does post-launch monitoring look like?",
+     "back": "The eval suite running on live traffic samples, latency and cost dashboards, user-feedback funnels into new eval cases, and a named owner for regressions. Launch is the start of measurement, not the end. The line: 'Launch day is when monitoring starts earning its keep.'"
     }
    ],
    "quiz": [
     {
      "q": "Scope v1 as:",
      "choices": [
+      "A platform",
       "Everything",
       "One real workflow pain solved completely",
-      "A demo",
-      "A platform"
+      "A demo"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "A thin slice that works beats a platform that does not."
     },
     {
      "q": "Full-stack integration means:",
      "choices": [
-      "A notebook",
-      "UI to model to eval wired together",
       "Two scripts",
-      "A slides deck"
+      "A slides deck",
+      "A notebook",
+      "UI to model to eval wired together"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Interface, pipeline, and measurement — the whole system."
     },
     {
      "q": "The launch writeup proves:",
      "choices": [
-      "Hype",
       "Evals, guardrails, budget, failure catalog — production-shaped evidence",
       "Speed",
-      "Novelty"
+      "Novelty",
+      "Hype"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The artifact reads like shipped work, not a tutorial."
     },
     {
@@ -3849,6 +5677,50 @@
      ],
      "answer": 1,
      "explain": "The difference between a demo and a launch."
+    },
+    {
+     "q": "A feature users would actually use is one that:",
+     "choices": [
+      "Uses the newest model",
+      "Solves a real task in their workflow with acceptable latency and cost",
+      "Has a nice demo",
+      "Is fully autonomous"
+     ],
+     "answer": 1,
+     "explain": "Adoption is the metric; novelty without workflow fit doesn't ship. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Full-stack integration here means:",
+     "choices": [
+      "Cloud deployment",
+      "Many microservices",
+      "The model wired into a real UI, API, data flow, and error handling — not a notebook",
+      "A big team"
+     ],
+     "answer": 2,
+     "explain": "Integration is what separates demos from products. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The launch writeup should include:",
+     "choices": [
+      "Marketing slogans",
+      "The training data",
+      "Only screenshots",
+      "What was built, eval results, limits, cost/latency numbers, and rollback plan"
+     ],
+     "answer": 3,
+     "explain": "A launch doc proves production thinking, not just building. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "The failure catalog in the project proves:",
+     "choices": [
+      "You found, classified, and addressed real failure modes instead of demoing only successes",
+      "Pessimism",
+      "Extra work",
+      "The project failed"
+     ],
+     "answer": 0,
+     "explain": "Catalogued failures are evidence of rigorous evaluation. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -3907,6 +5779,14 @@
     {
      "front": "In one sentence, what does Problem Framing teach you to do?",
      "back": "Most AI projects fail before the first model: wrong problem, wrong metric, or no constraint analysis. This module is the pre-mortem that saves them."
+    },
+    {
+     "front": "How do you frame the counterfactual?",
+     "back": "State what happens without the model: the current process, its cost, and its error rate. The counterfactual is the baseline every AI proposal must beat — no model wins against an unmeasured status quo. The line: 'No counterfactual, no business case.'"
+    },
+    {
+     "front": "What is a pre-mortem for AI projects?",
+     "back": "Before building, assume the project failed and write down why: data never arrived, labels were noisy, users didn't trust it. Then design against the top risks. The line: 'Pre-mortems turn hindsight into foresight — cheap insurance.'"
     }
    ],
    "quiz": [
@@ -3924,35 +5804,79 @@
     {
      "q": "Define success metrics first because:",
      "choices": [
+      "Stakeholders like numbers",
       "It is ritual",
       "The metric is the contract — it fixes what ‘good’ means",
-      "Models need them",
-      "Stakeholders like numbers"
+      "Models need them"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Agreed metrics prevent moving goalposts after results."
     },
     {
      "q": "The four constraints are:",
      "choices": [
-      "Data only",
-      "Latency, cost, data, regulation",
       "Time only",
-      "Money only"
+      "Money only",
+      "Data only",
+      "Latency, cost, data, regulation"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "The box every solution must fit inside — analyze it upfront."
     },
     {
      "q": "Buy vs build vs fine-tune hinges on:",
      "choices": [
-      "Hype",
       "Commodity vs differentiating IP, weighed against skill and maintenance",
       "Price only",
-      "Speed only"
+      "Speed only",
+      "Hype"
+     ],
+     "answer": 0,
+     "explain": "Buy commodity, build differentiating, adapt between — deliberately."
+    },
+    {
+     "q": "The honest 'is ML the answer' checklist asks first:",
+     "choices": [
+      "Which framework to use",
+      "Whether a heuristic, rules, or better data would solve it more cheaply",
+      "How big the model should be",
+      "Which cloud to use"
      ],
      "answer": 1,
-     "explain": "Buy commodity, build differentiating, adapt between — deliberately."
+     "explain": "ML is the expensive answer; rule it in only after cheaper ones fail. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Defining success metrics before modeling matters because:",
+     "choices": [
+      "Metrics are required",
+      "It impresses managers",
+      "The metric defines 'done' — without it, you can't know if the model is good enough",
+      "It speeds up training"
+     ],
+     "answer": 2,
+     "explain": "Modeling without a target metric is wandering; the metric is the contract. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Buy vs build vs fine-tune is decided by:",
+     "choices": [
+      "Team size",
+      "Vendor sales",
+      "Hype",
+      "Differentiation, data moat, cost, and maintenance burden — buy commodity, build moats"
+     ],
+     "answer": 3,
+     "explain": "Build only where it differentiates; everything else is bought or adapted. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Scoping to the thin slice means:",
+     "choices": [
+      "The smallest end-to-end version that proves value, then expanding",
+      "Skipping evals",
+      "One feature only",
+      "Cutting quality"
+     ],
+     "answer": 0,
+     "explain": "Thin slices de-risk; big bangs discover failure expensively. Covered in this module's 'Concepts'."
     }
    ]
   },
@@ -4011,18 +5935,26 @@
     {
      "front": "In one sentence, what does Data Strategy teach you to do?",
      "back": "Data strategy is the highest-leverage work in applied AI: audits, labeling plans, and the quality ceiling no architecture tunes past."
+    },
+    {
+     "front": "What is data lineage for ML?",
+     "back": "The recorded path from raw source through every transform to the training rows — so a data bug can be traced to affected models and a model bug traced to its data. Lineage is the audit trail. The line: 'Lineage answers: which models ate this bad data?'"
+    },
+    {
+     "front": "How do you estimate labeling cost?",
+     "back": "Cost per label × number of labels × annotators for agreement, plus guideline-writing and QA time. Pilot 100 labels first to measure real throughput before committing. The line: 'Price the pilot, then multiply — labeling budgets surprise everyone once.'"
     }
    ],
    "quiz": [
     {
      "q": "A data audit finds:",
      "choices": [
-      "Model bugs",
       "What exists, what is missing, what is lying — plus lineage and consent",
       "Nothing",
-      "Only size"
+      "Only size",
+      "Model bugs"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Audit before modeling — the highest-leverage work in applied AI."
     },
     {
@@ -4039,24 +5971,68 @@
     {
      "q": "Data quality is the ceiling because:",
      "choices": [
+      "GPUs help",
       "Models are weak",
       "No architecture tunes past bad labels and broken features",
-      "Data is small",
-      "GPUs help"
+      "Data is small"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "The model learns the data you have."
     },
     {
      "q": "Privacy basics for training data:",
      "choices": [
-      "Ignore it",
-      "Know what you may use, minimize PII, honor consent and retention",
       "Collect everything",
-      "Anonymize later"
+      "Anonymize later",
+      "Ignore it",
+      "Know what you may use, minimize PII, honor consent and retention"
+     ],
+     "answer": 3,
+     "explain": "Legal exposure starts at collection — handle it there."
+    },
+    {
+     "q": "A data audit uncovers:",
+     "choices": [
+      "Model bugs",
+      "What data exists, its quality, coverage gaps, and whether it can support the task",
+      "The best algorithm",
+      "Hardware needs"
      ],
      "answer": 1,
-     "explain": "Legal exposure starts at collection — handle it there."
+     "explain": "Audit before modeling: the data determines what's feasible. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Weak supervision as a starting point means:",
+     "choices": [
+      "Small data",
+      "Weak models",
+      "Using heuristics, rules, or existing signals to generate noisy labels before investing in manual labeling",
+      "No labels"
+     ],
+     "answer": 2,
+     "explain": "Noisy labels bootstrap the first model; manual labels refine it. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Data quality is the performance ceiling because:",
+     "choices": [
+      "Quality is cheap",
+      "Algorithms don't matter",
+      "Models are perfect",
+      "No model consistently outperforms the signal in its training data"
+     ],
+     "answer": 3,
+     "explain": "Garbage in, garbage out is the field's oldest law. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Privacy and consent basics for training data require:",
+     "choices": [
+      "Knowing data provenance, honoring consent and licenses, and minimizing sensitive attributes",
+      "More data",
+      "Anonymization always works",
+      "Ignoring regulations"
+     ],
+     "answer": 0,
+     "explain": "Legal and ethical sourcing is a production requirement, not a nicety. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -4115,29 +6091,37 @@
     {
      "front": "In one sentence, what does Rapid Prototyping teach you to do?",
      "back": "Prototypes that produce decisions: build the smallest real thing, test with users, and define the kill criteria before enthusiasm does."
+    },
+    {
+     "front": "What is a concierge MVP for AI?",
+     "back": "A human performs the 'AI' behind the scenes while users interact with the real interface — testing demand and UX before building the model. It validates the problem, not the technology. The line: 'Concierge first: prove someone wants it before proving a model can do it.'"
+    },
+    {
+     "front": "How do you test a prototype with real users?",
+     "back": "Give them real tasks, watch without helping, and measure task success plus where they hesitate. Five users find most usability problems; their hesitations are requirements. The line: 'Watch five users struggle and you'll learn more than from fifty surveys.'"
     }
    ],
    "quiz": [
     {
      "q": "A thin-slice prototype is:",
      "choices": [
-      "A demo",
-      "The smallest real thing — enough to produce a decision",
       "A slide",
-      "The full system"
+      "The full system",
+      "A demo",
+      "The smallest real thing — enough to produce a decision"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Prototypes exist to produce decisions, not applause."
     },
     {
      "q": "Wizard-of-Oz testing validates:",
      "choices": [
-      "The model",
       "Demand — whether users want the outcome before you build intelligence",
       "The UI",
-      "Nothing"
+      "Nothing",
+      "The model"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Humans behind the curtain test desire cheaply."
     },
     {
@@ -4154,13 +6138,57 @@
     {
      "q": "Human-in-the-loop is:",
      "choices": [
+      "Expensive only",
       "A failure",
       "A designed partnership — bounding risk while collecting labels",
-      "Slow",
-      "Expensive only"
+      "Slow"
+     ],
+     "answer": 2,
+     "explain": "A feature: safety now, training data later."
+    },
+    {
+     "q": "A thin-slice prototype proves:",
+     "choices": [
+      "The final architecture",
+      "That the core value works end-to-end before investing in the full build",
+      "Scalability",
+      "Profitability"
      ],
      "answer": 1,
-     "explain": "A feature: safety now, training data later."
+     "explain": "Prototypes answer 'does the idea work?' cheaply. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Wizard-of-Oz testing for AI concepts means:",
+     "choices": [
+      "Automated tests",
+      "Using magic",
+      "A human simulates the AI behind the interface to test demand and UX before building the model",
+      "No testing"
+     ],
+     "answer": 2,
+     "explain": "Fake the backend, test the frontend's value proposition. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Human-in-the-loop is a feature, not a failure, when:",
+     "choices": [
+      "Users are bored",
+      "Always",
+      "The model is perfect",
+      "Errors are costly and human judgment plus model speed beats either alone"
+     ],
+     "answer": 3,
+     "explain": "The right division of labor outperforms full automation on high-stakes tasks. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Defining kill criteria upfront prevents:",
+     "choices": [
+      "Sunk-cost escalation — you agree in advance what failure looks like",
+      "Prototyping",
+      "Learning",
+      "Success"
+     ],
+     "answer": 0,
+     "explain": "Pre-committed stop rules beat emotional attachment to failing ideas. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -4219,40 +6247,48 @@
     {
      "front": "In one sentence, what does Stakeholder Communication teach you to do?",
      "back": "The career module: translating model behavior into business language, setting expectations honestly, and running the pre-launch review that prevents surprises."
+    },
+    {
+     "front": "How do you present model risk to executives?",
+     "back": "In their currency: probability of failure × business impact, with a mitigation per risk and a named owner. No jargon, no ROC curves — decisions and dollars. The line: 'Executives buy risk in dollars and decisions, not metrics.'"
+    },
+    {
+     "front": "What goes in a model card for stakeholders?",
+     "back": "What the model does, what data it learned from, where it performs well and poorly, known limitations, and who to contact. One page, plain language. The line: 'The model card is the model's résumé — capabilities, limits, references.'"
     }
    ],
    "quiz": [
     {
      "q": "Explain models by:",
      "choices": [
+      "Hiding limits",
       "Reciting math",
       "Translating to decisions: what it does, when to trust it, where it is uncertain",
-      "Showing code",
-      "Hiding limits"
+      "Showing code"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Business language first; mechanism only if asked."
     },
     {
      "q": "The pre-launch review puts:",
      "choices": [
-      "Praise on the table",
-      "Risks on the table: failure modes, mitigations, owners, rollback",
       "Blame on the table",
-      "Nothing"
+      "Nothing",
+      "Praise on the table",
+      "Risks on the table: failure modes, mitigations, owners, rollback"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "The meeting that prevents surprises."
     },
     {
      "q": "Setting expectations means stating:",
      "choices": [
-      "Only wins",
       "What AI cannot do here — explicit non-goals",
       "Timelines only",
-      "Costs only"
+      "Costs only",
+      "Only wins"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Non-goals prevent the ‘but I thought it would…’ conversation."
     },
     {
@@ -4265,6 +6301,50 @@
      ],
      "answer": 1,
      "explain": "One page exposes fuzzy thinking."
+    },
+    {
+     "q": "Explaining models without jargon works by:",
+     "choices": [
+      "Dumbing it down",
+      "Analogies to familiar processes, concrete examples, and focusing on inputs, behavior, and limits",
+      "Avoiding details",
+      "Using slides"
+     ],
+     "answer": 1,
+     "explain": "Clarity is translation, not simplification. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "Communicating uncertainty and limits honestly:",
+     "choices": [
+      "Slows decisions",
+      "Scares stakeholders",
+      "Builds the trust that survives the first failure",
+      "Is optional"
+     ],
+     "answer": 2,
+     "explain": "Surprises destroy trust; disclosed limits preserve it. Covered in this module's 'Honesty note'."
+    },
+    {
+     "q": "The pre-launch review covers:",
+     "choices": [
+      "Marketing copy",
+      "Pricing",
+      "The launch party",
+      "Risks, mitigations, rollback plan, owners, and the go/no-go criteria"
+     ],
+     "answer": 3,
+     "explain": "Launch is a decision with a checklist, not a date on a calendar. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "The one-page AI proposal must answer:",
+     "choices": [
+      "Problem, approach, cost, risk, success metric, and what happens without it",
+      "Team bios",
+      "Nothing",
+      "The tech stack"
+     ],
+     "answer": 0,
+     "explain": "One page forces the decisions that matter. Covered in this module's 'Project brief'."
     }
    ]
   },
@@ -4323,6 +6403,14 @@
     {
      "front": "In one sentence, what does Measuring AI Value teach you to do?",
      "back": "Proving the system earns its keep: ROI framing, experiments on AI features, and the review cadence that keeps production systems alive."
+    },
+    {
+     "front": "What are leading versus lagging indicators for AI?",
+     "back": "Leading indicators move first and predict value — adoption, query volume, user retention. Lagging indicators confirm it — revenue, cost saved. Track both; steer by leading, report by lagging. The line: 'Leading indicators steer, lagging indicators prove.'"
+    },
+    {
+     "front": "How do you attribute revenue to a model?",
+     "back": "Compare against the counterfactual: A/B the model-backed experience, or measure the incremental lift versus the pre-model baseline with confounds controlled. Correlation is not attribution. The line: 'Attribution needs a counterfactual — the model's credit is the lift over without-it.'"
     }
    ],
    "quiz": [
@@ -4340,35 +6428,79 @@
     {
      "q": "A/B test model features by:",
      "choices": [
+      "Asking users",
       "Shipping to all",
       "Randomizing the experience with a pre-registered metric and guardrails",
-      "Eyeballing",
-      "Asking users"
+      "Eyeballing"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "The model is a treatment like any other — experiment properly."
     },
     {
      "q": "Track adoption because:",
      "choices": [
-      "It is easy",
-      "An unused perfect model creates zero value",
       "It is required",
-      "It replaces accuracy"
+      "It replaces accuracy",
+      "It is easy",
+      "An unused perfect model creates zero value"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Realized impact lives in usage metrics."
     },
     {
      "q": "The quarterly review:",
      "choices": [
-      "Is ritual",
       "Shows measured value vs cost with the next improvement thesis — keeps systems funded",
       "Kills projects",
-      "Is optional"
+      "Is optional",
+      "Is ritual"
+     ],
+     "answer": 0,
+     "explain": "Systems die without the funding ritual."
+    },
+    {
+     "q": "Framing ROI for AI projects starts with:",
+     "choices": [
+      "Model accuracy",
+      "The counterfactual: what the current process costs and what changes with the model",
+      "GPU prices",
+      "Headcount"
      ],
      "answer": 1,
-     "explain": "Systems die without the funding ritual."
+     "explain": "ROI is measured against without-the-model, not against zero. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "A/B testing a model-backed feature requires:",
+     "choices": [
+      "No guardrails",
+      "Two models",
+      "Randomized assignment, a primary metric, and enough runtime for the effect to stabilize",
+      "Big traffic only"
+     ],
+     "answer": 2,
+     "explain": "Standard experimentation discipline applies to model rollouts too. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "Tracking adoption, not just accuracy, matters because:",
+     "choices": [
+      "Adoption is easy",
+      "Stakeholders like charts",
+      "Accuracy is useless",
+      "An unused accurate model creates zero value"
+     ],
+     "answer": 3,
+     "explain": "Value flows through usage; accuracy without adoption is shelfware. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "The counterfactual question for AI value is:",
+     "choices": [
+      "What would have happened without the model — and can we measure the difference?",
+      "What if the model were bigger?",
+      "What do competitors do?",
+      "What if we had more data?"
+     ],
+     "answer": 0,
+     "explain": "Value claims need the without-it baseline. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -4427,18 +6559,26 @@
     {
      "front": "In one sentence, what does Applied AI Capstone teach you to do?",
      "back": "The full applied arc on a real problem: framed, prototyped, reviewed with stakeholders, and documented for handoff — production-shaped, not demo-shaped."
+    },
+    {
+     "front": "How do you hand off a model to an engineering team?",
+     "back": "Transfer the runnable artifacts plus the knowledge: training code, data pipeline, eval suite, known failure modes, monitoring setup, and a walkthrough session. A handoff is complete when they can retrain without you. The line: 'The handoff succeeds when the team can retrain it without calling you.'"
+    },
+    {
+     "front": "What does a runbook for an AI system contain?",
+     "back": "Symptom-to-action for the failures you'll see: data drift alerts, latency spikes, quality regressions — each with the check to run and the fix to apply, plus escalation contacts. The line: 'The runbook is the 3am version of you — write it while you're calm.'"
     }
    ],
    "quiz": [
     {
      "q": "Production-shaped means:",
      "choices": [
-      "Demo-shaped",
       "Real constraints, monitoring plan, handoff docs — built as if someone else runs it",
       "Big",
-      "Cloud-only"
+      "Cloud-only",
+      "Demo-shaped"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "The capstone simulates the real operating burden."
     },
     {
@@ -4455,24 +6595,68 @@
     {
      "q": "The stakeholder checkpoint:",
      "choices": [
+      "Is final",
       "Is ceremonial",
       "Earns the right to continue — or kills the idea cheaply",
-      "Slows things",
-      "Is final"
+      "Slows things"
      ],
-     "answer": 1,
+     "answer": 2,
      "explain": "Prototypes produce decisions; the checkpoint records them."
     },
     {
      "q": "Complete handoff docs let:",
      "choices": [
-      "You leave",
-      "A stranger run, debug, and retrain the system",
       "Nobody touch it",
-      "Auditors smile"
+      "Auditors smile",
+      "You leave",
+      "A stranger run, debug, and retrain the system"
+     ],
+     "answer": 3,
+     "explain": "Bus factor reduced to documentation."
+    },
+    {
+     "q": "'Production-shaped, not demo-shaped' means the capstone includes:",
+     "choices": [
+      "A nicer UI",
+      "Monitoring, error handling, cost/latency numbers, and a retraining story — not just a notebook",
+      "More models",
+      "A video"
      ],
      "answer": 1,
-     "explain": "Bus factor reduced to documentation."
+     "explain": "Production shape is about operability, not polish. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The framing doc contains:",
+     "choices": [
+      "References",
+      "The code",
+      "Problem, users, success metric, constraints, approach, and risks — before building",
+      "The dataset"
+     ],
+     "answer": 2,
+     "explain": "Writing the frame first prevents building the wrong thing well. Covered in this module's 'Hands-on procedure'."
+    },
+    {
+     "q": "A stakeholder checkpoint at the prototype exists to:",
+     "choices": [
+      "Get funding",
+      "Delay",
+      "Show off",
+      "Confirm the direction still matches their needs before further investment"
+     ],
+     "answer": 3,
+     "explain": "Early alignment is cheap; late realignment is expensive. Covered in this module's 'Project brief'."
+    },
+    {
+     "q": "Complete handoff documentation means:",
+     "choices": [
+      "The next owner can operate, debug, and retrain the system without you",
+      "Code comments",
+      "A wiki page",
+      "A long README"
+     ],
+     "answer": 0,
+     "explain": "Handoff completeness is measured by the successor's independence. Covered in this module's 'Honesty note'."
     }
    ]
   },
@@ -4493,7 +6677,7 @@
      "body": "- **RE-Bench** — METR's benchmark (2024-11-22) for AI-led ML research engineering: 7 realistic, open-ended environments, agents vs human experts, same resources and time limits.\n- **Anti-contamination design** — Environments built from scratch; most held back unpublished. Public tasks can't separate capability from memorization.\n- **Calibrated scoring** — 0 = starting solution's score, 1 = METR's strong reference solution; comparable across environments.\n- **Human baselines** — 71 attempts by 61 experts, up to 8 hours each; 82% non-zero, 24% matched or beat the reference.\n- **The 2h/8h/32h crossover** — Agents ~4× humans at 2h; humans narrowly lead at 8h; humans ~2× the top agent at 32h across attempts.\n- **The kernel example** — o1-preview's custom CUDA kernel: 0.64 ms vs best human 0.67 ms (start 4.74 ms, reference 1.60 ms) — a data point, not a verdict.\n- **Capability of concern** — AI automation of AI R&D is the monitored capability; RE-Bench is the reusable instrument."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Score an RE-Bench-style ML task yourself.\n1. **Pick a research-engineering task** with a measurable objective — e.g., fit a scaling law from provided training runs, or optimize a small kernel.\n2. **Define the scoring function** and calibrate it: 0 = the baseline you're given, 1 = a strong reference solution you write (or borrow and verify).\n3. **Set the time budget** and run both sides: an agent with a fixed attempt budget, and yourself (or a colleague) with the same clock.\n4. **Score best-of-k** across attempts at 2h, then extend to 8h. Watch for the crossover pattern: where does the agent's 10×+ iteration speed win, and where does coherent long-horizon work take over?\n5. **Write the limitations** before the conclusions: one task, one agent, one human — what would you need to make this a claim about 'AI doing research'?"
     },
     {
@@ -4501,7 +6685,7 @@
      "body": "Replicate one RE-Bench-style environment from scratch. Do not adapt a public tutorial — build the task, the starting code, and the scoring function yourself. Deliverable: the environment plus a 1-page report with (1) the task and why it's realistic ML research engineering, (2) your calibrated 0 and 1, (3) a timed human attempt (yours or a colleague's) and an agent attempt under the same budget, (4) the comparison, and (5) a limitations section. Grading bar: the limitations section must name contamination risk, baseline quality, and feedback-loop realism — the three things that separate an eval from a demo."
     },
     {
-     "title": "Frontier honesty",
+     "title": "Honesty note",
      "body": "What decays: model scores on these environments (models train on; scores inflate), published horizon values — all as-of 2026-10-07. What the benchmark does not claim: that 7 environments generalize to all of ML research, or that fast-feedback tasks stand in for months-long ambiguous research. What endures: the design pattern — contamination-free tasks, calibrated scoring, real human baselines, reported budgets. Cite the date; report the budgets."
     }
    ],
@@ -4525,29 +6709,41 @@
     {
      "front": "Before citing an 'AI researcher' claim?",
      "back": "Check contamination, baselines, budgets, and suite size — the critical-reading checklist."
+    },
+    {
+     "front": "What is the agentic scaffold in RE-Bench?",
+     "back": "The tooling wrapper around the model — shell access, code execution, file editing, and time limits — that turns a language model into an agent that can actually do ML research tasks. The scaffold is half the score. The line: 'In agentic evals, the scaffold is the athlete's equipment.'"
+    },
+    {
+     "front": "Why do agents beat humans early but lose late in RE-Bench?",
+     "back": "Agents parallelize and iterate tirelessly on short horizons; humans bring taste, deep debugging, and long-horizon strategy that compounds over hours. The crossover point marks where judgment beats speed. The line: 'Agents win the sprint, researchers win the marathon.'"
+    },
+    {
+     "front": "What is score normalization in RE-Bench?",
+     "back": "Raw scores are mapped to a 0–1 scale against human expert baselines so different environments (kernels, training runs, agent tasks) become comparable. Normalization is what makes 'better than the expert' a number. The line: 'Normalization turns seven different tasks into one comparable score.'"
     }
    ],
    "quiz": [
     {
      "q": "Why do RE-Bench tasks have faster feedback loops than real ML research?",
      "choices": [
-      "To save money",
-      "Deliberate design trade-off — real research has ambiguous goals and months-long feedback; the benchmark's limits are stated",
       "Agents prefer it",
-      "Humans are slow"
+      "Humans are slow",
+      "To save money",
+      "Deliberate design trade-off — real research has ambiguous goals and months-long feedback; the benchmark's limits are stated"
      ],
-     "answer": 1,
+     "answer": 3,
      "explain": "Covered in Frontier honesty — know what the instrument doesn't measure."
     },
     {
      "q": "An agent beats your best engineer on a kernel-optimization task. The correct conclusion?",
      "choices": [
-      "Engineers are obsolete",
       "One well-scoped win — check budgets, baselines, and whether the task generalizes before changing the workflow",
       "Fire the engineer",
-      "Publish immediately"
+      "Publish immediately",
+      "Engineers are obsolete"
      ],
-     "answer": 1,
+     "answer": 0,
      "explain": "Covered in Concepts (kernel example) — data point, not verdict."
     },
     {
@@ -4564,13 +6760,57 @@
     {
      "q": "For your team's ML workflow, the crossover suggests:",
      "choices": [
+      "Only use agents at 32h budgets",
       "Replace researchers with agents",
       "Agents for fast iteration sweeps; humans for coherent multi-hour research arcs",
-      "Avoid agents entirely",
-      "Only use agents at 32h budgets"
+      "Avoid agents entirely"
+     ],
+     "answer": 2,
+     "explain": "Covered in Worked estimation — play to each side's returns-to-time."
+    },
+    {
+     "q": "RE-Bench in one line is:",
+     "choices": [
+      "A model leaderboard",
+      "METR's benchmark pitting AI agents against human experts on real ML research tasks",
+      "A training dataset",
+      "A conference"
      ],
      "answer": 1,
-     "explain": "Covered in Worked estimation — play to each side's returns-to-time."
+     "explain": "Head-to-head agent-vs-expert on open-ended ML engineering work. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "The 'crossover' in RE-Bench refers to:",
+     "choices": [
+      "A network architecture",
+      "Models crossing over to new domains",
+      "The time horizon at which human experts start outperforming agents",
+      "Data leakage"
+     ],
+     "answer": 2,
+     "explain": "Short horizons favor agents; long horizons favor human judgment — the crossover marks it. Covered in this module's 'Concepts'."
+    },
+    {
+     "q": "In RE-Bench scoring, 0 and 1 are calibrated to:",
+     "choices": [
+      "Two models",
+      "Train and test",
+      "Random and perfect",
+      "A trivial baseline and expert human performance"
+     ],
+     "answer": 3,
+     "explain": "Normalization against baselines makes scores comparable across environments. Covered in this module's 'Worked estimation'."
+    },
+    {
+     "q": "Before citing an 'AI researcher' claim from a benchmark, you should check:",
+     "choices": [
+      "The scaffold, time limits, and task selection — scores measure agent-plus-setup, not autonomous science",
+      "The parameter count",
+      "The logo",
+      "The press release"
+     ],
+     "answer": 0,
+     "explain": "Benchmark numbers are conditional on their harness; cite the conditions. Covered in this module's 'Frontier honesty'."
     }
    ]
   }
@@ -4975,8 +7215,158 @@
    ]
   }
  ],
- "trainers": [],
- "terminalSims": [],
+ "trainers": [
+  {
+   "id": "metric-choice-trainer",
+   "title": "Evaluation metric trainer",
+   "brief": "Rapid-fire metric selection reps: given a problem shape (imbalanced classes, ranking, regression, cost asymmetry), pick the right metric and defend it — the decision interviewers probe first.",
+   "kind": "custom"
+  },
+  {
+   "id": "tuning-intuition-trainer",
+   "title": "Tuning intuition trainer",
+   "brief": "Hyperparameter and optimization judgment drills: learning-rate behavior, batch-size effects, early stopping, and budget discipline — build the instincts behind the tuning loop.",
+   "kind": "custom"
+  }
+ ],
+ "terminalSims": [
+  {
+   "id": "ml-cli",
+   "title": "ML CLI sandbox",
+   "brief": "Practice the machine-learning command line from the Python-for-ML path — project layout, environments, training runs, and experiment tracking — against a realistic sandbox.",
+   "prompt": "learner@il:~/ml-project$",
+   "commands": [
+    {
+     "cmd": "pwd",
+     "out": "/home/learner/ml-project"
+    },
+    {
+     "cmd": "ls",
+     "out": "configs  data  models  notebooks  src  tests"
+    },
+    {
+     "cmd": "ls src/",
+     "out": "__init__.py  data.py  features.py  train.py  evaluate.py"
+    },
+    {
+     "cmd": "cat configs/baseline.yaml",
+     "out": "model: random_forest\nn_estimators: 200\nmax_depth: 12\nseed: 42\ntest_size: 0.2"
+    },
+    {
+     "cmd": "python -m venv .venv && echo done",
+     "out": "done"
+    },
+    {
+     "cmd": "pip show scikit-learn | head -2",
+     "out": "Name: scikit-learn\nVersion: 1.5.2"
+    },
+    {
+     "cmd": "python src/train.py --config configs/baseline.yaml",
+     "out": "Loading data/train.csv ... 48000 rows\nFitting random_forest (n_estimators=200, max_depth=12) ...\nval_f1: 0.8231\nSaved: models/rf_baseline.pkl"
+    },
+    {
+     "cmd": "ls -lh models/",
+     "out": "total 18M\n-rw-r--r-- 1 learner learner 18M Oct  7 10:41 rf_baseline.pkl"
+    },
+    {
+     "cmd": "python src/evaluate.py --model models/rf_baseline.pkl --split test",
+     "out": "test_accuracy: 0.8914\ntest_f1:      0.8187\ntest_auc:     0.9342"
+    },
+    {
+     "cmd": "mlflow runs list --experiment baseline",
+     "out": "run_id    val_f1   params\n9f3a2c1   0.8231   n_estimators=200,max_depth=12\n7b1e90d   0.8155   n_estimators=100,max_depth=8"
+    },
+    {
+     "cmd": "git status --short",
+     "out": " M src/features.py\n?? models/rf_baseline.pkl"
+    },
+    {
+     "cmd": "git add src/features.py && git commit -m \"add target encoding\" --quiet && echo committed",
+     "out": "committed"
+    },
+    {
+     "cmd": "python src/train.py --config configs/baseline.yaml --seed 7",
+     "out": "Loading data/train.csv ... 48000 rows\nFitting random_forest (n_estimators=200, max_depth=12) ...\nval_f1: 0.8219\nSaved: models/rf_baseline.pkl"
+    },
+    {
+     "cmd": "echo $PYTHONPATH",
+     "out": "/home/learner/ml-project/src"
+    },
+    {
+     "cmd": "head -3 data/train.csv",
+     "out": "id,signup_month,plan,tenure_days,churned\n1001,2024-02,basic,412,0\n1002,2024-02,pro,388,1"
+    },
+    {
+     "cmd": "du -sh data/",
+     "out": "214M\tdata/"
+    },
+    {
+     "cmd": "history | tail -3",
+     "out": "  31  python src/train.py --config configs/baseline.yaml\n  32  python src/evaluate.py --model models/rf_baseline.pkl --split test\n  33  mlflow runs list --experiment baseline"
+    }
+   ]
+  },
+  {
+   "id": "model-eval",
+   "title": "Model evaluation sandbox",
+   "brief": "Practice the evaluation workflow from the Model Evaluation module — metrics, confusion matrices, learning curves, and head-to-head comparison — in a canned eval console.",
+   "prompt": "eval> ",
+   "commands": [
+    {
+     "cmd": "help",
+     "out": "commands: models, eval, confusion-matrix, learning-curve, compare, slices, threshold"
+    },
+    {
+     "cmd": "models",
+     "out": "baseline   (logistic regression)\nrf         (random forest, n=200)\nxgb        (gradient boosting, lr=0.05)"
+    },
+    {
+     "cmd": "eval --model baseline --metric accuracy",
+     "out": "baseline | accuracy = 0.8914 (n=12000)"
+    },
+    {
+     "cmd": "eval --model baseline --metric f1",
+     "out": "baseline | f1 = 0.6231  <- accuracy hides the minority-class weakness"
+    },
+    {
+     "cmd": "eval --model rf --metric f1",
+     "out": "rf       | f1 = 0.8187"
+    },
+    {
+     "cmd": "eval --model xgb --metric f1",
+     "out": "xgb      | f1 = 0.8412"
+    },
+    {
+     "cmd": "confusion-matrix --model baseline",
+     "out": "              pred 0   pred 1\nactual 0      10231      189\nactual 1        745      835\nprecision=0.815  recall=0.529"
+    },
+    {
+     "cmd": "confusion-matrix --model xgb",
+     "out": "              pred 0   pred 1\nactual 0      10390      130\nactual 1        402     1078\nprecision=0.892  recall=0.728"
+    },
+    {
+     "cmd": "learning-curve --model rf",
+     "out": "n=5k:   train_f1=0.94  val_f1=0.76   (gap: variance)\nn=20k:  train_f1=0.90  val_f1=0.80\nn=48k:  train_f1=0.87  val_f1=0.82   (converging: more data helps little)"
+    },
+    {
+     "cmd": "compare --models baseline,rf,xgb --metric f1",
+     "out": "baseline  0.6231\nrf        0.8187\nxgb       0.8412   <- best, but 4x the training cost of rf"
+    },
+    {
+     "cmd": "slices --model xgb --by plan",
+     "out": "plan=basic  f1=0.85 (n=8200)\nplan=pro    f1=0.83 (n=3100)\nplan=trial  f1=0.61 (n=700)  <- worst slice: sparse segment"
+    },
+    {
+     "cmd": "threshold --model xgb --target recall=0.85",
+     "out": "threshold 0.32 -> recall=0.851, precision=0.774\n(reports the operating point; costs decide if it ships)"
+    },
+    {
+     "cmd": "eval --model xgb --metric logloss",
+     "out": "xgb      | logloss = 0.2147  (lower is better; check calibration next)"
+    }
+   ]
+  }
+ ],
  "mockMinutes": 120,
  "mockTasks": [
   {

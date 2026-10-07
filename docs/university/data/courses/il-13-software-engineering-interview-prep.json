@@ -170,6 +170,18 @@
     {
      "front": "How do you derive log n and n log n on the spot?",
      "back": "‘Halving the problem each step gives log n levels — binary search. Divide-and-conquer that does linear work per level, like mergesort, gives n work × log n levels = n log n.’ Say the recurrence, then the level count."
+    },
+    {
+     "front": "How do you compare two O(n log n) solutions in an interview?",
+     "back": "By constants and the hidden work: same bound, different reality — allocation patterns, cache behavior, and the constant factors the notation erases. The interview line: ‘Big-O picks the algorithm family; engineering picks the winner.’"
+    },
+    {
+     "front": "When is O(n²) acceptable in an interview?",
+     "back": "When n is bounded and small (a few hundred), or when it is the stated brute force you are about to improve. Name the constraint that makes it fine: ‘O(n²) is acceptable here because n ≤ 200 by the problem statement.’ Never leave it unjustified."
+    },
+    {
+     "front": "Space complexity traps: what do interviewers watch for?",
+     "back": "Hidden allocations: recursion depth (O(h) stack), slicing that copies (O(n) per slice), and the output itself (sometimes excluded by convention — say so). The interview line: ‘I count the auxiliary space, and I name what I am excluding.’"
     }
    ],
    "quiz": [
@@ -216,6 +228,50 @@
      ],
      "answer": 2,
      "explain": "The O(n) copy cost of a resize is spread over the ~n/2 appends since the last resize: O(1) each."
+    },
+    {
+     "q": "Mergesort's O(n log n) comes from:",
+     "choices": [
+      "n levels of log n work",
+      "log n levels of n work each",
+      "n² comparisons halved",
+      "Sorting n elements n times"
+     ],
+     "answer": 1,
+     "explain": "Divide into log n levels; each level does n total merge work — the defining divide-and-conquer shape."
+    },
+    {
+     "q": "Two sequential (not nested) loops over n give:",
+     "choices": [
+      "O(n²)",
+      "O(n)",
+      "O(n log n)",
+      "O(1)"
+     ],
+     "answer": 1,
+     "explain": "Sequential loops add: n + n = 2n, and constants drop — O(n)."
+    },
+    {
+     "q": "Hash map insertion is O(1):",
+     "choices": [
+      "In the worst case always",
+      "Amortized/average case; worst case O(n) on collisions",
+      "Only for small maps",
+      "Only with perfect hashing"
+     ],
+     "answer": 1,
+     "explain": "Average-case O(1) via hashing; adversarial collisions degrade to O(n) without a good hash and resizing."
+    },
+    {
+     "q": "Space complexity of iterative binary search is:",
+     "choices": [
+      "O(n)",
+      "O(log n)",
+      "O(1)",
+      "O(n log n)"
+     ],
+     "answer": 2,
+     "explain": "The iterative version uses only a few variables; the recursive version pays O(log n) stack."
     }
    ]
   },
@@ -270,6 +326,18 @@
     {
      "front": "When does a monotonic stack appear in interviews?",
      "back": "‘Next greater element’ and histogram-rectangle problems: the stack keeps candidates in increasing order, and each element is pushed and popped once — O(n) for problems that look O(n²)."
+    },
+    {
+     "front": "When do you reach for binary search on the answer?",
+     "back": "When the predicate is monotonic (‘can we do it in X?’): capacity, minimize-the-maximum, split-array problems. Search the answer space, not the array. The interview line: ‘if feasibility is monotonic in X, I binary-search X.’"
+    },
+    {
+     "front": "Fast and slow pointers — what do they buy you?",
+     "back": "Cycle detection (Floyd), middle-of-list, and k-th-from-end — all in O(1) space. The interview line: ‘two pointers at different speeds turn a visited-set into arithmetic.’"
+    },
+    {
+     "front": "How do you talk about sorting as a preprocessing step?",
+     "back": "Sorting costs O(n log n) once and unlocks two pointers, binary search, and greedy ordering — often the whole solution. State it as a deliberate trade: ‘I pay the sort to buy structure.’"
     }
    ],
    "quiz": [
@@ -316,6 +384,50 @@
      ],
      "answer": 1,
      "explain": "For each x, checking whether target−x was seen is one hash lookup instead of a full rescan."
+    },
+    {
+     "q": "Two pointers on a sorted array find a pair summing to target in:",
+     "choices": [
+      "O(n²)",
+      "O(n)",
+      "O(n log n)",
+      "O(1)"
+     ],
+     "answer": 1,
+     "explain": "Opposite ends converge: each step discards one side — a single pass."
+    },
+    {
+     "q": "A sliding window stays O(n) because:",
+     "choices": [
+      "The window never shrinks",
+      "Each element enters and leaves the window at most once",
+      "It uses a hash map",
+      "Windows are fixed size"
+     ],
+     "answer": 1,
+     "explain": "Two monotonic pointers make 2n total moves — linear."
+    },
+    {
+     "q": "Prefix sums answer range-sum queries in O(1) after:",
+     "choices": [
+      "O(1) preprocessing",
+      "O(n) preprocessing",
+      "O(n log n) preprocessing",
+      "No preprocessing"
+     ],
+     "answer": 1,
+     "explain": "One pass builds prefix[]; each query is prefix[j] − prefix[i−1]."
+    },
+    {
+     "q": "‘Next greater element’ is a monotonic stack problem because the stack:",
+     "choices": [
+      "Sorts the array",
+      "Keeps candidates in order so each element is pushed/popped once",
+      "Finds the maximum",
+      "Reverses the array"
+     ],
+     "answer": 1,
+     "explain": "Amortized O(1) per element: each is pushed and popped at most once."
     }
    ]
   },
@@ -370,6 +482,18 @@
     {
      "front": "How do you represent graphs in interviews?",
      "back": "Adjacency lists by default: O(V+E) memory, fast neighbor iteration — the right choice for sparse graphs (which interview graphs are). Adjacency matrix only for dense graphs or O(1) edge queries. The interview line: ‘list unless I can say why matrix.’"
+    },
+    {
+     "front": "DFS vs BFS: the choosing rule under pressure?",
+     "back": "BFS for shortest path in unweighted graphs and level-order work; DFS for connectivity, cycle detection, topological sort, and full exploration. The interview line: ‘BFS when distance matters, DFS when structure matters.’"
+    },
+    {
+     "front": "How do you detect a cycle in a directed graph in an interview?",
+     "back": "DFS with three colors (unvisited / in-stack / done): finding an in-stack neighbor means a back edge — a cycle. For topological sort, emit nodes as they finish. The interview line: ‘the recursion stack is the cycle detector.’"
+    },
+    {
+     "front": "What does ‘tree DP’ mean in an interview?",
+     "back": "DP on trees: the state lives at each node and combines children’s results — diameter (max path through node), robber-on-tree, subtree sums. Post-order traversal computes bottom-up naturally. The interview line: ‘the recursion returns what the parent needs to decide.’"
     }
    ],
    "quiz": [
@@ -416,6 +540,50 @@
      ],
      "answer": 1,
      "explain": "Each insertion goes right every time; height becomes n and the log-n guarantee evaporates."
+    },
+    {
+     "q": "In-order traversal of a BST yields:",
+     "choices": [
+      "Insertion order",
+      "Keys in sorted order",
+      "Keys in reverse order",
+      "Level order"
+     ],
+     "answer": 1,
+     "explain": "In-order visits left, node, right — the BST invariant makes that sorted."
+    },
+    {
+     "q": "DFS on a graph with V vertices and E edges costs:",
+     "choices": [
+      "O(V²)",
+      "O(V + E)",
+      "O(E log V)",
+      "O(V × E)"
+     ],
+     "answer": 1,
+     "explain": "Each vertex and edge is visited once with adjacency lists."
+    },
+    {
+     "q": "A heap's peek operation is:",
+     "choices": [
+      "O(log n)",
+      "O(1)",
+      "O(n)",
+      "O(n log n)"
+     ],
+     "answer": 1,
+     "explain": "The min/max sits at the root — no traversal needed."
+    },
+    {
+     "q": "Recursion depth for a balanced tree of n nodes is:",
+     "choices": [
+      "O(n)",
+      "O(log n)",
+      "O(1)",
+      "O(n log n)"
+     ],
+     "answer": 1,
+     "explain": "Depth equals tree height: log n balanced, n degenerate."
     }
    ]
   },
@@ -470,6 +638,18 @@
     {
      "front": "LCS and edit distance: what’s the shared DP skeleton?",
      "back": "A 2D table over the two strings’ prefixes: dp[i][j] from dp[i−1][j], dp[i][j−1], dp[i−1][j−1]. Match → extend the diagonal; mismatch → take the best neighbor. Say ‘prefixes table’ and the interviewer knows you see it."
+    },
+    {
+     "front": "What are the two questions that define a DP state?",
+     "back": "‘What information do I need at position i?’ and ‘What decisions got me here?’ If the state cannot answer both, it is the wrong state. The interview line: ‘the state is the smallest summary of the past that the future needs.’"
+    },
+    {
+     "front": "How do you compress a 2D DP table to one dimension?",
+     "back": "When dp[i][j] only needs the previous row, keep two 1D arrays (or one, iterated carefully): knapsack, edit distance, and LCS all compress to O(n) space. The interview line: ‘space optimization is noticing which history the recurrence actually reads.’"
+    },
+    {
+     "front": "Interval DP — when does it appear?",
+     "back": "When the subproblem is a range [i..j]: burst balloons, strange printer, optimal binary search trees. Fill by increasing interval length; the recurrence tries every split point. The interview line: ‘the interval is the state when order inside the range matters.’"
     }
    ],
    "quiz": [
@@ -516,6 +696,50 @@
      ],
      "answer": 1,
      "explain": "Each house: skip it (dp[i-1]) or rob it plus the best up to i-2."
+    },
+    {
+     "q": "Climbing stairs (1 or 2 steps) has recurrence:",
+     "choices": [
+      "dp[i] = dp[i-1] + 1",
+      "dp[i] = dp[i-1] + dp[i-2]",
+      "dp[i] = 2 × dp[i-1]",
+      "dp[i] = max(dp[i-1], dp[i-2])"
+     ],
+     "answer": 1,
+     "explain": "Ways to reach step i = ways to i−1 (then +1) plus ways to i−2 (then +2)."
+    },
+    {
+     "q": "Memoization's main risk vs tabulation:",
+     "choices": [
+      "Slower",
+      "Wrong answers",
+      "Stack overflow on deep recursion",
+      "More code"
+     ],
+     "answer": 2,
+     "explain": "Top-down recursion depth can overflow the stack where bottom-up iteration will not."
+    },
+    {
+     "q": "LCS of ‘abc’ and ‘ac’ has length:",
+     "choices": [
+      "1",
+      "2",
+      "3",
+      "0"
+     ],
+     "answer": 1,
+     "explain": "‘ac’ is the longest common subsequence — length 2."
+    },
+    {
+     "q": "Coin change (min coins) is unbounded knapsack because:",
+     "choices": [
+      "Coins are sorted",
+      "Each coin can be reused unlimited times",
+      "The amount is small",
+      "Greedy works"
+     ],
+     "answer": 1,
+     "explain": "Unlimited reuse of each denomination defines the unbounded variant — greedy fails in general."
     }
    ]
   },
@@ -538,7 +762,7 @@
      "body": "- **Functional requirements** — What the system does — the features and behaviors; stated first, before any box is drawn.\n- **Non-functional requirements** — How the system behaves — scale, latency, availability, consistency; the constraints that shape the architecture.\n- **Back-of-envelope estimation** — Order-of-magnitude math with stated assumptions: users → QPS → storage → bandwidth, rounded aggressively to drive design decisions.\n- **Load balancer** — Spreads traffic across healthy servers — placed first along the request path; health checks decide 'healthy'.\n- **Cache** — Serves hot data without hitting the origin — Redis/Memcached; the invalidation story is the real design work.\n- **CDN** — Pushes static content to edge locations near users — latency for cacheable bytes, offload for the origin.\n- **CAP theorem** — Under a network partition, choose consistency or availability — partitions are a fact; CP or AP is the decision, argued from the product's needs.\n- **Consistency models** — The spectrum from strong to eventual: who sees what, when — 'the feed can be eventually consistent, but payments cannot.'\n- **Access patterns** — How data is read and written — the honest deciding factor in SQL versus NoSQL, not hype or habit.\n- **Bottleneck-first design** — Designing toward the constraint the estimation reveals: shard the hot key, cache the hot read, CDN the static bytes."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Estimation is order-of-magnitude judgment with stated assumptions, narrated aloud. Work each estimation below on paper, stating every assumption before the arithmetic.\n\n1. Work the canonical estimation: 100M daily users × 10 requests each = 10⁹ requests/day ÷ 86,400 ≈ 12k average QPS — write every step, state the rounding, name the peak multiplier assumption.\n2. Estimate storage for a photo-sharing sketch: 10M uploads/day × 2 MB average = 20 TB/day; × 365 × retention years — then decide what the number forces (object storage, CDN, thumbnails).\n3. Estimate bandwidth for a video feed: concurrent viewers × bitrate — convert to Gbps and state what breaks first (origin egress, cache hit ratio).\n4. Take any estimation above and change one assumption (DAU doubles, retention triples); recompute and name which design decision flips.\n5. Practice the estimation monologue: 5 minutes, assumptions stated aloud, driving toward one decision ('so we shard by user id') — the interview shape of this skill."
     },
     {
@@ -570,6 +794,18 @@
     {
      "front": "How do you discuss CAP without reciting the textbook?",
      "back": "‘During a network partition, I choose between consistency and availability — and here’s which my system needs and why.’ Then name the real tradeoff in your design: e.g. ‘the feed can be eventually consistent, but payments cannot.’"
+    },
+    {
+     "front": "How do you discuss consistency models beyond CAP?",
+     "back": "Strong vs eventual: strong when correctness cannot wait (payments, inventory), eventual when availability and latency win (feeds, analytics) — with a reconciliation story for eventual. The interview line: ‘consistency is a dial, and the business sets it.’"
+    },
+    {
+     "front": "What goes in the failure-modes section of a design answer?",
+     "back": "Per component: how it fails, the blast radius, what detects it (which alert fires), and the mitigation (fallback, shed, failover). The interview line: ‘a design without failure modes is a diagram, not a system.’"
+    },
+    {
+     "front": "How do you reason about data partitioning in a design round?",
+     "back": "Partition by the access pattern: the shard key is the key you query by (user_id for user data). Name the hot-key risk and the rebalancing story. The interview line: ‘the shard key is the query pattern made physical.’"
     }
    ],
    "quiz": [
@@ -616,6 +852,50 @@
      ],
      "answer": 1,
      "explain": "100M × 10 = 10⁹ requests/day ÷ 86,400 s/day ≈ 11,574 — roughly 12k QPS."
+    },
+    {
+     "q": "A load balancer's health checks exist to:",
+     "choices": [
+      "Balance CPU",
+      "Route only to healthy servers",
+      "Cache responses",
+      "Terminate TLS"
+     ],
+     "answer": 1,
+     "explain": "Unhealthy hosts leave the rotation — traffic only hits servers that can serve."
+    },
+    {
+     "q": "Denormalization in NoSQL is primarily a:",
+     "choices": [
+      "Consistency mechanism",
+      "Read-performance tradeoff",
+      "Security control",
+      "Backup strategy"
+     ],
+     "answer": 1,
+     "explain": "Duplicate data to serve reads from one partition — paying write complexity for read speed."
+    },
+    {
+     "q": "10K writes/sec with 1KB records needs roughly what daily storage:",
+     "choices": [
+      "~860 GB",
+      "~86 GB",
+      "~8.6 TB",
+      "~860 MB"
+     ],
+     "answer": 0,
+     "explain": "10K × 1KB × 86400s ≈ 864 GB/day — order-of-magnitude math is the point."
+    },
+    {
+     "q": "Choosing availability over consistency during a partition means:",
+     "choices": [
+      "Writes block",
+      "Both sides accept writes and reconcile later",
+      "Reads fail",
+      "The system halts"
+     ],
+     "answer": 1,
+     "explain": "AP systems stay writable on both sides of a partition; convergence happens after healing."
     }
    ]
   },
@@ -638,7 +918,7 @@
      "body": "- **URL shortener design** — The canonical rep: requirements, API (POST /shorten, GET /{id} → 301), ID generation (counter vs hash, base62), key-value storage, cache hot URLs, shard by hash.\n- **Rate limiter design** — Token bucket for bursts versus leaky bucket for smoothing; distributed state in Redis with Lua for atomicity; 429 + RateLimit-* headers communicating limits.\n- **Notification service design** — Channels (push/email/SMS), fan-out estimation, queue-based workers per channel with retries and dead-letter queues, templates, provider rate limits, idempotency.\n- **One-page design doc** — Requirements, architecture sketch, API and data model, scaling math, failure modes, open tradeoffs — one page forces decisions.\n- **45-minute cadence** — 5 requirements, 5 estimation, 10 API/data, 15 deep-dive on the hard part, 10 tradeoffs and failures — the timebox that proves you can drive.\n- **Review rubric** — Fixed axes for judging designs — comparable, complete feedback that prevents reviews from fixating on one pet concern.\n- **ID generation tradeoffs** — Counter (needs coordination, e.g. ZooKeeper-style ranges) versus hash (collision handling) — the classic 'hard part' deep-dive of the shortener.\n- **Fan-out math** — Followers × messages: the estimation that decides push versus pull and queue depth for the notification service."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Estimation is order-of-magnitude judgment with stated assumptions, narrated aloud. Work each estimation below on paper, stating every assumption before the arithmetic.\n\n1. Design the URL shortener on paper: requirements, 100M URLs/month estimation (writes/sec, storage for 5 years at ~500 bytes/record), then the full walkthrough — time it at 45 minutes.\n2. Work the shortener's ID math: 7 base62 characters = 62⁷ ≈ 3.5 trillion IDs — state how long that lasts at your write rate and what happens at exhaustion.\n3. Design the rate limiter: 10k requests/sec per API key, burst allowance 2× — size the Redis state, choose token bucket, and write the Lua atomicity argument.\n4. Design the notification service: 1M notifications/day across three channels — fan-out math, worker count from per-worker throughput, queue depth for a 10× spike.\n5. Record yourself presenting one design in 45 minutes; watch it back with the rubric and log every timebox you broke and every tradeoff you failed to name."
     },
     {
@@ -670,6 +950,18 @@
     {
      "front": "How do you present a design in 45 minutes?",
      "back": "Timebox: 5 min requirements, 5 estimation, 10 API/data, 15 deep-dive on the hard part, 10 tradeoffs/failures/Q&A. End with ‘here are the three tradeoffs I’d revisit with more time’ — it shows judgment and invites the discussion interviewers want."
+    },
+    {
+     "front": "Walk the rate-limiter deep-dive in 60 seconds.",
+     "back": "Requirements (per-user/per-IP limits, burst policy) → algorithm (token bucket for bursts, sliding-window log for precision) → storage (Redis with atomic Lua) → edge cases (distributed clocks, fail-open vs fail-closed). The interview line: ‘the algorithm is the easy part; the burst policy is the design.’"
+    },
+    {
+     "front": "How do you structure the chat-system design answer?",
+     "back": "Requirements (1:1 and group, presence, history) → estimation (messages/sec, storage) → the hard part: fan-out and ordering (per-conversation sequencing, WebSocket gateways) → storage (recent in cache, history in DB) → tradeoffs (delivery guarantees vs latency)."
+    },
+    {
+     "front": "What makes a design-doc tradeoff section score?",
+     "back": "Each tradeoff as: the choice, what it costs (latency, money, complexity), what breaks if you are wrong, and the condition that would flip your decision. The interview line: ‘tradeoffs scored are tradeoffs with a reversal condition.’"
     }
    ],
    "quiz": [
@@ -716,6 +1008,50 @@
      ],
      "answer": 1,
      "explain": "Queues absorb spikes and give retry/DLQ semantics per channel; direct calls would collapse under bursts."
+    },
+    {
+     "q": "A rate limiter's token bucket allows:",
+     "choices": [
+      "No bursts ever",
+      "Short bursts up to bucket capacity",
+      "Unlimited traffic",
+      "Only uniform traffic"
+     ],
+     "answer": 1,
+     "explain": "Accumulated tokens permit brief bursts above the sustained rate — the bucket's defining feature."
+    },
+    {
+     "q": "The notification service's queue decouples:",
+     "choices": [
+      "Nothing",
+      "Request acceptance from delivery work",
+      "The database from the cache",
+      "Users from each other"
+     ],
+     "answer": 1,
+     "explain": "The API accepts fast; workers deliver at their own pace — bursts never block the API."
+    },
+    {
+     "q": "A design doc's API section must specify:",
+     "choices": [
+      "Only URLs",
+      "Endpoints, methods, schemas, status codes, and error model",
+      "The database schema",
+      "Team ownership"
+     ],
+     "answer": 1,
+     "explain": "The contract clients program against: resources, verbs, shapes, and failure semantics."
+    },
+    {
+     "q": "Ending a design round by naming what you'd do with more time is strong because:",
+     "choices": [
+      "It fills time",
+      "It shows you see the design's limits and next steps",
+      "Interviewers require it",
+      "It hides weaknesses"
+     ],
+     "answer": 1,
+     "explain": "It demonstrates judgment about priorities under constraints — a senior signal."
     }
    ]
   },
@@ -770,6 +1106,18 @@
     {
      "front": "What’s the final two-week taper?",
      "back": "Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise."
+    },
+    {
+     "front": "How do you recover mid-round when you are stuck?",
+     "back": "Name it aloud (‘I am stuck on the transition here’), retreat to a smaller case, brute-force it, then generalize. Interviewers score recovery higher than smoothness. The interview line: ‘stuck is a state, not a verdict — narrate the exit.’"
+    },
+    {
+     "front": "What goes in the story bank before mock season?",
+     "back": "Six STAR stories minimum: conflict, failure, leadership, disagreement, deadline pressure, learning fast — each two minutes, each with a result. Rehearsed aloud, not memorized. The interview line: ‘the bank is written once and spent all season.’"
+    },
+    {
+     "front": "How do you use the interviewer as a resource?",
+     "back": "Treat them as a senior teammate: ask what they would prioritize, check your understanding of the requirements, invite correction early. The interview line: ‘a design round is a collaboration with a rubric attached.’"
     }
    ],
    "quiz": [
@@ -816,6 +1164,50 @@
      ],
      "answer": 1,
      "explain": "Design rounds simulate real design work: collaborative, iterative, tradeoff-driven."
+    },
+    {
+     "q": "The 5-20-5 coding budget means:",
+     "choices": [
+      "5 min code, 20 clarify, 5 test",
+      "5 clarify/plan, 20 code, 5 test",
+      "5 test, 20 code, 5 clarify",
+      "Equal thirds"
+     ],
+     "answer": 1,
+     "explain": "Clarify and plan first, code the bulk, reserve test time — stated aloud."
+    },
+    {
+     "q": "A debrief log's miss categories are:",
+     "choices": [
+      "Easy/hard",
+      "Pattern, bug, complexity, time management",
+      "Pass/fail",
+      "Interviewer mood"
+     ],
+     "answer": 1,
+     "explain": "Classifying the miss type directs the redrill — the category transfers, not the problem."
+    },
+    {
+     "q": "The taper's purpose is:",
+     "choices": [
+      "Learn new topics fast",
+      "Consolidate: redrill weak patterns, run full timed mocks",
+      "Rest completely",
+      "Apply to more jobs"
+     ],
+     "answer": 1,
+     "explain": "Two weeks out, new topics add noise; reps on known weak spots add points."
+    },
+    {
+     "q": "In STAR, the ‘R’ (result) should be:",
+     "choices": [
+      "Vague",
+      "Quantified when possible — what changed because of you",
+      "Skipped",
+      "About the team only"
+     ],
+     "answer": 1,
+     "explain": "Results prove impact; numbers make the story memorable and credible."
     }
    ]
   },
@@ -870,6 +1262,18 @@
     {
      "front": "When is gRPC the right answer?",
      "back": "Service-to-service inside the trust boundary: binary protobufs (fast, small), strict contracts via .proto, and streaming RPCs. The tradeoff: poor browser support and harder debugging than JSON — so internal microservices yes, public APIs usually no."
+    },
+    {
+     "front": "How do you version an API in an interview answer?",
+     "back": "URL versioning (/v1) for simplicity, headers for purists; the real answer is the policy: additive changes never break, removals get a deprecation window, and clients get migration guides. The interview line: ‘versioning is a compatibility promise, not a URL scheme.’"
+    },
+    {
+     "front": "What goes in a good API error model?",
+     "back": "Stable machine-readable codes (not just HTTP status), human messages, a request ID for log correlation, and documented retry behavior per code. The interview line: ‘errors are the part of the contract clients actually program against.’"
+    },
+    {
+     "front": "How do you discuss webhooks vs polling vs SSE?",
+     "back": "Webhooks: the provider pushes events to your endpoint (needs idempotent receivers, a retry policy, and signature verification). Polling: simple, wasteful. SSE: server-to-client stream. The interview line: ‘webhooks invert the polling cost — then you own the receiver.’"
     }
    ],
    "quiz": [
@@ -916,6 +1320,50 @@
      ],
      "answer": 1,
      "explain": "New inserts shift offsets; a keyset cursor anchors to the last seen key, immune to shifts."
+    },
+    {
+     "q": "Idempotency keys make retries safe for:",
+     "choices": [
+      "GET requests",
+      "POST/PUT with side effects",
+      "DELETE only",
+      "Webhooks only"
+     ],
+     "answer": 1,
+     "explain": "The server dedupes by key: a retried POST applies once — the exactly-once effect over at-least-once delivery."
+    },
+    {
+     "q": "429 Too Many Requests should include:",
+     "choices": [
+      "Nothing",
+      "Retry-After guidance",
+      "A stack trace",
+      "The rate-limit algorithm"
+     ],
+     "answer": 1,
+     "explain": "Clients need to know when to retry — the header turns a rejection into a protocol."
+    },
+    {
+     "q": "Cursor pagination's cursor should be:",
+     "choices": [
+      "A row number",
+      "An opaque, stable token (e.g. encoded keyset)",
+      "The page size",
+      "A timestamp only"
+     ],
+     "answer": 1,
+     "explain": "Opaque cursors hide implementation and stay stable as rows insert and delete — offsets do not."
+    },
+    {
+     "q": "gRPC uses HTTP/2 primarily for:",
+     "choices": [
+      "Browser support",
+      "Multiplexed streams and binary framing",
+      "Caching",
+      "Human readability"
+     ],
+     "answer": 1,
+     "explain": "HTTP/2 multiplexing plus protobuf binary payloads: fast, small service-to-service calls."
     }
    ]
   },
@@ -970,6 +1418,18 @@
     {
      "front": "What’s the N+1 query problem and its fix?",
      "back": "Loading N parents then one query per parent’s children: N+1 round trips. The fix is eager loading — a JOIN or batched second query (and ORMs have explicit eager-loading APIs). Name it when you see loops over queries."
+    },
+    {
+     "front": "How do you discuss denormalization honestly?",
+     "back": "Normalize first, denormalize on measured read pain: precomputed aggregates and duplicated fields for hot queries — each with an invalidation story. The interview line: ‘denormalization is a cache with a write path.’"
+    },
+    {
+     "front": "What do interviewers probe in connection pooling?",
+     "back": "Why it exists (connections are expensive to establish), sizing (too few starves, too many overwhelms the DB), and timeouts with retries. The interview line: ‘the pool is a queue in front of a scarce resource — size it like one.’"
+    },
+    {
+     "front": "How do you talk about schema migrations without downtime?",
+     "back": "Expand-contract: add the new column or table, dual-write, backfill, switch readers, drop the old. The interview line: ‘migrations are deploys — backwards-compatible steps or nothing.’"
     }
    ],
    "quiz": [
@@ -1016,6 +1476,50 @@
      ],
      "answer": 1,
      "explain": "Repeatable read holds read locks so re-reads are stable, but new rows matching the predicate (phantoms) can still appear."
+    },
+    {
+     "q": "A B-tree index speeds up:",
+     "choices": [
+      "Full table scans",
+      "Lookups and range queries on indexed columns",
+      "Writes",
+      "Backups"
+     ],
+     "answer": 1,
+     "explain": "O(log n) seeks replace O(n) scans — paid for with write overhead and storage."
+    },
+    {
+     "q": "3NF eliminates:",
+     "choices": [
+      "All redundancy",
+      "Transitive dependencies",
+      "Primary keys",
+      "Joins"
+     ],
+     "answer": 1,
+     "explain": "3NF: every non-key attribute depends on the key, the whole key, and nothing but the key."
+    },
+    {
+     "q": "Serializable isolation's cost is:",
+     "choices": [
+      "None",
+      "Concurrency — transactions may block or abort",
+      "Storage",
+      "Query complexity"
+     ],
+     "answer": 1,
+     "explain": "The strongest guarantee serializes conflicting access; throughput pays for the safety."
+    },
+    {
+     "q": "A document store fits product catalogs because:",
+     "choices": [
+      "They need joins",
+      "Flexible, nested, read-heavy shapes with evolving schemas",
+      "They need transactions",
+      "They are tiny"
+     ],
+     "answer": 1,
+     "explain": "JSON documents match the domain shape; schema evolution needs no migrations."
     }
    ]
   },
@@ -1070,6 +1574,18 @@
     {
      "front": "Kafka in 60 seconds for an interview.",
      "back": "Distributed commit log: topics split into partitions (the parallelism unit), producers append, consumer groups split partitions across consumers, offsets track progress. Choose it for durable event streaming with replay — and name the ordering guarantee: per-partition only."
+    },
+    {
+     "front": "TTL vs explicit invalidation — the interview tradeoff?",
+     "back": "TTL: simple and self-healing, but serves stale reads within the window. Explicit invalidation: fresh, but every write path must remember to invalidate — miss one and you have a bug. The interview line: ‘TTL is eventual consistency you can set your watch by.’"
+    },
+    {
+     "front": "What do consumer groups buy you in Kafka?",
+     "back": "Parallelism and elasticity: partitions split the topic, every group gets every message, and consumers within a group split the partitions. Rebalancing handles failures. The interview line: ‘partitions are the parallelism unit; groups are the subscriber unit.’"
+    },
+    {
+     "front": "How do you discuss dead-letter queues?",
+     "back": "Poison messages go to the DLQ after N retries instead of blocking the partition forever — with alerting, inspection tooling, and a replay path. The interview line: ‘the DLQ is where failures wait politely instead of screaming.’"
     }
    ],
    "quiz": [
@@ -1116,6 +1632,50 @@
      ],
      "answer": 1,
      "explain": "Sorted sets keep members ordered by score: rank lookups and top-N ranges are native operations."
+    },
+    {
+     "q": "Cache-aside's staleness risk comes from:",
+     "choices": [
+      "The database",
+      "The app populating cache on miss — writers through another path go unseen",
+      "The network",
+      "TTL only"
+     ],
+     "answer": 1,
+     "explain": "Any writer bypassing the app's cache-population logic leaves stale entries — TTL bounds the damage."
+    },
+    {
+     "q": "Exactly-once in Kafka-style systems requires:",
+     "choices": [
+      "Faster disks",
+      "Idempotent consumers or transactional writes",
+      "More partitions",
+      "Bigger batches"
+     ],
+     "answer": 1,
+     "explain": "The transport is at-least-once; exactly-once effects come from idempotent handling or transactions."
+    },
+    {
+     "q": "A Redis sorted set's score enables:",
+     "choices": [
+      "Only sorting",
+      "Rankings, leaderboards, and time-ordered windows",
+      "Encryption",
+      "Persistence"
+     ],
+     "answer": 1,
+     "explain": "Members ordered by score with O(log n) rank and range ops — leaderboards and sliding windows."
+    },
+    {
+     "q": "Backpressure via bounded queues protects:",
+     "choices": [
+      "The producer",
+      "The consumer from being overwhelmed — pressure moves to the producer",
+      "The network",
+      "The disk"
+     ],
+     "answer": 1,
+     "explain": "Bounded queues push the slowdown upstream instead of OOMing the consumer."
     }
    ]
   },
@@ -1170,6 +1730,18 @@
     {
      "front": "Why is distributed locking hard, and what’s the Redis answer?",
      "back": "Locks must survive holder crashes (TTL/lease) and clock issues; naive SETNX without expiry deadlocks on crash. The pattern: SET with NX + PX expiry, fencing tokens for ordering, and always keep the critical section short."
+    },
+    {
+     "front": "How do you explain the C10K problem’s modern answer?",
+     "back": "Blocking thread-per-connection dies near ten thousand concurrent connections; the answers are event loops and now virtual threads or goroutines — cheap concurrency units with blocking-style code. The interview line: ‘the fix was never faster threads; it was cheaper ones.’"
+    },
+    {
+     "front": "What is lock ordering, and when do you name it?",
+     "back": "Acquire multiple locks in a globally consistent order to break the circular-wait condition — the practical deadlock fix. Name it whenever the design takes two locks. The interview line: ‘ordered locks make deadlock structurally impossible.’"
+    },
+    {
+     "front": "How do you size a rate limiter’s storage?",
+     "back": "Counters per key per window: memory equals keys times window entries — Redis with TTL expiry bounds it naturally. Sliding-window logs are precise but heavy; fixed windows are cheap but edge-bursty. The interview line: ‘the limiter’s memory is the price of its precision.’"
     }
    ],
    "quiz": [
@@ -1216,6 +1788,50 @@
      ],
      "answer": 1,
      "explain": "Bounded buffers propagate slowness upstream instead of growing memory until collapse."
+    },
+    {
+     "q": "The four deadlock conditions include:",
+     "choices": [
+      "Only circular wait",
+      "Mutual exclusion, hold-and-wait, no preemption, circular wait",
+      "Too many threads",
+      "Slow disks"
+     ],
+     "answer": 1,
+     "explain": "Break any one condition (usually circular wait via lock ordering) and deadlock is impossible."
+    },
+    {
+     "q": "An event loop handles concurrency by:",
+     "choices": [
+      "One thread per request",
+      "Non-blocking I/O multiplexed on few threads",
+      "More processes",
+      "Faster CPUs"
+     ],
+     "answer": 1,
+     "explain": "A handful of threads serve thousands of connections — no thread ever blocks on I/O."
+    },
+    {
+     "q": "Leaky bucket differs from token bucket in that it:",
+     "choices": [
+      "Allows bigger bursts",
+      "Smooths traffic to a constant rate — no bursts",
+      "Is faster",
+      "Uses less memory"
+     ],
+     "answer": 1,
+     "explain": "Leaky bucket drains at a fixed rate regardless of arrivals; token bucket permits bursts."
+    },
+    {
+     "q": "A distributed lock's fencing token prevents:",
+     "choices": [
+      "Deadlock",
+      "A stale lock holder acting after expiry",
+      "Contention",
+      "Network partitions"
+     ],
+     "answer": 1,
+     "explain": "Monotonic tokens let the resource reject writes from a holder whose lease expired — the correctness fix beyond TTLs."
     }
    ]
   },
@@ -1270,6 +1886,18 @@
     {
      "front": "Logs, metrics, traces — when do you reach for each?",
      "back": "Metrics: ‘is something wrong’ (alerts, dashboards). Logs: ‘what happened’ (discrete events with context). Traces: ‘where did the request go’ (latency across services). The interview line: ‘metrics alert me, traces show me where, logs tell me why.’"
+    },
+    {
+     "front": "How do you discuss the strangler-fig migration?",
+     "back": "Wrap the monolith, route new capabilities to new services behind the facade, carve off bounded contexts one at a time — the monolith shrinks until it can be retired. The interview line: ‘strangler-fig is the only rewrite strategy that ships every week.’"
+    },
+    {
+     "front": "What breaks first in a microservices design answer?",
+     "back": "The network: latency budgets across hops, cascading failures, and version skew between services. Answers: timeouts with budgets, bulkheads, backward-compatible contracts. The interview line: ‘distributed systems fail at the seams — design the seams.’"
+    },
+    {
+     "front": "How do you talk about service meshes honestly?",
+     "back": "mTLS, retries, and observability without code changes — at the cost of a sidecar per pod (latency, memory, operational complexity). Worth it at dozens of services; overhead below that. The interview line: ‘the mesh buys uniformity; check the price in tail latency.’"
     }
    ],
    "quiz": [
@@ -1316,6 +1944,50 @@
      ],
      "answer": 1,
      "explain": "One policy-enforcement point at the edge beats reimplementing auth and limits in every service."
+    },
+    {
+     "q": "Bounded contexts split services by:",
+     "choices": [
+      "Team size",
+      "Business capability with clean ownership",
+      "Technology",
+      "Database tables"
+     ],
+     "answer": 1,
+     "explain": "DDD: the service boundary follows the domain boundary — ownership, not tech layers."
+    },
+    {
+     "q": "Async messaging's main resilience win is:",
+     "choices": [
+      "Speed",
+      "Temporal decoupling — producer and consumer needn't be up together",
+      "Ordering",
+      "Simplicity"
+     ],
+     "answer": 1,
+     "explain": "The queue absorbs outages and bursts; services evolve and deploy independently."
+    },
+    {
+     "q": "A saga's compensating transaction:",
+     "choices": [
+      "Retries the step",
+      "Semantically undoes a completed step",
+      "Locks the database",
+      "Pages the on-call"
+     ],
+     "answer": 1,
+     "explain": "No 2PC across services: each step has a defined undo, run in reverse on failure."
+    },
+    {
+     "q": "Service discovery solves:",
+     "choices": [
+      "Authentication",
+      "Finding current instance addresses as they churn",
+      "Load balancing",
+      "Monitoring"
+     ],
+     "answer": 1,
+     "explain": "Instances come and go; the registry (or DNS) keeps the current address list."
     }
    ]
   },
@@ -1338,7 +2010,7 @@
      "body": "- **Rate-limited API design** — Limits per key/IP, burst policy, token bucket in Redis with atomic Lua, 429 + RateLimit-* headers — the limiter as part of the contract.\n- **Order pipeline with queues** — API accepts and validates → order events to a queue → workers for payment/inventory/notification with retries + DLQ → saga compensation — the queue as the reliability seam.\n- **OpenAPI contract sketch** — Endpoints, methods, schemas, status codes, error model, auth, rate limits, versioning — enough for a client team to build against.\n- **k6 load-test plan** — JS-scripted load tests with thresholds as gates: the script, the stages, the assertions — code-reviewed load tests in the pipeline.\n- **k6 vs JMeter** — k6: scripted, CI-friendly, thresholds as gates. JMeter: GUI-driven, mature, broad protocol support — pick by team context, not fashion.\n- **Failure-mode writeup** — Per component: how it fails, blast radius, detection (which alert), mitigation (the responder's move), graceful degradation — the unhappy path designed like the happy one.\n- **45-minute presentation** — The design-round cadence: requirements, estimation, API/data, deep-dive, tradeoffs — ending with the tradeoffs you'd revisit.\n- **Contract-first** — Interface decisions made early when they're cheap — and client/server work parallelized; the habit interviewers want to see generalized."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Estimation is order-of-magnitude judgment with stated assumptions, narrated aloud. Work each estimation below on paper, stating every assumption before the arithmetic.\n\n1. Estimate the rate-limited API: 10k req/s sustained, 2× burst — size the Redis token-bucket state, compute per-key memory, and state the Lua atomicity requirement.\n2. Estimate the order pipeline: 50k orders/day, peak 10× — queue depth for the peak hour, worker count from per-worker throughput, DLQ sizing for a 1% poison rate.\n3. Write the k6 script plan for the API: stages (ramp, sustain, spike), thresholds (p95, error rate), and the gate assertion that fails the run.\n4. Recompute the pipeline estimate with one changed assumption (orders 5×, or a new channel added) and name which design decision flips.\n5. Present one design in 45 minutes on camera: timebox visibly, end with three tradeoffs you'd revisit — then score yourself against the rubric."
     },
     {
@@ -1370,6 +2042,18 @@
     {
      "front": "What goes in a failure-mode writeup?",
      "back": "For each component: how it fails, blast radius, detection (which alert fires), mitigation (what the responder does), and whether degradation is graceful. The interview line: ‘I design the unhappy path with the same care as the happy one.’"
+    },
+    {
+     "front": "How do you design a URL shortener’s write path?",
+     "back": "Accept the URL → validate and normalize → generate the ID (counter + base62 or a key-generation service) → check custom-alias uniqueness → persist the mapping → warm the cache. The interview line: ‘the write path is where collisions and duplicates get decided.’"
+    },
+    {
+     "front": "What goes in a load-test plan for the build?",
+     "back": "The forecast peak at 1.5×, a soak run for leaks, a spike run for autoscaling lag — with pass/fail thresholds as CI gates. The interview line: ‘a load test without a gate is just a graph.’"
+    },
+    {
+     "front": "How do you present the build’s architecture in an interview?",
+     "back": "One diagram, three layers: the request path, the data path, and the failure paths — then the two hardest decisions with rejected alternatives. The interview line: ‘the diagram shows what; the decisions show judgment.’"
     }
    ],
    "quiz": [
@@ -1416,6 +2100,50 @@
      ],
      "answer": 1,
      "explain": "Contract-first surfaces disagreements before code cements them."
+    },
+    {
+     "q": "The rate limiter's Redis Lua script must be atomic because:",
+     "choices": [
+      "Lua is fast",
+      "Check-and-decrement must not interleave across instances",
+      "Redis requires it",
+      "Scripts are cached"
+     ],
+     "answer": 1,
+     "explain": "Two instances racing the same counter would both pass without atomicity — the script is the lock."
+    },
+    {
+     "q": "Order pipeline workers should be idempotent because:",
+     "choices": [
+      "It's trendy",
+      "At-least-once delivery can redeliver",
+      "Queues are slow",
+      "Databases require it"
+     ],
+     "answer": 1,
+     "explain": "Redelivered order events must not double-charge — idempotency keys make retries safe."
+    },
+    {
+     "q": "k6 thresholds as CI gates mean:",
+     "choices": [
+      "Tests run nightly",
+      "The build fails when p95 or error rate breaches the budget",
+      "Reports are prettier",
+      "Tests run faster"
+     ],
+     "answer": 1,
+     "explain": "Thresholds convert a load test from a graph into a pass/fail quality gate."
+    },
+    {
+     "q": "A 429 response's Retry-After header exists so:",
+     "choices": [
+      "Clients back off cooperatively",
+      "Servers log better",
+      "Proxies cache",
+      "Debugging is easier"
+     ],
+     "answer": 0,
+     "explain": "Cooperative backoff prevents retry storms — the limiter and client form a protocol."
     }
    ]
   },
@@ -1470,6 +2198,18 @@
     {
      "front": "What’s the final two-week taper?",
      "back": "Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise."
+    },
+    {
+     "front": "How do you handle the ‘design it, then scale it 10x’ follow-up?",
+     "back": "Find the first bottleneck on the request path, apply the standard lever (cache, shard, queue), re-estimate, repeat. The interview line: ‘scaling is bottleneck whack-a-mole with math.’"
+    },
+    {
+     "front": "What do you do when the interviewer goes silent?",
+     "back": "Keep narrating — silence is thinking time for them, not a signal to panic. Offer the next decision explicitly: ‘the next choice is X versus Y; here is how I would decide.’ The interview line: ‘silence is scored by what you do with it.’"
+    },
+    {
+     "front": "How do you close a mock round strongly?",
+     "back": "Summarize the design in thirty seconds, restate the two tradeoffs you accepted, and name what you would do with more time. The interview line: ‘the close proves you held the whole design in your head.’"
     }
    ],
    "quiz": [
@@ -1516,6 +2256,50 @@
      ],
      "answer": 1,
      "explain": "Mechanism + scenario proves understanding; tool lists prove vocabulary."
+    },
+    {
+     "q": "In a timed API-design round, edge cases belong:",
+     "choices": [
+      "First",
+      "After the happy-path contract is sketched",
+      "Never",
+      "Only if asked"
+     ],
+     "answer": 1,
+     "explain": "Secure the core contract first, then spend the edge-case budget — pagination, errors, idempotency."
+    },
+    {
+     "q": "Naming the hazards before the tools in a deep dive is strong because:",
+     "choices": [
+      "It's longer",
+      "It shows you diagnose before prescribing",
+      "Interviewers like lists",
+      "Tools don't matter"
+     ],
+     "answer": 1,
+     "explain": "Races, deadlocks, N+1 first — then locks, ordering, eager loading. Diagnosis before prescription."
+    },
+    {
+     "q": "Treating the interviewer as a collaborator means:",
+     "choices": [
+      "Asking for answers",
+      "Thinking aloud, checking understanding, inviting correction",
+      "Always agreeing",
+      "Working silently"
+     ],
+     "answer": 1,
+     "explain": "Design rounds are collaborations with rubrics — narrate, verify, adapt."
+    },
+    {
+     "q": "A mock's debrief should happen:",
+     "choices": [
+      "Next week",
+      "Within the hour, while the leaks are fresh",
+      "Never",
+      "Only after offers"
+     ],
+     "answer": 1,
+     "explain": "Memory decays fast; the hour-after write-up captures what actually leaked."
     }
    ]
   },
@@ -1570,6 +2354,18 @@
     {
      "front": "What TypeScript features do interviewers actually ask about?",
      "back": "Narrowing (typeof/instanceof/discriminated unions — exhaustiveness checking with never), generics with constraints, and utility types (Partial, Pick, Omit, Record). The pitch: ‘types as executable documentation that the compiler checks.’"
+    },
+    {
+     "front": "How do you explain the event loop’s interview edge cases?",
+     "back": "queueMicrotask vs promise ordering, setTimeout(0) still waiting for the current task, and starving the loop with microtask recursion. The interview line: ‘microtasks drain completely — that is the whole trick.’"
+    },
+    {
+     "front": "What do interviewers probe in TypeScript narrowing?",
+     "back": "typeof and instanceof guards, discriminated unions, and exhaustiveness checking with never — the compiler proving you handled every case. The interview line: ‘narrowing is the compiler finishing your if-statements.’"
+    },
+    {
+     "front": "How do you discuss memory leaks in frontend interviews?",
+     "back": "Detached DOM nodes held by closures, forgotten event listeners and intervals, and ever-growing caches without eviction. The interview line: ‘leaks are references you forgot you kept.’"
     }
    ],
    "quiz": [
@@ -1616,6 +2412,50 @@
      ],
      "answer": 1,
      "explain": "The spec processes the entire microtask queue after each macrotask — promises always win the race."
+    },
+    {
+     "q": "An arrow function differs for ‘this’ in that it:",
+     "choices": [
+      "Binds its own",
+      "Inherits lexically from the enclosing scope",
+      "Is always undefined",
+      "Is always global"
+     ],
+     "answer": 1,
+     "explain": "No own ‘this’ — arrows capture the surrounding one, which is why they suit callbacks."
+    },
+    {
+     "q": "queueMicrotask vs Promise.then ordering:",
+     "choices": [
+      "Random",
+      "FIFO in the microtask queue — both drain before the next macrotask",
+      "Promises always first",
+      "queueMicrotask always first"
+     ],
+     "answer": 1,
+     "explain": "One shared microtask queue drains completely between macrotasks, in enqueue order."
+    },
+    {
+     "q": "The ‘never’ type's exhaustiveness trick works because:",
+     "choices": [
+      "It's falsy",
+      "Assigning a remaining case to never is a compile error",
+      "It's nullable",
+      "It's any"
+     ],
+     "answer": 1,
+     "explain": "After narrowing all cases, the leftover typed as never proves nothing remains — unhandled cases fail the build."
+    },
+    {
+     "q": "A closure-based memory leak happens when:",
+     "choices": [
+      "Closures are slow",
+      "A long-lived closure holds references the program no longer needs",
+      "Too many closures",
+      "Closures capture primitives"
+     ],
+     "answer": 1,
+     "explain": "The closure keeps its captured variables alive — detached DOM or caches held by forgotten closures leak."
     }
    ]
   },
@@ -1656,8 +2496,8 @@
      "back": "UI = f(state): given the same state, the component renders the same output — no hidden dependencies. It’s why unidirectional data flow works and why testing components is easy: set state, assert output. The interview line: ‘pure rendering functions; side effects at the edges.’"
     },
     {
-     "front": "Explain closures like the interviewer is testing depth.",
-     "back": "A function that captures variables from its enclosing scope — the variables live as long as the closure does. That’s the module pattern, private state, and also the classic bug: loop variables captured by reference (fixed with let in modern JS)."
+     "front": "Stale closures in React hooks — how do you explain the bug and the fix?",
+     "back": "A useEffect or useCallback closure captures state from the render when it was created — so it reads stale values on later runs. The interview line: ‘the closure sees the render it closed over, not the latest state.’ Fixes: include dependencies honestly, use functional setState updates, or read latest values through a ref without re-subscribing."
     },
     {
      "front": "Why do keys matter in React lists?",
@@ -1670,6 +2510,18 @@
     {
      "front": "How do you discuss state management tradeoffs?",
      "back": "Lift state to the lowest common parent first; context for truly global low-churn data (theme, auth) — not as a state manager, since context re-renders all consumers; external stores (Zustand/Redux) for complex shared state with selective subscriptions."
+    },
+    {
+     "front": "How do you explain reconciliation in an interview?",
+     "back": "React diffs the new element tree against the old: same type → update props; different type → unmount and remount; lists matched by key. The interview line: ‘reconciliation is diffing with a budget — keys are how you spend it wisely.’"
+    },
+    {
+     "front": "When do effects cause infinite loops?",
+     "back": "When the effect writes state it depends on without a guard — setState inside an effect with a missing or unstable dependency array. The interview line: ‘the loop is the effect arguing with its own dependencies.’"
+    },
+    {
+     "front": "How do you discuss server components honestly?",
+     "back": "They render on the server and ship HTML plus minimal JS: smaller bundles and direct data access — but no interactivity, no browser APIs, and a split mental model. The interview line: ‘server components trade client JS for a server round-trip.’"
     }
    ],
    "quiz": [
@@ -1716,6 +2568,50 @@
      ],
      "answer": 1,
      "explain": "Identity must follow the item, not its position; index keys lie about identity on reorder."
+    },
+    {
+     "q": "Lifting state up is the right call when:",
+     "choices": [
+      "Always",
+      "Two siblings need the same state — lift to their lowest common parent",
+      "Never",
+      "Only with Redux"
+     ],
+     "answer": 1,
+     "explain": "Shared state lives at the common ancestor; props flow down, events flow up."
+    },
+    {
+     "q": "React.memo skips re-renders when:",
+     "choices": [
+      "Always",
+      "Props are shallow-equal",
+      "State changes",
+      "Never"
+     ],
+     "answer": 1,
+     "explain": "Shallow prop comparison gates the render — pair with useCallback for unstable function props."
+    },
+    {
+     "q": "A stale closure in useEffect reads:",
+     "choices": [
+      "The latest state",
+      "State from the render when the effect was created",
+      "Nothing",
+      "Props only"
+     ],
+     "answer": 1,
+     "explain": "The closure captures the render's values; missing deps mean it never sees updates."
+    },
+    {
+     "q": "Keys must be stable because reconciliation:",
+     "choices": [
+      "Sorts by key",
+      "Matches old and new elements by key to reuse DOM nodes",
+      "Hashes keys",
+      "Ignores keys"
+     ],
+     "answer": 1,
+     "explain": "Stable keys let React move nodes; index keys on reordered lists cause wrong reuse."
     }
    ]
   },
@@ -1770,6 +2666,18 @@
     {
      "front": "How do you justify code splitting in a perf interview?",
      "back": "Ship only what the route needs: route-level splits plus lazy-loading below-the-fold/heavy components cut initial JS, which cuts parse/compile time — the real mobile bottleneck. Measure with coverage/devtools before and after."
+    },
+    {
+     "front": "How do you explain the compositor thread’s job?",
+     "back": "It handles transform and opacity animations plus scrolling without the main thread — which is why those properties stay smooth under JS load. The interview line: ‘if it does not touch layout or paint, the compositor can do it alone.’"
+    },
+    {
+     "front": "What do interviewers probe in resource loading?",
+     "back": "Render-blocking CSS and JS, preload vs prefetch vs preconnect, and image sizing (responsive images, modern formats). The interview line: ‘the fastest request is the one you eliminated.’"
+    },
+    {
+     "front": "How do you discuss long tasks and INP?",
+     "back": "Tasks over 50ms block interaction; break them up (yielding, chunking, web workers for compute). INP measures the worst interaction — optimize the tail, not the average. The interview line: ‘responsiveness is a tail problem.’"
     }
    ],
    "quiz": [
@@ -1816,6 +2724,50 @@
      ],
      "answer": 1,
      "explain": "CLS sums unexpected layout shifts; late-loading content pushing text around is the classic cause."
+    },
+    {
+     "q": "Layout thrashing happens when:",
+     "choices": [
+      "CSS is large",
+      "JS alternates reads and writes of layout, forcing repeated reflows",
+      "Images load",
+      "Fonts swap"
+     ],
+     "answer": 1,
+     "explain": "Read-write-read-write cycles defeat the browser's layout batching — batch reads, then writes."
+    },
+    {
+     "q": "The critical rendering path's render-blocking resources are:",
+     "choices": [
+      "Images",
+      "CSS and synchronous JS in head",
+      "Fonts only",
+      "Async scripts"
+     ],
+     "answer": 1,
+     "explain": "The browser waits for CSSOM (all CSS) and parser-blocking JS before first paint."
+    },
+    {
+     "q": "INP measures:",
+     "choices": [
+      "Load time",
+      "Worst-case interaction latency",
+      "Layout shift",
+      "Bundle size"
+     ],
+     "answer": 1,
+     "explain": "Interaction to Next Paint: the delay from input to visual response — responsiveness as the user feels it."
+    },
+    {
+     "q": "content-visibility: auto helps long pages by:",
+     "choices": [
+      "Lazy-loading images",
+      "Skipping layout/paint of off-screen subtrees",
+      "Compressing CSS",
+      "Prefetching"
+     ],
+     "answer": 1,
+     "explain": "The browser skips rendering work for off-screen content until it nears the viewport."
     }
    ]
   },
@@ -1870,6 +2822,18 @@
     {
      "front": "What’s the transform-and-opacity discipline?",
      "back": "Animate only transform and opacity: they composite on the GPU without layout or paint. Animating width/left/top triggers reflow — jank. The interview line: ‘if it moves pixels through layout, it’s not an animation, it’s a slideshow.’"
+    },
+    {
+     "front": "How do you explain stacking contexts?",
+     "back": "z-index only competes within a stacking context — created by positioned elements with z-index, opacity below 1, transforms, and others. The interview line: ‘z-index is local, not global — find the context.’"
+    },
+    {
+     "front": "What do interviewers probe in container queries?",
+     "back": "Components responding to their container’s size instead of the viewport’s — true component-level responsiveness. The interview line: ‘container queries let the component own its breakpoints.’"
+    },
+    {
+     "front": "How do you discuss CSS performance?",
+     "back": "Selectors are cheap; layout and paint are expensive — contain layout with content-visibility, avoid animating layout properties, keep the DOM shallow. The interview line: ‘CSS performance is about what you ask the browser to recompute.’"
     }
    ],
    "quiz": [
@@ -1916,6 +2880,50 @@
      ],
      "answer": 1,
      "explain": "Component-level responsiveness: the same card works in a sidebar and a full page."
+    },
+    {
+     "q": "Specificity: which wins, ‘.a .b’ vs ‘#c’?",
+     "choices": [
+      ".a .b (two classes)",
+      "#c (one ID)",
+      "Tie — later in source wins",
+      "Neither"
+     ],
+     "answer": 1,
+     "explain": "One ID (1,0,0) beats any number of classes (0,2,0) — IDs dominate specificity, which is why systems avoid them."
+    },
+    {
+     "q": "Grid beats flexbox when the layout is:",
+     "choices": [
+      "One-dimensional",
+      "Two-dimensional with aligned rows and columns",
+      "Always",
+      "Never"
+     ],
+     "answer": 1,
+     "explain": "Grid controls rows and columns together; flexbox lays out along one axis."
+    },
+    {
+     "q": "A stacking context is created by:",
+     "choices": [
+      "Any div",
+      "Positioned elements with z-index, transforms, opacity < 1, and others",
+      "Flex containers",
+      "The body only"
+     ],
+     "answer": 1,
+     "explain": "z-index competes only within its context — that is why huge z-index values ‘don't work’."
+    },
+    {
+     "q": "Animating width/height is janky because it triggers:",
+     "choices": [
+      "Compositing",
+      "Layout (reflow) on every frame",
+      "Paint only",
+      "Nothing"
+     ],
+     "answer": 1,
+     "explain": "Geometry changes reflow the page per frame; transform/opacity stay on the compositor."
     }
    ]
   },
@@ -1970,6 +2978,18 @@
     {
      "front": "Polling vs SSE vs WebSockets?",
      "back": "Polling: simple, wasteful (empty responses). SSE: server→client stream over HTTP, auto-reconnect — perfect for notifications/feeds. WebSockets: full duplex — chat, games, collaboration. Choose the weakest tool that satisfies the direction and frequency."
+    },
+    {
+     "front": "How do you design a collaborative editor’s frontend?",
+     "back": "Local-first state with operational transforms or CRDTs for convergence, presence over WebSockets, and the server as the ordering authority. The interview line: ‘collaboration is conflict resolution with a UI.’"
+    },
+    {
+     "front": "What are the key decisions in a design-a-dashboard answer?",
+     "back": "Data freshness requirements (real-time vs periodic), virtualization for large lists, and the charting and rendering budget — then the API shape that serves it (aggregations server-side). The interview line: ‘dashboards are won or lost on the data contract.’"
+    },
+    {
+     "front": "How do you handle offline in a frontend system design?",
+     "back": "Service worker caching strategies (cache-first for the app shell, network-first for data), queued mutations with sync on reconnect, and conflict UI. The interview line: ‘offline is a state, not an error — design the queue.’"
     }
    ],
    "quiz": [
@@ -2016,6 +3036,50 @@
      ],
      "answer": 1,
      "explain": "Serve-the-right-size beats serve-one-size: bandwidth follows the display, not the source."
+    },
+    {
+     "q": "Debouncing typeahead input (~200–300ms) exists to:",
+     "choices": [
+      "Look smooth",
+      "Avoid firing a request per keystroke",
+      "Cache results",
+      "Rank results"
+     ],
+     "answer": 1,
+     "explain": "Each keystroke would otherwise hit the backend — debounce collapses the burst."
+    },
+    {
+     "q": "Virtualized lists render:",
+     "choices": [
+      "All rows",
+      "Only visible rows plus a buffer",
+      "Every other row",
+      "One row"
+     ],
+     "answer": 1,
+     "explain": "Windowing keeps the DOM small for 10K-row lists — the scroll position maps to the slice."
+    },
+    {
+     "q": "Optimistic UI updates need:",
+     "choices": [
+      "Nothing",
+      "A rollback path when the server rejects",
+      "Faster servers",
+      "WebSockets"
+     ],
+     "answer": 1,
+     "explain": "Apply locally for snappiness, reconcile on response — conflicts need a defined resolution."
+    },
+    {
+     "q": "A CDN in front of the photo gallery primarily buys:",
+     "choices": [
+      "Storage",
+      "Edge-cached bytes near users — lower latency, less origin load",
+      "Upload speed",
+      "Resizing"
+     ],
+     "answer": 1,
+     "explain": "Images are cacheable and heavy — the edge serves them from nearby PoPs."
     }
    ]
   },
@@ -2070,6 +3134,18 @@
     {
      "front": "How do you test a machine-coding build?",
      "back": "Testing Library philosophy: test user-visible behavior (roles, text), not implementation details. Happy path + key edge cases (empty states, errors), accessible queries as a bonus a11y check. The interview line: ‘my tests describe what the user can do.’"
+    },
+    {
+     "front": "How do you scope a machine-coding task in the first ten minutes?",
+     "back": "Restate the requirements, enumerate the components and their props or events, and name what you will NOT build. The interview line: ‘a scoped plan is half the score — the rest is execution.’"
+    },
+    {
+     "front": "How do you structure state in a machine-coding build?",
+     "back": "One normalized store for the domain data (columns map to card maps), derived state computed at render, and UI-only state kept local. The interview line: ‘normalize the data, derive the rest.’"
+    },
+    {
+     "front": "What separates a passing machine-coding submission from a strong one?",
+     "back": "Working happy path first, then edge cases (empty states, loading, errors), then polish (keyboard support, focus management). The interview line: ‘correct, then robust, then delightful — in that order.’"
     }
    ],
    "quiz": [
@@ -2116,6 +3192,50 @@
      ],
      "answer": 1,
      "explain": "Native controls carry keyboard handling and ARIA roles for free; divs need all of it rebuilt."
+    },
+    {
+     "q": "A Kanban's drag state belongs:",
+     "choices": [
+      "In the DOM",
+      "In component state — the DOM reflects it, enabling undo and tests",
+      "In localStorage",
+      "Nowhere"
+     ],
+     "answer": 1,
+     "explain": "State-driven DnD (not DOM-driven) keeps the model testable and the UI a pure function of it."
+    },
+    {
+     "q": "Pointer Events beat HTML5 drag-and-drop for custom DnD because:",
+     "choices": [
+      "They're older",
+      "Unified mouse/touch/pen with full control over drag feedback",
+      "They're simpler",
+      "HTML5 DnD is deprecated"
+     ],
+     "answer": 1,
+     "explain": "Pointer events give per-pointer tracking across input types — HTML5 DnD's ghost image and dataTransfer limits frustrate custom UIs."
+    },
+    {
+     "q": "Debouncing the typeahead's network calls protects:",
+     "choices": [
+      "The UI thread",
+      "The backend from per-keystroke request storms",
+      "The cache",
+      "The bundle"
+     ],
+     "answer": 1,
+     "explain": "The machine-coding build should show the same discipline as the systems round."
+    },
+    {
+     "q": "An accessible autocomplete needs:",
+     "choices": [
+      "Only styling",
+      "aria-expanded, aria-activedescendant, keyboard navigation, and a real input",
+      "A canvas",
+      "No labels"
+     ],
+     "answer": 1,
+     "explain": "Screen readers navigate via ARIA roles and keyboard — the combobox pattern is the spec to follow."
     }
    ]
   },
@@ -2170,6 +3290,18 @@
     {
      "front": "How do you debrief and triage after a mock?",
      "back": "Within an hour, write what leaked (fumbled complexity? silent coding? weak STAR?), rank leaks by frequency × interview weight, and redrill the top one within 48 hours. The interview line: ‘the mock is the test; the debrief is the studying.’"
+    },
+    {
+     "front": "How do you pace a 90-minute machine-coding mock?",
+     "back": "Ten minutes to clarify and plan the component API, sixty to build working-first, twenty to harden (edge cases, a11y, tests). Narrate the phase changes. The interview line: ‘the clock is a design constraint — spend it visibly.’"
+    },
+    {
+     "front": "What do you do when the design prompt is vague?",
+     "back": "Ask the three scoping questions: who uses it, what scale, what is out of scope — then propose assumptions and proceed. The interview line: ‘vague prompts test whether you elicit requirements before drawing boxes.’"
+    },
+    {
+     "front": "How do you demo a machine-coding build at the end?",
+     "back": "Happy path live, then the two hardest decisions, then what you would do with another hour. The interview line: ‘the demo proves it works; the decisions prove you thought.’"
     }
    ],
    "quiz": [
@@ -2216,6 +3348,50 @@
      ],
      "answer": 1,
      "explain": "The graded system is the client: how it manages state, data, and performance at scale."
+    },
+    {
+     "q": "Answering language deep-dives in layers means:",
+     "choices": [
+      "Rambling",
+      "30-second answer, then mechanism, then edge case",
+      "One word",
+      "Only edge cases"
+     ],
+     "answer": 1,
+     "explain": "Layers let the interviewer stop you at their depth — and prove you have more."
+    },
+    {
+     "q": "The 90-minute machine-coding cadence is:",
+     "choices": [
+      "Code immediately",
+      "10 clarify/plan, 60 build, 20 harden",
+      "45/45 split",
+      "No plan needed"
+     ],
+     "answer": 1,
+     "explain": "Plan the component API first, build working-first, harden last — announced as phases."
+    },
+    {
+     "q": "A frontend system-design round differs by:",
+     "choices": [
+      "No design needed",
+      "Client-side components: state architecture, caching, rendering — same walkthrough",
+      "Only CSS",
+      "No API discussion"
+     ],
+     "answer": 1,
+     "explain": "Requirements → API → data → scale still applies; the components are browser-side."
+    },
+    {
+     "q": "Recording yourself answering aloud reveals:",
+     "choices": [
+      "Nothing",
+      "Pacing, filler, and rambling that silent rehearsal hides",
+      "The answers",
+      "Cheating"
+     ],
+     "answer": 1,
+     "explain": "Aloud practice is the only rehearsal that tests delivery — review the tape."
     }
    ]
   },
@@ -2270,6 +3446,18 @@
     {
      "front": "How do you reason about edge and CDN placement?",
      "back": "Push static and cacheable dynamic content to the edge (CDN PoPs), compute at the edge only when latency demands it (edge functions), origin for the source of truth. The interview line: ‘every mile between the user and the byte is latency I can buy off.’"
+    },
+    {
+     "front": "How do you discuss the modular monolith honestly?",
+     "back": "Bounded-context modules inside one deployable: most of microservices’ organization benefits, none of the network failure modes — with a clean seam for extracting services later. The interview line: ‘the modular monolith is the default; microservices are the opt-in.’"
+    },
+    {
+     "front": "What do interviewers probe in request hedging and timeouts?",
+     "back": "Timeouts with budgets per hop (not one global timeout), hedged requests for tail latency, and circuit breakers to stop cascading. The interview line: ‘timeouts are a design decision, not a config value.’"
+    },
+    {
+     "front": "How do you reason about data gravity in fullstack design?",
+     "back": "Compute moves toward the data, not the reverse: colocate app servers with the database region, push only aggregates to the edge. The interview line: ‘bandwidth bills follow data movement — minimize the movement.’"
     }
    ],
    "quiz": [
@@ -2316,6 +3504,50 @@
      ],
      "answer": 1,
      "explain": "Each client gets an aggregation layer tuned to its screens instead of N chatty service calls."
+    },
+    {
+     "q": "TLS termination at the load balancer:",
+     "choices": [
+      "Weakens security",
+      "Offloads handshake CPU from app servers; internal traffic may re-encrypt",
+      "Is required",
+      "Breaks HTTP/2"
+     ],
+     "answer": 1,
+     "explain": "Centralized cert management and cheaper scaling — with the internal-encryption tradeoff named."
+    },
+    {
+     "q": "SSR's TTFB cost vs SSG is:",
+     "choices": [
+      "None",
+      "Per-request rendering delays first byte; SSG serves prebuilt HTML",
+      "SSR is always faster",
+      "Only on mobile"
+     ],
+     "answer": 1,
+     "explain": "Freshness costs server time per request — the core SSR/SSG tradeoff."
+    },
+    {
+     "q": "A CDN's edge primarily caches:",
+     "choices": [
+      "API responses only",
+      "Static and cacheable content near users",
+      "Databases",
+      "User sessions"
+     ],
+     "answer": 1,
+     "explain": "Bytes that don't change per user — images, bundles, and cacheable API responses with the right headers."
+    },
+    {
+     "q": "DNS resolution happens:",
+     "choices": [
+      "After TCP",
+      "Before any connection — the name must resolve to an IP first",
+      "Never",
+      "Only for HTTPS"
+     ],
+     "answer": 1,
+     "explain": "The request path starts with DNS: resolve, then TCP handshake, then TLS, then HTTP."
     }
    ]
   },
@@ -2364,12 +3596,24 @@
      "back": "Over-fetching: REST endpoints returning fields the client ignores (wasted bytes). Under-fetching: needing N requests for one screen (chatty). GraphQL fixes both per-query; the cost is caching complexity. The interview line: ‘I measure the waste before I prescribe the cure.’"
     },
     {
-     "front": "How do you discuss caching in a cloud interview?",
-     "back": "What to cache (read-heavy, slow-changing), where (CDN edge, app cache, DB query cache), invalidation strategy, and the failure story (thundering herd, stale reads). The interview line: ‘caching is a tradeoff with an invalidation plan, not a speedup.’"
+     "front": "How do you discuss caching with GraphQL?",
+     "back": "Harder than REST because POST-to-one-endpoint defeats HTTP caching: the answers are normalized client caches (Apollo-style, keyed by type + id), persisted queries for CDN caching, and server-side dataloader batching to kill N+1. The interview line: ‘GraphQL moves caching from the network layer into the client.’"
     },
     {
      "front": "Polling vs SSE vs WebSockets?",
      "back": "Polling: simple, wasteful (empty responses). SSE: server→client stream over HTTP, auto-reconnect — perfect for notifications/feeds. WebSockets: full duplex — chat, games, collaboration. Choose the weakest tool that satisfies the direction and frequency."
+    },
+    {
+     "front": "How do you discuss schema design in GraphQL interviews?",
+     "back": "Types that mirror the domain, connections for pagination (edges, nodes, pageInfo), and mutations that return the changed object for cache updates. The interview line: ‘the schema is the API’s type system — design it like one.’"
+    },
+    {
+     "front": "What is the N+1 problem in GraphQL specifically?",
+     "back": "One resolver query per parent object — the classic nested-list explosion. The fix is dataloader-style batching: collect keys per tick, fetch once. The interview line: ‘GraphQL makes N+1 easy to write and dataloader makes it easy to fix.’"
+    },
+    {
+     "front": "When do you choose REST over GraphQL in an interview?",
+     "back": "When HTTP caching matters (CDNs, intermediaries), when the API is simple CRUD, or when clients are few and known. The interview line: ‘GraphQL optimizes for client flexibility; REST optimizes for the network.’"
     }
    ],
    "quiz": [
@@ -2416,6 +3660,50 @@
      ],
      "answer": 1,
      "explain": "Chatty APIs multiply round-trip latency — the scarcest resource on mobile networks."
+    },
+    {
+     "q": "REST's uniform interface constraint means:",
+     "choices": [
+      "One endpoint",
+      "Resources, verbs, and status codes used consistently",
+      "JSON only",
+      "No versioning"
+     ],
+     "answer": 1,
+     "explain": "The contract's predictability is the feature — clients learn the pattern once."
+    },
+    {
+     "q": "GraphQL's introspection enables:",
+     "choices": [
+      "Caching",
+      "Tooling: typed clients, explorers, and codegen from the schema",
+      "Speed",
+      "Auth"
+     ],
+     "answer": 1,
+     "explain": "The schema is queryable — the ecosystem (codegen, playgrounds) is the compounding advantage."
+    },
+    {
+     "q": "Over-fetching's cost is:",
+     "choices": [
+      "None",
+      "Wasted bytes and parse time, worst on mobile networks",
+      "Server CPU only",
+      "Latency only"
+     ],
+     "answer": 1,
+     "explain": "Fields the client ignores still cross the wire — GraphQL's founding complaint."
+    },
+    {
+     "q": "A mutation returning the changed object helps:",
+     "choices": [
+      "Nothing",
+      "Client cache updates without a refetch",
+      "The server",
+      "Logging"
+     ],
+     "answer": 1,
+     "explain": "Normalized caches apply the returned object directly — one round trip, consistent UI."
     }
    ]
   },
@@ -2470,6 +3758,18 @@
     {
      "front": "Which auth questions decide senior loops?",
      "back": "‘How do you revoke a JWT?’ (short expiry + denylist/rotation), ‘where do refresh tokens live?’ (httpOnly secure cookies, rotated), ‘how do you do SSO?’ (OIDC). The interview line: ‘I answer auth with threat models, not library names.’"
+    },
+    {
+     "front": "How do you explain refresh token rotation?",
+     "back": "Short-lived access tokens plus rotating refresh tokens: each use issues a new refresh token and invalidates the old, so a stolen token has a short window and reuse is detectable. The interview line: ‘rotation turns theft into an alarm.’"
+    },
+    {
+     "front": "What do interviewers probe in multi-tenancy auth?",
+     "back": "Tenant isolation at the data layer (tenant_id on every query or schema-per-tenant), token claims carrying the tenant, and admin scoping that cannot cross tenants. The interview line: ‘the tenant boundary is the security boundary.’"
+    },
+    {
+     "front": "How do you discuss passkeys in an interview?",
+     "back": "Phishing-resistant public-key credentials synced by the platform: no shared secret to phish or leak, with fallback for account recovery as the hard part. The interview line: ‘passkeys remove the password without removing the recovery problem.’"
     }
    ],
    "quiz": [
@@ -2516,6 +3816,50 @@
      ],
      "answer": 1,
      "explain": "Anyone can read the payload; the signature only proves it wasn’t tampered with."
+    },
+    {
+     "q": "The OAuth2 authorization code flow's code exchange must happen:",
+     "choices": [
+      "In the browser",
+      "Server-to-server, so the client secret never touches the browser",
+      "Via email",
+      "Over SMS"
+     ],
+     "answer": 1,
+     "explain": "The code is useless without the secret; the exchange is a back-channel call."
+    },
+    {
+     "q": "PKCE protects the code flow against:",
+     "choices": [
+      "Phishing",
+      "Authorization code interception on public clients",
+      "Brute force",
+      "XSS"
+     ],
+     "answer": 1,
+     "explain": "The code_verifier binds the token request to the original client — intercepted codes are useless."
+    },
+    {
+     "q": "Storing JWTs in localStorage risks:",
+     "choices": [
+      "Nothing",
+      "XSS theft — httpOnly cookies mitigate",
+      "CSRF",
+      "Expiry"
+     ],
+     "answer": 1,
+     "explain": "Any XSS reads localStorage; httpOnly cookies aren't JS-readable (trading for CSRF defenses)."
+    },
+    {
+     "q": "Argon2id beats bcrypt for new systems because:",
+     "choices": [
+      "It's older",
+      "Memory-hardness resists GPU/ASIC cracking better",
+      "It's faster",
+      "It's simpler"
+     ],
+     "answer": 1,
+     "explain": "Memory-hard functions raise the attacker's hardware cost — the modern password-hashing bar."
     }
    ]
   },
@@ -2570,6 +3914,18 @@
     {
      "front": "The interviewer asks you to go deep on 'From form to row: validation layers'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you discuss event-driven data flow across the stack?",
+     "back": "Domain events from the write side feed read models, search indexes, and notifications — each consumer independent, each replayable. The interview line: ‘events decouple the write model from every read model.’"
+    },
+    {
+     "front": "What do interviewers probe in pagination at scale?",
+     "back": "Cursor-based (stable under inserts), keyset on indexed columns, and the total-count problem (expensive — estimate or drop it). The interview line: ‘deep pages are a database problem wearing a UI costume.’"
+    },
+    {
+     "front": "How do you talk about data validation layers?",
+     "back": "Client for UX speed, API boundary as the trust boundary (never trust the client), database constraints as the last line. The interview line: ‘validate everywhere, trust the server’s validation.’"
     }
    ],
    "quiz": [
@@ -2616,6 +3972,50 @@
      ],
      "answer": 1,
      "explain": "Accessing relations per-row in a loop fires a query each — eager loading is the fix."
+    },
+    {
+     "q": "An ORM's N+1 trap fires when:",
+     "choices": [
+      "Queries are fast",
+      "Lazy loading issues one query per parent row",
+      "Indexes exist",
+      "Caching is on"
+     ],
+     "answer": 1,
+     "explain": "The loop over parents each lazy-loads children — eager loading or joins fix it."
+    },
+    {
+     "q": "BM25 improves on TF-IDF by:",
+     "choices": [
+      "Speed",
+      "Saturating term frequency and normalizing document length",
+      "Simplicity",
+      "Memory"
+     ],
+     "answer": 1,
+     "explain": "Diminishing returns on repeated terms plus length normalization — the modern ranking default."
+    },
+    {
+     "q": "Presigned URLs keep the app server out of the upload path, which:",
+     "choices": [
+      "Slows uploads",
+      "Removes a bandwidth and failure bottleneck",
+      "Breaks auth",
+      "Costs more"
+     ],
+     "answer": 1,
+     "explain": "Bytes flow client→storage directly; the server only mints scoped, expiring URLs."
+    },
+    {
+     "q": "Validation at the API boundary is the trust boundary because:",
+     "choices": [
+      "Clients are honest",
+      "Client-side validation is bypassable — the server is the authority",
+      "Databases validate",
+      "It's faster"
+     ],
+     "answer": 1,
+     "explain": "Never trust the client: the API re-validates everything the UI already checked."
     }
    ]
   },
@@ -2670,6 +4070,18 @@
     {
      "front": "What’s a real rollback strategy?",
      "back": "Deploy immutable artifacts, keep the previous version one command away (or N−1 running in blue-green), database migrations backward-compatible (expand-contract), and rehearse the rollback — an untested rollback plan is a hope."
+    },
+    {
+     "front": "How do you explain blue-green deployments in an interview?",
+     "back": "Two identical environments: deploy to idle (green), smoke-test, flip the router, keep blue warm for instant rollback. Costs double capacity during the switch. The interview line: ‘blue-green trades capacity for rollback certainty.’"
+    },
+    {
+     "front": "What do interviewers probe in infrastructure as code basics?",
+     "back": "Declarative desired state, plan-before-apply review, and remote state with locking — the pipeline deploys the infrastructure like code. The interview line: ‘if it is not in code, it does not exist.’"
+    },
+    {
+     "front": "How do you discuss secrets in deployment interviews?",
+     "back": "Never in repos or images: injected at deploy time from a secret manager, rotated on a schedule, and scoped per environment. The interview line: ‘a secret in git is a secret shared with the world.’"
     }
    ],
    "quiz": [
@@ -2716,6 +4128,50 @@
      ],
      "answer": 1,
      "explain": "Code ships dark; the flag controls who sees it — enabling progressive rollout and instant kill-switches."
+    },
+    {
+     "q": "A canary release's metric gates:",
+     "choices": [
+      "Are decorative",
+      "Promote or roll back based on error rate/latency vs baseline",
+      "Slow deploys",
+      "Need manual approval"
+     ],
+     "answer": 1,
+     "explain": "Progressive exposure with automatic rollback on regression — the safety mechanism."
+    },
+    {
+     "q": "Immutable artifacts mean:",
+     "choices": [
+      "No deploys",
+      "The same tested image promotes through environments — never rebuilt per env",
+      "Read-only code",
+      "No config"
+     ],
+     "answer": 1,
+     "explain": "Build once: what staging tested is what production runs — environment differences come from config."
+    },
+    {
+     "q": "A pipeline's ‘fast-first’ stage order exists because:",
+     "choices": [
+      "Tradition",
+      "Failing in minute 2 beats failing in minute 39",
+      "It's prettier",
+      "Tests are fast"
+     ],
+     "answer": 1,
+     "explain": "Lint and unit tests first — cheap signal early, expensive stages only for code that passes."
+    },
+    {
+     "q": "Docker's layer cache speeds rebuilds when:",
+     "choices": [
+      "Always",
+      "Slow-changing steps (deps) come before fast-changing ones (code)",
+      "Never",
+      "Only for large images"
+     ],
+     "answer": 1,
+     "explain": "Instruction order is cache strategy — dependencies install once, code copies invalidate only the tail."
     }
    ]
   },
@@ -2770,6 +4226,18 @@
     {
      "front": "The interviewer asks you to go deep on 'Scoping a shippable app'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you choose a capstone that scores in interviews?",
+     "back": "One hard problem done well beats three toy apps: pick something with a real data model, auth, and a deployed URL — the trifecta interviewers actually click. The interview line: ‘depth in one project beats breadth in five.’"
+    },
+    {
+     "front": "What do interviewers probe in your capstone’s tradeoff story?",
+     "back": "Why this stack, what you rejected and why, and what broke during the build. The interview line: ‘the capstone is an excuse to tell decision stories.’"
+    },
+    {
+     "front": "How do you keep a capstone honest about AI assistance?",
+     "back": "Disclose the tooling, own every line (be ready to explain and modify any of it live), and keep the architecture decisions visibly yours. The interview line: ‘assistance is fine; authorship you cannot defend is not.’"
     }
    ],
    "quiz": [
@@ -2816,6 +4284,50 @@
      ],
      "answer": 1,
      "explain": "Contracts before code: the habit interviewers want to see generalized."
+    },
+    {
+     "q": "The thinnest shippable slice demonstrates:",
+     "choices": [
+      "Everything",
+      "One vertical: auth, data model, deployed with CI",
+      "Only UI",
+      "Only docs"
+     ],
+     "answer": 1,
+     "explain": "A working vertical proves the full loop — breadth without depth proves nothing."
+    },
+    {
+     "q": "Owning every line of AI-assisted code means:",
+     "choices": [
+      "Writing it all by hand",
+      "Being able to explain and modify any of it live",
+      "Hiding the tooling",
+      "No AI allowed"
+     ],
+     "answer": 1,
+     "explain": "Assistance is fine; authorship you can't defend under questioning is not."
+    },
+    {
+     "q": "The demo script's job is:",
+     "choices": [
+      "Impress",
+      "A rehearsed happy path plus the two hardest decisions",
+      "Show all features",
+      "Read the README"
+     ],
+     "answer": 1,
+     "explain": "Demos are performances: the path that works, then the judgment behind it."
+    },
+    {
+     "q": "Choosing one hard problem over three toy apps is strong because:",
+     "choices": [
+      "It's easier",
+      "Depth (real data model, auth, deployed URL) is what interviewers probe",
+      "It's faster",
+      "Toys are bad"
+     ],
+     "answer": 1,
+     "explain": "Interviewers click the URL and ask about the hard parts — toys have neither."
     }
    ]
   },
@@ -2870,6 +4382,18 @@
     {
      "front": "What’s the final two-week taper?",
      "back": "Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise."
+    },
+    {
+     "front": "How do you split attention in a combined design-plus-coding round?",
+     "back": "Design the path first (ten minutes, thinnest slice), then code only that slice end-to-end — a working vertical beats a broad stub. The interview line: ‘thin and working beats wide and broken.’"
+    },
+    {
+     "front": "What is the fullstack mock’s unique failure mode?",
+     "back": "Getting stuck in one layer: forty minutes on CSS while the API is unstarted. Timebox per layer and announce the switches. The interview line: ‘the layers are budgeted separately.’"
+    },
+    {
+     "front": "How do you prepare differently for startup vs big-company fullstack loops?",
+     "back": "Startups probe breadth and shipping speed (build the thing); big companies probe depth per layer (defend each choice). The interview line: ‘read the loop’s shape, then train for it.’"
     }
    ],
    "quiz": [
@@ -2916,6 +4440,50 @@
      ],
      "answer": 1,
      "explain": "Distributed clients will retry; the API must make retries safe."
+    },
+    {
+     "q": "The fullstack mock's layer-budgeting rule is:",
+     "choices": [
+      "CSS first",
+      "Timebox per layer and announce switches — don't get stuck in one",
+      "Backend only",
+      "No budget needed"
+     ],
+     "answer": 1,
+     "explain": "The classic failure is forty minutes on styling with no API — budget the layers."
+    },
+    {
+     "q": "In a combined round, the thinnest vertical slice means:",
+     "choices": [
+      "One layer deep",
+      "API plus one screen working end-to-end",
+      "All screens stubbed",
+      "Docs first"
+     ],
+     "answer": 1,
+     "explain": "Design the path (10 min), then code only that slice — working beats wide."
+    },
+    {
+     "q": "Startup vs big-company fullstack loops differ in that startups probe:",
+     "choices": [
+      "Nothing different",
+      "Breadth and shipping speed; big companies probe per-layer depth",
+      "Only algorithms",
+      "Only culture"
+     ],
+     "answer": 1,
+     "explain": "Train for the loop's shape: build-the-thing vs defend-each-choice."
+    },
+    {
+     "q": "Closing a mock round strongly means:",
+     "choices": [
+      "Leaving early",
+      "30-second summary, two accepted tradeoffs, what you'd do with more time",
+      "Apologizing",
+      "Asking for the answer"
+     ],
+     "answer": 1,
+     "explain": "The close proves you held the whole design — and know its limits."
     }
    ]
   },
@@ -2964,12 +4532,24 @@
      "back": "Protocol-oriented design: capabilities as protocols, shared behavior via protocol extensions with default implementations, generics constrained by protocols. The interview line: ‘prefer composition of protocols over class inheritance.’"
     },
     {
-     "front": "What TypeScript features do interviewers actually ask about?",
-     "back": "Narrowing (typeof/instanceof/discriminated unions — exhaustiveness checking with never), generics with constraints, and utility types (Partial, Pick, Omit, Record). The pitch: ‘types as executable documentation that the compiler checks.’"
+     "front": "What Swift generics and protocol features do interviewers probe?",
+     "back": "Generic functions and types with constraints (where clauses), associated types in protocols, and opaque return types (some Protocol). The pitch: ‘generics move the check from runtime crashes to compile-time errors.’ Know the tradeoff: specialization speed versus code-size growth."
     },
     {
-     "front": "Explain closures like the interviewer is testing depth.",
-     "back": "A function that captures variables from its enclosing scope — the variables live as long as the closure does. That’s the module pattern, private state, and also the classic bug: loop variables captured by reference (fixed with let in modern JS)."
+     "front": "Escaping vs non-escaping closures in Swift — the interview version?",
+     "back": "Non-escaping (the default): the closure runs before the function returns — no retain-cycle risk, and self can be captured implicitly. Escaping (@escaping): the closure is stored or runs later (completion handlers) — self must be explicit (weak/unowned) to avoid cycles. The interview line: ‘escaping means the closure outlives the call; that is when memory discipline starts.’"
+    },
+    {
+     "front": "How do you explain value-type copy-on-write in a Swift interview?",
+     "back": "Structs copy on assignment but collections share storage until mutation — copy-on-write gives value semantics without the copy cost. The interview line: ‘copy-on-write is value semantics with a performance escape hatch.’"
+    },
+    {
+     "front": "What do interviewers probe in Swift error handling?",
+     "back": "throwing functions with do-catch, typed errors as enums, try? vs try! discipline (never force-try in production paths), and Result for async boundaries. The interview line: ‘errors are values — model them like the domain.’"
+    },
+    {
+     "front": "How do you discuss property wrappers in an interview?",
+     "back": "Compiler-synthesized storage plus access logic: @State, @Published, and custom wrappers for validated or persisted properties. The interview line: ‘property wrappers move cross-cutting property logic into one reusable place.’"
     }
    ],
    "quiz": [
@@ -2996,15 +4576,15 @@
      "explain": "The captured environment outlives the enclosing call — that’s what makes private state possible."
     },
     {
-     "q": "A discriminated union’s power in TypeScript is:",
+     "q": "Swift enums with associated values give you:",
      "choices": [
-      "Faster runtime",
-      "Exhaustive narrowing: the compiler proves you handled every variant",
-      "Smaller bundles",
-      "No need for tests"
+      "Only C-style constants",
+      "Type-safe variants carrying data — the discriminated-union pattern, exhaustively switchable",
+      "Faster integers",
+      "Objective-C interop only"
      ],
      "answer": 1,
-     "explain": "Switching on the discriminant literal lets TS narrow each branch — and ‘never’ in default proves exhaustiveness."
+     "explain": "Associated values make each case carry its payload with compile-time exhaustiveness — the Swift answer to the discriminated union."
     },
     {
      "q": "Protocol extensions with default implementations enable:",
@@ -3016,6 +4596,50 @@
      ],
      "answer": 1,
      "explain": "Mixins via extensions: types gain behavior by conforming, no inheritance chain required."
+    },
+    {
+     "q": "Force-unwrapping with ! is defensible only when:",
+     "choices": [
+      "Never",
+      "The nil case is logically impossible (e.g. IBOutlet after load) — and even then, rarely",
+      "Always",
+      "In tests only"
+     ],
+     "answer": 1,
+     "explain": "Prefer binding, chaining, and coalescing; force-unwrap only where nil cannot happen by construction."
+    },
+    {
+     "q": "A struct's method mutating self must be marked:",
+     "choices": [
+      "static",
+      "mutating",
+      "final",
+      "lazy"
+     ],
+     "answer": 1,
+     "explain": "Value types need the mutating marker — the compiler enforces value semantics explicitly."
+    },
+    {
+     "q": "Protocol-oriented programming's core idea is:",
+     "choices": [
+      "Inheritance hierarchies",
+      "Capabilities as protocols with default behavior via extensions — composition over inheritance",
+      "More classes",
+      "Singletons"
+     ],
+     "answer": 1,
+     "explain": "Protocols define what types can do; extensions supply shared implementations — the Swift design idiom."
+    },
+    {
+     "q": "@escaping matters because the closure:",
+     "choices": [
+      "Is faster",
+      "Outlives the function call — so capture lists (weak/unowned) prevent retain cycles",
+      "Is shorter",
+      "Runs on main"
+     ],
+     "answer": 1,
+     "explain": "Stored or deferred closures keep captured references alive past the call — memory discipline starts here."
     }
    ]
   },
@@ -3070,6 +4694,18 @@
     {
      "front": "How do you bridge UIKit and SwiftUI?",
      "back": "UIViewRepresentable/UIViewControllerRepresentable to embed UIKit in SwiftUI; UIHostingController to embed SwiftUI in UIKit. The interview line: ‘interop is a migration strategy — wrap the legacy, write new code in SwiftUI.’"
+    },
+    {
+     "front": "How do you discuss diffable data sources in an interview?",
+     "back": "Snapshots describe the UI state; the framework diffs and animates the changes — no manual index-path math, no crash-prone batch updates. The interview line: ‘snapshots make the list a function of state.’"
+    },
+    {
+     "front": "What do interviewers probe in SwiftUI navigation?",
+     "back": "NavigationStack with value-typed destinations and path state: deep linking and programmatic navigation become data, not segues. The interview line: ‘navigation as data is testable navigation.’"
+    },
+    {
+     "front": "How do you explain the responder chain’s interview relevance?",
+     "back": "Events travel up the chain (view → controller → window → app) until handled — the mechanism behind target-action fallthrough and shake-to-undo. The interview line: ‘unhandled events climb until someone claims them.’"
     }
    ],
    "quiz": [
@@ -3116,6 +4752,50 @@
      ],
      "answer": 1,
      "explain": "Bindings are two-way lenses: the parent owns, the child edits through the lens."
+    },
+    {
+     "q": "viewDidLoad vs viewWillAppear: one-time setup belongs in:",
+     "choices": [
+      "viewWillAppear",
+      "viewDidLoad — it runs once; appearance work goes in viewWill/DidAppear",
+      "deinit",
+      "loadView"
+     ],
+     "answer": 1,
+     "explain": "One-time wiring in viewDidLoad; per-appearance work (observers, refreshes) in the appear callbacks."
+    },
+    {
+     "q": "A constraint conflict at runtime means:",
+     "choices": [
+      "The app crashes always",
+      "The solver broke a lower-priority constraint — read the log to find the ambiguity",
+      "Auto Layout is broken",
+      "Nothing"
+     ],
+     "answer": 1,
+     "explain": "Conflicts resolve by priority; the console log names the culprits — fix the ambiguity, not the symptom."
+    },
+    {
+     "q": "@StateObject vs @ObservedObject:",
+     "choices": [
+      "Identical",
+      "@StateObject owns the lifetime (created by the view); @ObservedObject references an externally-owned object",
+      "@StateObject is for structs",
+      "@ObservedObject is faster"
+     ],
+     "answer": 1,
+     "explain": "Ownership determines lifetime: the view that creates the model holds it with @StateObject."
+    },
+    {
+     "q": "The SwiftUI layout algorithm's three steps are:",
+     "choices": [
+      "Measure, layout, draw",
+      "Parent proposes a size, child chooses, parent places",
+      "Constraint, solve, render",
+      "Guess, check, fix"
+     ],
+     "answer": 1,
+     "explain": "Parent-driven negotiation: proposal down, size choice up, placement by the parent."
     }
    ]
   },
@@ -3170,6 +4850,18 @@
     {
      "front": "Why is main-thread discipline non-negotiable on iOS?",
      "back": "UIKit/SwiftUI are not thread-safe: UI updates off the main thread cause undefined behavior — glitches, crashes, corruption. The rule: compute off main (@MainActor for UI-bound code), hop back to main for every UI touch."
+    },
+    {
+     "front": "How do you explain @MainActor in an interview?",
+     "back": "A global actor isolating UI-touching code to the main thread at compile time — the compiler, not discipline, enforces main-thread updates. The interview line: ‘@MainActor turns a convention into a guarantee.’"
+    },
+    {
+     "front": "What do interviewers probe in async sequences?",
+     "back": "AsyncSequence for streams of values over time (notifications, location updates) with for-await consumption and cancellation on task end. The interview line: ‘async sequences are async/await for streams.’"
+    },
+    {
+     "front": "How do you discuss thread-safety beyond ‘use the main thread’?",
+     "back": "Serial queues or actors for shared mutable state, immutable value types passed across threads, and locks only as a last resort with the shortest critical section. The interview line: ‘isolation beats locking — structure beats both.’"
     }
    ],
    "quiz": [
@@ -3216,6 +4908,50 @@
      ],
      "answer": 1,
      "explain": "The queue topologically sorts the graph; you declare relationships, not locks."
+    },
+    {
+     "q": "Dispatching UI work off the main thread causes:",
+     "choices": [
+      "Faster rendering",
+      "Undefined behavior — glitches and crashes; UIKit/SwiftUI are not thread-safe",
+      "Nothing",
+      "Better battery"
+     ],
+     "answer": 1,
+     "explain": "Main-thread discipline is non-negotiable: all UI updates on the main thread/actor."
+    },
+    {
+     "q": "async/await's readability win over callbacks is:",
+     "choices": [
+      "Speed",
+      "Sequential-looking code with compiler-managed suspension — no pyramid of closures",
+      "Less memory",
+      "Fewer bugs guaranteed"
+     ],
+     "answer": 1,
+     "explain": "Suspension points replace nested completions; structured tasks replace detached callbacks."
+    },
+    {
+     "q": "A Task's child tasks:",
+     "choices": [
+      "Outlive the parent",
+      "Cannot outlive the parent — cancellation and errors propagate through the hierarchy",
+      "Run on main always",
+      "Ignore cancellation"
+     ],
+     "answer": 1,
+     "explain": "Structured concurrency's core guarantee: lifetimes are provable from the task tree."
+    },
+    {
+     "q": "Actors serialize access by:",
+     "choices": [
+      "Locks you manage",
+      "Compiler-enforced isolation — one task touches the actor's state at a time",
+      "Being slow",
+      "Main thread only"
+     ],
+     "answer": 1,
+     "explain": "The actor model moves mutual exclusion from convention to compiler guarantee."
     }
    ]
   },
@@ -3270,6 +5006,18 @@
     {
      "front": "Where do secrets go on iOS?",
      "back": "Keychain — encrypted, access-controlled (kSecAttrAccessible), surviving app reinstall on the device. The interview line: ‘if it’s a secret, it’s in the Keychain; UserDefaults is a plist anyone can read.’"
+    },
+    {
+     "front": "How do you discuss CloudKit sync in an interview?",
+     "back": "Apple’s backend-as-a-service for iCloud sync: private/public/shared databases, subscriptions for push, and conflict resolution you must design for. The interview line: ‘CloudKit gives you sync; the merge policy is still yours.’"
+    },
+    {
+     "front": "What do interviewers probe in background data tasks?",
+     "back": "BGProcessingTask for deferrable work (sync, ML) with system-scheduled windows, and the discipline of short, resumable units. The interview line: ‘background work is a guest of the OS — behave like one.’"
+    },
+    {
+     "front": "How do you talk about data migration in Core Data?",
+     "back": "Lightweight migration for additive changes (automatic with a mapping model), heavyweight for the rest — and versioned models from day one. The interview line: ‘ship the versioned model before you need the migration.’"
     }
    ],
    "quiz": [
@@ -3316,6 +5064,50 @@
      ],
      "answer": 1,
      "explain": "Faulting defers loading until the property is touched — memory-efficient by design."
+    },
+    {
+     "q": "UserDefaults is wrong for:",
+     "choices": [
+      "Toggles",
+      "Secrets and large data — Keychain for secrets, files/database for bulk",
+      "Last tab",
+      "Onboarding flags"
+     ],
+     "answer": 1,
+     "explain": "Small preferences only: secrets go to Keychain, large data to files or a database."
+    },
+    {
+     "q": "Codable's compiler synthesis breaks when:",
+     "choices": [
+      "JSON is small",
+      "Keys mismatch or types need custom mapping — then CodingKeys or custom init(from:)",
+      "Structs are used",
+      "Arrays appear"
+     ],
+     "answer": 1,
+     "explain": "Custom key strategies and manual decoding handle real-world JSON drift."
+    },
+    {
+     "q": "Core Data's context hierarchy (main + background) exists because:",
+     "choices": [
+      "It's traditional",
+      "UI stays responsive: background contexts do the work, main merges for display",
+      "Memory",
+      "Speed of fetches"
+     ],
+     "answer": 1,
+     "explain": "Concurrency discipline: never block the main context with I/O or heavy transforms."
+    },
+    {
+     "q": "kSecAttrAccessible controls:",
+     "choices": [
+      "Encryption strength",
+      "When the keychain item is readable (e.g. only while unlocked)",
+      "Item size",
+      "Sync speed"
+     ],
+     "answer": 1,
+     "explain": "Accessibility classes balance usability and security — choose per the secret's sensitivity."
     }
    ]
   },
@@ -3356,8 +5148,8 @@
      "back": "MVC in UIKit decays into Massive View Controller; MVVM extracts state and logic into testable view models with the view as a binding layer. Coordinators own navigation so view controllers stop knowing about each other."
     },
     {
-     "front": "Why Hilt (DI) in Android interviews?",
-     "back": "Constructor injection with generated components: testable (swap fakes), lifecycle-aware scoping, no manual singletons. The interview line: ‘DI inverts control — the class declares needs, Hilt supplies them.’"
+     "front": "How do you do dependency injection on iOS without a framework?",
+     "back": "Constructor injection as the default: pass dependencies through the initializer so they are explicit and testable. Use protocols for the seams, and an environment object or a composition root for app-wide assembly. The interview line: ‘DI on iOS is a design habit — protocols and initializers — before it is ever a framework.’"
     },
     {
      "front": "What is unidirectional data flow?",
@@ -3370,6 +5162,18 @@
     {
      "front": "How do you discuss architecture tradeoffs in an interview?",
      "back": "Name the forces (testability, team size, app complexity, longevity), the options with their costs, and your choice with the condition that would change it. The interview line: ‘every architecture is a bet — I state the odds.’"
+    },
+    {
+     "front": "How do you explain the coordinator pattern’s interview value?",
+     "back": "Coordinators own navigation flow so view controllers stop knowing about each other — deep linking and A/B flows become testable objects. The interview line: ‘navigation is a flow, not a view controller’s side effect.’"
+    },
+    {
+     "front": "What do interviewers probe in SwiftUI app architecture?",
+     "back": "State at the right level (@State local, @StateObject owned, @EnvironmentObject shared), the view as a pure function of state, and side effects isolated in observable models. The interview line: ‘SwiftUI architecture is state placement.’"
+    },
+    {
+     "front": "How do you discuss feature-flagged architecture on iOS?",
+     "back": "Flags evaluated at launch or fetched remotely, with the app degrading cleanly when flags are missing — kill switches for risky launches. The interview line: ‘flags decouple the App Store review clock from your release clock.’"
     }
    ],
    "quiz": [
@@ -3416,6 +5220,50 @@
      ],
      "answer": 1,
      "explain": "Injected interfaces seam the code: tests substitute fakes without touching production wiring."
+    },
+    {
+     "q": "Massive View Controller happens because MVC on iOS:",
+     "choices": [
+      "Is wrong",
+      "Puts networking, formatting, and navigation all in the controller without extraction discipline",
+      "Is slow",
+      "Lacks protocols"
+     ],
+     "answer": 1,
+     "explain": "MVVM extracts state and logic into testable view models; coordinators own navigation."
+    },
+    {
+     "q": "A coordinator owns:",
+     "choices": [
+      "Views",
+      "Navigation flow — which screen comes next, deep links, and flow-level state",
+      "Networking",
+      "Persistence"
+     ],
+     "answer": 1,
+     "explain": "Navigation as an object: testable flows, view controllers that don't know about each other."
+    },
+    {
+     "q": "The test pyramid on iOS weights:",
+     "choices": [
+      "UI tests heaviest",
+      "Unit tests on view models/logic heaviest — fast and many; UI tests few and critical-path only",
+      "No tests",
+      "Only snapshots"
+     ],
+     "answer": 1,
+     "explain": "Speed economics: XCUITest is slow and brittle, so it covers only critical journeys."
+    },
+    {
+     "q": "Unidirectional data flow's debugging win is:",
+     "choices": [
+      "Less code",
+      "Every UI state has one producer — trace the state, find the bug",
+      "Faster renders",
+      "No view models"
+     ],
+     "answer": 1,
+     "explain": "State down, events up: a single source of truth makes misbehavior traceable."
     }
    ]
   },
@@ -3460,8 +5308,8 @@
      "back": "Typed endpoints (Retrofit/URLSession), coroutine/async suspension, centralized error mapping, auth injection via interceptors, and cancellable requests tied to lifecycle. The interview line: ‘the UI never sees HTTP — it sees domain results.’"
     },
     {
-     "front": "SwiftData at a glance — how do you position it?",
-     "back": "Apple’s modern persistence: @Model macro-driven, Swift-native queries with #Predicate, SwiftUI-integrated via @Query — backed by Core Data’s storage. The interview line: ‘SwiftData is the modern API; Core Data knowledge still explains what’s underneath.’"
+     "front": "How do you structure the data layer in the guided build?",
+     "back": "Repository pattern: the view model talks to a repository protocol, never to networking or storage directly. The repository merges network and local cache behind a single source of truth and exposes async streams. The interview line: ‘the repository is the seam that makes the build testable without the network.’"
     },
     {
      "front": "How do you turn a guided build into an interview narrative?",
@@ -3470,6 +5318,18 @@
     {
      "front": "The interviewer asks you to go deep on 'App spec: a list-detail app with cache'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you handle image loading and caching in the build?",
+     "back": "Async loading with cancellation on reuse, an in-memory LRU plus disk cache, and downsampling to the display size — never the full image in a list cell. The interview line: ‘images are the fastest way to blow the memory budget.’"
+    },
+    {
+     "front": "How do you structure error states in the guided build?",
+     "back": "Typed errors mapped to user-facing states (offline, empty, failed) with retry actions — the UI never shows a raw error object. The interview line: ‘every failure is a designed screen.’"
+    },
+    {
+     "front": "What does the build’s test target look like?",
+     "back": "View-model unit tests with fake repositories, plus one UI test for the critical journey — fast, deterministic, no network. The interview line: ‘test the decisions, not the framework.’"
     }
    ],
    "quiz": [
@@ -3516,6 +5376,50 @@
      ],
      "answer": 1,
      "explain": "View models stay source-agnostic; caching policy lives in one seam."
+    },
+    {
+     "q": "The repository in the list-detail build merges:",
+     "choices": [
+      "Nothing",
+      "Network and local cache behind one interface — single source of truth",
+      "Two networks",
+      "UI and data"
+     ],
+     "answer": 1,
+     "explain": "The view model never knows where data came from; the repository owns the sync policy."
+    },
+    {
+     "q": "Centralizing auth in an interceptor beats per-call headers because:",
+     "choices": [
+      "It's shorter",
+      "Token refresh and retry happen once, for every request, with tests",
+      "It's faster",
+      "Headers are bad"
+     ],
+     "answer": 1,
+     "explain": "Cross-cutting request logic in one place — refresh-on-401 included."
+    },
+    {
+     "q": "A build narrative should lead with:",
+     "choices": [
+      "The code",
+      "Problem → constraints → key decisions (with rejected alternatives) → result",
+      "The tools",
+      "Apologies"
+     ],
+     "answer": 0,
+     "explain": "Interviewers score decisions under constraints — lead with the story, not the syntax."
+    },
+    {
+     "q": "Pagination in the list build should:",
+     "choices": [
+      "Load everything",
+      "Page from the repository with prefetching — the UI never holds the whole dataset",
+      "Use offsets only",
+      "Skip caching"
+     ],
+     "answer": 1,
+     "explain": "Prefetch-before-the-end keeps scrolling smooth; the repository hides the paging mechanics."
     }
    ]
   },
@@ -3570,6 +5474,18 @@
     {
      "front": "How do you debrief and triage after a mock?",
      "back": "Within an hour, write what leaked (fumbled complexity? silent coding? weak STAR?), rank leaks by frequency × interview weight, and redrill the top one within 48 hours. The interview line: ‘the mock is the test; the debrief is the studying.’"
+    },
+    {
+     "front": "How do you handle the ‘design Instagram’ iOS prompt?",
+     "back": "Scope to the iOS surface: feed list with prefetching, image pipeline, offline cache, and the networking layer — then the architecture holding it together. The interview line: ‘answer the mobile half deeply, not the backend half thinly.’"
+    },
+    {
+     "front": "What is the iOS mock’s classic trap?",
+     "back": "Reciting API names instead of mechanisms: interviewers probe why (retain cycles, runloop, layout passes), not what. The interview line: ‘the framework is the vocabulary; the mechanism is the answer.’"
+    },
+    {
+     "front": "How do you prepare for Apple-framework trivia rounds?",
+     "back": "Mechanisms over memorization: lifecycle, concurrency, and memory — the three axes every framework question reduces to. The interview line: ‘trivia fades; the three axes transfer.’"
     }
    ],
    "quiz": [
@@ -3616,6 +5532,50 @@
      ],
      "answer": 1,
      "explain": "Architecture is the shape of the boundaries; code fills them in."
+    },
+    {
+     "q": "The iOS mock's classic trap is:",
+     "choices": [
+      "Hard questions",
+      "Reciting API names instead of mechanisms — interviewers probe the why",
+      "Whiteboards",
+      "Time pressure"
+     ],
+     "answer": 1,
+     "explain": "Mechanisms (retain cycles, runloop, layout passes) score; API trivia doesn't."
+    },
+    {
+     "q": "Answering in layers means:",
+     "choices": [
+      "Rambling",
+      "30-second answer, then mechanism, then edge case",
+      "One word",
+      "Only trivia"
+     ],
+     "answer": 1,
+     "explain": "Layers let the interviewer stop at their depth — and prove you have more."
+    },
+    {
+     "q": "For ‘design Instagram’ on iOS, scope to:",
+     "choices": [
+      "The backend",
+      "The iOS surface: feed, image pipeline, cache, networking layer",
+      "The web app",
+      "The database"
+     ],
+     "answer": 1,
+     "explain": "Answer the mobile half deeply rather than the backend half thinly."
+    },
+    {
+     "q": "Framework whiteboard rounds score:",
+     "choices": [
+      "Drawing skill",
+      "Narrated architecture: components, lifecycles, data flow — then the probed depth",
+      "Speed",
+      "Neatness"
+     ],
+     "answer": 1,
+     "explain": "Narrate as you draw; the zoom-in on the probed area is where points live."
     }
    ]
   },
@@ -3670,19 +5630,31 @@
     {
      "front": "What does Kotlin delegation give you?",
      "back": "by lazy: thread-safe lazy init — expensive objects created once on first use. observable/vetoable: react to property changes. Class delegation (by): composition without boilerplate. The interview line: ‘delegation removes the ceremony around common patterns.’"
+    },
+    {
+     "front": "How do you explain reified type parameters?",
+     "back": "inline + reified keeps the type at runtime, defeating erasure for that call — enabling things like type-safe JSON parsing without a Class token. The interview line: ‘reified is erasure with an escape hatch.’"
+    },
+    {
+     "front": "What do interviewers probe in Kotlin flows beyond the basics?",
+     "back": "Cold vs hot (flow vs StateFlow/SharedFlow), operators as transformations, and exception transparency — plus testing with Turbine. The interview line: ‘flows are coroutines for streams of values.’"
+    },
+    {
+     "front": "How do you discuss Kotlin multiplatform in an interview?",
+     "back": "Shared business logic in common code with expect/actual for platform APIs — UI stays native. The interview line: ‘share the logic, not the pixels.’"
     }
    ],
    "quiz": [
     {
-     "q": "UIViewRepresentable exists to:",
+     "q": "An inline function with a reified type parameter lets you:",
      "choices": [
-      "Replace UIKit",
-      "Wrap a UIView so it can live inside a SwiftUI hierarchy",
-      "Speed up SwiftUI",
-      "Handle navigation"
+      "Skip null checks",
+      "Use the type at runtime — defeating erasure for that call (e.g. type-safe parsing without a Class token)",
+      "Run faster always",
+      "Avoid coroutines"
      ],
      "answer": 1,
-     "explain": "The representable protocol bridges the imperative UIKit world into declarative SwiftUI."
+     "explain": "inline + reified preserves the type argument at the call site — the standard workaround for JVM type erasure."
     },
     {
      "q": "by lazy is preferred over lateinit var when:",
@@ -3716,6 +5688,50 @@
      ],
      "answer": 1,
      "explain": "Suspension frees the thread for other coroutines; blocking would pin it."
+    },
+    {
+     "q": "by lazy vs lateinit var: prefer by lazy when:",
+     "choices": [
+      "Never",
+      "The value is immutable and expensive — computed once, thread-safely, on first use",
+      "Always",
+      "For views only"
+     ],
+     "answer": 1,
+     "explain": "lazy is for vals with deferred init; lateinit is for vars the framework injects (with the not-initialized crash risk)."
+    },
+    {
+     "q": "A sealed interface's power is:",
+     "choices": [
+      "Speed",
+      "Restricted hierarchies with exhaustive when — the compiler checks every subtype",
+      "Interop",
+      "Less code"
+     ],
+     "answer": 1,
+     "explain": "Closed hierarchies (UI states, results) with compiler-enforced completeness."
+    },
+    {
+     "q": "let is the right scope function when you want to:",
+     "choices": [
+      "Configure an object",
+      "Transform a nullable with a lambda returning a result (it chains)",
+      "Repeat code",
+      "Avoid nulls"
+     ],
+     "answer": 1,
+     "explain": "let: operate-and-return (great for nullable chains); apply: configure-and-return-receiver."
+    },
+    {
+     "q": "A suspend function differs from a blocking call in that it:",
+     "choices": [
+      "Is faster",
+      "Pauses without blocking the thread — the thread serves other work meanwhile",
+      "Uses more memory",
+      "Never fails"
+     ],
+     "answer": 1,
+     "explain": "Suspension is cooperative: the coroutine yields the thread instead of holding it."
     }
    ]
   },
@@ -3770,6 +5786,18 @@
     {
      "front": "How do you discuss Android’s permissions model?",
      "back": "Install-time vs runtime permissions, permission groups, one-time and while-in-use grants, and the UX rule: ask in context with a rationale, handle denial gracefully. The interview line: ‘permissions are a trust negotiation, not a manifest entry.’"
+    },
+    {
+     "front": "How do you explain the activity lifecycle’s interview edge cases?",
+     "back": "onPause is not for heavy work (the next activity waits), config changes recreate by default (ViewModel survives, the activity does not), and process death can kill you in the background — save state accordingly. The interview line: ‘the system can kill your process; design like it will.’"
+    },
+    {
+     "front": "What do interviewers probe in Jetpack Navigation?",
+     "back": "Single-activity with a nav graph: type-safe arguments, deep links as destinations, and back-stack manipulation as data. The interview line: ‘the graph makes navigation declarative and testable.’"
+    },
+    {
+     "front": "How do you discuss Doze and App Standby?",
+     "back": "The OS throttles background work to save battery: deferred jobs, batched network, restricted alarms — WorkManager is the compliant path. The interview line: ‘background work runs on the OS’s schedule, not yours.’"
     }
    ],
    "quiz": [
@@ -3816,6 +5844,50 @@
      ],
      "answer": 1,
      "explain": "Explicit = ‘open this screen’; implicit = ‘who can handle this action?’ — resolved via intent filters."
+    },
+    {
+     "q": "onSaveInstanceState exists because:",
+     "choices": [
+      "It's traditional",
+      "The system can kill your process in the background — UI state must survive recreation",
+      "It's fast",
+      "Fragments need it"
+     ],
+     "answer": 1,
+     "explain": "Process death is real: persist UI state, restore on recreation — ViewModels survive config changes, not death."
+    },
+    {
+     "q": "Doze mode's effect on background work is:",
+     "choices": [
+      "None",
+      "Deferred and batched — WorkManager is the compliant path, not alarms",
+      "Faster work",
+      "More battery"
+     ],
+     "answer": 1,
+     "explain": "The OS throttles background execution for battery; design with the constraint."
+    },
+    {
+     "q": "An implicit intent resolves via:",
+     "choices": [
+      "Your code directly",
+      "The system matching action/category/data against intent filters",
+      "The manifest only",
+      "Reflection"
+     ],
+     "answer": 1,
+     "explain": "Implicit intents ask the system ‘who handles this?’ — explicit intents name the target."
+    },
+    {
+     "q": "EXACTLY vs AT_MOST in MeasureSpec:",
+     "choices": [
+      "Identical",
+      "EXACTLY: fixed size; AT_MOST: up to the given size (wrap_content)",
+      "Reversed",
+      "Deprecated"
+     ],
+     "answer": 1,
+     "explain": "The parent proposes constraints; the child measures within them — the measure pass contract."
     }
    ]
   },
@@ -3856,8 +5928,8 @@
      "back": "Lightweight sequential-looking async: suspend functions pause without blocking threads, structured concurrency ties child lifetimes to scopes, dispatchers choose the thread pool (Main/IO/Default). ‘Sequential code, asynchronous execution.’"
     },
     {
-     "front": "How do you explain Swift’s structured concurrency?",
-     "back": "async/await for sequential-looking async code, tasks in hierarchies where children can’t outlive parents, actors for isolated mutable state. The interview line: ‘structure makes lifetimes provable — no more detached callbacks leaking.’"
+     "front": "How do you explain Android’s structured concurrency?",
+     "back": "Coroutines run in scopes with lifetimes: viewModelScope for UI work, lifecycleScope for UI-bound tasks, and custom scopes with SupervisorJob for independent children. Children cannot outlive their scope — cancellation propagates downward. The interview line: ‘structured concurrency ties async work to a lifecycle, so nothing leaks past its owner.’"
     },
     {
      "front": "StateFlow vs SharedFlow?",
@@ -3870,6 +5942,18 @@
     {
      "front": "How do cancellation and exceptions interact in coroutines?",
      "back": "Cancellation is cooperative (checkpoints at suspension points); a child’s failure cancels the scope by default — supervisorScope isolates sibling failures. CoroutineExceptionHandler catches uncaught exceptions in root coroutines. The interview line: ‘failure policy is a design choice, stated up front.’"
+    },
+    {
+     "front": "How do you explain dispatchers in an interview?",
+     "back": "Dispatchers.Main for UI, Dispatchers.IO for blocking I/O (file, network), Dispatchers.Default for CPU work — withContext switches without callback nesting. The interview line: ‘dispatchers are thread pools with intent.’"
+    },
+    {
+     "front": "What do interviewers probe in flow exception handling?",
+     "back": "catch upstream of collection, SupervisorJob semantics for independent children, and coroutineExceptionHandler only for uncaught crashes. The interview line: ‘handle where you can recover; let the scope handle the rest.’"
+    },
+    {
+     "front": "How do you test coroutines in an interview answer?",
+     "back": "runTest with a test dispatcher: virtual time, deterministic delays, Turbine for flow assertions — no sleeps, no flakes. The interview line: ‘virtual time makes async tests synchronous.’"
     }
    ],
    "quiz": [
@@ -3916,6 +6000,50 @@
      ],
      "answer": 1,
      "explain": "New collectors (e.g. after rotation) immediately get current state — no missed updates."
+    },
+    {
+     "q": "Dispatchers.IO suits:",
+     "choices": [
+      "UI updates",
+      "Blocking I/O (network, disk) — a large pool that tolerates blocking",
+      "Pixel math",
+      "Composables"
+     ],
+     "answer": 1,
+     "explain": "Match the dispatcher to the work: IO for blocking, Default for CPU, Main for UI."
+    },
+    {
+     "q": "supervisorScope differs from coroutineScope in that:",
+     "choices": [
+      "It's faster",
+      "A child's failure doesn't cancel siblings — independent work survives",
+      "It can't fail",
+      "It's deprecated"
+     ],
+     "answer": 1,
+     "explain": "SupervisorJob semantics for independent children; regular scope fails fast together."
+    },
+    {
+     "q": "SharedFlow suits events because it:",
+     "choices": [
+      "Holds the latest value",
+      "Doesn't — it emits to collectors without conflating state (use StateFlow for state)",
+      "Is cold",
+      "Never replays"
+     ],
+     "answer": 1,
+     "explain": "StateFlow = state (replays latest); SharedFlow = events (configurable replay, no state semantics)."
+    },
+    {
+     "q": "Cancellation in coroutines is:",
+     "choices": [
+      "Immediate",
+      "Cooperative — checked at suspension points; finally blocks still run",
+      "Impossible",
+      "Automatic"
+     ],
+     "answer": 1,
+     "explain": "Long-running CPU loops must check isActive; cleanup belongs in finally."
     }
    ]
   },
@@ -3970,6 +6098,18 @@
     {
      "front": "How do you choose the persistence store in a design question?",
      "back": "By access pattern: preferences → UserDefaults/DataStore; structured relational → Room/Core Data; documents/JSON → files; secrets → Keychain/Keystore; large blobs → files with DB metadata. The interview line: ‘I choose from the access pattern, then justify the tradeoff.’"
+    },
+    {
+     "front": "How do you discuss DataStore’s interview edge over SharedPreferences?",
+     "back": "Async, type-safe, transactional — no main-thread reads, no XML corruption on partial writes. The interview line: ‘DataStore is preferences without the ANR risk.’"
+    },
+    {
+     "front": "What do interviewers probe in Room migrations?",
+     "back": "Versioned schemas with Migration objects for each step, tested with the migration-test helper — destructive fallback only as a last resort. The interview line: ‘migrations are code; test them like code.’"
+    },
+    {
+     "front": "How do you talk about EncryptedSharedPreferences and the Keystore?",
+     "back": "Keys in the Android Keystore (hardware-backed where available), values encrypted at rest — tokens and secrets never in plaintext prefs. The interview line: ‘the Keystore holds the keys; the prefs hold the ciphertext.’"
     }
    ],
    "quiz": [
@@ -4016,6 +6156,50 @@
      ],
      "answer": 1,
      "explain": "Annotation processing checks queries during compilation — a whole class of runtime crashes disappears."
+    },
+    {
+     "q": "DataStore beats SharedPreferences on:",
+     "choices": [
+      "Speed of writes",
+      "Async safety and type safety — no main-thread reads, no XML corruption",
+      "Size",
+      "Simplicity"
+     ],
+     "answer": 1,
+     "explain": "SharedPreferences' synchronous reads risk ANRs; DataStore is the modern answer."
+    },
+    {
+     "q": "Room's compile-time SQL validation catches:",
+     "choices": [
+      "Runtime crashes only",
+      "Bad queries at build time — the DAO won't compile with broken SQL",
+      "Nothing",
+      "Logic errors"
+     ],
+     "answer": 1,
+     "explain": "The annotation processor checks your SQL against the schema — fail the build, not the user."
+    },
+    {
+     "q": "The Android Keystore's job is:",
+     "choices": [
+      "Storing passwords directly",
+      "Holding cryptographic keys in hardware-backed storage — keys never leave",
+      "Encryption speed",
+      "Backups"
+     ],
+     "answer": 1,
+     "explain": "Keys live in the Keystore; EncryptedSharedPreferences holds the ciphertext."
+    },
+    {
+     "q": "Scoped storage means:",
+     "choices": [
+      "No file access",
+      "App-specific directories need no permissions; shared media goes through MediaStore",
+      "Root access",
+      "Slower I/O"
+     ],
+     "answer": 1,
+     "explain": "Privacy by default: your sandbox is yours, shared collections are mediated."
     }
    ]
   },
@@ -4056,8 +6240,8 @@
      "back": "UI (Compose/Views) observes ViewModel state (StateFlow); ViewModel calls a Repository; Repository mediates data sources (network, Room). Unidirectional data flow: events up, state down. The interview line: ‘the Repository is the only class that knows where data lives.’"
     },
     {
-     "front": "MVC vs MVVM on iOS — the honest comparison?",
-     "back": "MVC in UIKit decays into Massive View Controller; MVVM extracts state and logic into testable view models with the view as a binding layer. Coordinators own navigation so view controllers stop knowing about each other."
+     "front": "MVC vs MVP vs MVVM on Android — the honest comparison?",
+     "back": "MVC decays into massive Activities. MVP adds a testable presenter but the contract interfaces turn verbose. MVVM with ViewModel + StateFlow is the modern default: lifecycle-aware state with unidirectional data flow into Compose or Views. The interview line: ‘MVVM won on Android because the ViewModel survives configuration changes.’"
     },
     {
      "front": "Why single-activity with Navigation?",
@@ -4070,6 +6254,18 @@
     {
      "front": "How do you discuss Android testing layers?",
      "back": "Unit (JUnit + fakes for ViewModels/Repository logic — fast), Espresso (UI flows on device — slow, use sparingly), screenshot tests (visual regressions). The interview line: ‘I test logic in units and reserve instrumentation for what only the device can prove.’"
+    },
+    {
+     "front": "How do you explain unidirectional data flow on Android?",
+     "back": "State flows down from the ViewModel, events flow up from the UI — one source of truth, the screen a pure function of state. The interview line: ‘events up, state down — debugging becomes tracing.’"
+    },
+    {
+     "front": "What do interviewers probe in repository design?",
+     "back": "The repository mediates network and cache behind one interface, exposes flows, and owns the sync policy — the ViewModel never knows where data came from. The interview line: ‘the repository is the app’s memory.’"
+    },
+    {
+     "front": "How do you discuss Hilt scoping in an interview?",
+     "back": "Component hierarchy mirrors lifecycles: SingletonComponent for app-wide, ViewModelComponent for screen scope — dependencies live exactly as long as their owner. The interview line: ‘scopes are lifetimes with an annotation.’"
     }
    ],
    "quiz": [
@@ -4116,6 +6312,50 @@
      ],
      "answer": 1,
      "explain": "Logic decoupled from UIViewController can be tested as plain objects."
+    },
+    {
+     "q": "The ViewModel survives:",
+     "choices": [
+      "Process death",
+      "Configuration changes — rotation doesn't wipe UI state",
+      "App uninstall",
+      "Nothing"
+     ],
+     "answer": 1,
+     "explain": "That's the MVVM win on Android: state outlives the Activity's recreation."
+    },
+    {
+     "q": "Offline-first's source of truth is:",
+     "choices": [
+      "The network",
+      "The local database — the network refills it via the repository",
+      "The cache",
+      "The ViewModel"
+     ],
+     "answer": 1,
+     "explain": "Room as source of truth; repository mediates network ↔ cache with a sync strategy."
+    },
+    {
+     "q": "Single-activity architecture's win is:",
+     "choices": [
+      "Fewer files",
+      "Shared ViewModel scoping, consistent navigation, one lifecycle owner",
+      "Speed",
+      "Less memory"
+     ],
+     "answer": 1,
+     "explain": "Navigation component destinations share the activity scope — state flows cleanly."
+    },
+    {
+     "q": "Hilt's generated components give you:",
+     "choices": [
+      "Magic",
+      "Compile-time DI with lifecycle-aware scoping — no manual singletons",
+      "Runtime speed",
+      "Smaller APK"
+     ],
+     "answer": 1,
+     "explain": "Constructor injection with generated wiring: testable, scoped, verifiable at build time."
     }
    ]
   },
@@ -4170,6 +6410,18 @@
     {
      "front": "The interviewer asks you to go deep on 'App spec: list-detail with offline cache'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you handle pagination in the guided build?",
+     "back": "Paging 3 with RemoteMediator: network pages into Room, UI reads from the database — offline-first pagination with placeholders. The interview line: ‘the database is the single source; the network is a refill.’"
+    },
+    {
+     "front": "How do you structure the build’s error and loading states?",
+     "back": "Sealed UI-state classes (Loading, Content, Error) observed as StateFlow — every screen state is explicit and every failure retryable. The interview line: ‘sealed states make the impossible unrepresentable.’"
+    },
+    {
+     "front": "What does the build’s dependency graph look like?",
+     "back": "Hilt modules providing the network client, database, and repository — ViewModels injected with fakes swapped in tests. The interview line: ‘the graph is drawn once and tested everywhere.’"
     }
    ],
    "quiz": [
@@ -4216,6 +6468,50 @@
      ],
      "answer": 1,
      "explain": "View models stay source-agnostic; caching policy lives in one seam."
+    },
+    {
+     "q": "Paging 3's RemoteMediator:",
+     "choices": [
+      "Is optional always",
+      "Pages network into Room; the UI reads the database — offline-first pagination",
+      "Replaces Room",
+      "Only for chats"
+     ],
+     "answer": 1,
+     "explain": "The database is the single source; the network is a refill mechanism."
+    },
+    {
+     "q": "Sealed UI-state classes (Loading/Content/Error) give you:",
+     "choices": [
+      "More code",
+      "Exhaustive states — every screen condition is explicit and retryable",
+      "Speed",
+      "Less testing"
+     ],
+     "answer": 1,
+     "explain": "Make impossible states unrepresentable; the UI is a function of the sealed state."
+    },
+    {
+     "q": "Repository tests use fakes because:",
+     "choices": [
+      "Mocks are bad",
+      "Fakes are working in-memory implementations — deterministic, fast, behavior-verifying",
+      "It's trendy",
+      "Faster to write"
+     ],
+     "answer": 1,
+     "explain": "Test the repository's logic (merge, sync policy) against predictable doubles."
+    },
+    {
+     "q": "Compose observes ViewModel state via:",
+     "choices": [
+      "Polling",
+      "StateFlow collection — recomposition on emission",
+      "Callbacks",
+      "LiveData only"
+     ],
+     "answer": 1,
+     "explain": "State hoisting + flow collection: the screen recomposes when the state changes."
     }
    ]
   },
@@ -4270,6 +6566,18 @@
     {
      "front": "What’s the final two-week taper?",
      "back": "Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise."
+    },
+    {
+     "front": "How do you handle the ‘design WhatsApp’ Android prompt?",
+     "back": "Scope to the Android surface: message list with pagination, WebSocket connection management across lifecycles, local database as source of truth, push for killed-app delivery. The interview line: ‘answer the mobile half deeply.’"
+    },
+    {
+     "front": "What is the Android mock’s classic trap?",
+     "back": "Framework trivia without mechanisms: interviewers probe why the lifecycle exists and what process death does to your architecture. The interview line: ‘the framework is the vocabulary; the mechanism is the answer.’"
+    },
+    {
+     "front": "How do you discuss Compose vs Views in a mock?",
+     "back": "Compose: declarative, less boilerplate, the future — but interview for the codebase you will join; know View measurement basics regardless. The interview line: ‘declarative is the direction; the fundamentals transfer.’"
     }
    ],
    "quiz": [
@@ -4316,6 +6624,50 @@
      ],
      "answer": 1,
      "explain": "Context first, depth second: the diagram makes the deep dive legible."
+    },
+    {
+     "q": "The Android mock's classic trap is:",
+     "choices": [
+      "Tough questions",
+      "Framework trivia without mechanisms — probe the why behind lifecycle and process death",
+      "Kotlin",
+      "Whiteboards"
+     ],
+     "answer": 1,
+     "explain": "Mechanisms score: why the lifecycle exists, what process death does to your architecture."
+    },
+    {
+     "q": "For ‘design WhatsApp’ on Android, scope to:",
+     "choices": [
+      "The server",
+      "The Android surface: message list, socket lifecycle, local DB, push for killed-app delivery",
+      "iOS",
+      "The web"
+     ],
+     "answer": 1,
+     "explain": "The mobile half deeply: connection management across lifecycles is the hard part."
+    },
+    {
+     "q": "Discussing Compose vs Views honestly means:",
+     "choices": [
+      "Picking one religion",
+      "Declarative is the direction; know view-measurement fundamentals regardless",
+      "Views are dead",
+      "Compose is slower"
+     ],
+     "answer": 1,
+     "explain": "Interview for the codebase you'll join — fundamentals transfer either way."
+    },
+    {
+     "q": "Drawing the system before the deep dive is strong because:",
+     "choices": [
+      "It's pretty",
+      "The diagram anchors the conversation — then you zoom into the probed area",
+      "It fills time",
+      "Interviewers require it"
+     ],
+     "answer": 1,
+     "explain": "Structure first, depth second: the drawing is the shared map."
     }
    ]
   },
@@ -4370,6 +6722,18 @@
     {
      "front": "How do you discuss undefined behavior in a C interview?",
      "back": "As the compiler’s license to assume: signed overflow, null dereference, use-after-free, data races — ‘anything can happen’ includes ‘works until the optimizer upgrades.’ The interview line: ‘I write so UB can’t happen; sanitizers prove it.’"
+    },
+    {
+     "front": "How do you explain the strict aliasing rule in an interview?",
+     "back": "The compiler assumes pointers of different types do not alias — violating it (type-punning through pointers) is UB that the optimizer will exploit. Use memcpy or unions deliberately. The interview line: ‘aliasing rules are the optimizer’s assumptions about your code.’"
+    },
+    {
+     "front": "What do interviewers probe in linker scripts and memory maps?",
+     "back": "Sections (.text, .data, .bss) placed at physical addresses, stack and heap bounds, and what happens when they collide — the map is the contract with the hardware. The interview line: ‘the linker script is where software meets the silicon.’"
+    },
+    {
+     "front": "How do you discuss MISRA-style discipline without sounding dogmatic?",
+     "back": "As defect prevention with data behind it: bounded loops, no dynamic allocation, explicit casts — rules that kill bug classes, not creativity. The interview line: ‘the rules exist because the bugs they prevent are expensive.’"
     }
    ],
    "quiz": [
@@ -4416,6 +6780,50 @@
      ],
      "answer": 1,
      "explain": "Without volatile, the compiler may read once and reuse the cached value forever."
+    },
+    {
+     "q": "Array-pointer decay means sizeof fails because:",
+     "choices": [
+      "Arrays are pointers",
+      "The array decays to a pointer to its first element in most expressions — size info is lost across functions",
+      "sizeof is broken",
+      "Compilers differ"
+     ],
+     "answer": 1,
+     "explain": "Pass the length explicitly; the callee sees only a pointer."
+    },
+    {
+     "q": "volatile's contract with the compiler is:",
+     "choices": [
+      "Faster access",
+      "‘This memory can change outside program flow’ — don't cache it in registers or reorder accesses",
+      "Thread safety",
+      "Atomicity"
+     ],
+     "answer": 1,
+     "explain": "Hardware registers and ISR-shared flags: every access must actually happen."
+    },
+    {
+     "q": "Struct padding exists because:",
+     "choices": [
+      "Compilers are wasteful",
+      "CPUs require (or prefer) aligned access — the compiler inserts padding between members",
+      "C is old",
+      "Debugging"
+     ],
+     "answer": 1,
+     "explain": "Pack only when the wire format demands it — packed structs can cost performance or fault on strict-alignment cores."
+    },
+    {
+     "q": "Signed integer overflow is:",
+     "choices": [
+      "Defined as wraparound",
+      "Undefined behavior — the optimizer may assume it never happens",
+      "An error",
+      "Saturation"
+     ],
+     "answer": 1,
+     "explain": "UB is the compiler's license to assume: check before the operation, not after."
     }
    ]
   },
@@ -4470,6 +6878,18 @@
     {
      "front": "FreeRTOS vs Zephyr — how do you position them?",
      "back": "FreeRTOS: the ubiquitous small RTOS — tasks, queues, semaphores, minimal footprint, huge ecosystem. Zephyr: modern, device-tree-driven, broader protocol/security stack, Linux-foundation backed. The interview line: ‘FreeRTOS for the tiny MCU, Zephyr when the product needs the stack.’"
+    },
+    {
+     "front": "How do you explain priority assignment (rate monotonic) in an interview?",
+     "back": "Shorter period → higher priority is optimal for fixed-priority scheduling when deadlines equal periods — with utilization-bound math to prove schedulability. The interview line: ‘rate monotonic is priority by urgency, with a proof.’"
+    },
+    {
+     "front": "What do interviewers probe in inter-task communication?",
+     "back": "Queues for data transfer (copying, thread-safe), semaphores for signaling, event groups for multi-condition waits — never shared globals without protection. The interview line: ‘tasks talk through the kernel, not around it.’"
+    },
+    {
+     "front": "How do you discuss worst-case execution time (WCET)?",
+     "back": "Bound it by measurement plus margin or static analysis, then feed it to the schedulability math — average-case means nothing when a deadline is hard. The interview line: ‘real-time is about the worst case, not the typical one.’"
     }
    ],
    "quiz": [
@@ -4516,6 +6936,50 @@
      ],
      "answer": 1,
      "explain": "Tickless designs exist precisely to avoid paying this tax when there’s no work."
+    },
+    {
+     "q": "Preemptive priority scheduling means:",
+     "choices": [
+      "Round robin",
+      "The highest-priority ready task runs — preemption on events and ticks",
+      "FIFO",
+      "Random"
+     ],
+     "answer": 1,
+     "explain": "Determinism for real-time: urgency, not fairness, decides."
+    },
+    {
+     "q": "A tickless idle's wakeup comes from:",
+     "choices": [
+      "The OS tick",
+      "The next programmed timer or interrupt — no periodic wakeups burning power",
+      "Polling",
+      "The watchdog"
+     ],
+     "answer": 1,
+     "explain": "Every avoided wakeup is battery life — the RTOS sleeps until something matters."
+    },
+    {
+     "q": "Static allocation's win over malloc is:",
+     "choices": [
+      "Speed",
+      "Determinism — no fragmentation, no nondeterministic failure at runtime",
+      "Memory size",
+      "Simplicity"
+     ],
+     "answer": 1,
+     "explain": "Fixed pools sized at compile time; link-time proof the memory exists."
+    },
+    {
+     "q": "Priority inversion's classic fix is:",
+     "choices": [
+      "Faster CPU",
+      "Priority inheritance — the lock holder temporarily runs at the waiter's priority",
+      "More tasks",
+      "Disabling interrupts"
+     ],
+     "answer": 1,
+     "explain": "Inheritance bounds the inversion: the holder can't be preempted by medium-priority work while blocking high."
     }
    ]
   },
@@ -4570,6 +7034,18 @@
     {
      "front": "Why do interviewers ask about clock trees?",
      "back": "Because baud rates, timer periods, and power all derive from the clock configuration: source (HSE/HSI/PLL) → dividers/multipliers → bus clocks → peripheral clocks. Wrong clock tree = wrong baud rate = garbage on the UART. The interview line: ‘I verify clocks before I blame the peripheral.’"
+    },
+    {
+     "front": "How do you explain a device tree’s interview relevance?",
+     "back": "Hardware description separated from the driver code: the same driver binds to different boards via the tree — no recompiles for pin changes. The interview line: ‘the device tree is the hardware’s API contract.’"
+    },
+    {
+     "front": "What do interviewers probe in SPI mode and timing?",
+     "back": "Clock polarity and phase (the four modes), chip-select discipline, and reading the timing diagram for setup/hold — the datasheet is the spec. The interview line: ‘the mode is in the diagram, not in your memory.’"
+    },
+    {
+     "front": "How do you discuss ADC resolution vs accuracy?",
+     "back": "Resolution (bits) is precision; accuracy is closeness to truth — noise, reference drift, and layout dominate real accuracy. The interview line: ‘12 bits of resolution with 10 bits of noise is a 10-bit ADC.’"
     }
    ],
    "quiz": [
@@ -4616,6 +7092,50 @@
      ],
      "answer": 1,
      "explain": "The DMA controller is a separate engine; the CPU only sets up and gets interrupted on completion."
+    },
+    {
+     "q": "UART needs no clock line because:",
+     "choices": [
+      "It's magic",
+      "Both sides agree on the baud rate beforehand — asynchronous by convention",
+      "It's slow",
+      "It's differential"
+     ],
+     "answer": 1,
+     "explain": "Baud agreement replaces the clock; mismatch is the classic bring-up bug — check the clock tree."
+    },
+    {
+     "q": "SPI's full-duplex win over I2C is:",
+     "choices": [
+      "Fewer wires",
+      "Simultaneous send and receive at higher speeds — at the cost of more pins and no addressing",
+      "Lower power",
+      "Longer distance"
+     ],
+     "answer": 1,
+     "explain": "Speed and simplicity of the protocol vs pin count and multi-device addressing."
+    },
+    {
+     "q": "DMA's core value is:",
+     "choices": [
+      "Speed of the CPU",
+      "Moving data without the CPU — peripheral→memory transfers run in hardware",
+      "Less code",
+      "Lower latency always"
+     ],
+     "answer": 1,
+     "explain": "The CPU sleeps or computes while the transfer completes — then an interrupt signals done."
+    },
+    {
+     "q": "A timer's prescaler exists to:",
+     "choices": [
+      "Speed up counting",
+      "Divide the clock so the counter spans the needed time range",
+      "Generate interrupts",
+      "Save power"
+     ],
+     "answer": 1,
+     "explain": "Prescaler + auto-reload = the period math; both derive from the clock tree."
     }
    ]
   },
@@ -4670,6 +7190,18 @@
     {
      "front": "What does a race condition look like at the register level?",
      "back": "Read-modify-write on a shared peripheral register: ISR fires between the read and the write, clobbering the ISR’s change. Fixes: atomic set/clear registers (hardware), critical sections, or the lock-free ring buffer for data handoff."
+    },
+    {
+     "front": "How do you explain the ‘deferred interrupt’ pattern?",
+     "back": "ISR does the minimum (acknowledge, capture timestamp, signal), a high-priority task does the processing — keeping interrupt latency bounded while work gets done. The interview line: ‘the ISR is the doorbell, not the conversation.’"
+    },
+    {
+     "front": "What do interviewers probe in lock-free basics for embedded?",
+     "back": "Single-producer/single-consumer ring buffers with careful ordering (volatile plus memory barriers) — lock-free where the pattern fits, never as a default. The interview line: ‘lock-free is a scalpel, not a habit.’"
+    },
+    {
+     "front": "How do you discuss reentrancy in an interview?",
+     "back": "A function is reentrant if it can be interrupted mid-execution and called again safely — no static state, no non-reentrant library calls in ISRs. The interview line: ‘reentrancy is the ISR-safety question.’"
     }
    ],
    "quiz": [
@@ -4716,6 +7248,50 @@
      ],
      "answer": 1,
      "explain": "Ownership is what lets the kernel boost the holder’s priority and catch misuse."
+    },
+    {
+     "q": "ISR rules: keep it short because:",
+     "choices": [
+      "It's polite",
+      "Long ISRs blow interrupt latency for everything else — flag and defer to a task",
+      "Stack is small",
+      "It's traditional"
+     ],
+     "answer": 1,
+     "explain": "The ISR is the doorbell: acknowledge, capture, signal — the task has the conversation."
+    },
+    {
+     "q": "Disabling interrupts around a critical section must be:",
+     "choices": [
+      "Long",
+      "As short as possible — every cycle with interrupts off is latency for the whole system",
+      "Avoided",
+      "Nested deeply"
+     ],
+     "answer": 1,
+     "explain": "Or use priority masking: block only the interrupt levels that touch the shared data."
+    },
+    {
+     "q": "A mutex vs a binary semaphore: the mutex adds:",
+     "choices": [
+      "Speed",
+      "Ownership and priority inheritance — for mutual exclusion with inversion protection",
+      "Counting",
+      "Nothing"
+     ],
+     "answer": 1,
+     "explain": "Semaphores signal; mutexes guard — ownership is what enables inheritance."
+    },
+    {
+     "q": "Read-modify-write at the register level races because:",
+     "choices": [
+      "Registers are slow",
+      "An ISR can fire between the read and the write, clobbering the update",
+      "Compilers reorder",
+      "Bits flip"
+     ],
+     "answer": 1,
+     "explain": "Atomic set/clear registers or brief interrupt masking close the window."
     }
    ]
   },
@@ -4770,6 +7346,18 @@
     {
      "front": "What’s Valgrind for in an embedded interview?",
      "back": "Host-side memory debugging: memcheck finds leaks, invalid reads/writes, and use-after-free in the code you test on Linux before it ships to the target. The interview line: ‘I prove memory correctness on the host where the tools are rich.’"
+    },
+    {
+     "front": "How do you explain post-mortem debugging on a microcontroller?",
+     "back": "Fault handlers that capture the stacked registers and a crash log to retained RAM or flash — the device phones home its own autopsy. The interview line: ‘the crash log is the black box.’"
+    },
+    {
+     "front": "What do interviewers probe in power debugging?",
+     "back": "Measuring sleep current vs active current, finding the peripheral that never slept, correlating wakeups with the tickless-idle plan. The interview line: ‘every microamp has an author — find them.’"
+    },
+    {
+     "front": "How do you discuss trace (ETM/ITM) in an interview?",
+     "back": "Instruction trace for profiling without stopping the core, instrumentation trace for printf-style logging at near-zero cost — observability that does not perturb timing. The interview line: ‘trace is the debugger that does not lie about timing.’"
     }
    ],
    "quiz": [
@@ -4816,6 +7404,50 @@
      ],
      "answer": 1,
      "explain": "It’s a debug-channel convenience, not a runtime logging strategy."
+    },
+    {
+     "q": "SWD's advantage over JTAG is:",
+     "choices": [
+      "Speed",
+      "Two wires vs four+ — same debug control with fewer pins",
+      "More features",
+      "Cheaper probes"
+     ],
+     "answer": 1,
+     "explain": "Pin-constrained boards keep full halt/step/breakpoint control over two wires."
+    },
+    {
+     "q": "A logic analyzer beats a scope for:",
+     "choices": [
+      "Analog noise",
+      "Digital protocol decoding — UART/SPI/I2C transactions across channels with timing",
+      "Voltage levels",
+      "Power"
+     ],
+     "answer": 1,
+     "explain": "Protocol-aware: it decodes the bytes on the wire, not just the edges."
+    },
+    {
+     "q": "Semihosting's cost is:",
+     "choices": [
+      "Nothing",
+      "Halted-target I/O through the debugger — slow and timing-intrusive, but priceless at bring-up",
+      "Code size",
+      "Power"
+     ],
+     "answer": 1,
+     "explain": "Use it before UART exists; retire it once real I/O works."
+    },
+    {
+     "q": "The stacked PC in a HardFault tells you:",
+     "choices": [
+      "Nothing useful",
+      "The faulting instruction's address — the crime scene; CFSR/HFSR classify the cause",
+      "The stack size",
+      "The fix"
+     ],
+     "answer": 1,
+     "explain": "Read the fault registers first, hypothesize second — the registers are evidence."
     }
    ]
   },
@@ -4856,8 +7488,8 @@
      "back": "Spec the sampling rates and power budget first → driver layer per peripheral (one bus each) → tasks per concern (sample, process, transmit) with queue/IPC handoff → sleep modes between work. The interview line: ‘the power budget is the architecture.’"
     },
     {
-     "front": "What’s tickless idle, and why does power care?",
-     "back": "Instead of waking on every OS tick, the RTOS programs the next wakeup (timer or interrupt) and sleeps deeply until then — no periodic wakeups burning power. The interview line: ‘every avoided wakeup is battery life.’"
+     "front": "How do you turn the RTOS sensor node into an interview story?",
+     "back": "Spec first (sampling rates, power budget, latency), then the decisions with numbers: task priorities, why tickless idle, driver layering, and the power math. End with the measured result — current draw and wakeup latency. The interview line: ‘a capstone scores when every choice has a constraint behind it.’"
     },
     {
      "front": "What’s a host-side test harness for firmware?",
@@ -4870,6 +7502,18 @@
     {
      "front": "The interviewer asks you to go deep on 'Spec: a sensor node with an RTOS'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you scope the capstone’s bill of materials honestly?",
+     "back": "Every part justified against the spec: the MCU sized to the compute, sensors to the accuracy need, and the power source to the lifetime math. The interview line: ‘the BOM is the spec with prices.’"
+    },
+    {
+     "front": "What do interviewers probe in the capstone’s test story?",
+     "back": "Host-side unit tests for the logic, hardware-in-the-loop for the drivers, and the measured numbers (current, latency) against the spec. The interview line: ‘untested claims are wishes.’"
+    },
+    {
+     "front": "How do you present firmware architecture in an interview?",
+     "back": "Layers: hardware abstraction, drivers, services (RTOS tasks), application — with the dependency arrows pointing one way. The interview line: ‘layering is how firmware stays testable.’"
     }
    ],
    "quiz": [
@@ -4916,6 +7560,50 @@
      ],
      "answer": 1,
      "explain": "Decoupled timing domains communicate through queues; each meets its own deadline."
+    },
+    {
+     "q": "The capstone's spec-first discipline means:",
+     "choices": [
+      "Skipping docs",
+      "Sampling rates, power budget, and latency fixed before any driver is written",
+      "Buying parts first",
+      "Writing code first"
+     ],
+     "answer": 1,
+     "explain": "Constraints drive every later choice — task priorities, tickless idle, driver layering."
+    },
+    {
+     "q": "Task-per-concern with queue IPC is the right shape because:",
+     "choices": [
+      "It's trendy",
+      "Concerns stay isolated and testable; queues make the dataflow explicit",
+      "It's faster",
+      "Fewer tasks"
+     ],
+     "answer": 1,
+     "explain": "One task per peripheral/domain, communicating through kernel queues — no shared-global spaghetti."
+    },
+    {
+     "q": "Host-side testing's biggest win is:",
+     "choices": [
+      "Speed",
+      "Running the logic on x86 with hardware behind interfaces — unit tests without the board",
+      "Coverage",
+      "No debugger"
+     ],
+     "answer": 1,
+     "explain": "Compile the application logic for the host; mock the HAL — CI runs what the board can't."
+    },
+    {
+     "q": "The power-budget math belongs in the writeup because:",
+     "choices": [
+      "It's impressive",
+      "It proves the design meets its lifetime constraint — sleep current × duty cycle",
+      "Reviewers like math",
+      "It's required"
+     ],
+     "answer": 1,
+     "explain": "Measured current draw against the spec: the number that makes the capstone real."
     }
    ]
   },
@@ -4970,6 +7658,18 @@
     {
      "front": "What’s the final two-week taper?",
      "back": "Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise."
+    },
+    {
+     "front": "How do you handle the ‘debug this HardFault’ live prompt?",
+     "back": "Read the stacked PC/LR, decode CFSR/HFSR for the cause class, then form one hypothesis and test it — narrate the register reading aloud. The interview line: ‘the fault registers are the crime scene.’"
+    },
+    {
+     "front": "What is the embedded mock’s classic trap?",
+     "back": "Hand-waving the hardware: ‘the driver handles it’ scores nothing — interviewers want registers, timing, and the datasheet reasoning. The interview line: ‘vagueness about hardware is the tell.’"
+    },
+    {
+     "front": "How do you discuss toolchains in an embedded mock?",
+     "back": "Compiler, linker script, and debugger as one system: what the optimizer may assume (strict aliasing, UB), what the map file proves, and how you verify the binary. The interview line: ‘the toolchain is part of the design.’"
     }
    ],
    "quiz": [
@@ -5016,6 +7716,50 @@
      ],
      "answer": 1,
      "explain": "Context first, depth second: the diagram makes the deep dive legible."
+    },
+    {
+     "q": "A debugging war story's structure is:",
+     "choices": [
+      "Complaint",
+      "Stakes → hypotheses tested → evidence → fix → prevention",
+      "Blame",
+      "Luck"
+     ],
+     "answer": 1,
+     "explain": "Set the stakes fast, narrate the investigation as hypotheses with evidence — wrong turns included."
+    },
+    {
+     "q": "A war story's wrong turns should be:",
+     "choices": [
+      "Hidden",
+      "Included briefly — they show how you reason under uncertainty",
+      "Blamed on others",
+      "The focus"
+     ],
+     "answer": 1,
+     "explain": "What you ruled out and why is as informative as the fix."
+    },
+    {
+     "q": "For ‘debug this HardFault’ live, you first:",
+     "choices": [
+      "Guess",
+      "Read the stacked PC/LR and decode CFSR/HFSR — evidence before hypothesis",
+      "Reset",
+      "Reflash"
+     ],
+     "answer": 1,
+     "explain": "Narrate the register reading aloud — the fault registers are the crime scene."
+    },
+    {
+     "q": "The embedded mock's classic trap is:",
+     "choices": [
+      "Hard questions",
+      "Hand-waving the hardware — ‘the driver handles it’ scores nothing",
+      "C trivia",
+      "Time"
+     ],
+     "answer": 1,
+     "explain": "Interviewers want registers, timing, and datasheet reasoning — vagueness about hardware is the tell."
     }
    ]
   },
@@ -5070,6 +7814,18 @@
     {
      "front": "How do you argue test strategy in an interview?",
      "back": "From risk: what’s most likely to break × what hurts most — then the pyramid allocation that covers it, with the economics stated. The interview line: ‘strategy is resource allocation under uncertainty, argued out loud.’"
+    },
+    {
+     "front": "How do you discuss the testing trophy vs the pyramid?",
+     "back": "The trophy (popularized for frontend) weights integration highest: static analysis, then integration, then unit and E2E at the tips. The interview line: ‘the shape follows the bug economics of your stack.’"
+    },
+    {
+     "front": "What do interviewers probe in testability as a design input?",
+     "back": "Seams for fakes, deterministic behavior, observable state — testability designed in beats testability bolted on. The interview line: ‘untestable code is a design smell, not a testing problem.’"
+    },
+    {
+     "front": "How do you argue for deleting tests?",
+     "back": "When the test’s maintenance cost exceeds its bug-catching value: slow, flaky, or testing implementation details. The interview line: ‘a test suite is an asset with carrying costs.’"
     }
    ],
    "quiz": [
@@ -5116,6 +7872,50 @@
      ],
      "answer": 1,
      "explain": "Push each check to the cheapest layer that can prove it."
+    },
+    {
+     "q": "The pyramid's base is wide because unit tests are:",
+     "choices": [
+      "Unimportant",
+      "Fast, cheap, and precise — many of them; E2E is slow and brittle, so few",
+      "Easy to write",
+      "Trendy"
+     ],
+     "answer": 1,
+     "explain": "Economics of the layers: speed and determinism at the bottom, user-journey coverage at the top."
+    },
+    {
+     "q": "Risk-based planning allocates effort by:",
+     "choices": [
+      "Uniform coverage",
+      "Failure probability × impact — the payment path gets the hours",
+      "Developer preference",
+      "Alphabetical"
+     ],
+     "answer": 1,
+     "explain": "Test where it hurts: likelihood times blast radius, not equal slices."
+    },
+    {
+     "q": "A fake differs from a mock in that it:",
+     "choices": [
+      "Is slower",
+      "Is a working simplified implementation (in-memory DB); a mock verifies interactions",
+      "Is deprecated",
+      "Needs no code"
+     ],
+     "answer": 1,
+     "explain": "Dummy < stub < fake < mock: placeholders, canned responses, working simplifications, interaction verification."
+    },
+    {
+     "q": "Shift-left's economic argument is:",
+     "choices": [
+      "Faster releases",
+      "Bugs found earlier cost orders of magnitude less to fix",
+      "Less testing",
+      "More tools"
+     ],
+     "answer": 1,
+     "explain": "A requirements bug caught in review beats a production incident — move detection earlier."
     }
    ]
   },
@@ -5170,6 +7970,18 @@
     {
      "front": "Appium basics — how do you position it?",
      "back": "WebDriver-protocol mobile automation: one API driving iOS (XCUITest) and Android (UiAutomator2) — cross-platform scripts at the cost of speed and flakiness vs native frameworks. The interview line: ‘Appium for cross-platform coverage; native frameworks where depth matters.’"
+    },
+    {
+     "front": "How do you discuss test parallelization honestly?",
+     "back": "Sharding across workers cuts wall-clock time — but shared state, test-order dependence, and flaky infrastructure multiply. The interview line: ‘parallelism rewards independent tests and punishes the rest.’"
+    },
+    {
+     "front": "What do interviewers probe in visual regression testing?",
+     "back": "Screenshot baselines with tolerance for anti-aliasing noise, scoped to critical screens — powerful for UI drift, useless without a review workflow. The interview line: ‘pixels are assertions; curate them.’"
+    },
+    {
+     "front": "How do you evaluate a new automation framework in an interview?",
+     "back": "By the failure modes: debugging experience, flake rate, CI integration, and hiring pool — not the feature list. The interview line: ‘choose the framework by its worst day.’"
     }
    ],
    "quiz": [
@@ -5216,6 +8028,50 @@
      ],
      "answer": 1,
      "explain": "A selector change updates one page object instead of dozens of tests."
+    },
+    {
+     "q": "Playwright's auto-waiting fixes:",
+     "choices": [
+      "Slow tests",
+      "Flaky sleeps — actions wait for actionability before executing",
+      "Bad selectors",
+      "CI cost"
+     ],
+     "answer": 1,
+     "explain": "No more arbitrary waits: the framework waits for the element to be ready."
+    },
+    {
+     "q": "The Page Object Model's main benefit is:",
+     "choices": [
+      "Speed",
+      "One class per page encapsulating selectors and actions — tests read as user intent",
+      "Less code",
+      "Parallelism"
+     ],
+     "answer": 1,
+     "explain": "loginAs(user) instead of CSS selectors scattered through tests — UI changes touch one class."
+    },
+    {
+     "q": "Selenium's WebDriver protocol layer means:",
+     "choices": [
+      "It's slow",
+      "Language bindings drive real browsers through a standard HTTP wire protocol",
+      "It's outdated",
+      "Only Chrome"
+     ],
+     "answer": 1,
+     "explain": "The layered architecture (bindings → protocol → driver → browser) is why one API drives many browsers."
+    },
+    {
+     "q": "Appium reuses the WebDriver protocol for:",
+     "choices": [
+      "Websites",
+      "Mobile: one API driving iOS (XCUITest) and Android (UiAutomator2)",
+      "APIs",
+      "Desktops"
+     ],
+     "answer": 1,
+     "explain": "The protocol's generality extends to mobile automation — same concepts, new drivers."
     }
    ]
   },
@@ -5260,8 +8116,8 @@
      "back": "Status codes and error contracts (can clients program against them?), schema validation (shape, types, required fields), auth boundaries, idempotency of retries, and consumer-driven contracts (Pact) so provider changes don’t break consumers silently."
     },
     {
-     "front": "OperationQueue vs GCD?",
-     "back": "OperationQueue: higher-level — dependencies between operations, cancellation, priorities, max concurrency. GCD: lighter, C-level queues. The interview line: ‘dependencies and cancellation buy the Operation abstraction; otherwise GCD.’"
+     "front": "Consumer-driven contract testing with Pact — the interview version?",
+     "back": "The consumer publishes its expectations as a contract; the provider verifies against it in CI. It catches breaking API changes without spinning up the whole system. The interview line: ‘contracts let the consumer’s tests guard the provider’s deploys.’ When it fits: microservices with independent deploy cadences."
     },
     {
      "front": "What are performance-adjacent API checks, and how do you read a load-test report?",
@@ -5270,6 +8126,18 @@
     {
      "front": "The interviewer asks you to go deep on 'HTTP semantics for testers'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you test API versioning and backward compatibility?",
+     "back": "Run the old contract tests against the new version, verify additive-only changes, and test the deprecation headers and sunset dates. The interview line: ‘compatibility is tested, not promised.’"
+    },
+    {
+     "front": "What do interviewers probe in negative API testing?",
+     "back": "Malformed payloads, type confusion, oversized bodies, and auth edge cases — the API’s behavior when the contract is violated. The interview line: ‘the contract describes the happy path; tests cover the rest.’"
+    },
+    {
+     "front": "How do you discuss schema validation tooling?",
+     "back": "JSON Schema or OpenAPI-driven validation in the test harness: every response checked against the published contract automatically. The interview line: ‘the schema is the executable contract.’"
     }
    ],
    "quiz": [
@@ -5285,15 +8153,15 @@
      "explain": "Averages hide the user experience; percentiles per step reveal where it breaks."
     },
     {
-     "q": "Operation dependencies give you:",
+     "q": "A 500 vs 503 distinction tells the client:",
      "choices": [
-      "Speed",
-      "Declarative ordering (‘B after A’) without manual synchronization",
-      "More threads",
-      "Less code"
+      "Nothing",
+      "500: unexpected failure — don't blindly retry; 503: temporarily unavailable — retry with backoff",
+      "To call support",
+      "To refresh the page"
      ],
      "answer": 1,
-     "explain": "The queue topologically sorts the graph; you declare relationships, not locks."
+     "explain": "The status class is retry guidance: 503 invites backoff, 500 demands investigation."
     },
     {
      "q": "Consumer-driven contract testing (Pact-style) catches:",
@@ -5316,6 +8184,50 @@
      ],
      "answer": 1,
      "explain": "429 is the server’s explicit throttle signal; hammering through it escalates the block."
+    },
+    {
+     "q": "Contract testing's core check is:",
+     "choices": [
+      "Speed",
+      "Responses match the published schema and error contract — can clients program against it?",
+      "Uptime",
+      "Latency"
+     ],
+     "answer": 1,
+     "explain": "Shape, types, status codes, and error bodies: the machine-readable promises."
+    },
+    {
+     "q": "Pact-style consumer-driven contracts catch:",
+     "choices": [
+      "UI bugs",
+      "Breaking provider changes before integration — the consumer's expectations verified in CI",
+      "Slow queries",
+      "Typos"
+     ],
+     "answer": 1,
+     "explain": "The consumer publishes expectations; the provider verifies — independent deploys stay safe."
+    },
+    {
+     "q": "A 429 tells the client to:",
+     "choices": [
+      "Retry immediately",
+      "Back off per Retry-After — the server is shedding load",
+      "Give up",
+      "Call support"
+     ],
+     "answer": 1,
+     "explain": "Rate limiting is cooperative: the header is the protocol for retry timing."
+    },
+    {
+     "q": "Negative API testing covers:",
+     "choices": [
+      "Happy paths",
+      "Malformed payloads, type confusion, oversized bodies, auth edges — contract violations",
+      "Docs",
+      "Uptime"
+     ],
+     "answer": 1,
+     "explain": "The contract describes the happy path; tests cover everything else."
     }
    ]
   },
@@ -5370,6 +8282,18 @@
     {
      "front": "How do you discuss performance in an interview?",
      "back": "With numbers and method: the budget, the measurement (percentiles), the bottleneck found, the fix, the re-measurement. The interview line: ‘performance claims without before/after numbers are stories.’"
+    },
+    {
+     "front": "How do you discuss capacity modeling from load tests?",
+     "back": "Extrapolate the saturation point from the throughput-latency curve, then provision with headroom — the knee of the curve is the capacity answer. The interview line: ‘the curve tells you where the cliff is.’"
+    },
+    {
+     "front": "What do interviewers probe in performance budgets?",
+     "back": "Budgets per page or endpoint (p95 latency, payload size) enforced in CI — regressions fail the build, not the release review. The interview line: ‘budgets move performance left of the incident.’"
+    },
+    {
+     "front": "How do you talk about profiling before optimizing?",
+     "back": "Measure first: flame graphs for CPU, allocation profiles for GC pressure — optimize the hot path the data shows, not the one you suspect. The interview line: ‘profile, then optimize, then profile again.’"
     }
    ],
    "quiz": [
@@ -5416,6 +8340,50 @@
      ],
      "answer": 1,
      "explain": "Percentiles describe the distribution’s tail: p99 is the near-worst case users feel."
+    },
+    {
+     "q": "Soak testing finds:",
+     "choices": [
+      "Peak throughput",
+      "Leaks and degradation over hours — memory, connections, file handles",
+      "Bugs",
+      "Typos"
+     ],
+     "answer": 1,
+     "explain": "Sustained load reveals what spikes hide: the slow bleed."
+    },
+    {
+     "q": "p99 of 2s with a 100ms average means:",
+     "choices": [
+      "Great performance",
+      "1% of users suffer 2s+ — the tail is the user experience for the unlucky",
+      "Bad math",
+      "Nothing"
+     ],
+     "answer": 1,
+     "explain": "Averages hide the tail; SLOs are written on percentiles for a reason."
+    },
+    {
+     "q": "Spike testing validates:",
+     "choices": [
+      "Steady state",
+      "Autoscaling lag and cold-start behavior under sudden load",
+      "Code quality",
+      "Docs"
+     ],
+     "answer": 1,
+     "explain": "The jump from 1x to 10x in seconds: does the system scale or shed?"
+    },
+    {
+     "q": "A performance budget enforced in CI:",
+     "choices": [
+      "Slows teams",
+      "Fails the build on regression — performance becomes a gate, not a hope",
+      "Is optional",
+      "Needs hardware"
+     ],
+     "answer": 1,
+     "explain": "Budgets move performance left of the incident: p95 latency and payload size as assertions."
     }
    ]
   },
@@ -5470,6 +8438,18 @@
     {
      "front": "How do you present to non-technical stakeholders?",
      "back": "Lead with the recommendation, then the one chart that proves it; plain language, no jargon; name caveats briefly and honestly; end with the decision you need. The interview line: ‘I present conclusions, not queries.’"
+    },
+    {
+     "front": "How do you discuss entry and exit criteria?",
+     "back": "Entry: the build is testable (deployed, smoke-passed). Exit: planned cases executed, critical defects fixed and verified, residual risk stated. The interview line: ‘criteria turn ‘done’ from an opinion into a contract.’"
+    },
+    {
+     "front": "What do interviewers probe in risk-based test design?",
+     "back": "Effort allocated by failure probability times impact: the payment path gets the hours, the about page gets a smoke test. The interview line: ‘coverage is a budget — spend it where the risk is.’"
+    },
+    {
+     "front": "How do you present quality to executives?",
+     "back": "One page: release recommendation, the escape-rate trend, top risks with mitigations, and what you need. The interview line: ‘executives buy decisions, not dashboards.’"
     }
    ],
    "quiz": [
@@ -5516,6 +8496,50 @@
      ],
      "answer": 1,
      "explain": "A severe bug in a deprecated feature can be low priority; a trivial bug blocking launch is high priority."
+    },
+    {
+     "q": "A test plan's entry criteria define:",
+     "choices": [
+      "The team",
+      "When testing may start — build deployed, smoke-passed, testable",
+      "The budget",
+      "The tools"
+     ],
+     "answer": 1,
+     "explain": "No testing on untestable builds: criteria turn ‘ready’ into a checkable state."
+    },
+    {
+     "q": "Escape rate measures:",
+     "choices": [
+      "Test count",
+      "Bugs reaching production — the headline quality metric",
+      "Speed",
+      "Coverage"
+     ],
+     "answer": 1,
+     "explain": "What slipped through is the metric executives and teams both understand."
+    },
+    {
+     "q": "An exploratory charter provides:",
+     "choices": [
+      "Scripts",
+      "A time-boxed mission with a goal — focused freedom, not random clicking",
+      "Tools",
+      "Pass criteria"
+     ],
+     "answer": 1,
+     "explain": "‘Explore checkout with invalid inputs for 45 minutes’: rigor without scripts."
+    },
+    {
+     "q": "Severity vs priority differ in that:",
+     "choices": [
+      "They're identical",
+      "Severity is impact; priority is scheduling — a cosmetic checkout bug can be high priority",
+      "Priority is impact",
+      "Neither matters"
+     ],
+     "answer": 1,
+     "explain": "Impact describes the bug; priority schedules the fix — different axes."
     }
    ]
   },
@@ -5570,6 +8594,18 @@
     {
      "front": "How do you triage flaky tests?",
      "back": "Quarantine first (don’t let flakes erode trust), then classify: timing (add proper waits), order-dependence (isolate state), environment (pin it), or real bug (the flake was signal). The interview line: ‘a flaky test is either fixed or quarantined — never tolerated.’"
+    },
+    {
+     "front": "How do you structure the build’s test data?",
+     "back": "Factories or builders for domain objects, seeded deterministically, isolated per test — no shared fixtures that couple tests together. The interview line: ‘test data is code; version it like code.’"
+    },
+    {
+     "front": "What goes in the build’s CI quality gates?",
+     "back": "Lint, unit tests, the API contract suite, and the smoke E2E — each a hard gate, with the full regression nightly. The interview line: ‘gates are the build’s immune system.’"
+    },
+    {
+     "front": "How do you make the build’s failures debuggable?",
+     "back": "Artifacts on failure: traces, screenshots, videos, and logs attached to the run — a failing test you cannot replay is a rumor. The interview line: ‘a red build should explain itself.’"
     }
    ],
    "quiz": [
@@ -5616,6 +8652,50 @@
      ],
      "answer": 1,
      "explain": "Contract-first surfaces disagreements before code cements them."
+    },
+    {
+     "q": "Quarantining flakes instead of deleting is right because:",
+     "choices": [
+      "Flakes are fine",
+      "The coverage is preserved while trust is protected — then root-cause the flake",
+      "It's faster",
+      "Deletes are scary"
+     ],
+     "answer": 1,
+     "explain": "Quarantine stops the erosion of trust; classification (timing, order-dependence) directs the fix."
+    },
+    {
+     "q": "Branch protection requiring CI checks ensures:",
+     "choices": [
+      "Slower merges",
+      "No code merges red — the gates are the build's immune system",
+      "More reviews",
+      "Happier devs"
+     ],
+     "answer": 1,
+     "explain": "The main branch stays green by construction, not by hope."
+    },
+    {
+     "q": "Test data builders beat shared fixtures because:",
+     "choices": [
+      "They're trendy",
+      "Isolated, deterministic data per test — no coupling through shared fixtures",
+      "They're faster",
+      "Less code"
+     ],
+     "answer": 1,
+     "explain": "Shared fixtures couple tests together; builders keep each test independent."
+    },
+    {
+     "q": "Attaching traces and videos to failing runs gives you:",
+     "choices": [
+      "Bigger artifacts",
+      "Replayable failures — a red test that explains itself",
+      "Slower CI",
+      "Prettier reports"
+     ],
+     "answer": 1,
+     "explain": "A failing test you cannot replay is a rumor; artifacts make it evidence."
     }
    ]
   },
@@ -5670,6 +8750,18 @@
     {
      "front": "The interviewer asks you to go deep on 'Timed testing-scenario rounds'. What answer structure makes you sound senior?",
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
+    },
+    {
+     "front": "How do you whiteboard a test plan for an unfamiliar app?",
+     "back": "Sixty seconds of exploration, then: risks ranked, pyramid allocated, the three highest-value cases named, and the automation boundary drawn. The interview line: ‘structure first, tools second.’"
+    },
+    {
+     "front": "What is the QA mock’s classic trap?",
+     "back": "Tool-first answers: naming Playwright before naming the risk it addresses. Interviewers score the strategy; the tool is incidental. The interview line: ‘the tool is the last sentence, not the first.’"
+    },
+    {
+     "front": "How do you discuss quality ownership in a QA mock?",
+     "back": "Quality is the team’s job; QA’s job is the feedback system that makes quality visible — tests, metrics, and the honest report. The interview line: ‘QA does not own quality; QA owns the signal.’"
     }
    ],
    "quiz": [
@@ -5716,6 +8808,50 @@
      ],
      "answer": 1,
      "explain": "Anchoring prevents the classic failure: a brilliant plan for the wrong problem."
+    },
+    {
+     "q": "Restating the scenario's goal first is strong because:",
+     "choices": [
+      "It fills time",
+      "It proves you test the right thing — structure before tools",
+      "Interviewers require it",
+      "It's polite"
+     ],
+     "answer": 1,
+     "explain": "Goal → risks → pyramid allocation → tools: the whiteboard order that scores."
+    },
+    {
+     "q": "The QA mock's classic trap is:",
+     "choices": [
+      "Hard scenarios",
+      "Tool-first answers — naming Playwright before naming the risk it addresses",
+      "Time pressure",
+      "Whiteboards"
+     ],
+     "answer": 1,
+     "explain": "Strategy scores; the tool is the last sentence, not the first."
+    },
+    {
+     "q": "Quality ownership in a QA interview means:",
+     "choices": [
+      "QA owns quality",
+      "Quality is the team's job; QA owns the feedback system that makes it visible",
+      "Devs own quality",
+      "Nobody"
+     ],
+     "answer": 1,
+     "explain": "Tests, metrics, and the honest report — QA owns the signal, not the outcome."
+    },
+    {
+     "q": "Timed testing-scenario rounds test:",
+     "choices": [
+      "Typing speed",
+      "Structured thinking under time — risks ranked, cases named, automation boundary drawn",
+      "Tool trivia",
+      "Luck"
+     ],
+     "answer": 1,
+     "explain": "The structure is the answer: what you'd test, in what order, and why."
     }
    ]
   }
@@ -6206,7 +9342,20 @@
    ]
   }
  ],
- "trainers": [],
+ "trainers": [
+  {
+   "id": "coding-interview-cli",
+   "title": "Coding interview CLI trainer",
+   "brief": "Timed coding reps in the terminal: pick a pattern (two pointers, sliding window, trees, DP), get a prompt, code against the clock, then state the complexity aloud before the solution is revealed. Streaks reward clean first-pass solutions and correct Big-O callouts.",
+   "kind": "custom"
+  },
+  {
+   "id": "system-design-whiteboard",
+   "title": "System design whiteboard trainer",
+   "brief": "Guided whiteboard drills for the design round: requirements elicitation, back-of-envelope estimation, API and data-model sketching, and bottleneck-first scaling — scored against the module rubric with tradeoff callouts.",
+   "kind": "custom"
+  }
+ ],
  "mockMinutes": 120,
  "mockTasks": [
   {
@@ -7114,5 +10263,127 @@
    "note": "The classic open-source load-testing tool."
   }
  ],
- "honestyNote": "Preparation only — this course confers no certificate and is not affiliated with any employer or interview-prep provider. Interview rubrics vary by company and interviewer; the mocks and drills here simulate the format, they do not guarantee offers."
+ "honestyNote": "Preparation only — this course confers no certificate and is not affiliated with any employer or interview-prep provider. Interview rubrics vary by company and interviewer; the mocks and drills here simulate the format, they do not guarantee offers.",
+ "terminalSims": [
+  {
+   "id": "coding-interview-cli",
+   "title": "Coding interview CLI simulator",
+   "brief": "Practice the 30-minute coding bar against a realistic sandbox: list katas, start one, run tests, ask for hints, and state complexity before submitting.",
+   "prompt": "candidate@iv:~/kata$",
+   "commands": [
+    {
+     "cmd": "kata list",
+     "out": "two-sum (arrays)  valid-parentheses (stack)  lru-cache (design)  number-of-islands (graphs)  coin-change (dp)"
+    },
+    {
+     "cmd": "kata start two-sum",
+     "out": "Kata: two-sum — Given an array of integers, return indices of the two numbers that add up to a target.\nTimer started: 30:00. Clarify, plan, then code. State your complexity before 'submit'."
+    },
+    {
+     "cmd": "timer",
+     "out": "24:37 remaining — you should be coding by now, not still clarifying."
+    },
+    {
+     "cmd": "run tests",
+     "out": "3 passed, 2 failed:\n  FAIL: target=9, nums=[3,2,4] — expected [1,2], got [0,1]\n  FAIL: duplicate values case — index reuse detected"
+    },
+    {
+     "cmd": "hint",
+     "out": "Hint 1/3: one pass is enough — what do you need to remember as you walk the array?"
+    },
+    {
+     "cmd": "hint",
+     "out": "Hint 2/3: for each x, the partner you need is (target - x). A hash map from value to index finds it in O(1)."
+    },
+    {
+     "cmd": "complexity",
+     "out": "State it aloud first, then compare: O(n) time (single pass), O(n) space (the map). If you said O(n²), the map is the unlock you missed."
+    },
+    {
+     "cmd": "run tests",
+     "out": "5 passed, 0 failed. Clean first pass would have been nicer — note the miss category in your debrief log."
+    },
+    {
+     "cmd": "submit",
+     "out": "BLOCKED: state your complexity aloud (type 'complexity') before submitting — interviewers grade the reasoning, not just the code."
+    },
+    {
+     "cmd": "complexity",
+     "out": "State it aloud first, then compare: O(n) time (single pass), O(n) space (the map). If you said O(n²), the map is the unlock you missed."
+    },
+    {
+     "cmd": "kata start lru-cache",
+     "out": "Kata: lru-cache — Design a data structure with O(1) get and put with LRU eviction.\nTimer started: 30:00. This one is designed, then coded — say the structure before you type it."
+    },
+    {
+     "cmd": "debrief",
+     "out": "Debrief template: miss category (pattern / bug / complexity / time) — what leaked — one drill to redrill. Write it within the hour."
+    },
+    {
+     "cmd": "streak",
+     "out": "Current streak: 4 clean solves. Best: 9. Streaks count first-pass solves with the complexity stated correctly."
+    },
+    {
+     "cmd": "help",
+     "out": "kata list | kata start <name> | timer | run tests | hint | complexity | submit | debrief | streak"
+    }
+   ]
+  },
+  {
+   "id": "sysdesign-whiteboard",
+   "title": "System design whiteboard simulator",
+   "brief": "Walk a full 45-minute design round in the terminal: elicit requirements, run estimation, sketch the API and data model, then defend scaling and tradeoffs.",
+   "prompt": "designer@iv:~/whiteboard$",
+   "commands": [
+    {
+     "cmd": "brief",
+     "out": "Round: design a URL shortener for 100M URLs/month, 10:1 read/write ratio. 45 minutes. Requirements before architecture — always."
+    },
+    {
+     "cmd": "requirements",
+     "out": "Functional: shorten URL, redirect, custom aliases, expiry. Non-functional: <100ms p99 redirect, highly available, analytics optional. Out of scope: full user accounts v1."
+    },
+    {
+     "cmd": "estimate",
+     "out": "100M writes/month ≈ 40 writes/sec avg, ~400 peak. Reads 10x ≈ 4K/sec peak. Storage: 100M × 500B ≈ 50 GB + 5-yr retention ≈ 3 TB. Bandwidth: 4K × 500B ≈ 2 MB/s — trivial. Say the powers of 10, not the arithmetic."
+    },
+    {
+     "cmd": "api",
+     "out": "POST /shorten {url, alias?, ttl?} → 201 {short_id}\nGET /{short_id} → 301 redirect (+ analytics hook)\nRate limit: 429 with Retry-After. Idempotency key on POST."
+    },
+    {
+     "cmd": "id-gen",
+     "out": "Options: hash+base62 (collisions need handling), counter + base62 (needs a single sequencer — ZooKeeper/etcd range allocator), KGS pre-generated keys (decouples generation from serving). Pick one and defend it."
+    },
+    {
+     "cmd": "draw",
+     "out": "[client] → [CDN] → [LB] → [app servers] → [cache: hot URLs] → [DB: id→url mapping]\nWrites: app → KGS/sequencer → DB → cache warm. Reads: cache first, DB on miss."
+    },
+    {
+     "cmd": "scale",
+     "out": "Bottleneck first: redirect reads → cache absorbs 80%+. DB sharded by short_id hash when single-node writes saturate. KGS is stateless and horizontally trivial. Say what breaks at 10x before they ask."
+    },
+    {
+     "cmd": "tradeoffs",
+     "out": "301 vs 302 (301 caches better, 302 allows analytics recounts) — cache TTL vs freshness — custom aliases need a uniqueness check (extra read). End every round naming two you accepted."
+    },
+    {
+     "cmd": "failure",
+     "out": "Cache down → DB takes full read load: shed via rate limiting, degrade gracefully. DB down → reads fail: multi-region replica or accept the outage with a runbook. Name the blast radius per component."
+    },
+    {
+     "cmd": "timer 45",
+     "out": "45:00 on the clock. Budget: 5 requirements, 5 estimation, 10 API/data, 15 deep-dive (id-gen + scaling), 10 tradeoffs/failure. Narrate the clock as you spend it."
+    },
+    {
+     "cmd": "rubric",
+     "out": "Scored on: requirements completeness, estimation sanity, API/data-model fit, deep-dive depth, tradeoff honesty, communication. Silence is unscored — narrate everything."
+    },
+    {
+     "cmd": "help",
+     "out": "brief | requirements | estimate | api | id-gen | draw | scale | tradeoffs | failure | timer 45 | rubric"
+    }
+   ]
+  }
+ ]
 }

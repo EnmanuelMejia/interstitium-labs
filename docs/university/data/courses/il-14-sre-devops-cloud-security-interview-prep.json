@@ -107,7 +107,7 @@
      "body": "- **SLI (Service Level Indicator)** — the measured fact: e.g. successful requests ÷ total requests, or the fraction of requests under a latency bound. SLIs are facts, not promises.\n- **SLO (Service Level Objective)** — the target set on an SLI: e.g. 99.9% of requests succeed over a 30-day window. SLOs are promises the team makes.\n- **SLA (Service Level Agreement)** — the contract with consequences: what happens (credits, penalties) when the SLO is missed. SLAs are contracts with customers.\n- **Error budget** — 1 − SLO: the allowed failure rate, spent deliberately on releases and risk. A 99.9% SLO leaves a 0.1% budget.\n- **Four golden signals** — latency, traffic, errors, saturation: the minimum dashboard for any service, and the first SLI candidates.\n- **Burn rate** — how fast the error budget is being consumed relative to the SLO window. Fast burn pages now; slow burn files a ticket.\n- **Multiwindow alerting** — pairing a short window (catches fast burns) with a long window (confirms slow burns) so blips don't page.\n- **Counter** — a Prometheus metric that only increases: the raw material for request/error-rate SLIs via rate() over windows.\n- **Histogram** — a Prometheus metric with buckets: the raw material for latency-percentile SLIs, since any percentile is computable over any window.\n- **Recording rule** — a precomputed PromQL expression: how expensive SLI ratios are calculated once and queried cheaply."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Do this estimation on paper or a whiteboard — it is the single most common SLO whiteboard exercise.\n1. **State the SLO.** 99.9% successful requests over a 30-day rolling window. Write the budget: 1 − 0.999 = 0.001, i.e. 0.1%.\n2. **Convert the window to minutes.** 30 days × 24 hours × 60 minutes = 43,200 minutes.\n3. **Multiply.** 0.1% × 43,200 = 43.2 minutes of total allowed badness per month — downtime, errors, slow responses, all of it drawn from one account.\n4. **Interpret the number.** That is roughly one 45-minute incident per month, or several small ones. Say it aloud: 'our budget is one real incident a month.'\n5. **Add a burn-rate read.** If you burn 2% of that budget in one hour, you're consuming it ~14× faster than the sustainable rate — that is a fast burn, page now. If you burn 2% in a week, that is a slow burn — ticket it.\n6. **Close with the policy.** Budget remaining → ship freely. Budget exhausted → freeze risky changes until reliability recovers. The arithmetic is the policy."
     },
     {
@@ -143,6 +143,14 @@
     {
      "front": "How do you size an error budget on a whiteboard?",
      "back": "99.9% over 30 days → 0.1% of 43,200 minutes = 43.2 minutes of total allowed badness per month. Say it as policy: 'our budget is roughly one real incident a month — while budget remains we ship, when it's spent we harden.' The interview line: 'budgets are arithmetic, not vibes.'"
+    },
+    {
+     "front": "How do you pick the right SLI for a service?",
+     "back": "Measure what the user feels: request success ratio and latency percentiles for serving paths — not CPU. The interview line: ‘the SLI is the user’s experience expressed as a number.’"
+    },
+    {
+     "front": "What makes an SLO credible in an interview answer?",
+     "back": "Tied to user impact, with the error-budget policy attached: who decides when the budget burns, and what stops. The interview line: ‘an SLO without a budget policy is a wish.’"
     }
    ],
    "quiz": [
@@ -299,8 +307,8 @@
      "back": "Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard."
     },
     {
-     "front": "How do you discuss defect lifecycle and severity?",
-     "back": "Lifecycle: new → triaged → in progress → fixed → verified → closed (reopened if it regresses). Severity (impact) vs priority (fix order) are different axes — a cosmetic bug on the checkout button can be high priority. The interview line: ‘severity is impact; priority is scheduling.’"
+     "front": "How do you classify incident severity in an SRE interview?",
+     "back": "SEV levels by user impact and urgency: SEV-1 (critical — core function down, all hands), SEV-2 (major degradation), SEV-3 (minor, limited blast radius). Severity is impact; priority is scheduling. The interview line: ‘severity describes the fire, not who fights it.’"
     },
     {
      "front": "How do you communicate during an outage?",
@@ -313,6 +321,14 @@
     {
      "front": "When do you escalate an incident's severity?",
      "back": "When the impact scope grows: more users affected, a longer blast radius, or the mitigation isn't working. Severity follows impact, not effort — and the paging policy decides who the escalation wakes. The interview line: 'I escalate on impact, early; downgrading is cheaper than discovering the blast radius at the postmortem.'"
+    },
+    {
+     "front": "How do you run the first five minutes of an incident?",
+     "back": "Declare, take command, freeze the scope: who is impacted, what is the mitigation hypothesis, who owns comms. The interview line: ‘the first five minutes buy the next fifty.’"
+    },
+    {
+     "front": "What goes in a status update during an outage?",
+     "back": "Impact (who is affected), what is known, what is being done, when the next update lands — even if it is ‘no change.’ The interview line: ‘silence during an outage is a second incident.’"
     }
    ],
    "quiz": [
@@ -483,6 +499,14 @@
     {
      "front": "How do you decide what belongs in logs vs metrics?",
      "back": "Metrics get the countable and the alertable — rates, latencies, saturations with bounded labels. Logs get the discrete and the contextual — errors with request IDs, decisions, anomalies to investigate. Traces get the cross-service journey. The interview line: 'if I'd page on it, it's a metric; if I'd investigate with it, it's a log.'"
+    },
+    {
+     "front": "How do you explain cardinality discipline in metrics?",
+     "back": "Bounded label values only: high-cardinality labels (user IDs, request IDs) explode storage and cost. The interview line: ‘labels are dimensions, not databases.’"
+    },
+    {
+     "front": "What makes an alert actionable?",
+     "back": "It fires on a symptom tied to an SLO, names the runbook, and pages only when a human must act now. The interview line: ‘an alert without an action is a notification.’"
     }
    ],
    "quiz": [
@@ -617,7 +641,7 @@
      "body": "- **Headroom** — spare capacity held deliberately above forecast peak: the margin that absorbs bursts and failures.\n- **N+1** — provision N+1 units for a load needing N: one unit can fail or drain without user impact.\n- **Utilization wall** — queueing theory's warning: latency degrades nonlinearly as utilization nears 100%; the wall is where small load increases cause large latency spikes.\n- **Horizontal scaling** — more units (HPA adds pod replicas): the cloud-native default.\n- **Vertical scaling** — bigger units (VPA resizes pods): for workloads that can't scale out; needs restarts.\n- **Autoscaling lag** — scaling isn't instant: cold starts and metric delays mean you still need headroom.\n- **Load test** — synthetic demand proving the capacity model: k6 for code-reviewed, CI-integrated tests with thresholds as gates.\n- **Spot/preemptible capacity** — spare compute at deep discounts for interruption-tolerant batch work that checkpoints.\n- **N+1 query problem** — the database cousin: N parents fetched, then one query per parent's children; fixed by eager loading (JOIN or batched query)."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Work this capacity estimate with stated assumptions — the interview grades the method, not the numbers.\n1. **State the forecast as a range.** 'Peak 8,000–12,000 requests/sec during the holiday week, based on last year's growth plus the marketing launch.' Ranges with assumptions, reviewed on a cadence.\n2. **Measure per-unit capacity.** From a load test: one instance sustains 500 rps at p99 < 200 ms. Write it down — measured, not guessed.\n3. **Divide, then add headroom.** 12,000 ÷ 500 = 24 instances at 100% — which is the wall. Target 65% utilization: 24 ÷ 0.65 ≈ 37 instances.\n4. **Apply N+1.** 37 + 1 = 38 instances, so one can drain for deploy or fail outright without breaching the SLO.\n5. **Price the headroom.** Those ~14 extra instances are the cost of burst absorption and failure tolerance — narrate it: 'headroom is insurance with a line item.'\n6. **Name the verification.** A k6 test at 1.5× forecast peak with thresholds as CI gates, re-run before every launch — the model is a hypothesis until the test confirms it."
     },
     {
@@ -647,12 +671,20 @@
      "back": "Latency degrades nonlinearly as utilization approaches 100% (queueing theory): a system at 90%+ has no headroom for bursts — the ‘wall’ where small load increases cause large latency spikes. The interview line: ‘I plan headroom against the wall, not against the average.’"
     },
     {
-     "front": "What’s the N+1 query problem and its fix?",
-     "back": "Loading N parents then one query per parent’s children: N+1 round trips. The fix is eager loading — a JOIN or batched second query (and ORMs have explicit eager-loading APIs). Name it when you see loops over queries."
+     "front": "How do you use Little’s Law in capacity planning?",
+     "back": "L = λW: average items in the system equals arrival rate times average time in system. It turns a latency SLO into a concurrency requirement — and a concurrency limit into a queueing prediction. The interview line: ‘Little’s Law converts between the rate I provision for and the latency I promise.’"
     },
     {
      "front": "What do you load-test before a launch, and what makes the test a gate?",
      "back": "The forecast peak (at 1.5× for margin), a soak run for leaks, and a spike run for autoscaling lag — each with pass/fail thresholds written before the test runs. A threshold decided after the results is decoration; decided before, it's a gate. The interview line: 'the load test is a hypothesis test on my capacity model.'"
+    },
+    {
+     "front": "How do you discuss headroom in capacity planning?",
+     "back": "Provision for peak plus margin (the forecast at 1.5×), because the utilization wall punishes 90%+ — latency degrades nonlinearly. The interview line: ‘headroom is the price of the p99.’"
+    },
+    {
+     "front": "What do interviewers probe in autoscaling lag?",
+     "back": "Metrics delay plus pod-startup time means autoscaling reacts late to spikes — pre-warming and an over-provisioned buffer cover the gap. The interview line: ‘autoscaling is reactive; the spike doesn’t wait.’"
     }
    ],
    "quiz": [
@@ -823,6 +855,14 @@
     {
      "front": "How do you defend a caching choice in a design round?",
      "back": "Name what you cache and why, the invalidation story, and the failure story: stampede on cold start, thundering herd on hot-key expiry, and what happens when the cache itself dies (stale-while-revalidate, circuit breaker). The interview line: 'caching is a tradeoff with an invalidation plan, not a speedup.'"
+    },
+    {
+     "front": "How do you design a health-check strategy in a design round?",
+     "back": "Layered: liveness (restart me) vs readiness (don’t send traffic yet), with dependency checks that fail fast. The interview line: ‘health checks are the system’s honesty about itself.’"
+    },
+    {
+     "front": "What do interviewers probe in graceful degradation?",
+     "back": "Defined fallback tiers: full → reduced (cached/stale) → static — each with its trigger condition. The interview line: ‘degradation designed beats degradation discovered.’"
     }
    ],
    "quiz": [
@@ -993,6 +1033,14 @@
     {
      "front": "What's on your 48-hour pre-interview checklist?",
      "back": "Logistics confirmed, sleep protected, story bank rehearsed aloud, the two weakest round shapes redrilled once more — and explicitly: no new topics. The checklist converts preparation into performance; cramming converts it into noise. The interview line: 'the last 48 hours are about the performer, not the material.'"
+    },
+    {
+     "front": "How do you prep the incident round specifically?",
+     "back": "Run the lifecycle aloud on a past outage: declare, mitigate first, comms cadence — blameless language throughout. The interview line: ‘the incident round grades command, not debugging.’"
+    },
+    {
+     "front": "What does the SRE rubric’s ‘judgment under pressure’ axis mean?",
+     "back": "Decisions with incomplete data: when you mitigated vs kept digging, when you escalated, what you communicated. The interview line: ‘judgment is visible in the tradeoffs you name.’"
     }
    ],
    "quiz": [
@@ -1163,6 +1211,14 @@
     {
      "front": "How do you keep a 40-minute pipeline from failing at minute 39?",
      "back": "Order stages fail-fast: lint and unit tests in the first minutes, then build, integration, scans, publish. Fast, cheap failures first; slow, expensive verification only for code that earned it. The interview line: 'fail fast and cheap — a 40-minute pipeline that fails at minute 39 teaches nothing quickly.'"
+    },
+    {
+     "front": "How do you discuss deployment freezes in an interview?",
+     "back": "Change moratoriums around critical periods (holidays, launches) with a defined exception process — reliability as policy. The interview line: ‘freezes are the error budget made calendar.’"
+    },
+    {
+     "front": "What do interviewers probe in artifact promotion?",
+     "back": "The same immutable artifact moves dev → staging → prod; only config changes per environment. The interview line: ‘promote the artifact, not a rebuild.’"
     }
    ],
    "quiz": [
@@ -1319,8 +1375,8 @@
      "back": "Write declarative HCL, plan to preview the diff, apply to converge. State tracks reality (remote backend, locking!); modules compose reusable units. The interview traps: state drift, and why plan-before-apply is non-negotiable."
     },
     {
-     "front": "How do you discuss state management tradeoffs?",
-     "back": "Lift state to the lowest common parent first; context for truly global low-churn data (theme, auth) — not as a state manager, since context re-renders all consumers; external stores (Zustand/Redux) for complex shared state with selective subscriptions."
+     "front": "How do you discuss Terraform state tradeoffs?",
+     "back": "Remote state with locking (no local state files on a team), state per environment to bound blast radius, and never hand-editing state — import or taint instead. The tradeoff: finer state splits mean safer applies but more orchestration. The interview line: ‘state is the map of reality; guard it like production data.’"
     },
     {
      "front": "How do you structure Terraform modules and composition?",
@@ -1333,6 +1389,14 @@
     {
      "front": "Why is 'plan-before-apply' non-negotiable?",
      "back": "The plan is the diff between declared and actual — it's the review, the blast-radius estimate, and the last chance to catch a typo that deletes the database. Applying blind is clicking 'yes' on a dialog you didn't read. The interview line: 'the plan is the change's résumé; I read résumés before hiring.'"
+    },
+    {
+     "front": "How do you discuss secret handling in IaC?",
+     "back": "Never in state files or repos in plaintext: secret managers with dynamic references, state encrypted at rest. The interview line: ‘the state file is a secret — treat it like one.’"
+    },
+    {
+     "front": "What makes a Terraform module reusable?",
+     "back": "Small scope, documented inputs and outputs, no hardcoded environment values — composition in environment roots. The interview line: ‘modules are libraries; roots are applications.’"
     }
    ],
    "quiz": [
@@ -1503,6 +1567,14 @@
     {
      "front": "How do you shrink a 1.2 GB container image?",
      "back": "Multi-stage build (ship only runtime artifacts), minimal base image, dependencies before code copy for cache efficiency, and audit what's inside — build tools and caches don't sail to prod. Smaller images pull faster, scan faster, and shrink the attack surface. The interview line: 'the image should contain the app, not the workshop.'"
+    },
+    {
+     "front": "How do you discuss pod resource requests vs limits?",
+     "back": "Requests: the scheduler’s guarantee (bin-packing basis). Limits: the kill threshold (OOMKilled). Set requests from measured p95, limits with headroom. The interview line: ‘requests are reservations; limits are the ceiling.’"
+    },
+    {
+     "front": "What do interviewers probe in liveness vs readiness probes?",
+     "back": "Liveness: restart the stuck container. Readiness: hold traffic during startup or dependency outages. Wrong probe, cascading restarts. The interview line: ‘the probes are the orchestrator’s senses — calibrate them.’"
     }
    ],
    "quiz": [
@@ -1673,6 +1745,14 @@
     {
      "front": "What's your first move when the dashboard is red but nobody knows why?",
      "back": "Ask 'what changed?' — check deploy annotations and recent deploys before touching anything. Most production mysteries are deployments in disguise, and the answer is usually in the last hour's timeline. The interview line: 'I investigate the timeline before I investigate the system.'"
+    },
+    {
+     "front": "How do you discuss the ‘what changed?’ first move?",
+     "back": "Deploys, config, traffic, and infra changes in the incident window — most production surprises are changes wearing a costume. The interview line: ‘the timeline of changes is the first log I read.’"
+    },
+    {
+     "front": "What makes a troubleshooting hypothesis good?",
+     "back": "Falsifiable and cheap to test: one command that rules something out. The interview line: ‘debug by elimination, not by inspiration.’"
     }
    ],
    "quiz": [
@@ -1825,8 +1905,8 @@
      "back": "Repo layout (app + infra + pipeline), VPC via Terraform, cluster bootstrap scripted, CI pipeline, GitOps deploy — each piece documented as a deliverable. The interview line: ‘the scaffold is the platform’s first impression.’"
     },
     {
-     "front": "How do you discuss undefined behavior in a C interview?",
-     "back": "As the compiler’s license to assume: signed overflow, null dereference, use-after-free, data races — ‘anything can happen’ includes ‘works until the optimizer upgrades.’ The interview line: ‘I write so UB can’t happen; sanitizers prove it.’"
+     "front": "What is a ‘paved road’ in platform engineering?",
+     "back": "The blessed, supported path: golden-path templates, standard pipelines, and defaults that make the right thing the easy thing. Teams can leave the road, but then they own the maintenance. The interview line: ‘a paved road is opinionated infrastructure with an escape hatch.’"
     },
     {
      "front": "What is GitOps, concretely?",
@@ -1843,6 +1923,14 @@
     {
      "front": "How do you convince a team to adopt your platform?",
      "back": "Make the paved road the easy road: golden-path templates, self-service deploys, docs that answer before they ask — and never mandate what you can't support. Adoption is the platform's real metric; a platform nobody uses is a hobby. The interview line: 'I measure the platform by its customers' deploys, not by its features.'"
+    },
+    {
+     "front": "How do you discuss IDPs (internal developer platforms)?",
+     "back": "Self-service golden paths: provision, deploy, and observe without tickets — the paved road as a product. The interview line: ‘the platform’s customer is the developer.’"
+    },
+    {
+     "front": "What do interviewers probe in platform metrics?",
+     "back": "Adoption, lead time, and toil reduction — the platform proves itself in developer velocity. The interview line: ‘a platform without metrics is a hobby.’"
     }
    ],
    "quiz": [
@@ -1995,8 +2083,8 @@
      "back": "Pipeline design: stages in order, artifact promotion, rollback story. Live troubleshooting: hypothesis → test → observe, narrated, time-boxed. The interview line: ‘design shows judgment; troubleshooting shows method.’"
     },
     {
-     "front": "How do behavioral rounds differ for SREs?",
-     "back": "They probe ownership under pressure: on-call stories, incident decisions, disagreements about risk, and learning from outages — all STAR, all blameless. The interview line: ‘SRE behavioral rounds grade how I act when the pager fires.’"
+     "front": "How do behavioral rounds differ for DevOps roles?",
+     "back": "They probe ownership under pressure: on-call stories, incident decisions, disagreements about risk and automation, and learning from outages — all STAR, all blameless. The interview line: ‘DevOps behavioral rounds grade how I act when the pager fires.’"
     },
     {
      "front": "What’s the STAR structure, and why does it work for behavioral rounds?",
@@ -2013,6 +2101,14 @@
     {
      "front": "How do you answer 'tell me about a disagreement with a teammate'?",
      "back": "STAR with the conflict as the situation: what each side wanted, the data or principle that decided it, what you actually did (listened, proposed, conceded or persuaded), and the result — including what you'd do differently. Blameless, specific, and about the work. The interview line: 'disagreements are design reviews with feelings; I treat them that way.'"
+    },
+    {
+     "front": "How do you prep the live-troubleshooting mock?",
+     "back": "Narrate hypotheses, test cheaply, read the timeline of changes — thinking aloud is the scored skill. The interview line: ‘silent debugging is unscoreable.’"
+    },
+    {
+     "front": "What do you ask a DevOps interviewer that scores?",
+     "back": "On-call reality (frequency, toil), deployment confidence, and what breaks most — questions that reveal the job’s truth. The interview line: ‘ask about the pager before you sign up for it.’"
     }
    ],
    "quiz": [
@@ -2147,7 +2243,7 @@
      "body": "- **Region** — a geographic area of cloud data centers: the unit of data residency and disaster recovery.\n- **Availability Zone (AZ)** — isolated data center(s) within a region with independent power and networking: run across ≥2 AZs; one AZ is a single point of failure.\n- **Edge** — points of presence near users for caching and termination: proximity, not resilience.\n- **Shared responsibility** — the provider secures OF the cloud (physical, hypervisor, fabric); you secure what's IN it (data, IAM, OS, app config).\n- **VM** — virtualized hardware with a guest OS: strongest isolation, heaviest footprint.\n- **Container** — shared host kernel, packaged userland: lighter and faster than VMs, weaker isolation.\n- **Serverless** — functions the provider scales to zero: no servers to manage, pay per invocation, mind the cold starts.\n- **CapEx** — buy servers upfront: fixed, depreciating. **OpEx** — pay per use: variable, agile, and in need of FinOps governance.\n- **Vendor-neutral knowledge** — concepts that transfer (VPCs, IAM, queues, object storage) vs vendor-specific click-paths that expire with the UI."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Work the classic 'should we move to the cloud' estimation — the honest version, with assumptions stated.\n1. **State the workload.** A sample internal tool: 4 VMs on-prem, running 24/7, refreshed every 4 years at $8,000 per server (assumed figures for the exercise).\n2. **Compute the CapEx baseline.** 4 × $8,000 = $32,000 over 4 years, plus power, cooling, and your time — write the 'plus' items even without numbers.\n3. **Sketch the OpEx alternative.** Equivalent cloud VMs at an assumed $0.10/hr each: 4 × $0.10 × 730 hrs ≈ $292/month ≈ $3,500/year.\n4. **Add the honest costs.** Data transfer out, managed-service premiums, and the FinOps tax: untracked variable spend surprises you.\n5. **Name the non-price factors.** Elasticity for spiky workloads, managed backups, and speed of provisioning — agility is what OpEx actually buys.\n6. **Deliver the verdict format.** 'On pure 24/7 steady-state cost it's close; the cloud wins on elasticity and managed undifferentiated work — and loses if we lift-and-shift without rightsizing.'"
     },
     {
@@ -2183,6 +2279,14 @@
     {
      "front": "How do you answer 'why not just buy servers?'",
      "back": "With the honest math: steady-state 24/7 can be close on price, but the cloud buys elasticity for spiky workloads, managed undifferentiated work (backups, patching, failover), and provisioning speed. The follow-up they want: 'and without FinOps governance, variable spend surprises you.' The interview line: 'CapEx is a bet; OpEx is a meter — I choose by workload shape.'"
+    },
+    {
+     "front": "How do you discuss regions vs AZs for resilience?",
+     "back": "AZs: isolated failure domains in a region (power, network). Regions: geographic separation for disasters and compliance. The interview line: ‘AZs survive rack failures; regions survive hurricanes.’"
+    },
+    {
+     "front": "What do interviewers probe in elasticity vs scalability?",
+     "back": "Scalability: handling more load. Elasticity: scaling up AND down automatically with demand — the cloud’s distinctive trick. The interview line: ‘elasticity is scalability with a down arrow.’"
     }
    ],
    "quiz": [
@@ -2335,8 +2439,8 @@
      "back": "VPC: your isolated network. Subnets: public (route to internet gateway) vs private (no direct inbound, NAT for outbound). Route tables decide where packets go; security groups (stateful, instance-level) and NACLs (stateless, subnet-level) filter them."
     },
     {
-     "front": "LCP, INP, CLS — what does each measure?",
-     "back": "LCP (Largest Contentful Paint): loading — when the main content appears. INP (Interaction to Next Paint): responsiveness — worst-case input latency. CLS (Cumulative Layout Shift): visual stability — unexpected movement. For all three, lower is better."
+     "front": "How do you design multi-AZ networking in an interview?",
+     "back": "VPC spanning AZs, public subnets with NAT gateways per AZ for outbound, private subnets for workloads, and no single-AZ chokepoints — cross-AZ traffic costs money, so place chatty tiers together. The interview line: ‘multi-AZ networking is redundancy you can draw and a bill you can predict.’"
     },
     {
      "front": "What do cloud load balancers do beyond spreading traffic?",
@@ -2353,6 +2457,14 @@
     {
      "front": "Security group vs NACL — when does the difference actually bite?",
      "back": "Security groups are stateful (return traffic auto-allowed) at the instance level; NACLs are stateless (both directions need rules) at the subnet level. It bites when SSH works through the security group but the NACL blocks the ephemeral-port return — connection hangs, not refused. The interview line: 'stateful forgives; stateless makes you write both directions.'"
+    },
+    {
+     "front": "How do you discuss VPC endpoints (PrivateLink)?",
+     "back": "Private connectivity to managed services without internet traversal — no NAT, no public IPs, tighter blast radius. The interview line: ‘endpoints keep cloud traffic off the internet.’"
+    },
+    {
+     "front": "What do interviewers probe in transit gateways?",
+     "back": "Hub-and-spoke for many VPCs: one gateway instead of N×N peering — with route-table segmentation for isolation. The interview line: ‘peering scales quadratically; transit scales linearly.’"
     }
    ],
    "quiz": [
@@ -2487,7 +2599,7 @@
      "body": "- **Object storage** — flat, limitless blob storage (the S3 pattern): presigned URLs let clients upload directly so bytes never touch your app servers.\n- **Managed SQL** — backups, patching, failover, and read replicas handled by the provider: you keep schema design and query tuning.\n- **Key-value NoSQL** — single-digit-ms lookups by key: choose by access pattern, then take the managed version.\n- **Document NoSQL** — flexible JSON documents: for evolving schemas and document-shaped access.\n- **Caching** — what to cache (read-heavy, slow-changing), where (edge, app, DB), and the invalidation strategy: stale data is caching's permanent tax.\n- **Lifecycle tiering** — hot/warm/cold-archive matched to access frequency: every byte has a cost curve.\n- **RPO** — how much data loss is tolerable: bounds backup frequency. **RTO** — how fast recovery must complete: bounds downtime."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Work the backup-and-recovery estimation — RPO/RTO as numbers, not vibes.\n1. **State the business answers.** 'We can lose at most 1 hour of orders (RPO = 1h); checkout must be back within 4 hours (RTO = 4h).' Get these from the business, not engineering.\n2. **Derive the backup frequency.** RPO of 1 hour → backups (or continuous replication) at least hourly. Daily backups would violate the RPO by 23 hours — say so.\n3. **Derive the recovery architecture.** RTO of 4 hours → tested restore procedure that completes in under 4 hours: rehearsed restores, not documentation.\n4. **Price the tiers.** Hot data (yesterday's orders) on fast storage; 7-year compliance retention on archive tier — 'rarely-accessed retention data shouldn't pay hot-storage prices.'\n5. **Name the failure test.** 'When did we last restore from backup?' — an untested backup is a hope, not a plan.\n6. **Close with the line.** 'RPO bounds data loss; RTO bounds downtime — and both are business decisions with engineering price tags.'"
     },
     {
@@ -2523,6 +2635,14 @@
     {
      "front": "How do you answer 'SQL or NoSQL?' without sounding religious?",
      "back": "By access pattern: relational integrity and ad-hoc queries → managed SQL; single-digit-ms key lookups → key-value; flexible documents → document store. Then the managed caveat: 'I choose the NoSQL by the query pattern, then take the managed version of that choice.' The interview line: 'the workload picks the store; I just read its requirements.'"
+    },
+    {
+     "front": "How do you discuss backup vs replication?",
+     "back": "Replication is availability (survives node loss); backup is recoverability (survives data loss and human error) — you need both. The interview line: ‘replication won’t save you from DELETE FROM.’"
+    },
+    {
+     "front": "What do interviewers probe in data residency?",
+     "back": "Where data lives and crosses borders: region selection, compliance constraints, and the replication topology that honors them. The interview line: ‘residency is a legal requirement wearing an architecture costume.’"
     }
    ],
    "quiz": [
@@ -2671,16 +2791,16 @@
    ],
    "cards": [
     {
-     "front": "What are the incident command roles?",
-     "back": "Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard."
+     "front": "How do you explain defense in depth for cloud?",
+     "back": "Layers that fail independently: identity (least-privilege IAM), network (security groups, NACLs, private subnets), data (encryption at rest and in transit, KMS), and detective controls (audit logs, Config rules). The interview line: ‘no single layer is trusted; the stack is the control.’"
     },
     {
      "front": "How do you do IAM least privilege in practice?",
      "back": "Roles over users, policies scoped to specific actions on specific resources, no wildcards in production, permission boundaries and SCPs as guardrails, regular access reviews. The interview line: ‘every permission has a reason and an expiry conversation.’"
     },
     {
-     "front": "What makes an API ‘RESTful’ in an interview answer?",
-     "back": "Resources as nouns in URLs, HTTP verbs as actions, status codes as the contract (200/201/400/401/403/404/429/500), stateless requests, and versioning — then the judgment calls: pagination, filtering, and idempotency."
+     "front": "How do you secure APIs at the cloud edge?",
+     "back": "Authentication at the API gateway (not in each service), WAF rules for L7 attacks, throttling and quotas per key, and private APIs behind VPC endpoints for internal traffic. The interview line: ‘the edge is where auth, abuse protection, and rate limits live once, not N times.’"
     },
     {
      "front": "How do you manage secrets in the cloud?",
@@ -2693,6 +2813,14 @@
     {
      "front": "What's the first thing you check in an unfamiliar cloud account?",
      "back": "Identity: who has what access. Users without MFA, wildcard admin policies, and ancient access keys are the fastest wins — most breaches start at identity, not at the firewall. The interview line: 'I audit the front door before the windows.'"
+    },
+    {
+     "front": "How do you discuss KMS envelope encryption?",
+     "back": "Data keys encrypt the data; master keys in KMS encrypt the data keys — rotation and audit at the master level. The interview line: ‘envelope encryption makes key rotation cheap.’"
+    },
+    {
+     "front": "What do interviewers probe in SCPs vs IAM policies?",
+     "back": "SCPs: guardrails on what an account CAN do (even admins). IAM: what an identity may do. The interview line: ‘SCPs set the ceiling; IAM works under it.’"
     }
    ],
    "quiz": [
@@ -2827,7 +2955,7 @@
      "body": "- **Three-tier architecture** — presentation (ALB + CDN) → application (auto-scaled compute across AZs) → data (managed DB with replicas, caches): tiers as failure and scaling boundaries.\n- **Reference architecture** — the standard shape you start from and justify deviations against.\n- **Failure-mode review** — 'what breaks, how the system degrades, is that degradation acceptable': what separates architecture from diagramming.\n- **Cost drivers** — the line items that move the bill: transfer is the classic surprise; provisioned capacity the steady burn.\n- **ADR** — Architecture Decision Record: decision, context, alternatives, consequences — how architecture survives team turnover.\n- **IaC for the whole stack** — reproducible, reviewable infrastructure: the architecture exists as code, not as a diagram."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Cost the three-tier architecture honestly — assumptions stated, surprises named.\n1. **List the components.** ALB, app instances across 2 AZs, managed DB with replica, cache, object storage + CDN, data transfer.\n2. **Estimate each line with an assumption.** 'App: 4 instances at assumed $0.10/hr ≈ $292/mo' — every line carries its assumption.\n3. **Hunt the transfer.** Cross-AZ chatter and egress: architectures that chat across AZs/regions pay per GB, compounding silently — call it out as the surprise line item.\n4. **Add the reliability tax.** Multi-AZ and replicas cost more than single-AZ; write what the extra nine costs per month.\n5. **Offer the Honda.** The cheaper alternative (single AZ, smaller instances, no replica) with its tradeoff stated: 'here's the Cadillac and the Honda, and when each wins.'\n6. **Close with the lever.** 'Here's what drives the bill, and here's the lever that moves it' — the sentence architects are hired to say."
     },
     {
@@ -2841,8 +2969,8 @@
    ],
    "cards": [
     {
-     "front": "How do you discuss Auto Layout?",
-     "back": "Constraints as linear equations the solver satisfies; intrinsic content size vs explicit constraints; ambiguity and conflicts (and how you read the logs); performance (flatten deep hierarchies). The interview line: ‘I think in constraints, not frames.’"
+     "front": "How do you open a cloud architecture design round?",
+     "back": "Requirements first (users, data, compliance), then region and AZ placement with the cost and latency reasoning stated, then the reference shape (edge → compute → data), then failure modes. The interview line: ‘I draw the blast radius before I draw the boxes.’"
     },
     {
      "front": "Walk the classic three-tier cloud architecture.",
@@ -2863,6 +2991,14 @@
     {
      "front": "How do you present architecture tradeoffs without rambling?",
      "back": "Three beats per decision: the choice, what it costs (money, complexity, latency), and when you'd choose differently. Then stop and invite the follow-up. The interview line: 'every architecture is a list of paid prices — I show the receipts.'"
+    },
+    {
+     "front": "How do you present a costed architecture honestly?",
+     "back": "State assumptions (requests, data, transfer), name the cost drivers, and show the scaling math — ranges, not false precision. The interview line: ‘a cost estimate without assumptions is fiction.’"
+    },
+    {
+     "front": "What makes an ADR worth writing?",
+     "back": "The decision, context, alternatives considered, and consequences — the reasoning future-you will need. The interview line: ‘ADRs are the architecture’s memory.’"
     }
    ],
    "quiz": [
@@ -3033,6 +3169,14 @@
     {
      "front": "How do you handle 'design X' when you've never built X?",
      "back": "Fall back to the shapes you know: requirements first, then map X onto three-tier, queue, or event-driven patterns, stating the mapping aloud. Interviewers grade method transfer, not prior exposure. The interview line: 'I haven't built this exact system; here's how I'd reason about it from patterns I have built.'"
+    },
+    {
+     "front": "What does the cloud mock’s architecture round score?",
+     "back": "Requirements, reference shape, costed tradeoffs, failure modes — narrated, not drawn silently. The interview line: ‘the walkthrough is the product.’"
+    },
+    {
+     "front": "How do you prep one service deeply for the deep-dive?",
+     "back": "Mechanism, limits, failure modes, and cost model for the services in your design — one level deeper than the console. The interview line: ‘depth in one service beats breadth in ten.’"
     }
    ],
    "quiz": [
@@ -3201,8 +3345,16 @@
      "back": "Injection sinks, auth checks on every route, crypto done right (no custom algorithms), secrets handling, error messages that don’t leak internals, and dependency versions. The interview line: ‘I review the trust boundaries first — where untrusted data enters.’"
     },
     {
-     "front": "How do you discuss the OWASP Top 10 without reciting a list?",
-     "back": "As risk categories with a current example each — injection, broken access control, crypto failures, SSRF — then pivot to your experience: 'here's how I found one in code review and what the fix was.' Categories frame the knowledge; stories score the points. The interview line: 'the Top 10 is a map, not a script.'"
+     "front": "How do you prioritize AppSec findings in an interview?",
+     "back": "By exploitability times impact: reachable-by-attacker and data-touching first, theoretical second. Frame each as risk with a concrete fix and an effort estimate. The interview line: ‘a finding without a fix and a severity is just a complaint.’"
+    },
+    {
+     "front": "How do you discuss broken access control?",
+     "back": "The OWASP #1: missing function-level checks, IDOR, privilege escalation — test every route as every role. The interview line: ‘the URL is not the authorization.’"
+    },
+    {
+     "front": "What do interviewers probe in security headers?",
+     "back": "CSP, HSTS, frame-ancestors, and cookie flags (HttpOnly, Secure, SameSite) — cheap, high-leverage defenses. The interview line: ‘headers are the cheapest security you’ll ever ship.’"
     }
    ],
    "quiz": [
@@ -3373,6 +3525,14 @@
     {
      "front": "What does TLS actually guarantee — and what doesn't it?",
      "back": "It guarantees confidentiality and integrity in transit to the authenticated endpoint — not that the endpoint is trustworthy, not that the app behind it is safe. Phishing sites have valid certs. The interview line: 'TLS secures the pipe; it says nothing about what's drinking from it.'"
+    },
+    {
+     "front": "How do you discuss certificate lifecycle?",
+     "back": "Issuance, renewal automation (ACME), expiry monitoring — expired certs are the most embarrassing outage. The interview line: ‘certs expire; automation doesn’t forget.’"
+    },
+    {
+     "front": "What do interviewers probe in network segmentation beyond VLANs?",
+     "back": "Microsegmentation and identity-aware policies: least-privilege east-west, not just a DMZ perimeter. The interview line: ‘the perimeter moved to the workload.’"
     }
    ],
    "quiz": [
@@ -3543,6 +3703,14 @@
     {
      "front": "How do you answer 'should we encrypt it twice for safety'?",
      "back": "With the threat model: double encryption adds complexity and key-management burden for marginal gain — the risk is almost never the cipher, it's the keys, the randomness, and the implementation. Fix the key management first. The interview line: 'I don't armor the vault door while the keys hang on a hook beside it.'"
+    },
+    {
+     "front": "How do you discuss hashing vs encryption for passwords?",
+     "back": "Hashing is one-way (verification without recovery); encryption is reversible (a breached key exposes all). The interview line: ‘passwords are verified, never decrypted.’"
+    },
+    {
+     "front": "What do interviewers probe in forward secrecy?",
+     "back": "Ephemeral key exchange (ECDHE) so a future key compromise can’t decrypt past traffic. The interview line: ‘forward secrecy bounds the blast radius of a stolen key.’"
     }
    ],
    "quiz": [
@@ -3713,6 +3881,14 @@
     {
      "front": "How do you measure detection coverage without vibes?",
      "back": "Against the ATT&CK matrix: techniques mapped to log sources mapped to tested detections — the uncovered techniques are the gaps, named explicitly. Coverage is a spreadsheet, not a feeling. The interview line: 'show me the matrix with the holes highlighted.'"
+    },
+    {
+     "front": "How do you discuss false positives in detection?",
+     "back": "Tune with baselines, tier by fidelity, and measure precision — alert fatigue kills response. The interview line: ‘a detection nobody trusts is a decoration.’"
+    },
+    {
+     "front": "What do interviewers probe in log source verification?",
+     "back": "Proving the telemetry exists before writing the rule: the event, the fields, the volume. The interview line: ‘detections are only as real as their log sources.’"
     }
    ],
    "quiz": [
@@ -3883,6 +4059,14 @@
     {
      "front": "How do you threat-model when you only have 10 minutes?",
      "back": "STRIDE-lite on the highest-risk data flow only: enumerate fast, rank by obvious impact, mitigate the top 3 with owners. A partial model of the riskiest flow beats a complete model of nothing. The interview line: 'threat modeling is triage with a threat vocabulary.'"
+    },
+    {
+     "front": "How do you discuss trust boundaries in a design review?",
+     "back": "Every crossing is an attack surface: validate at the boundary, never trust the caller. The interview line: ‘the boundary is where the threat model lives.’"
+    },
+    {
+     "front": "What makes a security finding actionable?",
+     "back": "Risk-ranked, evidence-backed, with a concrete fix and effort estimate — written for the builder, not the auditor. The interview line: ‘findings ship when the fix is obvious.’"
     }
    ],
    "quiz": [
@@ -4053,6 +4237,14 @@
     {
      "front": "How do you answer 'have you ever been breached?' honestly?",
      "back": "With the blameless story structure: what happened, the timeline as you understood it then, what the investigation actually showed, the systemic fixes with owners — and what you personally changed afterward. Never name others' failures; talk about what the incident taught the system. The interview line: 'I talk about what the incident taught the system, not who failed.'"
+    },
+    {
+     "front": "How do you prep the attacker-mindset round?",
+     "back": "Think in abuse cases: how would you break this feature? Then flip to mitigations. The interview line: ‘attack first, defend second — in that order.’"
+    },
+    {
+     "front": "What does the secure-design mock score?",
+     "back": "Threat modeling aloud, mitigations per threat, and tradeoff honesty — the STRIDE-lite walkthrough. The interview line: ‘the model is the message.’"
     }
    ],
    "quiz": [
@@ -4223,6 +4415,14 @@
     {
      "front": "How do you choose between BFS and DFS in an interview?",
      "back": "BFS for shortest path in unweighted graphs and level-order needs; DFS for connectivity, cycles, topological shapes, and when recursion depth is safe. State the choice and its complexity before coding — the choice is part of the graded reasoning. The interview line: 'BFS for distance, DFS for structure.'"
+    },
+    {
+     "front": "What does a DSA speed-rep session look like?",
+     "back": "Pattern batches under time: one pattern family per session, timed solves, miss-category logging. The interview line: ‘reps build pattern recognition; the timer builds the interview.’"
+    },
+    {
+     "front": "How do you review a timed solve that was correct but slow?",
+     "back": "Find the hesitation point: recognition, implementation, or testing — then drill that phase. The interview line: ‘slow correct beats fast wrong, but the clock still counts.’"
     }
    ],
    "quiz": [
@@ -4357,7 +4557,7 @@
      "body": "- **Functional requirements** — what the system does: the features, the APIs, the behaviors.\n- **Non-functional requirements** — how well: scale, latency, availability, consistency — the constraints that shape architecture.\n- **Back-of-envelope estimation** — requests/sec, storage, bandwidth from stated assumptions: the arithmetic before the boxes.\n- **Sharding** — splitting data across nodes: the lever for data too big or hot for one machine.\n- **Caching** — skipping work for hot paths: the lever for read-heavy, slow-changing data, with an invalidation plan.\n- **Queues** — deferring work in time: the lever for spikes and async processing.\n- **Bottleneck analysis** — walking the request path asking 'what breaks first at 10×?' and applying the right lever per hop.\n- **The classic lessons** — shortener: IDs and caching; feed: fan-out; chat: real-time. Learn the lesson, not the diagram."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Do the back-of-envelope for a URL shortener — the estimation interviewers watch most closely.\n1. **State the assumptions.** 100M URLs shortened per month; 10:1 read/write ratio. Write them — assumptions are gradable.\n2. **Writes.** 100M ÷ 30 days ≈ 40 writes/sec average; plan for 10× peak: 400 writes/sec.\n3. **Reads.** 10 × 100M = 1B reads/month ≈ 400 reads/sec average; 4,000/sec at peak.\n4. **Storage.** 100M URLs × ~500 bytes metadata ≈ 50 GB — trivial for one database; say so, and say why that simplifies the design.\n5. **Bandwidth.** 4,000 reads/sec × ~500 bytes ≈ 2 MB/sec — the network is not the bottleneck; the ID generation and cache are the design.\n6. **Name the lesson.** 'The estimation says: this is a caching and ID-generation problem wearing a URL-shortener costume.'"
     },
     {
@@ -4393,6 +4593,14 @@
     {
      "front": "How do you handle 'it depends' in a design round?",
      "back": "'It depends' is only a good answer when you then explain what it depends on: the workload's read/write ratio, consistency needs, and scale decide between the options — so name the deciding factors and pick for the stated case. The interview line: 'it depends on three things; here's how each would change my answer.'"
+    },
+    {
+     "front": "How do you prep the classic designs efficiently?",
+     "back": "One page each: requirements, estimation, the 2–3 key decisions, the scaling story — the classics are patterns, not scripts. The interview line: ‘prep the decisions, not the diagrams.’"
+    },
+    {
+     "front": "What does bottleneck analysis sound like aloud?",
+     "back": "‘At 10x, the database writes saturate first — so I’d shard by user_id and cache the hot reads.’ The interview line: ‘name the first thing that breaks.’"
     }
    ],
    "quiz": [
@@ -4563,6 +4771,14 @@
     {
      "front": "How do you keep a STAR story under 2 minutes?",
      "back": "Two sentences of situation, one of task, the bulk on your actions — and the result in one sentence plus the lesson. Everything else is cut in rehearsal, which is why you record: the timer is the editor. The interview line: 'my first recording is always 40% too long — that's what the practice is for.'"
+    },
+    {
+     "front": "How do you handle the weakness question?",
+     "back": "A real, non-fatal weakness plus the system you built to manage it — growth with evidence. The interview line: ‘the weakness is the setup; the system is the answer.’"
+    },
+    {
+     "front": "How do you prep stories for SRE/DevOps behavioral rounds?",
+     "back": "On-call and incident stories: the page, the decision, the blameless lesson — ownership under pressure. The interview line: ‘the pager stories are the portfolio.’"
     }
    ],
    "quiz": [
@@ -4727,12 +4943,20 @@
      "back": "Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation."
     },
     {
-     "front": "For 'Going one level deeper than the job post', what’s the tradeoff question you should answer before the interviewer asks it?",
-     "back": "Every technique has a cost: name what you gain, what you pay, and when you’d choose the alternative. ‘It depends’ is only a good answer when you then explain what it depends on."
+     "front": "How do you handle a domain question you can’t answer?",
+     "back": "Say so plainly, then reason from first principles aloud: the constraints, what you would measure, and how you would find the answer. Interviewers score the reasoning path, not the bluff. The interview line: ‘‘I don’t know’ plus a sound method beats a confident guess.’"
     },
     {
      "front": "What's the tradeoff question you should answer before the interviewer asks it?",
      "back": "For every technique you claim: what you gain, what you pay, and when you'd choose the alternative. 'It depends' only works when you then explain what it depends on. Seniors volunteer the cost; juniors wait to be asked. The interview line: 'here's what this buys me, and here's the receipt.'"
+    },
+    {
+     "front": "What does ‘one level deeper than the job post’ mean in practice?",
+     "back": "For each listed skill: the mechanism, the tradeoff, and a war story — prepared before the interview. The interview line: ‘the JD is the syllabus.’"
+    },
+    {
+     "front": "How do you structure a domain deep-dive answer?",
+     "back": "Definition, mechanism, tradeoff, experience — the four beats that prove depth. The interview line: ‘depth is mechanism plus judgment.’"
     }
    ],
    "quiz": [
@@ -4885,8 +5109,8 @@
      "back": "Four timed rounds back-to-back (coding, design, domain deep-dive, behavioral) with a partner playing interviewer, scored against a rubric, then a weakness-targeting week on the lowest scores. The point: stamina and context-switching are skills you train."
     },
     {
-     "front": "What are the incident command roles?",
-     "back": "Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard."
+     "front": "How do you warm up on loop day morning?",
+     "back": "One easy problem you have solved before (confidence, not learning), your story bank skimmed aloud once, and logistics handled the night before. No new topics — the morning is about activation, not acquisition. The interview line: ‘loop day is a performance; the rehearsal ended last night.’"
     },
     {
      "front": "How do you score yourself against an interview rubric?",
@@ -4903,6 +5127,14 @@
     {
      "front": "How do you reset between rounds on loop day?",
      "back": "Fifteen minutes, same ritual: water, notes closed, one breath — the last round's mistakes don't get a vote in this one. Context-switching is a trained skill, and the reset is the training. The interview line: 'each round starts clean; I carry the rubric, not the regret.'"
+    },
+    {
+     "front": "How do you review a full-loop simulation?",
+     "back": "Score each round against its rubric, find the lowest axis, and spend the week there — the loop is only as strong as its weakest round. The interview line: ‘the simulation finds the leak; the week fixes it.’"
+    },
+    {
+     "front": "What goes on the loop-day packing list?",
+     "back": "Logistics confirmed, story bank skimmed, weak rounds redrilled, sleep protected — the 48 hours are choreography. The interview line: ‘loop day is won the week before.’"
     }
    ],
    "quiz": [
@@ -5081,28 +5313,28 @@
   {
    "id": "il-14-drill-01",
    "title": "SLIs, SLOs, and Error Budgets",
-   "prompt": "A latency SLI in Prometheus is typically built from:",
+   "prompt": "When the error budget is exhausted, the correct policy is:",
    "choices": [
-    "Gauges only",
-    "Histogram buckets — enabling accurate percentile computation over windows",
-    "Logs",
-    "Traces"
+    "Ship faster",
+    "Freeze or slow risky releases until the budget recovers",
+    "Lower the SLO",
+    "Ignore it"
    ],
    "answer": 1,
-   "explain": "Histograms preserve the distribution: any percentile over any window is computable."
+   "explain": "The budget is the agreed tradeoff dial: spending it all means reliability work comes first."
   },
   {
    "id": "il-14-drill-02",
    "title": "CI/CD Systems",
-   "prompt": "The rollback-vs-fix-forward decision hinges on:",
+   "prompt": "Canary deployment’s defining feature is:",
    "choices": [
-    "Pride",
-    "Blast radius and diagnosis confidence — big blast or uncertain cause means roll back",
-    "Speed",
-    "Team preference"
+    "Two full environments",
+    "Releasing to a small subset first and promoting based on observed metrics",
+    "Instant cutover",
+    "No automation"
    ],
    "answer": 1,
-   "explain": "Uncertain cause + user impact = roll back first, understand second."
+   "explain": "Progressive exposure with metric gates: problems hit 1% before 100%."
   },
   {
    "id": "il-14-drill-03",
@@ -5120,15 +5352,15 @@
   {
    "id": "il-14-drill-04",
    "title": "Application Security Fundamentals",
-   "prompt": "Error messages that include stack traces are a finding because:",
+   "prompt": "SSRF’s cloud nightmare scenario is:",
    "choices": [
-    "They’re ugly",
-    "They leak internals (paths, versions, queries) that aid attackers",
-    "They’re slow",
-    "Users dislike them"
+    "Slow responses",
+    "Hitting the instance metadata service to steal temporary credentials",
+    "DNS failure",
+    "High bills"
    ],
    "answer": 1,
-   "explain": "Information disclosure sharpens every subsequent attack; production errors stay generic."
+   "explain": "The metadata endpoint is one hop from the vulnerable server — credentials included."
   },
   {
    "id": "il-14-drill-05",
@@ -5142,97 +5374,6 @@
    ],
    "answer": 1,
    "explain": "The next problem will wear a different costume; the category is what transfers."
-  },
-  {
-   "id": "il-14-drill-06",
-   "title": "SLIs, SLOs, and Error Budgets",
-   "prompt": "Burn-rate alerting’s advantage over static error thresholds is:",
-   "choices": [
-    "Simpler config",
-    "It measures budget consumption relative to the SLO — paging only when the objective is actually at risk",
-    "Fewer metrics",
-    "No Prometheus needed"
-   ],
-   "answer": 1,
-   "explain": "Thresholds don’t know your SLO; burn rate ties paging directly to objective risk."
-  },
-  {
-   "id": "il-14-drill-07",
-   "title": "CI/CD Systems",
-   "prompt": "Storing CI configuration in the repo enables:",
-   "choices": [
-    "Faster builds",
-    "Review, versioning, and reproducibility of the pipeline itself",
-    "More stages",
-    "Parallel jobs"
-   ],
-   "answer": 1,
-   "explain": "Pipeline changes get the same rigor as code changes: PRs, history, rollback."
-  },
-  {
-   "id": "il-14-drill-08",
-   "title": "Core Cloud Concepts",
-   "prompt": "Cloud’s OpEx model primarily buys:",
-   "choices": [
-    "Lower total cost always",
-    "Agility — spend scales with demand instead of upfront provisioning",
-    "Free resources",
-    "No billing"
-   ],
-   "answer": 1,
-   "explain": "Pay-per-use trades fixed capacity bets for variable spend — with cost governance as the required discipline."
-  },
-  {
-   "id": "il-14-drill-09",
-   "title": "Application Security Fundamentals",
-   "prompt": "SSRF’s cloud nightmare scenario is:",
-   "choices": [
-    "Slow responses",
-    "Hitting the instance metadata service to steal temporary credentials",
-    "DNS failure",
-    "High bills"
-   ],
-   "answer": 1,
-   "explain": "The metadata endpoint is one hop from the vulnerable server — credentials included."
-  },
-  {
-   "id": "il-14-drill-10",
-   "title": "DSA Speed Reps",
-   "prompt": "Stating complexity aloud during coding:",
-   "choices": [
-    "Wastes time",
-    "Makes your reasoning gradable and forces self-checks",
-    "Is optional",
-    "Slows you down"
-   ],
-   "answer": 1,
-   "explain": "Verbalized reasoning is scorable reasoning — and it catches your own mistakes mid-stream."
-  },
-  {
-   "id": "il-14-drill-11",
-   "title": "SLIs, SLOs, and Error Budgets",
-   "prompt": "When the error budget is exhausted, the correct policy is:",
-   "choices": [
-    "Ship faster",
-    "Freeze or slow risky releases until the budget recovers",
-    "Lower the SLO",
-    "Ignore it"
-   ],
-   "answer": 1,
-   "explain": "The budget is the agreed tradeoff dial: spending it all means reliability work comes first."
-  },
-  {
-   "id": "il-14-drill-12",
-   "title": "CI/CD Systems",
-   "prompt": "Canary deployment’s defining feature is:",
-   "choices": [
-    "Two full environments",
-    "Releasing to a small subset first and promoting based on observed metrics",
-    "Instant cutover",
-    "No automation"
-   ],
-   "answer": 1,
-   "explain": "Progressive exposure with metric gates: problems hit 1% before 100%."
   }
  ],
  "scenarios": [

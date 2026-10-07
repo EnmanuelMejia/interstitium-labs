@@ -156,13 +156,21 @@
     {
      "front": "What are structured output modes for?",
      "back": "Guaranteeing parseable responses (JSON with schema) so downstream code never regex-parses free text."
+    },
+    {
+     "front": "What is the difference between tool-choice auto, required, and none?",
+     "back": "Auto lets the model decide per step; required forces one specific tool call; none forbids tool use so the model answers from context only — per-step cost and safety control."
+    },
+    {
+     "front": "Why must validation failures escalate instead of retrying?",
+     "back": "A validation failure means the model's output was malformed — retrying repeats the error. Transient execution failures get one retry with backoff; malformed calls escalate immediately."
     }
    ],
    "quiz": [
     {
      "q": "JSON tool schemas exist to:",
      "choices": [
-      "Decorate prompts",
+      "Make prompts shorter",
       "Make model output machine-readable and validatable before execution",
       "Speed up tokens",
       "Replace docs"
@@ -176,7 +184,7 @@
       "Always",
       "It needs fresh, external, or computed facts",
       "Never",
-      "Only on Tuesdays"
+      "Only when the user explicitly asks"
      ],
      "answer": 1,
      "explain": "Tools extend the model beyond its context; each call costs latency and money. See Concepts."
@@ -184,7 +192,7 @@
     {
      "q": "Validate tool arguments because:",
      "choices": [
-      "It is polite",
+      "It satisfies the API contract",
       "Model output is untrusted input — types and fields must be checked",
       "It is fast",
       "Schemas are optional"
@@ -202,6 +210,50 @@
      ],
      "answer": 1,
      "explain": "A control for cost and safety — forbid tool use where it is not needed. See Concepts."
+    },
+    {
+     "q": "A model emits a tool call naming `lookup_orde` (typo) instead of `lookup_order`. What should the dispatcher do?",
+     "choices": [
+      "Execute the closest-matching tool",
+      "Return a structured error naming the unknown tool so the model can correct itself",
+      "Silently skip the call and answer from context",
+      "Retry the same call three times"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: handling tool errors — return structured errors the model can reason about; never crash the loop and never guess at a mistyped tool name."
+    },
+    {
+     "q": "Why is tool_choice='none' useful even when tools are available?",
+     "choices": [
+      "It speeds up the model",
+      "It guarantees no side effects or spend on steps that need only in-context knowledge",
+      "It improves answer quality",
+      "It is required by most APIs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: tool-choice controls — 'none' forbids tool use per step for cost and safety control."
+    },
+    {
+     "q": "The model returns a tool call with order_id as a number, but the schema requires a string. The validator should:",
+     "choices": [
+      "Coerce it silently and execute",
+      "Reject with a structured error describing the type mismatch",
+      "Ask the user to fix it",
+      "Drop the field and call with defaults"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: the validator checks types and returns structured errors the model can act on — model output is untrusted input."
+    },
+    {
+     "q": "Structured output modes exist primarily to:",
+     "choices": [
+      "Make responses shorter",
+      "Reduce token cost",
+      "Guarantee parseable responses so downstream code never regex-parses free text",
+      "Improve model reasoning"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: structured output modes guarantee parseable responses (JSON with schema)."
     }
    ]
   },
@@ -262,6 +314,14 @@
     {
      "front": "When does a single call beat a loop?",
      "back": "Well-defined single-step tasks: loops add latency, cost, and failure surface without benefit — agentic overhead must earn its keep."
+    },
+    {
+     "front": "What is stall detection in an agent loop?",
+     "back": "A stopping condition that ends the run when the agent repeats the same action (e.g., three times) — it signals the loop is stuck rather than progressing."
+    },
+    {
+     "front": "When should a loop replan instead of continuing or restarting?",
+     "back": "When a planned step fails twice: revise only the remaining steps. Never restart the whole task — replanning preserves completed work."
     }
    ],
    "quiz": [
@@ -270,7 +330,7 @@
      "choices": [
       "Training and testing",
       "Reasoning and acting — thought traces between tool calls",
-      "Two agents",
+      "Reflection and revision",
       "Code and docs"
      ],
      "answer": 1,
@@ -308,6 +368,50 @@
      ],
      "answer": 1,
      "explain": "Agentic overhead must earn its keep. See Concepts."
+    },
+    {
+     "q": "Your agent has called the same search tool with identical arguments four times in a row. The correct loop behavior is:",
+     "choices": [
+      "Keep going — persistence pays off",
+      "Increase the step budget",
+      "Trigger stall detection and stop the run",
+      "Switch to a larger model"
+     ],
+     "answer": 2,
+     "explain": "Covered in Project brief: stall detection (same action three times stops the run) — a terminal signal, not a retry cue."
+    },
+    {
+     "q": "A plan-and-execute agent fails step 3 of 7 twice. What should happen?",
+     "choices": [
+      "Restart from step 1",
+      "Replan only the remaining steps",
+      "Ask the user to redo the plan",
+      "Skip to step 7"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: replanning revises only the remaining steps — never restarts the whole task from scratch."
+    },
+    {
+     "q": "Which task justifies an agent loop over a single model call?",
+     "choices": [
+      "Classifying one support ticket",
+      "Summarizing one document",
+      "Researching a topic across multiple sources with follow-up searches",
+      "Translating one sentence"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: single calls win for well-defined single-step tasks; loops earn their latency and cost on multi-step tasks needing observation between actions."
+    },
+    {
+     "q": "The instruction says 'fix the login bug' but names no repo, branch, or error. The loop should first:",
+     "choices": [
+      "Pick the most likely repo and start",
+      "Run the ambiguity gate: ask a clarifying question before the first action",
+      "Search all repos for login code",
+      "Assume the main branch"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: handling ambiguous instructions — clarify or assume-and-verify with low-risk defaults, never burn a long loop on a guess."
     }
    ]
   },
@@ -368,16 +472,24 @@
     {
      "front": "What is context-window budgeting?",
      "back": "Treating context as a scarce resource: allocate across instructions, history, retrieved content, and working space — measure tokens per task."
+    },
+    {
+     "front": "What is the four-bucket context budget?",
+     "back": "Splitting per-task tokens across instructions, conversation history, retrieved content, and working space — set before running, measured after."
+    },
+    {
+     "front": "What must a running summary preserve?",
+     "back": "Decisions made, open questions, and tool outcomes — the load-bearing facts. Everything else is safe to compress."
     }
    ],
    "quiz": [
     {
      "q": "Summarization in long runs:",
      "choices": [
-      "Deletes everything",
+      "Drops the oldest turns unconditionally",
       "Compresses old turns so the run stays in budget without losing the thread",
-      "Is optional",
-      "Slows things"
+      "Only matters past 100k tokens",
+      "Increases token spend"
      ],
      "answer": 1,
      "explain": "The budgeting discipline for unbounded history. See Concepts."
@@ -385,10 +497,10 @@
     {
      "q": "Vector-backed recall:",
      "choices": [
-      "Stores files",
+      "Caches full transcripts",
       "Retrieves relevant past steps by semantic similarity",
-      "Deletes memory",
-      "Trains models"
+      "Overwrites old memories",
+      "Fine-tunes on past runs"
      ],
      "answer": 1,
      "explain": "Persistent memory that scales beyond the window. See Concepts."
@@ -396,10 +508,10 @@
     {
      "q": "Checkpoints give long runs:",
      "choices": [
-      "Speed",
+      "Lower latency",
       "Pause/resume and auditability via durable state",
       "More tokens",
-      "Nothing"
+      "Only faster restarts"
      ],
      "answer": 1,
      "explain": "State stores turn demo loops into resumable systems. See Concepts."
@@ -414,6 +526,50 @@
      ],
      "answer": 1,
      "explain": "Measure tokens per task; allocate deliberately. See Concepts."
+    },
+    {
+     "q": "A 30-step run keeps blowing its token budget on tool outputs. The budgeting discipline says:",
+     "choices": [
+      "Increase the total budget",
+      "Rebalance the four buckets — cap tool-output retention and summarize older outputs",
+      "Drop the instructions bucket",
+      "Disable summarization"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: watch which bucket blows its budget first, then rebalance — context is allocated across instructions, history, retrieval, and working space."
+    },
+    {
+     "q": "Why checkpoint agent state to disk after each step?",
+     "choices": [
+      "To speed up the run",
+      "To reduce token usage",
+      "So long runs can pause, resume after a kill, and be audited",
+      "To train the model"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: state stores and checkpoints — durable step-by-step state for pause/resume and auditability."
+    },
+    {
+     "q": "Vector-backed recall retrieves past observations by:",
+     "choices": [
+      "Recency",
+      "Semantic similarity to the current query",
+      "Step number",
+      "File size"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: vector-backed recall embeds past observations and retrieves the relevant ones by similarity."
+    },
+    {
+     "q": "The main risk of summarization in long runs is:",
+     "choices": [
+      "It costs too much",
+      "It slows the loop",
+      "It loses detail by design — the discipline is choosing what is safe to lose",
+      "It duplicates history"
+     ],
+     "answer": 2,
+     "explain": "Covered in Honesty note: summarization loses detail by design; the discipline is choosing what is safe to lose."
     }
    ]
   },
@@ -474,6 +630,14 @@
     {
      "front": "How do you weigh communication overhead vs gains?",
      "back": "Measure end-to-end: if coordination cost exceeds the quality gain over a single agent, the team is theater — one agent is the default."
+    },
+    {
+     "front": "What belongs in a typed handoff contract between agents?",
+     "back": "The result, a confidence level, and open questions — so uncertainty survives the handoff instead of being smoothed away."
+    },
+    {
+     "front": "Name three warning signs that a multi-agent team should collapse back to one agent.",
+     "back": "Repeated clarification requests, conflicting assumptions, cascading retries, chatter without progress, or cost far above the single-agent baseline."
     }
    ],
    "quiz": [
@@ -494,7 +658,7 @@
       "No supervision",
       "A supervisor decomposes and delegates to specialized workers",
       "Workers supervise",
-      "Chaos"
+      "Emergent collaboration"
      ],
      "answer": 1,
      "explain": "Coordination with a clear owner and typed handoffs. See Concepts."
@@ -502,10 +666,10 @@
     {
      "q": "Debate patterns are for:",
      "choices": [
-      "Everything",
+      "All complex tasks",
       "Judgment-heavy tasks where critique raises quality — expensive elsewhere",
-      "Speed",
-      "Fun"
+      "Latency-sensitive tasks",
+      "Brainstorming sessions"
      ],
      "answer": 1,
      "explain": "Use sparingly; the cost is real. See Concepts."
@@ -515,11 +679,55 @@
      "choices": [
       "Perfect sync",
       "Lost context, conflicting assumptions, cascading errors",
-      "Nothing",
-      "Speed"
+      "Only latency overhead",
+      "Higher throughput"
      ],
      "answer": 1,
      "explain": "Each added agent multiplies the ways handoffs can break. See Concepts."
+    },
+    {
+     "q": "Before building a two-agent system, the module requires you to first:",
+     "choices": [
+      "Pick the framework",
+      "Prove one agent is insufficient — name the specific bottleneck on paper",
+      "Write the handoff schemas",
+      "Set up the message bus"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: prove one agent is insufficient first — one agent is the default."
+    },
+    {
+     "q": "In a supervisor/worker run, writing out the supervisor's delegation messages is useful because:",
+     "choices": [
+      "It reduces token cost",
+      "It makes coordination overhead visible and auditable — every repeated context is seen",
+      "It speeds up workers",
+      "It replaces documentation"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: simulate delegation messages and note every place context had to be repeated — overhead made visible."
+    },
+    {
+     "q": "A debate pattern (two agents argue, a judge decides) is worth its cost when:",
+     "choices": [
+      "The task is latency-sensitive",
+      "The task is judgment-heavy and critique raises quality",
+      "The task is trivial",
+      "The task needs more tokens"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: debate patterns suit judgment-heavy tasks where critique raises quality — expensive everywhere else."
+    },
+    {
+     "q": "Your two-agent pipeline costs 3x the single-agent baseline with equal quality. The verdict is:",
+     "choices": [
+      "Ship the team — redundancy is good",
+      "Collapse back to one agent — the team did not earn its complexity",
+      "Add a third agent",
+      "Increase the budget"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: if coordination cost exceeds the quality gain, the team is theater — measure end-to-end."
     }
    ]
   },
@@ -580,13 +788,21 @@
     {
      "front": "What goes in a small eval harness?",
      "back": "A fixed task set, the trajectory dimensions above, and regression runs on every change — measurement before the demo becomes a service."
+    },
+    {
+     "front": "What is the difference between exact-match and correct-result scoring?",
+     "back": "Exact-match requires the identical expected output; correct-result accepts any valid answer — they measure different things (precision vs usefulness)."
+    },
+    {
+     "front": "Why run a regression eval after a one-line prompt change?",
+     "back": "Prompt edits cause silent regressions — re-running the fixed task set diffs the scores and catches what the edit broke."
     }
    ],
    "quiz": [
     {
      "q": "Evaluate agents on:",
      "choices": [
-      "Vibes",
+      "Model size and benchmark scores",
       "Task success plus trajectory quality, efficiency, and safety",
       "Speed only",
       "Cost only"
@@ -610,7 +826,7 @@
      "choices": [
       "Ignoring failures",
       "Injecting failures and scoring detection/adaptation/escalation",
-      "Hoping",
+      "Sampling more rollouts",
       "Retrying blindly"
      ],
      "answer": 1,
@@ -619,13 +835,57 @@
     {
      "q": "A small eval harness needs:",
      "choices": [
-      "A demo",
+      "A polished demo script",
       "A fixed task set with trajectory dimensions and regression runs",
       "A big model",
-      "Luck"
+      "A larger model"
      ],
      "answer": 1,
      "explain": "Measurement before the demo becomes a service. See Concepts."
+    },
+    {
+     "q": "Agent A succeeds in 5 safe steps; Agent B succeeds in 40 wasteful steps with two policy violations. Which is better and why?",
+     "choices": [
+      "B — success is all that matters",
+      "A — path quality (steps, cost, safety) is part of the grade",
+      "They are equal",
+      "Cannot compare without more data"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: task success vs path quality — steps, cost, and safety along the way are part of the grade."
+    },
+    {
+     "q": "To measure failure recovery, the harness should:",
+     "choices": [
+      "Wait for real failures",
+      "Inject failures (bad tool output, timeouts) and score detection/adaptation/escalation",
+      "Count total steps",
+      "Ask the model if it recovered"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: failure recovery measurement — inject failures and score whether the agent detects, adapts, or escalates."
+    },
+    {
+     "q": "A good safety-constraint rule for an eval harness is:",
+     "choices": [
+      "The agent must be polite",
+      "The agent must never call the write tool without confirmation",
+      "The agent must use few tokens",
+      "The agent must answer quickly"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: define concrete rules (never call the write tool without confirmation) and grade each trajectory pass/fail per rule."
+    },
+    {
+     "q": "Your eval harness is green on 10 friendly tasks. What does that prove?",
+     "choices": [
+      "The agent is production-ready",
+      "Nothing about task 11 — evals measure your task set, not the world",
+      "The agent handles all tasks",
+      "The model is well-trained"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: evals measure your task set, not the world — a green harness on 10 friendly tasks proves nothing about task 11."
     }
    ]
   },
@@ -686,16 +946,24 @@
     {
      "front": "What makes a good project write-up?",
      "back": "What it does, the eval numbers, and an honest list of what it cannot do — limits stated upfront."
+    },
+    {
+     "front": "Why build the loop by hand before using a framework?",
+     "back": "To feel the mechanics — so the framework's handling of state, retries, and observability is understood, not magic."
+    },
+    {
+     "front": "What three numbers describe a starter agent in its eval?",
+     "back": "Success rate, median steps, and safety passes — recorded on the 10-task harness."
     }
    ],
    "quiz": [
     {
      "q": "Scope the first agent as:",
      "choices": [
-      "A platform",
+      "A reusable platform",
       "One task, few tools, clear success criteria",
-      "Everything",
-      "A chatbot"
+      "Every use case at once",
+      "A general chatbot"
      ],
      "answer": 1,
      "explain": "A thin evaluable slice — learn the mechanics cheaply. See Concepts."
@@ -703,10 +971,10 @@
     {
      "q": "First-agent tools should be:",
      "choices": [
-      "God-mode",
+      "Broad admin tools",
       "Least-privilege and narrow — keep mistakes cheap",
-      "None",
-      "Unlimited"
+      "No tools at first",
+      "Full API access"
      ],
      "answer": 1,
      "explain": "Learn the blast radius safely. See Concepts."
@@ -714,10 +982,10 @@
     {
      "q": "Evaluate the starter on:",
      "choices": [
-      "Vibes",
+      "Founder intuition",
       "A hand-written task set: success, steps, safety",
-      "Benchmarks",
-      "Nothing"
+      "Public benchmarks",
+      "Informal spot-checks"
      ],
      "answer": 1,
      "explain": "The harness habit from day one. See Concepts."
@@ -725,13 +993,57 @@
     {
      "q": "A good write-up names:",
      "choices": [
-      "Only wins",
+      "Only successful runs",
       "What it cannot do — limits stated upfront",
-      "Nothing",
-      "The vendor"
+      "Implementation details only",
+      "The model vendor's roadmap"
      ],
      "answer": 1,
      "explain": "Honest limits are the credibility. See Concepts."
+    },
+    {
+     "q": "When porting your hand-built loop to a framework, you should write down:",
+     "choices": [
+      "The framework's version number",
+      "What the framework handled versus what it hid",
+      "The framework's marketing claims",
+      "Nothing — frameworks are transparent"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: port to a framework and write down what it handled versus what it hid."
+    },
+    {
+     "q": "The most important section of the starter write-up is:",
+     "choices": [
+      "The architecture diagram",
+      "The limits section — what it cannot do",
+      "The tech stack list",
+      "The demo video"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts and Honesty note: the write-up's limits section is what separates an engineer from a demo."
+    },
+    {
+     "q": "A good first-agent scope is:",
+     "choices": [
+      "One task, at most three read-only tools, written success criteria",
+      "As many tasks as possible",
+      "One task with full production access",
+      "A chatbot for everything"
+     ],
+     "answer": 0,
+     "explain": "Covered in Hands-on procedure: one task, at most three read-only tools, written success criteria — plus a written list of what it will not do."
+    },
+    {
+     "q": "After adding memory to the starter agent, you must verify:",
+     "choices": [
+      "That it remembers everything",
+      "That a 15-step run stays inside the token budget",
+      "That it never forgets",
+      "That memory is infinite"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: add the summary buffer and verify a 15-step run stays inside the token budget."
     }
    ]
   },
@@ -792,16 +1104,24 @@
     {
      "front": "What does reviewing agent-generated code require?",
      "back": "The same bar as human code — higher, because it arrives with unearned confidence and no author to question."
+    },
+    {
+     "front": "What makes a good task spec for a coding agent?",
+     "back": "What 'done' looks like, which files are in scope, which APIs are allowed, and what is explicitly out of scope — vague prompts produce vague diffs."
+    },
+    {
+     "front": "Why verify with tests the agent didn't write?",
+     "back": "The agent's own tests may encode its misunderstandings — the project's suite plus one test you wrote yourself is the independent check."
     }
    ],
    "quiz": [
     {
      "q": "The agent’s unit of work is:",
      "choices": [
-      "Whole rewrites",
+      "Full-file rewrites",
       "Diffs — reviewable, revertable, scoped",
-      "Commits",
-      "Branches"
+      "One commit per file",
+      "Feature branches"
      ],
      "answer": 1,
      "explain": "Diffs make agent work inspectable. See Concepts."
@@ -809,10 +1129,10 @@
     {
      "q": "Trust in coding agents comes from:",
      "choices": [
-      "Confidence",
+      "The model's confidence scores",
       "Test-driven verification loops",
-      "Speed",
-      "Size"
+      "Faster iteration",
+      "Model size"
      ],
      "answer": 1,
      "explain": "Tests are the only trust extended. See Concepts."
@@ -820,10 +1140,10 @@
     {
      "q": "Repo context is gathered via:",
      "choices": [
-      "Dumping everything",
+      "Loading the whole repo",
       "Indexing and retrieval of relevant files per task",
-      "Guessing",
-      "Asking users"
+      "Inferring from names alone",
+      "Asking the user for file paths"
      ],
      "answer": 1,
      "explain": "Targeted retrieval beats context flooding. See Concepts."
@@ -831,13 +1151,57 @@
     {
      "q": "Reviewing generated code needs:",
      "choices": [
-      "Less care",
+      "Lighter review",
       "The same bar as human code — higher, given unearned confidence",
-      "No review",
-      "Auto-merge"
+      "Spot-checking only",
+      "Auto-merging green builds"
      ],
      "answer": 1,
      "explain": "Confidence without authorship demands scrutiny. See Concepts."
+    },
+    {
+     "q": "The agent's diff passes all tests it generated itself, but you haven't reviewed it. You should:",
+     "choices": [
+      "Merge — tests pass",
+      "Run the project's own suite and add one test the agent didn't think of",
+      "Ask the agent if the code is correct",
+      "Ship it and monitor"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: verify with tests the agent didn't write — run the project's own suite, then add one test the agent didn't think of."
+    },
+    {
+     "q": "Why cap the agent's fix loop at 10 iterations?",
+     "choices": [
+      "APIs require it",
+      "Unbounded iteration burns budget on stuck tasks — the cap forces a stop and a rethink",
+      "10 is a lucky number",
+      "Models degrade after 10 steps"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: cap the run at 10 iterations and log each one — stopping conditions applied to coding."
+    },
+    {
+     "q": "The best first signal that a generated diff is wrong is:",
+     "choices": [
+      "Its length",
+      "A hunk you cannot explain as a stranger reading the diff",
+      "The model's confidence score",
+      "The file count"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: review the final diff as a stranger — every hunk needs a reason you can state."
+    },
+    {
+     "q": "Repo context should be gathered by:",
+     "choices": [
+      "Dumping the repo into context",
+      "Indexing and retrieval of relevant files per task",
+      "Reading files alphabetically",
+      "Asking the model what it needs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: repository context gathering — indexing and retrieval of relevant files per task instead of dumping the repo."
     }
    ]
   },
@@ -898,6 +1262,14 @@
     {
      "front": "When is the repo bigger than the context window?",
      "back": "Always, in practice — which is why indexing, retrieval, and edit discipline are the module, not the model."
+    },
+    {
+     "front": "What is the acceptance criterion for a rename refactor?",
+     "back": "Zero hits for the old symbol name in a repo-wide search after the refactor — every call site updated."
+    },
+    {
+     "front": "Why is retrieval lossy, and what is the discipline?",
+     "back": "The file you need most may rank eleventh — so plan the change set first and verify call sites; edit discipline is the skill, the model is the typist."
     }
    ],
    "quiz": [
@@ -907,7 +1279,7 @@
       "Bigger context",
       "Indexing + retrieval, then targeted multi-file edits",
       "Skipping files",
-      "Hope"
+      "A larger context window"
      ],
      "answer": 1,
      "explain": "Retrieval replaces impossible full context. See Concepts."
@@ -915,10 +1287,10 @@
     {
      "q": "Multi-file edits stay consistent by:",
      "choices": [
-      "Luck",
+      "Careful prompting",
       "Planning the change set with shared context, verifying cross-file refs",
-      "Speed",
-      "Deleting"
+      "Parallel edits",
+      "Deleting unused code first"
      ],
      "answer": 1,
      "explain": "Consistency is the hard part of refactors. See Concepts."
@@ -926,10 +1298,10 @@
     {
      "q": "Dependency awareness prevents:",
      "choices": [
-      "Slow builds",
+      "Longer CI times",
       "Breakage from renames and API changes missing their call sites",
-      "Typos",
-      "Merges"
+      "Syntax errors",
+      "Merge conflicts"
      ],
      "answer": 1,
      "explain": "Edits must respect the import graph. See Concepts."
@@ -944,6 +1316,50 @@
      ],
      "answer": 1,
      "explain": "Tokens cost and attention dilutes. See Concepts."
+    },
+    {
+     "q": "After an agent renames authenticate() to verify_identity(), the critical verification is:",
+     "choices": [
+      "The diff looks clean",
+      "A repo-wide search shows zero remaining references to the old name",
+      "The tests pass",
+      "The agent confirms completion"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: search the repo for the old symbol after the refactor — zero hits is the acceptance criterion."
+    },
+    {
+     "q": "Chunking code by file and symbol into a searchable index replaces:",
+     "choices": [
+      "The need for tests",
+      "The impossible goal of fitting the whole repo in context",
+      "Code review",
+      "Documentation"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: indexing large codebases — retrieval replaces the impossible goal of fitting the whole repo in context."
+    },
+    {
+     "q": "An agent edits 12 files for a refactor but has no shared plan. The likely failure is:",
+     "choices": [
+      "Slow runtime",
+      "Inconsistent edits — cross-file references unverified",
+      "Too many tokens",
+      "Merge conflicts only"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: keeping edits consistent — plan the change set first, apply with shared context, verify cross-file references."
+    },
+    {
+     "q": "Every retrieved file costs tokens and dilutes attention, so you should:",
+     "choices": [
+      "Retrieve everything relevant",
+      "Budget context like money — retrieve only what the task needs",
+      "Retrieve in parallel",
+      "Cache all retrievals forever"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: cost of context on big repos — budget context like money."
     }
    ]
   },
@@ -1004,16 +1420,24 @@
     {
      "front": "Why does the human review gate never move?",
      "back": "Merges need accountability — agents advise, humans decide; that boundary is the safety property."
+    },
+    {
+     "front": "What is the tune-and-measure loop for review-bot noise?",
+     "back": "Suppress the noisiest rule category, re-run over the same PRs, and measure precision again — precision decides trust."
+    },
+    {
+     "front": "Why is coverage from generated tests potentially theater?",
+     "back": "Tests can cover lines with meaningless assertions — generated tests need human review for meaningful assertions."
     }
    ],
    "quiz": [
     {
      "q": "Review agents excel at:",
      "choices": [
-      "Design judgment",
+      "Architectural judgment",
       "Mechanical checks: style, conventions, obvious bugs, missing tests",
-      "Architecture",
-      "Firing people"
+      "System architecture calls",
+      "Performance reviews"
      ],
      "answer": 1,
      "explain": "Tireless on the mechanical layer; humans own judgment. See Concepts."
@@ -1021,7 +1445,7 @@
     {
      "q": "Generated tests need:",
      "choices": [
-      "Nothing",
+      "No extra review",
       "Human review for meaningful assertions",
       "Deletion",
       "Blind trust"
@@ -1045,11 +1469,55 @@
      "choices": [
       "Moves with velocity",
       "Never moves — merges need accountability",
-      "Is optional",
+      "Can be skipped under deadline",
       "Slows teams"
      ],
      "answer": 1,
      "explain": "Agents advise; humans decide. See Concepts."
+    },
+    {
+     "q": "A review bot flags 50 issues per PR and the team starts ignoring it. The fix is:",
+     "choices": [
+      "Disable the bot",
+      "Triage: tune or suppress noisy rules and track finding precision",
+      "Flag more issues",
+      "Make findings blocking"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: false-positive triage — a review bot nobody trusts gets muted."
+    },
+    {
+     "q": "Coverage-guided QA directs test generation at:",
+     "choices": [
+      "The most complex files",
+      "Uncovered lines and branches — coverage as a map, not a target",
+      "100% coverage at all costs",
+      "Only new code"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: coverage-guided QA — directing test generation at uncovered lines and branches; coverage as a map, not a target."
+    },
+    {
+     "q": "The human review gate never moves because:",
+     "choices": [
+      "Humans are faster",
+      "Merges need accountability — agents advise, humans decide",
+      "Agents are expensive",
+      "Policy says so"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: humans-in-the-loop review gates — that boundary is the safety property."
+    },
+    {
+     "q": "To evaluate a review agent, the module has you first:",
+     "choices": [
+      "Deploy it",
+      "Collect 5 real PRs and write down what human reviewers actually flagged — the ground truth",
+      "Tune its rules",
+      "Generate tests"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: collect real PRs and record human flags as ground truth before scoring the agent."
     }
    ]
   },
@@ -1110,16 +1578,24 @@
     {
      "front": "What is workflow orchestration safety?",
      "back": "Permissions, approvals, and rollback for every automated step — the pipeline is production, treat it as such."
+    },
+    {
+     "front": "What is the blast-radius inventory for pipeline agents?",
+     "back": "Listing every pipeline stage and the permissions each stage's runner holds today — before sizing any agent step's permissions."
+    },
+    {
+     "front": "What is the rollback plan for the agent assist itself?",
+     "back": "How to disable the agent step in under five minutes if it misbehaves — every automated step needs an off-switch."
     }
    ],
    "quiz": [
     {
      "q": "Agents in CI/CD need:",
      "choices": [
-      "Root access",
+      "Admin service accounts",
       "Scoped permissions with blast radius sized to trust",
-      "No limits",
-      "Manual runs"
+      "The same permissions as deploys",
+      "Manually triggered runs only"
      ],
      "answer": 1,
      "explain": "Pipeline steps are production — permission accordingly. See Concepts."
@@ -1127,10 +1603,10 @@
     {
      "q": "Release notes from agents must be:",
      "choices": [
-      "Auto-published",
+      "Published on merge",
       "Grounded in actual diffs with human approval before publish",
-      "Skipped",
-      "Vague"
+      "Generated only for major releases",
+      "Brief summaries"
      ],
      "answer": 1,
      "explain": "Grounding plus approval prevents fabricated changelogs. See Concepts."
@@ -1138,10 +1614,10 @@
     {
      "q": "On-call agents operate under:",
      "choices": [
-      "Full autonomy",
+      "Full runbook execution rights",
       "Paging-policy respect with the human commander in charge",
-      "No rules",
-      "Silence"
+      "The standard on-call rotation",
+      "Read-only observation"
      ],
      "answer": 1,
      "explain": "Assist, never own the page. See Concepts."
@@ -1149,13 +1625,57 @@
     {
      "q": "Issue triage agents:",
      "choices": [
-      "Close everything",
+      "Close stale issues",
       "Classify, dedupe, route, draft reproductions",
-      "Ignore",
-      "Assign randomly"
+      "Defer to maintainers",
+      "Round-robin assignment"
      ],
      "answer": 1,
      "explain": "Shrink the queue humans must read. See Concepts."
+    },
+    {
+     "q": "An on-call assist agent may:",
+     "choices": [
+      "Page engineers when it detects anomalies",
+      "Suggest runbook steps and draft timelines — never page, acknowledge, or close incidents itself",
+      "Close resolved incidents",
+      "Widen incidents automatically"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: the explicit rule that the assist never pages, acknowledges, or closes incidents itself."
+    },
+    {
+     "q": "Release notes drafted by an agent must be:",
+     "choices": [
+      "Auto-publish on merge",
+      "Be grounded in actual diffs with human approval before publish",
+      "Be generated only for major releases",
+      "Stay brief and vague"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: release-notes generation — grounding in the actual changes, with human approval before publish."
+    },
+    {
+     "q": "A docs-check agent that flags code merged without doc updates should be:",
+     "choices": [
+      "Blocking on all PRs",
+      "Read-only and advisory only, never blocking",
+      "Disabled entirely",
+      "Auto-writing the missing docs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: the docs check is read-only and advisory only, never blocking."
+    },
+    {
+     "q": "If an agent step in the pipeline goes rogue at 3 AM, what limits the damage?",
+     "choices": [
+      "The model's alignment",
+      "Scoped least-privilege permissions and a tested rollback plan",
+      "Monitoring dashboards",
+      "The on-call engineer watching"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: every permission granted is a future incident's attack surface — blast radius sized to trust."
     }
    ]
   },
@@ -1216,16 +1736,24 @@
     {
      "front": "What makes the project write-up honest?",
      "back": "Success rate, failure catalog, and limits — numbers and misses, not just the demo."
+    },
+    {
+     "front": "What goes in the failure catalog?",
+     "back": "Every miss gets a row — bad context, wrong API, flaky test, unclear spec — with your diagnosis of the class."
+    },
+    {
+     "front": "Why freeze the task set before building?",
+     "back": "5–10 task instances with expected outcomes become the fixed benchmark every later number refers to — without it, 'improvement' is unmeasurable."
     }
    ],
    "quiz": [
     {
      "q": "Choose a repo task that is:",
      "choices": [
-      "Huge",
+      "The largest open issue",
       "Bounded, test-covered, representative",
-      "Trivial",
-      "Secret"
+      "A typo fix",
+      "An unfiled issue"
      ],
      "answer": 1,
      "explain": "A real issue the team would assign. See Concepts."
@@ -1235,8 +1763,8 @@
      "choices": [
       "Decoration",
       "The oracle — objective pass/fail per attempt",
-      "A burden",
-      "Optional"
+      "A maintenance cost",
+      "Nice to have"
      ],
      "answer": 1,
      "explain": "The only success metric not graded by the model itself. See Concepts."
@@ -1244,10 +1772,10 @@
     {
      "q": "Measure:",
      "choices": [
-      "Vibes",
+      "Gut feel",
       "Edit success rate on a fixed task set",
-      "Lines changed",
-      "Time only"
+      "Diff size",
+      "Wall-clock time"
      ],
      "answer": 1,
      "explain": "Attempts vs green merges — the usefulness number. See Concepts."
@@ -1255,13 +1783,57 @@
     {
      "q": "Iterate by:",
      "choices": [
-      "Trying harder",
+      "More iterations",
       "Cataloging misses, fixing loop/prompts, re-measuring",
-      "Bigger models",
-      "Giving up"
+      "A stronger model",
+      "Reducing scope"
      ],
      "answer": 1,
      "explain": "The engineering cycle on failure modes. See Concepts."
+    },
+    {
+     "q": "Your agent scores 80% on your 8-task benchmark. You may claim:",
+     "choices": [
+      "Coding agents are 80% effective",
+      "This agent scores 80% on this benchmark — not a claim about coding agents in general",
+      "The agent is production-ready",
+      "80% of all coding tasks are solvable"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: the success rate describes your benchmark, not coding agents in general — resist generalizing from 8 tasks."
+    },
+    {
+     "q": "The engineering cycle for improving the agent is:",
+     "choices": [
+      "Try a bigger model",
+      "Catalog misses, fix the loop or prompts, re-measure",
+      "Add more tasks",
+      "Rewrite from scratch"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: iterating on failure modes — catalog the misses, fix the loop or prompts, re-measure."
+    },
+    {
+     "q": "Tests serve as the oracle because:",
+     "choices": [
+      "They are fast",
+      "They give objective pass/fail per attempt — the only metric that is not the model grading itself",
+      "They are easy to write",
+      "Coverage looks good"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: wiring tests as the oracle — the only success metric that is not the model grading itself."
+    },
+    {
+     "q": "The most valuable artifact of the project is:",
+     "choices": [
+      "The green demo run",
+      "The failure catalog with diagnoses",
+      "The agent code",
+      "The README"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: the failure catalog is the valuable artifact; anyone can show a green run."
     }
    ]
   },
@@ -1322,16 +1894,24 @@
     {
      "front": "What belongs in team policy for coding agents?",
      "back": "Allowed tools, review requirements, secret handling, and what must never be auto-merged — written, not tribal."
+    },
+    {
+     "front": "What is the registry check for new dependencies?",
+     "back": "Verify each introduced package exists in the registry and pin the version you actually checked — invented packages look real."
+    },
+    {
+     "front": "What is the secrets-scan step?",
+     "back": "Search generated diffs for tokens, keys, and credential-shaped strings — and note where the agent was one prompt away from emitting one."
     }
    ],
    "quiz": [
     {
      "q": "Silent failures include:",
      "choices": [
-      "Loud errors",
+      "Stack traces",
       "Plausible-but-wrong APIs and subtly broken logic",
-      "Crashes",
-      "Timeouts"
+      "Exceptions",
+      "Hangs"
      ],
      "answer": 1,
      "explain": "Confidence without correctness — the dangerous kind. See Concepts."
@@ -1339,10 +1919,10 @@
     {
      "q": "Hallucinated dependencies must be:",
      "choices": [
-      "Trusted",
+      "Pinned immediately",
       "Verified against the codebase and registry",
-      "Installed",
-      "Ignored"
+      "Installed with --force",
+      "Noted and skipped"
      ],
      "answer": 1,
      "explain": "Invented packages look real; check them. See Concepts."
@@ -1350,10 +1930,10 @@
     {
      "q": "Generated code security review is needed because:",
      "choices": [
-      "It is slow",
+      "It delays shipping",
       "Agents reproduce insecure patterns confidently",
-      "It is required",
-      "Humans are bored"
+      "Compliance requires it",
+      "Reviewers are fatigued"
      ],
      "answer": 1,
      "explain": "Injection and auth flaws need human eyes. See Concepts."
@@ -1361,13 +1941,57 @@
     {
      "q": "Team policy should cover:",
      "choices": [
-      "Nothing",
+      "Only the tool allow-list",
       "Allowed tools, review requirements, secret handling, no-auto-merge rules",
-      "Salaries",
-      "Snacks"
+      "Compensation bands",
+      "Team rituals"
      ],
      "answer": 1,
      "explain": "Written policy, not tribal knowledge. See Concepts."
+    },
+    {
+     "q": "An agent-generated diff introduces import secureauth2. You should:",
+     "choices": [
+      "Trust it — the name looks legitimate",
+      "Verify it exists in the package registry and pin the checked version",
+      "Remove all imports",
+      "Ask the agent to confirm"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: registry check — invented packages look real; verify and pin."
+    },
+    {
+     "q": "Why does generated code need security review even when tests pass?",
+     "choices": [
+      "Tests are slow",
+      "Agents reproduce insecure patterns confidently — injection, auth, secret handling need human eyes",
+      "Compliance requires it",
+      "Reviewers are fatigued"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: security review of generated code — the most dangerous failures look idiomatic and pass tests."
+    },
+    {
+     "q": "Team policy for coding agents must be:",
+     "choices": [
+      "Tribal knowledge among seniors",
+      "Written: allowed tools, review requirements, secret handling, no-auto-merge",
+      "The vendor's defaults",
+      "Decided per PR"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: setting team policy — written, not tribal."
+    },
+    {
+     "q": "Licensing of generated code matters because:",
+     "choices": [
+      "Licenses are expensive",
+      "Training-data provenance is murky — teams need policy on what may enter the codebase",
+      "Open source is risky",
+      "Lawyers require it"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: licensing of generated code — murky provenance needs team policy."
     }
    ]
   },
@@ -1428,16 +2052,24 @@
     {
      "front": "When should the agent ask before running?",
      "back": "Expensive queries, ambiguous intent, or anything near a write path — the cost of asking is tiny next to the cost of a bad run."
+    },
+    {
+     "front": "What goes in a schema briefing?",
+     "back": "Table and column descriptions in plain language — not just DDL — including the ambiguous column pairs the agent must not confuse."
+    },
+    {
+     "front": "What is the honest 'I don't know' and why is it a feature?",
+     "back": "The agent declining questions the data cannot answer instead of inventing rows — the trust property everything else is built on."
     }
    ],
    "quiz": [
     {
      "q": "A data agent is:",
      "choices": [
-      "A dashboard",
+      "A BI dashboard",
       "An agent turning questions into safe warehouse queries and interpreting results",
-      "A database",
-      "A spreadsheet"
+      "A query engine",
+      "A pivot table"
      ],
      "answer": 1,
      "explain": "The interface between curiosity and tables. See Concepts."
@@ -1445,9 +2077,9 @@
     {
      "q": "Schema awareness prevents:",
      "choices": [
-      "Slow queries",
+      "Long runtimes",
       "Hallucinated columns — grounding in real tables",
-      "Typos",
+      "Syntax slips",
       "Costs"
      ],
      "answer": 1,
@@ -1459,7 +2091,7 @@
       "Never",
       "Queries are expensive, intent is ambiguous, or writes are near",
       "Always",
-      "Only Mondays"
+      "Only during business hours"
      ],
      "answer": 1,
      "explain": "Asking is cheap; a bad run is not. See Concepts."
@@ -1467,13 +2099,57 @@
     {
      "q": "Interpreting results means:",
      "choices": [
-      "Inventing rows",
+      "Filling gaps with estimates",
       "Summarizing real rows, stating limits, flagging uncertainty",
-      "Hiding nulls",
-      "Guessing"
+      "Dropping null rows silently",
+      "Interpolating missing values"
      ],
      "answer": 1,
      "explain": "Honesty about what the data does and does not show. See Concepts."
+    },
+    {
+     "q": "The agent is asked for Q3 revenue but the warehouse only has data through Q2. It should:",
+     "choices": [
+      "Extrapolate Q3 from the trend",
+      "Decline honestly and state the data's coverage",
+      "Answer with Q2 numbers labeled as Q3",
+      "Guess from prior years"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: craft questions the data cannot answer and verify the agent declines instead of inventing rows."
+    },
+    {
+     "q": "Schema awareness prevents which failure?",
+     "choices": [
+      "Permission errors",
+      "Hallucinated columns — grounding in real tables",
+      "High costs",
+      "Stale data"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: schema awareness — the grounding that prevents hallucinated columns."
+    },
+    {
+     "q": "The ask-before-running gate should fire when:",
+     "choices": [
+      "The query is simple",
+      "Intent is ambiguous or the query is expensive",
+      "The user is impatient",
+      "The schema is small"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: expensive queries, ambiguous intent, or anything near a write path — the cost of asking is tiny next to a bad run."
+    },
+    {
+     "q": "A good result interpretation includes:",
+     "choices": [
+      "Only the numbers",
+      "The answer plus grain, filters, freshness, and what the data cannot say",
+      "A chart",
+      "The SQL query"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: result interpretation — the caveats a data engineer would add."
     }
    ]
   },
@@ -1534,16 +2210,24 @@
     {
      "front": "Why does orchestrator integration matter?",
      "back": "Agents must speak the orchestrator’s concepts (runs, retries, lineage) — otherwise their output is not deployable."
+    },
+    {
+     "front": "What is the 3 AM test for a generated pipeline?",
+     "back": "Read it as the on-call engineer — is everything you'd need at 3 AM written down? If not, the agent's output isn't done."
+    },
+    {
+     "front": "Where should agent-generated pipeline output land?",
+     "back": "In pull requests, not direct commits — with a named approver before anything is deployable."
     }
    ],
    "quiz": [
     {
      "q": "Pipeline agents automate:",
      "choices": [
-      "Meetings",
+      "Standups",
       "DAG scaffolding, drift handling, backfill plans, test scaffolding",
-      "Hiring",
-      "Design"
+      "Capacity planning",
+      "Dashboard design"
      ],
      "answer": 1,
      "explain": "The boring pipeline parts — with tests around them. See Concepts."
@@ -1554,7 +2238,7 @@
       "Ignore it",
       "Detect changes, propose mappings, flag breaking changes",
       "Delete tables",
-      "Panic"
+      "Roll back the deploy"
      ],
      "answer": 1,
      "explain": "Drift is inevitable; surprise is optional. See Concepts."
@@ -1562,9 +2246,9 @@
     {
      "q": "Backfill planning computes:",
      "choices": [
-      "Nothing",
+      "Only the latest partition",
       "Which historical ranges need reprocessing, without double-counting",
-      "The future",
+      "Forecasted ranges",
       "Costs"
      ],
      "answer": 1,
@@ -1573,13 +2257,57 @@
     {
      "q": "Generated pipelines need tests because:",
      "choices": [
-      "Ritual",
+      "A compliance checkbox",
       "They fail at 3 AM like everyone else’s",
       "They are perfect",
-      "Auditors"
+      "The audit team"
      ],
      "answer": 1,
      "explain": "Test scaffolding around generated code is non-negotiable. See Concepts."
+    },
+    {
+     "q": "Upstream adds a column and renames another. The drift handler should:",
+     "choices": [
+      "Silently adapt the pipeline",
+      "Detect, alert, and propose mapping fixes — flagging breaking changes for humans",
+      "Drop the renamed column",
+      "Pause the pipeline forever"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: check whether drift handling detected, alerted, and adapted — silent adaptation is a data-corruption vector."
+    },
+    {
+     "q": "Backfill planning must state explicitly:",
+     "choices": [
+      "The runtime",
+      "Idempotency — which ranges reprocess without double-counting",
+      "The owner",
+      "The cost"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: backfill planning — computing what needs reprocessing without double-counting."
+    },
+    {
+     "q": "Pipeline test scaffolding generates:",
+     "choices": [
+      "Load tests",
+      "One test per stage — row counts, schema checks, a business-rule assertion",
+      "UI tests",
+      "Chaos tests"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: generate one test per pipeline stage — row counts, schema checks, a business-rule assertion."
+    },
+    {
+     "q": "Why must agents speak the orchestrator's concepts?",
+     "choices": [
+      "For logging",
+      "Otherwise their output (runs, retries, lineage) is not deployable",
+      "For speed",
+      "For monitoring"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: orchestrator integration — agents must speak runs, retries, lineage."
     }
    ]
   },
@@ -1640,16 +2368,24 @@
     {
      "front": "How do you evaluate on realistic schemas?",
      "back": "Test on production-like complexity (joins, nesting, naming quirks) — toy schemas teach nothing about real failure."
+    },
+    {
+     "front": "What is the guardrail stack for text-to-SQL?",
+     "back": "A read-only role, a statement timeout, and a hard block on writes/deletes without human approval — a stack, not one trick."
+    },
+    {
+     "front": "Why score exact-match and correct-result separately?",
+     "back": "They measure different things: exact-match tests precision of generation, correct-result tests whether the answer is right."
     }
    ],
    "quiz": [
     {
      "q": "Schema linking is:",
      "choices": [
-      "Diagramming",
+      "ER diagrams",
       "Mapping question terms to real tables/columns",
-      "Indexing",
-      "Docs"
+      "Full-text indexing",
+      "Reading the docs"
      ],
      "answer": 1,
      "explain": "The grounding step hallucination skips. See Concepts."
@@ -1668,10 +2404,10 @@
     {
      "q": "EXPLAIN plans are used to:",
      "choices": [
-      "Format SQL",
+      "Pretty-printing SQL",
       "Sanity-check for scans and explosions before execution",
-      "Tune models",
-      "Log"
+      "Tuning the generator",
+      "Logging the plan"
      ],
      "answer": 1,
      "explain": "The dry-run preventing warehouse fires. See Concepts."
@@ -1679,13 +2415,57 @@
     {
      "q": "Evaluate text-to-SQL on:",
      "choices": [
-      "Toy schemas",
+      "Single-table schemas",
       "Realistic schemas with joins, nesting, naming quirks",
-      "One table",
-      "No data"
+      "Two-table joins",
+      "Empty tables"
      ],
      "answer": 1,
      "explain": "Production-like complexity teaches real failure. See Concepts."
+    },
+    {
+     "q": "The agent links 'revenue' to orders.total but the business defines revenue as payments.captured. The failure is:",
+     "choices": [
+      "A dialect error",
+      "Wrong schema linking — the step hallucination skips",
+      "A cost problem",
+      "A timeout"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: schema linking — mapping question terms to actual tables/columns; the step hallucination skips."
+    },
+    {
+     "q": "Before executing a generated query, the pipeline must:",
+     "choices": [
+      "Run it",
+      "Syntax-check, then EXPLAIN — read the plan for full scans and runaway joins",
+      "Ask the user",
+      "Cache it"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: validate before execution — syntax check, then EXPLAIN for full scans and runaway joins."
+    },
+    {
+     "q": "EXPLAIN plans catch:",
+     "choices": [
+      "Correctness",
+      "Cost — full scans and explosions — not correctness",
+      "Dialect errors",
+      "PII exposure"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: EXPLAIN plans catch cost, not correctness."
+    },
+    {
+     "q": "Default posture for data-agent writes is:",
+     "choices": [
+      "Allow with logging",
+      "Default-deny — explicit human approval with audit trails",
+      "Allow for small writes",
+      "Allow during business hours"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: guardrails on writes and deletes — default-deny."
     }
    ]
   },
@@ -1746,16 +2526,24 @@
     {
      "front": "What goes on a quality dashboard?",
      "back": "Freshness, completeness, anomaly flags, and contract status per dataset — the night watch, visible."
+    },
+    {
+     "front": "What does 'healthy' mean for a table in this module?",
+     "back": "A freshness SLA, an expected row-count range, and the key columns that must never be null — defined before any 'smart' detection."
+    },
+    {
+     "front": "Why must green on the dashboard mean 'checked and healthy' — never 'not checked'?",
+     "back": "Because 'not checked' showing green is the lie that kills trust — the agent keeps it green and honest, not green at all costs."
     }
    ],
    "quiz": [
     {
      "q": "Quality agents watch:",
      "choices": [
-      "Uptime only",
+      "Pipeline uptime",
       "Freshness, completeness, anomalies, contract breaks",
-      "Model loss",
-      "UI"
+      "Training loss",
+      "Dashboard uptime"
      ],
      "answer": 1,
      "explain": "The night watch for data. See Concepts."
@@ -1763,10 +2551,10 @@
     {
      "q": "Alert triage separates:",
      "choices": [
-      "Nothing",
+      "No separation needed",
       "Real breakage from seasonal noise",
-      "Teams",
-      "Tables"
+      "Team inboxes",
+      "Table owners"
      ],
      "answer": 1,
      "explain": "Precision keeps on-call from muting everything. See Concepts."
@@ -1774,10 +2562,10 @@
     {
      "q": "Contract testing asserts:",
      "choices": [
-      "Speed",
+      "Check runtime",
       "Schema and invariants at table boundaries",
       "Cost",
-      "Ownership"
+      "Team ownership"
      ],
      "answer": 1,
      "explain": "API-contract thinking applied to data. See Concepts."
@@ -1785,13 +2573,57 @@
     {
      "q": "Root-cause assistance:",
      "choices": [
-      "Blames people",
+      "Names the on-call",
       "Correlates breakage across lineage and deploys to narrow the search",
-      "Guesses",
-      "Hides"
+      "Picks the likely cause",
+      "Suppresses the alert"
      ],
      "answer": 1,
      "explain": "Narrow the search for the human debugger. See Concepts."
+    },
+    {
+     "q": "Alert fatigue kills more pipelines than bad data, so the triage discipline is:",
+     "choices": [
+      "Alert on everything",
+      "Separate real breakage from seasonal noise — tune until the alert rate is livable",
+      "Mute noisy checks",
+      "Page on every anomaly"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: alert fatigue kills more pipelines than bad data; tune until the team trusts the page."
+    },
+    {
+     "q": "A z-score alert fires on row counts every Monday. Likely cause:",
+     "choices": [
+      "Real breakage",
+      "Seasonal noise — a weekly pattern the threshold doesn't account for",
+      "Bad data",
+      "A bug in the check"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: alert triage — separating real breakage from seasonal noise."
+    },
+    {
+     "q": "Contract tests assert:",
+     "choices": [
+      "Runtime",
+      "Schema and invariants at table boundaries",
+      "Data ownership",
+      "Cost"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: contract testing — the API contract idea applied to tables."
+    },
+    {
+     "q": "The triage agent gathers context but a human still decides severity because:",
+     "choices": [
+      "Agents are slow",
+      "Severity is a judgment call — the agent drafts the note, the human decides",
+      "Humans like control",
+      "Policy requires it"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: the agent drafts the triage note — a human still decides severity."
     }
    ]
   },
@@ -1852,16 +2684,24 @@
     {
      "front": "What makes the write-up credible?",
      "back": "Measured accuracy, demonstrated guardrails, and the failure cases — evidence over enthusiasm."
+    },
+    {
+     "front": "What goes in the 20-question eval set?",
+     "back": "Real questions with known-correct answers — including 5 unanswerable ones the agent must decline."
+    },
+    {
+     "front": "What three numbers does the project eval report?",
+     "back": "Accuracy on answerables, decline rate on unanswerables, and cost plus guardrail log per query."
     }
    ],
    "quiz": [
     {
      "q": "Build the project against:",
      "choices": [
-      "Toy CSVs",
+      "Sample CSVs",
       "Real tables with real questions",
-      "No data",
-      "Slides"
+      "A schema with no rows",
+      "A slide deck"
      ],
      "answer": 1,
      "explain": "The warehouse you actually use. See Concepts."
@@ -1869,10 +2709,10 @@
     {
      "q": "Guardrails come:",
      "choices": [
-      "Later",
+      "After the demo",
       "First — caps, logs, approvals from day one",
       "Never",
-      "After incidents"
+      "After the first incident"
      ],
      "answer": 1,
      "explain": "Trust before the demo becomes a service. See Concepts."
@@ -1880,10 +2720,10 @@
     {
      "q": "Evaluate with:",
      "choices": [
-      "Vibes",
+      "Gut feel",
       "A fixed question set with expected answers",
-      "One query",
-      "Hope"
+      "A single example",
+      "Manual spot-checks"
      ],
      "answer": 1,
      "explain": "Accuracy measured, not felt. See Concepts."
@@ -1891,13 +2731,57 @@
     {
      "q": "Document:",
      "choices": [
-      "Wins only",
+      "Success stories",
       "Limits: failing question types, schema confusions, no-touch zones",
-      "Nothing",
-      "Costs only"
+      "No limits section",
+      "Only the cost table"
      ],
      "answer": 1,
      "explain": "The honest boundary of the system. See Concepts."
+    },
+    {
+     "q": "Guardrails for the project come:",
+     "choices": [
+      "After the demo",
+      "First — caps, logs, approvals from day one",
+      "After the first incident",
+      "Never for a prototype"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: read-only guardrails — caps, logs, approvals from day one."
+    },
+    {
+     "q": "Your 20-question eval is green. What does it prove?",
+     "choices": [
+      "Production readiness",
+      "The demo works on those 20 — not what happens on question 21",
+      "The agent is trustworthy",
+      "Users will be happy"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: the eval measures the demo, not production."
+    },
+    {
+     "q": "Documented limits are a first-class deliverable because:",
+     "choices": [
+      "They look thorough",
+      "They state the honest boundary: failing question types, schema confusions, no-touch zones",
+      "Auditors ask for them",
+      "They are easy to write"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: document limits — the honest boundary as a first-class deliverable."
+    },
+    {
+     "q": "Pick the agent type (text-to-SQL vs quality) by:",
+     "choices": [
+      "Which is flashier",
+      "Whose failure mode you can bound",
+      "Which is newer",
+      "Team vote"
+     ],
+     "answer": 1,
+     "explain": "Covered in Hands-on procedure: pick the one whose failure mode you can bound, not the flashier one."
     }
    ]
   },
@@ -1920,7 +2804,7 @@
      "body": "- **Read-only by default** — It removes the entire class of destructive mistakes — the cheapest safety property in data engineering.\n- **Query cost caps** — Hard limits on scan cost per query and per agent — the warehouse bill cannot be prompt-injected.\n- **PII awareness** — Knowing which columns are sensitive and redacting or refusing per policy — governance the agent cannot opt out of.\n- **Audit logging of agent queries** — Every generated query recorded with who/what/when — the trail that makes incidents answerable.\n- **Human approval for writes** — Any write, any PII access beyond policy, any expensive run — the gates that keep automation safe.\n- **Data governance alignment** — The agent’s behavior matching the org’s classification, retention, and access policies — in writing, enforced in code."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nWork the cost-cap math for a data agent, with your own numbers. Suppose the agent averages 8 tool calls per question — schema lookup, query generation, validation, execution, interpretation (count them from your own runs; this is illustrative). Call one model interaction's cost u. Then one question costs about 8u, and 1,000 questions a day costs about 8,000u a day. Now apply the guardrails as math. (1) A per-query step budget of 12 bounds the worst single question at 12u instead of an unbounded loop — compute your own worst case: budget times u. (2) A daily spend cap C means the agent stops answering after C/u questions — set C from what the answers are worth, not from vibes: if each answered question saves roughly 10 minutes of analyst time, price that time and set C below it. (3) The EXPLAIN-first rule converts 'runaway query' from a warehouse-bill event into a rejected plan — estimate one bad full scan a week without it, and price the scan from your warehouse's billing model. Fill in u from your provider's pricing (as of October 2026 — verify it, don't trust this page), your daily question volume, and your per-question value. The output is a one-page cost policy: per-query budget, daily cap, and the approval threshold above which a human reviews the plan. The estimation habit is the point — every assumption labeled, every number replaceable.\n\nReference docs for this module:\n- [Microsoft Learn](https://learn.microsoft.com/en-us/training/) — Free official training across the Microsoft AI platform.\n- [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides; the anchor for model-calling patterns.",
      "code": "",
      "lang": ""
@@ -1958,16 +2842,24 @@
     {
      "front": "What is data-governance alignment?",
      "back": "The agent’s behavior matching the org’s classification, retention, and access policies — in writing, enforced in code."
+    },
+    {
+     "front": "Why is read-only the cheapest safety property?",
+     "back": "It removes the entire class of destructive mistakes — no delete, no overwrite, no incident from a bad query."
+    },
+    {
+     "front": "What does the one-page cost policy contain?",
+     "back": "Per-query step budget, daily spend cap, and the approval threshold above which a human reviews the plan."
     }
    ],
    "quiz": [
     {
      "q": "Read-only by default removes:",
      "choices": [
-      "Speed",
+      "Query speed",
       "The entire class of destructive mistakes",
-      "Utility",
-      "Logging"
+      "Ad-hoc exploration",
+      "Query logging"
      ],
      "answer": 1,
      "explain": "The cheapest safety property in data. See the Worked estimation."
@@ -1975,10 +2867,10 @@
     {
      "q": "Cost caps prevent:",
      "choices": [
-      "Good queries",
+      "Legitimate queries",
       "Prompt-injected warehouse bills",
-      "Logging",
-      "Reads"
+      "Audit logging",
+      "Read queries"
      ],
      "answer": 1,
      "explain": "Hard limits per query and per agent. See the Worked estimation."
@@ -1986,10 +2878,10 @@
     {
      "q": "Audit logs record:",
      "choices": [
-      "Nothing",
+      "No logging by default",
       "Every generated query: who, what, when",
-      "Only errors",
-      "Only reads"
+      "Only failed queries",
+      "Only successful reads"
      ],
      "answer": 1,
      "explain": "The trail making incidents answerable. See the Worked estimation."
@@ -1997,13 +2889,57 @@
     {
      "q": "Human approval is required for:",
      "choices": [
-      "Reads",
+      "Simple reads",
       "Any write, PII beyond policy, expensive runs",
-      "Nothing",
-      "Selects"
+      "No approval gates",
+      "SELECT statements"
      ],
      "answer": 1,
      "explain": "The gates keeping automation safe. See the Worked estimation."
+    },
+    {
+     "q": "A per-query step budget of 12 with per-interaction cost u bounds the worst question at:",
+     "choices": [
+      "12u",
+      "u",
+      "Unbounded",
+      "12 questions"
+     ],
+     "answer": 0,
+     "explain": "Covered in Hands-on procedure (Worked estimation): the step budget bounds the worst single question at budget × u."
+    },
+    {
+     "q": "PII handling can't be estimated away because:",
+     "choices": [
+      "It is expensive",
+      "You must know your data classification before the agent touches the warehouse",
+      "It adds latency",
+      "It is complex"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: PII handling can't be estimated away — know your data classification first."
+    },
+    {
+     "q": "Audit logs record every generated query with:",
+     "choices": [
+      "Only the SQL",
+      "Who, what, when",
+      "Only failed runs",
+      "Only cost"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: audit logging — every generated query recorded with who/what/when."
+    },
+    {
+     "q": "Guardrails make the agent:",
+     "choices": [
+      "Trustworthy",
+      "Bounded and visible in failure — not trustworthy",
+      "Slow",
+      "Expensive"
+     ],
+     "answer": 1,
+     "explain": "Covered in Honesty note: guardrails don't make the agent trustworthy — they make its failures bounded and visible."
     }
    ]
   },
@@ -2026,7 +2962,7 @@
      "body": "- **What agents can and cannot do** — Follow typed tool contracts, iterate on feedback, draft and summarize — within cost, latency, and reliability bounds.\n- **Capabilities vs demos** — Demos show the happy path once; capabilities are what survives retries, edge cases, and scale — ask for the evals.\n- **Cost and latency intuition** — Per-task token math and p95 latencies — the numbers that decide whether a feature is shippable.\n- **Evaluation basics for PMs** — Golden task sets, success criteria, and regression checks — enough to ask engineers the right questions.\n- **Reading an agent architecture diagram** — Follow the loop: triggers, tools, memory, guardrails, escalation — and ask where each can fail.\n- **Asking engineers the right questions** — Golden task sets, success criteria, and regression checks — enough to ask engineers the right questions."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nPrice one real agent feature pitch you've heard, with your own numbers. Suppose a support agent would handle 500 conversations a day (illustrative — use your own volume), averaging 6 tool calls per conversation (lookup, policy check, draft, verify, and so on). If one model interaction costs roughly u, the daily model cost is about 3,000u. Now compare: a human-handled conversation costs H. Breakeven needs (3,000u + build + evals + on-call) to be less than (conversations × H × automation_fraction) — and automation_fraction is measured, never assumed; start it at the pilot's measured number, not the demo's. Latency: if each step takes about 2 seconds (model plus tool), a 6-step conversation is about 12 seconds of pure machine time before queueing — map that against your SLA. If the SLA is 30 seconds, 18 seconds of budget remain for everything else; write down what consumes it. Evals: a 200-question golden set, each needing a human-verified answer — estimate the hours to build it (5–10 minutes per question is typical) and price that before promising a launch date. The deliverable is a one-page capability note — what the demo implies versus what production requires — with every assumption labeled. As of October 2026 model pricing moves; verify current numbers, don't memorize them.\n\nReference docs for this module:\n- [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference, tool use, and prompt-engineering guidance.\n- [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides; the anchor for model-calling patterns.",
      "code": "",
      "lang": ""
@@ -2064,6 +3000,14 @@
     {
      "front": "What questions separate prototype from shippable?",
      "back": "‘What are the evals? The guardrails? The cost per task? The rollback plan?’ — the four questions that end demo-driven roadmaps."
+    },
+    {
+     "front": "What is the difference between a demo and a capability?",
+     "back": "Demos show the happy path once; capabilities survive retries, edge cases, and scale — ask what was measured, not what was shown."
+    },
+    {
+     "front": "What two numbers give a PM cost intuition for agent features?",
+     "back": "Per-task token math and p95 latencies — the numbers that decide whether a feature is shippable."
     }
    ],
    "quiz": [
@@ -2081,10 +3025,10 @@
     {
      "q": "A PM’s cost intuition needs:",
      "choices": [
-      "Nothing",
+      "No cost intuition needed",
       "Per-task token math and p95 latencies",
       "Vendor promises",
-      "Hopes"
+      "Vendor marketing"
      ],
      "answer": 1,
      "explain": "The numbers deciding shippability. See the Worked estimation."
@@ -2092,10 +3036,10 @@
     {
      "q": "The four shippability questions:",
      "choices": [
-      "Who/what/when/why",
+      "Stakeholder mapping",
       "Evals? Guardrails? Cost per task? Rollback plan?",
-      "Size/speed/color/cost",
-      "None"
+      "Team size and budget",
+      "No questions needed"
      ],
      "answer": 1,
      "explain": "They end demo-driven roadmaps. See the Worked estimation."
@@ -2103,13 +3047,57 @@
     {
      "q": "Reading an architecture diagram means:",
      "choices": [
-      "Admiring it",
+      "Skimming for keywords",
       "Following the loop and asking where each part can fail",
-      "Counting boxes",
-      "Ignoring it"
+      "Checking the layout",
+      "Forwarding to engineers"
      ],
      "answer": 1,
      "explain": "Triggers, tools, memory, guardrails, escalation — and failure points. See the Worked estimation."
+    },
+    {
+     "q": "Reading an agent architecture diagram means:",
+     "choices": [
+      "Ask for the model name",
+      "Ask for the parameter count",
+      "Follow the loop: triggers, tools, memory, guardrails, escalation — and ask where each part can fail",
+      "Ask for the training data"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: reading an agent architecture diagram — follow the loop and ask where each part can fail."
+    },
+    {
+     "q": "When a PM asks engineers about evals, the most useful question is:",
+     "choices": [
+      "What model are we using?",
+      "What is the golden task set and what does the regression check?",
+      "How many parameters?",
+      "What is the context window?"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: evaluation basics for PMs — golden task sets, success criteria, regression checks; enough to ask the right questions."
+    },
+    {
+     "q": "Enough evaluation literacy to manage an agent feature means knowing:",
+     "choices": [
+      "Model size",
+      "Token pricing",
+      "Golden task sets, success criteria, and regression checks",
+      "User surveys"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: evaluation basics for PMs — golden task sets, success criteria, regression checks."
+    },
+    {
+     "q": "A vendor demo goes flawlessly. Before scoping, you should:",
+     "choices": [
+      "Ship it",
+      "Ask what survives retries, edge cases, and scale — capabilities, not the happy path",
+      "Ask for more features",
+      "Trust the demo"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: capabilities vs demos — demos show the happy path; capabilities survive retries, edge cases, scale."
     }
    ]
   },
@@ -2170,16 +3158,24 @@
     {
      "front": "When do specs need a person?",
      "back": "Novel tradeoffs, political alignment, and genuine ambiguity — the judgment calls no agent should make."
+    },
+    {
+     "front": "When does a spec need a person, not an agent?",
+     "back": "Novel tradeoffs, political alignment, and genuine ambiguity — the judgment calls no agent should make."
+    },
+    {
+     "front": "What is acceptance-criteria generation good for?",
+     "back": "Enumerating testable conditions — completeness the human then edits, not blind trust."
     }
    ],
    "quiz": [
     {
      "q": "Spec agents draft:",
      "choices": [
-      "Final decisions",
+      "Binding commitments",
       "The first 80% — humans own judgment on the rest",
-      "Nothing",
-      "Code"
+      "No drafts needed",
+      "Test scripts"
      ],
      "answer": 1,
      "explain": "Speed on drafts; humans decide. See Concepts."
@@ -2187,10 +3183,10 @@
     {
      "q": "The agent proposes;",
      "choices": [
-      "The agent disposes",
+      "The agent approves",
       "The human disposes — accountability is not delegable",
-      "Nobody decides",
-      "The vendor decides"
+      "Decisions emerge",
+      "Leadership decides everything"
      ],
      "answer": 1,
      "explain": "Humans remain the decision-makers. See Concepts."
@@ -2200,7 +3196,7 @@
      "choices": [
       "Typos only",
       "Ambiguity, missing edge cases, inconsistent terminology",
-      "Nothing",
+      "No review needed",
       "Bugs"
      ],
      "answer": 1,
@@ -2209,13 +3205,57 @@
     {
      "q": "Version specs because:",
      "choices": [
-      "Ritual",
+      "Out of habit",
       "Decisions need archaeology: diffs, history, blame",
-      "Git is fun",
-      "Auditors"
+      "Version control is overkill",
+      "Only for compliance"
      ],
      "answer": 1,
      "explain": "Specs are code-adjacent. See Concepts."
+    },
+    {
+     "q": "Acceptance-criteria generation is useful because:",
+     "choices": [
+      "It replaces QA",
+      "It enumerates testable conditions with completeness the human then edits",
+      "It writes the code",
+      "It is faster than thinking"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: acceptance-criteria generation — completeness the human then edits, not blind trust."
+    },
+    {
+     "q": "What does 'the agent proposes, the human disposes' imply for scope sign-off?",
+     "choices": [
+      "The agent can approve scope",
+      "A human signs off — accountability is not delegable",
+      "Scope emerges from usage",
+      "Sign-off is unnecessary"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: keeping humans as decision-makers."
+    },
+    {
+     "q": "The agent proposes; the human disposes — this means:",
+     "choices": [
+      "The agent decides",
+      "Accountability for scope cannot be delegated",
+      "Scope is emergent",
+      "Decisions are automated"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: keeping humans as decision-makers."
+    },
+    {
+     "q": "Why keep specs under version control?",
+     "choices": [
+      "For backup",
+      "Decisions need archaeology: diffs, history, blame",
+      "For compliance",
+      "It is trendy"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: version control for specs."
     }
    ]
   },
@@ -2276,16 +3316,24 @@
     {
      "front": "What are research ethics for agent use?",
      "back": "Disclose agent assistance, respect source licensing, and never present generated synthesis as primary research."
+    },
+    {
+     "front": "What is the risk of agent synthesis of long sources?",
+     "back": "Compression loses nuance and can launder errors — verify the synthesis against the sources."
+    },
+    {
+     "front": "How should agents summarize user feedback?",
+     "back": "Theme extraction across thousands of responses — with quotes preserved so humans can audit the themes."
     }
    ],
    "quiz": [
     {
      "q": "Research agents’ edge is:",
      "choices": [
-      "Wisdom",
+      "Curated judgment",
       "Machine-speed reading breadth",
-      "Taste",
-      "Ethics"
+      "Domain expertise",
+      "Source relationships"
      ],
      "answer": 1,
      "explain": "Breadth no human team matches on deadline. See Concepts."
@@ -2293,10 +3341,10 @@
     {
      "q": "Citation discipline means:",
      "choices": [
-      "Many links",
+      "Link volume",
       "Every claim traceable — unverified findings are rumors with formatting",
-      "No links",
-      "One link"
+      "No citations needed",
+      "One citation per doc"
      ],
      "answer": 1,
      "explain": "Traceability is the credibility. See Concepts."
@@ -2304,10 +3352,10 @@
     {
      "q": "Verify claims by:",
      "choices": [
-      "Trusting",
+      "Accepting outputs",
       "Spot-checking primaries and triangulating independents",
-      "Counting",
-      "Speed"
+      "Checking word count",
+      "Reading quickly"
      ],
      "answer": 1,
      "explain": "Distrust single-source certainty. See Concepts."
@@ -2315,13 +3363,57 @@
     {
      "q": "Research ethics require:",
      "choices": [
-      "Secrecy",
+      "Keeping methods private",
       "Disclosing agent assistance and respecting source licensing",
-      "Nothing",
-      "Speed"
+      "No ethics review",
+      "Prioritizing speed"
      ],
      "answer": 1,
      "explain": "Never present synthesis as primary research. See Concepts."
+    },
+    {
+     "q": "The main risk of agent synthesis of long sources is:",
+     "choices": [
+      "It needs oversight",
+      "Compression loses nuance and can launder errors — verify against sources",
+      "It costs too much",
+      "It is biased"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: synthesis of long sources."
+    },
+    {
+     "q": "User-feedback summarization must:",
+     "choices": [
+      "Hide quotes",
+      "Extract themes with quotes preserved so humans can audit",
+      "Summarize briefly",
+      "Count mentions"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: user-feedback summarization."
+    },
+    {
+     "q": "Verify agent claims by:",
+     "choices": [
+      "Spot-checking primaries and triangulating independents",
+      "Trusting the agent",
+      "Counting sources",
+      "Reading faster"
+     ],
+     "answer": 0,
+     "explain": "Covered in Concepts: verifying agent claims — spot-check primaries, triangulate independents."
+    },
+    {
+     "q": "Research ethics require disclosing:",
+     "choices": [
+      "The methodology",
+      "Agent assistance, and respecting source licensing",
+      "The timeline",
+      "The team"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: research ethics."
     }
    ]
   },
@@ -2382,16 +3474,24 @@
     {
      "front": "What makes the write-up persuasive?",
      "back": "The metric before and after, the cost, and the honest limits — evidence a leadership team can fund."
+    },
+    {
+     "front": "What makes a good pilot group?",
+     "back": "Friendly users, instrumented usage, explicit feedback loops — learn cheaply before scaling."
+    },
+    {
+     "front": "When do you prototype low-code vs API?",
+     "back": "Low-code for speed and stakeholder demos; API when you need control, evals, and a production path."
     }
    ],
    "quiz": [
     {
      "q": "Pick a workflow that is:",
      "choices": [
-      "Easy",
+      "The simplest workflow",
       "Real, frequent, painful — measurable leverage",
-      "Rare",
-      "Fun"
+      "An edge case",
+      "A novel workflow"
      ],
      "answer": 1,
      "explain": "Leverage lives in pain times frequency. See Concepts."
@@ -2402,7 +3502,7 @@
       "After the pilot",
       "Before — pre-commitment prevents post-hoc storytelling",
       "Never",
-      "Vaguely"
+      "Approximately at launch"
      ],
      "answer": 1,
      "explain": "The numbers decide, not the demo. See Concepts."
@@ -2423,11 +3523,55 @@
      "choices": [
       "Hype",
       "Metric before/after, cost, honest limits",
-      "Screenshots",
+      "Status updates",
       "Quotes"
      ],
      "answer": 1,
      "explain": "Evidence a leadership team can fund. See Concepts."
+    },
+    {
+     "q": "A good pilot group is:",
+     "choices": [
+      "The whole company",
+      "Friendly users, instrumented usage, explicit feedback loops",
+      "The exec team",
+      "Random users"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: pilot with a small group — learn cheaply before scaling."
+    },
+    {
+     "q": "Pre-committed metrics prevent:",
+     "choices": [
+      "Delays",
+      "Post-hoc storytelling — the numbers decide, not the demo",
+      "Costs",
+      "Scope creep"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: define success metrics."
+    },
+    {
+     "q": "Prototype with low-code when you need:",
+     "choices": [
+      "Control",
+      "Speed and stakeholder demos",
+      "Evals",
+      "Production path"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: prototype with low-code or API."
+    },
+    {
+     "q": "What decision does the pilot report enable?",
+     "choices": [
+      "More funding",
+      "Expand, iterate, or stop — backed by numbers",
+      "A launch date",
+      "A marketing plan"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: project write-up."
     }
    ]
   },
@@ -2450,7 +3594,7 @@
      "body": "- **Measuring agent-assisted workflows** — Task completion time and quality vs the unassisted baseline — observed, not self-reported.\n- **Defining guardrail metrics** — Refusal correctness, escalation rate, policy-violation count — the safety dials on the dashboard.\n- **Escalation design** — Defining when the agent hands to a human, with what context — the safety valve, designed not improvised.\n- **Risk registers for agent features** — Each failure mode, its likelihood/impact, mitigations, and owners — written before launch.\n- **Rollback plans** — Nondeterministic systems need one-command reverts — deciding the rollback during the incident is too late.\n- **Communicating limits to stakeholders** — State plainly what v1 will not do — managed expectations survive contact with reality."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nWork the measurement for one agent pilot — use the playbook module's pilot or a realistic one: 8 users, 3 weeks, 240 assisted tasks (illustrative). Step 1, primary metric: suppose the task took 25 minutes manually and 9 minutes assisted (measure both — don't guess). Time saved per task: 16 minutes; total: 240 × 16 = 3,840 minutes, about 64 hours. Step 2, price it honestly: 64 hours at a loaded cost you can defend, minus the pilot's build cost and the agent's run cost (model plus tools plus your time babysitting it). If the net isn't clearly positive, the pilot didn't pay — write that down. Step 3, quality delta: define it before measuring (error rate? rework rate? customer satisfaction?) and measure it the same way for assisted and unassisted work. Step 4, counter-metrics: pick two things the headline could hide (tasks the agent silently skipped; users who quietly stopped using it) and measure those too. Step 5, guardrail metrics: escalation rate, failure rate, cost per task — set the thresholds that would trigger a rollback, in writing, before launch. Work this with your own pilot numbers; the output is the metrics section of a launch doc, with every assumption labeled and the rollback thresholds explicit.\n\nReference docs for this module:\n- [Microsoft Learn](https://learn.microsoft.com/en-us/training/) — Free official training across the Microsoft AI platform.\n- [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides; the anchor for model-calling patterns.",
      "code": "",
      "lang": ""
@@ -2488,16 +3632,24 @@
     {
      "front": "How do you communicate limits to stakeholders?",
      "back": "State plainly what v1 will not do — managed expectations survive contact with reality."
+    },
+    {
+     "front": "What are the three guardrail metrics?",
+     "back": "Refusal correctness, escalation rate, policy-violation count — the safety dials on the dashboard."
+    },
+    {
+     "front": "Why write rollback plans before launch?",
+     "back": "Nondeterministic systems need one-command reverts — deciding the rollback during the incident is too late."
     }
    ],
    "quiz": [
     {
      "q": "Measure assisted workflows vs:",
      "choices": [
-      "Nothing",
+      "No baseline needed",
       "The unassisted baseline — observed, not self-reported",
-      "Competitors",
-      "Hopes"
+      "Industry benchmarks",
+      "User anecdotes"
      ],
      "answer": 1,
      "explain": "Baselines make the delta real. See the Worked estimation."
@@ -2505,10 +3657,10 @@
     {
      "q": "Guardrail metrics include:",
      "choices": [
-      "Revenue",
+      "Revenue growth",
       "Refusal correctness, escalation rate, policy violations",
-      "Clicks",
-      "Signups"
+      "Click-through rate",
+      "Signup volume"
      ],
      "answer": 1,
      "explain": "The safety dials on the dashboard. See the Worked estimation."
@@ -2516,10 +3668,10 @@
     {
      "q": "Write rollback plans:",
      "choices": [
-      "During incidents",
+      "During the incident",
       "Before launch — one-command reverts for nondeterministic systems",
       "Never",
-      "After"
+      "After the postmortem"
      ],
      "answer": 1,
      "explain": "Deciding mid-incident is too late. See the Worked estimation."
@@ -2527,13 +3679,57 @@
     {
      "q": "The risk register lists:",
      "choices": [
-      "Wins",
+      "Success stories",
       "Failure modes with likelihood, impact, mitigations, owners",
-      "Hopes",
-      "Dates"
+      "User anecdotes",
+      "Launch dates"
      ],
      "answer": 1,
      "explain": "Written before launch, not after. See the Worked estimation."
+    },
+    {
+     "q": "Measure assisted workflows against:",
+     "choices": [
+      "Self-reported time saved",
+      "The unassisted baseline — observed, not self-reported",
+      "Competitor benchmarks",
+      "User satisfaction"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: measuring agent-assisted workflows — vs the unassisted baseline, observed not self-reported."
+    },
+    {
+     "q": "Which is a guardrail metric?",
+     "choices": [
+      "Uptime",
+      "Refusal correctness",
+      "NPS",
+      "DAU"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: defining guardrail metrics."
+    },
+    {
+     "q": "Rollback plans for nondeterministic systems must be:",
+     "choices": [
+      "Decided during incidents",
+      "One-command reverts, written before launch",
+      "Automatic",
+      "Best-effort"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: rollback plans."
+    },
+    {
+     "q": "Communicating limits to stakeholders means:",
+     "choices": [
+      "Hiding v1 gaps",
+      "Stating plainly what v1 will not do",
+      "Promising everything",
+      "Delaying"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: communicating limits to stakeholders."
     }
    ]
   },
@@ -2556,7 +3752,7 @@
      "body": "- **Scoping agent features honestly** — Name the capability boundary: what it handles, what it escalates, what it refuses — in the spec, not the fine print.\n- **Build-vs-buy for agent tooling** — Buy the undifferentiated platform; build the workflow-specific layer — weighed against lock-in and team skill.\n- **Sequencing low-risk wins first** — Proven value funds harder bets — and early failures are cheap lessons, not visible incidents.\n- **Stakeholder alignment** — Agreement on scope, limits, risks, and success metrics before building — the pre-read that prevents surprise.\n- **Pricing and cost modeling** — Per-task cost modeled at real volume plus overhead and support — margins that survive the invoice.\n- **Launch checklists** — the pre-launch gate: evals green, guardrails instrumented, rollback planned, costs modeled, non-goals agreed — checked before launch, not after."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nDo the roadmap math for one agentic feature, honestly. Suppose v1 targets 3 workflows, each needing about 2 weeks of build (your team's velocity, not a vendor's), a 100-question golden eval set per workflow (8–17 hours of human verification each at 5–10 minutes per question — price it), and a 4-week pilot. That's roughly 6 build-weeks plus about 50 eval-hours plus pilot time before you know if any of it works — write your own numbers in. Build-vs-buy: list what you'd buy (orchestration, eval tooling, hosting) versus build (the workflow logic, the evals, the guardrails) and price both over 12 months, including the maintenance nobody puts in the demo. Cost modeling: per-task model cost times projected volume, plus the eval-maintenance cost as the product changes (evals rot — budget to refresh them quarterly). Sequencing: order the 3 workflows by low-risk times high-frequency times measurability, and show why the ambitious one goes last. The output is a one-page roadmap with costs, the sequencing rationale, and the explicit v1 non-goals — what v1 will not do, in writing, agreed with stakeholders.\n\nReference docs for this module:\n- [Microsoft Copilot Studio Documentation](https://learn.microsoft.com/en-us/microsoft-copilot-studio/) — Low-code agents: topics, actions, connectors, and deployment.\n- [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/) — Projects, model catalog, and agent service references.",
      "code": "",
      "lang": ""
@@ -2594,16 +3790,24 @@
     {
      "front": "What goes on the launch checklist?",
      "back": "Evals green, guardrails live, rollback ready, monitoring on, owners named — the gate before users."
+    },
+    {
+     "front": "What is the build-vs-buy rule for agent tooling?",
+     "back": "Buy the undifferentiated platform; build the workflow-specific layer — weighed against lock-in."
+    },
+    {
+     "front": "What is on the launch checklist?",
+     "back": "Evals green, guardrails instrumented, rollback planned, costs modeled, non-goals agreed — the pre-launch gate."
     }
    ],
    "quiz": [
     {
      "q": "Honest scoping names:",
      "choices": [
-      "Only wins",
+      "Only the upside",
       "The capability boundary: handles, escalates, refuses",
-      "Nothing",
-      "Dates"
+      "No scoping needed",
+      "Timeline only"
      ],
      "answer": 1,
      "explain": "In the spec, not the fine print. See the Worked estimation."
@@ -2613,7 +3817,7 @@
      "choices": [
       "Biggest bets first",
       "Low-risk wins first, with honest cost modeling",
-      "Random",
+      "Ad-hoc ordering",
       "All at once"
      ],
      "answer": 1,
@@ -2622,9 +3826,9 @@
     {
      "q": "Pricing needs:",
      "choices": [
-      "Guesses",
+      "Rough estimates",
       "Per-task cost at real volume plus overhead — margins that survive invoices",
-      "Hopes",
+      "User anecdotes",
       "Discounts"
      ],
      "answer": 1,
@@ -2633,13 +3837,57 @@
     {
      "q": "The launch checklist is:",
      "choices": [
-      "Optional",
+      "Treat as optional",
       "The gate: evals green, guardrails live, rollback ready, owners named",
-      "A formality",
-      "Skipped"
+      "A rubber stamp",
+      "Skipped for speed"
      ],
      "answer": 1,
      "explain": "No gate, no users. See the Worked estimation."
+    },
+    {
+     "q": "Build-vs-buy for agent tooling:",
+     "choices": [
+      "Build everything",
+      "Buy the undifferentiated platform; build the workflow-specific layer",
+      "Buy everything",
+      "Outsource"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: build-vs-buy for agent tooling."
+    },
+    {
+     "q": "Sequence the roadmap:",
+     "choices": [
+      "Biggest bets first",
+      "Low-risk wins first, with honest cost modeling",
+      "Random order",
+      "All at once"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: sequencing low-risk wins first — proven value funds harder bets."
+    },
+    {
+     "q": "Pricing agent features needs:",
+     "choices": [
+      "Gut feel",
+      "Per-task cost at real volume plus overhead and support",
+      "Competitor prices",
+      "Discounts"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: pricing and cost modeling."
+    },
+    {
+     "q": "Sequencing low-risk wins first:",
+     "choices": [
+      "Wastes time",
+      "Proven value funds harder bets; early failures are cheap lessons",
+      "Slows progress",
+      "Bores the team"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: sequencing low-risk wins first."
     }
    ]
   },
@@ -2700,6 +3948,14 @@
     {
      "front": "What do meeting-notes agents produce?",
      "back": "Decisions, owners, and dates extracted per meeting — the record humans then confirm."
+    },
+    {
+     "front": "Why are risk signals not verdicts?",
+     "back": "They surface slip patterns and sentiment shifts early for human judgment — the agent informs accountability, it doesn't assign it."
+    },
+    {
+     "front": "Where do program agents mislead?",
+     "back": "Over-smoothed roll-ups hide real risk — spot-check synthesis against raw team signal."
     }
    ],
    "quiz": [
@@ -2708,8 +3964,8 @@
      "choices": [
       "Email only",
       "Status, risks, and meetings across teams — so you can run the program",
-      "Nothing",
-      "Code"
+      "No new information",
+      "Code diffs"
      ],
      "answer": 1,
      "explain": "Status roll-ups, risk signals, meeting synthesis — the program, readable. See Concepts."
@@ -2720,7 +3976,7 @@
       "With the agent",
       "Human — the agent cannot own a deadline",
       "Shared",
-      "Nowhere"
+      "Split across the team"
      ],
      "answer": 1,
      "explain": "Agents inform accountability; they never hold it. See Concepts."
@@ -2739,13 +3995,57 @@
     {
      "q": "Meeting-notes agents extract:",
      "choices": [
-      "Everything",
+      "Full transcripts",
       "Decisions, owners, dates — confirmed by humans",
-      "Nothing",
-      "Gossip"
+      "No notes needed",
+      "Hallway chatter"
      ],
      "answer": 1,
      "explain": "The record; humans confirm it. See Concepts."
+    },
+    {
+     "q": "A roll-up says all teams are green, but two teams missed internal milestones. The failure is:",
+     "choices": [
+      "Bad data",
+      "Over-smoothed synthesis hiding real risk — spot-check against raw signal",
+      "Slow reporting",
+      "Too many meetings"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: where program agents mislead — over-smoothed roll-ups hide real risk."
+    },
+    {
+     "q": "Accountability for deadlines stays human because:",
+     "choices": [
+      "Agents are slow",
+      "The agent cannot own a deadline — accountability is a human property",
+      "Humans like control",
+      "Policy requires it"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: keeping humans accountable."
+    },
+    {
+     "q": "Risk-signal detection surfaces:",
+     "choices": [
+      "Verdicts on teams",
+      "Slip patterns, dependency conflicts, sentiment shifts — signal, not verdicts",
+      "Hallway chatter",
+      "Performance ratings"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: risk-signal detection — signal, not verdicts."
+    },
+    {
+     "q": "Meeting-notes extraction must be:",
+     "choices": [
+      "Published directly",
+      "Confirmed by humans — decisions, owners, dates",
+      "Emailed to everyone",
+      "Archived silently"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: meeting-notes agents extract decisions, owners, dates — confirmed by humans."
     }
    ]
   },
@@ -2806,16 +4106,24 @@
     {
      "front": "What are privacy boundaries for people data?",
      "back": "Hard lines: no individual surveillance, aggregated signals only, transparent to the team — trust is not a metric to optimize."
+    },
+    {
+     "front": "What is code-review load balancing?",
+     "back": "Routing reviews by expertise and load — fairness and speed, with quality still human-judged."
+    },
+    {
+     "front": "What is the hard line on people data?",
+     "back": "No individual surveillance, aggregated signals only, transparent to the team."
     }
    ],
    "quiz": [
     {
      "q": "Onboarding assistants answer from:",
      "choices": [
-      "Vibes",
+      "Tribal knowledge",
       "The knowledge base — ramp speed without interrupting the team",
-      "Memory",
-      "Guesses"
+      "Its training data",
+      "Best-effort answers"
      ],
      "answer": 1,
      "explain": "Team knowledge, searchable, for new hires. See Concepts."
@@ -2823,10 +4131,10 @@
     {
      "q": "Privacy boundaries require:",
      "choices": [
-      "Surveillance",
+      "Individual monitoring",
       "Aggregated signals only, no individual tracking, transparent to the team",
-      "Secrets",
-      "Nothing"
+      "Private DMs",
+      "No boundaries needed"
      ],
      "answer": 1,
      "explain": "Trust is not a metric to optimize. See Concepts."
@@ -2837,7 +4145,7 @@
       "Scripts",
       "Context — recent work and blockers — so conversation starts substantive",
       "Grades",
-      "Nothing"
+      "No prep needed"
      ],
      "answer": 1,
      "explain": "Prep, not replacement, for the human conversation. See Concepts."
@@ -2847,11 +4155,55 @@
      "choices": [
       "Verdicts",
       "Signals for the manager — latency, load, patterns — not judgments on people",
-      "Gossip",
+      "Rumors",
       "Irrelevant"
      ],
      "answer": 1,
      "explain": "Inform management; never automate judgment of individuals. See Concepts."
+    },
+    {
+     "q": "Team-health signals (review latency, after-hours patterns) are:",
+     "choices": [
+      "Verdicts on people",
+      "Signals for the manager — latency, load, patterns — not judgments on people",
+      "Performance ratings",
+      "Private HR data"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: measuring team-health signals — signals for the manager, not verdicts on people."
+    },
+    {
+     "q": "The privacy boundary for people data requires:",
+     "choices": [
+      "Individual monitoring",
+      "Aggregated signals only, no individual tracking, transparent to the team",
+      "Access to private DMs",
+      "No boundaries needed"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: privacy boundaries for people data."
+    },
+    {
+     "q": "A 1:1 prep agent's job is:",
+     "choices": [
+      "Replacing the 1:1",
+      "Gathering context (recent work, blockers) so conversation starts substantive — prep, not replacement",
+      "Grading the report",
+      "Writing the script"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: 1:1 prep agents — prep, not replacement."
+    },
+    {
+     "q": "Review load balancing routes reviews by:",
+     "choices": [
+      "Seniority only",
+      "Expertise and load — fairness and speed, quality still human-judged",
+      "Availability only",
+      "Whoever volunteers"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: code-review load balancing."
     }
    ]
   },
@@ -2912,6 +4264,14 @@
     {
      "front": "Why does the human commander stay in charge?",
      "back": "The agent cannot take the page or the blame — authority and accountability stay human, always."
+    },
+    {
+     "front": "What is timeline reconstruction?",
+     "back": "Assembling the incident's true sequence from alerts, deploys, and messages — so the postmortem argues from facts."
+    },
+    {
+     "front": "What does paging-policy respect forbid the agent?",
+     "back": "Paging, escalating, or widening an incident on its own — paging is a human decision."
     }
    ],
    "quiz": [
@@ -2920,8 +4280,8 @@
      "choices": [
       "Owning the page",
       "Triage, runbooks, timelines at machine speed",
-      "Blame",
-      "Silence"
+      "Blame assignment",
+      "Standing by"
      ],
      "answer": 1,
      "explain": "The mechanical parts, fast — under human command. See Concepts."
@@ -2929,7 +4289,7 @@
     {
      "q": "The human commander:",
      "choices": [
-      "Is optional",
+      "Can rotate out",
       "Stays in charge — the agent cannot take the page or the blame",
       "Watches",
       "Sleeps"
@@ -2951,13 +4311,57 @@
     {
      "q": "Postmortems are:",
      "choices": [
-      "Skipped",
+      "Deferred to next quarter",
       "Drafted by the agent, owned by humans",
       "Automated fully",
-      "Secret"
+      "Kept within the team"
      ],
      "answer": 1,
      "explain": "Draft assistance; human ownership of conclusions. See Concepts."
+    },
+    {
+     "q": "During an incident, the agent may:",
+     "choices": [
+      "Page the on-call",
+      "Correlate alerts, surface likely causes, draft the timeline — at machine speed",
+      "Widen the incident",
+      "Close the incident"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: triage assistance during incidents — machine speed, under human command."
+    },
+    {
+     "q": "Runbook-following agents execute documented steps:",
+     "choices": [
+      "Fully autonomously",
+      "With approvals at the risky ones — consistency under pressure",
+      "Only after the incident",
+      "Without logging"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: runbook-following agents — with approvals at the risky ones."
+    },
+    {
+     "q": "The human commander stays in charge because:",
+     "choices": [
+      "Humans are faster",
+      "The agent cannot take the page or the blame",
+      "Policy requires it",
+      "Agents are expensive"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: keeping the human commander in charge — authority and accountability stay human."
+    },
+    {
+     "q": "Postmortem drafting covers:",
+     "choices": [
+      "Assigning blame",
+      "Timeline, impact, root causes, action items — drafted by the agent, owned by humans",
+      "Only the timeline",
+      "Only action items"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: postmortem drafting."
     }
    ]
   },
@@ -3018,16 +4422,24 @@
     {
      "front": "What makes the project write-up useful?",
      "back": "The decision and its numbers — what was tried, measured, and concluded, so the next team starts smarter."
+    },
+    {
+     "front": "What makes a good pilot workflow?",
+     "back": "One team workflow with clear pain and measurable outcomes — small enough to learn from, real enough to matter."
+    },
+    {
+     "front": "When are guardrails designed?",
+     "back": "Before the pilot: scoped permissions, approval gates, audit logging — not after."
     }
    ],
    "quiz": [
     {
      "q": "Pilot metrics are:",
      "choices": [
-      "Vibes",
+      "Anecdotes",
       "Pre-committed: time saved, quality, adoption, cost",
-      "Optional",
-      "Secret"
+      "Nice to track",
+      "Shared after launch"
      ],
      "answer": 1,
      "explain": "Defined before the pilot — the numbers that decide. See Concepts."
@@ -3035,7 +4447,7 @@
     {
      "q": "Expand-or-stop is:",
      "choices": [
-      "Forever maybe",
+      "Decided when it feels right",
       "A scheduled verdict on the pilot’s numbers",
       "Automatic",
       "Avoided"
@@ -3046,10 +4458,10 @@
     {
      "q": "Guardrails for rollout:",
      "choices": [
-      "Later",
+      "After the pilot",
       "Designed before the pilot: permissions, approvals, audit",
       "Never",
-      "Optional"
+      "Added if time permits"
      ],
      "answer": 1,
      "explain": "Safety designed in, not bolted on. See Concepts."
@@ -3059,11 +4471,55 @@
      "choices": [
       "The hardest",
       "One team workflow: clear pain, measurable outcomes",
-      "Everything",
-      "Random"
+      "Every team at once",
+      "Whichever team volunteers"
      ],
      "answer": 1,
      "explain": "Small enough to learn from, real enough to matter. See Concepts."
+    },
+    {
+     "q": "Pilot metrics must be:",
+     "choices": [
+      "Anecdotes",
+      "Pre-committed: time saved, quality, adoption, cost",
+      "Decided after the pilot",
+      "Shared after launch"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: pilot metrics — pre-committed numbers that decide expand-or-stop."
+    },
+    {
+     "q": "When is the right time to design rollout guardrails?",
+     "choices": [
+      "After the pilot",
+      "Before the pilot — permissions, approvals, audit",
+      "After an incident",
+      "Never"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: define guardrails and approvals."
+    },
+    {
+     "q": "The pilot workflow should be:",
+     "choices": [
+      "The hardest one",
+      "One team workflow with clear pain and measurable outcomes",
+      "Every team at once",
+      "The most visible one"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: choose one team workflow."
+    },
+    {
+     "q": "The rollout write-up contains:",
+     "choices": [
+      "Hype",
+      "The decision and its numbers — tried, measured, concluded",
+      "A slide deck",
+      "Stakeholder quotes"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: project write-up — so the next team starts smarter."
     }
    ]
   },
@@ -3124,6 +4580,14 @@
     {
      "front": "What are compliance checkpoints?",
      "back": "Scheduled reviews that the agent estate still meets policy — governance as a cadence, not a document."
+    },
+    {
+     "front": "Why provision agents as principals?",
+     "back": "Identity, scoped permissions, data boundaries per agent — so every action is attributable and bounded."
+    },
+    {
+     "front": "What is vendor/model risk?",
+     "back": "Dependency on external models: availability, behavior change, data handling — assessed and mitigated, not assumed."
     }
    ],
    "quiz": [
@@ -3133,7 +4597,7 @@
       "Toys",
       "Principals: identity, scoped permissions, data boundaries",
       "Users",
-      "Nothing"
+      "No special provisioning"
      ],
      "answer": 1,
      "explain": "An agent with access is a principal — treat it as one. See Concepts."
@@ -3141,10 +4605,10 @@
     {
      "q": "Audit trails log:",
      "choices": [
-      "Nothing",
+      "No logging needed",
       "Every action: which agent, what, when, on whose authority",
-      "Only errors",
-      "Only reads"
+      "Only failures",
+      "Only data access"
      ],
      "answer": 1,
      "explain": "Incidents demand answers; trails provide them. See Concepts."
@@ -3152,10 +4616,10 @@
     {
      "q": "Agent policy covers:",
      "choices": [
-      "Vibes",
+      "Good intentions",
       "Allowed uses, data boundaries, approvals, prohibitions — in writing",
-      "Nothing",
-      "Hopes"
+      "Verbal agreements",
+      "Best-effort compliance"
      ],
      "answer": 1,
      "explain": "Written and acknowledged — governance you can point to. See Concepts."
@@ -3165,11 +4629,55 @@
      "choices": [
       "One-time",
       "A cadence: scheduled reviews that the estate still meets policy",
-      "Optional",
-      "Secret"
+      "Annual at most",
+      "Internal only"
      ],
      "answer": 1,
      "explain": "Governance as rhythm, not document. See Concepts."
+    },
+    {
+     "q": "Agents should be provisioned as:",
+     "choices": [
+      "Toys",
+      "Principals: identity, scoped permissions, data boundaries",
+      "Admin users",
+      "Shared accounts"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: access controls for agents."
+    },
+    {
+     "q": "Data-classification alignment means:",
+     "choices": [
+      "Encrypting everything",
+      "The agent's data access matching the org's classification policy",
+      "No PII ever",
+      "Public data only"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: data-classification alignment."
+    },
+    {
+     "q": "Policy for agent use must be:",
+     "choices": [
+      "Verbal",
+      "Written: allowed uses, boundaries, approvals, prohibitions",
+      "The vendor's",
+      "Decided per incident"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: policy writing for agent use."
+    },
+    {
+     "q": "Data-classification alignment means:",
+     "choices": [
+      "Encrypting everything",
+      "The agent's data access matching the org's classification policy",
+      "No PII ever",
+      "Public data only"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: data-classification alignment."
     }
    ]
   },
@@ -3192,7 +4700,7 @@
      "body": "- **Time-saved measurement done honestly** — Observed task time before vs after, with a real baseline — not self-reported estimates.\n- **Quality deltas** — Error rates, rework, and outcome quality before vs after the assist — the value beyond speed.\n- **Adoption metrics** — Who actually uses it weekly — the difference between a pilot’s fans and real workflow integration.\n- **Cost per assisted task** — Tokens plus infra plus support, per completed task — the unit economics of the assist.\n- **Counter-metrics and regressions** — Who actually uses it weekly — the difference between a pilot’s fans and real workflow integration.\n- **Reporting to leadership** — the one-page net: savings minus all costs, quality delta, adoption, and counter-metrics — numbers defensible in a budget review."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nWork the honest measurement for one agent pilot — 200 tasks (illustrative; use your real count). Step 1, baseline: time 20 tasks done the old way (note the mean and the variance — say 30 minutes), then time 20 assisted (say 12 minutes). Time saved per task: 18 minutes; over 200 tasks that's about 60 hours. Step 2, cost per assisted task: model cost plus tool cost plus the human time still in the loop (review, corrections, escalations) — add the babysitting; everyone forgets the babysitting. Step 3, quality delta: pick the metric that matters (defect rate? rework rate? customer complaints?) and measure it the same way for assisted and unassisted work — a 60-hour saving with double the defect rate is not a saving. Step 4, adoption: what fraction of the team actually used it by week 4, and what did the non-adopters say? An unused agent saves nothing. Step 5, counter-metrics: two numbers that would embarrass the headline (tasks quietly reverted; escalations the agent caused) — measure them. Step 6, the report: one page for leadership with the net (savings minus all costs), the quality delta, adoption, and the counter-metrics — numbers you'd defend in a budget review. Label every assumption; the estimation is only as honest as its inputs.\n\nReference docs for this module:\n- [Microsoft Learn](https://learn.microsoft.com/en-us/training/) — Free official training across the Microsoft AI platform.\n- [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides; the anchor for model-calling patterns.",
      "code": "",
      "lang": ""
@@ -3230,6 +4738,14 @@
     {
      "front": "How do you report to leadership?",
      "back": "Baselines, deltas, costs, and the expand-or-stop recommendation — honest numbers, not vanity."
+    },
+    {
+     "front": "What is the one-page net for leadership?",
+     "back": "Savings minus all costs, quality delta, adoption, and counter-metrics — numbers, not vanity."
+    },
+    {
+     "front": "Why track adoption, not just pilot fans?",
+     "back": "Weekly active use separates real workflow integration from a pilot's enthusiasts."
     }
    ],
    "quiz": [
@@ -3239,7 +4755,7 @@
       "Estimates",
       "Observed before/after with a real baseline",
       "Surveys",
-      "Hopes"
+      "Engineer estimates"
      ],
      "answer": 1,
      "explain": "Measured, not self-reported. See the Worked estimation."
@@ -3247,9 +4763,9 @@
     {
      "q": "Counter-metrics catch:",
      "choices": [
-      "Wins",
+      "Success stories",
       "What got worse — review burden, escalations, atrophy signals",
-      "Nothing",
+      "No counter-metrics",
       "Costs"
      ],
      "answer": 1,
@@ -3271,11 +4787,55 @@
      "choices": [
       "Vanity",
       "Baselines, deltas, costs, expand-or-stop recommendation",
-      "Slides",
-      "Hopes"
+      "A slide deck",
+      "Optimistic projections"
      ],
      "answer": 1,
      "explain": "Honest numbers fund the next bet. See the Worked estimation."
+    },
+    {
+     "q": "Honest time-saved measurement needs:",
+     "choices": [
+      "Engineer estimates",
+      "Observed before/after with a real baseline",
+      "Surveys",
+      "Self-reports"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: time-saved measurement done honestly — observed, with a real baseline."
+    },
+    {
+     "q": "Adoption metrics track:",
+     "choices": [
+      "Pilot signups",
+      "Who actually uses it weekly — real workflow integration",
+      "Demo attendees",
+      "Licenses bought"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: adoption metrics."
+    },
+    {
+     "q": "Why express cost per assisted task?",
+     "choices": [
+      "For accounting",
+      "It is the unit economics — tokens, infra, support per completed task",
+      "For pricing",
+      "For compliance"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: cost per assisted task."
+    },
+    {
+     "q": "The one-page net for leadership shows:",
+     "choices": [
+      "Vanity metrics",
+      "Savings minus all costs, quality delta, adoption, counter-metrics",
+      "A roadmap",
+      "Headcount"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: reporting to leadership."
     }
    ]
   },
@@ -3298,7 +4858,7 @@
      "body": "- **Designing an agent system on a whiteboard** — Scope first: task, users, success criteria, constraints — then the loop, tools, memory, and evals.\n- **Scoping the loop** — Defining the perceive-reason-act cycle: triggers, steps, terminal states, and the off-switch — before any component detail.\n- **Tool contracts** — Typed schemas per tool with least-privilege rationale — and what happens when a tool fails.\n- **Memory design** — Scope first: task, users, success criteria, constraints — then the loop, tools, memory, and evals.\n- **Eval strategy** — Golden task set, trajectory dimensions, regression plan — measurement designed alongside the system.\n- **Trade-off narration** — stating each design choice's cost aloud before being asked: what you gain, what you pay, and what breaks if you're wrong."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nEstimate the system you'd whiteboard — bring numbers, not just boxes. Suppose the brief: a research assistant over 10,000 internal docs, 200 questions a day (illustrative — use the interview's numbers). Step 1, retrieval budget: if each question fans out to 20 candidate chunks and reranks to 5, that's 25 embedding operations per question × 200 = 5,000 embeddings a day — price them (verify current pricing as of October 2026). Step 2, generation cost: 5 chunks at roughly 500 tokens of context plus instructions is about 3,500 input tokens per question; × 200 questions = 700K input tokens a day. Step 3, latency: retrieval (~1s) + rerank (~1s) + generation (~5–10s) ≈ under 15 seconds per question if nothing queues — write your SLA next to it and see whether it fits. Step 4, eval budget: a 100-question golden set with human-verified answers and citations — 8–17 hours of expert time to build; price it and put it on the plan before the architecture diagram. Step 5, trade-off narration: for each choice (hybrid vs vector-only retrieval, citations vs no citations, the escalation threshold), write the one-line cost of being wrong. The output is the estimation page you'd bring to the whiteboard — numbers first, boxes second.\n\nReference docs for this module:\n- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/) — Stateful agent graphs: loops, memory, and human-in-the-loop.\n- [OpenAI: Function Calling Guide](https://platform.openai.com/docs/guides/function-calling) — The tool-use pattern every agent framework wraps.",
      "code": "",
      "lang": ""
@@ -3336,6 +4896,14 @@
     {
      "front": "How do you narrate tradeoffs?",
      "back": "Name each decision’s cost: latency vs quality, autonomy vs safety, build vs buy — before the interviewer asks."
+    },
+    {
+     "front": "What is the first thing to say in an agent system design interview?",
+     "back": "Scope: task, users, success criteria, constraints — before the loop, tools, memory, or evals."
+    },
+    {
+     "front": "How do you present tool contracts in a design interview?",
+     "back": "Typed schemas with least-privilege rationale and failure handling per tool — not just a list of names."
     }
    ],
    "quiz": [
@@ -3344,7 +4912,7 @@
      "choices": [
       "The model name",
       "Scope: task, users, success criteria, constraints",
-      "The UI",
+      "The tech stack",
       "The price"
      ],
      "answer": 1,
@@ -3355,8 +4923,8 @@
      "choices": [
       "A list",
       "Typed schemas with least-privilege rationale and failure handling",
-      "Secrets",
-      "Hopes"
+      "A wiki page",
+      "Vendor docs"
      ],
      "answer": 1,
      "explain": "Contracts plus the safety reasoning. See the Worked estimation."
@@ -3364,10 +4932,10 @@
     {
      "q": "The eval strategy covers:",
      "choices": [
-      "Nothing",
+      "No eval plan",
       "Golden tasks, trajectory dimensions, regression plan",
-      "Benchmarks",
-      "Vibes"
+      "Public benchmarks",
+      "Gut feel"
      ],
      "answer": 1,
      "explain": "Measurement designed with the system. See the Worked estimation."
@@ -3378,10 +4946,54 @@
       "At the end",
       "Before the interviewer asks — each decision’s cost stated",
       "Never",
-      "Vaguely"
+      "Only if asked"
      ],
      "answer": 1,
      "explain": "Proactive tradeoff narration is the seniority signal. See the Worked estimation."
+    },
+    {
+     "q": "When scoping the loop, define:",
+     "choices": [
+      "The model vendor",
+      "Triggers, steps, terminal states, and the off-switch",
+      "The tech stack",
+      "The price"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: scoping the loop — triggers, steps, terminal states, off-switch before anything else."
+    },
+    {
+     "q": "How do you show trade-off awareness in the interview?",
+     "choices": [
+      "List technologies",
+      "State each decision's cost before being asked",
+      "Wait for probes",
+      "Show a diagram"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: trade-off narration."
+    },
+    {
+     "q": "Scoping the loop means defining:",
+     "choices": [
+      "The model provider",
+      "Triggers, steps, terminal states, and the off-switch",
+      "The UI framework",
+      "The timeline"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: scoping the loop."
+    },
+    {
+     "q": "Memory design in the interview should cover:",
+     "choices": [
+      "Infinite memory",
+      "What is stored, where, for how long — scoped to the task",
+      "No memory needed",
+      "Vendor defaults"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: memory design — scoped to task, users, constraints."
     }
    ]
   },
@@ -3404,7 +5016,7 @@
      "body": "- **Transformers at interview depth** — Attention intuition, the residual stream, and why scale helped — reasoning tools, not paper recitation.\n- **Attention intuition** — Attention intuition, the residual stream, and why scale helped — reasoning tools, not paper recitation.\n- **Training vs inference** — Training: massive parallel forward-backward, huge batches. Inference: autoregressive, memory-bound, KV-cached — different economics entirely.\n- **Fine-tuning vs RAG decisions** — Changing knowledge or citations → retrieve; behavior/style shaping → tune; both when grounded fluency is needed.\n- **Context limits** — Finite attention quality and KV-cache memory — long context is an inference-economics decision, not a free upgrade.\n- **Cost/latency trade-offs** — Tokens × price, batching vs p95, model size vs quality bar — the arithmetic interviewers expect on demand."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nBuild interview-depth intuition with numbers, not papers. Attention intuition: attention compares every token pair in the sequence — work out what n=4,000 tokens means in pairwise operations (16 million — now you feel why long context is expensive). Training vs inference: training pays once to learn the weights; inference pays per token, forever — estimate which dominates for a model serving a million requests a day (illustrative: if training cost T and each request costs r, inference passes training at T/r requests — do the division with numbers you verify as of October 2026). Fine-tune vs RAG: fine-tuning costs data curation plus training plus the risk of stale knowledge; RAG costs retrieval infra plus per-query context tokens — write the breakeven in terms of how often the knowledge changes. Context limits: a 200K-token window sounds infinite until your agent's loop fills it with tool outputs — budget a 30-step run at roughly 3K tokens per step and watch 90K vanish. Cost and latency: longer outputs cost more and take longer — linear intuition you can do on the whiteboard. The output is your one-page 'numbers I can derive live' sheet — no memorized specs, only reasoning you can reproduce under pressure.\n\nReference docs for this module:\n- [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.\n- [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference, tool use, and prompt-engineering guidance.",
      "code": "",
      "lang": ""
@@ -3442,6 +5054,14 @@
     {
      "front": "How do you reason about cost/latency tradeoffs?",
      "back": "Tokens × price, batching vs p95, model size vs quality bar — the arithmetic interviewers expect on demand."
+    },
+    {
+     "front": "When do you fine-tune vs use RAG?",
+     "back": "Changing knowledge or needing citations → retrieve; shaping behavior/style → tune; both when grounded generation needs a consistent voice."
+    },
+    {
+     "front": "Why is inference memory-bound while training is parallel?",
+     "back": "Inference decodes autoregressively one token at a time (KV-cache bound); training runs massive parallel forward-backward passes."
     }
    ],
    "quiz": [
@@ -3483,11 +5103,55 @@
      "choices": [
       "Marketing",
       "Attention quality and KV-cache memory — an economics decision",
-      "Nothing",
+      "No real constraint",
       "Speed only"
      ],
      "answer": 1,
      "explain": "Long context has real costs; budget it. See the Worked estimation."
+    },
+    {
+     "q": "Training differs from inference because:",
+     "choices": [
+      "It is slower",
+      "Training is massively parallel; inference is autoregressive and memory-bound",
+      "It uses more data",
+      "It is cheaper"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: training vs inference."
+    },
+    {
+     "q": "Attention intuition at interview depth means:",
+     "choices": [
+      "Reciting the paper",
+      "Reasoning tools about how attention routes information — not recitation",
+      "Drawing diagrams",
+      "Knowing the math"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: attention intuition."
+    },
+    {
+     "q": "Why can't you just use the maximum context window?",
+     "choices": [
+      "You can",
+      "KV-cache memory and attention quality make it an economics decision",
+      "It adds latency",
+      "It costs nothing extra"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: context limits."
+    },
+    {
+     "q": "The cost/latency arithmetic interviewers expect:",
+     "choices": [
+      "Model size only",
+      "Tokens × price, batching vs p95, model size vs quality bar",
+      "Training cost",
+      "Hardware specs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: cost/latency trade-offs — the arithmetic interviewers expect."
     }
    ]
   },
@@ -3548,16 +5212,24 @@
     {
      "front": "What is code-review narration?",
      "back": "Talking through your agent code as you write: decisions, tradeoffs, failure handling — the interview performance layer."
+    },
+    {
+     "front": "What is a tool-use parser?",
+     "back": "Taking raw model text, extracting the Action JSON, validating, dispatching — the mechanical heart of every agent loop."
+    },
+    {
+     "front": "How do you debug a failing trajectory?",
+     "back": "Read the trace: where did thought diverge from observation? Bad tool? Bad parse? Missing stop?"
     }
    ],
    "quiz": [
     {
      "q": "Build loops from scratch for:",
      "choices": [
-      "Fun",
+      "For practice",
       "Muscle memory writable under the clock",
       "Interviews only",
-      "Habit"
+      "For confidence"
      ],
      "answer": 1,
      "explain": "Reps, not reading — the pattern must be producible. See Concepts."
@@ -3565,7 +5237,7 @@
     {
      "q": "Debug trajectories by:",
      "choices": [
-      "Guessing",
+      "Rerunning blindly",
       "Reading the trace: divergence point, bad tool, bad parse, missing stop",
       "Restarting",
       "Bigger model"
@@ -3576,10 +5248,10 @@
     {
      "q": "Timed practice builds:",
      "choices": [
-      "Anxiety",
+      "Nervous energy",
       "Clock-ready production of the pattern",
       "Speed only",
-      "Nothing"
+      "No real benefit"
      ],
      "answer": 1,
      "explain": "Interviews are clocked; practice like it. See Concepts."
@@ -3587,13 +5259,57 @@
     {
      "q": "Narrate code reviews to show:",
      "choices": [
-      "Speed",
+      "Fast typing",
       "Decisions, tradeoffs, failure handling — ownership live",
-      "Memory",
+      "Recall",
       "Typing"
      ],
      "answer": 1,
      "explain": "The performance layer of the coding round. See Concepts."
+    },
+    {
+     "q": "Multi-step task drills practice:",
+     "choices": [
+      "Throughput",
+      "State management across the trajectory — each step's output feeds the next",
+      "Memorization",
+      "Code style"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: multi-step task drills."
+    },
+    {
+     "q": "The first thing to check in a failing trajectory is:",
+     "choices": [
+      "The model size",
+      "Where thought diverged from observation",
+      "The prompt length",
+      "The temperature"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: debugging failing trajectories."
+    },
+    {
+     "q": "Timed practice is necessary because:",
+     "choices": [
+      "Interviews are fun",
+      "Interviews are clocked — the loop must be producible under pressure",
+      "It builds speed",
+      "It builds stamina"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: timed practice."
+    },
+    {
+     "q": "Code-review narration demonstrates:",
+     "choices": [
+      "Typing speed",
+      "Ownership live — decisions, tradeoffs, failure handling",
+      "Recall",
+      "Poise"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: code-review narration."
     }
    ]
   },
@@ -3654,16 +5370,24 @@
     {
      "front": "How do you calibrate seniority signals?",
      "back": "Scope of ownership, ambiguity handled, and systems thinking — match stories to the level’s expectations."
+    },
+    {
+     "front": "What do safety/ethics interview questions want?",
+     "back": "Real tradeoffs you have weighed — refusal design, evaluation limits — not slogans."
+    },
+    {
+     "front": "How do you calibrate seniority signals?",
+     "back": "Match stories to the level: scope of ownership, ambiguity handled, systems thinking."
     }
    ],
    "quiz": [
     {
      "q": "STAR stories need:",
      "choices": [
-      "Length",
+      "More detail",
       "Tight structure with your actual role and learning explicit",
-      "Jargon",
-      "Humblebrag"
+      "Buzzwords",
+      "Self-promotion"
      ],
      "answer": 1,
      "explain": "Tight, honest, role-clear. See Concepts."
@@ -3671,10 +5395,10 @@
     {
      "q": "Discuss failures by:",
      "choices": [
-      "Hiding them",
+      "Omitting them",
       "Owning what broke, why, and what changed",
-      "Blaming",
-      "Minimizing"
+      "Blaming others",
+      "Downplaying impact"
      ],
      "answer": 1,
      "explain": "Owned misses with learning build trust. See Concepts."
@@ -3682,10 +5406,10 @@
     {
      "q": "Safety questions want:",
      "choices": [
-      "Slogans",
+      "Talking points",
       "Real tradeoffs you have weighed",
-      "Deflection",
-      "Perfection"
+      "Changing the subject",
+      "Claiming perfection"
      ],
      "answer": 1,
      "explain": "Evidence of genuine safety thinking. See Concepts."
@@ -3693,13 +5417,57 @@
     {
      "q": "Ask interviewers about:",
      "choices": [
-      "Salary first",
+      "Compensation first",
       "Eval culture, guardrail philosophy, failure handling",
-      "Nothing",
-      "Perks"
+      "No questions",
+      "Office perks"
      ],
      "answer": 1,
      "explain": "Questions signaling production thinking. See Concepts."
+    },
+    {
+     "q": "Calibrating seniority signals means:",
+     "choices": [
+      "Claiming senior scope",
+      "Matching stories' scope and ownership to the level",
+      "Using big titles",
+      "Name-dropping"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: calibrating seniority signals."
+    },
+    {
+     "q": "Collaboration stories should show:",
+     "choices": [
+      "Winning arguments",
+      "Disagreement resolved, cross-functional delivery, mentoring",
+      "Working alone",
+      "Managing up only"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: collaboration stories."
+    },
+    {
+     "q": "A good ambiguity story shows:",
+     "choices": [
+      "Waiting for direction",
+      "Creating structure with no map and moving forward",
+      "Avoiding risk",
+      "Delegating"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: STAR stories about AI systems — ambiguity handled."
+    },
+    {
+     "q": "Questions that signal seniority to interviewers ask about:",
+     "choices": [
+      "Benefits",
+      "Eval culture, guardrail philosophy, failure handling",
+      "Salary",
+      "Hours"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: questions to ask interviewers."
     }
    ]
   },
@@ -3760,6 +5528,14 @@
     {
      "front": "What are pacing and stamina?",
      "back": "Energy management across a full loop: where to spend time, when to move on — practiced, not hoped for."
+    },
+    {
+     "front": "What is the within-24-hours discipline?",
+     "back": "Turning mock misses into fixes within a day — mocks without iteration are anxiety practice."
+    },
+    {
+     "front": "What does the full-loop mock test beyond skills?",
+     "back": "Stamina — design, code, behavioral back-to-back under realistic conditions."
     }
    ],
    "quiz": [
@@ -3768,8 +5544,8 @@
      "choices": [
       "One skill",
       "Design, code, behavioral — plus stamina",
-      "Luck",
-      "Memory"
+      "Natural talent",
+      "Memorization"
      ],
      "answer": 1,
      "explain": "Realistic conditions, back-to-back. See Concepts."
@@ -3777,10 +5553,10 @@
     {
      "q": "Integrate feedback because:",
      "choices": [
-      "Ritual",
+      "A checkbox exercise",
       "Mocks without iteration are anxiety practice",
-      "Coaches say so",
-      "Fun"
+      "A coach assigned it",
+      "For fun"
      ],
      "answer": 1,
      "explain": "Each round must change the next. See Concepts."
@@ -3790,8 +5566,8 @@
      "choices": [
       "Irrelevant",
       "Energy management across the loop — practiced",
-      "Speed",
-      "Luck"
+      "Raw speed",
+      "Natural talent"
      ],
      "answer": 1,
      "explain": "Where to spend time, when to move on. See Concepts."
@@ -3799,13 +5575,57 @@
     {
      "q": "Mock the design round:",
      "choices": [
-      "Without timer",
+      "Untimed",
       "Whiteboard with timer, narrated throughout",
-      "Silently",
-      "Once"
+      "Without narration",
+      "A single run"
      ],
      "answer": 1,
      "explain": "Realistic pressure builds real skill. See Concepts."
+    },
+    {
+     "q": "The system-design mock should be:",
+     "choices": [
+      "Untimed",
+      "Whiteboard with timer, narrated throughout",
+      "Silent",
+      "Take-home"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: system design mock."
+    },
+    {
+     "q": "The coding mock tests:",
+     "choices": [
+      "Q&A",
+      "Clock-ready production of the loop pattern",
+      "Speed typing",
+      "Recall"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: coding mock."
+    },
+    {
+     "q": "The behavioral mock is scored on:",
+     "choices": [
+      "Likability",
+      "Tight STAR with explicit role and real learning",
+      "Detail",
+      "Humor"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: behavioral mock."
+    },
+    {
+     "q": "Between mocks, you must:",
+     "choices": [
+      "Rest",
+      "Integrate feedback — each mock changes the next",
+      "Do more mocks",
+      "Forget"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: feedback integration."
     }
    ]
   },
@@ -3866,16 +5686,24 @@
     {
      "front": "How do you talk through your code?",
      "back": "Narrate decisions and tradeoffs without notes — ownership demonstrated live."
+    },
+    {
+     "front": "What makes a README evidence?",
+     "back": "Setup that works for a stranger, evals reproducible, limits stated — the README is the interview before the interview."
+    },
+    {
+     "front": "What does talking through code demonstrate?",
+     "back": "Ownership live — narrate decisions and tradeoffs without notes."
     }
    ],
    "quiz": [
     {
      "q": "Choose portfolio pieces for:",
      "choices": [
-      "Quantity",
+      "Project count",
       "Depth — two strong projects beat six tutorials",
       "Variety only",
-      "Speed"
+      "Build speed"
      ],
      "answer": 1,
      "explain": "Each showing a different skill, deeply. See Concepts."
@@ -3883,10 +5711,10 @@
     {
      "q": "READMEs should let:",
      "choices": [
-      "You brag",
+      "Self-promotion",
       "A stranger run it and reproduce evals",
-      "Nobody in",
-      "Vendors sell"
+      "Gatekeeping",
+      "Marketing copy"
      ],
      "answer": 1,
      "explain": "The interview before the interview. See Concepts."
@@ -3894,10 +5722,10 @@
     {
      "q": "Demo videos prove:",
      "choices": [
-      "Editing skill",
+      "Production value",
       "The thing runs — two minutes beats a page of claims",
-      "Charisma",
-      "Nothing"
+      "On-camera presence",
+      "No real signal"
      ],
      "answer": 1,
      "explain": "Working software, visible. See Concepts."
@@ -3905,13 +5733,57 @@
     {
      "q": "GitHub hygiene means:",
      "choices": [
-      "Many repos",
+      "Repo count",
       "Clean history, no secrets, pinned deps, CI green",
-      "Stars",
-      "Forks"
+      "Star count",
+      "Fork count"
      ],
      "answer": 1,
      "explain": "The repo a hiring manager opens. See Concepts."
+    },
+    {
+     "q": "A strong agent project write-up includes:",
+     "choices": [
+      "Adjectives",
+      "Problem, design, eval numbers, failure catalog, limits",
+      "Code dumps",
+      "Architecture diagrams"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: agent project write-ups — evidence, not adjectives."
+    },
+    {
+     "q": "Why do demo videos beat pages of claims?",
+     "choices": [
+      "They are fun",
+      "They prove the thing runs",
+      "They show charisma",
+      "They are short"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: demo videos."
+    },
+    {
+     "q": "Pinned dependencies in a portfolio repo show:",
+     "choices": [
+      "Caution",
+      "Reproducibility — the project builds the same way later",
+      "Fear",
+      "Discipline"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: GitHub hygiene — pinned deps."
+    },
+    {
+     "q": "Talking through code without notes demonstrates:",
+     "choices": [
+      "Recall",
+      "Ownership",
+      "Poise",
+      "Preparation"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: talking through code."
     }
    ]
   },
@@ -3972,16 +5844,24 @@
     {
      "front": "When is low-code enough?",
      "back": "Workflow fits the connectors, customization ceiling is above the need, speed beats control — the honest fit test."
+    },
+    {
+     "front": "What is the low-code platform vocabulary (topics, actions, connectors)?",
+     "back": "Topics are conversation paths, actions are tool calls, connectors link apps — the platform's building blocks."
+    },
+    {
+     "front": "When is low-code enough?",
+     "back": "The workflow fits the connectors, the customization ceiling is above the need, and speed beats control."
     }
    ],
    "quiz": [
     {
      "q": "The platform handles:",
      "choices": [
-      "Everything",
+      "The whole stack",
       "Hosting, model access, auth scaffolding, monitoring basics",
-      "Nothing",
-      "Strategy"
+      "No infrastructure",
+      "Product strategy"
      ],
      "answer": 1,
      "explain": "Undifferentiated plumbing — you own the workflow. See Concepts."
@@ -3989,9 +5869,9 @@
     {
      "q": "Choose a platform by:",
      "choices": [
-      "Feature bingo",
+      "Feature checklists",
       "Connector fit, residency, governance, exit options",
-      "Ads",
+      "Analyst reports",
       "Price only"
      ],
      "answer": 1,
@@ -4003,7 +5883,7 @@
       "Always",
       "The workflow fits connectors and the ceiling is above the need",
       "Never",
-      "For demos"
+      "For prototypes only"
      ],
      "answer": 1,
      "explain": "The honest fit test, before building. See Concepts."
@@ -4011,13 +5891,57 @@
     {
      "q": "Pricing intuition needs:",
      "choices": [
-      "The trial",
+      "The free tier",
       "Per-run/seat/volume math at real usage",
-      "Guesses",
-      "Hope"
+      "Rough estimates",
+      "Vendor quotes"
      ],
      "answer": 1,
      "explain": "The bill at scale, not the trial. See Concepts."
+    },
+    {
+     "q": "Copilot Studio topics are:",
+     "choices": [
+      "Documents",
+      "Conversation paths",
+      "Datasets",
+      "Users"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: Copilot Studio basics — topics (conversation paths)."
+    },
+    {
+     "q": "Copilot Studio actions are:",
+     "choices": [
+      "Reports",
+      "Tool calls",
+      "Chats",
+      "Forms"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: Copilot Studio basics — actions (tool calls)."
+    },
+    {
+     "q": "The low-code landscape offers:",
+     "choices": [
+      "Only chatbots",
+      "Visual builders, managed models, connectors",
+      "Free hosting",
+      "Unlimited scale"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: the low-code agent landscape."
+    },
+    {
+     "q": "When choosing a platform, score:",
+     "choices": [
+      "Hype",
+      "The workflow's fit to the platform's strengths",
+      "Price only",
+      "Popularity"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: choosing a platform."
     }
    ]
   },
@@ -4078,16 +6002,24 @@
     {
      "front": "Why share flows?",
      "back": "Reuse and review: shared flows get more eyes, better patterns, and fewer reinventions."
+    },
+    {
+     "front": "How do you test a prompt flow?",
+     "back": "Like software: fixed inputs, expected outputs, pass/fail logs — because untested flows fail in front of users."
+    },
+    {
+     "front": "What is the one-change rule for prompt iteration?",
+     "back": "Change one prompt at a time, re-run the test set, keep the version that scores better."
     }
    ],
    "quiz": [
     {
      "q": "Chain steps with:",
      "choices": [
-      "Cleverness",
+      "Prompt tricks",
       "One job and typed I/O per step — composability",
-      "Hope",
-      "Length"
+      "Trial and error",
+      "Longer chains"
      ],
      "answer": 1,
      "explain": "Simple composable steps beat clever ones. See Concepts."
@@ -4095,10 +6027,10 @@
     {
      "q": "Test flows like:",
      "choices": [
-      "Demos",
+      "Click-throughs",
       "Software: fixed inputs, expected outputs, regression",
       "Never",
-      "Once"
+      "A single pass"
      ],
      "answer": 1,
      "explain": "Flows are code; test them as code. See Concepts."
@@ -4106,10 +6038,10 @@
     {
      "q": "Iterate prompts by:",
      "choices": [
-      "Changing everything",
+      "Rewriting all prompts",
       "One change, re-run tests, keep what wins",
-      "Guessing",
-      "Copying"
+      "Intuition",
+      "Copying examples"
      ],
      "answer": 1,
      "explain": "The same discipline as any prompt engineering. See Concepts."
@@ -4119,11 +6051,55 @@
      "choices": [
       "Decoration",
       "Routing logic — different paths for different inputs",
-      "Speed",
-      "Nothing"
+      "Faster runs",
+      "No real purpose"
      ],
      "answer": 1,
      "explain": "The control flow of visual builders. See Concepts."
+    },
+    {
+     "q": "Variables in prompt flows:",
+     "choices": [
+      "Add latency",
+      "Feed one prompt's output into the next",
+      "Are optional",
+      "Replace prompts"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: chaining steps — variables."
+    },
+    {
+     "q": "Sharing flows with a colleague tests:",
+     "choices": [
+      "Popularity",
+      "UX — their confusion is feedback no self-review gives",
+      "Efficiency",
+      "Correctness"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: sharing flows."
+    },
+    {
+     "q": "Building prompt flows visually gives:",
+     "choices": [
+      "Development speed",
+      "A pipeline you can see — steps, variables, branching",
+      "Better prompts",
+      "Free hosting"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: building prompt flows visually."
+    },
+    {
+     "q": "Untested flows fail:",
+     "choices": [
+      "Rarely",
+      "In front of users",
+      "Quietly",
+      "Never"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: testing flows."
     }
    ]
   },
@@ -4184,13 +6160,21 @@
     {
      "front": "What does monitoring runs show?",
      "back": "Success rates, durations, error classes — the signal that a flow is failing quietly."
+    },
+    {
+     "front": "Why does the agent's identity matter?",
+     "back": "Service principal vs user changes what the agent can touch and who is accountable — know what identity it acts as."
+    },
+    {
+     "front": "What should users see when a connector fails?",
+     "back": "A designed error experience: revoked credentials, renamed columns, throttled APIs — not a stack trace."
     }
    ],
    "quiz": [
     {
      "q": "Connectors provide:",
      "choices": [
-      "Magic",
+      "Turnkey automation",
       "Managed integrations — auth and API plumbing handled",
       "Data",
       "Models"
@@ -4201,9 +6185,9 @@
     {
      "q": "Scope data access to:",
      "choices": [
-      "Everything",
+      "Full data access",
       "The minimum the workflow needs — least privilege",
-      "Nothing",
+      "No data access",
       "All tables"
      ],
      "answer": 1,
@@ -4223,13 +6207,57 @@
     {
      "q": "Monitor runs for:",
      "choices": [
-      "Fun",
+      "Curiosity",
       "Success rates, durations, error classes — quiet failures surface here",
       "Billing",
-      "Nothing"
+      "No monitoring needed"
      ],
      "answer": 1,
      "explain": "The signal for flows failing quietly. See Concepts."
+    },
+    {
+     "q": "Triggers give agents:",
+     "choices": [
+      "Reliability",
+      "On-ramps — event-driven starts and timed runs",
+      "Data",
+      "Models"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: triggers and schedules."
+    },
+    {
+     "q": "OAuth flows and service principals matter because:",
+     "choices": [
+      "They are fast",
+      "You must know what identity the agent acts as",
+      "They are cheap",
+      "Compliance"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: authentication basics."
+    },
+    {
+     "q": "Least privilege in connector form means:",
+     "choices": [
+      "Full access",
+      "Limiting which records and fields the agent can touch",
+      "No access",
+      "Read-only"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: data access scoping."
+    },
+    {
+     "q": "Connector error handling designs:",
+     "choices": [
+      "Stack traces",
+      "What the user sees — revoked credentials, renamed columns, throttled APIs",
+      "Retries",
+      "Alerts"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: error handling."
     }
    ]
   },
@@ -4290,16 +6318,24 @@
     {
      "front": "What makes the write-up convincing?",
      "back": "The workflow before/after, user quotes, and the metrics — proof low-code is a delivery vehicle."
+    },
+    {
+     "front": "How do you gather actionable feedback?",
+     "back": "Structured: what worked, what failed, what was missing — feedback you can act on."
+    },
+    {
+     "front": "What proves delivery, not a toy?",
+     "back": "Before/after, user evidence, metrics — the delivery note honest enough to hand to the team."
     }
    ],
    "quiz": [
     {
      "q": "Pick a workflow that is:",
      "choices": [
-      "Trivial",
+      "A toy workflow",
       "Real, frequent, ownable — testable with actual users",
-      "Impressive",
-      "Secret"
+      "A flashy demo",
+      "An undocumented workflow"
      ],
      "answer": 1,
      "explain": "Real usage is the only proof. See Concepts."
@@ -4307,10 +6343,10 @@
     {
      "q": "Test with real users to:",
      "choices": [
-      "Impress",
+      "Demo to leadership",
       "Watch actual usage and collect actionable feedback",
-      "Launch",
-      "Charge"
+      "Ship immediately",
+      "Monetize"
      ],
      "answer": 1,
      "explain": "The lab where low-code stops feeling like a demo. See Concepts."
@@ -4321,7 +6357,7 @@
       "Full access",
       "Scoped connectors, minimum access, verified on real data",
       "No checks",
-      "Hope"
+      "Default settings"
      ],
      "answer": 1,
      "explain": "Verified, minimal, real. See Concepts."
@@ -4329,13 +6365,57 @@
     {
      "q": "The write-up proves:",
      "choices": [
-      "Effort",
+      "Hours spent",
       "Before/after, user evidence, metrics — delivery, not toy",
-      "Skill",
-      "Speed"
+      "Technical skill",
+      "Delivery speed"
      ],
      "answer": 1,
      "explain": "Low-code as a delivery vehicle. See Concepts."
+    },
+    {
+     "q": "Build the agent by:",
+     "choices": [
+      "Demoing",
+      "Wiring flows, prompts, connectors to the real workflow — configured, not demoed",
+      "Prototyping",
+      "Documenting"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: build the agent."
+    },
+    {
+     "q": "Verify connectors against:",
+     "choices": [
+      "Documentation",
+      "Real data",
+      "Sandboxes",
+      "Specs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: connect data sources — verified against real data."
+    },
+    {
+     "q": "Ownable means:",
+     "choices": [
+      "Yours",
+      "A workflow you can test with actual users",
+      "Simple",
+      "Documented"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: pick a real workflow — ownable."
+    },
+    {
+     "q": "The delivery note must be:",
+     "choices": [
+      "Brief",
+      "Honest enough to hand to the team",
+      "Polished",
+      "Long"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: project write-up."
     }
    ]
   },
@@ -4396,16 +6476,24 @@
     {
      "front": "What goes in handoff documentation?",
      "back": "What it does, how it is configured, how to debug it, who owns it — the agent’s afterlife plan."
+    },
+    {
+     "front": "Why save v1 before the first change?",
+     "back": "So 'deploy' never means 'no way back' — versioning gives rollback and change history for flows and prompts."
+    },
+    {
+     "front": "What is the agent's afterlife plan?",
+     "back": "Handoff docs: what it does, how it is configured, how to debug it, who owns it."
     }
    ],
    "quiz": [
     {
      "q": "Publishing involves:",
      "choices": [
-      "A button",
+      "One click",
       "Environment promotion, config, smoke tests",
-      "Hope",
-      "Email"
+      "Manual checks",
+      "A Slack message"
      ],
      "answer": 1,
      "explain": "The release ritual, low-code edition. See Concepts."
@@ -4413,10 +6501,10 @@
     {
      "q": "Set sharing/permissions:",
      "choices": [
-      "Openly",
+      "Open to all",
       "Deliberately: who uses, who edits, what data it touches",
       "Never",
-      "Randomly"
+      "Ad-hoc"
      ],
      "answer": 1,
      "explain": "The access model, designed not defaulted. See Concepts."
@@ -4424,10 +6512,10 @@
     {
      "q": "Versioning gives:",
      "choices": [
-      "Clutter",
+      "Extra history",
       "Rollback and change history for flows and prompts",
-      "Speed",
-      "Nothing"
+      "Faster deploys",
+      "No real benefit"
      ],
      "answer": 1,
      "explain": "The safety net for iteration. See Concepts."
@@ -4435,13 +6523,57 @@
     {
      "q": "Handoff docs cover:",
      "choices": [
-      "Nothing",
+      "No docs needed",
       "What it does, config, debugging, ownership",
-      "Code",
-      "Hopes"
+      "The flow export",
+      "Tribal knowledge"
      ],
      "answer": 1,
      "explain": "The agent’s afterlife plan. See Concepts."
+    },
+    {
+     "q": "Usage monitoring tracks:",
+     "choices": [
+      "Vanity",
+      "Runs, users, errors, cost — the operational picture",
+      "Uptime",
+      "Logins"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: usage monitoring."
+    },
+    {
+     "q": "Feedback loops turn user corrections into:",
+     "choices": [
+      "Complaints",
+      "The improvement backlog",
+      "Tickets",
+      "Churn"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: feedback loops."
+    },
+    {
+     "q": "Environment promotion means:",
+     "choices": [
+      "Marketing",
+      "Workspace to shared — with config and smoke tests",
+      "Scaling",
+      "Backups"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: publishing an agent."
+    },
+    {
+     "q": "The access model must be:",
+     "choices": [
+      "Open",
+      "Set deliberately — who uses, edits, what data it touches",
+      "Restrictive",
+      "Simple"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: sharing and permissions."
     }
    ]
   },
@@ -4464,7 +6596,7 @@
      "body": "- **The customization ceiling** — The point where the platform cannot express what you need — the most important thing to know before building.\n- **Escaping to pro-code** — Custom connectors, API fallbacks, or full rebuilds — with your logic and data portable, planned from day one.\n- **Vendor lock-in awareness** — Knowing your switching costs: proprietary formats, pricing power, migration effort — assessed upfront.\n- **Cost at scale** — Per-run pricing times real volume — the trial is cheap; the enterprise rollout is the real quote.\n- **Governance needs** — Data residency, audit, access reviews — the enterprise requirements low-code must still satisfy.\n- **Deciding when to graduate** — Ceiling hit, costs ballooning, or governance demands — the signals, watched deliberately."
     },
     {
-     "title": "Worked estimation",
+     "title": "Hands-on procedure",
      "body": "Before you trust the narrative, work the numbers. The example below is illustrative — every assumption is labeled so you can substitute your own.\n\nWork the ceiling math before you hit it. Customization ceiling: list 5 things your flow might need (a custom auth flow? complex state? sub-second latency? bulk operations? offline use?) and mark which the platform can't do — count the workarounds; each workaround is future tech debt with interest. Cost at scale: take your current usage (say 2,000 runs a month — illustrative) and project 10× — price both tiers from the pricing page (as of October 2026, verify it); low-code unit costs that look trivial at pilot scale often exceed pro-code hosting at 10×. Write the crossover point: at what monthly volume does rebuilding in code get cheaper? Lock-in: list everything that doesn't export cleanly (flow definitions? prompt versions? conversation history? connector configs?) and estimate the rebuild cost in weeks if you had to leave. Governance: who approves new flows, who reviews data access, where the audit log lives — price the process, not just the tool. The output is the graduation decision doc: stay, graduate, or hybrid — with the crossover volume and rebuild cost as the deciding numbers.\n\nReference docs for this module:\n- [Microsoft Copilot Studio Documentation](https://learn.microsoft.com/en-us/microsoft-copilot-studio/) — Low-code agents: topics, actions, connectors, and deployment.\n- [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/) — Projects, model catalog, and agent service references.",
      "code": "",
      "lang": ""
@@ -4502,16 +6634,24 @@
     {
      "front": "How do you decide when to graduate?",
      "back": "Ceiling hit, costs ballooning, or governance demands — the signals, watched deliberately."
+    },
+    {
+     "front": "What are the signals to graduate to pro-code?",
+     "back": "Ceiling hit, costs ballooning, or governance demands — watched deliberately, not discovered in crisis."
+    },
+    {
+     "front": "What is the most important thing to know before building on a platform?",
+     "back": "The customization ceiling — where the platform cannot express your need."
     }
    ],
    "quiz": [
     {
      "q": "The customization ceiling is:",
      "choices": [
-      "A myth",
+      "Rarely binding",
       "Where the platform cannot express your need — know it before building",
-      "High always",
-      "Low always"
+      "Higher than needed",
+      "Too low to use"
      ],
      "answer": 1,
      "explain": "The most important pre-build knowledge. See the Worked estimation."
@@ -4519,10 +6659,10 @@
     {
      "q": "Graduate to pro-code when:",
      "choices": [
-      "Bored",
+      "Curious",
       "Ceiling hit, costs balloon, governance demands",
       "Never",
-      "Vendors say"
+      "Sales suggests"
      ],
      "answer": 1,
      "explain": "Watch the signals deliberately. See the Worked estimation."
@@ -4530,10 +6670,10 @@
     {
      "q": "Lock-in awareness assesses:",
      "choices": [
-      "Nothing",
+      "No switching cost",
       "Switching costs: formats, pricing power, migration effort",
-      "Features",
-      "Speed"
+      "Feature parity",
+      "Migration speed"
      ],
      "answer": 1,
      "explain": "Upfront, not during the migration. See the Worked estimation."
@@ -4541,13 +6681,57 @@
     {
      "q": "Keep logic portable:",
      "choices": [
-      "Unnecessary",
+      "Premature",
       "From day one — exportable logic and owned data ease escape",
-      "Later",
+      "At migration time",
       "Never"
      ],
      "answer": 1,
      "explain": "Design the exit before you need it. See the Worked estimation."
+    },
+    {
+     "q": "Escaping to pro-code includes:",
+     "choices": [
+      "Quitting",
+      "Custom connectors, API fallbacks, or full rebuilds",
+      "Replatforming",
+      "Waiting"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: escaping to pro-code."
+    },
+    {
+     "q": "Cost at scale is:",
+     "choices": [
+      "The trial price",
+      "Per-run pricing times real volume",
+      "Free",
+      "Negotiable"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: cost at scale."
+    },
+    {
+     "q": "Governance needs for low-code include:",
+     "choices": [
+      "No special needs",
+      "Data residency, audit, access reviews",
+      "Performance",
+      "Integrations"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: governance needs."
+    },
+    {
+     "q": "Switching costs include:",
+     "choices": [
+      "Minimal effort",
+      "Proprietary formats, pricing power, migration effort",
+      "Training",
+      "Downtime"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts: vendor lock-in awareness."
     }
    ]
   }
@@ -4954,7 +7138,20 @@
    ]
   }
  ],
- "trainers": [],
+ "trainers": [
+  {
+   "brief": "Drill the validator's discipline: given a model-emitted tool call, decide VALID or REJECT — checking schema conformance, types, required fields, and known tool names. Streak and best score persist. Custom generator ships with course data.",
+   "id": "tool-call-trainer",
+   "kind": "custom",
+   "title": "Tool-call validation trainer"
+  },
+  {
+   "brief": "Given a trajectory excerpt, name the stopping condition that should fire — step budget, stall detection, terminal signal, or escalation. Streak and best score persist. Custom generator ships with course data.",
+   "id": "stopping-condition-trainer",
+   "kind": "custom",
+   "title": "Stopping-condition trainer"
+  }
+ ],
  "mockMinutes": 120,
  "mockTasks": [
   {
@@ -5382,5 +7579,83 @@
    "note": "Microsoft's certification portal: Azure AI Fundamentals (AI-901) and Azure AI Apps and Agents Developer Associate (AI-103); consult Microsoft Learn for current exam pages."
   }
  ],
- "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal."
+ "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal.",
+ "terminalSims": [
+  {
+   "brief": "Practice the ReAct agent-loop command set — run, step, trace, budget, stop — against a realistic canned sandbox. Exact command match first, then fuzzy 'did you mean' suggestions.",
+   "commands": [
+    {
+     "cmd": "agent --help",
+     "out": "Usage: agent <command> [options]\n\nCommands:\n  run     Start an agent run against a task\n  step    Advance one perceive-reason-act step\n  trace   Show the thought/action/observation trace\n  tools   List the tools available to this run\n  budget  Show step budget and token spend\n  stop    Stop the run with a reason code"
+    },
+    {
+     "cmd": "agent tools",
+     "out": "Available tools (read-only in this sandbox):\n  search_docs(query: string)      — semantic docs search\n  lookup_ticket(id: string)       — ticket record by id\n  summarize_text(text: string)    — extractive summary"
+    },
+    {
+     "cmd": "agent run --task \"summarize ticket 412\"",
+     "out": "Run r-1042 started. Step budget: 10. Tool-choice: auto.\n[step 1] thought: Need the ticket record first.\n[step 1] action: lookup_ticket({\"id\": \"412\"}) -> ok (42ms)"
+    },
+    {
+     "cmd": "agent step",
+     "out": "[step 2] thought: Have the ticket. Now summarize the thread.\n[step 2] action: summarize_text({\"text\": \"<ticket 412 thread>\"}) -> ok (310ms)"
+    },
+    {
+     "cmd": "agent trace",
+     "out": "r-1042 trace (2 steps):\n  1. thought -> lookup_ticket(id=412) -> observation: ticket record\n  2. thought -> summarize_text(thread) -> observation: 3-bullet summary\nNo stalls. Budget: 2/10 steps."
+    },
+    {
+     "cmd": "agent budget",
+     "out": "Run r-1042 budget:\n  steps: 2/10\n  tokens: 3,412 / 20,000 (instructions 512, history 900, tools 1,400, working 600)\n  est. cost: $0.021"
+    },
+    {
+     "cmd": "agent step",
+     "out": "[step 3] thought: Summary complete. Task done.\n[step 3] action: <terminal: task_complete> -> run finished."
+    },
+    {
+     "cmd": "agent stop --reason \"budget\"",
+     "out": "Run r-1042 stopped by operator. Reason: budget. Transcript saved to runs/r-1042.json."
+    }
+   ],
+   "id": "agent-loop-cli",
+   "prompt": "agent@il:~$",
+   "title": "Agent loop CLI simulator"
+  },
+  {
+   "brief": "Validate model-emitted tool calls against JSON schemas — valid calls, wrong types, unknown tools — the validator discipline from the Tool Use module.",
+   "commands": [
+    {
+     "cmd": "tools list",
+     "out": "Registered tools:\n  lookup_order(order_id: string!)   — read-only order lookup\n  search_docs(query: string!)      — semantic docs search"
+    },
+    {
+     "cmd": "tools schema lookup_order",
+     "out": "{\n  \"name\": \"lookup_order\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": { \"order_id\": { \"type\": \"string\" } },\n    \"required\": [\"order_id\"]\n  }\n}"
+    },
+    {
+     "cmd": "tools call lookup_order '{\"order_id\": \"A123\"}'",
+     "out": "VALID — dispatched.\nresult: {\"order_id\": \"A123\", \"status\": \"shipped\", \"total\": 84.20}\nlogged: tools.log#881"
+    },
+    {
+     "cmd": "tools call lookup_order '{\"order_id\": 412}'",
+     "out": "REJECTED — validation error:\n  field 'order_id': expected string, got number.\nStructured error returned to model; no retry (validation failures escalate)."
+    },
+    {
+     "cmd": "tools call lookup_orde '{\"order_id\": \"A123\"}'",
+     "out": "REJECTED — unknown tool 'lookup_orde'. Did you mean 'lookup_order'?\nStructured error returned to model."
+    },
+    {
+     "cmd": "tools call lookup_order '{}'",
+     "out": "REJECTED — validation error:\n  missing required field 'order_id'.\nStructured error returned to model."
+    },
+    {
+     "cmd": "tools log",
+     "out": "#881 lookup_order {\"order_id\": \"A123\"} -> ok (38ms)\n#882 lookup_order {\"order_id\": 412} -> rejected: type\n#883 lookup_orde {\"order_id\": \"A123\"} -> rejected: unknown tool\n#884 lookup_order {} -> rejected: missing field"
+    }
+   ],
+   "id": "tool-use-sandbox",
+   "prompt": "tools@il:~$",
+   "title": "Tool-use sandbox simulator"
+  }
+ ]
 }
