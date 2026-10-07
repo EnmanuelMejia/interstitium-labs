@@ -61,7 +61,7 @@
 <div id="il-header"></div>
 
 <main id="il-main">
-  <section class="track-hero" aria-labelledby="tracks-h">
+  <section class="il-hero track-hero" aria-labelledby="tracks-h">
     <div class="wrap">
       <p class="eyebrow">Flagship model</p>
       <h1 id="tracks-h">Seven tracks. One discipline.</h1>
@@ -96,6 +96,15 @@
       <p class="lede">Maps sequence real vendor certifications from first to last, name the bootcamp modules that prepare each exam domain, and hand you a Noah readiness protocol. Interstitium Labs confers no certificate and is not affiliated with any vendor named — these maps route you to the real exams.</p>
       <div class="grid grid-3 certmap" id="certmap-grid" style="margin-top:1.4rem"></div>
       <p class="small" style="margin-top:1rem;opacity:.7">Certification names verified against competitive research (October 2026). Exam codes change — always confirm the current code on the vendor's site before booking. No exam content is reproduced; practice material is original.</p>
+    </div>
+  </section>
+
+  <section class="block" id="more-academies" aria-labelledby="more-academies-h">
+    <div class="wrap">
+      <p class="eyebrow">Beyond the flagship</p>
+      <h2 id="more-academies-h">Ten more academies, same course shell</h2>
+      <p class="lede">The flagship tracks above ride the IL-19 bootcamp. Every other academy now ships its own full course in the unified 6-tab shell — Brief, Plan, Study, Labs, Mock, More — tutored by Noah, built on original material.</p>
+      <div class="rail" role="list" data-rail="academies" id="academies-rail"></div>
     </div>
   </section>
 
@@ -322,9 +331,36 @@
     }).join('');
   }
 
+  /* Ten more academies, each with its own full course shell (Phase 4a). */
+  var MORE_ACADEMIES = [
+    { code: 'IL-01', name: 'Esoteric Foundations', slug: 'il-01-esoteric-foundations', blurb: 'The Western esoteric current, studied as documented history — four epistemic tiers, literacy never belief.' },
+    { code: 'IL-02', name: 'Mathematical Maturity Engine', slug: 'il-02-mathematical-maturity-engine', blurb: 'The ground under everything — the unified spine, tech math, the electrician track, quant prerequisites.' },
+    { code: 'IL-03', name: 'Programming Language Forge', slug: 'il-03-programming-language-forge', blurb: 'Python, Java, C++, DSA — the programming backbone plus systems software and the MIT 6-3 layer.' },
+    { code: 'IL-04', name: 'Systems: Linux, Windows, Networks', slug: 'il-04-systems-linux-windows-networks', blurb: 'Linux to RHCSA, Windows administration, networking core — the systems triad.' },
+    { code: 'IL-05', name: 'Cloud, DevSecOps, Platform & SRE', slug: 'il-05-cloud-devsecops-platform-sre', blurb: 'Fourteen modules: Terraform, Kubernetes, OpenShift, AWS, Azure, Vault — the platform academy.' },
+    { code: 'IL-06', name: 'Cybersecurity & Secure Engineering', slug: 'il-06-cybersecurity-secure-engineering', blurb: 'The defensive spine — threat models, secure design, detection, and response.' },
+    { code: 'IL-07', name: 'Data Engineering, Analytics & AI', slug: 'il-07-data-engineering-analytics-ai', blurb: 'Pipelines, warehouses, and the analytics layer beneath AI.' },
+    { code: 'IL-08', name: 'Algorithms, Compilers, Distributed & Formal', slug: 'il-08-algorithms-compilers-distributed-formal', blurb: 'The deep theory — algorithms, language implementation, distributed systems, formal methods.' },
+    { code: 'IL-09', name: 'Adaptive Certification Command', slug: 'il-09-adaptive-certification-command', blurb: 'The certification strategist — adaptive plans across every vendor map on the platform.' },
+    { code: 'IL-10', name: 'Portfolio, Career & Professional Practice', slug: 'il-10-portfolio-career-professional-practice', blurb: 'The FDE arc, interview systems, self-knowledge, entrepreneurship, the quant ladder.' }
+  ];
+  function renderMoreAcademies() {
+    var box = document.getElementById('academies-rail');
+    if (!box) return;
+    box.innerHTML = MORE_ACADEMIES.map(function (a) {
+      return '<article class="rail-card" role="listitem">' +
+        '<div class="mod-id">' + esc(a.code) + '</div>' +
+        '<h4><a href="course.html?course=' + esc(a.slug) + '">' + esc(a.name) + '</a></h4>' +
+        '<p>' + esc(a.blurb) + '</p>' +
+        '<div class="meta"><span>6-tab course shell</span><span>Noah tutored</span></div>' +
+        '</article>';
+    }).join('');
+  }
+
   /* ---------- boot ---------- */
   function boot() {
     renderTabs(initialKey());
+    renderMoreAcademies();
     IL.onCatalog(function () {
       selectTrack(initialKey(), false);
       renderOnramp();

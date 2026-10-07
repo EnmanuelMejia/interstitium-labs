@@ -13,6 +13,19 @@
  *   PUT  /api/progress           Merge per-account progress JSON (session required).
  *   POST /api/certificates/issue {path} -> certificate record (session required).
  *   GET  /api/certificates/verify?id=  Public certificate verification.
+ *   POST /api/pay/create           Create a payment order (stripe/paypal/nowpayments/direct).
+ *   GET  /api/pay/status?order=    Order + entitlement status.
+ *   GET  /api/pay/ud               Resolved coin addresses for enmanuelmejia.crypto.
+ *   POST /api/pay/webhook/stripe   Stripe webhook (signature-verified).
+ *   POST /api/pay/webhook/paypal   PayPal webhook (API-verified).
+ *   POST /api/pay/ipn/nowpayments  NOWPayments IPN (HMAC-SHA512 verified).
+ *   GET  /api/pay/stripe/return    Stripe Checkout return -> verify -> success.
+ *   GET  /api/pay/paypal/return    PayPal return -> capture -> success.
+ *   GET  /api/pay/paypal/cancel    PayPal cancel -> /enroll/cancel.html.
+ * Payment layer: ./payment-routes.js (Phase 4b, 2026-10-07). All secrets via
+ * env; order records in IL_ACCOUNTS KV (pay: prefixes). See
+ * docs/university/data/PAYMENTS-SETUP.md — NO live transactions until the
+ * owner completes that checklist.
  *   /os /os/                     301 -> /learn/
  *   /proof /proof/               301 -> /evidence/
  *   19 consolidated stub slugs   301 -> their Learning OS targets
@@ -29,7 +42,13 @@
  * 2026-10-06: Noah AI tutor backend merged in from the retired
  * learn.interstitiumlabs.dev worker; the /university/ content tree lives in
  * ./university/ (IL-01 through IL-18 academies).
+ *
+ * 2026-10-07 (Phase 4b): payment layer in ./payment-routes.js — Stripe
+ * Checkout, PayPal Orders (Venmo in-checkout), NOWPayments crypto rail,
+ * direct-wallet fallback with Unstoppable Domain resolution.
  */
+
+import { handlePay } from "./payment-routes.js";
 
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
 
@@ -932,6 +951,17 @@ export default {
     }
     if (path === "/api/certificates/verify") {
       return handleVerifyCertificate(request, env);
+    }
+
+    // 2026-10-07 (Phase 4b): payment layer — Stripe / PayPal / NOWPayments /
+    // direct crypto + Unstoppable Domain resolution. All secrets via env.
+    if (path === "/api/pay/create" || path === "/api/pay/status" ||
+        path === "/api/pay/ud" ||
+        path === "/api/pay/webhook/stripe" || path === "/api/pay/webhook/paypal" ||
+        path === "/api/pay/ipn/nowpayments" ||
+        path === "/api/pay/paypal/return" || path === "/api/pay/paypal/cancel" ||
+        path === "/api/pay/stripe/return") {
+      return handlePay(request, env);
     }
 
     if (path === "/api/noah-stats") {
