@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06080c">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Interstitium Labs course shell — SCIENTIA OMNIA VINCIT">
+<title>Course · Interstitium Labs</title>
+<link rel="stylesheet" href="course-shell.css">
+</head>
+<body data-course="">
+<a class="skip-link" href="#shell-main">Skip to course content</a>
+
+<header class="shell-header">
+  <img class="sigil" src="../assets/chrome/sigil-decor.webp" alt="Interstitium Labs sigil">
+  <div class="lockup">
+    <div class="wordmark">Interstitium Labs</div>
+    <div class="motto">SCIENTIA OMNIA VINCIT</div>
+  </div>
+  <div class="spacer"></div>
+  <span class="sync-note" id="sync-note"></span>
+  <span class="course-code" id="hdr-code"></span>
+</header>
+
+<div class="shell-wrap">
+  <nav class="shell-nav" id="shell-nav" aria-label="Course sections"></nav>
+  <main class="shell-main" id="shell-main" tabindex="-1">
+    <noscript><div class="card"><h2>JavaScript required</h2>
+    <p class="muted">The course shell renders from a course JSON document and needs JavaScript.</p></div></noscript>
+    <div id="shell-error" class="small" style="color:var(--red)" role="alert"></div>
+  </main>
+</div>
+
+<footer class="shell-footer">
+  <div class="lock">
+    <img class="sigil" src="../assets/chrome/sigil-glyph.svg" alt="Interstitium Labs sigil">
+    <div>
+      <div class="motto">SCIENTIA OMNIA VINCIT</div>
+      <div>Created by Interstitium Labs</div>
+    </div>
+  </div>
+  <div class="small muted" id="ft-course"></div>
+  <div class="small muted">© <span id="ft-year"></span> Interstitium Labs</div>
+</footer>
+
+<nav class="mobile-nav" id="mobile-nav" aria-label="Course sections"><div class="row"></div></nav>
+
+<!-- Course data (Phase 2): either fill this block with the course JSON document,
+     or load via ?data=<path> / ?course=<id>. Empty = shell shows a loader error. -->
+<script type="application/json" id="il-course-data"></script>
+
+<script src="js/noah.js"></script>
+<script src="course-shell.js"></script>
+<script>
+  try { document.getElementById('ft-year').textContent = new Date().getFullYear(); } catch (e) {}
+</script>
+</body>
+</html>

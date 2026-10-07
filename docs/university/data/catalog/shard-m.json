@@ -1,0 +1,1276 @@
+{
+ "academies": [],
+ "paths": [
+  {
+   "id": "aieng-nlp",
+   "academy": "IL-12",
+   "title": "Natural Language Processing Engineering",
+   "subtitle": "Machines that read and write: the engineering track.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 60,
+   "status": "published",
+   "tags": [
+    "nlp",
+    "nltk",
+    "huggingface",
+    "text"
+   ],
+   "modules": [
+    {
+     "id": "text-preprocessing",
+     "title": "Text Preprocessing",
+     "kind": "core",
+     "topics": [
+      "Cleaning and normalization",
+      "Regular expressions for text",
+      "Sentence segmentation",
+      "Stopwords: when removal helps, when it harms",
+      "What preprocessing modern models still need"
+     ],
+     "sources": [
+      {
+       "name": "NLTK Documentation",
+       "url": "https://www.nltk.org/",
+       "note": "Classic NLP toolkit: corpora, tokenizers, taggers, parsers."
+      }
+     ],
+     "il_provides": "The unglamorous text work that decides whether the fancy model ever sees clean signal — and what subword tokenizers made obsolete."
+    },
+    {
+     "id": "tokenization-embeddings",
+     "title": "Tokenization and Embeddings",
+     "kind": "core",
+     "topics": [
+      "Word, subword, and character tokenization",
+      "BPE and WordPiece intuition",
+      "Word2Vec and GloVe: the distributional hypothesis",
+      "Static vs contextual embeddings",
+      "Out-of-vocabulary handling"
+     ],
+     "sources": [
+      {
+       "name": "Hugging Face Documentation",
+       "url": "https://huggingface.co/docs",
+       "note": "Transformers library, tokenizers, datasets, and model hub guides."
+      },
+      {
+       "name": "NLTK Documentation",
+       "url": "https://www.nltk.org/",
+       "note": "Classic NLP toolkit: corpora, tokenizers, taggers, parsers."
+      }
+     ],
+     "il_provides": "From strings to vectors: the representation ladder, and why contextual embeddings ended the era of one-vector-per-word."
+    },
+    {
+     "id": "nltk-classics",
+     "title": "Classic NLP with NLTK",
+     "kind": "core",
+     "topics": [
+      "POS tagging and chunking",
+      "Named entity recognition, classical style",
+      "Parsing at a glance",
+      "Corpora and evaluation",
+      "Baselines that still win small tasks"
+     ],
+     "sources": [
+      {
+       "name": "NLTK Documentation",
+       "url": "https://www.nltk.org/",
+       "note": "Classic NLP toolkit: corpora, tokenizers, taggers, parsers."
+      }
+     ],
+     "il_provides": "The classical toolkit as baselines and literacy: fast, inspectable, and still the right choice for small, well-defined text tasks."
+    },
+    {
+     "id": "sequence-models-nlp",
+     "title": "Sequence Models for Language",
+     "kind": "core",
+     "topics": [
+      "RNNs/LSTMs for text",
+      "Seq2seq and the original attention",
+      "Language modeling as the unifying task",
+      "Decoding: greedy, beam, sampling",
+      "From recurrence to transformers: the handoff"
+     ],
+     "sources": [
+      {
+       "name": "PyTorch Documentation",
+       "url": "https://pytorch.org/docs/stable/index.html",
+       "note": "Tensors, autograd, nn, and training-loop references."
+      },
+      {
+       "name": "Hugging Face Documentation",
+       "url": "https://huggingface.co/docs",
+       "note": "Transformers library, tokenizers, datasets, and model hub guides."
+      }
+     ],
+     "il_provides": "Language modeling as the thread connecting n-grams to LSTMs to the transformer — the handoff point into the GenAI path."
+    },
+    {
+     "id": "hf-pipelines",
+     "title": "Hugging Face in Practice",
+     "kind": "lab",
+     "topics": [
+      "Pipelines for instant baselines",
+      "The transformers library: tokenizers + models",
+      "Datasets and the hub",
+      "Fine-tuning a classifier, end to end",
+      "Model cards: reading before downloading"
+     ],
+     "sources": [
+      {
+       "name": "Hugging Face Documentation",
+       "url": "https://huggingface.co/docs",
+       "note": "Transformers library, tokenizers, datasets, and model hub guides."
+      }
+     ],
+     "il_provides": "The practitioner workflow: pipeline first, fine-tune second, and always read the model card before trusting a checkpoint."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aieng-nlp-diagnostic",
+     "title": "NLP Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "Subword tokenization (BPE/WordPiece) primarily solves…",
+       "choices": [
+        "Slow training",
+        "The open-vocabulary problem: rare words become composable pieces",
+        "GPU memory",
+        "Data labeling"
+       ],
+       "answer": 1,
+       "explain": "Splitting rare words into known subword pieces gives full vocabulary coverage with a bounded vocabulary — no UNK graveyard."
+      },
+      {
+       "q": "The distributional hypothesis behind Word2Vec states…",
+       "choices": [
+        "Words are uniformly distributed",
+        "Words appearing in similar contexts have similar meanings",
+        "Longer words matter more",
+        "Frequency equals importance"
+       ],
+       "answer": 1,
+       "explain": "‘You shall know a word by the company it keeps’ — co-occurrence statistics become geometry."
+      },
+      {
+       "q": "In NER evaluation, the standard metric is…",
+       "choices": [
+        "Accuracy over all tokens",
+        "Span-level precision/recall/F1",
+        "Perplexity",
+        "BLEU"
+       ],
+       "answer": 1,
+       "explain": "Entity recognition is scored on exact spans with correct types — token accuracy is inflated by the easy non-entity majority."
+      },
+      {
+       "q": "Beam search decoding, versus greedy decoding,…",
+       "choices": [
+        "Is always faster",
+        "Keeps multiple candidate hypotheses to avoid greedy dead ends",
+        "Guarantees the global optimum",
+        "Only works for translation"
+       ],
+       "answer": 1,
+       "explain": "Beam search tracks k hypotheses; it beats greedy locally-optimal mistakes but still is not globally optimal."
+      },
+      {
+       "q": "Removing stopwords before training a modern transformer classifier is…",
+       "choices": [
+        "Mandatory",
+        "Usually unnecessary or harmful: subword models use full context",
+        "The main accuracy driver",
+        "Required for English only"
+       ],
+       "answer": 1,
+       "explain": "Contextual models learn from the full sequence; stopword removal was a bag-of-words-era heuristic that now mostly destroys signal."
+      },
+      {
+       "q": "A model card should tell you, at minimum,…",
+       "choices": [
+        "The author's favorite color",
+        "Intended uses, training data, evaluation, and limitations",
+        "The exact GPU bill",
+        "Nothing; cards are decorative"
+       ],
+       "answer": 1,
+       "explain": "Model cards document purpose, data, metrics, and limits — the minimum due diligence before deploying someone's checkpoint."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aieng-agentic-ai",
+   "academy": "IL-12",
+   "title": "Agentic AI & Copilot Extensibility",
+   "subtitle": "Agents that act: tools, orchestration, low-code and pro-code.",
+   "type": "career",
+   "difficulty": "advanced",
+   "hours": 85,
+   "status": "published",
+   "tags": [
+    "agents",
+    "agentic-ai",
+    "copilot",
+    "automation"
+   ],
+   "modules": [
+    {
+     "id": "agent-architectures",
+     "title": "Agent Architectures",
+     "kind": "core",
+     "topics": [
+      "The agent loop: perceive, reason, act",
+      "ReAct: reasoning + acting interleaved",
+      "Plan-and-execute",
+      "Multi-agent patterns: debate, hierarchy, handoffs",
+      "Where agents fail: loops, drift, and cost blowups"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      }
+     ],
+     "il_provides": "Agents as control flow around a model — with the failure catalog up front, because the program's demos never show the loop that would not stop."
+    },
+    {
+     "id": "tool-use",
+     "title": "Tool Use and Function Calling",
+     "kind": "core",
+     "topics": [
+      "Function calling schemas",
+      "Tool definitions as contracts",
+      "Structured output",
+      "Error handling when tools fail",
+      "Least privilege for tools: the security half"
+     ],
+     "sources": [
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides for models, embeddings, and image generation."
+      }
+     ],
+     "il_provides": "Tools turn a chatbot into an actor — and every tool is an attack surface. Contracts first, least privilege always."
+    },
+    {
+     "id": "mcp-protocol",
+     "title": "The Protocol Layer: MCP and Agent Interoperability",
+     "kind": "core",
+     "topics": [
+      "The MCP thesis: one open standard between AI applications and tools, data, and workflows",
+      "Hosts, clients, and servers: who calls whom, and the tool/resource/prompt primitives",
+      "Building MCP servers: exposing data and tools, discovery, and routing",
+      "Security and trust boundaries: authorization, least privilege, and tool allowlists",
+      "The protocol layer in 2026: MCP alongside A2A agent-to-agent messaging"
+     ],
+     "sources": [
+      {
+       "name": "Model Context Protocol (official site)",
+       "url": "https://modelcontextprotocol.io/",
+       "note": "Official MCP site (verified live 2026-10-04): the open-source standard connecting AI applications to external systems — hosts/clients/servers architecture, build-servers/build-clients guidance, security considerations. Public shape only, never cloned."
+      },
+      {
+       "name": "Microsoft AI Agents for Beginners (GitHub)",
+       "url": "https://github.com/microsoft/ai-agents-for-beginners",
+       "note": "MIT-licensed 18-lesson open course (verified live 2026-10-04): Lesson 11 covers agentic protocols (MCP, A2A, NLWeb); companion lessons on production agents, context engineering, memory, and securing agents. Curriculum shape only, never cloned."
+      }
+     ],
+     "il_provides": "Interstitium's protocol-layer lab: original exposition on when MCP beats bespoke tool wiring, a build-your-own-MCP-server exercise specification, and a security checklist for tool exposure — the lab narrative and exercises are original. Distilled from the public shape of MCP's official documentation and Microsoft's open AI-agents course; not affiliated with Anthropic or Microsoft; confers no certificate."
+    },
+    {
+     "id": "langchain-autogen",
+     "title": "LangChain and AutoGen",
+     "kind": "lab",
+     "topics": [
+      "LangChain: chains, LCEL, and agents",
+      "AutoGen: conversable multi-agent teams",
+      "Memory and state across turns",
+      "Evaluations for agent behavior",
+      "Choosing a framework vs hand-rolled loops"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "AutoGen Documentation",
+       "url": "https://microsoft.github.io/autogen/",
+       "note": "Microsoft's multi-agent conversation framework."
+      }
+     ],
+     "il_provides": "The two open-source poles the program names: LangChain's composition model and AutoGen's agent conversations — with guidance on when a plain loop beats both."
+    },
+    {
+     "id": "context-engineering",
+     "title": "Context Engineering: Compaction, Clearing, and Memory",
+     "kind": "core",
+     "topics": [
+      "Context engineering vs prompt engineering: curating the smallest high-signal token set",
+      "Context rot and the attention budget: why bigger windows degrade focus",
+      "Compaction: summarizing long transcripts with minimal performance degradation",
+      "Tool-result clearing: dropping re-fetchable payloads, keeping the call record",
+      "Structured memory and just-in-time retrieval: notes out of the window, facts on demand"
+     ],
+     "sources": [
+      {
+       "name": "Anthropic: Effective Context Engineering for AI Agents",
+       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+       "note": "Anthropic's public engineering framing: context rot, attention budgets, just-in-time retrieval, compaction, structured note-taking, sub-agent architectures (verified live 2026-10-05)."
+      },
+      {
+       "name": "Anthropic: Context Engineering Cookbook",
+       "url": "https://platform.claude.com/cookbook/tool-use-context-engineering-context-engineering-tools",
+       "note": "Worked cookbook: compaction vs tool-result clearing vs memory — when each primitive applies (verified live 2026-10-05)."
+      }
+     ],
+     "il_provides": "Original IL exposition of Anthropic's public 2026 context-engineering framing (context rot, attention budget, compaction/tool-clearing/memory as distinct primitives, system-prompt altitude) as an engineering checklist for long-horizon agents. Vendor docs carry implementation authority. IL-17's memory-context module covers foundational patterns; this is the production discipline. Not affiliated with Anthropic; confers no certificate."
+    },
+    {
+     "id": "copilot-studio",
+     "title": "Copilot Studio: Low-Code Agents",
+     "kind": "core",
+     "topics": [
+      "Topics and trigger phrases",
+      "Actions and connectors",
+      "Generative answers grounded in your data",
+      "Publishing and sharing",
+      "Governance: DLP and access control for agents"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, and deployment."
+      }
+     ],
+     "il_provides": "The low-code half of the program's Copilot module: what business users can ship in an afternoon — and the governance it needs before it touches real data."
+    },
+    {
+     "id": "azure-ai-foundry",
+     "title": "Azure AI Foundry: Pro-Code Agents",
+     "kind": "core",
+     "topics": [
+      "Foundry projects and the model catalog",
+      "The agent service",
+      "Grounding with your data",
+      "Evaluation and safety tooling",
+      "From prototype to managed endpoint"
+     ],
+     "sources": [
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "The pro-code half: Foundry as the managed path from notebook agent to deployed service, with evaluation and safety as first-class steps."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aieng-agents-diagnostic",
+     "title": "Agentic AI Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "The ReAct pattern interleaves…",
+       "choices": [
+        "Training and inference",
+        "Reasoning traces with tool actions and observations",
+        "Two models competing",
+        "Prompting and fine-tuning"
+       ],
+       "answer": 1,
+       "explain": "ReAct: the model reasons about what to do, acts via a tool, observes the result, and repeats — the loop most agents implement."
+      },
+      {
+       "q": "The single biggest operational risk of an autonomous agent loop is…",
+       "choices": [
+        "Slow GPUs",
+        "Unbounded loops: repeated failing actions burning cost and time",
+        "Too few tools",
+        "Small context windows"
+       ],
+       "answer": 1,
+       "explain": "Without step caps, timeouts, and human checkpoints, agents retry failing actions indefinitely — cost and side effects compound."
+      },
+      {
+       "q": "Function-calling schemas serve as…",
+       "choices": [
+        "Documentation only",
+        "Machine-readable contracts: name, description, typed parameters the model must fill",
+        "A fine-tuning dataset",
+        "API keys"
+       ],
+       "answer": 1,
+       "explain": "The schema is the contract: it tells the model exactly what it may call and with what typed arguments."
+      },
+      {
+       "q": "Least privilege for agent tools means…",
+       "choices": [
+        "Giving the agent admin to avoid errors",
+        "Each tool gets only the permissions its task needs; destructive tools need confirmation",
+        "No tools at all",
+        "One shared credential"
+       ],
+       "answer": 1,
+       "explain": "An agent with a delete-database tool and no confirmation step is an incident waiting for a misread instruction."
+      },
+      {
+       "q": "Copilot Studio's low-code approach trades…",
+       "choices": [
+        "Nothing; it equals pro-code",
+        "Speed of building against depth of control — governance still required",
+        "Cost for accuracy",
+        "Microsoft 365 for Azure"
+       ],
+       "answer": 1,
+       "explain": "Low-code ships fast for well-scoped tasks; custom logic, evaluation rigor, and data governance still need engineering judgment."
+      },
+      {
+       "q": "Evaluating an agent requires, beyond task success,…",
+       "choices": [
+        "A bigger model",
+        "Measuring tool-call efficiency, failure recovery, and safety-constraint adherence",
+        "More prompts",
+        "Faster inference"
+       ],
+       "answer": 1,
+       "explain": "An agent that succeeds in 40 wasteful, risky steps is worse than one succeeding in 5 safe ones — measure the path, not just the arrival."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aieng-azure-ai-900",
+   "academy": "IL-12",
+   "title": "Azure AI Fundamentals Exam Prep",
+   "subtitle": "The program's ‘AI-901’ module, mapped to Microsoft's real AI-900.",
+   "type": "certification",
+   "difficulty": "beginner",
+   "hours": 40,
+   "status": "published",
+   "tags": [
+    "azure",
+    "ai-900",
+    "certification",
+    "microsoft"
+   ],
+   "modules": [
+    {
+     "id": "azure-ai-services",
+     "title": "Azure AI Services",
+     "kind": "exam_prep",
+     "topics": [
+      "Azure AI Vision, Language, Speech",
+      "Document Intelligence",
+      "Azure OpenAI Service: what it is and is not",
+      "Content Safety",
+      "Choosing prebuilt vs custom models"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      },
+      {
+       "name": "Microsoft Learn: Get started with AI on Azure",
+       "url": "https://learn.microsoft.com/en-us/training/paths/get-started-ai-fundamentals/",
+       "note": "The official AI-900 learning path; exam truth lives here."
+      }
+     ],
+     "il_provides": "The service catalog the exam tests: which Azure AI service answers which workload — the matching game AI-900 loves."
+    },
+    {
+     "id": "ml-concepts-azure",
+     "title": "Machine Learning Concepts on Azure",
+     "kind": "exam_prep",
+     "topics": [
+      "Supervised, unsupervised, deep learning — exam framing",
+      "Azure Machine Learning studio concepts",
+      "Training, validation, and the exam's vocabulary",
+      "No-code/low-code ML (AutoML, designer)"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn: Get started with AI on Azure",
+       "url": "https://learn.microsoft.com/en-us/training/paths/get-started-ai-fundamentals/",
+       "note": "The official AI-900 learning path; exam truth lives here."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      }
+     ],
+     "il_provides": "ML concepts in Microsoft's vocabulary: the exam tests recognition of terms and service fit, not implementation."
+    },
+    {
+     "id": "responsible-ai",
+     "title": "Responsible AI",
+     "kind": "exam_prep",
+     "topics": [
+      "Fairness, reliability, privacy, transparency, accountability",
+      "Microsoft's Responsible AI Standard",
+      "Content filters and safety systems",
+      "Identifying harms in scenarios"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      },
+      {
+       "name": "Microsoft Learn: Get started with AI on Azure",
+       "url": "https://learn.microsoft.com/en-us/training/paths/get-started-ai-fundamentals/",
+       "note": "The official AI-900 learning path; exam truth lives here."
+      }
+     ],
+     "il_provides": "The principles Microsoft commits to — taught as the exam's scenario language, and as engineering obligations that outlive the exam."
+    },
+    {
+     "id": "cost-governance",
+     "title": "Cost, Governance, and Compliance",
+     "kind": "exam_prep",
+     "topics": [
+      "Consumption-based pricing intuition",
+      "Cost Management + Billing",
+      "Resource groups, tags, and locks",
+      "Compliance: data residency and privacy",
+      "The exam's favorite governance scenarios"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      },
+      {
+       "name": "Microsoft Learn: Get started with AI on Azure",
+       "url": "https://learn.microsoft.com/en-us/training/paths/get-started-ai-fundamentals/",
+       "note": "The official AI-900 learning path; exam truth lives here."
+      }
+     ],
+     "il_provides": "The module the program lists that candidates skip: pricing, governance, and compliance are scored on AI-900 — and billed in real life."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aieng-ai900-timed",
+     "title": "AI-900 Timed Simulation",
+     "kind": "timed",
+     "questions": 12,
+     "minutes": 30,
+     "items": [
+      {
+       "q": "Which Azure AI service converts speech to text?",
+       "choices": [
+        "Azure AI Vision",
+        "Azure AI Speech",
+        "Document Intelligence",
+        "Content Safety"
+       ],
+       "answer": 1,
+       "explain": "Speech-to-text is Azure AI Speech's transcription capability."
+      },
+      {
+       "q": "Azure OpenAI Service differs from OpenAI's public API mainly in…",
+       "choices": [
+        "Model quality",
+        "Enterprise controls: private networking, data residency, Entra ID",
+        "Price always lower",
+        "It trains the models"
+       ],
+       "answer": 1,
+       "explain": "Same model family; the Azure value is enterprise deployment controls, not different intelligence."
+      },
+      {
+       "q": "Anomaly detection on sensor readings with no labeled failures is…",
+       "choices": [
+        "Supervised learning",
+        "Unsupervised learning",
+        "Reinforcement learning",
+        "Deep learning only"
+       ],
+       "answer": 1,
+       "explain": "No labels means unsupervised: find the unusual patterns without a teacher signal."
+      },
+      {
+       "q": "Which principle does ‘the system should work equally well across demographic groups’ express?",
+       "choices": [
+        "Transparency",
+        "Fairness",
+        "Accountability",
+        "Reliability"
+       ],
+       "answer": 1,
+       "explain": "Fairness: equitable performance and treatment across groups — a core Responsible AI principle."
+      },
+      {
+       "q": "Content Safety is used to…",
+       "choices": [
+        "Translate documents",
+        "Detect harmful content in text and images",
+        "Transcribe meetings",
+        "Extract key-value pairs"
+       ],
+       "answer": 1,
+       "explain": "Content Safety moderates text/images for hate, violence, sexual, and self-harm categories."
+      },
+      {
+       "q": "Document Intelligence is the right choice for…",
+       "choices": [
+        "Chatbots",
+        "Extracting structured data from forms and invoices",
+        "Image classification",
+        "Speech translation"
+       ],
+       "answer": 1,
+       "explain": "Document Intelligence (formerly Form Recognizer) pulls key-value pairs and tables from documents."
+      },
+      {
+       "q": "To control spend on AI workloads you should use…",
+       "choices": [
+        "Nothing; AI is free",
+        "Cost Management + Billing with budgets and alerts",
+        "Deleting resource groups daily",
+        "A bigger region"
+       ],
+       "answer": 1,
+       "explain": "Budgets, alerts, and cost analysis in Cost Management are the exam's — and reality's — answer."
+      },
+      {
+       "q": "Azure Machine Learning designer is best described as…",
+       "choices": [
+        "A code-only SDK",
+        "A drag-and-drop interface for building ML pipelines",
+        "A chatbot",
+        "A database"
+       ],
+       "answer": 1,
+       "explain": "The designer offers low-code visual ML pipelines; the SDK/CLI is the pro-code route."
+      },
+      {
+       "q": "Data residency requirements are addressed in Azure by…",
+       "choices": [
+        "Ignoring them",
+        "Choosing regions and services that keep data in required geographies",
+        "Encryption alone",
+        "Faster networks"
+       ],
+       "answer": 1,
+       "explain": "Compliance starts with region choice: data stays where the regulation says it must."
+      },
+      {
+       "q": "A regression problem predicts…",
+       "choices": [
+        "A category label",
+        "A continuous numeric value",
+        "A cluster assignment",
+        "A reward"
+       ],
+       "answer": 1,
+       "explain": "Regression outputs numbers (prices, temperatures); classification outputs categories."
+      },
+      {
+       "q": "Which feature helps ensure a deployed model keeps performing?",
+       "choices": [
+        "Training once",
+        "Monitoring for data drift and retraining triggers",
+        "Deleting logs",
+        "Smaller models only"
+       ],
+       "answer": 1,
+       "explain": "Production data drifts; monitoring plus retraining keeps the model honest after deployment."
+      },
+      {
+       "q": "The program labels this material ‘AI-901’; Microsoft's actual fundamentals exam is…",
+       "choices": [
+        "AI-900",
+        "AI-901",
+        "AZ-900",
+        "DP-900"
+       ],
+       "answer": 0,
+       "explain": "Microsoft's exam is AI-900 (Azure AI Fundamentals). Schedule and study from the official certification page, not the program's label."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "aieng-production",
+   "academy": "IL-12",
+   "title": "Production AI Engineering",
+   "subtitle": "From trained model to a system that survives traffic.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 120,
+   "status": "published",
+   "tags": [
+    "mlops",
+    "production",
+    "serving",
+    "llmops",
+    "evaluation",
+    "observability"
+   ],
+   "modules": [
+    {
+     "id": "prod-mlops-framing",
+     "title": "ML Systems Design",
+     "kind": "core",
+     "topics": [
+      "The production gap: modeling versus operating",
+      "Project scoping: metrics and decisions before models",
+      "Human-level performance as a ceiling, not a goal",
+      "Data definition and labeling for the long run",
+      "Deployment challenges: a working checklist"
+     ],
+     "sources": [
+      {
+       "name": "DeepLearning.AI MLOps Specialization (syllabus)",
+       "url": "https://www.classcentral.com/course/machine-learning-engineering-for-production-mlops-43683",
+       "note": "Public syllabus shape of the 4-course specialization: ML in production, data lifecycle, modeling pipelines, deployment."
+      },
+      {
+       "name": "TripleTen: Best AI/ML Engineering Programs 2026",
+       "url": "https://tripleten.com/blog/posts/best-ai-ml-engineering-programs",
+       "note": "Curriculum details from current AI/ML programs: serving with SLOs, fine-tuning with PEFT/QLoRA, red-teaming against the OWASP LLM Top 10, usage metering and cost guardrails."
+      }
+     ],
+     "il_provides": "Interstitium's production-framing workbook: a scoping template that starts from the decision the system must make, original checklists distilled from the public topic shapes of the courses above, and baseline-first exercises. Distilled from the public shape of DeepLearning.AI's Machine Learning Engineering for Production specialization; not affiliated; confers no certificate."
+    },
+    {
+     "id": "prod-serving",
+     "title": "Model Serving and Deployment Patterns",
+     "kind": "lab",
+     "topics": [
+      "Packaging: from checkpoint to container",
+      "REST and gRPC serving endpoints",
+      "Batch versus online inference, and the batching math",
+      "Progressive delivery: shadow, canary, blue-green",
+      "Multi-GPU inference: pipeline and tensor parallelism",
+      "SLOs for inference: latency budgets that mean something"
+     ],
+     "sources": [
+      {
+       "name": "PyTorch/Serve: large-model inference docs",
+       "url": "https://docs.pytorch.org/serve/large_model_inference.html",
+       "note": "Official PyTorch docs on serving large models: parallelism modes, vLLM and DeepSpeed integration, batching and latency tips. Page carries a limited-maintenance notice; used as a concepts reference, not a dependency."
+      },
+      {
+       "name": "DeepLearning.AI MLOps Specialization (syllabus)",
+       "url": "https://www.classcentral.com/course/machine-learning-engineering-for-production-mlops-43683",
+       "note": "Course 4 topic shape: model serving infrastructure, scaling, online inference, deployment pipelines."
+      }
+     ],
+     "il_provides": "A hands-on serving lab in Interstitium's voice: package a model into a container, expose it behind an API, load-test it, and read the latency numbers honestly. Concepts distilled from the public course shapes; the lab narrative and exercises are original."
+    },
+    {
+     "id": "prod-monitoring",
+     "title": "Monitoring, Drift, and Retraining",
+     "kind": "core",
+     "topics": [
+      "Data drift versus concept drift: the distinction that matters",
+      "Reference windows and statistical tests: KS, PSI, chi-square",
+      "Prediction drift as an early-warning signal",
+      "Retraining triggers: schedules, thresholds, pipelines",
+      "ML metadata: lineage you can audit",
+      "Incident playbooks for silent model decay"
+     ],
+     "sources": [
+      {
+       "name": "Evidently AI",
+       "url": "https://github.com/evidentlyai/evidently",
+       "note": "Open-source ML/LLM observability framework (Apache 2.0): drift detection presets, test suites with pass/fail conditions, LLM evals, monitoring UI."
+      },
+      {
+       "name": "DeepLearning.AI MLOps Specialization (syllabus)",
+       "url": "https://www.classcentral.com/course/machine-learning-engineering-for-production-mlops-43683",
+       "note": "Course 1 and 4 topic shape: concept drift, model monitoring and logging, model decay."
+      }
+     ],
+     "il_provides": "Interstitium's monitoring playbook: which signal to watch for which failure mode, threshold-setting exercises, and a retraining-decision tree. Original exposition; Evidently is the suggested open-source instrument, not the lesson."
+    },
+    {
+     "id": "agentops-observability",
+     "title": "AgentOps: Tracing and Observability for LLM Systems",
+     "kind": "lab",
+     "topics": [
+      "Why LLM systems need tracing, not just metrics: non-deterministic runs, tool calls, and chains",
+      "Trace anatomy: spans, sessions, and multi-turn conversations as inspectable records",
+      "Production dashboards: cost, latency, and quality tracked across live traffic",
+      "From traces to datasets: failing runs become the evaluation set you iterate against",
+      "Feedback loops: user annotations, online evaluators, and automated failure detection",
+      "Self-hosted observability: OpenTelemetry-native tracing without vendor lock-in"
+     ],
+     "sources": [
+      {
+       "name": "LangSmith Observability Documentation",
+       "url": "https://docs.langchain.com/langsmith/",
+       "note": "Official LangSmith observability docs (verified live 2026-10-04): tracing RAG/agent apps, investigating and monitoring runs, dashboards and alerts, feedback collection, online evaluations, platform setup (cloud/hybrid/self-hosted). Curriculum shape only, never cloned."
+      },
+      {
+       "name": "Langfuse Documentation",
+       "url": "https://langfuse.com/docs",
+       "note": "Official Langfuse docs (verified live 2026-10-04): open-source, self-hostable AI engineering platform — observability, prompt management, evaluation, OpenTelemetry-based tracing, datasets and experiments. Curriculum shape only, never cloned."
+      }
+     ],
+     "il_provides": "Interstitium's AgentOps lab: an original tracing-first debugging workflow, a production-quality scorecard template, and the trace-to-dataset pipeline specification — all original. Distilled from the public shape of LangSmith's and Langfuse's official documentation; not affiliated with LangChain or Langfuse; confers no certificate."
+    },
+    {
+     "id": "prod-cost-latency",
+     "title": "Cost and Latency Engineering",
+     "kind": "core",
+     "topics": [
+      "Inference cost anatomy: GPU-hours, tokens, requests",
+      "Batching and caching: the two cheapest optimizations",
+      "Quantization and pruning for serving budgets",
+      "Usage metering and cost guardrails in multi-tenant systems",
+      "Right-sizing hardware: when a smaller model wins",
+      "The latency-throughput-cost triangle"
+     ],
+     "sources": [
+      {
+       "name": "TripleTen: Best AI/ML Engineering Programs 2026",
+       "url": "https://tripleten.com/blog/posts/best-ai-ml-engineering-programs",
+       "note": "Curriculum details: shipping a multi-tenant product with usage metering and cost guardrails, containerized models behind APIs with service-level objectives."
+      },
+      {
+       "name": "DeepLearning.AI MLOps Specialization (syllabus)",
+       "url": "https://www.classcentral.com/course/machine-learning-engineering-for-production-mlops-43683",
+       "note": "Course 3 topic shape: quantization, pruning, high-performance modeling; course 1: running production systems at minimum cost."
+      }
+     ],
+     "il_provides": "A cost-modeling worksheet in Interstitium's own words: estimate per-request cost, find the dominant term, and choose the optimization that attacks it. Worked examples original; the curriculum framing distilled from the public course shapes."
+    },
+    {
+     "id": "prod-red-team",
+     "title": "Red-Teaming and Evaluation Harnesses",
+     "kind": "lab",
+     "topics": [
+      "The OWASP LLM Top 10 as an engineering checklist",
+      "Prompt injection: the attack you will always face",
+      "Excessive agency and unbounded consumption",
+      "Building an evaluation harness: cases, judges, gates",
+      "Guardrails: input validation, output handling, least privilege",
+      "Continuous adversarial monitoring after launch"
+     ],
+     "sources": [
+      {
+       "name": "OWASP Top 10 for LLM Applications (2026)",
+       "url": "https://genai.owasp.org/llm-top-10/",
+       "note": "OWASP GenAI Security Project: current Top 10 risks and mitigations for LLM applications (2026 release; prompt injection remains LLM01)."
+      },
+      {
+       "name": "OWASP GenAI LLM Top 10 source repo",
+       "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10",
+       "note": "Canonical Markdown source for the 2026 release (CC BY-SA 4.0): the document students read directly."
+      },
+      {
+       "name": "TripleTen: Best AI/ML Engineering Programs 2026",
+       "url": "https://tripleten.com/blog/posts/best-ai-ml-engineering-programs",
+       "note": "Curriculum detail: students build an agentic system and then red-team their own agent against the OWASP LLM Top 10."
+      }
+     ],
+     "il_provides": "Interstitium's red-team lab: a threat-model worksheet mapped to the OWASP list, original attack-scenario sketches to run against your own agent, and a guardrail checklist. The list is OWASP's; the exercises are ours. Distilled from the public shape of current AI-engineering programs; not affiliated."
+    },
+    {
+     "id": "trajectory-eval-agents",
+     "title": "Agent Trajectory Evaluation",
+     "kind": "lab",
+     "topics": [
+      "Component-level vs trajectory-level evaluation: scoring the router, the tool calls, and the whole run",
+      "Choosing the evaluator: code-based checks, LLM-as-judge, and human annotations — and when each one lies",
+      "Convergence and efficiency: does the agent reach the answer in a sane number of steps?",
+      "Golden trajectories: turning real runs into regression sets so improvements are verifiable",
+      "Controlled experiments: changing one variable (prompt, model, agent logic) and proving the gain",
+      "From evals to production monitors: the same evaluators watching live traffic"
+     ],
+     "sources": [
+      {
+       "name": "DeepLearning.AI: Evaluating AI Agents",
+       "url": "https://www.deeplearning.ai/short-courses/evaluating-ai-agents/",
+       "note": "Public short-course syllabus shape: component-wise evaluators, convergence scoring, structured experiments — distilled, not affiliated."
+      },
+      {
+       "name": "Arize AX Documentation",
+       "url": "https://docs.arize.com/",
+       "note": "The Observe → Evaluate → Improve workflow: traces, LLM-as-a-judge evaluators, and experiments as the instrument the module's exercises reference."
+      }
+     ],
+     "il_provides": "Interstitium's trajectory-evaluation lab: original exposition on scoring multi-step agent runs, an evaluator-selection rubric (code, judge, human), and a golden-trajectory regression-set exercise — the lab narrative and exercises are ours; course shapes are distilled only. Not affiliated with or endorsed by DeepLearning.AI or Arize; confers no certificate."
+    },
+    {
+     "id": "prod-pipelines",
+     "title": "ML Pipelines and CI/CD",
+     "kind": "lab",
+     "topics": [
+      "Data pipelines: ingest, validate, version",
+      "Feature pipelines and feature stores",
+      "Training pipelines: data to registered model",
+      "CI/CD for models: tests, gates, promotion",
+      "Experiment tracking that survives audits",
+      "Model registries and rollback"
+     ],
+     "sources": [
+      {
+       "name": "DeepLearning.AI MLOps Specialization (syllabus)",
+       "url": "https://www.classcentral.com/course/machine-learning-engineering-for-production-mlops-43683",
+       "note": "Courses 2-3 topic shape: data lifecycle, ML metadata and lineage, modeling pipelines, deployment pipelines."
+      },
+      {
+       "name": "Evidently AI",
+       "url": "https://github.com/evidentlyai/evidently",
+       "note": "Test suites with pass/fail conditions usable as CI gates for data and model validation."
+      }
+     ],
+     "il_provides": "An end-to-end pipeline lab in Interstitium's voice: versioned data in, registered model out, with CI gates that actually block bad models. Concepts distilled from the public course shapes; implementation original."
+    },
+    {
+     "id": "experiment-tracking-registry",
+     "title": "Experiment Tracking and the Model Registry",
+     "kind": "lab",
+     "topics": [
+      "The experiment ledger: why hyperparameter runs are unreadable without tracking",
+      "Tracking anatomy: runs, metrics, parameters, and artifacts — the unit of comparison",
+      "From runs to registry: staging, versioning, and promoting the champion model",
+      "Reproducibility as engineering: seed discipline, environment capture, and lineage",
+      "LLM-era tracking: tracing agents and prompts alongside classic ML experiments"
+     ],
+     "sources": [
+      {
+       "name": "MLflow Documentation",
+       "url": "https://mlflow.org/docs/latest/",
+       "note": "Official MLflow AI Platform docs (verified live 2026-10-04): experiment tracking, model packaging, registry management, plus LLM/agent observability and evaluation tooling. Curriculum shape only, never cloned."
+      }
+     ],
+     "il_provides": "Interstitium's experiment-discipline lab: an original run-comparison worksheet, a registry promotion-gate checklist, and a reproducibility audit template — the lab materials are original. Distilled from the public shape of MLflow's official documentation; not affiliated with the MLflow project or its stewards; confers no certificate."
+    },
+    {
+     "id": "feature-stores",
+     "title": "Feature Stores: Training-to-Serving Consistency",
+     "kind": "core",
+     "topics": [
+      "The feature-store thesis: one canonical feature definition from training to serving",
+      "Offline store vs online store: historical backfill for training, low-latency reads for serving",
+      "Point-in-time correctness: how feature stores stop future data leaking into training",
+      "Features as code: entities, feature views, and the SDK workflow",
+      "Platform boundaries: the feature store alongside DVC and the registry, honestly drawn"
+     ],
+     "sources": [
+      {
+       "name": "Feast Documentation",
+       "url": "https://docs.feast.dev/",
+       "note": "Official Feast (open-source feature store) docs (verified live 2026-10-04): offline/online stores, point-in-time correct feature sets, feature server, and an honest 'what Feast is not' boundary (not ETL, not orchestration). Curriculum shape only, never cloned."
+      }
+     ],
+     "il_provides": "Interstitium's feature-platform workbook: an original decision guide for when a feature store earns its complexity, feature-definition design exercises, and a training/serving-consistency audit — all original exposition. Distilled from the public shape of Feast's official docs; not affiliated with the Feast project; confers no certificate."
+    },
+    {
+     "id": "data-centric-ai",
+     "title": "Data-Centric AI: Training Data as Engineering",
+     "kind": "core",
+     "topics": [
+      "The data-centric thesis: fix the data before touching the model",
+      "Annotation and curation: human-feedback pipelines for LLM-grade datasets",
+      "Active learning: label the examples that move the metric",
+      "Data versioning and lineage: Git-for-data workflows and reproducible snapshots",
+      "Synthetic data: when generation helps, and how to validate what it invents",
+      "Unstructured data engineering: raw documents to ML-ready training sets"
+     ],
+     "sources": [
+      {
+       "name": "IBM AI-Native Data Engineering (syllabus)",
+       "url": "https://www.classcentral.com/course/ibm-ai-native-data-engineering-563628",
+       "note": "Public syllabus shape: Course 5 covers unstructured data engineering for AI; Course 6 covers reproducible training data and ML-ready data pipelines."
+      },
+      {
+       "name": "Hugging Face LLM Course: Curation with Argilla",
+       "url": "https://huggingface.co/learn/llm-course/chapter10/1",
+       "note": "Official course chapter: using Argilla to annotate and curate high-quality datasets for training and evaluating models — low-quality to high-quality dataset curation."
+      },
+      {
+       "name": "DVC Documentation",
+       "url": "https://doc.dvc.org/",
+       "note": "Official docs for Data Version Control: versioning data and models alongside Git, pipelines, and experiment tracking — verified live 2026-10-02."
+      }
+     ],
+     "il_provides": "Interstitium's data-curation studio: original checklists for labeling quality, active-learning loops, and dataset audits, built from the public topic shapes above. Distilled from the public shape of IBM's AI-Native Data Engineering program and Hugging Face's LLM course; not affiliated with IBM or Hugging Face; confers no certificate."
+    },
+    {
+     "id": "edge-ondevice-ai",
+     "title": "Edge and On-Device AI",
+     "kind": "lab",
+     "topics": [
+      "The edge thesis: latency, privacy, and offline — why inference leaves the cloud",
+      "Model interchange: exporting to ONNX and running across frameworks",
+      "Quantization for the edge: from 8-bit down to sub-4-bit, quality tradeoffs first",
+      "On-device runtimes: ONNX Runtime, execution providers, mobile accelerators",
+      "Local LLM serving: GGUF weights and C++ inference on CPU, Apple silicon, and GPUs",
+      "Edge budgets: memory, battery, thermal — profiling before you ship"
+     ],
+     "sources": [
+      {
+       "name": "ONNX Runtime Documentation",
+       "url": "https://onnxruntime.ai/docs/",
+       "note": "Official docs: cross-platform ML accelerator, graph optimizations, execution providers for hardware-specific libraries, on-device inferencing."
+      },
+      {
+       "name": "llama.cpp",
+       "url": "https://github.com/ggml-org/llama.cpp",
+       "note": "Open-source C/C++ LLM inference (MIT): 1.5-bit to 8-bit integer quantization, backends from Apple silicon Metal to CUDA, local OpenAI-compatible server."
+      }
+     ],
+     "il_provides": "Interstitium's edge-inference lab: an original hands-on arc from exported model to quantized on-device runtime, with honest quality budgets throughout. Distilled from public project docs above; not affiliated; confers no certificate."
+    }
+   ],
+   "assessments": []
+  },
+  {
+   "id": "aieng-capstone",
+   "academy": "IL-12",
+   "title": "AI Engineering Capstone",
+   "subtitle": "One deployed system that proves the spine.",
+   "type": "career",
+   "difficulty": "advanced",
+   "hours": 60,
+   "status": "published",
+   "tags": [
+    "capstone",
+    "portfolio",
+    "mlops",
+    "deployment"
+   ],
+   "modules": [
+    {
+     "id": "capstone-framing",
+     "title": "Problem Framing",
+     "kind": "core",
+     "topics": [
+      "Choosing a problem worth solving",
+      "Defining success metrics before modeling",
+      "Data audit: what exists, what is missing",
+      "Feasibility and the baseline test",
+      "Scoping to finish"
+     ],
+     "sources": [
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide + API reference; the canonical classical-ML library."
+      }
+     ],
+     "il_provides": "Capstones die in week one from vague goals. This module forces the metric, the data audit, and the baseline before any model."
+    },
+    {
+     "id": "capstone-build",
+     "title": "End-to-End Build",
+     "kind": "lab",
+     "topics": [
+      "Baseline model first",
+      "Iteration loops with error analysis",
+      "Experiment tracking",
+      "Code structure that survives review",
+      "Knowing when to stop tuning"
+     ],
+     "sources": [
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide + API reference; the canonical classical-ML library."
+      },
+      {
+       "name": "PyTorch Documentation",
+       "url": "https://pytorch.org/docs/stable/index.html",
+       "note": "Tensors, autograd, nn, and training-loop references."
+      }
+     ],
+     "il_provides": "The build discipline: baseline, error analysis, iterate — with experiments tracked so the story is tellable in an interview."
+    },
+    {
+     "id": "capstone-eval",
+     "title": "Evaluation and Robustness",
+     "kind": "core",
+     "topics": [
+      "Held-out evaluation, honestly",
+      "Error analysis and slices",
+      "Ablations: what actually helped",
+      "Stress tests and edge cases",
+      "Documenting limits"
+     ],
+     "sources": [
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide + API reference; the canonical classical-ML library."
+      }
+     ],
+     "il_provides": "Evaluation as the proof: slices, ablations, and documented limits — the difference between a demo and evidence."
+    },
+    {
+     "id": "capstone-deploy",
+     "title": "Deployment and MLOps Lite",
+     "kind": "lab",
+     "topics": [
+      "Packaging: from notebook to service",
+      "API design for model serving",
+      "Monitoring and data drift",
+      "Retraining triggers",
+      "Cost awareness"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      },
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "MLOps at the scale one engineer can own: a served model, monitored inputs, and a retraining plan — no platform team required."
+    },
+    {
+     "id": "capstone-rai",
+     "title": "Responsible AI Review",
+     "kind": "core",
+     "topics": [
+      "Risk review of your own system",
+      "Bias checks on your data and outputs",
+      "Privacy: what the model remembers",
+      "Model card for the capstone",
+      "The pre-ship checklist"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training; the honest route to any Microsoft badge."
+      }
+     ],
+     "il_provides": "Every capstone ships with a model card and a risk review — the habit that distinguishes an engineer from a demo artist."
+    },
+    {
+     "id": "capstone-portfolio",
+     "title": "The Portfolio Piece",
+     "kind": "career",
+     "topics": [
+      "Repository hygiene",
+      "README that tells the story",
+      "Demo video under three minutes",
+      "Writeup: problem, method, results, limits",
+      "Presenting to a hiring manager"
+     ],
+     "sources": [
+      {
+       "name": "Project Jupyter",
+       "url": "https://jupyter.org/",
+       "note": "Notebooks: the working medium of the whole data/AI spine."
+      }
+     ],
+     "il_provides": "The program promises a portfolio piece; this module makes it one: a repo, a story, and a demo a hiring manager can evaluate in ten minutes."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aieng-capstone-diagnostic",
+     "title": "Capstone Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "The first model you build for a capstone should be…",
+       "choices": [
+        "The largest transformer available",
+        "The simplest credible baseline, to beat deliberately",
+        "An ensemble of five models",
+        "Whatever is trending"
+       ],
+       "answer": 1,
+       "explain": "Baselines set the bar and expose data problems cheaply; complexity must earn its place by beating them."
+      },
+      {
+       "q": "Error analysis means…",
+       "choices": [
+        "Counting errors",
+        "Studying misclassified examples to find patterns and guide the next iteration",
+        "Deleting bad data",
+        "Tuning until train error is zero"
+       ],
+       "answer": 1,
+       "explain": "Looking at actual failures reveals whether you need more data, better features, or a different model — tuning blind does not."
+      },
+      {
+       "q": "An ablation study tells you…",
+       "choices": [
+        "The final accuracy",
+        "Which components actually contributed, by removing them",
+        "Training time",
+        "The best hyperparameters"
+       ],
+       "answer": 1,
+       "explain": "Remove each piece and measure the drop: credit assignment for your architecture decisions."
+      },
+      {
+       "q": "Data drift in production means…",
+       "choices": [
+        "The database is slow",
+        "Input distributions shifted from training, degrading the model",
+        "Labels are wrong",
+        "The API changed"
+       ],
+       "answer": 1,
+       "explain": "The world moves; monitoring input distributions catches the shift before users feel the decay."
+      },
+      {
+       "q": "A model card for your capstone should include…",
+       "choices": [
+        "Only the accuracy",
+        "Intended use, data, evaluation, limitations, and ethical notes",
+        "The code",
+        "Nothing; it is optional"
+       ],
+       "answer": 1,
+       "explain": "The card is the honesty layer: what it does, what it was tested on, where it fails."
+      },
+      {
+       "q": "The strongest signal to a hiring manager from a capstone is…",
+       "choices": [
+        "Model size",
+        "A clear problem, honest evaluation with limits stated, and a working demo",
+        "The number of tools listed",
+        "Perfect accuracy"
+       ],
+       "answer": 1,
+       "explain": "Perfect accuracy signals leakage or a toy problem; honest evaluation with stated limits signals an engineer."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

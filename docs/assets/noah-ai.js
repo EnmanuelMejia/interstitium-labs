@@ -263,10 +263,10 @@
   /* ================= Remote endpoint =============================== */
 
   var DEFAULT_ENDPOINT = (function () {
+    // 2026-10-06: Noah backend merged into the flagship worker — same-origin
+    // /api/noah serves every host (apex, university path, mobile webviews).
     try {
-      var h = window.location.host || '';
-      if (h === 'learn.interstitiumlabs.dev') return '/api/noah';
-      if (/interstitiumlabs\.dev$/.test(h)) return 'https://learn.interstitiumlabs.dev/api/noah';
+      if (window.IL_NOAH_ENDPOINT) return String(window.IL_NOAH_ENDPOINT);
     } catch (e) {}
     return '/api/noah';
   })();

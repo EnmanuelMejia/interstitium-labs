@@ -1,6 +1,6 @@
 /**
  * Noah Live Assist — local Socratic in-lab coach. NO fake API keys.
- * Exceeds KodeKloud AI Tutor Live Assist on honesty: lab-context prompts, no spoiler dumps,
+ * Exceeds hosted AI-tutor live assist on honesty: lab-context prompts, no spoiler dumps,
  * demand-tier OSS router (Ollama) when present, 3D curriculum stages stay separate.
  * Optional: window.IL_COACH / IL_MUSE / IL_MODEL_ROUTER (never commit secrets).
  * Topics: CIDR, Git, K8s pods (+ Terraform, CI, Linux) + lab-paste triage.
@@ -191,7 +191,7 @@
       '<span class="il-coach-status"><span class="il-coach-status__dot" aria-hidden="true"></span> ' + (live ? 'Noah Live Assist · online (local)' : 'Noah · Socratic coach') + '</span>' +
       '<h2 class="mt-4 font-display text-2xl tracking-[-0.02em]" style="margin-top:1rem;font-family:Space Grotesk,system-ui,sans-serif;font-size:1.5rem;color:#e8eef5">' + (live ? 'Live Assist in the lab' : 'Local Socratic hints') + '</h2>' +
       '<p style="margin-top:0.75rem;font-size:0.875rem;color:#8b9bb4;line-height:1.55">' + (live
-        ? 'Real-time <em>in-lab</em> help without KodeKloud\'s hosted fleet claim. Paste an error or hypothesis. On-demand micro-lessons stay Socratic — no spoiler dump. Demand-tier OSS router when Ollama is present. No fake keys.'
+        ? 'Real-time <em>in-lab</em> help without a leading platform\'s hosted fleet claim. Paste an error or hypothesis. On-demand micro-lessons stay Socratic — no spoiler dump. Demand-tier OSS router when Ollama is present. No fake keys.'
         : 'No API keys in this repo. Optional <code style="color:#5eead4">window.IL_COACH</code> stub for a future same-origin proxy. I ask questions; I do not dump final answers.') + '</p>' +
       '<p class="il-kicker" style="margin-top:1.25rem">Topics</p>';
     var topics = document.createElement('div');
@@ -212,7 +212,7 @@
     });
     left.appendChild(topics);
     left.insertAdjacentHTML('beforeend',
-      '<p class="il-honest-note" style="margin-top:1.25rem"><strong>Honesty vs KodeKloud Live Assist:</strong> We ship Socratic lab-context coaching + optional local Ollama router. We do <em>not</em> claim a hosted multi-cloud playground fleet or terminal keylogger. SuperLab is cloneable proof; paste your own lab state.</p>');
+      '<p class="il-honest-note" style="margin-top:1.25rem"><strong>Honesty vs hosted live assist:</strong> We ship Socratic lab-context coaching + optional local Ollama router. We do <em>not</em> claim a hosted multi-cloud playground fleet or terminal keylogger. SuperLab is cloneable proof; paste your own lab state.</p>');
 
     var right = document.createElement('div');
     right.className = 'il-ux-card';

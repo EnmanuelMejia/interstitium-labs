@@ -1,0 +1,2141 @@
+{
+ "academies": [
+  {
+   "code": "IL-17",
+   "name": "Agentic AI Engineering",
+   "tagline": "Agents that do the work.",
+   "hours": 310,
+   "blurb": "The agentic AI practice layer \u2014 foundations, role-specific applied tracks for engineers, data engineers, PMs, TPMs and EMs, low-code agents, and interview prep \u2014 distilled from the public curriculum shape of Interview Kickstart's Agentic AI course catalog. Original Interstitium exposition throughout. Not affiliated with or endorsed by Interview Kickstart; not official IK training; confers no certificate."
+  }
+ ],
+ "paths": [
+  {
+   "id": "agentic-ai-foundations",
+   "academy": "IL-17",
+   "title": "Agentic AI Foundations",
+   "subtitle": "How agents think, act, and remember.",
+   "type": "foundations",
+   "difficulty": "intermediate",
+   "hours": 50,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "agents"
+   ],
+   "suited_for": [
+    "Engineers new to agents who can already call an LLM API",
+    "Technical staff evaluating agent frameworks for their teams",
+    "Builders who want the mental model before the tools",
+    "Anyone who has only used chatbots and wants agency literacy"
+   ],
+   "tools": [
+    "OpenAI API",
+    "Anthropic API",
+    "LangChain",
+    "LangGraph",
+    "AutoGen",
+    "CrewAI",
+    "Python"
+   ],
+   "modules": [
+    {
+     "id": "llm-tool-use",
+     "title": "Tool Use and Function Calling",
+     "kind": "core",
+     "topics": [
+      "JSON schemas as tool contracts",
+      "When the model should call vs answer",
+      "Parsing and validating tool arguments",
+      "Handling tool errors and retries",
+      "Structured output modes",
+      "Tool-choice controls: auto, required, none"
+     ],
+     "sources": [
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      },
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      }
+     ],
+     "il_provides": "The single pattern everything agentic builds on: a model that can reach outside itself through typed, machine-readable contracts \u2014 taught with the discipline of validation and error handling, not demo magic."
+    },
+    {
+     "id": "agent-loops",
+     "title": "Agent Loops and Planning",
+     "kind": "core",
+     "topics": [
+      "The perceive-reason-act loop",
+      "ReAct: interleaving thought and action",
+      "Plan-and-execute decomposition",
+      "Stopping conditions and step budgets",
+      "Handling ambiguous instructions",
+      "When a single call beats a loop"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      }
+     ],
+     "il_provides": "Agents as control flow around a model: the loop, the plan, and the off-switch. Stopping conditions come first, because the unbounded loop is the failure everyone meets in production."
+    },
+    {
+     "id": "memory-context",
+     "title": "Memory and Context",
+     "kind": "lab",
+     "topics": [
+      "Short-term context vs persistent memory",
+      "Conversation history management",
+      "Summarization for long runs",
+      "Vector-backed recall",
+      "State stores and checkpoints",
+      "Context-window budgeting"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      }
+     ],
+     "il_provides": "What an agent remembers between steps and between sessions \u2014 and the budgeting discipline that keeps long runs from drowning in their own history."
+    },
+    {
+     "id": "multi-agent-systems",
+     "title": "Multi-Agent Systems",
+     "kind": "core",
+     "topics": [
+      "When more than one agent helps",
+      "Role specialization and handoffs",
+      "Supervisor/worker patterns",
+      "Debate and critique patterns",
+      "Coordination failure modes",
+      "Communication overhead vs gains"
+     ],
+     "sources": [
+      {
+       "name": "AutoGen Documentation",
+       "url": "https://microsoft.github.io/autogen/",
+       "note": "Microsoft's multi-agent conversation framework."
+      },
+      {
+       "name": "CrewAI Documentation",
+       "url": "https://docs.crewai.com/",
+       "note": "Role-based multi-agent crews: roles, tasks, and collaboration."
+      }
+     ],
+     "il_provides": "Teams of agents: the patterns that earn their complexity and the ones that collapse into expensive group chats. One agent is the default; prove you need two."
+    },
+    {
+     "id": "agent-evaluation",
+     "title": "Agent Evaluation",
+     "kind": "core",
+     "topics": [
+      "Task success vs path quality",
+      "Trajectory scoring",
+      "Tool-call efficiency metrics",
+      "Failure recovery measurement",
+      "Safety-constraint adherence",
+      "Building a small eval harness"
+     ],
+     "sources": [
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Measuring the path, not just the arrival: an agent that succeeds in 40 wasteful, risky steps is worse than one that succeeds in 5 safe ones."
+    },
+    {
+     "id": "agent-starter-build",
+     "title": "Starter Agent Build",
+     "kind": "guided-project",
+     "topics": [
+      "Scoping a first agent tightly",
+      "Choosing tools with least privilege",
+      "Implementing the loop with a framework",
+      "Adding memory",
+      "Evaluating on a small task set",
+      "Demo and project write-up"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      }
+     ],
+     "il_provides": "The first real agent: tightly scoped, least-privilege tools, a small eval set, and a write-up that names what it cannot do."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Tools & Loops",
+     "weeks": "Weeks 1\u20133",
+     "topics": [
+      "Tool-use contracts",
+      "The agent loop",
+      "ReAct and plan-and-execute",
+      "Stopping conditions"
+     ],
+     "outcome": "Outcome: describe and sketch an agent loop with typed tool contracts."
+    },
+    {
+     "name": "Memory & Teams",
+     "weeks": "Weeks 4\u20135",
+     "topics": [
+      "Memory patterns",
+      "Context budgeting",
+      "Multi-agent roles",
+      "Coordination failure modes"
+     ],
+     "outcome": "Outcome: design a two-agent team with a shared memory plan."
+    },
+    {
+     "name": "Eval & Build",
+     "weeks": "Weeks 6\u20137",
+     "topics": [
+      "Eval harnesses",
+      "Trajectory metrics",
+      "Starter build",
+      "Project write-up"
+     ],
+     "outcome": "Outcome: ship and evaluate a starter agent on a small task set."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aaf-diagnostic",
+     "title": "Agentic AI Foundations Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "Function-calling schemas serve as",
+       "choices": [
+        "Documentation only",
+        "Machine-readable contracts: name, description, typed parameters the model must fill",
+        "A fine-tuning dataset",
+        "API keys"
+       ],
+       "answer": 1,
+       "explain": "The schema is the contract: it tells the model exactly what it may call and with what typed arguments."
+      },
+      {
+       "q": "The ReAct pattern interleaves",
+       "choices": [
+        "Training and inference",
+        "Reasoning traces with tool actions and observations",
+        "Two models competing",
+        "Prompting and fine-tuning"
+       ],
+       "answer": 1,
+       "explain": "ReAct: the model reasons about what to do, acts via a tool, observes the result, and repeats."
+      },
+      {
+       "q": "The single biggest operational risk of an autonomous agent loop is",
+       "choices": [
+        "Slow GPUs",
+        "Unbounded loops: repeated failing actions burning cost and time",
+        "Too few tools",
+        "Small context windows"
+       ],
+       "answer": 1,
+       "explain": "Without step caps, timeouts, and checkpoints, agents retry failing actions indefinitely \u2014 cost and side effects compound."
+      },
+      {
+       "q": "Summarizing conversation history mid-run primarily addresses",
+       "choices": [
+        "Hallucination",
+        "Context-window pressure on long runs",
+        "Slow tools",
+        "Model licensing"
+       ],
+       "answer": 1,
+       "explain": "History grows every turn; periodic summarization keeps the working context within the window without losing the thread."
+      },
+      {
+       "q": "You should reach for a multi-agent design when",
+       "choices": [
+        "One agent would be simpler",
+        "Subtasks genuinely benefit from specialization and a single agent cannot hold the whole context",
+        "You want a more impressive demo",
+        "You have spare API budget"
+       ],
+       "answer": 1,
+       "explain": "Coordination has real cost; multi-agent earns it only when specialization or context limits demand it."
+      },
+      {
+       "q": "Least privilege for agent tools means",
+       "choices": [
+        "Giving the agent admin to avoid errors",
+        "Each tool gets only the permissions its task needs; destructive tools need confirmation",
+        "No tools at all",
+        "One shared credential"
+       ],
+       "answer": 1,
+       "explain": "An agent with a delete tool and no confirmation step is an incident waiting for a misread instruction."
+      },
+      {
+       "q": "A good agent eval set measures, beyond final task success,",
+       "choices": [
+        "A bigger model",
+        "Tool-call efficiency, failure recovery, and safety-constraint adherence",
+        "More prompts",
+        "Faster inference"
+       ],
+       "answer": 1,
+       "explain": "Trajectory quality decides production readiness: count the steps, the wasted calls, and the rules it broke along the way."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-for-swe",
+   "academy": "IL-17",
+   "title": "Agentic AI for Software Engineers",
+   "subtitle": "Agents across the software lifecycle.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 50,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "software-engineering"
+   ],
+   "suited_for": [
+    "Software engineers adding agents to their daily workflow",
+    "Dev teams evaluating coding-agent adoption",
+    "Engineers who own CI/CD and want agent assists",
+    "Tech leads setting policy on AI-generated code"
+   ],
+   "tools": [
+    "GitHub",
+    "OpenAI API",
+    "Anthropic API",
+    "LangChain",
+    "LangGraph",
+    "Python",
+    "pytest",
+    "Git"
+   ],
+   "modules": [
+    {
+     "id": "code-agents",
+     "title": "Coding Agents",
+     "kind": "core",
+     "topics": [
+      "How coding agents read and edit code",
+      "Diffs as the agent's unit of work",
+      "Test-driven verification loops",
+      "Repository context gathering",
+      "Prompt design for code tasks",
+      "Reviewing agent-generated code"
+     ],
+     "sources": [
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      },
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      }
+     ],
+     "il_provides": "Coding agents as junior engineers with infinite stamina and no judgment: the loop is generate, run the tests, read the failure, repeat \u2014 and the tests are the only trust you extend."
+    },
+    {
+     "id": "repo-scale-agents",
+     "title": "Repo-Scale Agents",
+     "kind": "core",
+     "topics": [
+      "Indexing large codebases",
+      "Retrieval for code search",
+      "Multi-file edits and refactors",
+      "Dependency awareness",
+      "Keeping edits consistent across files",
+      "Cost of context on big repos"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      }
+     ],
+     "il_provides": "When the repo is bigger than the context window: retrieval, indexing, and edit discipline so a refactor touches everything it must and nothing it must not."
+    },
+    {
+     "id": "review-agents",
+     "title": "Review and QA Agents",
+     "kind": "lab",
+     "topics": [
+      "Automated code-review agents",
+      "Style and convention checks",
+      "Test generation",
+      "Coverage-guided QA",
+      "False-positive triage",
+      "Humans-in-the-loop review gates"
+     ],
+     "sources": [
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      },
+      {
+       "name": "Real Python",
+       "url": "https://realpython.com/",
+       "note": "Long-form Python tutorials with runnable examples."
+      }
+     ],
+     "il_provides": "Agents on the review side: generating tests, flagging convention breaks, and the triage discipline for their false positives \u2014 with a human gate that never moves."
+    },
+    {
+     "id": "dev-workflow-agents",
+     "title": "Dev Workflow Agents",
+     "kind": "core",
+     "topics": [
+      "Agents in CI/CD pipelines",
+      "Issue triage agents",
+      "Release-notes generation",
+      "Documentation agents",
+      "On-call assistance patterns",
+      "Workflow orchestration safety"
+     ],
+     "sources": [
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      },
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      }
+     ],
+     "il_provides": "Agents wired into the pipeline itself: triage, notes, docs, and on-call assistance \u2014 each with a blast radius sized to its trust level."
+    },
+    {
+     "id": "swe-agent-project",
+     "title": "SWE Agent Project",
+     "kind": "guided-project",
+     "topics": [
+      "Choosing a real repo task",
+      "Building a coding agent loop",
+      "Wiring tests as the oracle",
+      "Measuring edit success rate",
+      "Iterating on failure modes",
+      "Project write-up"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "Real Python",
+       "url": "https://realpython.com/",
+       "note": "Long-form Python tutorials with runnable examples."
+      }
+     ],
+     "il_provides": "A coding agent against a real repository, judged by tests: scope the task, measure the success rate, and document the failures honestly."
+    },
+    {
+     "id": "swe-agent-limits",
+     "title": "Limits and Safety",
+     "kind": "career",
+     "topics": [
+      "Where coding agents fail silently",
+      "Hallucinated APIs and dependencies",
+      "Security review of generated code",
+      "Least-privilege repo access",
+      "Licensing of generated code",
+      "Setting team policy"
+     ],
+     "sources": [
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "The module teams skip and incidents teach: generated code needs the same review bar as human code \u2014 higher, if anything, because it arrives with unearned confidence."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Code Agents",
+     "weeks": "Weeks 1\u20133",
+     "topics": [
+      "Coding agent loops",
+      "Diffs and verification",
+      "Repo-scale retrieval",
+      "Context gathering"
+     ],
+     "outcome": "Outcome: drive a coding agent through a test-verified change."
+    },
+    {
+     "name": "Workflow Agents",
+     "weeks": "Weeks 4\u20135",
+     "topics": [
+      "Review and QA agents",
+      "CI/CD integration",
+      "Issue triage",
+      "Orchestration safety"
+     ],
+     "outcome": "Outcome: wire an agent assist into one real dev workflow."
+    },
+    {
+     "name": "Project & Limits",
+     "weeks": "Weeks 6\u20137",
+     "topics": [
+      "SWE agent project",
+      "Success-rate measurement",
+      "Failure catalog",
+      "Team policy"
+     ],
+     "outcome": "Outcome: ship a reviewed agent project with a written limits section."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aaswe-diagnostic",
+     "title": "Agentic AI for SWEs Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "The unit of work a coding agent should produce is best described as",
+       "choices": [
+        "A chat message",
+        "A diff: a bounded, reviewable change to the codebase",
+        "A full rewrite",
+        "A commit message"
+       ],
+       "answer": 1,
+       "explain": "Diffs are reviewable, revertible, and testable \u2014 the shape every code-change workflow already understands."
+      },
+      {
+       "q": "The strongest verification that agent-generated code works is",
+       "choices": [
+        "It looks idiomatic",
+        "The project's tests pass, including tests the agent did not write",
+        "The agent says it works",
+        "It compiles"
+       ],
+       "answer": 1,
+       "explain": "Tests you did not author are the oracle; the agent's own claims and green first runs prove little."
+      },
+      {
+       "q": "Repo-scale agents handle codebases larger than the context window mainly via",
+       "choices": [
+        "Bigger models only",
+        "Indexing and retrieval: fetch relevant files, not the whole repo",
+        "Deleting files",
+        "Ignoring imports"
+       ],
+       "answer": 1,
+       "explain": "Retrieval narrows the working set to relevant code; dumping the repo into the window is expensive and lossy."
+      },
+      {
+       "q": "A review agent's false positives should be handled by",
+       "choices": [
+        "Disabling the agent",
+        "Triage: tune signal, keep a human gate, and measure precision over time",
+        "Accepting everything",
+        "Deleting the rules"
+       ],
+       "answer": 1,
+       "explain": "Noisy agents get ignored; triage keeps the signal useful and the human gate keeps the bar."
+      },
+      {
+       "q": "Wiring an agent into CI/CD safely means",
+       "choices": [
+        "Full repo write access",
+        "Blast radius sized to trust: read-only first, scoped writes behind approvals",
+        "No logging",
+        "Running on production only"
+       ],
+       "answer": 1,
+       "explain": "Agents in the pipeline get the smallest permissions that work, with approvals before anything destructive."
+      },
+      {
+       "q": "The most dangerous property of AI-generated code is that it",
+       "choices": [
+        "Is always wrong",
+        "Arrives confident and idiomatic even when subtly broken",
+        "Runs slowly",
+        "Lacks comments"
+       ],
+       "answer": 1,
+       "explain": "Fluent, plausible code with a hidden bug passes skims \u2014 which is why the review bar stays human and high."
+      },
+      {
+       "q": "A team policy on AI-generated code should at minimum cover",
+       "choices": [
+        "Font choices",
+        "Review requirements, test coverage expectations, and license/secret hygiene",
+        "Keyboard shortcuts",
+        "Meeting times"
+       ],
+       "answer": 1,
+       "explain": "Policy answers the real questions: who reviews it, how it is tested, and how secrets and licensed code stay out of it."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-for-data",
+   "academy": "IL-17",
+   "title": "Agentic AI for Data Engineers",
+   "subtitle": "Agents over pipelines and warehouses.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 50,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "data-engineering"
+   ],
+   "suited_for": [
+    "Data engineers who want agents over their pipelines",
+    "Analytics engineers tired of hand-writing every query",
+    "Platform teams adding natural-language data access",
+    "Anyone who owns data quality and wants agent assists"
+   ],
+   "tools": [
+    "Python",
+    "SQL",
+    "pandas",
+    "dbt",
+    "LangChain",
+    "LangGraph",
+    "OpenAI API",
+    "PostgreSQL"
+   ],
+   "modules": [
+    {
+     "id": "data-agents-core",
+     "title": "Data Agents",
+     "kind": "core",
+     "topics": [
+      "Agents that query data",
+      "Natural-language interfaces to warehouses",
+      "Schema awareness",
+      "Safe query generation",
+      "Result interpretation",
+      "When the agent should ask before running"
+     ],
+     "sources": [
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      },
+      {
+       "name": "pandas Documentation",
+       "url": "https://pandas.pydata.org/docs/",
+       "note": "DataFrame reference and user guide for wrangling."
+      }
+     ],
+     "il_provides": "Agents as the interface between a question and a warehouse: schema-aware, read-first, and honest about uncertainty instead of inventing rows."
+    },
+    {
+     "id": "pipeline-agents",
+     "title": "Pipeline Agents",
+     "kind": "lab",
+     "topics": [
+      "Agents that build and repair pipelines",
+      "DAG generation",
+      "Schema-drift handling",
+      "Backfill planning",
+      "Pipeline test scaffolding",
+      "Orchestrator integration"
+     ],
+     "sources": [
+      {
+       "name": "dbt Documentation",
+       "url": "https://docs.getdbt.com",
+       "note": "Data transformation pipelines: models, tests, and orchestration concepts."
+      },
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      }
+     ],
+     "il_provides": "Agents that write the boring pipeline parts \u2014 scaffolding, drift handling, backfill plans \u2014 with tests around them, because generated pipelines fail at 3 AM like everyone else's."
+    },
+    {
+     "id": "text-to-sql-agents",
+     "title": "Text-to-SQL Agents",
+     "kind": "core",
+     "topics": [
+      "Schema linking",
+      "SQL dialect awareness",
+      "Query validation before execution",
+      "EXPLAIN-plan sanity checks",
+      "Guardrails on writes and deletes",
+      "Evaluation on realistic schemas"
+     ],
+     "sources": [
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      },
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      }
+     ],
+     "il_provides": "Turning words into SQL without turning the warehouse into a crime scene: validate, dry-run, and cap what the agent may touch \u2014 reads are the default."
+    },
+    {
+     "id": "data-quality-agents",
+     "title": "Data Quality Agents",
+     "kind": "core",
+     "topics": [
+      "Anomaly detection on tables",
+      "Freshness and completeness checks",
+      "Contract testing",
+      "Root-cause assistance",
+      "Alert triage",
+      "Quality dashboards"
+     ],
+     "sources": [
+      {
+       "name": "pandas Documentation",
+       "url": "https://pandas.pydata.org/docs/",
+       "note": "DataFrame reference and user guide for wrangling."
+      },
+      {
+       "name": "dbt Documentation",
+       "url": "https://docs.getdbt.com",
+       "note": "Data transformation pipelines: models, tests, and orchestration concepts."
+      }
+     ],
+     "il_provides": "Agents as the night watch for data: freshness, completeness, and anomaly checks, with triage that separates real breakage from seasonal noise."
+    },
+    {
+     "id": "data-agent-project",
+     "title": "Data Agent Project",
+     "kind": "guided-project",
+     "topics": [
+      "Pick a real dataset or warehouse",
+      "Build a text-to-SQL or quality agent",
+      "Add read-only guardrails",
+      "Evaluate on a question set",
+      "Document limits",
+      "Project write-up"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      }
+     ],
+     "il_provides": "A data agent against real tables, evaluated on a real question set: accuracy measured, guardrails demonstrated, failure cases documented."
+    },
+    {
+     "id": "data-agent-trust",
+     "title": "Trust and Guardrails",
+     "kind": "career",
+     "topics": [
+      "Read-only by default",
+      "Query cost caps",
+      "PII awareness",
+      "Audit logging of agent queries",
+      "Human approval for writes",
+      "Data governance alignment"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "The trust layer data teams must build before the demo becomes a service: caps, logs, approvals, and PII handling \u2014 governance the agent cannot opt out of."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Data Agents",
+     "weeks": "Weeks 1\u20133",
+     "topics": [
+      "Data agent patterns",
+      "Schema awareness",
+      "Text-to-SQL",
+      "Safe query generation"
+     ],
+     "outcome": "Outcome: build a read-only agent that answers questions over a schema."
+    },
+    {
+     "name": "Pipelines & Quality",
+     "weeks": "Weeks 4\u20135",
+     "topics": [
+      "Pipeline scaffolding",
+      "Schema drift",
+      "Quality checks",
+      "Alert triage"
+     ],
+     "outcome": "Outcome: add agent assists to one pipeline and one quality check."
+    },
+    {
+     "name": "Project & Trust",
+     "weeks": "Weeks 6\u20137",
+     "topics": [
+      "Data agent project",
+      "Guardrail demonstration",
+      "Cost caps",
+      "Write-up"
+     ],
+     "outcome": "Outcome: deliver an evaluated data agent with a written trust section."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aadata-diagnostic",
+     "title": "Agentic AI for Data Engineers Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "The safest default permission for a data agent is",
+       "choices": [
+        "Full admin",
+        "Read-only: queries can read, writes need explicit approval",
+        "Schema owner",
+        "No access"
+       ],
+       "answer": 1,
+       "explain": "Read-only by default keeps the blast radius at zero-cost queries; every write path gets a human gate."
+      },
+      {
+       "q": "Schema linking in text-to-SQL means",
+       "choices": [
+        "Linking to documentation",
+        "Mapping the question's terms to the right tables and columns before generating SQL",
+        "Joining every table",
+        "Skipping the schema"
+       ],
+       "answer": 1,
+       "explain": "Correct SQL starts from the correct tables; schema linking grounds the question in the actual database shape."
+      },
+      {
+       "q": "Before executing agent-generated SQL in production you should",
+       "choices": [
+        "Trust the model",
+        "Validate syntax, dry-run or EXPLAIN, and check cost guards",
+        "Run it twice",
+        "Email it to the team"
+       ],
+       "answer": 1,
+       "explain": "Validation plus a dry run catches syntax errors, runaway joins, and cost blowups before they bill you."
+      },
+      {
+       "q": "A pipeline agent handling schema drift should",
+       "choices": [
+        "Silently drop new columns",
+        "Detect the change, alert, and adapt mappings under a test gate",
+        "Fail forever",
+        "Rewrite history"
+       ],
+       "answer": 1,
+       "explain": "Drift is expected; the agent's job is to surface it and adapt safely, with tests confirming the new mapping."
+      },
+      {
+       "q": "Contract tests in a data pipeline verify",
+       "choices": [
+        "Model accuracy",
+        "That upstream data keeps the shape and semantics downstream expects",
+        "Query speed",
+        "Agent creativity"
+       ],
+       "answer": 1,
+       "explain": "Contracts encode assumptions (columns, types, ranges); breaking them fails fast instead of corrupting silently."
+      },
+      {
+       "q": "Agent query audit logs exist primarily to",
+       "choices": [
+        "Slow things down",
+        "Answer 'who asked what, when' for debugging, cost attribution, and compliance",
+        "Train the model",
+        "Impress auditors"
+       ],
+       "answer": 1,
+       "explain": "Every agent query is an action on company data; the log is how you debug it, bill it, and prove it was allowed."
+      },
+      {
+       "q": "A text-to-SQL eval set should be built from",
+       "choices": [
+        "Random strings",
+        "Realistic questions over the actual schema, with known-correct answers",
+        "The model's training data",
+        "One easy question"
+       ],
+       "answer": 1,
+       "explain": "Eval mirrors production: real questions, real schema, verified answers \u2014 anything else measures the wrong skill."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-for-pm",
+   "academy": "IL-17",
+   "title": "Agentic AI for Product Managers",
+   "subtitle": "Agents as product leverage for PMs.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 40,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "product"
+   ],
+   "suited_for": [
+    "Product managers scoping AI features",
+    "PMs who want agent leverage on research and specs",
+    "Product leaders evaluating agent tooling build-vs-buy",
+    "Non-technical builders who need honest capability literacy"
+   ],
+   "tools": [
+    "Copilot Studio",
+    "OpenAI API",
+    "Anthropic API",
+    "LangChain",
+    "Microsoft 365",
+    "Jira"
+   ],
+   "modules": [
+    {
+     "id": "pm-agent-literacy",
+     "title": "Agent Literacy for PMs",
+     "kind": "core",
+     "topics": [
+      "What agents can and cannot do",
+      "Capabilities vs demos",
+      "Cost and latency intuition",
+      "Evaluation basics for PMs",
+      "Reading an agent architecture diagram",
+      "Asking engineers the right questions"
+     ],
+     "sources": [
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "The PM's honest capability map: what the demo implies versus what production requires \u2014 cost, latency, evals, and the questions that separate a prototype from a shippable feature."
+    },
+    {
+     "id": "pm-spec-agents",
+     "title": "Spec and PRD Agents",
+     "kind": "lab",
+     "topics": [
+      "Drafting PRDs with agent assistance",
+      "Acceptance-criteria generation",
+      "Spec review agents",
+      "Keeping humans as decision-makers",
+      "Version control for specs",
+      "When specs need a person"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Agents that draft, critique, and sharpen specs \u2014 with the PM still the decider. The agent proposes; the human disposes."
+    },
+    {
+     "id": "pm-research-agents",
+     "title": "Research Agents",
+     "kind": "core",
+     "topics": [
+      "Market and competitor research agents",
+      "Synthesis of long sources",
+      "Citation discipline",
+      "Verifying agent claims",
+      "User-feedback summarization",
+      "Research ethics"
+     ],
+     "sources": [
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Research agents that read at machine speed and cite at human standards: every claim traceable, every synthesis verifiable \u2014 because an unverified agent finding is a rumor with formatting."
+    },
+    {
+     "id": "pm-agent-playbook",
+     "title": "PM Agent Playbook",
+     "kind": "guided-project",
+     "topics": [
+      "Pick a real product workflow",
+      "Design an agent assist",
+      "Define success metrics",
+      "Prototype with low-code or API",
+      "Pilot with a small group",
+      "Project write-up"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      }
+     ],
+     "il_provides": "One real workflow, one agent assist, measured honestly: define the metric before the pilot, then let the numbers \u2014 not the demo \u2014 decide."
+    },
+    {
+     "id": "pm-agent-metrics",
+     "title": "Metrics and Risk",
+     "kind": "career",
+     "topics": [
+      "Measuring agent-assisted workflows",
+      "Defining guardrail metrics",
+      "Escalation design",
+      "Risk registers for agent features",
+      "Rollback plans",
+      "Communicating limits to stakeholders"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Shipping agent features means owning their failure modes: guardrail metrics, escalation paths, and rollback plans written before launch, not after the incident."
+    },
+    {
+     "id": "pm-agent-roadmap",
+     "title": "Roadmapping with Agents",
+     "kind": "career",
+     "topics": [
+      "Scoping agent features honestly",
+      "Build-vs-buy for agent tooling",
+      "Sequencing low-risk wins first",
+      "Stakeholder alignment",
+      "Pricing and cost modeling",
+      "Launch checklists"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "The roadmap discipline for agentic features: low-risk wins first, honest cost modeling, and stakeholder alignment on what v1 will not do."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Literacy",
+     "weeks": "Weeks 1\u20132",
+     "topics": [
+      "Capability literacy",
+      "Cost and latency intuition",
+      "Eval basics",
+      "Reading agent architectures"
+     ],
+     "outcome": "Outcome: assess an agent feature pitch with a written capability/risk note."
+    },
+    {
+     "name": "Applied Agents",
+     "weeks": "Weeks 3\u20134",
+     "topics": [
+      "Spec agents",
+      "Research agents",
+      "Citation discipline",
+      "Human decision gates"
+     ],
+     "outcome": "Outcome: produce a spec draft and a verified research brief with agent help."
+    },
+    {
+     "name": "Playbook",
+     "weeks": "Weeks 5\u20136",
+     "topics": [
+      "Workflow selection",
+      "Success metrics",
+      "Pilot design",
+      "Write-up"
+     ],
+     "outcome": "Outcome: run a measured pilot of one agent assist and report the results."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aapm-diagnostic",
+     "title": "Agentic AI for PMs Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "The first question a PM should ask about any agent feature pitch is",
+       "choices": [
+        "What color is the UI",
+        "What is the measured success rate on realistic tasks, and what does failure cost",
+        "Which model is newest",
+        "Who built the demo"
+       ],
+       "answer": 1,
+       "explain": "Demos hide failure rates; shipping requires the measured number and the cost of being wrong."
+      },
+      {
+       "q": "An agent's research output is trustworthy when",
+       "choices": [
+        "It is long",
+        "Every claim cites a checkable source you verified",
+        "It agrees with you",
+        "It arrived quickly"
+       ],
+       "answer": 1,
+       "explain": "Citation discipline is the whole game: unverified agent synthesis is a rumor with formatting."
+      },
+      {
+       "q": "The right first agent feature to ship is usually",
+       "choices": [
+        "The most ambitious one",
+        "A low-risk, high-frequency workflow where failure is cheap and measurable",
+        "Whatever competitors announced",
+        "A full autonomous replacement"
+       ],
+       "answer": 1,
+       "explain": "Low-risk wins build the eval muscle and the trust; autonomy is earned one measured pilot at a time."
+      },
+      {
+       "q": "Guardrail metrics for an agent feature should be defined",
+       "choices": [
+        "After launch",
+        "Before launch, alongside success metrics",
+        "Never",
+        "By marketing"
+       ],
+       "answer": 1,
+       "explain": "You cannot steer what you did not instrument; guardrails are launch criteria, not postmortems."
+      },
+      {
+       "q": "Build-vs-buy for agent tooling hinges on",
+       "choices": [
+        "Hype",
+        "Differentiation: buy commodity orchestration, build where the agent is the product",
+        "Team size",
+        "Office location"
+       ],
+       "answer": 1,
+       "explain": "Commodity agent plumbing is rarely the moat; build where your data, workflow, or evals are the advantage."
+      },
+      {
+       "q": "When an agent pilot's numbers miss the target, the PM should",
+       "choices": [
+        "Ship it anyway",
+        "Report honestly, diagnose, and decide: iterate, narrow scope, or stop",
+        "Hide the numbers",
+        "Blame the model"
+       ],
+       "answer": 1,
+       "explain": "The pilot's job was to produce evidence; honoring a miss is what keeps the next bet credible."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-for-leaders",
+   "academy": "IL-17",
+   "title": "Agentic AI for TPMs & Engineering Managers",
+   "subtitle": "Agents across programs and teams.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 40,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "leadership"
+   ],
+   "suited_for": [
+    "Technical program managers coordinating agent rollouts",
+    "Engineering managers adding agent assists for their teams",
+    "Leaders writing policy for agent use",
+    "Anyone accountable for an agent pilot's outcome"
+   ],
+   "tools": [
+    "Copilot Studio",
+    "Azure AI Foundry",
+    "Microsoft Learn",
+    "OpenAI API",
+    "LangChain",
+    "Slack",
+    "Jira"
+   ],
+   "modules": [
+    {
+     "id": "program-agents",
+     "title": "Program Agents",
+     "kind": "core",
+     "topics": [
+      "Agents that track program status",
+      "Roll-up synthesis across teams",
+      "Risk-signal detection",
+      "Meeting-notes agents",
+      "Keeping humans accountable",
+      "Where program agents mislead"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      }
+     ],
+     "il_provides": "Agents that read the program so you can run it: status roll-ups, risk signals, and meeting synthesis \u2014 with accountability staying human, because the agent cannot own a deadline."
+    },
+    {
+     "id": "eng-mgmt-agents",
+     "title": "Eng Management Agents",
+     "kind": "core",
+     "topics": [
+      "Onboarding assistants",
+      "Code-review load balancing",
+      "1:1 prep agents",
+      "Knowledge-base agents",
+      "Measuring team-health signals",
+      "Privacy boundaries for people data"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      }
+     ],
+     "il_provides": "Agent assists for the management craft \u2014 onboarding, reviews, knowledge \u2014 with hard privacy boundaries around people data, because team trust is not a metric to optimize."
+    },
+    {
+     "id": "incident-agents",
+     "title": "Incident Agents",
+     "kind": "lab",
+     "topics": [
+      "Triage assistance during incidents",
+      "Runbook-following agents",
+      "Timeline reconstruction",
+      "Postmortem drafting",
+      "Paging-policy respect",
+      "Keeping the human commander in charge"
+     ],
+     "sources": [
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      }
+     ],
+     "il_provides": "Agents under incident pressure: triage, runbooks, and timelines at machine speed \u2014 with the human commander in charge, because the agent cannot take the page or the blame."
+    },
+    {
+     "id": "rollout-playbook",
+     "title": "Rollout Playbook",
+     "kind": "guided-project",
+     "topics": [
+      "Choose one team workflow",
+      "Design the agent assist",
+      "Define guardrails and approvals",
+      "Pilot metrics",
+      "Expand-or-stop decision",
+      "Project write-up"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "One workflow, one pilot, one decision: design the assist, set the guardrails, measure the outcome, and write the expand-or-stop call with the numbers attached."
+    },
+    {
+     "id": "leader-agent-governance",
+     "title": "Governance",
+     "kind": "career",
+     "topics": [
+      "Access controls for agents",
+      "Data-classification alignment",
+      "Audit trails",
+      "Vendor and model risk",
+      "Policy writing for agent use",
+      "Compliance checkpoints"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      },
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "The governance layer leadership actually owns: who the agent may be, what data it may touch, what it must log, and the policy that says so in writing."
+    },
+    {
+     "id": "leader-agent-metrics",
+     "title": "Measuring Agent Impact",
+     "kind": "career",
+     "topics": [
+      "Time-saved measurement done honestly",
+      "Quality deltas",
+      "Adoption metrics",
+      "Cost per assisted task",
+      "Counter-metrics and regressions",
+      "Reporting to leadership"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Impact measurement without the vanity: time saved with baselines, quality deltas, cost per task \u2014 and the counter-metrics that catch what the headline number hides."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Program Agents",
+     "weeks": "Weeks 1\u20132",
+     "topics": [
+      "Status agents",
+      "Roll-up synthesis",
+      "Risk signals",
+      "Accountability design"
+     ],
+     "outcome": "Outcome: design a status-and-risk agent workflow for a real program."
+    },
+    {
+     "name": "Team Agents",
+     "weeks": "Weeks 3\u20134",
+     "topics": [
+      "Eng-management assists",
+      "Incident agents",
+      "Privacy boundaries",
+      "Human-in-command"
+     ],
+     "outcome": "Outcome: draft the guardrails and privacy rules for one team agent."
+    },
+    {
+     "name": "Playbook & Governance",
+     "weeks": "Weeks 5\u20136",
+     "topics": [
+      "Pilot design",
+      "Governance checklist",
+      "Impact metrics",
+      "Expand-or-stop decision"
+     ],
+     "outcome": "Outcome: deliver a rollout playbook with governance and metrics."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aalead-diagnostic",
+     "title": "Agentic AI for TPMs & EMs Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "When a program agent reports status, accountability for the deadline stays with",
+       "choices": [
+        "The agent",
+        "The human owner \u2014 the agent informs, it does not own",
+        "The tool vendor",
+        "Nobody"
+       ],
+       "answer": 1,
+       "explain": "Agents synthesize and surface; ownership of outcomes is human and stays human."
+      },
+      {
+       "q": "The first governance question before an agent touches team data is",
+       "choices": [
+        "Which model is fastest",
+        "What data classification the agent may access, and what it must log",
+        "The UI theme",
+        "The vendor's logo"
+       ],
+       "answer": 1,
+       "explain": "Data classification plus audit logging is the gate; everything else is secondary."
+      },
+      {
+       "q": "An incident agent's most important constraint is",
+       "choices": [
+        "Speed",
+        "The human commander stays in charge; the agent assists, never commands",
+        "Verbosity",
+        "Cost"
+       ],
+       "answer": 1,
+       "explain": "Under incident pressure the chain of command is human; the agent follows runbooks and drafts, it does not decide."
+      },
+      {
+       "q": "Measuring 'time saved' by an agent honestly requires",
+       "choices": [
+        "A guess",
+        "A baseline: the same workflow timed without the agent, then compared",
+        "Vendor slides",
+        "Team vibes"
+       ],
+       "answer": 1,
+       "explain": "No baseline, no claim. Honest measurement compares like-for-like with the old way."
+      },
+      {
+       "q": "The expand-or-stop decision after a pilot should rest on",
+       "choices": [
+        "Enthusiasm",
+        "Predefined success metrics plus guardrail compliance",
+        "Headcount",
+        "Competitor news"
+       ],
+       "answer": 1,
+       "explain": "Decide the criteria before the pilot; the numbers then make the call, not the mood."
+      },
+      {
+       "q": "People-data boundaries for management agents matter because",
+       "choices": [
+        "Agents are slow",
+        "Team trust depends on knowing how their data is used \u2014 surveillance dressed as assistance destroys it",
+        "Storage is expensive",
+        "HR said so once"
+       ],
+       "answer": 1,
+       "explain": "Assistance that reads as surveillance costs the trust it was meant to serve; boundaries are the product."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-for-iv",
+   "academy": "IL-17",
+   "title": "Agentic AI Interview Prep",
+   "subtitle": "The agentic AI interview, end to end.",
+   "type": "career",
+   "difficulty": "advanced",
+   "hours": 50,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "interview-prep"
+   ],
+   "suited_for": [
+    "Engineers interviewing for agentic AI roles",
+    "Builders who can code but have never whiteboarded an agent system",
+    "Candidates who need reps on LLM depth questions",
+    "Anyone who wants a portfolio that proves agent skill"
+   ],
+   "tools": [
+    "Python",
+    "LangChain",
+    "LangGraph",
+    "OpenAI API",
+    "Anthropic API",
+    "GitHub"
+   ],
+   "modules": [
+    {
+     "id": "agent-system-design",
+     "title": "Agentic System Design",
+     "kind": "core",
+     "topics": [
+      "Designing an agent system on a whiteboard",
+      "Scoping the loop",
+      "Tool contracts",
+      "Memory design",
+      "Eval strategy",
+      "Trade-off narration"
+     ],
+     "sources": [
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      },
+      {
+       "name": "OpenAI: Function Calling Guide",
+       "url": "https://platform.openai.com/docs/guides/function-calling",
+       "note": "The tool-use pattern every agent framework wraps."
+      }
+     ],
+     "il_provides": "The interview's centerpiece: design an agent system live, narrating scope, tools, memory, and evals \u2014 and naming the trade-offs before the interviewer asks."
+    },
+    {
+     "id": "llm-depth-iv",
+     "title": "LLM Depth",
+     "kind": "core",
+     "topics": [
+      "Transformers at interview depth",
+      "Attention intuition",
+      "Training vs inference",
+      "Fine-tuning vs RAG decisions",
+      "Context limits",
+      "Cost/latency trade-offs"
+     ],
+     "sources": [
+      {
+       "name": "Hugging Face Documentation",
+       "url": "https://huggingface.co/docs",
+       "note": "Transformers library, tokenizers, datasets, and model hub guides."
+      },
+      {
+       "name": "Anthropic Documentation",
+       "url": "https://docs.anthropic.com/en/docs",
+       "note": "Claude API reference, tool use, and prompt-engineering guidance."
+      }
+     ],
+     "il_provides": "The LLM fundamentals behind the agent questions: enough transformer intuition to reason about context, cost, and the fine-tune-vs-retrieve call \u2014 no paper recitation required."
+    },
+    {
+     "id": "agentic-coding",
+     "title": "Agentic Coding Reps",
+     "kind": "lab",
+     "topics": [
+      "Implementing agent loops from scratch",
+      "Tool-use parsers",
+      "Multi-step task drills",
+      "Debugging failing trajectories",
+      "Timed practice",
+      "Code-review narration"
+     ],
+     "sources": [
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      },
+      {
+       "name": "Python Documentation",
+       "url": "https://docs.python.org/3/",
+       "note": "The official language reference and tutorial; anchor, not copy."
+      }
+     ],
+     "il_provides": "Reps, not reading: build the loop by hand, parse tool calls, debug broken trajectories \u2014 until the pattern is muscle memory under the clock."
+    },
+    {
+     "id": "agentic-behavioral",
+     "title": "Behavioral for AI Roles",
+     "kind": "career",
+     "topics": [
+      "STAR stories about AI systems",
+      "Discussing failures honestly",
+      "Safety and ethics questions",
+      "Collaboration stories",
+      "Questions to ask interviewers",
+      "Calibrating seniority signals"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Behavioral rounds for AI roles reward honest failure stories and safety thinking: what broke, what you learned, and what you would not ship again."
+    },
+    {
+     "id": "agentic-mock",
+     "title": "Agentic Mock Circuit",
+     "kind": "career",
+     "topics": [
+      "Full-loop mock interviews",
+      "System design mock",
+      "Coding mock",
+      "Behavioral mock",
+      "Feedback integration",
+      "Pacing and stamina"
+     ],
+     "sources": [
+      {
+       "name": "LangGraph Documentation",
+       "url": "https://langchain-ai.github.io/langgraph/",
+       "note": "Stateful agent graphs: loops, memory, and human-in-the-loop."
+      },
+      {
+       "name": "Real Python",
+       "url": "https://realpython.com/",
+       "note": "Long-form Python tutorials with runnable examples."
+      }
+     ],
+     "il_provides": "The full circuit under realistic conditions: design, code, behavioral \u2014 then integrate the feedback, because mocks without iteration are just performance anxiety practice."
+    },
+    {
+     "id": "agentic-portfolio",
+     "title": "Portfolio Review",
+     "kind": "career",
+     "topics": [
+      "Choosing portfolio pieces",
+      "Agent project write-ups",
+      "Demo videos",
+      "README as evidence",
+      "GitHub hygiene",
+      "Talking through code"
+     ],
+     "sources": [
+      {
+       "name": "GitHub Documentation",
+       "url": "https://docs.github.com/en",
+       "note": "Repositories, Actions, and the workflows coding agents plug into."
+      },
+      {
+       "name": "LangChain Documentation",
+       "url": "https://docs.langchain.com/",
+       "note": "Chains, LCEL, tools, and agent patterns."
+      }
+     ],
+     "il_provides": "The portfolio as interview evidence: write-ups that name limits, READMEs that let a stranger run it, and the habit of talking through your own code without notes."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Systems & Depth",
+     "weeks": "Weeks 1\u20133",
+     "topics": [
+      "Agent system design",
+      "LLM depth",
+      "Tool contracts",
+      "Trade-off narration"
+     ],
+     "outcome": "Outcome: whiteboard an agent system end to end with trade-offs."
+    },
+    {
+     "name": "Coding & Behavioral",
+     "weeks": "Weeks 4\u20135",
+     "topics": [
+      "Coding reps",
+      "Trajectory debugging",
+      "STAR stories",
+      "Safety questions"
+     ],
+     "outcome": "Outcome: complete timed coding reps and a behavioral story bank."
+    },
+    {
+     "name": "Mocks",
+     "weeks": "Weeks 6\u20137",
+     "topics": [
+      "Mock circuit",
+      "Feedback integration",
+      "Portfolio polish",
+      "Pacing"
+     ],
+     "outcome": "Outcome: finish a full mock circuit and a portfolio ready to show."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aaiv-diagnostic",
+     "title": "Agentic AI Interview Prep Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "In an agent system-design interview, the strongest opening move is",
+       "choices": [
+        "Naming the newest model",
+        "Scoping the problem: inputs, outputs, success criteria, and constraints \u2014 then designing",
+        "Drawing boxes immediately",
+        "Listing every framework you know"
+       ],
+       "answer": 1,
+       "explain": "Scope first: interviewers score whether you clarify before you architect."
+      },
+      {
+       "q": "Asked 'fine-tune or RAG?', the decision hinges on",
+       "choices": [
+        "Model size",
+        "Whether the task needs new behavior/knowledge baked in vs grounding answers in retrievable, changing documents",
+        "Hype",
+        "Team preference"
+       ],
+       "answer": 1,
+       "explain": "RAG grounds answers in live documents; fine-tuning changes behavior and bakes knowledge \u2014 different tools, different costs."
+      },
+      {
+       "q": "When your whiteboarded agent design hits a failure mode, you should",
+       "choices": [
+        "Pretend it cannot happen",
+        "Name it, bound it with a guardrail, and move on",
+        "Redesign from scratch",
+        "Blame the tools"
+       ],
+       "answer": 1,
+       "explain": "Naming failure modes with mitigations is seniority signal; hand-waving them is the opposite."
+      },
+      {
+       "q": "Debugging a failing agent trajectory starts with",
+       "choices": [
+        "A bigger model",
+        "Reading the trace: which step's tool call or reasoning first went wrong",
+        "More prompts",
+        "Restarting"
+       ],
+       "answer": 1,
+       "explain": "Traces are the debugger for agents; find the first wrong step and the cause usually follows."
+      },
+      {
+       "q": "A strong behavioral answer about an AI failure includes",
+       "choices": [
+        "Blame",
+        "What broke, your role, what you changed in process afterward",
+        "Jargon",
+        "Denial"
+       ],
+       "answer": 1,
+       "explain": "Ownership plus a process change is the signal; AI roles especially reward honest postmortems."
+      },
+      {
+       "q": "Your portfolio's best evidence of agent skill is",
+       "choices": [
+        "Certificates",
+        "A working agent with a write-up that names its limits and shows the eval",
+        "A long skills list",
+        "Tutorial copies"
+       ],
+       "answer": 1,
+       "explain": "Working code plus honest limits plus measured results beats any credential for agent roles."
+      },
+      {
+       "q": "Asked about agent safety in an interview, lead with",
+       "choices": [
+        "'It is safe'",
+        "Concrete controls: least-privilege tools, step budgets, human gates, evals \u2014 tied to the system's risks",
+        "Philosophy",
+        "Regulations only"
+       ],
+       "answer": 1,
+       "explain": "Concrete controls mapped to real risks show engineering judgment; abstractions do not."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "agentic-ai-lowcode",
+   "academy": "IL-17",
+   "title": "Low-Code Agentic AI",
+   "subtitle": "Agents without the codebase.",
+   "type": "foundations",
+   "difficulty": "beginner",
+   "hours": 30,
+   "status": "published",
+   "tags": [
+    "agentic-ai",
+    "low-code"
+   ],
+   "suited_for": [
+    "Non-developers who want working agents this week",
+    "Teams prototyping before committing engineering time",
+    "PMs and operators automating their own workflows",
+    "Anyone deciding whether low-code is enough for their use case"
+   ],
+   "tools": [
+    "Copilot Studio",
+    "Power Automate",
+    "Zapier",
+    "OpenAI API",
+    "Microsoft 365"
+   ],
+   "modules": [
+    {
+     "id": "lowcode-platforms",
+     "title": "Low-Code Agent Platforms",
+     "kind": "core",
+     "topics": [
+      "The low-code agent landscape",
+      "Copilot Studio basics",
+      "What the platform handles for you",
+      "Pricing intuition",
+      "Choosing a platform",
+      "When low-code is enough"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      }
+     ],
+     "il_provides": "The honest map of the low-code agent world: what you get for free, what you trade away, and how to tell whether your use case fits before you build."
+    },
+    {
+     "id": "lowcode-prompt-flows",
+     "title": "Prompt Flows",
+     "kind": "lab",
+     "topics": [
+      "Building prompt flows visually",
+      "Chaining steps",
+      "Variables and branching",
+      "Testing flows",
+      "Iterating on prompts",
+      "Sharing flows"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "Your first flows: chain prompts into working pipelines, test them like software, and iterate \u2014 the lab where low-code stops feeling like a demo."
+    },
+    {
+     "id": "lowcode-connectors",
+     "title": "Connectors and Integrations",
+     "kind": "core",
+     "topics": [
+      "Connectors to common apps",
+      "Authentication basics",
+      "Data access scoping",
+      "Triggers and schedules",
+      "Error handling",
+      "Monitoring runs"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      }
+     ],
+     "il_provides": "Connecting the agent to real systems: auth, scoped data access, triggers \u2014 and the monitoring that tells you when a flow starts failing quietly."
+    },
+    {
+     "id": "lowcode-project",
+     "title": "Low-Code Agent Project",
+     "kind": "guided-project",
+     "topics": [
+      "Pick a real workflow",
+      "Build the agent",
+      "Connect data sources",
+      "Test with real users",
+      "Gather feedback",
+      "Project write-up"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "OpenAI Platform Documentation",
+       "url": "https://platform.openai.com/docs",
+       "note": "API references and guides; the anchor for model-calling patterns."
+      }
+     ],
+     "il_provides": "A real workflow automated end to end: built, connected, tested with actual users \u2014 the project that proves low-code is a delivery vehicle, not a toy."
+    },
+    {
+     "id": "lowcode-deploy",
+     "title": "Deploy and Share",
+     "kind": "career",
+     "topics": [
+      "Publishing an agent",
+      "Sharing and permissions",
+      "Usage monitoring",
+      "Feedback loops",
+      "Versioning",
+      "Handoff documentation"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Microsoft Learn",
+       "url": "https://learn.microsoft.com/en-us/training/",
+       "note": "Free official training across the Microsoft AI platform."
+      }
+     ],
+     "il_provides": "From your workspace to your team: publishing, permissions, monitoring, and the handoff docs that keep the agent alive after you move on."
+    },
+    {
+     "id": "lowcode-limits",
+     "title": "Limits of Low-Code",
+     "kind": "career",
+     "topics": [
+      "The customization ceiling",
+      "Escaping to pro-code",
+      "Vendor lock-in awareness",
+      "Cost at scale",
+      "Governance needs",
+      "Deciding when to graduate"
+     ],
+     "sources": [
+      {
+       "name": "Microsoft Copilot Studio Documentation",
+       "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/",
+       "note": "Low-code agents: topics, actions, connectors, and deployment."
+      },
+      {
+       "name": "Azure AI Foundry Documentation",
+       "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
+       "note": "Projects, model catalog, and agent service references."
+      }
+     ],
+     "il_provides": "Knowing the ceiling is the skill: when low-code is enough, when to graduate to pro-code, and how to spot lock-in before it spots you."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Platforms",
+     "weeks": "Weeks 1\u20132",
+     "topics": [
+      "Platform landscape",
+      "Copilot Studio basics",
+      "Pricing intuition",
+      "Fit assessment"
+     ],
+     "outcome": "Outcome: assess whether a real use case fits low-code."
+    },
+    {
+     "name": "Flows & Connectors",
+     "weeks": "Weeks 3\u20134",
+     "topics": [
+      "Prompt flows",
+      "Chaining and branching",
+      "Connectors",
+      "Monitoring"
+     ],
+     "outcome": "Outcome: build and monitor a connected prompt flow."
+    },
+    {
+     "name": "Project",
+     "weeks": "Weeks 5\u20136",
+     "topics": [
+      "Workflow selection",
+      "Agent build",
+      "User testing",
+      "Deploy and handoff"
+     ],
+     "outcome": "Outcome: deploy a low-code agent with handoff documentation."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "aalc-diagnostic",
+     "title": "Low-Code Agentic AI Diagnostic",
+     "kind": "diagnostic",
+     "questions": 6,
+     "items": [
+      {
+       "q": "Low-code agent platforms trade",
+       "choices": [
+        "Nothing; they equal pro-code",
+        "Speed of building against depth of control \u2014 governance still required",
+        "Cost for accuracy",
+        "Models for data"
+       ],
+       "answer": 1,
+       "explain": "Low-code ships fast for well-scoped tasks; custom logic, eval rigor, and data governance still need engineering judgment."
+      },
+      {
+       "q": "A connector's data-access scope should be",
+       "choices": [
+        "Everything, for convenience",
+        "The minimum the agent's task needs \u2014 least privilege applies to low-code too",
+        "Whatever the default is",
+        "Full admin"
+       ],
+       "answer": 1,
+       "explain": "Over-scoped connectors turn a helpful agent into a data-exposure incident; scope deliberately."
+      },
+      {
+       "q": "Testing a prompt flow means",
+       "choices": [
+        "Running it once",
+        "Running representative inputs, checking outputs, and iterating \u2014 like software",
+        "Trusting the platform",
+        "Skipping it"
+       ],
+       "answer": 1,
+       "explain": "Flows are software: they need test cases and iteration, not one hopeful run."
+      },
+      {
+       "q": "The sign it is time to graduate from low-code to pro-code is",
+       "choices": [
+        "Boredom",
+        "The platform's ceiling blocks a requirement \u2014 custom logic, scale, or control you cannot configure",
+        "A new release",
+        "Team growth"
+       ],
+       "answer": 1,
+       "explain": "Graduate on evidence: a concrete requirement the platform cannot meet, not fashion."
+      },
+      {
+       "q": "Monitoring a deployed low-code agent should track",
+       "choices": [
+        "Nothing",
+        "Run success/failure, usage, cost, and user feedback",
+        "Only logins",
+        "Only cost"
+       ],
+       "answer": 1,
+       "explain": "Quiet failures are the low-code killer; monitor runs, spend, and feedback or the agent rots silently."
+      },
+      {
+       "q": "Vendor lock-in risk in low-code is managed by",
+       "choices": [
+        "Ignoring it",
+        "Knowing your exit: what is portable, what is proprietary, and what migration would cost",
+        "More connectors",
+        "Longer contracts"
+       ],
+       "answer": 1,
+       "explain": "You do not have to avoid platforms; you have to know the price of leaving before you need to."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

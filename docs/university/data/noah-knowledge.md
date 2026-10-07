@@ -89,7 +89,7 @@ Static, self-paced learning site: 18 academies, 112 paths, 646 modules. Adaptive
 
 ### Notable University paths
 
-- `il05-kodekloud` — DevOps at KodeKloud Parity (300h): the career DevOps spine.
+- `il05-devops-core` — DevOps at Cloud-Native Parity (300h): the career DevOps spine.
 - `il05-cloud-native` — Cloud-Native: The Kubernetes Certification Stack (260h).
 - `il09-comptia-core` — CompTIA Core Stack: A+, Network+, Security+ (220h).
 - `il02-math-spine` — The Unified Mathematical Spine (420h): the largest single path.

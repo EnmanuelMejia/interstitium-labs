@@ -15,9 +15,20 @@
  *   GET  /api/certificates/verify?id=  Public certificate verification.
  *   /os /os/                     301 -> /learn/
  *   /proof /proof/               301 -> /evidence/
+ *   19 consolidated stub slugs   301 -> their Learning OS targets
+ *     (code, command, desk, doctrine, drill, factory, field, graph,
+ *      interview, library, measure, plant, platform, portfolio, pricing,
+ *      radar, sheets, si, system) — stub dirs removed 2026-10-06
  *
  * KV bindings: WAITLIST (required for waitlist), IL_AUTH + IL_ACCOUNTS
- * (required for auth/progress/certificates; account routes 503 without them).
+ * (required for auth/progress/certificates; account routes 503 without them),
+ * NOAH_STATS (Noah usage aggregates; stats endpoints degrade gracefully
+ * without it). Workers AI binding (AI) powers POST /api/noah; the route
+ * returns 503 with a local fallback flag when the binding is absent.
+ *
+ * 2026-10-06: Noah AI tutor backend merged in from the retired
+ * learn.interstitiumlabs.dev worker; the /university/ content tree lives in
+ * ./university/ (IL-01 through IL-18 academies).
  */
 
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
@@ -571,6 +582,293 @@ async function handleListCertificates(request, env, sess) {
 
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------
+ * Noah AI tutor backend (merged 2026-10-06 from the retired
+ * interstitium-labs-university worker on learn.interstitiumlabs.dev).
+ *   POST /api/noah       Socratic tutor chat via Workers AI.
+ *   POST /api/noah-stats Privacy-respecting usage aggregates -> KV NOAH_STATS.
+ *   GET  /api/noah-stats Coarse public aggregates for iteration.
+ * Helpers are noah*-prefixed to avoid colliding with the flagship's own
+ * json()/routing helpers above.
+ * ------------------------------------------------------------------ */
+
+/* =====================================================================
+ * Interstitium Labs Learning University — Worker
+ *
+ * Static assets + Noah AI endpoint.
+ *  - All non-API traffic -> static assets (existing site, unchanged).
+ *  - POST /api/noah -> proxied chat completion via Workers AI.
+ *    CORS-enabled for https://interstitiumlabs.dev (apex widget).
+ *  - POST /api/noah-stats -> privacy-respecting usage aggregates
+ *    (counters only, no message text, no PII) into KV (NOAH_STATS).
+ *    GET /api/noah-stats -> coarse public aggregates for iteration.
+ * ===================================================================== */
+
+const NOAH_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const KNOWLEDGE_PATH = '/university/data/noah-knowledge.md';
+const MAX_MSGS = 20;
+const MAX_CHARS_PER_MSG = 4000;
+const MAX_TOKENS = 900;
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 15;
+
+let knowledgeCache = null;
+const rateMap = new Map();
+
+function noahCors(resp, origin) {
+  const h = new Headers(resp.headers);
+  h.set('Access-Control-Allow-Origin', origin);
+  h.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  h.set('Access-Control-Allow-Headers', 'Content-Type');
+  h.set('Vary', 'Origin');
+  return new Response(resp.body, { status: resp.status, headers: h });
+}
+
+function noahJson(obj, status, origin) {
+  return noahCors(
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    }),
+    origin
+  );
+}
+
+function noahAllowedOrigin(request) {
+  const o = request.headers.get('Origin') || '';
+  const self = new URL(request.url).origin;
+  if (o === self) return o;
+  if (o === 'https://interstitiumlabs.dev' || o === 'https://www.interstitiumlabs.dev') return o;
+  return self; // default: same-origin only
+}
+
+function rateLimited(ip) {
+  const now = Date.now();
+  let rec = rateMap.get(ip);
+  if (!rec || now - rec.start > RATE_WINDOW_MS) {
+    rec = { start: now, count: 0 };
+    rateMap.set(ip, rec);
+  }
+  rec.count += 1;
+  if (rateMap.size > 5000) rateMap.clear();
+  return rec.count > RATE_MAX;
+}
+
+async function loadKnowledge(env, request) {
+  if (knowledgeCache) return knowledgeCache;
+  try {
+    const res = await env.ASSETS.fetch(new URL(KNOWLEDGE_PATH, request.url));
+    if (res.ok) {
+      knowledgeCache = await res.text();
+      return knowledgeCache;
+    }
+  } catch (e) { /* fall through to empty */ }
+  knowledgeCache = '';
+  return '';
+}
+
+function sanitizeMessages(raw) {
+  if (!Array.isArray(raw)) return null;
+  const out = [];
+  for (const m of raw.slice(-MAX_MSGS)) {
+    if (!m || (m.role !== 'user' && m.role !== 'assistant')) return null;
+    const content = String(m.content == null ? '' : m.content).slice(0, MAX_CHARS_PER_MSG);
+    if (!content.trim()) continue;
+    out.push({ role: m.role, content });
+  }
+  return out.length ? out : null;
+}
+
+async function handleNoah(request, env) {
+  const origin = noahAllowedOrigin(request);
+
+  if (!env.AI) {
+    return noahJson({ error: 'AI unavailable', fallback: true }, 503, origin);
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (rateLimited(ip)) {
+    return noahJson({ error: 'Rate limited. Try again shortly.', fallback: true }, 429, origin);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return noahJson({ error: 'Invalid JSON body.' }, 400, origin);
+  }
+
+  const messages = sanitizeMessages(body.messages);
+  if (!messages) {
+    return noahJson({ error: 'Provide messages: [{role, content}].' }, 400, origin);
+  }
+
+  const knowledge = await loadKnowledge(env, request);
+  const system =
+    'You are Noah AI, the resident intelligence of Interstitium Labs — ' +
+    'the personal AI of founder Enmanuel D. Mejia, living on interstitiumlabs.dev, ' +
+    'learn.interstitiumlabs.dev, and the Interstitium Labs mobile apps. ' +
+    'Your name is Noah AI. Never claim to be Muse, Meta AI, or any other assistant.\n\n' +
+    'PRIMARY MISSION — personalized adaptive tutor. You adapt to each learner: ' +
+    'infer their level (novice / intermediate / advanced) from their vocabulary, ' +
+    'questions, and attempts, then calibrate depth, jargon, and pacing to match. ' +
+    'Notice what they already grasp and skip it; dwell where they stumble. ' +
+    'Remember what they tell you within the conversation — their goal (a cert, ' +
+    'an interview, a course, a project), their background, what they have tried — ' +
+    'and refer back to it explicitly: "last time you got stuck on X, let\'s build on that." ' +
+    'Keep a running mental model of the session: goal, background, attempts, what worked. ' +
+    'Restate it when relevant ("on your second attempt at the subnetting drill you nailed the mask but slipped on the broadcast — here is why"). ' +
+    'This memory is conversation-scoped: it ends when the session ends.\n\n' +
+    'LEARNING STYLE — detect how they learn from interaction signals: terse vs verbose ' +
+    'replies; code-first vs concept-first vs example-first questions; requests for diagrams ' +
+    'or analogies; trial-and-error attempts vs read-first behavior. Match their style: ' +
+    'concise answers for the terse, worked examples for the example-first, code before prose ' +
+    'for the code-first, an ASCII sketch when they ask to see it. Keep re-detecting as ' +
+    'signals accumulate — styles drift, and so should your strategy.\n\n' +
+    'DOCTRINE (Socratic): when the visitor is learning, guide before telling. ' +
+    'Acknowledge their hypothesis, ask ONE sharp guiding question, offer the next ' +
+    'smallest step. Never dump a full worked answer first when they are studying. ' +
+    'Diagnose the misconception behind a wrong answer and repair the mental model, ' +
+    'not just the answer. Give graduated hints on request; check understanding ' +
+    'with one quick practice question before moving on. Celebrate real progress ' +
+    'specifically ("your subnetting is clean now — that was the hard part"); ' +
+    'normalize struggle, never shame it. If they plainly ask for a direct answer ' +
+    'outside a study context, answer directly and well.\n\n' +
+    'PACING — set one explicit micro-goal at the start of each study session ("by the end of this you will ..."). ' +
+    'Check mastery with ONE question before advancing; move on only when they show understanding. ' +
+    'At every checkpoint offer three branches: go deeper, move on, or review. Never race ahead of them.\n\n' +
+    'LAB COACHING — for hands-on work, never paste a full solution first. Diagnose: ask what they tried, ' +
+    'what they expected, what actually happened. Hint in graduated steps: a nudge, then a stronger nudge, ' +
+    'then a worked sketch of the missing piece; the full solution only when they are still stuck. ' +
+    'When they show you an attempt, review it: name what is right before what is wrong, and repair ' +
+    'the reasoning, not just the code.\n\n' +
+    'BEYOND TUTORING you are a complete assistant. Answer questions about the full course ' +
+    'catalog — recommend academies and paths BY CODE (e.g. IL-11) and cite the catalog code when you do. ' +
+    'Navigate visitors to the right page; help with writing, planning, and technical problems. ' +
+    'For code: explain and debug by careful reasoning, but be honest that you cannot execute code — ' +
+    'say so before reasoning about what it will do, and verify claims by tracing, not asserting. ' +
+    'For career questions about Enmanuel: ground every claim ONLY in his real materials — his resume, ' +
+    'his projects, this knowledge base. Never invent credentials, employers, salaries, offers, or ' +
+    'outcomes for him or the visitor. Anything a capable personal AI would do, within the honesty rules below.\n\n' +
+    'ITERATION — a privacy-respecting pipeline records only counters of how this chat is used ' +
+    '(opens, asks, fallbacks; never message text). When the conversation itself shows stuck signals — ' +
+    'the same topic asked repeatedly, escalating hint requests, circling one concept — name it briefly ' +
+    'and invite a check question or a different angle. Sparingly: at most one such nudge per session. ' +
+    'These moments feed the weekly human review that improves you.\n\n' +
+    'VOICE: measured, precise, warm but never gushing. Latin sparingly. No hype, ' +
+    'no emojis. Short paragraphs. Use simple markdown (bold, lists, code spans) ' +
+    'where it aids clarity.\n\n' +
+    'SCOPE: you speak from the knowledge base below — Enmanuel\'s projects, code, ' +
+    'the Learning University curriculum, the mobile apps, and the Interstitium Labs sites. ' +
+    'Recommend specific academies/paths by code (e.g. IL-11) when relevant. ' +
+    'If asked about something outside the knowledge base, say so plainly and help ' +
+    'from general knowledge, marked as general. Never invent credentials, ' +
+    'experience, certifications, or project details — for Enmanuel or the visitor.\n\n' +
+    'KNOWLEDGE BASE:\n' + (knowledge || '(knowledge base unavailable — answer from general knowledge and say so.)');
+
+  try {
+    const aiMessages = [{ role: 'system', content: system }, ...messages];
+    const result = await env.AI.run(NOAH_MODEL, {
+      messages: aiMessages,
+      max_tokens: MAX_TOKENS,
+      temperature: 0.6,
+    });
+    const reply =
+      (result && result.response ? String(result.response) : '').trim() ||
+      'I could not compose a reply just now. Try again, or ask the local Socratic engine below.';
+    return noahJson({ reply }, 200, origin);
+  } catch (e) {
+    return noahJson({ error: 'AI request failed.', fallback: true }, 502, origin);
+  }
+}
+
+/* ---- Noah stats: privacy-respecting usage aggregates ----
+   POST /api/noah-stats { v:1, sid, platform, agg:{ opens, asks, remotes,
+   fallbacks, nudges, chips, errors, byTopic } } -> 204.
+   Counters only; never message text, never PII. Stored per-day plus a
+   global rollup in KV (binding NOAH_STATS). GET returns coarse public
+   aggregates consumed by the weekly autonomous-iteration review. */
+const STAT_KEYS = ['opens', 'asks', 'remotes', 'fallbacks', 'nudges', 'chips', 'errors'];
+
+function freshAgg() {
+  return { opens: 0, asks: 0, remotes: 0, fallbacks: 0, nudges: 0, chips: 0, errors: 0, byTopic: {} };
+}
+
+function dayKey(d) { return 'stats:day:' + d.toISOString().slice(0, 10); }
+
+function sanitizeAgg(a) {
+  if (!a || typeof a !== 'object') return null;
+  const out = {};
+  for (const k of STAT_KEYS) {
+    const n = Number(a[k]);
+    out[k] = Number.isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 10000) : 0;
+  }
+  out.byTopic = {};
+  if (a.byTopic && typeof a.byTopic === 'object') {
+    for (const t of Object.keys(a.byTopic).slice(0, 40)) {
+      if (/^[a-z-]{1,24}$/.test(t)) {
+        const n = Number(a.byTopic[t]);
+        if (Number.isFinite(n) && n > 0) out.byTopic[t] = Math.min(Math.floor(n), 10000);
+      }
+    }
+  }
+  return out;
+}
+
+function mergeAgg(base, d) {
+  const out = Object.assign(freshAgg(), base, { byTopic: {} });
+  for (const k of STAT_KEYS) out[k] = (Number(base[k]) || 0) + (d[k] || 0);
+  const bt = (base.byTopic && typeof base.byTopic === 'object') ? base.byTopic : {};
+  for (const t of Object.keys(bt)) out.byTopic[t] = bt[t];
+  for (const t of Object.keys(d.byTopic)) out.byTopic[t] = (out.byTopic[t] || 0) + d.byTopic[t];
+  return out;
+}
+
+async function handleNoahStats(request, env) {
+  const origin = noahAllowedOrigin(request);
+  if (request.method === 'OPTIONS') {
+    return noahCors(new Response(null, { status: 204 }), origin);
+  }
+  if (request.method === 'POST') {
+    let body = null;
+    try { body = await request.json(); } catch (e) { return noahJson({ error: 'Bad JSON.' }, 400, origin); }
+    if (!body || body.v !== 1) return noahJson({ error: 'Bad version.' }, 400, origin);
+    const d = sanitizeAgg(body.agg);
+    if (!d) return noahJson({ error: 'Bad aggregate.' }, 400, origin);
+    const ip = request.headers.get('CF-Connecting-IP') || 'x';
+    if (rateLimited('stats:' + ip)) return noahCors(new Response(null, { status: 429 }), origin);
+    if (env.NOAH_STATS) {
+      try {
+        const day = dayKey(new Date());
+        const cur = (await env.NOAH_STATS.get(day, 'json')) || freshAgg();
+        await env.NOAH_STATS.put(day, JSON.stringify(mergeAgg(cur, d)));
+        const g = (await env.NOAH_STATS.get('stats:global', 'json')) || freshAgg();
+        await env.NOAH_STATS.put('stats:global', JSON.stringify(mergeAgg(g, d)));
+      } catch (e) {
+        console.log('noah-stats kv error: ' + (e && e.message));
+      }
+    } else {
+      console.log('noah-stats (no KV): ' + JSON.stringify(d));
+    }
+    return noahCors(new Response(null, { status: 204 }), origin);
+  }
+  if (request.method === 'GET') {
+    const out = { global: freshAgg(), days: [] };
+    if (env.NOAH_STATS) {
+      try {
+        out.global = (await env.NOAH_STATS.get('stats:global', 'json')) || freshAgg();
+        for (let i = 0; i < 7; i++) {
+          const k = dayKey(new Date(Date.now() - i * 864e5));
+          const v = await env.NOAH_STATS.get(k, 'json');
+          if (v) out.days.push(Object.assign({ day: k.slice(10) }, v));
+        }
+      } catch (e) { /* serve empty aggregates */ }
+    }
+    return noahJson(out, 200, origin);
+  }
+  return noahJson({ error: 'Use GET or POST.' }, 405, origin);
+}
+
 export default {
   async fetch(request, env) {
     var url = new URL(request.url);
@@ -581,6 +879,23 @@ export default {
     }
     if (path === "/proof" || path === "/proof/") {
       return movedPermanently(request, "/evidence/");
+    }
+    // 2026-10-06: consolidated redirect stubs (zero-value stub dirs removed)
+    var STUB_REDIRECTS = {
+      "/code": "/prep/programming/", "/command": "/paths/",
+      "/desk": "/learn/", "/doctrine": "/about/",
+      "/drill": "/prep/drills/", "/factory": "/labs/",
+      "/field": "/learn/", "/graph": "/learn/skills/",
+      "/interview": "/prep/drills/", "/library": "/learn/",
+      "/measure": "/learn/", "/plant": "/paths/",
+      "/platform": "/about/", "/portfolio": "/labs/superlab/",
+      "/pricing": "/enroll/", "/radar": "/trending/",
+      "/sheets": "/prep/", "/si": "/learn/",
+      "/system": "/about/"
+    };
+    var stubTarget = STUB_REDIRECTS[path.replace(/\/$/, "")];
+    if (stubTarget) {
+      return movedPermanently(request, stubTarget);
     }
     if (path === "/api/waitlist") {
       if (!env.WAITLIST) {
@@ -617,6 +932,20 @@ export default {
     }
     if (path === "/api/certificates/verify") {
       return handleVerifyCertificate(request, env);
+    }
+
+    if (path === "/api/noah-stats") {
+      return handleNoahStats(request, env);
+    }
+    if (path === "/api/noah") {
+      if (request.method === "OPTIONS") {
+        return noahCors(new Response(null, { status: 204 }), noahAllowedOrigin(request));
+      }
+      if (request.method !== "POST") {
+        var noahOrigin = noahAllowedOrigin(request);
+        return noahCors(noahJson({ error: "Use POST." }, 405, noahOrigin), noahOrigin);
+      }
+      return handleNoah(request, env);
     }
 
     var res = await env.ASSETS.fetch(request);
