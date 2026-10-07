@@ -168,14 +168,24 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </section>
 </main>
-<footer class="no-print border-t border-paper/10">
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="no-print border-t border-paper/10 il-footer-3d">
   <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
     <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
+      <img class="il-sigil-3d" src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
     </div>
     <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
+      <span class="il-emboss">interstitiumlabs.dev</span>
+      <span class="il-emboss">Scientia Omnia Vincit</span>
+      <span class="il-emboss">Created by Interstitium Labs</span>
       <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/university/" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
     </div>
   </div>
