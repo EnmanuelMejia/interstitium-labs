@@ -46,7 +46,7 @@ Catalog total: 46.
 
 ## Honesty (Musk bar)
 
-- **No piracy.** External links only. We do not host, rip, or mirror LinkedIn Learning video.
+- **No piracy.** External links only. We do not host, rip, or mirror third-party video.
 - **No invented MIT numbers.** OCW / Open Learning / public course-site IDs only.
 - **No fake viral metrics.** X/public discourse rows have no fabricated likes/impressions.
 - **Brand.** Interstitium lockup + cyan / gold / void. Do **not** Meta-skin Frontier or Muse chrome.
@@ -58,7 +58,7 @@ Catalog total: 46.
 | Source | Count | Notes |
 |--------|------:|-------|
 | MIT (OCW / Open Learning / course sites) | 10 | Prior 9, plus 18.100B Real Analysis |
-| LinkedIn Learning (public catalog pages) | 7 | Unchanged this fold |
+| Third-party video library (public catalog pages) | 7 | Unchanged this fold |
 | X / public discourse signal | 6 | Unchanged this fold |
 | arXiv | 4 | Ye draft, alignment survey, agentic researcher, QFT anomalies |
 | Open source / open notes | 2 | Li pathways (CC BY-NC), Hinton PyTorch repo |
@@ -76,9 +76,9 @@ Catalog total: 46.
 | 6.033 | Computer System Engineering | UG core | Complexity + reliability spine | `/paths/kubernetes-sre/` |
 | 6.5940 | TinyML and Efficient AI Computing | Grad/PhD | On-device LLM deploy labs (Han Lab site) | `/paths/nvidia-ai/` |
 | Missing Semester | Missing Semester of Your CS Education | Practitioner | Shell→git→debug→agentic coding | `/prep/` |
-| MITx 6.86x | ML with Python: Linear Models → DL | Advanced | Verified MITx ID; edX run availability varies | `/paths/data-science-certs/` |
+| MITx 6.86x | ML with Python: Linear Models → DL | Advanced | Verified MITx ID; run availability varies | `/paths/data-science-certs/` |
 
-## LinkedIn Learning (public catalog; login gaps labeled)
+## Third-party video library (public catalog; login gaps labeled)
 
 | Title | Level | Map |
 |-------|-------|-----|
@@ -90,7 +90,7 @@ Catalog total: 46.
 | Kubernetes: GitOps with Argo CD | Advanced | `/labs/superlab/` |
 | GitOps Foundations | Intermediate | `/paths/iac-terraform-gitops/` |
 
-**Gap:** deep lesson lists / full video often sit behind LinkedIn Learning seats. We cite public landing pages only.
+**Gap:** deep lesson lists / full video often sit behind third-party video-library seats. We cite public landing pages only.
 
 ## X / public discourse (signal only)
 

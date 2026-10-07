@@ -15,7 +15,7 @@
 | `/assets/il-muse-avatar-dee.svg` | Default Dee / Monas mark |
 | `/assets/il-muse-avatar-sigil.svg` | Alt: Interstitium orbital sigil |
 | `/assets/il-muse-avatar-cap.svg` | Alt: scholar hood/cap silhouette |
-| `/assets/chrome/lab-muse-dee.svg` | Same Dee mark for chrome/lockup reuse |
+| `/assets/il-muse-avatar-dee.svg` | Same Dee mark for chrome/lockup reuse (canonical; `/assets/chrome/lab-muse-dee.svg` retired as byte-identical duplicate 2026-10-07) |
 | `/assets/il-muse.js` | Avatar picker + `avatarId` in `il.muse.v1` |
 | `/assets/il-muse.css` / `il-muse-mobile.css` | Idle / listening / thinking / speaking glow |
 

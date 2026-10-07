@@ -91,7 +91,7 @@ Honest gate: **none of these steps invent live Pixel Streaming media.** The brow
 | 5 | Real streamer | UE PIE/packaged streamer connected to same signaling | Client status → *Live Pixel Streaming track* |
 | 6 | Client URL | `/immersive/pixel-stream/?signaling=ws://HOST:PORT` | Without `?signaling=` → honest empty scaffold |
 | 7 | CSP | Localhost `ws`/`wss` only until public host exists | Do not widen live CSP preemptively |
-| 8 | Fleet claim | Hosted lab fleet still **absent** | Never claim KodeKloud-class fleets |
+| 8 | Fleet claim | Hosted lab fleet still **absent** | Never claim lab-platform-class fleets |
 
 ### Fail-closed docker skeleton (optional)
 

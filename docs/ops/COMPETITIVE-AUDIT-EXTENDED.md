@@ -13,8 +13,8 @@ Brand kit stays **private**. Payments stay placeholder-honest. **No invented Str
 | They win | We exceed (shippable now) |
 |----------|---------------------------|
 | Vendor portals: official certs, proctored exams, cloud accounts, hosted playgrounds | **Portfolio Learning OS** + **local adaptive engine** (CAT-like + ALEKS fringe) + **SuperLab honesty** + vendor-map orchestration |
-| KodeKloud / Skills Boost / AWS: live sandboxes | One deep cloneable SuperLab + BYO-lab rubrics — labeled, not inflated |
-| Codecademy / Oracle: polished lesson chrome + AI assistants | Instruction → check → Socratic feedback → next (local); AI coach stub without fake keys |
+| Leading lab platforms / Skills Boost / AWS: live sandboxes | One deep cloneable SuperLab + BYO-lab rubrics — labeled, not inflated |
+| Interactive coding platforms / Oracle: polished lesson chrome + AI assistants | Instruction → check → Socratic feedback → next (local); AI coach stub without fake keys |
 | GMAT / ALEKS: calibrated high-stakes engines | Portable 2PL + knowledge DAG in the browser; author-estimated `a,b` (not online IRT service) |
 
 **Non-goals:** real cloud provisioning, online IRT calibration service, replacing proctored RH/AWS/LF exams.
@@ -23,7 +23,7 @@ Brand kit stays **private**. Payments stay placeholder-honest. **No invented Str
 
 ## Matrix vs peers (1–5, honest)
 
-| Dimension | IL | Codecademy | KodeKloud | DevOps.com | LF Training | Cloud Acad / Skills Boost | Red Hat | Oracle U | AWS Skill Builder | GMAT-CAT | ALEKS |
+| Dimension | IL | Interactive coding platforms | Leading lab platforms | DevOps.com | LF Training | Multi-cloud training / Skills Boost | Red Hat | Oracle U | AWS Skill Builder | GMAT-CAT | ALEKS |
 |-----------|---:|----------:|----------:|-----------:|------------:|--------------------------:|--------:|---------:|------------------:|---------:|------:|
 | Lesson chrome / IDE loop | 3 | **5** | 4 | 1 | 4 | 4 | 4 | 4 | 4 | 2 | 3 |
 | Lab / playground fleet | 2 | 2 | **5** | 1 | **5** | **5** | **5** | 4 | **5** | 1 | 1 |
@@ -73,10 +73,10 @@ Placement runs a short CAT-like probe: after each response we update a 2PL abili
 
 ## Steal sheet (portable only)
 
-- **Codecademy:** lesson chrome instruction → check → feedback → next (wired on `/adapt/`).
-- **KodeKloud:** scenario clarity; we map to SuperLab + honest “needs infra” labels.
+- **Interactive coding platforms:** lesson chrome instruction → check → feedback → next (wired on `/adapt/`).
+- **Leading lab platforms:** scenario clarity; we map to SuperLab + honest “needs infra” labels.
 - **DevOps.com:** signal → skill cards later; not a news clone.
-- **LF / RH / AWS / Oracle / Cloud Academy:** blueprint domains → our DAG tags + vendor-map links.
+- **LF / RH / AWS / Oracle / multi-cloud training platforms:** blueprint domains → our DAG tags + vendor-map links.
 - **GMAT:** info-max selection + content quotas.
 - **ALEKS:** fringe + pie + placement Knowledge Check.
 

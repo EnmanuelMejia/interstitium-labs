@@ -26,7 +26,7 @@ Pixel Streaming client: `/immersive/pixel-stream/` · Runbook: `/ops/PIXEL-STREA
 | File | Scene / family |
 |------|----------------|
 | `lecture-k8s-control-plane.glb` | Control-plane + scheduler/CM + workers (Blender-polished 2026-10-01) |
-| `k8s-cluster.glb` | Alias of lecture k8s control-plane |
+| `lecture-k8s-control-plane.glb` | Canonical (the `k8s-cluster.glb` alias was retired as a byte-identical duplicate 2026-10-07) |
 | `cert-cka.glb` | CKA shell variant (Blender-polished 2026-10-01) |
 | `cka-etcd-quorum.glb` | CKA etcd raft quorum + API front (Blender-polished 2026-10-01) |
 | `cni-pod-network.glb` | **NEW** CNI / pod networking spatial pedagogy (Blender-polished 2026-10-01) |

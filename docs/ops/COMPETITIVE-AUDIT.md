@@ -2,8 +2,8 @@
 
 _Last updated: 2026-10-01 (America/New_York)._  
 _Static root:_ `docs/` · _Live:_ https://interstitiumlabs.dev  
-_Peers scored:_ **KodeKloud (primary)**, ALEKS, Brilliant.org, Khan Academy.
-_Last weekday pass:_ **2026-09-28** — KodeKloud AI Tutor Live Assist delta → Noah Live Assist shipped.
+_Peers scored:_ **Leading lab platform (primary)**, ALEKS, Brilliant.org, Khan Academy.
+_Last weekday pass:_ **2026-09-28** — hosted AI-tutor live assist delta → Noah Live Assist shipped.
 
 Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Payments stay placeholder-honest. No invented Stripe/LLM keys. Enterprise security headers preserved.
 
@@ -11,7 +11,7 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 
 ### 2026-10-01 recursive note
 
-- **KodeKloud still wins:** hosted playground fleets + in-lab AI Tutor density.
+- **a leading training platform still wins:** hosted playground fleets + in-lab AI Tutor density.
 - **IL shipped today that exceeds on 3D:** Blender CLI–polished pedagogical `.glb` (CNI pod network, RBAC authz graph, service-mesh sidecar) wired into Curriculum OS + `/immersive/` — peers mostly keep these domains as flat diagrams/video.
 - **Musk verdict:** **Closer / NO**. Blockers remain: live UE Pixel Streaming host + hosted lab fleet (do not invent). CLI polish ≠ hand-sculpted artist sets.
 
@@ -43,12 +43,12 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 
 **IL** = Interstitium baseline before this P0 polish (P0 moves Design/UI/UX/Coach/Labs hub up one notch each without fake infra).
 
-| Dimension | IL | KodeKloud | ALEKS | Brilliant | Khan | Notes |
+| Dimension | IL | Leading lab platform | ALEKS | Brilliant | Khan | Notes |
 |-----------|---:|----------:|------:|----------:|-----:|-------|
 | Design system | 3 | 4 | 3 | **5** | 4 | Void/cyan/gold tokens exist; need Brilliant hierarchy + drill chrome |
 | UI polish | 3 | 4 | 3 | **5** | 4 | Cards solid; empty states & micro-feedback thin |
 | UX flows | 3 | 4 | 4 | **5** | **5** | Sequencer exists; “next action” not always obvious |
-| Labs | 2 | **5** | 1 | 2 | 2 | SuperLab flagship only vs KodeKloud playground fleet |
+| Labs | 2 | **5** | 1 | 2 | 2 | SuperLab flagship only vs a leading training platform playground fleet |
 | Simulations | 2 | **5** | 2 | **5** | 3 | Interactive visuals sparse outside motion/game |
 | Lectures / video | 1 | **5** | 2 | 3 | **5** | No first-party video CDN |
 | AI-first tutoring | 1 | **5** | 2 | 3 | 4 | P0 ships `/coach/` shell + local rules — not a live model |
@@ -71,7 +71,7 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 
 ## 3. Competitive steal sheet (2025–2026 research)
 
-### PRIMARY PEER — KodeKloud
+### PRIMARY PEER — Leading lab platform
 - Guided labs + playgrounds + **in-lab AI Tutor** that sees lab state.
 - **Steal:** Playground hub IA; scenario cards that deep-link one real lab; honest “needs infra” labels.
 - **AI bar:** lab-state-aware Socratic when a real model is wired — never a wallpaper chatbot.
@@ -102,16 +102,16 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 | Visual hierarchy + drill micro-feedback | Brilliant | Partial tokens | **P0** | `il-ux.css` + `il-drills.js` |
 | Mastery loop UI (Learn→Practice→Checkpoint) | Khan | Implicit phases | **P0** | `il-mastery.js` on learn/prep |
 | Reusable knowledge pie / readiness radar | ALEKS | Founders-only | **P0** | `il-radar.js` |
-| Labs playground hub + scenario cards | KodeKloud | SuperLab only | **P0** | `/labs/` |
-| AI coach UI shell + local Prep hints | KodeKloud∩Khan | **Noah Live Assist shipped** | **P0 done / deepen** | `/coach/` + `il-coach.js` |
+| Labs playground hub + scenario cards | a leading training platform | SuperLab only | **P0** | `/labs/` |
+| AI coach UI shell + local Prep hints | a leading training platform∩Khan | **Noah Live Assist shipped** | **P0 done / deepen** | `/coach/` + `il-coach.js` |
 | Home competitive strip | — | Basic | **P0** | `#why-interstitium` |
-| First-party video / lecture CDN | Khan / KodeKloud | None | **P1** | Enmanuel |
-| Real LLM tutor (lab-state + UI-grounded) | KodeKloud | Rules only | **P1** | Enmanuel (keys out-of-band) |
-| Cloud playgrounds / multi-lab fleet | KodeKloud | SuperLab clone | **P1** | Enmanuel (infra) |
-| Site search | KodeKloud / Khan | None | **P1** | Eng |
+| First-party video / lecture CDN | Khan / a leading training platform | None | **P1** | Enmanuel |
+| Real LLM tutor (lab-state + UI-grounded) | a leading training platform | Rules only | **P1** | Enmanuel (keys out-of-band) |
+| Cloud playgrounds / multi-lab fleet | a leading training platform | SuperLab clone | **P1** | Enmanuel (infra) |
+| Site search | a leading training platform / Khan | None | **P1** | Eng |
 | Live Commerce | All commercial | Placeholder | **P1** | Enmanuel Payment Links |
 | Store publish | Khan | Capacitor ready | **P1** | Enmanuel Apple/Google |
-| Community | KodeKloud | None | **P2** | Product |
+| Community | a leading training platform | None | **P2** | Product |
 | Full ALEKS adaptive engine | ALEKS | Radar seed | **P2** | Research |
 | Cohort cloud analytics | Khan / ALEKS | Local only | **P2** | Backend |
 
@@ -158,8 +158,8 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 | Brilliant interaction | `il-drills.js` cards + instant ok/bad feedback + tips without answer dumps |
 | ALEKS Pie / ready-to-learn | `il-radar.js` on Learn + Prep + Founders; clickable self-rate; mid-band fringe copy |
 | Khan mastery queue | `il-mastery.js` Learn→Practice→Checkpoint + persistent next-action CTA |
-| KodeKloud playgrounds | `/labs/#playground` guided vs playground split + scenario cards → SuperLab; honest infra note |
-| KodeKloud in-lab AI / Live Assist | **Noah Live Assist** on `/labs/` · `/labs/challenge/` · `/coach/` — lab-context Socratic + OSS router; no fake keys; no hosted fleet claim |
+| a leading training platform playgrounds | `/labs/#playground` guided vs playground split + scenario cards → SuperLab; honest infra note |
+| a leading training platform in-lab AI / Live Assist | **Noah Live Assist** on `/labs/` · `/labs/challenge/` · `/coach/` — lab-context Socratic + OSS router; no fake keys; no hosted fleet claim |
 | Trust | Portfolio honesty, placeholder payments, private brand kit, CSP headers preserved |
 
 **Still behind (P1 — Enmanuel):** hosted cloud playground fleet, real LLM tutor with lab-state, video CDN, live Stripe links, store publish.
@@ -167,9 +167,9 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 ---
 
-## 9. Weekday pass — 2026-09-28 (KodeKloud AI Tutor Live Assist)
+## 9. Weekday pass — 2026-09-28 (hosted AI-tutor live assist)
 
-**Peer claim (public):** KodeKloud AI Tutor + **Live Assist** — real-time in-lab / terminal help and on-demand micro-lessons with real hosted labs (promo noted free until Oct 2026 in their posts).
+**Peer claim (public):** a leading training platform AI Tutor + **Live Assist** — real-time in-lab / terminal help and on-demand micro-lessons with real hosted labs (promo noted free until Oct 2026 in their posts).
 
 **What we shipped (honest exceed):**
 - **Noah Live Assist** on `/labs/`, `/labs/challenge/`, `/coach/` — lab-context Socratic coaching, paste-an-error triage, micro-lesson prompts that refuse spoiler dumps.
@@ -185,7 +185,7 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 ## 2026-09-30 Musk-bar skim
 
-- **KodeKloud:** AI Tutor Live Assist + custom/on-demand labs + hosted environments remain the hosted-lab moat (Agent Factory / Gemini Flash multi-agent stack public). IL: Noah Live Assist + **cka-etcd-quorum.glb** immersive + Muse authored glTF — **no fake hosted fleet**.
+- **a leading training platform:** AI Tutor Live Assist + custom/on-demand labs + hosted environments remain the hosted-lab moat (Agent Factory / Gemini Flash multi-agent stack public). IL: Noah Live Assist + **cka-etcd-quorum.glb** immersive + Muse authored glTF — **no fake hosted fleet**.
 - **Brilliant:** adaptive tutor still flat-2D primary; IL counters with kit-v2 glTF + Pixel Streaming client (reconnect) — still no live UE host.
 - **Peer LMS:** mostly flat; IL 3D-first path widened (muse-dee-monas, etcd quorum, Blender polish handoff).
 - **Honesty bar:** Pixel Streaming empty-state + backoff; never invent stream metrics or course counts.

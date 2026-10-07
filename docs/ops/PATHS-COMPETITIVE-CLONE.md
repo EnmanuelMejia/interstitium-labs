@@ -13,17 +13,17 @@ _Schema:_ `docs/assets/il-paths.json` · _Runner:_ `docs/assets/il-paths.js` (`i
 
 | Competitor path (taxonomy) | Interstitium path id | What we clone (architecture) | How we exceed |
 |----------------------------|----------------------|------------------------------|---------------|
-| KodeKloud K8s / DevOps learning paths | `kubernetes-sre`, `devops-zero-to-hire`, `devsecops-mastery` | Phased skills → labs → cert-shaped outcomes; playground-centric sequencing | Adapt gates + Noah's prompts + mandatory evidence portfolio; honest single SuperLab (no fake fleet) |
+| Leading lab-platform K8s / DevOps learning paths | `kubernetes-sre`, `devops-zero-to-hire`, `devsecops-mastery` | Phased skills → labs → cert-shaped outcomes; playground-centric sequencing | Adapt gates + Noah's prompts + mandatory evidence portfolio; honest single SuperLab (no fake fleet) |
 | ALEKS knowledge-space mastery paths | `adaptive-foundations` | Placement → ready-to-learn fringe → mastery checks | Direct handoff into hireable tech paths; local CAT already shipped; no worksheet mill |
 | Brilliant guided problem paths | `adaptive-foundations` (+ drills on `/adapt/`, `/prep/drills/`) | Short problem loops, visible next action | Career DO outcomes on every card; Noah side-quests; time-to-value labels |
 | Khan course mastery paths | `adaptive-foundations`, `data-analyst-to-ml`, `linux-lf-essentials` | Mastery units, clear progress | Local `il.paths.v1` phase checks + evidence notes; XP secondary to skill signal |
-| Codecademy career paths | `devops-zero-to-hire`, `data-analyst-to-ml`, `fullstack-desk` | Role-shaped multi-week career arcs | JD/STAR interview surface + portfolio honesty; no binge video wall |
+| Interactive coding platform career paths | `devops-zero-to-hire`, `data-analyst-to-ml`, `fullstack-desk` | Role-shaped multi-week career arcs | JD/STAR interview surface + portfolio honesty; no binge video wall |
 | Linux Foundation cert paths | `linux-lf-essentials`, `kubernetes-sre` (+ `vendor-map`) | Essentials → professional cert sequencing | Shell proof mandatory; vendor-map orchestrates official LF — never clones exam IP |
 | Red Hat Learning role paths | `linux-lf-essentials`, `kubernetes-sre`, `devsecops-mastery` | Role paths (sysadmin → platform) | Local kind/SuperLab proof spine; RH content stays at vendor |
 | Oracle University (role / Java / data) | `fullstack-desk`, `data-analyst-to-ml`, `vendor-map` | Role curriculum maps | JD-mapped fintech full-stack; data path prefers proof over cert bingo |
 | AWS Skill Builder role / learning plans | `aws-cloud-practitioner-plus` | Role plans, CLF-shaped service map | Local conceptual twin + explicit free-tier optional; honest “no hosted AWS sandbox” |
 | Cloud/DevOps.com–style tracks | `devops-zero-to-hire`, `devsecops-mastery` | Practitioner track chrome | Evidence > media signal; Student Zero narrative; no news clone |
-| Coursera / Google / IBM DS ladders | `data-analyst-to-ml` (native), `data-science-certs` (reference) | Cert ladder phases | Analyst→ML literacy with model cards; cert page nested as reference only |
+| MOOC / Google / IBM DS ladders | `data-analyst-to-ml` (native), `data-science-certs` (reference) | Cert ladder phases | Analyst→ML literacy with model cards; cert page nested as reference only |
 
 ---
 

@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-22 (America/New_York)._  
 _Static root:_ `docs/` · _Live:_ https://interstitiumlabs.dev  
-_Peers:_ KodeKloud · Codecademy · Brilliant · Khan Academy · ALEKS · AWS Skill Builder · Red Hat Learning · Linux Foundation Training
+_Peers:_ Leading lab platforms · interactive coding platforms · Brilliant · Khan Academy · ALEKS · AWS Skill Builder · Red Hat Learning · Linux Foundation Training
 
 **P0 verdict (this ship):** We previously **lost on looking cheap** — header lockup capped at 36–40px (postage stamp on 5120×1440), flat panels, FX density over craft. That is a brand failure. Catalog depth remains an honest gap; **visual presence must not**.
 
@@ -10,7 +10,7 @@ _Peers:_ KodeKloud · Codecademy · Brilliant · Khan Academy · ALEKS · AWS Sk
 
 ## Scorecard (1–5, honest)
 
-| Dimension | IL (pre-P0) | IL (post-P0 target) | KodeKloud | Codecademy | Brilliant | Khan | ALEKS | AWS Skill Builder | Red Hat Learning | LF Training |
+| Dimension | IL (pre-P0) | IL (post-P0) target | Leading lab platforms | Interactive coding platforms | Brilliant | Khan | ALEKS | AWS Skill Builder | Red Hat Learning | LF Training |
 |-----------|------------:|--------------------:|----------:|-----------:|----------:|-----:|------:|------------------:|-----------------:|------------:|
 | 1. Logo size / clarity / resolution | **1** | **4** | 4 | 4 | **5** | 4 | 3 | 4 | 4 | 3 |
 | 2. Visual design / aesthetics | **2** | **4** | 4 | 4 | **5** | 4 | 3 | 3 | 3 | 3 |
@@ -19,7 +19,7 @@ _Peers:_ KodeKloud · Codecademy · Brilliant · Khan Academy · ALEKS · AWS Sk
 | 5. Breadth (topics / platforms) | **3** | 3 | **5** | **5** | 4 | **5** | 3 | **5** | 4 | 4 |
 | 6. Scope (certs, paths, community, enterprise) | **3** | 3 | **5** | 4 | 3 | 4 | 4 | **5** | **5** | **5** |
 
-**Composite read:** Post-P0 we aim to **stop losing on (1)(2)(3)**. We still **lose hard on (4)(5)(6)** vs KodeKloud / Codecademy / AWS / Red Hat / LF — and that must stay labeled honestly, never faked with wallpaper cards.
+**Composite read:** Post-P0 we aim to **stop losing on (1)(2)(3)**. We still **lose hard on (4)(5)(6)** vs leading lab / interactive coding platforms / AWS / Red Hat / LF — and that must stay labeled honestly, never faked with wallpaper cards.
 
 ---
 
@@ -37,11 +37,11 @@ _Peers:_ KodeKloud · Codecademy · Brilliant · Khan Academy · ALEKS · AWS Sk
 
 | Area | Peer bar | IL today |
 |------|----------|----------|
-| Catalog depth | KodeKloud / Codecademy / AWS: hundreds–thousands of modules + sandboxes | Flagship SuperLab + curated paths — **not** a fleet |
+| Catalog depth | Leading lab platforms / interactive coding platforms / AWS: hundreds–thousands of modules + sandboxes | Flagship SuperLab + curated paths — **not** a fleet |
 | Breadth | Multi-cloud, multi-language, multi-role coverage | Focused DevSecOps / FDE / cert grammar |
 | Scope | Certs + community + enterprise LMS seats | Paths + enroll placeholder; community/enterprise thin |
 | Interaction density | Brilliant lesson craft; Khan mastery UX | Cards + motion; drills still sparse |
-| AI tutoring depth | KodeKloud in-lab tutor; AWS / Codecademy assistants | `/coach/` shell + local rules — not live model |
+| AI tutoring depth | Leading lab-platform in-lab tutors; AWS / interactive coding platform assistants | `/coach/` shell + local rules — not live model |
 
 **Design rule:** Never compensate for (4)(5)(6) by looking louder. Compensate by looking **sharper**.
 
@@ -60,7 +60,7 @@ _Peers:_ KodeKloud · Codecademy · Brilliant · Khan Academy · ALEKS · AWS Sk
 | Asset | single PNG, often CSS-shrunk | WebP `@2x`/`@3x` + full PNG srcset; `object-contain` |
 | Hero sigil | decor/maskable, ~postage on UW | `sigil-hero` 720/1200, **~140–200px** desktop, up to **~280px** UW |
 
-Industry refs (mark vs lockup): Codecademy / KodeKloud / Brilliant typically ~28–40px **mark**, but full **lockup** often **44–64px** with readable wordmark; UW deserves **72–80px**.
+Industry refs (mark vs lockup): leading training platforms / Brilliant typically ~28–40px **mark**, but full **lockup** often **44–64px** with readable wordmark; UW deserves **72–80px**.
 
 **Root cause of tininess:** `docs/assets/il-fx.js` → `repairChrome()` wrote inline `height: 36px/40px !important` after paint. CSS alone could not win. P0 rewrote that function.
 
