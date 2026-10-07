@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracks — Interstitium Labs Learning University</title>
+<meta name="description" content="Seven tracks. One discipline. Computing Fundamentals, AWS, Azure, GCP, Oracle, DevOps, and AI — the flagship Interstitium Labs track model, Noah-tutored.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/tracks.html">
+<meta property="og:title" content="Tracks — Interstitium Labs Learning University">
+<meta property="og:description" content="Computing Fundamentals, AWS, Azure, GCP, Oracle, DevOps, AI. Seven tracks, one discipline — Noah-tutored.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tracks — Interstitium Labs Learning University">
+<meta name="twitter:description" content="Seven tracks. One discipline. Noah-tutored.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/tracks.html">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+<style>
+/* Tracks page — flagship track model */
+.track-hero{padding:4.5rem 0 2.5rem}
+.track-tabs{display:flex;gap:.6rem;overflow-x:auto;padding:.4rem .1rem 1rem;scrollbar-width:thin}
+.track-tab{flex:0 0 auto;border:1px solid var(--line,#2a2f36);background:transparent;color:inherit;
+  border-radius:999px;padding:.55rem 1.1rem;font:inherit;cursor:pointer;white-space:nowrap}
+.track-tab[aria-selected="true"]{background:var(--gold,#c9a227);border-color:var(--gold,#c9a227);color:#0b0d10;font-weight:700}
+.track-tab:focus-visible{outline:2px solid var(--gold,#c9a227);outline-offset:2px}
+.track-meta{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:baseline;margin:.4rem 0 1rem}
+.track-meta .code{font-family:var(--mono,monospace);opacity:.8}
+.rail{display:flex;gap:1rem;overflow-x:auto;padding:.6rem .1rem 1.2rem;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.rail-card{flex:0 0 290px;scroll-snap-align:start;border:1px solid var(--line,#2a2f36);border-radius:14px;
+  padding:1.1rem;display:flex;flex-direction:column;gap:.55rem;background:rgba(255,255,255,.015)}
+.rail-card h4{margin:0;font-size:1.02rem;line-height:1.35}
+.rail-card h4 a{color:inherit;text-decoration:none}
+.rail-card h4 a:hover{text-decoration:underline}
+.rail-card .mod-id{font-family:var(--mono,monospace);font-size:.78rem;opacity:.7}
+.rail-card p{margin:0;font-size:.92rem;opacity:.85}
+.rail-card .meta{margin-top:auto;display:flex;gap:.8rem;font-size:.82rem;opacity:.75}
+.rail-hint{font-size:.85rem;opacity:.65;margin:-.2rem 0 .6rem}
+.onramp-steps{counter-reset:step;display:grid;gap:1rem;margin-top:1.4rem}
+.onramp-step{display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start;border:1px solid var(--line,#2a2f36);
+  border-radius:14px;padding:1.1rem 1.2rem}
+.onramp-step::before{counter-increment:step;content:counter(step);font-size:1.6rem;font-weight:800;color:var(--gold,#c9a227);
+  font-family:var(--mono,monospace)}
+.certmap{margin-top:1.2rem}
+.certmap ol{margin:.6rem 0 0;padding-left:1.4rem;display:grid;gap:.45rem}
+.certmap .lvl{display:inline-block;font-size:.72rem;border:1px solid var(--line,#2a2f36);border-radius:999px;
+  padding:.1rem .6rem;margin-left:.5rem;opacity:.8;text-transform:uppercase;letter-spacing:.04em}
+.community-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:1.4rem}
+@media (prefers-reduced-motion:reduce){.rail{scroll-snap-type:none}}
+</style>
+</head>
+<body>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its tracks from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="track-hero" aria-labelledby="tracks-h">
+    <div class="wrap">
+      <p class="eyebrow">Flagship model</p>
+      <h1 id="tracks-h">Seven tracks. One discipline.</h1>
+      <p class="lede">Computing Fundamentals, AWS, Azure, GCP, Oracle, DevOps, and AI — the Interstitium Labs flagship sequence. Every track is a full course in the unified 6-tab shell, tutored by Noah, built on original material. A plant, not a video LMS.</p>
+      <p>
+        <a class="btn" href="#onramp">Start at the on-ramp</a>
+        <a class="btn btn-ghost" href="course.html?course=il-19-multicloud-devops-ai-bootcamp">Open the flagship bootcamp</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="block" id="tracks" aria-label="Track browser">
+    <div class="wrap">
+      <div class="track-tabs" role="tablist" aria-label="Cloud and discipline tracks" id="track-tabs"></div>
+      <div id="track-panel" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="block" id="onramp" aria-labelledby="onramp-h">
+    <div class="wrap">
+      <p class="eyebrow">Fundamentals on-ramp</p>
+      <h2 id="onramp-h">Start at the foundations</h2>
+      <p class="lede">New to the craft? The on-ramp is the honest order of operations — foundations first, then one cloud, then the discipline that ties clouds together, then AI. Every step is a real sitting with labs, drills, and Noah at your shoulder.</p>
+      <div class="onramp-steps" id="onramp-steps"></div>
+    </div>
+  </section>
+
+  <section class="block" id="certmaps" aria-labelledby="certmaps-h">
+    <div class="wrap">
+      <p class="eyebrow">Certification maps</p>
+      <h2 id="certmaps-h">Where each track can take you</h2>
+      <p class="lede">Maps sequence real vendor certifications from first to last, name the bootcamp modules that prepare each exam domain, and hand you a Noah readiness protocol. Interstitium Labs confers no certificate and is not affiliated with any vendor named — these maps route you to the real exams.</p>
+      <div class="grid grid-3 certmap" id="certmap-grid" style="margin-top:1.4rem"></div>
+      <p class="small" style="margin-top:1rem;opacity:.7">Certification names verified against competitive research (October 2026). Exam codes change — always confirm the current code on the vendor's site before booking. No exam content is reproduced; practice material is original.</p>
+    </div>
+  </section>
+
+  <section class="block" id="community" aria-labelledby="community-h">
+    <div class="wrap">
+      <p class="eyebrow">Community</p>
+      <h2 id="community-h">Study the tracks with a cohort</h2>
+      <p class="lede">Sittings are better shared. Work each track alongside a cohort moving at your pace, bring your hypotheses to Noah, and ship the labs that prove the work.</p>
+      <div class="community-grid">
+        <div class="card"><h3>Track cohorts</h3><p>Enroll in a track and study it with a cohort on the same sequence — same modules, same missions, same exam dates on the cert maps. Self-paced, with Noah re-sequencing drills toward your weakest domains.</p><p><a href="enroll.html">Enroll</a></p></div>
+        <div class="card"><h3>Noah study hall</h3><p>Noah is Socratic, local, and lab-aware. Bring a hypothesis, not "just give me the answer" — in every lab, drill, and mission across all seven tracks.</p><p><a href="#noah">Meet Noah</a></p></div>
+        <div class="card"><h3>Ship the proof</h3><p>Every track ends in missions and capstones you can show: provisioned infrastructure, a deployed pipeline, a RAG assistant. The work is the record.</p><p><a href="course.html?course=il-19-multicloud-devops-ai-bootcamp#/study">Browse the missions</a></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="noah" aria-labelledby="noah-h">
+    <div class="wrap">
+      <p class="eyebrow">Noah Live Assist</p>
+      <h2 id="noah-h">Ask Noah about any track</h2>
+      <p class="lede">Socratic in-lab help — never an answer dump first. An educational Interstitium agent, local-first. Try it now:</p>
+      <div class="grid" style="grid-template-columns:1fr; margin-top:1.4rem">
+        <div class="noah-panel" style="max-width:760px">
+          <div class="noah-head">
+            <img class="noah-face" src="assets/noah-avatar.png" alt="Noah — John Dee-inspired scholar portrait" width="34" height="34">
+            <div><div class="name">Noah</div><div class="sub">Socratic tutor · local engine</div></div>
+          </div>
+          <div class="noah-log" id="noah-log" aria-live="polite" aria-label="Noah conversation"></div>
+          <form class="noah-input" id="noah-form">
+            <label class="sr-only" for="noah-q">Ask Noah a question</label>
+            <input id="noah-q" type="text" placeholder="State your hypothesis, e.g. &quot;For the AWS track, should I start with IAM or networking?&quot;" autocomplete="off">
+            <button class="btn btn-sm" type="submit">Ask</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script src="js/noah.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- flagship track model (mirrors the IL-19 bootcamp) ---------- */
+  var TRACKS = [
+    { key: 'fundamentals', prefix: 'CF', name: 'Computing Fundamentals',
+      blurb: 'How computers, networks, and the internet actually work. The on-ramp everything else stands on — start here and nothing later is magic.',
+      keys: ['linux', 'networking', 'fundamental', 'computing', 'hardware', 'operating system', 'tcp', 'dns', 'computer'] },
+    { key: 'aws', prefix: 'AWS', name: 'AWS Cloud',
+      blurb: 'Architecture, IAM, compute, storage, databases, networking, security, and cost control on Amazon Web Services.',
+      keys: ['aws', 'amazon'] },
+    { key: 'azure', prefix: 'AZ', name: 'Azure Cloud',
+      blurb: 'Identity, compute, networking, storage, and data services on Microsoft Azure.',
+      keys: ['azure', 'microsoft'] },
+    { key: 'gcp', prefix: 'GCP', name: 'Google Cloud',
+      blurb: 'Resource hierarchy, VPC networking, compute, storage, and analytics on Google Cloud.',
+      keys: ['gcp', 'google cloud'] },
+    { key: 'oracle', prefix: 'OCI', name: 'Oracle Cloud',
+      blurb: 'OCI architecture, identity, virtual networking, compute, storage, and databases.',
+      keys: ['oracle', 'oci'] },
+    { key: 'devops', prefix: 'DO', name: 'DevOps',
+      blurb: 'Git, Terraform, Ansible, Docker, Kubernetes, CI/CD, observability, and Python automation — the discipline that ties the clouds together.',
+      keys: ['devops', 'terraform', 'kubernetes', 'docker', 'ci/cd', 'cicd', 'gitops', 'sre', 'jenkins', 'ansible', 'devsecops'] },
+    { key: 'ai', prefix: 'AI', name: 'AI',
+      blurb: 'Generative AI, cloud AI services across all four clouds, and a RAG capstone you can show.',
+      keys: ['machine learning', 'deep learning', 'genai', 'llm', 'artificial intelligence', ' nlp', 'rag', 'agent'] }
+  ];
+  var COURSE_URL = 'course.html?course=il-19-multicloud-devops-ai-bootcamp';
+  var bootcamp = null, certMaps = null, catalogReady = false;
+
+  function esc(s) { return IL.esc(String(s == null ? '' : s)); }
+
+  function trackModules(prefix) {
+    if (!bootcamp || !bootcamp.modules) return [];
+    return bootcamp.modules.filter(function (m) { return (m.id || '').indexOf(prefix + '-') === 0; });
+  }
+
+  function relatedPaths(track) {
+    var paths = IL.paths();
+    var scored = paths.map(function (p) {
+      var hay = [p.title, p.subtitle, p.id, (p.tags || []).join(' '), p.academy].join(' ').toLowerCase();
+      var score = 0;
+      track.keys.forEach(function (k) { if (hay.indexOf(k) !== -1) score += (k.length > 4 ? 2 : 1); });
+      return { p: p, score: score };
+    }).filter(function (x) { return x.score > 0; });
+    scored.sort(function (a, b) { return b.score - a.score; });
+    return scored.slice(0, 8).map(function (x) { return x.p; });
+  }
+
+  function certMapFor(trackKey) {
+    if (!certMaps || !certMaps.maps) return null;
+    var want = { aws: 'cert-map-cloud', azure: 'cert-map-cloud', gcp: 'cert-map-cloud', oracle: 'cert-map-cloud',
+      devops: 'cert-map-devops', ai: 'cert-map-ai' }[trackKey];
+    if (!want) return null;
+    return certMaps.maps.filter(function (m) { return m.id === want; })[0] || null;
+  }
+
+  function moduleCard(m) {
+    var objs = (m.objectives || []).length;
+    return '<article class="rail-card">' +
+      '<div class="mod-id">' + esc(m.id) + ' · IL-19</div>' +
+      '<h4><a href="' + COURSE_URL + '">' + esc(m.title) + '</a></h4>' +
+      '<p>' + esc((m.summary || '').slice(0, 160)) + (m.summary && m.summary.length > 160 ? '…' : '') + '</p>' +
+      '<div class="meta"><span>' + objs + ' objectives</span>' +
+      (m.weight ? '<span>weight ' + esc(m.weight) + '</span>' : '') + '</div>' +
+      '</article>';
+  }
+
+  function pathCard(p) {
+    var tags = (p.tags || []).slice(0, 2).map(function (t) {
+      return '<span class="tag skill">' + esc(t) + '</span>';
+    }).join(' ');
+    return '<article class="rail-card">' +
+      '<div class="mod-id">' + esc(p.academy || '') + '</div>' +
+      '<h4><a href="path.html?id=' + esc(p.id) + '">' + esc(p.title) + '</a></h4>' +
+      '<p>' + esc(p.subtitle || '') + '</p>' +
+      '<div class="meta"><span>' + esc(IL.fmtHours(p.hours)) + '</span><span>' + tags + '</span></div>' +
+      '</article>';
+  }
+
+  function renderPanel(track) {
+    var panel = document.getElementById('track-panel');
+    var mods = trackModules(track.prefix);
+    var rel = relatedPaths(track);
+    var cm = certMapFor(track.key);
+    var html = '<div class="track-meta"><span class="code">TRACK · ' + esc(track.prefix) + '</span>' +
+      '<span><b>' + mods.length + ' bootcamp modules</b></span>' +
+      '<span>' + esc(IL.fmtHours(bootcamp && bootcamp.hours ? Math.round(bootcamp.hours / 7) : 0)) + ' est. per track</span></div>' +
+      '<p class="lede" style="max-width:56rem">' + esc(track.blurb) + '</p>' +
+      '<p><a class="btn btn-sm" href="' + COURSE_URL + '">Open this track in the course shell</a></p>';
+
+    html += '<h3>Bootcamp modules</h3><p class="rail-hint">Scroll sideways — the full module sequence for this track.</p>';
+    html += mods.length
+      ? '<div class="rail" role="list" data-rail="modules">' + mods.map(moduleCard).join('') + '</div>'
+      : '<p class="lede">Modules are being published — check back, or <a href="honesty.html">read the ledger</a>.</p>';
+
+    if (rel.length) {
+      html += '<h3>Related paths across the university</h3><p class="rail-hint">Deeper sittings on the same discipline, from the full catalog.</p>' +
+        '<div class="rail" role="list" data-rail="paths">' + rel.map(pathCard).join('') + '</div>';
+    }
+
+    if (cm) {
+      html += '<h3>Certification map</h3><div class="card" style="max-width:56rem"><h4>' + esc(cm.title) + '</h4><ol>' +
+        cm.sequence.map(function (s) {
+          return '<li><b>' + esc(s.cert) + '</b><span class="lvl">' + esc(s.level) + '</span><br>' +
+            '<span style="opacity:.8">' + esc(s.prep) + '</span></li>';
+        }).join('') + '</ol>' +
+        '<p class="small" style="opacity:.75">Noah protocol: ' + esc(cm.noah_protocol) + '</p></div>';
+    }
+    panel.innerHTML = html;
+  }
+
+  function renderTabs(activeKey) {
+    var box = document.getElementById('track-tabs');
+    box.innerHTML = '';
+    TRACKS.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'track-tab';
+      b.setAttribute('role', 'tab');
+      b.id = 'tab-' + t.key;
+      b.textContent = t.name;
+      var sel = t.key === activeKey;
+      b.setAttribute('aria-selected', sel ? 'true' : 'false');
+      b.setAttribute('tabindex', sel ? '0' : '-1');
+      b.addEventListener('click', function () { selectTrack(t.key, true); });
+      box.appendChild(b);
+    });
+  }
+
+  function selectTrack(key, push) {
+    var track = TRACKS.filter(function (t) { return t.key === key; })[0] || TRACKS[0];
+    renderTabs(track.key);
+    renderPanel(track);
+    if (push) { try { history.replaceState(null, '', '#track=' + track.key); } catch (e) {} }
+  }
+
+  function initialKey() {
+    var m = /#track=([a-z]+)/.exec(location.hash || '');
+    return (m && TRACKS.some(function (t) { return t.key === m[1]; })) ? m[1] : 'fundamentals';
+  }
+
+  /* ---------- on-ramp (data-driven from the bootcamp) ---------- */
+  function renderOnramp() {
+    var box = document.getElementById('onramp-steps');
+    var n = function (p) { return trackModules(p).length; };
+    var steps = [
+      { t: 'Foundations', d: 'Computing Fundamentals — ' + n('CF') + ' modules on how computers and networks actually work. Nothing later is magic if this is solid.', href: '#track=fundamentals', label: 'Open the fundamentals track' },
+      { t: 'One cloud, deeply', d: 'Pick AWS, Azure, GCP, or Oracle and work its full track (' + n('AWS') + '–' + n('GCP') + ' modules each). Depth in one cloud transfers to the others.', href: '#track=aws', label: 'Compare the cloud tracks' },
+      { t: 'The discipline', d: 'DevOps — ' + n('DO') + ' modules: Git, Terraform, Ansible, Docker, Kubernetes, CI/CD, observability. This is what ties the clouds together.', href: '#track=devops', label: 'Open the DevOps track' },
+      { t: 'AI on top', d: 'AI — ' + n('AI') + ' modules plus the RAG capstone. Then follow a certification map to the exams that prove it.', href: '#track=ai', label: 'Open the AI track' }
+    ];
+    box.innerHTML = steps.map(function (s) {
+      return '<div class="onramp-step"><div><h3 style="margin-top:0">' + esc(s.t) + '</h3><p>' + esc(s.d) +
+        '</p><p><a href="' + s.href + '">' + esc(s.label) + '</a></p></div></div>';
+    }).join('');
+    box.querySelectorAll('a[href^="#track="]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        selectTrack(a.getAttribute('href').slice(7), true);
+        document.getElementById('tracks').scrollIntoView();
+      });
+    });
+  }
+
+  /* ---------- certification maps (from data/cert-maps.json) ---------- */
+  function renderCertMaps() {
+    var box = document.getElementById('certmap-grid');
+    if (!certMaps || !certMaps.maps || !certMaps.maps.length) {
+      box.innerHTML = '<div class="empty-state"><h3>Certification maps are being published</h3>' +
+        '<p>Check back, or <a href="honesty.html">read the ledger</a>.</p></div>';
+      return;
+    }
+    box.innerHTML = certMaps.maps.map(function (m) {
+      return '<div class="card"><h3>' + esc(m.title) + '</h3>' +
+        '<ol>' + m.sequence.map(function (s) {
+          return '<li><b>' + esc(s.cert) + '</b><span class="lvl">' + esc(s.level) + '</span><br>' +
+            '<span style="opacity:.8">' + esc(s.prep) + '</span></li>';
+        }).join('') + '</ol>' +
+        '<p class="small" style="opacity:.75">Noah protocol: ' + esc(m.noah_protocol) + '</p></div>';
+    }).join('');
+  }
+
+  /* ---------- boot ---------- */
+  function boot() {
+    renderTabs(initialKey());
+    IL.onCatalog(function () {
+      selectTrack(initialKey(), false);
+      renderOnramp();
+      renderCertMaps();
+    });
+  }
+
+  var gotCourse = window.fetch('data/courses/il-19-multicloud-devops-ai-bootcamp.json')
+    .then(function (r) { return r.json(); })
+    .then(function (d) { bootcamp = d; })
+    .catch(function () { bootcamp = null; });
+  var gotMaps = window.fetch('data/cert-maps.json')
+    .then(function (r) { return r.json(); })
+    .then(function (d) { certMaps = d; })
+    .catch(function () { certMaps = null; });
+
+  /* Noah teaser chat (real local engine) */
+  var log = document.getElementById('noah-log');
+  var form = document.getElementById('noah-form');
+  var input = document.getElementById('noah-q');
+  function addMsg(cls, text) {
+    var d = document.createElement('div');
+    d.className = 'noah-msg ' + cls;
+    d.textContent = text;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  if (!log.dataset.greeted) {
+    log.dataset.greeted = '1';
+    addMsg('noah', 'I am Noah — Socratic, local, lab-aware. Ask me which track fits your goal, or bring a hypothesis from any module.');
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = input.value.trim();
+    if (!q) return;
+    addMsg('user', q);
+    input.value = '';
+    var thinking = document.createElement('div');
+    thinking.className = 'noah-msg noah';
+    thinking.innerHTML = '<span class="noah-thinking">Noah is thinking <span class="dots"><i></i><i></i><i></i></span></span>';
+    log.appendChild(thinking);
+    log.scrollTop = log.scrollHeight;
+    setTimeout(function () {
+      var res = IL.noah.ask(q, {});
+      thinking.textContent = res.reply;
+      (res.nudges || []).forEach(function (n) {
+        var s = document.createElement('span');
+        s.className = 'nudge';
+        s.textContent = 'Nudge: ' + n;
+        thinking.appendChild(s);
+      });
+      log.scrollTop = log.scrollHeight;
+    }, 450);
+  });
+
+  Promise.all([gotCourse, gotMaps]).then(boot);
+})();
+</script>
+</body>
+</html>
+...[truncated 5046 chars]

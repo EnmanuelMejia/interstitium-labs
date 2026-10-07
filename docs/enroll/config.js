@@ -68,7 +68,7 @@ window.IL_ENROLL = {
       period: "one-time",
       features: [
         "Everything in Prep Sprint and DevSecOps Mastery",
-        "Full catalog orientation: 10 academies, 5 deep tracks, 68 bootcamps",
+        "Full catalog orientation: 10 academies, 5 deep tracks, 75 bootcamps",
         "Priority reply window with the founder",
       ],
       stripeEnabled: false,
