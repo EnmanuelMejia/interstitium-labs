@@ -12,10 +12,10 @@ Brand kit stays **private**. Payments stay placeholder-honest. **No invented Str
 
 | They win | We exceed (shippable now) |
 |----------|---------------------------|
-| Vendor portals: official certs, proctored exams, cloud accounts, hosted playgrounds | **Portfolio Learning OS** + **local adaptive engine** (CAT-like + ALEKS fringe) + **SuperLab honesty** + vendor-map orchestration |
+| Vendor portals: official certs, proctored exams, cloud accounts, hosted playgrounds | **Portfolio Learning OS** + **local adaptive engine** (CAT-like + a leading adaptive-learning platform fringe) + **SuperLab honesty** + vendor-map orchestration |
 | Leading lab platforms / Skills Boost / AWS: live sandboxes | One deep cloneable SuperLab + BYO-lab rubrics — labeled, not inflated |
 | Interactive coding platforms / Oracle: polished lesson chrome + AI assistants | Instruction → check → Socratic feedback → next (local); AI coach stub without fake keys |
-| GMAT / ALEKS: calibrated high-stakes engines | Portable 2PL + knowledge DAG in the browser; author-estimated `a,b` (not online IRT service) |
+| GMAT / a leading adaptive-learning platform: calibrated high-stakes engines | Portable 2PL + knowledge DAG in the browser; author-estimated `a,b` (not online IRT service) |
 
 **Non-goals:** real cloud provisioning, online IRT calibration service, replacing proctored RH/AWS/LF exams.
 
@@ -23,7 +23,7 @@ Brand kit stays **private**. Payments stay placeholder-honest. **No invented Str
 
 ## Matrix vs peers (1–5, honest)
 
-| Dimension | IL | Interactive coding platforms | Leading lab platforms | DevOps.com | LF Training | Multi-cloud training / Skills Boost | Red Hat | Oracle U | AWS Skill Builder | GMAT-CAT | ALEKS |
+| Dimension | IL | Interactive coding platforms | Leading lab platforms | DevOps.com | LF Training | Multi-cloud training / Skills Boost | Red Hat | Oracle U | AWS Skill Builder | GMAT-CAT | A leading adaptive-learning platform |
 |-----------|---:|----------:|----------:|-----------:|------------:|--------------------------:|--------:|---------:|------------------:|---------:|------:|
 | Lesson chrome / IDE loop | 3 | **5** | 4 | 1 | 4 | 4 | 4 | 4 | 4 | 2 | 3 |
 | Lab / playground fleet | 2 | 2 | **5** | 1 | **5** | **5** | **5** | 4 | **5** | 1 | 1 |
@@ -65,9 +65,9 @@ Brand kit stays **private**. Payments stay placeholder-honest. **No invented Str
 
 ---
 
-## CAT + ALEKS mechanics (one paragraph)
+## CAT + a leading adaptive-learning platform mechanics (one paragraph)
 
-Placement runs a short CAT-like probe: after each response we update a 2PL ability estimate θ and pick the next unused item that maximizes Fisher information near θ while balancing domains and exposure; 8–12 items (or earlier if SE shrinks) seed per-concept mastery via a BKT/Elo blend. Practice mode only prioritizes the ALEKS-style **ready-to-learn fringe** (prerequisites ≥ threshold), demotes on misses, and periodically resurfaces Known topics when mastery soft-decays over days — Knowledge Check without an online IRT service. Role paths (**Platform Associate** → **Platform Engineer**) unlock via mastery gates (and challenge tallies), never watch-time. Vendor portals remain the official cert/cloud deepeners; Interstitium is the adaptive OS that decides *what* to practice next on-device (`il.adaptive.v1`).
+Placement runs a short CAT-like probe: after each response we update a 2PL ability estimate θ and pick the next unused item that maximizes Fisher information near θ while balancing domains and exposure; 8–12 items (or earlier if SE shrinks) seed per-concept mastery via a BKT/Elo blend. Practice mode only prioritizes the adaptive **ready-to-learn fringe** (prerequisites ≥ threshold), demotes on misses, and periodically resurfaces Known topics when mastery soft-decays over days — Knowledge Check without an online IRT service. Role paths (**Platform Associate** → **Platform Engineer**) unlock via mastery gates (and challenge tallies), never watch-time. Vendor portals remain the official cert/cloud deepeners; Interstitium is the adaptive OS that decides *what* to practice next on-device (`il.adaptive.v1`).
 
 ---
 
@@ -78,7 +78,7 @@ Placement runs a short CAT-like probe: after each response we update a 2PL abili
 - **DevOps.com:** signal → skill cards later; not a news clone.
 - **LF / RH / AWS / Oracle / multi-cloud training platforms:** blueprint domains → our DAG tags + vendor-map links.
 - **GMAT:** info-max selection + content quotas.
-- **ALEKS:** fringe + pie + placement Knowledge Check.
+- **a leading adaptive-learning platform:** fringe + pie + placement Knowledge Check.
 
 ---
 

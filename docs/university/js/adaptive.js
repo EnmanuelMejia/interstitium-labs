@@ -5,14 +5,14 @@
  * Mastery lives in localStorage. No network calls. No dependencies.
  * ES2020, pure vanilla JS.
  *
- * Theory grounding (from research/math-aleks.md, KST / ALEKS, published):
+ * Theory grounding (KST / a leading adaptive-learning platform, published):
  *  - The learner's actionable set is always the OUTER FRINGE: topics whose
  *    prerequisites are met but which are not yet mastered. It is COMPUTED
  *    from the prerequisite graph, never curated.
  *  - Placement is CAT-style: an IRT-lite update moves the mastery estimate
  *    toward observed correctness, weighted by item difficulty.
  *  - Practice updates are streak-aware (a second consecutive correct answer
- *    moves mastery further, mirroring the ALEKS +1/+2 learning score) and
+ *    moves mastery further, mirroring the adaptive +1/+2 learning score) and
  *    schedule review with SM-2 spaced repetition.
  *  - Gates pass only when every path topic reaches the mastery threshold.
  *
@@ -128,7 +128,7 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * Fringe computation (ALEKS outer fringe, KST-grounded)
+   * Fringe computation (adaptive outer fringe, KST-grounded)
    * fringe = topics not yet mastered whose every prereq is met.
    * ------------------------------------------------------------------ */
   function masteryOf(mastery, topicId) {
@@ -184,7 +184,7 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * next(state) — ALEKS-style fringe sequencing.
+   * next(state) — Adaptive fringe sequencing.
    * Priority: due spaced-repetition reviews first, then the lowest-mastery
    * fringe topic whose prereqs are met (easiest-ready first).
    * kind: 'study' for unseen/weak topics, 'quiz' for partially learned,
@@ -240,7 +240,7 @@
    * incorrect moves down). SM-2 schedules the next review:
    * correct -> ease +0.1, interval 1 -> 6 -> interval*ease days;
    * incorrect -> ease -0.2 (floor 1.3), interval resets to 1 day.
-   * Five consecutive misses flags switchSuggested (ALEKS re-route rule).
+   * Five consecutive misses flags switchSuggested (adaptive re-route rule).
    * Returns the updated state.
    * ------------------------------------------------------------------ */
   function record(state, topicId, correct, difficulty) {

@@ -15,12 +15,12 @@ Direction is **X → Interstitium**. Nothing was posted back to X.
 | Seated id | Instrument | Parent tracks | Map |
 |-----------|------------|---------------|-----|
 | `arxiv-2603-18387-mfdl` | Ye, Mathematical Foundations of Deep Learning (arXiv draft) | ai-infra, ml-literacy, ops-math | `/paths/nvidia-ai/` |
-| `oss-from-math-to-ml` | Li, Mathematical Pathways to Machine Learning (CC BY-NC) | ops-math, ml-literacy | `/paths/aleks-ops-math/` |
-| `mit-ocw-18-100b` | MIT OCW 18.100B Real Analysis notes | ops-math | `/paths/aleks-ops-math/` |
+| `oss-from-math-to-ml` | Li, Mathematical Pathways to Machine Learning (CC BY-NC) | ops-math, ml-literacy | `/paths/adaptive-ops-math/` |
+| `mit-ocw-18-100b` | MIT OCW 18.100B Real Analysis notes | ops-math | `/paths/adaptive-ops-math/` |
 | `arxiv-2601-06108-alignment` | From RLHF to Direct Alignment | ai-infra, ml-literacy | `/paths/nvidia-ai/` |
 | `arxiv-2603-15914-agentic-researcher` | The Agentic Researcher | ai-infra, fde | `/coach/` |
 | `oss-hinton-pytorch` | Hinton papers replicated in PyTorch (public repo) | ai-infra, ml-literacy, python-systems | `/paths/nvidia-ai/` |
-| `arxiv-2609-28835-anomalies` | Pedagogical QFT anomalies | ops-math shelf only | `/paths/aleks-ops-math/` |
+| `arxiv-2609-28835-anomalies` | Pedagogical QFT anomalies | ops-math shelf only | `/paths/adaptive-ops-math/` |
 
 Held, not seated: posts with no paper, course, or repository; one vacuum-fluctuation claim not re-checked; Capacitor 6→8 Dependabot PRs (mobile major bumps, separate from this ingest).
 
@@ -34,7 +34,7 @@ New parents, still no orphan courses:
 
 | Track | Path that carries it |
 |-------|----------------------|
-| `frontier-physics` | `/paths/aleks-ops-math/` |
+| `frontier-physics` | `/paths/adaptive-ops-math/` |
 | `frontier-neuroscience` | `/paths/data-analyst-to-ml/` |
 | `frontier-hermetica` | `/paths/enochian-programming/` |
 

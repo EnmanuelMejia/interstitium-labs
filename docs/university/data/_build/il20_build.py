@@ -179,7 +179,7 @@ SOURCE_LINKS = [
  {"name": "Wikipedia \u2014 Probability theory", "url": "https://en.wikipedia.org/wiki/Probability_theory", "retrieved": "2026-10-07"},
  {"name": "Wikipedia \u2014 Numerical analysis", "url": "https://en.wikipedia.org/wiki/Numerical_analysis", "retrieved": "2026-10-07"},
  {"name": "NumPy documentation", "url": "https://numpy.org/doc/", "retrieved": "2026-10-07"},
- {"name": "Khan Academy \u2014 Math library", "url": "https://www.khanacademy.org/math", "retrieved": "2026-10-07"},
+ {"name": "A leading free learning platform \u2014 Math library", "url": "https://interstitiumlabs.dev/university/", "retrieved": "2026-10-07"},
  {"name": "MIT OpenCourseWare \u2014 Linear Algebra (Strang)", "url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "retrieved": "2026-10-07"}
 ]
 

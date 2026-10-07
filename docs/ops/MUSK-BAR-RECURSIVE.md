@@ -88,7 +88,7 @@ _Live:_ https://interstitiumlabs.dev
 | Peer | Still wins | IL exceed today |
 |------|------------|-----------------|
 | Leading lab platform | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
-| Brilliant / interactive coding platforms / ALEKS | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
+| A leading STEM learning platform / interactive coding platforms / a leading adaptive-learning platform | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
 | Peer LMS 3D | Mostly video / 2D diagrams | IL ships polished glTF binaries + honest UE PS bring-up path |
 
 ---
@@ -134,7 +134,7 @@ _Live:_ https://interstitiumlabs.dev
 | Peer | Delta | IL response |
 |------|-------|-------------|
 | Hosted AI-tutor live assist (peer) | Real-time in-lab help + hosted labs | Noah Live Assist remains; **still no hosted fleet** (honest) |
-| Brilliant **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
+| A leading STEM learning platform **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
 | Peer LMS 3D | Most still flat video / 2D diagrams | IL ships **real glTF meshes** + **Pixel Streaming client path** to stay generations ahead of flat LMS |
 
 ## Immersive 3D gate (product law)

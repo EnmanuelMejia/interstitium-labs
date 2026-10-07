@@ -1,5 +1,5 @@
 /**
- * IL readiness radar / knowledge pie (ALEKS-inspired).
+ * IL readiness radar / knowledge pie (adaptive-inspired).
  * Mount: <div data-il-radar data-il-radar-id="prep"></div>
  * Optional JSON in data-il-radar-skills='[{"label":"Linux","value":70},...]'
  * Or uses built-in profiles. Persists self-ratings to localStorage il.radar.<id>
@@ -114,7 +114,7 @@
   }
 
   function readyFringe(skills) {
-    // ALEKS-style: items in mid band are "ready to learn"
+    // adaptive: items in mid band are "ready to learn"
     return skills.filter(function (s) { return s.value >= 35 && s.value < 70; })
       .sort(function (a, b) { return b.value - a.value; })
       .slice(0, 3);
@@ -177,7 +177,7 @@
     function paintFringe() {
       var ready = readyFringe(data.skills);
       if (!ready.length) {
-        fringe.innerHTML = '<strong>Ready-to-learn fringe:</strong> Rate skills (click bars). Items in the mid band become your next practice targets — ALEKS-style, local only.';
+        fringe.innerHTML = '<strong>Ready-to-learn fringe:</strong> Rate skills (click bars). Items in the mid band become your next practice targets — adaptive, local only.';
         return;
       }
       fringe.innerHTML = '<strong>Ready-to-learn:</strong> ' +

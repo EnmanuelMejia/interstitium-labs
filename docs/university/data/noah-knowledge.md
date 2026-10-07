@@ -45,7 +45,7 @@ Noah AI is the personalized adaptive tutor and resident intelligence of Intersti
 
 ### Apex learning paths (24, under /paths/)
 
-adaptive-foundations · aleks-ops-math · aws-cloud-ops · aws-cloud-practitioner-plus · data-analyst-to-ml · data-science-certs · devops-zero-to-hire · devsecops-mastery · enochian-programming · fde-training · frontier · fullstack-desk · iac-terraform-gitops · k8s-cka-exceed · kubernetes-sre · linux-lf-essentials · linux-rhcsa-spine · nvidia-ai (+ quest) · platform-sre · python-systems · secops-blue-team · vendor-map. Filterable by role, skill, cert, time; each carries outcomes, Adapt gates, SuperLab proof, and Noah side-quests.
+adaptive-foundations · adaptive-ops-math · aws-cloud-ops · aws-cloud-practitioner-plus · data-analyst-to-ml · data-science-certs · devops-zero-to-hire · devsecops-mastery · enochian-programming · fde-training · frontier · fullstack-desk · iac-terraform-gitops · k8s-cka-exceed · kubernetes-sre · linux-lf-essentials · linux-rhcsa-spine · nvidia-ai (+ quest) · platform-sre · python-systems · secops-blue-team · vendor-map. Filterable by role, skill, cert, time; each carries outcomes, Adapt gates, SuperLab proof, and Noah side-quests.
 
 ## Mobile apps (Interstitium Labs)
 
@@ -58,7 +58,7 @@ adaptive-foundations · aleks-ops-math · aws-cloud-ops · aws-cloud-practitione
 
 ## Learning University (interstitiumlabs.dev/university/)
 
-Static, self-paced learning site: 18 academies, 112 paths, 649 modules. Adaptive engine (Place → Fringe → Gate → Deepen; CAT-style placement; ALEKS-style sequencing; spaced repetition; mastery in localStorage), timed assessments, Noah AI tutor. Catalog is sharded JSON; every module links real official sources; Interstitium adds original framing, never cloned vendor content.
+Static, self-paced learning site: 18 academies, 112 paths, 649 modules. Adaptive engine (Place → Fringe → Gate → Deepen; CAT-style placement; Adaptive sequencing; spaced repetition; mastery in localStorage), timed assessments, Noah AI tutor. Catalog is sharded JSON; every module links real official sources; Interstitium adds original framing, never cloned vendor content.
 
 ### The 12 academies
 

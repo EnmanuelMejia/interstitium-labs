@@ -21,7 +21,7 @@
     { id: 'k8s-cka-exceed', label: 'K8s CKA exceed', href: '/paths/k8s-cka-exceed/' },
     { id: 'devsecops-mastery', label: 'DevSecOps mastery', href: '/paths/devsecops-mastery/' },
     { id: 'aws-cloud-ops', label: 'AWS cloud ops', href: '/paths/aws-cloud-ops/' },
-    { id: 'aleks-ops-math', label: 'Ops math (ALEKS-shape)', href: '/paths/aleks-ops-math/' }
+    { id: 'adaptive-ops-math', label: 'Ops math (adaptive-shape)', href: '/paths/adaptive-ops-math/' }
   ];
   function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function pathPick() { try { return g.localStorage.getItem('il.os.path.v1') || ''; } catch (e) { return ''; } }

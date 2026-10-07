@@ -330,7 +330,7 @@
     { label: "Time-to-hire OS", href: "/os/", keys: "os hire time dashboard" },
     { label: "Learn — Curriculum OS", href: "/learn/", keys: "learn desk" },
     { label: "Prep — Interview sprint", href: "/prep/", keys: "prep measure" },
-    { label: "Adapt — Adaptive OS", href: "/adapt/", keys: "adapt cat aleks" },
+    { label: "Adapt — Adaptive OS", href: "/adapt/", keys: "adapt cat a leading adaptive-learning platform" },
     { label: "Labs — SuperLab hub", href: "/labs/", keys: "labs superlab" },
     { label: "Challenge of the Day", href: "/labs/challenge/", keys: "challenge cotd lab" },
     { label: "Noah — Coach", href: "/coach/", keys: "coach muse si tutor" },

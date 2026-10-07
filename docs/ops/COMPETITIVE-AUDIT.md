@@ -2,7 +2,7 @@
 
 _Last updated: 2026-10-01 (America/New_York)._  
 _Static root:_ `docs/` · _Live:_ https://interstitiumlabs.dev  
-_Peers scored:_ **Leading lab platform (primary)**, ALEKS, Brilliant.org, Khan Academy.
+_Peers scored:_ **Leading lab platform (primary)**, a leading adaptive-learning platform, A leading STEM learning platform, A leading free learning platform.
 _Last weekday pass:_ **2026-09-28** — hosted AI-tutor live assist delta → Noah Live Assist shipped.
 
 Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Payments stay placeholder-honest. No invented Stripe/LLM keys. Enterprise security headers preserved.
@@ -43,19 +43,19 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 
 **IL** = Interstitium baseline before this P0 polish (P0 moves Design/UI/UX/Coach/Labs hub up one notch each without fake infra).
 
-| Dimension | IL | Leading lab platform | ALEKS | Brilliant | Khan | Notes |
+| Dimension | IL | Leading lab platform | A leading adaptive-learning platform | A leading STEM learning platform | A leading free learning platform | Notes |
 |-----------|---:|----------:|------:|----------:|-----:|-------|
-| Design system | 3 | 4 | 3 | **5** | 4 | Void/cyan/gold tokens exist; need Brilliant hierarchy + drill chrome |
+| Design system | 3 | 4 | 3 | **5** | 4 | Void/cyan/gold tokens exist; need A leading STEM learning platform hierarchy + drill chrome |
 | UI polish | 3 | 4 | 3 | **5** | 4 | Cards solid; empty states & micro-feedback thin |
 | UX flows | 3 | 4 | 4 | **5** | **5** | Sequencer exists; “next action” not always obvious |
 | Labs | 2 | **5** | 1 | 2 | 2 | SuperLab flagship only vs a leading training platform playground fleet |
 | Simulations | 2 | **5** | 2 | **5** | 3 | Interactive visuals sparse outside motion/game |
 | Lectures / video | 1 | **5** | 2 | 3 | **5** | No first-party video CDN |
 | AI-first tutoring | 1 | **5** | 2 | 3 | 4 | P0 ships `/coach/` shell + local rules — not a live model |
-| Adaptive paths | 2 | 3 | **5** | 4 | 4 | Founders radar = seed; not ALEKS Pie engine |
+| Adaptive paths | 2 | 3 | **5** | 4 | 4 | Founders radar = seed; not a leading adaptive-learning platform Pie engine |
 | Gamification | 3 | 4 | 2 | 4 | **5** | Play XP live; keep skill signal > Gems noise |
 | Mobile | 3 | 3 | 3 | 4 | **5** | PWA + Capacitor; store publish pending |
-| a11y | 3 | 3 | 3 | 4 | **5** | Focus rings partial; Khan-grade a11y is the bar |
+| a11y | 3 | 3 | 3 | 4 | **5** | Focus rings partial; A leading free learning platform-grade a11y is the bar |
 | Onboarding | 3 | 4 | 4 | **5** | **5** | Student Zero narrative strong; first-session loop weak |
 | Search | 1 | 4 | 3 | 3 | 4 | No site search |
 | Progress analytics | 3 | 4 | **5** | 4 | **5** | Local `il.progress.*` + admin insights |
@@ -77,15 +77,15 @@ Brand kit stays **private** (`private/brand/`, `docs/ops/BRAND-PRIVATE.md`). Pay
 - **AI bar:** lab-state-aware Socratic when a real model is wired — never a wallpaper chatbot.
 - **Do not fake:** 800 labs, cloud sandboxes, or live AI keys.
 
-### Brilliant.org
+### A leading STEM learning platform
 - Interaction density, visual hierarchy, calm motion, micro-feedback; Koji-class **UI-grounded Socratic**.
 - **Steal:** Spacing/type scale, interactive drill cards, empty states, focus rings, ask-about-what’s-on-screen hints.
 
-### ALEKS
+### A leading adaptive-learning platform
 - Knowledge Space Theory — **Pie**, Knowledge Checks, ready-to-learn fringe.
 - **Steal:** Reusable readiness radar/pie on `/learn/` + `/prep/`; Checkpoint ≈ Knowledge Check.
 
-### Khan Academy
+### A leading free learning platform
 - Mastery states, **Missions** queue, coach overlay, a11y, Gems motivation **without drowning skill signal**.
 - **Steal:** Explicit **Learn → Practice → Checkpoint** + clear next action; coach overlay UI; XP secondary to mastery.
 
@@ -99,21 +99,21 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 | Gap | Leader | IL today | Pri | Owner |
 |-----|--------|----------|-----|-------|
-| Visual hierarchy + drill micro-feedback | Brilliant | Partial tokens | **P0** | `il-ux.css` + `il-drills.js` |
-| Mastery loop UI (Learn→Practice→Checkpoint) | Khan | Implicit phases | **P0** | `il-mastery.js` on learn/prep |
-| Reusable knowledge pie / readiness radar | ALEKS | Founders-only | **P0** | `il-radar.js` |
+| Visual hierarchy + drill micro-feedback | A leading STEM learning platform | Partial tokens | **P0** | `il-ux.css` + `il-drills.js` |
+| Mastery loop UI (Learn→Practice→Checkpoint) | A leading free learning platform | Implicit phases | **P0** | `il-mastery.js` on learn/prep |
+| Reusable knowledge pie / readiness radar | A leading adaptive-learning platform | Founders-only | **P0** | `il-radar.js` |
 | Labs playground hub + scenario cards | a leading training platform | SuperLab only | **P0** | `/labs/` |
-| AI coach UI shell + local Prep hints | a leading training platform∩Khan | **Noah Live Assist shipped** | **P0 done / deepen** | `/coach/` + `il-coach.js` |
+| AI coach UI shell + local Prep hints | a leading training platform∩A leading free learning platform | **Noah Live Assist shipped** | **P0 done / deepen** | `/coach/` + `il-coach.js` |
 | Home competitive strip | — | Basic | **P0** | `#why-interstitium` |
-| First-party video / lecture CDN | Khan / a leading training platform | None | **P1** | Enmanuel |
+| First-party video / lecture CDN | A leading free learning platform / a leading training platform | None | **P1** | Enmanuel |
 | Real LLM tutor (lab-state + UI-grounded) | a leading training platform | Rules only | **P1** | Enmanuel (keys out-of-band) |
 | Cloud playgrounds / multi-lab fleet | a leading training platform | SuperLab clone | **P1** | Enmanuel (infra) |
-| Site search | a leading training platform / Khan | None | **P1** | Eng |
+| Site search | a leading training platform / A leading free learning platform | None | **P1** | Eng |
 | Live Commerce | All commercial | Placeholder | **P1** | Enmanuel Payment Links |
-| Store publish | Khan | Capacitor ready | **P1** | Enmanuel Apple/Google |
+| Store publish | A leading free learning platform | Capacitor ready | **P1** | Enmanuel Apple/Google |
 | Community | a leading training platform | None | **P2** | Product |
-| Full ALEKS adaptive engine | ALEKS | Radar seed | **P2** | Research |
-| Cohort cloud analytics | Khan / ALEKS | Local only | **P2** | Backend |
+| Full a leading adaptive-learning platform adaptive engine | A leading adaptive-learning platform | Radar seed | **P2** | Research |
+| Cohort cloud analytics | A leading free learning platform / a leading adaptive-learning platform | Local only | **P2** | Backend |
 
 ---
 
@@ -155,9 +155,9 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 | Peer strength | Interstitium exceed move (shipped) |
 |---------------|-------------------------------------|
-| Brilliant interaction | `il-drills.js` cards + instant ok/bad feedback + tips without answer dumps |
-| ALEKS Pie / ready-to-learn | `il-radar.js` on Learn + Prep + Founders; clickable self-rate; mid-band fringe copy |
-| Khan mastery queue | `il-mastery.js` Learn→Practice→Checkpoint + persistent next-action CTA |
+| A leading STEM learning platform interaction | `il-drills.js` cards + instant ok/bad feedback + tips without answer dumps |
+| A leading adaptive-learning platform Pie / ready-to-learn | `il-radar.js` on Learn + Prep + Founders; clickable self-rate; mid-band fringe copy |
+| A leading free learning platform mastery queue | `il-mastery.js` Learn→Practice→Checkpoint + persistent next-action CTA |
 | a leading training platform playgrounds | `/labs/#playground` guided vs playground split + scenario cards → SuperLab; honest infra note |
 | a leading training platform in-lab AI / Live Assist | **Noah Live Assist** on `/labs/` · `/labs/challenge/` · `/coach/` — lab-context Socratic + OSS router; no fake keys; no hosted fleet claim |
 | Trust | Portfolio honesty, placeholder payments, private brand kit, CSP headers preserved |
@@ -179,13 +179,13 @@ Ship now: local rule hints + `/coach/` stub + optional `window.IL_COACH`. **No f
 
 **What we still do not claim:** multi-cloud playground fleet, terminal keylogging into a SaaS sandbox, “800 labs.”
 
-**Brilliant Koji:** noted; Adapt + Noah remain our adaptive/Socratic lane — not a Koji skin.
+**A leading STEM learning platform Koji:** noted; Adapt + Noah remain our adaptive/Socratic lane — not a Koji skin.
 
 **Musk verdict this pass:** Closer / still **NO** until authored `.glb` + UE stream.
 
 ## 2026-09-30 Musk-bar skim
 
 - **a leading training platform:** AI Tutor Live Assist + custom/on-demand labs + hosted environments remain the hosted-lab moat (Agent Factory / Gemini Flash multi-agent stack public). IL: Noah Live Assist + **cka-etcd-quorum.glb** immersive + Muse authored glTF — **no fake hosted fleet**.
-- **Brilliant:** adaptive tutor still flat-2D primary; IL counters with kit-v2 glTF + Pixel Streaming client (reconnect) — still no live UE host.
+- **A leading STEM learning platform:** adaptive tutor still flat-2D primary; IL counters with kit-v2 glTF + Pixel Streaming client (reconnect) — still no live UE host.
 - **Peer LMS:** mostly flat; IL 3D-first path widened (muse-dee-monas, etcd quorum, Blender polish handoff).
 - **Honesty bar:** Pixel Streaming empty-state + backoff; never invent stream metrics or course counts.
