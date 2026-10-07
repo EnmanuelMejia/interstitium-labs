@@ -4139,6 +4139,104 @@
      "explain": "Bus factor reduced to documentation."
     }
    ]
+  },
+  {
+   "id": "advanced-ml--re-bench-agents-ml-research",
+   "code": "IL-16",
+   "title": "RE-Bench: Agents Doing ML Research",
+   "weight": 1,
+   "summary": "Welcome to the benchmark that grades AI on your own craft. I'm your instructor for this module, and we're studying RE-Bench — METR's head-to-head contest between AI agents and human experts at real machine-learning research engineering: fitting scaling laws, optimizing GPU kernels, designing architectures under constraints. You'll learn how the benchmark is built, what the 2h/8h/32h crossover tells us about where agents help and where they don't, and how to read any 'AI does research' claim with an evaluator's eye. All figures as of October 7, 2026.",
+   "objectives": [
+    "Describe RE-Bench's design: contamination-free environments, calibrated 0–1 scoring, faithful human baselines",
+    "Explain the 2h/8h/32h crossover and what it implies for human–agent collaboration in ML research",
+    "Apply the critical-reading checklist to 'AI does ML research' claims"
+   ],
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **RE-Bench** — METR's benchmark (2024-11-22) for AI-led ML research engineering: 7 realistic, open-ended environments, agents vs human experts, same resources and time limits.\n- **Anti-contamination design** — Environments built from scratch; most held back unpublished. Public tasks can't separate capability from memorization.\n- **Calibrated scoring** — 0 = starting solution's score, 1 = METR's strong reference solution; comparable across environments.\n- **Human baselines** — 71 attempts by 61 experts, up to 8 hours each; 82% non-zero, 24% matched or beat the reference.\n- **The 2h/8h/32h crossover** — Agents ~4× humans at 2h; humans narrowly lead at 8h; humans ~2× the top agent at 32h across attempts.\n- **The kernel example** — o1-preview's custom CUDA kernel: 0.64 ms vs best human 0.67 ms (start 4.74 ms, reference 1.60 ms) — a data point, not a verdict.\n- **Capability of concern** — AI automation of AI R&D is the monitored capability; RE-Bench is the reusable instrument."
+    },
+    {
+     "title": "Worked estimation",
+     "body": "Score an RE-Bench-style ML task yourself.\n1. **Pick a research-engineering task** with a measurable objective — e.g., fit a scaling law from provided training runs, or optimize a small kernel.\n2. **Define the scoring function** and calibrate it: 0 = the baseline you're given, 1 = a strong reference solution you write (or borrow and verify).\n3. **Set the time budget** and run both sides: an agent with a fixed attempt budget, and yourself (or a colleague) with the same clock.\n4. **Score best-of-k** across attempts at 2h, then extend to 8h. Watch for the crossover pattern: where does the agent's 10×+ iteration speed win, and where does coherent long-horizon work take over?\n5. **Write the limitations** before the conclusions: one task, one agent, one human — what would you need to make this a claim about 'AI doing research'?"
+    },
+    {
+     "title": "Project brief",
+     "body": "Replicate one RE-Bench-style environment from scratch. Do not adapt a public tutorial — build the task, the starting code, and the scoring function yourself. Deliverable: the environment plus a 1-page report with (1) the task and why it's realistic ML research engineering, (2) your calibrated 0 and 1, (3) a timed human attempt (yours or a colleague's) and an agent attempt under the same budget, (4) the comparison, and (5) a limitations section. Grading bar: the limitations section must name contamination risk, baseline quality, and feedback-loop realism — the three things that separate an eval from a demo."
+    },
+    {
+     "title": "Frontier honesty",
+     "body": "What decays: model scores on these environments (models train on; scores inflate), published horizon values — all as-of 2026-10-07. What the benchmark does not claim: that 7 environments generalize to all of ML research, or that fast-feedback tasks stand in for months-long ambiguous research. What endures: the design pattern — contamination-free tasks, calibrated scoring, real human baselines, reported budgets. Cite the date; report the budgets."
+    }
+   ],
+   "cards": [
+    {
+     "front": "RE-Bench in one line for an ML engineer?",
+     "back": "7 contamination-free ML research-engineering environments; agents and 61 human experts compete on calibrated 0–1 scoring."
+    },
+    {
+     "front": "The crossover and what it means for your workflow?",
+     "back": "Agents win at 2h budgets (10×+ iteration speed), humans at 8h/32h — use agents for fast sweeps, humans for coherent long-horizon work."
+    },
+    {
+     "front": "The kernel example's lesson?",
+     "back": "o1-preview's custom CUDA kernel (0.64 ms) beat the best human (0.67 ms) — agents can win well-scoped optimization tasks; that's a data point, not a verdict on research."
+    },
+    {
+     "front": "Calibrated scoring: 0 and 1?",
+     "back": "0 = starting solution's score, 1 = METR's strong reference — comparable across environments."
+    },
+    {
+     "front": "Before citing an 'AI researcher' claim?",
+     "back": "Check contamination, baselines, budgets, and suite size — the critical-reading checklist."
+    }
+   ],
+   "quiz": [
+    {
+     "q": "Why do RE-Bench tasks have faster feedback loops than real ML research?",
+     "choices": [
+      "To save money",
+      "Deliberate design trade-off — real research has ambiguous goals and months-long feedback; the benchmark's limits are stated",
+      "Agents prefer it",
+      "Humans are slow"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — know what the instrument doesn't measure."
+    },
+    {
+     "q": "An agent beats your best engineer on a kernel-optimization task. The correct conclusion?",
+     "choices": [
+      "Engineers are obsolete",
+      "One well-scoped win — check budgets, baselines, and whether the task generalizes before changing the workflow",
+      "Fire the engineer",
+      "Publish immediately"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (kernel example) — data point, not verdict."
+    },
+    {
+     "q": "RE-Bench's human baseline comprises:",
+     "choices": [
+      "12 interns",
+      "71 attempts by 61 experts, up to 8 hours each",
+      "1,000 crowd workers",
+      "No humans — simulated"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts."
+    },
+    {
+     "q": "For your team's ML workflow, the crossover suggests:",
+     "choices": [
+      "Replace researchers with agents",
+      "Agents for fast iteration sweeps; humans for coherent multi-hour research arcs",
+      "Avoid agents entirely",
+      "Only use agents at 32h budgets"
+     ],
+     "answer": 1,
+     "explain": "Covered in Worked estimation — play to each side's returns-to-time."
+    }
+   ]
   }
  ],
  "scriptLabs": [

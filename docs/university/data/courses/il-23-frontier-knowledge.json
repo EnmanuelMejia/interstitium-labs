@@ -4,16 +4,18 @@
  "code": "IL-23",
  "title": "The Frontier — Cutting-Edge Research Distilled",
  "tagline": "Transformers, quantum, CRISPR, fusion, BCIs, agents, chips, synbio, space — the durable core of fast-moving fields, with the method to track the edge.",
- "blurb": "Ten seed modules on frontier topics written from established knowledge and dated honestly: transformer architectures, quantum computing, CRISPR, fusion energy, brain–computer interfaces, AI agents, semiconductor scaling, synthetic biology, space infrastructure, and the frontier method itself (how to read preprints, detect hype, and date every claim). Each module separates the durable mechanism-core from the perishable edge, and every module carries an as-of date — frontier means fast-moving, and this course says so up front. Designed for a daily pipeline to append new modules; see the frontier README for the append contract. Original instructional content; confers no certificate.",
- "hours": 34,
+ "blurb": "Twelve seed modules on frontier topics written from established knowledge and dated honestly: transformer architectures, quantum computing, CRISPR, fusion energy, brain–computer interfaces, AI agents, semiconductor scaling, synthetic biology, space infrastructure, and the frontier method itself (how to read preprints, detect hype, and date every claim). Each module separates the durable mechanism-core from the perishable edge, and every module carries an as-of date — frontier means fast-moving, and this course says so up front. Designed for a daily pipeline to append new modules; see the frontier README for the append contract. Original instructional content; confers no certificate. New: capability forecasting from physical inputs (Epoch AI) and AI capability evaluation (METR).",
+ "hours": 48,
  "updatedAt": "2026-10-07",
  "objectives": [
-  "Explain the settled core mechanisms of ten frontier fields",
+  "Explain the settled core mechanisms of twelve frontier fields",
   "Apply the as-of discipline: date every claim, estimate its half-life",
   "Read a preprint critically in 20 minutes",
   "Detect hype patterns in announcements and press coverage",
   "Evaluate dual-use and Collingridge-type dilemmas in emerging tech",
-  "Maintain a personal frontier radar with a calibrated claim log"
+  "Maintain a personal frontier radar with a calibrated claim log",
+  "Forecast frontier capabilities from physical inputs with stated assumptions, dated intervals, and a decay plan",
+  "Read a capability evaluation critically: contamination, baselines, suite sensitivity, and what the metric does not claim"
  ],
  "arc": [
   {
@@ -30,6 +32,11 @@
    "phase": "Phase 3 — Interface & method",
    "title": "Humans and the edge",
    "body": "BCIs, semiconductors, space infrastructure — and the frontier method that keeps all of it honest. Modules 5, 7, 9–10."
+  },
+  {
+   "phase": "Phase 4 — Measurement & forecasting",
+   "title": "How the frontier quantifies itself",
+   "body": "Capability forecasting from physical inputs (Epoch AI: the data wall, agent capacity, cost curves) and capability evaluation (METR: RE-Bench, the time-horizon method). Modules 11–12 — the instruments the frontier uses to measure itself, taught with the as-of discipline that keeps them honest."
   }
  ],
  "priorities": [
@@ -48,6 +55,14 @@
   {
    "label": "Method + scenarios + mock (module 10)",
    "minutes": 300
+  },
+  {
+   "label": "Measurement: capability forecasting (module 11)",
+   "minutes": 720
+  },
+  {
+   "label": "Evaluation: RE-Bench + time horizons (module 12)",
+   "minutes": 720
   }
  ],
  "battlePlan": [
@@ -78,8 +93,18 @@
   },
   {
    "id": "bp23-6",
-   "title": "Sit the 30-task timed mock; review misses against the cheat sheets",
+   "title": "Sit the 38-task timed mock; review misses against the cheat sheets",
    "minutes": 120
+  },
+  {
+   "id": "bp23-7",
+   "title": "Complete capability forecasting (module 11); run the forecasting-workbench sim",
+   "minutes": 360
+  },
+  {
+   "id": "bp23-8",
+   "title": "Complete RE-Bench + time horizons (module 12); work both scenarios; run horizon-reader",
+   "minutes": 360
   }
  ],
  "modules": [
@@ -1081,6 +1106,432 @@
      "explain": "Calibration compounds; speed without calibration is just faster error."
     }
    ]
+  },
+  {
+   "id": "m23-epoch-ai",
+   "code": "IL-23",
+   "title": "Frontier Capability Forecasting: The Epoch AI Corpus",
+   "weight": 1,
+   "asOf": "2026-10-07",
+   "summary": "Welcome to the measurement wing of the Frontier. I'm your instructor for this module, and we're going to do something unusual: instead of learning a technology, we're learning how the frontier learns about itself. Epoch AI is the research group that tracks AI's physical supply chains — data, chips, dollars — and turns those measurements into bounded forecasts of what comes next. In this module you'll reconstruct two of their flagship analyses: the 'data wall' question (will we run out of training data?) and the 'agent capacity' question (how many AI agents could the chip buildout actually run?). Every figure here is dated, because frontier numbers decay — dating them is part of the discipline. All fast-moving claims: as of October 7, 2026.",
+   "objectives": [
+    "Explain Epoch AI's capability-forecasting method: physical inputs (data stocks, chip shipments, cost curves) projected into bounded frontier forecasts",
+    "Reconstruct the data-wall argument: scaling-law demand vs. estimated supply, the quality and multi-epoch adjustments, and the 2026-2032 exhaustion window",
+    "Reproduce Epoch's agent-capacity estimation (A = E × c) and its key result: ~30-170M concurrent frontier agents from 2025-27 HBM shipments",
+    "Interpret inference cost curves (~47%/quarter since 2023) and their budget implications for AI engineering",
+    "Apply the decay lesson: why frontier forecasts carry as-of dates and why the binding constraint moves over time"
+   ],
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **Capability forecasting** — The research practice of converting unobservable quantities about AI's future — remaining usable training data, deployable agent capacity, the cost of a fixed capability — into bounded forecasts with stated assumptions and uncertainty intervals.\n- **The data wall** — The projected point at which training datasets reach the size of the available stock of public human-generated text. Villalobos et al. (2024) place it between 2026 and 2032, median 2028.\n- **Neural scaling laws** — Empirical relationships (Kaplan 2020; Hoffmann/Chinchilla 2022) tying optimal dataset size to roughly the square root of training compute — the demand side of the data-wall ledger.\n- **Stock estimates** — The paper's Table 1 point estimates of usable text: Common Crawl ~130T tokens, the indexed web ~510T, the whole web ~3100T, images ~300T, video ~1350T (as of the paper, 2024).\n- **Quality filtering** — Only a fraction of deduplicated web text is usable without degrading model performance; this adjustment shrinks the effective stock.\n- **Multi-epoch training** — Repeat passes over the same data stretch the effective stock by a capped multiplier; this adjustment grows it.\n- **Monte Carlo simulation** — The paper propagates parameter uncertainty through repeated random sampling, producing the 2026–2032 window rather than a single year.\n- **Agent capacity (A = E × c)** — Epoch's October 2026 estimation: effective hardware supply E (HBM memory shipped 2025–27, expressed in GB300 equivalents) multiplied by serving capacity c (concurrent agent sessions per GB300).\n- **GB300 equivalent** — Epoch's unit of account for hardware supply: the HBM capacity of one GB300-class AI server, used to normalize heterogeneous chip shipments.\n- **TraceLab / AgentX** — The two concurrency sources in Epoch's report: API spending per agent-hour from the TraceLab dataset of coding-agent session traces (closed models), and SemiAnalysis's AgentX serving benchmarks at fixed streaming speeds (open models).\n- **The plunging price of thought** — Epoch's September 2026 finding: the cost of a fixed level of benchmark performance has fallen roughly 47% per quarter — about 13× per year — since 2023.\n- **Binding constraint / capacity glut** — The lesson of the agent-capacity report: the scarce resource moved from chips to demand. Using just 20% of central capacity would imply $2.6–5.3T/year in API-equivalent spending (Epoch, 2026-10-02), far above projected developer revenue — a potential capacity glut."
+    },
+    {
+     "title": "Worked estimation",
+     "body": "Grab a notebook or a scratch file. We're going to reproduce both of Epoch's headline calculations at the level of a careful reader — not the full Monte Carlo, but every input and where it comes from.\n1. **Demand side of the data wall.** Start from the scaling-law rule of thumb: optimal dataset size grows roughly with the square root of training compute. If training compute grows 10×, the dataset that justifies it grows about 3.16×. Compound that across years of compute growth and data demand compounds against a finite stock.\n2. **Supply side, raw.** Estimate the indexed web's plain text with the paper's recipe: ~250 billion pages in Google's index (2022 figure) × ~7,000 bytes of plain text per page from Common Crawl statistics → convert bytes to tokens with a byte-pair tokenizer. That is the raw token stock.\n3. **Adjust down — quality filtering.** Only a fraction of deduplicated web text trains well. Multiply the raw stock by the usable fraction (the paper treats this as an uncertain parameter, not a constant).\n4. **Adjust up — multi-epoch training.** Repeat passes over data stretch the effective stock, but with diminishing returns; the paper caps the multiplier. Multiply by the epoch factor.\n5. **Propagate uncertainty.** Run the whole ledger thousands of times, sampling each uncertain parameter from its range — that is the Monte Carlo step. The output is a window, not a date: 2026–2032, median 2028, at roughly 4e14 tokens of dataset size and ~5e28 FLOP of training compute for non-overtrained models (one to two years earlier if frontier models are overtrained).\n6. **Now the agent-capacity computation.** Define E: HBM memory shipped 2025–27, expressed in GB300 equivalents. Define c: concurrent agent sessions one GB300 equivalent can serve — for closed models, infer it from API spending per agent-hour in TraceLab coding-agent traces (pooled rates Epoch reports: roughly $18/hour for GPT-5.5 on Codex and $15.5 for GPT-5.6 Sol, versus $24.3 for Opus 4.8 and $50.2 for Fable 5 on Claude Code; the report's reference point is $30/agent-hour); for open models, read it directly from AgentX serving benchmarks at a fixed 50 tokens/second streaming target.\n7. **Multiply: A = E × c.** Epoch's headline (2026-10-02): roughly 30–170 million concurrent frontier-model agents — or about 1.9 billion concurrent sessions of an efficient open model (DeepSeek V4 Pro serving benchmarks).\n8. **The demand check — the step most forecasters skip.** Convert capacity to dollars. Using only 20% of central capacity implies $2.6–5.3 trillion per year in API-equivalent spending, against roughly $1 trillion in combined developer revenue projected by end-2027 (at fivefold annual growth). If demand can't absorb the capacity, the binding constraint isn't chips — it's customers. That is the capacity-glut warning.\n9. **Date your work.** Write 'as of 2026-10-07' on every figure. The 2022 data-wall estimate said ~2024; it was revised to ~2028 when web data filtered better than assumed. Your forecast is a perishable artifact — the method above is durable, the numbers are not."
+    },
+    {
+     "title": "Project brief",
+     "body": "Your capstone for this module: build your own bounded forecast with stated assumptions. Pick one frontier quantity — examples: the inference cost of a fixed benchmark capability in 2028, the data-stock exhaustion date under a different overtraining assumption, or the agent capacity of a single year's HBM shipments. Deliverable: a one-page forecast memo with (1) the quantity and why it matters, (2) an assumption table with a source or an explicit guess for each input, (3) a central estimate plus an uncertainty interval, (4) an as-of date and a decay plan — what would make you revise it. Grading bar: every number dated, every assumption stated, no point estimates without intervals. If your memo could be quoted in 2028 without embarrassing you, it isn't honest enough — put the uncertainty in writing."
+    },
+    {
+     "title": "Frontier honesty",
+     "body": "What decays here: model names and hourly rates (GPT-5.6 Sol, Opus 4.8, Fable 5, DeepSeek V4 Pro are Epoch's 2026 estimates and assumptions), HBM shipment figures, the ~47%/quarter cost-curve rate, and the 30–170M capacity range itself — all as-of 2026-10-02/07. What endures: the method — ledger both sides, adjust honestly, propagate uncertainty, report intervals, date everything. And the meta-lesson: the binding constraint moves. In 2022 the debate was training-data supply; by 2026 it is inference economics and demand. Any forecaster who reports a date without naming the constraint they're assuming is selling certainty they don't have."
+    }
+   ],
+   "cards": [
+    {
+     "front": "What is capability forecasting, in one sentence?",
+     "back": "Converting unobservable quantities about AI's future — usable data remaining, deployable agent capacity, cost of a fixed capability — into bounded forecasts with stated assumptions and uncertainty intervals."
+    },
+    {
+     "front": "The data-wall model: both sides of the ledger?",
+     "back": "Demand: scaling laws tie dataset size to ~sqrt(training compute), so data demand compounds. Supply: indexed-web text estimated from Google's index size and Common Crawl bytes-per-page, converted to tokens."
+    },
+    {
+     "front": "The two adjustments to raw web-token counts — and their directions?",
+     "back": "Quality filtering shrinks the effective stock (only a usable fraction trains well); multi-epoch training stretches it (repeat passes, capped multiplier)."
+    },
+    {
+     "front": "The data-wall headline forecast (window, median, scale)?",
+     "back": "2026–2032 window, median 2028: datasets approaching ~4e14 tokens, ~5e28 FLOP of training compute for non-overtrained models — a year or two earlier if overtrained. (Villalobos et al., as of 2026-10-07.)"
+    },
+    {
+     "front": "Epoch's agent-capacity formula and its terms?",
+     "back": "A = E × c. E = effective hardware supply (HBM shipped 2025–27, in GB300 equivalents). c = concurrent agent sessions per GB300 — from TraceLab $/agent-hour traces (closed) or AgentX serving benchmarks (open)."
+    },
+    {
+     "front": "The agent-capacity headline result (as of 2026-10-02)?",
+     "back": "~30–170M concurrent frontier-model agents from 2025–27 HBM shipments — or ~1.9B concurrent sessions of an efficient open model (DeepSeek V4 Pro benchmarks)."
+    },
+    {
+     "front": "Why does Epoch say demand, not chips, is the binding unknown?",
+     "back": "20% of central capacity implies $2.6–5.3T/year in API-equivalent spending vs ~$1T projected developer revenue by end-2027 — a potential capacity glut."
+    },
+    {
+     "front": "The 'plunging price of thought' finding?",
+     "back": "Cost of a fixed level of benchmark performance falling ~47%/quarter (~13×/year) since 2023 — faster than electricity, compute, batteries, or DNA sequencing ever fell. (Epoch, Sep 2026.)"
+    },
+    {
+     "front": "The decay lesson in one line?",
+     "back": "The 2022 data-wall estimate said ~2024; it was revised to ~2028 when web data filtered better than assumed. Every frontier number is a dated artifact."
+    },
+    {
+     "front": "Chip-supply tracking: what does Epoch's corpus monitor?",
+     "back": "AI data centers worldwide (satellite imagery, H100-equivalents, capex), chip-shock exposure (China ~2.7× the US), and trade-data anomalies like ~$3B of chips routed via Malaysia."
+    },
+    {
+     "front": "Adoption measurement: two signals Epoch tracks?",
+     "back": "Coding-agent usage doubling roughly monthly; AI-use acknowledgments in arXiv math preprints rising 4%→25% (Apr→Aug 2026)."
+    },
+    {
+     "front": "What is a capacity glut?",
+     "back": "When buildout outruns demand: the hardware can serve far more agents than customers will pay for — Epoch's warning for the 2025–27 HBM buildout."
+    },
+    {
+     "front": "As-of discipline: what three things must a frontier forecast carry?",
+     "back": "Stated assumptions, an uncertainty interval (not a point estimate), and an as-of date with a decay plan."
+    }
+   ],
+   "quiz": [
+    {
+     "q": "In the data-wall model, why does data demand compound over time?",
+     "choices": [
+      "Because web pages get longer",
+      "Because scaling laws tie dataset size to ~sqrt(training compute), and compute compounds",
+      "Because tokenizers get less efficient",
+      "Because researchers prefer larger datasets"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (neural scaling laws) and Worked estimation step 1."
+    },
+    {
+     "q": "Which adjustment INCREASES the effective data stock in Villalobos et al.'s model?",
+     "choices": [
+      "Quality filtering",
+      "Deduplication",
+      "Multi-epoch training",
+      "Byte-pair tokenization"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts: multi-epoch training stretches the stock; quality filtering shrinks it."
+    },
+    {
+     "q": "The paper's median data-wall year and scale?",
+     "choices": [
+      "2024, ~1e13 tokens",
+      "2028, ~4e14 tokens and ~5e28 FLOP",
+      "2032, ~1e15 tokens",
+      "2030, ~5e28 tokens"
+     ],
+     "answer": 1,
+     "explain": "Covered in Worked estimation step 5 — median 2028, one to two years earlier if overtrained."
+    },
+    {
+     "q": "In A = E × c, what is E?",
+     "choices": [
+      "Number of data centers",
+      "Effective hardware supply: HBM shipped 2025–27 in GB300 equivalents",
+      "Total training FLOPs",
+      "Electricity consumed"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (GB300 equivalent) and Worked estimation step 6."
+    },
+    {
+     "q": "Where does the closed-model concurrency term c come from?",
+     "choices": [
+      "Vendor marketing claims",
+      "API spending per agent-hour in TraceLab coding-agent session traces",
+      "GPU benchmark leaderboards",
+      "Electricity bills"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (TraceLab) and Worked estimation step 6."
+    },
+    {
+     "q": "Epoch's capacity-glut warning rests on which comparison?",
+     "choices": [
+      "$2.6–5.3T/yr implied API spending at 20% capacity vs ~$1T projected developer revenue",
+      "Chip prices vs electricity prices",
+      "Open vs closed model quality",
+      "US vs China chip exposure"
+     ],
+     "answer": 0,
+     "explain": "Covered in Worked estimation step 8 — demand, not chips, is the binding unknown."
+    },
+    {
+     "q": "The 'plunging price of thought' rate?",
+     "choices": [
+      "~47% per year",
+      "~13% per quarter",
+      "~47% per quarter (~13×/year) since 2023",
+      "~4.7% per month"
+     ],
+     "answer": 2,
+     "explain": "Covered in Concepts — Epoch, September 2026."
+    },
+    {
+     "q": "Why was the 2022 data-wall estimate revised from ~2024 to ~2028?",
+     "choices": [
+      "New GPUs were released",
+      "Web data filtered better than assumed",
+      "The authors changed the tokenizer",
+      "Compute growth stopped"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — estimates decay as assumptions get tested."
+    },
+    {
+     "q": "A forecaster reports 'agents will cost $5/hour in 2028' with no interval and no date. The as-of discipline says:",
+     "choices": [
+      "Accept it — precision is confidence",
+      "Reject the number; demand stated assumptions, an interval, and an as-of date",
+      "Average it with other forecasts",
+      "Wait for peer review"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — intervals and dates are non-negotiable."
+    },
+    {
+     "q": "By 2026, the binding constraint in the AI scaling debate had moved to:",
+     "choices": [
+      "Raw training-data supply only",
+      "Inference economics and demand",
+      "Electricity grid capacity",
+      "Regulatory approval"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — constraints move; the 2026 debate is inference economics and demand."
+    }
+   ]
+  },
+  {
+   "id": "m23-metr-evals",
+   "code": "IL-23",
+   "title": "Measuring AI Itself: RE-Bench and the Task-Time Horizon",
+   "weight": 1,
+   "asOf": "2026-10-07",
+   "summary": "Welcome to the module where AI gets measured. I'm your instructor, and our subject is METR — the independent evaluation nonprofit whose benchmarks are the field's most cited answer to the question 'how capable are these systems, really?' You'll study RE-Bench, where AI agents and human experts compete head-to-head at real machine-learning research engineering, and the time-horizon method, which compresses 'how autonomous is this model?' into a single fitted number. You'll also learn what the numbers don't say — because reading an evaluation means reading its fine print. All fast-moving figures: as of October 7, 2026.",
+   "objectives": [
+    "Describe RE-Bench's design: 7 contamination-free environments, calibrated scoring, faithful human baselines",
+    "Explain the crossover finding: agents win at 2-hour budgets, humans at 8-hour and 32-hour budgets, and why",
+    "State the motivation behind RE-Bench: measuring AI automation of AI R&D as a capability of concern",
+    "Define the time-horizon metric and how it is fitted from human task times and model success curves",
+    "Report the ~7-month doubling trend (2019-2025) and the TH1.1 update's faster post-2023 estimate (130.8 days)",
+    "Identify the limits of both instruments: RE-Bench's seven environments and fast feedback loops; time horizons as suite-specific fitted estimates",
+    "Apply a critical checklist to any capability evaluation: comparison fairness, contamination, baselining quality, and suite-sensitivity"
+   ],
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **RE-Bench** — METR's benchmark (announced 2024-11-22) for AI-led ML research engineering: seven realistic, open-ended environments where agents and human experts compete with the same resources and time limits.\n- **Anti-contamination design** — RE-Bench environments are built from scratch so they cannot appear in models' training data; most environments are held back unpublished for the same reason.\n- **Calibrated scoring** — Each environment's score is normalized so 0 = the starting solution's score and 1 = METR's strong reference solution.\n- **Human baselines** — 71 paid attempts by 61 distinct human experts, each given up to 8 hours; 82% reached a non-zero score, 24% matched or beat the reference.\n- **The 2h/8h/32h crossover** — Best agents score ~4× humans at a 2-hour budget; humans narrowly lead at 8 hours and reach ~2× the top agent score at 32 hours (across attempts).\n- **Time horizon (P50/P80)** — METR's autonomy metric: the human-expert task length at which an agent has a 50% (or 80%) chance of success, read off a fitted curve.\n- **Logistic fit** — The fitting method: plot model success probability against human task length, fit a logistic curve, read the length where it crosses 50%.\n- **Doubling time (195.8 days)** — The 50%-reliability horizon doubles roughly every 7 months (2019–2025); 95% CI [162, 223] days.\n- **Time Horizon 1.1** — METR's January 2026 refresh: 170→228 tasks, long tasks doubled 14→31, infrastructure moved from Vivaria to Inspect; post-2023 doubling 130.8 days (95% CI [107, 161]).\n- **Capability of concern** — Frontier safety policies single out automation of AI R&D by AI agents; RE-Bench is built as the reusable instrument for monitoring exactly that.\n- **Suite sensitivity** — Time horizons are fitted, suite-specific estimates — change the task mix and the number moves. Not a claim about automating jobs.\n- **Saturation** — Fully saturating RE-Bench would mean agents significantly outperforming top ML engineers in this setting; the benchmark's small size is deliberate."
+    },
+    {
+     "title": "Worked estimation",
+     "body": "In this section you'll do what an evaluator does: read a horizon curve and score a research-engineering task. No code needed — a pencil works.\n1. **Assemble the suite.** Collect a diverse set of multi-step software/research tasks and time human experts on each — you need real human-minutes per task, not vibes.\n2. **Run the model.** Record success/failure on each task at a fixed attempt budget.\n3. **Fit the curve.** Plot success probability against human task length and fit a logistic curve. The P50 time horizon is the task length where the fitted curve crosses 50% success. (Current frontier: near 100% success on sub-4-minute human tasks, under 10% past ~4 human-hours — measured 2025-03-19.)\n4. **Track generations.** Repeat for successive models and fit the trend of P50 horizons over calendar time. METR's result: doubling every 195.8 days (~7 months), 95% CI [162, 223].\n5. **Stress-test the trend.** METR's sensitivity analysis: even a 10× error in absolute measurement shifts the arrival of 'month-long tasks' by only ~2 years. That's what a robust trend looks like.\n6. **Apply the TH1.1 update.** With 228 tasks and the Inspect infrastructure, the long-run doubling stays ~7 months (196.5 days), but post-2023 it's 130.8 days — 20% faster. Note the caveat METR states: part genuine acceleration, part suite composition change.\n7. **Now score an RE-Bench-style task.** Setup: give the solver (human or agent) a computer with GPUs, a scoring function (maximize accuracy, minimize runtime), and a fixed time budget. Normalize: 0 = starting score, 1 = reference solution. Example (from METR's report): prefix-sum GPU kernel — starting code 4.74 ms, reference solution 1.60 ms, best human expert 0.67 ms, o1-preview's custom CUDA kernel 0.64 ms. Score each attempt; compare best-of-k across budgets: agents dominate at 2h, humans at 8h and 32h.\n8. **Read the fine print before citing.** Only 7 environments; faster feedback loops than real research; measurements above ~16 human-hours are unreliable with the current suite."
+    },
+    {
+     "title": "Project brief",
+     "body": "Design a contamination-free evaluation for a capability claim. Pick a claim you have actually seen (e.g., 'our agent completes 8-hour software tasks autonomously'). Deliverable: a 2-page eval design with (1) 3+ environments built from scratch, with scoring functions and calibrated 0–1 scales; (2) a human-baselining plan (who, how many attempts, what time budget); (3) an anti-contamination plan (what's published, what's held back); (4) the metric you'll report and how you'll fit it; (5) a limitations section naming at least three ways your eval could mislead. Grading bar: if your limitations section is shorter than your results section, rewrite it."
+    },
+    {
+     "title": "Frontier honesty",
+     "body": "What decays: horizon values, doubling estimates (TH1 vs TH1.1 already differ), model scores on RE-Bench — all as-of 2026-10-07. What the metric does not claim: that models 'work 16 hours' in any ordinary sense, that whole jobs are automated, or that the trend extrapolates past the suite's reliable range. What endures: the method — contamination-free environments, calibrated human baselines, fitted success curves, stated confidence intervals. And METR's own caution, which we adopt as policy: the time horizon is a suite-specific fitted estimate of autonomous task-completion capability. Quote the interval, not the point."
+    }
+   ],
+   "cards": [
+    {
+     "front": "RE-Bench, in one sentence?",
+     "back": "METR's benchmark for AI-led ML research engineering: 7 realistic, open-ended environments where AI agents and human experts compete with the same resources, time limits, and calibrated 0–1 scoring."
+    },
+    {
+     "front": "Why are RE-Bench environments built from scratch?",
+     "back": "Anti-contamination: tasks that never appeared in training data, so scores measure capability rather than memorization. Most environments are held back unpublished."
+    },
+    {
+     "front": "How is RE-Bench scoring calibrated?",
+     "back": "0 = the starting solution's score, 1 = METR's strong reference solution — comparable across environments."
+    },
+    {
+     "front": "The RE-Bench human baselines?",
+     "back": "71 paid attempts by 61 distinct experts, up to 8 hours each; 82% reached non-zero scores, 24% matched or beat the reference solutions."
+    },
+    {
+     "front": "The 2h/8h/32h crossover?",
+     "back": "Best agents score ~4× humans at a 2-hour budget; humans narrowly lead at 8 hours and reach ~2× the top agent score at 32 hours across attempts."
+    },
+    {
+     "front": "Why do agents win short and lose long?",
+     "back": "Agents iterate 10×+ faster at far lower cost, but often fail to react to novel information or build coherently on earlier progress within a single run."
+    },
+    {
+     "front": "The o1-preview kernel example?",
+     "back": "Prefix-sum GPU kernel: starting code 4.74 ms, reference 1.60 ms, best human 0.67 ms — o1-preview's custom CUDA kernel reached 0.64 ms, beating the best human expert."
+    },
+    {
+     "front": "Why does RE-Bench exist?",
+     "back": "Frontier safety policies single out AI automation of AI R&D as a capability of concern; RE-Bench is the reusable instrument for measuring it — a measured approach to recursive self-improvement, not speculation."
+    },
+    {
+     "front": "Define the time-horizon metric.",
+     "back": "The human-expert task length at which an agent has an x% chance of success — typically P50 or P80 — read off a logistic curve fitted to model success vs. human task length."
+    },
+    {
+     "front": "How is the P50 horizon fitted?",
+     "back": "Time human experts on a diverse task suite, record model success per task, fit a logistic curve of success probability against human task length, read the 50% crossing."
+    },
+    {
+     "front": "The doubling trend?",
+     "back": "~7 months: P50 doubling every 195.8 days (95% CI [162, 223]) from 2019–2025; a SWE-bench Verified replication found under 3 months."
+    },
+    {
+     "front": "What changed in Time Horizon 1.1 (2026-01-29)?",
+     "back": "Suite 170→228 tasks, long tasks 14→31, infrastructure Vivaria→Inspect; post-2023 doubling 130.8 days (95% CI [107, 161]) — 20% faster, partly genuine, partly suite composition."
+    },
+    {
+     "front": "What the metric does NOT claim?",
+     "back": "Not evidence models 'work 16 hours,' not whole-job automation, not extrapolation past the suite's reliable range — measurements above ~16 human-hours are unreliable."
+    },
+    {
+     "front": "The critical-reading checklist for any capability eval?",
+     "back": "Comparison fairness (same resources/time), contamination (unseen tasks), baselining quality (real experts, real time), suite sensitivity (would a different mix move the number?)."
+    }
+   ],
+   "quiz": [
+    {
+     "q": "RE-Bench environments are built from scratch primarily to:",
+     "choices": [
+      "Increase difficulty",
+      "Prevent training-data contamination",
+      "Reduce cost",
+      "Impress reviewers"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (anti-contamination design)."
+    },
+    {
+     "q": "A score of 1.0 on an RE-Bench environment means:",
+     "choices": [
+      "A perfect solution",
+      "Matched METR's strong reference solution",
+      "Beat all humans",
+      "Solved in under an hour"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (calibrated scoring)."
+    },
+    {
+     "q": "How many human expert attempts baseline RE-Bench?",
+     "choices": [
+      "12",
+      "71 attempts by 61 experts",
+      "228",
+      "1,900"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (human baselines) — 71 attempts, 61 distinct experts."
+    },
+    {
+     "q": "At a 2-hour budget, best agents vs human experts:",
+     "choices": [
+      "Agents score ~4× higher",
+      "Humans score ~4× higher",
+      "Roughly tied",
+      "Agents score 2× lower"
+     ],
+     "answer": 0,
+     "explain": "Covered in Concepts (the 2h/8h/32h crossover)."
+    },
+    {
+     "q": "At 32 total hours across attempts:",
+     "choices": [
+      "Agents lead 4×",
+      "Humans achieve ~2× the top agent score",
+      "Both saturate at 1.0",
+      "Results are unpublished"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts — humans show better returns to more time."
+    },
+    {
+     "q": "The o1-preview kernel result demonstrates:",
+     "choices": [
+      "Agents always beat humans",
+      "An agent beating the best human expert (0.64 ms vs 0.67 ms) on one kernel task — a data point, not a verdict",
+      "GPUs are obsolete",
+      "CUDA is easy"
+     ],
+     "answer": 1,
+     "explain": "Covered in Worked estimation step 7 — read single-task wins as data points."
+    },
+    {
+     "q": "The P50 time horizon is:",
+     "choices": [
+      "The task length where the fitted success curve crosses 50%",
+      "50% of tasks solved",
+      "The median human task time",
+      "Half the doubling period"
+     ],
+     "answer": 0,
+     "explain": "Covered in Concepts and Worked estimation step 3."
+    },
+    {
+     "q": "The 2019–2025 P50 doubling trend:",
+     "choices": [
+      "~7 months (195.8 days, 95% CI [162, 223])",
+      "~3 years",
+      "~30 days",
+      "No trend found"
+     ],
+     "answer": 0,
+     "explain": "Covered in Concepts (doubling time)."
+    },
+    {
+     "q": "Time Horizon 1.1's post-2023 doubling estimate:",
+     "choices": [
+      "195.8 days",
+      "130.8 days (95% CI [107, 161])",
+      "365 days",
+      "64 days"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (Time Horizon 1.1) — 20% faster than the long-run trend."
+    },
+    {
+     "q": "METR says measurements above ~16 human-hours are:",
+     "choices": [
+      "The most reliable",
+      "Unreliable with the current suite",
+      "Only for P80",
+      "Validated by replication"
+     ],
+     "answer": 1,
+     "explain": "Covered in Worked estimation step 8 and Frontier honesty."
+    },
+    {
+     "q": "A vendor claims 'our agent works 16-hour tasks' citing a P50 horizon. The checklist says:",
+     "choices": [
+      "Accept — P50 is standard",
+      "Ask for the fitted curve, the suite, and the confidence interval — horizons are suite-specific fitted estimates",
+      "Request the model weights",
+      "Check the vendor's funding"
+     ],
+     "answer": 1,
+     "explain": "Covered in the critical-reading checklist and Frontier honesty — never cite a horizon without its suite."
+    },
+    {
+     "q": "RE-Bench's self-declared limitation vs real ML research:",
+     "choices": [
+      "Too many environments",
+      "Clearer objectives and faster feedback loops (<1 hour) than real research, where goals are ambiguous and feedback takes months",
+      "Humans were unpaid",
+      "Scores aren't calibrated"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — the benchmark's own limitations section."
+    }
+   ]
   }
  ],
  "scriptLabs": [],
@@ -1162,6 +1613,118 @@
    ],
    "answer": 1,
    "explain": "Pin the claims before evaluating anything else."
+  },
+  {
+   "id": "drill-epoch-window",
+   "title": "Data-wall window",
+   "prompt": "The Villalobos et al. data-wall window and median year?",
+   "choices": [
+    "2024–2026, median 2025",
+    "2026–2032, median 2028",
+    "2030–2036, median 2033",
+    "2028–2030, median 2029"
+   ],
+   "answer": 1,
+   "explain": "Worked estimation step 5 — and one to two years earlier if overtrained.",
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "drill-epoch-formula",
+   "title": "Agent-capacity formula",
+   "prompt": "Epoch's agent-capacity estimation is:",
+   "choices": [
+    "A = E + c",
+    "A = E × c, hardware supply times serving capacity",
+    "A = E / c",
+    "A = E^c"
+   ],
+   "answer": 1,
+   "explain": "Concepts: A = E × c — GB300 equivalents times sessions per GB300.",
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "drill-epoch-cost",
+   "title": "Cost-curve rate",
+   "prompt": "The plunging price of thought: cost of fixed benchmark performance falls…",
+   "choices": [
+    "~4.7% per quarter",
+    "~47% per quarter since 2023",
+    "~47% per year",
+    "~13% per year"
+   ],
+   "answer": 1,
+   "explain": "Concepts — about 13× per year, per Epoch (Sep 2026).",
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "drill-epoch-binding",
+   "title": "Binding constraint",
+   "prompt": "Epoch's October 2026 agent-capacity report concludes the binding unknown is:",
+   "choices": [
+    "Chip supply",
+    "HBM memory",
+    "Demand — a potential capacity glut",
+    "Electricity"
+   ],
+   "answer": 2,
+   "explain": "Worked estimation step 8 — $2.6–5.3T/yr implied vs ~$1T revenue.",
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "drill-metr-p50",
+   "title": "P50 definition",
+   "prompt": "The P50 time horizon is:",
+   "choices": [
+    "The 50th task in the suite",
+    "The human task length where the fitted success curve crosses 50%",
+    "Half of the P80 horizon",
+    "50% of training compute"
+   ],
+   "answer": 1,
+   "explain": "Concepts — read off the logistic fit.",
+   "module": "m23-metr-evals"
+  },
+  {
+   "id": "drill-metr-crossover",
+   "title": "Crossover budgets",
+   "prompt": "In RE-Bench, agents beat humans 4× at:",
+   "choices": [
+    "32-hour budgets",
+    "8-hour budgets",
+    "2-hour budgets",
+    "All budgets"
+   ],
+   "answer": 2,
+   "explain": "Concepts — and humans lead at 8h and 32h.",
+   "module": "m23-metr-evals"
+  },
+  {
+   "id": "drill-metr-doubling",
+   "title": "Doubling trend",
+   "prompt": "The 2019–2025 P50 horizon doubling time:",
+   "choices": [
+    "195.8 days (~7 months)",
+    "130.8 days",
+    "365 days",
+    "30 days"
+   ],
+   "answer": 0,
+   "explain": "Concepts — 130.8 days is the post-2023 TH1.1 estimate.",
+   "module": "m23-metr-evals"
+  },
+  {
+   "id": "drill-metr-reliability",
+   "title": "Reliability ceiling",
+   "prompt": "METR warns that horizon measurements above ~16 human-hours are:",
+   "choices": [
+    "Gold standard",
+    "Unreliable with the current suite",
+    "Required for P80",
+    "Peer-reviewed"
+   ],
+   "answer": 1,
+   "explain": "Worked estimation step 8 — don't cite past the suite's range.",
+   "module": "m23-metr-evals"
   }
  ],
  "scenarios": [
@@ -1258,10 +1821,298 @@
      ]
     }
    ]
+  },
+  {
+   "id": "sc-epoch-datawall-deal",
+   "title": "The Five-Year Data Deal",
+   "context": "A data vendor offers your company a five-year exclusive training-data license at a premium, arguing 'the data wall hits in 2028 — lock in supply now.' Your CEO asks whether to sign.",
+   "steps": [
+    {
+     "prompt": "Your first move?",
+     "options": [
+      {
+       "text": "Read the paper's own adjustments: quality filtering, multi-epoch training, and the authors' conclusion that alternative data sources will likely arrive first",
+       "correct": true,
+       "why": "The protocol starts with the source's own caveats — the paper concludes scaling likely continues via synthetic data and efficiency gains."
+      },
+      {
+       "text": "Sign immediately — 2028 is soon",
+       "correct": false,
+       "why": "A median year from a Monte Carlo window is not a deadline; signing on a point estimate ignores the paper's uncertainty."
+      },
+      {
+       "text": "Dismiss the data wall entirely",
+       "correct": false,
+       "why": "The ledger is real even if the date moves; cynicism is not analysis."
+      }
+     ]
+    },
+    {
+     "prompt": "The vendor's deck quotes only the 2028 median. What do you tell the CEO?",
+     "options": [
+      {
+       "text": "The honest range is 2026–2032, one to two years earlier if overtrained — structure the deal with optionality, not a five-year lock",
+       "correct": true,
+       "why": "Forecasts with intervals get negotiated as ranges; the as-of discipline turns a scare into contract terms."
+      },
+      {
+       "text": "The median is the expected date, so plan for exactly 2028",
+       "correct": false,
+       "why": "A median is not a plan date — half the Monte Carlo mass sits on either side."
+      },
+      {
+       "text": "Ask the vendor for their own Monte Carlo",
+       "correct": false,
+       "why": "They don't have one; the question concedes the frame instead of checking it."
+      }
+     ]
+    }
+   ],
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "sc-epoch-investor-deck",
+   "title": "The 170-Million-Agent Deck",
+   "context": "An investor deck claims 'Epoch says 170M AI agents by 2028 — the market is $X trillion.' You're asked to diligence the claim before your firm invests.",
+   "steps": [
+    {
+     "prompt": "Your first diligence check?",
+     "options": [
+      {
+       "text": "Verify the deck reports Epoch's full range (30–170M) and its demand caveat — the capacity-glut warning",
+       "correct": true,
+       "why": "Quoting only the top of an interval while dropping the report's own binding-unknown is the classic misuse pattern."
+      },
+      {
+       "text": "Check the font of the deck's charts",
+       "correct": false,
+       "why": "Presentation polish is not diligence."
+      },
+      {
+       "text": "Assume Epoch endorses the $X trillion figure",
+       "correct": false,
+       "why": "Epoch estimated capacity, not market size — and warned demand may not fill it."
+      }
+     ]
+    },
+    {
+     "prompt": "The deck prices agents at $30/hour flat. What do you ask?",
+     "options": [
+      {
+       "text": "Which harness? Epoch's pooled rates range ~$15.5–$50.2/hour across Codex and Claude Code harnesses — the rate is harness-specific and dated 2026-10-02",
+       "correct": true,
+       "why": "A single flat rate hides the harness variance the report documents; economics questions get answered per-harness."
+      },
+      {
+       "text": "Nothing — $30/hour is the report's reference point",
+       "correct": false,
+       "why": "It is a reference point for illustration, not a price quote — the report shows wide harness variance."
+      },
+      {
+       "text": "Whether the rate includes electricity",
+       "correct": false,
+       "why": "The rates are API-spending-per-agent-hour from session traces, not power bills — the question misreads the metric."
+      }
+     ]
+    }
+   ],
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "sc-epoch-budget-curve",
+   "title": "Budgeting on the Cost Curve",
+   "context": "Your team must budget inference spend for a product launching in 12 months. A colleague proposes projecting today's cost with Epoch's ~47%/quarter decline. The CFO wants a number.",
+   "steps": [
+    {
+     "prompt": "How do you use the cost curve honestly?",
+     "options": [
+      {
+       "text": "Project a range using the curve, label it as-of 2026-09-22, and schedule a quarterly revisit — curves decay",
+       "correct": true,
+       "why": "The curve is a dated empirical finding, not a law; honest use carries the date and a refresh plan."
+      },
+      {
+       "text": "Give the CFO the point estimate — confidence inspires confidence",
+       "correct": false,
+       "why": "Point estimates from decaying curves are how budgets blow up."
+      },
+      {
+       "text": "Ignore the curve; budget at today's prices",
+       "correct": false,
+       "why": "Ignoring a 13×/year trend is as dishonest as over-trusting it — the answer is a dated range."
+      }
+     ]
+    },
+    {
+     "prompt": "What breaks the projection?",
+     "options": [
+      {
+       "text": "Hardware cost floors, demand surges, or a regime change in model efficiency — name the assumptions so the CFO sees them",
+       "correct": true,
+       "why": "Every extrapolation has kill conditions; stating them is the difference between forecasting and hoping."
+      },
+      {
+       "text": "Nothing — the trend has held since 2023",
+       "correct": false,
+       "why": "Past persistence is not a guarantee; the Frontier honesty note exists for exactly this sentence."
+      },
+      {
+       "text": "A competitor's pricing change",
+       "correct": false,
+       "why": "The curve measures cost of a fixed capability, not market pricing — different quantity."
+      }
+     ]
+    }
+   ],
+   "module": "m23-epoch-ai"
+  },
+  {
+   "id": "sc-metr-headline",
+   "title": "The 4× Headline",
+   "context": "A tech outlet runs the headline 'AI BEATS HUMAN EXPERTS 4× AT RESEARCH.' Your team is asked whether to cite it in a strategy memo.",
+   "steps": [
+    {
+     "prompt": "Your first move?",
+     "options": [
+      {
+       "text": "Find the budget the headline's number used: the 4× figure is at a 2-hour budget — check the 8h and 32h results too",
+       "correct": true,
+       "why": "The crossover is the finding; any single budget is a slice. The protocol reads all three budgets before citing."
+      },
+      {
+       "text": "Cite it — 4× is 4×",
+       "correct": false,
+       "why": "A headline number without its budget is a different claim than the paper's."
+      },
+      {
+       "text": "Dismiss RE-Bench as too small",
+       "correct": false,
+       "why": "Seven environments is a stated limitation, not a dismissal — the honest move is to report it, not to wave it away."
+      }
+     ]
+    },
+    {
+     "prompt": "Your memo's verdict on the headline?",
+     "options": [
+      {
+       "text": "'Agents lead 4× at 2h; humans lead at 8h and 2× at 32h — the crossover, not the headline, is the citable finding'",
+       "correct": true,
+       "why": "Citing the full crossover reports the paper's actual result with its budget dependence intact."
+      },
+      {
+       "text": "Use the 4× figure with a footnote",
+       "correct": false,
+       "why": "A footnote doesn't fix a headline that inverts the paper's conclusion at longer budgets."
+      },
+      {
+       "text": "Find a friendlier benchmark",
+       "correct": false,
+       "why": "Shopping for numbers is the opposite of the as-of discipline."
+      }
+     ]
+    }
+   ],
+   "module": "m23-metr-evals"
+  },
+  {
+   "id": "sc-metr-vendor-horizon",
+   "title": "The 16-Hour Agent",
+   "context": "A vendor's sales deck says 'P50 time horizon: 16 hours — our agent works a full human day.' Your company is evaluating the product for an autonomous coding pilot.",
+   "steps": [
+    {
+     "prompt": "First diligence question?",
+     "options": [
+      {
+       "text": "Show the fitted curve, the task suite, and the confidence interval — and note METR's own warning that measurements above ~16 human-hours are unreliable",
+       "correct": true,
+       "why": "A horizon without its suite and interval is marketing; METR's reliability ceiling is part of the metric's definition."
+      },
+      {
+       "text": "Which model version?",
+       "correct": false,
+       "why": "Version matters, but the missing curve and suite are the load-bearing gaps."
+      },
+      {
+       "text": "Can we get a discount?",
+       "correct": false,
+       "why": "Price negotiation before capability diligence is how pilots fail expensively."
+      }
+     ]
+    },
+    {
+     "prompt": "The vendor can't produce the curve. Verdict?",
+     "options": [
+      {
+       "text": "Treat the 16-hour claim as unverified — pilot on your own measured tasks with your own baselines",
+       "correct": true,
+       "why": "Unverifiable capability claims get tested, not trusted; your own tasks are the only suite that matters for your pilot."
+      },
+      {
+       "text": "Trust the number — vendors don't lie in decks",
+       "correct": false,
+       "why": "They optimize decks for sales; the checklist exists because of this sentence."
+      },
+      {
+       "text": "Ask for customer references instead",
+       "correct": false,
+       "why": "References are useful but don't substitute for a measured capability claim."
+      }
+     ]
+    }
+   ],
+   "module": "m23-metr-evals"
+  },
+  {
+   "id": "sc-metr-contaminated",
+   "title": "The Contaminated Leaderboard",
+   "context": "A new public benchmark claims a model 'solves 90% of senior-engineer tasks.' A colleague notices the benchmark's tasks were posted on a public forum two years ago — likely in the model's training data.",
+   "steps": [
+    {
+     "prompt": "Your first move?",
+     "options": [
+      {
+       "text": "Flag contamination: RE-Bench builds environments from scratch precisely because public tasks can't distinguish capability from memorization",
+       "correct": true,
+       "why": "Contamination is the first check in the critical-reading list — it invalidates frontier claims before any other analysis."
+      },
+      {
+       "text": "Celebrate the 90%",
+       "correct": false,
+       "why": "A memorized test measures retrieval, not engineering ability."
+      },
+      {
+       "text": "Retrain the model without the tasks",
+       "correct": false,
+       "why": "You can't retrain someone else's model; the evaluation is what's broken, not your training run."
+      }
+     ]
+    },
+    {
+     "prompt": "The benchmark authors say 'contamination doesn't matter much.' Your response?",
+     "options": [
+      {
+       "text": "Ask for the contamination-controlled comparison: same model on held-back vs public tasks — without it, the 90% is uninterpretable for frontier claims",
+       "correct": true,
+       "why": "The burden of proof is on the claimant; RE-Bench's held-back design shows what 'controlled' looks like."
+      },
+      {
+       "text": "Accept their expertise",
+       "correct": false,
+       "why": "'Trust us' is not a contamination control."
+      },
+      {
+       "text": "Publish a rebuttal blog post",
+       "correct": false,
+       "why": "A private, evidence-first note to the authors beats a public fight — escalate only if they won't engage."
+      }
+     ]
+    }
+   ],
+   "module": "m23-metr-evals"
   }
  ],
  "trainers": [],
- "mockMinutes": 120,
+ "mockMinutes": 180,
  "mockTasks": [
   {
    "id": "mock-m23-01",
@@ -1652,6 +2503,110 @@
    ],
    "answer": 1,
    "explain": "The loop is iterative — measured performance feeds redesign."
+  },
+  {
+   "id": "mock-epoch-1",
+   "type": "choice",
+   "q": "Epoch's agent-capacity estimate multiplies:",
+   "choices": [
+    "HBM shipments by model count",
+    "Effective hardware supply (GB300 equivalents) by serving capacity per GB300",
+    "Training FLOPs by inference FLOPs",
+    "Data centers by GPUs each"
+   ],
+   "answer": 1,
+   "explain": "A = E × c — covered in the module's Concepts section."
+  },
+  {
+   "id": "mock-epoch-2",
+   "type": "choice",
+   "q": "The data-wall paper's median exhaustion year, and what moves it earlier?",
+   "choices": [
+    "2028; overtraining by 1–2 years",
+    "2024; better filtering",
+    "2032; synthetic data",
+    "2030; regulation"
+   ],
+   "answer": 0,
+   "explain": "Covered in Worked estimation — median 2028, earlier if frontier models are overtrained."
+  },
+  {
+   "id": "mock-epoch-3",
+   "type": "choice",
+   "q": "Epoch's capacity-glut warning is fundamentally about:",
+   "choices": [
+    "Chip shortages",
+    "Demand failing to absorb built capacity",
+    "Electricity prices",
+    "Model quality"
+   ],
+   "answer": 1,
+   "explain": "Covered in Concepts — $2.6–5.3T/yr implied vs ~$1T revenue."
+  },
+  {
+   "id": "mock-epoch-4",
+   "type": "choice",
+   "q": "A forecast states a single year with no interval and no date. Per the module's honesty rule it is:",
+   "choices": [
+    "Admirably precise",
+    "Incomplete — forecasts need stated assumptions, intervals, and as-of dates",
+    "Ready to publish",
+    "Better than a range"
+   ],
+   "answer": 1,
+   "explain": "Covered in Frontier honesty — the as-of discipline."
+  },
+  {
+   "id": "mock-metr-1",
+   "type": "choice",
+   "q": "RE-Bench calibrates scores so that 1.0 equals:",
+   "choices": [
+    "A perfect solution",
+    "METR's strong reference solution",
+    "The best human attempt",
+    "The fastest submission"
+   ],
+   "answer": 1,
+   "explain": "Covered in the module's Concepts section."
+  },
+  {
+   "id": "mock-metr-2",
+   "type": "choice",
+   "q": "The headline 'agents beat humans 4×' describes which budget?",
+   "choices": [
+    "32 hours",
+    "8 hours",
+    "2 hours",
+    "Unlimited"
+   ],
+   "answer": 2,
+   "explain": "Covered in Concepts — the crossover: agents lead at 2h, humans at 8h and 32h."
+  },
+  {
+   "id": "mock-metr-3",
+   "type": "choice",
+   "q": "The P50 time horizon doubled every ~195.8 days from 2019–2025. The TH1.1 post-2023 estimate is:",
+   "choices": [
+    "Slower at 365 days",
+    "Faster at 130.8 days",
+    "Unchanged",
+    "Unknown — unpublished"
+   ],
+   "answer": 1,
+   "explain": "Covered in Concepts (Time Horizon 1.1)."
+  },
+  {
+   "id": "mock-metr-4",
+   "type": "choice",
+   "q": "Citing a vendor's '16-hour autonomy' claim without the fitted curve violates:",
+   "choices": [
+    "No rule — P50 is standard",
+    "The critical-reading checklist: horizons are suite-specific fitted estimates with reliability ceilings",
+    "Copyright",
+    "Statistical significance"
+   ],
+   "answer": 1,
+   "explain": "Covered in Frontier honesty — METR warns >~16h measurements are unreliable."
   }
  ],
  "cheatSheets": [
@@ -1688,6 +2643,64 @@
      "body": "Date every claim. Half-lives: mechanism years, product months, leadership weeks."
     }
    ]
+  },
+  {
+   "title": "Capability-Forecasting Formula Sheet",
+   "blocks": [
+    {
+     "h": "Data-wall ledger",
+     "body": "Demand compounds with sqrt(compute); supply is finite web text; adjust and propagate uncertainty.",
+     "code": "demand: dataset ~ sqrt(training compute)\nsupply: 250B pages x 7000 B/page -> tokens\nstock: CC 130T | indexed 510T | web 3100T (tokens)\nwindow: 2026-2032, median 2028\nscale: ~4e14 tokens, ~5e28 FLOP",
+     "lang": "text"
+    },
+    {
+     "h": "Agent capacity",
+     "body": "Hardware supply times serving capacity; then check demand.",
+     "code": "A = E x c\nE: HBM 2025-27 in GB300 equivalents\nc: sessions/GB300 (TraceLab $/hr | AgentX benches)\n=> 30-170M frontier agents | 1.9B open sessions\ndemand check: 20% capacity -> $2.6-5.3T/yr vs ~$1T revenue",
+     "lang": "text"
+    },
+    {
+     "h": "Cost curve",
+     "body": "Budget in ranges; revisit quarterly.",
+     "code": "-47%/quarter (~13x/yr) since 2023  [Epoch, Sep 2026]\nfaster than electricity/compute/batteries/DNA seq",
+     "lang": "text"
+    },
+    {
+     "h": "Honesty rule",
+     "body": "Date everything; intervals, not points.",
+     "code": "as-of 2026-10-07 on all figures\n2022 est ~2024 -> revised ~2028 (filtering beat assumptions)\nconstraint moved: data supply -> inference economics + demand",
+     "lang": "text"
+    }
+   ]
+  },
+  {
+   "title": "Evaluation-Reading Checklist",
+   "blocks": [
+    {
+     "h": "Contamination",
+     "body": "Were the tasks built from scratch and held back? Public tasks measure memorization.",
+     "code": "ask: unseen by training? held-back split?",
+     "lang": "text"
+    },
+    {
+     "h": "Baselines",
+     "body": "Real experts, real time budgets, same resources as the agent.",
+     "code": "RE-Bench bar: 71 attempts, 61 experts, 8h each",
+     "lang": "text"
+    },
+    {
+     "h": "Budgets",
+     "body": "Report every budget — the crossover is the finding.",
+     "code": "2h: agents 4x | 8h: humans lead | 32h: humans 2x",
+     "lang": "text"
+    },
+    {
+     "h": "Horizons",
+     "body": "Fitted, suite-specific; mind the reliability ceiling.",
+     "code": "P50: 50% crossing of logistic fit\ndoubling: 195.8d (2019-25); 130.8d post-2023\n>~16h unreliable; quote intervals",
+     "lang": "text"
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -1710,6 +2723,22 @@
   {
    "q": "A paper claims a new SOTA. What do I check before citing?",
    "a": "Framework: the 20-minute protocol — exact claims, method and data, results-vs-abstract, baseline fairness and recency, stated limitations, author incentives. Then the half-life test: is this a mechanism fact (cite freely) or a leadership claim (date it, expect churn)? Never cite the press release."
+  },
+  {
+   "q": "How do I forecast an AI capability without guessing?",
+   "a": "Ledger both sides like Epoch: model demand from scaling laws, estimate supply from physical measurements, adjust honestly (quality filtering down, multi-epoch up), propagate uncertainty with Monte Carlo, and report an interval with an as-of date. A forecast without stated assumptions and a date is a guess with formatting."
+  },
+  {
+   "q": "What does '30–170 million agents' actually mean?",
+   "a": "Epoch's October 2026 estimate of how many concurrent frontier-model agents the 2025–27 HBM buildout could serve (A = E × c) — or ~1.9 billion sessions of an efficient open model. It is a capacity estimate, not a demand forecast: Epoch's own warning is that demand may not fill it, a potential capacity glut."
+  },
+  {
+   "q": "How should I read a claim that an AI agent 'works N-hour tasks'?",
+   "a": "Ask for the fitted curve, the task suite, and the confidence interval — the time horizon is a suite-specific fitted estimate, and METR warns measurements above ~16 human-hours are unreliable with the current suite. Then check contamination, baselines, and whether the number survives the critical-reading checklist."
+  },
+  {
+   "q": "Why do frontier numbers need as-of dates?",
+   "a": "Because they decay: the 2022 data-wall estimate said ~2024 and was revised to ~2028 when web data filtered better than assumed, and the binding constraint moved from training-data supply to inference economics and demand. The date is part of the claim."
   }
  ],
  "sourceLinks": [
@@ -1752,7 +2781,105 @@
    "name": "NIST Post-Quantum Cryptography",
    "url": "https://www.nist.gov/pqcrypto",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Epoch AI — How many AI agents could we run?",
+   "url": "https://epoch.ai/publications/estimating-the-agent-population",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Epoch AI — Publications index",
+   "url": "https://epoch.ai/publications",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Villalobos et al. — Will we run out of data? (arXiv abstract)",
+   "url": "https://arxiv.org/abs/2211.04325",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Villalobos et al. — Will we run out of data? (full text, HTML v2)",
+   "url": "https://arxiv.org/html/2211.04325v2",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "METR — Evaluating frontier AI R&D capabilities (RE-Bench)",
+   "url": "https://metr.org/blog/2024-11-22-evaluating-r-d-capabilities-of-llms/",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "RE-Bench paper (arXiv abstract)",
+   "url": "https://arxiv.org/abs/2411.15114",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "METR — Measuring AI ability to complete long tasks",
+   "url": "https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "METR — Time Horizon 1.1",
+   "url": "https://metr.org/blog/2026-1-29-time-horizon-1-1/",
+   "retrieved": "2026-10-07"
   }
  ],
- "honestyNote": "Original instructional content. Frontier topics are dated as-of 2026-10-07 and flagged as fast-moving; leadership and product claims carry short half-lives and must be re-verified before citing. Confers no certificate."
+ "honestyNote": "Original instructional content. Frontier topics are dated as-of 2026-10-07 and flagged as fast-moving; leadership and product claims carry short half-lives and must be re-verified before citing. Confers no certificate.",
+ "terminalSims": [
+  {
+   "id": "forecasting-workbench",
+   "title": "Forecasting Workbench",
+   "brief": "Practice the capability-forecasting method: reproduce Epoch's data-wall and agent-capacity calculations from their published inputs.",
+   "prompt": "forecaster@il:~$",
+   "commands": [
+    {
+     "cmd": "help",
+     "out": "commands: forecast data-wall | forecast agent-capacity | forecast cost-curve | forecast decay"
+    },
+    {
+     "cmd": "forecast data-wall",
+     "out": "DATA WALL (Villalobos et al., ICML 2024; as of 2026-10-07)\n demand: dataset size ~ sqrt(training compute)  [Kaplan; Chinchilla]\n supply: ~250B pages x ~7000 bytes/page -> tokens (byte-pair)\n adjust: quality filtering DOWN, multi-epoch training UP\n result: 2026-2032 window, median 2028\n scale at exhaustion: ~4e14 tokens, ~5e28 FLOP (non-overtrained)"
+    },
+    {
+     "cmd": "forecast agent-capacity",
+     "out": "AGENT CAPACITY (Epoch AI, 2026-10-02)\n A = E x c\n E = HBM shipped 2025-27, in GB300 equivalents\n c = concurrent sessions/GB300 (TraceLab $/agent-hr; AgentX benches)\n result: ~30-170M frontier agents | ~1.9B open-model sessions\n reference rate: $30/agent-hour (pooled: $15.5-$50.2 by harness)"
+    },
+    {
+     "cmd": "forecast cost-curve",
+     "out": "PLUNGING PRICE OF THOUGHT (Epoch AI, Sep 2026)\n cost of fixed benchmark performance: -47%/quarter (~13x/year) since 2023\n faster than electricity / compute / batteries / DNA sequencing\n use: budget in ranges, revisit quarterly"
+    },
+    {
+     "cmd": "forecast decay",
+     "out": "DECAY LESSON\n 2022 estimate: data wall ~2024 -> revised to ~2028 (web data filtered better)\n binding constraint moved: training-data supply -> inference economics + demand\n rule: every figure dated; every forecast an interval"
+    }
+   ]
+  },
+  {
+   "id": "horizon-reader",
+   "title": "Horizon Reader",
+   "brief": "Read METR's autonomy measurements: fit the P50 horizon, check the doubling trend, and respect the reliability ceiling.",
+   "prompt": "evaluator@il:~$",
+   "commands": [
+    {
+     "cmd": "help",
+     "out": "commands: horizon p50 | horizon doubling | horizon rebench | horizon caveats"
+    },
+    {
+     "cmd": "horizon p50",
+     "out": "P50 TIME HORIZON (METR; as of 2026-10-07)\n definition: human task length where fitted success curve crosses 50%\n method: time experts -> logistic fit of success vs human-minutes\n now: ~100% under 4 human-minutes; <10% past ~4 human-hours (2025-03-19)"
+    },
+    {
+     "cmd": "horizon doubling",
+     "out": "DOUBLING TREND\n 2019-2025: 195.8 days (~7 months), 95% CI [162, 223]\n TH1.1 post-2023: 130.8 days (95% CI [107, 161]) -- 20% faster\n sensitivity: 10x measurement error shifts 'month-long tasks' by only ~2 years"
+    },
+    {
+     "cmd": "horizon rebench",
+     "out": "RE-BENCH (METR, 2024-11-22)\n 7 contamination-free ML research environments, 0-1 calibrated scoring\n baselines: 71 attempts, 61 experts, 8h each\n crossover: agents 4x @2h | humans lead @8h | humans 2x @32h\n example: o1-preview CUDA kernel 0.64ms beats best human 0.67ms"
+    },
+    {
+     "cmd": "horizon caveats",
+     "out": "CAVEATS (METR's own)\n suite-specific fitted estimate -- not job automation\n >~16 human-hour measurements unreliable with current suite\n 7 environments; faster feedback than real research\n quote the interval, not the point"
+    }
+   ]
+  }
+ ]
 }

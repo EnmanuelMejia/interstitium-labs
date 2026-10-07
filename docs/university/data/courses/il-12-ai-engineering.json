@@ -6351,6 +6351,104 @@
      "explain": "This module is part of academy IL-12."
     }
    ]
+  },
+  {
+   "id": "aieng-agentic-ai--agent-autonomy-ceilings",
+   "code": "IL-12",
+   "title": "Agent Autonomy Ceilings: Time Horizons",
+   "weight": 1,
+   "summary": "Welcome to the reality check every agent engineer needs. I'm your instructor for this module, and we're going to put a number on the most important design constraint in agentic systems: how long a task can you trust an agent to complete? METR's time-horizon research gives us the field's best-measured answer — a fitted P50 horizon that has doubled roughly every seven months — and this module teaches you to use it as an engineering boundary, not a marketing claim. Design your agents under the ceiling, and verify the ceiling yourself. All figures as of October 7, 2026.",
+   "objectives": [
+    "Define the P50/P80 time horizon and explain how it is fitted from human task times and model success curves",
+    "Apply the as-of dated horizon as a reliability boundary when scoping agent deployments",
+    "Identify what the horizon metric does not claim, and verify autonomy claims against the critical-reading checklist"
+   ],
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **Time horizon (P50/P80)** — The human-expert task length at which an agent has a 50% (or 80%) chance of success, read off a logistic curve fitted to model success vs. human task length (METR).\n- **Logistic fit** — Plot success probability against human task length, fit the curve, read the 50% crossing. That crossing is your ceiling.\n- **Doubling: 195.8 days** — The 50%-reliability horizon doubled roughly every 7 months from 2019–2025 (95% CI [162, 223] days).\n- **TH1.1 post-2023: 130.8 days** — METR's January 2026 refresh finds the recent doubling 20% faster (95% CI [107, 161]) — ceilings move in months, not years.\n- **Suite sensitivity** — Horizons are fitted, suite-specific estimates. Change the task mix and the number moves.\n- **Reliability ceiling** — An engineering boundary: no unsupervised subtask longer than the measured P50 without decomposition or human checkpoints.\n- **Autonomy ceiling** — The design rule this module teaches: the ceiling is a boundary, not a target."
+    },
+    {
+     "title": "Worked estimation",
+     "body": "Apply the horizon to a deployment decision, step by step.\n1. **Get your ceiling.** Look up the as-of P50 horizon for your model class from METR's published estimates — and write down the date. A horizon without a date is a rumor.\n2. **Decompose the workflow.** Break your agent's job into subtasks, each with a human-time estimate (how long would a skilled person take?).\n3. **Compare.** Any subtask longer than the P50 gets one of three treatments: decompose it further, add a human checkpoint, or add verification (tests, review, rollback).\n4. **Mind the doubling.** At ~7 months per doubling (faster post-2023), today's ceiling is next quarter's floor plan — schedule a quarterly re-check of the published horizons.\n5. **Document it.** Write the ceiling, its as-of date, and the checkpoint plan into the runbook. The next engineer inherits your boundary, not your optimism."
+    },
+    {
+     "title": "Project brief",
+     "body": "Set an autonomy ceiling for a real agent design. Pick an agent use case you care about (coding assistant, ops runbook runner, research helper). Deliverable: a one-page ceiling memo with (1) the workflow decomposed into subtasks with human-time estimates, (2) the as-of P50 horizon you're designing against, with its source and date, (3) each over-ceiling subtask marked with its guardrail — decomposition, checkpoint, or verification, and (4) a re-check schedule. Grading bar: if every subtask fits under the ceiling with no guardrails, your decomposition is too coarse — break it down until the boundary bites."
+    },
+    {
+     "title": "Frontier honesty",
+     "body": "What decays: horizon values (the post-2023 acceleration already moved them), model-specific scores — all as-of 2026-10-07. What the metric does not claim: whole-job automation, or reliability past the suite's range (measurements above ~16 human-hours are unreliable). What endures: the discipline — never design past a measured ceiling on a vendor's word alone; verify on your own tasks, with your own baselines."
+    }
+   ],
+   "cards": [
+    {
+     "front": "The autonomy ceiling for an agent design?",
+     "back": "The as-of dated P50 time horizon for your model class — subtasks longer than it need decomposition or human-in-the-loop."
+    },
+    {
+     "front": "P50 horizon, fitted how?",
+     "back": "Logistic curve of model success vs human task length; the 50% crossing. ~7-month doubling (195.8 days, 2019–2025)."
+    },
+    {
+     "front": "TH1.1's update for engineers?",
+     "back": "Post-2023 doubling 130.8 days — ceilings move faster than the long-run trend; re-check quarterly."
+    },
+    {
+     "front": "A vendor claims 16-hour autonomy. Your response?",
+     "back": "Show the curve, the suite, the interval — METR warns >16h measurements are unreliable; verify on your own tasks."
+    },
+    {
+     "front": "The one-line design rule?",
+     "back": "No subtask past the measured P50 without a checkpoint. The ceiling is a boundary, not a target."
+    }
+   ],
+   "quiz": [
+    {
+     "q": "Your agent workflow has a 3-hour unsupervised subtask; the as-of P50 horizon is ~1 hour. You should:",
+     "choices": [
+      "Ship it — agents improve",
+      "Decompose the subtask or add human checkpoints",
+      "Switch vendors",
+      "Add more GPUs"
+     ],
+     "answer": 1,
+     "explain": "Covered in Worked estimation — design under the ceiling."
+    },
+    {
+     "q": "The P50 horizon doubles roughly every:",
+     "choices": [
+      "7 years",
+      "7 months (195.8 days)",
+      "7 days",
+      "7 hours"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts."
+    },
+    {
+     "q": "Why re-check the horizon quarterly?",
+     "choices": [
+      "It's fun",
+      "Post-2023 doubling is 130.8 days — ceilings move in months",
+      "Vendors require it",
+      "Compliance"
+     ],
+     "answer": 1,
+     "explain": "Covered in Concepts (TH1.1) — the ceiling is a moving target."
+    },
+    {
+     "q": "The horizon metric does NOT establish:",
+     "choices": [
+      "A fitted task-length estimate",
+      "That whole jobs are automated",
+      "A doubling trend",
+      "Suite sensitivity"
+     ],
+     "answer": 1,
+     "explain": "Covered in Frontier honesty — capability on tasks is not job automation."
+    }
+   ]
   }
  ],
  "scriptLabs": [
