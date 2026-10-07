@@ -58,7 +58,7 @@ adaptive-foundations · aleks-ops-math · aws-cloud-ops · aws-cloud-practitione
 
 ## Learning University (interstitiumlabs.dev/university/)
 
-Static, self-paced learning site: 18 academies, 112 paths, 646 modules. Adaptive engine (Place → Fringe → Gate → Deepen; CAT-style placement; ALEKS-style sequencing; spaced repetition; mastery in localStorage), timed assessments, Noah AI tutor. Catalog is sharded JSON; every module links real official sources; Interstitium adds original framing, never cloned vendor content.
+Static, self-paced learning site: 18 academies, 112 paths, 649 modules. Adaptive engine (Place → Fringe → Gate → Deepen; CAT-style placement; ALEKS-style sequencing; spaced repetition; mastery in localStorage), timed assessments, Noah AI tutor. Catalog is sharded JSON; every module links real official sources; Interstitium adds original framing, never cloned vendor content.
 
 ### The 12 academies
 
@@ -73,7 +73,7 @@ Static, self-paced learning site: 18 academies, 112 paths, 646 modules. Adaptive
 - **IL-09 — Adaptive Certification Command:** "Credentials, orchestrated honestly." CompTIA core stack (A+/Net+/Sec+), Security track (CySA+/PenTest+/SecurityX), Data & Cloud, vendor AI certs, Oracle, Linux Foundation blockchain, C++/Python Institute.
 - **IL-10 — Portfolio, Career & Professional Practice:** "The work, presented; the career, directed." Forward-deployed career, Humanmetrics self-knowledge, Babson-informed entrepreneurship, quant finance ladder.
 - **IL-11 — Zero Trust & Endpoint Defense:** "Never trust, always verify — the defender's discipline." 7 paths, 25 modules, 1 assessment (12 questions), 520 hours: Zero Trust Foundations; Networking & Cryptography Foundations; Active Directory & Identity Defense; Application Allowlisting & Ringfencing; Red Team / Blue Team Operations; Zero Trust Readiness Capstone; Entra Identity Administration (SC-300).
-- **IL-12 — AI Engineering:** "From data to deployed intelligence." 10 paths, 68 modules, 9 assessments, 850 hours: Python for AI Engineering; Data Science with Python; Machine Learning Engineering; Deep Learning with PyTorch; Generative AI & Large Language Models; NLP Engineering; Agentic AI & Copilot Extensibility; Azure AI Fundamentals Exam Prep; Production AI Engineering; AI Engineering Capstone.
+- **IL-12 — AI Engineering:** "From data to deployed intelligence." 10 paths, 71 modules, 9 assessments, 875 hours: Python for AI Engineering; Data Science with Python; Machine Learning Engineering; Deep Learning with PyTorch; Generative AI & Large Language Models; NLP Engineering; Agentic AI & Copilot Extensibility; Azure AI Fundamentals Exam Prep; Production AI Engineering; AI Engineering Capstone.
 - **IL-13 — Software Engineering Interview Prep:** "Domain tracks, interview-ready." 8 paths, 56 modules, 8 assessments, 470 hours: DSA & System Design Core; Backend, Frontend, Fullstack, iOS, Android, Embedded, and QA interview tracks — each with phased curriculum, guided builds, and a mock circuit.
 - **IL-14 — SRE, DevOps, Cloud & Security Interview Prep:** "Keep it alive, then prove it in the interview." 5 paths, 29 modules, 5 assessments, 260 hours: SRE, DevOps, Cloud, and Security Engineering interview prep plus a cross-domain Technical Mock Interview Circuit.
 - **IL-15 — Data Engineering & Analytics Interview Prep:** "From the row to the offer." 5 paths, 30 modules, 5 assessments, 260 hours: Data Engineering, Data Science, Data/Business Analyst, and ML interview prep plus a SQL & Analytics Drill Circuit.
