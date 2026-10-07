@@ -1,7 +1,45 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-06 ~09:55 EDT (America/New_York)._  
+_Last updated: 2026-10-07 ~09:50 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-07 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Yesterday made 1 of 10 CKA scenes interactive — the other nine (NetworkPolicy, RBAC, scheduling, HPA …) were still **dioramas you could only orbit**. Audit also found every predict-then-reveal question keyed to **option 0** (a learner could “master” every drill by always clicking the first button) and safe toggle states painted red. **No.** |
+| After this ship | **Closer / still NO** | **5 of 10 CKA domains now interactive**: NetworkPolicy (default-deny, additive allow, egress-DNS trap, non-enforcing CNI), RBAC (RoleBinding vs ClusterRoleBinding scope, namespace, additive-only), scheduler (taint filters affinity, tolerations don't attract, cordon vs drain), HPA (`ceil(current × util / target)`, tolerance, clamp, `<unknown>` without requests). 16 new predict-then-reveal checkpoints. Options shuffle per attempt. Still **no live UE host**, **no hosted fleet / live cluster**. |
+| Fake YES risk | Rejected | Rules engine over authored glTF; every caption says "sim (rules engine, not a live system)". Kubernetes semantics pinned by unit tests. |
+
+## Scorecard (0–10) — 2026-10-07
+
+| Dimension | Prior (10-06) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | 9.0 | Same scenes — now they react |
+| Live labs density | 6.5 | **7.0** | 7 interactive sims (was 3); still no hosted fleet |
+| Adaptive learning | 7.3 | **7.6** | Predict data is now meaningful (no positional answer); next-drill per sim |
+| Honesty / trust | 9.9 | 9.9 | Unchanged rules-engine disclosure |
+| Curriculum SoT | 8.8 | **9.0** | 4 new published `lab-sim-*` in labs + mirror; manifest `cka_coverage.interactive` |
+| Immersive / 3D gate | 9.1 | **9.3** | Half of CKA spatial domains are now stateful 3D, not static |
+
+**Composite ~8.5/10. Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest win: make CNI / Ingress / Storage CSI / Secrets / mesh interactive (5 left), then an exam-mode that chains drills under a timer.
+
+## Competitor delta (2026-10-07, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud Pro ($252/yr) | 3 CKA mock exams, 60+ playgrounds, AI-assisted labs | Their RBAC/NetworkPolicy/scheduling theory is video + slides; IL makes each one a stateful 3D object you break and predict |
+| Killercoda (free) | 100+ instant browser K8s scenarios | Terminals without a mental model; IL shows *why* the pod is Pending / Forbidden / dropped |
+| A Cloud Guru / Pluralsight | 1,800+ labs, cloud sandboxes | Catalog breadth; few K8s-specific visual drills |
+
+## Shipped this pass (2026-10-07)
+
+1. `il-immersive-sims.js` v1.1.0: `netpol-isolation`, `rbac-authz`, `sched-taints`, `hpa-scale` (pure helpers `netpolDecide` / `rbacDecide` / `schedDecide` / `hpaDesired` exported for tests)
+2. Player v1.5.0: per-attempt option shuffle (`shuffleOrder`), toggle `risk` colouring
+3. Wired on `/immersive/` (new `#cka-rbac`, `#cka-hpa` anchors), curriculum OS labs + mirror, manifest `cka_coverage.interactive`
+4. Tests: 5 new unit tests (K8s semantics + shuffle permutation); browser suite runs all 7 sims + RBAC toggle
+
+---
 
 ## Verdict — 2026-10-06 Musk-bar pass
 
