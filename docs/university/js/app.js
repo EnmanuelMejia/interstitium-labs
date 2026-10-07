@@ -266,7 +266,7 @@
         el('p', { 'class': 'footer-note' }, [
           'A plant, not a video LMS. Mastery lives in your browser — no fake API keys, no faked cloud fleet. ',
           'Checkout is offline on purpose until Payment Links are live. ',
-          '© ' + year + ' Interstitium Labs. Founded by Enmanuel D. Mejia — the work is the record.'
+          'Created by Interstitium Labs. © ' + year + ' Interstitium Labs. Founded by Enmanuel D. Mejia — the work is the record.'
         ])
       ])
     ]);

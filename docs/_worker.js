@@ -60,6 +60,43 @@ function needsNoindex(path) {
   return false;
 }
 
+// 2026-10-07 (Phase 5): docs/_headers is NOT applied by this API deploy path
+// (verified 2026-10-04), so inject the documented security headers here on the
+// static-asset fallthrough. Mirrors the _headers `/*` block verbatim; the
+// /coach/* and /cinema/* Permissions-Policy mic exception is mirrored too.
+// Per-page <meta http-equiv="Content-Security-Policy"> remains the CSP carrier
+// (page-specific policies must not be flattened by a blanket worker CSP).
+var SECURITY_HEADERS = {
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Frame-Options": "DENY",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Resource-Policy": "same-origin",
+  "X-DNS-Prefetch-Control": "off"
+};
+
+function micAllowed(path) {
+  return path === "/coach" || path === "/cinema" ||
+    path.indexOf("/coach/") === 0 || path.indexOf("/cinema/") === 0;
+}
+
+function applyAssetHeaders(res, path) {
+  var h = new Headers(res.headers);
+  for (var k in SECURITY_HEADERS) {
+    if (!h.has(k)) h.set(k, SECURITY_HEADERS[k]);
+  }
+  h.set("Permissions-Policy", micAllowed(path)
+    ? "camera=(), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    : "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()");
+  if (needsNoindex(path)) h.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: h,
+  });
+}
+
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var MAX_BODY = 8192;
 var WAITLIST_SUCCESS_PATH = "/enroll/success.html";
@@ -979,17 +1016,8 @@ export default {
     }
 
     var res = await env.ASSETS.fetch(request);
-    // _headers is not applied by this API deploy path, so gate operator
-    // prefixes here (mirrors the _headers X-Robots-Tag intent).
-    if (needsNoindex(path)) {
-      var h = new Headers(res.headers);
-      h.set("X-Robots-Tag", "noindex, nofollow");
-      return new Response(res.body, {
-        status: res.status,
-        statusText: res.statusText,
-        headers: h,
-      });
-    }
-    return res;
+    // _headers is not applied by this API deploy path: inject the documented
+    // security headers + operator-prefix X-Robots-Tag here instead.
+    return applyAssetHeaders(res, path);
   },
 };
