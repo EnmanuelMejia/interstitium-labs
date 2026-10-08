@@ -468,6 +468,121 @@ function refreshILProgress() {
   } catch (e) {}
 }
 
+/* ============================== guided engine (2026-10-08) =========
+ * Rosetta-Stone-style guided layer, backed by ILGuided
+ * (localStorage "il-guided-v1"). Sequential unlock, path rail,
+ * mastery gates, guided practice, review loops.
+ *
+ * Locks are a LEARNING-FLOW concept only — the paywall stays enforced
+ * at the worker; nothing here touches entitlement.
+ * ===================================================================== */
+var Guided = {
+  infos: function () {
+    return (COURSE.modules || []).map(function (m) {
+      return { id: m.id, title: m.title, code: m.code, quizTotal: (m.quiz || []).length };
+    });
+  },
+  fullInfos: function () {
+    return (COURSE.modules || []).map(function (m) {
+      return {
+        id: m.id, title: m.title, code: m.code, quizTotal: (m.quiz || []).length,
+        quiz: m.quiz || [], summary: m.summary || '', objectives: m.objectives || []
+      };
+    });
+  },
+  findModule: function (id) {
+    var ms = COURSE.modules || [];
+    for (var i = 0; i < ms.length; i++) if (ms[i].id === id) return ms[i];
+    return null;
+  },
+  answerOf: function (moduleId, qi) { return Progress.get('quiz:' + moduleId + ':' + qi, null); },
+  seedMastery: function (m) {
+    /* Grandfather answers stored before the guided engine shipped. */
+    try {
+      if (typeof ILGuided !== 'undefined' && ILGuided && (m.quiz || []).length) {
+        ILGuided.recomputeMastery(COURSE.courseId, m.id, m.quiz, function (qqi) {
+          return Guided.answerOf(m.id, qqi);
+        });
+      }
+    } catch (e) {}
+  },
+  lockNotice: function (wrap) {
+    var head = wrap.querySelector('.mod-head');
+    if (!head || head.querySelector('.ilgd-locknote')) return;
+    head.appendChild(el('span', 'ilgd-locknote', '🔒 Complete the previous lesson to unlock'));
+  },
+  /* Repaint the rail and every module's lock/badge/gate state. Called
+     after any progress change (quiz answer, re-attempt, module toggle,
+     auto-mark). */
+  refresh: function () {
+    try {
+      if (typeof ILGuided === 'undefined' || !ILGuided) return;
+      if (typeof COURSE === 'undefined' || !COURSE) return;
+      var cid = COURSE.courseId;
+      var infos = Guided.infos();
+      ILGuided.syncNoGateMastery(cid, infos);
+      var rail = document.getElementById('ilgd-rail');
+      if (rail) ILGuided.paintRail(rail, cid, infos);
+      var states = ILGuided.computeStates(cid, infos);
+      states.forEach(function (s) {
+        var wrap = document.getElementById('mod-' + s.id);
+        if (!wrap) return;
+        var locked = (s.state === 'locked' || s.state === 'next');
+        wrap.classList.toggle('ilgd-locked', locked);
+        var badge = wrap.querySelector('[data-ilgd-badge]');
+        if (badge) {
+          var txt = '', cls = 'ilgd-state';
+          if (s.state === 'done') {
+            /* 2026-10-08 (WORKSTREAM 5): tested-out modules read distinctly. */
+            txt = s.testOut ? '✓ Tested out' : (s.hasGate ? '✓ Mastered' : '✓ Complete');
+            cls += ' ilgd-state--done';
+          } else if (s.state === 'current') {
+            txt = '● You are here'; cls += ' ilgd-state--current';
+          } else if (s.state === 'next') {
+            txt = '→ Up next'; cls += ' ilgd-state--next';
+          } else {
+            txt = '🔒 Locked'; cls += ' ilgd-state--locked';
+          }
+          /* mastery-gate flag on the current module */
+          if (s.state === 'current' && s.complete && s.hasGate && !s.mastered) {
+            txt = '⚠ Mastery gate'; cls += ' ilgd-state--gate';
+          }
+          badge.className = cls;
+          badge.textContent = txt;
+        }
+        /* mastery-gate messaging */
+        var gate = wrap.querySelector('[data-ilgd-gate]');
+        if (gate) {
+          var msg = '';
+          if (s.state === 'current' && s.hasGate && !s.mastered) {
+            var fm = Guided.findModule(s.id);
+            var qp = ILGuided.quizProgress((fm && fm.quiz) || [], function (qqi) {
+              return Guided.answerOf(s.id, qqi);
+            });
+            if (qp.answered < qp.total) {
+              msg = 'Mastery gate — quick checks ' + qp.answered + '/' + qp.total + ' answered' +
+                (qp.answered ? ' · best ' + Math.round(qp.score * 100) + '%' : '') +
+                '. Answer all and score ≥70% to unlock the next module.';
+            } else {
+              msg = 'Mastery gate — best score ' + Math.round(qp.score * 100) +
+                '%, need ≥70%. Re-attempt the quick checks (best score counts) or practice with hints.';
+            }
+          } else if (s.state === 'current' && s.hasGate && s.mastered && !s.complete) {
+            msg = 'Mastery earned ✓ — mark this module complete to unlock the next.';
+          }
+          gate.textContent = msg;
+          gate.style.display = msg ? '' : 'none';
+        }
+        /* drop stale lock notices once unlocked */
+        if (!locked) {
+          var ln = wrap.querySelector('.ilgd-locknote');
+          if (ln && ln.parentNode) ln.parentNode.removeChild(ln);
+        }
+      });
+    } catch (e) {}
+  }
+};
+
 /* ============================== Brief ============================== */
 function heroHTML() {
   var dl = COURSE.updatedAt ? esc(COURSE.updatedAt) + ' · ' : '';
@@ -518,6 +633,14 @@ function buildBrief(root) {
   }
   root.innerHTML = html;
   refreshReadiness();
+  /* 2026-10-08: "Stories" rail (WORKSTREAM 1) — fills in async from
+     stories/_index.json; nothing renders when the course has no stories. */
+  var storiesHost = el('div', '');
+  storiesHost.id = 'il-stories-rail';
+  root.appendChild(storiesHost);
+  if (window.ILStories && COURSE && COURSE.courseId) {
+    try { window.ILStories.buildRail(storiesHost, COURSE.courseId); } catch (e) {}
+  }
 }
 
 /* ============================== Plan =============================== */
@@ -602,7 +725,23 @@ function quizHTML(mod, qi, q) {
         else if (oi === ci) o.classList.add('wrong');
       });
       box.classList.add('answered');
+      /* 2026-10-08 (WORKSTREAM 3): struggle detection on quick checks.
+         One-shot items feed the per-module quick-check streak. */
+      try {
+        if (typeof IL !== 'undefined' && IL && IL.noahTutor)
+          IL.noahTutor.recordAnswer(mod, 'quiz:' + qi, q.q, ci === q.answer, box);
+      } catch (e) {}
       refreshReadiness();
+      /* 2026-10-08 (WORKSTREAM 2): guided mastery gate — recompute, then
+         refresh rail/locks/gate messaging. */
+      try {
+        if (typeof ILGuided !== 'undefined' && ILGuided) {
+          ILGuided.recomputeMastery(COURSE.courseId, mod.id, mod.quiz || [], function (qqi) {
+            return Progress.get('quiz:' + mod.id + ':' + qqi, null);
+          });
+        }
+        if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh();
+      } catch (e2) {}
     });
     opts.appendChild(b);
   });
@@ -614,6 +753,43 @@ function quizHTML(mod, qi, q) {
       (+chosen === q.answer ? 'correct.' : 'review the explanation above.'));
     box.appendChild(note);
   }
+  /* 2026-10-08 (WORKSTREAM 2): guided practice (unanswered) / re-attempt
+     (answered). Re-attempts keep the mastery gate fair — best score counts,
+     so a low first attempt can never permanently lock the path. */
+  try {
+    var gBar = el('div', 'ilgd-quizbar');
+    if (chosen == null) {
+      var pracBtn = el('button', 'btn ilgd-practice-btn', 'Guided practice');
+      pracBtn.type = 'button';
+      var pSlot = el('div', 'ilgd-practice-slot');
+      pracBtn.addEventListener('click', function () {
+        try {
+          if (typeof ILGuided !== 'undefined' && ILGuided) {
+            pSlot.innerHTML = ILGuided.practiceHTML(q, {
+              courseId: COURSE.courseId, moduleId: mod.id,
+              label: 'Guided practice · ' + (mod.title || '')
+            });
+            ILGuided.wirePractice(pSlot);
+            pracBtn.style.display = 'none';
+          }
+        } catch (e) {}
+      });
+      gBar.appendChild(pracBtn);
+      gBar.appendChild(pSlot);
+    } else {
+      var reBtn = el('button', 'ilgd-reattempt', 'Re-attempt this check');
+      reBtn.type = 'button';
+      reBtn.setAttribute('aria-label', 'Clear your answer and try this quick check again');
+      reBtn.addEventListener('click', function () {
+        Progress.set(key, null);
+        var fresh = quizHTML(mod, qi, q);
+        if (box.parentNode) box.parentNode.replaceChild(fresh, box);
+        try { if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh(); } catch (e) {}
+      });
+      gBar.appendChild(reBtn);
+    }
+    box.appendChild(gBar);
+  } catch (e) {}
   return box;
 }
 
@@ -667,6 +843,32 @@ function moduleHTML(m) {
   head.innerHTML = (m.code ? '<span class="mod-code">' + esc(m.code) + '</span>' : '') +
     '<span class="mod-title">' + esc(m.title) + '</span>' +
     '<span class="mod-done-flag">' + (done ? '✓ complete' : '') + '</span>';
+  /* 2026-10-08 (WORKSTREAM 2): guided state badge (done/current/next/
+     locked). Text/class painted by Guided.refresh(). */
+  var gBadge = el('span', 'ilgd-state', '');
+  gBadge.setAttribute('data-ilgd-badge', '1');
+  head.appendChild(gBadge);
+  /* 2026-10-08 (WORKSTREAM 3): "Ask Noah about this lesson" — opens Noah with
+     the lesson context pre-loaded (js/il-noah-tutor.js). Guarded: silent
+     no-op if the tutor module failed to load. stopPropagation so the header
+     toggle does not fire. */
+  try {
+    if (typeof IL !== 'undefined' && IL && IL.noahTutor) {
+      (function (mod) {
+        var askBtn = el('button', 'noah-ask-btn', '◈ Ask Noah about this lesson');
+        askBtn.type = 'button';
+        askBtn.setAttribute('aria-label', 'Ask Noah AI about this lesson');
+        askBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          IL.noahTutor.askAboutLesson(mod, wrap);
+        });
+        askBtn.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
+        });
+        head.appendChild(askBtn);
+      })(m);
+    }
+  } catch (e) {}
   var body = el('div', 'mod-body');
   body.style.display = 'none';
   var inner = '<p class="mod-summary">' + esc(m.summary || '') + '</p>';
@@ -691,6 +893,34 @@ function moduleHTML(m) {
     body.appendChild(el('h3', '', 'Quick checks'));
     m.quiz.forEach(function (q, qi) { body.appendChild(quizHTML(m, qi, q)); });
   }
+  /* 2026-10-08 (WORKSTREAM 2): guided — seed mastery from answers stored
+     before the guided engine shipped; add the mastery-gate message box. */
+  try { if (typeof Guided !== 'undefined' && Guided.seedMastery) Guided.seedMastery(m); } catch (e) {}
+  var gateBox = el('div', 'ilgd-gate', '');
+  gateBox.setAttribute('data-ilgd-gate', '1');
+  gateBox.style.display = 'none';
+  body.appendChild(gateBox);
+  /* 2026-10-08 (WORKSTREAM 2): spaced review loop — on completion, surface
+     2-3 recall prompts from earlier completed modules (their own quiz
+     questions; never invented). Shown once per module. */
+  function maybeReview() {
+    try {
+      if (typeof ILGuided === 'undefined' || !ILGuided) return;
+      if (typeof Guided === 'undefined') return;
+      if (ILGuided.reviewShown(COURSE.courseId, m.id)) return;
+      if (document.getElementById('ilgd-review-' + m.id)) return;
+      var rh = ILGuided.reviewHTML(COURSE.courseId, Guided.fullInfos(), m.id,
+        function (mid) { var mm = Guided.findModule(mid); return (mm && mm.quiz) || []; },
+        function (mid, qqi) { return Progress.get('quiz:' + mid + ':' + qqi, null); });
+      if (rh) {
+        var rwrap = document.createElement('div');
+        rwrap.id = 'ilgd-review-' + m.id;
+        rwrap.innerHTML = rh;
+        body.insertBefore(rwrap, foot);
+        ILGuided.wirePractice(rwrap);
+      }
+    } catch (e) {}
+  }
   var foot = el('div', 'btn-row');
   var doneBtn = el('button', 'btn' + (done ? '' : ' primary'), done ? '✓ Module complete' : 'Mark module complete');
   doneBtn.type = 'button';
@@ -712,6 +942,21 @@ function moduleHTML(m) {
     doneBtn.classList.toggle('primary', !now);
     refreshReadiness();
     if (typeof refreshILProgress !== 'undefined') { try { refreshILProgress(); } catch (e) {} }
+    /* 2026-10-08 (WORKSTREAM 3): end-of-module Noah check-in offer —
+       "Check my understanding with Noah" (Socratic, 2–3 questions). */
+    try {
+      if (now && typeof IL !== 'undefined' && IL && IL.noahTutor) IL.noahTutor.onModuleComplete(m, foot);
+    } catch (e) {}
+    /* 2026-10-08 (WORKSTREAM 2): guided — review loop on completion,
+       gate messaging + rail/lock refresh. */
+    try {
+      if (now) maybeReview();
+      else {
+        var oldRev = document.getElementById('ilgd-review-' + m.id);
+        if (oldRev && oldRev.parentNode) oldRev.parentNode.removeChild(oldRev);
+      }
+      if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh();
+    } catch (e2) {}
   });
   foot.appendChild(doneBtn);
   body.appendChild(foot);
@@ -736,9 +981,26 @@ function moduleHTML(m) {
     doneBtn.classList.remove('primary');
     try { refreshReadiness(); } catch (e) {}
     if (typeof refreshILProgress !== 'undefined') { try { refreshILProgress(); } catch (e) {} }
+    /* 2026-10-08 (WORKSTREAM 3): end-of-module Noah check-in offer
+       (auto-mark-on-scroll path). */
+    try {
+      if (typeof IL !== 'undefined' && IL && IL.noahTutor) IL.noahTutor.onModuleComplete(m, foot);
+    } catch (e) {}
+    /* 2026-10-08 (WORKSTREAM 2): guided — review loop + rail/lock refresh
+       on auto-mark completion. */
+    try {
+      maybeReview();
+      if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh();
+    } catch (e2) {}
   }
 
   function toggle() {
+    /* 2026-10-08 (WORKSTREAM 2): guided lock — a locked module does not
+       open; the learner gets the unlock rule instead. */
+    if (wrap.classList.contains('ilgd-locked')) {
+      try { if (typeof Guided !== 'undefined' && Guided.lockNotice) Guided.lockNotice(wrap); } catch (e) {}
+      return;
+    }
     var open = body.style.display === 'none';
     body.style.display = open ? '' : 'none';
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -775,13 +1037,17 @@ function moduleHTML(m) {
 function buildStudy(root) {
   root.innerHTML = heroHTML() +
     '<h2 class="section-title">Study modules</h2>' +
-    '<p class="section-sub">' + COURSE.modules.length + ' modules. Open a module, work its notes, ' +
-    'flip the cards, pass the quick checks — then mark it complete.</p>' +
+    '<p class="section-sub">' + COURSE.modules.length + ' modules. Follow the guided path in order — ' +
+    'each module unlocks the next. Open a module, work its notes, ' +
+    'flip the cards, pass the quick checks (≥70% mastery) — then mark it complete.</p>' +
+    '<div id="ilgd-rail" aria-live="polite"></div>' +
     '<div id="mod-list"></div>' +
     '<div id="study-noah"></div>';
   var list = $('#mod-list', root);
   COURSE.modules.forEach(function (m) { list.appendChild(moduleHTML(m)); });
   $('#study-noah', root).appendChild(noahPanel('Study — ' + COURSE.title, COURSE.title));
+  /* 2026-10-08 (WORKSTREAM 2): guided engine — paint path rail, enforce locks. */
+  try { if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh(); } catch (e) {}
 }
 
 /* ============================== Noah embedded panel ================ */
@@ -2382,6 +2648,12 @@ function il26_renderModuleDrills(m, host) {
             /* Wrong pick: flag it and allow a retry. Nothing is persisted, so
                a wrong answer can never brick the drill stage gate. */
             b.classList.add('wrong');
+            /* 2026-10-08 (WORKSTREAM 3): struggle detection → Noah nudge.
+               Never auto-sends; the nudge only opens Noah. */
+            try {
+              if (typeof IL !== 'undefined' && IL && IL.noahTutor)
+                IL.noahTutor.recordAnswer(m, 'drill:' + (m.drills.indexOf(d)) + ':' + ii, it.q, false, box);
+            } catch (e) {}
             return;
           }
           Progress.set(key, String(ci));
@@ -2393,6 +2665,12 @@ function il26_renderModuleDrills(m, host) {
           var why = $('.drill-why', box);
           if (why) why.style.display = '';
           box.classList.add('answered');
+          /* 2026-10-08 (WORKSTREAM 3): correct drill answer resets the
+             struggle streak for this item. */
+          try {
+            if (typeof IL !== 'undefined' && IL && IL.noahTutor)
+              IL.noahTutor.recordAnswer(m, 'drill:' + (m.drills.indexOf(d)) + ':' + ii, it.q, true, box);
+          } catch (e) {}
           refreshReadiness();
           il26_rebuildStagesNear(box);
         });
@@ -3526,7 +3804,32 @@ function boot() {
         var found = null;
         (COURSE.modules || []).forEach(function (m) { if (m.id === modId) found = m; });
         if (found) {
+          /* 2026-10-08 (WORKSTREAM 2): guided — a deep link into a locked
+             module lands on the learner's current module instead. */
+          var dlRedirected = false;
+          try {
+            if (typeof ILGuided !== 'undefined' && ILGuided && typeof Guided !== 'undefined') {
+              var dst = ILGuided.stateFor(COURSE.courseId, found.id, Guided.infos());
+              if (dst && (dst.state === 'locked' || dst.state === 'next')) {
+                var cur = ILGuided.firstOpenModule(COURSE.courseId, Guided.infos());
+                if (cur && cur.id !== found.id) {
+                  var alt = Guided.findModule(cur.id);
+                  if (alt) { found = alt; dlRedirected = true; }
+                }
+              }
+            }
+          } catch (e2) {}
           showTab('study');
+          if (dlRedirected) {
+            var dlList = document.getElementById('mod-list');
+            if (dlList && !document.getElementById('ilgd-deeplink-note')) {
+              var dlNote = document.createElement('div');
+              dlNote.id = 'ilgd-deeplink-note';
+              dlNote.className = 'ilgd-notice';
+              dlNote.textContent = 'That module is locked — complete the previous lesson to unlock it. You are here:';
+              dlList.insertBefore(dlNote, dlList.firstChild);
+            }
+          }
           var mw = document.getElementById('mod-' + found.id);
           if (mw) {
             var bdy = mw.querySelector('.mod-body');
@@ -4835,5 +5138,409 @@ BUILDERS.labs = function (root) {
   _il27_BUILDERS_labs(root);
   if (isIL27()) il27ExtraLabs(root);
 };
+
+/* ==========================================================================
+ * WORKSTREAM 1 (2026-10-08): "The story behind X" narrative supplements.
+ *
+ * Player-side join: course JSONs were NOT modified, so stories join at
+ * render time via stories/_index.json (see js/il-stories.js). The outermost
+ * moduleHTML wrapper prepends the story card as the FIRST element inside
+ * .mod-body when the module maps to a story; modules without a story render
+ * nothing extra.
+ *
+ * Paywall: the story card rides with module content — gated course JSONs
+ * 402 at the worker without a valid entitlement cookie, so a story can only
+ * ever appear where its course content already shows. IL-27/28/29 are free.
+ * ========================================================================== */
+var _ilstory_moduleHTML = moduleHTML;
+moduleHTML = function (m) {
+  var w = _ilstory_moduleHTML(m);
+  try {
+    var body = w.querySelector('.mod-body');
+    if (body && window.ILStories && COURSE && COURSE.courseId) {
+      /* async; story card prepends as first child when the fetch resolves */
+      window.ILStories.enhanceModule(COURSE.courseId, m.id, body);
+    }
+  } catch (e) {}
+  return w;
+};
+
+/* Module deep-open helper for the stories rail (2026-10-08).
+ * Opens the Study tab, expands the module, scrolls to it — same mechanics
+ * as the ?module=<id> deep-link in boot(). */
+window.__ilOpenModule = function (moduleId) {
+  if (!moduleId) return;
+  try {
+    showTab('study');
+    setTimeout(function () {
+      var mw = document.getElementById('mod-' + moduleId);
+      if (!mw) return;
+      var bdy = mw.querySelector('.mod-body');
+      var hd = mw.querySelector('.mod-head');
+      if (bdy && bdy.style.display === 'none') bdy.style.display = '';
+      if (hd) hd.setAttribute('aria-expanded', 'true');
+      try { mw.scrollIntoView({ block: 'start' }); } catch (e2) {}
+    }, 60);
+  } catch (e) {}
+};
+
+
+/* ==========================================================================
+ * WORKSTREAM 5 (2026-10-08): KodeKloud-pattern 10X implementation pass.
+ *
+ * Abstract interaction patterns extracted from public research (brief:
+ * .work/kodekloud-pattern-brief-20261008.md). Original implementations
+ * below — no KodeKloud content, text, or copy reproduced.
+ *
+ *  1. (§5/#1) Skill-mastery dashboard + exam readiness — see academy.html
+ *     "Mastery" section (js/il-mastery.js: heatFor/heatHTML/readinessFor).
+ *  2. (§4/#3) Always-on solutions — quizHTML wrapper: after ANY answer the
+ *     official explanation shows (existing .quiz.answered .why reveal) and
+ *     a "Noah: compare my approach" button opens Noah (guarded
+ *     IL.noahTutor.openWithPrefill) primed with question + learner pick vs
+ *     official answer. Method comparison becomes the signature moment.
+ *  3. (§4/#8) Repair queue — il-mastery.js repairItems/repairHTML fed by
+ *     missed quick checks; Study-tab section + academy section; items link
+ *     back to the exact module/question and clear when re-answered
+ *     correctly (session repaired counter).
+ *  4. (§3/#4) Lab environment-context headers — persistent "YOU ARE HERE"
+ *     bar on every lab/practice/assessment block (course code, location,
+ *     lab name, simulated-environment descriptor).
+ *  5. (§1/#5) Diagnostic-on-entry — js/il-diagnostic.js: per-course
+ *     "Test out" card sampling the first unanswered question per module
+ *     (real course content only); ≥80% marks ILGuided test-out mastery and
+ *     the guided path visibly skips those modules ("Tested out").
+ *
+ * Paywall untouched (content gating stays at the worker), dark-mode
+ * default untouched, multicloud theme untouched. Sibling APIs are only
+ * extended (ILGuided.markTestOut, quizHTML/moduleHTML wrappers), never
+ * rewritten. Vanilla ES5; prefers-reduced-motion honored (no animation
+ * except the guarded .ilflash transition in il-mastery.css).
+ * ========================================================================== */
+
+/* ---- pattern 4: environment-context headers ---------------------------- */
+
+function ws5_ctxBar(courseCode, location, name, env) {
+  return '<div class="ilctx" role="note" aria-label="Environment context: you are here">' +
+    '<span class="ilctx-you">YOU ARE HERE</span><span class="ilctx-sep">·</span>' +
+    '<span>' + esc(courseCode || '') + '</span><span class="ilctx-sep">·</span>' +
+    '<span>' + esc(location || '') + '</span><span class="ilctx-sep">·</span>' +
+    '<span>' + esc(name || 'Lab') + '</span><span class="ilctx-sep">·</span>' +
+    '<span class="ilctx-env">' + esc(env || '') + '</span></div>';
+}
+
+/* Prepend context bars to .scriptlab/.drill cards newly appended to host. */
+function ws5_barNewCards(host, beforeCount, location, env) {
+  if (!host || !host.children) return;
+  for (var i = beforeCount; i < host.children.length; i++) {
+    (function (card) {
+      if (!card || !card.classList) return;
+      if (!(card.classList.contains('scriptlab') || card.classList.contains('drill'))) return;
+      try { if (card.querySelector('.ilctx')) return; } catch (e) { return; }
+      var name = '';
+      try {
+        var h3 = card.querySelector('h3');
+        if (h3) name = (h3.textContent || '').replace(/✓ done/g, '').trim();
+        else {
+          var pr = card.querySelector('.prompt');
+          if (pr) name = (pr.textContent || '').trim();
+        }
+      } catch (e2) {}
+      if (!name) name = 'Lab';
+      if (name.length > 70) name = name.slice(0, 69) + '…';
+      try { card.insertAdjacentHTML('afterbegin', ws5_ctxBar(COURSE.code, location, name, env)); }
+      catch (e3) {}
+    })(host.children[i]);
+  }
+}
+
+function ws5_wrapLabPane(builder, location, env) {
+  return function (root) {
+    var before = (root && root.children) ? root.children.length : 0;
+    builder(root);
+    try { ws5_barNewCards(root, before, location, env); } catch (e) {}
+  };
+}
+
+try {
+  buildTermPane = ws5_wrapLabPane(buildTermPane, 'Labs tab · Terminal', 'Simulated lab · no real infrastructure');
+  buildScriptPane = ws5_wrapLabPane(buildScriptPane, 'Labs tab · Script labs', 'Simulated lab · no real infrastructure');
+  buildDrillsPane = ws5_wrapLabPane(buildDrillsPane, 'Labs tab · Drills', 'Simulated practice · no real infrastructure');
+  buildPolicyPane = ws5_wrapLabPane(buildPolicyPane, 'Labs tab · Policy drills', 'Simulated practice · no real infrastructure');
+  buildScenPane = ws5_wrapLabPane(buildScenPane, 'Labs tab · Scenarios', 'Simulated lab · no real infrastructure');
+  buildTrainerPane = ws5_wrapLabPane(buildTrainerPane, 'Labs tab · Trainers', 'Simulated lab · no real infrastructure');
+} catch (e_ws5_panes) {}
+
+/* In-module lab renderers (IL-26 stage sections): module context in the bar. */
+function ws5_wrapModuleLab(renderer, env) {
+  return function (m, host) {
+    var before = (host && host.children) ? host.children.length : 0;
+    renderer(m, host);
+    try {
+      ws5_barNewCards(host, before,
+        (m && m.code ? m.code + ' · ' : '') + ((m && m.title) || (m && m.id) || 'Module'), env);
+    } catch (e) {}
+  };
+}
+try {
+  il26_renderHandsOnLab = ws5_wrapModuleLab(il26_renderHandsOnLab, 'Simulated lab · no real infrastructure');
+  il26_renderMockTask = ws5_wrapModuleLab(il26_renderMockTask, 'Simulated assessment · no real infrastructure');
+  il26_renderModuleDrills = ws5_wrapModuleLab(il26_renderModuleDrills, 'Simulated practice · no real infrastructure');
+} catch (e_ws5_modlabs) {}
+
+/* Mock assessment tab: per-task bars (tasks re-render on reset/finish, so
+   scan + MutationObserver, idempotent via the .ilctx presence check). */
+function ws5_scanMock(host) {
+  if (!host || !host.querySelectorAll) return;
+  var tasks = host.querySelectorAll('.mock-task');
+  for (var i = 0; i < tasks.length; i++) {
+    (function (t, ix) {
+      try { if (t.querySelector('.ilctx')) return; } catch (e) { return; }
+      var name = 'Mock task ' + (ix + 1);
+      try {
+        var q = t.querySelector('.q');
+        if (q && q.textContent) {
+          name = q.textContent.trim();
+          if (name.length > 70) name = name.slice(0, 69) + '…';
+        }
+      } catch (e2) {}
+      try {
+        t.insertAdjacentHTML('afterbegin',
+          ws5_ctxBar(COURSE.code, 'Mock assessment', name, 'Simulated assessment · no real infrastructure'));
+      } catch (e3) {}
+    })(tasks[i], i);
+  }
+}
+try {
+  var _ws5_buildMock = buildMock;
+  buildMock = function (root) {
+    _ws5_buildMock(root);
+    try {
+      var host = root.querySelector ? root.querySelector('#mock-tasks') : null;
+      ws5_scanMock(host);
+      if (host && typeof MutationObserver !== 'undefined') {
+        var obs = new MutationObserver(function () { try { ws5_scanMock(host); } catch (e) {} });
+        obs.observe(host, { childList: true });
+      }
+    } catch (e) {}
+  };
+} catch (e_ws5_mock) {}
+
+/* ---- pattern 2: always-on solutions + Noah method comparison ---------- */
+
+function ws5_chosenIndex(mod, qi) {
+  try {
+    var v = Progress.get('quiz:' + mod.id + ':' + qi, null);
+    return (v == null || v === '') ? -1 : parseInt(v, 10);
+  } catch (e) { return -1; }
+}
+
+function ws5_addCompare(box, mod, q, qi) {
+  if (!box || !box.querySelector || box.querySelector('.ilcompare-row')) return;
+  if (typeof document === 'undefined' || !document.createElement) return;
+  var row = document.createElement('div');
+  row.className = 'ilcompare-row';
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ilcompare-btn';
+  btn.textContent = '◈ Noah: compare my approach';
+  btn.setAttribute('aria-label', 'Ask Noah AI to compare your approach with the official solution');
+  btn.addEventListener('click', function () {
+    var ci = ws5_chosenIndex(mod, qi);
+    var pre = 'The student is studying ' + (COURSE.code ? COURSE.code + ' · ' : '') +
+      (COURSE.title || 'this course') + ', module "' + (mod.title || mod.id) +
+      '", and just answered a quick check.\n' +
+      'Question: ' + (q.q || '') + '\n' +
+      'The learner picked: ' + (ci >= 0 && q.choices && q.choices[ci] != null ? q.choices[ci] : '(no pick recorded)') + '\n' +
+      'The official answer is: ' + (q.choices && q.choices[q.answer] != null ? q.choices[q.answer] : '') + '\n' +
+      'The official explanation: ' + (q.explain || '(no explanation shipped with this question)') + '\n' +
+      'Compare their approach with the official one: name anything their pick gets right, ' +
+      'the key difference from the official answer, and the one idea to lock in. ' +
+      'You are Noah AI, the resident tutor of Interstitium Labs — never claim to be Muse or any other assistant. ' +
+      'Do not invent facts beyond the question above.';
+    try {
+      var t = (typeof IL !== 'undefined' && IL && IL.noahTutor) ? IL.noahTutor : null;
+      if (t && typeof t.openWithPrefill === 'function' &&
+          typeof t.noahReady === 'function' && t.noahReady()) {
+        t.openWithPrefill(pre);
+      } else if (typeof IL !== 'undefined' && IL && IL.noahAI &&
+                 typeof IL.noahAI.open === 'function') {
+        IL.noahAI.open();
+      }
+    } catch (e) {}
+  });
+  row.appendChild(btn);
+  try { box.appendChild(row); } catch (e2) {}
+}
+
+try {
+  var _ws5_quizHTML = quizHTML;
+  quizHTML = function (mod, qi, q) {
+    var box = _ws5_quizHTML(mod, qi, q);
+    try {
+      /* Stable anchor for repair-queue deep links. */
+      if (box && !box.id) box.id = 'quiz-' + mod.id + '-' + qi;
+      if (box && box.classList && box.classList.contains('answered')) {
+        /* Reloaded with a stored answer: explanation already revealed by
+           .quiz.answered .why — add the comparison affordance. */
+        ws5_addCompare(box, mod, q, qi);
+      } else if (box && typeof MutationObserver !== 'undefined') {
+        (function (b) {
+          var obs = new MutationObserver(function () {
+            if (b.classList.contains('answered')) {
+              try { obs.disconnect(); } catch (e) {}
+              ws5_addCompare(b, mod, q, qi);
+              ws5_refreshRepair();
+            }
+          });
+          obs.observe(b, { attributes: true, attributeFilter: ['class'] });
+        })(box);
+      }
+    } catch (e) {}
+    return box;
+  };
+} catch (e_ws5_quiz) {}
+
+/* ---- pattern 3: repair queue (Study tab) ------------------------------- */
+
+var ws5_repairOpen = {};
+var ws5_repairFixed = 0;
+var ws5_repairItems = [];
+
+function ws5_gotoQuestion(moduleId, qi) {
+  try {
+    if (typeof window !== 'undefined' && typeof window.__ilOpenModule === 'function') {
+      window.__ilOpenModule(moduleId);
+    } else if (typeof showTab === 'function') {
+      showTab('study');
+    }
+    var tries = 0;
+    (function seek() {
+      tries++;
+      var t = document.getElementById('quiz-' + moduleId + '-' + qi);
+      if (t) {
+        try {
+          t.scrollIntoView({ block: 'center', behavior: 'auto' });
+          t.classList.add('ilflash');
+          setTimeout(function () { try { t.classList.remove('ilflash'); } catch (e) {} }, 1600);
+        } catch (e2) {}
+        return;
+      }
+      if (tries < 30) setTimeout(seek, 150);
+    })();
+  } catch (e3) {}
+}
+
+function ws5_refreshRepair() {
+  try {
+    var host = document.getElementById('il-repair');
+    if (!host || typeof ILMastery === 'undefined' || typeof COURSE === 'undefined' || !COURSE) return;
+    var items = ILMastery.repairItems(COURSE.courseId, COURSE.modules || []);
+    var now = {}, i, k;
+    for (i = 0; i < items.length; i++) now[items[i].moduleId + ':' + items[i].qi] = true;
+    for (k in ws5_repairOpen) {
+      if (Object.prototype.hasOwnProperty.call(ws5_repairOpen, k) && !now[k]) ws5_repairFixed++;
+    }
+    ws5_repairOpen = now;
+    ws5_repairItems = items;
+    host.innerHTML = '<h2 class="section-title">Repair queue</h2>' +
+      '<p class="section-sub">Missed quick checks, routed back to the exact question. ' +
+      'Answer one correctly on retry and it clears the queue.</p>' +
+      ILMastery.repairHTML(items, {
+        repairedCount: ws5_repairFixed,
+        linkFor: function () { return '#/study'; }
+      });
+    var as = host.querySelectorAll('.il-repair__go');
+    for (i = 0; i < as.length && i < items.length; i++) {
+      (function (a, it) {
+        a.addEventListener('click', function (ev) {
+          if (ev && ev.preventDefault) ev.preventDefault();
+          ws5_gotoQuestion(it.moduleId, it.qi);
+        });
+      })(as[i], items[i]);
+    }
+  } catch (e) {}
+}
+
+/* ---- patterns 3 + 5: Study-tab sections -------------------------------- */
+
+/* Refresh hook for il-diagnostic.js: Guided lives inside this IIFE, so the
+   standalone diagnostic module cannot reach it as a global. */
+try {
+  window.__ilWs5Refresh = function () {
+    try { if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh(); } catch (e) {}
+  };
+} catch (e_ws5_hook) {}
+
+try {
+  var _ws5_buildStudy = buildStudy;
+  buildStudy = function (root) {
+    _ws5_buildStudy(root);
+    try {
+      if (document.getElementById('il-ws5')) return;
+      var list = root.querySelector ? root.querySelector('#mod-list') : null;
+      if (!list) return;
+      var wrap = document.createElement('section');
+      wrap.id = 'il-ws5';
+      wrap.setAttribute('aria-label', 'Test-out diagnostic and repair queue');
+      var dslot = document.createElement('div');
+      dslot.id = 'il-diag';
+      var rslot = document.createElement('div');
+      rslot.id = 'il-repair';
+      wrap.appendChild(dslot);
+      wrap.appendChild(rslot);
+      list.parentNode.insertBefore(wrap, list);
+      /* Pattern 5: diagnostic-on-entry. Hidden when nothing is eligible. */
+      try {
+        if (typeof ILDiag !== 'undefined' && ILDiag) {
+          var has = ILDiag.mount(dslot, COURSE.courseId, COURSE.modules || [], {
+            onDone: function (passed) {
+              if (passed) {
+                try { if (typeof Guided !== 'undefined' && Guided.refresh) Guided.refresh(); } catch (e) {}
+                ws5_refreshRepair();
+              }
+            }
+          });
+          if (!has && dslot.parentNode) dslot.parentNode.removeChild(dslot);
+        }
+      } catch (e2) {}
+      /* Pattern 3: repair queue. */
+      ws5_repairOpen = {};
+      ws5_repairFixed = 0;
+      ws5_refreshRepair();
+    } catch (e3) {}
+  };
+} catch (e_ws5_study) {}
+
+/* ---- academy deep links: ?module=<id>&q=<qi> -----------------------------
+   Repair-queue links from academy.html land here. Boot's ?module= deep link
+   opens the module; this scrolls to the exact question once rendered. */
+try {
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('load', function () {
+      var modId = null, qi = -1;
+      try {
+        modId = queryParam('module');
+        var qv = queryParam('q');
+        if (qv != null && qv !== '') qi = parseInt(qv, 10);
+      } catch (e) {}
+      if (!modId || !(qi >= 0)) return;
+      var tries = 0;
+      (function seek() {
+        tries++;
+        var t = document.getElementById('quiz-' + modId + '-' + qi);
+        if (t) {
+          try {
+            t.scrollIntoView({ block: 'center', behavior: 'auto' });
+            t.classList.add('ilflash');
+            setTimeout(function () { try { t.classList.remove('ilflash'); } catch (e2) {} }, 1600);
+          } catch (e3) {}
+          return;
+        }
+        if (tries < 40) setTimeout(seek, 200);
+      })();
+    });
+  }
+} catch (e_ws5_deep) {}
 
 })();

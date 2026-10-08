@@ -49,19 +49,30 @@
 - /bootcamps/threatlocker-assessment-prep/ → 200
 - /university/course?course=il-29 → 200
 
-## New directives 2026-10-08 ~18:02–18:07 EDT (workers spawned)
+## New directives 2026-10-08 ~18:02–18:07 EDT — ALL COMPLETE
 
-### Footer blur audit (done by coordinator)
-- **Finding: NO CSS blur bug exists.** Audited all stylesheets: only `filter: blur(2px)` instances are on `.il-nebula` (intentional background decoration). No blur on footers, headers, text, or logos anywhere. The blur in his photo was likely camera focus, not a code bug.
-- Headers/chrome also checked — same result, no blur bugs.
+### Footer blur audit (coordinator)
+- **Finding: NO CSS blur bug exists.** Only `filter: blur(2px)` instances are on `.il-nebula` (intentional background decoration). No blur on footers/headers/text/logos. Headers/chrome also clean.
 
-### Workers running
-1. **Footer standardization** — replacing all footers with canonical centered layout (logo, INTERSTITIUMLABS.DEV, SCIENTIA OMNIA VINCIT, CREATED BY INTERSTITIUM LABS, nav rows, language selector).
-2. **Animations** — IntersectionObserver-gated, prefers-reduced-motion respected, performance-disciplined.
-3. **Student resources** — cheat sheets, drill packs, glossaries, verified external refs, FAQ per course.
-4. **Progress tracking** — canonical IL-01→IL-29 sequence, localStorage progress, "Continue where you left off", cross-course flow.
+### 1. Footer standardization — DONE (worker, committed e6047fc)
+- 174 pages: 131 footers replaced, 43 pages had footer added.
+- Canonical centered layout live (verified in homepage HTML).
 
-After all complete: commit → deploy → re-crawl → verify → report.
+### 2. Animations — DONE (worker)
+- IntersectionObserver-gated reveals, module transitions, animated explainers.
+- prefers-reduced-motion respected, performance-disciplined.
+
+### 3. Student resources — DONE (worker)
+- 1,031 new resource items across all 29 courses (cheat sheets, drill packs, glossaries, verified external refs, FAQ).
+
+### 4. Progress tracking — DONE (worker)
+- `docs/university/data/curriculum-sequence.json` (IL-01→IL-29 master order).
+- `docs/university/js/il-progress.js` (localStorage `il-progress-v1`, mark-complete, progress bars, "Continue where you left off", cross-course "Next up").
+- Works for free + gated courses; paywall/dark mode/Noah/checkout untouched.
+
+### Final deploy + verification (2026-10-08 ~19:10 EDT)
+- Committed, deployed solitary-sound-015a (2026-10-08T23:09:49Z).
+- Live: homepage 200 + canonical footer, course player 200, /devops-superlab 301, /bootcamps/tl-interview/ 200.
 
 ## Completed — story supplements (worker done ~17:35 EDT)
 - 104 "The story behind X" narrative supplements across all 29 courses (3.6 avg/course).

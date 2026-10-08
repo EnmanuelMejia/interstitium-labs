@@ -43,6 +43,10 @@
       </dl>
       <h2 style="margin-top:2.2rem">Paths in this academy</h2>
       <div class="grid grid-3" id="acad-paths" style="margin-top:1.2rem"></div>
+      <h2 style="margin-top:2.4rem">Mastery</h2>
+      <div id="acad-mastery" aria-live="polite"></div>
+      <h2 style="margin-top:2.4rem">Repair queue</h2>
+      <div id="acad-repair" aria-live="polite"></div>
     </div>
   </section>
 </main>
@@ -51,6 +55,8 @@
 
 <script src="js/app.js"></script>
 <script src="js/il-progress.js"></script>
+<script src="js/il-guided.js"></script>
+<script src="js/il-mastery.js"></script>
 <script>
 (function () {
   'use strict';
@@ -138,6 +144,8 @@
           var st = ILProgress.courseStats(entry.courseId, entry.moduleCount);
           pHost.innerHTML = '<div class="ilprog-cardbar">' +
             ILProgress.progressBarHTML(st, { label: entry.code + ' · ' + st.done + ' of ' + st.total + ' modules · ' + st.pct + '%' }) +
+            /* 2026-10-08 (WORKSTREAM 2): per-course guided mastery. */
+            (window.ILGuided ? ILGuided.masteryLineHTML(entry.courseId, entry.moduleCount) : '') +
             '</div>';
         });
       }
@@ -165,6 +173,87 @@
         box.appendChild(c);
       });
     }
+
+    /* 2026-10-08 (WORKSTREAM 5): skill-mastery dashboard + exam readiness
+       (brief §5/#1) and repair queue (brief §4/#8). Demonstrated skill from
+       il-guided-v1 replaces "% watched". All localStorage reads are
+       same-device; nothing here touches entitlement or the paywall. */
+    (function renderMastery() {
+      var mHost = document.getElementById('acad-mastery');
+      var rHost = document.getElementById('acad-repair');
+      if (!mHost || !window.ILMastery) return;
+      var slug = COURSE_SLUGS[a.code];
+      if (!slug) {
+        mHost.innerHTML = '<p class="muted">No course data for this academy yet.</p>';
+        return;
+      }
+      mHost.innerHTML = '<p class="muted">Loading mastery data…</p>';
+      if (!window.__ilCertIndex) {
+        window.__ilCertIndex = fetch('data/cert-index.json', { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+      fetch('data/courses/' + slug + '.json', { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (d) {
+          window.__ilCertIndex.then(function (idx) {
+            try { paintMastery(d, idx || { certs: {} }); }
+            catch (e) { mHost.innerHTML = '<p class="muted">Mastery data unavailable.</p>'; }
+          });
+        })
+        .catch(function () { mHost.innerHTML = '<p class="muted">Mastery data unavailable.</p>'; });
+
+      function paintMastery(d, idx) {
+        var courseId = d.courseId, modules = d.modules || [];
+        var html = '<p class="section-sub" style="margin-top:0">Demonstrated skill per module — ' +
+          'green means mastered (≥70% quick-check gate), not watch time.</p>';
+        html += ILMastery.heatHTML(courseId, modules, {
+          linkFor: function (cell) {
+            return 'course.html?course=' + encodeURIComponent(slug) +
+              '&module=' + encodeURIComponent(cell.id);
+          }
+        });
+        /* Certification tracks: certifications[] (IL-01–19) + certGates[]
+           (IL-24–29). IL-20/21/22/23 map to nothing — shown honestly. */
+        var certs = [];
+        (d.certifications || []).forEach(function (c) {
+          if (c && c.name && !ILMastery.isUnmappedCert(c.name, c.issuer))
+            certs.push({ name: c.name, issuer: c.issuer });
+        });
+        (d.certGates || []).forEach(function (gt) {
+          if (gt && gt.cert) {
+            var e = idx.certs && idx.certs[gt.cert];
+            certs.push({ name: gt.cert, issuer: e ? e.issuer : 'Various' });
+          }
+        });
+        var seen = {}, uniq = [];
+        certs.forEach(function (c) { if (!seen[c.name]) { seen[c.name] = 1; uniq.push(c); } });
+        html += '<h3 style="margin-top:1.6rem">Exam readiness</h3>';
+        if (!uniq.length) {
+          html += '<div class="il-cert__none"><b>No mapped certification.</b> ' +
+            'This academy confers understanding, not credentials — mastery is tracked per module above.</div>';
+        } else {
+          uniq.forEach(function (c) {
+            var rd = ILMastery.readinessFor(c.name, idx);
+            html += rd ? ILMastery.readinessHTML(rd)
+              : '<div class="il-cert__none">' + ILMastery.esc(c.name) +
+                ' — readiness data unavailable.</div>';
+          });
+        }
+        mHost.innerHTML = html;
+        if (rHost) {
+          var items = ILMastery.repairItems(courseId, modules);
+          rHost.innerHTML = '<p class="section-sub" style="margin-top:0">Missed quick checks in this ' +
+            'academy\'s course — one tap back to the exact question.</p>' +
+            ILMastery.repairHTML(items, {
+              linkFor: function (it) {
+                return 'course.html?course=' + encodeURIComponent(slug) +
+                  '&module=' + encodeURIComponent(it.moduleId) + '&q=' + it.qi;
+              }
+            });
+        }
+      }
+    })();
   }
   IL.renderPage = render;
   IL.onCatalog(render);

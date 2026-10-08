@@ -23,6 +23,7 @@
 <meta name="theme-color" content="#06080c">
 <link rel="stylesheet" href="css/il.css">
 <link rel="stylesheet" href="css/il-progress.css">
+<link rel="stylesheet" href="css/il-stories.css">
 </head>
 <body>
 <noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
@@ -104,6 +105,16 @@
   </section>
 
 
+  <section class="block" id="stories" aria-labelledby="stories-h">
+    <div class="wrap">
+      <p class="eyebrow">Stories</p>
+      <h2 id="stories-h">The story behind the curriculum</h2>
+      <p class="lede">104 narrative supplements, one human story per module across all 29 courses — the history that made the technology. A new one is featured every day.</p>
+      <div id="il-sotd-slot" aria-live="polite"></div>
+      <div id="il-stories-browser" style="margin-top:2rem"></div>
+    </div>
+  </section>
+
   <section class="block" id="noah" aria-labelledby="noah-h">
     <div class="wrap">
       <p class="eyebrow">Noah Live Assist</p>
@@ -144,11 +155,24 @@
 
 <script src="js/app.js"></script>
 <script src="js/il-progress.js"></script>
+<script src="js/il-stories.js"></script>
 <script src="js/noah.js"></script>
 <script src="js/hero.js"></script>
 <script>
 (function () {
   'use strict';
+
+  /* 2026-10-08 (WORKSTREAM 1): Stories section — story of the day +
+     cross-course browser. Gated-course stories show title + lock only. */
+  try {
+    if (window.ILStories) {
+      var sotd = document.getElementById('il-sotd-slot');
+      var browser = document.getElementById('il-stories-browser');
+      if (sotd) window.ILStories.renderStoryOfTheDay(sotd);
+      if (browser) window.ILStories.renderCatalogStories(browser);
+    }
+  } catch (e) {}
+
   IL.hero.init();
 
   /* hero scroll cue: dismiss on first scroll */

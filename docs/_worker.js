@@ -374,8 +374,14 @@ function isGatedSlug(slug) {
 }
 
 function slugFromCourseJsonPath(path) {
-  var m = /^\/university\/data\/courses\/([A-Za-z0-9-]+)\.json$/.exec(String(path || ""));
-  return m ? m[1] : null;
+  var p = String(path || "");
+  var m = /^\/university\/data\/courses\/([A-Za-z0-9-]+)\.json$/.exec(p);
+  if (m) return m[1];
+  /* 2026-10-08 (WORKSTREAM 1): gate story-supplement JSONs the same as course
+     JSONs — a gated course's story text must not be fetchable by direct URL.
+     stories/_index.json stays public (titles + module linkage only). */
+  var s = /^\/university\/data\/courses\/stories\/([A-Za-z0-9-]+)-stories\.json$/.exec(p);
+  return s ? s[1] : null;
 }
 
 /* Mirror of payment-routes.js verifyEntitlement (see note above). */
