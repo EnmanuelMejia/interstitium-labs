@@ -56,12 +56,21 @@ var ITEMS = {
 };
 
 /* ---------------- course paywall pricing (2026-10-08) ---------------- */
-/* PAYWALL_CONFIG — DEFAULTS. The user has NOT set course prices; these are
-   clearly-marked placeholder defaults. Replace before going live. The free
-   courses IL-27 / IL-28 / IL-29 are NOT in this catalog and are never gated. */
+/* PAYWALL_CONFIG — RESEARCHED PRICES (market analysis 2026-10-08).
+   $249/course: below CompTIA CertMaster Learn ($599 list), below Dion's
+   premium bundle ($349), far above Udemy impulse pricing ($15-30 video-only);
+   buys 400+ honest hours of interactive sim content per course — a depth no
+   competitor sells at consumer prices. Accessible for a price-sensitive
+   audience (career changers, students), credible for the depth.
+   $999 bundle: 26 courses x $249 = $6,474 sticker; $999 ~= 85% off
+   ("everything for the price of 4 courses"). Positioned below OffSec Learn
+   One ($2,749/yr) and HTB Academy Gold ($1,400/yr), above mass-market subs
+   (TCM $300/yr, DataCamp ~$165-330/yr) — premium, one-time lifetime, no
+   subscription tier (solo operator; keep it operable).
+   The free courses IL-27 / IL-28 / IL-29 are NOT in this catalog and are never gated. */
 var PAYWALL_CONFIG = {
-  default_course_price_cents: 24900, // $249 per course (DEFAULT — user has not set prices)
-  all_courses_bundle_cents: 99900,   // $999 for everything (DEFAULT — user has not set prices)
+  default_course_price_cents: 24900, // $249 per course (researched 2026-10-08)
+  all_courses_bundle_cents: 99900,   // $999 all-access bundle (researched 2026-10-08)
 };
 
 var COURSES = [

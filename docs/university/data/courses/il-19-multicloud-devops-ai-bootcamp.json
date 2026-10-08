@@ -403,7 +403,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Add another Availability Zone.",
+     "Add a second region.",
+     "Use a CloudFront edge location to cache the product images near the shopper.",
+     "Move the database to the edge."
+    ],
+    "explain": "Edge locations cache content close to users for latency; Availability Zones provide resilience within a region, not last-mile speed. Shared responsibility: AWS secures the cloud, you secure what is in it.",
+    "id": "AWS-01-mock",
+    "q": "Panel question: a shopper in Atlanta loads your e-commerce site hosted in us-east-1. Which AWS construct makes the product images load fastest for that shopper?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-02",
@@ -687,7 +700,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Create an IAM user and store its access keys in the function code.",
+     "Create a role with an S3-read policy and let the function assume it: no stored credentials, least privilege scoped to the bucket.",
+     "Attach the AdministratorAccess managed policy to the Lambda execution role.",
+     "Disable IAM for the function and use bucket policies only."
+    ],
+    "explain": "Workloads get roles, not users with stored keys. The role carries a scoped S3-read policy, following least privilege, tightened iteratively with Access Analyzer findings.",
+    "id": "AWS-02-mock",
+    "q": "On the job: a Lambda function needs to read objects from one S3 bucket. What is the correct identity pattern?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-03",
@@ -972,7 +998,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "On-Demand, for simplicity.",
+     "3-year Reserved Instances.",
+     "Spot: the job is interruptible and retryable, and Spot is the cheapest option for that shape.",
+     "Dedicated Hosts for compliance."
+    ],
+    "explain": "Spot fits interruptible, retryable batch work at the lowest price. Reserved suits steady-state, On-Demand suits spiky or short-lived needs, per the module's purchase-option framework.",
+    "id": "AWS-03-mock",
+    "q": "Panel question: a workload needs 64 vCPUs for a 3-hour nightly batch job that can be interrupted and retried. Most cost-effective purchase option?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-04",
@@ -1257,7 +1296,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "The ALB keeps sending traffic until the instance is terminated.",
+     "The ALB stops routing new requests to the target after the unhealthy threshold is breached: health checks gate the target group.",
+     "The ALB restarts the instance automatically.",
+     "Nothing happens until CloudWatch alarms fire."
+    ],
+    "explain": "ALB health checks on the listener path decide target membership: after the unhealthy threshold, the target stops receiving new requests. Auto Scaling and CloudWatch complete the elasticity and observability loop.",
+    "id": "AWS-04-mock",
+    "q": "On the job: an ALB health check on /health starts failing for one target. What happens?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-05",
@@ -1542,7 +1594,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "They are the same thing with different names.",
+     "Management events log control-plane API calls (on by default); data events log data-plane access like S3 object reads and must be enabled: enable both with log integrity validation.",
+     "Data events replace management events.",
+     "Only data events matter for compliance."
+    ],
+    "explain": "CloudTrail management events capture control-plane API calls and are on by default; data events capture data-plane access and are opt-in. The module pairs this with Config drift detection, WAF, Inspector triage, and Trusted Advisor checks.",
+    "id": "AWS-05-mock",
+    "q": "Panel question: CloudTrail management events versus data events. Which statement is correct?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-06",
@@ -1827,7 +1892,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Unblended costs: they show the real invoice.",
+     "Amortized costs: upfront Reserved Instance payments are spread across the term, so trends reflect true consumption.",
+     "Blended costs always.",
+     "List price, ignoring discounts."
+    ],
+    "explain": "Amortized costs spread upfront RI payments across the term, which is how you analyze trends honestly. The module pairs this with tagging enforced by Tag Policies, budgets with thresholds, and Cost Anomaly Detection.",
+    "id": "AWS-06-mock",
+    "q": "On the job: in Cost Explorer, how should you analyze spending trends when Reserved Instances were purchased upfront?",
+    "type": "choice"
+   }
   },
   {
    "id": "AWS-07",
@@ -2107,7 +2185,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "It is the most valuable data.",
+     "It is immutable history: it can move before anything depends on it, de-risking volume early.",
+     "It is the smallest dataset.",
+     "Regulations require it first."
+    ],
+    "explain": "The reference plan migrates immutable historical POS data in Wave 0 because nothing depends on it yet: volume risk is retired early while the system still runs on the old platform.",
+    "id": "AWS-07-mock",
+    "q": "Panel question: in the Meridian Markets migration, why does historical POS data move in Wave 0?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-01",
@@ -2391,7 +2482,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Broad network access.",
+     "Resource pooling.",
+     "Rapid elasticity: scaling from 2 to 200 VMs and back without contacting Microsoft.",
+     "Measured service."
+    ],
+    "explain": "Rapid elasticity is the NIST characteristic shown: scale out and back on demand, self-service. The module pairs this with IaaS/PaaS/SaaS distinctions, shared responsibility, regions/zones/region pairs, and Arc for hybrid.",
+    "id": "AZ-01-mock",
+    "q": "Panel question: a customer scales from 2 VMs to 200 during a spike and back down, all self-service. Which NIST essential characteristic is demonstrated?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-02",
@@ -2675,7 +2779,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A resource group.",
+     "Exactly one Microsoft Entra tenant: the identity boundary a subscription trusts.",
+     "A management group.",
+     "An availability zone."
+    ],
+    "explain": "A subscription trusts exactly one Entra tenant: the identity boundary. RBAC, Conditional Access, PIM just-in-time access, and managed identities all operate inside that boundary.",
+    "id": "AZ-02-mock",
+    "q": "On the job: an Azure subscription trusts which identity boundary?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-03",
@@ -2959,7 +3076,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "N-series GPU VMs.",
+     "E-series memory-optimized.",
+     "B-series burstable: the default for low-traffic dev/test labs.",
+     "F-series compute-optimized."
+    ],
+    "explain": "B-series burstable is the module's default for low-traffic dev/test. VMSS handles autoscale fleets, ACI runs containers without orchestration, AKS is full Kubernetes.",
+    "id": "AZ-03-mock",
+    "q": "Panel question: which VM family is the best default for low-traffic dev/test labs?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-04",
@@ -3243,7 +3373,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Peering requires identical address spaces.",
+     "Azure cannot route between overlapping ranges: peering requires non-overlapping address space.",
+     "Peering is transitive, so overlap is fine.",
+     "Overlapping ranges peer automatically."
+    ],
+    "explain": "VNet peering requires non-overlapping address spaces because Azure cannot route between overlapping ranges. Hybrid choice is VPN Gateway vs ExpressRoute vs peering; Private Link keeps traffic private.",
+    "id": "AZ-04-mock",
+    "q": "On the job: two VNets with overlapping address spaces cannot be peered. Why?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-05",
@@ -3527,7 +3670,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Block blobs.",
+     "Append blobs.",
+     "Page blobs: 512-byte random read/write pages back VM disks.",
+     "Archive blobs."
+    ],
+    "explain": "VM disks are page blobs: 512-byte random read/write pages. Blob/Files/Queues/Tables serve different shapes; tiers and redundancy (LRS/ZRS/GRS) trade cost against durability.",
+    "id": "AZ-05-mock",
+    "q": "Panel question: VM disks on Azure are backed by which blob type?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-06",
@@ -3811,7 +3967,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A dedicated VM running SQL Server.",
+     "A management container for databases: namespace, firewall rules, admin login: not a machine.",
+     "An availability zone.",
+     "A billing meter."
+    ],
+    "explain": "The logical server is a management container: namespace, firewall rules, admin login: not a machine. Cosmos DB needs deliberate partition-key and consistency choices.",
+    "id": "AZ-06-mock",
+    "q": "On the job: what is the Azure SQL logical server, really?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-07",
@@ -4095,7 +4264,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Event Hubs.",
+     "IoT Hub: device identity, device twins, and cloud-to-device messaging.",
+     "Storage Queues.",
+     "Azure Functions alone."
+    ],
+    "explain": "IoT Hub fits per-device auth, twins for remote configuration, and cloud-to-device commands. Event Hubs is the big-pipe telemetry stream; Functions and Logic Apps add event-driven logic.",
+    "id": "AZ-07-mock",
+    "q": "Panel question: a fleet of soil sensors needs per-device auth, remote configuration, and commands back to devices. Correct service?",
+    "type": "choice"
+   }
   },
   {
    "id": "AZ-08",
@@ -4377,7 +4559,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "It is the cheapest OCI region.",
+     "Geographic proximity for low latency, plus availability of private cross-cloud connectivity: the pairing rationale for the healthcare federation.",
+     "It has the most availability domains.",
+     "Regulations mandate it."
+    ],
+    "explain": "The secondary sits in OCI Ashburn paired with Azure East US for geographic proximity (low latency) and private Oracle-Azure interconnect availability: the federation's latency and failover rationale.",
+    "id": "AZ-08-mock",
+    "q": "Panel question: why does the Beacon Ridge federation pair OCI Ashburn with Azure East US?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-01",
@@ -4661,7 +4856,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "One zone and multiple edge locations.",
+     "Three or more independent zones with separate power, cooling, and networking.",
+     "Multiple organizations sharing one billing account.",
+     "A single data center building."
+    ],
+    "explain": "A GCP region holds three or more independent zones with separate power, cooling, and networking. Projects are the unit of ownership, billing, and access under folders and the organization.",
+    "id": "GCP-01-mock",
+    "q": "Panel question: what does a GCP region contain?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-02",
@@ -4945,7 +5153,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Resources run and billing is deferred 30 days.",
+     "Billable resources cannot be created or run until a billing account is linked.",
+     "Only free-tier resources are blocked.",
+     "The project is deleted."
+    ],
+    "explain": "No billing account, no billable resources: the guardrails-before-spend discipline. Budgets with alert thresholds and billing export to BigQuery complete the governance loop.",
+    "id": "GCP-02-mock",
+    "q": "On the job: a project needs to run billable resources but has no billing account linked. What happens?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-03",
@@ -5229,7 +5450,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Regional: one per region, peered together.",
+     "Global: a single network spanning all regions, with subnets as the regional unit.",
+     "Zonal: rebuilt in each zone.",
+     "Created automatically per project."
+    ],
+    "explain": "GCP VPCs are global resources: one network spanning regions, subnets as the regional unit. Peering is non-transitive, unlike the transitive assumptions people bring from other clouds.",
+    "id": "GCP-03-mock",
+    "q": "Panel question: is a GCP VPC regional or global?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-04",
@@ -5513,7 +5747,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "E2 general-purpose.",
+     "M3 memory-optimized.",
+     "C2/C2D compute-optimized: maximum per-core CPU performance.",
+     "T2D."
+    ],
+    "explain": "C2/C2D is the compute-optimized family for maximum per-core performance. The workload framework then decides between GCE, GKE, Cloud Run, and Cloud Functions.",
+    "id": "GCP-04-mock",
+    "q": "On the job: a workload needs maximum per-core CPU performance for a physics simulation. Best machine family?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-05",
@@ -5797,7 +6044,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Standard plus versioning.",
+     "Nearline with a 1-year lifecycle delete.",
+     "Archive plus a 7-year retention policy: cheapest for never-read data, with the retention lock enforcing compliance.",
+     "Coldline with no policy."
+    ],
+    "explain": "Archive is the cheapest class for essentially-never-read data; a 7-year retention policy enforces the legal hold. Minimum-duration economics decide between Nearline, Coldline, and Archive.",
+    "id": "GCP-05-mock",
+    "q": "Panel question: 500 TB of legal archives, essentially never read, 7-year retention required. Best class and control?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-06",
@@ -6081,7 +6341,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Three separate regional load balancers.",
+     "A global external Application LB with a URL map routing /api/ to a serverless NEG, / to the instance group, and /static/ to the bucket.",
+     "Three Cloud CDNs.",
+     "One TCP proxy per backend."
+    ],
+    "explain": "The global external Application LB with a URL map is the single-entry answer: path routing to a serverless NEG, an instance group, and a bucket backend. Anycast VIPs mean no pre-warming.",
+    "id": "GCP-06-mock",
+    "q": "On the job: a public HTTPS site needs /api/ to Cloud Run, / to a MIG, /static/ to a bucket. What do you build?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-07",
@@ -6365,7 +6638,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Spanner: planet-scale from day one.",
+     "Cloud SQL for PostgreSQL with regional HA: matches the workload; start boring, migrate on evidence.",
+     "Bigtable.",
+     "BigQuery as the primary store."
+    ],
+    "explain": "2M transactions a day in one region is a standard relational workload: Cloud SQL for PostgreSQL with HA. Spanner is for planet-scale consistency needs; the discipline is start boring, migrate on evidence.",
+    "id": "GCP-07-mock",
+    "q": "Panel question: 2M transactions per day, single region, standard Postgres app. Best database choice?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-08",
@@ -6647,7 +6933,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Sustained-use discount, up to about 30 percent, automatic.",
+     "3-year resource-based committed-use discount, up to about 57 percent: the deepest reliable discount for certain 24/7 usage.",
+     "Spot VMs.",
+     "Deleting the VMs nightly."
+    ],
+    "explain": "For certain 24/7 usage over 3 years, the 3-year resource-based committed-use discount (up to about 57 percent) beats sustained-use (about 30 percent). Spot is cheaper but interruptible: not reliable for 24/7.",
+    "id": "GCP-08-mock",
+    "q": "On the job: deepest reliable discount for certain 24/7 usage over 3 years?",
+    "type": "choice"
+   }
   },
   {
    "id": "GCP-09",
@@ -6929,7 +7228,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Databases are smaller.",
+     "Applications depend on data: the dependency-order rule says nothing migrates before what it depends on.",
+     "Databases are easier to back up.",
+     "It is arbitrary."
+    ],
+    "explain": "Wave order follows dependencies: databases move in Wave 2 before app tiers because applications depend on data. The capstone artifacts are the runbook, the architecture decision records, and the cost review.",
+    "id": "GCP-09-mock",
+    "q": "Panel question: in the Lumina migration, why do databases move before the application tiers?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-01",
@@ -7213,7 +7525,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A region contains fault domains, which contain availability domains.",
+     "A region contains availability domains, which contain fault domains.",
+     "Fault domains contain regions.",
+     "Availability domains contain regions."
+    ],
+    "explain": "Region contains availability domains, which contain fault domains: three levels of isolation. Tenancy and compartments organize ownership; the Always Free tier needs guardrails to stay free.",
+    "id": "OCI-01-mock",
+    "q": "Panel question: what is the relationship between OCI regions, availability domains, and fault domains?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-02",
@@ -7497,7 +7822,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Permissions should attach directly to users for precision.",
+     "Users authenticate; permissions attach only to groups; users gain access via membership.",
+     "Groups authenticate on behalf of users.",
+     "Policies attach to compartments only."
+    ],
+    "explain": "Users authenticate; permissions attach only to groups; users gain access through membership. Least privilege uses the verb ladder (inspect, read, use, manage); dynamic groups cover workloads without stored credentials.",
+    "id": "OCI-02-mock",
+    "q": "On the job: which statement about OCI groups and users is correct?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-03",
@@ -7781,7 +8119,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Tied to a single availability domain: one per AD.",
+     "Regional: a subnet's addresses can be used in any AD in the region.",
+     "Global across all regions.",
+     "Limited to a single fault domain."
+    ],
+    "explain": "OCI subnets are regional: addresses usable in any AD in the region. Security lists versus NSGs handle stateful rules; LPGs and DRGs connect VCNs; FastConnect versus IPSec VPN is the hybrid choice.",
+    "id": "OCI-03-mock",
+    "q": "Panel question: in OCI, are subnets tied to an availability domain?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-04",
@@ -8066,7 +8417,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A bursty stateless API.",
+     "A workload needing whole-server performance, physical-core licensing, or strict host isolation.",
+     "A nightly batch script.",
+     "An event-driven function."
+    ],
+    "explain": "Bare metal is justified by whole-server performance, physical-core licensing, or strict host isolation. Everything else fits VM or Flex shapes; Container Instances and Functions cover lighter shapes.",
+    "id": "OCI-04-mock",
+    "q": "On the job: which workload most justifies bare metal over VMs?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-05",
@@ -8351,7 +8715,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Object Storage, for unlimited scale.",
+     "Block Volumes: the database needs OS-visible disks with high random IOPS.",
+     "File Storage, for easy sharing.",
+     "The boot volume."
+    ],
+    "explain": "Database data files need OS-visible block devices with high random IOPS: Block Volumes. Object Storage fits the document lake; pre-authenticated requests share objects without credentials.",
+    "id": "OCI-05-mock",
+    "q": "Panel question: where should Beaconline's Oracle database data files live?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-06",
@@ -8636,7 +9013,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "ADB Data Warehouse.",
+     "ADB Transaction Processing: built for thousands of small concurrent reads and writes.",
+     "MySQL HeatWave.",
+     "Object Storage."
+    ],
+    "explain": "ADB Transaction Processing fits the tracking API's thousands of small concurrent reads and writes. Data Warehouse fits analytics; the choice is justified in writing per the module.",
+    "id": "OCI-06-mock",
+    "q": "On the job: Beaconline's tracking API does thousands of small concurrent reads and writes. Which database?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-07",
@@ -8921,7 +9311,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Lowest severity first, to clear the queue.",
+     "Exposed data, then identity, then network, then hygiene: severity guides, category sets blast radius.",
+     "Alphabetical by resource name.",
+     "Newest findings first."
+    ],
+    "explain": "Cloud Guard triage runs exposed data first, then identity, network, hygiene: severity guides priority while category sets blast radius. Security Zones and Vault key rotation complete the baseline.",
+    "id": "OCI-07-mock",
+    "q": "Panel question: in Cloud Guard, what is the correct finding-triage order?",
+    "type": "choice"
+   }
   },
   {
    "id": "OCI-08",
@@ -9203,7 +9606,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Terraform requires it.",
+     "Independent apply per layer limits blast radius, and each layer's outputs feed the next: foundation, network, compute, data, security.",
+     "It is faster in wall-clock time.",
+     "One root cannot hold that many resources."
+    ],
+    "explain": "Layered landing-zone repos limit blast radius per apply, with each layer's outputs feeding the next. The capstone is Terraform-driven with Cloud Guard, Security Zones, budgets, and tagging applied.",
+    "id": "OCI-08-mock",
+    "q": "Panel question: why split the landing-zone repo into layers instead of one root?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-01",
@@ -9488,7 +9904,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A job title for engineers who manage Jenkins servers.",
+     "The combination of cultural practices and engineering automation that lets teams deliver software reliably: CALMS in practice.",
+     "A list of DevOps tools.",
+     "A synonym for Agile."
+    ],
+    "explain": "DevOps is cultural practices plus engineering automation for reliable delivery, not a title or a tool list. CALMS (Culture, Automation, Lean, Measurement, Sharing) is the working definition; the CivicWorks blueprint is the living design doc.",
+    "id": "DO-01-mock",
+    "q": "Panel question: what is DevOps, as this course defines it?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-02",
@@ -9773,7 +10202,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Because Git is easier to learn than Terraform.",
+     "Because every DevOps practice (IaC, CI/CD, rollback) assumes state is recorded, attributable, and restorable: version control is the foundation.",
+     "Because GitHub is popular.",
+     "Because the course author likes Git."
+    ],
+    "explain": "Version control comes first because IaC, CI/CD, and rollback all assume recorded, attributable, restorable state. Branching strategy (trunk-based vs GitFlow vs GitHub Flow) and PR discipline build on that.",
+    "id": "DO-02-mock",
+    "q": "On the job: why is version control placed before any cloud tooling in this track?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-03",
@@ -10058,7 +10500,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Imperative is faster; declarative is slower.",
+     "Imperative describes steps; declarative describes the desired end state and the tool converges to it: with state tracking drift.",
+     "They are the same paradigm.",
+     "Declarative means writing YAML."
+    ],
+    "explain": "Declarative tooling describes the desired end state and converges to it; state is precious (remote with locking), modules carry clean contracts, and plan review is the discipline.",
+    "id": "DO-03-mock",
+    "q": "Panel question: what is the fundamental difference between imperative and declarative infrastructure tooling?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-04",
@@ -10343,7 +10798,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Terraform configures software; Ansible creates VPCs.",
+     "Terraform provisions cloud resources (the boxes); Ansible configures what is inside them: idempotent tasks that converge, in reusable roles, with Vault for secrets.",
+     "They are interchangeable.",
+     "Ansible replaces Terraform."
+    ],
+    "explain": "Terraform provisions the resources; Ansible configures their insides with idempotent, converging tasks in roles. Static and dynamic inventories target the fleet; Vault holds secrets.",
+    "id": "DO-04-mock",
+    "q": "On the job: what is the division of labor between Terraform and Ansible in this track?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-05",
@@ -10628,7 +11096,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Containers are just faster VMs.",
+     "VMs virtualize hardware with a kernel each; containers share the host kernel, isolated by namespaces and cgroups: no second kernel.",
+     "There is no real difference.",
+     "Containers cannot run in production."
+    ],
+    "explain": "VMs virtualize hardware with their own kernels; containers share the host kernel under namespace/cgroup isolation. Production Dockerfiles use multi-stage builds, minimal bases, non-root users, and health checks.",
+    "id": "DO-05-mock",
+    "q": "Panel question: what is the actual difference between a container and a VM?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-06",
@@ -10913,7 +11394,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "The kubelet, comparing logs to expected output.",
+     "The ReplicaSet controller via the control plane: actual state versus desired state, in the declarative reconciliation loop.",
+     "etcd, comparing etcd keys.",
+     "The scheduler, comparing node capacity."
+    ],
+    "explain": "The control plane's controllers reconcile actual state to desired state: a crashed pod is noticed and replaced by the ReplicaSet controller. EKS, Helm, and HPA build on that loop.",
+    "id": "DO-06-mock",
+    "q": "On the job: which Kubernetes component notices a crashed pod and creates a replacement, and what is it comparing?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-07",
@@ -11198,7 +11692,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "They are synonyms.",
+     "Delivery means every change could be released, with a human gate before production; deployment means every change is released automatically.",
+     "Delivery is slower than deployment.",
+     "Deployment requires Jenkins."
+    ],
+    "explain": "Continuous delivery: every change could be released (human gate before prod). Continuous deployment: every change is released automatically. DORA metrics measure the pipeline either way.",
+    "id": "DO-07-mock",
+    "q": "Panel question: what is the difference between continuous delivery and continuous deployment?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-08",
@@ -11483,7 +11990,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "They are synonyms.",
+     "Monitoring watches known unknowns with dashboards and alarms on chosen metrics; observability is the property that lets you investigate unknown unknowns: metrics, logs, and traces together.",
+     "Monitoring is newer.",
+     "Observability replaces monitoring."
+    ],
+    "explain": "Monitoring watches known-unknowns; observability enables investigation of unknown-unknowns via the three pillars. SLIs, SLOs, and error budgets turn that into operating targets.",
+    "id": "DO-08-mock",
+    "q": "On the job: what is the difference between monitoring and observability?",
+    "type": "choice"
+   }
   },
   {
    "id": "DO-09",
@@ -11768,7 +12288,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Designing the incident command structure.",
+     "Manually cleaning up old EBS snapshots every Friday: manual, repetitive, automatable, and scaling with the system.",
+     "Deciding the product roadmap.",
+     "Writing a design doc."
+    ],
+    "explain": "Toil is manual, repetitive, automatable work that scales with the system: the Friday snapshot cleanup. Boto3 paginators, waiters, and idempotent Lambda handlers are the automation answer.",
+    "id": "DO-09-mock",
+    "q": "Panel question: which of these tasks is toil, by the SRE definition?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-01",
@@ -12053,7 +12586,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Retrieves facts from its training database.",
+     "Predicts the most likely next token, repeatedly.",
+     "Searches the internet for relevant documents.",
+     "Executes code to find answers."
+    ],
+    "explain": "Inference is repeated next-token prediction: the practitioner's mental model. Responsible AI applies from day one, including FieldMedic's hard boundary: assist, never diagnose, always escalate.",
+    "id": "AI-01-mock",
+    "q": "Panel question: during inference, what does a large language model fundamentally do?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-02",
@@ -12337,7 +12883,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Role framing.",
+     "Few-shot examples: input-output pairs teach format better than description.",
+     "Negative constraints.",
+     "Chain-of-thought control."
+    ],
+    "explain": "Few-shot examples give input-output pairs that teach format better than description. Production prompting adds role framing, output schemas, injection defenses, and scoring prompt variants on evidence.",
+    "id": "AI-02-mock",
+    "q": "On the job: which prompt pattern teaches the model a format most reliably?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-03",
@@ -12621,7 +13180,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Compute, storage, networking.",
+     "Foundation-model APIs, applied AI services, and ML platforms.",
+     "Training, inference, deployment.",
+     "IaaS, PaaS, SaaS."
+    ],
+    "explain": "Every cloud's AI portfolio layers as foundation-model APIs, applied AI services, and ML platforms. The decision framework weighs capability, control, cost, and compliance, with data-residency checked per choice.",
+    "id": "AI-03-mock",
+    "q": "Panel question: what are the three layers of every cloud's AI portfolio?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-04",
@@ -12906,7 +13478,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Create an IAM role for Bedrock.",
+     "Request and enable model access for the models you need: no inference call succeeds without it.",
+     "Deploy a SageMaker endpoint.",
+     "Purchase provisioned throughput."
+    ],
+    "explain": "Bedrock requires requesting/enabling model access before any inference call succeeds. JumpStart versus Bedrock is the fit decision; guardrails and cost controls wrap the intake slice.",
+    "id": "AI-04-mock",
+    "q": "On the job: what must you do in the Bedrock console before any inference call succeeds?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-05",
@@ -13191,7 +13776,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "The base model ID.",
+     "Your deployment name: the deployment pins the model version.",
+     "The resource group name.",
+     "The content filter ID."
+    ],
+    "explain": "Code calls the deployment name, which pins the model version. The knowledge slice pairs AI Search hybrid retrieval with grounded, cited answers and honest abstention.",
+    "id": "AI-05-mock",
+    "q": "On the job: in Azure OpenAI Service, what does your code call?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-06",
@@ -13476,7 +14074,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Compute, Storage, Network.",
+     "Model Garden, Vertex AI Studio, and platform services.",
+     "Training, Inference, Monitoring.",
+     "Console, SDK, API."
+    ],
+    "explain": "Vertex AI's neighborhoods are the Model Garden, Vertex AI Studio, and platform services. Visual classification keeps the never-diagnose boundary with confidence thresholds and human review.",
+    "id": "AI-06-mock",
+    "q": "Panel question: what are Vertex AI's three neighborhoods?",
+    "type": "choice"
+   }
   },
   {
    "id": "AI-07",
@@ -13761,7 +14372,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 309
+   "estimatedMinutes": 309,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Fragmented context.",
+     "Diluted meaning: oversized chunks retrieve for many queries and answer none precisely.",
+     "Slow embedding.",
+     "Index corruption."
+    ],
+    "explain": "Big chunks dilute meaning into mush: they retrieve for many queries and answer none precisely. Chunking strategy is justified with retrieval measurements; hybrid search, re-ranking, and faithfulness metrics complete the capstone.",
+    "id": "AI-07-mock",
+    "q": "On the job: what is the big-chunk failure mode in RAG?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-01",
@@ -14035,7 +14659,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "16.",
+     "14: a /28 has 16 addresses minus network and broadcast.",
+     "30.",
+     "8."
+    ],
+    "explain": "A /28 has 16 addresses; minus network and broadcast leaves 14 usable. Packet tracing (ping, traceroute, dig, curl -v) and private-versus-public ranges complete the networking foundation.",
+    "id": "CF-01-mock",
+    "q": "Panel question: a /28 subnet provides how many usable host addresses?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-02",
@@ -14309,7 +14946,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "rw-r--r--",
+     "rwxr-xr-x: owner full, group and others read and execute.",
+     "rwxrwxrwx",
+     "rwx------."
+    ],
+    "explain": "755 is rwxr-xr-x: owner read/write/execute, group and others read/execute. The survival kit pairs this with grep, sed, awk, pipes, ps, df, and SSH key login.",
+    "id": "CF-02-mock",
+    "q": "On the job: what does chmod 755 deploy.sh set?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-03",
@@ -14583,7 +15233,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "A backup of a single file.",
+     "A snapshot of the whole repository you can return to.",
+     "A GitHub account.",
+     "A merge conflict."
+    ],
+    "explain": "A commit is a snapshot of the whole repository you can return to: the basis for branches, merges, pull requests, and reading history from git log.",
+    "id": "CF-03-mock",
+    "q": "Panel question: what is a commit, really?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-04",
@@ -14857,7 +15520,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "IaaS.",
+     "PaaS.",
+     "SaaS: software delivered over the network, no infrastructure to manage.",
+     "On-premises software."
+    ],
+    "explain": "Gmail is SaaS: you consume the software, the provider runs it. Regions and zones, CapEx versus OpEx, shared responsibility, and billing alerts complete the cloud mental model.",
+    "id": "CF-04-mock",
+    "q": "On the job: Gmail is an example of which cloud service model?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-05",
@@ -15130,7 +15806,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "When order matters most.",
+     "When you need key-to-value lookup.",
+     "When storing a single value.",
+     "Never in cloud scripts."
+    ],
+    "explain": "Dicts give key-to-value lookup; lists preserve order. Cloud scripts parse JSON API responses into dicts and print them as tables.",
+    "id": "CF-05-mock",
+    "q": "Panel question: when do you reach for a dict instead of a list?",
+    "type": "choice"
+   }
   },
   {
    "id": "CF-06",
@@ -15404,7 +16093,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A password alone.",
+     "Password plus SMS code.",
+     "A hardware security key plus PIN: phishing-resistant MFA.",
+     "A password written on paper."
+    ],
+    "explain": "Hardware security key plus PIN is the strongest option listed: phishing-resistant. The module pairs this with least privilege, password managers, and scanning repos with gitleaks.",
+    "id": "CF-06-mock",
+    "q": "On the job: which authentication option is strongest?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-01",
@@ -15675,7 +16377,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "List every tool you used.",
+     "Translate projects into business outcomes with numbers.",
+     "Make the resume longer.",
+     "Hide employment gaps."
+    ],
+    "explain": "Project to impact to metric: translate projects into business outcomes with numbers. That formula powers the 90-day job-search operating system and honest salary-band positioning.",
+    "id": "CS-01-mock",
+    "q": "Panel question: what is the project-to-impact-to-metric formula for?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-02",
@@ -15946,7 +16661,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Photo, banner, name, location.",
+     "Headline, About, featured, skills: the four profile zones recruiters read.",
+     "Posts, likes, comments, shares.",
+     "Jobs, inbox, feed, ads."
+    ],
+    "explain": "The four zones are headline, About, featured, and skills: rebuilt with the headline formulas and About skeleton, plus build-in-public posts and networking scripts.",
+    "id": "CS-02-mock",
+    "q": "On the job: which four LinkedIn profile zones do you rebuild?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-03",
@@ -16217,7 +16945,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Duties plus tools plus years.",
+     "Action verb plus what you built plus outcome plus metric.",
+     "Adjectives plus buzzwords.",
+     "Job title plus company."
+    ],
+    "explain": "The bullet impact formula is action verb, what you built, outcome, metric: applied in ten before/after patterns, ATS-safe, tailored per posting with honest keyword mapping.",
+    "id": "CS-03-mock",
+    "q": "Panel question: what is the resume bullet impact formula?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-04",
@@ -16488,7 +17229,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Install, install, install.",
+     "Problem, architecture, run instructions, cost notes, lessons learned.",
+     "Bio, photo, hobbies.",
+     "Changelog only."
+    ],
+    "explain": "A portfolio-grade README runs problem, architecture, run instructions, cost notes, lessons learned: with pinned repos, architecture diagrams, demo GIFs, and cost notes.",
+    "id": "CS-04-mock",
+    "q": "On the job: what order does a portfolio-grade README follow?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-05",
@@ -16759,7 +17513,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Recruiter, technical, system design, behavioral: each stage filters for something different, and prep maps to stages.",
+     "All stages test the same thing.",
+     "Only the technical stage matters.",
+     "Stages are random."
+    ],
+    "explain": "Each interview stage filters for something different: recruiter, technical, system design, behavioral. Prep maps to stages: spaced repetition for technical, the 45-minute framework for system design, an eight-story STAR bank, and a negotiation script.",
+    "id": "CS-05-mock",
+    "q": "Panel question: why does interview prep differ by stage?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-06",
@@ -17030,7 +17797,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Apply, apply, apply.",
+     "Calibrate and launch; double down on what works; close and negotiate.",
+     "Rest, rest, rest.",
+     "Learn, learn, learn."
+    ],
+    "explain": "The 30-60-90 horizons are calibrate and launch, double down on what works, close and negotiate: balancing application volume with networking and portfolio leverage.",
+    "id": "CS-06-mock",
+    "q": "On the job: what are the three 30-day horizons of the hiring sprint?",
+    "type": "choice"
+   }
   },
   {
    "id": "CS-07",
@@ -17301,7 +18081,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Who, what, when.",
+     "Where are we, what is next, what do you need from me.",
+     "Why, why, why.",
+     "Nothing: updates are optional."
+    ],
+    "explain": "Every status update answers where are we, what is next, what do you need from me: clear to non-technical stakeholders, honest under incident pressure, with I-don't-know handled via a follow-up plan.",
+    "id": "CS-07-mock",
+    "q": "Panel question: what three questions does every status update answer?",
+    "type": "choice"
+   }
   },
   {
    "id": "CM-01",
@@ -17572,7 +18365,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Solutions Architect Professional.",
+     "AWS Certified Cloud Practitioner: the entry tier of the seven-cert cloud path.",
+     "CKA.",
+     "AZ-400."
+    ],
+    "explain": "The cloud path starts at AWS Certified Cloud Practitioner, the entry tier, sequenced up to the professional capstone. Exam-day discipline and verifying current exam codes on vendor sites are part of the protocol.",
+    "id": "CM-01-mock",
+    "q": "Panel question: what is the first certification on the cloud path?",
+    "type": "choice"
+   }
   },
   {
    "id": "CM-02",
@@ -17843,7 +18649,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 304
+   "estimatedMinutes": 304,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "DevOps Module 6.",
+     "DevOps Module 3 plus Mission 1: HCL syntax, state, modules, workflow commands.",
+     "AWS Module 1.",
+     "AI Module 2."
+    ],
+    "explain": "Terraform Associate prep is DevOps Module 3 plus Mission 1: HCL syntax, state, modules, workflow commands. Each exam maps to its prep modules, with a timed mock per exam.",
+    "id": "CM-02-mock",
+    "q": "On the job: what prepares the Terraform Associate exam in this bootcamp?",
+    "type": "choice"
+   }
   },
   {
    "id": "CM-03",
@@ -18114,7 +18933,20 @@
     "deliverable": "IaC source files, the failure-drill log with rollback timing, and a 1-page operations report. Zero lingering resources.",
     "checkpoint": "Everything created via code; budget alert was set first; rollback performed from code only; all resources destroyed afterwards."
    },
-   "estimatedMinutes": 288
+   "estimatedMinutes": 288,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "ML Engineer Associate.",
+     "AWS Certified AI Practitioner, covered by AI Modules 1 and 2.",
+     "Professional ML Engineer.",
+     "AI-102."
+    ],
+    "explain": "The AI path starts at AWS Certified AI Practitioner (AI Modules 1-2), sequenced to professional. The FieldMedic RAG capstone is the portfolio centerpiece, defended in a mock panel review.",
+    "id": "CM-03-mock",
+    "q": "Panel question: what is the entry certification on the AI path?",
+    "type": "choice"
+   }
   },
   {
    "id": "IL-19-PM-LOGIC",

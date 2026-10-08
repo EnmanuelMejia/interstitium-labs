@@ -387,7 +387,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Allow it — more tuning against more data always improves the final model.",
+     "Swap roles: use the test set as the new validation set and report the old validation score as final.",
+     "Stop: repeated tuning turns the test set into a second validation set and inflates the reported score — lock it and evaluate once, at the end.",
+     "Split the test set in half and tune on one half, reporting the other."
+    ],
+    "explain": "The module's core discipline: the moment you use test-set feedback to pick models, the test set becomes a second validation set and your 'final' number is optimistic. Touch it once, at the end.",
+    "id": "ml-in-practice--ml-workflow-mock",
+    "q": "Panel question: after a weak validation run, your teammate wants to tune hyperparameters against the test set “just one more round.” What is the correct call?",
+    "type": "choice"
+   }
   },
   {
    "id": "ml-in-practice--feature-engineering-practice",
@@ -658,7 +671,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Nothing — both are standard and safe done in any order.",
+     "The one-hot encoding only — target encoding before splitting is fine.",
+     "Two problems: target encoding before the split leaks label information into training (compute it inside train folds only), and one-hot on 10k-cardinality explodes dimensionality — consider hashing or target/ordinal encoding instead.",
+     "The split only — encoding choices never cause leakage."
+    ],
+    "explain": "Target encoding done on the full dataset before splitting is the module's worked leakage example — the encoding carries label information into training. One-hot is simple but explodes with cardinality; the leakage audit checklist catches both.",
+    "id": "ml-in-practice--feature-engineering-practice-mock",
+    "q": "On the job: a teammate one-hot-encodes a 10,000-cardinality ZIP column and computes target encodings on the full dataset before splitting. Your code review flags what?",
+    "type": "choice"
+   }
   },
   {
    "id": "ml-in-practice--model-evaluation-practice",
@@ -929,7 +955,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Yes — 99.9% accuracy is excellent by any standard.",
+     "Not necessarily — a majority-class baseline already scores ~99.9%; the honest read needs precision/recall or a cost-weighted metric, plus error analysis by slice.",
+     "Yes, but only if the training loss is also low.",
+     "No — accuracy is never a valid metric."
+    ],
+    "explain": "On imbalanced data accuracy is dominated by the majority class, so the metric must match the business cost: precision/recall or a cost-weighted metric, exactly the module's worked example, with slice-level error analysis rather than a single average.",
+    "id": "ml-in-practice--model-evaluation-practice-mock",
+    "q": "Panel question: your fraud model reports 99.9% accuracy on data with 0.1% fraud prevalence. The panel asks whether the model is good. You answer:",
+    "type": "choice"
+   }
   },
   {
    "id": "ml-in-practice--ml-pipelines-practice",
@@ -1200,7 +1239,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Scaling is unnecessary for tree models, so the scores are meaningless.",
+     "Fitting preprocessing outside the fold leaks information from validation folds into training — preprocessing belongs inside the pipeline so each fold fits transformations on train only.",
+     "Cross-validation cannot be used with scaled data.",
+     "The scaler should have been fit on the test set instead."
+    ],
+    "explain": "The module's central pipeline lesson: preprocessing inside the fold prevents leakage by fitting transformations on train only within each fold; fitting on the full dataset first lets validation-fold information contaminate training.",
+    "id": "ml-in-practice--ml-pipelines-practice-mock",
+    "q": "On the job: a teammate fits the scaler on the full dataset, then runs cross-validation on the scaled data and reports the score. The reviewer objects because:",
+    "type": "choice"
+   }
   },
   {
    "id": "ml-in-practice--ml-deployment-practice",
@@ -1471,7 +1523,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Yes — notebook accuracy is what matters; the API is just plumbing.",
+     "Ship it and add validation later if users complain.",
+     "No — the minimum viable production ML system is the model behind an API with validated inputs and logged predictions, plus a rollback or shadow-deployment plan.",
+     "No — production requires retraining the model first."
+    ],
+    "explain": "The module defines the production minimum as a model behind an API with validated inputs (the contract between app and model) and logged predictions for later audit, plus rollback/shadow plans — a notebook alone is not a system.",
+    "id": "ml-in-practice--ml-deployment-practice-mock",
+    "q": "You are asked: the notebook model is 'ready' — but the API has no input validation and predictions are not logged. Ship it?",
+    "type": "choice"
+   }
   },
   {
    "id": "ml-in-practice--ml-practice-capstone",
@@ -1742,7 +1807,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Approve — ambition is what capstones are for.",
+     "Approve, but skip the baseline to save time.",
+     "Redirect: a good capstone problem is one where data exists, the question is real, and the scope is finishable — then deliver baseline, iteration log, error analysis, and held-out evaluation with stated limits.",
+     "Redirect to a problem nobody has tried, regardless of data availability."
+    ],
+    "explain": "The module's worked guidance: choose a problem with available data, a real question, and finishable scope; the deliverable is judged on baseline, iteration log, error analysis, and honest held-out evaluation — not on model fanciness.",
+    "id": "ml-in-practice--ml-practice-capstone-mock",
+    "q": "Panel question: a teammate proposes a capstone that beats state-of-the-art on a problem with no available data. Your guidance:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--ensemble-methods-practice",
@@ -2013,7 +2091,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "It trains faster on noisy data.",
+     "It uses fewer features per split, so it is simpler.",
+     "Averaging many diverse trees reduces variance while keeping bias low — bagging's core mechanism, and why the forest is the strong default.",
+     "It eliminates bias entirely."
+    ],
+    "explain": "Bagging primarily reduces variance: averaging decorrelated trees smooths out the noise-driven swings of any single tree. Gradient boosting is the complementary mechanism — sequential error correction — covered in the same module.",
+    "id": "advanced-ml--ensemble-methods-practice-mock",
+    "q": "Panel question: why does a random forest typically generalize better than a single decision tree on noisy data?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--probabilistic-ml",
@@ -2284,7 +2375,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Ship it — 0.92 is a high score regardless.",
+     "Retrain with more data; the probabilities will fix themselves.",
+     "Recalibrate — the probabilities do not mean what they claim; apply calibration (e.g. Platt or isotonic) and judge with calibration curves so predicted probabilities match observed frequencies.",
+     "Switch to a deterministic model; probabilities are unreliable by nature."
+    ],
+    "explain": "The module's calibration objective: probabilities must mean something — predicted frequencies should match observed frequencies. Bayes' rule gives the updating discipline; calibration makes the resulting numbers trustworthy for expected-value decisions.",
+    "id": "advanced-ml--probabilistic-ml-mock",
+    "q": "On the job: your classifier outputs 0.92, but events predicted at ~0.9 actually occur about 60% of the time. The correct response:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--deep-architectures-practice",
@@ -2555,7 +2659,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Agree — deeper is always better.",
+     "Start with gradient-boosted trees — they are the usual winner on structured data at this scale; reserve deep learning for unstructured data or much larger scale, and use entity embeddings for high-cardinality categoricals.",
+     "Start with k-means to pre-cluster, then the MLP.",
+     "Agree, but only with an LLM instead of the MLP."
+    ],
+    "explain": "The module's worked guidance: on 50k tabular rows gradient-boosted trees are the usual winner; deep learning beats trees on unstructured data and at scale, not by default on structured data. Entity embeddings handle high-cardinality categoricals either way.",
+    "id": "advanced-ml--deep-architectures-practice-mock",
+    "q": "Panel question: for 50k rows of tabular data, a teammate proposes a 12-layer MLP as the first model. Your take:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--optimization-advanced",
@@ -2826,7 +2943,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Agree — a bigger step always escapes plateaus.",
+     "Switch optimizers randomly until the loss moves.",
+     "Diagnose first: check the learning-rate schedule and warmup, consider Adam's per-parameter adaptive rates versus SGD with momentum, and weigh batch-size effects on generalization — then change one thing inside a tuning budget.",
+     "Stop tuning; the plateau is the best the model can do."
+    ],
+    "explain": "The module teaches SGD/momentum/Adam tradeoffs, learning-rate schedules with warmup, and batch-size effects on generalization — and that search effort itself needs a budget. Blind 10x jumps are not a tuning strategy.",
+    "id": "advanced-ml--optimization-advanced-mock",
+    "q": "On the job: training plateaus early. A teammate's first move is to crank the learning rate up 10x. The disciplined first move is:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--model-interpretation-practice",
@@ -3097,7 +3227,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Yes — top importance means a positive effect.",
+     "No — importance hides direction of effect, interactions, and correlated-feature splitting; use partial dependence/ICE plots or SHAP values to answer directional questions.",
+     "Yes, but only for linear models.",
+     "No — feature importance is meaningless."
+    ],
+    "explain": "The module's worked example: feature importance hides interactions, correlated-feature splitting, and direction of effect. Partial dependence/ICE and SHAP at practitioner depth answer the directional and interaction questions importance cannot.",
+    "id": "advanced-ml--model-interpretation-practice-mock",
+    "q": "You are asked by a stakeholder: 'Feature X ranks top in importance — so increasing X raises the prediction, right?' You answer:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--advanced-ml-project",
@@ -3368,7 +3511,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Point to the final score — the improvement speaks for itself.",
+     "Retune the random seed until the gap widens.",
+     "Run an ablation study — remove or swap one component at a time to measure its contribution — and present error analysis on the hardest slices.",
+     "Add more components; the credit question resolves itself."
+    ],
+    "explain": "The module's project objectives demand ablation for credit assignment — removing/swapping one component at a time to measure its contribution — plus error analysis on the hardest slices, inside a declared tuning budget.",
+    "id": "advanced-ml--advanced-ml-project-mock",
+    "q": "Panel question: your ensemble beats the baseline by 2 points. The reviewer asks what each component actually contributed. You:",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--numpy-pandas-practice",
@@ -3639,7 +3795,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Buy a bigger machine.",
+     "Rewrite the loop in a different Python style; loops are unavoidable.",
+     "Vectorize with NumPy broadcasting — implicit expansion lets elementwise ops run on mismatched shapes without Python-level loops.",
+     "Normalize one column at a time in separate scripts."
+    ],
+    "explain": "Broadcasting enables vectorized operations on mismatched shapes via implicit expansion — the module's worked example — replacing slow row-wise Python loops with fast array operations.",
+    "id": "python-for-ml--numpy-pandas-practice-mock",
+    "q": "On the job: a teammate loops over DataFrame rows in Python to normalize columns and it takes minutes. Your suggestion:",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--visualization-practice",
@@ -3910,7 +4079,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A pair plot — relationships first.",
+     "A scatter plot of two random columns.",
+     "Histograms and box plots — they reveal distribution shape, spread, and outliers — with honest axes and labels, before any relationship plots.",
+     "A 3D surface plot."
+    ],
+    "explain": "The module's worked guidance: distributions come first — histograms and box plots reveal shape, spread, and outliers — with honest axes and labels, as the exploratory plots that catch data problems early.",
+    "id": "python-for-ml--visualization-practice-mock",
+    "q": "On the job: exploring a new numeric column for skew and outliers. Which plot first?",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--sklearn-api-practice",
@@ -4181,7 +4363,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Predict can be called any time; the error is a bug in the library.",
+     "Call fit on the test data instead.",
+     "Explain the estimator contract: fit learns from training data, predict applies the fitted model to new data, and transform preprocesses — so predict before fit violates the contract.",
+     "Skip fit; it is optional for simple models."
+    ],
+    "explain": "The module's worked example: the estimator contract is fit-learns-from-train, predict-applies-to-new-data (transform for preprocessing). Calling predict before fit is a contract violation, not a library bug.",
+    "id": "python-for-ml--sklearn-api-practice-mock",
+    "q": "On the job: a new hire calls predict before fit and hits NotFittedError. Your explanation:",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--python-ml-ecosystem",
@@ -4452,7 +4647,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Copy the system Python packages to the server.",
+     "It is a hardware problem — request a bigger server.",
+     "Isolate dependencies per project with a virtual environment and pinned packages, keep notebooks disciplined enough to become scripts, and debug data code by checking shapes, dtypes, and asserts.",
+     "Run everything in one global environment."
+    ],
+    "explain": "The module's worked lesson: virtual environments give isolated, reproducible dependencies per project — the fix for works-here-breaks-there — with Jupyter discipline (notebooks that become scripts) and shape/dtype/assert debugging.",
+    "id": "python-for-ml--python-ml-ecosystem-mock",
+    "q": "On the job: a script works on a laptop but breaks on the shared server with different package versions. The fix:",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--working-with-real-data",
@@ -4723,7 +4931,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "The CSV is corrupt; request a new one.",
+     "Load it with default settings and hope.",
+     "Inspect first: check encoding, delimiter, and quoting; handle mixed types and header chaos explicitly; and document your data assumptions for the next reader.",
+     "Convert it to JSON and try again."
+    ],
+    "explain": "The module's worked lesson: CSVs in the wild suffer from encodings, delimiters, quoting, mixed types, and header chaos — so inspect and handle each explicitly, and document the assumptions you made.",
+    "id": "python-for-ml--working-with-real-data-mock",
+    "q": "On the job: a CSV fails to load — strange characters, semicolon delimiters, a mixed-type column. Your first moves:",
+    "type": "choice"
+   }
   },
   {
    "id": "python-for-ml--ml-python-project",
@@ -4994,7 +5215,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Pick the biggest dataset available — scale impresses.",
+     "Pick a dataset nobody has used.",
+     "Pick a dataset you can finish — right-sized, documented, with a clear target — then produce the exploration notebook, a baseline with honest evaluation, and three concrete improvement attempts.",
+     "Pick a secret dataset."
+    ],
+    "explain": "The module's worked guidance: pick a dataset you can finish — right-sized, documented, clear target — and the project is judged on the exploration notebook, baseline with honest evaluation, and improvement attempts, not on dataset exoticism.",
+    "id": "python-for-ml--ml-python-project-mock",
+    "q": "On the job: a teammate picks a massive undocumented dataset with no clear target for the course project. Your advice:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--transformer-arch-practice",
@@ -5265,7 +5499,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "It stores the training data for lookup at inference time.",
+     "The KV cache avoids recomputing keys and values for past tokens at each generation step — a memory-for-compute tradeoff — which is why long context windows cost real memory.",
+     "It replaces the attention computation entirely.",
+     "It is only needed for encoder models."
+    ],
+    "explain": "The module's inference objective: the KV cache is the memory-for-compute tradeoff behind decoder-only serving — past tokens' keys and values are cached so each new token needs only one attention step, and this is what makes long context windows expensive.",
+    "id": "advanced-genai--transformer-arch-practice-mock",
+    "q": "Panel question: why does a decoder-only model need a KV cache at inference time?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--pretrain-finetune-practice",
@@ -5536,7 +5783,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Full fine-tune — more trainable parameters always wins.",
+     "Pretrain a new model from scratch on the 500 examples.",
+     "Use LoRA/PEFT to adapt without full retraining, curate the instruction-tuning data carefully, and evaluate before and after to check the tuning actually helped.",
+     "Skip evaluation — fine-tuning is proven to help."
+    ],
+    "explain": "The module's worked guidance: pretraining teaches broad statistical patterns; adaptation on small data belongs to LoRA/PEFT rather than full retraining, instruction-tuning lives or dies on data curation, and before/after evaluation confirms the tuning helped.",
+    "id": "advanced-genai--pretrain-finetune-practice-mock",
+    "q": "You are asked: with only 500 labeled examples for a niche task, do you full-fine-tune a large model or adapt it cheaply?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--alignment-practice",
@@ -5807,7 +6067,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "The base model only, on more pretraining data.",
+     "The tokenizer, to refuse unsafe completions.",
+     "A reward model trained from human preferences, then policy optimization against it — DPO being the variant that skips the RL step.",
+     "The embedding layer, to encode safety rules."
+    ],
+    "explain": "The module's worked account: RLHF trains a reward model from preference data and optimizes the policy against it; DPO achieves alignment without the RL loop. Alignment changes refusal behavior and style — not factual knowledge, which is the 'what it does not change' caution.",
+    "id": "advanced-genai--alignment-practice-mock",
+    "q": "Panel question: what does RLHF actually train, and how does DPO differ?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--genai-eval-practice",
@@ -6078,7 +6351,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "The benchmark is definitive — the model is better than you think.",
+     "Benchmarks hide contamination, prompt sensitivity, and task mismatch — build a task-specific eval on your own data and treat LLM-as-judge scores as biased and gameable.",
+     "Tune the prompt until the benchmark score recovers.",
+     "The benchmark vendors are at fault; find a different one."
+    ],
+    "explain": "The module's worked lesson: benchmarks measure something but hide contamination, prompt sensitivity, and task mismatch. The fix is task-specific evals you build yourself, with LLM judges used knowing they are useful, biased, and gameable.",
+    "id": "advanced-genai--genai-eval-practice-mock",
+    "q": "Panel question: your model tops a public benchmark but flops on real customer tasks. The correct diagnosis:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--inference-serving-practice",
@@ -6349,7 +6635,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Batching is a pure win — increase it until latency drops.",
+     "Nothing can be done; latency is fixed by model size.",
+     "Batching trades throughput up against latency up — tune it to your SLA, then check quantization with quality verification, plus caching and per-thousand-request cost modeling.",
+     "Disable batching entirely and serve one request at a time."
+    ],
+    "explain": "The module's worked tradeoff: batching raises throughput at the cost of latency, tuned to the SLA. Complementary levers are VLLM-class serving, quantized deployment with post-compression quality checks, and caching.",
+    "id": "advanced-genai--inference-serving-practice-mock",
+    "q": "On the job: the API's p95 latency is 8s under load. Batching helps throughput but worsens tail latency. Your guidance:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-genai--genai-capstone",
@@ -6620,7 +6919,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Add the extra features — scope grows with ambition.",
+     "Use the biggest model to cover all five tasks.",
+     "Narrow to one task, one data source, one eval set — a thin working slice — with an eval suite measuring what matters and a documented failure catalog.",
+     "Ship the demo without evals; they can be added later."
+    ],
+    "explain": "The module's scoping guidance: a finishable GenAI system is one task, one data source, one eval set — a thin slice — backed by an eval suite measuring what matters and a failure catalog documenting the misses, with stated limits.",
+    "id": "advanced-genai--genai-capstone-mock",
+    "q": "On the job: a teammate's capstone scope is five tasks, three data sources, and the biggest model. Your response:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--nlp-pipelines-practice",
@@ -6891,7 +7203,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Approve — normalization is always safe.",
+     "Nothing — tokenization has no downstream effect.",
+     "Push back: every normalization choice changes what the model can learn — case and punctuation may carry signal in legal text — and chunking decisions for long documents need the same deliberate treatment.",
+     "Approve, but switch to character-level tokenization."
+    ],
+    "explain": "The module's worked principle: text pipelines are decisions — every normalization choice changes what the model can learn — so cleaning, tokenization, and chunking are deliberate tradeoffs, not defaults.",
+    "id": "advanced-nlp-practice--nlp-pipelines-practice-mock",
+    "q": "On the job: a teammate lowercases everything and strips all punctuation for a legal-document classifier. Your review:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--embeddings-practice",
@@ -7162,7 +7487,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Word counts are enough; embeddings add nothing.",
+     "Embeddings only work for English tickets.",
+     "Map tickets to dense sentence vectors and use similarity search over the embedding index — geometric closeness captures paraphrase-level duplicates — but evaluate the embeddings on the ticket task, not on a generic benchmark.",
+     "Cluster the raw text strings alphabetically."
+    ],
+    "explain": "The module's worked account: sentence embeddings map text to dense meaning vectors where similarity is geometric closeness, enabling similarity search and clustering — with the caution to evaluate embeddings on your task rather than on benchmarks.",
+    "id": "advanced-nlp-practice--embeddings-practice-mock",
+    "q": "On the job: support tickets need near-duplicate detection across paraphrased wording. How do sentence embeddings help?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--sequence-models-practice",
@@ -7433,7 +7771,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Fine-tune an LLM — newest is always best.",
+     "Classical NLP never wins; skip it.",
+     "Classical NLP still wins small tasks — with 800 labels, tight latency, and interpretability needs, a text-classification pipeline is the right call, and label quality is the ceiling no tuning passes.",
+     "Use k-means; labels are optional."
+    ],
+    "explain": "The module's worked guidance: classical NLP still wins when labels are few, latency is tight, and interpretability matters — and label quality is the ceiling nobody tunes past.",
+    "id": "advanced-nlp-practice--sequence-models-practice-mock",
+    "q": "You are asked: 800 labeled documents, tight latency budget, and the team needs interpretability. Classical pipeline or LLM?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--llm-for-nlp",
@@ -7704,7 +8055,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Retrain weekly regardless of cost.",
+     "Zero-shot will always beat training, so never fine-tune.",
+     "Use zero/few-shot LLM classification for the shifting classes, enforce structured extraction with constrained output, and run a speed-vs-quality audit of any LLM labeling before trusting it.",
+     "Abandon the classes that shift."
+    ],
+    "explain": "The module's worked guidance: few-shot classification beats training when labels are few, classes shift, or prototyping speed matters; structured extraction needs constrained output; and LLM labeling requires a speed-vs-quality audit.",
+    "id": "advanced-nlp-practice--llm-for-nlp-mock",
+    "q": "On the job: ticket classes shift weekly and retraining is expensive. Your approach:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--retrieval-practice",
@@ -7975,7 +8339,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Dense retrieval is strictly better — drop the lexical index.",
+     "Embed the product codes as images.",
+     "Keep BM25 as the lexical baseline — it is cheap and strong on rare exact terms — and combine it with dense retrieval in a hybrid system, judged by recall@k.",
+     "Increase the embedding dimension until codes match."
+    ],
+    "explain": "The module's worked lesson: BM25's enduring strength is cheap, strong lexical matching — especially rare terms — so the fix for rare product codes is a hybrid of lexical and semantic retrieval, evaluated with recall@k and reranked for precision.",
+    "id": "advanced-nlp-practice--retrieval-practice-mock",
+    "q": "On the job: users search with rare product codes and dense retrieval keeps missing them. Your fix:",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-nlp-practice--nlp-project",
@@ -8246,7 +8623,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Show high accuracy on a clean benchmark.",
+     "Show the pipeline handling real mess — typos, mixed languages, shifting topics — with error analysis on linguistic failures and a comparison of classical vs fine-tuned vs LLM approaches.",
+     "Show the largest model you could load.",
+     "Show training loss decreasing."
+    ],
+    "explain": "The module's project objectives: a real text problem with real mess, pipeline/model/evaluation design, error analysis on linguistic failures, and an explicit classical-vs-fine-tuned-vs-LLM comparison with a tradeoff table.",
+    "id": "advanced-nlp-practice--nlp-project-mock",
+    "q": "Panel question: how do you prove your NLP pipeline handles real text, not benchmark text?",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--llm-apis-practice",
@@ -8517,7 +8907,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Approve — the largest model gives the best quality.",
+     "Approve; cost and latency sort themselves out.",
+     "Push back: the two budgets are cost and latency — do the per-request token math and p95 timing first — and design for streaming UX plus retries, fallbacks, and graceful degradation.",
+     "Approve, but disable streaming to save tokens."
+    ],
+    "explain": "The module's worked principle: the two budgets for LLM features are cost and latency — per-request token math and p95 response time — with streaming for responsive UX and retries/fallbacks for reliability.",
+    "id": "ai-enabled-software--llm-apis-practice-mock",
+    "q": "On the job: a feature needs sub-2s p95 and under a cent per request, but a teammate specs the largest model at max tokens. Your response:",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--rag-practice",
@@ -8788,7 +9191,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Increase chunk size until citations look right.",
+     "RAG is just prompting — rewrite the prompt.",
+     "Debug in pipeline order — chunk → embed → index → retrieve → rerank → generate with citations — since reranking exists precisely to add precision on top of recall, and each stage has known failure modes.",
+     "Replace RAG with fine-tuning."
+    ],
+    "explain": "The module's worked definition: RAG by hand is chunk → embed → index → retrieve → rerank → generate with citations. Wrong-doc citations are debugged stage by stage — chunking tradeoffs, retrieval recall, reranking precision — not by prompt tweaks alone.",
+    "id": "ai-enabled-software--rag-practice-mock",
+    "q": "On the job: the RAG assistant cites the wrong documents. Your debug order:",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--eval-harness-practice",
@@ -9059,7 +9475,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Nothing — regressions are unavoidable with LLMs.",
+     "Prompt changes are minor; skip review.",
+     "The missing practice is regression evals on every change against a golden dataset of curated representative cases, with human review loops for the hard cases and full pipeline tracing per request.",
+     "Fire the prompt engineer."
+    ],
+    "explain": "The module's worked account: a golden dataset is curated representative cases with expected outcomes, and regression evals run on every change — because LLM judges are useful, biased, and gameable and silent regressions are the norm without them.",
+    "id": "ai-enabled-software--eval-harness-practice-mock",
+    "q": "On the job: a prompt change shipped and quality silently regressed. What practice was missing?",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--tool-use-practice",
@@ -9330,7 +9759,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Blame the model — tool calls are inherently unsafe.",
+     "Remove all tools from the feature.",
+     "The failure class is contract violation: function-calling schemas are typed JSON contracts the model fills and your code validates — so narrow the tool, type it, validate inputs, apply least privilege, and handle tool errors.",
+     "Log the incident and move on."
+    ],
+    "explain": "The module's worked account: schemas are contracts — typed JSON the model fills and code validates. The fix is tool design (narrow, typed, safe), least privilege for model-invoked tools, and explicit error handling when tools fail.",
+    "id": "ai-enabled-software--tool-use-practice-mock",
+    "q": "On the job: the model invoked a delete-account tool with malformed arguments. The root-cause class:",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--shipping-ai-features",
@@ -9601,7 +10043,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Approve — confidence in the model justifies a full rollout.",
+     "Roll out faster; flags add complexity.",
+     "Flag it: model-backed behavior needs feature flags as kill switches and gradual rollouts, plus input/output guardrails and UX designed for uncertainty — confidence, citations, corrections.",
+     "Approve, but remove the guardrails to reduce latency."
+    ],
+    "explain": "The module's worked lesson: feature flags for AI behavior enable kill switches and gradual rollouts for nondeterministic systems, alongside guardrails and uncertainty-aware UX — the opposite of a day-one 100% rollout.",
+    "id": "ai-enabled-software--shipping-ai-features-mock",
+    "q": "Panel question: new model-backed behavior is going to 100% of users on day one. The reviewer's flag:",
+    "type": "choice"
+   }
   },
   {
    "id": "ai-enabled-software--ai-feature-project",
@@ -9872,7 +10327,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Keep the platform vision — scope is a product decision, not yours.",
+     "Ship the demo; integration can wait.",
+     "Reframe v1 as one real workflow pain solved completely, with full-stack integration, a golden dataset plus regression suite, guardrails, and a cost budget — documented in a launch writeup with the failure catalog.",
+     "Start with the guardrails document."
+    ],
+    "explain": "The module's project objectives: scope one real workflow pain, integrate UI to model to eval, keep a golden dataset and regression suite, budget guardrails and cost, and write the launch writeup with the failure catalog.",
+    "id": "ai-enabled-software--ai-feature-project-mock",
+    "q": "On the job: the v1 scope is 'an AI platform for everything.' Your reframe:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--problem-framing-ai",
@@ -10143,7 +10611,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Pick the biggest GPU available.",
+     "Ask which library the team prefers.",
+     "Run the honest checklist: is there signal? Is a heuristic enough? What do errors cost? — then define success metrics before modeling and weigh latency, cost, data, and regulatory constraints.",
+     "Start modeling; framing can be written after."
+    ],
+    "explain": "The module's worked checklist asks exactly: is ML the answer — is there signal, is a heuristic enough, what do errors cost — with success metrics defined before modeling and constraints (latency, cost, data, regulation) shaping the scope.",
+    "id": "applied-ai-production--problem-framing-ai-mock",
+    "q": "You are asked: an executive wants ML for a problem a rules engine could solve. Your first move:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--data-strategy-ai",
@@ -10414,7 +10895,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Approve the bigger model — capacity fixes underperformance.",
+     "Collect more data blindly.",
+     "Run a data audit first — what exists, what is missing, what is lying, plus lineage and consent — because data quality is the performance ceiling; then set the labeling strategy to the real budget.",
+     "Tune hyperparameters harder."
+    ],
+    "explain": "The module's worked principle: a data audit finds what exists, what is missing, and what is lying — and data quality is the performance ceiling no model outruns. Labeling strategy and weak supervision follow the audit, not the other way round.",
+    "id": "applied-ai-production--data-strategy-ai-mock",
+    "q": "On the job: the model underperforms and a teammate wants a bigger model. Your first move:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--prototyping-ai",
@@ -10685,7 +11179,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Build the full system — prototypes waste time.",
+     "Write a slide deck about the concept.",
+     "Build the thin slice: the smallest real thing that produces a funding decision — possibly Wizard-of-Oz behind the scenes — with human-in-the-loop as a feature and explicit kill criteria.",
+     "Build three competing prototypes."
+    ],
+    "explain": "The module's worked definition: a thin-slice prototype is the smallest real thing — enough to produce a decision — with Wizard-of-Oz testing for concepts, human-in-the-loop as a feature not a failure, and kill criteria for when to stop.",
+    "id": "applied-ai-production--prototyping-ai-mock",
+    "q": "You are asked: two weeks to decide whether an AI concept deserves funding. You build:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--stakeholder-comm-ai",
@@ -10956,7 +11463,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Confirm it — 95% accuracy means near-perfect.",
+     "Show the confusion matrix and move on.",
+     "Translate to decisions: what the model does, when to trust it, where it is uncertain — communicating limits and what the AI cannot do here, without jargon.",
+     "Promise the remaining 5% will be fixed next sprint."
+    ],
+    "explain": "The module's worked guidance: explain models by translating to decisions — what it does, when to trust it, where it is uncertain — setting expectations about what the AI cannot do, in plain language, with risks on the table at the pre-launch review.",
+    "id": "applied-ai-production--stakeholder-comm-ai-mock",
+    "q": "You are asked by a stakeholder: 'The model is 95% accurate — so it is basically always right?' Your response:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--measuring-ai-value",
@@ -11227,7 +11747,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Report the pilot's accuracy — the numbers speak for themselves.",
+     "Count the press mentions.",
+     "Frame ROI as the value of improved decisions minus total cost, with the counterfactual stated — backed by A/B tests on model-backed features and adoption metrics — for the quarterly funding review.",
+     "Report engineering hours saved."
+    ],
+    "explain": "The module's worked requirement: ROI framing needs the value of improved decisions minus total cost, with the counterfactual (what would have happened without the model) stated — supported by A/B tests and adoption/engagement metrics.",
+    "id": "applied-ai-production--measuring-ai-value-mock",
+    "q": "You are asked: the pilot 'worked,' but finance wants ROI before funding continues. You show:",
+    "type": "choice"
+   }
   },
   {
    "id": "applied-ai-production--applied-ai-capstone",
@@ -11498,7 +12031,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Nothing — the demo is the deliverable.",
+     "A bigger demo.",
+     "Production-shaped delivery: real constraints, a monitoring plan, and handoff documentation — built as if someone else runs it on Monday — plus the framing doc, data audit, and stakeholder checkpoint.",
+     "A cloud migration plan."
+    ],
+    "explain": "The module's capstone objectives: production-shaped means real constraints, a monitoring plan, and handoff docs — built as if someone else operates it — on top of the framing doc, data audit, metrics, and prototype.",
+    "id": "applied-ai-production--applied-ai-capstone-mock",
+    "q": "Panel question: the capstone demo impresses — but who runs it Monday morning? What is missing?",
+    "type": "choice"
+   }
   },
   {
    "id": "advanced-ml--re-bench-agents-ml-research",
@@ -11767,7 +12313,20 @@
     "deliverable": "A 1–2 page experiment report (framing paragraph, baseline metric, final test metric with delta vs baseline, leakage audit, run log) plus your code.",
     "checkpoint": "Baseline recorded before any complex model; test set touched exactly once; every feature passes the leakage audit; report states the honest delta."
    },
-   "estimatedMinutes": 600
+   "estimatedMinutes": 600,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Accept the claim — a published benchmark settles it.",
+     "Reject benchmarks entirely; only papers count.",
+     "Push back: RE-Bench's design is contamination-free environments with calibrated 0–1 scoring and faithful human baselines, but 7 environments do not generalize to all of ML research — and the 2h/8h/32h crossover frames human–agent collaboration, not wholesale replacement.",
+     "Accept it for short tasks but not long ones, without checking the design."
+    ],
+    "explain": "The module's objectives: describe RE-Bench's design (contamination-free environments, calibrated 0–1 scoring, faithful human baselines), explain the 2h/8h/32h crossover's implication for human–agent collaboration, and apply the critical-reading checklist to 'AI does ML research' claims — including what the benchmark does not claim.",
+    "id": "advanced-ml--re-bench-agents-ml-research-mock",
+    "q": "You are asked to review a vendor deck claiming 'AI agents now beat researchers at ALL ML research tasks, per RE-Bench.' Applying the module's critical-reading checklist, the correct response is:",
+    "type": "choice"
+   }
   },
   {
    "id": "IL-16-PM-STATS",

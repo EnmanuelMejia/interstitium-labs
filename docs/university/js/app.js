@@ -219,10 +219,10 @@
     var header = el('div', { 'class': 'site-header' }, [
       el('div', { 'class': 'wrap' }, [
         el('a', { 'class': 'brand', href: 'index.html', 'aria-label': 'Interstitium Labs — home' }, [
-          el('img', { src: 'assets/sigil.svg', alt: '', width: 30, height: 30 }),
+          el('img', { src: '/assets/chrome/sigil-glyph.svg', alt: '', width: 30, height: 30 }),
           el('span', { 'class': 'wordmark' }, [
             'Interstitium Labs',
-            el('small', { text: 'LEARNING UNIVERSITY' })
+            el('small', { text: 'SCIENTIA OMNIA VINCIT' })
           ])
         ]),
         el('nav', { 'class': 'site-nav', 'aria-label': 'Primary' },
@@ -254,7 +254,7 @@
     var foot = el('footer', { 'class': 'site-footer' }, [
       el('div', { 'class': 'wrap' }, [
         el('div', { 'class': 'seal' }, [
-          el('img', { src: 'assets/sigil.svg', alt: 'Interstitium Labs sigil', width: 44, height: 44 }),
+          el('img', { src: '/assets/chrome/sigil-glyph.svg', alt: 'Interstitium Labs sigil', width: 44, height: 44 }),
           el('div', {}, [
             el('div', { 'class': 'latin', text: 'SCIENTIA OMNIA VINCIT' }),
             el('div', { 'class': 'quatrain', text: 'Quaerere · Intelligere · Liberare · Transcendere' })

@@ -410,12 +410,22 @@ function buildBrief(root) {
     '<h2 class="section-title">Objectives</h2><ul class="obj-list">' +
     COURSE.objectives.map(function (o) { return '<li>' + esc(o) + '</li>'; }).join('') +
     '</ul></div></div>';
-  if (COURSE.arc.length) {
-    html += '<h2 class="section-title">Synthesis arc</h2><div class="arc-grid">' +
-      COURSE.arc.map(function (a) {
-        return '<div class="arc-card"><div class="phase">' + esc(String(a.phase)) + '</div>' +
-          '<h3>' + esc(a.title) + '</h3><p>' + esc(a.body) + '</p></div>';
-      }).join('') + '</div>';
+  if (COURSE.arc && COURSE.arc.length) {
+    var arcItems = Array.isArray(COURSE.arc) ? COURSE.arc : [COURSE.arc];
+    var arcCards = '', arcList = '';
+    arcItems.forEach(function (a) {
+      if (typeof a === 'string') {
+        arcList += '<li>' + mdLite(a) + '</li>';
+      } else if (a && typeof a === 'object') {
+        arcCards += '<div class="arc-card"><div class="phase">' + esc(String(a.phase || '')) + '</div>' +
+          '<h3>' + esc(String(a.title || '')) + '</h3><p>' + esc(String(a.body || a.text || '')) + '</p></div>';
+      }
+    });
+    if (arcCards || arcList) {
+      html += '<h2 class="section-title">Synthesis arc</h2>';
+      if (arcCards) html += '<div class="arc-grid">' + arcCards + '</div>';
+      if (arcList) html += '<div class="card"><ul class="obj-list">' + arcList + '</ul></div>';
+    }
   }
   if (COURSE.priorities.length) {
     var maxMin = Math.max.apply(null, COURSE.priorities.map(function (p) { return p.minutes || 0; }).concat([1]));

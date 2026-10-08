@@ -1298,6 +1298,7 @@ export default {
       "/interview": "/prep/drills/", "/library": "/learn/",
       "/measure": "/learn/", "/plant": "/paths/",
       "/platform": "/about/", "/portfolio": "/labs/superlab/",
+      "/devops-superlab": "/labs/superlab/",
       "/pricing": "/enroll/", "/radar": "/trending/",
       "/sheets": "/prep/", "/si": "/learn/",
       "/system": "/about/"

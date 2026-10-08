@@ -376,7 +376,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "To make prompts shorter.",
+     "To speed up token generation.",
+     "To make model output machine-readable and validatable before execution — deciding when the model should call vs answer, and parsing, validating, and retrying tool arguments.",
+     "To replace API documentation."
+    ],
+    "explain": "JSON tool schemas are contracts: they make output machine-readable and validatable before execution, with explicit decisions about call-vs-answer, argument validation, and error/retry handling.",
+    "id": "agentic-ai-foundations--llm-tool-use-mock",
+    "q": "Interviewer: why do JSON tool schemas exist? What problem do they solve?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-foundations--agent-loops",
@@ -649,7 +662,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Training and testing interleaved.",
+     "Code and docs interleaved.",
+     "Reasoning and acting — thought traces interleaved between tool calls — inside a perceive-reason-act loop with stopping conditions and step budgets.",
+     "Reflection and revision only."
+    ],
+    "explain": "ReAct interleaves reasoning and acting — thought traces between tool calls — within the perceive-reason-act loop, which needs stopping conditions and step budgets to terminate.",
+    "id": "agentic-ai-foundations--agent-loops-mock",
+    "q": "Interviewer: what does ReAct actually interleave, and what keeps the loop from running forever?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-foundations--memory-context",
@@ -922,7 +948,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Drop the oldest turns unconditionally.",
+     "Only summarize past 100k tokens.",
+     "Compress old turns via summarization so the run stays in budget without losing the thread — managing short-term context vs persistent memory, with vector-backed recall and checkpoints.",
+     "Summarization increases token spend, so avoid it."
+    ],
+    "explain": "Summarization compresses old turns so long runs stay in budget without losing the thread — the practice for managing short-term context vs persistent memory, alongside vector-backed recall and state checkpoints.",
+    "id": "agentic-ai-foundations--memory-context-mock",
+    "q": "On the job: a long agent run is about to blow its context budget. What is the right move?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-foundations--multi-agent-systems",
@@ -1195,7 +1234,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Ten agents — more parallelism is always better.",
+     "As many as possible.",
+     "One — prove you need two: multi-agent helps only with clear role specialization and handoffs, and coordination failure modes are real.",
+     "Zero — multi-agent is never worth it."
+    ],
+    "explain": "The module's worked default: one agent — prove you need two. More agents help only with role specialization and handoffs (supervisor/worker, debate/critique), and coordination failures are a first-class risk.",
+    "id": "agentic-ai-foundations--multi-agent-systems-mock",
+    "q": "Panel question: how many agents should the system start with?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-foundations--agent-evaluation",
@@ -1468,7 +1520,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Model size and benchmark scores.",
+     "Speed only.",
+     "Task success plus trajectory quality, tool-call efficiency, failure recovery, and safety-constraint adherence.",
+     "Cost only."
+    ],
+    "explain": "Agent evaluation goes beyond task success to trajectory scoring — path quality, tool-call efficiency, failure recovery measurement, and safety adherence.",
+    "id": "agentic-ai-foundations--agent-evaluation-mock",
+    "q": "Interviewer: the agent solved the task. Is that enough to call it good?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-foundations--agent-starter-build",
@@ -1741,7 +1806,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A reusable platform for every use case.",
+     "Every use case at once.",
+     "One task, few tools, clear success criteria — with least-privilege tool choice, a small task set for evaluation, and memory added deliberately.",
+     "A general chatbot."
+    ],
+    "explain": "The starter-build objectives: scope the first agent tightly — one task, few tools, clear success criteria — choose tools with least privilege, and evaluate on a small task set.",
+    "id": "agentic-ai-foundations--agent-starter-build-mock",
+    "q": "You are asked: how should a team scope its very first agent?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--code-agents",
@@ -2014,7 +2092,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Full-file rewrites — simplest for the agent.",
+     "One commit per file.",
+     "Diffs — reviewable, revertable, scoped — produced by a loop that gathers repo context and verifies with test-driven checks.",
+     "Feature branches."
+    ],
+    "explain": "The agent's unit of work is the diff — reviewable, revertable, scoped — generated by a loop that reads and edits code, gathers repository context, and verifies against tests.",
+    "id": "agentic-ai-for-swe--code-agents-mock",
+    "q": "Interviewer: what is the right 'unit of work' for a coding agent, and why?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--repo-scale-agents",
@@ -2287,7 +2378,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A bigger context window solves it.",
+     "Skipping files that look unimportant.",
+     "Indexing plus retrieval for code search, then targeted multi-file edits with dependency awareness to keep changes consistent.",
+     "One giant prompt with the whole repo."
+    ],
+    "explain": "Repo-scale work is indexing + retrieval, then targeted multi-file edits — with dependency awareness keeping edits consistent across files — not bigger context windows.",
+    "id": "agentic-ai-for-swe--repo-scale-agents-mock",
+    "q": "Interviewer: how should an agent handle a million-line repo it cannot fit in context?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--review-agents",
@@ -2560,7 +2664,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Architectural judgment calls.",
+     "Performance reviews of engineers.",
+     "Mechanical checks — style, conventions, obvious bugs, missing tests, coverage-guided QA — with false-positive triage, not architectural authority.",
+     "System architecture decisions."
+    ],
+    "explain": "Review agents excel at mechanical checks — style, conventions, obvious bugs, test generation, coverage-guided QA — with false-positive triage; architectural judgment stays human.",
+    "id": "agentic-ai-for-swe--review-agents-mock",
+    "q": "You are asked: what should a code-review agent be trusted with?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--dev-workflow-agents",
@@ -2833,7 +2950,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Admin service accounts for full autonomy.",
+     "The same permissions as production deploys.",
+     "Scoped permissions with blast radius sized to trust — for CI/CD, issue triage, release notes, docs, and on-call assistance.",
+     "Manually triggered runs only, forever."
+    ],
+    "explain": "Agents in CI/CD and dev workflows need scoped permissions with blast radius sized to trust — the module's explicit rule — covering triage, release notes, docs, and on-call assistance patterns.",
+    "id": "agentic-ai-for-swe--dev-workflow-agents-mock",
+    "q": "On the job: what permissions should a CI/CD agent get?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--swe-agent-project",
@@ -3106,7 +3236,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "The largest open issue — ambition impresses.",
+     "A typo fix — guaranteed success.",
+     "A bounded, test-covered, representative repo task — with the loop wired to tests as the oracle and edit success rate measured.",
+     "An unfiled issue nobody described."
+    ],
+    "explain": "The project objectives: choose a real but bounded, test-covered, representative task; wire tests as the oracle; measure edit success rate; iterate on failure modes.",
+    "id": "agentic-ai-for-swe--swe-agent-project-mock",
+    "q": "You are asked: how do you pick the task for a coding-agent project?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-swe--swe-agent-limits",
@@ -3379,7 +3522,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Stack traces — at least they are loud.",
+     "Hangs — they are obvious.",
+     "Silent failures: plausible-but-wrong APIs, hallucinated dependencies, subtly broken logic — which is why generated code needs security review and least-privilege repo access.",
+     "Exceptions."
+    ],
+    "explain": "The limits module's core warning: coding agents fail silently with plausible-but-wrong APIs and subtly broken logic — hence security review of generated code, least-privilege access, and licensing awareness.",
+    "id": "agentic-ai-for-swe--swe-agent-limits-mock",
+    "q": "Panel question: what is the most dangerous failure mode of coding agents?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--data-agents-core",
@@ -3652,7 +3808,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "It is a BI dashboard with a chat skin.",
+     "It is a query engine replacement.",
+     "It turns natural-language questions into safe warehouse queries and interprets results — which requires schema awareness and safe query generation, not raw SQL passthrough.",
+     "It is a pivot-table generator."
+    ],
+    "explain": "A data agent is defined by safe generation plus interpretation: schema awareness, natural-language interfaces, safe query generation, and result interpretation — not an unguarded text-to-SQL pipe.",
+    "id": "agentic-ai-for-data--data-agents-core-mock",
+    "q": "Interviewer: what distinguishes a data agent from a text-to-SQL demo?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--pipeline-agents",
@@ -3925,7 +4094,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Standup facilitation and capacity planning.",
+     "Dashboard design.",
+     "DAG scaffolding, schema-drift handling, backfill planning, and pipeline test scaffolding — the repair work, not just the happy-path generation.",
+     "GPU provisioning."
+    ],
+    "explain": "Pipeline agents automate the maintenance burden: DAG generation, schema-drift handling, backfill plans, and test scaffolding — the work that breaks pipelines in production.",
+    "id": "agentic-ai-for-data--pipeline-agents-mock",
+    "q": "Interviewer: what do pipeline agents actually automate beyond generating a DAG once?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--text-to-sql-agents",
@@ -4198,7 +4380,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Drawing ER diagrams.",
+     "Full-text indexing.",
+     "Schema linking — mapping question terms to real tables and columns — plus dialect awareness, query validation before execution, EXPLAIN-plan sanity checks, and guardrails on writes and deletes.",
+     "Reading the docs aloud."
+    ],
+    "explain": "Schema linking is the core skill — mapping question terms to real tables/columns — and safety comes from validating before execution, EXPLAIN sanity checks, and write/delete guardrails.",
+    "id": "agentic-ai-for-data--text-to-sql-agents-mock",
+    "q": "On the job: the text-to-SQL agent keeps querying the wrong tables. Which capability is missing?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--data-quality-agents",
@@ -4471,7 +4666,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Pipeline uptime only.",
+     "Training loss curves.",
+     "Freshness, completeness, anomalies, and contract breaks — with root-cause assistance and alert triage, not just raw alerts.",
+     "Dashboard uptime."
+    ],
+    "explain": "Quality agents watch the data itself — freshness, completeness, anomaly detection on tables, contract testing — and help with root cause and alert triage rather than paging on every blip.",
+    "id": "agentic-ai-for-data--data-quality-agents-mock",
+    "q": "On the job: what should a data-quality agent watch, and what should it do when something breaks?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--data-agent-project",
@@ -4744,7 +4952,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A sample CSV — simpler is safer for grading.",
+     "A schema with no rows — structure is what is graded.",
+     "Real tables with real questions, read-only guardrails, a question set for evaluation, and documented limits.",
+     "A slide deck describing the agent."
+    ],
+    "explain": "The module's project objectives demand a real dataset or warehouse, real questions, read-only guardrails, evaluation on a question set, and documented limits — a toy dataset cannot prove the agent is trustworthy.",
+    "id": "agentic-ai-for-data--data-agent-project-mock",
+    "q": "Panel question: what does a convincing data-agent project build against?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-data--data-agent-trust",
@@ -5017,7 +5238,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "It removes ad-hoc exploration, so analysts cannot learn.",
+     "It only affects query speed.",
+     "It removes the entire class of destructive mistakes — writes and deletes become opt-in with human approval, behind cost caps, PII awareness, and audit logging.",
+     "It eliminates the need for query logging."
+    ],
+    "explain": "Read-only by default is the module's first guardrail: it removes destructive mistakes by construction, with human approval required for writes, plus cost caps, PII awareness, and audit logging of agent queries.",
+    "id": "agentic-ai-for-data--data-agent-trust-mock",
+    "q": "You are asked: a data agent needs warehouse access. What does 'read-only by default' buy you?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-agent-literacy",
@@ -5290,7 +5524,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "They are the same thing.",
+     "Demos are better than capabilities.",
+     "Demos show the happy path; capabilities survive retries, edge cases, and scale — and PMs need cost/latency intuition and eval basics to tell them apart.",
+     "Capabilities do not matter for roadmaps."
+    ],
+    "explain": "Agent literacy for PMs centers on the demo-vs-capability gap — capabilities survive retries, edge cases, and scale — plus cost/latency intuition, evaluation basics, and reading architecture diagrams.",
+    "id": "agentic-ai-for-pm--pm-agent-literacy-mock",
+    "q": "Interviewer: a vendor demo looks flawless. What should a PM ask before believing it?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-spec-agents",
@@ -5563,7 +5810,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Binding commitments the team must implement.",
+     "No drafts — specs must be human-written.",
+     "The first 80% — drafts and acceptance criteria — with humans owning judgment on the rest, under version control.",
+     "Test scripts."
+    ],
+    "explain": "Spec agents draft the first 80% — PRDs, acceptance criteria — while humans stay the decision-makers on judgment calls, and specs live under version control like code.",
+    "id": "agentic-ai-for-pm--pm-spec-agents-mock",
+    "q": "On the job: how far should you let an agent go in writing a PRD?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-research-agents",
@@ -5836,7 +6096,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Curated judgment about markets.",
+     "Domain expertise.",
+     "Machine-speed reading breadth across long sources — but with citation discipline and verification of agent claims, since synthesis is only as good as its sources.",
+     "Relationships with sources."
+    ],
+    "explain": "Research agents' edge is reading breadth at machine speed — market/competitor research, long-source synthesis, feedback summarization — disciplined by citations and claim verification.",
+    "id": "agentic-ai-for-pm--pm-research-agents-mock",
+    "q": "You are asked: what are research agents actually good at, and what is the catch?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-agent-playbook",
@@ -6109,7 +6382,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "The simplest workflow — easy wins first.",
+     "An edge case nobody owns.",
+     "A real, frequent, painful workflow with measurable leverage — then design the assist, define success metrics, prototype, and pilot with a small group.",
+     "A novel workflow with no users yet."
+    ],
+    "explain": "The playbook starts with workflow selection: real, frequent, painful — measurable leverage — then assist design, success metrics, a prototype, and a small-group pilot.",
+    "id": "agentic-ai-for-pm--pm-agent-playbook-mock",
+    "q": "You are asked: which product workflow deserves an agent first?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-agent-metrics",
@@ -6382,7 +6668,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "No baseline is needed for new technology.",
+     "Industry benchmarks.",
+     "The unassisted baseline — observed, not self-reported — plus guardrail metrics, escalation design, and a risk register with rollback plans.",
+     "User anecdotes."
+    ],
+    "explain": "Measuring agent-assisted workflows requires the observed unassisted baseline — not self-reports — alongside guardrail metrics, escalation design, risk registers, and rollback plans.",
+    "id": "agentic-ai-for-pm--pm-agent-metrics-mock",
+    "q": "You are asked: how do you prove an agent-assisted workflow is actually better?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-pm--pm-agent-roadmap",
@@ -6655,7 +6954,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Only the upside — roadmaps sell vision.",
+     "Timeline only; capabilities are engineering's problem.",
+     "The capability boundary: what the agent handles, what it escalates, what it refuses — sequenced low-risk wins first, with build-vs-buy, stakeholder alignment, and cost modeling.",
+     "No scoping is needed for agent features."
+    ],
+    "explain": "Honest scoping names the capability boundary — handles, escalates, refuses — sequenced from low-risk wins, with build-vs-buy, stakeholder alignment, and pricing/cost modeling.",
+    "id": "agentic-ai-for-pm--pm-agent-roadmap-mock",
+    "q": "Panel question: what does honest scoping of an agent feature look like on a roadmap?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--program-agents",
@@ -6928,7 +7240,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Email only.",
+     "Code diffs.",
+     "Status, risks, and meetings across teams — roll-up synthesis and risk-signal detection — while keeping humans accountable for decisions.",
+     "No new information is needed."
+    ],
+    "explain": "Program agents read status, risks, and meetings across teams for roll-up synthesis and risk-signal detection — but accountability stays with humans, which the module states explicitly.",
+    "id": "agentic-ai-for-leaders--program-agents-mock",
+    "q": "On the job: what should a program-status agent read, and who stays accountable?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--eng-mgmt-agents",
@@ -7201,7 +7526,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Tribal knowledge — whatever engineers remember.",
+     "The model's training data.",
+     "The knowledge base — onboarding assistants answer from curated docs so new hires ramp without interrupting the team — plus 1:1 prep and team-health signals.",
+     "Best-effort guesses."
+    ],
+    "explain": "Onboarding assistants work because they answer from the knowledge base — ramp speed without interrupting the team — and the module pairs them with review-load balancing, 1:1 prep, and team-health measurement.",
+    "id": "agentic-ai-for-leaders--eng-mgmt-agents-mock",
+    "q": "You are asked: what should an onboarding assistant answer from?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--incident-agents",
@@ -7474,7 +7812,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Owning the page and running the incident solo.",
+     "Assigning blame in the postmortem.",
+     "Triage assistance, runbook-following, and timeline reconstruction at machine speed — while respecting paging policy and leaving ownership with humans.",
+     "Standing by until asked."
+    ],
+    "explain": "Incident agents assist — triage, runbooks, timelines at machine speed — within paging policy, with postmortem drafting after; they never own the incident or assign blame.",
+    "id": "agentic-ai-for-leaders--incident-agents-mock",
+    "q": "On the job: what is the right role for an agent during a live incident?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--rollout-playbook",
@@ -7747,7 +8098,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Expand on anecdotes of success.",
+     "Roll out to everyone once the demo works.",
+     "Pilot one team workflow with pre-committed metrics — time saved, quality, adoption, cost — guardrails and approvals in place, then make an expand-or-stop decision.",
+     "Skip the pilot; agents are low risk."
+    ],
+    "explain": "The rollout playbook: one team workflow, guardrails and approvals, pre-committed pilot metrics, then an explicit expand-or-stop decision — anecdotes are not metrics.",
+    "id": "agentic-ai-for-leaders--rollout-playbook-mock",
+    "q": "You are asked: how do you roll out an agent to the org responsibly?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--leader-agent-governance",
@@ -8020,7 +8384,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Treat them as toys — no provisioning needed.",
+     "Give them user accounts like everyone else.",
+     "Provision agents as principals: identity, scoped permissions, and data boundaries — with access controls, data-classification alignment, audit trails, and vendor/model risk review.",
+     "No special provisioning is needed."
+    ],
+    "explain": "Governance starts with identity: agents are provisioned as principals with scoped permissions and data boundaries, under access controls, classification alignment, audit trails, and policy for agent use.",
+    "id": "agentic-ai-for-leaders--leader-agent-governance-mock",
+    "q": "Panel question: how should agents be provisioned inside the company?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-leaders--leader-agent-metrics",
@@ -8293,7 +8670,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Engineer estimates are sufficient.",
+     "Surveys of perceived helpfulness.",
+     "Observed before/after against a real baseline — plus quality deltas, adoption, cost per assisted task, and counter-metrics for regressions.",
+     "Vendor case studies."
+    ],
+    "explain": "Honest impact measurement needs observed before/after with a real baseline — not estimates or surveys — alongside quality deltas, adoption, cost per task, and counter-metrics that catch regressions.",
+    "id": "agentic-ai-for-leaders--leader-agent-metrics-mock",
+    "q": "You are asked: how do you measure an agent's impact honestly?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-iv--agent-system-design",
@@ -8566,7 +8956,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "id": "agentic-ai-for-iv--agent-system-design-mock",
+    "type": "choice",
+    "q": "Whiteboard round: 'Design an agent system for invoice triage.' Where do you start?",
+    "choices": [
+     "Only the model choice matters.",
+     "Draw the UI first.",
+     "Scope the loop, define tool contracts, design memory, and plan the eval strategy — the four load-bearing decisions — on the whiteboard before any code.",
+     "Maximize the number of agents in the diagram."
+    ],
+    "answer": 2,
+    "explain": "The system-design objectives: scoping the loop, tool contracts, memory design, and eval strategy are the design decisions a whiteboard round tests — architecture before implementation."
+   }
   },
   {
    "id": "agentic-ai-for-iv--llm-depth-iv",
@@ -8839,7 +9242,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Recite transformer papers from memory.",
+     "Prove the math on the board.",
+     "Show attention intuition and reasoning tools — training vs inference, fine-tuning vs RAG decisions, context limits — not recitation.",
+     "Recount the history of NLP."
+    ],
+    "explain": "Interview-depth transformers means attention intuition and decision reasoning — training vs inference tradeoffs, fine-tuning vs RAG, context limits — the applied understanding interviews probe.",
+    "id": "agentic-ai-for-iv--llm-depth-iv-mock",
+    "q": "Interviewer: 'Explain transformers at the depth this role needs.' What are they really asking for?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-iv--agentic-coding",
@@ -9112,7 +9528,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "To avoid learning frameworks.",
+     "Only for interview trivia.",
+     "For muscle memory writable under the clock — loops, tool-use parsers, multi-step drills, and debugging failing trajectories by hand.",
+     "For confidence alone."
+    ],
+    "explain": "The reps objective is implementability under pressure: building agent loops from scratch, tool-use parsers, multi-step task drills, and debugging failing trajectories — timed — so the machinery is writable, not just describable.",
+    "id": "agentic-ai-for-iv--agentic-coding-mock",
+    "q": "Why does the module have you implement agent loops from scratch instead of using a framework?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-iv--agentic-behavioral",
@@ -9385,7 +9814,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "More detail and more buzzwords.",
+     "Self-promotion with superlatives.",
+     "Tight STAR structure with your actual role and learning explicit — including discussing AI failures and safety/ethics questions honestly.",
+     "Only success stories."
+    ],
+    "explain": "The module's behavioral objectives: STAR stories with your actual role explicit, honest discussion of AI failures, safety and ethics readiness, and questions that show judgment — not buzzword volume.",
+    "id": "agentic-ai-for-iv--agentic-behavioral-mock",
+    "q": "Interviewer prep: what makes a STAR story land for an AI role?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-iv--agentic-mock",
@@ -9658,7 +10100,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Only the system-design round matters.",
+     "Skip feedback; volume of mocks is what counts.",
+     "A full loop — system design, coding, and behavioral mocks — with feedback integrated between rounds, so weaknesses found in one round are fixed before the next.",
+     "Only coding mocks matter."
+    ],
+    "explain": "The mock-circuit objectives demand full-loop practice — system design, coding, behavioral — with feedback integration: each round's notes change the next round's performance.",
+    "id": "agentic-ai-for-iv--agentic-mock-mock",
+    "q": "You are asked: how should a mock-interview circuit be structured for agentic AI roles?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-for-iv--agentic-portfolio",
@@ -9931,7 +10386,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Maximize project count.",
+     "Show variety across every framework.",
+     "Choose for depth — two strong agent projects with write-ups, demo videos, READMEs as evidence, and clean GitHub hygiene beat six tutorial copies.",
+     "Show build speed."
+    ],
+    "explain": "The portfolio objectives: depth over count — strong project write-ups, demo videos, READMEs as evidence, and GitHub hygiene — so reviewers see engineering, not tutorial completion.",
+    "id": "agentic-ai-for-iv--agentic-portfolio-mock",
+    "q": "Interviewer: what should an agentic-AI portfolio demonstrate?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-platforms",
@@ -10204,7 +10672,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "The whole stack, including product strategy.",
+     "No infrastructure at all.",
+     "Hosting, model access, auth scaffolding, and monitoring basics — with pricing intuition and platform choice as your decisions.",
+     "The product roadmap."
+    ],
+    "explain": "The platform handles hosting, model access, auth scaffolding, and monitoring basics; the builder owns platform choice, pricing intuition, and what the platform does not do.",
+    "id": "agentic-ai-lowcode--lowcode-platforms-mock",
+    "q": "You are asked: what does a low-code agent platform handle for you?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-prompt-flows",
@@ -10477,7 +10958,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Prompt tricks alone.",
+     "Ever-longer chains.",
+     "One job and typed I/O per step — composability — with variables, branching, flow testing, and prompt iteration.",
+     "A single mega-prompt."
+    ],
+    "explain": "Prompt flows compose when each step has one job and typed I/O — with variables, branching, testing, and iteration on prompts as the practice.",
+    "id": "agentic-ai-lowcode--lowcode-prompt-flows-mock",
+    "q": "On the job: a visual prompt flow is a tangled mess. What principle fixes it?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-connectors",
@@ -10750,7 +11244,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "Turnkey automation with no configuration.",
+     "Raw data access.",
+     "Managed integrations — auth and API plumbing handled — with data access scoping, triggers/schedules, and error handling still your design job.",
+     "The ML models themselves."
+    ],
+    "explain": "Connectors provide managed integrations — auth and API plumbing handled — but data access scoping, triggers, and error handling remain design decisions.",
+    "id": "agentic-ai-lowcode--lowcode-connectors-mock",
+    "q": "You are asked: what do low-code connectors actually give you, and what is still on you?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-project",
@@ -11023,7 +11530,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "A toy workflow — safe for learning.",
+     "A flashy demo for stakeholders.",
+     "A real, frequent, ownable workflow — built, connected to data sources, tested with real users, with feedback gathered.",
+     "An undocumented workflow nobody understands."
+    ],
+    "explain": "The project objectives: pick a real, frequent, ownable workflow; build the agent; connect data sources; test with real users; gather feedback.",
+    "id": "agentic-ai-lowcode--lowcode-project-mock",
+    "q": "You are asked: what makes a good low-code agent project?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-deploy",
@@ -11296,7 +11816,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 443
+   "estimatedMinutes": 443,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "One click and you are done.",
+     "A Slack announcement.",
+     "Environment promotion, config management, and smoke tests — plus sharing/permissions, usage monitoring, feedback loops, and versioning.",
+     "Manual checks forever."
+    ],
+    "explain": "Publishing is a promotion: environment promotion, config, smoke tests — then sharing/permissions, usage monitoring, feedback loops, and versioning as professional practice.",
+    "id": "agentic-ai-lowcode--lowcode-deploy-mock",
+    "q": "On the job: what does 'publishing' a low-code agent actually involve?",
+    "type": "choice"
+   }
   },
   {
    "id": "agentic-ai-lowcode--lowcode-limits",
@@ -11569,7 +12102,20 @@
     "deliverable": "Agent source (~60-100 lines), a benign-task trajectory log, and a 1-page safety report with the attack-test outcome.",
     "checkpoint": "Loop terminates on budget; schema validation rejects malformed calls; the injected instruction is ignored; residual risk is named explicitly."
    },
-   "estimatedMinutes": 437
+   "estimatedMinutes": 437,
+   "mockTask": {
+    "answer": 2,
+    "choices": [
+     "It is rarely binding in practice.",
+     "It is too low to use low-code at all.",
+     "The point where the platform cannot express your need — know it before building, plan the escape to pro-code, and weigh vendor lock-in and cost at scale.",
+     "It only affects pricing."
+    ],
+    "explain": "The customization ceiling is where the platform cannot express your need — it must be known before building, with a pro-code escape path, lock-in awareness, and cost-at-scale math.",
+    "id": "agentic-ai-lowcode--lowcode-limits-mock",
+    "q": "Panel question: when should a team walk away from low-code toward pro-code?",
+    "type": "choice"
+   }
   },
   {
    "id": "IL-17-PM-LOGIC",

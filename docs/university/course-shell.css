@@ -18,8 +18,10 @@
   --shadow:0 18px 50px rgba(0,0,0,.45);
   color-scheme:dark;
 }
-@media (prefers-color-scheme:light){
-  :root{
+/* Light theme is OPT-IN ONLY via the theme toggle (il-theme.js sets
+   html[data-theme="light"]). The OS color-scheme preference NEVER flips
+   the default: first-time and anonymous visitors always get dark. */
+html[data-theme="light"]{
     --bg:#f4f6fa; --panel:#ffffff; --panel2:#f7f9fc; --panel3:#eef2f7;
     --ink:#10161f; --muted:#54637a; --faint:#8494a9;
     --line:rgba(16,24,40,.11); --line2:rgba(16,24,40,.2);
@@ -27,7 +29,6 @@
     --cyan:#0e7490; --cyan-soft:rgba(14,116,144,.08);
     --shadow:0 14px 36px rgba(16,24,40,.12);
     color-scheme:light;
-  }
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -44,7 +45,7 @@ pre{
   background:#04070b; color:#c8f3d8; border:1px solid var(--line);
   border-radius:var(--radius-s); padding:12px 14px; overflow-x:auto; margin:10px 0;
 }
-@media (prefers-color-scheme:light){ pre{background:#10161f; color:#d6f5e3} }
+
 .skip-link{position:absolute; left:-999px; top:0; background:var(--gold); color:#0a0f16;
   padding:8px 14px; border-radius:0 0 8px 0; font-weight:600; z-index:999}
 .skip-link:focus{left:0}
@@ -245,7 +246,7 @@ details.fold .fold-body{padding:2px 16px 14px}
   background:#04070b; color:#d9ecff; border:1px solid var(--line2); border-radius:var(--radius-s);
   padding:12px 14px; resize:vertical;
 }
-@media (prefers-color-scheme:light){ .code-editor{background:#10161f; color:#d9ecff} }
+
 .req-list{list-style:none; padding:0; margin:10px 0}
 .req-list li{font-family:var(--mono); font-size:12.5px; padding:4px 0 4px 26px; position:relative; color:var(--muted)}
 .req-list li::before{content:'○'; position:absolute; left:6px}

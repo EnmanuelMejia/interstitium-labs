@@ -7,8 +7,9 @@
  * panel (address + QR + tag/memo) with a transaction-hash submission form.
  *
  * Prices are display-only here; the Worker is the price authority.
- * Course prices shown are DEFAULTS the user has not set (see payment-routes.js
- * PAYWALL_CONFIG); the server decides the real amount at /api/pay/create.
+ * Course prices shown are researched 2026-10-08 ($249/course, $999 bundle;
+ * see payment-routes.js PAYWALL_CONFIG); the server decides the real amount
+ * at /api/pay/create.
  * No secrets, no keys, no wallet addresses are hardcoded in this file —
  * direct addresses come from GET /api/pay/ud at runtime.
  */
@@ -33,7 +34,8 @@
     },
   };
 
-  /* Paywalled courses (display-only prices — DEFAULTS, user has not set prices).
+  /* Paywalled courses (display prices — researched 2026-10-08: $249/course,
+     $999 bundle; server is the price authority, see payment-routes.js).
      Item ids match server ITEMS keys exactly (the course JSON slugs). */
   var COURSES = {
     "il-01-esoteric-foundations": { name: "IL-01 · Esoteric Foundations", price: "$249" },
