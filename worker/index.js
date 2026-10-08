@@ -1,4 +1,4 @@
-import { ASSETS, PAY_ADDRESS, PAY_DOMAIN, TIERS, spotAmount, stableAmount, verifyTransfer } from "./pay.js";
+import { ASSETS, PAY_ADDRESS, PAY_DOMAIN, TIERS, moneroAddress, spotAmount, stableAmount, verifyTransfer } from "./pay.js";
 import { addressInMessage, buildMessage, recoverAddress } from "./siwe.js";
 import { clearCookie, hasSecret, open, readCookie, seal, setCookie } from "./session.js";
 
@@ -72,6 +72,7 @@ async function api(request, url, env) {
   if (path === "/api/pay/quote" && request.method === "GET") return quote(url, env);
   if (path === "/api/pay/verify" && request.method === "POST") return verify(request, env);
   if (path === "/api/checkout" && request.method === "POST") return checkout(request, url, env);
+  if (path === "/api/paypal/order" && request.method === "POST") return paypalOrder(request, url, env);
   const oauth = path.match(/^\/api\/auth\/(google|github|x)\/(start|callback)$/);
   if (oauth && request.method === "GET") {
     return oauth[2] === "start"
@@ -363,10 +364,14 @@ function payConfig(env) {
     chainId: 1,
     record: "crypto.ETH.address",
     stripe: typeof env.STRIPE_SECRET_KEY === "string" && env.STRIPE_SECRET_KEY.startsWith("sk_"),
+    paypal: paypalReady(env),
+    xmr: moneroAddress(env.XMR_ADDRESS) ? env.XMR_ADDRESS : null,
     assets: ASSETS,
     tiers,
+    fiat:
+      "Cards, Apple Pay, and Google Pay open inside Stripe Checkout once STRIPE_SECRET_KEY is set. PayPal and Venmo use a PayPal order once PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET are set. Any ERC-20 can be sent to the Ethereum address. Coins with no address on the domain are not given a button.",
     iso20022:
-      "XRP, XLM, ALGO, HBAR, XDC, and IOTA have no address on this domain, so they are not offered. QNT is an ERC-20 and is quoted in USD. ISO/IEC 2022 is a character encoding, not a payment network.",
+      "ISO/IEC 2022 is a character encoding. ISO 20022 is the messaging standard. XRP, XLM, ALGO, HBAR, XDC, and IOTA have no record on enmanuelmejia.crypto, so they are refused. QNT is an ERC-20 at the Ethereum address. XMR is invoiced only to a Monero address.",
   });
 }
 
@@ -374,7 +379,8 @@ async function quote(url, env) {
   if (!hasSecret(env)) return json({ error: "session-secret-missing" }, 503);
   const tier = TIERS[url.searchParams.get("tier") || ""];
   const asset = url.searchParams.get("asset");
-  if (!tier || (asset !== "eth" && asset !== "qnt")) return json({ error: "bad-quote" }, 400);
+  if (!tier || (asset !== "eth" && asset !== "qnt" && asset !== "xmr")) return json({ error: "bad-quote" }, 400);
+  if (asset === "xmr" && !moneroAddress(env.XMR_ADDRESS)) return json({ error: "xmr-not-configured" }, 503);
   const amount = await spotAmount(asset, tier.usdCents);
   if (amount == null) return json({ error: "price-unavailable" }, 503);
   const token = await seal(
@@ -391,6 +397,7 @@ async function verify(request, env) {
   const tier = TIERS[body.tier];
   const asset = ASSETS[body.asset] ? body.asset : "";
   if (!tier || !asset) return json({ error: "bad-request" }, 400);
+  if (asset === "xmr") return noteMonero(body, tier, env);
   let minimum = stableAmount(asset, tier.usdCents);
   if (minimum == null) {
     if (!hasSecret(env)) return json({ error: "session-secret-missing" }, 503);
@@ -439,6 +446,7 @@ async function checkout(request, url, env) {
   form.set("line_items[0][price_data][unit_amount]", String(tier.usdCents));
   form.set("line_items[0][price_data][product_data][name]", tier.name);
   form.set("metadata[tier]", tierId);
+  form.set("automatic_payment_methods[enabled]", "true");
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: {
@@ -452,6 +460,73 @@ async function checkout(request, url, env) {
     return json({ error: "stripe-rejected" }, 502);
   }
   return json({ url: payload.url });
+}
+
+function paypalReady(env) {
+  return typeof env.PAYPAL_CLIENT_ID === "string" && env.PAYPAL_CLIENT_ID.length > 8 && typeof env.PAYPAL_CLIENT_SECRET === "string" && env.PAYPAL_CLIENT_SECRET.length > 8;
+}
+
+async function paypalOrder(request, url, env) {
+  if (!paypalReady(env)) return json({ error: "paypal-not-configured" }, 503);
+  const body = await request.json().catch(() => null);
+  const tier = TIERS[body && body.tier];
+  const tierId = body && body.tier;
+  if (!tier) return json({ error: "bad-tier" }, 400);
+  const auth = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+    method: "POST",
+    headers: {
+      authorization: "Basic " + btoa(env.PAYPAL_CLIENT_ID + ":" + env.PAYPAL_CLIENT_SECRET),
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  const token = await auth.json().catch(() => null);
+  if (!auth.ok || !token || !token.access_token) return json({ error: "paypal-rejected" }, 502);
+  const order = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer " + token.access_token,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          custom_id: tierId,
+          description: tier.name,
+          amount: { currency_code: "USD", value: (tier.usdCents / 100).toFixed(2) },
+        },
+      ],
+      application_context: {
+        return_url: url.origin + "/enroll/success",
+        cancel_url: url.origin + "/enroll/cancel",
+        shipping_preference: "NO_SHIPPING",
+        user_action: "PAY_NOW",
+      },
+    }),
+  });
+  const payload = await order.json().catch(() => null);
+  const approve = payload && Array.isArray(payload.links) && payload.links.find((link) => link.rel === "approve");
+  if (!order.ok || !approve || typeof approve.href !== "string" || !approve.href.startsWith("https://www.paypal.com/")) {
+    return json({ error: "paypal-rejected" }, 502);
+  }
+  return json({ url: approve.href });
+}
+
+async function noteMonero(body, tier, env) {
+  if (!moneroAddress(env.XMR_ADDRESS)) return json({ error: "xmr-not-configured" }, 503);
+  const tx = typeof body.txHash === "string" ? body.txHash.trim() : "";
+  if (!/^[0-9a-fA-F]{64}$/.test(tx)) return json({ error: "bad-hash" }, 400);
+  const record = {
+    tier: body.tier,
+    asset: "xmr",
+    tx,
+    usdCents: tier.usdCents,
+    status: "submitted-unverified",
+    at: new Date().toISOString(),
+  };
+  if (env.ACCOUNTS) await env.ACCOUNTS.put("pay:xmr:" + tx.toLowerCase(), JSON.stringify(record));
+  return json({ ok: false, status: "submitted-unverified" }, 202);
 }
 
 function b64(bytes) {

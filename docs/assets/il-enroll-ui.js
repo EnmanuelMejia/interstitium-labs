@@ -93,11 +93,12 @@
       });
       say(
         '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-cyan">Payments</p>' +
-          '<p class="mt-2 text-paper">Card checkout uses Stripe when the worker secret is set. Crypto is paid on Ethereum mainnet to <a class="text-cyan" href="/account/">' +
-          esc(payTo.domain) +
-          "</a>, record crypto.ETH.address.</p>" +
+          '<p class="mt-2 text-paper">Any ERC-20 can be sent to the Ethereum address below. Cards, Apple Pay, and Google Pay use Stripe. PayPal and Venmo use PayPal. Monero uses its own address.</p>' +
           '<p class="mt-2 text-sm text-muted">' +
+          esc(payTo.fiat || "") +
+          " " +
           esc(payTo.iso20022) +
+          (payTo.xmr ? "" : " Monero is off until the XMR_ADDRESS worker secret is a real Monero address. The domain has no crypto.XMR.address.") +
           "</p>" +
           '<p class="mt-2 font-mono text-xs text-gold">' +
           esc(payTo.address) +
@@ -110,7 +111,9 @@
         var art = document.createElement("article");
         art.className = "flex flex-col rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)] sm:p-7";
         var buttons =
-          '<button type="button" data-card="1" class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-paper px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-void">Card via Stripe</button>' +
+          '<button type="button" data-card="1" class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-paper px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-void">Card, Apple Pay, Google Pay</button>' +
+          '<button type="button" data-paypal="1" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">PayPal or Venmo</button>' +
+          '<button type="button" data-asset="xmr" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay with XMR</button>' +
           '<button type="button" data-asset="usdc" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay ' +
           esc(units(remote.stable.usdc, 6)) +
           " USDC</button>" +
@@ -153,11 +156,35 @@
                   location.href = out.data.url;
                   return;
                 }
-                say("<p>Stripe is not connected yet. Set the STRIPE_SECRET_KEY worker secret. Crypto buttons on this page already pay " + esc(payTo.domain) + ".</p>");
+                say("<p>Stripe is not connected yet. Card, Apple Pay, and Google Pay turn on together when STRIPE_SECRET_KEY is set. No card number is taken on this site.</p>");
+              });
+            return;
+          }
+          if (button.getAttribute("data-paypal")) {
+            fetch("/api/paypal/order", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ tier: tier.id }),
+            })
+              .then(function (res) {
+                return res.json().then(function (data) {
+                  return { ok: res.ok, data: data };
+                });
+              })
+              .then(function (out) {
+                if (out.ok && out.data.url) {
+                  location.href = out.data.url;
+                  return;
+                }
+                say("<p>PayPal and Venmo are not connected yet. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET. Venmo is offered inside that PayPal checkout for eligible US buyers.</p>");
               });
             return;
           }
           var asset = button.getAttribute("data-asset");
+          if (asset === "xmr" && !payTo.xmr) {
+            say("<p>XMR is not offered yet. enmanuelmejia.crypto has no Monero record, and no XMR address will be invented.</p>");
+            return;
+          }
           var amount = remote.stable[asset];
           var token = payTo.assets[asset] && payTo.assets[asset].token;
           if (amount) {
@@ -173,6 +200,21 @@
             .then(function (out) {
               if (!out.ok) {
                 say("<p>No live " + esc(asset.toUpperCase()) + " price, so that button will not invent an amount.</p>");
+                return;
+              }
+              if (asset === "xmr") {
+                var whole = units(out.data.amount, 12);
+                say(
+                  "<p>Send " +
+                    esc(whole) +
+                    " XMR to " +
+                    esc(payTo.xmr) +
+                    ".</p><p class=\"mt-2 font-mono text-xs break-all\">monero:" +
+                    esc(payTo.xmr) +
+                    "?tx_amount=" +
+                    esc(whole) +
+                    "</p><p class=\"mt-2 text-sm text-muted\">A pasted Monero tx hash is recorded as submitted. It is not marked paid, because Monero hides the recipient without a view key.</p>"
+                );
                 return;
               }
               pay(payTo, tier.id, asset, out.data.amount, token, out.data.quote);
