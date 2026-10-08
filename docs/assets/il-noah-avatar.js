@@ -769,15 +769,20 @@
         api.setIntensity(p.intensity);
         api.setAvatar(p.avatar);
       },
+      destroyed: false,
       destroy: function () {
+        if (api.destroyed) return;
+        api.destroyed = true;
         state.alive = false;
         try { if (raf) g.cancelAnimationFrame(raf); } catch (e) {}
         if (io) { try { io.disconnect(); } catch (e2) {} }
         if (ro) { try { ro.disconnect(); } catch (e3) {} }
-        g.removeEventListener('il-muse-speak-boundary', onBoundary);
-        g.removeEventListener('il-muse-speak-amp', onAmp);
+        try { if (onReducedResize) g.removeEventListener('resize', onReducedResize); } catch (e4) {}
+        try { if (typeof resize === 'function') g.removeEventListener('resize', resize); } catch (e5) {}
+        try { if (onBoundary) g.removeEventListener('il-muse-speak-boundary', onBoundary); } catch (e6) {}
+        try { if (onAmp) g.removeEventListener('il-muse-speak-amp', onAmp); } catch (e7) {}
         stopMic();
-        freeScene();
+        releaseGl();
         var ix = registry.indexOf(api);
         if (ix >= 0) registry.splice(ix, 1);
         if (root.parentNode) root.parentNode.removeChild(root);
@@ -809,6 +814,7 @@
     if (!meshProg || !partProg) {
       root.classList.add('is-fallback');
       root.classList.remove('is-webgl');
+      releaseGl();
       return api;
     }
 
@@ -899,6 +905,17 @@
         scene.buffers.forEach(function (b) { try { gl.deleteBuffer(b); } catch (e) {} });
       }
       scene = null;
+    }
+    function releaseGl() {
+      try { freeScene(); } catch (e) {}
+      try { if (meshProg) gl.deleteProgram(meshProg); } catch (e2) {}
+      try { if (partProg) gl.deleteProgram(partProg); } catch (e3) {}
+      meshProg = null;
+      partProg = null;
+      try {
+        var ext = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
+        if (ext) ext.loseContext();
+      } catch (e4) {}
     }
     function rebuildScene() {
       freeScene();
@@ -993,7 +1010,7 @@
       renderFrame();
     }
 
-    var raf = 0, last = 0, procPhase = 0, io = null, ro = null;
+    var raf = 0, last = 0, procPhase = 0, io = null, ro = null, onReducedResize = null;
 
     function frame(ts) {
       if (!state.alive || state.paused) { raf = 0; return; }
@@ -1022,11 +1039,12 @@
       renderStatic();
       /* layout may settle after deferred scripts run — keep the still frame correct */
       var rsT = 0;
-      g.addEventListener('resize', function () {
+      onReducedResize = function () {
         if (!state.alive) return;
         if (rsT) return;
         rsT = g.setTimeout(function () { rsT = 0; resize(); renderStatic(); }, 150);
-      }, { passive: true });
+      };
+      g.addEventListener('resize', onReducedResize, { passive: true });
     } else {
       kickLoop();
       /* pause when offscreen (mobile perf + battery) */
@@ -1098,30 +1116,34 @@
   function mount(slot, opts) {
     if (!slot) return null;
     var existing = findForSlot(slot);
-    if (existing) {
+    if (existing && !existing.destroyed && !isOrphaned(existing)) {
       if (existing.root.parentNode !== slot) slot.appendChild(existing.root);
       existing.applyProfile();
       return existing;
     }
-    /* reuse orphaned instance whose root was detached (e.g. widget re-render) */
+    /* One live context. Extra orphans are destroyed, and destroy() calls
+       WEBGL_lose_context so a re-render storm cannot sit at Chromium's cap. */
+    var reuse = null;
+    var doomed = [];
     for (var j = 0; j < registry.length; j++) {
-      if (isOrphaned(registry[j])) {
-        slot.appendChild(registry[j].root);
-        registry[j].slot = slot;
-        registry[j].applyProfile();
-        return registry[j];
-      }
+      var inst = registry[j];
+      if (inst.destroyed) { doomed.push(inst); continue; }
+      if (!isOrphaned(inst)) continue;
+      if (!reuse) reuse = inst;
+      else doomed.push(inst);
     }
-    /* self-healing cap: destroy any other detached instances before allocating
-       another WebGL context, so a re-render storm can never exhaust the GPU */
-    for (var k = registry.length - 1; k >= 0; k--) {
-      if (isOrphaned(registry[k])) {
-        try { registry[k].destroy(); } catch (eD) {}
-      }
+    for (var k = 0; k < doomed.length; k++) {
+      try { doomed[k].destroy(); } catch (eD) {}
     }
-    var inst = createInstance(slot, opts || {});
-    registry.push(inst);
-    return inst;
+    if (reuse && !reuse.destroyed) {
+      slot.appendChild(reuse.root);
+      reuse.slot = slot;
+      try { reuse.applyProfile(); } catch (eA) {}
+      return reuse;
+    }
+    var created = createInstance(slot, opts || {});
+    registry.push(created);
+    return created;
   }
 
   function syncFromApp(app, opts) {

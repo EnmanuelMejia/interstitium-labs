@@ -1,14 +1,20 @@
 /**
- * Interstitium Labs — service worker RETIRED (2026-10-01).
- * The offline worker poisoned mobile caches and broke rendering during
- * hiring-manager audits. This script now unregisters any service worker
- * and deletes every cache, then stays out of the way. The page always
- * loads fresh from the network. PWA re-introduction (if ever) will be
- * deliberate, versioned, and fail-open.
+ * Interstitium Labs — service worker retired.
+ * Unregister any worker, delete every cache, and strip the one-shot il_heal
+ * query the kill switch adds when it reloads a stuck tab. Pages load from
+ * the network. A future worker has to be versioned and fail-open on purpose.
  */
 (function (global) {
   "use strict";
   try {
+    try {
+      var here = new URL(global.location.href);
+      if (here.searchParams.get("il_heal") === "1") {
+        here.searchParams.delete("il_heal");
+        var next = here.pathname + here.search + here.hash;
+        global.history.replaceState(global.history.state, "", next);
+      }
+    } catch (eUrl) {}
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .getRegistrations()

@@ -1,16 +1,11 @@
-/* Interstitium Labs — service worker KILL SWITCH (2026-10-01).
+/* Interstitium Labs — service worker KILL SWITCH.
  *
- * The service worker is RETIRED. This script exists for exactly one reason:
- * to find any device still controlled by the old worker (which precached `/`
- * and served stale builds for days), and force-heal it with zero user action:
+ * The offline worker is retired. This file exists so a device still controlled
+ * by the September precache can update once, drop every cache, reload open
+ * windows from the network, and unregister. Fetch never reads or writes a cache.
  *
- *   install  -> skipWaiting(), take over immediately
- *   activate -> delete EVERY CacheStorage cache, claim clients,
- *               force-reload every open window to the fresh network HTML,
- *               then unregister self so no worker ever controls the site again
- *   fetch    -> fail-open: always network, never cache
- *
- * Runs once per device, then removes itself. Safe to keep deployed forever.
+ * A second activate must not navigate again: reloaded URLs carry il_heal=1, and
+ * /enroll/ is left alone so an in-progress form is not wiped.
  */
 self.addEventListener("install", function (event) {
   event.waitUntil(self.skipWaiting());
@@ -19,7 +14,6 @@ self.addEventListener("install", function (event) {
 self.addEventListener("activate", function (event) {
   event.waitUntil(
     (async function () {
-      // 1. Nuke every cache — this is what served the stale September builds.
       try {
         var names = await caches.keys();
         await Promise.all(
@@ -29,7 +23,6 @@ self.addEventListener("activate", function (event) {
         );
       } catch (e) {}
 
-      // 2. Take control of every open tab/window right now.
       var wins = [];
       try {
         await self.clients.claim();
@@ -37,31 +30,39 @@ self.addEventListener("activate", function (event) {
           type: "window",
           includeUncontrolled: true,
         });
-      } catch (e) {}
+      } catch (e2) {}
 
-      // 3. Force each window to reload from network (fresh HTML carries the
-      //    inline cache-killer too, as belt-and-suspenders).
       await Promise.all(
         wins.map(function (c) {
+          var url;
           try {
-            return c.navigate(c.url);
-          } catch (e) {
+            url = new URL(c.url);
+          } catch (e3) {
+            return Promise.resolve();
+          }
+          if (url.origin !== self.location.origin) return Promise.resolve();
+          if (url.pathname.indexOf("/enroll/") === 0) return Promise.resolve();
+          if (url.searchParams.get("il_heal") === "1") return Promise.resolve();
+          url.searchParams.set("il_heal", "1");
+          try {
+            return c.navigate(url.href);
+          } catch (e4) {
             return Promise.resolve();
           }
         })
       );
 
-      // 4. Unregister self — no service worker, ever again, until a
-      //    deliberately versioned, fail-open PWA strategy ships.
       try {
         await self.registration.unregister();
-      } catch (e) {}
+      } catch (e5) {}
     })()
   );
 });
 
 self.addEventListener("fetch", function (event) {
-  // Fail-open: never serve from cache. If the network fails, the browser
-  // shows its own offline page — never a stale build.
-  event.respondWith(fetch(event.request));
+  event.respondWith(
+    fetch(event.request).catch(function () {
+      return Response.error();
+    })
+  );
 });

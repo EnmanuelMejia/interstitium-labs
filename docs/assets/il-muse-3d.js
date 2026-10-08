@@ -363,10 +363,18 @@
       setAmplitude: function (a) { state.amp = Math.max(0, Math.min(1, a || 0)); },
       pulseSpeak: function (v) { state.speakBeat = Math.max(state.speakBeat, v == null ? 1 : v); },
       destroy: function () {
+        if (api.destroyed) return;
+        api.destroyed = true;
         state.alive = false;
         try { if (raf) g.cancelAnimationFrame(raf); } catch (e) {}
         stopMic();
+        try {
+          var ext = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
+          if (ext) ext.loseContext();
+        } catch (eLose) {}
         if (root.parentNode) root.parentNode.removeChild(root);
+        var ix = registry.indexOf(api);
+        if (ix >= 0) registry.splice(ix, 1);
       },
       getStatus: function () { return state.status; }
     };
@@ -396,6 +404,12 @@
     if (!meshProg || !partProg) {
       root.classList.add('is-fallback');
       root.classList.remove('is-webgl');
+      try {
+        if (meshProg) gl.deleteProgram(meshProg);
+        if (partProg) gl.deleteProgram(partProg);
+        var extFail = gl.getExtension('WEBGL_lose_context');
+        if (extFail) extFail.loseContext();
+      } catch (eLose) {}
       return api;
     }
 
@@ -781,9 +795,10 @@
 
     var _destroy = api.destroy;
     api.destroy = function () {
-      g.removeEventListener('il-muse-speak-boundary', onBoundary);
-      g.removeEventListener('il-muse-speak-amp', onAmp);
-      if (ro) try { ro.disconnect(); } catch (e) {}
+      try { g.removeEventListener('il-muse-speak-boundary', onBoundary); } catch (e) {}
+      try { g.removeEventListener('il-muse-speak-amp', onAmp); } catch (e2) {}
+      if (ro) try { ro.disconnect(); } catch (e3) {}
+      try { g.removeEventListener('resize', resize); } catch (e4) {}
       _destroy();
     };
 
@@ -793,7 +808,7 @@
     try {
       var t0 = Date.now();
       var bootPulse = function () {
-        if (Date.now() - t0 > 3200) return;
+        if (!state.alive || Date.now() - t0 > 3200) return;
         api.pulseSpeak(0.35 + 0.4 * Math.random());
         api.setAmplitude(0.25 + 0.35 * Math.random());
         g.setTimeout(bootPulse, 280);
@@ -823,14 +838,23 @@
       if (opts && opts.cinema) slot.classList.add('il-muse-3d-slot--cinema');
       return existing;
     }
-    /* Reuse orphaned instance whose root was detached by innerHTML wipe */
+    /* Reuse one orphan. A root still parented to a slot that innerHTML
+       detached has a non-null parentNode — that was the leak. */
+    var reuse = null;
     for (var j = 0; j < registry.length; j++) {
-      if (!registry[j].root.parentNode) {
-        slot.appendChild(registry[j].root);
-        registry[j].slot = slot;
-        if (opts && opts.avatarId) registry[j].setAvatar(opts.avatarId);
-        return registry[j];
-      }
+      var cand = registry[j];
+      if (cand.destroyed) continue;
+      var detached = !cand.root || !cand.root.parentNode ||
+        (cand.slot && typeof document !== 'undefined' && !document.contains(cand.slot));
+      if (!detached) continue;
+      if (!reuse) reuse = cand;
+      else { try { cand.destroy(); } catch (eD) {} }
+    }
+    if (reuse) {
+      slot.appendChild(reuse.root);
+      reuse.slot = slot;
+      if (opts && opts.avatarId) reuse.setAvatar(opts.avatarId);
+      return reuse;
     }
     var inst = createInstance(slot, opts || {});
     registry.push(inst);

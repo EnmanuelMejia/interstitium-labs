@@ -41,7 +41,7 @@ See `apps/mobile/README.md`.
 
 ## PWA
 
-`docs/manifest.webmanifest` + `docs/sw.js` — Interstitium Labs / Learning OS (not legacy “Grok App”).
+`docs/manifest.webmanifest` is the install manifest. `docs/sw.js` is a one-shot kill switch: it clears the retired September precache and unregisters. It does not serve an offline shell.
 
 Independent product work by Enmanuel D. Mejia. Pair with [devops-superlab](https://github.com/EnmanuelMejia/devops-superlab).
 
