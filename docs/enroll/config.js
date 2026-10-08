@@ -14,7 +14,7 @@ window.IL_ENROLL = {
   waitlistMailto: "mailto:edmejia@pm.me?subject=Interstitium%20Labs%20waitlist",
   // Flip paymentsLive to true only after live links are pasted and tested.
   disclaimer:
-    "Waitlist mode: checkout is intentionally offline. Card and PayPal stay inactive until live Payment Links are pasted and paymentsLive is set true.",
+    "Card checkout runs through Stripe when STRIPE_SECRET_KEY is set on the worker. Ethereum payments go to the crypto.ETH.address record of enmanuelmejia.crypto. Placeholder Payment Links are not used.",
   tiers: [
     {
       id: "prep-sprint",
