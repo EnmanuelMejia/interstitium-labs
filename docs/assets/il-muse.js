@@ -785,6 +785,10 @@
          (~6 per SEND) until the renderer hung. Reattach the single live instance
          instead of mounting anew — the expando survives innerHTML rebuilds. */
       var prev = app.__ilNoahAvatar;
+      if (prev && prev.destroyed) {
+        app.__ilNoahAvatar = null;
+        prev = null;
+      }
       if (prev && prev.root && typeof prev.setStatus === 'function') {
         try {
           if (prev.slot !== slot) {
