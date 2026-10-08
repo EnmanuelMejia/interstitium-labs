@@ -422,13 +422,15 @@ function refreshILProgress() {
         '<div class="ilprog-bar__track"><div class="ilprog-bar__fill" style="width:' + stats.pct + '%"></div></div>';
     }
     /* "Continue where you left off" at the top of the Brief tab — the
-       resume anchor lands the student at the exact last module. */
+       resume anchor lands the student at the exact last module. No
+       progress yet → "Start your guided path" variant (IL-01).
+       Gating unchanged: resume into a gated course hits the paywall. */
     var lp = ILProgress.getLastPosition();
     var brief = $('#tab-brief');
     var cwrap = document.getElementById('ilprog-continue-wrap');
-    if (lp && brief) {
+    if (brief) {
       ILProgress.loadSequence(function (seq) {
-        var html = ILProgress.continueHTML(lp, seq, { ctaLabel: 'Resume' });
+        var html = lp ? ILProgress.continueHTML(lp, seq, {}) : ILProgress.startPathHTML(seq, {});
         if (!html) { if (cwrap) cwrap.style.display = 'none'; return; }
         if (!cwrap) {
           cwrap = el('div', '');
@@ -436,8 +438,9 @@ function refreshILProgress() {
           brief.insertBefore(cwrap, brief.firstChild);
         }
         /* Re-render only when the resume anchor moved. */
-        if (cwrap.dataset.lp !== lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp) {
-          cwrap.dataset.lp = lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp;
+        var sig = lp ? (lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp) : 'start-path';
+        if (cwrap.dataset.lp !== sig) {
+          cwrap.dataset.lp = sig;
           cwrap.innerHTML = html;
         }
         cwrap.style.display = '';

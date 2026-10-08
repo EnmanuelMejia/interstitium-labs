@@ -126,10 +126,13 @@
     document.getElementById('acad-hours').textContent = IL.fmtHours(a.hours);
 
     /* 2026-10-08: unified progress — resume banner + course progress bar.
-       localStorage "il-progress-v1"; tracks regardless of paywall gating. */
+       localStorage "il-progress-v1"; tracks regardless of paywall gating.
+       2026-10-08 (resume fix): unified paintResume — "Continue where you
+       left off" when progress exists, "Start your guided path" (IL-01)
+       when the device is fresh. */
     try {
       var lpSlot = document.getElementById('ilprog-continue-slot');
-      if (lpSlot && window.ILProgress) ILProgress.paintContinue(lpSlot, { ctaLabel: 'Resume' });
+      if (lpSlot && window.ILProgress) ILProgress.paintResume(lpSlot, {});
       var pHost = document.getElementById('ilprog-course-progress');
       var pSlug = COURSE_SLUGS[a.code];
       if (pHost && pSlug && window.ILProgress) {

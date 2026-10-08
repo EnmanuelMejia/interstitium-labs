@@ -504,15 +504,14 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <script>
 /* 2026-10-08: Continue where you left off — unified course progress banner.
    localStorage "il-progress-v1"; local device only, tracks regardless of
-   paywall gating. */
+   paywall gating. 2026-10-08 (resume fix): unified paintResume — explicit
+   "Continue where you left off" button when progress exists, "Start your
+   guided path" variant (IL-01) on a fresh device. */
 (function () {
   try {
     var slot = document.getElementById('ilprog-continue-slot');
     if (!slot || !window.ILProgress) return;
-    if (ILProgress.getLastPosition()) {
-      slot.style.display = '';
-      ILProgress.paintContinue(slot, { ctaLabel: 'Resume where you left off' });
-    }
+    ILProgress.paintResume(slot, {});
   } catch (e) {}
 })();
 </script>

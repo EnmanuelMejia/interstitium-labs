@@ -200,7 +200,9 @@
   }
 
   /* Continue banner HTML. Resolves titles from the sequence doc; falls back
-     to course code + module id when the doc is unavailable. */
+     to course code + module id when the doc is unavailable. The CTA button
+     always reads "Continue where you left off" unless opts.ctaLabel
+     overrides it (user order 2026-10-08: explicit resume affordance). */
   function continueHTML(lp, seq, opts) {
     opts = opts || {};
     var entry = findEntry(seq, lp.courseId);
@@ -211,11 +213,30 @@
     if (!url) return '';
     return '<div class="ilprog-continue" role="region" aria-label="Continue where you left off">' +
       '<div class="ilprog-continue__txt">' +
-      '<p class="ilprog-continue__eyebrow">Continue where you left off</p>' +
+      '<p class="ilprog-continue__eyebrow">Pick up right where you stopped</p>' +
       '<p class="ilprog-continue__desc"><strong>' + esc(code) + '</strong>' +
       (cTitle ? ' · ' + esc(cTitle) : '') +
       ' — ' + esc(mTitle) + '</p></div>' +
-      '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Resume') + '</a></div>';
+      '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Continue where you left off') + '</a></div>';
+  }
+
+  /* "Start your guided path" variant — shown when the device has no
+     progress yet. Points at the curriculum start (first sequence entry,
+     IL-01). Falls back to the hardcoded IL-01 URL when the sequence doc
+     is unavailable. */
+  function startPathHTML(seq, opts) {
+    opts = opts || {};
+    var first = (seq && seq.courses && seq.courses.length) ? seq.courses[0] : null;
+    var url = first ? courseURL(first) : '/university/course.html?course=il-01-esoteric-foundations';
+    var code = first ? first.code : 'IL-01';
+    var cTitle = first ? first.title : 'Esoteric Foundations';
+    if (!url) return '';
+    return '<div class="ilprog-continue ilprog-continue--start" role="region" aria-label="Start your guided path">' +
+      '<div class="ilprog-continue__txt">' +
+      '<p class="ilprog-continue__eyebrow">Begin the guided sequence</p>' +
+      '<p class="ilprog-continue__desc"><strong>' + esc(code) + '</strong> · ' + esc(cTitle) +
+      ' — the first step of the full curriculum</p></div>' +
+      '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Start your guided path') + '</a></div>';
   }
 
   /* Paint the banner into a container if (and only if) a last position exists. */
@@ -225,6 +246,20 @@
     if (!lp) { container.style.display = 'none'; return; }
     loadSequence(function (seq) {
       var html = continueHTML(lp, seq, opts);
+      if (!html) { container.style.display = 'none'; return; }
+      container.innerHTML = html;
+      container.style.display = '';
+    });
+  }
+
+  /* Unified resume painter (user order 2026-10-08): last position exists →
+     "Continue where you left off" banner; no progress yet → "Start your
+     guided path" variant pointing at the curriculum start. */
+  function paintResume(container, opts) {
+    if (!container) return;
+    var lp = getLastPosition();
+    loadSequence(function (seq) {
+      var html = lp ? continueHTML(lp, seq, opts) : startPathHTML(seq, opts);
       if (!html) { container.style.display = 'none'; return; }
       container.innerHTML = html;
       container.style.display = '';
@@ -248,7 +283,9 @@
     courseURL: courseURL,
     progressBarHTML: progressBarHTML,
     continueHTML: continueHTML,
+    startPathHTML: startPathHTML,
     paintContinue: paintContinue,
+    paintResume: paintResume,
     esc: esc
   };
   g.ILProgress = api;

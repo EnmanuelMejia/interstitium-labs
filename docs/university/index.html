@@ -258,13 +258,11 @@
       var lpBlock = document.getElementById('ilprog-continue-block');
       var lpSlot = document.getElementById('ilprog-continue-slot');
       if (lpBlock && lpSlot && window.ILProgress) {
-        var lp = ILProgress.getLastPosition();
-        if (lp) {
-          lpBlock.style.display = '';
-          ILProgress.paintContinue(lpSlot, { ctaLabel: 'Resume where you left off' });
-        } else {
-          lpBlock.style.display = 'none';
-        }
+        /* 2026-10-08 (resume fix): unified paintResume — explicit
+           "Continue where you left off" button when progress exists,
+           "Start your guided path" variant (IL-01) on a fresh device. */
+        ILProgress.paintResume(lpSlot, {});
+        lpBlock.style.display = '';
       }
     } catch (e) {}
     try {
