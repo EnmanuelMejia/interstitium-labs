@@ -1,11 +1,14 @@
 /**
- * Interstitium Labs — checkout UI (Phase 4b).
+ * Interstitium Labs — checkout UI (Phase 4b + paywall 2026-10-08).
  *
- * Flow: pick tier (via ?tier=) -> email -> provider -> (coin/rail for crypto)
- * -> POST /api/pay/create -> redirect to Stripe/PayPal/NOWPayments hosted
- * checkout, or render the direct-wallet panel (address + QR + tag/memo).
+ * Flow: pick tier (?tier=) or course (?course=<slug>) -> email -> provider
+ * -> (coin/rail for crypto) -> POST /api/pay/create -> redirect to
+ * Stripe/PayPal/NOWPayments hosted checkout, or render the direct-wallet
+ * panel (address + QR + tag/memo) with a transaction-hash submission form.
  *
  * Prices are display-only here; the Worker is the price authority.
+ * Course prices shown are DEFAULTS the user has not set (see payment-routes.js
+ * PAYWALL_CONFIG); the server decides the real amount at /api/pay/create.
  * No secrets, no keys, no wallet addresses are hardcoded in this file —
  * direct addresses come from GET /api/pay/ud at runtime.
  */
@@ -28,6 +31,38 @@
       price: "$799",
       blurb: "Prep Sprint plus DevSecOps Mastery, with orientation across the whole knowledge OS.",
     },
+  };
+
+  /* Paywalled courses (display-only prices — DEFAULTS, user has not set prices).
+     Item ids match server ITEMS keys exactly (the course JSON slugs). */
+  var COURSES = {
+    "il-01-esoteric-foundations": { name: "IL-01 · Esoteric Foundations", price: "$249" },
+    "il-02-mathematical-maturity-engine": { name: "IL-02 · Mathematical Maturity Engine", price: "$249" },
+    "il-03-programming-language-forge": { name: "IL-03 · Programming Language Forge", price: "$249" },
+    "il-04-systems-linux-windows-networks": { name: "IL-04 · Systems, Linux, Windows & Networks", price: "$249" },
+    "il-05-cloud-devsecops-platform-sre": { name: "IL-05 · Cloud, DevSecOps, Platform & SRE", price: "$249" },
+    "il-06-cybersecurity-secure-engineering": { name: "IL-06 · Cybersecurity & Secure Engineering", price: "$249" },
+    "il-07-data-engineering-analytics-ai": { name: "IL-07 · SQL, Data Engineering, Analytics & AI", price: "$249" },
+    "il-08-algorithms-compilers-distributed-formal": { name: "IL-08 · Algorithms, Compilers, Distributed & Formal", price: "$249" },
+    "il-09-adaptive-certification-command": { name: "IL-09 · Adaptive Certification Command", price: "$249" },
+    "il-10-portfolio-career-professional-practice": { name: "IL-10 · Portfolio, Career & Professional Practice", price: "$249" },
+    "il-11-zero-trust-endpoint-defense": { name: "IL-11 · Zero Trust & Endpoint Defense", price: "$249" },
+    "il-12-ai-engineering": { name: "IL-12 · AI Engineering", price: "$249" },
+    "il-13-software-engineering-interview-prep": { name: "IL-13 · Software Engineering Interview Prep", price: "$249" },
+    "il-14-sre-devops-cloud-security-interview-prep": { name: "IL-14 · SRE, DevOps, Cloud & Security Interview Prep", price: "$249" },
+    "il-15-data-engineering-analytics-interview-prep": { name: "IL-15 · Data Engineering & Analytics Interview Prep", price: "$249" },
+    "il-16-machine-learning-ai-engineering": { name: "IL-16 · Machine Learning & AI Engineering", price: "$249" },
+    "il-17-agentic-ai-engineering": { name: "IL-17 · Agentic AI Engineering", price: "$249" },
+    "il-18-technical-leadership-interview-prep": { name: "IL-18 · Technical Leadership Interview Prep", price: "$249" },
+    "il-19-multicloud-devops-ai-bootcamp": { name: "IL-19 · MultiCloud, DevOps & AI Bootcamp", price: "$249" },
+    "il-20-mathematics": { name: "IL-20 · Mathematics for Engineers & Scientists", price: "$249" },
+    "il-21-humanities": { name: "IL-21 · Humanities for Technologists", price: "$249" },
+    "il-22-esoteric-secret-knowledge": { name: "IL-22 · The Deep Library — Esoteric & Secret Knowledge", price: "$249" },
+    "il-23-frontier-knowledge": { name: "IL-23 · The Frontier — Cutting-Edge Research Distilled", price: "$249" },
+    "il-24-threatlocker-assessment-prep-cbt": { name: "IL-24 · ThreatLocker Assessment Prep CBT", price: "$249" },
+    "il-25-cybersecurity-professional-certificate": { name: "IL-25 · Professional Certificate in Cybersecurity", price: "$249" },
+    "il-26-data-analyst-certification-senior-mastery": { name: "IL-26 · Data Analyst Certification & Senior Mastery Bootcamp", price: "$249" },
+    "all-courses": { name: "All Courses Bundle (IL-01–IL-26)", price: "$999" },
   };
 
   var COINS = [
@@ -68,9 +103,21 @@
 
   var root = document.getElementById("il-root");
   var params = new URLSearchParams(window.location.search);
-  var tierId = params.get("tier") || "prep-sprint";
-  if (!TIERS[tierId]) tierId = "prep-sprint";
-  var tier = TIERS[tierId];
+  /* ?course=<slug> for paywalled courses (paywall page links here);
+     ?tier= retained for the legacy prep tiers. */
+  var itemId = params.get("course") || params.get("tier") || "prep-sprint";
+  var tier = null;
+  var isCourseItem = false;
+  if (COURSES[itemId]) {
+    tier = COURSES[itemId];
+    isCourseItem = true;
+  } else if (TIERS[itemId]) {
+    tier = TIERS[itemId];
+  } else {
+    itemId = "prep-sprint";
+    tier = TIERS[itemId];
+  }
+  if (isCourseItem) tier.blurb = "A full Interstitium Labs course: the complete interactive CBT with all modules, labs, and the Noah AI tutor.";
 
   var state = {
     provider: "stripe",
@@ -244,7 +291,7 @@
     state.busy = true;
     showLoading("Creating your secure order…");
     var provider = effectiveProvider();
-    var payload = { provider: provider, item: tierId, email: state.email };
+    var payload = { provider: provider, item: itemId, email: state.email };
     if (provider === "nowpayments" || provider === "direct") payload.coin = state.coin;
     var res, data;
     try {
@@ -342,12 +389,71 @@
       (d.destination_tag ? " with the destination tag" : d.memo ? " with the memo" : "") +
       ". Direct payments are verified by our team — your receipt and course access follow by email at <strong>" + esc(state.email) + "</strong>.</p>" +
       '<p class="il-hint">Order <span style="font-family:monospace">' + esc(data.order_id) + "</span> · status: awaiting payment</p>" +
+      '<form id="il-txform">' +
+      '<div class="il-field"><label class="il-label" for="il-txhash">Transaction hash — after you send</label>' +
+      '<input class="il-input" id="il-txhash" name="txhash" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Paste the on-chain transaction hash" style="font-family:monospace"/>' +
+      '<p class="il-hint">Direct crypto has no automatic confirmation. Paste the hash and we verify the transfer on-chain manually — your receipt and course access follow by email.</p></div>' +
+      '<button class="il-pay" id="il-txbtn" type="submit">I sent it — record transaction</button>' +
+      '<p class="il-hint" id="il-txstatus" role="status"></p>' +
+      "</form>" +
       "</section>";
     root.innerHTML = html;
     renderQr(document.getElementById("il-qr"), d.qr_payload || d.address);
     root.querySelectorAll("[data-copy]").forEach(function (b) {
       b.addEventListener("click", function () { copyText(b.getAttribute("data-copy"), b); });
     });
+    var txform = document.getElementById("il-txform");
+    if (txform) {
+      txform.addEventListener("submit", function (ev) { submitTx(ev, data.order_id); });
+    }
+  }
+
+  function friendlyTxError(code) {
+    var map = {
+      tx_hash_invalid:
+        "That doesn't look like a transaction hash — paste the full hash from your wallet.",
+      tx_already_submitted:
+        "A transaction hash was already recorded for this order. If you sent a replacement, email us with your order id.",
+      already_paid: "This order is already paid.",
+      not_found: "Order not found — please reload the checkout page and start again.",
+    };
+    return map[code] || "Couldn't record the transaction. Please try again.";
+  }
+
+  async function submitTx(ev, orderId) {
+    ev.preventDefault();
+    var input = document.getElementById("il-txhash");
+    var status = document.getElementById("il-txstatus");
+    var btn = document.getElementById("il-txbtn");
+    if (!input || !status || !btn) return;
+    var tx = (input.value || "").trim();
+    if (!/^[A-Za-z0-9]{16,160}$/.test(tx)) {
+      status.textContent = friendlyTxError("tx_hash_invalid");
+      return;
+    }
+    btn.disabled = true;
+    status.textContent = "Recording…";
+    try {
+      var res = await fetch("/api/pay/tx/submit", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ order: orderId, tx_hash: tx }),
+      });
+      var data = await res.json().catch(function () { return null; });
+      if (!res.ok || !data || !data.ok) {
+        status.textContent = friendlyTxError((data && data.error) || "provider_error");
+        btn.disabled = false;
+        return;
+      }
+      status.textContent =
+        "Recorded. Our team verifies the transfer on-chain manually — your receipt and course access follow by email at " +
+        state.email + ".";
+      input.disabled = true;
+      btn.disabled = true;
+    } catch (e) {
+      status.textContent = "Network error — please try again.";
+      btn.disabled = false;
+    }
   }
 
   // Boot: prefetch UD-resolved addresses so the direct panel is instant.

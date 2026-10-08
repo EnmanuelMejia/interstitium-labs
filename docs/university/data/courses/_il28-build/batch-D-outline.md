@@ -1,0 +1,10 @@
+# Batch D — write to batch-D.json — 8 modules (IL28-M25 through IL28-M32)
+
+M25 | Container Security: Scanning, Signing & Least Privilege | image scanning concepts, non-root users, read-only filesystems, secrets-in-env antipattern, distroless concept, SBOM concept. prerequisiteFor: [IL28-M47]
+M26 | Kubernetes Architecture & kubectl | control plane (api-server, etcd, scheduler, controller-manager), nodes, kubelet/kube-proxy, kubectl get/describe/logs/exec, contexts/namespaces, events. prerequisiteFor: [IL28-M27]
+M27 | Pod Lifecycle & Troubleshooting | pod phases, Pending troubleshooting runbook (scheduler events), CrashLoopBackOff runbook, kubectl describe/events/logs triage order, the "pod keeps restarting — next steps" panel question as full drill with model answers. prerequisiteFor: [IL28-M28]
+M28 | Resources: Requests/Limits, OOMKilled/Exit 137 & Probes | requests vs limits (CPU millicores, memory), the nginx YAML review exercise (requests 16Gi/0.5cpu, limits 32Gi/8cpu — what breaks; min 2Gi to start vs request 1Gi), OOMKilled/exit 137 diagnosis via Last State, startup/readiness/liveness probes (which probe when a running pod suddenly restarts — liveness), probe tuning. Panel questions as drills/mocks. prerequisiteFor: [IL28-M29]
+M29 | Scheduling: Taints, Tolerations, Labels & Node Pools | taint vs toleration vs label vs nodeSelector vs affinity, multiple node pools vs one giant pool (panel question), cluster autoscaler concept, pending-due-to-resources triage. prerequisiteFor: [IL28-M41]
+M30 | Services, Ingress & DNS | ClusterIP/NodePort/LoadBalancer, Endpoints, Ingress vs Gateway API concept, CoreDNS, service discovery. prerequisiteFor: [IL28-M31]
+M31 | Helm: Charts, Values & Templating | charts, values.yaml, templates, releases, helm install/upgrade/rollback, why Helm instead of plain YAML (panel question), write an original chart lab. prerequisiteFor: [IL28-M38]
+M32 | Terraform Fundamentals: Declarative IaC | declarative vs imperative, providers, resources, HCL blocks, init/plan/apply, the "biggest difference Terraform vs Ansible" panel question introduced here. prerequisiteFor: [IL28-M33]

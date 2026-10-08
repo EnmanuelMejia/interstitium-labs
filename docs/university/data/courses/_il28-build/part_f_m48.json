@@ -1,0 +1,336 @@
+{
+  "id": "IL28-M48",
+  "code": "IL-28",
+  "title": "Secrets, Supply Chain & Identity",
+  "summary": "Lock down the last mile: Vault/Key Vault secret management with practiced rotation, the secrets-in-git ritual, SBOMs and cosign signing, least-privilege RBAC across five layers, and the Security+ domain crosswalk.",
+  "objectives": [
+    "Manage secrets in Vault/Key Vault with dynamic credentials and rehearsed rotation",
+    "Prevent, detect, and remediate secrets committed to git with gitleaks gates",
+    "Generate SBOMs and sign container images, enforcing verification at deploy time",
+    "Apply least-privilege RBAC across Kubernetes, cloud, application, database, and pipeline layers",
+    "Map secrets and supply-chain work to CompTIA Security+ domains for panel conversations"
+  ],
+  "notes": [
+    {
+      "title": "Secret Management: Vault and Key Vault",
+      "body": "Secrets — API keys, database passwords, TLS private keys — must live in a purpose-built secret store, never in code, config files, or chat. HashiCorp Vault and Azure Key Vault provide the same core contract: encrypted storage, fine-grained access policies, audit logging of every read, dynamic secrets (credentials generated on demand with a TTL, e.g. a database password that lives 1 hour), and rotation. The access pattern: the application authenticates to Vault (via Kubernetes auth, Azure auth, or AppRole — never a hardcoded token in production) and reads the secret at startup or via a sidecar injector; CI pipelines fetch secrets at runtime from the store instead of storing them as pipeline variables. Worked example: a Flask app needs the Postgres password. Anti-pattern: DATABASE_URL with the password in the deployment YAML committed to git. Solution: store it with vault kv put secret/checkout db_password=<value>; the pod uses the Vault agent injector annotation to render the secret into a file at startup; rotation is vault kv put with the new value plus a database password change — no redeploy, no git history. On Azure the equivalent is az keyvault secret set --vault-name kv-prod --name db-password, referenced from AKS via the Secrets Store CSI driver. The audit property is the point: the store logs who read what, when — something env vars and files can never do."
+    },
+    {
+      "title": "Rotation and the Blast Radius of a Leak",
+      "body": "Every secret has a lifetime, and rotation is how you bound the blast radius when (not if) one leaks. Static secrets should rotate on a schedule (90 days is the common policy; 30 for high-value) and immediately on any suspected exposure, personnel departure, or the 'it was in a Slack thread' incident. Dynamic secrets are better: Vault generates a database credential per application instance with a 1-hour TTL — there is nothing long-lived to leak, and revocation is automatic. The rotation procedure must be rehearsed: (1) generate the new secret in the store; (2) update consumers (rolling restart or sidecar re-render); (3) verify the new credential works; (4) revoke the old one; (5) confirm nothing still uses it via the audit log. Worked example: an AWS access key was pasted into a public Slack channel. Solution sequence: immediately deactivate (not delete — preserve for forensics) the key in IAM, generate a replacement, update the one consumer via the secret store, verify, then delete the old key; search git history and logs for the key string; write the postmortem on how a long-lived key ended up copy-pasteable. The lesson the panel wants: the incident is survivable because rotation was a practiced procedure, not an improvisation — and the long-term fix is replacing the key with an OIDC-assumed role so there is no key to leak next time."
+    },
+    {
+      "title": "Secrets in Git: The Antipattern and Its Detection",
+      "body": "Committing a secret to git publishes it to every clone, fork, and backup forever — deleting it later does not unpublish it, because history retains it. Prevention is a pipeline gate: gitleaks detect --no-git (or the pre-commit hook gitleaks protect) scans diffs for key patterns and fails the PR before the secret lands. Detection on existing repos: gitleaks detect --source . --verbose across history finds what is already burned. Remediation of a burned secret is a fixed ritual: (1) revoke/rotate the secret immediately — it is compromised, full stop; (2) purge it from history only if the repo can tolerate a force-push (git filter-repo), understanding clones still have it; (3) audit where the secret was valid during exposure (cloud audit logs); (4) add the gitleaks gate so it cannot recur. Worked example: gitleaks flags AKIA... in a commit from 6 months ago. Solution: the key is burned — rotate it now, check CloudTrail for usage of that key ID during the window, purge history if the team accepts the force-push, and enable the pre-commit hook today. The interview answer: 'A secret in git is a compromised secret; rotation first, history surgery second, prevention gate third.' Never 'we deleted the file so it is fine.'"
+    },
+    {
+      "title": "Supply Chain: SBOMs and Signing",
+      "body": "You cannot secure what you cannot inventory: an SBOM (Software Bill of Materials) lists every component in your artifact — OS packages, language dependencies, base image layers. Generate it in CI: syft packages myapp:tag -o spdx-json > sbom.json produces a machine-readable inventory you attach to the release. Signing proves the artifact you deploy is the artifact you built: cosign sign --key cosign.key myapp:tag (or keyless with OIDC via cosign sign --oidc-issuer) creates a signature; admission controllers verify it before pods start — unsigned images do not run. The chain: SBOM generation -> vulnerability scan of the SBOM -> sign the artifact -> verify at deploy time. Worked example: a critical CVE is announced in a base-image library at 9 AM. With SBOMs: query which of your 40 services' SBOMs contain the library version — 3 do; rebuild and resign those 3 by noon. Without SBOMs: manually audit 40 Dockerfiles and guess. Solution review: the SBOM turns a fire drill into a database query, and signing guarantees the rebuilt images are the ones that deploy. The panel framing: SBOM answers 'what is in it?', signing answers 'did we build it?', and together they are the supply-chain answer to 'how do you know what is running in prod?'"
+    },
+    {
+      "title": "RBAC and Least Privilege Across the Full Stack",
+      "body": "The panel asks about RBAC across a full-stack app — the answer spans every layer with one principle: least privilege, each identity getting only what its job requires. Kubernetes RBAC: Roles/ClusterRoles bound to ServiceAccounts via RoleBindings — the checkout ServiceAccount gets get/list on its own ConfigMaps, not cluster-admin. Cloud IAM: the patterns from M42/M43 (IRSA, Workload Identity) scoped to single buckets/queues. Application layer: role checks in the API (admin vs analyst vs viewer), row-level filtering on queries, and the database user granted SELECT on exactly the tables it needs. Pipeline: the deploy identity can apply to the staging namespace but needs an approval gate for prod. Worked example: design access for a data analyst who needs read-only dashboards. Solution: cloud IAM read-only role on the warehouse; Kubernetes read-only ClusterRole on the analytics namespace; application role 'viewer' with no export permission; database GRANT SELECT on the marts schema only; no CI deploy rights; no secret-store read. Every layer says the minimum. The failure mode is role explosion (400 custom roles nobody understands) — counter it with a small set of standard roles per layer, reviewed quarterly, with every exception carrying an owner and expiry, exactly like the M47 allowlist discipline."
+    },
+    {
+      "title": "CompTIA Security+ Domain Crosswalk",
+      "body": "This module maps cleanly onto the CompTIA Security+ domains, which is useful interview framing: the domains are the industry's shared checklist, and narrating your work against them shows structured thinking. Domain 1 (General Security Concepts): least privilege, zero trust, and the control types your gates implement. Domain 2 (Threats, Vulnerabilities, and Mitigations): CVE triage, supply-chain attacks, and secret exposure as threat vectors. Domain 3 (Security Architecture): secret stores, signing infrastructure, and network segmentation for secret access. Domain 4 (Security Operations): rotation procedures, incident handling for leaks, log auditing of secret access, and vulnerability scanning operations. Domain 5 (Security Program Management): the allowlist governance, rotation policies, and compliance evidence (who accessed what secret when) that auditors ask for. Worked example: a panel asks 'how does your secrets program map to Security+?' Solution: 'Architecture gives us Vault/Key Vault with dynamic secrets; Operations gives us rotation runbooks and leak incident procedures with audit logs; Program Management gives us the 90-day rotation policy and the governed exception process — and the scanners from M47 feed the vulnerability management in Domain 4.' The point is not the certification — this course confers none — it is speaking the domain language that security-minded panels expect."
+    }
+  ],
+  "cards": [
+    {
+      "front": "Secret store core contract (5 properties)",
+      "back": "Encrypted storage, fine-grained access policies, audit logging of reads, dynamic short-lived secrets, rotation support"
+    },
+    {
+      "front": "Vault: store and read a secret (commands)",
+      "back": "vault kv put secret/checkout db_password=<v>; vault kv get secret/checkout (apps use auth methods + injector, not CLI)"
+    },
+    {
+      "front": "Azure Key Vault: set a secret + AKS consumption",
+      "back": "az keyvault secret set --vault-name kv-prod --name db-password <v>; consume via Secrets Store CSI driver"
+    },
+    {
+      "front": "Why dynamic secrets beat static ones",
+      "back": "Generated per consumer with a TTL (e.g. 1h DB creds) — nothing long-lived to leak; revocation is automatic"
+    },
+    {
+      "front": "Secret leaked in Slack: the 5-step ritual",
+      "back": "Deactivate (preserve forensics) -> replace via store -> update consumer -> verify -> delete old; then search history/logs; postmortem; replace key with OIDC role"
+    },
+    {
+      "front": "gitleaks: prevent vs detect (commands)",
+      "back": "Prevent: pre-commit hook / PR gate (gitleaks protect, detect on diff). Detect history: gitleaks detect --source . --verbose"
+    },
+    {
+      "front": "A secret was committed 6 months ago. Is deleting the file enough?",
+      "back": "No — it is compromised: rotate immediately, audit usage during exposure, purge history only with team-accepted force-push, add the gate"
+    },
+    {
+      "front": "SBOM generation (command + format)",
+      "back": "syft packages myapp:tag -o spdx-json > sbom.json — machine-readable inventory attached to the release"
+    },
+    {
+      "front": "Signing and verification (commands)",
+      "back": "cosign sign --key cosign.key myapp:tag (or keyless OIDC); admission controller verifies before pods start — unsigned images never run"
+    },
+    {
+      "front": "SBOM + signing: which question does each answer?",
+      "back": "SBOM: 'what is in it?' (CVE announced -> query affected services). Signing: 'did we build it?' (deploy-time verification)"
+    },
+    {
+      "front": "RBAC across the full stack (5 layers)",
+      "back": "K8s Roles/Bindings on ServiceAccounts; cloud IAM (IRSA/Workload Identity); app roles (admin/analyst/viewer); DB grants (SELECT on marts only); pipeline deploy rights with prod approval"
+    },
+    {
+      "front": "Counter to role explosion",
+      "back": "Small set of standard roles per layer, quarterly review, every exception with owner + expiry (the allowlist discipline)"
+    },
+    {
+      "front": "Security+ domains mapped to this module",
+      "back": "D1 concepts (least privilege/zero trust); D2 threats (CVE triage, secret exposure); D3 architecture (stores, signing); D4 operations (rotation, leak response); D5 program (policies, audit evidence)"
+    },
+    {
+      "front": "The long-term fix after any key leak",
+      "back": "Eliminate the key class: OIDC-assumed roles (IRSA/Workload Identity/federated CI) so there is no long-lived secret to leak next time"
+    }
+  ],
+  "quiz": [
+    {
+      "q": "A Flask app needs the Postgres password. Which design is correct?",
+      "choices": [
+        "DATABASE_URL with password in the committed deployment YAML",
+        "Vault KV secret rendered via agent injector; rotation without redeploy; audit log of reads",
+        "Password in a Slack pinned message",
+        "Same password for all environments"
+      ],
+      "answer": 1,
+      "explain": "The secret store gives encrypted storage, access policy, audit trail, and rotation without code changes. Committed YAML publishes the secret to every clone."
+    },
+    {
+      "q": "An AWS key is pasted into a public Slack channel. What is the FIRST step?",
+      "choices": [
+        "Delete the Slack message",
+        "Deactivate the key immediately (preserve for forensics), then replace via the secret store",
+        "Wait to see if it is misused",
+        "Change the Slack retention"
+      ],
+      "answer": 1,
+      "explain": "The key is compromised the instant it is visible. Deactivate first (deleting destroys forensic evidence), replace, verify, then investigate usage."
+    },
+    {
+      "q": "Why are dynamic Vault database credentials better than a shared static password?",
+      "choices": [
+        "They are longer",
+        "Per-consumer credentials with a TTL: nothing long-lived to leak, revocation automatic",
+        "They are easier to remember",
+        "They never expire"
+      ],
+      "answer": 1,
+      "explain": "Short-lived per-instance credentials bound the blast radius by construction; a leaked 1-hour credential dies on its own."
+    },
+    {
+      "q": "gitleaks flags AKIA... in a 6-month-old commit. Correct handling?",
+      "choices": [
+        "Delete the file and move on",
+        "Rotate the key now (it is burned), audit usage during exposure, purge history only with team-accepted force-push, add the pre-commit gate",
+        "It is old so it is safe",
+        "Rewrite all history silently"
+      ],
+      "answer": 1,
+      "explain": "Age does not uncompromise a secret. Rotation first, exposure audit second, history surgery third (clones retain it anyway), prevention gate always."
+    },
+    {
+      "q": "A critical CVE is announced in a base-image library. With SBOMs in CI, what is your response?",
+      "choices": [
+        "Manually read 40 Dockerfiles",
+        "Query the SBOMs: which services contain the vulnerable version — rebuild, rescan, and resign exactly those",
+        "Ignore it",
+        "Rebuild everything blindly"
+      ],
+      "answer": 1,
+      "explain": "The SBOM turns the fire drill into a database query: precise blast radius, targeted rebuilds, signed artifacts."
+    },
+    {
+      "q": "What does cosign verification at deploy time guarantee?",
+      "choices": [
+        "No CVEs",
+        "The image is the artifact your pipeline built and signed — unsigned or tampered images never start",
+        "Faster pulls",
+        "Smaller images"
+      ],
+      "answer": 1,
+      "explain": "Signing answers provenance ('did we build it?'), enforced by admission control. CVE scanning is the SBOM/scan job, a separate concern."
+    },
+    {
+      "q": "Design access for a read-only data analyst across the stack. Which is correct?",
+      "choices": [
+        "Admin everywhere for simplicity",
+        "Read-only warehouse role, read-only K8s ClusterRole on the analytics namespace, app viewer role, SELECT on marts schema only, no deploy or secret rights",
+        "Shared admin credentials",
+        "Direct database root"
+      ],
+      "answer": 1,
+      "explain": "Least privilege at every layer, each scoped to the job. Any broader grant is a finding."
+    },
+    {
+      "q": "Your org has 400 custom IAM roles nobody understands. What is the fix?",
+      "choices": [
+        "400 more roles",
+        "Consolidate to a small standard set per layer, quarterly review, exceptions with owner + expiry",
+        "Delete IAM",
+        "Give everyone admin"
+      ],
+      "answer": 1,
+      "explain": "Role explosion is managed like the allowlist: standardize, review, and govern exceptions with ownership and expiry."
+    },
+    {
+      "q": "Map to Security+: quarterly rotation policy with audit evidence of secret access belongs to which domain?",
+      "choices": [
+        "Domain 2 (Threats)",
+        "Domain 5 (Security Program Management and Oversight)",
+        "Domain 1 (General Concepts)",
+        "None"
+      ],
+      "answer": 1,
+      "explain": "Policies, governance, and compliance evidence are Program Management; the rotation runbook itself is Operations (Domain 4)."
+    }
+  ],
+  "weight": 2,
+  "prerequisiteFor": [
+    "IL28-M49"
+  ],
+  "drills": [
+    {
+      "id": "il28-m48-secrets",
+      "title": "Timed drill: secrets operations",
+      "items": [
+        {
+          "prompt": "Vault: store a DB password and the AKS-side consumption pattern.",
+          "answer": "vault kv put secret/app db_password=<v>; consume via Vault agent injector annotation (file render at startup).",
+          "explain": "Store once, render at runtime, rotate without redeploy."
+        },
+        {
+          "prompt": "Key Vault: set a secret (command).",
+          "answer": "az keyvault secret set --vault-name kv-prod --name db-password --value <v>",
+          "explain": "AKS consumes via Secrets Store CSI driver — same pattern, Azure native."
+        },
+        {
+          "prompt": "Key leaked in chat: first three actions?",
+          "answer": "Deactivate (keep for forensics), replace via store, update the consumer.",
+          "explain": "Then verify, delete old, audit exposure, postmortem — in that order."
+        },
+        {
+          "prompt": "Why dynamic secrets?",
+          "answer": "Per-consumer, TTL-bound (e.g. 1h); nothing long-lived to leak; auto-revocation.",
+          "explain": "Blast radius bounded by construction, not by policy."
+        },
+        {
+          "prompt": "Prevent secrets in git: the gate command?",
+          "answer": "gitleaks protect as pre-commit hook / gitleaks detect on the PR diff — fail the build.",
+          "explain": "Prevention at the PR; detection across history with detect --source."
+        },
+        {
+          "prompt": "Secret committed 6 months ago: the ritual?",
+          "answer": "Rotate now (burned), audit usage window, force-push purge only if team accepts, add the gate.",
+          "explain": "'Delete the file' is never the answer — say the full ritual."
+        },
+        {
+          "prompt": "Long-term fix so this key class never leaks again?",
+          "answer": "Eliminate it: OIDC-assumed roles (IRSA / Workload Identity / federated CI).",
+          "explain": "No long-lived secret, no leak — the structural fix."
+        }
+      ]
+    },
+    {
+      "id": "il28-m48-supplychain",
+      "title": "Timed drill: supply chain and RBAC",
+      "items": [
+        {
+          "prompt": "Generate an SBOM (command).",
+          "answer": "syft packages myapp:tag -o spdx-json > sbom.json",
+          "explain": "Inventory attached to the release — the CVE fire-drill query source."
+        },
+        {
+          "prompt": "Sign an image (command) and enforce at deploy.",
+          "answer": "cosign sign --key cosign.key myapp:tag; admission controller verifies — unsigned never runs.",
+          "explain": "Provenance: 'did we build it?' enforced at the cluster door."
+        },
+        {
+          "prompt": "CVE announced in a base library: with SBOMs, your response?",
+          "answer": "Query SBOMs for affected services; rebuild, rescan, resign exactly those.",
+          "explain": "Database query, not a 40-Dockerfile audit."
+        },
+        {
+          "prompt": "RBAC for a read-only analyst: name the five layers.",
+          "answer": "Cloud IAM read-only; K8s read-only ClusterRole; app viewer role; DB SELECT on marts; no deploy/secret rights.",
+          "explain": "Least privilege at every layer — recite all five."
+        },
+        {
+          "prompt": "Role explosion (400 custom roles): the fix?",
+          "answer": "Standard role set per layer, quarterly review, exceptions with owner + expiry.",
+          "explain": "Governance pattern reused from the allowlist."
+        },
+        {
+          "prompt": "Security+ mapping: rotation runbook vs rotation policy?",
+          "answer": "Runbook = Domain 4 (Operations); policy + audit evidence = Domain 5 (Program Management).",
+          "explain": "Operations does it; Program Management governs and proves it."
+        },
+        {
+          "prompt": "Panel: 'how do you know what is running in prod?' — answer with two tools.",
+          "answer": "SBOMs say what is in it; cosign verification says we built it — enforced at admission.",
+          "explain": "Two questions, two tools, one sentence each."
+        }
+      ]
+    }
+  ],
+  "handsOnLab": {
+    "id": "il28-m48-lab",
+    "title": "Lab: Vault, gitleaks gates, SBOMs, and signed images",
+    "brief": "You will run Vault in dev mode, wire secret injection into a sample app, plant and catch a git secret with gitleaks, generate SBOMs, sign an image with cosign, and verify the signature — the full supply-chain loop.",
+    "steps": [
+      "Start Vault dev server: vault server -dev (dev only); export VAULT_ADDR and VAULT_TOKEN; enable KV v2 at secret/.",
+      "Store the app secret: vault kv put secret/labapp db_password='s3cret-lab-only'; create a policy allowing read on secret/labapp/*.",
+      "Deploy the sample app with the Vault agent injector annotation; exec into the pod and confirm the secret renders as a file with no secret in env or git.",
+      "Rotate: vault kv put a new value; restart the deployment; confirm the app picks it up with zero code changes.",
+      "Plant a fake AWS key in a commit; run gitleaks detect --source . --verbose; record the finding with commit SHA.",
+      "Execute the burned-secret ritual on paper: rotate (simulate), list what you would audit, and decide on history purge with justification.",
+      "Add the gitleaks pre-commit hook; attempt to commit another fake key and confirm the commit is blocked.",
+      "Build the app image; generate the SBOM: syft packages labapp:1.0 -o spdx-json > sbom.json; record the OS + language package counts.",
+      "Run trivy against the SBOM/image; for one finding, write the allowlist entry (ID, justification, owner, 14-day expiry).",
+      "Generate a cosign key pair; sign: cosign sign --key cosign.key labapp:1.0; verify: cosign verify --key cosign.pub labapp:1.0.",
+      "Simulate admission: write the policy snippet (e.g. Kyverno/Gatekeeper pseudo-policy) requiring valid cosign signatures on the lab namespace; confirm an unsigned tag would be rejected by your rule logic.",
+      "Write the Security+ crosswalk paragraph for your lab: which domain each piece belongs to. Tear down Vault and the images."
+    ],
+    "deliverable": "Working Vault-backed secret injection with a practiced rotation, a gitleaks-blocked commit, an SBOM, a signed and verified image, and an admission-policy sketch.",
+    "checkpoint": "Secret renders in-pod with nothing in git/env; gitleaks blocks the second fake key; cosign verify passes; the SBOM lists the vulnerable package you allowlisted."
+  },
+  "mockTask": {
+    "id": "il28-m48-mock",
+    "type": "choice",
+    "q": "A developer committed a production database password 3 weeks ago and 'deleted the file' yesterday. What do you tell the team?",
+    "choices": [
+      "Good, it is resolved",
+      "The password is compromised: rotate it immediately, audit access during the 3-week window, purge history only if the team accepts a force-push, and add the gitleaks gate today",
+      "Change it next quarter",
+      "Only rotate if someone reports misuse"
+    ],
+    "answer": 1,
+    "explain": "Deletion does not unpublish git history. The credential is burned until rotated; the exposure window must be audited; the gate prevents recurrence. 'Wait for misuse' is negligence."
+  },
+  "crossLinks": [
+    "IL28-M49",
+    "IL28-M47"
+  ],
+  "videos": [
+    {
+      "title": "What is Vault?",
+      "url": "https://developer.hashicorp.com/vault/docs/what-is-vault",
+      "source": "HashiCorp Developer Documentation",
+      "durationMin": 30,
+      "order": 1,
+      "watchBefore": "notes",
+      "blurb": "Official Vault concepts: dynamic secrets, auth methods, and the audit contract behind this module's secret-management patterns."
+    }
+  ],
+  "estimatedMinutes": 600
+}

@@ -76,7 +76,11 @@
     'IL-22': 'il-22-esoteric-secret-knowledge',
     'IL-23': 'il-23-frontier-knowledge',
     'IL-24': 'il-24-threatlocker-assessment-prep-cbt',
-    'IL-25': 'il-25-cybersecurity-professional-certificate'
+    'IL-25': 'il-25-cybersecurity-professional-certificate',
+    'IL-26': 'il-26-data-analyst-certification-senior-mastery',
+    'IL-27': 'il-27-it-infrastructure-specialist-threatlocker-mastery',
+    'IL-28': 'il-28-devsecops-cloud-infrastructure-mastery',
+    'IL-29': 'il-29-threatlocker-ai-cybersecurity-mastery'
   };
   function render() {
     var code = IL.qs('id');
@@ -93,12 +97,21 @@
     document.getElementById('acad-code-crumb').textContent = a.code;
     document.getElementById('acad-h').textContent = a.code + ' · ' + a.name;
     document.getElementById('acad-blurb').textContent = a.blurb || a.tagline || '';
+    var FREE_COURSE_CODES = { 'IL-27': 1, 'IL-28': 1, 'IL-29': 1 };
     var cta = document.getElementById('acad-course-cta');
     if (cta) {
-      cta.innerHTML = COURSE_SLUGS[a.code]
-        ? '<a class="btn" href="course.html?course=' + IL.esc(COURSE_SLUGS[a.code]) + '">' +
-          'Launch the interactive course — 6-tab shell, Noah AI tutor</a>'
-        : '';
+      var cslug = COURSE_SLUGS[a.code];
+      if (!cslug) {
+        cta.innerHTML = '';
+      } else {
+        /* Paywall badge (2026-10-08): FREE for IL-27/28/29, lock badge for paid courses. */
+        var badge = FREE_COURSE_CODES[a.code]
+          ? '<span class="il-badge il-badge-free">FREE · open access</span>'
+          : '<span class="il-badge il-badge-paid"><svg class="il-lock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid course · unlocks at checkout</span>';
+        cta.innerHTML = badge +
+          '<div style="margin-top:.7rem"><a class="btn" href="course.html?course=' + IL.esc(cslug) + '">' +
+          'Launch the interactive course — 6-tab shell, Noah AI tutor</a></div>';
+      }
     }
     document.getElementById('acad-hours').textContent = IL.fmtHours(a.hours);
     var paths = IL.pathsForAcademy(a.code);
@@ -131,6 +144,11 @@
 </script>
 <script src="js/noah.js"></script>
 <style>
+/* Paywall badges (2026-10-08) — scoped .il-badge, global like the footer styles below */
+.il-badge{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;padding:.32rem .95rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid}
+.il-badge-free{color:#3ddc97;border-color:rgba(61,220,151,.55);background:rgba(61,220,151,.08)}
+.il-badge-paid{color:#d4af37;border-color:rgba(212,175,55,.55);background:rgba(212,175,55,.07)}
+.il-lock-ic{width:12px;height:12px}
 /* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
 .il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
 .il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}

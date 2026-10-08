@@ -97,6 +97,82 @@ function applyAssetHeaders(res, path) {
   });
 }
 
+// 2026-10-07: per-course Open Graph / Twitter Card injection for the
+// /university/course route. Social crawlers don't run JS, so the
+// query-param course selection can't set <head> client-side — inject at the
+// edge instead. Known course ids map to static OG profiles; unknown ids and
+// non-HTML responses fall through unchanged.
+var OG_SITE = "https://interstitiumlabs.dev";
+var OG_PROFILES = {
+  "il-26-data-analyst-certification-senior-mastery": {
+    title: "IL-26 · Data Analyst Certification & Senior Mastery Bootcamp",
+    description: "A 51-module interactive CBT preparing you for 7 industry certifications — Google Data Analytics, PL-300, Tableau, CompTIA Data+, IBM, AWS, Databricks — with senior Palantir and BNY Mellon tracks.",
+    image: "/university/og/il-26-data-analyst-og.png"
+  },
+  "il-27-it-infrastructure-specialist-threatlocker-mastery": {
+    title: "IL-27 - IT Infrastructure Specialist: Zero Trust Infrastructure Mastery",
+    description: "A 54-module interactive course covering the full IT infrastructure stack through a Zero Trust lens: Windows and Linux administration, TCP/IP and subnetting, Active Directory, virtualization, hardening, and security operations - plus a 6-day interview fast track.",
+    image: "/university/og/il-27-it-infrastructure-og.png"
+  },
+  "il-28-devsecops-cloud-infrastructure-mastery": {
+    title: "IL-28 · DevSecOps & Cloud Infrastructure — Production Mastery Bootcamp",
+    description: "A 50-module interactive CBT taking you from foundational math to production DevSecOps: Linux/RHEL, networking, Docker, Kubernetes, Terraform, Ansible, Jenkins, Azure/AWS/GCP, observability, DevSecOps, SRE — plus certification tracks and a BNY panel interview simulation.",
+    image: "/university/og/il-28-devsecops-og.png"
+  },
+  "il-29-threatlocker-ai-cybersecurity-mastery": {
+    title: "IL-29 · ThreatLocker Zero-Trust CBT with AI — Cybersecurity Mastery Bootcamp",
+    description: "A 48-module, 431-hour interactive CBT: ThreatLocker zero-trust platform operations, MIT 6.858 systems security, AI in cybersecurity, prerequisite math — plus 7 certification tracks and a ThreatLocker panel interview simulation.",
+    image: "/university/og/il-29-threatlocker-og.png"
+  }
+};
+
+function ogEscape(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function ogMetaTags(profile, pageUrl) {
+  var t = ogEscape(profile.title);
+  var d = ogEscape(profile.description);
+  var img = OG_SITE + profile.image;
+  return [
+    '<meta property="og:title" content="' + t + '">',
+    '<meta property="og:description" content="' + d + '">',
+    '<meta property="og:image" content="' + img + '">',
+    '<meta property="og:image:width" content="1200">',
+    '<meta property="og:image:height" content="630">',
+    '<meta property="og:url" content="' + ogEscape(pageUrl) + '">',
+    '<meta property="og:type" content="website">',
+    '<meta property="og:site_name" content="Interstitium Labs">',
+    '<meta name="twitter:card" content="summary_large_image">',
+    '<meta name="twitter:title" content="' + t + '">',
+    '<meta name="twitter:description" content="' + d + '">',
+    '<meta name="twitter:image" content="' + img + '">'
+  ].join("\n");
+}
+
+async function serveCourseWithOg(request, env, path) {
+  var url = new URL(request.url);
+  var cid = url.searchParams.get("course");
+  var profile = (cid && OG_PROFILES[cid]) || null;
+  var res = await env.ASSETS.fetch(request);
+  var ct = (res.headers.get("content-type") || "").toLowerCase();
+  if (!profile || ct.indexOf("text/html") === -1) {
+    return applyAssetHeaders(res, path);
+  }
+  var html = await res.text();
+  var pageUrl = url.origin + url.pathname + "?course=" + encodeURIComponent(cid);
+  var injected = html.indexOf("<head>") !== -1
+    ? html.replace("<head>", "<head>\n" + ogMetaTags(profile, pageUrl))
+    : html;
+  var h = new Headers(res.headers);
+  h.delete("content-length");
+  return applyAssetHeaders(
+    new Response(injected, { status: res.status, statusText: res.statusText, headers: h }),
+    path
+  );
+}
+
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var MAX_BODY = 8192;
 var WAITLIST_SUCCESS_PATH = "/enroll/success.html";
@@ -188,6 +264,270 @@ async function handleWaitlist(request, env) {
     );
   }
   return json({ ok: true });
+}
+
+/* ------------------------------------------------------------------ */
+/* Course paywall (2026-10-08). Worker-level gating for the paid courses:
+ *
+ *   - IL-27 / IL-28 / IL-29 are FREE forever: unchanged behavior.
+ *   - All other course slugs (IL-01..IL-26) are gated.
+ *   - Humans requesting /university/course?course=<gated> without a valid
+ *     il_entitlement cookie get the branded paywall page.
+ *   - Course JSON data routes (/university/data/courses/<gated>.json)
+ *     without entitlement get HTTP 402 + JSON error (never the content).
+ *   - Social/link crawlers (UA sniffing) always receive the OG-injected
+ *     shell via serveCourseWithOg - no entitlement required, so already-
+ *     posted link previews keep working.
+ *
+ * Entitlement token: base64url(payload).base64url(HMAC-SHA256(secret, body)),
+ * payload = { course: "<slug>" | "all-courses", iat, exp }. Secret comes
+ * ONLY from env.ENTITLEMENT_SECRET - never hardcoded; when unset, gating
+ * fails closed (paywall) and a clear message is logged.
+ *
+ * NOTE on bundling: the live module concatenates payment-routes.js above
+ * this file and strips the `import { handlePay }` line, so this file must
+ * not import payment helpers. verifyEntitlementToken below mirrors
+ * payment-routes.js verifyEntitlement - keep the two in sync.
+ * ------------------------------------------------------------------ */
+
+var FREE_COURSE_SLUGS = [
+  "il-27-it-infrastructure-specialist-threatlocker-mastery",
+  "il-28-devsecops-cloud-infrastructure-mastery",
+  "il-29-threatlocker-ai-cybersecurity-mastery"
+];
+
+var GATED_COURSE_SLUGS = [
+  "il-01-esoteric-foundations",
+  "il-02-mathematical-maturity-engine",
+  "il-03-programming-language-forge",
+  "il-04-systems-linux-windows-networks",
+  "il-05-cloud-devsecops-platform-sre",
+  "il-06-cybersecurity-secure-engineering",
+  "il-07-data-engineering-analytics-ai",
+  "il-08-algorithms-compilers-distributed-formal",
+  "il-09-adaptive-certification-command",
+  "il-10-portfolio-career-professional-practice",
+  "il-11-zero-trust-endpoint-defense",
+  "il-12-ai-engineering",
+  "il-13-software-engineering-interview-prep",
+  "il-14-sre-devops-cloud-security-interview-prep",
+  "il-15-data-engineering-analytics-interview-prep",
+  "il-16-machine-learning-ai-engineering",
+  "il-17-agentic-ai-engineering",
+  "il-18-technical-leadership-interview-prep",
+  "il-19-multicloud-devops-ai-bootcamp",
+  "il-20-mathematics",
+  "il-21-humanities",
+  "il-22-esoteric-secret-knowledge",
+  "il-23-frontier-knowledge",
+  "il-24-threatlocker-assessment-prep-cbt",
+  "il-25-cybersecurity-professional-certificate",
+  "il-26-data-analyst-certification-senior-mastery"
+];
+
+/* Display names for the paywall page only (no course content leaks). */
+var PAYWALL_COURSE_NAMES = {
+  "il-01-esoteric-foundations": "IL-01 · Esoteric Foundations",
+  "il-02-mathematical-maturity-engine": "IL-02 · Mathematical Maturity Engine",
+  "il-03-programming-language-forge": "IL-03 · Programming Language Forge",
+  "il-04-systems-linux-windows-networks": "IL-04 · Systems, Linux, Windows &amp; Networks",
+  "il-05-cloud-devsecops-platform-sre": "IL-05 · Cloud, DevSecOps, Platform &amp; SRE",
+  "il-06-cybersecurity-secure-engineering": "IL-06 · Cybersecurity &amp; Secure Engineering",
+  "il-07-data-engineering-analytics-ai": "IL-07 · SQL, Data Engineering, Analytics &amp; AI",
+  "il-08-algorithms-compilers-distributed-formal": "IL-08 · Algorithms, Compilers, Distributed &amp; Formal",
+  "il-09-adaptive-certification-command": "IL-09 · Adaptive Certification Command",
+  "il-10-portfolio-career-professional-practice": "IL-10 · Portfolio, Career &amp; Professional Practice",
+  "il-11-zero-trust-endpoint-defense": "IL-11 · Zero Trust &amp; Endpoint Defense",
+  "il-12-ai-engineering": "IL-12 · AI Engineering",
+  "il-13-software-engineering-interview-prep": "IL-13 · Software Engineering Interview Prep",
+  "il-14-sre-devops-cloud-security-interview-prep": "IL-14 · SRE, DevOps, Cloud &amp; Security Interview Prep",
+  "il-15-data-engineering-analytics-interview-prep": "IL-15 · Data Engineering &amp; Analytics Interview Prep",
+  "il-16-machine-learning-ai-engineering": "IL-16 · Machine Learning &amp; AI Engineering",
+  "il-17-agentic-ai-engineering": "IL-17 · Agentic AI Engineering",
+  "il-18-technical-leadership-interview-prep": "IL-18 · Technical Leadership Interview Prep",
+  "il-19-multicloud-devops-ai-bootcamp": "IL-19 · MultiCloud, DevOps &amp; AI Bootcamp",
+  "il-20-mathematics": "IL-20 · Mathematics for Engineers &amp; Scientists",
+  "il-21-humanities": "IL-21 · Humanities for Technologists",
+  "il-22-esoteric-secret-knowledge": "IL-22 · The Deep Library — Esoteric &amp; Secret Knowledge",
+  "il-23-frontier-knowledge": "IL-23 · The Frontier — Cutting-Edge Research Distilled",
+  "il-24-threatlocker-assessment-prep-cbt": "IL-24 · ThreatLocker Assessment Prep CBT",
+  "il-25-cybersecurity-professional-certificate": "IL-25 · Professional Certificate in Cybersecurity",
+  "il-26-data-analyst-certification-senior-mastery": "IL-26 · Data Analyst Certification &amp; Senior Mastery Bootcamp"
+};
+
+var CRAWLER_UA_RE = /bot|crawler|spider|crawl|slurp|mediapartners|baiduspider|yandexbot|duckduckbot|sogou|exabot|facebot|facebookexternalhit|twitterbot|linkedinbot|embedly|quora|slackbot|discordbot|whatsapp|telegram|pinterest|redditbot|mastodon|skypeuripreview|microsoftpreview|outbrain|taboolabot/i;
+
+function isCrawlerUa(ua) {
+  return CRAWLER_UA_RE.test(String(ua || ""));
+}
+
+function isCrawler(request) {
+  return isCrawlerUa(request.headers.get("user-agent") || "");
+}
+
+function isFreeSlug(slug) {
+  return FREE_COURSE_SLUGS.indexOf(slug) !== -1;
+}
+
+function isGatedSlug(slug) {
+  return GATED_COURSE_SLUGS.indexOf(slug) !== -1;
+}
+
+function slugFromCourseJsonPath(path) {
+  var m = /^\/university\/data\/courses\/([A-Za-z0-9-]+)\.json$/.exec(String(path || ""));
+  return m ? m[1] : null;
+}
+
+/* Mirror of payment-routes.js verifyEntitlement (see note above). */
+async function verifyEntitlementToken(secret, token) {
+  if (!secret || !token) return { ok: false, reason: "missing" };
+  var parts = String(token).split(".");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return { ok: false, reason: "malformed" };
+  var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  var bin, i;
+  try {
+    bin = atob(b64);
+  } catch (e) {
+    return { ok: false, reason: "malformed" };
+  }
+  var got = new Uint8Array(bin.length);
+  for (i = 0; i < bin.length; i++) got[i] = bin.charCodeAt(i);
+  var enc = new TextEncoder();
+  var key;
+  try {
+    key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  } catch (e) {
+    return { ok: false, reason: "missing" };
+  }
+  var expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(parts[0])));
+  if (expected.length !== got.length) return { ok: false, reason: "bad_signature" };
+  var diff = 0;
+  for (i = 0; i < expected.length; i++) diff |= expected[i] ^ got[i];
+  if (diff !== 0) return { ok: false, reason: "bad_signature" };
+  var payload;
+  try {
+    var pb64 = parts[0].replace(/-/g, "+").replace(/_/g, "/");
+    while (pb64.length % 4) pb64 += "=";
+    var pbin = atob(pb64);
+    var bytes = new Uint8Array(pbin.length);
+    for (i = 0; i < pbin.length; i++) bytes[i] = pbin.charCodeAt(i);
+    payload = JSON.parse(new TextDecoder().decode(bytes));
+  } catch (e) {
+    return { ok: false, reason: "malformed" };
+  }
+  var nowS = Math.floor(Date.now() / 1000);
+  if (!payload || typeof payload.exp !== "number" || typeof payload.iat !== "number") {
+    return { ok: false, reason: "malformed" };
+  }
+  if (payload.exp <= nowS) return { ok: false, reason: "expired" };
+  if (payload.iat > nowS + 300) return { ok: false, reason: "not_yet_valid" };
+  return { ok: true, payload: payload };
+}
+
+async function hasCourseEntitlement(request, env, slug) {
+  var secret = (env && env.ENTITLEMENT_SECRET) || "";
+  if (!secret) {
+    // Fail closed: no secret configured -> nothing is entitled.
+    console.log("paywall: ENTITLEMENT_SECRET not set — gating closed (owner: wrangler secret put ENTITLEMENT_SECRET)");
+    return false;
+  }
+  var token = getCookie(request, "il_entitlement");
+  if (!token) return false;
+  var v = await verifyEntitlementToken(secret, token);
+  if (!v.ok) return false;
+  var scope = v.payload.course;
+  return scope === slug || scope === "all-courses";
+}
+
+/* Returns { action: "passthrough" } | { action: "paywall", slug } |
+   { action: "json402", slug }. Crawlers always pass through (OG injection). */
+async function courseGate(request, env) {
+  var url = new URL(request.url);
+  var path = url.pathname;
+  var slug = null;
+  var jsonRoute = false;
+  if (path === "/university/course" || path === "/university/course.html") {
+    slug = url.searchParams.get("course") || "";
+  } else {
+    slug = slugFromCourseJsonPath(path);
+    jsonRoute = !!slug;
+  }
+  if (!slug || !isGatedSlug(slug)) return { action: "passthrough" };
+  if (isCrawler(request)) return { action: "passthrough" };
+  if (await hasCourseEntitlement(request, env, slug)) return { action: "passthrough" };
+  return { action: jsonRoute ? "json402" : "paywall", slug: slug };
+}
+
+function paywallPageHtml(slug) {
+  var name = PAYWALL_COURSE_NAMES[slug] || ogEscape(slug);
+  var checkoutUrl = "/enroll/checkout.html?course=" + encodeURIComponent(slug);
+  return "<!DOCTYPE html>\n" +
+    '<html lang="en"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<meta name="robots" content="noindex, nofollow">' +
+    "<title>" + name + " — Interstitium Labs</title>" +
+    '<meta name="description" content="This Interstitium Labs course is available for purchase. Card, PayPal, or crypto.">' +
+    '<link rel="icon" href="/favicon.svg" type="image/svg+xml">' +
+    "<style>" +
+    "body{margin:0;background:#06080c;color:#e8e4d8;font-family:Georgia,'Times New Roman',serif;}" +
+    ".wrap{max-width:640px;margin:0 auto;padding:3.5rem 1.5rem;}" +
+    ".eyebrow{font-family:ui-monospace,monospace;font-size:.7rem;letter-spacing:.28em;color:#d4af37;text-transform:uppercase;}" +
+    "h1{font-size:2rem;line-height:1.25;margin:.9rem 0 .4rem;color:#f4efe2;}" +
+    ".lock{display:inline-flex;align-items:center;gap:.45rem;border:1px solid #d4af37;border-radius:999px;padding:.32rem .9rem;font-family:ui-monospace,monospace;font-size:.72rem;letter-spacing:.14em;color:#d4af37;text-transform:uppercase;}" +
+    ".lock svg{width:13px;height:13px;}" +
+    ".card{margin-top:1.6rem;border:1px solid rgba(212,175,55,.28);border-radius:14px;padding:1.6rem;background:rgba(212,175,55,.05);}" +
+    ".method{border-top:1px solid rgba(212,175,55,.16);padding:.9rem 0;}" +
+    ".method:first-of-type{border-top:0;padding-top:0;}" +
+    ".method b{color:#f4efe2;font-family:ui-monospace,monospace;font-size:.85rem;letter-spacing:.06em;}" +
+    ".method p{margin:.35rem 0 0;font-size:.92rem;line-height:1.55;color:#c9c2ae;}" +
+    ".cta{display:block;text-align:center;margin-top:1.8rem;background:#d4af37;color:#111;border-radius:10px;padding:1rem 1.4rem;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:.08em;text-decoration:none;font-size:.95rem;}" +
+    ".cta:hover{background:#e6c455;}" +
+    ".fine{margin-top:1.4rem;font-size:.82rem;line-height:1.6;color:#8f8a76;}" +
+    ".fine a{color:#d4af37;}" +
+    ".free{margin-top:2rem;border-top:1px solid rgba(255,255,255,.1);padding-top:1.2rem;font-size:.85rem;color:#8f8a76;}" +
+    ".free a{color:#40e0d0;}" +
+    ".sigil{margin-top:2.4rem;text-align:center;font-family:ui-monospace,monospace;font-size:.68rem;letter-spacing:.3em;color:#5c584a;text-transform:uppercase;}" +
+    "</style></head><body><div class=\"wrap\">" +
+    '<p class="eyebrow">Interstitium Labs · Learning University</p>' +
+    "<h1>" + name + "</h1>" +
+    '<p><span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid course</span></p>' +
+    '<div class="card">' +
+    '<div class="method"><b>CARD</b><p>Visa, Mastercard, Amex — plus Apple Pay and Google Pay where eligible, handled securely by Stripe.</p></div>' +
+    '<div class="method"><b>PAYPAL</b><p>PayPal balance or linked accounts. Venmo is available inside PayPal Checkout.</p></div>' +
+    '<div class="method"><b>CRYPTO</b><p>XRP · XLM · ADA · ALGO · QNT · HBAR · IOTA · XDC · XMR · BTC — via secure hosted checkout, or direct to <b>enmanuelmejia.crypto</b>. Include the destination tag (XRP) or memo (XLM) where shown; direct payments are verified manually and your access follows by email.</p></div>' +
+    '<a class="cta" href="' + checkoutUrl + '">Purchase this course</a>' +
+    '<p class="fine">One-time purchase · lifetime access to this course shell. After payment completes, your browser receives a signed access token (cookie) that unlocks the course.</p>' +
+    "</div>" +
+    '<div class="free">Prefer to start free? These courses are open, no purchase needed: ' +
+    '<a href="/il27">IL-27 · IT Infrastructure Specialist</a> · ' +
+    '<a href="/il28">IL-28 · DevSecOps &amp; Cloud Infrastructure</a> · ' +
+    '<a href="/il29">IL-29 · ThreatLocker Zero-Trust CBT</a>.</div>' +
+    '<p class="sigil">Scientia Omnia Vincit</p>' +
+    "</div></body></html>";
+}
+
+function paywallResponse(slug) {
+  var html = paywallPageHtml(slug);
+  var h = new Headers({ "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+  for (var k in SECURITY_HEADERS) h.set(k, SECURITY_HEADERS[k]);
+  h.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(html, { status: 200, headers: h });
+}
+
+function json402Response(slug) {
+  return new Response(
+    JSON.stringify({
+      ok: false,
+      error: "payment_required",
+      course: slug,
+      checkout_url: "/enroll/checkout.html?course=" + encodeURIComponent(slug),
+    }),
+    {
+      status: 402,
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    }
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -936,6 +1276,19 @@ export default {
     if (path === "/proof" || path === "/proof/") {
       return movedPermanently(request, "/evidence/");
     }
+    // 2026-10-07: short course slugs (fit social bio link fields, e.g. X 100-char limit)
+    if (path === "/il26" || path === "/il26/") {
+      return movedPermanently(request, "/university/course?course=il-26-data-analyst-certification-senior-mastery");
+    }
+    if (path === "/il27" || path === "/il27/") {
+      return movedPermanently(request, "/university/course?course=il-27-it-infrastructure-specialist-threatlocker-mastery");
+    }
+    if (path === "/il28" || path === "/il28/") {
+      return movedPermanently(request, "/university/course?course=il-28-devsecops-cloud-infrastructure-mastery");
+    }
+    if (path === "/il29" || path === "/il29/") {
+      return movedPermanently(request, "/university/course?course=il-29-threatlocker-ai-cybersecurity-mastery");
+    }
     // 2026-10-06: consolidated redirect stubs (zero-value stub dirs removed)
     var STUB_REDIRECTS = {
       "/code": "/prep/programming/", "/command": "/paths/",
@@ -992,8 +1345,11 @@ export default {
 
     // 2026-10-07 (Phase 4b): payment layer — Stripe / PayPal / NOWPayments /
     // direct crypto + Unstoppable Domain resolution. All secrets via env.
+    // 2026-10-08: + tx-hash submit, admin-confirm hook, entitlement issuance.
     if (path === "/api/pay/create" || path === "/api/pay/status" ||
         path === "/api/pay/ud" ||
+        path === "/api/pay/tx/submit" || path === "/api/pay/admin/confirm" ||
+        path === "/api/pay/entitlement" ||
         path === "/api/pay/webhook/stripe" || path === "/api/pay/webhook/paypal" ||
         path === "/api/pay/ipn/nowpayments" ||
         path === "/api/pay/paypal/return" || path === "/api/pay/paypal/cancel" ||
@@ -1015,9 +1371,45 @@ export default {
       return handleNoah(request, env);
     }
 
+    // 2026-10-07: per-course OG/Twitter Card injection for the course shell
+    // (social crawlers don't execute JS, so ?course= can't set <head> client-side).
+    // 2026-10-08: course paywall — crawlers bypass via UA sniffing; humans
+    // without a valid il_entitlement cookie get the paywall page; course JSON
+    // data routes get HTTP 402.
+    if ((path === "/university/course" || path === "/university/course.html") &&
+        (request.method === "GET" || request.method === "HEAD")) {
+      var gate = await courseGate(request, env);
+      if (gate.action === "paywall") return paywallResponse(gate.slug);
+      return serveCourseWithOg(request, env, path);
+    }
+    // 2026-10-08: gated course JSON is data, not a document — 402 without
+    // entitlement (crawlers still pass through; they never fetch the JSON).
+    if (request.method === "GET" || request.method === "HEAD") {
+      var jgate = await courseGate(request, env);
+      if (jgate.action === "json402") return json402Response(jgate.slug);
+    }
+
     var res = await env.ASSETS.fetch(request);
     // _headers is not applied by this API deploy path: inject the documented
     // security headers + operator-prefix X-Robots-Tag here instead.
     return applyAssetHeaders(res, path);
   },
+};
+
+/* Named exports for the local node harness (unit-test the paywall without
+   deploying). The live bundle already carries an `export {}` block from
+   payment-routes.js plus the `export default` above; an extra named list
+   is legal in the concatenated scope. */
+export {
+  isCrawlerUa,
+  isCrawler,
+  isFreeSlug,
+  isGatedSlug,
+  slugFromCourseJsonPath,
+  verifyEntitlementToken,
+  hasCourseEntitlement,
+  courseGate,
+  paywallPageHtml,
+  paywallResponse,
+  json402Response,
 };

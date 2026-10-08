@@ -1,0 +1,331 @@
+{
+ "cards": [
+  {
+   "back": "Constraining what an ALLOWED application may do: which child processes it may spawn, registry edits, file read/write scope, and network sessions.",
+   "front": "What does ringfencing restrict?"
+  },
+  {
+   "back": "The trusted app is the delivery vehicle — allowlisting approved the vehicle, so you must fence its behavior to stop the abuse.",
+   "front": "Why is ringfencing necessary even with perfect allowlisting?"
+  },
+  {
+   "back": "Word is allowed to run, but its ringfence denies child-process creation — the spawn is blocked and logged.",
+   "front": "Word macro tries to launch PowerShell. Which layer fires and what happens?"
+  },
+  {
+   "back": "Execute other apps/processes, registry edits, file read/write, network sessions.",
+   "front": "Name the four behavior categories ringfencing controls."
+  },
+  {
+   "back": "Using legitimate built-in tools (PowerShell, wscript, rundll32, mshta) for malicious purposes — they are signed and often allowed, so identity checks don't stop them.",
+   "front": "What is living-off-the-land (LOLBin) abuse?"
+  },
+  {
+   "back": "The ringfence denies the file write outside approved paths — allowed apps only write where policy permits.",
+   "front": "A fenced app tries to drop a payload into a startup folder. Which restriction fires?"
+  },
+  {
+   "back": "The ringfence denies the registry edit — allowed apps only touch registry keys policy permits.",
+   "front": "A fenced app tries to set a Run key for persistence. Which restriction fires?"
+  },
+  {
+   "back": "The ringfence denies the network session — allowed apps only open connections policy permits.",
+   "front": "A fenced PDF reader tries to phone home to an unknown server. Which restriction fires?"
+  },
+  {
+   "back": "Each app gets only the capabilities its legitimate function needs — Word needs file access to documents, not child processes or raw network.",
+   "front": "What is the principle behind ringfence policy design?"
+  },
+  {
+   "back": "A policy that breaks legitimate function — users demand its removal, and the removal becomes permanent.",
+   "front": "What is the #1 failure mode of ringfence policies?"
+  },
+  {
+   "back": "No — policy is evaluated per application; the fence follows the app, and group/machine scope decides where the policy applies.",
+   "front": "Does the same application get the same ringfence on every machine?"
+  },
+  {
+   "back": "The block event with full context: parent, attempted action, target, user, time — the evidence for the M07 triage workflow.",
+   "front": "What does a ringfence block produce, and why does it matter?"
+  }
+ ],
+ "code": "TL-ZTA-03",
+ "crossLinks": [
+  "IL29-M02",
+  "IL29-M04",
+  "IL29-M07"
+ ],
+ "drills": [
+  {
+   "id": "il29-m03-drill1",
+   "items": [
+    {
+     "answer": "Constraining what allowed apps may do: child processes, registry, file I/O, network.",
+     "explain": "Allowlisting gates execution; ringfencing gates behavior. Both halves are required.",
+     "prompt": "One-sentence definition of ringfencing."
+    },
+    {
+     "answer": "Execute other apps/processes, registry edits, file read/write, network sessions.",
+     "explain": "These are the four behavior categories from the verified module description.",
+     "prompt": "The four behavior categories ringfencing controls?"
+    },
+    {
+     "answer": "Using legitimate signed built-ins (PowerShell, wscript, rundll32) maliciously — identity checks can't stop them.",
+     "explain": "LOLBin abuse is why behavior rules exist: the binary is legitimate, the behavior is not.",
+     "prompt": "What is living-off-the-land abuse and why does it defeat pure allowlisting?"
+    },
+    {
+     "answer": "The ringfence denies the child-process spawn — Word may not create child processes.",
+     "explain": "The app is allowed; the behavior is not. The block is logged for triage.",
+     "prompt": "Word macro spawns PowerShell — which restriction fires?"
+    },
+    {
+     "answer": "The ringfence denies the write — allowed apps write only where policy permits.",
+     "explain": "Startup-folder and temp writes by document readers are never legitimate.",
+     "prompt": "Fenced app tries to write to a startup folder — which restriction fires?"
+    },
+    {
+     "answer": "A policy that breaks legitimate function — it gets removed and the removal becomes permanent.",
+     "explain": "Test against real workflows before enforcing; a fenced-but-broken app is a policy that won't survive the week.",
+     "prompt": "#1 failure mode of ringfence policies?"
+    }
+   ],
+   "title": "Rapid recall: ringfencing mechanics"
+  },
+  {
+   "id": "il29-m03-drill2",
+   "items": [
+    {
+     "answer": "Deny: the browser's ringfence permits network to the web but denies child-process creation outside its own updater/renderer chain.",
+     "explain": "Browsers legitimately spawn renderers and updaters — those are allowlisted children. cmd.exe is not in that family.",
+     "prompt": "Browser exploit tries to spawn cmd.exe from the renderer. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Block and alert: the child is evaluated on its own identity, and script interpreters are the highest-risk child family.",
+     "explain": "Attackers rename and proxy through interpreters; child-process policy must cover wscript, mshta, rundll32, powershell as a family.",
+     "prompt": "Allowed IT tool spawns wscript.exe with an obfuscated argument at midnight. Verdict? (Scenario)"
+    },
+    {
+     "answer": "No — policy must be validated against real workflows first; breaking the macro that runs payroll is a self-inflicted outage.",
+     "explain": "Ringfence changes get a pilot group and a rollback plan, exactly like the allowlist flip in M02.",
+     "prompt": "Can you push a new Office ringfence to all 200 machines on Friday afternoon? (Scenario)"
+    },
+    {
+     "answer": "The registry restriction: deny writes to Run keys and other persistence locations for the fenced app.",
+     "explain": "Persistence is a behavior — blocking the registry write kills the foothold even if execution somehow succeeded.",
+     "prompt": "Fenced app tries to set a Run key. Which restriction, and what does it prevent? (Scenario)"
+    },
+    {
+     "answer": "Network restriction: the reader needs no outbound network for its legitimate function, so the session is denied and logged.",
+     "explain": "Default-deny per application: if the function doesn't need it, the capability is removed.",
+     "prompt": "PDF reader opens a document and tries an outbound connection to an unknown host. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Check the fence's allowlist of expected children first — updaters and renderers are normal; anything outside the family is investigated.",
+     "explain": "Not every child spawn is evil: browsers and updaters have legitimate child families. Know the app's normal before judging the abnormal.",
+     "prompt": "Chrome spawns a child process during update. Block or allow? (Scenario)"
+    }
+   ],
+   "title": "Scenario: fence design and verdicts"
+  }
+ ],
+ "estimatedMinutes": 540,
+ "handsOnLab": {
+  "brief": "You will design a complete ringfence policy matrix for three application classes (browser, Office suite, PDF reader), then validate it with a harmless test harness that attempts disallowed actions on a test machine and records which are blocked. Policy design plus empirical validation — the operator loop.",
+  "checkpoint": "Every cell of the matrix has allow/deny with justification; the test log shows each denied action actually blocked; no 'allow all' rows remain.",
+  "deliverable": "ringfence-matrix.csv plus fence-test-log.md — the policy and the evidence it works.",
+  "id": "il29-m03-lab",
+  "steps": [
+   "Create ringfence-matrix.csv with rows for Chrome/Edge, Word, Excel, Outlook, and your PDF reader; columns: ChildProcesses, RegistryWrite, FileWriteScope, NetworkScope, Justification.",
+   "Fill the ChildProcesses column: for each app, list the ONLY children it legitimately spawns (browser: renderers/updater; Office: none expected; PDF reader: updater only) — everything else deny.",
+   "Fill RegistryWrite: deny all except the vendor's own keys needed for settings; explicitly deny Run-key and service-registration writes.",
+   "Fill FileWriteScope: documents/downloads for user content; deny writes to startup folders, temp executables, and system directories.",
+   "Fill NetworkScope: browser gets web (80/443) only; Office gets none except the updater and collaboration endpoints you name; PDF reader gets none.",
+   "Write the Justification per row in one line each, referencing the app's legitimate function — if you cannot justify an allow, it becomes a deny.",
+   "On a test VM, build a harmless test harness: a PowerShell script that attempts (a) spawning notepad from Word via COM automation, (b) writing a text file to the startup folder, (c) setting a test Run key — all benign, all logged.",
+   "Run each test and record in fence-test-log.md whether your platform's controls (AppLocker/WDAC/SRP or your EDR's behavior rules) blocked it; where you lack the enterprise feature, record the expected verdict from your matrix.",
+   "Add a bypass-attempt section: rename your test script to match an allowed name and re-run — document whether identity or behavior stopped it.",
+   "Review the matrix for usability: pick one legitimate workflow per app (e.g., Word mail-merge, browser file download) and confirm your fences permit it.",
+   "Write the rollout note: pilot group, one-week observation, block-log review cadence, and the rollback criterion.",
+   "Read the finished matrix as an attacker: for each allow cell, write one sentence on how you would abuse it — then tighten the two weakest cells."
+  ],
+  "title": "Ringfence policy matrix + validation harness"
+ },
+ "id": "IL29-M03",
+ "mockTask": {
+  "answer": 2,
+  "choices": [
+   "Allowlisting alone is sufficient because malware is always unsigned",
+   "Ringfencing is only for browsers; Office apps don't need it",
+   "Allowlisting answers 'may it run' but trusted apps get abused — Word spawning PowerShell, signed tools used as LOLBins — so ringfencing answers 'what may it do' by denying child-process creation, registry edits, unauthorized file writes, and network sessions for allowed apps",
+   "Ringfencing replaces the firewall"
+  ],
+  "explain": "Name the gap (trusted-app abuse / living-off-the-land), the mechanism (behavior restrictions on allowed apps), and the concrete example (Word-to-PowerShell). Then offer the Follina-class example: a document abusing a handler to launch a process — fenced at the child-spawn or the handler launch. That shows depth beyond the buzzword.",
+  "id": "il29-m03-mock",
+  "q": "Panel question: 'If the application is allowlisted and trusted, why do we need ringfencing at all?'",
+  "type": "choice"
+ },
+ "notes": [
+  {
+   "body": "Ringfencing starts from an uncomfortable truth: allowlisting answers 'may this code run?' but says nothing about what the code may do once running. A trusted application is not a safe application — it is an application whose behavior you have not constrained yet. Ringfencing constrains it. For each allowed application, policy defines four behavior boundaries: which other applications or processes it may execute (child-process control), whether it may edit the registry and which keys, which files it may read and write and where, and which network sessions it may open. Anything outside the fence is denied and logged. The mental model is a playpen: the app is welcome inside, but the walls are real. Consider why this matters operationally. The most common endpoint attacks do not begin with an unknown binary — they begin with a trusted one. A Word document with a malicious macro, a browser exploit, a signed administrative tool turned against its owner: in every case the parent application is legitimate, allowed, and doing something it was never supposed to do. Allowlisting waves the parent through; ringfencing stops the abuse. Worked example: compare two policies for winword.exe. Policy A (allowlist only): Word may run. A macro instructs Word to launch powershell.exe with an encoded command — Word is allowed, PowerShell is a signed Windows binary, nothing stops the chain. Policy B (allowlist plus ringfence): Word may run, but its fence denies child-process creation, denies writes outside the user's document folders, denies registry edits, and denies network sessions. The same macro now fails four independent ways: the spawn is blocked, the payload write is blocked, the persistence registry key is blocked, and the callback is blocked. Each block is logged with full context — parent, attempted action, target — which becomes the alert feed you will triage in M07. Common gotcha: thinking of ringfencing as 'extra allowlisting.' It is a different question entirely. Allowlisting is identity (is this code approved?); ringfencing is behavior (is this action permitted for this app?). You need both because attackers defeat identity controls by borrowing trusted identities. Second gotcha: fencing everything identically. A browser legitimately needs network access; a PDF reader does not. The fence follows the application's legitimate function — least privilege applied per application, not per machine.  A subtle point: fences should inherit down the process tree. When a fenced application legitimately spawns an approved child — the browser's renderer, the updater — that child should run under a fence at least as strict as the parent's, not escape into an unfenced context. Otherwise the attacker only needs to compromise the allowed child to inherit its freedom. Define the expected child family per application explicitly, fence each member for its own function, and deny everything outside the family. The process tree is the unit of policy, not just the single process.",
+   "title": "What ringfencing is: behavior control for allowed apps"
+  },
+  {
+   "body": "The canonical ringfence-bypass pattern — the one you must be able to whiteboard — is Word calling PowerShell. Walk it slowly. The attacker crafts a document containing a malicious macro. The user opens it in Word, which is allowlisted: the gate asks 'may Word run?' and the answer is yes. The macro executes inside Word's process and instructs the operating system to launch powershell.exe with a command that downloads and runs a payload. Under allowlisting alone, every binary in this chain is legitimate: Word is approved, PowerShell is a signed Microsoft binary. The attack succeeds without a single 'unknown' file. This is living-off-the-land: the attacker brings no tools, only instructions for your tools. The family has many members — script interpreters (powershell.exe, wscript.exe, cscript.exe), system utilities (rundll32.exe, mshta.exe, regsvr32.exe), and admin tools — all signed, all commonly allowed, all capable of executing attacker logic when invoked with the right arguments. Ringfencing breaks the pattern at the behavior layer. Word's fence states: this application may not create child processes. The macro's spawn request arrives, the fence evaluates the behavior (not the identity of PowerShell), and denies it. Note the elegance: the decision does not depend on recognizing powershell.exe as dangerous — it depends on Word having no legitimate need to spawn children. Worked example with numbers you can defend: in a 200-seat office, Word legitimately spawns child processes approximately never — its function is document editing. So a deny-child-processes fence for Word has a near-zero false-positive rate and blocks the entire macro-to-shell attack class. Contrast with a developer workstation where the IDE legitimately spawns compilers: there the fence must allow the compiler family and deny everything else, which is more work but the same principle. Common gotcha: blocking powershell.exe by identity while leaving wscript.exe, mshta.exe, and rundll32.exe allowed. The attacker simply switches interpreters — you blocked a name, not the capability. The ringfence must cover the interpreter family as behaviors: 'this app may not spawn script interpreters,' not 'this app may not spawn powershell.exe.' Second gotcha: forgetting that the fence must also cover the payload write and the persistence. Defense in depth means the macro fails at the spawn, and if it somehow writes a file, the file-write fence stops the drop, and if that fails, the registry fence stops the Run key. Layer the behaviors; never rely on one.  The deeper variant of this pattern does not even need a new binary: the attacker abuses the legitimate binary's own arguments. The same powershell.exe that your admins use becomes the payload delivery vehicle when invoked with an encoded command — identity checks see the trusted binary, and only behavior analysis sees the attack. This is why mature ringfence design constrains not just which children may spawn but what arguments the sensitive ones may carry: script interpreters launched with encoded or hidden-window arguments by a document reader are never legitimate. When you write the fence, think in terms of behaviors — 'this app may not invoke script interpreters at all' — rather than binary names, because the names are the attacker's to choose.",
+   "title": "The Word-calling-PowerShell pattern"
+  },
+  {
+   "body": "Some attacks do not even need a macro: they abuse the document handler chain itself. Consider the general class, taught here without vendor-specific exploit details: a specially crafted document, when merely previewed or opened, triggers an external protocol handler or helper application that the operating system launches automatically — and that helper, in turn, executes attacker-controlled commands. The user did not enable macros. The user did not click 'enable content.' The document format's own features did the work: the application that opened the document reached outside itself to invoke another program, and that program ran with the user's privileges. This class is why ringfencing covers more than child processes. A complete fence for a document reader constrains four behaviors against this pattern. First, child-process creation: the reader may not launch external handlers or helpers beyond its explicitly approved set. Second, the network session: even if a helper launches, it may not call out. Third, file writes: the helper may not drop payloads to disk. Fourth, registry edits: the helper may not establish persistence. Any one of these breaking the chain is sufficient; all four together make the class impractical. Worked example: design the fence for a PDF reader against handler-abuse. Child processes: deny all except the vendor's signed updater. Network: deny all — a reader's legitimate function (rendering documents) needs no network. File writes: allow only to the user's document folders; deny temp, startup, and system paths. Registry: deny all writes. Now walk the attack: the crafted PDF triggers a helper launch — blocked at child creation. Suppose the helper is somehow already present and invoked — its network call is blocked, its payload write is blocked, its persistence write is blocked. The document still renders for the legitimate user; the abuse class is fenced out. The operator lesson is about trust boundaries between applications: every time app A can invoke app B, that is a privilege boundary, and default-allow across it is the vulnerability. Ringfencing makes each such boundary default-deny. Common gotcha: assuming 'no macros' means 'no code execution.' Document formats are programs with rendering engines; the handler chain is the attack surface. Fence the behaviors, not just the macro setting.  Note that the preview pane counts as opening. Many document-abuse attacks trigger from the preview handler without the user ever double-clicking the file — the mere act of selecting the message renders the content through the vulnerable handler chain. Your user training should say 'do not preview unexpected attachments' rather than 'do not open them,' and your fence design should assume the handler runs on preview. This is also why the email gateway's attachment handling matters as a complementary layer: the fewer crafted documents that reach the inbox, the fewer handler invocations your fences must survive.",
+   "title": "Case study in general terms: when documents launch processes"
+  },
+  {
+   "body": "Browsers are the hardest applications to fence because their legitimate function is the attack surface: they download untrusted content, execute scripts, and open network connections by design. The fence cannot be 'deny everything' — it must be 'allow exactly the dangerous things the function requires, and nothing else.' Start with child processes. A modern browser legitimately spawns renderer processes, GPU processes, and its own updater — these are expected children, ideally constrained to the vendor's signed binaries. What it must never spawn is a command shell, a script interpreter, or an arbitrary downloaded executable. So the child-process fence is an allowlist within the fence: the renderer/updater family is permitted, everything else is denied. Next, file writes. The browser legitimately writes downloads to the user's download folder and cache to its profile. It must not write executables to startup folders, system directories, or temp paths that double as launch points — so the file-write fence permits user-content paths and denies execution-path writes. The download folder deserves special attention: it is the highest-risk directory on the machine, and the fence should ensure downloads there cannot be executed directly (that is the allowlist's job at launch, but the fence adds the write-side constraint). Network: the browser needs web access — that is its job — but the fence can still constrain it: deny connections to non-standard ports, deny raw socket behavior, and log aggressively. The updater is the delicate part: the browser must update itself, so the updater binary gets its own narrowly scoped permission to replace the browser's files — and only the browser's files. Worked example: an exploit compromises the renderer and attempts to spawn cmd.exe. The child-process fence denies the spawn — cmd.exe is not in the expected family — and logs the attempt with the renderer as parent. The exploit's fallback tries to write a payload to the startup folder — the file-write fence denies it. The fallback's fallback tries to open a raw connection to a non-standard port — the network fence denies it. Three behaviors, three denials, one alert bundle for triage. Common gotcha: fencing the browser so tightly that updates break. A browser that cannot update becomes the vulnerability — the updater carve-out is not a weakness in the fence, it is load-bearing. Second gotcha: forgetting extensions and plugins as child-equivalents. The fence should account for what the browser is permitted to load, not just what it may spawn.",
+   "title": "Ringfence design: browsers"
+  },
+  {
+   "body": "Office applications are the most attacked and the most fenceable: their legitimate function (editing documents, crunching spreadsheets, managing mail) requires almost none of the dangerous behaviors. The baseline Office fence is strict: deny child-process creation entirely — Word, Excel, and PowerPoint have no legitimate need to launch other programs. Deny registry writes except the vendor's own settings keys — Office does not need to register system services or set Run keys. Constrain file writes to user document locations — deny writes to startup folders, system directories, and temp-execution paths. Deny network sessions except explicitly approved collaboration endpoints and the updater — Word does not need arbitrary outbound connections. Outlook is the exception that proves the rule: it legitimately needs network access to mail servers, so its network fence is scoped to the mail protocols and servers the business uses, not the open internet. Now the honest complication: macros and add-ins. Businesses run on Excel macros — the finance team's month-end workbook is a program, and fencing it naively breaks the business. The operator-grade answer is not 'allow macros' (default-allow for code) but signed-macro policy: only macros signed by approved publishers execute, and even signed macros run inside the fence — they still cannot spawn children or write outside document paths. Worked example: the accounting team's month-end macro workbook. The workbook's macros are signed with the company's code-signing certificate. Policy: allow signed macros from the corporate publisher, and the Excel fence still denies child-process creation and non-document file writes. The macro calculates, formats, and saves — all permitted. An attacker who steals the workbook and adds a shell-spawning macro faces two gates: the signature check (their modification breaks the corporate signature) and the fence (the spawn is denied regardless). Common gotcha: the 'enable all macros for the finance team' exception. That is default-allow for the most macro-attacked applications in the company, scoped to the users with the most sensitive data. If the business truly needs unsigned macros, the compensating controls are a signed-macro migration plan with a date, plus tighter fences (no child processes, no network) on the machines that run them. Second gotcha: Outlook attachments. The fence constrains what Outlook may do, but the attachment the user saves and double-clicks is a new execution — that is the allowlist's gate (M02), and the two layers must be designed together.  Do not forget the browser's loadable code: extensions, plugins, and helper objects execute inside the browser's context with its privileges. A malicious or compromised extension bypasses the child-process fence entirely because it never spawns anything — it simply acts. Your browser policy should therefore govern the extension inventory too: an approved extension list, ideally centrally managed, with the same approval workflow as applications. An unmanaged extension ecosystem on a fenced browser is a fenced front door with the windows open.",
+   "title": "Ringfence design: Office applications"
+  },
+  {
+   "body": "PDF readers look harmless and are historically one of the most exploited application classes: complex parsers, JavaScript engines, and handler chains, all processing untrusted input. The fence for a PDF reader is the strictest of the three classes because the legitimate function is the narrowest: render documents. Child processes: deny entirely except the vendor's signed updater. A reader never legitimately launches other programs. Registry: deny all writes — a reader has no settings that require registry modification beyond its own keys, and persistence via the reader is never legitimate. File writes: allow only to user document folders for 'save as' functionality; deny temp, startup, and system paths absolutely. Network: deny entirely — rendering a document requires no network, and the updater gets its own narrow exception. This is the purest expression of least privilege per application: four denies and the app still does its job perfectly. Worked example: a crafted PDF attempts the handler-abuse pattern. It tries to invoke an external helper — child-process deny. It tries to execute embedded JavaScript that downloads a second stage — network deny. It tries to write the second stage to disk — file-write deny. It tries to register for persistence — registry deny. The user reads the invoice; the attack reads the fence. Now the validation discipline, because a fence you have not tested is a hope. Every ringfence policy gets a test plan before enforcement: for each deny, attempt the denied action with a harmless proof-of-concept on a test machine and confirm the block and the log. Attempt to spawn a child from the fenced app — confirm blocked and logged. Attempt the registry write — confirm blocked and logged. Attempt the file write to a denied path — confirm blocked and logged. Attempt the network session — confirm blocked and logged. Then attempt the legitimate workflows — open, edit, save, print, update — and confirm they work. Only then does the policy leave the pilot group. Common gotcha: testing only the blocks and not the legitimate workflows. A fence that blocks attacks and breaks work gets removed on Monday morning. Second gotcha: treating the PDF reader as 'not important' because it is not Word. Attackers do not share your ranking — they attack the reader precisely because defenders under-fence it. Fence it like it matters, because it does.  Two legacy Office features deserve explicit mention in your fence design: DDE and OLE. Both are mechanisms by which a document pulls in external content or launches linked objects — legitimate in 1998, abused ever since. If the business does not use them, disable them outright via policy rather than fencing around them; a disabled feature needs no fence. If some legacy workflow genuinely depends on them, that workflow gets the full treatment from M02: documented, scoped to the machines that need it, ringfenced tightly, with a migration plan and a date. 'Legacy requires it' is a bridge, not a destination.",
+   "title": "Ringfence design: PDF readers, plus the validation discipline"
+  }
+ ],
+ "objectives": [
+  "Explain why allowlisting alone is insufficient and how ringfencing constrains the behavior of trusted applications.",
+  "Trace the Word-to-PowerShell attack pattern and show exactly which ringfence restrictions break it at each step.",
+  "Design ringfence policies for browsers, Office applications, and PDF readers following least-privilege-per-application.",
+  "Validate a ringfence policy with harmless proof-of-concept tests before enforcing it on production machines."
+ ],
+ "prerequisiteFor": [
+  "IL29-M11"
+ ],
+ "quiz": [
+  {
+   "answer": 2,
+   "choices": [
+    "It lists which applications may run",
+    "It constrains what allowed applications may do: child processes, registry, file I/O, network",
+    "It encrypts application data at rest",
+    "It manages software licenses"
+   ],
+   "explain": "Allowlisting answers 'may it run' (identity); ringfencing answers 'what may it do' (behavior). The two are complementary layers — identity gets the app through the gate, behavior rules watch it inside.",
+   "q": "What does ringfencing control?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Because allowlisted apps are always safe",
+    "Because attackers abuse trusted apps (living-off-the-land): the parent is legitimate, so only behavior rules stop the abuse",
+    "Because ringfencing is faster than allowlisting",
+    "Because auditors require two products"
+   ],
+   "explain": "The Word-macro-to-PowerShell chain uses only legitimate binaries. Identity checks wave them through; only a behavior rule ('Word may not spawn children') breaks the chain.",
+   "q": "Why is ringfencing needed even with a perfect allowlist?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The allowlist, because PowerShell is unknown",
+    "The ringfence's child-process restriction — Word may not spawn children regardless of the child's identity",
+    "The firewall, because PowerShell needs network",
+    "Nothing — this is legitimate behavior"
+   ],
+   "explain": "The decision is behavioral, not identity-based: Word has no legitimate need to create child processes, so the spawn is denied without needing to judge PowerShell itself.",
+   "q": "A Word macro tries to launch PowerShell. Which control fires first?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Allow it — updaters need broad access",
+    "Deny it and investigate — this is outside any legitimate updater behavior",
+    "Allow it only on weekends",
+    "Log it but take no action for 30 days"
+   ],
+   "explain": "An updater replacing system files outside its own product is the supply-chain attack pattern. Updater rules are narrow: the vendor's signed updater may replace files it owns — nothing more.",
+   "q": "The browser's updater tries to write to a system directory outside the browser's folders. Verdict?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The document cannot be read at all",
+    "The reader renders the document but every abuse behavior — helper launch, network call, payload write, persistence — is denied",
+    "The reader runs slower",
+    "Users must approve each page"
+   ],
+   "explain": "Least privilege per application: rendering needs none of the dangerous behaviors, so denying them costs the user nothing and costs the attacker everything.",
+   "q": "What is the user impact of a correctly fenced PDF reader?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Block the binary by hash",
+    "The child-process behavior rule — script interpreters are the highest-risk child family and this app never legitimately spawns them",
+    "The network firewall",
+    "The email gateway"
+   ],
+   "explain": "The pattern is the signal: an app that never spawns interpreters doing so at midnight with obfuscation is malicious until proven otherwise. Behavior rules catch what identity rules miss.",
+   "q": "An allowed IT utility spawns wscript.exe with obfuscated arguments at midnight. Which rule fires?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Push it Friday afternoon to catch issues over the weekend",
+    "Pilot group first, validate blocks AND legitimate workflows, with a rollback criterion",
+    "Email users to be careful",
+    "Enforce immediately; the policy is obviously correct"
+   ],
+   "explain": "A fence that breaks legitimate work gets removed Monday morning. Pilot, validate both directions (attacks blocked, work functions), then expand — the same staged discipline as the allowlist flip.",
+   "q": "What is the correct way to roll out a new Office ringfence policy?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "It is safe because it is signed",
+    "The signature verifies origin, not intent — a signed binary can still be abused, which is why behavior rules apply to allowed apps",
+    "Signed apps bypass all fences",
+    "Signatures prevent all exploits"
+   ],
+   "explain": "Signing attests to who made the binary, not what it will do when abused. Ringfencing applies to allowed (including signed) apps precisely because trusted identities get borrowed.",
+   "q": "An attacker uses a signed Microsoft binary maliciously. Does the signature protect them from ringfencing?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The fence is working as designed",
+    "The fence is too strict and must be removed entirely",
+    "All fences are useless",
+    "The application is malware"
+   ],
+   "explain": "Over-fencing breaks legitimate function, and a removed fence protects nothing. The fix is surgical: carve the narrow exception the workflow needs, keep the rest of the fence intact.",
+   "q": "A new fence blocks a legitimate finance workflow. What does this tell you?"
+  }
+ ],
+ "summary": "Allowlisting decides what may run; ringfencing decides what running applications may do. This module goes deep on the behavior layer: the Word-to-PowerShell attack pattern, handler-abuse case studies in general terms, and complete ringfence policy design for browsers, Office apps, and PDF readers — with a validation discipline before anything reaches production.",
+ "title": "Ringfencing Deep Dive",
+ "videos": [
+  {
+   "blurb": "MIT's computer systems security course page — lecture topics include control hijacking attacks and defenses, the theory behind behavior restrictions.",
+   "durationMin": 45,
+   "httpStatus": 200,
+   "order": 1,
+   "source": "MIT OpenCourseWare",
+   "title": "MIT 6.858 Computer Systems Security — course and lecture notes",
+   "url": "https://ocw.mit.edu/courses/6-858-computer-systems-security-fall-2014/pages/lecture-notes/",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  },
+  {
+   "blurb": "The public technique knowledge base — use it to map living-off-the-land behaviors (script interpreters, system utilities) to the fence categories.",
+   "durationMin": 30,
+   "httpStatus": 200,
+   "order": 2,
+   "source": "MITRE",
+   "title": "MITRE ATT&CK — technique reference for LOLBin behaviors",
+   "url": "https://attack.mitre.org",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  }
+ ],
+ "weight": 5
+}

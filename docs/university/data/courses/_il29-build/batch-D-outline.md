@@ -1,0 +1,11 @@
+# Batch D — write to batch-D.json — 8 modules (IL29-M25 through IL29-M32)
+Theme: AI in cybersecurity part 2 + prerequisite math.
+
+M25 | AI Supply Chain & Model Security | Model provenance; training-data poisoning; model theft/extraction; dependency risks in AI tooling; SBOM concepts for ML artifacts; evaluating vendor AI claims skeptically.
+M26 | AI-Assisted SOC Workflows | Triage copilots; alert summarization; evaluated decision layers (AI proposes, human disposes); automation guardrails; measuring whether the AI actually helps (time-to-triage experiments). Lab: design an evaluated AI triage workflow with acceptance criteria.
+M27 | Adversarial ML | Evasion attacks on detectors; poisoning training data; defenses (adversarial training, input sanitization, ensemble); the arms-race mindset; why "the model says safe" is never the whole answer.
+M28 | Discrete Math & Logic for Security | Propositional logic, predicates, truth tables; sets, relations, functions; basic proof techniques (direct, contradiction); applying logic to policy evaluation (if-then rules, allow/deny precedence).
+M29 | Boolean Algebra & Bitwise Operations for Operators | Boolean algebra laws, De Morgan; bitwise AND/OR/XOR/NOT/shifts; masks and flags; worked examples: permission bitmasks, subnet masks, feature flags. (Deeper and more applied than IL-28's version — assume it as prerequisite.)
+M30 | Number Theory & Modular Arithmetic for Crypto | Divisibility, primes, gcd (Euclid's algorithm worked); modular arithmetic; Euler's theorem intuition; RSA key generation and encryption/decryption worked end-to-end with small primes; Diffie-Hellman key exchange with small numbers.
+M31 | Probability & Statistics for Detection | Base rates and the base-rate fallacy in alerting; Bayes' theorem worked for IDS alerts; precision/recall/F1; ROC intuition; Poisson/binomial intuition for event rates. (Goes beyond IL-24's Bayes module — full detection-statistics toolkit.)
+M32 | Linear Algebra for ML | Vectors, dot products, matrices, matrix multiplication worked; norms and distances; embeddings intuition (similarity as geometry); how a linear classifier draws its line. Enough linear algebra to read ML-for-security papers without fear.

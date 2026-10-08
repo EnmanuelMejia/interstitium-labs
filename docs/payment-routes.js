@@ -31,6 +31,16 @@
  *   WALLET_XRP, WALLET_XLM, WALLET_ADA, WALLET_ALGO, WALLET_QNT,
  *   WALLET_HBAR, WALLET_IOTA, WALLET_XDC, WALLET_XMR, WALLET_BTC
  *   XRP_DESTINATION_TAG, XLM_MEMO
+ *   ENTITLEMENT_SECRET  (HMAC key for the il_entitlement cookie — REQUIRED for the paywall)
+ *   ADMIN_TOKEN         (owner-only token for the manual admin-confirm hook)
+ *
+ * Direct-wallet honesty model (2026-10-08): there is NO automatic on-chain
+ * watcher. Direct-wallet orders accept a buyer-submitted tx hash
+ * (POST /api/pay/tx/submit) and stay PENDING until the owner verifies the
+ * transfer manually and calls the admin hook
+ * (POST /api/pay/admin/confirm). After ANY paid order, the client calls
+ * POST /api/pay/entitlement {order} to receive the signed il_entitlement
+ * cookie the course paywall checks.
  */
 
 "use strict";
@@ -40,30 +50,111 @@
    here. Tiers mirror docs/enroll/config.js publishable prices. */
 
 var ITEMS = {
-  "prep-sprint": { name: "Prep Sprint", amount_cents: 14900 },
-  "devsecops-mastery": { name: "DevSecOps Mastery", amount_cents: 49900 },
-  "full-academy": { name: "Full Academy", amount_cents: 79900 },
+  "prep-sprint": { name: "Prep Sprint", amount_cents: 14900, kind: "tier" },
+  "devsecops-mastery": { name: "DevSecOps Mastery", amount_cents: 49900, kind: "tier" },
+  "full-academy": { name: "Full Academy", amount_cents: 79900, kind: "tier" },
 };
+
+/* ---------------- course paywall pricing (2026-10-08) ---------------- */
+/* PAYWALL_CONFIG — DEFAULTS. The user has NOT set course prices; these are
+   clearly-marked placeholder defaults. Replace before going live. The free
+   courses IL-27 / IL-28 / IL-29 are NOT in this catalog and are never gated. */
+var PAYWALL_CONFIG = {
+  default_course_price_cents: 24900, // $249 per course (DEFAULT — user has not set prices)
+  all_courses_bundle_cents: 99900,   // $999 for everything (DEFAULT — user has not set prices)
+};
+
+var COURSES = [
+  { slug: "il-01-esoteric-foundations", code: "IL-01", title: "Esoteric Foundations" },
+  { slug: "il-02-mathematical-maturity-engine", code: "IL-02", title: "Mathematical Maturity Engine" },
+  { slug: "il-03-programming-language-forge", code: "IL-03", title: "Programming Language Forge" },
+  { slug: "il-04-systems-linux-windows-networks", code: "IL-04", title: "Systems, Linux, Windows & Networks" },
+  { slug: "il-05-cloud-devsecops-platform-sre", code: "IL-05", title: "Cloud, DevSecOps, Platform & SRE" },
+  { slug: "il-06-cybersecurity-secure-engineering", code: "IL-06", title: "Cybersecurity & Secure Engineering" },
+  { slug: "il-07-data-engineering-analytics-ai", code: "IL-07", title: "SQL, Data Engineering, Analytics & AI" },
+  { slug: "il-08-algorithms-compilers-distributed-formal", code: "IL-08", title: "Algorithms, Compilers, Distributed & Formal" },
+  { slug: "il-09-adaptive-certification-command", code: "IL-09", title: "Adaptive Certification Command" },
+  { slug: "il-10-portfolio-career-professional-practice", code: "IL-10", title: "Portfolio, Career & Professional Practice" },
+  { slug: "il-11-zero-trust-endpoint-defense", code: "IL-11", title: "Zero Trust & Endpoint Defense" },
+  { slug: "il-12-ai-engineering", code: "IL-12", title: "AI Engineering" },
+  { slug: "il-13-software-engineering-interview-prep", code: "IL-13", title: "Software Engineering Interview Prep" },
+  { slug: "il-14-sre-devops-cloud-security-interview-prep", code: "IL-14", title: "SRE, DevOps, Cloud & Security Interview Prep" },
+  { slug: "il-15-data-engineering-analytics-interview-prep", code: "IL-15", title: "Data Engineering & Analytics Interview Prep" },
+  { slug: "il-16-machine-learning-ai-engineering", code: "IL-16", title: "Machine Learning & AI Engineering" },
+  { slug: "il-17-agentic-ai-engineering", code: "IL-17", title: "Agentic AI Engineering" },
+  { slug: "il-18-technical-leadership-interview-prep", code: "IL-18", title: "Technical Leadership Interview Prep" },
+  { slug: "il-19-multicloud-devops-ai-bootcamp", code: "IL-19", title: "MultiCloud, DevOps & AI Bootcamp" },
+  { slug: "il-20-mathematics", code: "IL-20", title: "Mathematics for Engineers & Scientists" },
+  { slug: "il-21-humanities", code: "IL-21", title: "Humanities for Technologists" },
+  { slug: "il-22-esoteric-secret-knowledge", code: "IL-22", title: "The Deep Library — Esoteric & Secret Knowledge" },
+  { slug: "il-23-frontier-knowledge", code: "IL-23", title: "The Frontier — Cutting-Edge Research Distilled" },
+  { slug: "il-24-threatlocker-assessment-prep-cbt", code: "IL-24", title: "ThreatLocker Assessment Prep CBT" },
+  { slug: "il-25-cybersecurity-professional-certificate", code: "IL-25", title: "IL-25 · Professional Certificate in Cybersecurity" },
+  { slug: "il-26-data-analyst-certification-senior-mastery", code: "IL-26", title: "IL-26 · Data Analyst Certification & Senior Mastery Bootcamp" },
+];
+
+for (var ci = 0; ci < COURSES.length; ci++) {
+  var c0 = COURSES[ci];
+  ITEMS[c0.slug] = {
+    name: c0.code + " · " + c0.title,
+    amount_cents: PAYWALL_CONFIG.default_course_price_cents,
+    kind: "course",
+  };
+}
+ITEMS["all-courses"] = {
+  name: "All Courses Bundle (IL-01–IL-26)",
+  amount_cents: PAYWALL_CONFIG.all_courses_bundle_cents,
+  kind: "bundle",
+};
+
+function courseItemSlugs() {
+  var out = [];
+  for (var k in ITEMS) {
+    if (Object.prototype.hasOwnProperty.call(ITEMS, k) && ITEMS[k].kind === "course") out.push(k);
+  }
+  return out;
+}
 
 var CURRENCY = "usd";
 var UD_DOMAIN = "enmanuelmejia.crypto";
 var UD_RESOLVE_URL = "https://resolve.unstoppabledomains.com/domains/";
 var UD_CACHE_TTL = 24 * 60 * 60; // 24h, seconds
 
+/* ---------------- USER_CONFIG: owner-provided wallet setup ---------------- */
+/* The user (site owner) fills these in. Empty string = not provided. These
+   are read at REQUEST time from this object, falling back BELOW env
+   WALLET_* vars and the enmanuelmejia.crypto Unstoppable Domain records.
+   Resolution priority: UD records -> env vars -> USER_CONFIG below.
+   NEVER invent addresses here. */
+var USER_CONFIG = {
+  BTC_ADDRESS: "",
+  XRP_ADDRESS: "",
+  XRP_DESTINATION_TAG: "", /* required for XRP deposits to a shared/exchange address */
+  XLM_ADDRESS: "",
+  XLM_MEMO: "",           /* required for XLM deposits to a shared/exchange address */
+  ADA_ADDRESS: "",
+  ALGO_ADDRESS: "",
+  QNT_ADDRESS: "",
+  HBAR_ADDRESS: "",
+  IOTA_ADDRESS: "",
+  XDC_ADDRESS: "",
+  XMR_ADDRESS: "",
+};
+
 /* 11-coin rail. pay_currency = NOWPayments code (lowercase),
    ud_key = Unstoppable Domains record key, env_key = WALLET_* fallback,
    extra  = which env holds the destination tag / memo for this coin. */
 var COINS = [
-  { code: "XRP",  name: "XRP (Ripple)",       pay_currency: "xrp",  ud_key: "crypto.XRP.address",  env_key: "WALLET_XRP",  extra: "XRP_DESTINATION_TAG", extra_label: "Destination tag" },
-  { code: "XLM",  name: "Stellar Lumens",     pay_currency: "xlm",  ud_key: "crypto.XLM.address",  env_key: "WALLET_XLM",  extra: "XLM_MEMO",            extra_label: "Memo" },
-  { code: "ADA",  name: "Cardano",            pay_currency: "ada",  ud_key: "crypto.ADA.address",  env_key: "WALLET_ADA" },
-  { code: "ALGO", name: "Algorand",           pay_currency: "algo", ud_key: "crypto.ALGO.address", env_key: "WALLET_ALGO" },
-  { code: "QNT",  name: "Quant",              pay_currency: "qnt",  ud_key: "crypto.QNT.address",  env_key: "WALLET_QNT" },
-  { code: "HBAR", name: "Hedera",             pay_currency: "hbar", ud_key: "crypto.HBAR.address", env_key: "WALLET_HBAR" },
-  { code: "IOTA", name: "IOTA",               pay_currency: "iota", ud_key: "crypto.IOTA.address", env_key: "WALLET_IOTA" },
-  { code: "XDC",  name: "XDC Network",        pay_currency: "xdc",  ud_key: "crypto.XDC.address",  env_key: "WALLET_XDC" },
-  { code: "XMR",  name: "Monero",             pay_currency: "xmr",  ud_key: "crypto.XMR.address",  env_key: "WALLET_XMR" },
-  { code: "BTC",  name: "Bitcoin",            pay_currency: "btc",  ud_key: "crypto.BTC.address",  env_key: "WALLET_BTC" },
+  { code: "XRP",  name: "XRP (Ripple)",       pay_currency: "xrp",  ud_key: "crypto.XRP.address",  env_key: "WALLET_XRP",  user_key: "XRP_ADDRESS",  extra: "XRP_DESTINATION_TAG", extra_user_key: "XRP_DESTINATION_TAG", extra_label: "Destination tag" },
+  { code: "XLM",  name: "Stellar Lumens",     pay_currency: "xlm",  ud_key: "crypto.XLM.address",  env_key: "WALLET_XLM",  user_key: "XLM_ADDRESS",  extra: "XLM_MEMO",            extra_user_key: "XLM_MEMO",            extra_label: "Memo" },
+  { code: "ADA",  name: "Cardano",            pay_currency: "ada",  ud_key: "crypto.ADA.address",  env_key: "WALLET_ADA",  user_key: "ADA_ADDRESS" },
+  { code: "ALGO", name: "Algorand",           pay_currency: "algo", ud_key: "crypto.ALGO.address", env_key: "WALLET_ALGO", user_key: "ALGO_ADDRESS" },
+  { code: "QNT",  name: "Quant",              pay_currency: "qnt",  ud_key: "crypto.QNT.address",  env_key: "WALLET_QNT",  user_key: "QNT_ADDRESS" },
+  { code: "HBAR", name: "Hedera",             pay_currency: "hbar", ud_key: "crypto.HBAR.address", env_key: "WALLET_HBAR", user_key: "HBAR_ADDRESS" },
+  { code: "IOTA", name: "IOTA",               pay_currency: "iota", ud_key: "crypto.IOTA.address", env_key: "WALLET_IOTA", user_key: "IOTA_ADDRESS" },
+  { code: "XDC",  name: "XDC Network",        pay_currency: "xdc",  ud_key: "crypto.XDC.address",  env_key: "WALLET_XDC",  user_key: "XDC_ADDRESS" },
+  { code: "XMR",  name: "Monero",             pay_currency: "xmr",  ud_key: "crypto.XMR.address",  env_key: "WALLET_XMR",  user_key: "XMR_ADDRESS" },
+  { code: "BTC",  name: "Bitcoin",            pay_currency: "btc",  ud_key: "crypto.BTC.address",  env_key: "WALLET_BTC",  user_key: "BTC_ADDRESS" },
 ];
 
 function coinByCode(code) {
@@ -125,6 +216,112 @@ function safeEqual(a, b) {
   var diff = 0;
   for (var i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
+}
+
+function safeEqualBytes(a, b) {
+  if (!(a instanceof Uint8Array) || !(b instanceof Uint8Array)) return false;
+  if (a.length !== b.length) return false;
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
+
+/* ---------------- base64url ---------------- */
+
+function b64uEncodeBytes(bytes) {
+  var bin = "";
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function b64uEncode(str) {
+  return b64uEncodeBytes(new TextEncoder().encode(String(str)));
+}
+
+function b64uDecodeBytes(s) {
+  var b64 = String(s || "").replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  var bin = atob(b64);
+  var out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function b64uDecodeToString(s) {
+  return new TextDecoder().decode(b64uDecodeBytes(s));
+}
+
+async function hmacRaw(algo, keyStr, msgStr) {
+  var enc = new TextEncoder();
+  var key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(keyStr),
+    { name: "HMAC", hash: algo },
+    false,
+    ["sign"]
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(msgStr)));
+}
+
+/* ---------------- course entitlement tokens ---------------- */
+/* Cookie contract for the course paywall (_worker.js):
+     token = base64url(payload) + "." + base64url(HMAC-SHA256(secret, base64url(payload)))
+     payload = { course: "<slug>" | "all-courses", iat, exp }
+   The secret comes ONLY from env.ENTITLEMENT_SECRET — never hardcoded.
+   Callers must fail closed when the secret is unset. */
+
+var ENTITLEMENT_COOKIE = "il_entitlement";
+var ENTITLEMENT_TTL = 365 * 24 * 60 * 60; // 1 year, seconds
+
+async function signEntitlement(secret, courseScope) {
+  var nowS = Math.floor(Date.now() / 1000);
+  var payload = {
+    course: String(courseScope),
+    iat: nowS,
+    exp: nowS + ENTITLEMENT_TTL,
+  };
+  var body = b64uEncode(JSON.stringify(payload));
+  var sig = b64uEncodeBytes(await hmacRaw("SHA-256", secret, body));
+  return body + "." + sig;
+}
+
+async function verifyEntitlement(secret, token) {
+  if (!secret || !token) return { ok: false, reason: "missing" };
+  var parts = String(token).split(".");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    return { ok: false, reason: "malformed" };
+  }
+  var expected, got;
+  try {
+    expected = await hmacRaw("SHA-256", secret, parts[0]);
+    got = b64uDecodeBytes(parts[1]);
+  } catch (e) {
+    return { ok: false, reason: "malformed" };
+  }
+  if (!safeEqualBytes(expected, got)) return { ok: false, reason: "bad_signature" };
+  var payload;
+  try {
+    payload = JSON.parse(b64uDecodeToString(parts[0]));
+  } catch (e) {
+    return { ok: false, reason: "malformed" };
+  }
+  var nowS = Math.floor(Date.now() / 1000);
+  if (!payload || typeof payload.exp !== "number" || typeof payload.iat !== "number") {
+    return { ok: false, reason: "malformed" };
+  }
+  if (payload.exp <= nowS) return { ok: false, reason: "expired" };
+  if (payload.iat > nowS + 300) return { ok: false, reason: "not_yet_valid" };
+  return { ok: true, payload: payload };
+}
+
+function entitlementSetCookieHeader(token) {
+  return (
+    ENTITLEMENT_COOKIE +
+    "=" +
+    token +
+    "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=" +
+    ENTITLEMENT_TTL
+  );
 }
 
 /* Recursively key-sort an object (NOWPayments IPN canonical form). */
@@ -308,18 +505,31 @@ async function resolveCoinAddresses(env, store) {
   var out = [];
   for (var i = 0; i < COINS.length; i++) {
     var c = COINS[i];
-    var addr = (records && records[c.ud_key]) || (env && env[c.env_key]) || "";
-    addr = String(addr || "").trim();
+    var udAddr = records && records[c.ud_key] ? String(records[c.ud_key]).trim() : "";
+    var envAddr = env && env[c.env_key] ? String(env[c.env_key]).trim() : "";
+    var cfgAddr = c.user_key && USER_CONFIG[c.user_key] ? String(USER_CONFIG[c.user_key]).trim() : "";
+    var addr = udAddr || envAddr || cfgAddr;
+    var source = "missing";
+    if (udAddr) source = "ud";
+    else if (envAddr) source = "env";
+    else if (cfgAddr) source = "user_config";
+    // Sanity floor: a real address for every supported coin is >= 8 chars.
+    // Short/placeholder values are treated as missing rather than served.
+    if (addr && addr.length < 8) { addr = ""; source = "missing"; }
     var entry = {
       code: c.code,
       name: c.name,
       address: addr,
-      source: addr ? ((records && records[c.ud_key]) ? "ud" : "env") : "missing",
+      source: source,
       ud_domain: UD_DOMAIN,
     };
-    if (c.extra && env && env[c.extra]) {
-      entry[c.extra === "XRP_DESTINATION_TAG" ? "destination_tag" : "memo"] = String(env[c.extra]).trim();
-      entry.extra_label = c.extra_label;
+    if (c.extra) {
+      var extraVal = (env && env[c.extra] ? String(env[c.extra]).trim() : "") ||
+                     (c.extra_user_key && USER_CONFIG[c.extra_user_key] ? String(USER_CONFIG[c.extra_user_key]).trim() : "");
+      if (extraVal) {
+        entry[c.extra === "XRP_DESTINATION_TAG" ? "destination_tag" : "memo"] = extraVal;
+        entry.extra_label = c.extra_label;
+      }
     }
     out.push(entry);
   }
@@ -357,6 +567,7 @@ function providerConfigured(env, provider) {
   if (provider === "direct") {
     for (var i = 0; i < COINS.length; i++) {
       if (env[COINS[i].env_key]) return true;
+      if (COINS[i].user_key && USER_CONFIG[COINS[i].user_key]) return true;
     }
     return false;
   }
@@ -858,6 +1069,144 @@ async function handleNowpaymentsIpn(request, env, store) {
   return payJson({ ok: true, received: status });
 }
 
+/* Direct-wallet tx-hash submission (2026-10-08).
+ * There is no automatic on-chain watcher: the buyer pastes the transaction
+ * hash after sending. The order is recorded as PENDING and stays PENDING
+ * until the owner verifies the transfer manually and calls
+ * POST /api/pay/admin/confirm. */
+async function handleTxSubmit(request, env, store) {
+  if (request.method !== "POST") return payJson({ ok: false, error: "method_not_allowed" }, 405);
+  var body = null;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return payJson({ ok: false, error: "bad_json" }, 422);
+  }
+  var orderId = body && body.order ? String(body.order).trim() : "";
+  var txHash = body && body.tx_hash ? String(body.tx_hash).trim() : "";
+  if (!orderId || !/^[A-Za-z0-9_-]{1,80}$/.test(orderId)) {
+    return payJson({ ok: false, error: "order_invalid" }, 422);
+  }
+  // Accept chain tx hashes: hex (BTC/XMR-style) or generic alphanumeric, 16–160 chars.
+  if (!/^[A-Za-z0-9]{16,160}$/.test(txHash)) {
+    return payJson({ ok: false, error: "tx_hash_invalid" }, 422);
+  }
+  var order = await getOrder(store, orderId);
+  if (!order) return payJson({ ok: false, error: "not_found" }, 404);
+  if (order.status === "paid") return payJson({ ok: false, error: "already_paid" }, 409);
+  if (order.provider !== "direct") {
+    return payJson({ ok: false, error: "tx_submit_direct_only" }, 422);
+  }
+  if (order.tx_hash) return payJson({ ok: false, error: "tx_already_submitted" }, 409);
+  var note = body && body.sender_note ? String(body.sender_note).slice(0, 500) : "";
+  order.tx_hash = txHash;
+  order.tx_submitted_at = nowIso();
+  if (note) order.tx_sender_note = note;
+  order.status = "pending"; // explicit: stays PENDING until manual admin verification.
+  order.confirmation = "manual_review";
+  await saveOrder(store, order);
+  return payJson({
+    ok: true,
+    order_id: order.id,
+    status: "pending",
+    confirmation: "manual_review",
+    message:
+      "Transaction recorded. Our team verifies on-chain payment manually; your receipt and course access follow by email.",
+  });
+}
+
+/* Admin-confirm hook (2026-10-08). Owner-only: after manually verifying a
+ * direct-wallet (or otherwise pending) payment, the owner calls this with
+ * the ADMIN_TOKEN to mark the order paid. The signed entitlement token is
+ * returned in the body (the owner relays it or lets the buyer hit
+ * /api/pay/entitlement on a paid order). */
+async function handleAdminConfirm(request, env, store) {
+  if (request.method !== "POST") return payJson({ ok: false, error: "method_not_allowed" }, 405);
+  if (!env.ADMIN_TOKEN) {
+    console.log("pay/admin/confirm: ADMIN_TOKEN not set — failing closed");
+    return payJson(
+      { ok: false, error: "admin_not_configured", hint: "set ADMIN_TOKEN via wrangler secret" },
+      503
+    );
+  }
+  var body = null;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return payJson({ ok: false, error: "bad_json" }, 422);
+  }
+  if (!safeEqual(String((body && body.admin_token) || ""), String(env.ADMIN_TOKEN))) {
+    return payJson({ ok: false, error: "unauthorized" }, 401);
+  }
+  var orderId = body && body.order ? String(body.order).trim() : "";
+  var order = await getOrder(store, orderId);
+  if (!order) return payJson({ ok: false, error: "not_found" }, 404);
+  if (order.status === "paid") return payJson({ ok: false, error: "already_paid" }, 409);
+  await markPaid(store, order, "admin:confirmed", {
+    admin_confirmed_at: nowIso(),
+    admin_note: body && body.note ? String(body.note).slice(0, 500) : "",
+  });
+  var entitlement = null;
+  if (env.ENTITLEMENT_SECRET && order.item && (ITEMS[order.item] || {}).kind !== "tier") {
+    entitlement = await signEntitlement(
+      env.ENTITLEMENT_SECRET,
+      order.item === "all-courses" ? "all-courses" : order.item
+    );
+  }
+  return payJson({
+    ok: true,
+    order_id: order.id,
+    status: "paid",
+    item: order.item,
+    // The owner can relay this token, or the buyer calls /api/pay/entitlement.
+    entitlement: entitlement,
+  });
+}
+
+/* Entitlement issuance (2026-10-08). After ANY successful payment, the
+ * client POSTs {order} here; a paid course/bundle order returns the signed
+ * il_entitlement cookie the course paywall (_worker.js) checks. Fails closed
+ * when ENTITLEMENT_SECRET is unset. */
+async function handleEntitlement(request, env, store) {
+  if (request.method !== "POST") return payJson({ ok: false, error: "method_not_allowed" }, 405);
+  var body = null;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return payJson({ ok: false, error: "bad_json" }, 422);
+  }
+  var orderId = body && body.order ? String(body.order).trim() : "";
+  if (!orderId || !/^[A-Za-z0-9_-]{1,80}$/.test(orderId)) {
+    return payJson({ ok: false, error: "order_invalid" }, 422);
+  }
+  var order = await getOrder(store, orderId);
+  if (!order) return payJson({ ok: false, error: "not_found" }, 404);
+  if (order.status !== "paid") {
+    return payJson({ ok: false, error: "not_paid", status: order.status }, 402);
+  }
+  var kind = (ITEMS[order.item] || {}).kind || "";
+  if (kind !== "course" && kind !== "bundle") {
+    return payJson({ ok: false, error: "entitlement_not_applicable", item: order.item }, 422);
+  }
+  if (!env.ENTITLEMENT_SECRET) {
+    console.log("pay/entitlement: ENTITLEMENT_SECRET not set — failing closed");
+    return payJson(
+      { ok: false, error: "entitlement_secret_not_set", hint: "owner: wrangler secret put ENTITLEMENT_SECRET" },
+      503
+    );
+  }
+  var scope = order.item === "all-courses" ? "all-courses" : order.item;
+  var token = await signEntitlement(env.ENTITLEMENT_SECRET, scope);
+  return new Response(JSON.stringify({ ok: true, course: scope }), {
+    status: 200,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "set-cookie": entitlementSetCookieHeader(token),
+    },
+  });
+}
+
 function redirectTo(url, request) {
   return Response.redirect(new URL(url, new URL(request.url).origin).toString(), 303);
 }
@@ -875,6 +1224,14 @@ async function handlePaypalReturn(request, env, store) {
     var ref = pu.reference_id || "";
     order = await getOrder(store, ref);
     if (order && order.status !== "paid") {
+      // Cross-check the captured amount against our catalog before marking paid.
+      var capAmt = pu.amount && pu.amount.value;
+      if (capAmt !== undefined && capAmt !== centsToDecimal(order.amount_cents)) {
+        order.status = "failed";
+        order.note = "amount_mismatch";
+        await saveOrder(store, order);
+        return redirectTo("/enroll/cancel.html?reason=amount_mismatch", request);
+      }
       var captures = (pu.payments && pu.payments.captures) || [];
       await markPaid(store, order, token, { paypal_capture_id: captures.length ? captures[0].id : "" });
     }
@@ -893,6 +1250,14 @@ async function handleStripeReturn(request, env, store) {
     var orderId = (s.metadata && s.metadata.order_id) || "";
     var order = await getOrder(store, orderId);
     if (order && s.payment_status === "paid") {
+      // The webhook cross-checks amount_total; apply the same check on the
+      // return redirect so a tampered session cannot mark an order paid.
+      if (s.amount_total !== undefined && Number(s.amount_total) !== order.amount_cents) {
+        order.status = "failed";
+        order.note = "amount_mismatch";
+        await saveOrder(store, order);
+        return redirectTo("/enroll/cancel.html?reason=amount_mismatch", request);
+      }
       await markPaid(store, order, s.id, { stripe_payment_intent: s.payment_intent || "" });
     }
     return redirectTo(
@@ -917,6 +1282,9 @@ async function handlePay(request, env) {
   if (path === "/api/pay/webhook/stripe") return handleStripeWebhook(request, env, store);
   if (path === "/api/pay/webhook/paypal") return handlePaypalWebhook(request, env, store);
   if (path === "/api/pay/ipn/nowpayments") return handleNowpaymentsIpn(request, env, store);
+  if (path === "/api/pay/tx/submit") return handleTxSubmit(request, env, store);
+  if (path === "/api/pay/admin/confirm") return handleAdminConfirm(request, env, store);
+  if (path === "/api/pay/entitlement") return handleEntitlement(request, env, store);
   if (path === "/api/pay/paypal/return") return handlePaypalReturn(request, env, store);
   if (path === "/api/pay/paypal/cancel") return redirectTo("/enroll/cancel.html", request);
   if (path === "/api/pay/stripe/return") return handleStripeReturn(request, env, store);
@@ -929,6 +1297,9 @@ async function handlePay(request, env) {
 
 export {
   handlePay,
+  handleTxSubmit,
+  handleAdminConfirm,
+  handleEntitlement,
   makeStore,
   getOrder,
   saveOrder,
@@ -939,6 +1310,9 @@ export {
   coinByCode,
   COINS,
   ITEMS,
+  COURSES,
+  PAYWALL_CONFIG,
+  USER_CONFIG,
   UD_DOMAIN,
   sortKeysDeep,
   nowpaymentsSignature,
@@ -948,4 +1322,9 @@ export {
   directQrPayload,
   centsToDecimal,
   safeEqual,
+  signEntitlement,
+  verifyEntitlement,
+  entitlementSetCookieHeader,
+  ENTITLEMENT_COOKIE,
+  ENTITLEMENT_TTL,
 };

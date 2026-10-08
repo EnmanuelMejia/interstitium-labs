@@ -1,0 +1,11 @@
+# Batch C — write to batch-C.json — 8 modules (IL29-M17 through IL29-M24)
+Theme: MIT 6.858 part 2 + AI in cybersecurity part 1.
+
+M17 | MIT 6.858: Web Security Model & Securing Web Apps | Same-origin policy; XSS (reflected/stored/DOM) with worked examples; CSRF and tokens; SQL injection conceptually with parameterized-query defense; session management. Lab: find-and-fix exercise on a deliberately vulnerable local demo app (use OWASP Juice Shop — free, well-known).
+M18 | MIT 6.858: Network Security, Protocols & TLS | Network attacker models; ARP/DNS spoofing concepts; TLS handshake walkthrough (what each step proves); certificate chains and trust; HTTPS pitfalls (mixed content, HSTS). Ties to Network Control module.
+M19 | MIT 6.858: Side-Channel Attacks & Defenses | Timing attacks, cache attacks, power analysis — the concept that secrets leak through physical behavior; defenses (constant-time code, noise); why this matters for crypto implementations.
+M20 | MIT 6.858: Authentication — Passwords to Passkeys | Password hashing (bcrypt/Argon2 concepts, salts, work factors); MFA/TOTP; FIDO2/passkeys and phishing resistance; authentication failure case studies in general terms.
+M21 | MIT 6.858: Privacy — Tracking, Anonymity & Private Browsing | How tracking works (cookies, fingerprinting); Tor/onion routing concepts; private browsing limits; data-broker economy in general terms; privacy defenses for endpoints.
+M22 | MIT 6.858: Security Economics | Why insecure equilibria persist; misaligned incentives; the economics of patching, cyber-insurance, and breach disclosure; reasoning about security investment like a business.
+M23 | ML for Anomaly & Threat Detection | Supervised vs unsupervised for security; features from logs and process trees; baselining behavior; precision/recall in alerting (ties to Bayes intuition); evaluating a detector honestly. Lab: build a simple anomaly detector in Python on synthetic login data.
+M24 | LLM Security: Prompt Injection & Jailbreaks | Direct vs indirect prompt injection; system-prompt leakage; tool-poisoning; defenses (input validation, least-privilege tool access, output filtering, human-in-the-loop); worked examples of injection patterns and how to blunt them.

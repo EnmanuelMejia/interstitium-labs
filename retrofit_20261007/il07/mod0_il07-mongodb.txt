@@ -1,0 +1,120 @@
+{
+ "id": "il07-mongodb",
+ "code": "IL-07",
+ "title": "Document Databases: MongoDB",
+ "summary": "The document-database path: Atlas foundations (clusters, Data Explorer, drivers), the document model (flexible schema, schema validation), the aggregation framework ($match/$group/$project/$lookup), data modeling (embedding vs referencing, indexing for query patterns), and MongoDB for Python developers (PyMongo, ODM patterns, transactions).",
+ "objectives": [
+  "Model documents: embed vs reference by query pattern.",
+  "Write aggregation pipelines: match, group, project, lookup, unwind.",
+  "Index for query patterns; read query plans.",
+  "Build a PyMongo application with transactions."
+ ],
+ "notes": [
+  {
+   "title": "The document model",
+   "body": "**Documents, collections, databases**: JSON-like BSON documents grouped in collections. **Flexible schema**: fields vary per document — the schema lives in the application, enforced optionally by **schema validation** rules.\n\n**Value types and identifiers**: ObjectId (time-ordered, unique), dates as dates (not strings — queryability depends on it), arrays and subdocuments as first-class citizens.\n\n- Model for your queries, not your entities — the document database mantra\n- Schema validation: JSON Schema rules on the collection — flexibility with guardrails\n- Atlas: the managed path — free tier for learning, Data Explorer for visual querying"
+  },
+  {
+   "title": "Aggregation and modeling",
+   "body": "**Aggregation framework**: pipelines of stages — `$match` (filter early), `$group` (accumulate), `$project` (shape), `$lookup` (the join), `$unwind` (arrays). **Accumulators and expressions**: `$sum`, `$avg`, `$push`, date/string operators.\n\n**Data modeling**: **embedding** (one read gets everything — for contained, bounded relationships) vs **referencing** (for unbounded/many-many, or shared entities). **Indexing for query patterns**: compound indexes ordered by ESR (Equality, Sort, Range).\n\n- $match first: filter before the expensive stages — pipeline order is performance\n- Embedding rule of thumb: if it grows unbounded (comments, events), reference; if bounded and accessed together, embed\n- ESR: equality fields first in the compound index, then sort, then range — the index design rule"
+  },
+  {
+   "title": "PyMongo and the capstones",
+   "body": "**PyMongo**: the Python driver — CRUD, cursors, bulk writes. **ODM patterns** (MongoEngine/Beanie at concept level): when the object mapping helps vs hurts.\n\n**Transactions**: multi-document ACID since 4.0 — design to avoid them (embed!), use them where correctness demands.\n\n**Capstones**: the modeling capstone (a full schema from query patterns) and the application capstone (a working PyMongo app).\n\n- Bulk writes for ingestion — never one-insert-per-loop at scale\n- Transactions are a correctness tool, not a design pattern — the document model should minimize them\n- Read the explain plan: `explain('executionStats')` — winning plans vs rejected plans"
+  }
+ ],
+ "cards": [
+  {
+   "front": "Embed vs reference?",
+   "back": "Embed: bounded, accessed-together. Reference: unbounded, many-many, shared entities."
+  },
+  {
+   "front": "Aggregation stage order rule?",
+   "back": "$match early — filter before expensive $group/$lookup stages."
+  },
+  {
+   "front": "ESR?",
+   "back": "Equality, Sort, Range — compound index field order."
+  },
+  {
+   "front": "ObjectId property?",
+   "back": "Time-ordered and unique — sortable by creation, no coordination needed."
+  },
+  {
+   "front": "Transactions in MongoDB: the guidance?",
+   "back": "Available (multi-doc ACID) but design to avoid — embed instead; use where correctness demands."
+  },
+  {
+   "front": "Dates as dates — why?",
+   "back": "Queryability: range queries, sorting, and date operators need real date types."
+  }
+ ],
+ "quiz": [
+  {
+   "q": "Blog post with 10k comments. Model?",
+   "choices": [
+    "embed all comments",
+    "reference comments (unbounded growth)",
+    "one document per word",
+    "no index"
+   ],
+   "answer": 1,
+   "explain": "Unbounded growth → reference. Embedding 10k comments hits the 16MB limit and rewrite cost."
+  },
+  {
+   "q": "Pipeline is slow. First check?",
+   "choices": [
+    "more RAM",
+    "$match placement — filter early",
+    "sharding",
+    "indexes on _id"
+   ],
+   "answer": 1,
+   "explain": "Stage order: $match first reduces documents before expensive stages."
+  },
+  {
+   "q": "Query: status='active' sorted by date, range on amount. Index?",
+   "choices": [
+    "{amount:1}",
+    "{status:1, date:1, amount:1} (ESR)",
+    "{date:1}",
+    "none"
+   ],
+   "answer": 1,
+   "explain": "ESR: equality (status), sort (date), range (amount) — in that order."
+  },
+  {
+   "q": "16MB document limit affects?",
+   "choices": [
+    "nothing",
+    "embedding unbounded arrays",
+    "queries",
+    "indexes"
+   ],
+   "answer": 1,
+   "explain": "The hard cap that forces referencing for unbounded growth."
+  },
+  {
+   "q": "Bulk insert 1M docs fastest?",
+   "choices": [
+    "one insert_many in loop",
+    "bulk_write / insert_many batches",
+    "one by one",
+    "transactions"
+   ],
+   "answer": 1,
+   "explain": "Batched bulk writes — round-trips dominate single inserts."
+  },
+  {
+   "q": "explain() shows COLLSCAN. Meaning?",
+   "choices": [
+    "fine",
+    "collection scan — no usable index; add one for the query pattern",
+    "corrupt",
+    "sharded"
+   ],
+   "answer": 1,
+   "explain": "COLLSCAN = full scan. Index the query pattern; verify IXSCAN after."
+  }
+ ]
+}

@@ -1,0 +1,1341 @@
+====================================================================================================
+ID: ml-in-practice--ml-workflow | TITLE: The Applied ML Workflow | weight: 1
+SUMMARY: In this module: The applied loop: frame, data, baseline, evaluate, iterate, ship; Baselines first: why simple models set the bar; Train/validation/test splits that survive contact with reality. The loop every applied ML engineer actually runs. Theory paths teach algorithms; this module teaches the sequence — and the discipline that keeps results honest.
+OBJECTIVES:
+   - Understand and apply: the applied loop: frame, data, baseline, evaluate, iterate, ship
+   - Understand and apply: baselines first: why simple models set the bar
+   - Understand and apply: train/validation/test splits that survive contact with reality
+   - Understand and apply: experiment discipline: seeds, versions, run logs
+   - Understand and apply: knowing when to stop tuning
+NOTE0 (What this covers):
+    - The applied loop: frame, data, baseline, evaluate, iterate, ship
+    - Baselines first: why simple models set the bar
+    - Train/validation/test splits that survive contact with reality
+    - Experiment discipline: seeds, versions, run logs
+    - Knowing when to stop tuning
+NOTE1 (How IL teaches):
+    The loop every applied ML engineer actually runs. Theory paths teach algorithms; this module teaches the sequence — and the discipline that keeps results honest.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+CARDS:
+   Q: What is the applied ML loop? | A: Frame the problem, gather data, build a baseline, evaluate, iterate, and ship — with experiment discipline at every step
+   Q: Why build a simple baseline first? | A: It sets the bar every later model must clear; without one you cannot tell whether added complexity earns its keep.
+   Q: What does experiment discipline require? | A: Fixed seeds, versioned data and code, and a run log — so every result is reproducible and comparable.
+   Q: Why keep a held-out test set untouched until the end? | A: Tuning against the test set turns it into a second validation set; touching it once gives the only honest number.
+   Q: When do you stop tuning? | A: When further iterations stop moving the validation metric meaningfully, or the gains cost more than they are worth — the
+QUIZ:
+   Q: Why evaluate on a held-out test set only once?
+   Q: The main value of a simple baseline is:
+   Q: Experiment discipline includes:
+   Q: You should stop tuning when:
+====================================================================================================
+ID: ml-in-practice--feature-engineering-practice | TITLE: Feature Engineering | weight: 1
+SUMMARY: In this module: Encoding categoricals: one-hot, ordinal, target; Scaling and its interaction with model families; Datetime features that respect causality. Features beat algorithms most of the time. Hands-on transformations plus the audit that catches target leakage before it becomes a fake 0.99.
+OBJECTIVES:
+   - Practice: encoding categoricals: one-hot, ordinal, target
+   - Practice: scaling and its interaction with model families
+   - Practice: datetime features that respect causality
+   - Practice: text features without leakage
+   - Practice: the leakage audit checklist
+NOTE0 (What this covers):
+    - Encoding categoricals: one-hot, ordinal, target
+    - Scaling and its interaction with model families
+    - Datetime features that respect causality
+    - Text features without leakage
+    - The leakage audit checklist
+NOTE1 (How IL teaches):
+    Features beat algorithms most of the time. Hands-on transformations plus the audit that catches target leakage before it becomes a fake 0.99.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: Why do features often beat algorithms? | A: Most performance comes from what the model is allowed to see; a better representation helps every algorithm, while a bet
+   Q: Name three ways to encode categoricals and a tradeoff of each. | A: One-hot (simple, explodes with cardinality), ordinal (compact, invents false order), target encoding (powerful, leaks if
+   Q: What is target leakage in feature engineering? | A: Using information derived from the target — or from the future — to build features, producing a fake high score that col
+   Q: Why must datetime features respect causality? | A: A feature computed from events after prediction time will not exist when the model scores live — the model learns the fu
+   Q: What goes on a leakage audit checklist? | A: For each feature: when it becomes available vs. the label timestamp; whether any statistic was computed on the full data
+QUIZ:
+   Q: Target encoding done on the full dataset before splitting causes:
+   Q: Datetime features must respect causality because:
+   Q: One-hot vs target encoding tradeoff:
+   Q: A leakage audit checks:
+====================================================================================================
+ID: ml-in-practice--model-evaluation-practice | TITLE: Model Evaluation | weight: 1
+SUMMARY: In this module: Choosing the metric that matches the business cost; Confusion matrices read properly; Precision/recall tradeoffs on imbalanced data. Evaluation as engineering, not ceremony: which metric, which slice, which mistakes cost money — and the discipline of reporting on a held-out set exactly once.
+OBJECTIVES:
+   - Practice: choosing the metric that matches the business cost
+   - Practice: confusion matrices read properly
+   - Practice: precision/recall tradeoffs on imbalanced data
+   - Practice: calibration: when probabilities must mean something
+   - Practice: error analysis by slice, not by average
+NOTE0 (What this covers):
+    - Choosing the metric that matches the business cost
+    - Confusion matrices read properly
+    - Precision/recall tradeoffs on imbalanced data
+    - Calibration: when probabilities must mean something
+    - Error analysis by slice, not by average
+NOTE1 (How IL teaches):
+    Evaluation as engineering, not ceremony: which metric, which slice, which mistakes cost money — and the discipline of reporting on a held-out set exactly once.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+CARDS:
+   Q: How do you choose an evaluation metric? | A: Match it to the business cost of each mistake type — the metric is a contract with the stakeholder, not a default.
+   Q: What does a confusion matrix tell you that accuracy hides? | A: The exact pattern of errors: which classes are confused, false-positive vs false-negative rates — the shape of the mista
+   Q: On imbalanced data, why can accuracy be 99% and useless? | A: A majority-class predictor scores 99% on 1% positives while learning nothing — precision/recall expose the emptiness.
+   Q: When must probabilities be calibrated, not just ranked? | A: Whenever the numbers drive money or thresholds — a predicted 0.7 must happen about 70% of the time, or expected-value ma
+   Q: What is error analysis by slice? | A: Breaking errors down by segment (cohort, region, input type) instead of one average — averages hide the slice where the 
+QUIZ:
+   Q: For fraud at 0.1% prevalence, the honest primary metric is:
+   Q: A confusion matrix is read properly when you:
+   Q: Calibration matters when:
+   Q: Error analysis by slice means:
+====================================================================================================
+ID: ml-in-practice--ml-pipelines-practice | TITLE: ML Pipelines | weight: 1
+SUMMARY: In this module: scikit-learn pipelines: preprocessing inside the fold; Column transformers for mixed data types; Serializing models and preprocessing together. Pipelines are where leakage dies and reproducibility is born: every transformation inside the pipeline, versioned, and re-runnable by someone else.
+OBJECTIVES:
+   - Understand and apply: scikit-learn pipelines: preprocessing inside the fold
+   - Understand and apply: column transformers for mixed data types
+   - Understand and apply: serializing models and preprocessing together
+   - Understand and apply: batch scoring vs online serving patterns
+   - Understand and apply: scheduling retrains: from cron to orchestrators
+NOTE0 (What this covers):
+    - scikit-learn pipelines: preprocessing inside the fold
+    - Column transformers for mixed data types
+    - Serializing models and preprocessing together
+    - Batch scoring vs online serving patterns
+    - Scheduling retrains: from cron to orchestrators
+NOTE1 (How IL teaches):
+    Pipelines are where leakage dies and reproducibility is born: every transformation inside the pipeline, versioned, and re-runnable by someone else.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [MLflow Documentation](https://mlflow.org/) — Experiment tracking, model registry, and packaging.
+CARDS:
+   Q: Why must preprocessing live inside the pipeline? | A: So every learned transformation is fit on train only inside each fold — leakage dies and results become reproducible.
+   Q: What does a ColumnTransformer solve? | A: Mixed data types: different preprocessing per column group (scale numerics, encode categoricals) in one leak-free step.
+   Q: Why serialize preprocessing with the model? | A: The serving path must apply the exact same transformations; a model without its preprocessing is undeployable.
+   Q: Batch scoring vs online serving: the tradeoff? | A: Batch is simpler and cheaper for periodic needs; online serving gives fresh predictions per request but needs an API, va
+   Q: When do you move from cron retrains to an orchestrator? | A: When scheduling, dependencies, retries, and lineage outgrow a crontab — orchestrators add observability and reproducibil
+QUIZ:
+   Q: Putting preprocessing inside the pipeline prevents:
+   Q: A ColumnTransformer is used for:
+   Q: Serialize preprocessing with the model because:
+   Q: Move from cron to an orchestrator when:
+====================================================================================================
+ID: ml-in-practice--ml-deployment-practice | TITLE: Deployment Practice | weight: 1
+SUMMARY: In this module: Packaging: from notebook to importable project; Serving predictions over a REST API; Input validation: the contract between app and model. Deployment for one engineer: a model behind an API, inputs validated, predictions logged — the minimum viable production system.
+OBJECTIVES:
+   - Understand and apply: packaging: from notebook to importable project
+   - Understand and apply: serving predictions over a REST API
+   - Understand and apply: input validation: the contract between app and model
+   - Understand and apply: logging predictions for later audit
+   - Understand and apply: rollback plans and shadow deployments
+NOTE0 (What this covers):
+    - Packaging: from notebook to importable project
+    - Serving predictions over a REST API
+    - Input validation: the contract between app and model
+    - Logging predictions for later audit
+    - Rollback plans and shadow deployments
+NOTE1 (How IL teaches):
+    Deployment for one engineer: a model behind an API, inputs validated, predictions logged — the minimum viable production system.
+NOTE2 (Sources):
+    - [FastAPI Documentation](https://fastapi.tiangolo.com/) — Modern Python API framework; the serving layer of many ML demos.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: What turns a notebook into a deployable project? | A: An importable package layout, pinned dependencies, the model plus preprocessing serialized together, and a serving entry
+   Q: Why validate model inputs at the API boundary? | A: The API is the contract between app and model: schema, ranges, and types must be enforced before a bad row becomes a sil
+   Q: Why log predictions? | A: Logged predictions with inputs enable later audit, drift detection, error analysis, and building future training sets.
+   Q: What is a shadow deployment? | A: The new model scores live traffic without serving decisions — you compare against production safely before cutover.
+   Q: What belongs in a rollback plan? | A: The previous model artifact versioned and ready, a one-command revert, and the metric threshold that triggers it.
+QUIZ:
+   Q: The minimum viable production ML system includes:
+   Q: Input validation at the API boundary exists to:
+   Q: A shadow deployment lets you:
+   Q: Log predictions because:
+====================================================================================================
+ID: ml-in-practice--ml-practice-capstone | TITLE: ML Practice Capstone | weight: 1
+SUMMARY: In this module: Choosing a problem with available data; Baseline, iteration log, and error analysis; Held-out evaluation with stated limits. One end-to-end system that proves the loop: framed, baselined, evaluated honestly, and served — the portfolio piece this path exists to produce.
+OBJECTIVES:
+   - Demonstrate end to end: choosing a problem with available data
+   - Demonstrate end to end: baseline, iteration log, and error analysis
+   - Demonstrate end to end: held-out evaluation with stated limits
+   - Demonstrate end to end: deployed demo behind an API
+   - Demonstrate end to end: writeup: problem, method, results, limits
+NOTE0 (What this covers):
+    - Choosing a problem with available data
+    - Baseline, iteration log, and error analysis
+    - Held-out evaluation with stated limits
+    - Deployed demo behind an API
+    - Writeup: problem, method, results, limits
+NOTE1 (How IL teaches):
+    One end-to-end system that proves the loop: framed, baselined, evaluated honestly, and served — the portfolio piece this path exists to produce.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [FastAPI Documentation](https://fastapi.tiangolo.com/) — Modern Python API framework; the serving layer of many ML demos.
+CARDS:
+   Q: What makes a good capstone problem? | A: Available data, a real question, and a scope you can finish — ambition is good, incompleteness is not.
+   Q: What does the iteration log prove? | A: That you ran the loop: baseline, each change, what moved the metric, and what you abandoned — the engineering record.
+   Q: Why state limits in the writeup? | A: Honest limits (data gaps, unevaluated slices, failure cases) are what separate a practitioner’s report from a demo.
+   Q: What does the deployed demo need? | A: An API serving the model with validated inputs and logged predictions — the minimum viable production system.
+   Q: What five sections does the capstone writeup carry? | A: Problem, method, results, limits, and what you would do next — a practitioner would respect that shape.
+QUIZ:
+   Q: A good capstone problem is one where:
+   Q: The iteration log demonstrates:
+   Q: Stating limits in the writeup:
+   Q: Held-out evaluation with stated limits means:
+====================================================================================================
+ID: advanced-ml--ensemble-methods-practice | TITLE: Ensemble Methods | weight: 1
+SUMMARY: In this module: Bagging and why averaging reduces variance; Random forests: the strong default; Gradient boosting: sequential error correction. Ensembles as the practitioner's power tools: when averaging helps, how boosting corrects errors sequentially, and the discipline of stacking without leakage.
+OBJECTIVES:
+   - Understand and apply: bagging and why averaging reduces variance
+   - Understand and apply: random forests: the strong default
+   - Understand and apply: gradient boosting: sequential error correction
+   - Understand and apply: xGBoost parameters that actually matter
+   - Understand and apply: stacking and blending without leakage
+NOTE0 (What this covers):
+    - Bagging and why averaging reduces variance
+    - Random forests: the strong default
+    - Gradient boosting: sequential error correction
+    - XGBoost parameters that actually matter
+    - Stacking and blending without leakage
+    - When ensembles are not worth the cost
+NOTE1 (How IL teaches):
+    Ensembles as the practitioner's power tools: when averaging helps, how boosting corrects errors sequentially, and the discipline of stacking without leakage.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [XGBoost Documentation](https://xgboost.readthedocs.io/en/stable/) — Gradient-boosted trees: parameters, tuning, and the scikit-learn API.
+CARDS:
+   Q: Why does bagging reduce variance? | A: Averaging models trained on different bootstrap samples cancels uncorrelated errors; variance drops while bias stays rou
+   Q: Why are random forests a strong default? | A: Bagged deep trees plus random feature subsets decorrelate the trees — low tuning effort, robust performance.
+   Q: How does gradient boosting differ from bagging? | A: Boosting is sequential: each new learner fits the residuals of the ensemble so far, correcting errors rather than averag
+   Q: Which XGBoost parameters actually matter most? | A: Learning rate (eta), tree depth / min child weight, subsample and column sampling, and the number of rounds with early s
+   Q: What is the stacking-without-leakage discipline? | A: Base-model predictions for the meta-learner must come from out-of-fold predictions — never from models that saw those ro
+   Q: When are ensembles not worth the cost? | A: When a simple model is within noise of the ensemble on the business metric — then serving cost, latency, and complexity 
+QUIZ:
+   Q: Bagging primarily reduces:
+   Q: Gradient boosting builds each tree on:
+   Q: Leak-free stacking requires:
+   Q: XGBoost tuning should start with:
+====================================================================================================
+ID: advanced-ml--probabilistic-ml | TITLE: Probabilistic ML | weight: 1
+SUMMARY: In this module: Bayes' rule as an updating discipline; Naive Bayes: the fast baseline; Calibration: making probabilities mean something. Point predictions hide risk. This module teaches the probabilistic view — calibrated probabilities and uncertainty — that separates models from decision tools.
+OBJECTIVES:
+   - Understand and apply: bayes' rule as an updating discipline
+   - Understand and apply: naive Bayes: the fast baseline
+   - Understand and apply: calibration: making probabilities mean something
+   - Understand and apply: uncertainty in decisions: expected value thinking
+   - Understand and apply: gaussian processes at a glance: when data is scarce
+NOTE0 (What this covers):
+    - Bayes' rule as an updating discipline
+    - Naive Bayes: the fast baseline
+    - Calibration: making probabilities mean something
+    - Uncertainty in decisions: expected value thinking
+    - Gaussian processes at a glance: when data is scarce
+NOTE1 (How IL teaches):
+    Point predictions hide risk. This module teaches the probabilistic view — calibrated probabilities and uncertainty — that separates models from decision tools.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [A leading free learning platform: Statistics & Probability](https://interstitiumlabs.dev/university/) — Free, rigorous statistics floor for the ML that follows.
+CARDS:
+   Q: What does Bayes’ rule give you as a discipline? | A: A principled update: posterior ∝ likelihood × prior — fold new evidence into beliefs instead of starting from zero each 
+   Q: Why is naive Bayes still a useful baseline? | A: Fast, tiny, and surprisingly strong on text-like sparse data — a two-minute bar for fancier models.
+   Q: What does calibration mean for a classifier? | A: Predicted probabilities match observed frequencies — essential when the numbers feed decisions, not just rankings.
+   Q: How does expected-value thinking use uncertainty? | A: Multiply outcome probabilities by payoffs to choose the action with the best expected result — point predictions hide th
+   Q: When are Gaussian processes worth a glance? | A: Small-data regression where uncertainty estimates matter and compute is affordable — elegant, but cubic scaling bites.
+QUIZ:
+   Q: Bayes’ rule updates:
+   Q: Naive Bayes remains useful as:
+   Q: Use expected-value thinking when:
+   Q: Gaussian processes suit:
+====================================================================================================
+ID: advanced-ml--deep-architectures-practice | TITLE: Deep Architectures | weight: 1
+SUMMARY: In this module: When deep learning beats trees on structured data (and when it does not); MLPs in practice: depth, width, and normalization; Entity embeddings for high-cardinality categoricals. Deep learning for the tabular practitioner: the architectures worth knowing, the training discipline that makes them converge, and honest guidance on when trees still win.
+OBJECTIVES:
+   - Practice: when deep learning beats trees on structured data (and when it does not)
+   - Practice: mLPs in practice: depth, width, and normalization
+   - Practice: entity embeddings for high-cardinality categoricals
+   - Practice: practical training: schedules, early stopping, checkpoints
+   - Practice: transfer learning for small datasets
+NOTE0 (What this covers):
+    - When deep learning beats trees on structured data (and when it does not)
+    - MLPs in practice: depth, width, and normalization
+    - Entity embeddings for high-cardinality categoricals
+    - Practical training: schedules, early stopping, checkpoints
+    - Transfer learning for small datasets
+NOTE1 (How IL teaches):
+    Deep learning for the tabular practitioner: the architectures worth knowing, the training discipline that makes them converge, and honest guidance on when trees still win.
+NOTE2 (Sources):
+    - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html) — Tensors, autograd, nn, and training-loop references.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: When do trees still beat deep learning on tabular data? | A: Usually: mixed types, missing values, modest row counts, limited tuning budget — MLPs earn their keep on unstructured or
+   Q: What do depth, width, and normalization control in an MLP? | A: Capacity and training stability: more depth/width fits more complex functions but needs normalization and regularization
+   Q: Why use entity embeddings for high-cardinality categoricals? | A: They learn dense vectors where similar categories (zip codes, SKUs) sit near each other — far better than giant one-hots
+   Q: What is the practical training discipline? | A: Schedules with warmup, early stopping on validation, and checkpoints — so the best model, not the last, is what you keep
+   Q: When is transfer learning the right call? | A: Small datasets where a pretrained model’s representations beat anything you could learn from scratch — adapt, don’t rein
+QUIZ:
+   Q: On 50k tabular rows, the usual winner is:
+   Q: Entity embeddings are for:
+   Q: The practical training discipline is:
+   Q: Transfer learning fits when:
+====================================================================================================
+ID: advanced-ml--optimization-advanced | TITLE: Optimization | weight: 1
+SUMMARY: In this module: SGD, momentum, and Adam: what each is good at; Learning-rate schedules and warmup; Batch size effects on generalization. Optimization as resource allocation: which optimizer, which schedule, and how much tuning budget a problem earns — tracked, not guessed.
+OBJECTIVES:
+   - Understand and apply: SGD, momentum, and Adam: what each is good at
+   - Understand and apply: learning-rate schedules and warmup
+   - Understand and apply: batch size effects on generalization
+   - Understand and apply: random search vs Bayesian optimization
+   - Understand and apply: tuning budgets: how much search a problem deserves
+NOTE0 (What this covers):
+    - SGD, momentum, and Adam: what each is good at
+    - Learning-rate schedules and warmup
+    - Batch size effects on generalization
+    - Random search vs Bayesian optimization
+    - Tuning budgets: how much search a problem deserves
+NOTE1 (How IL teaches):
+    Optimization as resource allocation: which optimizer, which schedule, and how much tuning budget a problem earns — tracked, not guessed.
+NOTE2 (Sources):
+    - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html) — Tensors, autograd, nn, and training-loop references.
+    - [Weights & Biases Documentation](https://docs.wandb.ai/) — Experiment tracking and sweeps for ML runs.
+CARDS:
+   Q: What is each optimizer good at: SGD, momentum, Adam? | A: SGD generalizes well with tuning; momentum accelerates through ravines; Adam adapts per-parameter rates and needs less s
+   Q: Why use learning-rate warmup? | A: Large steps on fresh random weights cause instability; ramping up lets the optimizer settle before full-speed updates.
+   Q: How does batch size affect generalization? | A: Very large batches can converge to sharper minima that generalize worse; smaller batches add noise that often regularize
+   Q: Random search vs Bayesian optimization: when? | A: Random search is a strong cheap baseline; Bayesian optimization earns its keep when each evaluation is expensive and the
+   Q: What is a tuning budget? | A: A pre-committed limit on search compute/time per problem — optimization as resource allocation, tracked with sweeps, not
+QUIZ:
+   Q: Adam’s practical edge over SGD is:
+   Q: Warmup helps because:
+   Q: A tuning budget is:
+   Q: Prefer Bayesian optimization over random search when:
+====================================================================================================
+ID: advanced-ml--model-interpretation-practice | TITLE: Model Interpretation | weight: 1
+SUMMARY: In this module: Feature importance: what it measures, what it hides; Partial dependence and individual conditional expectation; SHAP values at practitioner depth. Opening the black box enough to trust and explain it: global and local interpretation methods, their limits, and the stakeholder-facing story.
+OBJECTIVES:
+   - Practice: feature importance: what it measures, what it hides
+   - Practice: partial dependence and individual conditional expectation
+   - Practice: SHAP values at practitioner depth
+   - Practice: interpreting ensembles vs linear models
+   - Practice: interpretability for stakeholders, not just debugging
+NOTE0 (What this covers):
+    - Feature importance: what it measures, what it hides
+    - Partial dependence and individual conditional expectation
+    - SHAP values at practitioner depth
+    - Interpreting ensembles vs linear models
+    - Interpretability for stakeholders, not just debugging
+NOTE1 (How IL teaches):
+    Opening the black box enough to trust and explain it: global and local interpretation methods, their limits, and the stakeholder-facing story.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: What does feature importance measure — and hide? | A: Rough contribution to the model’s decisions; it hides interactions, correlated-feature splitting, and direction of effec
+   Q: What do partial dependence plots show? | A: The marginal effect of one feature on predictions, averaging out the others — global interpretation with interaction bli
+   Q: What are SHAP values at practitioner depth? | A: Per-prediction feature attributions grounded in Shapley values: how much each feature pushed this specific prediction up
+   Q: Why interpret ensembles differently from linear models? | A: Linear coefficients are direct effects; tree ensembles need post-hoc tools (importance, PDP, SHAP) because effects are d
+   Q: How do you explain a model to stakeholders? | A: Lead with the decision-relevant story — which inputs drive outcomes and where the model is uncertain — not with algorith
+QUIZ:
+   Q: Feature importance hides:
+   Q: SHAP values provide:
+   Q: Partial dependence shows:
+   Q: Explain to stakeholders by:
+====================================================================================================
+ID: advanced-ml--advanced-ml-project | TITLE: Advanced ML Project | weight: 1
+SUMMARY: In this module: Selecting a hard, real dataset; Ensemble strategy with a tuning budget; Ablation: credit assignment for each component. A guided project on a genuinely difficult problem: ensembles, systematic tuning, and ablations that prove which pieces earned their keep.
+OBJECTIVES:
+   - Build and demonstrate: selecting a hard, real dataset
+   - Build and demonstrate: ensemble strategy with a tuning budget
+   - Build and demonstrate: ablation: credit assignment for each component
+   - Build and demonstrate: error analysis on the hardest slices
+   - Build and demonstrate: writeup a practitioner would respect
+NOTE0 (What this covers):
+    - Selecting a hard, real dataset
+    - Ensemble strategy with a tuning budget
+    - Ablation: credit assignment for each component
+    - Error analysis on the hardest slices
+    - Writeup a practitioner would respect
+NOTE1 (How IL teaches):
+    A guided project on a genuinely difficult problem: ensembles, systematic tuning, and ablations that prove which pieces earned their keep.
+NOTE2 (Sources):
+    - [XGBoost Documentation](https://xgboost.readthedocs.io/en/stable/) — Gradient-boosted trees: parameters, tuning, and the scikit-learn API.
+    - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html) — Tensors, autograd, nn, and training-loop references.
+    - [Weights & Biases Documentation](https://docs.wandb.ai/) — Experiment tracking and sweeps for ML runs.
+CARDS:
+   Q: What makes a dataset ‘hard and real’ for this project? | A: Messy, sizable, with a non-trivial signal — the kind where baselines struggle and engineering choices show.
+   Q: What is an ablation and why run them? | A: Remove or swap one component at a time and measure the drop — it assigns credit honestly instead of letting the biggest 
+   Q: How do you set an ensemble strategy with a budget? | A: Pre-commit the search budget, spend it on the highest-leverage knobs (learning rate, depth, sampling), and stop when val
+   Q: Why do error analysis on the hardest slices? | A: Averages hide where the model fails users; slice-level analysis directs the next engineering effort where it matters.
+   Q: What does a practitioner-respecting writeup contain? | A: Problem, method, ablations, honest evaluation with limits, and the tradeoff table — results plus what you would do next.
+QUIZ:
+   Q: An ablation study:
+   Q: Pick a project dataset that is:
+   Q: Error analysis should focus on:
+   Q: A practitioner-respecting writeup includes:
+====================================================================================================
+ID: python-for-ml--numpy-pandas-practice | TITLE: NumPy and pandas | weight: 1
+SUMMARY: In this module: ndarrays: shapes, dtypes, indexing; Broadcasting and vectorization; DataFrames: selection, filtering, assignment. The two libraries under everything: array thinking with NumPy and table wrangling with pandas, taught as daily practice, not reference tours.
+OBJECTIVES:
+   - Practice: ndarrays: shapes, dtypes, indexing
+   - Practice: broadcasting and vectorization
+   - Practice: dataFrames: selection, filtering, assignment
+   - Practice: groupby and aggregation
+   - Practice: merges, missing data, tidy principles
+NOTE0 (What this covers):
+    - ndarrays: shapes, dtypes, indexing
+    - Broadcasting and vectorization
+    - DataFrames: selection, filtering, assignment
+    - groupby and aggregation
+    - Merges, missing data, tidy principles
+NOTE1 (How IL teaches):
+    The two libraries under everything: array thinking with NumPy and table wrangling with pandas, taught as daily practice, not reference tours.
+NOTE2 (Sources):
+    - [NumPy Documentation](https://numpy.org/doc/) — Array computing reference; the floor under pandas and ML.
+    - [pandas Documentation](https://pandas.pydata.org/docs/) — DataFrame reference and user guide for wrangling.
+CARDS:
+   Q: What is array thinking in NumPy? | A: Reasoning in shapes, dtypes, and vectorized operations over whole arrays — never Python loops over elements.
+   Q: What does broadcasting do? | A: Implicitly expands mismatched shapes so operations vectorize — the mechanism behind fast array code.
+   Q: What are the core DataFrame verbs? | A: Selection, filtering, assignment, groupby-aggregation, merges, and missing-data handling — the daily wrangling set.
+   Q: Why do tidy principles matter? | A: One observation per row, one variable per column — tidy data makes every downstream operation predictable.
+   Q: How do you debug data code? | A: Check shapes and dtypes at each step, assert invariants, and read the actual values — not just the absence of errors.
+QUIZ:
+   Q: Broadcasting enables:
+   Q: groupby-aggregation answers:
+   Q: Tidy data means:
+   Q: Debug data code by checking:
+====================================================================================================
+ID: python-for-ml--visualization-practice | TITLE: Visualization | weight: 1
+SUMMARY: In this module: Matplotlib's object model; Distributions: histograms and box plots; Relationships: scatter and pair plots. Plots as instruments: the charts that reveal skewed distributions, outliers, and label errors before they become model bugs.
+OBJECTIVES:
+   - Practice: matplotlib's object model
+   - Practice: distributions: histograms and box plots
+   - Practice: relationships: scatter and pair plots
+   - Practice: honest axes and labels
+   - Practice: exploratory plots that catch data problems
+NOTE0 (What this covers):
+    - Matplotlib's object model
+    - Distributions: histograms and box plots
+    - Relationships: scatter and pair plots
+    - Honest axes and labels
+    - Exploratory plots that catch data problems
+NOTE1 (How IL teaches):
+    Plots as instruments: the charts that reveal skewed distributions, outliers, and label errors before they become model bugs.
+NOTE2 (Sources):
+    - [Matplotlib Documentation](https://matplotlib.org/) — Plotting reference; the grammar all Python charts share.
+CARDS:
+   Q: Why learn Matplotlib’s object model? | A: Figure/Axes/Artist structure is the grammar every Python chart shares — it transfers to every other library.
+   Q: Which plots reveal distributions? | A: Histograms for shape, box plots for spread and outliers — the first look at any new column.
+   Q: Which plots reveal relationships? | A: Scatter plots for pairs, pair plots for small feature sets — correlation and structure at a glance.
+   Q: What makes axes honest? | A: Zero baselines where appropriate, labeled units, no truncated trickery — charts that cannot mislead.
+   Q: How do exploratory plots catch data problems? | A: Skew, outliers, impossible values, and label errors show up visually long before they surface as model bugs.
+QUIZ:
+   Q: Histograms and box plots reveal:
+   Q: Honest axes require:
+   Q: Scatter and pair plots reveal:
+   Q: Exploratory plots catch:
+====================================================================================================
+ID: python-for-ml--sklearn-api-practice | TITLE: The scikit-learn API | weight: 1
+SUMMARY: In this module: Estimators: fit, predict, transform; train_test_split and why it matters; Your first classifier and regressor. One consistent API for all of classical ML: fit on train, predict on new data — plus the pipeline habit that prevents leakage from day one.
+OBJECTIVES:
+   - Understand and apply: estimators: fit, predict, transform
+   - Understand and apply: train_test_split and why it matters
+   - Understand and apply: your first classifier and regressor
+   - Understand and apply: reading a classification report
+   - Understand and apply: pipelines: the habit to form early
+NOTE0 (What this covers):
+    - Estimators: fit, predict, transform
+    - train_test_split and why it matters
+    - Your first classifier and regressor
+    - Reading a classification report
+    - Pipelines: the habit to form early
+NOTE1 (How IL teaches):
+    One consistent API for all of classical ML: fit on train, predict on new data — plus the pipeline habit that prevents leakage from day one.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: What is the estimator contract? | A: fit learns from training data; predict applies to new data; transform converts data — one API for all of classical ML.
+   Q: Why does train_test_split matter? | A: It creates the held-out data that makes evaluation honest — stratify to preserve class balance.
+   Q: What does a classification report tell you? | A: Per-class precision, recall, and F1 plus averages — the full picture accuracy hides.
+   Q: Why form the pipeline habit early? | A: Pipelines put preprocessing inside the fold automatically — leakage prevention becomes the default, not a chore.
+   Q: What is your first classifier and regressor? | A: Logistic regression and linear/ridge regression — simple, fast, interpretable baselines for everything after.
+QUIZ:
+   Q: The estimator contract is:
+   Q: train_test_split with stratify:
+   Q: A classification report shows:
+   Q: Form the pipeline habit early because:
+====================================================================================================
+ID: python-for-ml--python-ml-ecosystem | TITLE: The Python ML Ecosystem | weight: 1
+SUMMARY: In this module: Virtual environments and pip for ML projects; Jupyter discipline: notebooks that become scripts; Debugging data code: shapes, dtypes, and asserts. The working environment around the libraries: isolated envs, notebook hygiene, and debugging data code by shapes and dtypes.
+OBJECTIVES:
+   - Understand and apply: virtual environments and pip for ML projects
+   - Understand and apply: jupyter discipline: notebooks that become scripts
+   - Understand and apply: debugging data code: shapes, dtypes, and asserts
+   - Understand and apply: reading tracebacks in library code
+   - Understand and apply: profiling basics: finding the slow step
+NOTE0 (What this covers):
+    - Virtual environments and pip for ML projects
+    - Jupyter discipline: notebooks that become scripts
+    - Debugging data code: shapes, dtypes, and asserts
+    - Reading tracebacks in library code
+    - Profiling basics: finding the slow step
+NOTE1 (How IL teaches):
+    The working environment around the libraries: isolated envs, notebook hygiene, and debugging data code by shapes and dtypes.
+NOTE2 (Sources):
+    - [Python Documentation](https://docs.python.org/3/) — The official language reference and tutorial; anchor, not copy.
+    - [Project Jupyter](https://jupyter.org/) — Notebooks: the working medium of the data/AI spine.
+    - [Real Python](https://realpython.com/) — Long-form Python tutorials with runnable examples.
+CARDS:
+   Q: Why use virtual environments for ML projects? | A: Isolated dependencies per project — reproducibility starts with knowing exactly what is installed.
+   Q: What is Jupyter discipline? | A: Notebooks for exploration with clear narrative, then refactor working code into scripts — notebooks that become pipeline
+   Q: How do you debug data code? | A: Print shapes and dtypes, assert expected invariants, and bisect the pipeline — data bugs hide in silent shape changes.
+   Q: How do you read tracebacks in library code? | A: Read bottom-up: the error line first, then walk up through your code’s frames — library internals are context, not the s
+   Q: What is profiling basics for ML code? | A: Find the slow step before optimizing — usually I/O or an unvectorized loop, not the model.
+QUIZ:
+   Q: Virtual environments give you:
+   Q: Jupyter discipline means:
+   Q: Read a traceback:
+   Q: Profile before optimizing because:
+====================================================================================================
+ID: python-for-ml--working-with-real-data | TITLE: Working with Real Data | weight: 1
+SUMMARY: In this module: CSVs in the wild: encodings, delimiters, and mess; Reading from APIs and JSON; SQL at a glance for data extraction. Data never arrives clean: the ingestion skills — messy files, APIs, a glance of SQL — that turn ‘the data’ into a DataFrame.
+OBJECTIVES:
+   - Practice: cSVs in the wild: encodings, delimiters, and mess
+   - Practice: reading from APIs and JSON
+   - Practice: SQL at a glance for data extraction
+   - Practice: sampling large datasets for exploration
+   - Practice: documenting your data assumptions
+NOTE0 (What this covers):
+    - CSVs in the wild: encodings, delimiters, and mess
+    - Reading from APIs and JSON
+    - SQL at a glance for data extraction
+    - Sampling large datasets for exploration
+    - Documenting your data assumptions
+NOTE1 (How IL teaches):
+    Data never arrives clean: the ingestion skills — messy files, APIs, a glance of SQL — that turn ‘the data’ into a DataFrame.
+NOTE2 (Sources):
+    - [pandas Documentation](https://pandas.pydata.org/docs/) — DataFrame reference and user guide for wrangling.
+    - [Real Python](https://realpython.com/) — Long-form Python tutorials with runnable examples.
+CARDS:
+   Q: What goes wrong with CSVs in the wild? | A: Encodings, delimiters, quoting, mixed types, and header chaos — never trust a file’s extension.
+   Q: How do you read from APIs and JSON? | A: Request, check status, parse JSON, normalize nested structures into tables — and handle pagination and rate limits.
+   Q: Why ‘SQL at a glance’ for extraction? | A: SELECT/WHERE/JOIN/GROUP BY pulls exactly the slice you need instead of downloading the warehouse.
+   Q: Why sample large datasets for exploration? | A: Exploration on a representative sample is fast; full scans are for the final pipeline, not for asking questions.
+   Q: Why document data assumptions? | A: Every assumption (units, timezones, missingness meaning) is a future bug or a future onboarding gift — write them down.
+QUIZ:
+   Q: CSVs in the wild suffer from:
+   Q: SQL at a glance is for:
+   Q: Sample large datasets for exploration because:
+   Q: Document data assumptions because:
+====================================================================================================
+ID: python-for-ml--ml-python-project | TITLE: ML Python Project | weight: 1
+SUMMARY: In this module: Picking a dataset you can finish; Exploration notebook: distributions and questions; Baseline model and honest evaluation. A small complete project: raw data to evaluated model, with the exploration, the baseline, and an honest account of what worked.
+OBJECTIVES:
+   - Build and demonstrate: picking a dataset you can finish
+   - Build and demonstrate: exploration notebook: distributions and questions
+   - Build and demonstrate: baseline model and honest evaluation
+   - Build and demonstrate: three concrete improvement attempts
+   - Build and demonstrate: short writeup of what you learned
+NOTE0 (What this covers):
+    - Picking a dataset you can finish
+    - Exploration notebook: distributions and questions
+    - Baseline model and honest evaluation
+    - Three concrete improvement attempts
+    - Short writeup of what you learned
+NOTE1 (How IL teaches):
+    A small complete project: raw data to evaluated model, with the exploration, the baseline, and an honest account of what worked.
+NOTE2 (Sources):
+    - [pandas Documentation](https://pandas.pydata.org/docs/) — DataFrame reference and user guide for wrangling.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [Project Jupyter](https://jupyter.org/) — Notebooks: the working medium of the data/AI spine.
+CARDS:
+   Q: How do you pick a dataset you can finish? | A: Right-sized, documented, with a clear target — finishable beats impressive-but-abandoned.
+   Q: What goes in the exploration notebook? | A: Distributions, missingness, relationships, and the questions the data raises — exploration before modeling.
+   Q: What counts as an honest evaluation? | A: Baseline first, held-out test set touched once, metric matched to the problem — reported with limits.
+   Q: What are ‘three concrete improvement attempts’? | A: Three deliberate changes (features, model, tuning), each measured — iteration with evidence, not vibes.
+   Q: What does the final writeup prove? | A: That you ran the loop: what you tried, what worked, what did not, and what you learned.
+QUIZ:
+   Q: Pick a dataset you can:
+   Q: The exploration notebook should contain:
+   Q: Three improvement attempts means:
+   Q: Honest evaluation requires:
+====================================================================================================
+ID: advanced-genai--transformer-arch-practice | TITLE: Transformer Architectures | weight: 1
+SUMMARY: In this module: Self-attention as an implementable operation; Decoder-only architectures: the modern default; Context windows: what long context costs. Transformers at practitioner depth: attention you could implement, the inference economics of context length, and quantization without mystique.
+OBJECTIVES:
+   - Understand and apply: self-attention as an implementable operation
+   - Understand and apply: decoder-only architectures: the modern default
+   - Understand and apply: context windows: what long context costs
+   - Understand and apply: KV cache intuition for inference
+   - Understand and apply: quantization: what precision you can afford to lose
+NOTE0 (What this covers):
+    - Self-attention as an implementable operation
+    - Decoder-only architectures: the modern default
+    - Context windows: what long context costs
+    - KV cache intuition for inference
+    - Quantization: what precision you can afford to lose
+    - Reading a model architecture like an engineer
+NOTE1 (How IL teaches):
+    Transformers at practitioner depth: attention you could implement, the inference economics of context length, and quantization without mystique.
+NOTE2 (Sources):
+    - [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers) — Model classes, training, and fine-tuning references.
+    - [PyTorch Documentation](https://pytorch.org/docs/stable/index.html) — Tensors, autograd, nn, and training-loop references.
+CARDS:
+   Q: What is self-attention as an implementable operation? | A: For each token: score its query against all keys, softmax to weights, take the weighted mix of values — a few matrix ops
+   Q: Why are decoder-only architectures the modern default? | A: One stack trained on next-token prediction scales cleanly and serves both understanding and generation — simplicity won.
+   Q: What does long context cost? | A: Attention memory/compute grows with sequence length and the KV cache grows per token — long context is an inference-econ
+   Q: What is KV-cache intuition for inference? | A: Cache past keys/values so each new token only computes its own step — fast decoding paid for in memory.
+   Q: What does quantization trade? | A: Lower precision (fewer bits per weight) for smaller, faster models — verify quality after compression; some precision is
+   Q: How do you read a model architecture like an engineer? | A: Layers, hidden size, heads, context length, parameter count — then map each to cost, latency, and capability implication
+QUIZ:
+   Q: Self-attention computes, per token:
+   Q: Decoder-only architectures dominate because:
+   Q: The KV cache trades:
+   Q: Quantization is viable when:
+====================================================================================================
+ID: advanced-genai--pretrain-finetune-practice | TITLE: Pretraining and Fine-Tuning | weight: 1
+SUMMARY: In this module: What pretraining actually teaches a model; Instruction tuning: data curation matters most; LoRA and PEFT: adapting without full retraining. The adaptation workflow: curate instruction data, adapt efficiently with LoRA, and measure honestly — because fine-tuning can also make models worse.
+OBJECTIVES:
+   - Practice: what pretraining actually teaches a model
+   - Practice: instruction tuning: data curation matters most
+   - Practice: loRA and PEFT: adapting without full retraining
+   - Practice: training runs: schedules, checkpoints, resuming
+   - Practice: evaluating before and after: did tuning help?
+NOTE0 (What this covers):
+    - What pretraining actually teaches a model
+    - Instruction tuning: data curation matters most
+    - LoRA and PEFT: adapting without full retraining
+    - Training runs: schedules, checkpoints, resuming
+    - Evaluating before and after: did tuning help?
+NOTE1 (How IL teaches):
+    The adaptation workflow: curate instruction data, adapt efficiently with LoRA, and measure honestly — because fine-tuning can also make models worse.
+NOTE2 (Sources):
+    - [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers) — Model classes, training, and fine-tuning references.
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+CARDS:
+   Q: What does pretraining actually teach a model? | A: Broad statistical patterns of language and the world from massive text — general representations, not task skills.
+   Q: Why does instruction-tuning data curation matter most? | A: The model learns the behavior distribution you show it — quality and diversity of examples dominate quantity.
+   Q: What is LoRA / PEFT in one line each? | A: LoRA: train low-rank update matrices with base weights frozen. PEFT: the family of parameter-efficient adaptation method
+   Q: What discipline do training runs need? | A: Schedules, checkpoints, resumability, and logged metrics — runs fail; discipline makes them survivable.
+   Q: How do you know fine-tuning helped? | A: Evaluate before and after on your task set — tuning can make models worse, and only measurement tells.
+QUIZ:
+   Q: Pretraining teaches:
+   Q: Instruction-tuning success depends most on:
+   Q: LoRA adapts by:
+   Q: You know fine-tuning helped when:
+====================================================================================================
+ID: advanced-genai--alignment-practice | TITLE: Alignment Techniques | weight: 1
+SUMMARY: In this module: RLHF at a glance: reward models and policy optimization; DPO: alignment without the RL; What alignment changes — and what it does not. Alignment taught as engineering choices with tradeoffs: helpfulness vs safety, and the honest limits of tuning a model's values.
+OBJECTIVES:
+   - Understand and apply: RLHF at a glance: reward models and policy optimization
+   - Understand and apply: DPO: alignment without the RL
+   - Understand and apply: what alignment changes — and what it does not
+   - Understand and apply: refusal behavior and safety tuning
+   - Understand and apply: system prompts as the last line of policy
+NOTE0 (What this covers):
+    - RLHF at a glance: reward models and policy optimization
+    - DPO: alignment without the RL
+    - What alignment changes — and what it does not
+    - Refusal behavior and safety tuning
+    - System prompts as the last line of policy
+NOTE1 (How IL teaches):
+    Alignment taught as engineering choices with tradeoffs: helpfulness vs safety, and the honest limits of tuning a model's values.
+NOTE2 (Sources):
+    - [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference and prompt-engineering guidance.
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+CARDS:
+   Q: What is RLHF at a glance? | A: Train a reward model from human preferences, then optimize the policy against it — powerful, fiddly, expensive.
+   Q: What is DPO and why does it matter? | A: Direct Preference Optimization: align from preference pairs with a classification-style loss — no separate reward model 
+   Q: What does alignment change — and not change? | A: Changes style, refusals, and helpfulness behavior; does not reliably change underlying capabilities or remove all harmfu
+   Q: What drives refusal behavior? | A: Safety tuning teaches the model to decline certain requests — a policy layer, not a capability removal.
+   Q: Why are system prompts the last line of policy? | A: They steer behavior at runtime without retraining — the cheapest, weakest, but most flexible control you have.
+QUIZ:
+   Q: RLHF trains:
+   Q: DPO’s advantage over RLHF is:
+   Q: Alignment changes behavior but does not:
+   Q: System prompts are:
+====================================================================================================
+ID: advanced-genai--genai-eval-practice | TITLE: GenAI Evaluation | weight: 1
+SUMMARY: In this module: Benchmarks: what they measure and what they hide; Task-specific evals: build your own; LLM-as-judge: useful, biased, and gameable. Evaluation is the hard part of GenAI: benchmarks leak and judges flatter. This module teaches task evals, regression suites, and healthy skepticism.
+OBJECTIVES:
+   - Understand and apply: benchmarks: what they measure and what they hide
+   - Understand and apply: task-specific evals: build your own
+   - Understand and apply: lLM-as-judge: useful, biased, and gameable
+   - Understand and apply: human evaluation done affordably
+   - Understand and apply: regression suites for model updates
+NOTE0 (What this covers):
+    - Benchmarks: what they measure and what they hide
+    - Task-specific evals: build your own
+    - LLM-as-judge: useful, biased, and gameable
+    - Human evaluation done affordably
+    - Regression suites for model updates
+NOTE1 (How IL teaches):
+    Evaluation is the hard part of GenAI: benchmarks leak and judges flatter. This module teaches task evals, regression suites, and healthy skepticism.
+NOTE2 (Sources):
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+    - [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference and prompt-engineering guidance.
+CARDS:
+   Q: What do benchmarks measure — and hide? | A: Standardized capability snapshots; they hide contamination, prompt sensitivity, and whether your task is anything like t
+   Q: Why build task-specific evals? | A: Only your data measures your system — benchmarks leak and generic tests miss your failure modes.
+   Q: What are the risks of LLM-as-judge? | A: Useful and cheap, but biased (position, length, style) and gameable — calibrate against human judgments.
+   Q: How do you do human evaluation affordably? | A: Sample strategically, use clear rubrics, measure agreement — small, well-run human evals beat large sloppy ones.
+   Q: Why keep regression suites for model updates? | A: Every model or prompt change can silently break working behavior — the suite is the gate that catches it.
+QUIZ:
+   Q: Benchmarks hide:
+   Q: Task-specific evals matter because:
+   Q: LLM-as-judge is risky because judges:
+   Q: Regression suites exist to:
+====================================================================================================
+ID: advanced-genai--inference-serving-practice | TITLE: Inference and Serving | weight: 1
+SUMMARY: In this module: Batching and throughput vs latency; vLLM-class serving at a glance; Quantized deployment: quality checks after compression. Serving what you tuned: batching, quantized deployment, and the per-request cost math that decides whether the system is viable.
+OBJECTIVES:
+   - Practice: batching and throughput vs latency
+   - Practice: vLLM-class serving at a glance
+   - Practice: quantized deployment: quality checks after compression
+   - Practice: caching and request routing
+   - Practice: cost modeling per thousand requests
+NOTE0 (What this covers):
+    - Batching and throughput vs latency
+    - vLLM-class serving at a glance
+    - Quantized deployment: quality checks after compression
+    - Caching and request routing
+    - Cost modeling per thousand requests
+NOTE1 (How IL teaches):
+    Serving what you tuned: batching, quantized deployment, and the per-request cost math that decides whether the system is viable.
+NOTE2 (Sources):
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+    - [Docker Documentation](https://docs.docker.com/) — Containers: the unit of deployment for model services.
+CARDS:
+   Q: What is the batching tradeoff? | A: Bigger batches raise throughput but add latency per request — tune to your SLA, not to max throughput.
+   Q: What does vLLM-class serving give you? | A: Paged attention and continuous batching — far higher serving efficiency than naive implementations.
+   Q: What must you check after quantized deployment? | A: Quality on your eval set — compression is only free if the metrics say so.
+   Q: Why cache and route requests? | A: Caching kills repeat cost; routing sends easy queries to cheap models — both directly cut the per-request bill.
+   Q: How do you model cost per thousand requests? | A: Tokens in/out × price plus infra overhead, at your real traffic mix — the math that decides viability.
+QUIZ:
+   Q: Batching trades:
+   Q: After quantized deployment you must:
+   Q: Request caching helps because:
+   Q: Cost per 1k requests needs:
+====================================================================================================
+ID: advanced-genai--genai-capstone | TITLE: GenAI Capstone | weight: 1
+SUMMARY: In this module: Scoping a GenAI system you can finish; Adaptation: fine-tune or retrieve (or both); An eval suite measuring what matters. A complete GenAI system with its own evaluation suite: the adaptation, the measurements, and an honest catalog of where it still fails.
+OBJECTIVES:
+   - Demonstrate end to end: scoping a GenAI system you can finish
+   - Demonstrate end to end: adaptation: fine-tune or retrieve (or both)
+   - Demonstrate end to end: an eval suite measuring what matters
+   - Demonstrate end to end: failure catalog: document the misses
+   - Demonstrate end to end: demo and writeup with stated limits
+NOTE0 (What this covers):
+    - Scoping a GenAI system you can finish
+    - Adaptation: fine-tune or retrieve (or both)
+    - An eval suite measuring what matters
+    - Failure catalog: document the misses
+    - Demo and writeup with stated limits
+NOTE1 (How IL teaches):
+    A complete GenAI system with its own evaluation suite: the adaptation, the measurements, and an honest catalog of where it still fails.
+NOTE2 (Sources):
+    - [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers) — Model classes, training, and fine-tuning references.
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+CARDS:
+   Q: How do you scope a GenAI system you can finish? | A: One task, one data source, one eval set — a thin slice that works beats a platform that does not.
+   Q: Fine-tune, retrieve, or both? | A: Retrieve when knowledge changes or needs citations; fine-tune for behavior/style; both when the task demands grounded fl
+   Q: What makes an eval suite measure what matters? | A: Golden cases from your real task distribution, graded against outcomes users care about — not vibes.
+   Q: Why keep a failure catalog? | A: Documented misses are the roadmap: each failure names the fix to try and the eval that will prove it.
+   Q: What does the demo writeup state? | A: What was built, what the evals show, where it fails, and the limits — honest engineering, not a pitch.
+QUIZ:
+   Q: Scope a finishable GenAI system by:
+   Q: Choose RAG over fine-tuning when:
+   Q: A failure catalog is:
+   Q: The capstone writeup states:
+====================================================================================================
+ID: advanced-nlp-practice--nlp-pipelines-practice | TITLE: NLP Pipelines | weight: 1
+SUMMARY: In this module: Cleaning decisions: what to normalize, what to keep; Tokenization choices and their downstream effects; Chunking long documents for models. Text pipelines are decisions, not defaults: every normalization choice changes what the model can learn — choose deliberately, document always.
+OBJECTIVES:
+   - Understand and apply: cleaning decisions: what to normalize, what to keep
+   - Understand and apply: tokenization choices and their downstream effects
+   - Understand and apply: chunking long documents for models
+   - Understand and apply: language detection and mixed-language text
+   - Understand and apply: pipeline reproducibility for text
+NOTE0 (What this covers):
+    - Cleaning decisions: what to normalize, what to keep
+    - Tokenization choices and their downstream effects
+    - Chunking long documents for models
+    - Language detection and mixed-language text
+    - Pipeline reproducibility for text
+NOTE1 (How IL teaches):
+    Text pipelines are decisions, not defaults: every normalization choice changes what the model can learn — choose deliberately, document always.
+NOTE2 (Sources):
+    - [NLTK Documentation](https://www.nltk.org/) — Classic NLP toolkit: corpora, tokenizers, taggers, parsers.
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+CARDS:
+   Q: Why are text pipelines decisions, not defaults? | A: Every normalization choice (casing, punctuation, stopwords) changes what the model can learn — choose deliberately, docu
+   Q: How do tokenization choices propagate downstream? | A: Vocabulary, OOV handling, and sequence lengths all shift — a tokenizer change is a pipeline change; re-evaluate everythi
+   Q: Why chunk long documents for models? | A: Context windows are finite and attention dilutes over length — chunking with overlap preserves retrievable, answerable u
+   Q: What breaks with mixed-language text? | A: Tokenizers, embeddings, and language-specific rules assume one language — detect language first, then route to the right
+   Q: What does pipeline reproducibility for text require? | A: Versioned cleaning rules, tokenizer, and chunking params — text preprocessing is code, and code needs versions.
+QUIZ:
+   Q: Text pipelines are decisions because:
+   Q: Chunk long documents because:
+   Q: Mixed-language text needs:
+   Q: Reproducibility for text requires versioning:
+====================================================================================================
+ID: advanced-nlp-practice--embeddings-practice | TITLE: Embeddings | weight: 1
+SUMMARY: In this module: Sentence embeddings: from words to meaning vectors; Similarity search over embedding indexes; Clustering and topic discovery. Embeddings as the working representation of modern NLP: search, cluster, and classify with vectors — evaluated on your data, not a leaderboard.
+OBJECTIVES:
+   - Practice: sentence embeddings: from words to meaning vectors
+   - Practice: similarity search over embedding indexes
+   - Practice: clustering and topic discovery
+   - Practice: evaluating embeddings on your task, not benchmarks
+   - Practice: multilingual embeddings at a glance
+NOTE0 (What this covers):
+    - Sentence embeddings: from words to meaning vectors
+    - Similarity search over embedding indexes
+    - Clustering and topic discovery
+    - Evaluating embeddings on your task, not benchmarks
+    - Multilingual embeddings at a glance
+NOTE1 (How IL teaches):
+    Embeddings as the working representation of modern NLP: search, cluster, and classify with vectors — evaluated on your data, not a leaderboard.
+NOTE2 (Sources):
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: What is a sentence embedding? | A: A dense vector where semantic similarity becomes geometric closeness — the working representation of modern NLP.
+   Q: How does similarity search over embedding indexes work? | A: Encode the query, find nearest vectors by cosine similarity — sub-linear with an ANN index at scale.
+   Q: What can clustering embeddings reveal? | A: Topic structure in unlabeled text — discovery before labeling, guiding what is worth annotating.
+   Q: Why evaluate embeddings on your task, not benchmarks? | A: Benchmark leaders can flop on your domain’s vocabulary and phrasing — your retrieval/classification task is the only jud
+   Q: What do multilingual embeddings buy you? | A: One space for many languages — cross-lingual search and transfer, with quality varying by language coverage.
+QUIZ:
+   Q: Sentence embeddings map text to:
+   Q: Evaluate embeddings on:
+   Q: Clustering embeddings is useful for:
+   Q: ANN indexes exist because:
+====================================================================================================
+ID: advanced-nlp-practice--sequence-models-practice | TITLE: Sequence Models | weight: 1
+SUMMARY: In this module: When classical NLP still wins small tasks; Text classification pipelines, end to end; Named entity recognition: spans, not tokens. The unglamorous NLP that pays: classification and extraction pipelines where label quality — not architecture — is usually the binding constraint.
+OBJECTIVES:
+   - Understand and apply: when classical NLP still wins small tasks
+   - Understand and apply: text classification pipelines, end to end
+   - Understand and apply: named entity recognition: spans, not tokens
+   - Understand and apply: label quality: the ceiling nobody tunes past
+   - Understand and apply: active learning for labeling budgets
+NOTE0 (What this covers):
+    - When classical NLP still wins small tasks
+    - Text classification pipelines, end to end
+    - Named entity recognition: spans, not tokens
+    - Label quality: the ceiling nobody tunes past
+    - Active learning for labeling budgets
+NOTE1 (How IL teaches):
+    The unglamorous NLP that pays: classification and extraction pipelines where label quality — not architecture — is usually the binding constraint.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [NLTK Documentation](https://www.nltk.org/) — Classic NLP toolkit: corpora, tokenizers, taggers, parsers.
+CARDS:
+   Q: When does classical NLP still win small tasks? | A: Small labeled sets, tight latency budgets, and interpretability needs — TF-IDF plus a linear model is brutally effective
+   Q: What does an end-to-end text classification pipeline include? | A: Cleaning, tokenization/vectorization, model, calibration, and evaluation on a held-out set — the unglamorous whole.
+   Q: Why think in spans, not tokens, for NER? | A: Entities are multi-token units; evaluation and downstream use care about exact spans — token accuracy misleads.
+   Q: Why is label quality the ceiling nobody tunes past? | A: Noisy labels cap learnable signal; models fit the noise — fixing annotation beats tuning architecture.
+   Q: What is active learning for labeling budgets? | A: Label the examples the model is most uncertain about — maximum information per annotation dollar.
+QUIZ:
+   Q: Classical NLP still wins when:
+   Q: For NER, think in:
+   Q: Label quality is the ceiling because:
+   Q: Active learning:
+====================================================================================================
+ID: advanced-nlp-practice--llm-for-nlp | TITLE: LLMs for NLP Tasks | weight: 1
+SUMMARY: In this module: Zero-shot and few-shot classification; Structured extraction with constrained output; LLM labeling: speed vs quality audit. Using LLMs as NLP components: where prompting beats training, where it loses on cost — and the hybrid patterns that get both.
+OBJECTIVES:
+   - Understand and apply: zero-shot and few-shot classification
+   - Understand and apply: structured extraction with constrained output
+   - Understand and apply: LLM labeling: speed vs quality audit
+   - Understand and apply: cost/latency math vs fine-tuned models
+   - Understand and apply: hybrid systems: LLM plus verifier
+NOTE0 (What this covers):
+    - Zero-shot and few-shot classification
+    - Structured extraction with constrained output
+    - LLM labeling: speed vs quality audit
+    - Cost/latency math vs fine-tuned models
+    - Hybrid systems: LLM plus verifier
+NOTE1 (How IL teaches):
+    Using LLMs as NLP components: where prompting beats training, where it loses on cost — and the hybrid patterns that get both.
+NOTE2 (Sources):
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+    - [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference and prompt-engineering guidance.
+CARDS:
+   Q: When does zero/few-shot classification beat training? | A: Few labels, many changing classes, or fast prototyping — prompting wins on flexibility, loses on unit cost at scale.
+   Q: How do you get structured extraction from an LLM? | A: Constrained output: schemas, JSON mode, or grammar-constrained decoding — the contract that makes outputs parseable.
+   Q: What is the LLM-labeling speed-vs-quality audit? | A: Measure a sample of LLM labels against human labels — speed is only a win if quality survives the audit.
+   Q: How do you compare LLM cost/latency vs fine-tuned models? | A: Per-request token math at your real volume vs one-time training plus cheap inference — crossover points are computable.
+   Q: What is the hybrid LLM-plus-verifier pattern? | A: LLM proposes, a cheaper deterministic verifier checks — fluency from the model, guarantees from the rules.
+QUIZ:
+   Q: Few-shot classification beats training when:
+   Q: Structured extraction needs:
+   Q: Audit LLM-labeled data by:
+   Q: The hybrid LLM-plus-verifier pattern:
+====================================================================================================
+ID: advanced-nlp-practice--retrieval-practice | TITLE: Information Retrieval | weight: 1
+SUMMARY: In this module: BM25: the lexical baseline that still matters; Dense retrieval with embeddings; Hybrid search: combining lexical and semantic. Finding the right passage before the model reads it: lexical and dense retrieval, hybrid combinations, and retrieval metrics that predict RAG quality.
+OBJECTIVES:
+   - Practice: BM25: the lexical baseline that still matters
+   - Practice: dense retrieval with embeddings
+   - Practice: hybrid search: combining lexical and semantic
+   - Practice: evaluating retrieval: recall@k and friends
+   - Practice: reranking for precision
+NOTE0 (What this covers):
+    - BM25: the lexical baseline that still matters
+    - Dense retrieval with embeddings
+    - Hybrid search: combining lexical and semantic
+    - Evaluating retrieval: recall@k and friends
+    - Reranking for precision
+NOTE1 (How IL teaches):
+    Finding the right passage before the model reads it: lexical and dense retrieval, hybrid combinations, and retrieval metrics that predict RAG quality.
+NOTE2 (Sources):
+    - [Hugging Face Documentation](https://huggingface.co/docs) — Transformers library, tokenizers, datasets, and model hub guides.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+CARDS:
+   Q: Why does BM25 still matter? | A: Lexical matching is a strong cheap baseline, especially for rare/technical terms dense models underweight — and it needs
+   Q: What does dense retrieval add over BM25? | A: Semantic matching: paraphrases and synonyms that share no terms — the recall BM25 misses.
+   Q: Why hybrid search? | A: Lexical precision plus semantic recall — combining both beats either alone on real corpora.
+   Q: What does recall@k measure? | A: Whether the gold passage appears in the top-k retrieved — the retrieval metric that predicts downstream RAG quality.
+   Q: What is reranking for? | A: Precision: a stronger cross-encoder re-scores top candidates — expensive per doc, so it runs on the shortlist only.
+QUIZ:
+   Q: BM25’s enduring strength is:
+   Q: Dense retrieval adds:
+   Q: recall@k measures:
+   Q: Rerank on:
+====================================================================================================
+ID: advanced-nlp-practice--nlp-project | TITLE: Advanced NLP Project | weight: 1
+SUMMARY: In this module: A real text problem with real mess; Pipeline, model, and evaluation design; Error analysis on linguistic failures. One real text system, three approaches compared: the tradeoff table — quality, cost, latency — is the deliverable that matters.
+OBJECTIVES:
+   - Build and demonstrate: A real text problem with real mess
+   - Build and demonstrate: pipeline, model, and evaluation design
+   - Build and demonstrate: error analysis on linguistic failures
+   - Build and demonstrate: comparison: classical vs fine-tuned vs LLM
+   - Build and demonstrate: writeup with the tradeoff table
+NOTE0 (What this covers):
+    - A real text problem with real mess
+    - Pipeline, model, and evaluation design
+    - Error analysis on linguistic failures
+    - Comparison: classical vs fine-tuned vs LLM
+    - Writeup with the tradeoff table
+NOTE1 (How IL teaches):
+    One real text system, three approaches compared: the tradeoff table — quality, cost, latency — is the deliverable that matters.
+NOTE2 (Sources):
+    - [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers) — Model classes, training, and fine-tuning references.
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+CARDS:
+   Q: What makes a text problem ‘real mess’? | A: Real users, real language: typos, mixed languages, shifting topics — the mess benchmarks sanitize away.
+   Q: What does the comparison deliverable look like? | A: Classical vs fine-tuned vs LLM on the same eval set — a tradeoff table of quality, cost, and latency.
+   Q: Why do error analysis on linguistic failures? | A: Negation, sarcasm, domain jargon — naming the linguistic failure class tells you whether any model can fix it.
+   Q: What goes in the tradeoff table? | A: Per approach: quality numbers, $/1k requests, p95 latency, maintenance burden — the decision in one view.
+   Q: Why is the tradeoff table the deliverable that matters? | A: Stakeholders decide on tradeoffs, not F1 scores — the table translates modeling into decisions.
+QUIZ:
+   Q: A ‘real mess’ text problem has:
+   Q: The key deliverable is:
+   Q: Compare approaches on:
+   Q: Linguistic error analysis names:
+====================================================================================================
+ID: ai-enabled-software--llm-apis-practice | TITLE: LLM APIs in Practice | weight: 1
+SUMMARY: In this module: API patterns: completions, chat, and parameters; Structured output: schemas the model must fill; Streaming for responsive UX. LLM APIs as infrastructure: the calling patterns, the output contracts, and the cost/latency budgets that decide whether a feature survives contact with users.
+OBJECTIVES:
+   - Understand and apply: API patterns: completions, chat, and parameters
+   - Understand and apply: structured output: schemas the model must fill
+   - Understand and apply: streaming for responsive UX
+   - Understand and apply: cost and latency: the two budgets
+   - Understand and apply: retries, fallbacks, and graceful degradation
+NOTE0 (What this covers):
+    - API patterns: completions, chat, and parameters
+    - Structured output: schemas the model must fill
+    - Streaming for responsive UX
+    - Cost and latency: the two budgets
+    - Retries, fallbacks, and graceful degradation
+NOTE1 (How IL teaches):
+    LLM APIs as infrastructure: the calling patterns, the output contracts, and the cost/latency budgets that decide whether a feature survives contact with users.
+NOTE2 (Sources):
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+    - [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference and prompt-engineering guidance.
+CARDS:
+   Q: What are the core LLM API calling patterns? | A: Completions/chat with parameters (temperature, max tokens, stop sequences) — plus streaming for responsive UX.
+   Q: Why demand structured output? | A: Schemas the model must fill turn free text into parseable contracts — downstream code depends on it.
+   Q: What are the two budgets for LLM features? | A: Cost and latency: per-request token math and p95 response time — features live or die on both.
+   Q: How do you handle LLM API failures? | A: Retries with backoff, fallbacks to cheaper models or cached responses, and graceful degradation — the API will fail; pla
+   Q: Why stream responses? | A: Time-to-first-token drops dramatically — perceived latency improves even when total latency does not.
+QUIZ:
+   Q: The two budgets for LLM features are:
+   Q: Structured output matters because:
+   Q: Handle API failures with:
+   Q: Streaming improves:
+====================================================================================================
+ID: ai-enabled-software--rag-practice | TITLE: Retrieval-Augmented Generation | weight: 1
+SUMMARY: In this module: Chunking strategies and their tradeoffs; Embeddings and vector indexes; Reranking: precision on top of recall. The production pattern behind most LLM apps, built by hand: retrieve, rerank, generate with citations — plus the failure catalog and fixes.
+OBJECTIVES:
+   - Practice: chunking strategies and their tradeoffs
+   - Practice: embeddings and vector indexes
+   - Practice: reranking: precision on top of recall
+   - Practice: citations: grounding answers in sources
+   - Practice: RAG failure modes and their fixes
+NOTE0 (What this covers):
+    - Chunking strategies and their tradeoffs
+    - Embeddings and vector indexes
+    - Reranking: precision on top of recall
+    - Citations: grounding answers in sources
+    - RAG failure modes and their fixes
+NOTE1 (How IL teaches):
+    The production pattern behind most LLM apps, built by hand: retrieve, rerank, generate with citations — plus the failure catalog and fixes.
+NOTE2 (Sources):
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+    - [LangChain Documentation](https://docs.langchain.com/) — Chains, LCEL, tools, and agent patterns.
+CARDS:
+   Q: What is the RAG pipeline by hand? | A: Chunk documents, embed, index, retrieve top-k, rerank, generate with citations — each stage tunable and measurable.
+   Q: What do chunking strategies trade off? | A: Small chunks: precise but context-poor; large chunks: rich but noisy and expensive — overlap and structure (headers) hel
+   Q: Why rerank on top of retrieval? | A: The fast retriever optimizes recall; a cross-encoder reranker buys precision on the shortlist — quality where it counts.
+   Q: Why do citations matter in RAG? | A: They ground answers in sources: users can verify, and you can audit — the antidote to confident hallucination.
+   Q: Name three RAG failure modes and fixes. | A: Irrelevant retrieval → fix chunking/hybrid/rerank; ungrounded answers → enforce citation grounding; stale index → refres
+QUIZ:
+   Q: RAG by hand is:
+   Q: Chunking trades:
+   Q: Citations in RAG:
+   Q: First fix for irrelevant citations:
+====================================================================================================
+ID: ai-enabled-software--eval-harness-practice | TITLE: Evaluation Harnesses | weight: 1
+SUMMARY: In this module: Golden datasets: curating representative cases; Regression evals on every change; LLM judges: useful and gameable. Shipping without evals is hoping. This module builds the harness: golden cases, automated regression checks, and traces that make failures debuggable.
+OBJECTIVES:
+   - Understand and apply: golden datasets: curating representative cases
+   - Understand and apply: regression evals on every change
+   - Understand and apply: LLM judges: useful and gameable
+   - Understand and apply: human review loops for the hard cases
+   - Understand and apply: tracing: logging the full pipeline per request
+NOTE0 (What this covers):
+    - Golden datasets: curating representative cases
+    - Regression evals on every change
+    - LLM judges: useful and gameable
+    - Human review loops for the hard cases
+    - Tracing: logging the full pipeline per request
+NOTE1 (How IL teaches):
+    Shipping without evals is hoping. This module builds the harness: golden cases, automated regression checks, and traces that make failures debuggable.
+NOTE2 (Sources):
+    - [LangChain Documentation](https://docs.langchain.com/) — Chains, LCEL, tools, and agent patterns.
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+CARDS:
+   Q: What is a golden dataset? | A: Curated representative cases with expected outcomes — the ground truth your system is graded against.
+   Q: Why run regression evals on every change? | A: Model, prompt, or retrieval tweaks can silently break working behavior — the suite is the gate.
+   Q: How are LLM judges useful — and dangerous? | A: Cheap scalable grading; but biased and gameable — calibrate against humans and never let the judged optimize the judge.
+   Q: When do you need human review loops? | A: The hard cases: ambiguity, safety, high stakes — humans grade what automation cannot be trusted with.
+   Q: What does tracing give you? | A: The full pipeline per request — prompts, retrieval, tool calls, latencies — making failures debuggable instead of myster
+QUIZ:
+   Q: A golden dataset is:
+   Q: Run regression evals on every change because:
+   Q: LLM judges are:
+   Q: Tracing gives you:
+====================================================================================================
+ID: ai-enabled-software--tool-use-practice | TITLE: Tool Use in Features | weight: 1
+SUMMARY: In this module: Function calling: schemas as contracts; Tool design: narrow, typed, and safe; Error handling when tools fail. Letting the model act: tool schemas as contracts, narrow tool design, and the testing discipline for features where the model calls your code.
+OBJECTIVES:
+   - Understand and apply: function calling: schemas as contracts
+   - Understand and apply: tool design: narrow, typed, and safe
+   - Understand and apply: error handling when tools fail
+   - Understand and apply: least privilege for model-invoked tools
+   - Understand and apply: testing tool-using features
+NOTE0 (What this covers):
+    - Function calling: schemas as contracts
+    - Tool design: narrow, typed, and safe
+    - Error handling when tools fail
+    - Least privilege for model-invoked tools
+    - Testing tool-using features
+NOTE1 (How IL teaches):
+    Letting the model act: tool schemas as contracts, narrow tool design, and the testing discipline for features where the model calls your code.
+NOTE2 (Sources):
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+    - [LangChain Documentation](https://docs.langchain.com/) — Chains, LCEL, tools, and agent patterns.
+CARDS:
+   Q: What are function-calling schemas? | A: Typed JSON contracts describing each tool’s parameters — the model fills them, your code validates and executes.
+   Q: What makes a well-designed tool? | A: Narrow, typed, and safe: one job, clear inputs/outputs, minimal side effects — tools the model cannot easily misuse.
+   Q: How do you handle tool failures? | A: Validate arguments, catch errors, return structured failures the model can reason about, and retry with backoff where sa
+   Q: What is least privilege for model-invoked tools? | A: Each tool gets only the permissions its job needs — bounding the blast radius of model mistakes.
+   Q: How do you test tool-using features? | A: Unit-test the tools, integration-test the loop with mocked models, and red-team adversarial arguments — like any integra
+QUIZ:
+   Q: Function-calling schemas are:
+   Q: Well-designed tools are:
+   Q: Least privilege means:
+   Q: Test tool-using features like:
+====================================================================================================
+ID: ai-enabled-software--shipping-ai-features | TITLE: Shipping AI Features | weight: 1
+SUMMARY: In this module: Feature flags for model-backed behavior; Guardrails: input and output controls; UX for uncertainty: confidence, citations, corrections. The other 90% of an AI feature: flags, guardrails, honest UX, feedback loops, and cost controls — the parts demos skip and launches need.
+OBJECTIVES:
+   - Understand and apply: feature flags for model-backed behavior
+   - Understand and apply: guardrails: input and output controls
+   - Understand and apply: UX for uncertainty: confidence, citations, corrections
+   - Understand and apply: feedback logging: turning usage into eval data
+   - Understand and apply: cost controls: budgets, caching, and routing
+NOTE0 (What this covers):
+    - Feature flags for model-backed behavior
+    - Guardrails: input and output controls
+    - UX for uncertainty: confidence, citations, corrections
+    - Feedback logging: turning usage into eval data
+    - Cost controls: budgets, caching, and routing
+NOTE1 (How IL teaches):
+    The other 90% of an AI feature: flags, guardrails, honest UX, feedback loops, and cost controls — the parts demos skip and launches need.
+NOTE2 (Sources):
+    - [FastAPI Documentation](https://fastapi.tiangolo.com/) — Modern Python API framework; the serving layer of many ML demos.
+    - [Anthropic Documentation](https://docs.anthropic.com/en/docs) — Claude API reference and prompt-engineering guidance.
+CARDS:
+   Q: Why feature-flag model-backed behavior? | A: Kill switches and gradual rollouts for nondeterministic systems — ship dark, ramp with evidence, revert instantly.
+   Q: What are guardrails for AI features? | A: Input controls (validation, PII scrubbing) and output controls (filters, citation requirements, confidence thresholds).
+   Q: How do you design UX for uncertainty? | A: Show confidence, cite sources, offer corrections and undo — honest interfaces for probabilistic outputs.
+   Q: How does feedback logging become eval data? | A: Thumbs, corrections, and escalations labeled over time form the golden set — usage funds evaluation.
+   Q: What are the cost controls? | A: Budgets per feature, caching, routing easy queries to cheap models, and alerts — cost as a designed constraint.
+QUIZ:
+   Q: Feature flags for AI behavior enable:
+   Q: UX for uncertainty includes:
+   Q: Feedback logging becomes:
+   Q: AI cost controls include:
+====================================================================================================
+ID: ai-enabled-software--ai-feature-project | TITLE: AI Feature Project | weight: 1
+SUMMARY: In this module: Scoping a feature users would actually use; Full-stack integration: UI to model to eval; Golden dataset and regression suite. One real AI feature in a real app: integrated, evaluated, guarded, and budgeted — the portfolio piece that reads like production experience.
+OBJECTIVES:
+   - Build and demonstrate: scoping a feature users would actually use
+   - Build and demonstrate: full-stack integration: UI to model to eval
+   - Build and demonstrate: golden dataset and regression suite
+   - Build and demonstrate: guardrails and cost budget
+   - Build and demonstrate: launch writeup with the failure catalog
+NOTE0 (What this covers):
+    - Scoping a feature users would actually use
+    - Full-stack integration: UI to model to eval
+    - Golden dataset and regression suite
+    - Guardrails and cost budget
+    - Launch writeup with the failure catalog
+NOTE1 (How IL teaches):
+    One real AI feature in a real app: integrated, evaluated, guarded, and budgeted — the portfolio piece that reads like production experience.
+NOTE2 (Sources):
+    - [Streamlit Documentation](https://docs.streamlit.io/) — The fastest route from a model to a shareable demo app.
+    - [FastAPI Documentation](https://fastapi.tiangolo.com/) — Modern Python API framework; the serving layer of many ML demos.
+    - [OpenAI Platform Documentation](https://platform.openai.com/docs) — API references and guides for models and embeddings.
+CARDS:
+   Q: What makes a feature users would actually use? | A: A real workflow pain, not a demo thrill — scoped so v1 solves one job completely.
+   Q: What does full-stack integration mean here? | A: UI to model to eval: the interface, the pipeline, and the measurement wired together — not a notebook with a button.
+   Q: What goes in the launch writeup? | A: What was built, eval results, guardrails, cost budget, and the failure catalog — production-shaped evidence.
+   Q: Why include the failure catalog? | A: Named failure modes with mitigations prove you tested adversarially — the difference between a demo and a launch.
+   Q: What proves production experience in the portfolio? | A: Integration, evaluation, guardrails, and budget — the artifact reads like shipped work, not a tutorial.
+QUIZ:
+   Q: Scope v1 as:
+   Q: Full-stack integration means:
+   Q: The launch writeup proves:
+   Q: Include the failure catalog because:
+====================================================================================================
+ID: applied-ai-production--problem-framing-ai | TITLE: Problem Framing | weight: 1
+SUMMARY: In this module: Is ML the answer? The honest checklist; Defining success metrics before modeling; Constraints: latency, cost, data, regulation. Most AI projects fail before the first model: wrong problem, wrong metric, or no constraint analysis. This module is the pre-mortem that saves them.
+OBJECTIVES:
+   - Understand and apply: is ML the answer? The honest checklist
+   - Understand and apply: defining success metrics before modeling
+   - Understand and apply: constraints: latency, cost, data, regulation
+   - Understand and apply: buy vs build vs fine-tune
+   - Understand and apply: scoping to finish: the thin slice
+NOTE0 (What this covers):
+    - Is ML the answer? The honest checklist
+    - Defining success metrics before modeling
+    - Constraints: latency, cost, data, regulation
+    - Buy vs build vs fine-tune
+    - Scoping to finish: the thin slice
+NOTE1 (How IL teaches):
+    Most AI projects fail before the first model: wrong problem, wrong metric, or no constraint analysis. This module is the pre-mortem that saves them.
+NOTE2 (Sources):
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+CARDS:
+   Q: What is the honest ‘is ML the answer’ checklist? | A: Is there predictive signal? Is a heuristic enough? What is the cost of errors? Do we have the data and the feedback loop
+   Q: Why define success metrics before modeling? | A: The metric is the contract: it decides what ‘good’ means and prevents moving goalposts after results arrive.
+   Q: What constraints shape every AI project? | A: Latency, cost, data availability/quality, and regulation — the box the solution must fit inside.
+   Q: How do you decide buy vs build vs fine-tune? | A: Buy for commodity capability, build for differentiating IP, fine-tune/adapt in between — weighed against team skill and 
+   Q: What is scoping to the thin slice? | A: The smallest end-to-end version that proves value — framing discipline that prevents two-year science projects.
+QUIZ:
+   Q: The ‘is ML the answer’ checklist asks:
+   Q: Define success metrics first because:
+   Q: The four constraints are:
+   Q: Buy vs build vs fine-tune hinges on:
+====================================================================================================
+ID: applied-ai-production--data-strategy-ai | TITLE: Data Strategy | weight: 1
+SUMMARY: In this module: Data audits: what exists, what is missing, what is lying; Labeling strategy for real budgets; Weak supervision and heuristics as starting points. Data strategy is the highest-leverage work in applied AI: audits, labeling plans, and the quality ceiling no architecture tunes past.
+OBJECTIVES:
+   - Understand and apply: data audits: what exists, what is missing, what is lying
+   - Understand and apply: labeling strategy for real budgets
+   - Understand and apply: weak supervision and heuristics as starting points
+   - Understand and apply: data quality as the performance ceiling
+   - Understand and apply: privacy and consent basics for training data
+NOTE0 (What this covers):
+    - Data audits: what exists, what is missing, what is lying
+    - Labeling strategy for real budgets
+    - Weak supervision and heuristics as starting points
+    - Data quality as the performance ceiling
+    - Privacy and consent basics for training data
+NOTE1 (How IL teaches):
+    Data strategy is the highest-leverage work in applied AI: audits, labeling plans, and the quality ceiling no architecture tunes past.
+NOTE2 (Sources):
+    - [scikit-learn Documentation](https://scikit-learn.org/stable/) — User guide + API reference; the canonical classical-ML library.
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+CARDS:
+   Q: What does a data audit uncover? | A: What exists, what is missing, what is lying — quality, coverage, lineage, and consent status before any modeling.
+   Q: How do you design labeling for real budgets? | A: Guidelines, agreement measurement, active learning for the uncertain cases, and audits — quality per dollar.
+   Q: What is weak supervision as a starting point? | A: Heuristics and rules that label noisily at scale — a bootstrap when hand labels are scarce, to be refined.
+   Q: Why is data quality the performance ceiling? | A: No architecture tunes past bad labels and broken features — the model learns the data you have, not the data you wish fo
+   Q: What are privacy and consent basics for training data? | A: Know what you may use, minimize PII, honor consent and retention rules — legal exposure starts at collection.
+QUIZ:
+   Q: A data audit finds:
+   Q: Weak supervision is:
+   Q: Data quality is the ceiling because:
+   Q: Privacy basics for training data:
+====================================================================================================
+ID: applied-ai-production--prototyping-ai | TITLE: Rapid Prototyping | weight: 1
+SUMMARY: In this module: Thin-slice prototypes: the smallest real thing; Wizard-of-Oz testing for AI concepts; Human-in-the-loop as a feature, not a failure. Prototypes that produce decisions: build the smallest real thing, test with users, and define the kill criteria before enthusiasm does.
+OBJECTIVES:
+   - Practice: thin-slice prototypes: the smallest real thing
+   - Practice: wizard-of-Oz testing for AI concepts
+   - Practice: human-in-the-loop as a feature, not a failure
+   - Practice: demo discipline: what the prototype proves
+   - Practice: kill criteria: when to stop
+NOTE0 (What this covers):
+    - Thin-slice prototypes: the smallest real thing
+    - Wizard-of-Oz testing for AI concepts
+    - Human-in-the-loop as a feature, not a failure
+    - Demo discipline: what the prototype proves
+    - Kill criteria: when to stop
+NOTE1 (How IL teaches):
+    Prototypes that produce decisions: build the smallest real thing, test with users, and define the kill criteria before enthusiasm does.
+NOTE2 (Sources):
+    - [Streamlit Documentation](https://docs.streamlit.io/) — The fastest route from a model to a shareable demo app.
+    - [Project Jupyter](https://jupyter.org/) — Notebooks: the working medium of the data/AI spine.
+CARDS:
+   Q: What is a thin-slice prototype? | A: The smallest real thing: one workflow, real data, real users — enough to produce a decision, not a demo.
+   Q: What does Wizard-of-Oz testing prove for AI concepts? | A: Whether users want the outcome before you build the intelligence — humans behind the curtain validate demand cheaply.
+   Q: Why is human-in-the-loop a feature, not a failure? | A: It bounds risk on uncertain outputs while collecting the labels that improve the system — a designed partnership.
+   Q: What does demo discipline require? | A: State what the prototype proves and what it does not — demos that overclaim become commitments you cannot keep.
+   Q: Why define kill criteria upfront? | A: Pre-committed stop rules (metric, cost, timeline) let you kill failing ideas before enthusiasm spends the budget.
+QUIZ:
+   Q: A thin-slice prototype is:
+   Q: Wizard-of-Oz testing validates:
+   Q: Kill criteria are:
+   Q: Human-in-the-loop is:
+====================================================================================================
+ID: applied-ai-production--stakeholder-comm-ai | TITLE: Stakeholder Communication | weight: 1
+SUMMARY: In this module: Explaining models without jargon; Communicating uncertainty and limits; Setting expectations: what AI cannot do here. The career module: translating model behavior into business language, setting expectations honestly, and running the pre-launch review that prevents surprises.
+OBJECTIVES:
+   - Apply in professional practice: explaining models without jargon
+   - Apply in professional practice: communicating uncertainty and limits
+   - Apply in professional practice: setting expectations: what AI cannot do here
+   - Apply in professional practice: the pre-launch review: risks on the table
+   - Apply in professional practice: writing the one-page AI proposal
+NOTE0 (What this covers):
+    - Explaining models without jargon
+    - Communicating uncertainty and limits
+    - Setting expectations: what AI cannot do here
+    - The pre-launch review: risks on the table
+    - Writing the one-page AI proposal
+NOTE1 (How IL teaches):
+    The career module: translating model behavior into business language, setting expectations honestly, and running the pre-launch review that prevents surprises.
+NOTE2 (Sources):
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+CARDS:
+   Q: How do you explain models without jargon? | A: Translate to decisions and outcomes: what it does, when to trust it, where it is uncertain — mechanism only if asked.
+   Q: How do you communicate uncertainty and limits? | A: State confidence, failure modes, and the slices where performance drops — honesty that survives contact with reality.
+   Q: What does setting expectations cover? | A: What AI cannot do here: the explicit non-goals that prevent the ‘but I thought it would…’ conversation.
+   Q: What happens in the pre-launch review? | A: Risks on the table: failure modes, mitigations, owners, rollback — the meeting that prevents surprises.
+   Q: What goes in the one-page AI proposal? | A: Problem, metric, approach, costs, risks, and the ask — one page forces clarity about what is actually proposed.
+QUIZ:
+   Q: Explain models by:
+   Q: The pre-launch review puts:
+   Q: Setting expectations means stating:
+   Q: The one-page AI proposal forces:
+====================================================================================================
+ID: applied-ai-production--measuring-ai-value | TITLE: Measuring AI Value | weight: 1
+SUMMARY: In this module: ROI framing for AI projects; A/B tests for model-backed features; Adoption and engagement metrics. Proving the system earns its keep: ROI framing, experiments on AI features, and the review cadence that keeps production systems alive.
+OBJECTIVES:
+   - Understand and apply: ROI framing for AI projects
+   - Understand and apply: A/B tests for model-backed features
+   - Understand and apply: adoption and engagement metrics
+   - Understand and apply: counterfactuals: what would have happened without the model
+   - Understand and apply: the quarterly review: keeping the system funded
+NOTE0 (What this covers):
+    - ROI framing for AI projects
+    - A/B tests for model-backed features
+    - Adoption and engagement metrics
+    - Counterfactuals: what would have happened without the model
+    - The quarterly review: keeping the system funded
+NOTE1 (How IL teaches):
+    Proving the system earns its keep: ROI framing, experiments on AI features, and the review cadence that keeps production systems alive.
+NOTE2 (Sources):
+    - [Google Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) — Google's free applied-ML course: framing, features, and evaluation.
+    - [A leading free learning platform: Statistics & Probability](https://interstitiumlabs.dev/university/) — Free, rigorous statistics floor for the ML that follows.
+CARDS:
+   Q: How do you frame ROI for AI projects? | A: Value of the improved decision minus total cost (build, run, maintain) — with the counterfactual stated.
+   Q: How do you A/B test a model-backed feature? | A: Randomize the experience, pre-register the metric, watch guardrails — the model is a treatment like any other.
+   Q: Why track adoption and engagement, not just accuracy? | A: A perfect model nobody uses creates zero value — usage metrics measure realized impact.
+   Q: What is the counterfactual question? | A: ‘What would have happened without the model?’ — the baseline that turns a metric move into claimed value.
+   Q: What keeps the system funded quarterly? | A: The review showing measured value against cost, with the next improvement thesis — systems die without this ritual.
+QUIZ:
+   Q: ROI framing needs:
+   Q: A/B test model features by:
+   Q: Track adoption because:
+   Q: The quarterly review:
+====================================================================================================
+ID: applied-ai-production--applied-ai-capstone | TITLE: Applied AI Capstone | weight: 1
+SUMMARY: In this module: A real problem with real constraints; Framing doc, data audit, and metrics; Prototype with stakeholder checkpoint. The full applied arc on a real problem: framed, prototyped, reviewed with stakeholders, and documented for handoff — production-shaped, not demo-shaped.
+OBJECTIVES:
+   - Demonstrate end to end: A real problem with real constraints
+   - Demonstrate end to end: framing doc, data audit, and metrics
+   - Demonstrate end to end: prototype with stakeholder checkpoint
+   - Demonstrate end to end: production-shaped deployment and monitoring plan
+   - Demonstrate end to end: handoff documentation and final review
+NOTE0 (What this covers):
+    - A real problem with real constraints
+    - Framing doc, data audit, and metrics
+    - Prototype with stakeholder checkpoint
+    - Production-shaped deployment and monitoring plan
+    - Handoff documentation and final review
+NOTE1 (How IL teaches):
+    The full applied arc on a real problem: framed, prototyped, reviewed with stakeholders, and documented for handoff — production-shaped, not demo-shaped.
+NOTE2 (Sources):
+    - [MLflow Documentation](https://mlflow.org/) — Experiment tracking, model registry, and packaging.
+    - [FastAPI Documentation](https://fastapi.tiangolo.com/) — Modern Python API framework; the serving layer of many ML demos.
+    - [Streamlit Documentation](https://docs.streamlit.io/) — The fastest route from a model to a shareable demo app.
+CARDS:
+   Q: What makes the capstone ‘production-shaped, not demo-shaped’? | A: Real constraints, monitoring plan, handoff docs, and honest limits — built as if someone else must run it.
+   Q: What does the framing doc contain? | A: Problem, success metric, constraints, and the thin slice — agreed before modeling starts.
+   Q: Why a stakeholder checkpoint at the prototype? | A: Alignment before expensive build: the prototype earns the right to continue — or gets killed cheaply.
+   Q: What goes in the monitoring plan? | A: Input/output logging, drift checks, eval cadence, alert thresholds, and owners — the system’s aftercare.
+   Q: What makes handoff documentation complete? | A: Everything a stranger needs to run, debug, and retrain it — the bus factor reduced to documentation.
+QUIZ:
+   Q: Production-shaped means:
+   Q: The framing doc is agreed:
+   Q: The stakeholder checkpoint:
+   Q: Complete handoff docs let:
+====================================================================================================
+ID: advanced-ml--re-bench-agents-ml-research | TITLE: RE-Bench: Agents Doing ML Research | weight: 1
+SUMMARY: Welcome to the benchmark that grades AI on your own craft. I'm your instructor for this module, and we're studying RE-Bench — METR's head-to-head contest between AI agents and human experts at real machine-learning research engineering: fitting scaling laws, optimizing GPU kernels, designing architectures under constraints. You'll learn how the benchmark is built, what the 2h/8h/32h crossover tells us about where agents help and where they don't, and how to read any 'AI does research' claim with an evaluator's eye. All figures as of October 7, 2026.
+OBJECTIVES:
+   - Describe RE-Bench's design: contamination-free environments, calibrated 0–1 scoring, faithful human baselines
+   - Explain the 2h/8h/32h crossover and what it implies for human–agent collaboration in ML research
+   - Apply the critical-reading checklist to 'AI does ML research' claims
+NOTE0 (What this covers):
+    - **RE-Bench** — METR's benchmark (2024-11-22) for AI-led ML research engineering: 7 realistic, open-ended environments, agents vs human experts, same resources and time limits.
+    - **Anti-contamination design** — Environments built from scratch; most held back unpublished. Public tasks can't separate capability from memorization.
+    - **Calibrated scoring** — 0 = starting solution's score, 1 = METR's strong reference solution; comparable across environments.
+    - **Human baselines** — 71 attempts by 61 experts, up to 8 hours each; 82% non-zero, 24% matched or beat the reference.
+    - **The 2h/8h/32h crossover** — Agents ~4× humans at 2h; humans narrowly lead at 8h; humans ~2× the top agent at 32h across attempts.
+    - **The kernel example** — o1-preview's custom CUDA kernel: 0.64 ms vs best human 0.67 ms (start 4.74 ms, reference 1.60 ms) — a data point, not a verdict.
+    - **Capability of concern** — AI automation of AI R&D is the monitored capability; RE-Bench is the reusable instrument.
+NOTE1 (How IL teaches):
+    Score an RE-Bench-style ML task yourself.
+    1. **Pick a research-engineering task** with a measurable objective — e.g., fit a scaling law from provided training runs, or optimize a small kernel.
+    2. **Define the scoring function** and calibrate it: 0 = the baseline you're given, 1 = a strong reference solution you write (or borrow and verify).
+    3. **Set the time budget** and run both sides: an agent with a fixed attempt budget, and yourself (or a colleague) with the same clock.
+    4. **Score best-of-k** across attempts at 2h, then extend to 8h. Watch for the crossover pattern: where does the agent's 10×+ iteration speed win, and where does coherent long-horizon work take over?
+    5. **Write the limitations** before the conclusions: one task, one agent, one human — what would you need to make this a claim about 'AI doing research'?
+NOTE2 (Sources):
+    Replicate one RE-Bench-style environment from scratch. Do not adapt a public tutorial — build the task, the starting code, and the scoring function yourself. Deliverable: the environment plus a 1-page report with (1) the task and why it's realistic ML research engineering, (2) your calibrated 0 and 1, (3) a timed human attempt (yours or a colleague's) and an agent attempt under the same budget, (4) the comparison, and (5) a limitations section. Grading bar: the limitations section must name contamination risk, baseline quality, and feedback-loop realism — the three things that separate an eval from a demo.
+CARDS:
+   Q: RE-Bench in one line for an ML engineer? | A: 7 contamination-free ML research-engineering environments; agents and 61 human experts compete on calibrated 0–1 scoring
+   Q: The crossover and what it means for your workflow? | A: Agents win at 2h budgets (10×+ iteration speed), humans at 8h/32h — use agents for fast sweeps, humans for coherent long
+   Q: The kernel example's lesson? | A: o1-preview's custom CUDA kernel (0.64 ms) beat the best human (0.67 ms) — agents can win well-scoped optimization tasks;
+   Q: Calibrated scoring: 0 and 1? | A: 0 = starting solution's score, 1 = METR's strong reference — comparable across environments.
+   Q: Before citing an 'AI researcher' claim? | A: Check contamination, baselines, budgets, and suite size — the critical-reading checklist.
+QUIZ:
+   Q: Why do RE-Bench tasks have faster feedback loops than real ML research?
+   Q: An agent beats your best engineer on a kernel-optimization task. The correct conclusion?
+   Q: RE-Bench's human baseline comprises:
+   Q: For your team's ML workflow, the crossover suggests:

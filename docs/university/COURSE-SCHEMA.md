@@ -47,6 +47,27 @@ braindumps; source every factual third-party claim (`sourceLinks[].retrieved`).
 | `answerBank` | `{q,a,ref?}[]` | yes (may be `[]`) | More tab: model answers |
 | `sourceLinks` | `{name,url,note?,retrieved?}[]` | yes | More tab: source trail |
 | `honestyNote` | string | no | Rendered in More; e.g. "confers no certificate" |
+| `crosswalk` | `{cert,trackModule,framing,moduleSequence,readinessChecklist,domains[]}[]` | no | Crosswalk tab: earn-readiness mapping per certification. `domains[]` = `{domain,weight?,modules[],coverage, practice?, note?}` |
+| `certGates` | `{id,cert,trackModule,framing,format,minutes,questionCount,domainWeights[],readinessRule,questions[]}[]` | no | Crosswalk tab: timed practice-exam gates. `questions[]` = `{q,choices[],answer,explain,domain}` |
+| `readinessDashboard` | `{title,framing,concept,formula,thresholds,statusLabels,howToUse[],certs[]}` | no | Crosswalk tab: live readiness % per cert (60% modules + 40% gate best) |
+| `studyGuide` | `{title,totalHours,totalMinutes,pacing,whenStuck,examOrder,timeFormula}` | no | IL-26: rendered as the course's first Study section. `pacing` = `{dailyMinutes,daysPerWeek,estimatedWeeks,plan[],note}`; `whenStuck` = `{title,steps[]}` (re-check → drills → videos → cross-links); `examOrder` = `{title,thresholds{ready,nearlyReady},rule,order[{gateId,cert,why}]}`; `timeFormula` documents the per-module minute formula. |
+| `toolLabs` | `{id,title,chain,moduleId,requiresInstall[],requiresLab,brief,steps[],deliverable,checkpoint,datasetRef}[]` | no | IL-26 Labs pane. `requiresInstall[]` gates the lab on install-lab checkpoints. Progress: `toollab:<id>:done`. |
+| `installLabs` | `{id,tool,category,moduleId,estimatedMinutes,gates[],platforms{windows,macos,linux},checkpoints[{command,expected}],troubleshoot[],costNote}[]` | no | IL-26 Labs pane. Progress: `install:<id>:cp:<i>`, derived `install:<id>:done`. |
+| `installPrereqOrder` | `string[]` | no | IL-26: install sequence order (ids into `installLabs`). |
+| `installSteps` | `{id,title,summary,commands[]}[]` | no | IL-26: condensed install quick-steps companion to `installLabs`. |
+| `multicloudLabs` | `{id,title,cloud,brief,steps[],workload,costGuardrails,cleanup,checkpoint}[]` | no | IL-26 Labs pane. |
+| `sampleDatasets` | `{name,format,columns[],rows[][],note?}[]` | no | IL-26 Labs pane; also feeds SQL playground tables. |
+| `sqlPlaygrounds` | `{id,moduleId,title,dataset,tasks[{prompt,starterSQL,solutionSQL,expectedRows?,hint?}]}[]` | no | IL-26 Labs pane. Runs DuckDB-WASM from CDN; graceful fallback to static solution display. Progress: `sqlpg:<id>:<ti>`. |
+| `pythonExercises` | `{id,moduleId,title,tasks[{prompt,starterCode,solutionCode,checks[{description,test}]}]}[]` | no | IL-26 Labs pane. Runs Pyodide from CDN; graceful fallback to static check display. Progress: `pyex:<id>:<ti>`. |
+| `daxPlaygrounds` | `{id,moduleId,title,tasks[{prompt,table?,expectedDAX,accept[],explain?}]}[]` | no | IL-26 Labs pane. Local grading: whitespace/case normalized, matched against accept list. Progress: `dax:<id>:<ti>`. |
+| `terminalSims` | `TerminalSim[]` (two shapes) | no | Labs tab (Terminal sub-tab). Canned shape `{id,title,brief,prompt?,commands[{cmd,out}]}` (existing renderer); graded shape `{id,moduleId,title,scenario,gradedCommands[{command ("a|b" variants),response,hint}]}` (IL-26 renderer: hint after 2 failures). Progress: `gterm:<id>:<i>`, `gterm:<id>:done`. |
+| `branchingScenarios` | `{id,moduleId,title,start,nodes{<id>:{text,choices[{label,next?,feedback?}]}}}[]` | no | IL-26 Labs pane. Progress: `branch:<id>:done`. |
+| `clickSims` | `{id,moduleId,tool,title,steps[{screen,instruction,hotspots[],feedback}]}[]` | no | IL-26 Labs pane: mock UI screens with hotspots. Progress: `clicksim:<id>:<i>`, `clicksim:<id>:done`. |
+| `interactivityAudit` | `{moduleId,elementCount,elements[{id,type}],gatePass}[]` | no | IL-26: per-module interactive-element audit; gate requires `elementCount >= 2`. |
+| `employerMappings` | `{objective,moduleId,certification,certDomain,employer,competency,evidence}[]` | no | IL-26 Crosswalk tab: 3-column view (competency | course evidence | cert domain), grouped by employer. Independent mapping; no employer affiliation. |
+| `jdMatrix` | `{postingTitle,postingUrl,employer,urlStatus,requirement,modules,certDomain,portfolioArtifact}[]` | no | IL-26 Crosswalk tab: job-posting requirement matrix. |
+| `employerCompetencies` | `…[]` | no | IL-26: competency definitions backing `employerMappings` (from crosswalk-v2 framing). |
+| `dossierUrl` | string | no | IL-26: relative URL of the graduate evidence dossier (HTML; PDF alongside). Rendered in Crosswalk tab. |
 
 ## Module
 
@@ -59,6 +80,20 @@ braindumps; source every factual third-party claim (`sourceLinks[].retrieved`).
   know/again rating.
 - `quiz[]`: `{ q, choices[], answer (0-based index), explain }` — MC quick-check
   with why-explanations.
+- `videos[]` (IL-26): `{ title, url, source?, durationMin?, order?, watchBefore?, blurb?, verifiedUtc?, httpStatus? }`
+  — third-party videos are linked, not hosted. `watchBefore` ∈ `notes|drill|lab`.
+- `drills[]` (IL-26): `{ id, title, items[{q,choices[],answer,explain}] }` —
+  drill quick-checks with instant why-explanations. Progress: `drill:<mid>:<di>:<ii>`.
+- `handsOnLab` (IL-26): `{ id, title, brief, steps[], deliverable, checkpoint }`.
+  Progress: `labdone:<mid>`.
+- `mockTask` (IL-26): `{ id, type:"choice", q, choices[], answer, explain }`.
+  Progress: `mocktask:<mid>`.
+- `crossLinks[]` (IL-26): intra-course module-id strings, `IL26-TL-*` tool-lab
+  ids, or cross-catalog `{course,moduleId,topic,why}` objects.
+- `prerequisiteFor[]`: module ids this module is a prerequisite for.
+- `prerequisiteForLabs[]` (IL-26): tool-lab ids this module is a prerequisite for.
+- `estimatedMinutes` (IL-26): honest per-module estimate; course `hours` is the
+  rounded sum.
 
 ## ScriptLab
 
@@ -143,6 +178,30 @@ mirrored server-side under the top-level object `<courseId>` via
 | `mock:best` | number (0–100) | Mock best score |
 | `mock:sessions` | number | Mock attempts |
 | `mock:session` | JSON `{t0,acc,running,answers,flags}` | Mock timer state |
+
+IL-26 extension keys (same `ilc:<courseId>:` prefix):
+
+| Key | Value | Set by |
+|---|---|---|
+| `video:<mid>:<i>` | `"1"` | Module videos watched |
+| `note:<mid>:<i>` | `"1"` | Notes expanded (reading stage) |
+| `drill:<mid>:<di>:<ii>` | chosen index | Module drill items |
+| `labdone:<mid>` | `"1"` | Hands-on lab marked complete |
+| `mocktask:<mid>` | chosen index | Module mock task |
+| `install:<id>:cp:<i>` | `"1"` | Install-lab verification checkpoints |
+| `install:<id>:done` | `"1"` | Derived when all checkpoints ticked |
+| `toollab:<id>:done` | `"1"` | Tool lab marked complete (requiresInstall-gated) |
+| `sqlpg:<id>:<ti>` | `"1"` | SQL playground task (row count matched) |
+| `pyex:<id>:<ti>` | `"1"` | Python exercise (all checks passed) |
+| `dax:<id>:<ti>` | `"1"` | DAX measure accepted |
+| `gterm:<id>:<i>` / `gterm:<id>:done` | `"1"` | Graded terminal sim steps |
+| `branch:<id>:done` | `"1"` | Branching scenario completed |
+| `clicksim:<id>:<i>` / `clicksim:<id>:done` | `"1"` | Click-through sim steps |
+| `mathlab:check:<mid>` | `"1"`/`"0"` | Adaptive math lab knowledge check |
+| `mathlab:mastery:<mid>` | 0–100 | Adaptive math lab topic mastery |
+| `mathlab:level:<mid>` | 1–3 | Adaptive math lab difficulty level |
+| `mathlab:streak:<mid>` | number | Consecutive correct (level-up at 3) |
+| `mathlab:last:<mid>` | epoch ms | Last practice (14-day decay re-check) |
 
 ## Readiness formula (cloned verbatim from the reference shell)
 
