@@ -2100,6 +2100,71 @@
    ],
    "answer": 1,
    "explain": "1, 6, 11 — the only non-overlapping set."
+  },
+  {
+   "id": "drill-il04-res1",
+   "title": "Usable hosts",
+   "prompt": "How many usable host addresses in 192.168.10.0/27?",
+   "choices": [
+    "30",
+    "32",
+    "14",
+    "62"
+   ],
+   "answer": 0,
+   "explain": "2^(32−27) = 32 addresses, minus network and broadcast = 30 usable."
+  },
+  {
+   "id": "drill-il04-res2",
+   "title": "Permission math",
+   "prompt": "chmod 640 file — what does the group get?",
+   "choices": [
+    "read + write",
+    "read only",
+    "read + execute",
+    "nothing"
+   ],
+   "answer": 1,
+   "explain": "640 = rw- r-- ---: owner rw, group r (4), other nothing."
+  },
+  {
+   "id": "drill-il04-res3",
+   "title": "GPO precedence",
+   "prompt": "A setting is configured at both Domain and OU level (no Enforced, no Block). Which wins?",
+   "choices": [
+    "Domain",
+    "OU",
+    "They merge",
+    "Local policy"
+   ],
+   "answer": 1,
+   "explain": "LSDOU order: later (closer to the object) wins. OU beats Domain unless Domain GPO is Enforced."
+  },
+  {
+   "id": "drill-il04-res4",
+   "title": "SELinux first step",
+   "prompt": "You mv a web file into /var/www/html; Apache returns 403 though permissions are 644. First check?",
+   "choices": [
+    "Restart httpd",
+    "ls -Z the file",
+    "chmod 777 the file",
+    "Disable SELinux permanently"
+   ],
+   "answer": 1,
+   "explain": "mv preserves the source SELinux context; ls -Z reveals it, restorecon -v fixes it. Never chmod 777."
+  },
+  {
+   "id": "drill-il04-res5",
+   "title": "DHCP DORA",
+   "prompt": "In DORA, which step does the client broadcast first?",
+   "choices": [
+    "Request",
+    "Offer",
+    "Discover",
+    "Acknowledge"
+   ],
+   "answer": 2,
+   "explain": "Discover (broadcast) → Offer → Request → Ack. The client discovers servers before requesting an address."
   }
  ],
  "scenarios": [
@@ -2480,6 +2545,109 @@
      "body": "Scope first (one host? VLAN? all?) → bottom-up OSI → verify each fix → document. Packets don't lie: capture it."
     }
    ]
+  },
+  {
+   "title": "Linux survival — the 30 commands that matter",
+   "blocks": [
+    {
+     "h": "Files & permissions",
+     "code": "ls -la; chmod 755 f; chown u:g f\numask 022   # default: 755 dirs, 644 files",
+     "lang": "bash"
+    },
+    {
+     "h": "Reading the system",
+     "code": "ps aux | grep svc; ss -tlnp; df -h; free -h\njournalctl -u nginx --since -1h; dmesg | tail",
+     "lang": "bash"
+    },
+    {
+     "h": "systemd",
+     "code": "systemctl status|start|stop|restart|enable svc\nsystemctl daemon-reload   # after unit edits",
+     "lang": "bash"
+    },
+    {
+     "h": "Networking",
+     "code": "ip a; ip r; ping -c3 8.8.8.8\nss -tlnp   # who listens where\ncurl -v https://host  # TLS + headers",
+     "lang": "bash"
+    },
+    {
+     "h": "SELinux triage",
+     "code": "ls -Z file        # check the context\nrestorecon -Rv /srv # fix moved-file contexts\nausearch -m AVC -ts recent | audit2why",
+     "lang": "bash"
+    }
+   ]
+  },
+  {
+   "title": "Subnetting — the CIDR drill card",
+   "blocks": [
+    {
+     "h": "The math",
+     "body": "Hosts = 2^(32−prefix) − 2 (subtract network + broadcast). /24 → 254 hosts; /16 → 65,534; /30 → 2 (point-to-point links)."
+    },
+    {
+     "h": "Masks to memorize",
+     "body": "/8 = 255.0.0.0 · /16 = 255.255.0.0 · /24 = 255.255.255.0 · /25 = .128 · /26 = .192 · /27 = .224 · /28 = .240 · /29 = .248 · /30 = .252"
+    },
+    {
+     "h": "Private ranges (RFC 1918)",
+     "body": "10.0.0.0/8 · 172.16.0.0/12 · 192.168.0.0/16. APIPA link-local: 169.254.0.0/16. Loopback: 127.0.0.0/8."
+    },
+    {
+     "h": "Finding the network",
+     "body": "IP AND mask = network address. 192.168.1.77/26 → network 192.168.1.64, range .65–.126, broadcast .127."
+    },
+    {
+     "h": "VLSM rule",
+     "body": "Carve largest subnets first; each subnet must align on its block boundary. Wasted addresses are the cost of hierarchy."
+    }
+   ]
+  },
+  {
+   "title": "Windows Server — AD, GPO, DNS/DHCP essentials",
+   "blocks": [
+    {
+     "h": "Active Directory",
+     "body": "Domain = security boundary. Forest = schema boundary. OU = delegation + GPO scoping. FSMO roles: Schema, Domain Naming, RID, PDC Emulator, Infrastructure."
+    },
+    {
+     "h": "Group Policy order",
+     "body": "LSDOU: Local → Site → Domain → OU. Later wins on conflict; Enforced beats Block Inheritance. Always test in a pilot OU."
+    },
+    {
+     "h": "NTFS vs share",
+     "body": "Effective permission = most restrictive of NTFS + share. NTFS: traverse/execute, list, read, write, modify, full. Never use Everyone/Full."
+    },
+    {
+     "h": "DNS/DHCP",
+     "body": "DNS: forwarders → root hints; scavenging cleans stale records. DHCP: DORA (Discover, Offer, Request, Ack); reservations for servers/printers."
+    },
+    {
+     "h": "PowerShell triage",
+     "code": "Get-ADUser -Filter * -Properties LastLogonDate\nGet-GPO -All | Sort DisplayName\nTest-NetConnection host -Port 443",
+     "lang": "powershell"
+    }
+   ]
+  },
+  {
+   "title": "Packet literacy — read the wire",
+   "blocks": [
+    {
+     "h": "TCP handshake",
+     "body": "SYN → SYN-ACK → ACK. No completion = filtered or dead. RST = refused. Retransmits = loss or congestion."
+    },
+    {
+     "h": "OSI in one breath",
+     "body": "7 App · 6 Presentation · 5 Session · 4 Transport (TCP/UDP) · 3 Network (IP) · 2 Data Link (Ethernet/MAC) · 1 Physical. Troubleshoot bottom-up."
+    },
+    {
+     "h": "Wireshark filters",
+     "code": "ip.addr == 10.0.0.5\ntcp.port == 443\ndns.qry.name contains \"example\"\ntcp.flags.syn==1 && tcp.flags.ack==0",
+     "lang": "text"
+    },
+    {
+     "h": "Layer mapping",
+     "body": "Can't ping gateway → L2/L3 local. Can ping IP not name → DNS (L7). SYN sent, no SYN-ACK → firewall/filtering or service down."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -2550,6 +2718,30 @@
    "url": "https://learn.microsoft.com/en-us/windows-server/",
    "note": "AD, Group Policy, PowerShell, DNS/DHCP references.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "The Missing Semester of CS",
+   "url": "https://missing.csail.mit.edu/",
+   "note": "Shell fluency, Git, and debugging — the admin force-multiplier.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Linux man pages (die.net)",
+   "url": "https://linux.die.net/",
+   "note": "Searchable man-page reference for every command in the Linux modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "RFC 1918 — Private Addressing",
+   "url": "https://www.rfc-editor.org/rfc/rfc1918",
+   "note": "The standard defining 10/8, 172.16/12, 192.168/16.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "PowerShell docs",
+   "url": "https://learn.microsoft.com/en-us/powershell/",
+   "note": "Microsoft's reference for the Windows automation half of the course.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only: Interstitium Labs confers no certificate and is not affiliated with Red Hat, CompTIA, LPI, or Microsoft. All labs, scenarios, and questions are original practice material — never recalled exam content. Exam codes and versions change: confirm the current objectives on the vendor's site before booking.",
@@ -2719,5 +2911,121 @@
    "gate-linux-plus"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "RHCSA",
+   "definition": "Red Hat Certified System Administrator (EX200): performance-based exam proving hands-on Linux administration."
+  },
+  {
+   "term": "RHCE",
+   "definition": "Red Hat Certified Engineer (EX294): automation-focused exam — Ansible playbooks against live systems."
+  },
+  {
+   "term": "systemd",
+   "definition": "The init system and service manager on modern Linux: units, targets, journald logging, systemctl control."
+  },
+  {
+   "term": "SELinux",
+   "definition": "Mandatory access control for Linux: every object has a context; policy decides access beyond discretionary permissions."
+  },
+  {
+   "term": "Idempotent",
+   "definition": "Running twice = running once. The required property of Ansible playbooks and good automation."
+  },
+  {
+   "term": "CIDR",
+   "definition": "Classless Inter-Domain Routing: IP/prefix notation (e.g., 10.0.0.0/8) replacing classful addressing."
+  },
+  {
+   "term": "Subnet mask",
+   "definition": "32-bit value marking network vs. host bits; /24 = 255.255.255.0."
+  },
+  {
+   "term": "Default gateway",
+   "definition": "The router a host sends off-subnet traffic to; misconfiguration = local-only connectivity."
+  },
+  {
+   "term": "VLAN",
+   "definition": "Virtual LAN: Layer-2 segmentation on shared switches via 802.1Q tags."
+  },
+  {
+   "term": "Active Directory",
+   "definition": "Microsoft's directory service: domains, forests, OUs, Group Policy, Kerberos auth — the Windows identity plane."
+  },
+  {
+   "term": "Group Policy",
+   "definition": "Centralized Windows configuration management; applied in LSDOU order with Enforced/Block Inheritance overrides."
+  },
+  {
+   "term": "NTFS permissions",
+   "definition": "File-level access control on Windows; effective access = most restrictive of NTFS and share permissions."
+  },
+  {
+   "term": "DNS",
+   "definition": "Domain Name System: hierarchical name→IP resolution; A, AAAA, CNAME, MX, TXT, SRV records."
+  },
+  {
+   "term": "DHCP",
+   "definition": "Dynamic Host Configuration Protocol: automatic IP assignment via DORA (Discover, Offer, Request, Ack)."
+  },
+  {
+   "term": "TCP three-way handshake",
+   "definition": "SYN → SYN-ACK → ACK: how TCP establishes a reliable connection before data flows."
+  },
+  {
+   "term": "Packet capture",
+   "definition": "Recording raw frames (Wireshark/tcpdump) for evidence-based troubleshooting — 'trust, but verify on the wire'."
+  },
+  {
+   "term": "OSI model",
+   "definition": "Seven-layer networking reference (Physical→Application); the troubleshooting map: isolate the failing layer."
+  },
+  {
+   "term": "Ansible",
+   "definition": "Agentless automation via SSH/WinRM: YAML playbooks of idempotent tasks, organized into roles."
+  },
+  {
+   "term": "Firewall zone",
+   "definition": "firewalld/iptables grouping of interfaces with per-zone rules; default-deny posture with explicit allows."
+  },
+  {
+   "term": "Bash",
+   "definition": "The Bourne-Again Shell: interactive command line and scripting language — the Linux admin's primary tool."
+  }
+ ],
+ "faq": [
+  {
+   "q": "RHCSA vs Network+ — which first?",
+   "a": "They're complementary, not sequential: RHCSA proves you can run Linux, Network+ proves you understand the wire. The course runs Linux first (modules 3) then networks (module 5) because packet literacy lands better once you can drive the endpoints."
+  },
+  {
+   "q": "Do I need physical hardware for the labs?",
+   "a": "No. A hypervisor (Hyper-V, VirtualBox, KVM) plus evaluation ISOs for Windows Server and a RHEL-like distro covers everything. The course notes RAM/CPU minimums per lab."
+  },
+  {
+   "q": "Why Ansible for RHCE instead of shell scripts?",
+   "a": "EX294 tests Ansible specifically — and idempotent, declarative automation is the industry direction. Shell scripts are covered in Linux Foundations; RHCE is the automation proof."
+  },
+  {
+   "q": "How is this different from IL-27 (IT Infrastructure Specialist)?",
+   "a": "IL-04 is the systems/networking *foundation* (RHCSA/RHCE, Windows Server, Network+). IL-27 builds on it toward the ThreatLocker-facing infrastructure specialist role with Zero Trust, Intune, and interview prep. Take IL-04 first."
+  },
+  {
+   "q": "I broke my VM networking. Where do I start?",
+   "a": "Bottom-up: `ip a` (link up? address present?) → `ip r` (default route?) → ping gateway → ping 8.8.8.8 → ping name (DNS?). The packet-literacy cheat sheet is the checklist."
+  },
+  {
+   "q": "SELinux keeps blocking my lab. Should I disable it?",
+   "a": "No — disabling it is the exam-wrong answer and the production-wrong answer. Learn `ls -Z`, `restorecon`, and `audit2why`. The drills deliberately train this reflex."
+  },
+  {
+   "q": "Windows or Linux focus for jobs?",
+   "a": "Both — that's the point of the course. Enterprise estates are hybrid: AD + Entra on the identity side, Linux on the workload side. Single-OS admins compete for half the roles."
+  },
+  {
+   "q": "How do the performance exams differ from multiple choice?",
+   "a": "EX200/EX294 give you live VMs and tasks ('configure X so that Y works') — no partial credit for recognizing the answer. The course's timed hands-on scenarios simulate exactly that."
+  }
+ ]
 }

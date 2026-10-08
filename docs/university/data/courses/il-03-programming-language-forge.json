@@ -2224,6 +2224,71 @@
    ],
    "answer": 0,
    "explain": "Unit-heavy base, fewer integration tests, thin e2e cap. Invert it and your suite becomes a boat anchor. (Module 2, Concepts: test pyramid.)"
+  },
+  {
+   "id": "drill-il03-res1",
+   "title": "C++ memory",
+   "prompt": "In C++, which statement about `std::unique_ptr` is correct?",
+   "choices": [
+    "It allows shared ownership with reference counting",
+    "It enforces single ownership and frees memory automatically when it goes out of scope",
+    "It allocates memory on the Java heap",
+    "It is slower than raw new/delete in all cases"
+   ],
+   "answer": 1,
+   "explain": "unique_ptr is RAII single-ownership: exactly one owner, automatic delete at scope exit. Shared ownership is shared_ptr."
+  },
+  {
+   "id": "drill-il03-res2",
+   "title": "Big-O",
+   "prompt": "A double loop where the inner loop runs i times for outer iteration i (i = 1..n). Time complexity?",
+   "choices": [
+    "O(n)",
+    "O(n log n)",
+    "O(n²)",
+    "O(2ⁿ)"
+   ],
+   "answer": 2,
+   "explain": "Total work = 1+2+...+n = n(n+1)/2 = Θ(n²). Triangular loops are still quadratic."
+  },
+  {
+   "id": "drill-il03-res3",
+   "title": "Python gotcha",
+   "prompt": "What does this print? `d = {}; d.setdefault('a', []).append(1); print(d)`",
+   "choices": [
+    "{}",
+    "{'a': 1}",
+    "{'a': [1]}",
+    "TypeError"
+   ],
+   "answer": 2,
+   "explain": "setdefault inserts [] for missing 'a' and returns it; append(1) mutates it in place → {'a': [1]}."
+  },
+  {
+   "id": "drill-il03-res4",
+   "title": "Hash map worst case",
+   "prompt": "A hash map's worst-case lookup degrades to O(n) when:",
+   "choices": [
+    "The table is exactly half full",
+    "Many keys collide into the same bucket (hash flooding / poor hash)",
+    "Keys are strings",
+    "The map is read-only"
+   ],
+   "answer": 1,
+   "explain": "With chaining, a bucket holding k colliding keys scans in O(k); adversarial or degenerate hashing makes k = n."
+  },
+  {
+   "id": "drill-il03-res5",
+   "title": "TCP vs UDP",
+   "prompt": "You're writing a live video-call feature. Which transport fits and why?",
+   "choices": [
+    "TCP — reliability guarantees the best quality",
+    "UDP — stale retransmits hurt more than dropped frames help",
+    "TCP — it has lower latency than UDP",
+    "UDP — it encrypts the stream"
+   ],
+   "answer": 1,
+   "explain": "Real-time media prefers timeliness over reliability: a retransmitted 200ms-old frame is useless. (UDP doesn't encrypt — that's DTLS/SRTP's job.)"
   }
  ],
  "scenarios": [
@@ -3332,6 +3397,107 @@
      "body": "INNER: matches only. LEFT: all left rows, NULLs where no match — 'customers with no orders' lives here. Know which side keeps its rows."
     }
    ]
+  },
+  {
+   "title": "Python / Java / C++ — the same idea in three languages",
+   "blocks": [
+    {
+     "h": "Hello + loop",
+     "body": "The Rosetta pattern: learn syntax by translating one program three ways, not by memorizing three grammars.",
+     "code": "nums = [1,2,3]\nfor n in nums:\n    print(n*2)          # Python",
+     "lang": "python"
+    },
+    {
+     "h": "Java version",
+     "code": "int[] nums = {1,2,3};\nfor (int n : nums) {\n    System.out.println(n*2);   // Java\n}",
+     "lang": "java"
+    },
+    {
+     "h": "C++ version",
+     "code": "for (int n : {1,2,3})\n    std::cout << n*2 << '\\n';  // C++",
+     "lang": "cpp"
+    },
+    {
+     "h": "Memory model contrast",
+     "body": "Python: everything is a heap object, names are references. Java: primitives on stack, objects on heap, GC. C++: you choose — stack, heap (new), RAII cleans up."
+    },
+    {
+     "h": "Idiom check",
+     "body": "Pythonic: list comprehensions, context managers. Java: streams, try-with-resources. C++: range-for, smart pointers, const-correctness."
+    }
+   ]
+  },
+  {
+   "title": "Data structures & algorithms — the forge minimum",
+   "blocks": [
+    {
+     "h": "Big-O essentials",
+     "body": "O(1) hash/array access · O(log n) binary search/heap · O(n) scan · O(n log n) comparison sort · O(n²) naive nested loops. Know what your loop nest costs."
+    },
+    {
+     "h": "Hash map",
+     "body": "Average O(1) get/put via hash + buckets; worst O(n) on collision storms. The single most-used structure in interviews and systems."
+    },
+    {
+     "h": "Two pointers / sliding window",
+     "body": "Sorted-array pair search and substring problems collapse to O(n) with two moving indices. Recognize the pattern: ordered input + contiguous constraint."
+    },
+    {
+     "h": "Recursion → DP",
+     "body": "Overlapping subproblems + optimal substructure = memoize. Fibonacci naive O(2ⁿ) → memoized O(n). Draw the recursion tree first."
+    },
+    {
+     "h": "Graphs",
+     "body": "BFS: shortest path in unweighted graphs (queue). DFS: connectivity, cycles, topo sort (stack/recursion). Dijkstra: non-negative weights."
+    }
+   ]
+  },
+  {
+   "title": "Systems beneath the code — organization to OS",
+   "blocks": [
+    {
+     "h": "Memory hierarchy",
+     "body": "Registers → L1/L2/L3 → RAM → SSD → disk. Each level ~10–100× slower and larger. Cache-friendly = sequential access, small working sets."
+    },
+    {
+     "h": "Processes vs threads",
+     "body": "Process: isolated address space, heavy. Thread: shared memory, light, needs synchronization. Fork = new process; pthread = new thread."
+    },
+    {
+     "h": "Syscalls",
+     "body": "read, write, open, close, fork, exec, mmap, socket. Everything a program does to the world goes through the kernel here."
+    },
+    {
+     "h": "Networks (programmer's view)",
+     "body": "Socket → bind → listen → accept (TCP server). DNS resolves names; TCP gives reliable streams; UDP gives raw datagrams."
+    },
+    {
+     "h": "Databases (programmer's view)",
+     "body": "Index = B-tree for O(log n) lookup. Transaction = ACID. N+1 queries and missing indexes are the classic performance sins."
+    }
+   ]
+  },
+  {
+   "title": "APIs, testing, deploy — the capstone checklist",
+   "blocks": [
+    {
+     "h": "API design",
+     "body": "Resources as nouns, verbs in HTTP methods. Status codes: 200/201/204 success, 400 client error, 401/403 auth, 404 missing, 500 server fault. Version in the path (/v1)."
+    },
+    {
+     "h": "Testing pyramid",
+     "body": "Many unit tests (fast, isolated) → fewer integration tests → few end-to-end tests (slow, brittle). Test behavior, not implementation."
+    },
+    {
+     "h": "Git essentials",
+     "code": "git init && git add -A && git commit -m \"msg\"\ngit branch feat && git checkout feat\ngit merge feat   # or rebase for linear history",
+     "lang": "bash"
+    },
+    {
+     "h": "Deploy minimum",
+     "body": "Build artifact → container image → registry → orchestrator → health checks → logs/metrics. If it's not observed, it's not deployed."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -3396,6 +3562,30 @@
    "url": "https://pythoninstitute.org/",
    "note": "Free aligned courses for the PCEP/PCAP/PCPP ladder.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Python Standard Library docs",
+   "url": "https://docs.python.org/3/library/",
+   "note": "The authoritative reference for every Python module you will use.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "PEP 8 — Style Guide",
+   "url": "https://peps.python.org/pep-0008/",
+   "note": "The Python style contract: read it once, follow it always.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "The Missing Semester of CS",
+   "url": "https://missing.csail.mit.edu/",
+   "note": "MIT on shell, Git, debugging, and tooling — the practical half of systems programming.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Linux Kernel documentation",
+   "url": "https://www.kernel.org/doc/html/latest/",
+   "note": "Primary docs for syscalls, filesystems, and the OS beneath your code.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original practice material only — katas, labs, and questions are authored for this course, never recalled from any exam or copied from any vendor. Interstitium Labs confers no certificate and is not affiliated with MIT, Oracle, the Python Institute, or the C++ Institute. MIT course numbers reference public OpenCourseWare materials.",
@@ -3563,5 +3753,121 @@
    "gate-pcap"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Idiom",
+   "definition": "The natural, conventional way to express an idea in a language — 'idiomatic Python' uses comprehensions and context managers rather than transliterated Java."
+  },
+  {
+   "term": "RAII",
+   "definition": "Resource Acquisition Is Initialization (C++): tie a resource's lifetime to an object's scope so cleanup is automatic and exception-safe."
+  },
+  {
+   "term": "Garbage collection",
+   "definition": "Automatic memory reclamation (Java, Python): the runtime frees unreachable objects; you trade control for safety."
+  },
+  {
+   "term": "Big-O notation",
+   "definition": "Asymptotic upper bound on growth: describes how cost scales with input size, ignoring constants."
+  },
+  {
+   "term": "Memoization",
+   "definition": "Caching function results by arguments to avoid recomputation — the mechanical step from exponential recursion to DP."
+  },
+  {
+   "term": "Invariant",
+   "definition": "A condition maintained true throughout an algorithm (e.g., loop invariant) — the basis of correctness reasoning."
+  },
+  {
+   "term": "API",
+   "definition": "Application Programming Interface: the contract (functions, endpoints, formats) one piece of software offers another."
+  },
+  {
+   "term": "REST",
+   "definition": "Representational State Transfer: resource-oriented HTTP API style — nouns as URLs, verbs as methods, stateless requests."
+  },
+  {
+   "term": "Idempotent",
+   "definition": "An operation safe to repeat: applying it twice has the same effect as once (e.g., PUT, Ansible tasks)."
+  },
+  {
+   "term": "Concurrency",
+   "definition": "Multiple tasks in overlapping time periods (threads, async); parallelism is the special case of literally simultaneous execution."
+  },
+  {
+   "term": "Race condition",
+   "definition": "A bug where correctness depends on the timing/order of concurrent operations — fixed with synchronization, not luck."
+  },
+  {
+   "term": "Deadlock",
+   "definition": "Threads each waiting on a lock the other holds; none can proceed. Prevent with lock ordering or timeouts."
+  },
+  {
+   "term": "Syscall",
+   "definition": "The controlled gate from user space into the kernel (read, write, fork, socket...); every I/O crosses it."
+  },
+  {
+   "term": "Cache locality",
+   "definition": "Accessing nearby/sequential memory to exploit CPU caches; the main lever in performance-sensitive code."
+  },
+  {
+   "term": "B-tree index",
+   "definition": "The balanced-tree structure behind database indexes: O(log n) lookups, inserts, and range scans."
+  },
+  {
+   "term": "ACID",
+   "definition": "Atomicity, Consistency, Isolation, Durability — the transaction guarantees of a relational database."
+  },
+  {
+   "term": "N+1 query",
+   "definition": "Fetching a list (1 query) then one query per item (N): the classic ORM performance trap; fix with joins or eager loading."
+  },
+  {
+   "term": "Container",
+   "definition": "OS-level virtualization sharing the host kernel (Docker): packages app + dependencies into a portable image."
+  },
+  {
+   "term": "CI/CD",
+   "definition": "Continuous Integration / Continuous Deployment: automated build-test-ship pipeline on every change."
+  },
+  {
+   "term": "Capstone",
+   "definition": "The course's full-stack project: API design through deployment, demonstrating the whole forge pipeline."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Which language should I learn first — Python, Java, or C++?",
+   "a": "The course teaches all three comparatively, but start writing in Python (fastest feedback), then translate the same programs into Java (types, OOP discipline) and C++ (memory, performance). The translation exercise is the pedagogy."
+  },
+  {
+   "q": "Do I need to memorize syntax?",
+   "a": "No — memorize *patterns* (loop shapes, error handling, data-structure usage). Syntax is reference material; the forge drills pattern recognition across languages."
+  },
+  {
+   "q": "What's the MIT 6-3 reference layer?",
+   "a": "MIT's Course 6-3 (Computer Science and Engineering) core: Python, discrete math, algorithms, computation structures, systems, and an ML on-ramp. The module maps each to free references so you can go deeper per topic."
+  },
+  {
+   "q": "Why is generative art in a programming course?",
+   "a": "Circle packing teaches sampling, spatial grids, and parametric design — the same math behind simulations and graphics — while producing portfolio-visible output. It's algorithms you can see."
+  },
+  {
+   "q": "How deep does the systems material go?",
+   "a": "Programmer depth: you can explain what happens from `socket()` to packets, from `malloc` to pages, from query to B-tree. Not kernel-hacker depth — operator depth."
+  },
+  {
+   "q": "Will this prepare me for coding interviews?",
+   "a": "It builds the foundation interviews test (DSA + systems reasoning). IL-13 is the dedicated interview-prep course that converts this foundation into interview performance."
+  },
+  {
+   "q": "C++ or Rust — why C++ here?",
+   "a": "C++ is what the systems canon (and the MIT 6-3 layer) is written in, and it teaches manual memory reasoning explicitly. Rust's borrow checker is excellent but it's a different course."
+  },
+  {
+   "q": "How do I know my capstone is good enough?",
+   "a": "Checklist: documented API, tests that run in CI, a containerized deploy, and a README that explains the systems decisions (why this data structure, this index, this concurrency model). If a reviewer can run it and read your reasoning, it ships."
+  }
+ ]
 }

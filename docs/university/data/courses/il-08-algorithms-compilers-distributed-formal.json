@@ -1753,6 +1753,71 @@
    ],
    "answer": 1,
    "explain": "Correctness lives at the endpoints."
+  },
+  {
+   "id": "drill-il08-res1",
+   "title": "Master theorem",
+   "prompt": "T(n) = 2T(n/2) + Θ(n). Solution?",
+   "choices": [
+    "Θ(n)",
+    "Θ(n log n)",
+    "Θ(n²)",
+    "Θ(2ⁿ)"
+   ],
+   "answer": 1,
+   "explain": "a=2, b=2, f(n)=Θ(n)=Θ(n^log_b a) → Case 2: Θ(n log n). This is mergesort's recurrence."
+  },
+  {
+   "id": "drill-il08-res2",
+   "title": "Dijkstra precondition",
+   "prompt": "Dijkstra's algorithm requires:",
+   "choices": [
+    "An unweighted graph",
+    "Non-negative edge weights",
+    "A DAG",
+    "A complete graph"
+   ],
+   "answer": 1,
+   "explain": "Negative weights break Dijkstra's greedy finalization. Use Bellman-Ford (slower, handles negatives, detects negative cycles)."
+  },
+  {
+   "id": "drill-il08-res3",
+   "title": "Proving hardness",
+   "prompt": "To prove problem X is NP-complete, you:",
+   "choices": [
+    "Show X is in P",
+    "Reduce a known NP-complete problem to X in polynomial time, and show X ∈ NP",
+    "Write an exponential algorithm for X",
+    "Show X is undecidable"
+   ],
+   "answer": 1,
+   "explain": "Membership in NP + a poly-time reduction FROM a known NPC problem establishes NP-completeness."
+  },
+  {
+   "id": "drill-il08-res4",
+   "title": "CAP theorem",
+   "prompt": "During a network partition, a distributed store must choose between:",
+   "choices": [
+    "Speed and cost",
+    "Consistency and availability",
+    "SQL and NoSQL",
+    "Encryption and compression"
+   ],
+   "answer": 1,
+   "explain": "CAP: with a partition, you keep consistency (reject/stall writes) or availability (accept divergence) — not both."
+  },
+  {
+   "id": "drill-il08-res5",
+   "title": "Loop invariant use",
+   "prompt": "A loop invariant is used to prove:",
+   "choices": [
+    "The loop runs in O(n)",
+    "Partial correctness: if the loop terminates, the postcondition holds",
+    "The loop always terminates",
+    "Memory safety"
+   ],
+   "answer": 1,
+   "explain": "Invariants prove correctness *assuming* termination; termination needs a separate variant (decreasing measure) argument."
   }
  ],
  "scenarios": [
@@ -2045,6 +2110,81 @@
      "body": "P ⊆ NP ⊆ PSPACE · NP-complete: hardest in NP · halting undecidable (diagonalization) · reductions direction matters"
     }
    ]
+  },
+  {
+   "title": "Proof toolkit — induction, contradiction, invariants",
+   "blocks": [
+    {
+     "h": "Direct",
+     "body": "Assume P, derive Q through valid steps. The workhorse."
+    },
+    {
+     "h": "Contrapositive",
+     "body": "Prove ¬Q → ¬P instead of P → Q. Ideal when the negation is easier to manipulate."
+    },
+    {
+     "h": "Contradiction",
+     "body": "Assume ¬P, derive absurdity. Classic: √2 is irrational; infinitely many primes."
+    },
+    {
+     "h": "Induction",
+     "body": "Base case + inductive step (P(k) → P(k+1)). Strong induction: assume all < k. Use for recursive structures and loop correctness."
+    },
+    {
+     "h": "Loop invariant",
+     "body": "State what's true before each iteration; show initialization, maintenance, termination. The bridge from code to proof."
+    }
+   ]
+  },
+  {
+   "title": "Algorithm design patterns",
+   "blocks": [
+    {
+     "h": "Divide & conquer",
+     "body": "Split, solve, combine. Recurrence T(n) = aT(n/b) + f(n) → Master theorem. Mergesort Θ(n log n), Karatsuba beats naive multiply."
+    },
+    {
+     "h": "Dynamic programming",
+     "body": "Optimal substructure + overlapping subproblems. Define the state, write the recurrence, choose top-down memo or bottom-up table."
+    },
+    {
+     "h": "Greedy",
+     "body": "Locally optimal choices; correct only with proof (exchange argument / matroid). Activity selection, Huffman, Kruskal."
+    },
+    {
+     "h": "Graph algorithms",
+     "body": "BFS/DFS O(V+E). Dijkstra O(E log V) non-negative weights. Bellman-Ford handles negatives, detects negative cycles. MST: Kruskal/Prim."
+    },
+    {
+     "h": "NP-completeness",
+     "body": "P ⊆ NP. NP-complete = hardest in NP; reduce known NPC → your problem to prove hardness. Then reach for approximation/heuristics."
+    }
+   ]
+  },
+  {
+   "title": "From gates to kernels — the systems stack",
+   "blocks": [
+    {
+     "h": "Gates → processor",
+     "body": "Transistors → gates → combinational/sequential logic → datapath + control → ISA. The processor is a finite-state machine fetching instructions."
+    },
+    {
+     "h": "C → machine",
+     "body": "Preprocess → compile → assemble → link. Compiler phases: lex, parse, semantic, IR, optimize, codegen. -O2 is a contract with the optimizer."
+    },
+    {
+     "h": "OS core",
+     "body": "Processes, threads, virtual memory (paging), scheduling, file systems, syscalls. Concurrency bugs: races, deadlocks, starvation."
+    },
+    {
+     "h": "Distributed",
+     "body": "No shared clock, partial failure, partitions. Consensus (Raft/Paxos) for agreement; CAP: pick two of consistency, availability, partition-tolerance."
+    },
+    {
+     "h": "Databases (internals)",
+     "body": "B-trees for indexes, WAL for durability, 2PL/MVCC for concurrency. The query planner turns SQL into a physical plan."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -2098,6 +2238,30 @@
    "url": "https://pdos.csail.mit.edu/6.828/",
    "note": "The teaching kernel — OS concepts in ~10k lines.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "MIT 6.006 — Intro to Algorithms",
+   "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/",
+   "note": "Full OCW course: the algorithms half of the spine.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "MIT 6.042J — Math for Computer Science",
+   "url": "https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/",
+   "note": "Proofs, induction, combinatorics — the formal toolkit.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Martin Fowler — Patterns & Architecture",
+   "url": "https://martinfowler.com/",
+   "note": "Essays on refactoring, architecture, and distributed systems tradeoffs.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "RFC 793 — TCP",
+   "url": "https://www.rfc-editor.org/rfc/rfc793",
+   "note": "The transmission control protocol spec: read the primary source.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original practice material only — proofs, labs, and questions are authored for this course. Course numbers reference public university materials (MIT OCW and published curricula). Interstitium Labs confers no certificate and is not affiliated with MIT, CMU, or Stanford.",
@@ -2179,5 +2343,97 @@
  "crosswalk": [],
  "certGates": [],
  "_noCertNote": "No accredited certification maps to algorithms, compilers, or formal methods; the course is foundational theory. No track mapped.",
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Asymptotics",
+   "definition": "Big-O/Θ/Ω: describing growth rates as n→∞, ignoring constants and lower-order terms."
+  },
+  {
+   "term": "Recurrence",
+   "definition": "Equation defining T(n) in terms of smaller inputs; solved by Master theorem, substitution, or recursion trees."
+  },
+  {
+   "term": "Optimal substructure",
+   "definition": "An optimal solution contains optimal solutions to subproblems — the precondition for DP and greedy."
+  },
+  {
+   "term": "NP-complete",
+   "definition": "The hardest problems in NP: in NP, and every NP problem reduces to them in polynomial time."
+  },
+  {
+   "term": "Reduction",
+   "definition": "Transforming problem A into problem B efficiently — the tool for proving hardness and for reusing algorithms."
+  },
+  {
+   "term": "ISA",
+   "definition": "Instruction Set Architecture: the hardware/software contract (x86-64, ARM, RISC-V)."
+  },
+  {
+   "term": "Compiler phases",
+   "definition": "Lexing → parsing → semantic analysis → IR → optimization → code generation."
+  },
+  {
+   "term": "Virtual memory",
+   "definition": "Paging-based address translation giving each process an isolated address space backed by RAM+disk."
+  },
+  {
+   "term": "Concurrency",
+   "definition": "Overlapping execution with shared state; correctness requires reasoning about interleavings."
+  },
+  {
+   "term": "Consensus",
+   "definition": "Distributed agreement despite failures (Raft, Paxos): the core primitive of replicated systems."
+  },
+  {
+   "term": "CAP theorem",
+   "definition": "A partitioned distributed system cannot be simultaneously consistent and available."
+  },
+  {
+   "term": "WAL",
+   "definition": "Write-Ahead Log: durability via logging changes before applying them; the basis of crash recovery."
+  },
+  {
+   "term": "MVCC",
+   "definition": "Multi-Version Concurrency Control: readers see snapshots, writers create versions — no read locks."
+  },
+  {
+   "term": "Formal methods",
+   "definition": "Mathematically proving system properties (model checking, proof assistants) rather than testing them."
+  },
+  {
+   "term": "Invariant",
+   "definition": "A property preserved by every step of a system — the unit of correctness reasoning."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Do working engineers really use proofs?",
+   "a": "The *techniques*, constantly: invariants for tricky loops, induction for recursive code, reduction thinking for 'is this problem hard?' Full formal proofs are rarer — but the reasoning transfers everywhere."
+  },
+  {
+   "q": "Why study compilers if I never write one?",
+   "a": "Because you debug their output daily: optimization surprises, undefined behavior, link errors, and performance cliffs all become legible once you know the phases."
+  },
+  {
+   "q": "P vs NP — should I care practically?",
+   "a": "Yes as a triage skill: recognizing NP-hardness early saves weeks of hunting for an efficient exact algorithm. The practical move is approximation, heuristics, or parameterized algorithms."
+  },
+  {
+   "q": "What's the MIT 6-3 / CMU / Stanford spine here?",
+   "a": "The distilled core of three curricula: MIT's computation structures + algorithms, CMU's systems-and-theory spine, Stanford's core cross-walk. Each module maps topics to their canonical free references."
+  },
+  {
+   "q": "How deep does the distributed systems material go?",
+   "a": "To 'implement Raft on a whiteboard and explain linearizability' depth — enough to reason about real systems (databases, queues, consensus) rather than just use them."
+  },
+  {
+   "q": "Is this course math-heavy?",
+   "a": "It's proof-heavy by design — that's the formal-methods half. IL-02/IL-20 build the math; IL-08 applies it to CS. Take those first if proofs are new."
+  },
+  {
+   "q": "Greedy vs DP — how do I tell which applies?",
+   "a": "Try greedy first (simpler); then hunt for a counterexample. If greedy fails but subproblems overlap with optimal substructure, it's DP. The drills train this discrimination."
+  }
+ ]
 }

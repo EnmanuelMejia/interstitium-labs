@@ -8456,6 +8456,71 @@
    "id": "drill-il11-12",
    "title": "Web & Application Attacks",
    "prompt": "Which module covers \"Session and token abuse\"?"
+  },
+  {
+   "id": "drill-il11-res1",
+   "title": "Tenet check",
+   "prompt": "Which NIST SP 800-207 tenet does per-session access granting express?",
+   "choices": [
+    "All communication is secured",
+    "Access to individual resources is granted on a per-session basis",
+    "The enterprise uses firewalls",
+    "Trust the internal network"
+   ],
+   "answer": 1,
+   "explain": "Tenet 3: per-session, least-privilege access decisions — the opposite of 'authenticate once, roam freely'."
+  },
+  {
+   "id": "drill-il11-res2",
+   "title": "Silver vs golden",
+   "prompt": "A silver ticket attack forges:",
+   "choices": [
+    "A TGT using the krbtgt hash (domain-wide)",
+    "A TGS for a specific service using that service account's hash",
+    "An NTLM hash",
+    "A SAML assertion"
+   ],
+   "answer": 1,
+   "explain": "Silver = forged service ticket for one service (stealthier, narrower). Golden = forged TGT via krbtgt (domain-wide)."
+  },
+  {
+   "id": "drill-il11-res3",
+   "title": "Ringfence scenario",
+   "prompt": "Winword.exe spawns powershell.exe to download a payload. Which control stops the *behavior* while keeping Word usable?",
+   "choices": [
+    "Uninstall Word",
+    "Ringfencing: deny child-process creation for Winword",
+    "Block PowerShell for all users",
+    "Antivirus signature update"
+   ],
+   "answer": 1,
+   "explain": "Ringfencing constrains what an allowed app may do. Word keeps working; its abuse path is fenced."
+  },
+  {
+   "id": "drill-il11-res4",
+   "title": "Conditional Access logic",
+   "prompt": "Two CA policies apply: P1 requires MFA, P2 requires a compliant device. A non-compliant device signs in with MFA. Result?",
+   "choices": [
+    "Granted — MFA satisfied one policy",
+    "Blocked — all applicable policies must be satisfied",
+    "Granted with warning",
+    "Only P1 applies"
+   ],
+   "answer": 1,
+   "explain": "Conditional Access is deny-by-default across policies: every applicable grant control must be satisfied."
+  },
+  {
+   "id": "drill-il11-res5",
+   "title": "Hashing vs encryption",
+   "prompt": "You need to verify file integrity on download. Correct primitive?",
+   "choices": [
+    "AES encryption",
+    "SHA-256 hash compared to the publisher's value",
+    "Base64 encoding",
+    "RSA signing without hashing"
+   ],
+   "answer": 1,
+   "explain": "Integrity = collision-resistant hash compared against a trusted reference. (Authenticated download ideally: hash + signature verification.)"
   }
  ],
  "scenarios": [
@@ -9031,6 +9096,103 @@
      "body": "Triage fast, contain with playbooks, run the post-incident learning loop - each incident becomes a control."
     }
    ]
+  },
+  {
+   "title": "NIST SP 800-207 — the seven tenets, cold",
+   "blocks": [
+    {
+     "h": "1–2",
+     "body": "All data sources and computing services are resources. All communication is secured regardless of network location."
+    },
+    {
+     "h": "3–4",
+     "body": "Access to individual enterprise resources is granted on a per-session basis. Access is determined by dynamic policy — including observable state of client identity, application, and asset."
+    },
+    {
+     "h": "5–6",
+     "body": "The enterprise monitors and measures the integrity and security posture of all owned and associated assets. All resource authentication and authorization are dynamic and strictly enforced before access."
+    },
+    {
+     "h": "7",
+     "body": "The enterprise collects as much information as possible about the current state of assets, network infrastructure, and communications, and uses it to improve its security posture."
+    },
+    {
+     "h": "Logical components",
+     "body": "Policy engine (decides) → policy administrator (executes) → policy enforcement point/PEP (carries out). Control plane vs data plane separation."
+    }
+   ]
+  },
+  {
+   "title": "AD attack paths — how it gets hacked",
+   "blocks": [
+    {
+     "h": "Kerberos abuse",
+     "body": "Kerberoasting: crackable TGS for SPN accounts. AS-REP roasting: accounts without pre-auth. Golden ticket: krbtgt hash → forged TGT. Silver ticket: service account hash → forged TGS."
+    },
+    {
+     "h": "Hash theft",
+     "body": "LSASS dumping (Mimikatz), NTDS.dit extraction, DCSync replication abuse. One DA hash = domain compromise."
+    },
+    {
+     "h": "Trust abuse",
+     "body": "SID history injection, cross-forest trust exploitation, unconstrained delegation (impersonate anyone connecting)."
+    },
+    {
+     "h": "Hardening priorities",
+     "body": "Tiered admin model (no DA on workstations), LAPS for local admins, Protected Users group, disable unconstrained delegation, monitor replication anomalies."
+    }
+   ]
+  },
+  {
+   "title": "Allowlisting & ringfencing — default-deny in practice",
+   "blocks": [
+    {
+     "h": "Allowlisting",
+     "body": "Default-deny execution: only approved binaries run. Learning/audit mode first to baseline, then enforce. Hash + publisher + path rules."
+    },
+    {
+     "h": "Ringfencing",
+     "body": "Constrain what allowed apps can *do*: block Word from spawning PowerShell, browsers from writing to startup folders. Application behavior control."
+    },
+    {
+     "h": "Storage control",
+     "body": "Block unapproved USB/mass storage or force encryption. Data can't leave on what can't mount."
+    },
+    {
+     "h": "Elevation control",
+     "body": "Just-in-time admin rights with approval workflow and full audit — standing local admin is the vulnerability."
+    },
+    {
+     "h": "Rollout rule",
+     "body": "Pilot group → monitor breaks → tune → expand. Default-deny done badly is a self-inflicted DoS."
+    }
+   ]
+  },
+  {
+   "title": "Entra ID & Conditional Access — the identity plane",
+   "blocks": [
+    {
+     "h": "Lifecycle",
+     "body": "Join/register devices → provision users (HR-driven) → assign access (groups, roles) → review (access reviews) → deprovision. Joiner-mover-leaver automated."
+    },
+    {
+     "h": "Conditional Access",
+     "body": "IF signal (user, device, location, risk) THEN require (MFA, compliant device, terms). Policies are ANDed; test in report-only mode first."
+    },
+    {
+     "h": "Auth methods",
+     "body": "Phishing-resistant first: FIDO2, Windows Hello for Business, CBA. Push MFA < number matching < phishing-resistant. Kill SMS where possible."
+    },
+    {
+     "h": "Hybrid",
+     "body": "Entra Connect syncs AD → Entra ID. Pass-through vs hash sync vs federation — know the auth path your org actually uses."
+    },
+    {
+     "h": "KQL triage",
+     "code": "SigninLogs\n| where ResultType != 0\n| summarize failures=count() by UserPrincipalName, IPAddress\n| where failures > 5",
+     "lang": "kql"
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -9167,6 +9329,24 @@
    "url": "https://xpro.mit.edu/courses/course-v1:xPRO-PCCYx/",
    "note": "24-week online professional certificate in cybersecurity; 36 CEUs, pass/fail at 75 percent. External credential; the platform prepares, MIT xPRO certifies.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "NIST SP 800-63-3 — Digital Identity",
+   "url": "https://csrc.nist.gov/pubs/sp/800/63/3/final",
+   "note": "Authentication assurance levels behind the identity-hardening modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NCSC Zero Trust Architecture",
+   "url": "https://www.ncsc.gov.uk/collection/zero-trust-architecture",
+   "note": "The UK NCSC's zero-trust principles and design guidance.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Microsoft Entra identity docs",
+   "url": "https://learn.microsoft.com/en-us/entra/identity/",
+   "note": "Conditional Access, lifecycle, and hybrid identity reference.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only - this course confers no certificate. Vendor certification exams are taken through the vendor's own portal.",
@@ -9432,5 +9612,117 @@
    "gate-security-plus"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Zero Trust",
+   "definition": "Security model eliminating implicit trust: verify explicitly, least privilege, assume breach (NIST SP 800-207)."
+  },
+  {
+   "term": "Policy engine / administrator / PEP",
+   "definition": "The ZTA logical trio: engine decides, administrator executes, enforcement point carries out."
+  },
+  {
+   "term": "CISA maturity model",
+   "definition": "Five pillars (identity, devices, networks, applications, data) scored Traditional → Advanced → Optimal."
+  },
+  {
+   "term": "Default-deny",
+   "definition": "Deny everything not explicitly allowed — allowlisting as the enforcement of least privilege."
+  },
+  {
+   "term": "Allowlisting",
+   "definition": "Permitting only approved applications/binaries to execute, by hash, publisher, or path."
+  },
+  {
+   "term": "Ringfencing",
+   "definition": "Constraining the behaviors of allowed applications (child processes, network, file writes)."
+  },
+  {
+   "term": "Elevation control",
+   "definition": "Just-in-time privileged access with approval and audit instead of standing admin rights."
+  },
+  {
+   "term": "Kerberoasting",
+   "definition": "Offline cracking of Kerberos service tickets for accounts with SPNs."
+  },
+  {
+   "term": "DCSync",
+   "definition": "Pulling domain hashes via replication rights — mimicking a domain controller."
+  },
+  {
+   "term": "Unconstrained delegation",
+   "definition": "AD setting letting a service impersonate any connecting user to any service — prime attack path."
+  },
+  {
+   "term": "Tiered admin model",
+   "definition": "Separating Tier 0 (domain), Tier 1 (servers), Tier 2 (workstations) credentials so one compromise can't escalate."
+  },
+  {
+   "term": "LAPS",
+   "definition": "Local Administrator Password Solution: unique, rotated local admin passwords per machine."
+  },
+  {
+   "term": "Entra ID",
+   "definition": "Microsoft's cloud identity platform (formerly Azure AD): users, groups, Conditional Access, hybrid sync."
+  },
+  {
+   "term": "Conditional Access",
+   "definition": "Policy engine: if signals (user/device/location/risk), then require controls (MFA, compliance)."
+  },
+  {
+   "term": "Phishing-resistant MFA",
+   "definition": "FIDO2, Windows Hello, certificate auth — not phishable like SMS or push."
+  },
+  {
+   "term": "Hybrid identity",
+   "definition": "AD + Entra ID synchronized via Entra Connect: one identity across on-prem and cloud."
+  },
+  {
+   "term": "SC-300",
+   "definition": "Microsoft Identity and Access Administrator certification: Entra ID, CA, governance."
+  },
+  {
+   "term": "Integrity vs confidentiality",
+   "definition": "Integrity: data unaltered (hashing/MACs). Confidentiality: data unreadable (encryption). Different goals, different primitives."
+  },
+  {
+   "term": "Post-incident loop",
+   "definition": "Lessons-learned → detection gaps closed → controls updated: the learning half of response."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Is Zero Trust a product I can buy?",
+   "a": "No — it's an architecture and operating discipline (NIST SP 800-207). Vendors sell components (identity, EDR, microsegmentation); the maturity model measures how completely you've implemented the tenets."
+  },
+  {
+   "q": "Allowlisting sounds like it will break everything. How do real orgs deploy it?",
+   "a": "Learning/audit mode first: baseline what's actually executed for 2–4 weeks, build policy from evidence, pilot on a tolerant group, then enforce. The course's rollout module walks this sequence."
+  },
+  {
+   "q": "What's the difference between ringfencing and allowlisting?",
+   "a": "Allowlisting decides *what may run*. Ringfencing decides *what running apps may do*. You need both: an allowed Word spawning PowerShell is the classic bypass."
+  },
+  {
+   "q": "Why is SMS MFA considered weak?",
+   "a": "SIM-swapping and SS7 interception let attackers receive your codes. Move to phishing-resistant methods (FIDO2/WHfB); at minimum use number-matching push, never SMS, for privileged accounts."
+  },
+  {
+   "q": "Golden ticket vs silver ticket — which should I fear more?",
+   "a": "Golden (krbtgt compromise) is total domain dominance; silver (service-account hash) is stealthier but scoped to one service. Harden against both: protect krbtgt (rotate twice) and use managed service accounts."
+  },
+  {
+   "q": "How does Conditional Access actually evaluate?",
+   "a": "All applicable policies combine with AND logic under default-deny. Test every change in report-only mode first — a bad CA policy locks out the organization, including admins (keep break-glass accounts excluded)."
+  },
+  {
+   "q": "SC-300 or SC-200 first?",
+   "a": "SC-300 (identity) if your role is identity/admin; SC-200 (SOC/Sentinel) if you're operations. IL-11 targets SC-300; IL-06 targets SC-200. Identity-first is the Zero Trust order."
+  },
+  {
+   "q": "How is this different from IL-24/IL-29 (ThreatLocker courses)?",
+   "a": "IL-11 teaches the *doctrine and identity plane* (NIST, CISA, AD, Entra). IL-24/IL-29 teach *operating a default-deny endpoint platform* (ThreatLocker) with assessment/interview prep. Doctrine first, platform second."
+  }
+ ]
 }

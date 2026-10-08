@@ -3591,6 +3591,71 @@
    ],
    "answer": 1,
    "explain": "~4.4 bits/weight, minimal quality loss."
+  },
+  {
+   "id": "drill-il07-res1",
+   "title": "Fan-out trap",
+   "prompt": "You join orders (1M rows) to order_items (3M rows) then SUM(order_total). The sum is 3× too high. Cause?",
+   "choices": [
+    "The database is corrupt",
+    "Join fan-out: order_total duplicated per item row — aggregate before joining or use a subquery",
+    "SUM is broken for large tables",
+    "You need a bigger warehouse"
+   ],
+   "answer": 1,
+   "explain": "One-to-many joins replicate the parent row. Aggregate items first, or sum over the pre-join grain."
+  },
+  {
+   "id": "drill-il07-res2",
+   "title": "Leakage",
+   "prompt": "Which feature leaks the target in a churn model?",
+   "choices": [
+    "Tenure in months",
+    "Number of support tickets",
+    "Cancellation confirmation email sent flag",
+    "Plan tier"
+   ],
+   "answer": 2,
+   "explain": "The confirmation email is sent *because* they churned — it's the target wearing a costume. Features must be knowable at prediction time."
+  },
+  {
+   "id": "drill-il07-res3",
+   "title": "RAG chunking",
+   "prompt": "Retrieval recall is poor on long contracts. Best first fix?",
+   "choices": [
+    "Bigger LLM",
+    "Smaller overlapping chunks with section-aware splitting, then re-evaluate recall@k",
+    "More epochs of fine-tuning",
+    "Lower temperature"
+   ],
+   "answer": 1,
+   "explain": "Retrieval fails at the chunking/embedding stage; generation can't fix what retrieval never found. Evaluate recall@k before touching the model."
+  },
+  {
+   "id": "drill-il07-res4",
+   "title": "MongoDB modeling",
+   "prompt": "Blog posts with comments: embed or reference comments?",
+   "choices": [
+    "Always reference — normalization is law",
+    "Embed: comments are read with the post, bounded in practice, one read fetches all",
+    "Store comments in a CSV",
+    "Embed the users too"
+   ],
+   "answer": 1,
+   "explain": "Document DBs optimize for access patterns: comments are fetched with their post and don't grow unboundedly in most designs, so embedding wins."
+  },
+  {
+   "id": "drill-il07-res5",
+   "title": "Exactly-once",
+   "prompt": "Exactly-once streaming semantics require:",
+   "choices": [
+    "A faster broker",
+    "Idempotent sinks plus transactional offset commits",
+    "Bigger batches",
+    "Exactly one consumer"
+   ],
+   "answer": 1,
+   "explain": "End-to-end exactly-once = process each record's effects once: idempotent writes + atomic offset commits (Kafka transactions)."
   }
  ],
  "scenarios": [
@@ -3913,6 +3978,99 @@
      "body": "Track everything · version data+model · monitor drift · shadow before promote · Feature Store kills skew"
     }
    ]
+  },
+  {
+   "title": "SQL patterns that pay rent",
+   "blocks": [
+    {
+     "h": "Window functions",
+     "code": "ROW_NUMBER() OVER (PARTITION BY cust ORDER BY amt DESC) AS rn\nSUM(amt) OVER (PARTITION BY cust ORDER BY dt\n  ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS roll7",
+     "lang": "sql"
+    },
+    {
+     "h": "CTEs over subqueries",
+     "body": "WITH clean AS (...) SELECT ... — named, testable steps. Recursive CTEs walk hierarchies (org charts, BOMs)."
+    },
+    {
+     "h": "Grain discipline",
+     "body": "Know your row grain before you aggregate. Fan-out from a bad join multiplies rows silently — dedupe keys first, count(*) sanity-check after."
+    },
+    {
+     "h": "Index thinking",
+     "body": "WHERE/JOIN/GROUP BY columns want indexes. Covering indexes avoid table lookups. But every index taxes writes — index for reads you actually run."
+    }
+   ]
+  },
+  {
+   "title": "Pipeline design — batch to streaming",
+   "blocks": [
+    {
+     "h": "Batch pattern",
+     "body": "Extract (CDC or snapshot) → validate schema → transform (dbt) → load to warehouse → data-quality tests → publish marts. Idempotent reruns: same input, same output."
+    },
+    {
+     "h": "Streaming pattern",
+     "body": "Kafka/Kinesis → stream processor (Flink/Spark Structured Streaming) → sink. Exactly-once = idempotent sinks + transactional offsets."
+    },
+    {
+     "h": "Orchestration",
+     "body": "Airflow/Prefect: DAGs with retries, SLAs, and backfill. The scheduler is production — monitor it like production."
+    },
+    {
+     "h": "Quality gates",
+     "body": "Row counts, null rates, freshness, distribution drift. A pipeline without tests is a rumor with compute costs."
+    },
+    {
+     "h": "Medallion",
+     "body": "Bronze (raw) → Silver (cleaned/conformed) → Gold (business marts). Never let analysts query Bronze directly."
+    }
+   ]
+  },
+  {
+   "title": "ML loop — CS229 to production",
+   "blocks": [
+    {
+     "h": "Frame → baseline",
+     "body": "Define the decision the model informs, then beat the dumb baseline (mean, majority class, heuristic) before any ML."
+    },
+    {
+     "h": "Leakage audit",
+     "body": "No feature may contain information unavailable at prediction time. Time-split validation, never random-split on time series."
+    },
+    {
+     "h": "Metrics match cost",
+     "body": "Fraud: precision/recall tradeoff with dollar costs. Ranking: NDCG. Regression: MAE vs RMSE (outlier sensitivity). Never optimize accuracy on imbalanced data blindly."
+    },
+    {
+     "h": "From notebook to prod",
+     "body": "Version data + code + model (registry). Shadow/canary deploy. Monitor prediction drift and label drift; retrain triggers, not schedules."
+    }
+   ]
+  },
+  {
+   "title": "LLM systems — RAG, fine-tuning, agents",
+   "blocks": [
+    {
+     "h": "RAG",
+     "body": "Chunk → embed → retrieve top-k → stuff into context → generate → cite. Evaluate retrieval (recall@k) separately from generation (faithfulness)."
+    },
+    {
+     "h": "Fine-tuning",
+     "body": "LoRA/QLoRA: train low-rank adapters, not full weights. Use for style/format/domain idioms — not for facts (facts go in retrieval)."
+    },
+    {
+     "h": "Agents",
+     "body": "ReAct loop: reason → act (tool) → observe → repeat. LangGraph for state machines; MCP for tool contracts. Stopping conditions and max-steps are safety features."
+    },
+    {
+     "h": "Self-hosting",
+     "body": "Quantization (GGUF/AWQ) trades precision for VRAM. Ollama/llama.cpp/vLLM serve open weights locally. Check the license (Llama, Apache-2.0, etc.) before commercial use."
+    },
+    {
+     "h": "Eval",
+     "body": "Golden sets with rubrics; LLM-as-judge with human calibration; red-team prompts for injection/jailbreak. Evals are the spec."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -3988,6 +4146,30 @@
    "url": "https://modelcontextprotocol.io/",
    "note": "MCP: tools/resources/prompts standard.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "PostgreSQL documentation",
+   "url": "https://www.postgresql.org/docs/current/",
+   "note": "The SQL reference: syntax, functions, and internals.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "dbt documentation",
+   "url": "https://docs.getdbt.com/",
+   "note": "Transformation-as-code: models, tests, docs, lineage.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Kafka documentation",
+   "url": "https://kafka.apache.org/documentation/",
+   "note": "Streaming fundamentals: topics, consumer groups, exactly-once semantics.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Hugging Face Transformers docs",
+   "url": "https://huggingface.co/docs/transformers",
+   "note": "LLM engineering reference: models, tokenizers, pipelines.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original practice material only — labs, questions, and scenarios are authored for this course, never recalled from any exam. Interstitium Labs confers no certificate and is not affiliated with AWS, MongoDB, Stanford, or any model provider. Model versions and licenses change frequently: always read the current license card and re-verify claims. Exam codes change: confirm on the vendor's site before booking.",
@@ -4296,5 +4478,121 @@
    "gate-data-plus"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Grain",
+   "definition": "What one row represents (one order, one order-line). Every aggregation must respect the grain."
+  },
+  {
+   "term": "Fan-out",
+   "definition": "Row multiplication from one-to-many joins; silently inflates SUMs and COUNTs."
+  },
+  {
+   "term": "CTE",
+   "definition": "Common Table Expression (WITH clause): a named temporary result set; structures complex queries into testable steps."
+  },
+  {
+   "term": "Window function",
+   "definition": "Computation across a 'window' of related rows (ROW_NUMBER, RANK, LAG, running SUM) without collapsing rows."
+  },
+  {
+   "term": "Medallion architecture",
+   "definition": "Bronze (raw) → Silver (cleaned) → Gold (curated marts): progressive refinement zones in a lakehouse."
+  },
+  {
+   "term": "Idempotent",
+   "definition": "Re-runnable with identical results — the required property of pipeline tasks and backfills."
+  },
+  {
+   "term": "CDC",
+   "definition": "Change Data Capture: streaming row-level changes from a source database's log instead of full snapshots."
+  },
+  {
+   "term": "dbt",
+   "definition": "Data Build Tool: SQL-based transformation with tests, docs, and lineage — the T in ELT."
+  },
+  {
+   "term": "Data quality",
+   "definition": "Freshness, completeness, validity, uniqueness, consistency — tested continuously, not assumed."
+  },
+  {
+   "term": "Feature leakage",
+   "definition": "Training on information unavailable at prediction time; produces great validation scores and dead production models."
+  },
+  {
+   "term": "Baseline",
+   "definition": "The dumb model (mean, majority class, heuristic) your ML must beat to justify its existence."
+  },
+  {
+   "term": "Drift",
+   "definition": "Prediction drift (input distribution shifts) or label drift (concept changes) degrading a deployed model."
+  },
+  {
+   "term": "RAG",
+   "definition": "Retrieval-Augmented Generation: retrieve relevant chunks, then generate grounded in them — with citations."
+  },
+  {
+   "term": "Embedding",
+   "definition": "Dense vector representation of text/images; similarity search over embeddings powers retrieval."
+  },
+  {
+   "term": "LoRA / QLoRA",
+   "definition": "Low-Rank Adaptation: fine-tune small adapter matrices (quantized base in QLoRA) instead of full weights."
+  },
+  {
+   "term": "ReAct",
+   "definition": "Reason + Act loop: the agent reasons, calls a tool, observes the result, and repeats."
+  },
+  {
+   "term": "MCP",
+   "definition": "Model Context Protocol: a standard contract for exposing tools/data sources to AI models and agents."
+  },
+  {
+   "term": "Quantization",
+   "definition": "Reducing model weight precision (FP16→INT8/INT4) to fit VRAM; the enabler of local open-weight serving."
+  },
+  {
+   "term": "Vector database",
+   "definition": "Store indexed for embedding similarity search (pgvector, Pinecone, Qdrant, Weaviate)."
+  },
+  {
+   "term": "Eval harness",
+   "definition": "Golden prompts + rubrics + automated judges measuring an LLM system's quality and safety over time."
+  }
+ ],
+ "faq": [
+  {
+   "q": "SQL or Python first for data work?",
+   "a": "SQL first — it's the lingua franca of data jobs and the interview filter. Python (pandas) follows for what SQL can't express cleanly. The course sequences them that way."
+  },
+  {
+   "q": "Embed vs reference in MongoDB — is there a rule?",
+   "a": "Model for access patterns: embed what you read together and what's bounded; reference what's shared, unbounded, or updated independently. The module works both with real schemas."
+  },
+  {
+   "q": "RAG or fine-tuning for my use case?",
+   "a": "RAG for facts that change or need citations; fine-tuning (LoRA) for style, format, and domain idioms. Most production systems use both — and evals decide the mix."
+  },
+  {
+   "q": "Can I really self-host a useful model?",
+   "a": "Yes for many tasks: quantized 7–70B open-weight models on a decent GPU handle drafting, extraction, and classification. Frontier reasoning still favors API models — the module teaches the honest tradeoff."
+  },
+  {
+   "q": "What's the CS229→CS234 arc?",
+   "a": "Stanford's ML (229: supervised learning foundations) through reinforcement learning (234): the course's path from classical ML to RL and agents."
+  },
+  {
+   "q": "How do I avoid leakage in practice?",
+   "a": "Time-split your validation, list every feature's 'as-of' timestamp, and ask 'would I know this at prediction time?' for each one. The ML module includes a leakage-audit checklist."
+  },
+  {
+   "q": "Batch or streaming — how do I choose?",
+   "a": "Latency requirement decides: minutes-to-hours → batch (simpler, cheaper); seconds → streaming (harder, costlier). Most 'real-time' requests survive as micro-batch."
+  },
+  {
+   "q": "How is this different from IL-26 (Data Analyst)?",
+   "a": "IL-07 is the engineering + ML depth track (pipelines, modeling, LLM systems). IL-26 is the analyst certification track (SQL/stats/BI/portfolio calibrated to hiring bars). Engineers build the pipes; analysts answer with them."
+  }
+ ]
 }

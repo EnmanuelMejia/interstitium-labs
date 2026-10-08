@@ -39,9 +39,29 @@
 - Link audit: 882 URLs checked — zero real broken internal links.
 - Committed as 059f2a1.
 
-## Still running (awaiting results — will auto-deliver)
-- Video finish-up worker (remaining ~200 modules across IL-17–IL-28). Previous worker claimed complete but left gaps; new worker verifying and filling.
-- After it completes: final deploy → re-crawl → verify clean → report.
+## Completed — video finish-up (worker done ~18:21 EDT)
+- 804/804 modules now have HTTP-verified videos (was 604/804). All 200 gaps filled, zero gaps.
+- Committed + deployed (solitary-sound-015a, etag db308c5dcd02, 2026-10-08T22:42:39Z).
+
+## Final live verification (2026-10-08 ~18:43 EDT)
+- /devops-superlab → 301 (both interstitiumlabs.dev and learn.interstitiumlabs.dev)
+- /bootcamps/tl-interview/ → 200 anonymous
+- /bootcamps/threatlocker-assessment-prep/ → 200
+- /university/course?course=il-29 → 200
+
+## New directives 2026-10-08 ~18:02–18:07 EDT (workers spawned)
+
+### Footer blur audit (done by coordinator)
+- **Finding: NO CSS blur bug exists.** Audited all stylesheets: only `filter: blur(2px)` instances are on `.il-nebula` (intentional background decoration). No blur on footers, headers, text, or logos anywhere. The blur in his photo was likely camera focus, not a code bug.
+- Headers/chrome also checked — same result, no blur bugs.
+
+### Workers running
+1. **Footer standardization** — replacing all footers with canonical centered layout (logo, INTERSTITIUMLABS.DEV, SCIENTIA OMNIA VINCIT, CREATED BY INTERSTITIUM LABS, nav rows, language selector).
+2. **Animations** — IntersectionObserver-gated, prefers-reduced-motion respected, performance-disciplined.
+3. **Student resources** — cheat sheets, drill packs, glossaries, verified external refs, FAQ per course.
+4. **Progress tracking** — canonical IL-01→IL-29 sequence, localStorage progress, "Continue where you left off", cross-course flow.
+
+After all complete: commit → deploy → re-crawl → verify → report.
 
 ## Completed — story supplements (worker done ~17:35 EDT)
 - 104 "The story behind X" narrative supplements across all 29 courses (3.6 avg/course).

@@ -14096,6 +14096,71 @@
    ],
    "answer": 1,
    "explain": "Golden cases plus automated regression checks turn “hope it still works” into a verifiable gate."
+  },
+  {
+   "id": "drill-il16-res1",
+   "title": "Metric choice",
+   "prompt": "Fraud detection: false positives freeze innocent accounts (expensive support), false negatives lose money. You optimize:",
+   "choices": [
+    "Accuracy",
+    "A precision-recall tradeoff with dollar-weighted threshold tuning",
+    "F1 and ship it",
+    "AUC only"
+   ],
+   "answer": 1,
+   "explain": "Costs are asymmetric and business-specific: weight the threshold by actual FP/FN costs. Accuracy on 99.9% legitimate data is a vanity metric."
+  },
+  {
+   "id": "drill-il16-res2",
+   "title": "Leakage detection",
+   "prompt": "Validation AUC is 0.99 but production AUC is 0.62. Most likely cause?",
+   "choices": [
+    "Bad random seed",
+    "Target leakage in features",
+    "Too little regularization",
+    "Wrong loss function"
+   ],
+   "answer": 1,
+   "explain": "The classic leakage signature: features containing post-outcome information. Audit every feature's as-of timestamp."
+  },
+  {
+   "id": "drill-il16-res3",
+   "title": "Baseline discipline",
+   "prompt": "Your gradient-boosted model beats the heuristic baseline by 0.3% AUC at 10× the complexity. Correct call?",
+   "choices": [
+    "Ship the complex model — bigger is better",
+    "Ship the heuristic; the gain doesn't justify the complexity tax",
+    "Average them",
+    "Tune harder"
+   ],
+   "answer": 1,
+   "explain": "Complexity has carrying costs (latency, debugging, drift surface). Marginal gains must clear the complexity bar."
+  },
+  {
+   "id": "drill-il16-res4",
+   "title": "Calibration",
+   "prompt": "Your model outputs '90% probability' but those cases occur 60% of the time. The model is:",
+   "choices": [
+    "Well calibrated",
+    "Overconfident — needs calibration (Platt/isotonic) before feeding decisions",
+    "Underfit",
+    "Perfect"
+   ],
+   "answer": 1,
+   "explain": "Calibration = predicted probabilities matching observed frequencies. Fix with Platt scaling or isotonic regression on held-out data."
+  },
+  {
+   "id": "drill-il16-res5",
+   "title": "Stakeholder defense",
+   "prompt": "A stakeholder asks 'why did the model deny this loan?' Best answer structure?",
+   "choices": [
+    "'The model is complex'",
+    "Feature contributions (SHAP-style) for this case + the decision threshold + the appeal path",
+    "The training loss curve",
+    "Refuse to explain"
+   ],
+   "answer": 1,
+   "explain": "Local explanations + threshold logic + human recourse: the defensible package for high-stakes decisions."
   }
  ],
  "scenarios": [
@@ -14700,6 +14765,106 @@
      "body": "Schemas as contracts · narrow, typed tools · least privilege · handle tool errors · test tool-using paths like any integration."
     }
    ]
+  },
+  {
+   "title": "The applied ML loop — frame to ship",
+   "blocks": [
+    {
+     "h": "Frame",
+     "body": "What decision does the model inform? What's the cost of each error type? Define the metric from the business cost, not from habit."
+    },
+    {
+     "h": "Baseline",
+     "body": "Beat the dumb model first: majority class, mean, heuristic. If ML can't beat it, you don't need ML."
+    },
+    {
+     "h": "Evaluate honestly",
+     "body": "Time-split for temporal data. Stratify for imbalance. Report CIs, not point estimates. Leakage audit before celebrating."
+    },
+    {
+     "h": "Iterate",
+     "body": "Error analysis on the failures: what pattern do misses share? Fix data first, features second, model last."
+    },
+    {
+     "h": "Ship",
+     "body": "Shadow → canary → full. Monitor drift. Own the rollback plan. A model without monitoring is a liability with latency."
+    }
+   ]
+  },
+  {
+   "title": "Metrics that match cost — the confusion-matrix kit",
+   "blocks": [
+    {
+     "h": "The matrix",
+     "body": "TP/FP/TN/FN. Precision = TP/(TP+FP) — 'of flagged, how many real?' Recall = TP/(TP+FN) — 'of real, how many caught?'"
+    },
+    {
+     "h": "Choosing",
+     "body": "Fraud/spam: precision matters (false alarms cost trust). Disease screening: recall matters (misses kill). F1 only when costs are symmetric — they rarely are."
+    },
+    {
+     "h": "Thresholds",
+     "body": "The operating point is a business decision: slide it until marginal cost of FP = marginal cost of FN. ROC/PR curves map the tradeoff."
+    },
+    {
+     "h": "Regression",
+     "body": "MAE: robust, interpretable. RMSE: punishes big misses. R²: variance explained — useless without residual plots."
+    },
+    {
+     "h": "Calibration",
+     "body": "Predicted 70% should happen ~70% of the time. Platt/isotonic for models feeding decisions. Uncalibrated probabilities lie politely."
+    }
+   ]
+  },
+  {
+   "title": "Ensembles, deep tabular & transformers at practitioner depth",
+   "blocks": [
+    {
+     "h": "Trees & forests",
+     "body": "Random forest: bagged trees, robust default. Gradient boosting (XGBoost/LightGBM): sequential error correction — the tabular king. Tune depth, LR, regularization."
+    },
+    {
+     "h": "Deep for tabular",
+     "body": "MLPs with embeddings for categoricals; TabNet/FT-Transformer when trees plateau. Usually trees win — verify before going deep."
+    },
+    {
+     "h": "Attention recap",
+     "body": "QKᵀ/√d softmax over V. Multi-head = parallel relation types. Positional encoding injects order."
+    },
+    {
+     "h": "LoRA fine-tuning",
+     "body": "Freeze base, train rank-r adapters. r=8–64 typical. For style/format/domain — facts go in retrieval."
+    },
+    {
+     "h": "Alignment tradeoffs",
+     "body": "RLHF/DPO reduce harm but can flatten creativity and add refusal quirks. Evaluate helpfulness *and* harmlessness separately."
+    }
+   ]
+  },
+  {
+   "title": "Shipping LLM features — RAG, tools, evals, cost",
+   "blocks": [
+    {
+     "h": "RAG",
+     "body": "Chunk → embed → retrieve → rerank → generate with citations. Eval retrieval (recall@k) separately from generation."
+    },
+    {
+     "h": "Tool use",
+     "body": "Function calling with JSON schemas; validate outputs; least-privilege tools. The model proposes, your code disposes."
+    },
+    {
+     "h": "Eval harness",
+     "body": "Golden sets + rubrics + calibrated judges. Regression-gate prompt and model changes."
+    },
+    {
+     "h": "Guardrails",
+     "body": "Input filters, output validation, PII redaction, rate limits. Treat model output as untrusted input downstream."
+    },
+    {
+     "h": "Cost control",
+     "body": "Route by difficulty (small model first), cache, batch. $/resolved task is the metric that matters."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -14870,6 +15035,24 @@
    "url": "https://mlflow.org/docs/latest/",
    "retrieved": "2026-10-07",
    "note": "Experiment tracking and model management; keeps 'MLOps' answers concrete."
+  },
+  {
+   "name": "Intro to Statistical Learning",
+   "url": "https://www.statlearning.com/",
+   "note": "The modeling textbook: free PDF, honest about assumptions.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Seeing Theory",
+   "url": "https://seeing-theory.brown.edu/",
+   "note": "Visual probability and statistics — intuition before formulas.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Kaggle Learn",
+   "url": "https://www.kaggle.com/learn",
+   "note": "Hands-on ML micro-courses for the portfolio projects.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal. Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
@@ -15200,5 +15383,113 @@
    "gate-il16-aws-mla",
    "gate-il16-ai103"
   ]
- }
+ },
+ "glossary": [
+  {
+   "term": "Baseline",
+   "definition": "The simple model (majority class, mean, heuristic) that ML must beat to justify itself."
+  },
+  {
+   "term": "Leakage",
+   "definition": "Training features containing information unavailable at prediction time — inflates validation, kills production."
+  },
+  {
+   "term": "Precision / recall",
+   "definition": "Precision: of predicted positives, fraction correct. Recall: of actual positives, fraction found."
+  },
+  {
+   "term": "Calibration",
+   "definition": "Predicted probabilities matching observed frequencies — required before probabilities drive decisions."
+  },
+  {
+   "term": "Overfitting",
+   "definition": "Fitting training noise: low train error, high generalization error."
+  },
+  {
+   "term": "Cross-validation",
+   "definition": "Repeated train/test splits for robust performance estimates; time-series needs time-aware splits."
+  },
+  {
+   "term": "Ensemble",
+   "definition": "Combining models (bagging, boosting, stacking) for accuracy/robustness beyond any single model."
+  },
+  {
+   "term": "Gradient boosting",
+   "definition": "Sequential trees each correcting prior errors (XGBoost/LightGBM/CatBoost): the tabular-data champion."
+  },
+  {
+   "term": "Regularization",
+   "definition": "Penalizing complexity (L1/L2, dropout, early stopping) to improve generalization."
+  },
+  {
+   "term": "Embedding",
+   "definition": "Learned dense vector for categoricals/tokens; similarity becomes geometry."
+  },
+  {
+   "term": "Attention",
+   "definition": "Content-based weighted averaging: softmax(QKᵀ/√d)V."
+  },
+  {
+   "term": "LoRA",
+   "definition": "Low-Rank Adaptation: fine-tune small adapters on frozen base weights."
+  },
+  {
+   "term": "RLHF",
+   "definition": "Reinforcement Learning from Human Feedback: aligning models to preferences via reward modeling."
+  },
+  {
+   "term": "DPO",
+   "definition": "Direct Preference Optimization: alignment without a separate reward model."
+  },
+  {
+   "term": "RAG",
+   "definition": "Retrieval-Augmented Generation: generate grounded in retrieved documents, with citations."
+  },
+  {
+   "term": "Eval harness",
+   "definition": "Golden prompts + rubrics + judges measuring quality/safety continuously."
+  },
+  {
+   "term": "Drift",
+   "definition": "Production data shifting from training distribution; triggers monitoring and retraining."
+  },
+  {
+   "term": "SHAP",
+   "definition": "Shapley-value feature attributions: principled per-prediction explanations."
+  },
+  {
+   "term": "MLOps",
+   "definition": "Versioning data/code/models, CI/CD for ML, monitoring, and retraining discipline."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How is IL-16 different from IL-12 (AI Engineering)?",
+   "a": "IL-12 is the full-stack AI engineer track (Python → PyTorch → transformers → agents → MLOps). IL-16 is the applied-ML depth track: the modeling loop, metrics, ensembles, and shipping ML features. IL-12 is broader; IL-16 goes deeper on modeling craft."
+  },
+  {
+   "q": "Trees or deep learning for tabular data?",
+   "a": "Gradient boosting first — it wins most tabular benchmarks with less tuning. Go deep only when trees plateau and you can afford the complexity. The course makes you prove the plateau."
+  },
+  {
+   "q": "What does 'cost-matched metrics' mean?",
+   "a": "Choosing evaluation metrics from the business cost of each error type (fraud: FP vs FN dollars) rather than defaulting to accuracy or F1. The threshold is then tuned to those costs."
+  },
+  {
+   "q": "How do I detect leakage in practice?",
+   "a": "Time-split validation, per-feature as-of audits ('would I know this at prediction time?'), and suspicion toward too-good validation scores. The feature-engineering module has the checklist."
+  },
+  {
+   "q": "When is an LLM the wrong tool?",
+   "a": "Deterministic logic, exact arithmetic at scale, low-latency simple classification, or when you can't afford the eval burden. The course teaches the 'boring solution first' discipline."
+  },
+  {
+   "q": "How do I present ML work to non-technical stakeholders?",
+   "a": "Decision → metric in business terms → baseline comparison → risks/limits → what happens when it's wrong. Confusion matrices stay in the appendix."
+  },
+  {
+   "q": "What goes in a model card?",
+   "a": "Intended use, training data summary, eval results with limits, known failure modes, and monitoring plan. It's the model's passport to production."
+  }
+ ]
 }

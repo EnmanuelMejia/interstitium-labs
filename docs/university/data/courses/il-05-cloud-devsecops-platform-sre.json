@@ -5182,6 +5182,71 @@
    ],
    "answer": 1,
    "explain": "Dynamic: leased, auto-revoked — rotation without restarts."
+  },
+  {
+   "id": "drill-il05-res1",
+   "title": "CrashLoop triage",
+   "prompt": "A pod is CrashLoopBackOff. Fastest first command?",
+   "choices": [
+    "kubectl delete pod and hope",
+    "kubectl logs <pod> --previous",
+    "kubectl drain the node",
+    "Restart kubelet on all nodes"
+   ],
+   "answer": 1,
+   "explain": "The previous container's logs usually name the cause (bad entrypoint, missing env, failed probe). Describe shows events; logs --previous shows the crash output."
+  },
+  {
+   "id": "drill-il05-res2",
+   "title": "Terraform state",
+   "prompt": "Two engineers run `terraform apply` simultaneously against a local state file. The risk is:",
+   "choices": [
+    "Nothing — Terraform merges automatically",
+    "State corruption / conflicting applies — use a remote backend with locking",
+    "Double billing only",
+    "Plan always fails safely"
+   ],
+   "answer": 1,
+   "explain": "Local state has no locking; concurrent applies corrupt it. Remote backends (S3+DynamoDB, AzureRM, GCS) provide locking."
+  },
+  {
+   "id": "drill-il05-res3",
+   "title": "SLO math",
+   "prompt": "A 99.95% monthly SLO allows roughly how much downtime?",
+   "choices": [
+    "~43 minutes",
+    "~22 minutes",
+    "~4.4 minutes",
+    "~7 hours"
+   ],
+   "answer": 1,
+   "explain": "0.05% of ~43,800 min/month ≈ 22 min. (99.9% ≈ 43m; 99.99% ≈ 4.4m.)"
+  },
+  {
+   "id": "drill-il05-res4",
+   "title": "Security groups vs NACLs",
+   "prompt": "In AWS, which is stateful?",
+   "choices": [
+    "Network ACLs",
+    "Security groups",
+    "Route tables",
+    "Internet gateways"
+   ],
+   "answer": 1,
+   "explain": "Security groups are stateful (return traffic auto-allowed); NACLs are stateless (explicit inbound+outbound rules)."
+  },
+  {
+   "id": "drill-il05-res5",
+   "title": "Vault purpose",
+   "prompt": "HashiCorp Vault's primary job in this course's platform is:",
+   "choices": [
+    "Container orchestration",
+    "Secrets management with dynamic credentials and audit",
+    "Log aggregation",
+    "DNS resolution"
+   ],
+   "answer": 1,
+   "explain": "Vault issues short-lived dynamic secrets, encrypts data, and audits every access — replacing static credentials in config files."
   }
  ],
  "scenarios": [
@@ -5615,6 +5680,100 @@
      "body": "Git is truth, cluster is cache · Argo CD syncs · drift detected not debated · Rollouts for progressive delivery"
     }
    ]
+  },
+  {
+   "title": "Kubernetes — the CKA/CKAD survival card",
+   "blocks": [
+    {
+     "h": "Objects",
+     "body": "Pod (smallest unit) → ReplicaSet (count) → Deployment (rollout) → Service (stable endpoint) → Ingress (L7 routing). ConfigMap/Secret = config; PVC = storage."
+    },
+    {
+     "h": "kubectl triage",
+     "code": "kubectl get pods -A | grep -v Running\nkubectl describe pod <p>     # events tell the story\nkubectl logs <p> --previous  # crashed container\nkubectl exec -it <p> -- sh",
+     "lang": "bash"
+    },
+    {
+     "h": "CrashLoopBackOff",
+     "body": "Container starts then dies repeatedly. Check: logs --previous, wrong image/entrypoint, missing env/secret, failed liveness probe, OOMKilled (limits too low)."
+    },
+    {
+     "h": "Networking",
+     "body": "Every pod gets an IP; kube-proxy programs Service VIPs. DNS: <svc>.<ns>.svc.cluster.local. NetworkPolicy = firewall between pods (default allow-all!)."
+    },
+    {
+     "h": "CKA exam tips",
+     "body": "Know `kubectl` imperatively (`run`, `create`, `expose`) — it's faster than YAML under time. Alias k=kubectl, enable completion. Read events before logs."
+    }
+   ]
+  },
+  {
+   "title": "Terraform — state, plan, apply without fear",
+   "blocks": [
+    {
+     "h": "The loop",
+     "code": "terraform init     # providers + backend\nterraform plan    # diff: what will change\nterraform apply   # execute (approve!)\nterraform destroy # tear down",
+     "lang": "bash"
+    },
+    {
+     "h": "State is truth",
+     "body": "State file maps config → real resources. Remote backend (S3+DynamoDB / AzureRM / GCS) + locking = team-safe. Never hand-edit state; use `import` and `mv`."
+    },
+    {
+     "h": "Drift",
+     "body": "`plan` on a schedule (or `terraform plan -detailed-exitcode` in CI) detects click-ops drift. Import drifted resources or revert them — pick one, document it."
+    },
+    {
+     "h": "Modules & workspaces",
+     "body": "Modules = reusable packages (registry or git). Workspaces or separate dirs per env (dev/stage/prod) — never one state for all envs."
+    },
+    {
+     "h": "Secrets",
+     "body": "Never commit .tfvars with secrets or state files. Use Vault/AWS Secrets Manager/Azure Key Vault via data sources; mark outputs sensitive."
+    }
+   ]
+  },
+  {
+   "title": "AWS + Azure — the dual-cloud map",
+   "blocks": [
+    {
+     "h": "Identity",
+     "body": "AWS IAM: users → groups → roles; policies are JSON allow/deny; always MFA on root, use roles not keys. Azure: Entra ID → RBAC roles on scopes (MG/sub/RG/resource)."
+    },
+    {
+     "h": "Network",
+     "body": "AWS VPC: subnets, route tables, IGW/NAT, security groups (stateful) + NACLs (stateless). Azure VNet: subnets, NSGs, UDRs, Private Link/Private DNS."
+    },
+    {
+     "h": "Compute ladder",
+     "body": "VMs (EC2/Azure VM) → containers (ECS/AKS) → serverless (Lambda/Functions). Right-size before you reserve; autoscale on real metrics."
+    },
+    {
+     "h": "Exam anchors",
+     "body": "SAA-C03: design resilient/architected workloads. SysOps: operate + monitor. DOP-C02: CI/CD at scale. AZ-104: administer Azure. AZ-305: design. AZ-700: network deep-dive."
+    }
+   ]
+  },
+  {
+   "title": "DevOps toolchain — Git to Grafana in one flow",
+   "blocks": [
+    {
+     "h": "The pipeline",
+     "body": "Commit → CI (build, unit test, SAST) → artifact registry → CD to staging (integration/DAST) → prod (canary/blue-green) → observe (metrics, logs, traces)."
+    },
+    {
+     "h": "Quality gates",
+     "body": "Block promotion on: failing tests, critical CVEs, coverage floor, secret scan hits. Gates are policy as code, not meetings."
+    },
+    {
+     "h": "Observability",
+     "body": "Metrics (Prometheus: RED/USE) → dashboards (Grafana) → alerts (Alertmanager). Logs centralized (ELK/Loki). Traces for latency (Tempo/Jaeger)."
+    },
+    {
+     "h": "SRE math",
+     "body": "SLO 99.9% = 43m error budget/month. Burn the budget → freeze features, fix reliability. Blameless postmortems, action items with owners."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -5691,6 +5850,24 @@
    "url": "https://docs.redhat.com/en/documentation/openshift_container_platform/",
    "note": "Cluster admin and developer workflows.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Kubernetes documentation",
+   "url": "https://kubernetes.io/docs/home/",
+   "note": "The CKA/CKAD/CKS reference: concepts, tasks, and API docs.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Google SRE Book",
+   "url": "https://sre.google/books/",
+   "note": "The SRE canon: SLOs, error budgets, toil — free from Google.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "The Twelve-Factor App",
+   "url": "https://12factor.net/",
+   "note": "Methodology for cloud-native apps: config, backing services, disposability.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only: Interstitium Labs confers no certificate and is not affiliated with AWS, Microsoft, HashiCorp, Red Hat, CNCF, or the Linux Foundation. All labs, scenarios, and questions are original practice material — never recalled exam content. Exam codes and versions change: confirm the current objectives on the vendor's site before booking.",
@@ -5968,5 +6145,121 @@
    "gate-terraform-003"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "DevOps",
+   "definition": "Culture + practices unifying development and operations: CI/CD, automation, shared ownership of production."
+  },
+  {
+   "term": "SRE",
+   "definition": "Site Reliability Engineering: applying software engineering to operations — SLOs, error budgets, automation over toil."
+  },
+  {
+   "term": "CI/CD",
+   "definition": "Continuous Integration (merge + test often) and Continuous Delivery/Deployment (automated release pipeline)."
+  },
+  {
+   "term": "Kubernetes",
+   "definition": "Container orchestrator: schedules pods across nodes, self-heals, exposes services, rolls out updates."
+  },
+  {
+   "term": "Pod",
+   "definition": "Smallest Kubernetes unit: one or more containers sharing network and storage, scheduled together."
+  },
+  {
+   "term": "CKA / CKAD / CKS",
+   "definition": "CNCF Kubernetes certs: Administrator (cluster ops), Application Developer (workloads), Security Specialist (hardening)."
+  },
+  {
+   "term": "Terraform",
+   "definition": "Declarative infrastructure-as-code: HCL config → plan → apply, with state tracking real resources."
+  },
+  {
+   "term": "Drift",
+   "definition": "Divergence between IaC-defined state and actual cloud resources (usually from console click-ops)."
+  },
+  {
+   "term": "GitOps",
+   "definition": "Git as the source of truth for infrastructure; agents (Argo CD, Flux) converge clusters to the repo state."
+  },
+  {
+   "term": "Service mesh",
+   "definition": "Dedicated infrastructure layer (Istio, Linkerd) for service-to-service communication: mTLS, retries, observability."
+  },
+  {
+   "term": "SLO",
+   "definition": "Service Level Objective: a target reliability (e.g., 99.9% success) measured by SLIs over a window."
+  },
+  {
+   "term": "Error budget",
+   "definition": "Allowed unreliability (1 − SLO): spend it on feature velocity; exhaust it and freeze for reliability work."
+  },
+  {
+   "term": "Observability",
+   "definition": "Metrics, logs, and traces — the three pillars for understanding production systems."
+  },
+  {
+   "term": "Vault",
+   "definition": "HashiCorp Vault: secrets management — dynamic credentials, encryption-as-a-service, full audit."
+  },
+  {
+   "term": "Consul",
+   "definition": "HashiCorp Consul: service networking — discovery, health checking, and service mesh connect."
+  },
+  {
+   "term": "OpenShift",
+   "definition": "Red Hat's Kubernetes distribution: opinionated builds, routes, and integrated CI/CD (also: OKD upstream)."
+  },
+  {
+   "term": "Landing zone",
+   "definition": "Pre-configured, secure cloud foundation: org structure, IAM baselines, network topology, logging, guardrails."
+  },
+  {
+   "term": "Blue-green / canary",
+   "definition": "Deployment strategies: blue-green swaps full environments; canary shifts a fraction of traffic to the new version first."
+  },
+  {
+   "term": "SAST / DAST",
+   "definition": "Static (code) and Dynamic (running app) Application Security Testing — the pipeline's security gates."
+  },
+  {
+   "term": "Toil",
+   "definition": "Manual, repetitive operational work; SRE caps it (≤50%) and automates the rest."
+  }
+ ],
+ "faq": [
+  {
+   "q": "CKA, CKAD, or CKS first?",
+   "a": "CKA (administer clusters) → CKAD (build on clusters) → CKS (harden clusters). The course sequences modules in exactly that order, since each assumes the previous layer."
+  },
+  {
+   "q": "AWS or Azure — which cloud should I certify in?",
+   "a": "Both tracks are in the course because employers split. If forced to choose one first: pick the cloud your target employers run. The concepts (IAM, VPC/VNet, IaC) transfer; only the console paths differ."
+  },
+  {
+   "q": "Terraform vs CloudFormation/Bicep?",
+   "a": "Terraform is cloud-agnostic and the industry default for multi-cloud; CloudFormation/Bicep are AWS/Azure-native. Learn Terraform deeply, then each native tool is a weekend."
+  },
+  {
+   "q": "How do I practice Kubernetes without spending money?",
+   "a": "kind, k3s, or minikube locally — free. The course's K8s modules are designed for local clusters; cloud only enters for managed-service specifics."
+  },
+  {
+   "q": "What actually is an error budget in practice?",
+   "a": "A number with a policy attached: 99.9% SLO = 43 min/month of allowed failure. While budget remains, ship features; when it's gone, all hands fix reliability. It turns 'move fast vs be stable' from argument into arithmetic."
+  },
+  {
+   "q": "Vault vs cloud-native secret managers?",
+   "a": "Cloud KMS/Secrets Manager are simpler and fine for single-cloud. Vault earns its complexity with dynamic secrets, multi-cloud uniformity, and detailed audit — which is why the course teaches it."
+  },
+  {
+   "q": "Do I need to pass all these certs?",
+   "a": "No — the course maps exam domains to modules so you can *sequence* them over a career. CKA + one cloud associate is the credible entry bundle; the rest are growth rungs."
+  },
+  {
+   "q": "How is this different from IL-28 (DevSecOps bootcamp)?",
+   "a": "IL-05 is the platform/SRE *certification* track (K8s stack, AWS/Azure depth, OpenShift). IL-28 is the production *bootcamp* (Linux → containers → IaC → CI/CD → multicloud, calibrated to a hiring panel). IL-05 assumes IL-04-level systems fluency."
+  }
+ ]
 }

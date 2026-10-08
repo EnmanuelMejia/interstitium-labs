@@ -2059,6 +2059,71 @@
    ],
    "answer": 1,
    "explain": "100/1.10 = 90.91 — discounting."
+  },
+  {
+   "id": "drill-il02-res1",
+   "title": "Percent change",
+   "prompt": "A price rises from $40 to $50. What is the percent increase?",
+   "choices": [
+    "20%",
+    "25%",
+    "80%",
+    "125%"
+   ],
+   "answer": 1,
+   "explain": "(50 − 40)/40 = 10/40 = 0.25 = 25%. The base is the *old* value, $40."
+  },
+  {
+   "id": "drill-il02-res2",
+   "title": "Logarithm rule",
+   "prompt": "Simplify: log(1000) − log(10) (base 10).",
+   "choices": [
+    "log(990)",
+    "2",
+    "3",
+    "100"
+   ],
+   "answer": 1,
+   "explain": "log a − log b = log(a/b) = log(100) = 2."
+  },
+  {
+   "id": "drill-il02-res3",
+   "title": "Quadratic roots",
+   "prompt": "How many real roots does x² + 4x + 5 = 0 have?",
+   "choices": [
+    "Two distinct",
+    "One repeated",
+    "None",
+    "Infinitely many"
+   ],
+   "answer": 2,
+   "explain": "Discriminant b² − 4ac = 16 − 20 = −4 < 0, so no real roots (two complex)."
+  },
+  {
+   "id": "drill-il02-res4",
+   "title": "Bayes intuition",
+   "prompt": "A test is 99% accurate and the condition affects 1 in 1,000 people. You test positive. Roughly, your chance of having the condition is:",
+   "choices": [
+    "About 99%",
+    "About 50%",
+    "About 9%",
+    "About 0.1%"
+   ],
+   "answer": 2,
+   "explain": "Base rate dominates: ~10 true positives per 1,000 vs ~10 false positives → roughly 1 in 2... precisely ≈ 9%. Bayes: P(D|+) = 0.99·0.001/(0.99·0.001 + 0.01·0.999) ≈ 0.09."
+  },
+  {
+   "id": "drill-il02-res5",
+   "title": "Expected value",
+   "prompt": "A game pays $10 with probability 0.3 and $0 otherwise. Its expected value is:",
+   "choices": [
+    "$10",
+    "$3",
+    "$0.30",
+    "$7"
+   ],
+   "answer": 1,
+   "explain": "E = 10 × 0.3 + 0 × 0.7 = $3. Never pay more than $3 to play, absent other utility."
   }
  ],
  "scenarios": [
@@ -2372,6 +2437,114 @@
      "body": "Percent: part=p%×whole · order=net×(1+waste) · 25.4mm=1in · scale: measure×factor"
     }
    ]
+  },
+  {
+   "title": "Arithmetic fluency — the speed layer",
+   "blocks": [
+    {
+     "h": "Fractions",
+     "body": "a/b + c/d = (ad + bc)/bd. Multiply straight across; divide by flipping. Never add denominators."
+    },
+    {
+     "h": "Percents",
+     "body": "x% of y = (x/100)·y. Percent change = (new − old)/old × 100. 'Percent of' is multiplication; 'percent off' is multiplication by (1 − d)."
+    },
+    {
+     "h": "Estimation",
+     "body": "Round to 1 significant figure, compute, then sanity-check magnitude. 47 × 213 ≈ 50 × 200 = 10,000."
+    },
+    {
+     "h": "Order of operations",
+     "body": "Parentheses → exponents → multiplication/division → addition/subtraction. Exponents before unary minus: −3² = −9, (−3)² = 9."
+    },
+    {
+     "h": "Ratios and proportions",
+     "body": "a/b = c/d ⟺ ad = bc (cross-multiply). Unit conversion is multiplication by 1 in disguise: 60 mi/hr × 1.609 = 96.5 km/hr."
+    }
+   ]
+  },
+  {
+   "title": "The spine — algebra through probability in one page",
+   "blocks": [
+    {
+     "h": "Algebra",
+     "body": "Quadratic formula: x = (−b ± √(b²−4ac)) / 2a. Completing the square reveals vertex form. Exponent rules: xᵃ·xᵇ = xᵃ⁺ᵇ, (xᵃ)ᵇ = xᵃᵇ, x⁻ᵃ = 1/xᵃ."
+    },
+    {
+     "h": "Logarithms",
+     "body": "log_b(xy) = log_b x + log_b y; log_b(xᵏ) = k·log_b x; change of base: log_b x = ln x / ln b. Logs turn multiplication into addition."
+    },
+    {
+     "h": "Trigonometry",
+     "body": "sin²θ + cos²θ = 1. Unit circle: angle → (cos, sin). Radians = arc length; π rad = 180°."
+    },
+    {
+     "h": "Calculus (one line each)",
+     "body": "Derivative = instantaneous rate of change; d/dx[xⁿ] = nxⁿ⁻¹. Integral = accumulated area; ∫xⁿ dx = xⁿ⁺¹/(n+1). Fundamental theorem: they undo each other."
+    },
+    {
+     "h": "Discrete",
+     "body": "Induction: base case + step. Combinations C(n,k) = n!/(k!(n−k)!). Pigeonhole: n+1 items in n boxes → a shared box."
+    },
+    {
+     "h": "Linear algebra",
+     "body": "Matrix = linear map. Ax = b solvable ⟺ b in column space. Determinant = volume scaling factor; zero ⟺ singular."
+    },
+    {
+     "h": "Probability",
+     "body": "P(A|B) = P(B|A)P(A)/P(B) (Bayes). E[X+Y] = E[X]+E[Y] always. Variance adds only for independent variables."
+    }
+   ]
+  },
+  {
+   "title": "SQ3R — reading technical material that fights back",
+   "blocks": [
+    {
+     "h": "Survey",
+     "body": "Skim headings, figures, and summaries first. Build the skeleton before the flesh: what is this chapter *for*?"
+    },
+    {
+     "h": "Question",
+     "body": "Turn each heading into a question. 'The chain rule' → 'How do I differentiate a composition, and why does multiplying derivatives work?'"
+    },
+    {
+     "h": "Read",
+     "body": "Read to answer your questions. Mark — don't highlight everything. One margin note per page maximum."
+    },
+    {
+     "h": "Recite",
+     "body": "Close the book. State the answer aloud or on blank paper. If you can't reproduce it, you haven't read it."
+    },
+    {
+     "h": "Review",
+     "body": "Within 24 hours, re-derive the key results from memory. Spaced re-derivation beats re-reading 10-to-1."
+    }
+   ]
+  },
+  {
+   "title": "Time and risk — the quant prerequisites",
+   "blocks": [
+    {
+     "h": "Present value",
+     "body": "PV = FV / (1+r)ᵗ. Money later is worth less; the discount rate r is the price of waiting."
+    },
+    {
+     "h": "Expected value",
+     "body": "E[X] = Σ x·P(x). Price of a gamble = its expectation under the risk-neutral measure; your edge is expectation minus price."
+    },
+    {
+     "h": "Variance and risk",
+     "body": "Var(X) = E[X²] − E[X]². Standard deviation σ is the native unit of risk; returns scale with √t over time."
+    },
+    {
+     "h": "The normal shortcut",
+     "body": "68–95–99.7 rule: ±1σ, ±2σ, ±3σ. Z-score = (x − μ)/σ converts any normal to standard."
+    },
+    {
+     "h": "Stochastic intuition",
+     "body": "A random walk's distance grows like √t, not t. That square-root is why option value and risk both scale sublinearly with time."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -2430,6 +2603,30 @@
    "url": "https://ocw.mit.edu/search/?d=Mathematics",
    "note": "18.01/18.02/18.06 lecture lineage.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "3Blue1Brown — Calculus",
+   "url": "https://www.3blue1brown.com/topics/calculus",
+   "note": "Visual intuition for calculus: the essence-of series.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "BetterExplained",
+   "url": "https://betterexplained.com/",
+   "note": "Intuitive math explanations — why formulas work, not just how.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Project Euler",
+   "url": "https://projecteuler.net/",
+   "note": "Computational math problems that build fluency under effort.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Maths is Fun",
+   "url": "https://www.mathsisfun.com/",
+   "note": "Clear worked examples across the whole spine, arithmetic to calculus.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original practice material only — problems, labs, and questions are authored for this course. Interstitium Labs confers no certificate and is not affiliated with A leading free learning platform, MIT, or any trade organization. The etA/NECA references describe real programs; confirm current requirements with the organizations.",
@@ -2622,5 +2819,113 @@
    "gate-soa-fm"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Mathematical maturity",
+   "definition": "The ability to read, write, and critique mathematical argument fluently — the course's actual target, beyond any single topic."
+  },
+  {
+   "term": "SQ3R",
+   "definition": "Survey, Question, Read, Recite, Review — an active-reading method for technical material."
+  },
+  {
+   "term": "Order of magnitude",
+   "definition": "The power of ten nearest a quantity; estimation works by getting the magnitude right before the digits."
+  },
+  {
+   "term": "Discriminant",
+   "definition": "b² − 4ac for a quadratic: its sign determines whether roots are real-distinct, repeated, or complex."
+  },
+  {
+   "term": "Function",
+   "definition": "A rule assigning each input exactly one output; the central object of the algebra→calculus spine."
+  },
+  {
+   "term": "Composite function",
+   "definition": "f(g(x)): apply g, then f. The chain rule differentiates compositions."
+  },
+  {
+   "term": "Radian",
+   "definition": "Angle measured by arc length on the unit circle; π radians = 180°; the natural unit for calculus."
+  },
+  {
+   "term": "Derivative",
+   "definition": "Instantaneous rate of change; the slope of the tangent line; d/dx[xⁿ] = nxⁿ⁻¹."
+  },
+  {
+   "term": "Integral",
+   "definition": "Accumulated area under a curve; the inverse operation of differentiation (Fundamental Theorem of Calculus)."
+  },
+  {
+   "term": "Mathematical induction",
+   "definition": "Proof by base case plus inductive step: if P(0) and P(k)→P(k+1), then P(n) for all n."
+  },
+  {
+   "term": "Combination",
+   "definition": "C(n,k) = n!/(k!(n−k)!): ways to choose k items from n, order irrelevant."
+  },
+  {
+   "term": "Eigenvalue",
+   "definition": "Scalar λ with Av = λv for nonzero v: the directions a linear map only stretches."
+  },
+  {
+   "term": "Conditional probability",
+   "definition": "P(A|B): probability of A given that B occurred; the basis of Bayes' theorem."
+  },
+  {
+   "term": "Bayes' theorem",
+   "definition": "P(A|B) = P(B|A)P(A)/P(B): updates beliefs with evidence; base rates matter."
+  },
+  {
+   "term": "Expected value",
+   "definition": "Probability-weighted average outcome, E[X] = Σ x·P(x); the fair price of a gamble."
+  },
+  {
+   "term": "Variance",
+   "definition": "E[X²] − E[X]²: spread of a distribution; its square root is the standard deviation."
+  },
+  {
+   "term": "Present value",
+   "definition": "Today's worth of a future payment: PV = FV/(1+r)ᵗ."
+  },
+  {
+   "term": "Stochastic process",
+   "definition": "A system evolving randomly over time (e.g., random walk, Brownian motion); prerequisite language for quant finance."
+  }
+ ],
+ "faq": [
+  {
+   "q": "I'm bad at math. Can this course actually fix that?",
+   "a": "It targets exactly that: arithmetic fluency under time first, then the spine topic by topic. 'Bad at math' is usually 'rusty at arithmetic and never taught to read proofs' — both are trainable, and the course is sequenced for it."
+  },
+  {
+   "q": "Why is there an electrician-apprenticeship module in a math course?",
+   "a": "The etA entrance exam is a concrete, high-stakes applied-math target (trade math: fractions, conduit bends, Ohm's law). It gives the abstract spine a real exam to aim at."
+  },
+  {
+   "q": "Do I need calculus before probability?",
+   "a": "For this course's probability: no. Discrete probability (counting, Bayes, expectation) needs only algebra. Continuous distributions use integrals later, and the course sequences it that way."
+  },
+  {
+   "q": "How much time per day?",
+   "a": "The study guide paces it, but the rule is: 25-minute fluency drills daily (non-negotiable) plus one spine topic block. Fluency is a daily practice, not a weekly event."
+  },
+  {
+   "q": "What's the difference between this and IL-20 (Mathematics)?",
+   "a": "IL-02 is the *engine*: fluency, study method, and the spine at working depth, aimed at trades/quant readiness. IL-20 is the fuller formal treatment (proofs, linear algebra III, multivariable calculus, numerical methods). Take IL-02 first if you're rusty."
+  },
+  {
+   "q": "Why SQ3R instead of just reading?",
+   "a": "Technical text is not narrative — passive reading produces the illusion of understanding. Recite-from-blank-paper is the only honest check, and it's built into the method."
+  },
+  {
+   "q": "Is the quant-finance module enough to get a quant job?",
+   "a": "No — it's explicitly *prerequisites*: stochastic processes and financial math as the on-ramp to the quant ladder (MicroMasters → interviews), not the ladder itself. IL-10's career track continues it."
+  },
+  {
+   "q": "Calculator or no calculator?",
+   "a": "Fluency drills: no calculator, that's the point. Spine topics: calculator allowed once the concept is hand-verified. Exams decide the rest — practice both ways."
+  }
+ ]
 }

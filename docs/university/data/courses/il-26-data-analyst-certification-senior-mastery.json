@@ -21688,6 +21688,71 @@
    ],
    "answer": 1,
    "explain": "Fermi method: break into estimable factors (e.g., 800 analysts × 20 queries = 16,000/day), sanity-check each, report a range. Interviewers grade the decomposition, not the number. (Module 36)"
+  },
+  {
+   "id": "drill-il26-res1",
+   "title": "DENSE_RANK vs ROW_NUMBER",
+   "prompt": "Top 3 products per category by revenue, keeping ties. Outer filter uses:",
+   "choices": [
+    "ROW_NUMBER() <= 3",
+    "RANK() <= 3",
+    "DENSE_RANK() <= 3",
+    "NTILE(3) = 1"
+   ],
+   "answer": 2,
+   "explain": "DENSE_RANK keeps ties without gaps: all tied 3rd-place products survive. ROW_NUMBER breaks ties arbitrarily."
+  },
+  {
+   "id": "drill-il26-res2",
+   "title": "SRM check",
+   "prompt": "Your 50/50 A/B test shows 52/48 split with p < 0.001 on the ratio. You should:",
+   "choices": [
+    "Celebrate the lift",
+    "Stop — sample ratio mismatch indicates broken randomization; fix before trusting anything",
+    "Rebalance manually",
+    "Ignore it"
+   ],
+   "answer": 1,
+   "explain": "SRM = the experiment is broken (bad hashing, bot traffic, instrumentation). No result is trustworthy until it's fixed."
+  },
+  {
+   "id": "drill-il26-res3",
+   "title": "Grain violation",
+   "prompt": "Revenue per order looks 4× too high after joining to line items. Root cause and fix?",
+   "choices": [
+    "Database corruption; restore",
+    "Fan-out: aggregate line items to order grain before joining, or use a subquery",
+    "Use AVG instead of SUM",
+    "Round the numbers"
+   ],
+   "answer": 1,
+   "explain": "One-to-many join replicates order rows. Fix the grain before the SUM — always."
+  },
+  {
+   "id": "drill-il26-res4",
+   "title": "CI vs p-value",
+   "prompt": "A stakeholder asks 'how big is the lift?' Best answer:",
+   "choices": [
+    "p = 0.03",
+    "Point estimate with 95% CI: '+4.2% (95% CI: +1.1% to +7.3%)'",
+    "'Significant'",
+    "The raw counts"
+   ],
+   "answer": 1,
+   "explain": "CIs answer 'how big' with uncertainty; p-values only answer 'is it distinguishable from zero.'"
+  },
+  {
+   "id": "drill-il26-res5",
+   "title": "Dashboard honesty",
+   "prompt": "A KPI dashboard's number changed after a pipeline rerun. First check?",
+   "choices": [
+    "The BI tool's cache",
+    "Pipeline idempotency + data-quality tests: was the rerun deterministic and the source stable?",
+    "The color scheme",
+    "Ask the stakeholder to ignore it"
+   ],
+   "answer": 1,
+   "explain": "Non-idempotent pipelines or shifting sources change history. DQ tests and rerun-determinism are the analyst's trust layer."
   }
  ],
  "scenarios": [
@@ -23232,6 +23297,91 @@
      "lang": "text"
     }
    ]
+  },
+  {
+   "title": "Senior SQL — windows, CTEs, plans",
+   "blocks": [
+    {
+     "h": "Window functions",
+     "code": "ROW_NUMBER() OVER (PARTITION BY cust ORDER BY dt) AS rn\nSUM(amt) OVER (PARTITION BY cust ORDER BY dt\n  ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running",
+     "lang": "sql"
+    },
+    {
+     "h": "Recursive CTEs",
+     "body": "Anchor member UNION ALL recursive member. Hierarchies, BOMs, date spines. Always include a termination guard."
+    },
+    {
+     "h": "Reading EXPLAIN",
+     "body": "Seq scan on large tables = missing index or selectivity lie. Nested loop with big outer = danger. Sort spilling to disk = work_mem or bad estimate. Verify row estimates vs actual."
+    },
+    {
+     "h": "Interview SQL",
+     "body": "Narrate the grain first, write the CTE skeleton, then fill. Test with a tiny example mentally. Correct > clever."
+    }
+   ]
+  },
+  {
+   "title": "Statistics done right — the analyst's kit",
+   "blocks": [
+    {
+     "h": "Distributions",
+     "body": "Normal (CLT), binomial (counts), Poisson (rates), lognormal (skewed money). Plot before you assume."
+    },
+    {
+     "h": "CIs & tests",
+     "body": "CI = estimate ± margin: the honest answer. p-value = P(data|H0). Never confuse statistical with practical significance."
+    },
+    {
+     "h": "Regression",
+     "body": "Check linearity, independence, homoscedasticity, normality of residuals. Correlation ≠ causation — say it, then prove you know what does establish it."
+    },
+    {
+     "h": "A/B design",
+     "body": "Power → MDE → sample size → randomize → no peeking → CIs. SRM check (sample ratio mismatch) first on results."
+    }
+   ]
+  },
+  {
+   "title": "Modeling & pipelines — dbt-style",
+   "blocks": [
+    {
+     "h": "Dimensional modeling",
+     "body": "Facts (measures, FKs) + dimensions (context). Star for BI speed. Grain statement before any modeling."
+    },
+    {
+     "h": "dbt layers",
+     "body": "Staging (source-conformed) → intermediate (cleaned/joined) → marts (business-ready). Tests on every layer."
+    },
+    {
+     "h": "Data quality",
+     "body": "Freshness, completeness, uniqueness, validity, consistency. A dashboard on untested data is a rumor with colors."
+    },
+    {
+     "h": "Orchestration",
+     "body": "Scheduled, retried, backfillable, SLA'd. The pipeline is production — monitor it like production."
+    }
+   ]
+  },
+  {
+   "title": "The senior bar — Palantir & BNY Mellon",
+   "blocks": [
+    {
+     "h": "SQL under pressure",
+     "body": "Window functions, CTEs, and plan-reading live, narrated. Speed comes from pattern recognition, not typing."
+    },
+    {
+     "h": "Probability & product sense",
+     "body": "Bayes for base rates, expected value for decisions, and 'what would change the decision?' — the senior questions."
+    },
+    {
+     "h": "Communication",
+     "body": "Insight → evidence → implication → recommendation. Stakeholder-grade clarity with technical depth on demand."
+    },
+    {
+     "h": "Portfolio proof",
+     "body": "7 projects: each with a real question, real data, honest methods, and a write-up. GitHub + dashboards + capstone."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -23320,6 +23470,30 @@
    "url": "https://www.postgresql.org/docs/",
    "note": "SQL reference. No affiliation; link only.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "PostgreSQL Tutorial",
+   "url": "https://www.postgresql.org/docs/current/tutorial.html",
+   "note": "Hands-on SQL tutorial for the senior-SQL modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "pandas Cheat Sheet (PDF)",
+   "url": "https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf",
+   "note": "One-page pandas reference for the analysis modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "SQLite SELECT reference",
+   "url": "https://www.sqlite.org/lang_select.html",
+   "note": "Portable SQL reference for interview-speed practice.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Seeing Theory",
+   "url": "https://seeing-theory.brown.edu/",
+   "note": "Visual statistics for the distributions/CIs/hypothesis-testing spine.",
+   "retrieved": "2026-10-08"
   }
  ],
  "toolLabs": [
@@ -32808,5 +32982,97 @@
   },
   "timeFormula": "estimatedMinutes per module = weight x 120 + notes x 12 + cards x 4 + quiz x 8 + drill items x 4 + handsOnLab 90 + tool labs x 150 + install-lab minutes + targeted video time (50% of runtime, capped at 180 min/module). Course total = sum of module estimates = 24270 minutes (~404 hours)."
  },
- "dossierUrl": "il-26-dossier.html"
+ "dossierUrl": "il-26-dossier.html",
+ "glossary": [
+  {
+   "term": "Grain",
+   "definition": "What one row represents — the foundation of correct aggregation and modeling."
+  },
+  {
+   "term": "Window function",
+   "definition": "ROW_NUMBER/RANK/LAG/running aggregates computed across related rows without collapsing them."
+  },
+  {
+   "term": "Recursive CTE",
+   "definition": "WITH RECURSIVE: anchor + recursive member for hierarchies and sequences."
+  },
+  {
+   "term": "Execution plan",
+   "definition": "The database's chosen strategy (EXPLAIN): scans, joins, sorts — read it before tuning."
+  },
+  {
+   "term": "Star schema",
+   "definition": "Central fact table with denormalized dimensions: the BI query pattern."
+  },
+  {
+   "term": "SCD Type 2",
+   "definition": "Versioned dimension history: new row per change with effective dates."
+  },
+  {
+   "term": "dbt",
+   "definition": "SQL-first transformations with tests, docs, and lineage."
+  },
+  {
+   "term": "Data quality",
+   "definition": "Freshness, completeness, uniqueness, validity, consistency — tested continuously."
+  },
+  {
+   "term": "Confidence interval",
+   "definition": "Plausible range for an estimate: the honest answer to 'how big?'"
+  },
+  {
+   "term": "p-value",
+   "definition": "P(data this extreme | H0) — not P(H0 | data), not effect size."
+  },
+  {
+   "term": "Power / MDE",
+   "definition": "Power: chance of detecting a real effect. MDE: smallest effect worth detecting."
+  },
+  {
+   "term": "Peeking",
+   "definition": "Early stopping at significance: inflates false positives."
+  },
+  {
+   "term": "SRM",
+   "definition": "Sample Ratio Mismatch: randomization check that invalidates the experiment if failed."
+  },
+  {
+   "term": "Bayes' theorem",
+   "definition": "P(A|B) = P(B|A)P(A)/P(B): base-rate-correct inference."
+  },
+  {
+   "term": "Dashboard",
+   "definition": "Decision surface: one message per visual, insight → implication → recommendation."
+  },
+  {
+   "term": "Stakeholder",
+   "definition": "The decision-maker your analysis serves: clarity for them beats cleverness for you."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Which of the seven certifications should I take first?",
+   "a": "Google Data Analytics for foundations, then PL-300 (Power BI) or Tableau by your target employers' stack. The course maps each exam's domains to modules so you study once."
+  },
+  {
+   "q": "How do I reach the 'senior bar' at Palantir/BNY?",
+   "a": "Interview-grade SQL under pressure (windows, CTEs, plans narrated live), probability + product sense, and stakeholder communication — plus the 7-project portfolio as proof. The readiness dashboard tracks each axis."
+  },
+  {
+   "q": "What makes a portfolio project 'undeniable'?",
+   "a": "A real business question, real (or realistic) data, honest methods with limits stated, and a write-up a hiring manager can skim in 3 minutes. The capstone module enforces this bar."
+  },
+  {
+   "q": "SQL or Python — where should my hours go?",
+   "a": "SQL first (it's the interview filter and the daily tool), then Python for analysis automation. BI tool depth follows your target stack. The study guide sequences this."
+  },
+  {
+   "q": "How do I avoid the classic analyst traps?",
+   "a": "Grain discipline (fan-out), CIs over p-values, no peeking in experiments, and DQ tests before dashboards. The drills rehearse each trap until the reflex is automatic."
+  },
+  {
+   "q": "Is this course enough for a senior title directly?",
+   "a": "It calibrates you to the senior *hiring bar* — the interview performance and portfolio. Titles also reflect years and scope; the course is honest that it builds the capability, and you earn the scope."
+  }
+ ]
 }

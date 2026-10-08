@@ -10001,6 +10001,71 @@
    ],
    "answer": 1,
    "explain": "Frequentist intervals describe the method’s long-run coverage, not a probability about this interval."
+  },
+  {
+   "id": "drill-il15-res1",
+   "title": "Top-N per group",
+   "prompt": "Top 3 salaries per department, keeping ties. Which window function in the filter?",
+   "choices": [
+    "ROW_NUMBER()",
+    "RANK()",
+    "DENSE_RANK()",
+    "NTILE(3)"
+   ],
+   "answer": 2,
+   "explain": "DENSE_RANK keeps ties without gaps: tied 3rd-place rows all survive. RANK would skip numbers; ROW_NUMBER breaks ties arbitrarily."
+  },
+  {
+   "id": "drill-il15-res2",
+   "title": "Peeking",
+   "prompt": "You check your A/B test daily and stop when p < 0.05. The problem:",
+   "choices": [
+    "None — faster decisions are better",
+    "Peeking inflates the false-positive rate far above 5%",
+    "It wastes compute",
+    "Winners can't be trusted ever"
+   ],
+   "answer": 1,
+   "explain": "Repeated testing multiplies false-positive chances. Pre-commit sample size or use sequential methods."
+  },
+  {
+   "id": "drill-il15-res3",
+   "title": "SCD Type 2",
+   "prompt": "A customer's address changes and you must preserve history for reporting. Model it with:",
+   "choices": [
+    "Overwrite the row (Type 1)",
+    "New row with effective dates + current flag (Type 2)",
+    "Delete old rows",
+    "A separate database"
+   ],
+   "answer": 1,
+   "explain": "Type 2 SCD versions the dimension: each change is a new row, history queryable by date."
+  },
+  {
+   "id": "drill-il15-res4",
+   "title": "pandas merge",
+   "prompt": "df.merge(other, on='id', how='left') unexpectedly doubles rows. Likely cause?",
+   "choices": [
+    "pandas bug",
+    "Duplicate keys in `other` — fan-out on merge",
+    "Wrong column name",
+    "Missing values"
+   ],
+   "answer": 1,
+   "explain": "Many-to-many key matches multiply rows. Validate key uniqueness (validate='m:1') before merging."
+  },
+  {
+   "id": "drill-il15-res5",
+   "title": "Metric choice",
+   "prompt": "Checkout conversion A/B test: which analysis is most honest?",
+   "choices": [
+    "p-value only",
+    "Effect size with confidence interval, pre-registered metric, run to planned sample",
+    "Pick the best of 20 metrics",
+    "Stop at first significance"
+   ],
+   "answer": 1,
+   "explain": "Pre-registration + full run + CIs: the peeking/multiplicity-safe package interviewers want to hear."
   }
  ],
  "scenarios": [
@@ -10568,6 +10633,99 @@
      "body": "Grain first, then star schema; SCD Type 2 when history matters; bronze → silver → gold with contracts between layers; dbt tests on every model."
     }
    ]
+  },
+  {
+   "title": "Advanced SQL — the interview arsenal",
+   "blocks": [
+    {
+     "h": "Window functions",
+     "code": "RANK() OVER (PARTITION BY dept ORDER BY salary DESC)\nLAG(revenue) OVER (ORDER BY month)\nSUM(x) OVER (ORDER BY dt ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)",
+     "lang": "sql"
+    },
+    {
+     "h": "Top-N per group",
+     "body": "ROW_NUMBER() in a subquery + WHERE rn <= N. DENSE_RANK keeps ties; ROW_NUMBER never ties."
+    },
+    {
+     "h": "Gaps & islands",
+     "body": "Subtract ROW_NUMBER() from the date to find contiguous ranges — the classic 'consecutive login days' pattern."
+    },
+    {
+     "h": "Pivoting",
+     "body": "Conditional aggregation: SUM(CASE WHEN ... THEN 1 END). Portable across dialects."
+    },
+    {
+     "h": "Performance talk",
+     "body": "EXPLAIN the plan: seq scan vs index, nested loop vs hash join, sort spills. 'It depends on the data distribution' is an acceptable start, then reason."
+    }
+   ]
+  },
+  {
+   "title": "Pipeline design — batch & streaming answers",
+   "blocks": [
+    {
+     "h": "Batch",
+     "body": "CDC/snapshot → validate → dbt transform → warehouse → DQ tests → marts. Idempotent, backfillable, SLA'd."
+    },
+    {
+     "h": "Streaming",
+     "body": "Kafka → Flink/Spark → sink. Exactly-once = idempotent sink + transactional offsets. Watermarks handle late data."
+    },
+    {
+     "h": "Idempotency",
+     "body": "Same input → same output on rerun. Merge/upsert keys, not append-only hope."
+    },
+    {
+     "h": "DQ gates",
+     "body": "Freshness, row counts, null rates, distribution checks. Great Expectations / dbt tests in the pipeline, not after."
+    }
+   ]
+  },
+  {
+   "title": "Stats & A/B testing — the honesty kit",
+   "blocks": [
+    {
+     "h": "Distributions",
+     "body": "Normal (CLT-backed), binomial (counts), Poisson (rates). Know when each applies."
+    },
+    {
+     "h": "Hypothesis testing",
+     "body": "H0 vs H1, p-value = P(data|H0), α = 0.05 convention. p-hacking = testing until green."
+    },
+    {
+     "h": "A/B design",
+     "body": "Power analysis → MDE → sample size → randomize → run to completion (no peeking) → analyze with CIs, not just p-values."
+    },
+    {
+     "h": "Peeking & multiplicity",
+     "body": "Checking early inflates false positives; testing 20 metrics guarantees a 'winner'. Pre-register metrics; correct (Bonferroni/Holm) or sequential methods."
+    },
+    {
+     "h": "Bayes for interviews",
+     "body": "P(A|B) = P(B|A)P(A)/P(B). Base rates dominate rare-event inference."
+    }
+   ]
+  },
+  {
+   "title": "Warehousing & storytelling",
+   "blocks": [
+    {
+     "h": "Star vs snowflake",
+     "body": "Star: denormalized dims, fewer joins, BI-fast. Snowflake: normalized, storage-efficient, join-heavy. Grain: one row = one fact."
+    },
+    {
+     "h": "SCD Type 2",
+     "body": "New row per change with effective dates + current flag. History preserved; queries filter on current."
+    },
+    {
+     "h": "dbt",
+     "body": "SQL transforms as code: models, tests, docs, lineage. Staging → intermediate → marts."
+    },
+    {
+     "h": "The story",
+     "body": "Insight → evidence → implication → recommendation. One message per chart. Business judgment is the scored skill."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -10744,6 +10902,24 @@
    "url": "https://mlflow.org/docs/latest/",
    "retrieved": "2026-10-07",
    "note": "Experiment tracking and model management: how interview answers about 'MLOps' stay concrete."
+  },
+  {
+   "name": "PostgreSQL SELECT reference",
+   "url": "https://www.postgresql.org/docs/current/sql-select.html",
+   "note": "Window functions, CTEs, and query syntax — the authoritative page.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "PostgreSQL documentation",
+   "url": "https://www.postgresql.org/docs/current/",
+   "note": "Full reference for the advanced-SQL modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Intro to Statistical Learning",
+   "url": "https://www.statlearning.com/",
+   "note": "Free textbook: regression, classification, resampling — the stats spine.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal.",
@@ -10990,5 +11166,97 @@
    "gate-databricks-de"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Grain",
+   "definition": "What one row means (one order-line, one session). The foundation of correct aggregation."
+  },
+  {
+   "term": "Fan-out",
+   "definition": "Row multiplication from one-to-many joins — the silent SUM-inflator."
+  },
+  {
+   "term": "CTE",
+   "definition": "WITH-clause named subquery: readable, testable SQL structure."
+  },
+  {
+   "term": "Window function",
+   "definition": "Row-preserving analytics: ROW_NUMBER, RANK, LAG/LEAD, running aggregates."
+  },
+  {
+   "term": "Gaps and islands",
+   "definition": "Finding contiguous ranges in sequences (login streaks) via date − row_number grouping."
+  },
+  {
+   "term": "Idempotent",
+   "definition": "Rerunnable pipelines producing identical results — merge keys, not blind appends."
+  },
+  {
+   "term": "Watermark",
+   "definition": "Streaming threshold for how late data may arrive before being considered too late."
+  },
+  {
+   "term": "Star schema",
+   "definition": "Central fact table + denormalized dimensions: the BI query pattern."
+  },
+  {
+   "term": "SCD",
+   "definition": "Slowly Changing Dimension: Type 1 overwrite, Type 2 versioned history, Type 3 limited history."
+  },
+  {
+   "term": "dbt",
+   "definition": "SQL-first transformation with tests/docs/lineage: the modern T in ELT."
+  },
+  {
+   "term": "Power",
+   "definition": "Probability of detecting a real effect (1 − β); set by sample size and MDE."
+  },
+  {
+   "term": "MDE",
+   "definition": "Minimum Detectable Effect: the smallest lift worth detecting — drives sample size."
+  },
+  {
+   "term": "Peeking",
+   "definition": "Checking results early and stopping at significance: inflates false positives."
+  },
+  {
+   "term": "Confidence interval",
+   "definition": "Range of plausible effect sizes; more informative than a bare p-value."
+  },
+  {
+   "term": "pandas",
+   "definition": "Python's DataFrame library: groupby, merges, reshaping — the analysis workhorse."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Window functions vs GROUP BY — when?",
+   "a": "GROUP BY collapses rows; window functions compute across rows while keeping them. Top-N per group, running totals, period-over-period: windows. Simple totals: GROUP BY."
+  },
+  {
+   "q": "How do I talk about query performance in interviews?",
+   "a": "Read EXPLAIN: join order, access methods, sort spills. Then reason about data distribution and indexes — interviewers want the reasoning, not memorized hints."
+  },
+  {
+   "q": "Batch or streaming for the pipeline design question?",
+   "a": "Ask about latency requirements first. Then present both with tradeoffs: batch = simpler/cheaper; streaming = complex/costly. Choosing with reasons scores more than picking one."
+  },
+  {
+   "q": "What's the single most common A/B testing mistake?",
+   "a": "Peeking — stopping early at significance. Pre-register the metric and sample size, run to completion, report CIs."
+  },
+  {
+   "q": "pandas or SQL for the analysis portion?",
+   "a": "Both appear. SQL for set operations at scale; pandas for exploration and features. The course drills the handoff between them."
+  },
+  {
+   "q": "How deep does the ML portion go?",
+   "a": "Interview depth: framing, leakage, metrics, overfitting, and ML system design — not research. Enough to survive 'design a churn model' end to end."
+  },
+  {
+   "q": "Star or snowflake — is there a right answer?",
+   "a": "Star for BI query speed, snowflake for normalized storage — defend with the access pattern. Then discuss SCD handling and grain, which is where the real points are."
+  }
+ ]
 }

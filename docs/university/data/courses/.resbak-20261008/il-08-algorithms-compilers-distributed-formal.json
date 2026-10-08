@@ -1,0 +1,2183 @@
+{
+ "schemaVersion": "1.0",
+ "courseId": "il-08-algorithms-compilers-distributed-formal",
+ "code": "IL-08",
+ "title": "Algorithms, Compilers, Distributed & Formal",
+ "tagline": "The deep core, in order — MIT, CMU, and Stanford distilled to their load-bearing ideas.",
+ "blurb": "IL-08 is the deep-core academy: MIT's 6-3 curriculum distilled (6.100 Python, 6.1200 discrete math, 6.1210/1220 algorithms, 6.1910 computation structures, 6.1800/1810 systems, theory through complexity), CMU's systems-and-theory spine (imperative/functional core, 15-210/213, 15-251/451, 15-440/445/410, AI breadth), and Stanford's core cross-walk (106A/B, 103/109, 107/111, 161, depth branches). For the learner who wants the ground truth beneath the frameworks — proofs, systems, and theory that don't expire.",
+ "hours": 29,
+ "updatedAt": "2026-10-08",
+ "certifications": [
+  {
+   "name": "No vendor certification — degree-curriculum reference layer",
+   "issuer": "N/A",
+   "trackCoverage": "All modules: prepares for graduate study, research, and interviews at the theory/systems depth; maps to MIT 6-3, CMU SCS, and Stanford CS core sequences.",
+   "note": "These are university curricula, not certifications. The credential here is understanding."
+  }
+ ],
+ "objectives": [
+  "Prove: induction, contradiction, invariants — the mathematician's toolkit for CS.",
+  "Analyze algorithms: asymptotics, divide-and-conquer, DP, graphs, NP-completeness.",
+  "Build systems: from gates to processors, C to kernels, single-node to distributed.",
+  "Reason about concurrency, databases, and operating systems at the implementation level."
+ ],
+ "arc": [
+  {
+   "phase": "Phase 1",
+   "title": "The mathematical core",
+   "body": "Proofs, discrete structures, probability — the language every other module speaks. 6.1200/CS103/15-251 in prerequisite order; no algorithms without induction."
+  },
+  {
+   "phase": "Phase 2",
+   "title": "Algorithms and structures",
+   "body": "Design and analysis across all three schools: the same canon (sorting, graphs, DP, complexity) taught three ways. Lower bounds and NP-completeness close the arc — know what can't be done."
+  },
+  {
+   "phase": "Phase 3",
+   "title": "The machine, in full",
+   "body": "Computation structures, computer systems, OS design, distributed systems, databases — from gates to planet-scale. The ground truth beneath every framework."
+  }
+ ],
+ "priorities": [
+  {
+   "label": "Proofs + discrete math fluency",
+   "minutes": 140
+  },
+  {
+   "label": "Algorithms canon: design + analysis",
+   "minutes": 200
+  },
+  {
+   "label": "Systems: organization → OS → distributed",
+   "minutes": 180
+  },
+  {
+   "label": "Theory: automata → complexity",
+   "minutes": 120
+  },
+  {
+   "label": "Discrete Math: Sets, Counting & Induction",
+   "minutes": 345
+  },
+  {
+   "label": "Logic & Boolean Algebra",
+   "minutes": 345
+  }
+ ],
+ "battlePlan": [
+  {
+   "id": "bp-math",
+   "title": "Learn to prove",
+   "minutes": 120,
+   "detail": "Module 1 (6.1200) + CS103/15-251: induction, invariants, combinatorics, probability. Prove everything — the problem sets are the course."
+  },
+  {
+   "id": "bp-algo",
+   "title": "Master the canon",
+   "minutes": 200,
+   "detail": "Sorting, hashing, graphs, DP, greedy, randomization, lower bounds, NP-completeness. Implement + analyze each."
+  },
+  {
+   "id": "bp-structures",
+   "title": "Build the machine",
+   "minutes": 160,
+   "detail": "6.1910/CS107/15-213: gates → processor → assembly → C → caches/VM. The labs are simulators and C."
+  },
+  {
+   "id": "bp-systems",
+   "title": "Run the systems",
+   "minutes": 160,
+   "detail": "6.1800/1810, 15-410/440/445, CS111/144/145: OS design, distributed systems, databases — papers + projects."
+  },
+  {
+   "id": "bp-theory",
+   "title": "Face complexity",
+   "minutes": 100,
+   "detail": "Automata, Turing machines, P/NP, reductions. The limits of computation, stated precisely."
+  },
+  {
+   "id": "bp-labs",
+   "title": "Complete the script labs",
+   "minutes": 120,
+   "detail": "All Labs-tab exercises — proofs, implementations, simulations — from the starter."
+  },
+  {
+   "id": "bp-papers",
+   "title": "Read three papers",
+   "minutes": 90,
+   "detail": "One systems, one theory, one ML — problem/insight/trade-off, one paragraph each."
+  },
+  {
+   "id": "bp-mock",
+   "title": "Sit the mock circuit",
+   "minutes": 120,
+   "detail": "Full mock under the timer until best ≥ 80."
+  },
+  {
+   "id": "il-08-algorithms-compilers-distributed-formal-math-discrete",
+   "title": "Discrete Math: Sets, Counting & Induction",
+   "minutes": 345,
+   "detail": "Prerequisite math — complete before the technical modules."
+  },
+  {
+   "id": "il-08-algorithms-compilers-distributed-formal-math-logic",
+   "title": "Logic & Boolean Algebra",
+   "minutes": 345,
+   "detail": "Prerequisite math — complete before the technical modules."
+  }
+ ],
+ "modules": [
+  {
+   "cards": [
+    {
+     "front": "C(10,3) = ?",
+     "back": "**120** — 10!/(3!·7!)."
+    },
+    {
+     "front": "P(10,3) = ?",
+     "back": "**720** — ordered selections."
+    },
+    {
+     "front": "Inclusion–exclusion for two sets?",
+     "back": "|A∪B| = |A|+|B|−|A∩B|."
+    },
+    {
+     "front": "Pigeonhole: 13 items, 12 boxes?",
+     "back": "Some box has ≥ **2** items."
+    },
+    {
+     "front": "Sum 1..100?",
+     "back": "100·101/2 = **5050**."
+    },
+    {
+     "front": "T(n)=2T(n/2)+n solves to?",
+     "back": "Θ(n log n) — log2(n) levels × n work per level."
+    },
+    {
+     "front": "C(n,k) = C(n,?)",
+     "back": "C(n,n−k) — symmetry of choose."
+    },
+    {
+     "front": "Two steps of induction?",
+     "back": "Base case P(1); inductive step P(k)→P(k+1)."
+    },
+    {
+     "front": "Product rule?",
+     "back": "a choices then b choices → a×b combined outcomes."
+    },
+    {
+     "front": "When do you use combinations vs permutations?",
+     "back": "Combinations: order irrelevant. Permutations: order matters."
+    },
+    {
+     "front": "2^10 = ?",
+     "back": "**1024** — memorize powers of two to 2^16."
+    },
+    {
+     "front": "What does a recurrence's base case give you?",
+     "back": "The termination cost that anchors the unfolding."
+    }
+   ],
+   "code": "IL-08",
+   "crossLinks": [],
+   "drills": [
+    {
+     "title": "Counting reps",
+     "items": [
+      {
+       "prompt": "C(8,2) = ?",
+       "answer": "28",
+       "explain": "8!/(2!·6!) = 28."
+      },
+      {
+       "prompt": "P(8,2) = ?",
+       "answer": "56",
+       "explain": "8·7 = 56 ordered pairs."
+      },
+      {
+       "prompt": "Binary strings of length 5?",
+       "answer": "32",
+       "explain": "Product rule: 2^5 = 32."
+      },
+      {
+       "prompt": "Anagrams of ABC (distinct letters)?",
+       "answer": "6",
+       "explain": "3! = 6 permutations."
+      }
+     ],
+     "id": "il-08-algorithms-compilers-distributed-formal-math-discrete--drill-1"
+    },
+    {
+     "title": "Proof reps",
+     "items": [
+      {
+       "prompt": "State the inductive step for S(n)=n(n+1)/2.",
+       "answer": "Assume S(k)=k(k+1)/2; show S(k+1)=(k+1)(k+2)/2",
+       "explain": "Add (k+1) to both sides and factor."
+      },
+      {
+       "prompt": "Unfold T(n)=2T(n/2)+n twice from T(n).",
+       "answer": "4T(n/4)+2n",
+       "explain": "T(n)=2[2T(n/4)+n/2]+n = 4T(n/4)+2n."
+      },
+      {
+       "prompt": "Why does 2^n count truth-table rows?",
+       "answer": "Product rule: 2 choices per variable, n variables",
+       "explain": "Each of n variables independently T/F."
+      },
+      {
+       "prompt": "Pigeonhole: 10 socks, 3 colors. Guaranteed pair?",
+       "answer": "Yes — 4 of one color",
+       "explain": "⌈10/3⌉=4 share a color; a pair needs only 2."
+      }
+     ],
+     "id": "il-08-algorithms-compilers-distributed-formal-math-discrete--drill-2"
+    }
+   ],
+   "estimatedMinutes": 345,
+   "handsOnLab": {
+    "title": "Verify counting identities in Python",
+    "brief": "You will verify every identity in this module computationally — combinations, inclusion–exclusion, induction's closed form, and the recurrence — using Python's math module and brute force.",
+    "steps": [
+     "Verify math.comb(10,3)==120 and math.perm(10,3)==720; assert C(n,k)==C(n,n-k) for several (n,k).",
+     "Build sets A,B as Python sets; assert len(A|B) == len(A)+len(B)-len(A&B).",
+     "Verify sum(range(1,101)) == 100*101//2.",
+     "Implement T(n) recursively for T(n)=2T(n/2)+n; assert T(1024) == 1024*10+1024.",
+     "Brute-force: enumerate all 2^5 binary strings with itertools.product and count those with exactly two 1s; compare to C(5,2).",
+     "Write a short report: each identity, the Python check, and the verdict."
+    ],
+    "deliverable": "counting_check.py with asserts plus the verdict report.",
+    "checkpoint": "Every assert passes; the brute-force count equals C(5,2).",
+    "id": "il-08-algorithms-compilers-distributed-formal-math-discrete--lab"
+   },
+   "id": "il-08-algorithms-compilers-distributed-formal-math-discrete",
+   "mockTask": {
+    "q": "If C(12,4) = 495, what is C(12,8)?",
+    "choices": [
+     "495",
+     "990",
+     "4",
+     "19958400"
+    ],
+    "answer": 0,
+    "explain": "Symmetry: C(12,8) = C(12,4) = 495.",
+    "id": "il-08-algorithms-compilers-distributed-formal-math-discrete--mock",
+    "type": "choice"
+   },
+   "notes": [
+    {
+     "title": "Sets and the inclusion–exclusion principle",
+     "body": "For finite sets, |A ∪ B| = |A| + |B| − |A ∩ B|: adding both counts double-counts the overlap. Worked example: A=[1, 2, 3, 4, 5], B=[4, 5, 6, 7]. |A|=5, |B|=4, A∩B=[4, 5] so |A∩B|=2. Then |A∪B| = 5+4−2 = **7**, and indeed A∪B=[1, 2, 3, 4, 5, 6, 7] has **7** elements. The formula and the enumeration agree. Use it whenever two counted groups overlap — double-counting is the classic off-by-error in combinatorics."
+    },
+    {
+     "title": "Counting: product and sum rules",
+     "body": "Product rule: if a task has a choices for step 1 and b for step 2, there are a×b combined outcomes. Sum rule: for disjoint alternatives, add. Worked example: a password of 2 letters then 3 digits. Letters: 26^2 = 676; digits: 10^3 = 1000; total = 676,000 by the product rule. Worked example 2: an identifier is either a 3-letter code or a 4-digit code: 26^3 + 10^4 = 27,576 by the sum rule (disjoint cases). Name the rule before computing — most counting errors are rule-selection errors, not arithmetic."
+    },
+    {
+     "title": "Permutations and combinations, computed",
+     "body": "Ordered selections: P(n,k) = n!/(n−k)!. Unordered: C(n,k) = n!/(k!(n−k)!). Worked example: choose a 3-person committee from 10 people. C(10,3) = 10!/(3!·7!) = **120**. If the 3 roles are distinct (ordered), P(10,3) = **720**. Sanity check: C(n,k) = C(n,n−k); here C(10,3) = C(10,7) = 120 — both computed, both equal. Ask 'does order matter?' first: committees no, passwords yes. This module is the toolkit for the entire course: proofs, counting, recurrences."
+    },
+    {
+     "title": "The pigeonhole principle",
+     "body": "If 13 items go into 12 boxes, some box holds at least ⌈13/12⌉ = **2** items. Worked example: among 13 people, at least two share a birth month (12 months). Proof by contradiction: if every month had at most one, there would be at most 12 people — contradiction. This 'obvious' principle proves real things: hash collisions are unavoidable when items exceed slots, and any lossless compression scheme fails on some input. Existence proofs without construction are a core discrete-math move."
+    },
+    {
+     "title": "Induction, with a verified example",
+     "body": "To prove P(n) for all n ≥ 1: prove P(1) (base), then prove P(k) → P(k+1) (step). Worked example: S(n) = 1+2+…+n = n(n+1)/2. Base: S(1) = 1 = 1·2/2 ✓. Step: assume S(k)=k(k+1)/2; then S(k+1) = k(k+1)/2 + (k+1) = (k+1)(k+2)/2 ✓. Numerical verification: for n=100, formula gives 100·101/2 = **5050**, and direct summation gives **5050** — equal. Induction is how you prove loop correctness and closed forms: state the invariant, base, and step explicitly."
+    },
+    {
+     "title": "Recurrences and divide-and-conquer cost",
+     "body": "Worked example: T(n) = 2T(n/2) + n with T(1) = 1 (the mergesort shape). Unfold: each level does n work across twice as many subproblems; there are log2(n) levels. Closed form: T(n) = n·log2(n) + n. Verification at n=1024: recursion computes **11264**, closed form gives 1024·10+1024 = **11264** — exact match. This is where n log n comes from, not from memorization: count the levels, multiply by work per level. Every divide-and-conquer analysis in this course follows this template."
+    }
+   ],
+   "objectives": [
+    "Apply inclusion–exclusion to overlapping counts.",
+    "Choose correctly between permutations and combinations and compute both.",
+    "Prove closed forms by induction with explicit base and step.",
+    "Solve divide-and-conquer recurrences by unfolding to closed form."
+   ],
+   "prerequisiteFor": [
+    "il08-mit-63",
+    "il08-cmu-cs",
+    "il08-stanford-cs"
+   ],
+   "quiz": [
+    {
+     "q": "How many 3-person committees from 10 people?",
+     "choices": [
+      "1000",
+      "120",
+      "720",
+      "30"
+     ],
+     "answer": 1,
+     "explain": "C(10,3) = 10!/(3!·7!) = 120."
+    },
+    {
+     "q": "A= {1,2,3,4,5}, B={4,5,6,7}. |A ∪ B|?",
+     "choices": [
+      "9",
+      "2",
+      "7",
+      "5"
+     ],
+     "answer": 2,
+     "explain": "Inclusion–exclusion: 5+4−2 = 7."
+    },
+    {
+     "q": "Passwords: 2 letters then 3 digits. Total?",
+     "choices": [
+      "11,881,376",
+      "676,000",
+      "60,466,176",
+      "90,000"
+     ],
+     "answer": 1,
+     "explain": "Product rule: 26^2 × 10^3 = 676,000."
+    },
+    {
+     "q": "Induction proves P(n) for all n≥1 by:",
+     "choices": [
+      "Assuming P(n) for all n",
+      "Proving P(100)",
+      "Two base cases only",
+      "Base P(1) plus step P(k)→P(k+1)"
+     ],
+     "answer": 3,
+     "explain": "Base anchors; the step climbs the ladder."
+    },
+    {
+     "q": "T(n) = 2T(n/2) + n is:",
+     "choices": [
+      "Θ(n²)",
+      "Θ(n)",
+      "Θ(n log n)",
+      "Θ(2^n)"
+     ],
+     "answer": 2,
+     "explain": "Verified: T(1024) = 11264 = 1024·10 + 1024."
+    },
+    {
+     "q": "Pigeonhole: 367 people guarantee:",
+     "choices": [
+      "366 pairs",
+      "Three share a month",
+      "All birthdays distinct",
+      "Two share a birthday"
+     ],
+     "answer": 3,
+     "explain": "366 day-slots (incl. leap day); 367 forces a collision."
+    },
+    {
+     "q": "P(10,3) vs C(10,3): ratio?",
+     "choices": [
+      "10",
+      "1",
+      "3",
+      "6"
+     ],
+     "answer": 3,
+     "explain": "P(10,3)/C(10,3) = 720/120 = 6 = 3!."
+    },
+    {
+     "q": "Sum rule applies when alternatives are:",
+     "choices": [
+      "Large",
+      "Independent",
+      "Disjoint",
+      "Ordered"
+     ],
+     "answer": 2,
+     "explain": "Add counts only for non-overlapping cases."
+    },
+    {
+     "q": "C(10,7) equals:",
+     "choices": [
+      "70",
+      "604800",
+      "121",
+      "120"
+     ],
+     "answer": 3,
+     "explain": "Symmetry: C(10,7) = C(10,3) = 120."
+    },
+    {
+     "q": "Closed form S(n)=n(n+1)/2 at n=1000?",
+     "choices": [
+      "50500",
+      "1001000",
+      "500500",
+      "None of the above"
+     ],
+     "answer": 2,
+     "explain": "1000·1001/2 = 500,500."
+    }
+   ],
+   "summary": "Sets, combinatorics, the pigeonhole principle, induction, and recurrences — the mathematics of counting and of proving algorithms correct.",
+   "title": "Discrete Math: Sets, Counting & Induction",
+   "videos": [
+    {
+     "title": "Intro to Discrete Math - Welcome to the Course!",
+     "url": "https://www.youtube.com/watch?v=rdXw7Ps9vxc",
+     "source": "Dr. Trefor Bazett (YouTube)",
+     "blurb": "Dr. Trefor Bazett's discrete math course opener — sets, logic, counting and induction as the foundation for this module's proof work.",
+     "durationMin": 10,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T21:21:34Z",
+     "httpStatus": 200
+    }
+   ],
+   "weight": 1
+  },
+  {
+   "cards": [
+    {
+     "front": "How many rows in a truth table with 4 variables?",
+     "back": "2^4 = **16** rows — one per assignment."
+    },
+    {
+     "front": "State De Morgan's law for AND.",
+     "back": "NOT (p AND q) = (NOT p) OR (NOT q) — verified on all 4 rows."
+    },
+    {
+     "front": "State De Morgan's law for OR.",
+     "back": "NOT (p OR q) = (NOT p) AND (NOT q)."
+    },
+    {
+     "front": "Define p -> q without using ->.",
+     "back": "(NOT p) OR q. Only false when p=T, q=F."
+    },
+    {
+     "front": "What is the contrapositive of p -> q?",
+     "back": "(NOT q) -> (NOT p) — logically equivalent to the original."
+    },
+    {
+     "front": "Is the converse of p -> q equivalent to p -> q?",
+     "back": "No. Counterexample: p=T, q=F makes p->q false but q->p true."
+    },
+    {
+     "front": "Absorption law?",
+     "back": "p OR (p AND q) = p; p AND (p OR q) = p."
+    },
+    {
+     "front": "What does EXISTS x, P(x) require over a finite domain?",
+     "back": "At least one domain element making P true — a single witness."
+    },
+    {
+     "front": "What does FORALL x, P(x) require?",
+     "back": "Every domain element makes P true — one counterexample falsifies it."
+    },
+    {
+     "front": "Simplify (a AND b) OR (a AND NOT b).",
+     "back": "a — factor to a AND (b OR NOT b) = a AND T."
+    },
+    {
+     "front": "Order of evaluation in (p AND q) OR (NOT r)?",
+     "back": "Parentheses, then NOT, then AND, then OR — inside-out."
+    },
+    {
+     "front": "Evaluate (T AND F) OR (NOT T).",
+     "back": "(F) OR (F) = **F**."
+    }
+   ],
+   "code": "IL-08",
+   "crossLinks": [],
+   "drills": [
+    {
+     "title": "Logic evaluation sprint",
+     "items": [
+      {
+       "prompt": "Evaluate (T OR F) AND (NOT F).",
+       "answer": "T",
+       "explain": "(T OR F)=T; NOT F=T; T AND T=T."
+      },
+      {
+       "prompt": "Evaluate NOT (T AND T) OR F.",
+       "answer": "F",
+       "explain": "NOT(T AND T)=F; F OR F=F. NOT binds tightest."
+      },
+      {
+       "prompt": "p=F, q=F. Evaluate (NOT p) -> q.",
+       "answer": "F",
+       "explain": "(NOT F)=T; T -> F is the one false case of implication."
+      },
+      {
+       "prompt": "How many assignments falsify (p AND q) OR (p AND NOT q)?",
+       "answer": "2 of 4",
+       "explain": "The expression simplifies to p; falsified exactly when p=F (2 rows)."
+      }
+     ],
+     "id": "il-08-algorithms-compilers-distributed-formal-math-logic--drill-1"
+    },
+    {
+     "title": "Equivalence proofs",
+     "items": [
+      {
+       "prompt": "Prove NOT (p OR q) = (NOT p) AND (NOT q) by cases.",
+       "answer": "All 4 rows agree",
+       "explain": "Enumerate (T,T),(T,F),(F,T),(F,F): both sides match on every row — De Morgan verified."
+      },
+      {
+       "prompt": "Is (p -> q) equivalent to (NOT p) -> (NOT q)? Justify.",
+       "answer": "No",
+       "explain": "Counterexample p=T,q=T: original true, inverse (F->F) true... use p=F,q=T: original true, inverse (T->F) false. Not equivalent."
+      },
+      {
+       "prompt": "Simplify (x OR y) AND (x OR NOT y) AND (NOT x OR y).",
+       "answer": "x AND y",
+       "explain": "First two factor to x; x AND ((NOT x) OR y) absorbs to x AND y."
+      },
+      {
+       "prompt": "Translate 'every admin has MFA' into quantifiers.",
+       "answer": "FORALL u, (admin(u) -> mfa(u))",
+       "explain": "Universal over users; implication inside captures 'if admin then MFA'."
+      }
+     ],
+     "id": "il-08-algorithms-compilers-distributed-formal-math-logic--drill-2"
+    }
+   ],
+   "estimatedMinutes": 345,
+   "handsOnLab": {
+    "title": "Verify logic laws in Python",
+    "brief": "You will write a brute-force truth-table checker in Python and use it to verify De Morgan's laws, the contrapositive, and absorption — replacing hand-waving with enumeration.",
+    "steps": [
+     "Write a function tt(vars, fn) that iterates over all 2^n assignments using itertools.product and returns the table.",
+     "Use it to print the full truth table of (p -> q), defined as (not p) or q.",
+     "Verify De Morgan: assert all rows agree for NOT(p AND q) vs (NOT p) OR (NOT q).",
+     "Verify the contrapositive: assert (p->q) matches ((not q) -> (not p)) on all rows, and find the counterexample row for the converse.",
+     "Verify absorption p OR (p AND q) == p on all 8 rows of (p,q,r) — extra variable included to prove irrelevance.",
+     "Write verify_equiv(f, g, vars) and use it to check two simplifications of your own invention."
+    ],
+    "deliverable": "logic_check.py plus a short report: which laws verified, the converse counterexample row, and your two invented equivalences with verdicts.",
+    "checkpoint": "All asserts pass; the report names the exact assignment falsifying the converse.",
+    "id": "il-08-algorithms-compilers-distributed-formal-math-logic--lab"
+   },
+   "id": "il-08-algorithms-compilers-distributed-formal-math-logic",
+   "mockTask": {
+    "q": "Which single law turns NOT (a AND b AND c) into a disjunction?",
+    "choices": [
+     "De Morgan's law",
+     "Absorption",
+     "Double negation",
+     "Idempotence"
+    ],
+    "answer": 0,
+    "explain": "NOT (a AND b AND c) = (NOT a) OR (NOT b) OR (NOT c) by repeated De Morgan.",
+    "id": "il-08-algorithms-compilers-distributed-formal-math-logic--mock",
+    "type": "choice"
+   },
+   "notes": [
+    {
+     "title": "Propositions and truth values",
+     "body": "A proposition is a statement that is either true or false, never both. `p AND q` is true only when both are true; `p OR q` is true when at least one is true; `NOT p` flips the value. Worked example: evaluate `(p AND q) OR (NOT r)` at p=T, q=F, r=T. First `p AND q` = T AND F = F. Then `NOT r` = NOT T = F. Finally `F OR F` = **F**. So the whole expression is **F**. Work inside-out: parentheses first, then NOT, then AND, then OR — the same precedence habit that prevents bugs in code conditions."
+    },
+    {
+     "title": "Truth tables, computed by enumeration",
+     "body": "A truth table lists every assignment of the variables. With n variables there are 2^n rows — for n=3 that is **8** rows, computed as 2^3. Worked example: the implication `p -> q`, defined as `(NOT p) OR q`. Its table: p=T,q=T -> T; p=T,q=F -> F; p=F,q=T -> T; p=F,q=F -> T. The only false row is true-premise/false-conclusion. Enumerating all rows mechanically (as the lab does in Python) removes all doubt: no case is forgotten, because the count 2^n proves the table is complete."
+    },
+    {
+     "title": "De Morgan's laws, verified by brute force",
+     "body": "De Morgan's laws: `NOT (p AND q)` equals `(NOT p) OR (NOT q)`, and `NOT (p OR q)` equals `(NOT p) AND (NOT q)`. Worked verification: checking all 4 assignments of (p,q) in Python, every row agrees — **True**. This is the law behind simplifying negated conditions: `NOT (admin AND active)` becomes `NOT admin OR NOT active`. In code and in firewall/policy rules, pushing NOT inward with De Morgan turns an unreadable negated conjunction into a plain disjunction."
+    },
+    {
+     "title": "Implication and the contrapositive",
+     "body": "`p -> q` (if p then q) is logically equivalent to its contrapositive `(NOT q) -> (NOT p)`. Worked verification: all 4 assignments agree — **True**. The converse `q -> p` is NOT equivalent (check p=T,q=F: implication false, converse true). Practical use: to prove 'if the build passes then tests ran', prove the contrapositive 'if tests did not run then the build fails' — often the easier direction. Confusing implication with converse is one of the most common logic errors in specifications."
+    },
+    {
+     "title": "Predicate logic over finite domains",
+     "body": "Predicates add quantifiers: `FORALL x, P(x)` and `EXISTS x, P(x)`. Over a finite domain you can evaluate them by enumeration. Worked example: domain = {2, 3, 4}, statement `EXISTS x, x is prime AND x > 3`. Check: x=2 (prime, not >3, fails), x=3 (prime, not >3, fails), x=4 (not prime, fails). No witness exists, so the statement is **false**. Change `>3` to `>=3`: x=3 is prime and >= 3, so the statement becomes **true**. Existence claims need exactly one witness; universal claims need every case. This discipline maps directly onto testing: 'there exists an input that crashes' vs 'for all inputs it terminates'."
+    },
+    {
+     "title": "Boolean algebra for systems work",
+     "body": "Boolean algebra gives simplification laws: absorption `p OR (p AND q) = p`, distribution, idempotence `p AND p = p`. Worked example: simplify `(admin AND active) OR (admin AND NOT active)`. Factor admin: `admin AND (active OR NOT active)` = `admin AND T` = **admin**. Verified by enumerating all 4 assignments of (admin, active): both sides agree on every row. Why it matters: access-policy engines evaluate exactly these expressions. Simplifying before deploying means fewer rules, faster evaluation, and policies a human can audit. Formal systems start here: propositions, quantifiers, and what 'proof' means."
+    }
+   ],
+   "objectives": [
+    "Evaluate compound propositions by precedence, inside-out.",
+    "Build and read truth tables; prove completeness via the 2^n count.",
+    "Apply De Morgan's laws and verify equivalences by brute-force enumeration.",
+    "Distinguish implication, converse, and contrapositive — and know which are equivalent."
+   ],
+   "prerequisiteFor": [
+    "il08-mit-63",
+    "il08-cmu-cs",
+    "il08-stanford-cs"
+   ],
+   "quiz": [
+    {
+     "q": "A truth table for 5 variables has how many rows?",
+     "choices": [
+      "25",
+      "16",
+      "10",
+      "32"
+     ],
+     "answer": 3,
+     "explain": "2^n rows; 2^5 = 32."
+    },
+    {
+     "q": "p -> q is false exactly when:",
+     "choices": [
+      "both are true",
+      "p is true and q is false",
+      "both are false",
+      "p is false and q is true"
+     ],
+     "answer": 1,
+     "explain": "Implication is (NOT p) OR q — false only at (T,F)."
+    },
+    {
+     "q": "NOT (p AND q) equals:",
+     "choices": [
+      "(NOT p) OR (NOT q)",
+      "p OR q",
+      "(NOT p) AND (NOT q)",
+      "p AND q"
+     ],
+     "answer": 0,
+     "explain": "De Morgan's law, verified on all 4 assignments."
+    },
+    {
+     "q": "The contrapositive of 'if it rains, the ground is wet' is:",
+     "choices": [
+      "If it rains, the ground is not wet",
+      "If the ground is wet, it rained",
+      "If the ground is not wet, it did not rain",
+      "If it does not rain, the ground is not wet"
+     ],
+     "answer": 2,
+     "explain": "Contrapositive: (NOT q) -> (NOT p); equivalent to the original."
+    },
+    {
+     "q": "Evaluate (p OR q) AND (NOT p) at p=F, q=T.",
+     "choices": [
+      "T",
+      "T AND F",
+      "undefined",
+      "F"
+     ],
+     "answer": 0,
+     "explain": "(F OR T)=T; (NOT F)=T; T AND T = T."
+    },
+    {
+     "q": "To falsify FORALL x in {1,2,3}, P(x), you need:",
+     "choices": [
+      "An empty domain",
+      "Three witnesses",
+      "A proof for x=1",
+      "One counterexample"
+     ],
+     "answer": 3,
+     "explain": "A single x with NOT P(x) falsifies a universal claim."
+    },
+    {
+     "q": "Absorption: p AND (p OR q) simplifies to:",
+     "choices": [
+      "T",
+      "p",
+      "p OR q",
+      "q"
+     ],
+     "answer": 1,
+     "explain": "Absorption law — verified by truth table."
+    },
+    {
+     "q": "Which is a tautology?",
+     "choices": [
+      "p -> (NOT p)",
+      "p OR (NOT p)",
+      "p AND (NOT p)",
+      "NOT (p OR q)"
+     ],
+     "answer": 1,
+     "explain": "Excluded middle: always true regardless of p."
+    },
+    {
+     "q": "p <-> q (biconditional) is true when:",
+     "choices": [
+      "p is true",
+      "exactly one is true",
+      "p and q have the same truth value",
+      "q is false"
+     ],
+     "answer": 2,
+     "explain": "(p->q) AND (q->p): true at (T,T) and (F,F)."
+    },
+    {
+     "q": "In code, `!(a && b)` should be rewritten as:",
+     "choices": [
+      "a && b",
+      "!a && !b",
+      "!a || !b",
+      "a || b"
+     ],
+     "answer": 2,
+     "explain": "De Morgan: NOT (a AND b) = (NOT a) OR (NOT b)."
+    }
+   ],
+   "summary": "Propositions, truth tables, equivalences, and quantifiers — the reasoning substrate underneath every technical module in this course.",
+   "title": "Logic & Boolean Algebra",
+   "videos": [
+    {
+     "title": "Logic Gates, Truth Tables, and Boolean Algebra",
+     "url": "https://www.youtube.com/watch?v=gI-qXk7XojA",
+     "source": "CrashCourse (YouTube)",
+     "blurb": "CrashCourse's logic episode — Boolean algebra, gates and truth tables, the digital logic spine behind every algorithm in this course.",
+     "durationMin": 10,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T21:21:34Z",
+     "httpStatus": 200
+    }
+   ],
+   "weight": 1
+  },
+  {
+   "cards": [
+    {
+     "front": "Induction template?",
+     "back": "Base case → inductive hypothesis → inductive step. Reflex."
+    },
+    {
+     "front": "Loop invariant?",
+     "back": "A property true before/after each iteration — proves the loop correct. State it first."
+    },
+    {
+     "front": "Master theorem cases?",
+     "back": "f(n) vs n^(log_b a): smaller → case 1; equal → case 2 (× log n); larger (regular) → case 3."
+    },
+    {
+     "front": "Comparison sorting lower bound?",
+     "back": "Ω(n log n) — decision-tree argument: n! leaves need log(n!) depth."
+    },
+    {
+     "front": "Reduction direction for hardness?",
+     "back": "Reduce known-hard TO your problem (3-SAT ≤p X proves X hard). Direction matters."
+    },
+    {
+     "front": "Halting problem proof technique?",
+     "back": "Diagonalization — assume a decider, construct the contradiction."
+    },
+    {
+     "front": "Amortized analysis: the idea?",
+     "back": "Average cost per operation over a sequence — dynamic arrays double on overflow: O(1) amortized push despite O(n) worst case."
+    },
+    {
+     "front": "Cache's lesson for algorithms?",
+     "back": "Locality beats asymptotics at real sizes — sequential scans win over pointer-chasing even when Big-O ties."
+    },
+    {
+     "front": "Prove: sum of first n odds = n². Method?",
+     "back": "**induction** — Induction: base n=1, assume n, show n+1 adds (2n+1): n²+2n+1=(n+1)²."
+    },
+    {
+     "front": "T(n) = 2T(n/2) + n. Solution?",
+     "back": "**O(n log n)** — Master case 2: f(n)=n = n^(log_2 2) → Θ(n log n). Mergesort's recurrence."
+    },
+    {
+     "front": "Amortized cost of dynamic-array append?",
+     "back": "**O(1)** — Doubling strategy: n appends cost O(n) total — O(1) amortized each."
+    },
+    {
+     "front": "To prove problem X NP-complete, you?",
+     "back": "**reduce 3-SAT to X in polytime + show X in NP** — 3-SAT ≤p X shows X at least as hard; X ∈ NP completes it."
+    }
+   ],
+   "code": "IL-08",
+   "crossLinks": [],
+   "drills": [
+    {
+     "id": "il08-mit-63--drill-recall",
+     "title": "Recall sprint: MIT 6-3: The Distilled Core",
+     "items": [
+      {
+       "prompt": "From memory, in one or two sentences: Reduction direction for hardness?",
+       "answer": "Reduce known-hard TO your problem (3-SAT ≤p X proves X hard). Direction matters.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Halting problem proof technique?",
+       "answer": "Diagonalization — assume a decider, construct the contradiction.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Amortized analysis: the idea?",
+       "answer": "Average cost per operation over a sequence — dynamic arrays double on overflow: O(1) amortized push despite O(n) worst case.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Cache's lesson for algorithms?",
+       "answer": "Locality beats asymptotics at real sizes — sequential scans win over pointer-chasing even when Big-O ties.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      }
+     ]
+    },
+    {
+     "id": "il08-mit-63--drill-applied",
+     "title": "Applied reps: MIT 6-3: The Distilled Core",
+     "items": [
+      {
+       "prompt": "Applied check: xv6 teaches OS by?",
+       "answer": "building/reading a real small kernel",
+       "explain": "A real Unix-like kernel in ~10k lines — every concept made concrete."
+      },
+      {
+       "prompt": "Applied check: End-to-end argument says?",
+       "answer": "implement function at the endpoints, not the network",
+       "explain": "Correctness (e.g., reliable delivery) belongs at endpoints — the network can't guarantee it."
+      },
+      {
+       "prompt": "Applied check: Which 6.1200 topic is RSA's prerequisite?",
+       "answer": "number theory (divisibility, modular arithmetic, gcd)",
+       "explain": "Number theory: Fermat's little theorem and Euler's theorem are the crypto foundations — the Concepts glossary lists them as RSA's prerequisites."
+      },
+      {
+       "prompt": "Applied check: Exchange arguments prove which algorithm family correct?",
+       "answer": "greedy algorithms",
+       "explain": "Exchange argument: greedy stays ahead — the proof pattern for MST and scheduling in the algorithms notes."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 345,
+   "handsOnLab": {
+    "id": "il08-mit-63--lab",
+    "title": "Implement and prove: MIT 6-3: The Distilled Core",
+    "brief": "You will implement a core MIT 6-3: The Distilled Core construction and write the full correctness and complexity argument — the argument is the deliverable, the code is the exhibit.",
+    "steps": [
+     "Select one algorithm or construction from MIT 6-3: The Distilled Core and state the problem formally: input, output, constraints.",
+     "Implement it cleanly, with the invariant documented in comments at each loop or recursion.",
+     "Write the correctness proof: base case, inductive step or invariant maintenance, termination.",
+     "Write the complexity analysis: state exactly which bound (O, Theta, Omega) you proved and the dominant operation.",
+     "Test on edge cases: empty, singleton, adversarial, and maximum-size inputs.",
+     "Present the proof to a peer (or record yourself); note every 'clearly' you had to unpack and fix the argument."
+    ],
+    "deliverable": "Implementation plus a written proof document (correctness + complexity) and edge-case test log for MIT 6-3: The Distilled Core.",
+    "checkpoint": "Invariant documented in code; full proof written with no hand-waving; complexity bound named precisely; edge cases tested."
+   },
+   "id": "il08-mit-63",
+   "mockTask": {
+    "id": "il08-mit-63--mock",
+    "type": "choice",
+    "q": "T(n) = 2T(n/2) + n. Solution?",
+    "choices": [
+     "O(n log n)",
+     "O(log n)",
+     "O(n)",
+     "O(n²)"
+    ],
+    "answer": 0,
+    "explain": "Master case 2: f(n)=n = n^(log_2 2) → Θ(n log n). Mergesort's recurrence."
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **induction** — proof by base case, inductive hypothesis, and inductive step; every recursive algorithm's correctness proof uses it — the template until it's reflex\n- **loop invariant** — a property true before and after each iteration; the loop invariant proves the loop — state it before writing the loop\n- **contradiction** — assume the negation of the claim, derive an absurdity; the halting proof's weapon\n- **number theory** — divisibility, modular arithmetic, gcd; Fermat's little theorem and Euler's theorem — RSA's prerequisites, straight from 6.1200\n- **graph theory** — the universal modeling language: vertices, edges, BFS/DFS, Dijkstra, MST\n- **divide-and-conquer** — split, solve recursively, combine; analyzed via recurrences like T(n) = aT(n/b) + f(n)\n- **master theorem** — closed form for T(n) = aT(n/b) + f(n): compare f(n) against n^(log_b a) — smaller gives case 1, equal gives case 2 (times log n), larger (regularity) gives case 3; memorize the three cases, derive when unsure\n- **amortized analysis** — cost averaged over a sequence of operations; three methods: aggregate, accounting, potential — dynamic-array append is O(1) amortized via doubling\n- **exchange argument** — the proof pattern for greedy correctness: show an optimal solution can be transformed to include the greedy choice — greedy stays ahead (MST, scheduling)\n- **lower bound** — a proof that no algorithm in a model can do better; comparison sorting is Ω(n log n) by the decision-tree argument: n! leaves need log(n!) depth\n- **reduction** — to prove X hard, reduce a known-hard problem TO X in polynomial time; reduction direction matters (3-SAT ≤p X proves X hard)\n- **NP-completeness** — the hardest problems in NP; 3-SAT is the canonical one — reductions start here\n- **FSM** — finite-state machine: combinational logic plus state; the building block of the FSM-to-processor climb — every level is the previous level's abstraction, no magic\n- **hardware/software contract** — the ISA, assembly, and calling conventions: the exact boundary the hardware promises the software\n- **end-to-end argument** — implement correctness-critical functions at the endpoints, not in the network; the network can't guarantee what endpoints need\n- **xv6** — MIT's teaching Unix-like kernel in ~10k lines; reading a real kernel demystifies scheduling, virtual memory, and filesystems\n- **diagonalization** — self-referential construction used to prove the halting problem undecidable; the most beautiful proof in CS — learn it cold\n- **P vs NP** — P: solvable in polynomial time; NP: verifiable in polynomial time; NP-complete problems are the hardest in NP; PSPACE sits beyond"
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Prove and analyze an algorithm, end to end — the procedure behind the Induction Proof Workshop and the recurrence drills:\n1. **State the claim precisely** — the specification: what must hold, for which inputs (e.g., sum_{i=1..n}(2i-1) = n^2).\n2. **Write the loop invariant before the loop** — a property true before and after each iteration (binary search: the key, if present, lies in a[lo..hi)).\n3. **Induction skeleton: BASE → HYPOTHESIS → STEP** — prove the base case, assume the hypothesis for k, derive k+1 (Bernoulli step: (1+x)^(k+1) = (1+x)^k(1+x) ≥ (1+kx)(1+x) = 1+(k+1)x+kx² ≥ 1+(k+1)x).\n4. **Preserve the invariant each iteration** — binary search halves [lo,hi): if key < a[mid] set hi=mid, else lo=mid+1; the key stays inside; hi−lo shrinks, so the loop terminates.\n5. **Write the recurrence** — count the work per level (mergesort: T(n) = 2T(n/2) + n).\n6. **Apply the master theorem** — T(n) = 2T(n/2) + n is case 2: f(n) = n = n^(log_2 2), so Θ(n log n).\n7. **Check amortized cost where operations repeat** — dynamic-array append with doubling: n appends cost O(n) total, O(1) amortized each.\n8. **Argue the lower bound** — is your bound tight? Comparison sorting cannot beat Ω(n log n).\n9. **Classify the problem** — in P, or NP-complete? If the latter (reduce 3-SAT to it, show membership in NP), stop hunting for the perfect algorithm and start approximating."
+    },
+    {
+     "title": "Project brief",
+     "body": "Your algorithm dossier — the capstone for the MIT distilled core. Pick one algorithm from the canon: quicksort, Dijkstra's shortest path, or the dynamic-array append.\nThe dossier has four artifacts, and each is graded:\n1. **Implementation** — correct Python code (BFS-style clarity: the code from the BFS lab is the bar).\n2. **Correctness proof** — written in the BASE/HYPOTHESIS/STEP skeleton with the loop invariant stated up front, exactly like the Induction Proof Workshop.\n3. **Running-time analysis** — the recurrence plus its master-theorem solution (or amortized argument for the dynamic array), with a tightness verdict from the lower-bound side.\n4. **Complexity verdict** — one paragraph: where does this algorithm's problem sit in the complexity landscape (P? NP-complete? undecidable-adjacent?), and what changes if the input grows 100×?\nThese four artifacts — code, proof, analysis, verdict — are what a theory-literate engineer produces for any algorithm they ship."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Noah probes mastery with questions like:\n- In one sentence, what does the master theorem decide for a recurrence — and which case is mergesort?\n- State the binary-search loop invariant, then prove it is preserved when you set hi = mid.\n- You claim problem X is NP-complete. Reduce 3-SAT to X — and defend why the reduction goes in that direction.\n- Walk me through diagonalization: why can't a halting decider exist?\n- The end-to-end argument says reliable delivery belongs at the endpoints. Give me one more endpoint-vs-network example from real systems.\n- Honesty note: these proofs, labs, and questions are original practice material authored for this course. Course numbers reference public university materials; this course confers no certificate and is not affiliated with MIT, CMU, or Stanford."
+    },
+    {
+     "title": "Worked example: Prove: sum of first n odds = n². Method?",
+     "body": "**Problem.** Prove: sum of first n odds = n². Method?\n\n**Step 1 — Answer from first principles.** Cover the choices and commit to an answer using only the concept, not pattern-matching. Say your reasoning out loud — in interviews and in real work, the reasoning is what gets graded.\n\n**Step 2 — Reveal and verify.**\n- **Correct answer:** induction\n- **Why:** Induction: base n=1, assume n, show n+1 adds (2n+1): n²+2n+1=(n+1)².\n\n**Step 3 — Lock in the principle.** Compress the explanation into one reusable rule: *Induction: base n=1, assume n, show n+1 adds (2n+1): n²+2n+1=(n+1)².* Write it on a card. If you cannot state the rule without the item in front of you, you memorized the item instead of the idea.\n\n**Step 4 — Teach it back.** Explain this item to an imaginary junior in three sentences: what was asked, what the right move was, and the one mistake to avoid. Teaching is the retention test — if the explanation wobbles, re-study before moving on."
+    },
+    {
+     "title": "Pitfalls & how to dodge them",
+     "body": "Formal material demands rigor. These habits corrupt understanding of MIT 6-3: The Distilled Core:\n- **Hand-waving proofs.** 'Clearly' and 'obviously' are where the bugs hide. Write the invariant, the base case, and the step — fully, every time.\n- **Ignoring edge cases in analysis.** Empty input, single element, duplicates, maximum size. The analysis isn't done until the edges are accounted for.\n- **Confusing average with worst case.** Know which one your bound describes and which one your adversary gets to choose.\n- **Notation sloppiness.** O, Theta, Omega mean different things; using them interchangeably trains fuzzy thinking. Say exactly which bound you proved.\n- **Skipping the reduction.** Every new problem in MIT 6-3: The Distilled Core should be connected to something known: 'this is just X in disguise.' Reductions are how the field thinks.\n- **Code without the argument.** An implementation with no written correctness or complexity argument is half a solution. The argument is the deliverable; code is the exhibit."
+    }
+   ],
+   "objectives": [
+    "Write proofs by induction, contradiction, and invariant.",
+    "Analyze algorithms: recurrences, amortized analysis, lower bounds.",
+    "Explain the hardware/software contract: ISA, assembly, caches, VM.",
+    "State what NP-completeness means and prove a reduction."
+   ],
+   "prerequisiteFor": [],
+   "quiz": [
+    {
+     "q": "Prove: sum of first n odds = n². Method?",
+     "choices": [
+      "contradiction",
+      "induction",
+      "exhaustion",
+      "intuition"
+     ],
+     "answer": 1,
+     "explain": "Induction: base n=1, assume n, show n+1 adds (2n+1): n²+2n+1=(n+1)²."
+    },
+    {
+     "q": "T(n) = 2T(n/2) + n. Solution?",
+     "choices": [
+      "O(n)",
+      "O(n log n)",
+      "O(n²)",
+      "O(log n)"
+     ],
+     "answer": 1,
+     "explain": "Master case 2: f(n)=n = n^(log_2 2) → Θ(n log n). Mergesort's recurrence."
+    },
+    {
+     "q": "Amortized cost of dynamic-array append?",
+     "choices": [
+      "O(n)",
+      "O(1)",
+      "O(log n)",
+      "O(n²)"
+     ],
+     "answer": 1,
+     "explain": "Doubling strategy: n appends cost O(n) total — O(1) amortized each."
+    },
+    {
+     "q": "To prove problem X NP-complete, you?",
+     "choices": [
+      "solve X fast",
+      "reduce 3-SAT to X in polytime + show X in NP",
+      "reduce X to 3-SAT",
+      "guess"
+     ],
+     "answer": 1,
+     "explain": "3-SAT ≤p X shows X at least as hard; X ∈ NP completes it."
+    },
+    {
+     "q": "xv6 teaches OS by?",
+     "choices": [
+      "slides",
+      "building/reading a real small kernel",
+      "simulation only",
+      "theory"
+     ],
+     "answer": 1,
+     "explain": "A real Unix-like kernel in ~10k lines — every concept made concrete."
+    },
+    {
+     "q": "End-to-end argument says?",
+     "choices": [
+      "encrypt everything",
+      "implement function at the endpoints, not the network",
+      "distribute always",
+      "centralize"
+     ],
+     "answer": 1,
+     "explain": "Correctness (e.g., reliable delivery) belongs at endpoints — the network can't guarantee it."
+    },
+    {
+     "q": "Which 6.1200 topic is RSA's prerequisite?",
+     "choices": [
+      "graph theory",
+      "number theory (divisibility, modular arithmetic, gcd)",
+      "probability",
+      "induction"
+     ],
+     "answer": 1,
+     "explain": "Number theory: Fermat's little theorem and Euler's theorem are the crypto foundations — the Concepts glossary lists them as RSA's prerequisites."
+    },
+    {
+     "q": "Exchange arguments prove which algorithm family correct?",
+     "choices": [
+      "divide-and-conquer",
+      "greedy algorithms",
+      "dynamic programming",
+      "randomized algorithms"
+     ],
+     "answer": 1,
+     "explain": "Exchange argument: greedy stays ahead — the proof pattern for MST and scheduling in the algorithms notes."
+    },
+    {
+     "q": "How big is xv6?",
+     "choices": [
+      "~1M lines",
+      "~100k lines",
+      "~10k lines",
+      "~1k lines"
+     ],
+     "answer": 2,
+     "explain": "A real Unix-like kernel in ~10k lines — every OS concept (scheduling, VM, filesystems) made concrete."
+    },
+    {
+     "q": "The diagonalization proof shows?",
+     "choices": [
+      "P = NP",
+      "the halting problem is undecidable",
+      "sorting needs Ω(n log n)",
+      "3-SAT is in P"
+     ],
+     "answer": 1,
+     "explain": "Assume a halting decider, construct the self-contradicting program — the Concepts glossary's most beautiful proof in CS."
+    }
+   ],
+   "summary": "Welcome to IL-08 — Algorithms, Compilers, Distributed & Formal — and to Module 1: MIT's EECS curriculum, distilled to prerequisite order. I'm your instructor, and over the next three modules we're going to build the deep core that never expires: proofs, algorithms, the machine, and the limits of computation. In this module we follow MIT 6-3's own sequence — 6.100A/B Python (computational thinking and problem-set discipline), 6.1200 Mathematics for Computer Science (proofs, induction, number theory, graphs, probability), 6.1210/6.1220 Algorithms (design, analysis, lower bounds, NP-completeness), 6.1910 Computation Structures (gates to processor, the hardware/software contract), 6.1800/6.1810 Systems Engineering (modularity, the end-to-end argument, the xv6 kernel), and theory from automata to complexity (the 6.1400 lineage). No algorithm in this module without an induction proof of it; no system without a machine model beneath it. Let's begin with the mathematician's toolkit.",
+   "title": "MIT 6-3: The Distilled Core",
+   "videos": [
+    {
+     "title": "Lec 2 | MIT 6.042J Mathematics for Computer Science, Fall 2010",
+     "url": "https://www.youtube.com/watch?v=z8HKWUWS-lA",
+     "source": "MIT OpenCourseWare (YouTube)",
+     "blurb": "MIT 6.042J Lecture 2: induction — base case, hypothesis and inductive step with false proofs to sharpen the template every correctness proof in this module uses.",
+     "durationMin": 80,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T21:21:34Z",
+     "httpStatus": 200
+    }
+   ],
+   "weight": 3
+  },
+  {
+   "cards": [
+    {
+     "front": "Work vs span?",
+     "back": "Work: total operations. Span: longest dependency chain. Parallelism ≈ work/span."
+    },
+    {
+     "front": "15-213's thesis?",
+     "back": "Understanding the machine makes better programmers — in every language."
+    },
+    {
+     "front": "Malloc lab's lesson?",
+     "back": "Explicit free lists + coalescing — allocation demystified; fragmentation is the enemy."
+    },
+    {
+     "front": "Consensus solves?",
+     "back": "Agreement despite failures — the distributed systems atom (Paxos/Raft)."
+    },
+    {
+     "front": "15-410's deliverable?",
+     "back": "A working kernel — threads, VM, syscalls. The deepest programming."
+    },
+    {
+     "front": "Rebuild-the-landmarks pedagogy?",
+     "back": "Implement AlexNet/GPT-2/AlphaZero yourself — landmarks become understanding."
+    },
+    {
+     "front": "15-213's cache lab teaches?",
+     "back": "Write cache-friendly code: blocking/tiling matrix multiply — miss rate, not instruction count, dominates runtime."
+    },
+    {
+     "front": "Raft vs Paxos: the pitch?",
+     "back": "Same safety guarantees, but Raft is designed for understandability — leader election + log replication as the teaching path."
+    },
+    {
+     "front": "Parallel sum of n elements: work and span?",
+     "back": "**O(n), O(log n)** — Work O(n) total adds; span O(log n) tree depth — parallelism n/log n."
+    },
+    {
+     "front": "Malloc coalescing prevents?",
+     "back": "**external fragmentation** — Merging adjacent free blocks fights fragmentation — the allocator's core duty."
+    },
+    {
+     "front": "Raft guarantees?",
+     "back": "**safety: agreement on log order despite minority failures** — Safety first: committed entries never lost; liveness needs a majority."
+    },
+    {
+     "front": "B+tree fanout 100, 3 levels: ~keys?",
+     "back": "**~1M (100³)** — Fanout^levels: 100³ = 1M — the arithmetic behind index depth."
+    }
+   ],
+   "code": "IL-08",
+   "crossLinks": [],
+   "drills": [
+    {
+     "id": "il08-cmu-cs--drill-recall",
+     "title": "Recall sprint: CMU: The Systems-and-Theory Spine",
+     "items": [
+      {
+       "prompt": "From memory, in one or two sentences: 15-410's deliverable?",
+       "answer": "A working kernel — threads, VM, syscalls. The deepest programming.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Rebuild-the-landmarks pedagogy?",
+       "answer": "Implement AlexNet/GPT-2/AlphaZero yourself — landmarks become understanding.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: 15-213's cache lab teaches?",
+       "answer": "Write cache-friendly code: blocking/tiling matrix multiply — miss rate, not instruction count, dominates runtime.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Raft vs Paxos: the pitch?",
+       "answer": "Same safety guarantees, but Raft is designed for understandability — leader election + log replication as the teaching path.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      }
+     ]
+    },
+    {
+     "id": "il08-cmu-cs--drill-applied",
+     "title": "Applied reps: CMU: The Systems-and-Theory Spine",
+     "items": [
+      {
+       "prompt": "Applied check: Functional purity buys?",
+       "answer": "safe parallelism — no shared mutable state",
+       "explain": "No side effects → parallel evaluation is correct by construction."
+      },
+      {
+       "prompt": "Applied check: 15-251 + 15-451 combined teach?",
+       "answer": "proofs PLUS programming — never proofs alone",
+       "explain": "The CMU way: every great idea gets implemented."
+      },
+      {
+       "prompt": "Applied check: 15-213's two famous labs are?",
+       "answer": "malloc lab + shell lab",
+       "explain": "The malloc lab (write a real allocator) and the shell lab (job control) — the course's rites of passage in the 15-210/213 notes."
+      },
+      {
+       "prompt": "Applied check: A function's contract is?",
+       "answer": "pre/post-conditions — the function's promise",
+       "explain": "Contracts: callers rely on them, implementations honor them — write the contract before the code, per the 15-122 notes."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 345,
+   "handsOnLab": {
+    "id": "il08-cmu-cs--lab",
+    "title": "Implement and prove: CMU: The Systems-and-Theory Spine",
+    "brief": "You will implement a core CMU: The Systems-and-Theory Spine construction and write the full correctness and complexity argument — the argument is the deliverable, the code is the exhibit.",
+    "steps": [
+     "Select one algorithm or construction from CMU: The Systems-and-Theory Spine and state the problem formally: input, output, constraints.",
+     "Implement it cleanly, with the invariant documented in comments at each loop or recursion.",
+     "Write the correctness proof: base case, inductive step or invariant maintenance, termination.",
+     "Write the complexity analysis: state exactly which bound (O, Theta, Omega) you proved and the dominant operation.",
+     "Test on edge cases: empty, singleton, adversarial, and maximum-size inputs.",
+     "Present the proof to a peer (or record yourself); note every 'clearly' you had to unpack and fix the argument."
+    ],
+    "deliverable": "Implementation plus a written proof document (correctness + complexity) and edge-case test log for CMU: The Systems-and-Theory Spine.",
+    "checkpoint": "Invariant documented in code; full proof written with no hand-waving; complexity bound named precisely; edge cases tested."
+   },
+   "id": "il08-cmu-cs",
+   "mockTask": {
+    "id": "il08-cmu-cs--mock",
+    "type": "choice",
+    "q": "Malloc coalescing prevents?",
+    "choices": [
+     "external fragmentation",
+     "leaks",
+     "use-after-free",
+     "overflow"
+    ],
+    "answer": 0,
+    "explain": "Merging adjacent free blocks fights fragmentation — the allocator's core duty."
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **contract** — pre- and post-conditions: the function's promise; callers rely on it, implementations honor it — write the contract before the code\n- **loop invariant** — the imperative twin of the contract: true before and after each iteration; 15-122's correctness discipline\n- **purity** — no side effects; pure functions evaluate in any order — no shared mutable state means safe parallel evaluation by construction, the 15-150 bridge to 15-210\n- **work** — total number of operations in a parallel algorithm\n- **span** — the longest dependency chain; parallelism ≈ work/span; Brent's bound: Tp ≤ W/P + S\n- **malloc lab** — write a real allocator: explicit free lists, first-fit search, splitting, coalescing — memory management demystified forever\n- **coalescing** — merging adjacent free blocks; the allocator's defense against fragmentation\n- **fragmentation** — free memory rendered unusable because it is split into small pieces; fragmentation is the enemy\n- **shell lab** — job control in C: processes, signals, reaping; the 15-213 systems rite of passage\n- **15-213's thesis** — programmers who understand the machine write better programs — in any language\n- **consensus** — agreement despite failures; the distributed systems atom (Paxos/Raft)\n- **Raft safety** — committed log entries are never lost; agreement on log order despite minority failures; liveness needs a majority\n- **CRDT** — conflict-free replicated data type; works when operations commute — counters are the canonical case: increments commute and merge is idempotent\n- **B+tree** — the database index: fanout^levels ≈ capacity; fanout 100 at 3 levels holds ~1M keys — the arithmetic behind index depth\n- **buffer pool** — the database's page cache between disk and execution; 15-445 builds one, plus B+trees and query execution — building a database teaches more than using ten\n- **15-410's deliverable** — a working kernel: threads, virtual memory, syscalls — the deepest programming most will ever do\n- **rebuild-the-landmarks pedagogy** — implement AlexNet, GPT-2, AlphaZero yourself; landmarks become understanding"
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Worked estimates — the 15-210 habit of putting numbers on parallel and storage claims before believing them:\n1. **Parallelism from work and span** — parallel sum of n elements: work O(n), span O(log n). Parallelism ≈ work/span = n/log n. On 64 cores, expect speedup bounded by min(64, n/log n) — Brent's bound Tp ≤ W/P + S.\n2. **B+tree capacity** — fanout 100, 3 levels: 100³ = 1,000,000 keys. Add a fourth level: 100⁴ = 100M. This is the arithmetic behind index depth — shallow trees, fast lookups.\n3. **Allocator fragmentation audit** — free_list holds [(0,16),(32,16)] with a live block at (16,16): coalescing only merges ADJACENT blocks, so the two 16-byte holes cannot merge across the live block. External fragmentation quantified: 32 bytes free, largest usable block 16.\n4. **Raft quorum math** — 5 nodes: majority = 3. The cluster survives 2 failures and still commits; lose a third and liveness stops (safety still holds — committed entries are never lost).\n5. **CRDT counter merge** — three replicas count [5, 3, 2] during a partition: merge takes the element-wise maximum per replica, total = 10, exact, with zero coordination. No consensus needed because increments commute."
+    },
+    {
+     "title": "Project brief",
+     "body": "The distributed counter — the capstone for the CMU spine. Build a crash-tolerant impression counter across three replica processes:\n1. **CRDT implementation** — a G-Counter with merge that is commutative and idempotent; demonstrate convergence after a simulated network partition with divergent counts.\n2. **Raft-flavored alternative** — every increment goes through an elected leader with a replicated log; simulate the same partition and measure the latency and availability cost (what happens to increments when the leader is cut off?).\n3. **Design memo** — one page: when do you pay for consensus, and when does the CRDT suffice? Argue from failure modes, not vibes — the 15-440 habit.\nDeliverables: two implementations, a partition test log showing the divergent/converged counts, and the memo. Bonus: reimplement the mini-allocator from the script lab in C, with coalescing, and report the fragmentation audit from the estimation section against it."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Noah probes mastery with questions like:\n- Parallel sum: work O(n), span O(log n). What's the parallelism — and what does Brent's bound say on 16 cores?\n- Your free_list is [(0,16),(48,16)] with live blocks between. Can the holes coalesce? Why not?\n- A partition splits your three replicas 2-vs-1. Your CRDT counter keeps counting; your Raft counter stalls on the minority side. Defend both behaviors.\n- State 15-213's thesis in one sentence — then give me one bug it would have prevented in your own code.\n- 15-410 asks for a working kernel. Name the three subsystems you'd build first and why.\n- Honesty note: these proofs, labs, and questions are original practice material authored for this course. Course numbers reference public university materials; this course confers no certificate and is not affiliated with MIT, CMU, or Stanford."
+    },
+    {
+     "title": "Worked example: Parallel sum of n elements: work and span?",
+     "body": "**Problem.** Parallel sum of n elements: work and span?\n\n**Step 1 — Answer from first principles.** Cover the choices and commit to an answer using only the concept, not pattern-matching. Say your reasoning out loud — in interviews and in real work, the reasoning is what gets graded.\n\n**Step 2 — Reveal and verify.**\n- **Correct answer:** O(n), O(log n)\n- **Why:** Work O(n) total adds; span O(log n) tree depth — parallelism n/log n.\n\n**Step 3 — Lock in the principle.** Compress the explanation into one reusable rule: *Work O(n) total adds; span O(log n) tree depth — parallelism n/log n.* Write it on a card. If you cannot state the rule without the item in front of you, you memorized the item instead of the idea.\n\n**Step 4 — Teach it back.** Explain this item to an imaginary junior in three sentences: what was asked, what the right move was, and the one mistake to avoid. Teaching is the retention test — if the explanation wobbles, re-study before moving on."
+    },
+    {
+     "title": "Pitfalls & how to dodge them",
+     "body": "Formal material demands rigor. These habits corrupt understanding of CMU: The Systems-and-Theory Spine:\n- **Hand-waving proofs.** 'Clearly' and 'obviously' are where the bugs hide. Write the invariant, the base case, and the step — fully, every time.\n- **Ignoring edge cases in analysis.** Empty input, single element, duplicates, maximum size. The analysis isn't done until the edges are accounted for.\n- **Confusing average with worst case.** Know which one your bound describes and which one your adversary gets to choose.\n- **Notation sloppiness.** O, Theta, Omega mean different things; using them interchangeably trains fuzzy thinking. Say exactly which bound you proved.\n- **Skipping the reduction.** Every new problem in CMU: The Systems-and-Theory Spine should be connected to something known: 'this is just X in disguise.' Reductions are how the field thinks.\n- **Code without the argument.** An implementation with no written correctness or complexity argument is half a solution. The argument is the deliverable; code is the exhibit."
+    }
+   ],
+   "objectives": [
+    "Write correct code: contracts, invariants, functional and imperative styles.",
+    "Build systems in C: malloc, shells, caches, VM — the 15-213 labs.",
+    "Prove and program: theory with implementation (15-251/451).",
+    "Design distributed systems and databases; build OS components."
+   ],
+   "prerequisiteFor": [],
+   "quiz": [
+    {
+     "q": "Parallel sum of n elements: work and span?",
+     "choices": [
+      "O(n), O(n)",
+      "O(n), O(log n)",
+      "O(log n), O(n)",
+      "O(1), O(n)"
+     ],
+     "answer": 1,
+     "explain": "Work O(n) total adds; span O(log n) tree depth — parallelism n/log n."
+    },
+    {
+     "q": "Malloc coalescing prevents?",
+     "choices": [
+      "leaks",
+      "external fragmentation",
+      "overflow",
+      "use-after-free"
+     ],
+     "answer": 1,
+     "explain": "Merging adjacent free blocks fights fragmentation — the allocator's core duty."
+    },
+    {
+     "q": "Raft guarantees?",
+     "choices": [
+      "speed",
+      "safety: agreement on log order despite minority failures",
+      "liveness always",
+      "no elections"
+     ],
+     "answer": 1,
+     "explain": "Safety first: committed entries never lost; liveness needs a majority."
+    },
+    {
+     "q": "B+tree fanout 100, 3 levels: ~keys?",
+     "choices": [
+      "300",
+      "~1M (100³)",
+      "100",
+      "infinite"
+     ],
+     "answer": 1,
+     "explain": "Fanout^levels: 100³ = 1M — the arithmetic behind index depth."
+    },
+    {
+     "q": "Functional purity buys?",
+     "choices": [
+      "speed",
+      "safe parallelism — no shared mutable state",
+      "less code always",
+      "no bugs"
+     ],
+     "answer": 1,
+     "explain": "No side effects → parallel evaluation is correct by construction."
+    },
+    {
+     "q": "15-251 + 15-451 combined teach?",
+     "choices": [
+      "theory only",
+      "proofs PLUS programming — never proofs alone",
+      "coding only",
+      "math only"
+     ],
+     "answer": 1,
+     "explain": "The CMU way: every great idea gets implemented."
+    },
+    {
+     "q": "15-213's two famous labs are?",
+     "choices": [
+      "malloc lab + shell lab",
+      "lexer + parser",
+      "web server + proxy",
+      "cache + VM simulator"
+     ],
+     "answer": 0,
+     "explain": "The malloc lab (write a real allocator) and the shell lab (job control) — the course's rites of passage in the 15-210/213 notes."
+    },
+    {
+     "q": "A function's contract is?",
+     "choices": [
+      "its type signature",
+      "pre/post-conditions — the function's promise",
+      "its test file",
+      "its docstring"
+     ],
+     "answer": 1,
+     "explain": "Contracts: callers rely on them, implementations honor them — write the contract before the code, per the 15-122 notes."
+    },
+    {
+     "q": "Which CMU course has you build a working kernel?",
+     "choices": [
+      "15-213",
+      "15-445",
+      "15-410",
+      "15-210"
+     ],
+     "answer": 2,
+     "explain": "15-410: a working kernel — threads, VM, syscalls — the capstone of systems education."
+    },
+    {
+     "q": "15-445's project is to?",
+     "choices": [
+      "use ten databases",
+      "build a real database — buffer pool, B+trees, query execution",
+      "write SQL queries",
+      "tune indexes"
+     ],
+     "answer": 1,
+     "explain": "Building a database teaches more than using ten — storage to execution, per the theory/depth/breadth notes."
+    }
+   ],
+   "summary": "Welcome to Module 2 — Carnegie Mellon's systems-and-theory spine. I'm your instructor, and this is where correctness becomes a habit and the machine stops being a mystery. We start with 15-122 imperative computation and 15-150 functional programming — contracts, invariants, and purity as daily discipline — then climb 15-210's parallel and sequential data structures (the work/span cost model), the legendary 15-213 computer systems course with its malloc and shell labs, the theory pair 15-251/15-451 where proofs always ship with code, and the systems depth trio: 15-445 databases, 15-440 distributed systems, and 15-410 where you build a working kernel. We close with 07-280's AI breadth — the rebuild-the-landmarks pedagogy of implementing AlexNet, GPT-2, and AlphaZero yourself. By the end you'll be able to say exactly why your allocator fragments, why your replicas disagree, and how to fix both.",
+   "title": "CMU: The Systems-and-Theory Spine",
+   "videos": [
+    {
+     "title": "Loop Invariants - Principles of Imperative Computation (Carnegie Mellon University)",
+     "url": "https://www.youtube.com/watch?v=7_kiWYYLngQ",
+     "source": "Andy Guna (YouTube)",
+     "blurb": "Carnegie Mellon's own 15-122 short on loop invariants — the contract discipline that proves imperative code correct, straight from the source of this module's spine.",
+     "durationMin": 15,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T21:21:34Z",
+     "httpStatus": 200
+    }
+   ],
+   "weight": 2
+  },
+  {
+   "cards": [
+    {
+     "front": "106B's core skill?",
+     "back": "Recursive problem-solving — think recursively first, then convert."
+    },
+    {
+     "front": "CS109's probability is for?",
+     "back": "Computer scientists: randomized algorithms, ML — the usable subset."
+    },
+    {
+     "front": "CS107's gift?",
+     "back": "C with the machine model in mind — pointers, assembly, memory hierarchy."
+    },
+    {
+     "front": "Karger's min-cut?",
+     "back": "Randomized contraction — wrong sometimes, brilliant in expectation; repeat for confidence."
+    },
+    {
+     "front": "143 (compilers) covers?",
+     "back": "Lexing → parsing → semantic → IR → optimization → codegen — the full pipeline."
+    },
+    {
+     "front": "Cross-walk's value?",
+     "back": "Same ideas (recursion, induction, layering) across MIT/CMU/Stanford — triangulation."
+    },
+    {
+     "front": "Quicksort's expected case needs?",
+     "back": "Random pivot (or random input order) — then expected O(n log n) regardless of adversarial input."
+    },
+    {
+     "front": "107's endianness lesson?",
+     "back": "Bytes have an order — x86 is little-endian; network order is big-endian. Read the bytes, not the abstraction."
+    },
+    {
+     "front": "Randomized quicksort expected time?",
+     "back": "**O(n log n)** — Random pivot → expected O(n log n) — randomization defeats adversarial input."
+    },
+    {
+     "front": "Karger repeated n²log n times gives?",
+     "back": "**high-probability min cut** — Amplification: repeats drive failure probability exponentially down."
+    },
+    {
+     "front": "Compiler phase order?",
+     "back": "**lex → parse → semantic → IR → optimize → codegen** — The pipeline: tokens → tree → checked → IR → better IR → machine code."
+    },
+    {
+     "front": "CS107 buffer-overflow assignment teaches?",
+     "back": "**memory unsafety consequences — security from the machine up** — Smashing the stack makes memory safety visceral — the security lesson that sticks."
+    }
+   ],
+   "code": "IL-08",
+   "crossLinks": [],
+   "drills": [
+    {
+     "id": "il08-stanford-cs--drill-recall",
+     "title": "Recall sprint: Stanford: The Core Cross-Walk",
+     "items": [
+      {
+       "prompt": "From memory, in one or two sentences: 143 (compilers) covers?",
+       "answer": "Lexing → parsing → semantic → IR → optimization → codegen — the full pipeline.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Cross-walk's value?",
+       "answer": "Same ideas (recursion, induction, layering) across MIT/CMU/Stanford — triangulation.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: Quicksort's expected case needs?",
+       "answer": "Random pivot (or random input order) — then expected O(n log n) regardless of adversarial input.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      },
+      {
+       "prompt": "From memory, in one or two sentences: 107's endianness lesson?",
+       "answer": "Bytes have an order — x86 is little-endian; network order is big-endian. Read the bytes, not the abstraction.",
+       "explain": "Core recall for this module. If this wasn't fluent, re-read the 'Concepts' note and retry until it is."
+      }
+     ]
+    },
+    {
+     "id": "il08-stanford-cs--drill-applied",
+     "title": "Applied reps: Stanford: The Core Cross-Walk",
+     "items": [
+      {
+       "prompt": "Applied check: Expectation of a fair die?",
+       "answer": "3.5",
+       "explain": "(1+2+3+4+5+6)/6 = 3.5 — linearity of expectation starts here."
+      },
+      {
+       "prompt": "Applied check: Why three schools' versions?",
+       "answer": "triangulation — the idea outlives any single presentation",
+       "explain": "See it three ways; keep what's invariant — that's the concept."
+      },
+      {
+       "prompt": "Applied check: 106A teaches which language?",
+       "answer": "Python",
+       "explain": "106A (Methodology): Python — decomposition, testing, programming as a craft."
+      },
+      {
+       "prompt": "Applied check: 106B's language and core skill?",
+       "answer": "C++ + recursive problem-solving",
+       "explain": "106B (Abstractions): C++ with recursion as the core skill — the language where abstractions cost nothing."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 345,
+   "handsOnLab": {
+    "id": "il08-stanford-cs--lab",
+    "title": "Implement and prove: Stanford: The Core Cross-Walk",
+    "brief": "You will implement a core Stanford: The Core Cross-Walk construction and write the full correctness and complexity argument — the argument is the deliverable, the code is the exhibit.",
+    "steps": [
+     "Select one algorithm or construction from Stanford: The Core Cross-Walk and state the problem formally: input, output, constraints.",
+     "Implement it cleanly, with the invariant documented in comments at each loop or recursion.",
+     "Write the correctness proof: base case, inductive step or invariant maintenance, termination.",
+     "Write the complexity analysis: state exactly which bound (O, Theta, Omega) you proved and the dominant operation.",
+     "Test on edge cases: empty, singleton, adversarial, and maximum-size inputs.",
+     "Present the proof to a peer (or record yourself); note every 'clearly' you had to unpack and fix the argument."
+    ],
+    "deliverable": "Implementation plus a written proof document (correctness + complexity) and edge-case test log for Stanford: The Core Cross-Walk.",
+    "checkpoint": "Invariant documented in code; full proof written with no hand-waving; complexity bound named precisely; edge cases tested."
+   },
+   "id": "il08-stanford-cs",
+   "mockTask": {
+    "id": "il08-stanford-cs--mock",
+    "type": "choice",
+    "q": "Karger repeated n²log n times gives?",
+    "choices": [
+     "nothing",
+     "exact always",
+     "high-probability min cut",
+     "still random"
+    ],
+    "answer": 2,
+    "explain": "Amplification: repeats drive failure probability exponentially down."
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **recursion-first** — think recursively, then convert to iterative; 106B's core problem-solving strategy — recursive problem-solving before iterative\n- **big-O** — asymptotic upper bound on growth; 106B's language for comparing algorithms\n- **expectation** — the average over randomness; a fair die expects 3.5 — linearity of expectation starts here\n- **linearity of expectation** — E[X+Y] = E[X] + E[Y] with no independence needed; the analysis workhorse for randomized algorithms\n- **randomized algorithm** — uses random choices; randomized quicksort runs in expected O(n log n) — randomization defeats adversarial input\n- **amplification** — repeat a randomized algorithm; failure probability drops exponentially — Karger repeated n² log n times yields the min cut with high probability\n- **Karger's min-cut** — randomized edge contraction; the algorithm that's wrong sometimes and brilliant in expectation — repeat for confidence\n- **compilation pipeline** — lex → parse → semantic analysis → IR → optimization → codegen: tokens to tree to checked IR to machine code\n- **RAII** — resource acquisition is initialization; 106B's C++ idiom for managing lifetimes — the language where abstractions cost nothing\n- **buffer overflow** — writing past a buffer's bounds; CS107's assignments make memory unsafety visceral — security from the machine up\n- **CS109's probability** — expectation, variance, concentration: the subset of probability a computer scientist actually uses (randomized algorithms, ML)\n- **cross-walk value** — see the same ideas (recursion, induction, layering) across MIT, CMU, and Stanford; triangulation — the idea outlives any single presentation\n- **depth branch** — a specialization track: theory (154 automata/complexity, 254 advanced), systems (143 compilers, 144 networking, 145 databases), AI (221, 229, 230, 224N, 231N, 234 — the sequence IL-07's ML arc follows)"
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Worked estimates — CS109-style: put numbers on randomized claims before shipping them:\n1. **Expected quicksort** — n = 1,000,000, random pivot: expected ≈ n log₂ n ≈ 20M comparisons. Worst case without randomization: ≈ n²/2 = 5×10¹¹. Randomization's payoff, quantified — this is why the pivot is random.\n2. **Amplification arithmetic** — one Karger run succeeds with probability ≈ 2/n². Repeat n² log n times: failure ≈ (1 − 2/n²)^(n² log n) ≈ e^(−2 log n) = 1/n². Repetition drives the error down exponentially — high probability from a weak primitive.\n3. **Linearity of expectation** — expected sum of 100 fair dice = 100 × 3.5 = 350. No distribution math, no independence assumptions — linearity always holds.\n4. **Hashing load estimate** — n keys into m = n buckets, uniform hashing: expected chain length = n/m = 1. Double the keys (n = 2m): expected length 2. This is the estimate behind every hash-table sizing decision."
+    },
+    {
+     "title": "Project brief",
+     "body": "Randomization, proven and shipped — the capstone for the Stanford cross-walk. Implement randomized quicksort and Karger's min-cut in Python:\n1. **Working code** — both algorithms, clean enough to hand to a reviewer.\n2. **Expectation analysis** — written in prose, no hand-waving: show the linearity-of-expectation step for quicksort's O(n log n) and the 2/n² success bound for Karger.\n3. **Empirical check** — run quicksort on adversarial (sorted) input 50 times, record the comparison counts, and report the distribution (min/median/max); then run Karger's min-cut repeatedly on a small graph and record how many runs find the true min cut — does the amplification arithmetic from the estimation section match?\n4. **Production verdict** — one paragraph: when would you reach for randomization in production, and when is determinism non-negotiable?\nDeliverables: code, analysis, measurements, verdict. Then write the compiler-phase map for a language you know: which phase would catch a type error, which would catch a syntax error, and where does optimization live — the 143 pipeline made concrete."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Noah probes mastery with questions like:\n- Randomized quicksort on sorted input: expected time, and why does the random pivot defeat the adversary?\n- Karger succeeds with probability ≈ 2/n² per run. How many repeats for high probability — and show the amplification arithmetic.\n- Walk the compiler pipeline for `x = 1 +` — which phase rejects it, and why not an earlier one?\n- Expected sum of 100 fair dice — no calculator, just linearity. Then tell me why independence wasn't needed.\n- You've now seen induction at MIT, CMU, and Stanford. What's invariant across all three — and what did each school add?\n- Honesty note: these proofs, labs, and questions are original practice material authored for this course. Course numbers reference public university materials; this course confers no certificate and is not affiliated with MIT, CMU, or Stanford."
+    },
+    {
+     "title": "Worked example: Randomized quicksort expected time?",
+     "body": "**Problem.** Randomized quicksort expected time?\n\n**Step 1 — Answer from first principles.** Cover the choices and commit to an answer using only the concept, not pattern-matching. Say your reasoning out loud — in interviews and in real work, the reasoning is what gets graded.\n\n**Step 2 — Reveal and verify.**\n- **Correct answer:** O(n log n)\n- **Why:** Random pivot → expected O(n log n) — randomization defeats adversarial input.\n\n**Step 3 — Lock in the principle.** Compress the explanation into one reusable rule: *Random pivot → expected O(n log n) — randomization defeats adversarial input.* Write it on a card. If you cannot state the rule without the item in front of you, you memorized the item instead of the idea.\n\n**Step 4 — Teach it back.** Explain this item to an imaginary junior in three sentences: what was asked, what the right move was, and the one mistake to avoid. Teaching is the retention test — if the explanation wobbles, re-study before moving on."
+    },
+    {
+     "title": "Pitfalls & how to dodge them",
+     "body": "Formal material demands rigor. These habits corrupt understanding of Stanford: The Core Cross-Walk:\n- **Hand-waving proofs.** 'Clearly' and 'obviously' are where the bugs hide. Write the invariant, the base case, and the step — fully, every time.\n- **Ignoring edge cases in analysis.** Empty input, single element, duplicates, maximum size. The analysis isn't done until the edges are accounted for.\n- **Confusing average with worst case.** Know which one your bound describes and which one your adversary gets to choose.\n- **Notation sloppiness.** O, Theta, Omega mean different things; using them interchangeably trains fuzzy thinking. Say exactly which bound you proved.\n- **Skipping the reduction.** Every new problem in Stanford: The Core Cross-Walk should be connected to something known: 'this is just X in disguise.' Reductions are how the field thinks.\n- **Code without the argument.** An implementation with no written correctness or complexity argument is half a solution. The argument is the deliverable; code is the exhibit."
+    }
+   ],
+   "objectives": [
+    "Think recursively: 106B's core skill — recursion as a problem-solving strategy.",
+    "Prove and count: logic, graphs, probability (103/109).",
+    "Program the machine: bits, C, assembly, OS principles (107/111).",
+    "Analyze: CS161's algorithm canon with randomization."
+   ],
+   "prerequisiteFor": [],
+   "quiz": [
+    {
+     "q": "Randomized quicksort expected time?",
+     "choices": [
+      "O(n²)",
+      "O(n log n)",
+      "O(n)",
+      "O(log n)"
+     ],
+     "answer": 1,
+     "explain": "Random pivot → expected O(n log n) — randomization defeats adversarial input."
+    },
+    {
+     "q": "Karger repeated n²log n times gives?",
+     "choices": [
+      "still random",
+      "high-probability min cut",
+      "exact always",
+      "nothing"
+     ],
+     "answer": 1,
+     "explain": "Amplification: repeats drive failure probability exponentially down."
+    },
+    {
+     "q": "Compiler phase order?",
+     "choices": [
+      "codegen first",
+      "lex → parse → semantic → IR → optimize → codegen",
+      "optimize first",
+      "parse last"
+     ],
+     "answer": 1,
+     "explain": "The pipeline: tokens → tree → checked → IR → better IR → machine code."
+    },
+    {
+     "q": "CS107 buffer-overflow assignment teaches?",
+     "choices": [
+      "hacking",
+      "memory unsafety consequences — security from the machine up",
+      "C syntax",
+      "nothing"
+     ],
+     "answer": 1,
+     "explain": "Smashing the stack makes memory safety visceral — the security lesson that sticks."
+    },
+    {
+     "q": "Expectation of a fair die?",
+     "choices": [
+      "6",
+      "3.5",
+      "3",
+      "7"
+     ],
+     "answer": 1,
+     "explain": "(1+2+3+4+5+6)/6 = 3.5 — linearity of expectation starts here."
+    },
+    {
+     "q": "Why three schools' versions?",
+     "choices": [
+      "redundancy",
+      "triangulation — the idea outlives any single presentation",
+      "prestige",
+      "length"
+     ],
+     "answer": 1,
+     "explain": "See it three ways; keep what's invariant — that's the concept."
+    },
+    {
+     "q": "106A teaches which language?",
+     "choices": [
+      "C++",
+      "Python",
+      "Java",
+      "C"
+     ],
+     "answer": 1,
+     "explain": "106A (Methodology): Python — decomposition, testing, programming as a craft."
+    },
+    {
+     "q": "106B's language and core skill?",
+     "choices": [
+      "Java + OOP",
+      "C++ + recursive problem-solving",
+      "Python + scripting",
+      "Rust + ownership"
+     ],
+     "answer": 1,
+     "explain": "106B (Abstractions): C++ with recursion as the core skill — the language where abstractions cost nothing."
+    },
+    {
+     "q": "CS109 is probability for?",
+     "choices": [
+      "mathematicians",
+      "computer scientists",
+      "statisticians",
+      "physicists"
+     ],
+     "answer": 1,
+     "explain": "CS109: probability for computer scientists — the subset you'll actually use (randomized algorithms, ML)."
+    },
+    {
+     "q": "Which depth course is compilers?",
+     "choices": [
+      "CS154",
+      "CS143",
+      "CS144",
+      "CS145"
+     ],
+     "answer": 1,
+     "explain": "143 (compilers): the dragon course — lexing to codegen, the full pipeline, per the depth-branches notes."
+    }
+   ],
+   "summary": "Welcome to Module 3 — Stanford's core as a cross-walk. I'm your instructor, and this module is about triangulation: we walk the same ground the MIT and CMU modules covered, but in Stanford's order, so that what survives all three presentations is the concept itself. 106A's methodology in Python, 106B's abstractions in C++ with recursion as the core skill, CS103's proofs, logic, and graphs, CS109's probability for computer scientists, CS107's computer organization and systems (where pointers stop being scary), CS111's operating systems principles, and CS161's famously rigorous design and analysis — with randomization as the signature move. We close with the depth branches: theory (154/254), systems (143 compilers, 144 networking, 145 databases), and the AI sequence. Same ideas, third telling — keep what's invariant.",
+   "title": "Stanford: The Core Cross-Walk",
+   "videos": [
+    {
+     "title": "Lecture 1 | Programming Abstractions (Stanford)",
+     "url": "https://www.youtube.com/watch?v=kMzH3tfP6f8",
+     "source": "Stanford (YouTube)",
+     "blurb": "Julie Zelenski's first CS106B lecture — the recursion-first, big-O mindset that frames Stanford's core cross-walk in this module.",
+     "durationMin": 80,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T21:21:34Z",
+     "httpStatus": 200
+    }
+   ],
+   "weight": 2
+  }
+ ],
+ "scriptLabs": [
+  {
+   "id": "il08-lab-induction",
+   "title": "Induction Proof Workshop",
+   "brief": "Write complete induction proofs for three claims: sum of odds, Bernoulli's inequality, and the loop invariant of binary search. The required fragments force the proof skeleton.",
+   "starter": "# For each claim, write: BASE, HYPOTHESIS, STEP.\n# 1. sum_{i=1..n} (2i-1) = n^2\n# 2. (1+x)^n >= 1+nx for x > -1 (Bernoulli)\n# 3. Binary search loop invariant: if key in a[0..n), key in a[lo..hi)",
+   "required": [
+    "BASE",
+    "HYPOTHESIS",
+    "STEP",
+    "invariant"
+   ],
+   "hint": "Bernoulli step: (1+x)^(k+1) = (1+x)^k(1+x) >= (1+kx)(1+x) = 1+(k+1)x+kx² >= 1+(k+1)x. Binary search: invariant preserved by halving.",
+   "solution": "# 1. Sum of odds\n# BASE: n=1: 1 = 1^2. HYPOTHESIS: sum to k = k^2.\n# STEP: sum to k+1 = k^2 + (2(k+1)-1) = k^2+2k+1 = (k+1)^2. QED.\n# 2. Bernoulli: BASE n=0: 1>=1. HYPOTHESIS: (1+x)^k >= 1+kx.\n# STEP: (1+x)^(k+1)=(1+x)^k(1+x) >= (1+kx)(1+x) = 1+(k+1)x+kx^2 >= 1+(k+1)x. QED.\n# 3. Binary search invariant: key in a[lo..hi) initially (lo=0,hi=n).\n# STEP: mid=(lo+hi)//2; if a[mid]==key done; if key<a[mid] hi=mid else lo=mid+1.\n# Invariant preserved: key (if present) stays in [lo,hi). Termination: hi-lo shrinks.\n# QED: loop exits with key found or lo==hi (absent)."
+  },
+  {
+   "id": "il08-lab-malloc",
+   "title": "A Tiny Allocator (15-213 Spirit)",
+   "brief": "Implement a bump allocator with free-list reuse in Python (simulating the malloc lab): malloc(size), free(ptr), with first-fit search and coalescing. The 15-213 lesson in miniature.",
+   "starter": "class MiniHeap:\n    def __init__(self, size=1024):\n        self.mem = bytearray(size)\n        self.free_list = [(0, size)]  # (offset, length)\n    def malloc(self, n):\n        # TODO: first-fit, split block, return offset or None\n        pass\n    def free(self, off, n):\n        # TODO: return block, coalesce neighbors\n        pass",
+   "required": [
+    "free_list",
+    "coalesce",
+    "first-fit",
+    "split"
+   ],
+   "hint": "malloc: scan free_list for length>=n; split remainder back. free: insert sorted, merge with adjacent (coalesce). Track allocations in a dict for the demo.",
+   "solution": "class MiniHeap:\n    def __init__(self, size=1024):\n        self.mem = bytearray(size)\n        self.free_list = [(0, size)]\n        self.allocd = {}\n    def malloc(self, n):\n        for i, (off, ln) in enumerate(self.free_list):\n            if ln >= n:  # first-fit\n                self.allocd[off] = n\n                if ln == n:\n                    self.free_list.pop(i)\n                else:  # split: carve n, leave remainder\n                    self.free_list[i] = (off+n, ln-n)\n                return off\n        return None\n    def free(self, off):\n        n = self.allocd.pop(off)\n        self.free_list.append((off, n))\n        self.free_list.sort()\n        # coalesce adjacent\n        merged = [self.free_list[0]]\n        for o, l in self.free_list[1:]:\n            po, pl = merged[-1]\n            if po+pl == o:\n                merged[-1] = (po, pl+l)\n            else:\n                merged.append((o, l))\n        self.free_list = merged\n\nh = MiniHeap(64)\na, b, c = h.malloc(16), h.malloc(16), h.malloc(16)\nh.free(b)          # hole in the middle\nd = h.malloc(8)    # first-fit reuses the hole, splits remainder\nprint('free_list:', h.free_list)  # coalescing visible\n# Lesson: fragmentation is the enemy; coalescing is the defense."
+  },
+  {
+   "id": "il08-lab-bfs",
+   "title": "BFS: Shortest Path, Proved",
+   "brief": "Implement BFS returning shortest-path distances, then state the invariant that proves correctness. Code + proof — the 15-251 way.",
+   "starter": "from collections import deque\n\ndef bfs(graph, s):\n    # TODO: dist dict, queue; invariant: when v dequeued, dist[v] is shortest\n    pass\n\n# graph as adjacency lists; test on a small graph; print distances",
+   "required": [
+    "deque",
+    "dist[",
+    "popleft",
+    "invariant"
+   ],
+   "hint": "dist[s]=0; on dequeue v, for each neighbor w unvisited: dist[w]=dist[v]+1, enqueue. Invariant: queue holds vertices in nondecreasing dist — the proof of shortest-first.",
+   "solution": "from collections import deque\n\ndef bfs(graph, s):\n    dist = {s: 0}\n    q = deque([s])\n    while q:\n        v = q.popleft()\n        # INVARIANT: vertices leave the queue in nondecreasing dist order,\n        # so the first time we set dist[w], it is the shortest path length.\n        for w in graph.get(v, []):\n            if w not in dist:\n                dist[w] = dist[v] + 1\n                q.append(w)\n    return dist\n\ng = {'a': ['b','c'], 'b': ['d'], 'c': ['d'], 'd': []}\nprint(bfs(g, 'a'))  # {'a':0,'b':1,'c':1,'d':2}\n# Proof sketch: BFS explores in waves; wave k = distance k. First visit is shortest."
+  }
+ ],
+ "drills": [
+  {
+   "id": "il08-dr-induction",
+   "title": "Proof drill",
+   "prompt": "Induction proves?",
+   "choices": [
+    "existence",
+    "all n ≥ base",
+    "uniqueness",
+    "nothing"
+   ],
+   "answer": 1,
+   "explain": "Base + step = all naturals from the base. The domino principle."
+  },
+  {
+   "id": "il08-dr-master",
+   "title": "Recurrence drill",
+   "prompt": "T(n)=3T(n/2)+n?",
+   "choices": [
+    "O(n)",
+    "O(n log n)",
+    "O(n^1.585)",
+    "O(n²)"
+   ],
+   "answer": 2,
+   "explain": "Master case 1: n^(log_2 3) ≈ n^1.585 dominates."
+  },
+  {
+   "id": "il08-dr-np",
+   "title": "Complexity drill",
+   "prompt": "3-SAT is?",
+   "choices": [
+    "in P",
+    "NP-complete",
+    "undecidable",
+    "in L"
+   ],
+   "answer": 1,
+   "explain": "The canonical NP-complete problem — reductions start here."
+  },
+  {
+   "id": "il08-dr-workspan",
+   "title": "Parallel drill",
+   "prompt": "Work O(n), span O(log n): parallelism?",
+   "choices": [
+    "O(1)",
+    "O(n/log n)",
+    "O(n)",
+    "O(log n)"
+   ],
+   "answer": 1,
+   "explain": "Parallelism ≈ work/span."
+  },
+  {
+   "id": "il08-dr-malloc",
+   "title": "Systems drill",
+   "prompt": "Coalescing fights?",
+   "choices": [
+    "leaks",
+    "fragmentation",
+    "overflow",
+    "races"
+   ],
+   "answer": 1,
+   "explain": "Merging adjacent free blocks — the allocator's defense."
+  },
+  {
+   "id": "il08-dr-e2e",
+   "title": "Design drill",
+   "prompt": "End-to-end argument?",
+   "choices": [
+    "encrypt all",
+    "function at endpoints",
+    "distribute",
+    "centralize"
+   ],
+   "answer": 1,
+   "explain": "Correctness lives at the endpoints."
+  }
+ ],
+ "scenarios": [
+  {
+   "id": "il08-scn-algo-choice",
+   "title": "Choosing the Algorithm",
+   "context": "You need the median of 10M numbers, memory for the full array, one pass preferred.",
+   "steps": [
+    {
+     "prompt": "Algorithm?",
+     "options": [
+      {
+       "text": "Quickselect (Hoare's selection) — expected O(n)",
+       "correct": true,
+       "why": "Selection doesn't need sorting — quickselect finds the kth element in expected linear time."
+      },
+      {
+       "text": "Sort then index — O(n log n)",
+       "correct": false,
+       "why": "Correct but wasteful — sorting does work selection doesn't need."
+      },
+      {
+       "text": "Heap of size n/2",
+       "correct": false,
+       "why": "O(n log n) with worse constants — quickselect dominates."
+      }
+     ]
+    },
+    {
+     "prompt": "Adversarial input suspected. Harden?",
+     "options": [
+      {
+       "text": "Randomized pivot (or median-of-medians for worst-case guarantee)",
+       "correct": true,
+       "why": "Randomization defeats adversarial order; median-of-medians gives deterministic O(n)."
+      },
+      {
+       "text": "Bigger server",
+       "correct": false,
+       "why": "Hardware doesn't fix quadratic worst cases."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "il08-scn-distributed",
+   "title": "The Counter Must Agree",
+   "context": "Three replicas count ad impressions. Network partitions happen. The business needs the total.",
+   "steps": [
+    {
+     "prompt": "Consistency choice?",
+     "options": [
+      {
+       "text": "Strong consistency (Raft) — every increment agreed",
+       "correct": false,
+       "why": "Correct but slow/expensive for a counter — and partitions block progress."
+      },
+      {
+       "text": "CRDT counter (G-Counter) — mergeable, available under partition",
+       "correct": true,
+       "why": "Counters are the CRDT success story: increments commute, merge is exact, partitions don't block."
+      }
+     ]
+    },
+    {
+     "prompt": "Why does the CRDT work here?",
+     "options": [
+      {
+       "text": "Magic",
+       "correct": false,
+       "why": "No magic — mathematics."
+      },
+      {
+       "text": "Increments commute and merge is idempotent — the operation's algebra fits the data type",
+       "correct": true,
+       "why": "CRDTs work when operations commute; counting is the canonical case."
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "trainers": [
+  {
+   "id": "il08-trainer-complexity",
+   "title": "Complexity Sprint Trainer",
+   "brief": "Rapid-fire: recurrences, code snippets, data-structure ops — name the Big-O. Streak-tracked — analysis speed is the interview currency.",
+   "kind": "custom"
+  }
+ ],
+ "mockMinutes": 90,
+ "mockTasks": [
+  {
+   "id": "il08-m01",
+   "type": "choice",
+   "q": "Sum of first n odds = ?",
+   "choices": [
+    "n²",
+    "2n",
+    "n(n+1)",
+    "n³"
+   ],
+   "answer": 0,
+   "explain": "Induction classic: n²."
+  },
+  {
+   "id": "il08-m02",
+   "type": "choice",
+   "q": "T(n)=2T(n/2)+n²?",
+   "choices": [
+    "O(n log n)",
+    "O(n²)",
+    "O(n)",
+    "O(n³)"
+   ],
+   "answer": 1,
+   "explain": "Master case 3: n² dominates n^(log_2 2)=n."
+  },
+  {
+   "id": "il08-m03",
+   "type": "choice",
+   "q": "Proving X NP-complete needs?",
+   "choices": [
+    "fast algorithm",
+    "3-SAT ≤p X and X ∈ NP",
+    "X ≤p 3-SAT",
+    "guessing"
+   ],
+   "answer": 1,
+   "explain": "Reduce known-hard TO X; show X in NP."
+  },
+  {
+   "id": "il08-m04",
+   "type": "choice",
+   "q": "BFS first-visit guarantee?",
+   "choices": [
+    "visited",
+    "shortest path (unweighted)",
+    "cheapest",
+    "random"
+   ],
+   "answer": 1,
+   "explain": "Wave order = distance order — first visit is shortest."
+  },
+  {
+   "id": "il08-m05",
+   "type": "choice",
+   "q": "Raft's core guarantee?",
+   "choices": [
+    "speed",
+    "safety under minority failures",
+    "no leader",
+    "sync clocks"
+   ],
+   "answer": 1,
+   "explain": "Agreement on log order despite failures."
+  },
+  {
+   "id": "il08-m06",
+   "type": "choice",
+   "q": "xv6 is?",
+   "choices": [
+    "a distro",
+    "a teaching kernel (~10k lines)",
+    "a scheduler",
+    "a FS"
+   ],
+   "answer": 1,
+   "explain": "MIT's pedagogical Unix-like kernel — OS concepts concrete."
+  },
+  {
+   "id": "il08-m07",
+   "type": "choice",
+   "q": "Karger amplification?",
+   "choices": [
+    "useless",
+    "repeat → exponentially small failure",
+    "exact",
+    "slower"
+   ],
+   "answer": 1,
+   "explain": "Repetition drives error down exponentially."
+  },
+  {
+   "id": "il08-m08",
+   "type": "choice",
+   "q": "End-to-end example?",
+   "choices": [
+    "TCP checksums at endpoints, not just the network",
+    "firewalls",
+    "DNS",
+    "BGP"
+   ],
+   "answer": 0,
+   "explain": "Reliability implemented at endpoints — the network only tries."
+  },
+  {
+   "id": "il08-m09",
+   "type": "choice",
+   "q": "CRDT counter works because?",
+   "choices": [
+    "consensus",
+    "increments commute; merge idempotent",
+    "luck",
+    "timestamps"
+   ],
+   "answer": 1,
+   "explain": "The algebra fits: commutativity + idempotence = safe merge."
+  },
+  {
+   "id": "il08-m10",
+   "type": "choice",
+   "q": "Halting problem: the technique?",
+   "choices": [
+    "reduction from SAT",
+    "diagonalization",
+    "induction",
+    "pumping"
+   ],
+   "answer": 1,
+   "explain": "Assume a decider, construct the self-contradicting program."
+  },
+  {
+   "id": "il08-m11",
+   "type": "code",
+   "prompt": "Write the induction step for: sum_{i=1}^{k+1}(2i-1) = (k+1)² given hypothesis for k.",
+   "starter": "# HYPOTHESIS: sum to k = k^2\n# STEP:",
+   "required": [
+    "k^2",
+    "2(k+1)-1",
+    "(k+1)^2"
+   ],
+   "answer": "# HYPOTHESIS: sum_{i=1..k}(2i-1) = k^2\n# STEP: sum to k+1 = [sum to k] + (2(k+1)-1) = k^2 + 2k+1 = (k+1)^2. QED.",
+   "explain": "Add the (k+1)th odd term to the hypothesis; algebra closes it."
+  },
+  {
+   "id": "il08-m12",
+   "type": "code",
+   "prompt": "BFS: complete the neighbor-relaxation lines.",
+   "starter": "from collections import deque\ndef bfs(g, s):\n    dist = {s: 0}; q = deque([s])\n    while q:\n        v = q.popleft()\n        for w in g.get(v, []):\n            # TODO: if unvisited, set dist and enqueue\n    return dist",
+   "required": [
+    "not in dist",
+    "dist[v] + 1",
+    "append"
+   ],
+   "answer": "from collections import deque\ndef bfs(g, s):\n    dist = {s: 0}; q = deque([s])\n    while q:\n        v = q.popleft()\n        for w in g.get(v, []):\n            if w not in dist:\n                dist[w] = dist[v] + 1\n                q.append(w)\n    return dist",
+   "explain": "First visit sets the shortest distance — the BFS invariant."
+  }
+ ],
+ "cheatSheets": [
+  {
+   "title": "IL-08 Proof & Analysis Quick Reference",
+   "blocks": [
+    {
+     "h": "Proofs",
+     "body": "Induction: base→hypothesis→step · Contradiction: assume ¬P, derive absurdity · Invariant: true before/after each iteration · Exchange: greedy stays ahead"
+    },
+    {
+     "h": "Recurrences",
+     "body": "Master: T(n)=aT(n/b)+f(n) vs n^(log_b a) · substitution · recursion trees · amortized: aggregate/accounting/potential"
+    },
+    {
+     "h": "Lower bounds",
+     "body": "Comparison sort Ω(n log n) · decision trees · adversary arguments · reductions for NP-hardness (3-SAT ≤p X)"
+    },
+    {
+     "h": "Parallel",
+     "body": "Work/span · parallelism = work/span · Brent: Tp ≤ W/P + S"
+    }
+   ]
+  },
+  {
+   "title": "IL-08 Systems & Theory Quick Reference",
+   "blocks": [
+    {
+     "h": "Machine",
+     "body": "Gates→FSM→datapath→ISA→assembly→C · caches: locality · VM: pages, TLB · calling conventions"
+    },
+    {
+     "h": "OS",
+     "body": "Processes/threads · scheduling · sync (locks, semaphores) · VM · filesystems (inodes, journaling) · xv6 as reference"
+    },
+    {
+     "h": "Distributed",
+     "body": "RPC · consensus (Raft: leader, log, safety) · consistency models · CRDTs for commutative ops · end-to-end argument"
+    },
+    {
+     "h": "Complexity",
+     "body": "P ⊆ NP ⊆ PSPACE · NP-complete: hardest in NP · halting undecidable (diagonalization) · reductions direction matters"
+    }
+   ]
+  }
+ ],
+ "answerBank": [
+  {
+   "q": "Which school's version should I follow?",
+   "a": "All three where they overlap — that's the point of the cross-walk. Start with MIT's order (prerequisite-clean), use CMU for systems depth (15-213/410), Stanford for the AI branches. The module sequences them.",
+   "ref": "il08-mit-63"
+  },
+  {
+   "q": "Do I really need theory for a dev job?",
+   "a": "For most CRUD work, no. For interviews at selective companies, distributed systems, databases, and performance work — yes, constantly. Theory is the highest-leverage knowledge: it doesn't expire.",
+   "ref": "il08-cmu-cs"
+  },
+  {
+   "q": "How do I learn proofs as a programmer?",
+   "a": "Write them like code: state the claim (spec), then the proof (implementation). Do every exercise in 6.1200/CS103 — proofs are a writing skill, and writing is learned by writing.",
+   "ref": "il08-mit-63"
+  },
+  {
+   "q": "xv6 vs Linux for learning OS?",
+   "a": "xv6 first (10k lines, every concept visible), then Linux source for the specific subsystem you need. The module uses xv6 as the reference implementation.",
+   "ref": "il08-mit-63"
+  },
+  {
+   "q": "P vs NP — should I care?",
+   "a": "As a practitioner: NP-completeness tells you when to stop searching for the perfect algorithm and start approximating. That's a career's worth of saved time in one concept.",
+   "ref": "il08-mit-63"
+  }
+ ],
+ "sourceLinks": [
+  {
+   "name": "MIT OpenCourseWare — EECS",
+   "url": "https://ocw.mit.edu/search/?d=Electrical+Engineering+and+Computer+Science",
+   "note": "6.100/6.1200/6.1210/6.1910/6.1800 public materials.",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "CMU SCS course catalog",
+   "url": "https://www.cs.cmu.edu/",
+   "note": "15-122/150/210/213/251/410/440/445 course lineage.",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Stanford CS courses",
+   "url": "https://cs.stanford.edu/",
+   "note": "106A/B, 103/109, 107/111, 161 lineage.",
+   "retrieved": "2026-10-07"
+  },
+  {
+   "name": "xv6 (MIT)",
+   "url": "https://pdos.csail.mit.edu/6.828/",
+   "note": "The teaching kernel — OS concepts in ~10k lines.",
+   "retrieved": "2026-10-07"
+  }
+ ],
+ "honestyNote": "Original practice material only — proofs, labs, and questions are authored for this course. Course numbers reference public university materials (MIT OCW and published curricula). Interstitium Labs confers no certificate and is not affiliated with MIT, CMU, or Stanford.",
+ "terminalSims": [
+  {
+   "id": "il08-term-algo",
+   "title": "Algorithm Lab Simulator",
+   "brief": "Benchmark sorts, solve recurrences, and sanity-check Big-O claims in a canned lab shell — the 6-3/161 workflow.",
+   "prompt": "algo@lab:~$ ",
+   "commands": [
+    {
+     "cmd": "bench quicksort 100000",
+     "out": "quicksort n=100000: 0.041s  (comparisons ≈ 1.7M ≈ 1.39·n·log₂n)"
+    },
+    {
+     "cmd": "bench bubblesort 100000",
+     "out": "bubblesort n=100000: 38.2s  (quadratic pain is real — try n=1000)"
+    },
+    {
+     "cmd": "recurrence \"T(n) = 2T(n/2) + n\"",
+     "out": "Master theorem case 2: a=2, b=2, n^(log₂2)=n¹, f(n)=Θ(n) → T(n) = Θ(n log n)"
+    },
+    {
+     "cmd": "recurrence \"T(n) = T(n-1) + n\"",
+     "out": "Not Master (b=1): unroll the sum → T(n) = Θ(n²)"
+    },
+    {
+     "cmd": "lower-bound sorting",
+     "out": "Decision tree: n! leaves → depth ≥ log₂(n!) = Ω(n log n). No comparison sort beats it."
+    },
+    {
+     "cmd": "help",
+     "out": "commands: bench <quicksort|bubblesort> <n>, recurrence \"T(n) = ...\", lower-bound sorting"
+    }
+   ]
+  },
+  {
+   "id": "il08-term-proof",
+   "title": "Proof Assistant Simulator",
+   "brief": "Step through an induction proof and a SAT check in a canned tactic shell — goals, tactics, Q.E.D.",
+   "prompt": "prop> ",
+   "commands": [
+    {
+     "cmd": "goal \"sum(1..n) = n(n+1)/2\"",
+     "out": "Goal 1: ∀n. sum(1..n) = n(n+1)/2"
+    },
+    {
+     "cmd": "induction n",
+     "out": "2 subgoals: [base] n=0 · [step] n → n+1"
+    },
+    {
+     "cmd": "base",
+     "out": "[base] sum(1..0) = 0 = 0·1/2 ✓"
+    },
+    {
+     "cmd": "step",
+     "out": "[step] IH: sum(1..n)=n(n+1)/2 ⊢ sum(1..n+1)=(n+1)(n+2)/2 ✓ by algebra"
+    },
+    {
+     "cmd": "qed",
+     "out": "Q.E.D. — proof complete, 4 tactics."
+    },
+    {
+     "cmd": "sat \"(p -> q) /\\ p\"",
+     "out": "SAT: model {p=true, q=true}"
+    },
+    {
+     "cmd": "sat \"(p /\\ ~p)\"",
+     "out": "UNSAT: no model — contradiction."
+    },
+    {
+     "cmd": "help",
+     "out": "commands: goal \"...\", induction <var>, base, step, qed, sat \"<formula>\""
+    }
+   ]
+  }
+ ],
+ "timeFormula": "estimatedMinutes per module = 60 (orientation) + 15/note + 2/card + 3/quiz item + 10/drill item + 60 (hands-on lab), rounded to 5; course hours = rounded sum of module minutes.",
+ "crosswalk": [],
+ "certGates": [],
+ "_noCertNote": "No accredited certification maps to algorithms, compilers, or formal methods; the course is foundational theory. No track mapped.",
+ "_phase2_done": true
+}

@@ -130,6 +130,8 @@ function normCourse(raw) {
     cheatSheets: d.cheatSheets || [],
     answerBank: d.answerBank || [],
     sourceLinks: d.sourceLinks || [],
+    glossary: d.glossary || [],
+    faq: d.faq || [],
     honestyNote: d.honestyNote || '',
     crosswalk: d.crosswalk || [],
     certGates: d.certGates || [],
@@ -315,6 +317,8 @@ function refreshReadiness() {
   $all('[data-readiness-ring]').forEach(function (host) {
     host.innerHTML = ringSVG(r.pct) +
       '<div class="ring-num"><b>' + r.pct + '%</b><span>READY</span></div>';
+    /* 2026-10-08: sweep the readiness ring from its previous value (il-animate.js). */
+    if (window.ILAnimate) window.ILAnimate.animateRing(host, r.pct);
   });
   $all('[data-readiness-legend]').forEach(function (host) {
     host.innerHTML = '<ul>' +
@@ -380,6 +384,8 @@ function showTab(id) {
   $all('.shell-tab').forEach(function (s) { s.classList.toggle('active', s.id === 'tab-' + id); });
   var pane = $('#tab-' + id);
   if (pane && !pane.dataset.built) { pane.dataset.built = '1'; BUILDERS[id](pane); }
+  /* 2026-10-08: scroll-reveal + progress-bar animation pass (il-animate.js). */
+  if (pane && window.ILAnimate) window.ILAnimate.observe(pane);
   if (id === 'brief') refreshReadiness();
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
 }
@@ -387,6 +393,79 @@ function showTab(id) {
 function route() {
   var m = /^#\/([a-z]+)/.exec(location.hash || '');
   showTab(m ? m[1] : 'brief');
+}
+
+/* ============================== unified progress (2026-10-08) ======
+ * Nav progress strip + next-up prompt, backed by ILProgress
+ * (localStorage "il-progress-v1"). Mirrors the module toggles above
+ * into the cross-course store without touching the existing readiness
+ * ring or Sync pipeline.
+ * ===================================================================== */
+function refreshILProgress() {
+  try {
+    if (typeof ILProgress === 'undefined' || !ILProgress) return;
+    if (typeof COURSE === 'undefined' || !COURSE) return;
+    var total = (COURSE.modules || []).length;
+    var stats = ILProgress.courseStats(COURSE.courseId, total);
+    var nav = $('#shell-nav');
+    var strip = document.getElementById('ilprog-navstrip');
+    if (nav) {
+      if (!strip) {
+        strip = el('div', 'ilprog-nav');
+        strip.id = 'ilprog-navstrip';
+        strip.setAttribute('aria-live', 'polite');
+        nav.appendChild(strip);
+      }
+      strip.innerHTML =
+        '<div class="ilprog-bar__label">' + ILProgress.esc(COURSE.code || '') +
+        ' · ' + stats.done + ' of ' + stats.total + ' modules · ' + stats.pct + '%</div>' +
+        '<div class="ilprog-bar__track"><div class="ilprog-bar__fill" style="width:' + stats.pct + '%"></div></div>';
+    }
+    /* "Continue where you left off" at the top of the Brief tab — the
+       resume anchor lands the student at the exact last module. */
+    var lp = ILProgress.getLastPosition();
+    var brief = $('#tab-brief');
+    var cwrap = document.getElementById('ilprog-continue-wrap');
+    if (lp && brief) {
+      ILProgress.loadSequence(function (seq) {
+        var html = ILProgress.continueHTML(lp, seq, { ctaLabel: 'Resume' });
+        if (!html) { if (cwrap) cwrap.style.display = 'none'; return; }
+        if (!cwrap) {
+          cwrap = el('div', '');
+          cwrap.id = 'ilprog-continue-wrap';
+          brief.insertBefore(cwrap, brief.firstChild);
+        }
+        /* Re-render only when the resume anchor moved. */
+        if (cwrap.dataset.lp !== lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp) {
+          cwrap.dataset.lp = lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp;
+          cwrap.innerHTML = html;
+        }
+        cwrap.style.display = '';
+      });
+    } else if (cwrap) { cwrap.style.display = 'none'; }
+    /* "Next up" prompt when this course is 100% complete. */
+    var main = $('#shell-main');
+    var wrap = document.getElementById('ilprog-nextup-wrap');
+    if (stats.total > 0 && stats.done >= stats.total) {
+      ILProgress.loadSequence(function (seq) {
+        var next = seq ? ILProgress.nextEntry(seq, COURSE.courseId) : null;
+        if (!next) { if (wrap) wrap.style.display = 'none'; return; }
+        if (!wrap) {
+          wrap = el('div', '');
+          wrap.id = 'ilprog-nextup-wrap';
+          main.insertBefore(wrap, main.firstChild);
+        }
+        wrap.innerHTML = '<div class="ilprog-nextup" role="region" aria-label="Course complete — next course">' +
+          '<div><p class="ilprog-nextup__eyebrow">Course complete — next up in the sequence</p>' +
+          '<p class="ilprog-nextup__desc"><strong>' + ILProgress.esc(next.code) + '</strong> · ' +
+          ILProgress.esc(next.title) + ' (' + (next.moduleCount || (next.moduleIds || []).length) + ' modules)</p></div>' +
+          '<a class="ilprog-nextup__btn" href="' + ILProgress.esc(ILProgress.courseURL(next)) + '">Start next course</a></div>';
+        wrap.style.display = '';
+      });
+    } else if (wrap) {
+      wrap.style.display = 'none';
+    }
+  } catch (e) {}
 }
 
 /* ============================== Brief ============================== */
@@ -619,19 +698,72 @@ function moduleHTML(m) {
   doneBtn.addEventListener('click', function () {
     var now = !(Progress.get('module:' + m.id) === '1');
     Progress.set('module:' + m.id, now ? '1' : null);
+    /* 2026-10-08: mirror module completion into the unified cross-course
+       store (localStorage "il-progress-v1") — drives resume/continue,
+       course progress bars, and next-up prompts. */
+    try {
+      if (typeof ILProgress !== 'undefined') {
+        if (now) { ILProgress.markComplete(COURSE.courseId, m.id); ILProgress.touch(COURSE.courseId, m.id); }
+        else ILProgress.unmarkComplete(COURSE.courseId, m.id);
+      }
+    } catch (e) {}
     head.querySelector('.mod-done-flag').textContent = now ? '✓ complete' : '';
     doneBtn.textContent = now ? '✓ Module complete' : 'Mark module complete';
     doneBtn.classList.toggle('primary', !now);
     refreshReadiness();
+    if (typeof refreshILProgress !== 'undefined') { try { refreshILProgress(); } catch (e) {} }
   });
   foot.appendChild(doneBtn);
   body.appendChild(foot);
   wrap.appendChild(head); wrap.appendChild(body);
 
+  /* 2026-10-08: auto-mark on reaching the end of an open module — once per
+     open. When the module footer scrolls fully into view, the student has
+     seen the whole module. */
+  var autoMarked = false;
+  var autoMarking = null;
+  function autoMarkCheck() {
+    if (autoMarked || autoMarking) return;
+    if (!(typeof ILProgress !== 'undefined' && ILProgress)) return;
+    if (body.style.display === 'none') return;
+    if (ILProgress.isComplete(COURSE.courseId, m.id)) { autoMarked = true; return; }
+    autoMarked = true;
+    ILProgress.markComplete(COURSE.courseId, m.id);
+    ILProgress.touch(COURSE.courseId, m.id);
+    try { Progress.set('module:' + m.id, '1'); } catch (e) {}
+    head.querySelector('.mod-done-flag').textContent = '✓ complete';
+    doneBtn.textContent = '✓ Module complete';
+    doneBtn.classList.remove('primary');
+    try { refreshReadiness(); } catch (e) {}
+    if (typeof refreshILProgress !== 'undefined') { try { refreshILProgress(); } catch (e) {} }
+  }
+
   function toggle() {
     var open = body.style.display === 'none';
     body.style.display = open ? '' : 'none';
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    /* 2026-10-08: staggered module-open entrance (il-animate.js). */
+    if (window.ILAnimate) window.ILAnimate.moduleToggled(body, open);
+    /* 2026-10-08: every module view is the resume anchor. */
+    if (open) {
+      try {
+        if (typeof ILProgress !== 'undefined' && ILProgress) ILProgress.touch(COURSE.courseId, m.id);
+      } catch (e) {}
+      /* Arm the end-of-module auto-mark for this open session. */
+      autoMarked = false;
+      try {
+        if (autoMarking) { autoMarking.disconnect(); autoMarking = null; }
+        if (typeof IntersectionObserver !== 'undefined') {
+          var obs = new IntersectionObserver(function (entries) {
+            if (entries && entries[0] && entries[0].isIntersecting) autoMarkCheck();
+          }, { threshold: 0.9 });
+          obs.observe(foot);
+          autoMarking = obs;
+        }
+      } catch (e) {}
+    } else {
+      try { if (autoMarking) { autoMarking.disconnect(); autoMarking = null; } } catch (e) {}
+    }
   }
   head.addEventListener('click', toggle);
   head.addEventListener('keydown', function (e) {
@@ -1385,6 +1517,22 @@ function buildMore(root) {
     }).join('') + '</ul>';
   } else {
     html += '<div class="card"><p class="muted small">No source links in this course document.</p></div>';
+  }
+
+  if (COURSE.glossary.length) {
+    html += '<h2 class="section-title">Glossary</h2><div class="card glossary-list">' +
+      COURSE.glossary.map(function (g) {
+        return '<div class="glossary-item"><div style="font-weight:600">' + esc(g.term) + '</div>' +
+          '<div class="small">' + mdLite(g.definition || '') + '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  if (COURSE.faq.length) {
+    html += '<h2 class="section-title">FAQ</h2>' +
+      COURSE.faq.map(function (f, i) {
+        return '<details class="fold"' + (i === 0 ? ' open' : '') + '><summary>' + esc(f.q) + '</summary>' +
+          '<div class="fold-body">' + mdLite(f.a || '') + '</div></details>';
+      }).join('');
   }
 
   if (COURSE.honestyNote) {
@@ -3370,6 +3518,33 @@ function boot() {
     window.addEventListener('hashchange', route);
     route();
     /* Deep-link support for module anchors: #/study then #mod-<id> handled by Study hash. */
+    /* 2026-10-08: ?module=<id> deep-link — resume drops the student at the
+       exact module: open the study tab, expand the module, scroll to it. */
+    try {
+      var modId = queryParam('module');
+      if (modId) {
+        var found = null;
+        (COURSE.modules || []).forEach(function (m) { if (m.id === modId) found = m; });
+        if (found) {
+          showTab('study');
+          var mw = document.getElementById('mod-' + found.id);
+          if (mw) {
+            var bdy = mw.querySelector('.mod-body');
+            var hd = mw.querySelector('.mod-head');
+            if (bdy && bdy.style.display === 'none') {
+              bdy.style.display = '';
+              /* 2026-10-08: staggered module-open entrance (il-animate.js). */
+              if (window.ILAnimate) window.ILAnimate.moduleToggled(bdy, true);
+            }
+            if (hd) hd.setAttribute('aria-expanded', 'true');
+            if (typeof ILProgress !== 'undefined' && ILProgress) ILProgress.touch(COURSE.courseId, found.id);
+            try { mw.scrollIntoView({ block: 'start' }); } catch (e2) {}
+          }
+        }
+      }
+    } catch (e) {}
+    /* 2026-10-08: paint unified progress strip + next-up prompt. */
+    try { refreshILProgress(); } catch (e) {}
   }).catch(function (e) {
     showError('Unexpected error loading course: ' + (e && e.message));
   });

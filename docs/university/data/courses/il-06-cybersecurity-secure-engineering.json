@@ -2701,6 +2701,71 @@
    ],
    "answer": 1,
    "explain": "Tampering — integrity of data in transit/at rest."
+  },
+  {
+   "id": "drill-il06-res1",
+   "title": "Kerberoasting target",
+   "prompt": "Kerberoasting attacks which Active Directory artifact?",
+   "choices": [
+    "NTLM hashes in SAM",
+    "Service tickets (TGS) for accounts with SPNs, crackable offline",
+    "The krbtgt account directly",
+    "LSASS memory on workstations"
+   ],
+   "answer": 1,
+   "explain": "Any authenticated user can request TGS tickets for SPN accounts; the service ticket is encrypted with the account's password hash and crackable offline."
+  },
+  {
+   "id": "drill-il06-res2",
+   "title": "Triage priority",
+   "prompt": "Two alerts: (A) certain C2 beaconing on a domain controller, (B) possible phishing click on a kiosk. Triage order?",
+   "choices": [
+    "B then A — phishing spreads fast",
+    "A then B — confidence × asset value × blast radius",
+    "Both simultaneously, always",
+    "Close B as noise, then A"
+   ],
+   "answer": 1,
+   "explain": "Severity = confidence × asset value × blast radius. Certain C2 on a DC dominates a maybe on a kiosk."
+  },
+  {
+   "id": "drill-il06-res3",
+   "title": "First containment step",
+   "prompt": "EDR confirms ransomware encrypting a workstation. First action?",
+   "choices": [
+    "Reimage the machine immediately",
+    "Isolate the host from the network, preserve volatile evidence",
+    "Email the user to stop clicking",
+    "Restore from backup first"
+   ],
+   "answer": 1,
+   "explain": "Isolate to stop lateral spread, preserve memory/logs for forensics, then eradicate and recover. Reimaging first destroys evidence."
+  },
+  {
+   "id": "drill-il06-res4",
+   "title": "STRIDE mapping",
+   "prompt": "An attacker reads another tenant's database rows due to a missing WHERE clause. STRIDE category?",
+   "choices": [
+    "Spoofing",
+    "Tampering",
+    "Information disclosure",
+    "Denial of service"
+   ],
+   "answer": 2,
+   "explain": "Unauthorized data exposure = Information disclosure. (It's also an authorization failure — broken access control, OWASP #1.)"
+  },
+  {
+   "id": "drill-il06-res5",
+   "title": "Legal targeting",
+   "prompt": "Per the course's attacker-perspective objective, you may practice offensive techniques on:",
+   "choices": [
+    "Any internet-facing server that looks vulnerable",
+    "Only legal targets: your labs, HTB/THM, contracted engagements with written scope",
+    "Your employer's production without telling them",
+    "Public Wi-Fi users to 'teach them a lesson'"
+   ],
+   "answer": 1,
+   "explain": "Written authorization or purpose-built legal targets only. Everything else is a crime regardless of intent."
   }
  ],
  "scenarios": [
@@ -3114,6 +3179,99 @@
      "body": "Hypothesis first · join for impossible travel · connectors before rules · playbooks: enrich→act · filter ingestion at source"
     }
    ]
+  },
+  {
+   "title": "Pentest flow — recon to report",
+   "blocks": [
+    {
+     "h": "Recon",
+     "body": "Passive first: DNS, certs, WHOIS, GitHub, Shodan. Active: ping sweep → port scan (nmap) → service/version fingerprint → vuln mapping. Scope in writing before a single packet."
+    },
+    {
+     "h": "Exploitation",
+     "body": "Match service versions to CVEs; prefer misconfiguration over 0-days. One shell is worth ten theories — but screenshot everything for the report."
+    },
+    {
+     "h": "Privilege escalation",
+     "body": "Linux: sudo -l, SUID binaries, cron jobs, kernel version. Windows: unquoted service paths, AlwaysInstallElevated, token impersonation, AD misconfig."
+    },
+    {
+     "h": "AD chains",
+     "body": "Kerberoasting (crackable SPN tickets) → AS-REP roasting (no pre-auth) → DCSync (replication rights) → Golden Ticket (krbtgt hash). BloodHound maps the shortest path."
+    },
+    {
+     "h": "Reporting",
+     "body": "Finding = evidence + impact + likelihood + remediation + retest steps. Executive summary in business risk, appendix in packet detail."
+    }
+   ]
+  },
+  {
+   "title": "SOC triage — the operator's loop",
+   "blocks": [
+    {
+     "h": "Triage in 5 minutes",
+     "body": "1) What fired and why (rule logic). 2) Asset criticality. 3) Corroboration (2+ independent signals). 4) Disposition: true/false positive, benign-true, or escalate."
+    },
+    {
+     "h": "Severity math",
+     "body": "Severity = confidence × asset value × blast radius. A certain alert on a DC outranks a maybe on a kiosk."
+    },
+    {
+     "h": "Containment first",
+     "body": "Isolate host (EDR), disable account, block IOC at firewall/proxy — in that order. Preserve volatile evidence (memory, logs) before reimaging."
+    },
+    {
+     "h": "Detection engineering",
+     "body": "Every detection needs: hypothesis (ATT&CK technique), data source, logic, tuning baseline, and a runbook. Detections without runbooks are noise."
+    },
+    {
+     "h": "KQL essentials",
+     "code": "SecurityAlert\n| where TimeGenerated > ago(24h)\n| summarize count() by AlertName\n| sort by count_ desc",
+     "lang": "kql"
+    }
+   ]
+  },
+  {
+   "title": "Threat modeling — the customer-boundary version",
+   "blocks": [
+    {
+     "h": "STRIDE",
+     "body": "Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege. Walk each data flow against all six."
+    },
+    {
+     "h": "Attack surface",
+     "body": "Every input, API, integration, and admin interface. Reduce it before defending it: disable what isn't needed."
+    },
+    {
+     "h": "Trust boundaries",
+     "body": "Mark where data crosses privilege levels (user→app→DB, vendor→internal). Controls live at boundaries, not in the middle of trusted zones."
+    },
+    {
+     "h": "Risk = T × V × I",
+     "body": "Threat capability × vulnerability exploitability × business impact. Fix the product of the three, not each in isolation."
+    }
+   ]
+  },
+  {
+   "title": "SC-200 — Sentinel & Defender quick reference",
+   "blocks": [
+    {
+     "h": "Sentinel",
+     "body": "SIEM+SOAR: data connectors → analytics rules → incidents → playbooks (Logic Apps) → hunting. KQL is the query language for all of it."
+    },
+    {
+     "h": "Defender XDR",
+     "body": "Endpoint (Defender for Endpoint), Identity, Office 365, Cloud Apps — correlated into one incident queue. EDR = sensors + automated investigation."
+    },
+    {
+     "h": "MITRE ATT&CK mapping",
+     "body": "Map every detection to tactic + technique (e.g., T1059 Command Execution). Coverage gaps = technique with no detection."
+    },
+    {
+     "h": "Incident lifecycle (NIST 800-61)",
+     "body": "Preparation → Detection & Analysis → Containment/Eradication/Recovery → Post-incident. Lessons-learned is not optional."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -3178,6 +3336,30 @@
    "url": "https://owasp.org/",
    "note": "Web exploitation taxonomy (Top 10) and testing guidance.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "MITRE D3FEND",
+   "url": "https://d3fend.mitre.org/",
+   "note": "Countermeasure knowledge graph: the defensive complement to ATT&CK.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "OWASP Top 10",
+   "url": "https://owasp.org/Top10/",
+   "note": "The canonical web-application risk list.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NIST SP 800-61r2 — Incident Handling",
+   "url": "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+   "note": "The incident-response lifecycle standard behind the SOC modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "PortSwigger Web Security Academy",
+   "url": "https://portswigger.net/web-security",
+   "note": "Free labs for web-attack techniques — legal targets for the offensive spine.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original practice material only — labs, detections, and questions are authored for this course. All offensive techniques are taught for use on legal targets with documented authorization; ethics is enforced in every module. Interstitium Labs confers no certificate and is not affiliated with OffSec, Microsoft, CompTIA, or any lab platform. Exam details change: confirm on the vendor's site before booking.",
@@ -3473,5 +3655,121 @@
    "gate-sc-200"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Penetration test",
+   "definition": "Authorized simulated attack, scoped in writing: recon → exploitation → privilege escalation → reporting."
+  },
+  {
+   "term": "Reconnaissance",
+   "definition": "Information gathering before attack: passive (OSINT) then active (scanning). The phase that determines everything after."
+  },
+  {
+   "term": "Privilege escalation",
+   "definition": "Moving from low-privilege access to SYSTEM/root/admin via misconfigurations or vulnerabilities."
+  },
+  {
+   "term": "Lateral movement",
+   "definition": "Spreading from the initial foothold to other hosts, usually toward high-value targets like domain controllers."
+  },
+  {
+   "term": "Kerberoasting",
+   "definition": "Requesting crackable Kerberos service tickets for SPN accounts and brute-forcing them offline."
+  },
+  {
+   "term": "DCSync",
+   "definition": "Abusing domain replication rights to pull password hashes (including krbtgt) as if a domain controller."
+  },
+  {
+   "term": "Golden Ticket",
+   "definition": "Forged Kerberos TGT using the krbtgt hash: persistent, nearly undetectable domain dominance."
+  },
+  {
+   "term": "SOC",
+   "definition": "Security Operations Center: the team triaging alerts, hunting threats, and running incident response."
+  },
+  {
+   "term": "SIEM",
+   "definition": "Security Information and Event Management: centralized log collection, correlation, and alerting (e.g., Sentinel)."
+  },
+  {
+   "term": "SOAR",
+   "definition": "Security Orchestration, Automation and Response: playbooks that automate triage and containment actions."
+  },
+  {
+   "term": "EDR",
+   "definition": "Endpoint Detection and Response: sensors on hosts recording process/file/network activity with automated response."
+  },
+  {
+   "term": "Threat hunting",
+   "definition": "Proactive searching for undetected compromise using hypotheses (often ATT&CK-mapped), not waiting for alerts."
+  },
+  {
+   "term": "IOC",
+   "definition": "Indicator of Compromise: artifact of malicious activity (hash, IP, domain) used for detection and blocking."
+  },
+  {
+   "term": "TTP",
+   "definition": "Tactics, Techniques, Procedures: the behavioral patterns of adversaries (ATT&CK's organizing unit)."
+  },
+  {
+   "term": "MITRE ATT&CK",
+   "definition": "The public knowledge base of adversary tactics and techniques, from Reconnaissance to Impact."
+  },
+  {
+   "term": "KQL",
+   "definition": "Kusto Query Language: the query language for Sentinel/Log Analytics — filter, summarize, join security data."
+  },
+  {
+   "term": "Threat model",
+   "definition": "Structured analysis of what can go wrong (STRIDE), where trust boundaries lie, and which risks to mitigate."
+  },
+  {
+   "term": "Blast radius",
+   "definition": "How far a compromise can spread from one foothold; segmentation and least privilege shrink it."
+  },
+  {
+   "term": "Forward-deployed",
+   "definition": "Working at the customer boundary: shipping secure systems where the customer's risk actually lives."
+  },
+  {
+   "term": "SC-200",
+   "definition": "Microsoft's Security Operations Analyst certification: Sentinel, Defender XDR, KQL, incident response."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Is learning offensive hacking legal?",
+   "a": "Learning is legal; *unauthorized access* is not. The course restricts practice to legal targets: your own labs, HackTheBox/TryHackMe, and contracted engagements with written scope. 'I was just testing' is not a defense."
+  },
+  {
+   "q": "SOC analyst vs pentester — which path?",
+   "a": "SOC builds detection/response discipline and hires more juniors; pentesting needs deeper systems knowledge and usually comes later. The course covers both so you can choose with evidence."
+  },
+  {
+   "q": "Do I need to memorize all of ATT&CK?",
+   "a": "No — memorize the 14 tactics and the 20 highest-frequency techniques; look up the rest. Interviewers test whether you can *map* an observed behavior to a technique, not recite IDs."
+  },
+  {
+   "q": "How much KQL do I really need for SC-200?",
+   "a": "Working fluency: where/project/summarize/join/render, time charts, and joining SecurityAlert to device/process tables. The Sentinel module drills exactly this."
+  },
+  {
+   "q": "What's the Hackers-Arise spine?",
+   "a": "The course's offensive-practice spine: Linux and networking learned from the attacker's perspective on legal targets, progressing to full pentest methodology."
+  },
+  {
+   "q": "How is this different from IL-11 (Zero Trust & Endpoint Defense)?",
+   "a": "IL-06 is the offensive+SOC operator track (pentest, hunting, Sentinel). IL-11 is the defender's Zero Trust architecture track (NIST 800-207, allowlisting, Entra ID, SC-300). They complement; IL-06 is the attack-informed half."
+  },
+  {
+   "q": "Will this prepare me for Security+ too?",
+   "a": "Largely yes on concepts, but Security+ (SY0-701) has its own domain weights and terminology. IL-09 maps the CompTIA security track explicitly — use it alongside."
+  },
+  {
+   "q": "What does 'forward-deployed' mean here?",
+   "a": "Borrowed from the Palantir-style model: engineers embedded at the customer boundary, shipping secure systems where the customer's risk lives rather than from a distant SOC."
+  }
+ ]
 }

@@ -9601,6 +9601,71 @@
    ],
    "answer": 1,
    "explain": "The next problem will wear a different costume; the category is what transfers."
+  },
+  {
+   "id": "drill-il14-res1",
+   "title": "Budget math",
+   "prompt": "99.99% SLO over 30 days. Error budget?",
+   "choices": [
+    "~43 minutes",
+    "~4.4 minutes",
+    "~7 hours",
+    "~22 minutes"
+   ],
+   "answer": 1,
+   "explain": "0.01% of 43,200 min ≈ 4.3 min. Four nines is brutal — that's the point of the arithmetic."
+  },
+  {
+   "id": "drill-il14-res2",
+   "title": "First mitigation",
+   "prompt": "A deploy 10 minutes ago correlates with error spike. Fastest mitigation?",
+   "choices": [
+    "Debug the new code in production",
+    "Roll back to the previous version, then investigate",
+    "Scale up 10×",
+    "Wait for auto-recovery"
+   ],
+   "answer": 1,
+   "explain": "Rollback restores service in minutes; root-causing can happen safely afterward. Mitigate first, diagnose second."
+  },
+  {
+   "id": "drill-il14-res3",
+   "title": "Alert design",
+   "prompt": "Best alert for a user-facing SLO?",
+   "choices": [
+    "CPU > 80%",
+    "Burn-rate-based multi-window alert on the SLI",
+    "Disk > 90%",
+    "Any single error log line"
+   ],
+   "answer": 1,
+   "explain": "Alert on the user-impacting SLI's burn rate, not on infrastructure symptoms. Multi-window avoids flapping."
+  },
+  {
+   "id": "drill-il14-res4",
+   "title": "IaC interview",
+   "prompt": "Asked 'how do you handle Terraform state in a team?', the key points are:",
+   "choices": [
+    "Local state files in git",
+    "Remote backend with locking, separate state per environment, no secrets in state committed anywhere",
+    "One state file for everything",
+    "Email the state file around"
+   ],
+   "answer": 1,
+   "explain": "Remote + locked + per-env state; secrets via Vault/cloud managers, never in committed state."
+  },
+  {
+   "id": "drill-il14-res5",
+   "title": "Security interview",
+   "prompt": "'How would you secure a CI/CD pipeline?' Lead with:",
+   "choices": [
+    "Faster runners",
+    "OIDC short-lived credentials (no stored secrets), signed artifacts, SAST/DAST gates, least-privilege runners, audit logs",
+    "More pipelines",
+    "Public runners for speed"
+   ],
+   "answer": 1,
+   "explain": "Pipeline security = identity (OIDC), supply chain (signing, gates), least privilege, auditability."
   }
  ],
  "scenarios": [
@@ -10175,6 +10240,69 @@
      "body": "What changed? (deploys, config, traffic). Correlate metric spikes with deploy annotations. Check the four golden signals before theorizing."
     }
    ]
+  },
+  {
+   "title": "Reliability math — SLIs, SLOs, error budgets",
+   "blocks": [
+    {
+     "h": "SLI → SLO",
+     "body": "SLI: the measurement (success ratio, p99 latency). SLO: the target (99.9% over 30d). SLA: the contract with consequences."
+    },
+    {
+     "h": "Budget table",
+     "body": "99% → 7h18m/mo · 99.5% → 3h39m · 99.9% → 43m · 99.95% → 22m · 99.99% → 4m23s. Memorize 99.9 and 99.99."
+    },
+    {
+     "h": "Burn rate",
+     "body": "How fast you're consuming budget vs. time elapsed. Alert on fast burn (paging) vs slow burn (ticket). Multi-window alerts avoid flapping."
+    },
+    {
+     "h": "Policy",
+     "body": "Budget remaining → ship. Budget exhausted → reliability work only. Blameless postmortems with owned action items."
+    }
+   ]
+  },
+  {
+   "title": "Incident command — the first 30 minutes",
+   "blocks": [
+    {
+     "h": "Roles",
+     "body": "Incident commander (coordinates), comms lead (status), ops (fixes), scribe (timeline). Commander doesn't type fixes."
+    },
+    {
+     "h": "Triage",
+     "body": "Impact → scope → recent changes → mitigate (rollback/feature-flag/scale) → then root-cause. Mitigation beats diagnosis under pressure."
+    },
+    {
+     "h": "Comms",
+     "body": "Status page updates every 15–30 min: what's broken, who's affected, what you're doing, next update time. Internal + external channels."
+    },
+    {
+     "h": "Review",
+     "body": "Blameless: timeline, contributing factors (never 'human error'), action items with owners and dates. Publish widely."
+    }
+   ]
+  },
+  {
+   "title": "Troubleshooting aloud — the method",
+   "blocks": [
+    {
+     "h": "Narrate the model",
+     "body": "'Traffic flows LB → app → cache → DB. Latency spiked at the app tier, so I suspect...' — interviewers score the mental model, not just the fix."
+    },
+    {
+     "h": "Bisect",
+     "body": "Halve the system: is it app or data? Which tier? Which deploy? Binary search the blast radius."
+    },
+    {
+     "h": "Change correlation",
+     "body": "'What changed?' — deploys, config, traffic, certs, cron. Most incidents are caused by a change; find it."
+    },
+    {
+     "h": "Evidence ladder",
+     "body": "Metrics → logs → traces → repro. Each step narrows. State what would falsify your current hypothesis."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -10357,6 +10485,30 @@
    "url": "https://developer.hashicorp.com/terraform",
    "retrieved": "2026-10-07",
    "note": "Official Terraform docs: HCL, state, modules, and workflows for infrastructure as code."
+  },
+  {
+   "name": "Google SRE Book",
+   "url": "https://sre.google/books/",
+   "note": "SLOs, error budgets, incident response — the interview canon.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Google SRE Workbook",
+   "url": "https://sre.google/workbook/table-of-contents/",
+   "note": "Hands-on SRE practices: alerting, postmortems, capacity.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Prometheus docs",
+   "url": "https://prometheus.io/docs/introduction/overview/",
+   "note": "Metrics, alerting, and the RED/USE monitoring methods.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "The Twelve-Factor App",
+   "url": "https://12factor.net/",
+   "note": "Cloud-native design principles interviewers expect you to know.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal.",
@@ -10592,5 +10744,81 @@
    "gate-terraform-003"
   ]
  },
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "SLI",
+   "definition": "Service Level Indicator: the measured quantity (e.g., proportion of successful requests)."
+  },
+  {
+   "term": "SLO",
+   "definition": "Service Level Objective: target SLI value over a window (99.9% / 30d)."
+  },
+  {
+   "term": "Error budget",
+   "definition": "1 − SLO: the allowed unreliability, spent on velocity or conserved for stability."
+  },
+  {
+   "term": "Burn rate",
+   "definition": "Rate of error-budget consumption relative to elapsed time; basis for paging vs ticket alerts."
+  },
+  {
+   "term": "Blameless postmortem",
+   "definition": "Incident review focused on systemic causes and action items, never individual blame."
+  },
+  {
+   "term": "Incident commander",
+   "definition": "The coordinator role in incident response: runs the process, doesn't type the fix."
+  },
+  {
+   "term": "Toil",
+   "definition": "Manual repetitive ops work; SRE caps it and automates the remainder."
+  },
+  {
+   "term": "RED / USE",
+   "definition": "Monitoring methods: RED (Rate, Errors, Duration) for services; USE (Utilization, Saturation, Errors) for resources."
+  },
+  {
+   "term": "Canary",
+   "definition": "Releasing to a small traffic fraction first, promoting on health signals."
+  },
+  {
+   "term": "Feature flag",
+   "definition": "Runtime toggle decoupling deploy from release; the fastest incident mitigation lever."
+  },
+  {
+   "term": "Runbook",
+   "definition": "Step-by-step operational procedure for a known failure mode — tested, not aspirational."
+  },
+  {
+   "term": "Game day",
+   "definition": "Practiced failure injection (chaos engineering lite) to validate runbooks and response."
+  }
+ ],
+ "faq": [
+  {
+   "q": "SRE vs DevOps — what's the interview distinction?",
+   "a": "DevOps: culture + CI/CD + automation practices. SRE: DevOps' engineering discipline with SLOs, error budgets, and toil caps. Interviewers want you to use the terms precisely."
+  },
+  {
+   "q": "How do I answer 'tell me about a time you caused an outage'?",
+   "a": "Own it with the postmortem structure: impact, timeline, your actions, contributing factors, what changed (with owners). Blameless framing shows seniority."
+  },
+  {
+   "q": "What's the troubleshooting rubric?",
+   "a": "Mental model stated → hypothesis → bisect by evidence → change correlation → mitigation before root cause → verification. Narrate every step aloud."
+  },
+  {
+   "q": "Do I need to memorize the budget table?",
+   "a": "Know 99.9% (43m) and 99.99% (4.4m) cold; derive the rest. Interviewers test whether you can *use* the budget in a policy discussion."
+  },
+  {
+   "q": "How technical should the security portion go?",
+   "a": "App/network/crypto fundamentals plus pipeline supply-chain security. You're interviewing as a defender who ships, not as a pentester."
+  },
+  {
+   "q": "What are the mock circuits?",
+   "a": "Full timed loops: DSA speed reps, system-design reps, troubleshooting narration, behavioral — scored against rubrics, with weak-spot triage between rounds."
+  }
+ ]
 }

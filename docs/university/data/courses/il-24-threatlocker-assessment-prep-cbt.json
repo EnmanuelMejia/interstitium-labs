@@ -5193,6 +5193,71 @@
    ],
    "answer": 1,
    "explain": "Module 2: one story per question, two minutes max, measured Result."
+  },
+  {
+   "id": "drill-il24-res1",
+   "title": "Default-deny",
+   "prompt": "An unknown updater binary requests execution. Policy: deny by default. Correct handling?",
+   "choices": [
+    "Allow it — updates are good",
+    "Deny, investigate hash/publisher/process tree, then disposition via the exception workflow",
+    "Delete the endpoint",
+    "Ignore — Learning Mode handles it"
+   ],
+   "answer": 1,
+   "explain": "Default-deny means investigate-then-decide through the workflow, not reflex-allow. Every denial gets a disposition."
+  },
+  {
+   "id": "drill-il24-res2",
+   "title": "Ringfence choice",
+   "prompt": "Finance needs a macro-enabled spreadsheet tool that occasionally spawns script hosts. Decision?",
+   "choices": [
+    "Deny outright",
+    "Allow + ringfence: permit execution, block child-process creation and credential access",
+    "Allow with no restrictions",
+    "Uninstall Office"
+   ],
+   "answer": 1,
+   "explain": "Business need + risky behavior = ringfence. The app works; the abuse path is fenced."
+  },
+  {
+   "id": "drill-il24-res3",
+   "title": "Base rate",
+   "prompt": "Malware base rate 0.1%. Detector: 99% sensitive, 99% specific. P(malicious | alert)?",
+   "choices": [
+    "99%",
+    "≈9%",
+    "50%",
+    "0.1%"
+   ],
+   "answer": 1,
+   "explain": "Bayes: 0.99·0.001/(0.99·0.001+0.01·0.999) ≈ 0.09. Low base rates dominate — tune thresholds to costs."
+  },
+  {
+   "id": "drill-il24-res4",
+   "title": "Attack graph",
+   "prompt": "Shortest attack path to the crown jewel goes through a file server with SMBv1. Best remediation?",
+   "choices": [
+    "More monitoring",
+    "Break the path: disable SMBv1 / segment the server — remove the cheapest high-leverage edge",
+    "Buy a new firewall",
+    "Rename the server"
+   ],
+   "answer": 1,
+   "explain": "Path-breaking remediation: remove the edge that breaks the most attack paths. Monitoring without path-breaking is observation, not defense."
+  },
+  {
+   "id": "drill-il24-res5",
+   "title": "AI triage discipline",
+   "prompt": "The triage copilot says 'benign — allow.' You:",
+   "choices": [
+    "Allow immediately — AI is fast",
+    "Verify against primary evidence (process tree, hash, signer) before disposition — AI proposes, human disposes",
+    "Deny to be safe",
+    "Ask the user"
+   ],
+   "answer": 1,
+   "explain": "Copilot output is a hypothesis, not a verdict. Dispositions require verified evidence — that's the operator's job."
   }
  ],
  "scenarios": [
@@ -5921,6 +5986,107 @@
      "body": "Baseline per user + peer groups. Compound deviations escalate. Service accounts first. Verify, don't convict."
     }
    ]
+  },
+  {
+   "title": "ThreatLocker platform — operator facts",
+   "blocks": [
+    {
+     "h": "Philosophy",
+     "body": "Deny by default: nothing runs unless explicitly allowed. The opposite of detect-and-respond antivirus thinking."
+    },
+    {
+     "h": "Core modules",
+     "body": "Allowlisting (application control) · Ringfencing (behavior control) · Elevation Control (just-in-time admin) · Storage Control (device/media) · Network Control (egress)."
+    },
+    {
+     "h": "Learning Mode",
+     "body": "Baseline what's normal before enforcing. Onboard → observe → build policy from evidence → enforce. Skipping baseline = self-inflicted breakage."
+    },
+    {
+     "h": "The triage loop",
+     "body": "Denied event → classify severity → investigate process tree → disposition (allow once / build policy / escalate). Every denial gets a disposition."
+    }
+   ]
+  },
+  {
+   "title": "Approve / deny / ringfence decisions",
+   "blocks": [
+    {
+     "h": "Approve",
+     "body": "Known-good hash + publisher, business need documented, least-privilege scope. Approval is a policy entry, not a vibe."
+    },
+    {
+     "h": "Deny",
+     "body": "Unknown + no business need, or known-bad indicators. Deny with a note so the requester understands the path to approval."
+    },
+    {
+     "h": "Ringfence",
+     "body": "Needed app with risky behaviors: allow execution, fence the behaviors (no child processes, no credential access, no raw sockets)."
+    },
+    {
+     "h": "Rule-strength discipline",
+     "body": "Prefer publisher+path rules over bare hashes where updates churn; prefer hashes where tampering is the threat. Document why each rule is shaped as it is."
+    }
+   ]
+  },
+  {
+   "title": "Attack graphs & Zero Trust operations",
+   "blocks": [
+    {
+     "h": "Graph anatomy",
+     "body": "Nodes (assets/identities) · edges (relationships/access) · crown jewels (targets) · attack paths (routes). Shortest path = attacker's plan."
+    },
+    {
+     "h": "Path-breaking",
+     "body": "Remove the cheapest edge that breaks the most paths: MFA on the jump host, tiering the admin, patching the pivot. Remediation = graph surgery."
+    },
+    {
+     "h": "Microsegmentation",
+     "body": "Relationship-based policy: allow only the edges the business needs. Every removed edge is a path that never forms."
+    }
+   ]
+  },
+  {
+   "title": "ML detection, UEBA & base-rate math",
+   "blocks": [
+    {
+     "h": "ML detection",
+     "body": "Supervised: labeled malware/benign (watch label quality). Anomaly: deviation from baseline (tune the threshold to the base rate). Features > algorithms."
+    },
+    {
+     "h": "UEBA",
+     "body": "Baseline users/entities, investigate compound deviations. One anomaly = noise; correlated anomalies = case. Never cry wolf on single signals."
+    },
+    {
+     "h": "Bayes",
+     "body": "P(malicious|alert) = P(alert|malicious)P(malicious)/P(alert). Low base rates crush naive alerting — cost-aware thresholds required."
+    },
+    {
+     "h": "Confusion matrix",
+     "body": "Precision/recall with dollar costs. A 99%-accurate detector on 0.1% malware is mostly false alarms — do the math."
+    }
+   ]
+  },
+  {
+   "title": "AI-aided SOC & securing AI agents",
+   "blocks": [
+    {
+     "h": "SOC lifecycle",
+     "body": "Data engineering → detection engineering → triage agents → drift monitoring → governance. AI accelerates each stage; humans own dispositions."
+    },
+    {
+     "h": "Triage copilots",
+     "body": "AI proposes, human disposes. Every AI claim verified against primary evidence before action."
+    },
+    {
+     "h": "Agent threats",
+     "body": "Prompt injection via tool outputs, tool poisoning, insecure output handling. Least-privilege tools, approval gates, output validation."
+    },
+    {
+     "h": "120-minute assessment",
+     "body": "Pace: ~1 min/question. Triage loop on scenario items. Flag and return — never stall on one item."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -6073,6 +6239,30 @@
    "url": "https://www.cisa.gov/",
    "note": "US government advisories, alerts, and guidance.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "ThreatLocker",
+   "url": "https://www.threatlocker.com/",
+   "note": "Official product documentation — the platform facts the assessment tests.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "MITRE D3FEND",
+   "url": "https://d3fend.mitre.org/",
+   "note": "Defensive techniques mapped against the attack graph.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NIST SP 800-61r2 — Incident Handling",
+   "url": "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+   "note": "The IR lifecycle behind the SOC modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NIST Cybersecurity Framework",
+   "url": "https://www.nist.gov/cyberframework",
+   "note": "Framework context for the assessment domains.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Independent interview-prep material by Interstitium Labs — not affiliated with ThreatLocker. Confers no certificate, no employment, and no product experience. All scenarios, tickets, and labs are original practice content; no vendor or course material is reproduced. Vendor figures (founding facts, customer counts, response times) are the company's own public claims, stated as such. Say 'enrolled in' the bootcamp, never 'completed.' Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
@@ -6234,5 +6424,93 @@
    "gate-il24-cyberhero",
    "gate-il24-secplus"
   ]
- }
+ },
+ "glossary": [
+  {
+   "term": "Default-deny",
+   "definition": "Nothing executes unless explicitly allowed — ThreatLocker's core philosophy."
+  },
+  {
+   "term": "Allowlisting",
+   "definition": "Permitting only approved applications/binaries, by hash, publisher, or path."
+  },
+  {
+   "term": "Ringfencing",
+   "definition": "Constraining what allowed applications may do (child processes, network, credentials)."
+  },
+  {
+   "term": "Elevation Control",
+   "definition": "Just-in-time administrative rights with approval and audit."
+  },
+  {
+   "term": "Storage Control",
+   "definition": "Policy over removable media and storage devices."
+  },
+  {
+   "term": "Learning Mode",
+   "definition": "Baseline observation period before enforcement: policy built from evidence."
+  },
+  {
+   "term": "Disposition",
+   "definition": "The recorded decision on a denied event: allow, policy-build, or escalate."
+  },
+  {
+   "term": "Attack graph",
+   "definition": "Nodes (assets/identities) + edges (access paths); shortest path analysis finds the attacker's route."
+  },
+  {
+   "term": "Crown jewels",
+   "definition": "The highest-value targets the graph analysis protects first."
+  },
+  {
+   "term": "Path-breaking",
+   "definition": "Remediation that removes edges to sever attack paths — graph surgery."
+  },
+  {
+   "term": "UEBA",
+   "definition": "User and Entity Behavior Analytics: baselining normal, investigating compound deviations."
+  },
+  {
+   "term": "Base rate",
+   "definition": "Prior probability of the event; dominates posterior calculations for rare threats."
+  },
+  {
+   "term": "Triage copilot",
+   "definition": "AI assistant proposing dispositions; the human verifies and decides."
+  },
+  {
+   "term": "Cyber Hero",
+   "definition": "ThreatLocker's analyst role: triaging blocked actions and owning dispositions."
+  },
+  {
+   "term": "Exception workflow",
+   "definition": "The governed path for approve/deny/ringfence decisions on unknown applications."
+  }
+ ],
+ "faq": [
+  {
+   "q": "What does the 120-minute assessment actually test?",
+   "a": "Every domain in the course: platform operations, approve/deny/ringfence judgment, attack graphs, ML/UEBA reasoning, base-rate math, and AI-aided SOC workflow — under time. The course's timed simulation mirrors the pacing."
+  },
+  {
+   "q": "How should I pace the assessment?",
+   "a": "Roughly a minute per question. Use the triage loop on scenarios, flag hard items and return, never stall. Unanswered questions score zero; educated guesses score something."
+  },
+  {
+   "q": "What are the most common wrong dispositions?",
+   "a": "Reflex-allowing updaters (investigate first), and denying business-critical apps without proposing the ringfence alternative. The course drills the decision tree until it's reflex."
+  },
+  {
+   "q": "Do I need to memorize ThreatLocker's product names?",
+   "a": "Yes — company facts, product stack, and the deny-by-default philosophy are explicitly tested. Know what each module does and when you'd use it."
+  },
+  {
+   "q": "How is this different from IL-29?",
+   "a": "IL-24 is the assessment-prep CBT: pass the timed test, make operator decisions. IL-29 is the full mastery bootcamp (MIT 6.858 depth, ML detectors, interview prep, cert mapping). IL-24 gets you through the door; IL-29 makes you dangerous."
+  },
+  {
+   "q": "STAR stories for the behavioral portion?",
+   "a": "Prepare triage stories: a hard disposition call, a break-fix under default-deny, an incident you scoped. Situation → your triage loop → outcome with numbers."
+  }
+ ]
 }

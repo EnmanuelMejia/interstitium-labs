@@ -10209,6 +10209,71 @@
    ],
    "answer": 1,
    "explain": "Risk is operationalized: red-teaming, incident response, documented risk decisions."
+  },
+  {
+   "id": "drill-il18-res1",
+   "title": "TPM escalation",
+   "prompt": "Two teams deadlock on an API contract with a launch in 3 weeks. As TPM you:",
+   "choices": [
+    "Pick the technically superior design unilaterally",
+    "Frame the tradeoff with data, drive a time-boxed decision, document it in the RAID log, track follow-ups",
+    "Escalate to the CEO immediately",
+    "Let them keep debating"
+   ],
+   "answer": 1,
+   "explain": "TPM influence = structured decision-making under time pressure: options, data, deadline, documented decision, tracked actions."
+  },
+  {
+   "id": "drill-il18-res2",
+   "title": "EM underperformance",
+   "prompt": "A strong engineer ships slowly for 2 months. First step?",
+   "choices": [
+    "PIP immediately",
+    "Private 1:1: share observations, ask what's changed, agree on clear expectations and support",
+    "Reassign their work silently",
+    "Ignore it — they're senior"
+   ],
+   "answer": 1,
+   "explain": "Diagnose before acting: personal, role-fit, or clarity issues need different responses. Clear expectations + support, then accountability."
+  },
+  {
+   "id": "drill-il18-res3",
+   "title": "PM metric",
+   "prompt": "'How would you measure the success of a signup flow redesign?' Start with:",
+   "choices": [
+    "Total signups only",
+    "North-star-aligned: conversion rate with guardrails (fraud rate, support contacts), segmented by channel",
+    "Page views",
+    "Whatever's easiest to query"
+   ],
+   "answer": 1,
+   "explain": "One metric + guardrails + segments: shows you know Goodhart's law and won't trade fraud for signups."
+  },
+  {
+   "id": "drill-il18-res4",
+   "title": "AI product risk",
+   "prompt": "Your GenAI support bot occasionally invents refund policies. The product fix is:",
+   "choices": [
+    "Bigger model",
+    "Ground in the policy KB (RAG) with citations, add refusal for out-of-scope, human review queue for edge cases",
+    "Lower temperature to 0",
+    "Remove the bot"
+   ],
+   "answer": 1,
+   "explain": "Grounding + citations + refusal boundaries + human fallback: the product-grade answer, not a parameter tweak."
+  },
+  {
+   "id": "drill-il18-res5",
+   "title": "Strategy question",
+   "prompt": "'Should we build or buy the auth system?' Your framework:",
+   "choices": [
+    "Always build — control matters",
+    "Total cost: build (eng time + maintenance + security liability) vs buy (price + lock-in + fit); auth is usually buy unless it's the differentiator",
+    "Ask the team to vote",
+    "Buy the cheapest"
+   ],
+   "answer": 1,
+   "explain": "Build-vs-buy = total cost over years including security liability. Undifferentiated heavy lifting (auth, payments) is usually buy."
   }
  ],
  "scenarios": [
@@ -10679,6 +10744,90 @@
      "body": "Patterns: **chat / copilots / agents / RAG** — match to the job · evals as the launch gate · UX for uncertainty · risk with owners and mitigations · **hype filter: demos ≠ products**."
     }
    ]
+  },
+  {
+   "title": "TPM interviews — program design & execution",
+   "blocks": [
+    {
+     "h": "Program design",
+     "body": "Scope → stakeholders → milestones → risks → comms plan. Show the skeleton before the detail: what, who, when, what could kill it."
+    },
+    {
+     "h": "Execution",
+     "body": "Status cadence, RAID log (risks/actions/issues/decisions), escalation paths. Influence without authority = clarity + reliability."
+    },
+    {
+     "h": "Technical depth",
+     "body": "Enough systems literacy to spot bad estimates and ask the question that unblocks: APIs, data flows, failure modes."
+    },
+    {
+     "h": "Behavioral",
+     "body": "Stories of alignment: conflicting teams, missed dates, scope fights — resolved with process, not heroics."
+    }
+   ]
+  },
+  {
+   "title": "EM interviews — people, delivery, strategy",
+   "blocks": [
+    {
+     "h": "People leadership",
+     "body": "Hiring bar, growth plans, feedback cadence, underperformance handling. 'Tell me about someone you grew' needs a real story."
+    },
+    {
+     "h": "Delivery ownership",
+     "body": "Predictability: planning, estimation, capacity, incident ownership. The team's output is your output."
+    },
+    {
+     "h": "Engineering strategy",
+     "body": "Tech debt policy, platform bets, build-vs-buy with total-cost reasoning. Strategy = sequenced choices under constraint."
+    },
+    {
+     "h": "Hiring systems",
+     "body": "Structured interviews, rubrics, calibrated panels. Your hiring bar is your culture in 2 years."
+    }
+   ]
+  },
+  {
+   "title": "PM interviews — product sense & metrics",
+   "blocks": [
+    {
+     "h": "Product sense",
+     "body": "User → pain → solution → why now → why us. Structure before creativity: CIRCLES or equivalent, then insight."
+    },
+    {
+     "h": "Metrics",
+     "body": "North star + input metrics. 'How would you measure X?' → define, segment, guardrail. Never optimize one metric blindly."
+    },
+    {
+     "h": "Execution",
+     "body": "Prioritization (RICE/impact-effort), tradeoffs, launch plans, post-launch iteration. Ship, measure, learn — on a cadence."
+    },
+    {
+     "h": "Technical depth",
+     "body": "Systems literacy, API thinking, SQL fluency. Credibility with engineers without pretending to be one."
+    }
+   ]
+  },
+  {
+   "title": "AI product judgment — shipping GenAI with care",
+   "blocks": [
+    {
+     "h": "Use-case fit",
+     "body": "Where do errors cost little and value is high? Drafting, summarization, classification — not autonomous high-stakes decisions."
+    },
+    {
+     "h": "Eval as spec",
+     "body": "Golden sets + human calibration before launch. Quality gates in CI for prompts and models."
+    },
+    {
+     "h": "UX patterns",
+     "body": "Show uncertainty, offer edits not autopilot, cite sources, graceful degradation. 'AI proposes, human disposes.'"
+    },
+    {
+     "h": "Risk ownership",
+     "body": "Hallucination, bias, data leakage, prompt injection — name the risks, own the mitigations, instrument the failures."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -10927,6 +11076,24 @@
    "url": "https://sre.google/",
    "retrieved": "2026-10-07",
    "note": "Google's Site Reliability Engineering books: the reliability discipline's founding texts."
+  },
+  {
+   "name": "Refactoring.Guru",
+   "url": "https://refactoring.guru/",
+   "note": "Design patterns for the technical-depth portion of leadership loops.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "USENIX ATC",
+   "url": "https://www.usenix.org/conference/atc24",
+   "note": "Systems research venue — source literacy for technical leaders.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Google SRE Workbook",
+   "url": "https://sre.google/workbook/table-of-contents/",
+   "note": "Operational leadership practices with worked examples.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal. Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
@@ -11159,5 +11326,81 @@
    "gate-il18-pmp",
    "gate-il18-interview"
   ]
- }
+ },
+ "glossary": [
+  {
+   "term": "TPM",
+   "definition": "Technical Program Manager: drives cross-team programs via planning, risk management, and influence without authority."
+  },
+  {
+   "term": "EM",
+   "definition": "Engineering Manager: owns people, delivery, and technical direction for a team."
+  },
+  {
+   "term": "RAID log",
+   "definition": "Risks, Actions, Issues, Decisions: the TPM's running ledger of program truth."
+  },
+  {
+   "term": "Influence without authority",
+   "definition": "Driving outcomes through clarity, reliability, and stakeholder management rather than org-chart power."
+  },
+  {
+   "term": "North star metric",
+   "definition": "The single metric capturing core product value; input metrics are its levers."
+  },
+  {
+   "term": "Guardrail metric",
+   "definition": "Metric that must not degrade while optimizing the primary one (e.g., fraud rate vs conversion)."
+  },
+  {
+   "term": "CIRCLES",
+   "definition": "PM framework: Comprehend, Identify customer, Report needs, Cut scope, List solutions, Evaluate, Summarize."
+  },
+  {
+   "term": "RICE",
+   "definition": "Prioritization: Reach × Impact × Confidence / Effort."
+  },
+  {
+   "term": "Goodhart's law",
+   "definition": "'When a measure becomes a target, it ceases to be a good measure' — hence guardrails."
+  },
+  {
+   "term": "Calibration",
+   "definition": "Aligning interviewers' scoring standards so hiring bars are consistent across panels."
+  },
+  {
+   "term": "Structured interview",
+   "definition": "Fixed questions + rubrics per role: the bias-reducing hiring method."
+  },
+  {
+   "term": "Tech debt policy",
+   "definition": "Explicit rules for when debt is taken, tracked, and repaid — strategy, not accident."
+  }
+ ],
+ "faq": [
+  {
+   "q": "TPM vs EM — which fits me?",
+   "a": "TPM: you love cross-team orchestration and process. EM: you want people ownership and delivery accountability. The course's mock circuits let you trial both interview loops before committing."
+  },
+  {
+   "q": "Do I need to have managed people to interview for EM?",
+   "a": "Tech-lead experience (mentoring, leading projects) transfers. Be honest about scope: 'led 3 engineers on X' beats inflated titles. The behavioral module teaches scope-honest storytelling."
+  },
+  {
+   "q": "How technical must a TPM/PM be?",
+   "a": "Systems-literate: APIs, data flows, failure modes, SQL. Enough to challenge estimates and earn engineering trust — not to write the code."
+  },
+  {
+   "q": "What's the biggest PM interview mistake?",
+   "a": "Jumping to solutions before structuring the problem. Interviewers score the framework (user → pain → options → tradeoffs) more than the idea."
+  },
+  {
+   "q": "How do I show 'AI product judgment'?",
+   "a": "Use-case selection (error cost vs value), eval discipline, uncertainty UX, and owned risk mitigations. The AI module's scenarios rehearse exactly this."
+  },
+  {
+   "q": "STAR for leadership roles — different?",
+   "a": "Same structure, higher stakes: emphasize the *system* you built (hiring bar, planning cadence, escalation path), not just the incident you heroically fixed."
+  }
+ ]
 }

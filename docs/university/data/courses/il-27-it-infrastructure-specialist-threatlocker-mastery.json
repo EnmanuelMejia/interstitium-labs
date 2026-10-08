@@ -21607,6 +21607,71 @@
    ],
    "answer": 0,
    "explain": "The interview answer spine."
+  },
+  {
+   "id": "drill-il27-res1",
+   "title": "VLSM allocation",
+   "prompt": "You need subnets for 100, 50, and 25 hosts from 10.0.0.0/24. First allocation?",
+   "choices": [
+    "/27 for 25 hosts first",
+    "/25 for 100 hosts first (largest first)",
+    "/30 for each",
+    "One /24 each"
+   ],
+   "answer": 1,
+   "explain": "Largest first: /25 (126 usable) for 100, then /26 for 50, then /27 for 25 — aligned on boundaries, minimal waste."
+  },
+  {
+   "id": "drill-il27-res2",
+   "title": "Break-glass",
+   "prompt": "A Conditional Access misconfiguration locks out all admins. Recovery?",
+   "choices": [
+    "Wait for it to expire",
+    "Break-glass accounts excluded from CA policies, with alerting on use",
+    "Reinstall Entra",
+    "Call the ISP"
+   ],
+   "answer": 1,
+   "explain": "Emergency access accounts, excluded from CA, monitored heavily, credentials sealed. Plan for your own mistakes."
+  },
+  {
+   "id": "drill-il27-res3",
+   "title": "Backup rule",
+   "prompt": "The 3-2-1 backup rule means:",
+   "choices": [
+    "3 backups a day",
+    "3 copies, 2 media types, 1 offsite",
+    "3 servers, 2 admins, 1 password",
+    "Retain 3 years"
+   ],
+   "answer": 1,
+   "explain": "Three copies, two different media, one offsite/offline. And test restores — untested backups are hopes."
+  },
+  {
+   "id": "drill-il27-res4",
+   "title": "Patch ring order",
+   "prompt": "New Windows cumulative update. Deployment order?",
+   "choices": [
+    "All at once Friday 5pm",
+    "Pilot ring → broad ring → critical servers, with rollback plan",
+    "Critical servers first",
+    "Skip testing for security updates"
+   ],
+   "answer": 1,
+   "explain": "Rings contain blast radius. Even security updates get a pilot — a bad patch is its own incident."
+  },
+  {
+   "id": "drill-il27-res5",
+   "title": "STAR troubleshooting",
+   "prompt": "In the interview: 'Users can't reach the file server.' Your opening?",
+   "choices": [
+    "'It's probably DNS'",
+    "Narrate the model: scope (who/what), layer-by-layer isolation, what changed — aloud",
+    "Reboot the server",
+    "Blame the network team"
+   ],
+   "answer": 1,
+   "explain": "Live troubleshooting narration is scored: scope → isolate by layer → change correlation → verify. 'Probably DNS' without evidence is a guess."
   }
  ],
  "scenarios": [
@@ -22771,6 +22836,91 @@
      "lang": "text"
     }
    ]
+  },
+  {
+   "title": "Subnetting & TCP/IP — the specialist's math",
+   "blocks": [
+    {
+     "h": "CIDR",
+     "body": "Hosts = 2^(32−n) − 2. /24=254 · /25=126 · /26=62 · /27=30 · /28=14 · /29=6 · /30=2. Masks: .128/.192/.224/.240/.248/.252."
+    },
+    {
+     "h": "VLSM",
+     "body": "Largest subnets first, aligned on block boundaries. Document every allocation — mystery subnets are incidents waiting."
+    },
+    {
+     "h": "Troubleshooting",
+     "code": "ipconfig /all → ping gateway → ping 8.8.8.8 → nslookup\nWireshark: tcp.flags.syn==1 && tcp.flags.ack==0  # unanswered SYNs",
+     "lang": "text"
+    },
+    {
+     "h": "TCP/IP model",
+     "body": "Link → Internet → Transport → Application. Map every symptom to a layer before touching config."
+    }
+   ]
+  },
+  {
+   "title": "Windows Server & AD — production standard",
+   "blocks": [
+    {
+     "h": "AD DS",
+     "body": "Domains, forests, OUs, FSMO roles. Tiered admin: no domain creds on workstations. LAPS everywhere."
+    },
+    {
+     "h": "GPO",
+     "body": "LSDOU order; Enforced beats Block Inheritance. Pilot OU first, always. Backup GPOs before editing."
+    },
+    {
+     "h": "DNS/DHCP",
+     "body": "AD-integrated DNS with scavenging; DHCP failover + reservations for infrastructure. DORA for the interview."
+    },
+    {
+     "h": "File/Print",
+     "body": "NTFS + share = most restrictive wins. DFS-N/DFS-R for namespace and replication."
+    }
+   ]
+  },
+  {
+   "title": "Endpoints — Intune, patching, hardening",
+   "blocks": [
+    {
+     "h": "Lifecycle",
+     "body": "Provision (Autopilot) → configure (Intune profiles) → patch (rings) → monitor (compliance) → retire (wipe)."
+    },
+    {
+     "h": "Patch rings",
+     "body": "Pilot → broad → critical. Deferral policies with deadlines, not indefinite snooze."
+    },
+    {
+     "h": "Hardening",
+     "body": "CIS-concept baselines: disable legacy protocols, enforce BitLocker, Defender policies, attack-surface reduction rules."
+    },
+    {
+     "h": "Allowlisting",
+     "body": "Default-deny execution per NIST 800-207; Learning Mode baseline first (see IL-11/IL-24)."
+    }
+   ]
+  },
+  {
+   "title": "Zero Trust, IR & the homelab",
+   "blocks": [
+    {
+     "h": "NIST 800-207",
+     "body": "Never trust, always verify; per-session access; assume breach; dynamic policy. CISA pillars scored Traditional→Optimal."
+    },
+    {
+     "h": "IR for infrastructure",
+     "body": "Isolate → preserve evidence → eradicate → recover from tested backups. 3-2-1 backup rule; test restores, not just backups."
+    },
+    {
+     "h": "Monitoring",
+     "body": "Centralized logging (SIEM), alerting on symptoms not causes, capacity planning from trends."
+    },
+    {
+     "h": "Homelab capstone",
+     "body": "Document like production: diagrams, runbooks, configs in git. The portfolio artifact interviewers actually read."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -22899,6 +23049,30 @@
    "url": "https://cs144.github.io/",
    "note": "Stanford networking course site; depth companion to IL-27 Track B. Link only.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "PowerShell docs",
+   "url": "https://learn.microsoft.com/en-us/powershell/",
+   "note": "The Windows automation reference for the admin modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "CIS Benchmarks",
+   "url": "https://www.cisecurity.org/cis-benchmarks",
+   "note": "Hardening baselines behind the CIS-concept modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "RFC 2131 — DHCP",
+   "url": "https://www.rfc-editor.org/rfc/rfc2131",
+   "note": "The DHCP spec: DORA and options, from the primary source.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "RFC 1035 — DNS",
+   "url": "https://www.rfc-editor.org/rfc/rfc1035",
+   "note": "DNS implementation spec behind the DNS/DHCP modules.",
+   "retrieved": "2026-10-08"
   }
  ],
  "toolLabs": [
@@ -29403,5 +29577,93 @@
    }
   ]
  },
- "dossierUrl": "il-27-dossier.html"
+ "dossierUrl": "il-27-dossier.html",
+ "glossary": [
+  {
+   "term": "CIDR / VLSM",
+   "definition": "Classless addressing (IP/prefix) and variable-length subnetting for efficient allocation."
+  },
+  {
+   "term": "Supernetting",
+   "definition": "Aggregating contiguous subnets into a larger route advertisement."
+  },
+  {
+   "term": "AD DS",
+   "definition": "Active Directory Domain Services: domains, forests, OUs, Group Policy, Kerberos."
+  },
+  {
+   "term": "FSMO",
+   "definition": "Flexible Single Master Operations: Schema, Domain Naming, RID, PDC Emulator, Infrastructure roles."
+  },
+  {
+   "term": "GPO",
+   "definition": "Group Policy Object: centralized Windows configuration, LSDOU precedence."
+  },
+  {
+   "term": "Intune",
+   "definition": "Microsoft's cloud MDM/MAM: device compliance, app deployment, Autopilot provisioning."
+  },
+  {
+   "term": "Autopilot",
+   "definition": "Zero-touch Windows provisioning: ship the device, it configures itself from Intune."
+  },
+  {
+   "term": "Patch ring",
+   "definition": "Staged update deployment: pilot → broad → critical, containing bad-patch blast radius."
+  },
+  {
+   "term": "CIS benchmarks",
+   "definition": "Consensus hardening baselines per platform — the 'CIS-concept' standard referenced in the course."
+  },
+  {
+   "term": "3-2-1 backup",
+   "definition": "Three copies, two media types, one offsite: the backup rule."
+  },
+  {
+   "term": "RTO / RPO",
+   "definition": "Recovery Time Objective (how fast) and Recovery Point Objective (how much data loss tolerable)."
+  },
+  {
+   "term": "SIEM",
+   "definition": "Centralized log collection, correlation, and alerting for security operations."
+  },
+  {
+   "term": "Break-glass account",
+   "definition": "Emergency admin excluded from Conditional Access, heavily monitored."
+  },
+  {
+   "term": "Homelab",
+   "definition": "Your production-grade practice environment — and the portfolio artifact."
+  },
+  {
+   "term": "Zero Trust",
+   "definition": "NIST SP 800-207: verify explicitly, least privilege, assume breach."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How is IL-27 different from IL-04?",
+   "a": "IL-04 builds the systems/networking foundation (RHCSA/RHCE, Windows Server, Network+). IL-27 is the specialist track: Zero Trust architecture, Intune endpoint lifecycle, IR/backup/DR, monitoring/HA, homelab capstone, and interview prep for the ThreatLocker-facing role. IL-04 first."
+  },
+  {
+   "q": "What should my homelab include?",
+   "a": "Virtualized DC + member servers, segmented VLANs, a firewall, Intune-managed clients (trial), centralized logging, and documented runbooks. The capstone module gives the build order and the documentation standard."
+  },
+  {
+   "q": "How do I study subnetting to interview speed?",
+   "a": "Daily reps: given hosts-needed → prefix; given IP/prefix → network/broadcast/range. The math cheat sheet is the drill card; speed comes from the reps, not the reading."
+  },
+  {
+   "q": "What does 'CIS-concept hardening' mean?",
+   "a": "Applying CIS-benchmark-style baselines (disable legacy protocols, enforce encryption, least privilege) as concepts you can defend — the course teaches the reasoning, not just the checklist."
+  },
+  {
+   "q": "How do I answer 'walk me through a tough outage'?",
+   "a": "STAR with the triage loop: scope, layer isolation, change correlation, mitigation, verification, then the post-incident improvement. Numbers throughout."
+  },
+  {
+   "q": "Which certs pair with this course?",
+   "a": "AZ-104/AZ-700 for Azure depth, SC-300 for identity, Security+ for baseline. The course maps modules to exam domains; IL-09 sequences the campaign."
+  }
+ ]
 }

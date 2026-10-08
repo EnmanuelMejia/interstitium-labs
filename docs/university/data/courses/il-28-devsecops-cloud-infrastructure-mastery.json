@@ -17914,6 +17914,71 @@
    "id": "IL28-DRILL-INDEX",
    "title": "Master drill index",
    "note": "All module drills are indexed here for spaced repetition; work them to green before advancing."
+  },
+  {
+   "id": "drill-il28-res1",
+   "title": "Inode exhaustion",
+   "prompt": "df -h shows 40% free but writes fail with 'No space left on device'. Diagnosis?",
+   "choices": [
+    "Disk failure",
+    "Inode exhaustion — check df -i; millions of small files",
+    "Permission error",
+    "Full RAM"
+   ],
+   "answer": 1,
+   "explain": "Inodes are finite: tiny files exhaust them while bytes remain. df -i confirms; clean up the small-file sprawl."
+  },
+  {
+   "id": "drill-il28-res2",
+   "title": "OOMKilled",
+   "prompt": "Pod shows OOMKilled, exit 137. Correct response?",
+   "choices": [
+    "Delete the deployment",
+    "Profile memory, fix leak or right-size; raise limits deliberately, not blindly",
+    "Add more nodes",
+    "Ignore — Kubernetes handles it"
+   ],
+   "answer": 1,
+   "explain": "137 = SIGKILL from the OOM killer. Diagnose (leak vs legitimate need) then set requests/limits from data."
+  },
+  {
+   "id": "drill-il28-res3",
+   "title": "L4 vs L7",
+   "prompt": "You need path-based routing (/api → svc-a, /web → svc-b). Which load balancer layer?",
+   "choices": [
+    "L4 (TCP)",
+    "L7 (HTTP-aware)",
+    "L2",
+    "L3"
+   ],
+   "answer": 1,
+   "explain": "Path/host routing needs HTTP semantics: L7 (ALB, Ingress). L4 only sees TCP connections."
+  },
+  {
+   "id": "drill-il28-res4",
+   "title": "SLO panel math",
+   "prompt": "Panel: 'Your service is 99.9% SLO. How much downtime per month, and what do you do when it's gone?'",
+   "choices": [
+    "~7 hours; keep shipping",
+    "~43 minutes; freeze features, reliability work only, blameless review",
+    "~4 minutes; page everyone",
+    "Downtime doesn't matter"
+   ],
+   "answer": 1,
+   "explain": "43m budget; exhausted budget = reliability freeze. The policy answer is what the panel scores."
+  },
+  {
+   "id": "drill-il28-res5",
+   "title": "Terraform import",
+   "prompt": "A database was created in the console; Terraform doesn't know it. Correct move?",
+   "choices": [
+    "Delete it and recreate",
+    "terraform import into state, then codify the config — or formally revert the click-ops",
+    "Ignore it",
+    "Edit the state file by hand"
+   ],
+   "answer": 1,
+   "explain": "Import + codify (or deliberate revert). Never hand-edit state; never leave drift undocumented."
   }
  ],
  "scenarios": [
@@ -18102,70 +18167,154 @@
    "id": "IL28-CH-KUBECTL",
    "title": "kubectl triage cheat sheet",
    "moduleId": "IL28-M27",
-   "items": [
-    "kubectl get pods -o wide — where is it, what state",
-    "kubectl describe pod X — events + Last State",
-    "kubectl logs X --previous — why it died",
-    "kubectl get events --sort-by=.lastTimestamp — cluster story",
-    "kubectl top pod/node — resource pressure"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- kubectl get pods -o wide — where is it, what state\n- kubectl describe pod X — events + Last State\n- kubectl logs X --previous — why it died\n- kubectl get events --sort-by=.lastTimestamp — cluster story\n- kubectl top pod/node — resource pressure"
+    }
    ]
   },
   {
    "id": "IL28-CH-TERRAFORM",
    "title": "Terraform daily-driver cheat sheet",
    "moduleId": "IL28-M33",
-   "items": [
-    "terraform init / fmt / validate / plan / apply",
-    "terraform import 'type.name[\"key\"]' <id> — for_each escaping",
-    "terraform state list / show / mv",
-    "moved blocks for refactors",
-    "never commit *.tfvars with secrets"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- terraform init / fmt / validate / plan / apply\n- terraform import 'type.name[\"key\"]' <id> — for_each escaping\n- terraform state list / show / mv\n- moved blocks for refactors\n- never commit *.tfvars with secrets"
+    }
    ]
   },
   {
    "id": "IL28-CH-DOCKER",
    "title": "Docker cheat sheet",
    "moduleId": "IL28-M23",
-   "items": [
-    "docker build -t app:v1 .",
-    "multi-stage: build in one stage, copy artifacts to slim runtime",
-    "later-layer rm does NOT shrink the image",
-    "docker run --read-only --user 1000"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- docker build -t app:v1 .\n- multi-stage: build in one stage, copy artifacts to slim runtime\n- later-layer rm does NOT shrink the image\n- docker run --read-only --user 1000"
+    }
    ]
   },
   {
    "id": "IL28-CH-GIT",
    "title": "Git cheat sheet",
    "moduleId": "IL28-M17",
-   "items": [
-    "git rebase main — linear history, never rebase shared branches",
-    "git merge --no-ff — preserve feature context",
-    "git reflog — the undo button",
-    "pin versions in requirements.txt before approving MRs"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- git rebase main — linear history, never rebase shared branches\n- git merge --no-ff — preserve feature context\n- git reflog — the undo button\n- pin versions in requirements.txt before approving MRs"
+    }
    ]
   },
   {
    "id": "IL28-CH-LINUX",
    "title": "Linux triage cheat sheet",
    "moduleId": "IL28-M08",
-   "items": [
-    "df -h AND df -i — space and inodes",
-    "lsof +L1 — deleted but open files",
-    "ss -tlnp — listening ports",
-    "nc -zv host port — port check A→B",
-    "ulimit -n — file descriptor limits"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- df -h AND df -i — space and inodes\n- lsof +L1 — deleted but open files\n- ss -tlnp — listening ports\n- nc -zv host port — port check A→B\n- ulimit -n — file descriptor limits"
+    }
    ]
   },
   {
    "id": "IL28-CH-ANSIBLE",
    "title": "Ansible cheat sheet",
    "moduleId": "IL28-M36",
-   "items": [
-    "ansible-playbook site.yml -i inventory",
-    "register: capture command output",
-    "assert: fail fast on bad state",
-    "roles: tasks/handlers/defaults",
-    "idempotence: run twice, 0 changed"
+   "blocks": [
+    {
+     "h": "Reference",
+     "body": "- ansible-playbook site.yml -i inventory\n- register: capture command output\n- assert: fail fast on bad state\n- roles: tasks/handlers/defaults\n- idempotence: run twice, 0 changed"
+    }
+   ]
+  },
+  {
+   "title": "Linux/RHEL triage — the panel runbook",
+   "blocks": [
+    {
+     "h": "System state",
+     "code": "uptime; free -h; df -h; iostat -xz 1 3\nps aux --sort=-%cpu | head; ss -tlnp",
+     "lang": "bash"
+    },
+    {
+     "h": "systemd",
+     "code": "systemctl status svc; journalctl -u svc -p err --since -30m\nsystemctl list-units --failed",
+     "lang": "bash"
+    },
+    {
+     "h": "SELinux",
+     "code": "getenforce; ls -Z; ausearch -m AVC -ts recent | audit2why\nrestorecon -Rv /path",
+     "lang": "bash"
+    },
+    {
+     "h": "Network path",
+     "code": "ip r; ping -c2 gw; curl -sv --max-time 5 https://svc:8443\nss -tlnp | grep 8443  # listening?",
+     "lang": "bash"
+    },
+    {
+     "h": "Inodes & FDs",
+     "body": "'No space left' with free disk = inodes exhausted (df -i). 'Too many open files' = ulimit/nofile. Know both failure modes."
+    }
+   ]
+  },
+  {
+   "title": "K8s triage — Pending, CrashLoop, OOMKilled",
+   "blocks": [
+    {
+     "h": "Pending",
+     "body": "kubectl describe pod → events: unschedulable (resources, taints, affinity, PVC unbound). Fix the constraint, not the pod."
+    },
+    {
+     "h": "CrashLoopBackOff",
+     "body": "logs --previous → bad image/entrypoint, missing env/secret, failed probe. describe shows the event trail."
+    },
+    {
+     "h": "OOMKilled",
+     "body": "Container exceeded memory limit. Raise limits after profiling, or fix the leak — don't just raise blindly."
+    },
+    {
+     "h": "Evicted",
+     "body": "Node pressure (disk/memory). Check node allocatable vs requests; set proper requests/limits."
+    }
+   ]
+  },
+  {
+   "title": "Terraform & Ansible — argue the tradeoffs",
+   "blocks": [
+    {
+     "h": "Terraform",
+     "body": "Declarative, state-tracked, plan-before-apply. Strengths: multi-cloud, modules, drift detection. Weaknesses: state management, imperative gaps."
+    },
+    {
+     "h": "Ansible",
+     "body": "Agentless, procedural-when-needed, idempotent tasks. Strengths: config management, low friction. Weaknesses: scale, ordering complexity."
+    },
+    {
+     "h": "The interview answer",
+     "body": "Terraform provisions the platform; Ansible configures the hosts. Import for drifted resources; for_each over count; modules for reuse; secrets never in state committed."
+    }
+   ]
+  },
+  {
+   "title": "CI/CD, clouds & the 90-minute panel",
+   "blocks": [
+    {
+     "h": "Pipeline",
+     "body": "Commit → build/test/SAST → artifact → stage (DAST) → prod (canary) → observe. Gates block on failures, CVEs, secrets."
+    },
+    {
+     "h": "Jenkins vs modern",
+     "body": "Jenkins: Groovy shared libraries, self-hosted control. GitHub Actions/Azure DevOps: YAML, OIDC, managed runners. Know both; argue fit."
+    },
+    {
+     "h": "Multicloud",
+     "body": "Azure: VNet, Private Link, AKS node pools. AWS: VPC, IAM, EKS. GCP: global VPC, GKE. Private DNS + Private Link patterns recur."
+    },
+    {
+     "h": "Panel strategy",
+     "body": "Narrate the model, do the math (SLO budgets, capacity), name the tradeoff, verify. No copilot — the reps make it automatic."
+    }
    ]
   }
  ],
@@ -18226,39 +18375,64 @@
  },
  "sourceLinks": [
   {
-   "title": "Kubernetes official documentation",
    "url": "https://kubernetes.io/docs/",
-   "note": "Primary reference for all K8s modules."
+   "note": "Primary reference for all K8s modules.",
+   "name": "Kubernetes official documentation",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Terraform documentation (HashiCorp Developer)",
    "url": "https://developer.hashicorp.com/terraform/docs",
-   "note": "HCL, state, and CLI reference."
+   "note": "HCL, state, and CLI reference.",
+   "name": "Terraform documentation (HashiCorp Developer)",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Ansible documentation",
    "url": "https://docs.ansible.com/",
-   "note": "Playbooks, roles, and modules reference."
+   "note": "Playbooks, roles, and modules reference.",
+   "name": "Ansible documentation",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Microsoft Learn — Azure",
    "url": "https://learn.microsoft.com/azure/",
-   "note": "Azure services, AKS, and networking docs."
+   "note": "Azure services, AKS, and networking docs.",
+   "name": "Microsoft Learn — Azure",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Docker documentation",
    "url": "https://docs.docker.com/",
-   "note": "Dockerfile and Compose reference."
+   "note": "Dockerfile and Compose reference.",
+   "name": "Docker documentation",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Jenkins user documentation",
    "url": "https://www.jenkins.io/doc/",
-   "note": "Pipeline syntax and shared libraries."
+   "note": "Pipeline syntax and shared libraries.",
+   "name": "Jenkins user documentation",
+   "retrieved": "2026-10-08"
   },
   {
-   "title": "Prometheus documentation",
    "url": "https://prometheus.io/docs/",
-   "note": "Metrics, PromQL, and alerting."
+   "note": "Metrics, PromQL, and alerting.",
+   "name": "Prometheus documentation",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "kubectl Cheat Sheet",
+   "url": "https://kubernetes.io/docs/reference/kubectl/cheatsheet/",
+   "note": "The imperative kubectl reference for the triage modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Istio docs",
+   "url": "https://istio.io/latest/docs/",
+   "note": "Service-mesh reference for the platform modules.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "GitHub Actions docs",
+   "url": "https://docs.github.com/en/actions",
+   "note": "Modern CI/CD reference with OIDC and workflow syntax.",
+   "retrieved": "2026-10-08"
   }
  ],
  "toolLabs": [
@@ -19613,5 +19787,89 @@
    "Score every mock task; re-take below 80%."
   ]
  },
- "timeFormula": "estimatedMinutes per module = weight x 120 + notes x 12 + cards x 4 + quiz x 8 + drill items x 4 + handsOnLab 90 + min(180, videoMinutes/2). Course total = sum of module estimates."
+ "timeFormula": "estimatedMinutes per module = weight x 120 + notes x 12 + cards x 4 + quiz x 8 + drill items x 4 + handsOnLab 90 + min(180, videoMinutes/2). Course total = sum of module estimates.",
+ "glossary": [
+  {
+   "term": "Inode",
+   "definition": "Filesystem metadata entry per file; exhaustion blocks writes despite free bytes."
+  },
+  {
+   "term": "File descriptor",
+   "definition": "Per-process handle for open files/sockets; ulimit caps them."
+  },
+  {
+   "term": "systemd",
+   "definition": "Init + service manager: units, journald, systemctl."
+  },
+  {
+   "term": "SELinux",
+   "definition": "Mandatory access control via contexts; the RHEL troubleshooter's reflex check."
+  },
+  {
+   "term": "VPC / VNet",
+   "definition": "Cloud-isolated networks: subnets, route tables, security groups/NSGs."
+  },
+  {
+   "term": "Private Link",
+   "definition": "Private connectivity to cloud services without public internet exposure."
+  },
+  {
+   "term": "CrashLoopBackOff",
+   "definition": "K8s: container repeatedly crashing on start — check logs --previous and events."
+  },
+  {
+   "term": "OOMKilled",
+   "definition": "Container killed for exceeding memory limits (exit 137)."
+  },
+  {
+   "term": "Terraform state",
+   "definition": "The config→reality mapping; remote, locked, per-environment."
+  },
+  {
+   "term": "Drift",
+   "definition": "Reality diverging from IaC — detected by plan, fixed by import or revert."
+  },
+  {
+   "term": "SLO / error budget",
+   "definition": "Reliability target and its allowed unreliability; the shipping policy lever."
+  },
+  {
+   "term": "SAST / DAST",
+   "definition": "Static (code) and dynamic (running app) security testing gates."
+  },
+  {
+   "term": "Supply-chain security",
+   "definition": "Signed artifacts, SBOMs, provenance: trusting the pipeline's inputs."
+  },
+  {
+   "term": "AKS node pools",
+   "definition": "Grouped VM sets backing AKS clusters; autoscale per pool."
+  },
+  {
+   "term": "90-minute mock panel",
+   "definition": "The course's timed no-copilot exam: every BNY DevOps panel question, answered independently."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How is IL-28 different from IL-05?",
+   "a": "IL-05 is the certification-depth platform track. IL-28 is the production bootcamp: math → Linux → networking → containers → IaC → CI/CD → multicloud → observability/security, calibrated to a real hiring panel (BNY DevOps). IL-28 is the 'answer everything independently' course."
+  },
+  {
+   "q": "What's the 90-minute mock panel?",
+   "a": "A timed simulation of the actual panel loop: infrastructure math, Linux troubleshooting, cloud networking, K8s triage, IaC tradeoffs, CI/CD design — no copilot, narrated aloud. It's the course's graduation gate."
+  },
+  {
+   "q": "RHEL focus — why not Ubuntu?",
+   "a": "The target environments (and panel) are RHEL-family: SELinux, systemd depth, RHEL troubleshooting patterns. Skills transfer to Debian-family; the panel tests RHEL."
+  },
+  {
+   "q": "Terraform or Ansible — which first?",
+   "a": "Terraform for provisioning (it's the panel's IaC default), Ansible for configuration. The course teaches both and makes you argue the tradeoffs — that's the scored skill."
+  },
+  {
+   "q": "How do I practice K8s triage without a cluster?",
+   "a": "kind/k3d locally: deliberately break things (bad images, low limits, unbound PVCs) and triage them. The course's triage cheat sheet is the checklist; the reps build the reflex."
+  }
+ ]
 }

@@ -21195,6 +21195,71 @@
    ],
    "answer": 0,
    "explain": "Providers price output tokens higher; verbose outputs multiply the expensive side of the bill — ask for exactly the output shape you need. (AI Module 1.)"
+  },
+  {
+   "id": "drill-il19-res1",
+   "title": "Landing zone",
+   "prompt": "A startup's AWS is one account with root keys in Slack. First architectural fix?",
+   "choices": [
+    "More EC2 instances",
+    "Organizations + OUs + SCPs + IAM Identity Center; kill root keys, enforce MFA",
+    "Bigger instances",
+    "A new logo"
+   ],
+   "answer": 1,
+   "explain": "Foundation before workloads: multi-account structure, centralized identity, guardrails. Everything else builds on this."
+  },
+  {
+   "id": "drill-il19-res2",
+   "title": "GCP networking",
+   "prompt": "What's distinctive about GCP VPCs vs AWS VPCs?",
+   "choices": [
+    "Nothing — identical",
+    "GCP VPCs are global (spanning regions); subnets are regional",
+    "GCP has no subnets",
+    "AWS VPCs are global"
+   ],
+   "answer": 1,
+   "explain": "GCP VPC = global resource; you carve regional subnets inside it. AWS VPCs are regional. Design accordingly."
+  },
+  {
+   "id": "drill-il19-res3",
+   "title": "Multicloud cost trap",
+   "prompt": "Biggest hidden cost in multicloud architectures?",
+   "choices": [
+    "Compute",
+    "Data egress/transfer between clouds",
+    "Support plans",
+    "Domain names"
+   ],
+   "answer": 1,
+   "explain": "Egress fees punish cross-cloud chatter. Keep data gravity in mind: process where the data lives."
+  },
+  {
+   "id": "drill-il19-res4",
+   "title": "CI/CD credential",
+   "prompt": "Your pipeline needs AWS access. Best practice?",
+   "choices": [
+    "Long-lived access keys in repo secrets",
+    "OIDC federation: short-lived role assumption, no stored keys",
+    "Root keys",
+    "Hardcode in the pipeline YAML"
+   ],
+   "answer": 1,
+   "explain": "OIDC → temporary credentials per run. No keys to rotate, leak, or steal."
+  },
+  {
+   "id": "drill-il19-res5",
+   "title": "RAG responsibility",
+   "prompt": "FieldMedic gives medical-adjacent field guidance. Required safeguards?",
+   "choices": [
+    "None — it's just text",
+    "Grounded citations, confidence signaling, human-in-the-loop for high-stakes calls, eval harness",
+    "Higher temperature",
+    "Faster responses"
+   ],
+   "answer": 1,
+   "explain": "Responsible RAG: cite sources, show uncertainty, escalate high-stakes decisions to humans, and eval continuously."
   }
  ],
  "scenarios": [
@@ -22730,6 +22795,90 @@
      "body": "Confirm the current exam code on the vendor's site — codes change. No exam content is reproduced in this course; all practice material is original."
     }
    ]
+  },
+  {
+   "title": "AWS core — the 90-day map",
+   "blocks": [
+    {
+     "h": "IAM",
+     "body": "Users → groups → roles; JSON policies; MFA on root; no long-lived keys — OIDC for CI/CD."
+    },
+    {
+     "h": "Network",
+     "body": "VPC → subnets (public/private) → route tables → IGW/NAT → SGs (stateful) + NACLs. Private subnets for workloads, always."
+    },
+    {
+     "h": "Compute & data",
+     "body": "EC2 → ECS/EKS → Lambda (ladder up as ops burden drops). RDS/Aurora, S3 tiers, DynamoDB for key-value."
+    },
+    {
+     "h": "Landing zone",
+     "body": "Organizations + OUs + SCPs + Control Tower: the secure multi-account foundation. Build it before workloads."
+    },
+    {
+     "h": "Cost",
+     "body": "Tag everything. Rightsize before reserving. S3 lifecycle tiers. Cost Anomaly Detection on."
+    }
+   ]
+  },
+  {
+   "title": "Azure core — identity-first",
+   "blocks": [
+    {
+     "h": "Identity",
+     "body": "Entra ID → RBAC roles at MG/subscription/RG scopes. Managed identities kill stored credentials."
+    },
+    {
+     "h": "Network",
+     "body": "VNet → subnets → NSGs → UDRs → Private Link + Private DNS. Hub-spoke or vWAN for scale."
+    },
+    {
+     "h": "Compute & data",
+     "body": "VMs → AKS → Container Apps → Functions. Storage tiers, SQL Database, Cosmos DB."
+    },
+    {
+     "h": "Governance",
+     "body": "Management groups + Policy + Blueprints: compliance as code from day one."
+    }
+   ]
+  },
+  {
+   "title": "GCP & OCI — the third and fourth clouds",
+   "blocks": [
+    {
+     "h": "GCP",
+     "body": "Projects + folders + org; VPC (global!) → subnets; GKE Autopilot; BigQuery; billing budgets with alerts."
+    },
+    {
+     "h": "OCI",
+     "body": "Compartments isolate; VCN = VPC; IAM policies are compartment-scoped; compute + object storage + ADB."
+    },
+    {
+     "h": "Multicloud rule",
+     "body": "Terraform for uniformity; one identity story (federation); watch data-egress costs — they punish multicloud architectures."
+    }
+   ]
+  },
+  {
+   "title": "DevOps toolchain & the FieldMedic RAG build",
+   "blocks": [
+    {
+     "h": "The way",
+     "body": "Git → Terraform → Ansible → Docker → Kubernetes → Jenkins/GitHub Actions → Prometheus/Grafana. Every step automated, every step observed."
+    },
+    {
+     "h": "FieldMedic RAG",
+     "body": "Ingest field manuals → chunk/embed → vector index → retrieve → generate with citations → eval harness → deploy across three clouds. Responsible: grounded answers, human-in-the-loop."
+    },
+    {
+     "h": "Cert sequencing",
+     "body": "Cloud practitioner → associate (architect) → DevOps pro; map each exam domain to its module. One cert per quarter is a sustainable pace."
+    },
+    {
+     "h": "90-day job OS",
+     "body": "Positioning → LinkedIn → ATS-safe resume → portfolio (3 missions) → interview prep → pipeline tracking. Daily system, not bursts."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -22824,6 +22973,30 @@
    "url": "https://www.jenkins.io/doc/",
    "note": "Official reference for the DevOps track's CI/CD module — pipelines, agents, and Jenkinsfiles.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Argo CD docs",
+   "url": "https://argoproj.github.io/cd/",
+   "note": "GitOps delivery: the deployment pattern across clouds.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Microsoft Azure docs",
+   "url": "https://learn.microsoft.com/en-us/azure/",
+   "note": "The Azure half of the multi-cloud build.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Helm docs",
+   "url": "https://helm.sh/docs/",
+   "note": "Kubernetes packaging used across the cloud missions.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "HashiCorp Consul docs",
+   "url": "https://developer.hashicorp.com/consul/docs",
+   "note": "Service networking for the multi-cloud platform.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate. Cloud certification exams are taken through each vendor's own portal. Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
@@ -23188,5 +23361,85 @@
    "gate-il19-cka",
    "gate-il19-tf004"
   ]
- }
+ },
+ "glossary": [
+  {
+   "term": "Landing zone",
+   "definition": "Secure, pre-configured cloud foundation: org structure, identity, network, logging, guardrails."
+  },
+  {
+   "term": "IAM",
+   "definition": "Identity and Access Management: who can do what, on which resources, under which conditions."
+  },
+  {
+   "term": "VPC / VNet / VCN",
+   "definition": "Virtual private cloud network (AWS/Azure/Oracle): isolated software-defined networking."
+  },
+  {
+   "term": "Compartment",
+   "definition": "OCI's isolation boundary for resources and IAM policies."
+  },
+  {
+   "term": "OIDC federation",
+   "definition": "Short-lived cloud credentials via OpenID Connect trust — no stored keys for CI/CD."
+  },
+  {
+   "term": "SCP",
+   "definition": "Service Control Policy (AWS Organizations): guardrails limiting what accounts can do."
+  },
+  {
+   "term": "Infrastructure as Code",
+   "definition": "Terraform/Ansible-managed infrastructure: versioned, reviewable, repeatable."
+  },
+  {
+   "term": "GitOps",
+   "definition": "Git as source of truth; agents converge clusters to the declared state."
+  },
+  {
+   "term": "Observability",
+   "definition": "Metrics, logs, traces: understanding production from the outside."
+  },
+  {
+   "term": "RAG",
+   "definition": "Retrieval-Augmented Generation: answers grounded in retrieved documents with citations."
+  },
+  {
+   "term": "FieldMedic",
+   "definition": "The course's capstone: a responsible retrieval-augmented field assistant deployed across three clouds."
+  },
+  {
+   "term": "Data egress",
+   "definition": "Charged outbound data transfer — the multicloud cost trap."
+  },
+  {
+   "term": "90-day job OS",
+   "definition": "The course's job-search operating system: positioning → portfolio → pipeline, run daily."
+  }
+ ],
+ "faq": [
+  {
+   "q": "AWS, Azure, GCP, OCI — do I really need all four?",
+   "a": "Working literacy in all four, depth in two. The missions force you to build the same workload across clouds so the *differences* (IAM models, network scope, pricing) become concrete. Employers hire for the pattern, not the logo."
+  },
+  {
+   "q": "What's the Meridian Markets migration mission?",
+   "a": "The capstone: migrate a containerized app + database across clouds with Terraform, zero-downtime cutover, and rollback plan. It's the portfolio piece hiring managers actually read."
+  },
+  {
+   "q": "How is this different from IL-05?",
+   "a": "IL-05 is the certification-depth platform track (K8s stack, AWS/Azure certs). IL-19 is the *bootcamp*: four clouds, DevOps toolchain, an AI capstone, cert sequencing, and a 90-day job-search OS. IL-05 goes deeper per topic; IL-19 goes wider with a ship-it mandate."
+  },
+  {
+   "q": "One cert per quarter — which order?",
+   "a": "Cloud practitioner → associate architect (your primary cloud) → DevOps professional. The course maps every exam domain to its module so nothing is studied twice."
+  },
+  {
+   "q": "Terraform across AWS+GCP in one mission — realistic?",
+   "a": "Yes: providers + modules + workspaces, one state per cloud. The mission teaches the seams (different auth, different network models) that single-cloud tutorials hide."
+  },
+  {
+   "q": "What makes FieldMedic 'responsible'?",
+   "a": "Grounded citations, uncertainty signaling, human-in-the-loop for high-stakes outputs, and a continuous eval harness. Responsibility is architecture, not a disclaimer."
+  }
+ ]
 }

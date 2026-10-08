@@ -1,0 +1,81 @@
+/* =====================================================================
+ * ILProgress styles — unified course progress UI.
+ * 2026-10-08. Scoped to .ilprog-* so nothing else is touched.
+ * Dark-first; honors prefers-reduced-motion (no animated fills).
+ * ===================================================================== */
+
+.ilprog-bar { margin: .5rem 0 0; }
+.ilprog-bar__meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .35rem; }
+.ilprog-bar__label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(242, 237, 225, .62);
+}
+.ilprog-bar__track {
+  height: 8px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .07);
+}
+.ilprog-bar__fill {
+  height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(90deg, #c9a227, #62d8e9);
+}
+
+/* Compact nav strip inside the course shell nav */
+.ilprog-nav {
+  padding: .7rem .9rem; margin: .8rem 0;
+  border: 1px solid rgba(201, 162, 39, .28); border-radius: 10px;
+  background: rgba(201, 162, 39, .05);
+}
+.ilprog-nav .ilprog-bar__label { color: rgba(242, 237, 225, .8); }
+
+/* Continue banner */
+.ilprog-continue {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1rem 1.25rem; margin: 0 0 1.4rem; border-radius: 12px;
+  border: 1px solid rgba(98, 216, 233, .35);
+  background: linear-gradient(120deg, rgba(98, 216, 233, .09), rgba(201, 162, 39, .07));
+}
+.ilprog-continue__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
+  color: #62d8e9; margin: 0 0 .3rem;
+}
+.ilprog-continue__desc { margin: 0; font-size: .95rem; color: rgba(242, 237, 225, .92); }
+.ilprog-continue__btn {
+  display: inline-block; padding: .6rem 1.4rem; border-radius: 999px;
+  background: #c9a227; color: #10131a !important; font-weight: 700; text-decoration: none;
+  border: 0; cursor: pointer; white-space: nowrap;
+}
+.ilprog-continue__btn:hover { filter: brightness(1.08); }
+
+/* Next-up banner inside the course shell */
+.ilprog-nextup {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1.1rem 1.25rem; margin: 1.2rem 0; border-radius: 12px;
+  border: 1px solid rgba(61, 220, 151, .45);
+  background: rgba(61, 220, 151, .07);
+}
+.ilprog-nextup__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
+  color: #3ddc97; margin: 0 0 .3rem;
+}
+.ilprog-nextup__desc { margin: 0; color: rgba(242, 237, 225, .92); }
+.ilprog-nextup__btn {
+  display: inline-block; padding: .6rem 1.4rem; border-radius: 999px;
+  background: #3ddc97; color: #10131a !important; font-weight: 700; text-decoration: none;
+  white-space: nowrap;
+}
+.ilprog-nextup__btn:hover { filter: brightness(1.08); }
+
+/* Small course-card progress bar (academy listings) */
+.ilprog-cardbar { margin-top: .7rem; }
+.ilprog-cardbar .ilprog-bar__track { height: 6px; }
+.ilprog-cardbar .ilprog-bar__label { font-size: .66rem; }
+
+/* Never animate fills — instant, honest, motion-safe. */
+@media (prefers-reduced-motion: reduce) {
+  .ilprog-bar__fill { transition: none !important; }
+  .ilprog-continue__btn, .ilprog-nextup__btn { transition: none !important; }
+}

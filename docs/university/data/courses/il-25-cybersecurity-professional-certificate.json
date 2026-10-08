@@ -8453,6 +8453,71 @@
    ],
    "answer": 2,
    "explain": "Risk = the potential for loss, commonly modeled as threat x vulnerability x impact. (Module 1)"
+  },
+  {
+   "id": "drill-il25-res1",
+   "title": "Risk scoring",
+   "prompt": "Threat=4, Vulnerability=5, Impact=2. Risk priority vs T=2,V=2,I=5?",
+   "choices": [
+    "First case higher (40 > 20)",
+    "Second case higher",
+    "Equal",
+    "Can't compare"
+   ],
+   "answer": 0,
+   "explain": "40 vs 20 on the T×V×I product. High impact alone doesn't outrank likely exploitation of moderate impact — multiply, don't eyeball."
+  },
+  {
+   "id": "drill-il25-res2",
+   "title": "CSF function",
+   "prompt": "Deploying EDR across the fleet maps to which CSF 2.0 function?",
+   "choices": [
+    "Govern",
+    "Protect and Detect",
+    "Recover",
+    "Identify"
+   ],
+   "answer": 1,
+   "explain": "EDR hardens endpoints (Protect) and generates detections (Detect). CSF functions overlap by design — map to all that apply."
+  },
+  {
+   "id": "drill-il25-res3",
+   "title": "IR order",
+   "prompt": "Correct NIST 800-61 sequence?",
+   "choices": [
+    "Eradicate → detect → recover",
+    "Preparation → detection & analysis → containment/eradication/recovery → post-incident",
+    "Recover → contain → prepare",
+    "Detect → recover → lessons"
+   ],
+   "answer": 1,
+   "explain": "Preparation first (it's a phase, not a prelude), then the lifecycle, then post-incident learning."
+  },
+  {
+   "id": "drill-il25-res4",
+   "title": "Kill chain break",
+   "prompt": "Email gateway blocks the malicious attachment. Which kill-chain phase broke?",
+   "choices": [
+    "Reconnaissance",
+    "Delivery",
+    "Installation",
+    "Actions on objectives"
+   ],
+   "answer": 1,
+   "explain": "Delivery = getting the weapon to the target. Blocking it there is the cheapest break in the chain."
+  },
+  {
+   "id": "drill-il25-res5",
+   "title": "Board communication",
+   "prompt": "The board asks about a critical CVE. Best framing?",
+   "choices": [
+    "Recite the CVSS vector string",
+    "Business terms: exposure ($/downtime/regulatory), remediation time, residual risk after patching",
+    "Say 'it's being handled'",
+    "Forward the vendor advisory"
+   ],
+   "answer": 1,
+   "explain": "Risk in business language with a remediation plan. Technical detail goes in the appendix."
   }
  ],
  "scenarios": [
@@ -9427,6 +9492,90 @@
      "lang": "bash"
     }
    ]
+  },
+  {
+   "title": "Risk — threat × vulnerability × impact",
+   "blocks": [
+    {
+     "h": "The model",
+     "body": "Risk = threat capability × vulnerability exploitability × business impact. Score each 1–5; the product prioritizes."
+    },
+    {
+     "h": "Risk register",
+     "body": "Risk ID · description · T/V/I scores · owner · mitigation · residual risk · review date. A register without owners is a wish list."
+    },
+    {
+     "h": "Communicating up",
+     "body": "Translate to business: dollars, downtime, regulatory exposure. 'CVE-XXXX, CVSS 9.8' means nothing to a board; '$2M exposure, patchable in 4 hours' does."
+    }
+   ]
+  },
+  {
+   "title": "NIST CSF 2.0 — the six functions",
+   "blocks": [
+    {
+     "h": "Govern (GV)",
+     "body": "Strategy, roles, policy, risk management — the new sixth function. Governance first."
+    },
+    {
+     "h": "Identify (ID)",
+     "body": "Asset management, risk assessment, supply chain. You can't protect what you haven't inventoried."
+    },
+    {
+     "h": "Protect (PR)",
+     "body": "Access control, training, data security, platform hardening."
+    },
+    {
+     "h": "Detect (DE)",
+     "body": "Continuous monitoring, anomaly detection, event analysis."
+    },
+    {
+     "h": "Respond (RS) / Recover (RC)",
+     "body": "Incident management, comms, mitigation → restoration, lessons learned. RS/RC close the loop."
+    }
+   ]
+  },
+  {
+   "title": "Incident response — NIST SP 800-61",
+   "blocks": [
+    {
+     "h": "Preparation",
+     "body": "Playbooks, roles, tools, comms lists, tested backups. IR is won before the incident."
+    },
+    {
+     "h": "Detection & analysis",
+     "body": "Triage: validate, scope, classify severity. Timeline everything from the first minute."
+    },
+    {
+     "h": "Containment → eradication → recovery",
+     "body": "Isolate, remove the cause, restore to known-good. Preserve evidence throughout."
+    },
+    {
+     "h": "Post-incident",
+     "body": "Lessons learned → control gaps closed → detection improved. The report is a deliverable, not a formality."
+    }
+   ]
+  },
+  {
+   "title": "ATT&CK, kill chain & professional deliverables",
+   "blocks": [
+    {
+     "h": "Kill chain",
+     "body": "Recon → weaponize → deliver → exploit → install → C2 → actions. Break any link; defenders map controls per phase."
+    },
+    {
+     "h": "ATT&CK",
+     "body": "14 tactics from Reconnaissance to Impact. Map detections to techniques; gaps = unmapped techniques."
+    },
+    {
+     "h": "Pentest report",
+     "body": "Executive summary (risk language) → methodology → findings (evidence, impact, likelihood, remediation, retest) → appendices."
+    },
+    {
+     "h": "IR timeline",
+     "body": "Timestamped, sourced, gap-marked. Every claim cited to a log. Timelines are evidence, not narrative."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -9515,6 +9664,30 @@
    "url": "https://www.nist.gov/privacy-framework",
    "note": "Voluntary privacy risk-management tool complementing the CSF; core reference for the policy, privacy, and governance module.",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "NIST SP 800-40r4 — Patch Management",
+   "url": "https://csrc.nist.gov/pubs/sp/800/40/r4/final",
+   "note": "Enterprise patching guidance for the vulnerability-management domain.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NIST SP 800-53r5 — Security Controls",
+   "url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+   "note": "The control catalog behind risk and architecture work.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "NIST SP 800-30r1 — Risk Assessment",
+   "url": "https://csrc.nist.gov/pubs/sp/800/30/r1/final",
+   "note": "The risk-assessment methodology standard.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "CWE Database",
+   "url": "https://cwe.mitre.org/",
+   "note": "Weakness enumeration for the threat/vulnerability analysis.",
+   "retrieved": "2026-10-08"
   }
  ],
  "crosswalk": [
@@ -9769,5 +9942,85 @@
    "gate-il25-cysa",
    "gate-il25-sscp"
   ]
- }
+ },
+ "glossary": [
+  {
+   "term": "Risk",
+   "definition": "Threat × vulnerability × impact: the prioritization product of security work."
+  },
+  {
+   "term": "Threat",
+   "definition": "An actor or event capable of causing harm (capability + intent)."
+  },
+  {
+   "term": "Vulnerability",
+   "definition": "A weakness that a threat can exploit."
+  },
+  {
+   "term": "Impact",
+   "definition": "Business consequence if exploited: dollars, downtime, regulatory, reputational."
+  },
+  {
+   "term": "Risk register",
+   "definition": "The tracked list of risks with scores, owners, mitigations, and review dates."
+  },
+  {
+   "term": "NIST CSF 2.0",
+   "definition": "Cybersecurity Framework: Govern, Identify, Protect, Detect, Respond, Recover."
+  },
+  {
+   "term": "Defense in depth",
+   "definition": "Layered controls across network, endpoint, identity, and data — no single point of failure."
+  },
+  {
+   "term": "Kill chain",
+   "definition": "The seven-phase attack progression; defenders break links per phase."
+  },
+  {
+   "term": "MITRE ATT&CK",
+   "definition": "Adversary tactics/techniques knowledge base for detection mapping."
+  },
+  {
+   "term": "NIST SP 800-61",
+   "definition": "Computer Security Incident Handling Guide: the IR lifecycle standard."
+  },
+  {
+   "term": "CVSS",
+   "definition": "Common Vulnerability Scoring System: severity scoring — input to prioritization, not the decision itself."
+  },
+  {
+   "term": "OT / IoT",
+   "definition": "Operational Technology / Internet of Things: cyber-physical systems with safety consequences."
+  },
+  {
+   "term": "Guardrails (AI)",
+   "definition": "Controls on AI systems: input validation, output review, access limits, monitoring."
+  },
+  {
+   "term": "Lessons learned",
+   "definition": "Post-incident analysis converting experience into control and detection improvements."
+  }
+ ],
+ "faq": [
+  {
+   "q": "What jobs does this certificate prepare me for?",
+   "a": "Analyst-track roles: SOC analyst, risk analyst, security generalist. The deliverables (risk registers, pentest reports, IR timelines) are portfolio artifacts hiring managers recognize. Note the course's honesty framing: it prepares you independently; it confers no vendor certification."
+  },
+  {
+   "q": "How is this different from IL-06?",
+   "a": "IL-06 is the operator track (pentest, SOC, KQL, SC-200). IL-25 is the professional-certificate track: risk, frameworks (CSF), IR lifecycle, ATT&CK analysis, and the deliverables portfolio. IL-06 teaches the hands; IL-25 teaches the practice."
+  },
+  {
+   "q": "Do I need to memorize all of NIST CSF?",
+   "a": "Know the six functions cold and the category structure; look up subcategories. Interviews test whether you can *map* a control to the framework, not recite IDs."
+  },
+  {
+   "q": "What's the hardest deliverable?",
+   "a": "The pentest report's executive summary — translating technical findings into business risk without losing accuracy. The course's report module drills this translation."
+  },
+  {
+   "q": "Cloud, OT/IoT, AI — why in one course?",
+   "a": "Because modern estates are all three at once, and each breaks naive assumptions (cloud: shared responsibility; OT: safety > uptime; AI: novel attack surface). The evaluation module teaches the misconfiguration patterns per domain."
+  }
+ ]
 }

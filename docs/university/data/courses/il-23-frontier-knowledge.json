@@ -4786,6 +4786,71 @@
    "answer": 1,
    "explain": "Worked estimation step 8 — don't cite past the suite's range.",
    "module": "m23-metr-evals"
+  },
+  {
+   "id": "drill-il23-res1",
+   "title": "As-of discipline",
+   "prompt": "A 2024 article claims 'Model X is state of the art.' In Oct 2026 you should:",
+   "choices": [
+    "Cite it as current",
+    "Treat it as dated: re-check current benchmarks; the claim's half-life has likely expired",
+    "Ignore all old articles",
+    "Assume it's still true"
+   ],
+   "answer": 1,
+   "explain": "Frontier claims decay fast. Date the claim, estimate its half-life, and re-verify — that's the as-of discipline."
+  },
+  {
+   "id": "drill-il23-res2",
+   "title": "Hype red flag",
+   "prompt": "A startup announces '100× faster chips' with no baseline, no peer review, no data. Your first question:",
+   "choices": [
+    "When can I invest?",
+    "100× faster than *what*, measured *how*, reproducible by *whom*?",
+    "What's the CEO's background?",
+    "How sleek is the demo?"
+   ],
+   "answer": 1,
+   "explain": "Baselines, methods, reproducibility: the hype-detection checklist. Missing denominators are the tell."
+  },
+  {
+   "id": "drill-il23-res3",
+   "title": "Eval contamination",
+   "prompt": "A model scores 95% on a benchmark. Before believing the capability claim, check:",
+   "choices": [
+    "The model's parameter count",
+    "Whether benchmark data leaked into training (contamination) and whether dumb baselines were included",
+    "The training cost",
+    "The press coverage"
+   ],
+   "answer": 1,
+   "explain": "Contaminated evals measure memorization, not capability. Baselines tell you if the task was hard at all."
+  },
+  {
+   "id": "drill-il23-res4",
+   "title": "Dual-use",
+   "prompt": "The Collingridge dilemma states:",
+   "choices": [
+    "Technology is always good",
+    "Early in a technology's life we can shape it but lack knowledge of consequences; late, we know the consequences but it's entrenched",
+    "Regulation is impossible",
+    "Only experts should decide"
+   ],
+   "answer": 1,
+   "explain": "The control dilemma: power to shape vs knowledge of effects trade off over time. Hence governance under uncertainty."
+  },
+  {
+   "id": "drill-il23-res5",
+   "title": "Physical-inputs forecasting",
+   "prompt": "Forecasting fusion timelines from press releases vs from physical inputs (triple product, materials, tritium supply):",
+   "choices": [
+    "Press releases are more reliable",
+    "Physical inputs with stated assumptions and dated intervals — the course's method",
+    "Neither works",
+    "Ask an LLM"
+   ],
+   "answer": 1,
+   "explain": "Forecast from constraints (physics, supply chains, economics) with explicit assumptions and decay plans — not narratives."
   }
  ],
  "scenarios": [
@@ -5775,6 +5840,86 @@
      "lang": "text"
     }
    ]
+  },
+  {
+   "title": "The as-of discipline — dating every claim",
+   "blocks": [
+    {
+     "h": "The rule",
+     "body": "Every frontier claim gets: statement, date, source, and estimated half-life. 'As of Oct 2026, ...' — never timeless present tense for moving targets."
+    },
+    {
+     "h": "Half-lives",
+     "body": "Model benchmark scores: months. Hardware roadmaps: 1–2 years. Physics results: decades. Separate the durable core from the news cycle."
+    },
+    {
+     "h": "The claim log",
+     "body": "Date, claim, source, your confidence, check-back date. Calibrate by scoring old predictions — the only honest forecaster training."
+    }
+   ]
+  },
+  {
+   "title": "Reading a preprint in 20 minutes",
+   "blocks": [
+    {
+     "h": "0–3 min",
+     "body": "Title, abstract, figures. What's the claimed result? What would falsify it?"
+    },
+    {
+     "h": "3–10 min",
+     "body": "Method + results sections. Sample sizes, baselines, error bars. Skip the literature review on first pass."
+    },
+    {
+     "h": "10–15 min",
+     "body": "Limitations section (read it twice), then the discussion's hedges. Authors bury the caveats — dig them up."
+    },
+    {
+     "h": "15–20 min",
+     "body": "Check citations of key claims, look for the code/data release, search for rebuttals. Then write your one-paragraph verdict with a date."
+    }
+   ]
+  },
+  {
+   "title": "Hype detection — announcement patterns",
+   "blocks": [
+    {
+     "h": "Red flags",
+     "body": "'Revolutionary' without baselines · demo without code/data · press release before peer review · metric without error bars · 'X times better' without the denominator."
+    },
+    {
+     "h": "The questions",
+     "body": "Compared to what baseline? At what cost? Reproducible by whom? What did they *not* show? Who benefits from belief?"
+    },
+    {
+     "h": "Capability evals",
+     "body": "Check contamination (test data in training), baselines (dumb methods included?), suite sensitivity (one benchmark ≠ capability), and what the metric doesn't claim."
+    }
+   ]
+  },
+  {
+   "title": "Twelve fields — the durable cores",
+   "blocks": [
+    {
+     "h": "Transformers/agents",
+     "body": "Attention scales; evals and agency are the bottlenecks, not raw modeling."
+    },
+    {
+     "h": "Quantum",
+     "body": "Error correction overhead dominates; logical qubits are the metric that matters, not physical."
+    },
+    {
+     "h": "CRISPR/synbio",
+     "body": "Delivery and off-target effects gate therapies; the editing is the easy part now."
+    },
+    {
+     "h": "Fusion",
+     "body": "Q>1 physics milestones vs engineering economics: net electricity at competitive cost is the real bar."
+    },
+    {
+     "h": "BCIs/chips/space",
+     "body": "Bandwidth and biocompatibility (BCIs); fab economics (chips); launch cost curves (space). Follow the physical inputs, not the renders."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -5895,6 +6040,24 @@
    "name": "METR — Time Horizon 1.1",
    "url": "https://metr.org/blog/2026-1-29-time-horizon-1-1/",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "Distill",
+   "url": "https://distill.pub/",
+   "note": "Visual ML explanations — how frontier results actually work.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Quanta Magazine",
+   "url": "https://www.quantamagazine.org/",
+   "note": "Rigorous science journalism across the twelve frontier fields.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "IEEE Spectrum",
+   "url": "https://spectrum.ieee.org/",
+   "note": "Engineering-depth coverage of chips, quantum, fusion, and space.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original instructional content. Frontier topics are dated as-of 2026-10-07 and flagged as fast-moving; leadership and product claims carry short half-lives and must be re-verified before citing. Confers no certificate.",
@@ -5963,6 +6126,90 @@
    "issuer": "N/A",
    "trackCoverage": "Independent study; this course confers understanding, not credentials.",
    "note": "No accredited certification exists for cutting-edge research topics; this course distills emerging knowledge. No certification track is mapped rather than inventing one."
+  }
+ ],
+ "glossary": [
+  {
+   "term": "As-of discipline",
+   "definition": "Dating every frontier claim with source and estimated half-life; never timeless tense for moving targets."
+  },
+  {
+   "term": "Half-life (claim)",
+   "definition": "Time for a claim's reliability to roughly halve — months for benchmarks, decades for physics."
+  },
+  {
+   "term": "Preprint",
+   "definition": "Un-peer-reviewed manuscript (arXiv etc.): fast but provisional — read critically."
+  },
+  {
+   "term": "Contamination",
+   "definition": "Test/benchmark data leaking into training: inflates scores, measures memorization."
+  },
+  {
+   "term": "Baseline",
+   "definition": "The simple method a new result must beat; missing baselines are a hype red flag."
+  },
+  {
+   "term": "Hype pattern",
+   "definition": "Recurring announcement tricks: no baseline, no code, metric without error bars, missing denominators."
+  },
+  {
+   "term": "Dual-use",
+   "definition": "Technology with both beneficial and harmful applications (CRISPR, AI, synbio)."
+  },
+  {
+   "term": "Collingridge dilemma",
+   "definition": "Early: can shape tech but ignorant of effects. Late: knowledgeable but tech is entrenched."
+  },
+  {
+   "term": "Claim log",
+   "definition": "Dated predictions with confidence, scored later — the calibration tool for forecasters."
+  },
+  {
+   "term": "Frontier radar",
+   "definition": "Your maintained watchlist of fields, sources, and open questions — updated on a cadence."
+  },
+  {
+   "term": "Logical qubit",
+   "definition": "Error-corrected qubit: the honest metric of quantum progress (vs raw physical qubits)."
+  },
+  {
+   "term": "Triple product",
+   "definition": "Fusion's Lawson criterion: density × temperature × confinement time — the physical input to watch."
+  },
+  {
+   "term": "Off-target effects",
+   "definition": "CRISPR edits at unintended sites: the safety gate for therapies."
+  },
+  {
+   "term": "Suite sensitivity",
+   "definition": "How benchmark choice changes conclusions: one suite never defines a capability."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How do I keep up without drowning?",
+   "a": "The frontier radar: a dozen fields, 2–3 sources each, weekly scan, monthly deep read. The as-of discipline and claim log turn firehose into a calibrated instrument."
+  },
+  {
+   "q": "What's actually durable vs hype?",
+   "a": "Mechanisms (attention, error correction, the triple product) outlast announcements. The course teaches each field's settled core first, then the moving edge — so you can tell which is which."
+  },
+  {
+   "q": "Can I trust preprints?",
+   "a": "Provisionally: they're fast and often right, but unreviewed. The 20-minute read (method → limitations → code/data → rebuttals) is the filter."
+  },
+  {
+   "q": "How do I forecast without fooling myself?",
+   "a": "Physical inputs, stated assumptions, dated intervals, and a decay plan — then score your old forecasts in the claim log. Calibration is earned, not assumed."
+  },
+  {
+   "q": "What is the Collingridge dilemma in practice?",
+   "a": "Governance under uncertainty: act early with humility (reversible, monitored interventions) because late action faces entrenched interests. Name the tradeoff explicitly."
+  },
+  {
+   "q": "Why study hype detection at all?",
+   "a": "Because frontier careers run on allocating attention and capital under uncertainty. The hype patterns are the cheapest high-value skill in the course."
   }
  ]
 }

@@ -4990,6 +4990,71 @@
    ],
    "answer": 0,
    "explain": "x1 = 2 - (4-3)/4 = 2 - 0.25 = 1.75."
+  },
+  {
+   "id": "drill-il20-res1",
+   "title": "Induction setup",
+   "prompt": "To prove Σ_{i=1}^n i = n(n+1)/2 by induction, the inductive step assumes:",
+   "choices": [
+    "The formula for n=1",
+    "The formula for n=k, then proves it for k+1",
+    "The formula is false",
+    "Nothing — it's obvious"
+   ],
+   "answer": 1,
+   "explain": "Assume P(k), derive P(k+1): k(k+1)/2 + (k+1) = (k+1)(k+2)/2. Base case anchors it."
+  },
+  {
+   "id": "drill-il20-res2",
+   "title": "Eigenvalue check",
+   "prompt": "A = [[2,0],[0,3]]. Eigenvalues?",
+   "choices": [
+    "1 and 6",
+    "2 and 3",
+    "5 and 0",
+    "2 and −3"
+   ],
+   "answer": 1,
+   "explain": "Diagonal matrix: eigenvalues are the diagonal entries. det(A−λI) = (2−λ)(3−λ) = 0."
+  },
+  {
+   "id": "drill-il20-res3",
+   "title": "Bayes",
+   "prompt": "P(D)=0.01, P(+|D)=0.9, P(+|¬D)=0.05. P(D|+)?",
+   "choices": [
+    "0.9",
+    "≈0.154",
+    "0.01",
+    "0.5"
+   ],
+   "answer": 1,
+   "explain": "P(D|+) = 0.9·0.01/(0.9·0.01 + 0.05·0.99) = 0.009/0.0585 ≈ 0.154. Base rates dominate."
+  },
+  {
+   "id": "drill-il20-res4",
+   "title": "Newton's method",
+   "prompt": "Newton's iteration for f(x)=0 is:",
+   "choices": [
+    "x − f(x)/f′(x)",
+    "x + f(x)",
+    "f(x)/x",
+    "(a+b)/2"
+   ],
+   "answer": 0,
+   "explain": "Follow the tangent line to its root: x_{n+1} = x_n − f(x_n)/f′(x_n). Quadratic convergence near simple roots."
+  },
+  {
+   "id": "drill-il20-res5",
+   "title": "Taylor",
+   "prompt": "First-order Taylor of e^x at 0?",
+   "choices": [
+    "1 + x",
+    "x",
+    "1 + x + x²/2",
+    "1 − x"
+   ],
+   "answer": 0,
+   "explain": "e^0=1, derivative e^0=1: 1 + x. The linear approximation — the seed of all local linearization."
   }
  ],
  "scenarios": [
@@ -5858,6 +5923,90 @@
      "body": "- Elimination O(n³); LU then O(n²)/solve\n- Normal equations: AᵛAx=Aᵛb (prefer QR)\n- Gradient descent: x←x−α∇f"
     }
    ]
+  },
+  {
+   "title": "Proof methods — the engineer's kit",
+   "blocks": [
+    {
+     "h": "Direct / contrapositive / contradiction",
+     "body": "Direct: P→Q stepwise. Contrapositive: ¬Q→¬P when negation simplifies. Contradiction: assume ¬P, derive absurdity (√2 irrational)."
+    },
+    {
+     "h": "Induction",
+     "body": "Base + step (weak); assume all < k (strong) for recursive structures. Prove loop correctness and closed forms."
+    },
+    {
+     "h": "Sets & logic",
+     "body": "De Morgan: ¬(A∧B) = ¬A∨¬B. Quantifiers: ∀∃ order matters. Proof by cases: exhaustive partition."
+    },
+    {
+     "h": "Combinatorics",
+     "body": "P(n,k) = n!/(n−k)! ordered; C(n,k) unordered. Stars and bars for distributions. Inclusion–exclusion for unions."
+    }
+   ]
+  },
+  {
+   "title": "Linear algebra I–III — vectors to eigenvalues",
+   "blocks": [
+    {
+     "h": "Vectors & spaces",
+     "body": "Span, linear independence, basis, dimension. Dot product = projection; cross product = perpendicular (3D)."
+    },
+    {
+     "h": "Matrices",
+     "body": "AB ≠ BA. Inverse exists ⟺ det ≠ 0. Rank = independent columns. Solve Ax=b via elimination; least squares via normal equations."
+    },
+    {
+     "h": "Eigenvalues",
+     "body": "Av = λv: directions the map only stretches. det(A−λI) = 0. Diagonalization, SVD: A = UΣVᵀ — the master factorization."
+    },
+    {
+     "h": "Determinant",
+     "body": "Volume scaling factor. |det| = 0 ⟺ singular ⟺ columns dependent."
+    }
+   ]
+  },
+  {
+   "title": "Calculus I–II + series + multivariable",
+   "blocks": [
+    {
+     "h": "Derivatives",
+     "body": "d/dx[xⁿ]=nxⁿ⁻¹, chain/product/quotient rules. Critical points: f′=0; second derivative test classifies."
+    },
+    {
+     "h": "Integrals",
+     "body": "∫xⁿ = xⁿ⁺¹/(n+1). Substitution reverses chain rule; parts reverses product rule. FTC: differentiation undoes integration."
+    },
+    {
+     "h": "Series",
+     "body": "Geometric: Σrⁿ = 1/(1−r), |r|<1. Taylor: f(x) = Σ f⁽ⁿ⁾(a)(x−a)ⁿ/n!. Test convergence: ratio/root."
+    },
+    {
+     "h": "Multivariable",
+     "body": "Gradient ∇f = direction of steepest ascent. Chain rule via Jacobians. Lagrange multipliers for constrained optima."
+    }
+   ]
+  },
+  {
+   "title": "Probability, statistics & numerical methods",
+   "blocks": [
+    {
+     "h": "Probability",
+     "body": "P(A|B) = P(A∩B)/P(B). Bayes inverts conditioning. E[aX+b] = aE[X]+b. Independence ⟺ P(A∩B) = P(A)P(B)."
+    },
+    {
+     "h": "Statistics",
+     "body": "CI: estimate ± margin. Hypothesis test: reject H0 if p < α. t/z/χ²: know which test answers which question."
+    },
+    {
+     "h": "Numerical",
+     "body": "Bisection: bracket + halve (robust). Newton: x − f/f′ (fast, needs good start). Quadrature: Simpson/trapezoid for integrals. Gradient descent: follow −∇f with tuned step."
+    },
+    {
+     "h": "Graphs & recurrences",
+     "body": "Euler: all even degrees. Hamiltonian: NP-complete. Recurrences via characteristic equation or Master theorem."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -5926,6 +6075,30 @@
    "name": "MIT OpenCourseWare — Linear Algebra (Strang)",
    "url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
    "retrieved": "2026-10-07"
+  },
+  {
+   "name": "MIT 6.042J — Math for Computer Science",
+   "url": "https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/",
+   "note": "Proofs and discrete math — the full OCW course.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "MIT 18.01SC — Single Variable Calculus",
+   "url": "https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/",
+   "note": "Complete calculus course with problem sets.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "3Blue1Brown — Linear Algebra",
+   "url": "https://www.3blue1brown.com/topics/linear-algebra",
+   "note": "The visual essence of vectors, matrices, and eigen-things.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Khan Academy — Statistics & Probability",
+   "url": "https://www.khanacademy.org/math/statistics-probability",
+   "note": "Practice-backed stats from distributions to inference.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Original instructional content written for this course — standard mathematics, no invented theorems. Practice material only; confers no certificate and is not affiliated with any university or vendor.",
@@ -6018,6 +6191,106 @@
    "issuer": "N/A",
    "trackCoverage": "Independent study; this course confers understanding, not credentials.",
    "note": "No accredited certification exists for general engineering mathematics as a standalone credential; this course builds the quantitative foundation used across the technical courses. No certification track is mapped rather than inventing one."
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Theorem / lemma / corollary",
+   "definition": "Theorem: major result. Lemma: helper result. Corollary: immediate consequence."
+  },
+  {
+   "term": "Contrapositive",
+   "definition": "¬Q→¬P: logically equivalent to P→Q, often easier to prove."
+  },
+  {
+   "term": "Strong induction",
+   "definition": "Assume P(j) for all j<k to prove P(k) — for recursively structured claims."
+  },
+  {
+   "term": "Bijection",
+   "definition": "One-to-one and onto mapping: the counting tool (count A by counting B)."
+  },
+  {
+   "term": "Vector space",
+   "definition": "Set closed under addition and scalar multiplication: the stage of linear algebra."
+  },
+  {
+   "term": "Rank",
+   "definition": "Number of linearly independent columns (or rows): the true dimension of a matrix's action."
+  },
+  {
+   "term": "Determinant",
+   "definition": "Signed volume scaling factor of a linear map; zero ⟺ singular."
+  },
+  {
+   "term": "Eigenvalue/eigenvector",
+   "definition": "Av=λv: invariant directions and their stretch factors."
+  },
+  {
+   "term": "SVD",
+   "definition": "Singular Value Decomposition A=UΣVᵀ: the master factorization behind PCA, least squares, compression."
+  },
+  {
+   "term": "Limit",
+   "definition": "The value a function approaches: the foundation calculus is built on."
+  },
+  {
+   "term": "Taylor series",
+   "definition": "Polynomial approximation from derivatives at a point: local linearization to arbitrary order."
+  },
+  {
+   "term": "Gradient",
+   "definition": "∇f: vector of partials pointing in steepest ascent; −∇f is the descent direction."
+  },
+  {
+   "term": "Random variable",
+   "definition": "A function from outcomes to numbers; expectation is its probability-weighted average."
+  },
+  {
+   "term": "Central Limit Theorem",
+   "definition": "Sums of iid variables approach normal: why normal approximations work everywhere."
+  },
+  {
+   "term": "p-value",
+   "definition": "P(data this extreme | H0): not P(H0 | data). Small p rejects H0 at level α."
+  },
+  {
+   "term": "Convergence",
+   "definition": "Of series: partial sums approach a limit. Of methods: iterates approach the solution."
+  },
+  {
+   "term": "Condition number",
+   "definition": "Sensitivity of a problem to input errors: high = numerically treacherous."
+  },
+  {
+   "term": "Recurrence",
+   "definition": "Sequence defined from earlier terms; solved by characteristic equations or generating functions."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How is IL-20 different from IL-02 (Mathematical Maturity)?",
+   "a": "IL-02 is the engine: fluency, study method, and the spine at working depth. IL-20 is the formal treatment: proofs, three linear-algebra courses, full calculus, numerical methods. IL-02 first if rusty; IL-20 for engineering-grade rigor."
+  },
+  {
+   "q": "Do engineers really use eigenvalues?",
+   "a": "Constantly: vibrations, stability analysis, PCA in data work, PageRank, quantum mechanics. They're the 'natural coordinates' of linear systems."
+  },
+  {
+   "q": "Why numerical methods when we have computers?",
+   "a": "Computers *run* numerical methods — bisection, Newton, quadrature, gradient descent are what's inside the libraries. Knowing them tells you when the library is lying (conditioning, convergence)."
+  },
+  {
+   "q": "How do I survive the proof modules?",
+   "a": "Read actively: cover the proof, attempt it, then compare. Keep a personal lemma library. Proofs are read like code — execute them by hand on examples."
+  },
+  {
+   "q": "Is multivariable calculus needed for ML?",
+   "a": "Yes — gradients, Jacobians, and constrained optimization (Lagrange) are the language of training. IL-12's backprop module assumes this."
+  },
+  {
+   "q": "What's the single most useful topic for programmers?",
+   "a": "Discrete math (logic, combinatorics, graphs, induction) — it's the mathematics of computation itself. Linear algebra is second, for ML/graphics."
   }
  ]
 }

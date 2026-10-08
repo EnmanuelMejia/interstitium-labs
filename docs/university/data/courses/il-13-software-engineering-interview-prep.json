@@ -17866,6 +17866,71 @@
    ],
    "answer": 1,
    "explain": "Edge pays for latency-sensitive, lightweight work — not for heavy computation."
+  },
+  {
+   "id": "drill-il13-res1",
+   "title": "Pattern recognition",
+   "prompt": "'Given a sorted array, find two numbers summing to target.' Best pattern?",
+   "choices": [
+    "Binary search tree",
+    "Two pointers from both ends",
+    "Dynamic programming",
+    "Merge sort"
+   ],
+   "answer": 1,
+   "explain": "Sorted + pair constraint = two pointers converging: O(n) time, O(1) space."
+  },
+  {
+   "id": "drill-il13-res2",
+   "title": "Capacity math",
+   "prompt": "10M daily active users, 20 requests each. Approximate average QPS?",
+   "choices": [
+    "~2,300",
+    "~23,000",
+    "~200",
+    "~10M"
+   ],
+   "answer": 0,
+   "explain": "10M × 20 = 200M req/day ÷ 86,400 s ≈ 2,315 QPS average. Peak is typically 2–3× average."
+  },
+  {
+   "id": "drill-il13-res3",
+   "title": "Cache invalidation",
+   "prompt": "User profile updates must reflect immediately. Cache strategy?",
+   "choices": [
+    "TTL of 24 hours",
+    "Write-through or invalidate-on-write",
+    "No cache at all",
+    "Cache forever, clear manually"
+   ],
+   "answer": 1,
+   "explain": "Strong consistency needs write-through (update cache + DB) or write-invalidate. TTL caching serves stale reads."
+  },
+  {
+   "id": "drill-il13-res4",
+   "title": "iOS concurrency",
+   "prompt": "In Swift structured concurrency, what does an `actor` guarantee?",
+   "choices": [
+    "Faster execution",
+    "Isolated mutable state — no data races on its properties",
+    "Automatic UI updates",
+    "Background execution"
+   ],
+   "answer": 1,
+   "explain": "Actors serialize access to their isolated state — the language-level answer to data races."
+  },
+  {
+   "id": "drill-il13-res5",
+   "title": "Embedded constraint",
+   "prompt": "Why is heap allocation (malloc) often banned in safety-critical embedded firmware?",
+   "choices": [
+    "It's too slow to matter",
+    "Fragmentation and nondeterministic timing break real-time guarantees",
+    "C doesn't support it",
+    "It uses too little memory"
+   ],
+   "answer": 1,
+   "explain": "Real-time systems need bounded, deterministic behavior; heap fragmentation makes worst-case timing unprovable. Static allocation instead."
   }
  ],
  "scenarios": [
@@ -18678,6 +18743,97 @@
      "lang": "javascript"
     }
    ]
+  },
+  {
+   "title": "DSA patterns — recognize, don't memorize",
+   "blocks": [
+    {
+     "h": "Two pointers / sliding window",
+     "body": "Sorted arrays, pair/triplet sums, longest substring without repeats. O(n) with discipline."
+    },
+    {
+     "h": "Fast & slow pointers",
+     "body": "Cycle detection, middle of list, kth from end. One pass, O(1) space."
+    },
+    {
+     "h": "Merge intervals",
+     "body": "Sort by start, sweep and merge. Meeting rooms, insert interval."
+    },
+    {
+     "h": "Tree BFS/DFS",
+     "body": "BFS: level order (queue). DFS: paths, validation (recursion/stack). Know iterative and recursive."
+    },
+    {
+     "h": "Backtracking",
+     "body": "Permutations, combinations, subsets, N-queens. Choose → explore → unchoose."
+    },
+    {
+     "h": "DP signals",
+     "body": "Overlapping subproblems + optimal substructure. State definition first, recurrence second, table third."
+    },
+    {
+     "h": "Graphs",
+     "body": "BFS shortest unweighted; Dijkstra non-negative; Union-Find connectivity; topo sort for dependencies."
+    },
+    {
+     "h": "Heap / top-K",
+     "body": "K largest/smallest in O(n log k). Median of stream: two heaps."
+    }
+   ]
+  },
+  {
+   "title": "System design — the 45-minute framework",
+   "blocks": [
+    {
+     "h": "1. Requirements (5 min)",
+     "body": "Functional + non-functional. Users? QPS? Read/write ratio? Latency? Consistency needs? Never skip this."
+    },
+    {
+     "h": "2. Capacity math (5 min)",
+     "body": "Back-of-envelope: 1M users × 10 req/day ≈ 115 QPS avg, ~1K peak. Storage: bytes × retention. Bandwidth. Show the arithmetic."
+    },
+    {
+     "h": "3. API & data model (5 min)",
+     "body": "Endpoints, then schema. SQL vs NoSQL decision with reasons tied to access patterns."
+    },
+    {
+     "h": "4. Components (15 min)",
+     "body": "LB → app → cache → DB; queues for async; CDN for static. Draw the request path end to end."
+    },
+    {
+     "h": "5. Deep dive + failure (10 min)",
+     "body": "Pick the hard part (hot partition? fan-out?) and go deep. Then: what breaks, how you detect, how you recover."
+    }
+   ]
+  },
+  {
+   "title": "Backend / frontend / mobile — domain quick cards",
+   "blocks": [
+    {
+     "h": "Backend",
+     "body": "REST maturity, idempotency keys, pagination (cursor > offset), auth (OAuth2/OIDC, JWT), caching layers, connection pooling, backpressure."
+    },
+    {
+     "h": "Frontend",
+     "body": "Event loop, rendering pipeline (style/layout/paint/composite), virtual DOM diffing, bundle splitting, Core Web Vitals (LCP/INP/CLS)."
+    },
+    {
+     "h": "iOS (Swift)",
+     "body": "ARC, value vs reference types, structured concurrency (async/await, actors), SwiftUI state, Core Data."
+    },
+    {
+     "h": "Android (Kotlin)",
+     "body": "Coroutines + Flow, lifecycle-aware components, Room, WorkManager, Compose state hoisting."
+    },
+    {
+     "h": "Embedded",
+     "body": "Memory-mapped I/O, interrupts, RTOS scheduling, stack depth, volatile, no-heap discipline, JTAG debugging."
+    },
+    {
+     "h": "QA",
+     "body": "Test pyramid, boundary analysis, flaky-test triage, performance baselines, automation framework design (Page Object)."
+    }
+   ]
   }
  ],
  "answerBank": [
@@ -19060,6 +19216,30 @@
    "url": "https://jmeter.apache.org/",
    "retrieved": "2026-10-07",
    "note": "The classic open-source load-testing tool."
+  },
+  {
+   "name": "MIT 6.006 — Intro to Algorithms",
+   "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/",
+   "note": "The DSA spine behind every coding interview.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Joel on Software",
+   "url": "https://www.joelonsoftware.com/",
+   "note": "Interview-craft essays: what good hiring processes actually test.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "Refactoring.Guru",
+   "url": "https://refactoring.guru/",
+   "note": "Design patterns with visual explanations — the OOP interview layer.",
+   "retrieved": "2026-10-08"
+  },
+  {
+   "name": "ECMAScript spec",
+   "url": "https://tc39.es/ecma262/",
+   "note": "The JavaScript language standard for the frontend deep-dive.",
+   "retrieved": "2026-10-08"
   }
  ],
  "honestyNote": "Preparation only — this course confers no certificate and is not affiliated with any employer or interview-prep provider. Interview rubrics vary by company and interviewer; the mocks and drills here simulate the format, they do not guarantee offers.",
@@ -19189,5 +19369,93 @@
  "crosswalk": [],
  "certGates": [],
  "_noCertNote": "Technical interviews have no accredited certification; the course prepares performance, not credentials. No track mapped.",
- "_phase2_done": true
+ "_phase2_done": true,
+ "glossary": [
+  {
+   "term": "Big-O",
+   "definition": "Asymptotic complexity: how time/space scales with input size. The interview's shared language."
+  },
+  {
+   "term": "Back-of-the-envelope",
+   "definition": "Order-of-magnitude capacity math done live: QPS, storage, bandwidth from a few assumptions."
+  },
+  {
+   "term": "Idempotency key",
+   "definition": "Client-supplied key letting safe retries avoid duplicate effects (payments, orders)."
+  },
+  {
+   "term": "Cursor pagination",
+   "definition": "Paginating by a stable cursor (id/timestamp) instead of OFFSET — correct under concurrent writes."
+  },
+  {
+   "term": "Event loop",
+   "definition": "JS runtime's concurrency model: single-threaded execution with a task/microtask queue."
+  },
+  {
+   "term": "Virtual DOM",
+   "definition": "In-memory UI representation diffed against the real DOM to minimize expensive updates."
+  },
+  {
+   "term": "Core Web Vitals",
+   "definition": "Google's UX metrics: LCP (load), INP (interactivity), CLS (visual stability)."
+  },
+  {
+   "term": "ARC",
+   "definition": "Automatic Reference Counting: Swift's compile-time memory management."
+  },
+  {
+   "term": "Coroutines",
+   "definition": "Kotlin's lightweight concurrency: suspendable functions on shared threads."
+  },
+  {
+   "term": "RTOS",
+   "definition": "Real-Time Operating System: deterministic scheduling for embedded deadlines."
+  },
+  {
+   "term": "Page Object",
+   "definition": "QA pattern encapsulating page structure in classes so tests survive UI changes."
+  },
+  {
+   "term": "Sharding",
+   "definition": "Horizontal partitioning of data across nodes; the scale-out answer with hot-partition risk."
+  },
+  {
+   "term": "Backpressure",
+   "definition": "Signaling upstream to slow down when downstream can't keep up — queues, load shedding."
+  },
+  {
+   "term": "Cold start",
+   "definition": "First-request latency after idle (serverless, caches): design warmers or accept it."
+  }
+ ],
+ "faq": [
+  {
+   "q": "How many LeetCode problems is 'enough'?",
+   "a": "Pattern coverage beats count: ~150 well-understood problems across the 15 core patterns, each re-solved from memory a week later. The mock circuit in the course tests this retention."
+  },
+  {
+   "q": "Should I memorize solutions?",
+   "a": "No — memorize *patterns and their triggers*. Interviewers change constraints; pattern thinkers adapt, memorizers freeze."
+  },
+  {
+   "q": "What if I go blank on a hard problem?",
+   "a": "Narrate: restate, brute-force aloud, optimize one step, test with an example. Interviewers score recovery and communication — silence scores zero even with the right answer at the end."
+  },
+  {
+   "q": "System design: how technical should the deep dive go?",
+   "a": "To the level where you can defend one hard decision with numbers (e.g., why this shard key, this consistency level). Breadth first, then one deep trench."
+  },
+  {
+   "q": "Frontend vs backend track — can I do both?",
+   "a": "The fullstack modules cover the whole request path; specialize where your target roles are. Depth in one + literacy in the other beats shallow both."
+  },
+  {
+   "q": "How do I practice embedded interviews without hardware?",
+   "a": "QEMU, datasheets (read real ones), and whiteboard driver design: SPI/I2C bring-up sequences, interrupt handlers, linker scripts. The module's labs are hardware-free by design."
+  },
+  {
+   "q": "What's the mock interview circuit?",
+   "a": "Timed full loops: DSA speed reps, system design, domain deep-dive, behavioral — scored against rubrics with triage between rounds. It's the course's exam simulator."
+  }
+ ]
 }

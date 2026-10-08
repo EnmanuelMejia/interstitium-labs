@@ -46,6 +46,8 @@ braindumps; source every factual third-party claim (`sourceLinks[].retrieved`).
 | `cheatSheets` | `CheatSheet[]` | yes (may be `[]`) | More tab |
 | `answerBank` | `{q,a,ref?}[]` | yes (may be `[]`) | More tab: model answers |
 | `sourceLinks` | `{name,url,note?,retrieved?}[]` | yes | More tab: source trail |
+| `glossary` | `{term,definition}[]` | no | More tab: course glossary (student resources) |
+| `faq` | `{q,a}[]` | no | More tab: student FAQ (student resources) |
 | `honestyNote` | string | no | Rendered in More; e.g. "confers no certificate" |
 | `crosswalk` | `{cert,trackModule,framing,moduleSequence,readinessChecklist,domains[]}[]` | no | Crosswalk tab: earn-readiness mapping per certification. `domains[]` = `{domain,weight?,modules[],coverage, practice?, note?}` |
 | `certGates` | `{id,cert,trackModule,framing,format,minutes,questionCount,domainWeights[],readinessRule,questions[]}[]` | no | Crosswalk tab: timed practice-exam gates. `questions[]` = `{q,choices[],answer,explain,domain}` |
