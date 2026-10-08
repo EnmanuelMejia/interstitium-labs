@@ -21,6 +21,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#06080c">
 <link rel="stylesheet" href="css/il.css">
+<link rel="stylesheet" href="css/il-progress.css">
 </head>
 <body>
 <noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
@@ -33,7 +34,9 @@
       <p class="eyebrow"><a href="index.html#academies">Academies</a> <span class="dot">·</span> <span id="acad-code-crumb"></span></p>
       <h1 id="acad-h"></h1>
       <p class="lede" id="acad-blurb"></p>
+      <div id="ilprog-continue-slot" style="display:none" aria-live="polite"></div>
       <div id="acad-course-cta" style="margin-top:1.1rem"></div>
+      <div id="ilprog-course-progress" style="margin-top:.9rem" aria-live="polite"></div>
       <dl class="kv" style="margin-top:1.2rem">
         <dt>Hours</dt><dd id="acad-hours"></dd>
         <dt>Paths</dt><dd id="acad-npaths"></dd>
@@ -47,6 +50,7 @@
 <div id="il-footer"></div>
 
 <script src="js/app.js"></script>
+<script src="js/il-progress.js"></script>
 <script>
 (function () {
   'use strict';
@@ -114,6 +118,30 @@
       }
     }
     document.getElementById('acad-hours').textContent = IL.fmtHours(a.hours);
+
+    /* 2026-10-08: unified progress — resume banner + course progress bar.
+       localStorage "il-progress-v1"; tracks regardless of paywall gating. */
+    try {
+      var lpSlot = document.getElementById('ilprog-continue-slot');
+      if (lpSlot && window.ILProgress) ILProgress.paintContinue(lpSlot, { ctaLabel: 'Resume' });
+      var pHost = document.getElementById('ilprog-course-progress');
+      var pSlug = COURSE_SLUGS[a.code];
+      if (pHost && pSlug && window.ILProgress) {
+        ILProgress.loadSequence(function (seq) {
+          var entry = null;
+          if (seq && seq.courses) {
+            for (var i = 0; i < seq.courses.length; i++) {
+              if (seq.courses[i].slug === pSlug) { entry = seq.courses[i]; break; }
+            }
+          }
+          if (!entry) { pHost.innerHTML = ''; return; }
+          var st = ILProgress.courseStats(entry.courseId, entry.moduleCount);
+          pHost.innerHTML = '<div class="ilprog-cardbar">' +
+            ILProgress.progressBarHTML(st, { label: entry.code + ' · ' + st.done + ' of ' + st.total + ' modules · ' + st.pct + '%' }) +
+            '</div>';
+        });
+      }
+    } catch (e) {}
     var paths = IL.pathsForAcademy(a.code);
     document.getElementById('acad-npaths').textContent = String(paths.length);
 
@@ -157,18 +185,106 @@
 .il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
 .il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
 </style>
-<footer class="no-print border-t border-paper/10 il-footer-3d">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img class="il-sigil-3d" src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span class="il-emboss">interstitiumlabs.dev</span>
-      <span class="il-emboss">Scientia Omnia Vincit</span>
-      <span class="il-emboss">Created by Interstitium Labs</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="/university/" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
+<style>/* canonical footer (page does not load il-unified.css) */
+/* ================================================================
+ * §21 — Canonical site footer (2026-10-08).
+ * Centered layout; gold brand; crisp rendering (no blur,
+ * filter, or backdrop-filter anywhere in these rules).
+ * ================================================================ */
+.il-footer-canonical {
+  border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  padding: 3rem 1.25rem 4.5rem;
+  text-align: center;
+}
+.il-fc-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.il-fc-logo { width: 56px; height: 56px; }
+.il-fc-brand {
+  color: var(--gold, #c9a227);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  font-size: 0.95rem;
+}
+.il-fc-tagline {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  font-size: 0.72rem;
+}
+.il-fc-created {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.66rem;
+}
+.il-fc-course {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  font-size: 0.66rem;
+}
+.il-fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.6rem;
+}
+.il-fc-nav a {
+  color: var(--muted, #8b93a5);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+}
+.il-fc-nav a:hover { color: var(--gold, #c9a227); }
+.il-fc-lang {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  color: var(--muted, #8b93a5);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/>
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
   </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
 </body>
 </html>

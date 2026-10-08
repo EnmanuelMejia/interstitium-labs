@@ -33,6 +33,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
 
 <link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/university/css/il-progress.css"/>
 </head>
 <body class="il-home">
 <a class="il-skip" href="#main">Skip to content</a>
@@ -106,6 +107,8 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 </header>
 
 <main id="main">
+  <!-- 2026-10-08: Continue where you left off (local course progress) -->
+  <div class="il-wrap" id="ilprog-continue-slot" style="display:none;margin-top:1.4rem" aria-live="polite"></div>
   <!-- Academies -->
   <section class="il-section" id="academies" aria-labelledby="academies-h">
     <div class="il-wrap">
@@ -453,55 +456,29 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 </main>
 
 <!-- Footer -->
-<footer class="il-footer">
-  <div class="il-wrap">
-    <div class="il-footer__grid">
-      <div>
-        <a class="il-footer__brand" href="/">
-          <img src="/assets/chrome/sigil-glyph.svg" alt="" width="42" height="42"/>
-          <span class="il-brand__word">Interstitium Labs</span>
-        </a>
-        <p style="color:var(--muted);font-size:.95rem;max-width:22rem;margin:0">A Learning OS for unusually ambitious builders. Scientia Omnia Vincit.</p>
-      </div>
-      <div>
-        <h2>Explore</h2>
-        <ul>
-          <li><a href="/learn/">Learn</a></li>
-          <li><a href="#academies">Academies</a></li>
-          <li><a href="/paths/">Paths</a></li>
-          <li><a href="/noah/">Noah AI</a></li>
-          <li><a href="/jobs/">Jobs &amp; careers</a></li>
-          <li><a href="/enroll/">Enroll</a></li>
-          <li><a href="/about/">About Us</a></li>
-          <li><a href="/university/">University</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Knowledge tracks</h2>
-        <ul>
-          <li><a href="/learn/turing/">Alan Turing</a></li>
-          <li><a href="/learn/cybernetics/">Cybernetics</a></li>
-          <li><a href="/learn/esoteric/">Esoteric &amp; Occult</a></li>
-          <li><a href="/learn/bernays/">Edward Bernays</a></li>
-          <li><a href="/learn/philosophy/">Philosophy</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>More</h2>
-        <ul>
-          <li><a href="/university/">University</a></li>
-          <li><a href="/labs/">Labs</a></li>
-          <li><a href="/noah/">Noah</a></li>
-          <li><a href="/founders/">Founders</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="il-footer__legal">
-      <span>© <span id="il-year">2026</span> INTERSTITIUM LABS</span>
-      <span>Created by Interstitium Labs</span>
-      <span>SCIENTIA OMNIA VINCIT</span>
-    </div>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/>
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
   </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
 
 <script src="/assets/il-pwa.js" defer></script>
@@ -523,5 +500,21 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 })();
 </script>
 <script src="/assets/noah-ai.js" defer></script>
+<script src="/university/js/il-progress.js"></script>
+<script>
+/* 2026-10-08: Continue where you left off — unified course progress banner.
+   localStorage "il-progress-v1"; local device only, tracks regardless of
+   paywall gating. */
+(function () {
+  try {
+    var slot = document.getElementById('ilprog-continue-slot');
+    if (!slot || !window.ILProgress) return;
+    if (ILProgress.getLastPosition()) {
+      slot.style.display = '';
+      ILProgress.paintContinue(slot, { ctaLabel: 'Resume where you left off' });
+    }
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
