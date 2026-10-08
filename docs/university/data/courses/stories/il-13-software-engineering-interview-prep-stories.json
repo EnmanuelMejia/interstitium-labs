@@ -1,0 +1,71 @@
+{
+ "course": "il-13-software-engineering-interview-prep",
+ "stories": [
+  {
+   "bridge": "Fielding wrote the constraints; your interview tests whether you can apply them. Now let's drill REST until the constraints are reflex.",
+   "course": "il-13-software-engineering-interview-prep",
+   "figures": [
+    {
+     "dates": "b. 1965",
+     "name": "Roy Fielding",
+     "role": "Computer scientist; co-author of HTTP; defined REST in his 2000 dissertation"
+    }
+   ],
+   "hook": "In 2000, Roy Fielding wrote his PhD dissertation — and accidentally specified how the modern API works.",
+   "id": "il-13-software-engineering-interview-prep-story-1",
+   "moduleId": "fullstack-interview-prep--rest-graphql",
+   "narrative": "Fielding wasn't theorizing from scratch. As a co-author of the HTTP/1.0 and HTTP/1.1 specifications and a founder of the Apache HTTP Server project, he had spent the 1990s building the web's actual infrastructure — he knew, from the inside, why the web scaled when grander distributed systems didn't. For his doctorate at UC Irvine, he stepped back and asked the architect's question: what are the principles that made this work? The answer became Chapter 5 of 'Architectural Styles and the Design of Network-based Software Architectures' (2000): Representational State Transfer — REST. Six constraints: client-server separation, statelessness, cacheability, a uniform interface, a layered system, and (optionally) code on demand. The uniform interface was the radical core — resources identified by URIs, manipulated through representations, with hypermedia as the engine of application state — and it was also the part the industry mostly ignored, building 'RESTful' APIs that were really just JSON over HTTP. The industry spent a decade arguing about what RESTful meant, then quietly converged: nearly every public API you'll integrate or design follows Fielding's constraints in spirit, even when it cheats on hypermedia. In system-design interviews, 'design a REST API' is really a test of whether you internalized 2000: can you name resources instead of actions, keep state out of the server, make responses cacheable, and let the network do the scaling? Fielding gave you the vocabulary; this module makes it reflex. When you can recite the six constraints and defend each one, you're ready. Fielding has spent years correcting the industry's misuse of his term — most \"REST APIs\" violate the hypermedia constraint he considered essential, and he has said so publicly, dryly. The irony is instructive for interviews: the test isn't whether you can recite the dissertation, it's whether you understand which constraints buy you scale. Statelessness buys horizontal scaling; cacheability buys the CDN; the uniform interface buys evolvability. Know the price of each.",
+   "title": "The story behind REST",
+   "verifiedClaims": [
+    "Fielding defined REST in his UC Irvine PhD dissertation (2000)",
+    "He co-authored the HTTP specification and co-founded the Apache HTTP Server project"
+   ]
+  },
+  {
+   "bridge": "Ten days in 1995; now it's the language every frontend interview is conducted in. Let's go deep enough that its weirdness becomes your advantage.",
+   "course": "il-13-software-engineering-interview-prep",
+   "figures": [
+    {
+     "dates": "b. 1961",
+     "name": "Brendan Eich",
+     "role": "Creator of JavaScript; co-founder of Mozilla"
+    }
+   ],
+   "hook": "In May 1995, Brendan Eich was given ten days to build a scripting language for the browser.",
+   "id": "il-13-software-engineering-interview-prep-story-2",
+   "moduleId": "frontend-interview-prep--js-ts-depth",
+   "narrative": "Netscape was in a race with Microsoft for the soul of the web, and pages needed interactivity: forms that validated, interfaces that responded, all without round-tripping to a server. Eich, newly hired from Silicon Graphics, was told to create a scripting language — fast. In about ten days in May 1995 he built Mocha, drawing on Scheme's first-class functions, Self's prototype-based objects, and Java's C-like syntax — a strange and brilliant fusion produced under deadline pressure. It shipped in Netscape Navigator 2.0, was renamed LiveScript, and then — in December 1995, in a marketing deal with Sun Microsystems — JavaScript, riding the Java hype wave despite having almost nothing to do with Java. The language was mocked for years: the prototype chain, the type coercion, the 'wat' moments, the ten days visible in every corner. But it had the ultimate distribution advantage — it ran in every browser on Earth — and a strange resilience. Douglas Crockford's 'JavaScript: The Good Parts' (2008) showed there was a real, elegant language hiding inside; Google's V8 engine (2008) made it brutally fast; Node.js (2009) took it server-side; TypeScript (2012) gave it the types large teams needed. Today it's the most-used programming language in the world, and frontend interviews test exactly the weirdness born in those ten days: closures, hoisting, the prototype chain, the event loop, the many moods of 'this.' Eich's rush job became infrastructure. Learn its depths — because the interview will go looking for them, and the candidate who understands the ten days has an edge over the one who merely memorized the framework. Eich went on to co-found Mozilla and later Brave, but his ten days in May remain the most consequential rush job in software history. The language's survival is a case study in the power of distribution over design: the best language doesn't win, the one that's everywhere does — and then, given twenty years and V8, the everywhere language gets good. Your frontend interviews test the scars of that history; wear them as knowledge.",
+   "title": "The story behind JavaScript",
+   "verifiedClaims": [
+    "Eich built the language in about ten days in May 1995 at Netscape",
+    "It was renamed from Mocha/LiveScript to JavaScript in December 1995"
+   ]
+  },
+  {
+   "bridge": "C is fifty years old and still the language under your interview's memory questions. Now let's learn the memory model it forces you to understand.",
+   "course": "il-13-software-engineering-interview-prep",
+   "figures": [
+    {
+     "dates": "1941–2011",
+     "name": "Dennis Ritchie",
+     "role": "Creator of C; co-creator of Unix"
+    },
+    {
+     "dates": "b. 1942",
+     "name": "Brian Kernighan",
+     "role": "Co-author of 'The C Programming Language' (1978)"
+    }
+   ],
+   "hook": "In 1972, Dennis Ritchie gave Unix a language close enough to the metal to rewrite an operating system — and portable enough to matter.",
+   "id": "il-13-software-engineering-interview-prep-story-3",
+   "moduleId": "embedded-swe-interview-prep--c-memory",
+   "narrative": "Ritchie worked at Bell Labs, where Ken Thompson had written Unix in assembly and then in B, a stripped-down language Thompson had adapted from BCPL. B was typeless and word-oriented — fine for the PDP-7, wrong for the PDP-11's byte-addressed reality. Ritchie evolved B into C: typed, expressive, with structures and a real type system, but still thin enough that every construct mapped obviously onto machine operations — no hidden costs, no surprises. Then came the decisive move: Ritchie and Thompson rewrote Unix itself in C. An operating system written in a high-level language was nearly unheard of — and it meant Unix could be ported to new machines by porting the compiler, not by rewriting the OS. Portability became a property of the language, and Unix spread to every architecture. In 1978, Ritchie and Brian Kernighan published 'The C Programming Language' — K&R — a book so clear and compact that it taught a generation, and whose examples (hello, world) are still the ritual first program. The language escaped the Labs to conquer the world: every major OS kernel, every embedded system, the firmware in your devices, the Python interpreter itself. C's bargain is the one this module drills into you: total control over memory in exchange for total responsibility. No garbage collector, no safety net, no forgiveness — just pointers, the stack, the heap, and you. The interview questions about memory models, undefined behavior, alignment, and cache lines are all downstream of 1972. Learn C's model and you understand every machine you'll ever program, because they're all still, underneath, Ritchie's machine. Ritchie died in 2011, the same week as Steve Jobs — his passing was famously overshadowed in the press, a fact the programming world noted with some bitterness. The memorial the community built was more fitting: every kernel, every embedded device, every \"hello, world\" still compiles. The interview questions about undefined behavior are, in the end, questions about whether you respect the machine he gave you.",
+   "title": "The story behind C",
+   "verifiedClaims": [
+    "Ritchie developed C in 1972 at Bell Labs, evolving Thompson's B",
+    "Unix was rewritten in C, enabling portability",
+    "Kernighan and Ritchie's book was published in 1978"
+   ]
+  }
+ ]
+}

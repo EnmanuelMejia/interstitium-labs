@@ -1,0 +1,73 @@
+{
+ "course": "il-16-machine-learning-ai-engineering",
+ "stories": [
+  {
+   "bridge": "Samuel named the field; this module teaches you to practice it. Now let's walk the applied ML workflow — from problem framing to deployment — the way he would have recognized.",
+   "course": "il-16-machine-learning-ai-engineering",
+   "figures": [
+    {
+     "dates": "1901–1990",
+     "name": "Arthur Samuel",
+     "role": "IBM researcher; coined 'machine learning' (1959)"
+    }
+   ],
+   "hook": "In 1959, Arthur Samuel needed a name for what his checkers program was doing. He called it machine learning.",
+   "id": "il-16-machine-learning-ai-engineering-story-1",
+   "moduleId": "ml-in-practice--ml-workflow",
+   "narrative": "Samuel was an IBM researcher who had been working since 1952 on a checkers-playing program for the IBM 701 — one of the first commercial computers, a machine with less memory than a modern greeting card. The program didn't just play from a fixed strategy; it improved by playing, adjusting its evaluation of board positions based on experience. Samuel called this 'rote learning' at first, then generalized: in his landmark 1959 paper, 'Some Studies in Machine Learning Using the Game of Checkers,' published in the IBM Journal of Research and Development, he defined the field he was naming — programming computers to learn from experience rather than from explicit instruction. The paper is remarkably modern: it discusses training versus test performance, the danger of overfitting (he called it over-learning), and learning by self-play — the same ideas that, sixty years later, would produce AlphaGo. Samuel's program eventually played championship-level checkers, and in 1962 it beat a state champion in a public match, one of the first times a machine defeated a top human at a game of skill. The phrase he coined stuck because it named the right abstraction: not artificial intelligence, with its philosophical baggage, but the narrower, engineerable discipline of learning from data. Every workflow in this module — framing the problem, preparing data, training, evaluating, deploying — is Samuel's 1959 program grown up: the machine still learns from experience, we've just gotten much better at arranging the experience. The 1962 match deserves its coda: Samuel's program beat Connecticut champion Robert Nealey in a public game — and Samuel was honest about the limits, noting the program still couldn't touch masters. The honesty is the lesson: he measured, reported, and named the gap. The field he named has been closing such gaps ever since, one benchmark at a time. Your workflow in this module is that same discipline — frame, train, evaluate honestly, deploy — scaled to modern data.",
+   "title": "The story behind the term 'machine learning'",
+   "verifiedClaims": [
+    "Samuel's 'Some Studies in Machine Learning Using the Game of Checkers' was published in 1959",
+    "He worked on the checkers program at IBM from 1952",
+    "The 1959 paper discusses generalization and overfitting"
+   ]
+  },
+  {
+   "bridge": "AlphaGo was deep learning plus search plus reinforcement — the full stack. Now let's learn the deep architectures that made it possible.",
+   "course": "il-16-machine-learning-ai-engineering",
+   "figures": [
+    {
+     "dates": "b. 1976",
+     "name": "Demis Hassabis",
+     "role": "Co-founder of DeepMind"
+    },
+    {
+     "dates": "b. 1983",
+     "name": "Lee Sedol",
+     "role": "World Go champion; faced AlphaGo in March 2016"
+    }
+   ],
+   "hook": "On March 9, 2016, in Seoul, a machine sat down to play the world's best Go player — and in game two, played move 37.",
+   "id": "il-16-machine-learning-ai-engineering-story-2",
+   "moduleId": "advanced-ml--deep-architectures-practice",
+   "narrative": "Go was supposed to be safe from computers for decades. Chess had fallen in 1997, but Go's branching factor — more possible positions than atoms in the universe — defeated brute force, and its strategy resisted the hand-coded rules that worked for chess. DeepMind, the London lab founded in 2010 by Demis Hassabis, Shane Legg, and Mustafa Suleyman and acquired by Google in 2014, took a different path: deep neural networks trained first on human games, then improved by reinforcement learning — millions of games against itself, learning from wins and losses. In March 2016, AlphaGo faced Lee Sedol, the world's top player, in a five-game match in Seoul watched by hundreds of millions. AlphaGo won 4–1. The moment that entered history came in game two: move 37, a shoulder-high play on the fifth line that no human professional would make — commentators first assumed it was a mistake. It wasn't. It was the product of evaluation no human could perform, and it turned the game. Professionals called it 'God's touch'; Lee Sedol later said it changed how he understood the game. The technical legacy for this course is the architecture of the victory: deep networks for intuition (pattern recognition over the board), Monte Carlo tree search for planning, reinforcement learning for improvement — the same three ingredients behind every modern agentic system. AlphaGo didn't just beat a champion; it demonstrated the template. When you build deep architectures in this module, you're working with the machinery that played move 37. Lee Sedol's response became part of the legend: after the match he said AlphaGo had shown him his own understanding of Go was flawed, and he retired from professional play in 2019, calling AI \"an entity that cannot be defeated.\" DeepMind's AlphaGo Zero (2017) then learned purely from self-play, no human games at all. The template stuck: intuition from networks, planning from search, improvement from self-play — the same three ingredients behind today's agents.",
+   "title": "The story behind AlphaGo",
+   "verifiedClaims": [
+    "AlphaGo defeated Lee Sedol 4–1 in Seoul, March 2016",
+    "DeepMind was founded in 2010 and acquired by Google in 2014",
+    "Move 37 in game two became legendary among professionals"
+   ]
+  },
+  {
+   "bridge": "Words as geometry — that is the embedding idea, and it powers everything from search to RAG. Now let's learn to build and use embeddings properly.",
+   "course": "il-16-machine-learning-ai-engineering",
+   "figures": [
+    {
+     "dates": "b. 1982",
+     "name": "Tomas Mikolov",
+     "role": "Researcher; created word2vec (2013)"
+    }
+   ],
+   "hook": "In 2013, Tomas Mikolov showed that words could do arithmetic: king minus man plus woman equals queen.",
+   "id": "il-16-machine-learning-ai-engineering-story-3",
+   "moduleId": "advanced-nlp-practice--embeddings-practice",
+   "narrative": "Mikolov was a researcher at Google who had been pushing on a stubborn problem: language models were powerful but slow, and their representations of words were wasteful — each word an isolated symbol, with no notion that 'king' and 'queen' are related. His answer, published with colleagues in 2013 as word2vec, was to train a simple neural network to predict words from their neighbors, and then throw away the predictions and keep the hidden layer: a dense vector for every word, a few hundred numbers that placed each word in a continuous space. The miracle was what the space contained. Words with similar meanings clustered together. And directions in the space meant things: the vector from 'man' to 'woman' pointed the same way as the vector from 'king' to 'queen' — relationships became geometry, analogies became arithmetic. The paper, presented at NIPS 2013 as 'Efficient Estimation of Word Representations in Vector Space,' was downloaded furiously; within a year, embeddings were everywhere, and GloVe (2014) offered a competing recipe. The idea scaled beyond words — to sentences, documents, images, code — and became the foundation of modern retrieval: every RAG system you'll build works because queries and documents can be embedded in the same space and compared by distance. Mikolov's trick looks simple in retrospect, which is the mark of a deep idea. He didn't teach the machine English; he taught it geometry, and the English came along for free. In this module you'll learn to train, evaluate, and deploy embeddings — the quiet infrastructure under the entire language-AI boom. The geometry kept generalizing: researchers soon embedded sentences, paragraphs, images, and code — and the Transformer, four years later, made embeddings its first layer. Every token your models process begins life as a vector in Mikolov's tradition. When you tune embedding models in this module, remember 2013: the breakthrough wasn't bigger math, it was the decision to keep the hidden layer and throw away the predictions.",
+   "title": "The story behind word embeddings",
+   "verifiedClaims": [
+    "Mikolov's word2vec was published in 2013",
+    "The king-man+woman=queen analogy demonstrated semantic geometry",
+    "Embeddings underpin modern retrieval and RAG systems"
+   ]
+  }
+ ]
+}

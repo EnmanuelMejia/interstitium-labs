@@ -1419,7 +1419,19 @@
    ],
    "summary": "Set theory applied to access control: unions for RBAC roles, intersections for layered security groups, subtraction for deny rules - the math behind who can do what.",
    "title": "Set Theory & Access Logic",
-   "videos": [],
+   "videos": [
+    {
+     "title": "Set Theory: Types of Sets, Unions and Intersections",
+     "url": "https://www.youtube.com/watch?v=6JkCmZAQaio",
+     "source": "Professor Dave Explains (YouTube)",
+     "blurb": "Professor Dave on set theory — unions, intersections, and complements applied to RBAC permission sets.",
+     "durationMin": 6,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
+    }
+   ],
    "weight": 1
   },
   {
@@ -8621,43 +8633,6 @@
    "estimatedMinutes": 570
   },
   {
-   "id": "IL28-M27",
-   "code": "IL-28",
-   "title": "Pod Lifecycle & Troubleshooting",
-   "summary": "The pod lifecycle from Pending to Running to failure — plus the two runbooks every on-call engineer needs: Pending/scheduling failures and CrashLoopBackOff, and the full panel answer to 'the pod keeps restarting, what are your next steps?'",
-   "objectives": [
-    "Name the pod phases and explain what Pending, Running, Succeeded, Failed, and Unknown each mean",
-    "Apply the triage order — describe/events, logs, exec — to any failing pod without guessing",
-    "Work the CrashLoopBackOff runbook: read backoff timing, last state, and previous logs to find root cause",
-    "Work the Pending runbook: interpret scheduler events for resources, taints, and affinity failures",
-    "Deliver the full panel answer for 'pod keeps restarting' with a narrated, ordered investigation"
-   ],
-   "notes": [
-    {
-     "title": "Pod Phases: The Five States",
-     "body": "A pod is always in exactly one phase: Pending (accepted by the cluster but at least one container not yet running — includes scheduling and image pulling), Running (all containers created, at least one running — note this does NOT mean the app is healthy), Succeeded (all containers terminated with exit 0 — jobs), Failed (at least one container terminated non-zero), Unknown (the node stopped reporting — the api-server genuinely doesn't know). Worked example: kubectl get pods shows web-abc as Running for 20 minutes, yet the app serves 500s. A learner says 'the pod is fine, must be the code.' Solution: Running only means the processes started — readiness probes, not phase, determine whether traffic flows. The panel lesson: never equate Running with healthy; always pair phase with probe status, restart count, and logs. Unknown deserves special respect: it usually means the node died, and the pod may actually still be running orphaned on it."
-    },
-    {
-     "title": "The Triage Order: Describe, Logs, Exec",
-     "body": "When a pod misbehaves, run the same sequence every time so you never destroy evidence: 1) kubectl describe pod — read Events (what the cluster did) and container Statuses (restart count, last termination reason and exit code); 2) kubectl logs --previous — what the application printed as it died; 3) kubectl logs (current) — what it's saying now; 4) kubectl exec — live probing only if a container stays up long enough. Worked example: api-xyz is CrashLoopBackOff, 22 restarts. describe shows Last State: Terminated, Reason: Error, Exit Code: 1, and Events: 'Back-off restarting failed container'. logs --previous shows 'FATAL: password authentication failed for user \"api\"'. Solution: the database credential rotated; update the Secret the pod consumes. If you had exec'd first or deleted the pod, the --previous logs would be gone. Discipline beats speed: evidence first, action second."
-    },
-    {
-     "title": "CrashLoopBackOff Runbook",
-     "body": "CrashLoopBackOff means the container starts, exits non-zero, and kubelet is backing off before retrying: 10s, 20s, 40s, 80s, 160s, capped at 300s (5 minutes) between attempts. Worked example: you watch kubectl get pods and the pod flaps between CrashLoopBackOff and Running every few minutes; describe shows restartCount: 31 and Last State exit code 1. The naive fix is 'increase resources' — but exit code 1 is an application error, not OOM (which would be 137). Solution path: logs --previous reveals 'bind: address already in use :8080' — a second process in the container is grabbing the port, an image build issue, not a cluster issue. The runbook: note the exit code (1=app error, 2=misuse, 126/127=command not found, 137=SIGKILL/OOM, 139=segfault, 143=SIGTERM), read previous logs, check the command/args and env, then fix the image or config — never 'fix' CrashLoopBackOff by deleting the pod, which resets the backoff timer and your evidence."
-    },
-    {
-     "title": "Pending Runbook: Reading Scheduler Events",
-     "body": "A pod stuck in Pending was accepted but the scheduler cannot place it — the reason is always in Events. Worked example: kubectl describe pod shows '0/3 nodes are available: 1 node(s) had taint {dedicated: gpu}, 2 Insufficient memory.' Solution: this single event names two distinct problems — one node is tainted for GPU workloads (add a toleration only if this pod belongs there), and the other two lack free memory for the pod's requests (lower the request if over-provisioned, or add capacity). Common Pending causes to memorize: Insufficient cpu/memory (requests too high), node taints without tolerations, nodeSelector/affinity matching no nodes, PersistentVolumeClaims unbound (storage class or capacity), and ImagePullBackOff (wrong tag or missing imagePullSecrets — technically a Pending sub-state). The fix is never to force-schedule; it's to resolve what the scheduler is telling you."
-    },
-    {
-     "title": "Exit Codes and Last State",
-     "body": "The container's exit code is the single most informative number in pod troubleshooting, and describe pod surfaces it under lastState.terminated. Worked example: three pods, three failures. Pod A: exit 1, logs show a Python traceback — application bug, fix the code. Pod B: exit 137, Reason OOMKilled — the container exceeded its memory limit and the kernel killed it (137 = 128 + 9, SIGKILL); fix by raising the limit or cutting memory use. Pod C: exit 143 (128 + 15, SIGTERM) right after a deployment — normal graceful shutdown during a rolling update, not a failure at all. Solution discipline: read the code before the logs. 137 always means killed from outside (OOM or manual kill), never an app crash; 143 during deploys is expected; 1/2 are yours to debug in the application. Misreading 137 as 'the app crashed' sends teams chasing code bugs for a resource problem."
-    },
-    {
-     "title": "Panel Question: 'The Pod Keeps Restarting — Next Steps?'",
-     "body": "This is the signature panel question for this module — answer it as a narrated sequence, not a list of commands. Model answer: 'First I'd run kubectl get pods to confirm the restart count is climbing and note the status — CrashLoopBackOff versus Error tells me whether kubelet is backing off. Then kubectl describe pod: I read the Events for the cluster's view and the container's lastState for the exit code and reason — 137 points at memory, 1 points at the app. Then kubectl logs --previous to see what the application printed as it died, because the current container may already be gone. If it stays up long enough, I'd exec in and check the process, env, and connectivity. Then I fix the root cause — bad image tag, missing env var, failed probe, OOM — and verify the restart count stops climbing.' Worked example of full credit: the candidate who says 'exit 137, so I checked the memory limit in describe, confirmed OOMKilled in lastState, and raised the limit' demonstrates the whole chain. Practice saying this aloud until it's automatic — panels score the order and the reasoning, not just the commands."
-    }
-   ],
    "cards": [
     {
      "front": "Name the five pod phases and what Pending means.",
@@ -8707,6 +8682,162 @@
      "front": "First three sentences of your panel answer to 'the pod keeps restarting'?",
      "back": "'I'd check the restart count and status, then describe the pod for events and the exit code in lastState, then read the previous container's logs — in that order, before touching anything.'"
     }
+   ],
+   "code": "IL-28",
+   "crossLinks": [],
+   "drills": [
+    {
+     "id": "il28-m27-triage-scenarios",
+     "title": "Triage Scenarios",
+     "items": [
+      {
+       "prompt": "Pod in CrashLoopBackOff. describe shows exit code 1, logs --previous show a Python ModuleNotFoundError. Root cause and fix?",
+       "answer": "The image is missing a Python dependency. Fix: add it to requirements and rebuild the image (or fix the install step).",
+       "explain": "Exit 1 + import error = build/packaging bug, not a cluster problem. The fix is in the Dockerfile, not in kubectl."
+      },
+      {
+       "prompt": "Pod in CrashLoopBackOff. describe shows exit 137, Reason OOMKilled, limit 256Mi. Fix?",
+       "answer": "Raise the memory limit (and check the request still schedules), or reduce the app's memory use.",
+       "explain": "137/OOMKilled is definitive: the cgroup limit was exceeded. Raising the limit is the immediate fix; profiling memory is the durable one."
+      },
+      {
+       "prompt": "Pod Pending 10 minutes. Events: '0/5 nodes are available: 5 node(s) didn't match Pod's node affinity'. Fix?",
+       "answer": "The nodeAffinity rules match no nodes — correct the labels/affinity or label a node appropriately.",
+       "explain": "The scheduler is explicit: affinity selected zero nodes. Either the pod's rules are wrong or the nodes aren't labeled as expected."
+      },
+      {
+       "prompt": "Pod Pending. Events: 'persistentvolumeclaim \"data\" not found' repeated. Fix?",
+       "answer": "The PVC doesn't exist (or is in another namespace) — create it or fix the claimName.",
+       "explain": "Unbound/missing PVC blocks scheduling; the pod waits for storage that never arrives."
+      },
+      {
+       "prompt": "Pod Running, 0 restarts, but the Service has no endpoints for it. What do you check?",
+       "answer": "The readiness probe status and whether the pod's labels match the Service selector.",
+       "explain": "No endpoints = failing readiness or selector mismatch. The pod is 'Running' but not ready — phase alone misleads."
+      },
+      {
+       "prompt": "After a config change, ALL pods of a Deployment enter CrashLoopBackOff simultaneously with exit 1. Fastest diagnostic?",
+       "answer": "logs --previous on one pod (config errors are identical across replicas) + diff the ConfigMap/Secret change.",
+       "explain": "Simultaneous identical crashes after a config change = the change is the cause; one pod's logs represent all of them."
+      },
+      {
+       "prompt": "Pod shows Unknown for 6 minutes after a node reboot. What do you do?",
+       "answer": "Check node status; once the node is NotReady past the pod-eviction timeout, the controller evicts and reschedules. Don't force-delete unless you accept possible duplicate execution.",
+       "explain": "Unknown means the node isn't reporting; force-deleting risks two live copies if the node is actually still running the pod."
+      }
+     ]
+    },
+    {
+     "id": "il28-m27-panel-narration",
+     "title": "Panel Narration: Pod Keeps Restarting",
+     "items": [
+      {
+       "prompt": "Give your opening sentence when the panel says 'a pod keeps restarting — walk me through it'.",
+       "answer": "'First I'd confirm the restart count is climbing and note the exact status — CrashLoopBackOff, Error, or OOMKilled each points somewhere different.'",
+       "explain": "Panels score the opening: it shows you classify before acting instead of spraying commands."
+      },
+      {
+       "prompt": "After confirming restarts, what do you run and what two things do you read from it?",
+       "answer": "kubectl describe pod — the Events section (cluster's actions/reasons) and the container's lastState (exit code + termination reason).",
+       "explain": "This one command separates resource kills (137) from app errors (1) from probe kills — the branch point of the whole investigation."
+      },
+      {
+       "prompt": "Exit code is 1. What is your next command and what are you looking for?",
+       "answer": "kubectl logs <pod> --previous — the application's own output as it died: tracebacks, connection errors, config complaints.",
+       "explain": "Exit 1 is the app's fault; only the app's logs say which fault. --previous is critical because the current container may be a fresh crashed loop."
+      },
+      {
+       "prompt": "Exit code is 137, Reason OOMKilled. State your conclusion and fix in two sentences.",
+       "answer": "'The container exceeded its memory limit and the kernel killed it. I'd raise the memory limit to fit the workload — or reduce the app's footprint — and verify the restart count stops climbing.'",
+       "explain": "Name the mechanism (cgroup OOM kill), give both fix directions, state the verification. That's a complete panel answer."
+      },
+      {
+       "prompt": "The pod stays up 30 seconds then dies, too fast for exec. How do you still investigate live state?",
+       "answer": "You don't — you rely on describe + previous logs, and add a temporary sleep/debug command or kubectl debug ephemeral container if you must inspect the filesystem.",
+       "explain": "Chasing a 30-second window with exec is flailing; the evidence commands plus a slowed-down repro are the professional path."
+      },
+      {
+       "prompt": "You've found the root cause (bad env var). What are your closing sentences to the panel?",
+       "answer": "'I'd fix the value in the Secret/ConfigMap, roll the Deployment so pods pick it up, and watch the restart count and readiness go green — then add a startup probe or config validation so this fails fast next time.'",
+       "explain": "Close the loop: fix, verify, and prevent recurrence. Panels reward the prevention sentence."
+      },
+      {
+       "prompt": "The panel asks: 'When would you NOT follow this sequence?' Give one valid exception.",
+       "answer": "An active security incident (compromised pod) — then you isolate/quarantine first (network policy, cordon) and investigate from forensic copies, because evidence preservation and containment outrank root-cause order.",
+       "explain": "Shows judgment: the triage order serves availability debugging; security incidents have their own playbook where containment comes first."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 480,
+   "handsOnLab": {
+    "id": "il28-m27-lab",
+    "title": "Break Pods and Triage Them",
+    "brief": "Deploy four deliberately broken pods — bad image tag, crashing command, missing env var, unsatisfiable scheduling constraint — and work each through the triage order, documenting evidence and root cause before fixing.",
+    "steps": [
+     "Create namespace triage-lab; deploy pod bad-image with image nginx:nonexistent-tag and observe ImagePullBackOff.",
+     "Run the full triage on bad-image: describe (events), and record the exact error message.",
+     "Deploy pod crash-cmd with command ['sh','-c','exit 1']; watch it enter CrashLoopBackOff and note the backoff intervals.",
+     "Triage crash-cmd: describe for exit code, logs --previous for output; record both.",
+     "Deploy pod missing-env referencing a Secret key that doesn't exist; observe CreateContainerConfigError and triage via describe.",
+     "Deploy pod no-fit with nodeSelector {disktype: ssd} on nodes without that label; observe Pending and read the scheduler event.",
+     "Fix all four (correct tag, valid command, create the Secret, remove/fix the nodeSelector) and verify each reaches Running.",
+     "For crash-cmd, temporarily set a memory limit of 32Mi on a memory-hungry variant; observe OOMKilled/137 in lastState.",
+     "Write the triage order on an index card from memory; then re-triage one pod using only the card.",
+     "Document each scenario as: symptom → evidence commands → root cause → fix, in a one-page runbook."
+    ],
+    "deliverable": "One-page runbook covering the four broken-pod scenarios plus the OOMKilled case, each with symptom, evidence, root cause, and fix.",
+    "checkpoint": "You can name the root cause of any of the five broken pods from describe + logs output alone, and you recite the triage order without notes."
+   },
+   "id": "IL28-M27",
+   "mockTask": {
+    "id": "il28-m27-mock",
+    "type": "choice",
+    "q": "Panel: 'A pod keeps restarting. Walk me through your next steps.' Which response earns full credit?",
+    "choices": [
+     "'I'd delete the pod so the controller recreates it, then watch if the new one stays up.'",
+     "'I'd check the restart count and status, describe the pod for events and the exit code in lastState, read the previous container's logs, and only then exec or fix — matching the fix to the evidence.'",
+     "'I'd immediately scale the Deployment to zero and re-apply the manifests.'",
+     "'I'd drain the node and cordon it, since restarts are usually node problems.'"
+    ],
+    "answer": 1,
+    "explain": "Full credit is the ordered, evidence-first narration: get (classify), describe (events + exit code = branch point), logs --previous (app's dying words), then targeted action. Deleting destroys evidence; draining assumes a node cause with no data. Deliver it as a spoken sequence — panels score order and reasoning."
+   },
+   "notes": [
+    {
+     "title": "Pod Phases: The Five States",
+     "body": "A pod is always in exactly one phase: Pending (accepted by the cluster but at least one container not yet running — includes scheduling and image pulling), Running (all containers created, at least one running — note this does NOT mean the app is healthy), Succeeded (all containers terminated with exit 0 — jobs), Failed (at least one container terminated non-zero), Unknown (the node stopped reporting — the api-server genuinely doesn't know). Worked example: kubectl get pods shows web-abc as Running for 20 minutes, yet the app serves 500s. A learner says 'the pod is fine, must be the code.' Solution: Running only means the processes started — readiness probes, not phase, determine whether traffic flows. The panel lesson: never equate Running with healthy; always pair phase with probe status, restart count, and logs. Unknown deserves special respect: it usually means the node died, and the pod may actually still be running orphaned on it."
+    },
+    {
+     "title": "The Triage Order: Describe, Logs, Exec",
+     "body": "When a pod misbehaves, run the same sequence every time so you never destroy evidence: 1) kubectl describe pod — read Events (what the cluster did) and container Statuses (restart count, last termination reason and exit code); 2) kubectl logs --previous — what the application printed as it died; 3) kubectl logs (current) — what it's saying now; 4) kubectl exec — live probing only if a container stays up long enough. Worked example: api-xyz is CrashLoopBackOff, 22 restarts. describe shows Last State: Terminated, Reason: Error, Exit Code: 1, and Events: 'Back-off restarting failed container'. logs --previous shows 'FATAL: password authentication failed for user \"api\"'. Solution: the database credential rotated; update the Secret the pod consumes. If you had exec'd first or deleted the pod, the --previous logs would be gone. Discipline beats speed: evidence first, action second."
+    },
+    {
+     "title": "CrashLoopBackOff Runbook",
+     "body": "CrashLoopBackOff means the container starts, exits non-zero, and kubelet is backing off before retrying: 10s, 20s, 40s, 80s, 160s, capped at 300s (5 minutes) between attempts. Worked example: you watch kubectl get pods and the pod flaps between CrashLoopBackOff and Running every few minutes; describe shows restartCount: 31 and Last State exit code 1. The naive fix is 'increase resources' — but exit code 1 is an application error, not OOM (which would be 137). Solution path: logs --previous reveals 'bind: address already in use :8080' — a second process in the container is grabbing the port, an image build issue, not a cluster issue. The runbook: note the exit code (1=app error, 2=misuse, 126/127=command not found, 137=SIGKILL/OOM, 139=segfault, 143=SIGTERM), read previous logs, check the command/args and env, then fix the image or config — never 'fix' CrashLoopBackOff by deleting the pod, which resets the backoff timer and your evidence."
+    },
+    {
+     "title": "Pending Runbook: Reading Scheduler Events",
+     "body": "A pod stuck in Pending was accepted but the scheduler cannot place it — the reason is always in Events. Worked example: kubectl describe pod shows '0/3 nodes are available: 1 node(s) had taint {dedicated: gpu}, 2 Insufficient memory.' Solution: this single event names two distinct problems — one node is tainted for GPU workloads (add a toleration only if this pod belongs there), and the other two lack free memory for the pod's requests (lower the request if over-provisioned, or add capacity). Common Pending causes to memorize: Insufficient cpu/memory (requests too high), node taints without tolerations, nodeSelector/affinity matching no nodes, PersistentVolumeClaims unbound (storage class or capacity), and ImagePullBackOff (wrong tag or missing imagePullSecrets — technically a Pending sub-state). The fix is never to force-schedule; it's to resolve what the scheduler is telling you."
+    },
+    {
+     "title": "Exit Codes and Last State",
+     "body": "The container's exit code is the single most informative number in pod troubleshooting, and describe pod surfaces it under lastState.terminated. Worked example: three pods, three failures. Pod A: exit 1, logs show a Python traceback — application bug, fix the code. Pod B: exit 137, Reason OOMKilled — the container exceeded its memory limit and the kernel killed it (137 = 128 + 9, SIGKILL); fix by raising the limit or cutting memory use. Pod C: exit 143 (128 + 15, SIGTERM) right after a deployment — normal graceful shutdown during a rolling update, not a failure at all. Solution discipline: read the code before the logs. 137 always means killed from outside (OOM or manual kill), never an app crash; 143 during deploys is expected; 1/2 are yours to debug in the application. Misreading 137 as 'the app crashed' sends teams chasing code bugs for a resource problem."
+    },
+    {
+     "title": "Panel Question: 'The Pod Keeps Restarting — Next Steps?'",
+     "body": "This is the signature panel question for this module — answer it as a narrated sequence, not a list of commands. Model answer: 'First I'd run kubectl get pods to confirm the restart count is climbing and note the status — CrashLoopBackOff versus Error tells me whether kubelet is backing off. Then kubectl describe pod: I read the Events for the cluster's view and the container's lastState for the exit code and reason — 137 points at memory, 1 points at the app. Then kubectl logs --previous to see what the application printed as it died, because the current container may already be gone. If it stays up long enough, I'd exec in and check the process, env, and connectivity. Then I fix the root cause — bad image tag, missing env var, failed probe, OOM — and verify the restart count stops climbing.' Worked example of full credit: the candidate who says 'exit 137, so I checked the memory limit in describe, confirmed OOMKilled in lastState, and raised the limit' demonstrates the whole chain. Practice saying this aloud until it's automatic — panels score the order and the reasoning, not just the commands."
+    }
+   ],
+   "objectives": [
+    "Name the pod phases and explain what Pending, Running, Succeeded, Failed, and Unknown each mean",
+    "Apply the triage order — describe/events, logs, exec — to any failing pod without guessing",
+    "Work the CrashLoopBackOff runbook: read backoff timing, last state, and previous logs to find root cause",
+    "Work the Pending runbook: interpret scheduler events for resources, taints, and affinity failures",
+    "Deliver the full panel answer for 'pod keeps restarting' with a narrated, ordered investigation"
+   ],
+   "prerequisiteFor": [
+    "IL28-M28"
    ],
    "quiz": [
     {
@@ -8809,168 +8940,24 @@
      "explain": "kubelet executes probes; liveness failure = container is dead, restart it. (Readiness failure would only remove it from Endpoints.)"
     }
    ],
-   "weight": 1,
-   "prerequisiteFor": [
-    "IL28-M28"
-   ],
-   "drills": [
+   "summary": "The pod lifecycle from Pending to Running to failure — plus the two runbooks every on-call engineer needs: Pending/scheduling failures and CrashLoopBackOff, and the full panel answer to 'the pod keeps restarting, what are your next steps?'",
+   "title": "Pod Lifecycle & Troubleshooting",
+   "videos": [
     {
-     "id": "il28-m27-triage-scenarios",
-     "title": "Triage Scenarios",
-     "items": [
-      {
-       "prompt": "Pod in CrashLoopBackOff. describe shows exit code 1, logs --previous show a Python ModuleNotFoundError. Root cause and fix?",
-       "answer": "The image is missing a Python dependency. Fix: add it to requirements and rebuild the image (or fix the install step).",
-       "explain": "Exit 1 + import error = build/packaging bug, not a cluster problem. The fix is in the Dockerfile, not in kubectl."
-      },
-      {
-       "prompt": "Pod in CrashLoopBackOff. describe shows exit 137, Reason OOMKilled, limit 256Mi. Fix?",
-       "answer": "Raise the memory limit (and check the request still schedules), or reduce the app's memory use.",
-       "explain": "137/OOMKilled is definitive: the cgroup limit was exceeded. Raising the limit is the immediate fix; profiling memory is the durable one."
-      },
-      {
-       "prompt": "Pod Pending 10 minutes. Events: '0/5 nodes are available: 5 node(s) didn't match Pod's node affinity'. Fix?",
-       "answer": "The nodeAffinity rules match no nodes — correct the labels/affinity or label a node appropriately.",
-       "explain": "The scheduler is explicit: affinity selected zero nodes. Either the pod's rules are wrong or the nodes aren't labeled as expected."
-      },
-      {
-       "prompt": "Pod Pending. Events: 'persistentvolumeclaim \"data\" not found' repeated. Fix?",
-       "answer": "The PVC doesn't exist (or is in another namespace) — create it or fix the claimName.",
-       "explain": "Unbound/missing PVC blocks scheduling; the pod waits for storage that never arrives."
-      },
-      {
-       "prompt": "Pod Running, 0 restarts, but the Service has no endpoints for it. What do you check?",
-       "answer": "The readiness probe status and whether the pod's labels match the Service selector.",
-       "explain": "No endpoints = failing readiness or selector mismatch. The pod is 'Running' but not ready — phase alone misleads."
-      },
-      {
-       "prompt": "After a config change, ALL pods of a Deployment enter CrashLoopBackOff simultaneously with exit 1. Fastest diagnostic?",
-       "answer": "logs --previous on one pod (config errors are identical across replicas) + diff the ConfigMap/Secret change.",
-       "explain": "Simultaneous identical crashes after a config change = the change is the cause; one pod's logs represent all of them."
-      },
-      {
-       "prompt": "Pod shows Unknown for 6 minutes after a node reboot. What do you do?",
-       "answer": "Check node status; once the node is NotReady past the pod-eviction timeout, the controller evicts and reschedules. Don't force-delete unless you accept possible duplicate execution.",
-       "explain": "Unknown means the node isn't reporting; force-deleting risks two live copies if the node is actually still running the pod."
-      }
-     ]
-    },
-    {
-     "id": "il28-m27-panel-narration",
-     "title": "Panel Narration: Pod Keeps Restarting",
-     "items": [
-      {
-       "prompt": "Give your opening sentence when the panel says 'a pod keeps restarting — walk me through it'.",
-       "answer": "'First I'd confirm the restart count is climbing and note the exact status — CrashLoopBackOff, Error, or OOMKilled each points somewhere different.'",
-       "explain": "Panels score the opening: it shows you classify before acting instead of spraying commands."
-      },
-      {
-       "prompt": "After confirming restarts, what do you run and what two things do you read from it?",
-       "answer": "kubectl describe pod — the Events section (cluster's actions/reasons) and the container's lastState (exit code + termination reason).",
-       "explain": "This one command separates resource kills (137) from app errors (1) from probe kills — the branch point of the whole investigation."
-      },
-      {
-       "prompt": "Exit code is 1. What is your next command and what are you looking for?",
-       "answer": "kubectl logs <pod> --previous — the application's own output as it died: tracebacks, connection errors, config complaints.",
-       "explain": "Exit 1 is the app's fault; only the app's logs say which fault. --previous is critical because the current container may be a fresh crashed loop."
-      },
-      {
-       "prompt": "Exit code is 137, Reason OOMKilled. State your conclusion and fix in two sentences.",
-       "answer": "'The container exceeded its memory limit and the kernel killed it. I'd raise the memory limit to fit the workload — or reduce the app's footprint — and verify the restart count stops climbing.'",
-       "explain": "Name the mechanism (cgroup OOM kill), give both fix directions, state the verification. That's a complete panel answer."
-      },
-      {
-       "prompt": "The pod stays up 30 seconds then dies, too fast for exec. How do you still investigate live state?",
-       "answer": "You don't — you rely on describe + previous logs, and add a temporary sleep/debug command or kubectl debug ephemeral container if you must inspect the filesystem.",
-       "explain": "Chasing a 30-second window with exec is flailing; the evidence commands plus a slowed-down repro are the professional path."
-      },
-      {
-       "prompt": "You've found the root cause (bad env var). What are your closing sentences to the panel?",
-       "answer": "'I'd fix the value in the Secret/ConfigMap, roll the Deployment so pods pick it up, and watch the restart count and readiness go green — then add a startup probe or config validation so this fails fast next time.'",
-       "explain": "Close the loop: fix, verify, and prevent recurrence. Panels reward the prevention sentence."
-      },
-      {
-       "prompt": "The panel asks: 'When would you NOT follow this sequence?' Give one valid exception.",
-       "answer": "An active security incident (compromised pod) — then you isolate/quarantine first (network policy, cordon) and investigate from forensic copies, because evidence preservation and containment outrank root-cause order.",
-       "explain": "Shows judgment: the triage order serves availability debugging; security incidents have their own playbook where containment comes first."
-      }
-     ]
+     "title": "CrashLoopBackOff Kubernetes: Fix Container Restart Loops | Kubernetes Troubleshooting",
+     "url": "https://www.youtube.com/watch?v=G7o-kwKG1z8",
+     "source": "CodeLucky (YouTube)",
+     "blurb": "Fixing CrashLoopBackOff — the pod-phase triage order this module drills: describe, events, logs, exec.",
+     "durationMin": 4,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "il28-m27-lab",
-    "title": "Break Pods and Triage Them",
-    "brief": "Deploy four deliberately broken pods — bad image tag, crashing command, missing env var, unsatisfiable scheduling constraint — and work each through the triage order, documenting evidence and root cause before fixing.",
-    "steps": [
-     "Create namespace triage-lab; deploy pod bad-image with image nginx:nonexistent-tag and observe ImagePullBackOff.",
-     "Run the full triage on bad-image: describe (events), and record the exact error message.",
-     "Deploy pod crash-cmd with command ['sh','-c','exit 1']; watch it enter CrashLoopBackOff and note the backoff intervals.",
-     "Triage crash-cmd: describe for exit code, logs --previous for output; record both.",
-     "Deploy pod missing-env referencing a Secret key that doesn't exist; observe CreateContainerConfigError and triage via describe.",
-     "Deploy pod no-fit with nodeSelector {disktype: ssd} on nodes without that label; observe Pending and read the scheduler event.",
-     "Fix all four (correct tag, valid command, create the Secret, remove/fix the nodeSelector) and verify each reaches Running.",
-     "For crash-cmd, temporarily set a memory limit of 32Mi on a memory-hungry variant; observe OOMKilled/137 in lastState.",
-     "Write the triage order on an index card from memory; then re-triage one pod using only the card.",
-     "Document each scenario as: symptom → evidence commands → root cause → fix, in a one-page runbook."
-    ],
-    "deliverable": "One-page runbook covering the four broken-pod scenarios plus the OOMKilled case, each with symptom, evidence, root cause, and fix.",
-    "checkpoint": "You can name the root cause of any of the five broken pods from describe + logs output alone, and you recite the triage order without notes."
-   },
-   "mockTask": {
-    "id": "il28-m27-mock",
-    "type": "choice",
-    "q": "Panel: 'A pod keeps restarting. Walk me through your next steps.' Which response earns full credit?",
-    "choices": [
-     "'I'd delete the pod so the controller recreates it, then watch if the new one stays up.'",
-     "'I'd check the restart count and status, describe the pod for events and the exit code in lastState, read the previous container's logs, and only then exec or fix — matching the fix to the evidence.'",
-     "'I'd immediately scale the Deployment to zero and re-apply the manifests.'",
-     "'I'd drain the node and cordon it, since restarts are usually node problems.'"
-    ],
-    "answer": 1,
-    "explain": "Full credit is the ordered, evidence-first narration: get (classify), describe (events + exit code = branch point), logs --previous (app's dying words), then targeted action. Deleting destroys evidence; draining assumes a node cause with no data. Deliver it as a spoken sequence — panels score order and reasoning."
-   },
-   "crossLinks": [],
-   "videos": [],
-   "estimatedMinutes": 480
+   "weight": 1
   },
   {
-   "id": "IL28-M28",
-   "code": "IL-28",
-   "title": "Resources: Requests/Limits, OOMKilled/Exit 137 & Probes",
-   "summary": "How Kubernetes divides CPU and memory between containers — requests, limits, millicores, and the OOM killer — plus the three probes (startup, readiness, liveness) and how to tune them, built around the real panel YAML-review and exit-137 questions.",
-   "objectives": [
-    "Distinguish CPU/memory requests from limits and predict scheduling and throttling behavior",
-    "Review a pod resource spec (the panel's nginx YAML) and identify what breaks in production",
-    "Diagnose OOMKilled / exit code 137 from lastState and choose the correct fix",
-    "Assign startup, readiness, and liveness probes to the right job and explain what each failure does",
-    "Tune probe parameters and explain single-threaded readiness failures such as the Python GIL case"
-   ],
-   "notes": [
-    {
-     "title": "Requests vs Limits: Two Different Promises",
-     "body": "Requests are what the scheduler uses: 'this container needs at least this much to be placeable.' Limits are what the kernel enforces: 'this container may never exceed this much.' CPU is compressible (throttled when over limit); memory is incompressible (exceed the limit and the kernel OOM-kills the process). Worked example: a node has 4 CPUs (4000 millicores) and 16 Gi memory free. You submit pods requesting 500m CPU / 1Gi memory each. How many schedule? By CPU: 4000/500 = 8; by memory: 16/1 = 16 — the scheduler takes the tighter constraint, so 8 pods schedule (bin-packing across both dimensions). If each pod's CPU limit is 2000m, all 8 can still burst to 2 cores when idle CPU exists — limits don't reserve, they cap. Solution to the classic confusion: requests determine PLACEMENT, limits determine ENFORCEMENT, and over-requesting is the #1 cause of 'the cluster is full but nothing is busy.'"
-    },
-    {
-     "title": "Panel Exercise: Review This nginx YAML",
-     "body": "The panel shows a frontend pod: image nginx:v4, requests {memory: 16Gi, cpu: 0.5}, limits {memory: 32Gi, cpu: 8}. 'What issues will this cause later?' Worked analysis: an nginx frontend requesting 16 Gi of memory is absurd — nginx typically needs tens of MB — so each replica consumes a huge scheduling reservation; a 3-replica Deployment reserves 48 Gi of cluster memory for a web server, starving real workloads and triggering 'Insufficient memory' Pending events elsewhere. The 8-CPU limit lets one pod burst to 8 cores, so under load this frontend can throttle neighboring pods' CPU (noisy neighbor), while the 0.5-CPU request means it scheduled onto nearly-empty CPU nodes that its memory request then hogs. Solution you'd propose: right-size to requests like {memory: 128Mi, cpu: 100m} and limits like {memory: 256Mi, cpu: 500m}, measured from actual usage (kubectl top, metrics history), and set namespace LimitRanges so no one can submit 16Gi requests again. The panel is testing whether you spot over-requesting as a cluster-wide hazard, not just a wasteful pod."
-    },
-    {
-     "title": "Request 1Gi but the App Needs 2Gi: Does It Start?",
-     "body": "Panel follow-up: 'nginx needs a minimum of 2Gi to start. The request is 1Gi. Does it work?' Worked reasoning: the scheduler only looks at requests, so YES, the pod schedules — 1Gi fits on any node with 1Gi free. What happens next depends on the limit. Case A: limit is also 1Gi — the container starts, memory climbs past 1Gi during startup, the kernel OOM-kills it: CrashLoopBackOff with exit 137, Reason OOMKilled. Case B: no limit set — the container starts, uses 2Gi+, and survives until the NODE comes under memory pressure, at which point the kubelet evicts the pod (it exceeded its request, making it the first eviction candidate). Solution: requests must reflect reality — set the request at or above the app's actual minimum (2Gi) so scheduling is honest, and set the limit slightly above the request to absorb spikes. 'It schedules' is not 'it works.'"
-    },
-    {
-     "title": "OOMKilled and Exit 137: Diagnosis via Last State",
-     "body": "Exit code 137 means the process was SIGKILLed (128 + 9) — it did not crash on its own; something killed it. In Kubernetes that something is almost always the kernel's OOM killer enforcing the container's memory limit, recorded as Reason: OOMKilled in the container's lastState. Worked example: container svc-basic terminated with exit code 137. You run kubectl describe pod and read: Last State: Terminated, Reason: OOMKilled, Exit Code: 137, Started/Finished timestamps 40 seconds apart, restartCount climbing. The app's previous logs show normal startup then silence — no traceback, because the kernel gave no warning. Solution: confirm the limit (describe shows limits.memory: 512Mi), check actual usage trend (kubectl top pod / metrics), then either raise the limit to cover the real working set or fix the memory growth (leak, unbounded cache). Never 'fix' 137 by adding CPU or restarting the node — it's a memory-limit event, full stop."
-    },
-    {
-     "title": "The Three Probes: Startup, Readiness, Liveness",
-     "body": "Probes are kubelet-run health checks, and each answers a different question. Startup probe: 'has the app finished initializing?' — while it fails, liveness/readiness are disabled, so slow-starting apps (JVM warmup) don't get killed mid-boot. Readiness probe: 'is the app ready for traffic?' — failure removes the pod from Service Endpoints WITHOUT restarting it. Liveness probe: 'is the app still alive?' — failure RESTARTS the container. Worked example (panel question): a pod runs fine for an hour, then suddenly restarts with no code change. Which probe? Solution: liveness — it's the only probe that restarts a running container. A readiness failure would have just pulled it from the Service silently. The panel's deeper test: 'the app deadlocks but the process lives' — liveness must test actual function (e.g. HTTP /healthz that exercises the request path), not just 'process exists', or the deadlock never triggers a restart."
-    },
-    {
-     "title": "Probe Tuning and the Python GIL Readiness Failure",
-     "body": "Probe parameters are initialDelaySeconds, periodSeconds, timeoutSeconds, successThreshold, failureThreshold — and mis-tuning them causes more outages than missing probes. Worked example (real panel scenario): a single-threaded Python web app keeps failing readiness under load. Diagnosis: the GIL means one thread handles requests AND the /ready endpoint; under load, request handling starves the probe endpoint, timeouts pile up, the pod is pulled from Endpoints, traffic shifts to remaining pods, they overload in turn — cascading failure. Solution: separate the probe from the request path (dedicated lightweight /readyz that doesn't queue behind app work, or a threaded/async server), set timeoutSeconds generously but periodSeconds tight enough to detect real death, and use startup probes for slow boots instead of huge initialDelays. Cloud-native guidance for services that 'fall over under load failing health checks': async/non-blocking handlers, separate probe endpoints, and timeouts everywhere — so health checking measures the app, not the queue."
-    }
-   ],
    "cards": [
     {
      "front": "What does a CPU/memory REQUEST control? What does a LIMIT control?",
@@ -9020,6 +9007,172 @@
      "front": "Fix for GIL-starved readiness probes?",
      "back": "Separate lightweight probe endpoint off the request path (or threaded/async server), plus sane timeouts; use startup probes for slow boots."
     }
+   ],
+   "code": "IL-28",
+   "crossLinks": [],
+   "drills": [
+    {
+     "id": "il28-m28-resource-math",
+     "title": "Requests/Limits Math",
+     "items": [
+      {
+       "prompt": "Node: 8 CPU / 32Gi free. Pods request 1000m / 4Gi, limit 2000m / 8Gi. How many schedule?",
+       "answer": "8 — by both CPU (8000/1000) and memory (32/4). Both dimensions bind at 8.",
+       "explain": "Compute per-dimension capacity and take the minimum; limits don't affect scheduling, only requests do."
+      },
+      {
+       "prompt": "Same node, pods now request 500m / 8Gi. How many schedule, and what limits them?",
+       "answer": "4 — memory binds (32/8 = 4) while CPU would allow 16.",
+       "explain": "Always name the binding dimension; it trains you to see which resource to add or which request to trim."
+      },
+      {
+       "prompt": "A pod requests 100m CPU with no limit on a 4-CPU node shared with 3 identical pods, all idle except one that spikes. What happens to the spiking pod?",
+       "answer": "It bursts freely up to available CPU — no limit means no throttle; the 100m request only guaranteed its scheduling slot.",
+       "explain": "No limit = unbounded burst. That's why production namespaces set LimitRanges/default limits."
+      },
+      {
+       "prompt": "Pod A requests 3Gi, limit 3Gi; Pod B requests 1Gi, no limit; node hits memory pressure. Who gets evicted first?",
+       "answer": "Pod B — it exceeds its request (Burstable), while Pod A is Guaranteed (request == limit) and evicted last.",
+       "explain": "QoS classes: Guaranteed (request==limit for all containers) evicted last; Burstable exceeding requests evicted first."
+      },
+      {
+       "prompt": "You set requests {cpu: 2, memory: 4Gi} 'to be safe' for an app using 100m/256Mi. Name the cluster-level harm.",
+       "answer": "You reserve 20x CPU and 16x memory the app never uses — the scheduler sees a full cluster while nodes sit idle, causing Pending for real workloads.",
+       "explain": "Over-requesting is the most common self-inflicted capacity crisis; requests must track measured usage."
+      },
+      {
+       "prompt": "Container limit 1Gi, app's steady state is 900Mi, startup spike is 1.2Gi. Predict behavior.",
+       "answer": "OOMKilled during startup (spike exceeds limit) → CrashLoopBackOff 137, even though steady state would fit.",
+       "explain": "Limits apply at every instant, including startup spikes. Size limits for peak, not average."
+      },
+      {
+       "prompt": "Two containers in one pod: c1 requests 500m/512Mi, c2 requests 500m/512Mi. What does the SCHEDULER see for the pod?",
+       "answer": "The sum: 1000m CPU / 1Gi memory — pod-level scheduling uses the total of container requests.",
+       "explain": "Requests and limits are per-container but scheduling sums them per pod; a sidecar's requests count against placement too."
+      },
+      {
+       "prompt": "LimitRange sets default request 100m/128Mi. A manifest specifies only limits {500m, 512Mi}. Effective request?",
+       "answer": "100m/128Mi from the LimitRange default — the pod schedules as if it requested those.",
+       "explain": "Unspecified requests fall back to LimitRange defaults; always check what the namespace injects."
+      }
+     ]
+    },
+    {
+     "id": "il28-m28-probe-scenarios",
+     "title": "Probe Scenarios",
+     "items": [
+      {
+       "prompt": "Pod Running, restartCount 0, but kubectl get endpoints shows no addresses. Which probe failed and what did it do?",
+       "answer": "Readiness failed — the pod was removed from Endpoints without being restarted.",
+       "explain": "Zero restarts + no endpoints = readiness, the signature pattern. Check the readiness probe definition and the app's /ready output."
+      },
+      {
+       "prompt": "Pod restartCount climbs every ~2 minutes; events show 'Liveness probe failed: connection refused'. App logs show normal startup. Likely cause?",
+       "answer": "The liveness probe hits the app before it's ready (no startup probe / too-small initialDelay) or probes the wrong port/path.",
+       "explain": "Connection refused on liveness with healthy logs = probe misconfiguration, not app failure. Add a startup probe or fix the probe target."
+      },
+      {
+       "prompt": "You add a liveness probe with periodSeconds: 5, failureThreshold: 3 to a slow API. What is the maximum detection-to-restart time?",
+       "answer": "~15s of consecutive failures (plus the initial delay) — 3 failed periods × 5s.",
+       "explain": "failureThreshold × periodSeconds bounds detection time; tune it against your tolerance for false positives vs. dead-pod time."
+      },
+      {
+       "prompt": "Readiness probe execs a script that checks the database. DB goes down for 30s. Describe the blast radius with correct probes.",
+       "answer": "Pods fail readiness, leave Endpoints, traffic drains; when the DB recovers, probes pass and pods rejoin — no restarts, no cascade.",
+       "explain": "This is readiness done right: dependency failures shed traffic instead of killing containers."
+      },
+      {
+       "prompt": "Same DB outage, but the check is in the LIVENESS probe. What happens?",
+       "answer": "Every pod restarts, likely simultaneously — restart storm; slow-starting apps may never rejoin, cascading the outage.",
+       "explain": "Never put dependency checks in liveness: a downstream blip becomes a self-inflicted mass restart."
+      },
+      {
+       "prompt": "Panel: 'Pod runs, then suddenly restarts — which probe?' Answer in one sentence with the reasoning.",
+       "answer": "Liveness — it's the only probe whose failure restarts a running container; I'd confirm via the event and rule out OOMKilled in lastState.",
+       "explain": "Name the probe, state the mechanism, and show you distinguish it from 137 — the complete panel answer."
+      },
+      {
+       "prompt": "Your probe: httpGet /healthz, timeoutSeconds: 1, on an app whose p99 latency is 800ms. Symptom and fix?",
+       "answer": "Flapping readiness/liveness from timeouts near p99; raise timeoutSeconds (e.g. 5) so the probe tolerates normal latency.",
+       "explain": "Timeouts must clear the app's normal latency with margin, or the probe measures tail latency instead of health."
+      },
+      {
+       "prompt": "Why must the liveness endpoint be cheap and side-effect free?",
+       "answer": "It runs for the life of the pod at every period — an expensive or mutating check adds load and can itself cause the failures it detects.",
+       "explain": "Probes are overhead you pay forever; keep liveness trivial ('process alive'), put depth in readiness."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 480,
+   "handsOnLab": {
+    "id": "il28-m28-lab",
+    "title": "Break It With Resources, Fix It With Probes",
+    "brief": "Deploy workloads with deliberate resource misconfigurations, trigger a real OOMKilled, diagnose it from lastState, then add and tune all three probes on a slow-starting app.",
+    "steps": [
+     "Create namespace res-lab; deploy a memory-hungry app with requests {128Mi} and limits {128Mi}.",
+     "Drive memory past the limit; observe CrashLoopBackOff and capture the OOMKilled/137 evidence from describe.",
+     "Raise the limit to fit the real working set; verify restarts stop and record the before/after values.",
+     "Deploy the panel's nginx spec (requests 16Gi/0.5, limits 32Gi/8) on your cluster; observe the scheduling impact and document it.",
+     "Right-size the nginx spec from measured usage (kubectl top) and re-deploy; compare node allocation.",
+     "Deploy a slow-starting app (sleep 60 in init) with only a liveness probe; watch it get killed mid-boot.",
+     "Add a startup probe covering the boot window; verify the app now survives startup and liveness takes over.",
+     "Break the app's dependency (point it at a dead DB host); confirm readiness removes it from Endpoints with zero restarts.",
+     "Move the dependency check into liveness temporarily; observe the restart storm, then revert.",
+     "Write the probe decision table your team will use: which check goes in which probe, with timeout guidance."
+    ],
+    "deliverable": "OOMKilled evidence capture, right-sized nginx spec with justification, probe decision table, and before/after manifests.",
+    "checkpoint": "You can produce an OOMKilled on demand, read it from lastState, and explain why each probe lives where it does in your manifests."
+   },
+   "id": "IL28-M28",
+   "mockTask": {
+    "id": "il28-m28-mock",
+    "type": "choice",
+    "q": "Panel: they show the frontend pod YAML — image nginx:v4, requests {memory: 16Gi, cpu: 0.5}, limits {memory: 32Gi, cpu: 8} — and ask 'this goes to production as-is; what issues will you see later?'",
+    "choices": [
+     "None — generous requests and limits are best practice for production safety",
+     "The pod will be OOM-killed on startup because 16Gi is too small for nginx",
+     "The 16Gi memory request will starve the cluster and cause Pending scheduling failures for other workloads, and the 8-CPU limit lets this pod burst-throttle its neighbors",
+     "The 0.5 CPU request is invalid and the pod will never schedule"
+    ],
+    "answer": 2,
+    "explain": "Name both failure modes: memory over-requesting is a scheduling hazard cluster-wide (the scheduler reserves what you ask), and an outsized CPU limit creates noisy-neighbor throttling. Then give the fix: right-size from measured usage (kubectl top / metrics) and enforce sane bounds with LimitRanges. Panels want the cluster-level thinking, not just 'it's wasteful.'"
+   },
+   "notes": [
+    {
+     "title": "Requests vs Limits: Two Different Promises",
+     "body": "Requests are what the scheduler uses: 'this container needs at least this much to be placeable.' Limits are what the kernel enforces: 'this container may never exceed this much.' CPU is compressible (throttled when over limit); memory is incompressible (exceed the limit and the kernel OOM-kills the process). Worked example: a node has 4 CPUs (4000 millicores) and 16 Gi memory free. You submit pods requesting 500m CPU / 1Gi memory each. How many schedule? By CPU: 4000/500 = 8; by memory: 16/1 = 16 — the scheduler takes the tighter constraint, so 8 pods schedule (bin-packing across both dimensions). If each pod's CPU limit is 2000m, all 8 can still burst to 2 cores when idle CPU exists — limits don't reserve, they cap. Solution to the classic confusion: requests determine PLACEMENT, limits determine ENFORCEMENT, and over-requesting is the #1 cause of 'the cluster is full but nothing is busy.'"
+    },
+    {
+     "title": "Panel Exercise: Review This nginx YAML",
+     "body": "The panel shows a frontend pod: image nginx:v4, requests {memory: 16Gi, cpu: 0.5}, limits {memory: 32Gi, cpu: 8}. 'What issues will this cause later?' Worked analysis: an nginx frontend requesting 16 Gi of memory is absurd — nginx typically needs tens of MB — so each replica consumes a huge scheduling reservation; a 3-replica Deployment reserves 48 Gi of cluster memory for a web server, starving real workloads and triggering 'Insufficient memory' Pending events elsewhere. The 8-CPU limit lets one pod burst to 8 cores, so under load this frontend can throttle neighboring pods' CPU (noisy neighbor), while the 0.5-CPU request means it scheduled onto nearly-empty CPU nodes that its memory request then hogs. Solution you'd propose: right-size to requests like {memory: 128Mi, cpu: 100m} and limits like {memory: 256Mi, cpu: 500m}, measured from actual usage (kubectl top, metrics history), and set namespace LimitRanges so no one can submit 16Gi requests again. The panel is testing whether you spot over-requesting as a cluster-wide hazard, not just a wasteful pod."
+    },
+    {
+     "title": "Request 1Gi but the App Needs 2Gi: Does It Start?",
+     "body": "Panel follow-up: 'nginx needs a minimum of 2Gi to start. The request is 1Gi. Does it work?' Worked reasoning: the scheduler only looks at requests, so YES, the pod schedules — 1Gi fits on any node with 1Gi free. What happens next depends on the limit. Case A: limit is also 1Gi — the container starts, memory climbs past 1Gi during startup, the kernel OOM-kills it: CrashLoopBackOff with exit 137, Reason OOMKilled. Case B: no limit set — the container starts, uses 2Gi+, and survives until the NODE comes under memory pressure, at which point the kubelet evicts the pod (it exceeded its request, making it the first eviction candidate). Solution: requests must reflect reality — set the request at or above the app's actual minimum (2Gi) so scheduling is honest, and set the limit slightly above the request to absorb spikes. 'It schedules' is not 'it works.'"
+    },
+    {
+     "title": "OOMKilled and Exit 137: Diagnosis via Last State",
+     "body": "Exit code 137 means the process was SIGKILLed (128 + 9) — it did not crash on its own; something killed it. In Kubernetes that something is almost always the kernel's OOM killer enforcing the container's memory limit, recorded as Reason: OOMKilled in the container's lastState. Worked example: container svc-basic terminated with exit code 137. You run kubectl describe pod and read: Last State: Terminated, Reason: OOMKilled, Exit Code: 137, Started/Finished timestamps 40 seconds apart, restartCount climbing. The app's previous logs show normal startup then silence — no traceback, because the kernel gave no warning. Solution: confirm the limit (describe shows limits.memory: 512Mi), check actual usage trend (kubectl top pod / metrics), then either raise the limit to cover the real working set or fix the memory growth (leak, unbounded cache). Never 'fix' 137 by adding CPU or restarting the node — it's a memory-limit event, full stop."
+    },
+    {
+     "title": "The Three Probes: Startup, Readiness, Liveness",
+     "body": "Probes are kubelet-run health checks, and each answers a different question. Startup probe: 'has the app finished initializing?' — while it fails, liveness/readiness are disabled, so slow-starting apps (JVM warmup) don't get killed mid-boot. Readiness probe: 'is the app ready for traffic?' — failure removes the pod from Service Endpoints WITHOUT restarting it. Liveness probe: 'is the app still alive?' — failure RESTARTS the container. Worked example (panel question): a pod runs fine for an hour, then suddenly restarts with no code change. Which probe? Solution: liveness — it's the only probe that restarts a running container. A readiness failure would have just pulled it from the Service silently. The panel's deeper test: 'the app deadlocks but the process lives' — liveness must test actual function (e.g. HTTP /healthz that exercises the request path), not just 'process exists', or the deadlock never triggers a restart."
+    },
+    {
+     "title": "Probe Tuning and the Python GIL Readiness Failure",
+     "body": "Probe parameters are initialDelaySeconds, periodSeconds, timeoutSeconds, successThreshold, failureThreshold — and mis-tuning them causes more outages than missing probes. Worked example (real panel scenario): a single-threaded Python web app keeps failing readiness under load. Diagnosis: the GIL means one thread handles requests AND the /ready endpoint; under load, request handling starves the probe endpoint, timeouts pile up, the pod is pulled from Endpoints, traffic shifts to remaining pods, they overload in turn — cascading failure. Solution: separate the probe from the request path (dedicated lightweight /readyz that doesn't queue behind app work, or a threaded/async server), set timeoutSeconds generously but periodSeconds tight enough to detect real death, and use startup probes for slow boots instead of huge initialDelays. Cloud-native guidance for services that 'fall over under load failing health checks': async/non-blocking handlers, separate probe endpoints, and timeouts everywhere — so health checking measures the app, not the queue."
+    }
+   ],
+   "objectives": [
+    "Distinguish CPU/memory requests from limits and predict scheduling and throttling behavior",
+    "Review a pod resource spec (the panel's nginx YAML) and identify what breaks in production",
+    "Diagnose OOMKilled / exit code 137 from lastState and choose the correct fix",
+    "Assign startup, readiness, and liveness probes to the right job and explain what each failure does",
+    "Tune probe parameters and explain single-threaded readiness failures such as the Python GIL case"
+   ],
+   "prerequisiteFor": [
+    "IL28-M29"
    ],
    "quiz": [
     {
@@ -9122,139 +9275,22 @@
      "explain": "The working set genuinely exceeds the limit at peak — either the limit must reflect reality or the footprint must shrink. Changing requests or nodes doesn't change the cgroup cap."
     }
    ],
-   "weight": 1,
-   "prerequisiteFor": [
-    "IL28-M29"
-   ],
-   "drills": [
+   "summary": "How Kubernetes divides CPU and memory between containers — requests, limits, millicores, and the OOM killer — plus the three probes (startup, readiness, liveness) and how to tune them, built around the real panel YAML-review and exit-137 questions.",
+   "title": "Resources: Requests/Limits, OOMKilled/Exit 137 & Probes",
+   "videos": [
     {
-     "id": "il28-m28-resource-math",
-     "title": "Requests/Limits Math",
-     "items": [
-      {
-       "prompt": "Node: 8 CPU / 32Gi free. Pods request 1000m / 4Gi, limit 2000m / 8Gi. How many schedule?",
-       "answer": "8 — by both CPU (8000/1000) and memory (32/4). Both dimensions bind at 8.",
-       "explain": "Compute per-dimension capacity and take the minimum; limits don't affect scheduling, only requests do."
-      },
-      {
-       "prompt": "Same node, pods now request 500m / 8Gi. How many schedule, and what limits them?",
-       "answer": "4 — memory binds (32/8 = 4) while CPU would allow 16.",
-       "explain": "Always name the binding dimension; it trains you to see which resource to add or which request to trim."
-      },
-      {
-       "prompt": "A pod requests 100m CPU with no limit on a 4-CPU node shared with 3 identical pods, all idle except one that spikes. What happens to the spiking pod?",
-       "answer": "It bursts freely up to available CPU — no limit means no throttle; the 100m request only guaranteed its scheduling slot.",
-       "explain": "No limit = unbounded burst. That's why production namespaces set LimitRanges/default limits."
-      },
-      {
-       "prompt": "Pod A requests 3Gi, limit 3Gi; Pod B requests 1Gi, no limit; node hits memory pressure. Who gets evicted first?",
-       "answer": "Pod B — it exceeds its request (Burstable), while Pod A is Guaranteed (request == limit) and evicted last.",
-       "explain": "QoS classes: Guaranteed (request==limit for all containers) evicted last; Burstable exceeding requests evicted first."
-      },
-      {
-       "prompt": "You set requests {cpu: 2, memory: 4Gi} 'to be safe' for an app using 100m/256Mi. Name the cluster-level harm.",
-       "answer": "You reserve 20x CPU and 16x memory the app never uses — the scheduler sees a full cluster while nodes sit idle, causing Pending for real workloads.",
-       "explain": "Over-requesting is the most common self-inflicted capacity crisis; requests must track measured usage."
-      },
-      {
-       "prompt": "Container limit 1Gi, app's steady state is 900Mi, startup spike is 1.2Gi. Predict behavior.",
-       "answer": "OOMKilled during startup (spike exceeds limit) → CrashLoopBackOff 137, even though steady state would fit.",
-       "explain": "Limits apply at every instant, including startup spikes. Size limits for peak, not average."
-      },
-      {
-       "prompt": "Two containers in one pod: c1 requests 500m/512Mi, c2 requests 500m/512Mi. What does the SCHEDULER see for the pod?",
-       "answer": "The sum: 1000m CPU / 1Gi memory — pod-level scheduling uses the total of container requests.",
-       "explain": "Requests and limits are per-container but scheduling sums them per pod; a sidecar's requests count against placement too."
-      },
-      {
-       "prompt": "LimitRange sets default request 100m/128Mi. A manifest specifies only limits {500m, 512Mi}. Effective request?",
-       "answer": "100m/128Mi from the LimitRange default — the pod schedules as if it requested those.",
-       "explain": "Unspecified requests fall back to LimitRange defaults; always check what the namespace injects."
-      }
-     ]
-    },
-    {
-     "id": "il28-m28-probe-scenarios",
-     "title": "Probe Scenarios",
-     "items": [
-      {
-       "prompt": "Pod Running, restartCount 0, but kubectl get endpoints shows no addresses. Which probe failed and what did it do?",
-       "answer": "Readiness failed — the pod was removed from Endpoints without being restarted.",
-       "explain": "Zero restarts + no endpoints = readiness, the signature pattern. Check the readiness probe definition and the app's /ready output."
-      },
-      {
-       "prompt": "Pod restartCount climbs every ~2 minutes; events show 'Liveness probe failed: connection refused'. App logs show normal startup. Likely cause?",
-       "answer": "The liveness probe hits the app before it's ready (no startup probe / too-small initialDelay) or probes the wrong port/path.",
-       "explain": "Connection refused on liveness with healthy logs = probe misconfiguration, not app failure. Add a startup probe or fix the probe target."
-      },
-      {
-       "prompt": "You add a liveness probe with periodSeconds: 5, failureThreshold: 3 to a slow API. What is the maximum detection-to-restart time?",
-       "answer": "~15s of consecutive failures (plus the initial delay) — 3 failed periods × 5s.",
-       "explain": "failureThreshold × periodSeconds bounds detection time; tune it against your tolerance for false positives vs. dead-pod time."
-      },
-      {
-       "prompt": "Readiness probe execs a script that checks the database. DB goes down for 30s. Describe the blast radius with correct probes.",
-       "answer": "Pods fail readiness, leave Endpoints, traffic drains; when the DB recovers, probes pass and pods rejoin — no restarts, no cascade.",
-       "explain": "This is readiness done right: dependency failures shed traffic instead of killing containers."
-      },
-      {
-       "prompt": "Same DB outage, but the check is in the LIVENESS probe. What happens?",
-       "answer": "Every pod restarts, likely simultaneously — restart storm; slow-starting apps may never rejoin, cascading the outage.",
-       "explain": "Never put dependency checks in liveness: a downstream blip becomes a self-inflicted mass restart."
-      },
-      {
-       "prompt": "Panel: 'Pod runs, then suddenly restarts — which probe?' Answer in one sentence with the reasoning.",
-       "answer": "Liveness — it's the only probe whose failure restarts a running container; I'd confirm via the event and rule out OOMKilled in lastState.",
-       "explain": "Name the probe, state the mechanism, and show you distinguish it from 137 — the complete panel answer."
-      },
-      {
-       "prompt": "Your probe: httpGet /healthz, timeoutSeconds: 1, on an app whose p99 latency is 800ms. Symptom and fix?",
-       "answer": "Flapping readiness/liveness from timeouts near p99; raise timeoutSeconds (e.g. 5) so the probe tolerates normal latency.",
-       "explain": "Timeouts must clear the app's normal latency with margin, or the probe measures tail latency instead of health."
-      },
-      {
-       "prompt": "Why must the liveness endpoint be cheap and side-effect free?",
-       "answer": "It runs for the life of the pod at every period — an expensive or mutating check adds load and can itself cause the failures it detects.",
-       "explain": "Probes are overhead you pay forever; keep liveness trivial ('process alive'), put depth in readiness."
-      }
-     ]
+     "title": "Kubernetes Resource Requests And Limits | Fix OOMKilled | Part-27",
+     "url": "https://www.youtube.com/watch?v=g2tGM-0bYhQ",
+     "source": "Harshalkumar Jain (YouTube)",
+     "blurb": "Kubernetes requests and limits, and fixing OOMKilled — the resource-spec review from the module's panel scenario.",
+     "durationMin": 13,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "il28-m28-lab",
-    "title": "Break It With Resources, Fix It With Probes",
-    "brief": "Deploy workloads with deliberate resource misconfigurations, trigger a real OOMKilled, diagnose it from lastState, then add and tune all three probes on a slow-starting app.",
-    "steps": [
-     "Create namespace res-lab; deploy a memory-hungry app with requests {128Mi} and limits {128Mi}.",
-     "Drive memory past the limit; observe CrashLoopBackOff and capture the OOMKilled/137 evidence from describe.",
-     "Raise the limit to fit the real working set; verify restarts stop and record the before/after values.",
-     "Deploy the panel's nginx spec (requests 16Gi/0.5, limits 32Gi/8) on your cluster; observe the scheduling impact and document it.",
-     "Right-size the nginx spec from measured usage (kubectl top) and re-deploy; compare node allocation.",
-     "Deploy a slow-starting app (sleep 60 in init) with only a liveness probe; watch it get killed mid-boot.",
-     "Add a startup probe covering the boot window; verify the app now survives startup and liveness takes over.",
-     "Break the app's dependency (point it at a dead DB host); confirm readiness removes it from Endpoints with zero restarts.",
-     "Move the dependency check into liveness temporarily; observe the restart storm, then revert.",
-     "Write the probe decision table your team will use: which check goes in which probe, with timeout guidance."
-    ],
-    "deliverable": "OOMKilled evidence capture, right-sized nginx spec with justification, probe decision table, and before/after manifests.",
-    "checkpoint": "You can produce an OOMKilled on demand, read it from lastState, and explain why each probe lives where it does in your manifests."
-   },
-   "mockTask": {
-    "id": "il28-m28-mock",
-    "type": "choice",
-    "q": "Panel: they show the frontend pod YAML — image nginx:v4, requests {memory: 16Gi, cpu: 0.5}, limits {memory: 32Gi, cpu: 8} — and ask 'this goes to production as-is; what issues will you see later?'",
-    "choices": [
-     "None — generous requests and limits are best practice for production safety",
-     "The pod will be OOM-killed on startup because 16Gi is too small for nginx",
-     "The 16Gi memory request will starve the cluster and cause Pending scheduling failures for other workloads, and the 8-CPU limit lets this pod burst-throttle its neighbors",
-     "The 0.5 CPU request is invalid and the pod will never schedule"
-    ],
-    "answer": 2,
-    "explain": "Name both failure modes: memory over-requesting is a scheduling hazard cluster-wide (the scheduler reserves what you ask), and an outsized CPU limit creates noisy-neighbor throttling. Then give the fix: right-size from measured usage (kubectl top / metrics) and enforce sane bounds with LimitRanges. Panels want the cluster-level thinking, not just 'it's wasteful.'"
-   },
-   "crossLinks": [],
-   "videos": [],
-   "estimatedMinutes": 480
+   "weight": 1
   },
   {
    "id": "IL28-M29",
@@ -12177,7 +12213,19 @@
    ],
    "summary": "Traces a commit from a developer's machine to production through the canonical pipeline phases — build, test, scan, package, deploy — and shows how quality gates, branching strategy, and environments decide what ships. This is the panel's CI/CD territory: major phases commit-to-release and where pipelines stop bad code most.",
    "title": "CI/CD Fundamentals: Phases, Gates & Quality",
-   "videos": [],
+   "videos": [
+    {
+     "title": "CI/CD Explained in 5 Minutes",
+     "url": "https://www.youtube.com/watch?v=ddDJxFnv-qs",
+     "source": "TechWorld with Nana (YouTube)",
+     "blurb": "TechWorld with Nana on CI/CD — the six commit-to-release phases and quality gates in five minutes.",
+     "durationMin": 4,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
+    }
+   ],
    "weight": 1
   },
   {
@@ -14386,43 +14434,6 @@
    "estimatedMinutes": 660
   },
   {
-   "id": "IL28-M45",
-   "code": "IL-28",
-   "title": "Metrics, Logs & Traces: Prometheus, Grafana & ELK",
-   "summary": "Build full observability: Prometheus pull model and PromQL, Grafana RED dashboards, the EFK logging pipeline, the Azure Monitor mapping, and the sampling-and-aggregation architecture that survives millions of transactions per second.",
-   "objectives": [
-    "Explain the Prometheus pull model and choose Counter, Gauge, and Histogram correctly",
-    "Write PromQL for rates, error ratios, and latency quantiles, and design recording rules",
-    "Build Grafana dashboards using the RED and USE methods with variables and deploy annotations",
-    "Operate the EFK pipeline and triage error spikes via filter-aggregate-pivot",
-    "Design observability for millions of txns/sec using cardinality discipline, sampling, and tiered retention"
-   ],
-   "notes": [
-    {
-     "title": "Prometheus: The Pull Model and Metric Types",
-     "body": "Prometheus monitors by scraping: it pulls metrics from HTTP endpoints (usually /metrics) on a fixed interval, storing timestamped samples in its time-series database. Pull inverts the usual push assumption and buys you three things: targets can die without losing the monitoring path's knowledge of them (failed scrapes are themselves a signal via the 'up' metric), service discovery (Kubernetes, EC2, DNS) keeps the target list fresh automatically, and exporters are dumb text endpoints — any app can expose metrics with a client library. Four metric types: Counter (monotonically increasing: http_requests_total), Gauge (goes up and down: memory usage, queue depth), Histogram (observations bucketed for latency quantiles), Summary (precomputed quantiles, less flexible). Worked example: your API exposes http_requests_total{method,code} and http_request_duration_seconds_bucket. Which type answers 'requests per second'? Solution: a Counter — rate(http_requests_total[5m]). Which answers 'current queue depth'? A Gauge — read directly. Which answers 'p99 latency'? The Histogram — histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])). The classic mistake is rate() on a Gauge (meaningless — gauges are not cumulative) or averaging a Counter directly (use rate first)."
-    },
-    {
-     "title": "PromQL Basics: rate, increase, and histogram_quantile",
-     "body": "PromQL is Prometheus's query language; a handful of functions covers most operational questions. rate(v range-vector[5m]) gives per-second average increase — the standard way to read counters. increase() gives the total increase over the window. sum by (label) aggregates: sum by (service) (rate(http_requests_total[5m])). avg_over_time, max_over_time smooth gauges. histogram_quantile(0.99, ...) computes the p99 from histogram buckets. Alert expressions combine these with thresholds: rate(http_requests_total{code=~'5..'}[5m]) / rate(http_requests_total[5m]) > 0.05 fires when the 5xx ratio exceeds 5%. Worked example: 'Is checkout slower than yesterday?' Solution: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{route='/checkout'}[5m]))) and compare against the same query with a 24h offset modifier. Second: 'Which pod is OOMKilled most?' — increase(kube_pod_container_status_terminated_reason{reason='OOMKilled'}[1h]) sorted by pod. The trap: rate() needs at least two samples in the window — on a 30s scrape interval, a [1m] window is fragile; use [5m] for stability. And remember counters reset on restart — rate() handles resets, but naive subtraction does not."
-    },
-    {
-     "title": "Grafana: Dashboards That Answer Questions",
-     "body": "Grafana turns Prometheus (and other sources) into dashboards, but a dashboard is only as good as the questions it answers. Design by the RED method per service — Rate (requests/sec), Errors (error ratio), Duration (latency quantiles) — plus the USE method per resource — Utilization, Saturation, Errors. One row per service with its RED panels; one row per dependency (database, queue) with USE panels. Variables make dashboards reusable: a $namespace or $service dropdown templating every query. Annotations mark deploys so you can correlate a latency spike with the release that caused it. Worked example: build the checkout dashboard. Panels: (1) rate of checkouts: sum(rate(checkout_completed_total[5m])); (2) error ratio: 5xx rate / total rate with a 1% alert threshold line; (3) p50/p95/p99 latency via histogram_quantile; (4) saturation: container CPU throttling rate and memory working set vs limit. Solution review: each panel maps to RED; variables let the same dashboard serve every service; the deploy annotation answers 'what changed?' in one glance. The anti-pattern is the wall of 40 graphs nobody reads — if a panel has never triggered a decision, delete it. Dashboards are operational tools, not art."
-    },
-    {
-     "title": "Centralized Logging: The EFK Pipeline",
-     "body": "Metrics tell you something is wrong; logs tell you why. The EFK stack — Elasticsearch, Fluent Bit/Fluentd, Kibana (or OpenSearch equivalents) — centralizes logs because containers are ephemeral: when a pod dies, its local logs die with it. The pipeline: application writes structured JSON logs to stdout; the node agent (Fluent Bit as a DaemonSet) tails container logs, parses and enriches them (adds pod, namespace, node labels), and ships to Elasticsearch; Kibana queries and visualizes. Structured logging is the prerequisite — log {timestamp, level, service, trace_id, message, fields} as JSON, never free text, so every field is filterable. Worked example: checkout errors spike; find the cause. Solution: in Kibana, filter level=error AND service=checkout over the spike window, aggregate by fields.error_code — one code dominates; expand a sample document, copy its trace_id, pivot to the trace view to see the failing downstream call. The cost trap is log volume: debug logging in production at millions of transactions per second will bankrupt your Elasticsearch cluster. Set levels per environment (info in prod, debug in dev), sample high-volume access logs, and set index retention (hot 7 days, warm 30, delete after 90) before the disk fills."
-    },
-    {
-     "title": "Azure Monitor: The Native Mapping",
-     "body": "On Azure, the native observability stack is Azure Monitor: metrics flow into Metrics Explorer, logs into Log Analytics workspaces queried with KQL, and Application Insights provides APM (distributed traces, dependency maps) for applications. Container Insights onboards AKS clusters to collect Prometheus metrics and container logs without running your own stack. The mapping to this module: Prometheus ~ Azure Monitor metrics, Grafana ~ Metrics Explorer/dashboards (or Grafana with the Azure data source), EFK ~ Log Analytics + KQL, Alertmanager ~ Azure Monitor alert rules with action groups. Worked example: replicate the checkout RED dashboard natively. Solution: Container Insights collects the Prometheus endpoints; a Log Analytics query (KQL) aggregates: ContainerLog | where LogEntry contains 'ERROR' | summarize count() by bin(TimeGenerated, 5m); an alert rule fires an action group (email + webhook + PagerDuty) when the 5xx ratio crosses the SLO threshold. The decision framework: run Prometheus/Grafana/EFK yourself for portability and PromQL familiarity across clouds (the multicloud answer from M44), or adopt Azure Monitor for zero-operational-overhead on Azure with KQL as the query skill. Most enterprises end up hybrid: Prometheus for K8s metrics, Azure Monitor for platform/audit logs."
-    },
-    {
-     "title": "Observability at Millions of Transactions per Second",
-     "body": "The panel asks how you do logging and monitoring at millions of transactions per second — the answer is sampling, aggregation, and cardinality discipline, because naive 'log everything, label everything' collapses. Metrics: keep label cardinality bounded — a label with a million distinct values (like user_id or request_id) creates a million time series and will OOM your Prometheus; aggregate at the edge and drop high-cardinality labels via relabeling. Use recording rules to precompute expensive queries (the 5xx ratio per service computed once, read by every dashboard). Logs: sample aggressively (1% of success logs, 100% of errors), structure everything, and ship to a tiered store. Traces: head-based sampling at low rates plus tail-based sampling that keeps all error traces — you need the failures, not the successes. Worked example: checkout does 2M txns/sec; the team wants per-request logs and per-user latency metrics. Solution: per-user latency as a metric is rejected (cardinality explosion); instead histogram by route with bounded labels, recording rules for the SLO ratios, 1% sampled success logs + 100% error logs, and tail-sampled traces keeping errors. The panel one-liner: 'At scale, observability is a sampling and aggregation architecture, not a collection architecture.'"
-    }
-   ],
    "cards": [
     {
      "front": "Prometheus pull vs push: what does a failed scrape tell you?",
@@ -14472,6 +14483,167 @@
      "front": "Trace sampling strategy at 2M txns/sec",
      "back": "Head-based sampling at low rates + tail-based sampling that keeps 100% of error traces — you need the failures, not the successes"
     }
+   ],
+   "code": "IL-28",
+   "crossLinks": [
+    "IL28-M46",
+    "IL28-M49"
+   ],
+   "drills": [
+    {
+     "id": "il28-m45-promql",
+     "title": "Timed drill: PromQL under pressure",
+     "items": [
+      {
+       "prompt": "Write: per-service requests/sec from http_requests_total.",
+       "answer": "sum by (service) (rate(http_requests_total[5m]))",
+       "explain": "rate then aggregate — the most-written query in operations."
+      },
+      {
+       "prompt": "Write: 5xx error ratio.",
+       "answer": "rate(http_requests_total{code=~'5..'}[5m]) / rate(http_requests_total[5m])",
+       "explain": "Regex matcher on code; ratio of rates, not rate of ratios."
+      },
+      {
+       "prompt": "Write: p99 latency for route /checkout.",
+       "answer": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{route='/checkout'}[5m]))",
+       "explain": "Buckets, not raw observations — the _bucket suffix matters."
+      },
+      {
+       "prompt": "Why [5m] and not [1m] with a 30s scrape interval?",
+       "answer": "[1m] holds ~2 samples — fragile; [5m] smooths missed scrapes and restarts.",
+       "explain": "rate needs multiple samples; short windows on sparse scrapes lie."
+      },
+      {
+       "prompt": "Counter vs Gauge: which gets rate(), which is read directly?",
+       "answer": "Counters get rate(); gauges are read directly (or avg_over_time).",
+       "explain": "Say the rule and the reason: rate assumes cumulative + resets."
+      },
+      {
+       "prompt": "Which pod is being OOMKilled most in the last hour? Write it.",
+       "answer": "sum by (pod) (increase(kube_pod_container_status_terminated_reason{reason='OOMKilled'}[1h]))",
+       "explain": "increase over the window, grouped by pod — leads straight to the memory-limit fix."
+      },
+      {
+       "prompt": "What does the 'up' metric tell you, and why does pull make it possible?",
+       "answer": "up==0 means the scrape failed (target down). Pull makes target death a first-class signal.",
+       "explain": "Push systems learn about death by absence; pull learns by failed attempt."
+      }
+     ]
+    },
+    {
+     "id": "il28-m45-scale",
+     "title": "Timed drill: observability at scale",
+     "items": [
+      {
+       "prompt": "Define RED and USE.",
+       "answer": "RED per service: Rate, Errors, Duration. USE per resource: Utilization, Saturation, Errors.",
+       "explain": "RED for services, USE for resources — dashboard design in two acronyms."
+      },
+      {
+       "prompt": "EFK pipeline: name the four stages.",
+       "answer": "Structured stdout logs -> Fluent Bit DaemonSet tail/enrich -> Elasticsearch store -> Kibana query.",
+       "explain": "Ephemeral pods make centralization mandatory, not optional."
+      },
+      {
+       "prompt": "Checkout errors spike. Your 3-step Kibana triage?",
+       "answer": "Filter level=error+service over window; aggregate by error_code; pivot on trace_id.",
+       "explain": "Filter, aggregate, pivot — say it as the muscle-memory sequence."
+      },
+      {
+       "prompt": "Why reject a per-user_id latency metric at 2M txns/sec?",
+       "answer": "Cardinality explosion: a million label values = a million series = Prometheus OOM.",
+       "explain": "Bounded labels + histograms + recording rules instead."
+      },
+      {
+       "prompt": "Log strategy at 2M txns/sec: successes vs errors?",
+       "answer": "Sample successes aggressively (e.g. 1%); keep 100% of errors; structured JSON always.",
+       "explain": "You need the failures, not the successes — volume control at the source."
+      },
+      {
+       "prompt": "Map to Azure native: Prometheus, Grafana, EFK, Alertmanager.",
+       "answer": "Monitor metrics, Metrics Explorer/dashboards, Log Analytics+KQL, alert rules + action groups.",
+       "explain": "Know both stacks; justify the choice (portability vs zero-ops)."
+      },
+      {
+       "prompt": "Panel: 'observability at millions of txns/sec' — your one-liner?",
+       "answer": "'At scale, observability is a sampling and aggregation architecture: bounded cardinality, recording rules, sampled logs, tail-sampled traces.'",
+       "explain": "Then unpack each of the four on demand — the one-liner opens, the details close."
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 600,
+   "handsOnLab": {
+    "id": "il28-m45-lab",
+    "title": "Lab: Prometheus + Grafana + EFK on a local stack",
+    "brief": "You will run Prometheus, Grafana, and an EFK pipeline with Docker Compose, instrument a sample Python API with RED metrics and structured logs, build the checkout-style dashboard, and practice the error-spike triage end to end.",
+    "steps": [
+     "Create the lab dir and docker-compose.yml with Prometheus (prom/prometheus), Grafana (grafana/grafana), Elasticsearch (single-node), Fluent Bit, and Kibana. Pin image tags.",
+     "Write prometheus.yml scraping your sample API at api:8000/metrics every 15s plus itself; add a recording rule file computing job:5xx_ratio:rate5m.",
+     "Write the sample API (Python + prometheus_client): expose http_requests_total (Counter), http_request_duration_seconds (Histogram), queue_depth (Gauge); log structured JSON to stdout with trace_id per request.",
+     "Start the stack: docker-compose up -d; verify Prometheus targets at localhost:9090/targets (all UP) and Grafana at localhost:3000.",
+     "In Prometheus, run sum by (route) (rate(http_requests_total[5m])) and the p99 histogram_quantile query; confirm numbers move when you curl the API in a loop.",
+     "Generate an error spike: hit a /fail endpoint 200 times; watch the 5xx ratio recording rule climb in Prometheus.",
+     "Build the Grafana dashboard: one row, four panels — request rate, error ratio (with 1% threshold line), p50/p95/p99 latency, queue depth gauge. Add a $route variable.",
+     "Configure Fluent Bit to tail the API container logs, parse JSON, and ship to Elasticsearch; verify documents in Kibana under an index pattern.",
+     "In Kibana, filter level=error over the spike window, aggregate by error_code, and pivot on a trace_id — write down the three steps and what each revealed.",
+     "Add a Prometheus alert rule: 5xx ratio > 5% for 5m; trigger it with the /fail loop and confirm the alert fires in the Prometheus UI.",
+     "Break cardinality deliberately: add a user_id label to a counter, generate traffic, and watch active series explode (Prometheus status page) — then remove the label and note the lesson.",
+     "Document the scale plan: for 2M txns/sec, write which labels you would keep/drop, your sampling rates, and your retention tiers. Tear down with docker-compose down -v."
+    ],
+    "deliverable": "A running-then-removed local observability stack, a RED Grafana dashboard, a written Kibana triage walkthrough, and a one-page 'observability at 2M txns/sec' scale plan.",
+    "checkpoint": "Dashboard panels answer rate/errors/duration; the alert fires on the induced spike; Kibana triage finds the error_code; the scale plan names kept/dropped labels with reasons."
+   },
+   "id": "IL28-M45",
+   "mockTask": {
+    "id": "il28-m45-mock",
+    "type": "choice",
+    "q": "Panel: 'How do you do logging and monitoring at millions of transactions per second?' What is the core of a strong answer?",
+    "choices": [
+     "Log every request with full detail and alert on all of it",
+     "Sampling and aggregation architecture: bounded label cardinality, recording rules, sampled success logs with 100% of errors, tail-sampled traces keeping failures",
+     "Buy a bigger Elasticsearch cluster",
+     "Disable monitoring in production for performance"
+    ],
+    "answer": 1,
+    "explain": "Scale breaks naive collection: unbounded labels OOM Prometheus, full logging bankrupts storage. The strong answer names the four controls (cardinality, recording rules, log sampling, trace sampling) and the one-liner: observability at scale is a sampling and aggregation architecture."
+   },
+   "notes": [
+    {
+     "title": "Prometheus: The Pull Model and Metric Types",
+     "body": "Prometheus monitors by scraping: it pulls metrics from HTTP endpoints (usually /metrics) on a fixed interval, storing timestamped samples in its time-series database. Pull inverts the usual push assumption and buys you three things: targets can die without losing the monitoring path's knowledge of them (failed scrapes are themselves a signal via the 'up' metric), service discovery (Kubernetes, EC2, DNS) keeps the target list fresh automatically, and exporters are dumb text endpoints — any app can expose metrics with a client library. Four metric types: Counter (monotonically increasing: http_requests_total), Gauge (goes up and down: memory usage, queue depth), Histogram (observations bucketed for latency quantiles), Summary (precomputed quantiles, less flexible). Worked example: your API exposes http_requests_total{method,code} and http_request_duration_seconds_bucket. Which type answers 'requests per second'? Solution: a Counter — rate(http_requests_total[5m]). Which answers 'current queue depth'? A Gauge — read directly. Which answers 'p99 latency'? The Histogram — histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])). The classic mistake is rate() on a Gauge (meaningless — gauges are not cumulative) or averaging a Counter directly (use rate first)."
+    },
+    {
+     "title": "PromQL Basics: rate, increase, and histogram_quantile",
+     "body": "PromQL is Prometheus's query language; a handful of functions covers most operational questions. rate(v range-vector[5m]) gives per-second average increase — the standard way to read counters. increase() gives the total increase over the window. sum by (label) aggregates: sum by (service) (rate(http_requests_total[5m])). avg_over_time, max_over_time smooth gauges. histogram_quantile(0.99, ...) computes the p99 from histogram buckets. Alert expressions combine these with thresholds: rate(http_requests_total{code=~'5..'}[5m]) / rate(http_requests_total[5m]) > 0.05 fires when the 5xx ratio exceeds 5%. Worked example: 'Is checkout slower than yesterday?' Solution: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{route='/checkout'}[5m]))) and compare against the same query with a 24h offset modifier. Second: 'Which pod is OOMKilled most?' — increase(kube_pod_container_status_terminated_reason{reason='OOMKilled'}[1h]) sorted by pod. The trap: rate() needs at least two samples in the window — on a 30s scrape interval, a [1m] window is fragile; use [5m] for stability. And remember counters reset on restart — rate() handles resets, but naive subtraction does not."
+    },
+    {
+     "title": "Grafana: Dashboards That Answer Questions",
+     "body": "Grafana turns Prometheus (and other sources) into dashboards, but a dashboard is only as good as the questions it answers. Design by the RED method per service — Rate (requests/sec), Errors (error ratio), Duration (latency quantiles) — plus the USE method per resource — Utilization, Saturation, Errors. One row per service with its RED panels; one row per dependency (database, queue) with USE panels. Variables make dashboards reusable: a $namespace or $service dropdown templating every query. Annotations mark deploys so you can correlate a latency spike with the release that caused it. Worked example: build the checkout dashboard. Panels: (1) rate of checkouts: sum(rate(checkout_completed_total[5m])); (2) error ratio: 5xx rate / total rate with a 1% alert threshold line; (3) p50/p95/p99 latency via histogram_quantile; (4) saturation: container CPU throttling rate and memory working set vs limit. Solution review: each panel maps to RED; variables let the same dashboard serve every service; the deploy annotation answers 'what changed?' in one glance. The anti-pattern is the wall of 40 graphs nobody reads — if a panel has never triggered a decision, delete it. Dashboards are operational tools, not art."
+    },
+    {
+     "title": "Centralized Logging: The EFK Pipeline",
+     "body": "Metrics tell you something is wrong; logs tell you why. The EFK stack — Elasticsearch, Fluent Bit/Fluentd, Kibana (or OpenSearch equivalents) — centralizes logs because containers are ephemeral: when a pod dies, its local logs die with it. The pipeline: application writes structured JSON logs to stdout; the node agent (Fluent Bit as a DaemonSet) tails container logs, parses and enriches them (adds pod, namespace, node labels), and ships to Elasticsearch; Kibana queries and visualizes. Structured logging is the prerequisite — log {timestamp, level, service, trace_id, message, fields} as JSON, never free text, so every field is filterable. Worked example: checkout errors spike; find the cause. Solution: in Kibana, filter level=error AND service=checkout over the spike window, aggregate by fields.error_code — one code dominates; expand a sample document, copy its trace_id, pivot to the trace view to see the failing downstream call. The cost trap is log volume: debug logging in production at millions of transactions per second will bankrupt your Elasticsearch cluster. Set levels per environment (info in prod, debug in dev), sample high-volume access logs, and set index retention (hot 7 days, warm 30, delete after 90) before the disk fills."
+    },
+    {
+     "title": "Azure Monitor: The Native Mapping",
+     "body": "On Azure, the native observability stack is Azure Monitor: metrics flow into Metrics Explorer, logs into Log Analytics workspaces queried with KQL, and Application Insights provides APM (distributed traces, dependency maps) for applications. Container Insights onboards AKS clusters to collect Prometheus metrics and container logs without running your own stack. The mapping to this module: Prometheus ~ Azure Monitor metrics, Grafana ~ Metrics Explorer/dashboards (or Grafana with the Azure data source), EFK ~ Log Analytics + KQL, Alertmanager ~ Azure Monitor alert rules with action groups. Worked example: replicate the checkout RED dashboard natively. Solution: Container Insights collects the Prometheus endpoints; a Log Analytics query (KQL) aggregates: ContainerLog | where LogEntry contains 'ERROR' | summarize count() by bin(TimeGenerated, 5m); an alert rule fires an action group (email + webhook + PagerDuty) when the 5xx ratio crosses the SLO threshold. The decision framework: run Prometheus/Grafana/EFK yourself for portability and PromQL familiarity across clouds (the multicloud answer from M44), or adopt Azure Monitor for zero-operational-overhead on Azure with KQL as the query skill. Most enterprises end up hybrid: Prometheus for K8s metrics, Azure Monitor for platform/audit logs."
+    },
+    {
+     "title": "Observability at Millions of Transactions per Second",
+     "body": "The panel asks how you do logging and monitoring at millions of transactions per second — the answer is sampling, aggregation, and cardinality discipline, because naive 'log everything, label everything' collapses. Metrics: keep label cardinality bounded — a label with a million distinct values (like user_id or request_id) creates a million time series and will OOM your Prometheus; aggregate at the edge and drop high-cardinality labels via relabeling. Use recording rules to precompute expensive queries (the 5xx ratio per service computed once, read by every dashboard). Logs: sample aggressively (1% of success logs, 100% of errors), structure everything, and ship to a tiered store. Traces: head-based sampling at low rates plus tail-based sampling that keeps all error traces — you need the failures, not the successes. Worked example: checkout does 2M txns/sec; the team wants per-request logs and per-user latency metrics. Solution: per-user latency as a metric is rejected (cardinality explosion); instead histogram by route with bounded labels, recording rules for the SLO ratios, 1% sampled success logs + 100% error logs, and tail-sampled traces keeping errors. The panel one-liner: 'At scale, observability is a sampling and aggregation architecture, not a collection architecture.'"
+    }
+   ],
+   "objectives": [
+    "Explain the Prometheus pull model and choose Counter, Gauge, and Histogram correctly",
+    "Write PromQL for rates, error ratios, and latency quantiles, and design recording rules",
+    "Build Grafana dashboards using the RED and USE methods with variables and deploy annotations",
+    "Operate the EFK pipeline and triage error spikes via filter-aggregate-pivot",
+    "Design observability for millions of txns/sec using cardinality discipline, sampling, and tiered retention"
+   ],
+   "prerequisiteFor": [
+    "IL28-M46"
    ],
    "quiz": [
     {
@@ -14574,134 +14746,22 @@
      "explain": "Volume control happens at the source (levels, sampling) and at the store (hot/warm/delete retention tiers). Scaling the store without fixing the source just moves the bill."
     }
    ],
-   "weight": 2,
-   "prerequisiteFor": [
-    "IL28-M46"
-   ],
-   "drills": [
+   "summary": "Build full observability: Prometheus pull model and PromQL, Grafana RED dashboards, the EFK logging pipeline, the Azure Monitor mapping, and the sampling-and-aggregation architecture that survives millions of transactions per second.",
+   "title": "Metrics, Logs & Traces: Prometheus, Grafana & ELK",
+   "videos": [
     {
-     "id": "il28-m45-promql",
-     "title": "Timed drill: PromQL under pressure",
-     "items": [
-      {
-       "prompt": "Write: per-service requests/sec from http_requests_total.",
-       "answer": "sum by (service) (rate(http_requests_total[5m]))",
-       "explain": "rate then aggregate — the most-written query in operations."
-      },
-      {
-       "prompt": "Write: 5xx error ratio.",
-       "answer": "rate(http_requests_total{code=~'5..'}[5m]) / rate(http_requests_total[5m])",
-       "explain": "Regex matcher on code; ratio of rates, not rate of ratios."
-      },
-      {
-       "prompt": "Write: p99 latency for route /checkout.",
-       "answer": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{route='/checkout'}[5m]))",
-       "explain": "Buckets, not raw observations — the _bucket suffix matters."
-      },
-      {
-       "prompt": "Why [5m] and not [1m] with a 30s scrape interval?",
-       "answer": "[1m] holds ~2 samples — fragile; [5m] smooths missed scrapes and restarts.",
-       "explain": "rate needs multiple samples; short windows on sparse scrapes lie."
-      },
-      {
-       "prompt": "Counter vs Gauge: which gets rate(), which is read directly?",
-       "answer": "Counters get rate(); gauges are read directly (or avg_over_time).",
-       "explain": "Say the rule and the reason: rate assumes cumulative + resets."
-      },
-      {
-       "prompt": "Which pod is being OOMKilled most in the last hour? Write it.",
-       "answer": "sum by (pod) (increase(kube_pod_container_status_terminated_reason{reason='OOMKilled'}[1h]))",
-       "explain": "increase over the window, grouped by pod — leads straight to the memory-limit fix."
-      },
-      {
-       "prompt": "What does the 'up' metric tell you, and why does pull make it possible?",
-       "answer": "up==0 means the scrape failed (target down). Pull makes target death a first-class signal.",
-       "explain": "Push systems learn about death by absence; pull learns by failed attempt."
-      }
-     ]
-    },
-    {
-     "id": "il28-m45-scale",
-     "title": "Timed drill: observability at scale",
-     "items": [
-      {
-       "prompt": "Define RED and USE.",
-       "answer": "RED per service: Rate, Errors, Duration. USE per resource: Utilization, Saturation, Errors.",
-       "explain": "RED for services, USE for resources — dashboard design in two acronyms."
-      },
-      {
-       "prompt": "EFK pipeline: name the four stages.",
-       "answer": "Structured stdout logs -> Fluent Bit DaemonSet tail/enrich -> Elasticsearch store -> Kibana query.",
-       "explain": "Ephemeral pods make centralization mandatory, not optional."
-      },
-      {
-       "prompt": "Checkout errors spike. Your 3-step Kibana triage?",
-       "answer": "Filter level=error+service over window; aggregate by error_code; pivot on trace_id.",
-       "explain": "Filter, aggregate, pivot — say it as the muscle-memory sequence."
-      },
-      {
-       "prompt": "Why reject a per-user_id latency metric at 2M txns/sec?",
-       "answer": "Cardinality explosion: a million label values = a million series = Prometheus OOM.",
-       "explain": "Bounded labels + histograms + recording rules instead."
-      },
-      {
-       "prompt": "Log strategy at 2M txns/sec: successes vs errors?",
-       "answer": "Sample successes aggressively (e.g. 1%); keep 100% of errors; structured JSON always.",
-       "explain": "You need the failures, not the successes — volume control at the source."
-      },
-      {
-       "prompt": "Map to Azure native: Prometheus, Grafana, EFK, Alertmanager.",
-       "answer": "Monitor metrics, Metrics Explorer/dashboards, Log Analytics+KQL, alert rules + action groups.",
-       "explain": "Know both stacks; justify the choice (portability vs zero-ops)."
-      },
-      {
-       "prompt": "Panel: 'observability at millions of txns/sec' — your one-liner?",
-       "answer": "'At scale, observability is a sampling and aggregation architecture: bounded cardinality, recording rules, sampled logs, tail-sampled traces.'",
-       "explain": "Then unpack each of the four on demand — the one-liner opens, the details close."
-      }
-     ]
+     "title": "How Prometheus Monitoring works | Prometheus Architecture explained",
+     "url": "https://www.youtube.com/watch?v=h4Sl21AKiDg",
+     "source": "TechWorld with Nana (YouTube)",
+     "blurb": "How Prometheus monitoring works — the pull model, metric types, and architecture behind the module's PromQL.",
+     "durationMin": 21,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "il28-m45-lab",
-    "title": "Lab: Prometheus + Grafana + EFK on a local stack",
-    "brief": "You will run Prometheus, Grafana, and an EFK pipeline with Docker Compose, instrument a sample Python API with RED metrics and structured logs, build the checkout-style dashboard, and practice the error-spike triage end to end.",
-    "steps": [
-     "Create the lab dir and docker-compose.yml with Prometheus (prom/prometheus), Grafana (grafana/grafana), Elasticsearch (single-node), Fluent Bit, and Kibana. Pin image tags.",
-     "Write prometheus.yml scraping your sample API at api:8000/metrics every 15s plus itself; add a recording rule file computing job:5xx_ratio:rate5m.",
-     "Write the sample API (Python + prometheus_client): expose http_requests_total (Counter), http_request_duration_seconds (Histogram), queue_depth (Gauge); log structured JSON to stdout with trace_id per request.",
-     "Start the stack: docker-compose up -d; verify Prometheus targets at localhost:9090/targets (all UP) and Grafana at localhost:3000.",
-     "In Prometheus, run sum by (route) (rate(http_requests_total[5m])) and the p99 histogram_quantile query; confirm numbers move when you curl the API in a loop.",
-     "Generate an error spike: hit a /fail endpoint 200 times; watch the 5xx ratio recording rule climb in Prometheus.",
-     "Build the Grafana dashboard: one row, four panels — request rate, error ratio (with 1% threshold line), p50/p95/p99 latency, queue depth gauge. Add a $route variable.",
-     "Configure Fluent Bit to tail the API container logs, parse JSON, and ship to Elasticsearch; verify documents in Kibana under an index pattern.",
-     "In Kibana, filter level=error over the spike window, aggregate by error_code, and pivot on a trace_id — write down the three steps and what each revealed.",
-     "Add a Prometheus alert rule: 5xx ratio > 5% for 5m; trigger it with the /fail loop and confirm the alert fires in the Prometheus UI.",
-     "Break cardinality deliberately: add a user_id label to a counter, generate traffic, and watch active series explode (Prometheus status page) — then remove the label and note the lesson.",
-     "Document the scale plan: for 2M txns/sec, write which labels you would keep/drop, your sampling rates, and your retention tiers. Tear down with docker-compose down -v."
-    ],
-    "deliverable": "A running-then-removed local observability stack, a RED Grafana dashboard, a written Kibana triage walkthrough, and a one-page 'observability at 2M txns/sec' scale plan.",
-    "checkpoint": "Dashboard panels answer rate/errors/duration; the alert fires on the induced spike; Kibana triage finds the error_code; the scale plan names kept/dropped labels with reasons."
-   },
-   "mockTask": {
-    "id": "il28-m45-mock",
-    "type": "choice",
-    "q": "Panel: 'How do you do logging and monitoring at millions of transactions per second?' What is the core of a strong answer?",
-    "choices": [
-     "Log every request with full detail and alert on all of it",
-     "Sampling and aggregation architecture: bounded label cardinality, recording rules, sampled success logs with 100% of errors, tail-sampled traces keeping failures",
-     "Buy a bigger Elasticsearch cluster",
-     "Disable monitoring in production for performance"
-    ],
-    "answer": 1,
-    "explain": "Scale breaks naive collection: unbounded labels OOM Prometheus, full logging bankrupts storage. The strong answer names the four controls (cardinality, recording rules, log sampling, trace sampling) and the one-liner: observability at scale is a sampling and aggregation architecture."
-   },
-   "crossLinks": [
-    "IL28-M46",
-    "IL28-M49"
-   ],
-   "videos": [],
-   "estimatedMinutes": 600
+   "weight": 2
   },
   {
    "id": "IL28-M46",

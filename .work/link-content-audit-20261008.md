@@ -31,8 +31,21 @@
 - Portfolio enmanuel-mejia: deployed (link fix, token alignment).
 - learn.interstitiumlabs.dev: alias, inherits main.
 
-## Still running
-- Internal link crawler: COMPLETE. 882 URLs checked across 3 sites. Result: **zero real broken internal links** (326 initial flags were all crawler artifacts: og:type meta parsing, meta-description text in URLs, POST-only /api/waitlist, auth-gated /bootcamps/, and transient timeouts — all verified clean on recheck).
-- Video resource expansion worker.
-- Story supplements worker.
-- Final re-crawl + verification after all workers complete.
+## Completed this pass
+- Link fixes: /devops-superlab 301, tl-interview free bootcamp bypass, portfolio course link.
+- Brand: canonical logo + tagline sitewide.
+- Theme: multicloud tokens cloned; aurora removed per user; hero animated block untouched.
+- Content: mockTask backfill (275), no-cert notes for IL-20/21/22/23.
+- Link audit: 882 URLs checked — zero real broken internal links.
+- Committed as 059f2a1.
+
+## Still running (awaiting results — will auto-deliver)
+- Video finish-up worker (remaining ~200 modules across IL-17–IL-28). Previous worker claimed complete but left gaps; new worker verifying and filling.
+- After it completes: final deploy → re-crawl → verify clean → report.
+
+## Completed — story supplements (worker done ~17:35 EDT)
+- 104 "The story behind X" narrative supplements across all 29 courses (3.6 avg/course).
+- Stored: docs/university/data/courses/stories/<course>-stories.json (29 files) + _index.json.
+- Integration note: .work/story-supplements-INTEGRATION.md (player wiring not yet implemented — join contract specified).
+- Format: reel-style (human moment → real history → present connection → lesson bridge), 300-600 words, verifiedClaims audit trail per story. Reel text never copied.
+- Historical gaps honestly hedged, not invented (Google first A/B test 2000 unverified → used 41-shades; Bezos mandate ~2002 secondhand; etc.).

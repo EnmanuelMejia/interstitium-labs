@@ -1,0 +1,92 @@
+{
+ "course": "il-07-data-engineering-analytics-ai",
+ "stories": [
+  {
+   "bridge": "MapReduce taught the industry to think in two verbs — map and reduce. Now let's learn the data-school spine that grew from that paper.",
+   "course": "il-07-data-engineering-analytics-ai",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Jeffrey Dean",
+     "role": "Google engineer; co-author of the MapReduce paper"
+    },
+    {
+     "dates": "",
+     "name": "Sanjay Ghemawat",
+     "role": "Google engineer; co-author of the MapReduce paper"
+    },
+    {
+     "dates": "b. 1961",
+     "name": "Doug Cutting",
+     "role": "Co-creator of Hadoop"
+    }
+   ],
+   "hook": "In 2004, Google published the recipe for indexing the entire web — and gave it away for free.",
+   "id": "il-07-data-engineering-analytics-ai-story-1",
+   "moduleId": "il07-data-schools",
+   "narrative": "Jeffrey Dean and Sanjay Ghemawat were Google infrastructure engineers facing a problem of absurd scale: how do you process petabytes of web data across thousands of unreliable, commodity machines that fail constantly? Their answer, published at the OSDI conference in 2004, was disarmingly simple. The programmer writes two functions — map, which transforms input records into key-value pairs, and reduce, which merges all pairs sharing a key. The framework handles everything else: splitting the work across machines, shipping code to where the data lives, retrying the pieces that fail, collecting the results. Thousands of lines of distributed-systems plumbing collapsed into dozens of lines of application logic, and fault tolerance came free with the model. Across the industry, Doug Cutting and Mike Cafarella were building Nutch, an open-source search engine, and needed exactly this machinery. Cutting implemented Google's paper as Hadoop's MapReduce, and in 2006 the project found its footing — and its name, after Cutting's young son's toy elephant. Yahoo bet the company on it, Facebook built its early analytics on it, and the big-data era began: an entire generation learned that the way to process more data than fits on one machine is to bring the computation to the data, not the reverse. The specific framework has since been eclipsed by Spark, Flink, and the cloud warehouses, which kept the insight and removed the boilerplate. But the idea never left. Every batch pipeline you will build in this course — every shuffle, every partition, every 'embarrassingly parallel' stage — is MapReduce's grandchild, wearing newer clothes. Google's original paper is remarkably candid about the failures the model absorbed — crashed workers, stragglers, corrupted disks — because at that scale, failure isn't an exception, it's the weather. That attitude is the real inheritance: design for the weather. Spark, born at Berkeley's AMPLab in 2009, kept the two-verb soul and added memory; the cloud warehouses kept the scale and hid the verbs entirely.",
+   "title": "The story behind MapReduce",
+   "verifiedClaims": [
+    "Dean and Ghemawat's MapReduce paper was presented at OSDI in 2004",
+    "Cutting and Cafarella built Hadoop from it; Hadoop dates to 2006",
+    "Hadoop was named after Cutting's son's toy elephant"
+   ]
+  },
+  {
+   "bridge": "The web is a graph, and Page and Brin were the first to treat it like one. Now let's learn to think in graphs — the data structure behind search, recommendations, and fraud detection.",
+   "course": "il-07-data-engineering-analytics-ai",
+   "figures": [
+    {
+     "dates": "b. 1973",
+     "name": "Larry Page",
+     "role": "Co-founder of Google; co-inventor of PageRank"
+    },
+    {
+     "dates": "b. 1973",
+     "name": "Sergey Brin",
+     "role": "Co-founder of Google; co-inventor of PageRank"
+    }
+   ],
+   "hook": "In 1996, two Stanford PhD students decided to rank the web the way science ranks papers: by citation.",
+   "id": "il-07-data-engineering-analytics-ai-story-2",
+   "moduleId": "il07-data-schools",
+   "narrative": "Larry Page had an intuition that the existing search engines were missing: a link from one page to another was a vote, but not all votes were equal — a vote from an important page counted more than a vote from an obscure one. With Sergey Brin he built BackRub, a crawler that mapped the web's link structure as a giant graph, and turned the intuition into mathematics: PageRank, an algorithm in which a page's importance is determined by the importance of the pages linking to it, computed iteratively until the scores settle — the 'random surfer' model, imagining a user clicking links at random forever. They published 'The Anatomy of a Large-Scale Hypertextual Web Search Engine' in 1998, founded Google that September in a rented garage, and the rest is the defining business story of the internet age. But the technical legacy matters more for this course than the business one. PageRank was one of the first algorithms to treat the web as what it actually is — a giant graph — and to extract signal from structure rather than content. That move generalizes everywhere in data work: fraud rings are graphs, supply chains are graphs, recommendations are graphs, knowledge itself is a graph. The mathematics they used — eigenvectors of enormous matrices — is the same linear algebra you'll apply throughout this program. When you build graph analytics later in this course, you are using the lens that two graduate students ground in 1996 because they noticed that links, like citations, carry meaning. Structure is data too. The \"random surfer\" was more than a metaphor — it made the web's importance mathematically precise as the stationary distribution of a Markov chain, the same mathematics behind the statistics in this program. And the founders' garage is now legend: Google's first servers were corkboard and cheap disks in a Menlo Park garage rented in September 1998. Structure, statistics, and scrappiness — the whole company in three words.",
+   "title": "The story behind PageRank",
+   "verifiedClaims": [
+    "Page and Brin built the BackRub crawler in 1996",
+    "Their 'Anatomy' paper was published in 1998; Google was founded in September 1998"
+   ]
+  },
+  {
+   "bridge": "That 1943 equation is still inside every model you will train. Now let's build on it — from perceptrons to the architectures running in your phone.",
+   "course": "il-07-data-engineering-analytics-ai",
+   "figures": [
+    {
+     "dates": "1898–1969",
+     "name": "Warren McCulloch",
+     "role": "Neurophysiologist; co-author of the 1943 neuron paper"
+    },
+    {
+     "dates": "1923–1969",
+     "name": "Walter Pitts",
+     "role": "Logician; co-author of the 1943 neuron paper"
+    },
+    {
+     "dates": "1928–1971",
+     "name": "Frank Rosenblatt",
+     "role": "Psychologist; inventor of the perceptron (1958)"
+    }
+   ],
+   "hook": "In 1943, a neuroscientist and a teenage logician wrote down mathematics for a brain cell.",
+   "id": "il-07-data-engineering-analytics-ai-story-3",
+   "moduleId": "il07-ai-ml",
+   "narrative": "Warren McCulloch studied brains; Walter Pitts was a self-taught logician who had run away from home at fifteen, talked his way into the University of Chicago, and arrived carrying nothing but mathematics. Together they published 'A Logical Calculus of the Ideas Immanent in Nervous Activity' in 1943: a model of the neuron as a simple threshold device — it fires if enough of its inputs fire — and the startling claim that networks of such devices could compute anything computable, the full power of logic built from brain-like parts. It was the first artificial neuron, and it gave the newborn computer age a second blueprint: alongside the von Neumann machine, the neural machine. Fifteen years later, the Cornell psychologist Frank Rosenblatt made the neuron learn: his perceptron (1958), built as the room-sized Mark I machine with its camera eye and motor-driven weights, adjusted its own connections from examples — trial, error, correction, the ancestor of training. Then came the winter. In 1969, Marvin Minsky and Seymour Papert published 'Perceptrons,' proving rigorously that a single-layer perceptron couldn't learn simple functions like XOR, and funding for neural networks collapsed for more than a decade. The idea refused to die — it waited in the margins for backpropagation, for data, for GPUs — and returned to conquer everything. The throughline is worth remembering when training gets frustrating: the neuron in your phone's camera, the one tagging your photos and transcribing your speech, is McCulloch and Pitts's 1943 threshold device, taught Rosenblatt's 1958 trick, at a scale neither man could have imagined. Eighty years, one equation. Pitts's own story is the field's great tragedy: the brilliant runaway logician suffered a breakdown, burned his thesis, and died young in 1969 — the same year \"Perceptrons\" froze the field he helped create. The neuron survived its creators' quarrels. When your model converges in this course, spare a thought for the teenager who walked to Chicago with nothing but mathematics.",
+   "title": "The story behind the artificial neuron",
+   "verifiedClaims": [
+    "McCulloch and Pitts published the artificial neuron model in 1943",
+    "Rosenblatt's perceptron dates to 1958",
+    "Minsky and Papert's 'Perceptrons' (1969) triggered the first AI winter for neural nets"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+{
+ "course": "il-29-threatlocker-ai-cybersecurity-mastery",
+ "stories": [
+  {
+   "bridge": "1996 weaponized the stack overflow; the mitigations are what you operate. Now let's learn control hijacking — and the defenses that finally tamed it.",
+   "course": "il-29-threatlocker-ai-cybersecurity-mastery",
+   "figures": [],
+   "hook": "In 1996, a hacker named Aleph One published 'Smashing the Stack for Fun and Profit' — and weaponized a generation.",
+   "id": "il-29-threatlocker-ai-cybersecurity-mastery-story-1",
+   "moduleId": "IL29-M14",
+   "narrative": "The article appeared in Phrack 49, the underground ezine, and it was a tutorial: how buffer overflows work, how to overwrite the return address on the stack, how to inject shellcode — step by step, with code. Aleph One (Elias Levy) didn't discover the vulnerability class — the Morris worm had exploited a fingerd buffer overflow back in 1988 — but he industrialized the knowledge, turning an elite technique into something any motivated reader could learn. The result was the exploit era of the late nineties and early two-thousands: stack smashing powered the worms and break-ins that defined the decade, from Code Red to Blaster. The industry's response became the layered defense you'll operate: stack canaries (secret values that detect overwrites), DEP/NX (the stack isn't executable), ASLR (randomized addresses so the attacker can't aim), and eventually memory-safe languages. The cat-and-mouse continues — return-oriented programming defeated NX, info leaks defeat ASLR — but the tutorial's lesson stuck: the vulnerability is a memory-safety failure, and the fix is partly technical, partly linguistic. For the MIT 6.858 modules in this course, Aleph One's paper is the primary source: read it the way the course intends — as the clearest explanation ever written of how control flow becomes attacker-controlled. 1996 taught everyone to smash the stack. Your job is to know exactly how, so you can stop it. The mitigations stacked up over two decades — StackGuard's canaries (1998), non-executable stacks, ASLR, and finally memory-safe languages — each answering the previous generation of exploits, each bypassed in turn. The 6.858 modules in this course teach the full arc: how the attack works, why each defense helps, where each fails. Aleph One's tutorial is still the clearest starting point ever written; the defenses are the rest of the course. Learn the attack to build the defense — that's the 6.858 way.",
+   "title": "The story behind the buffer overflow",
+   "verifiedClaims": [
+    "'Smashing the Stack for Fun and Profit' appeared in Phrack 49 (1996)",
+    "The Morris worm exploited a fingerd buffer overflow in 1988",
+    "Mitigations include canaries, DEP/NX, and ASLR"
+   ]
+  },
+  {
+   "bridge": "Heartbleed is the ghost story of open-source infrastructure. Now let's learn network security and TLS — with 2014's lesson as the permanent warning.",
+   "course": "il-29-threatlocker-ai-cybersecurity-mastery",
+   "figures": [],
+   "hook": "On April 7, 2014, the internet learned its encrypted connections had been readable for two years.",
+   "id": "il-29-threatlocker-ai-cybersecurity-mastery-story-2",
+   "moduleId": "IL29-M18",
+   "narrative": "OpenSSL is the library that encrypts much of the web — and its heartbeat extension, meant to keep TLS connections alive, had a missing bounds check. A client could ask the server to echo back 64 kilobytes while actually sending one byte; the server, trusting the claimed length, would return 64KB of its own memory — passwords, keys, session tokens, whatever happened to be adjacent. Google's Neel Mehta found it independently around the same time as the Finnish firm Codenomicon, who named it Heartbleed and gave it the bleeding-heart logo that made it famous. Disclosed April 7, 2014, it was catastrophic in the most boring way: the bug had been in the code since 2012, exploitable without a trace, in the library everything depended on. Roughly half a million certificates were revoked and reissued; the cleanup took years. The deeper story was economic: OpenSSL was maintained by a handful of underfunded volunteers, securing trillions in commerce — the 'underproduction' crisis of open-source infrastructure. The response included the Core Infrastructure Initiative and a flood of funding, plus the slow migration to memory-safe TLS implementations. For this module, Heartbleed is the permanent warning attached to every TLS lesson: the protocol can be perfect and the implementation fatal; the library everyone uses is the library everyone must fund and audit. When you configure TLS, remember 2012–2014: two years, no trace, half the web. The funding response was the structural fix: the Core Infrastructure Initiative, backed by the biggest tech companies, poured resources into OpenSSL and its peers — an admission that the internet's most critical code had been maintained by volunteers. In this module, when you configure TLS, carry 2014's two lessons: audit the implementation, not just the protocol — and fund the infrastructure you depend on. Audit the implementation, fund the infrastructure.",
+   "title": "The story behind Heartbleed",
+   "verifiedClaims": [
+    "Heartbleed was disclosed April 7, 2014, in OpenSSL's heartbeat extension",
+    "The bug existed since 2012; ~500K certificates were replaced",
+    "It was found by Neel Mehta (Google) and Codenomicon independently"
+   ]
+  },
+  {
+   "bridge": "SHA-1's funeral is why crypto agility matters. Now let's learn the number theory and hash functions you'll actually deploy — and how to migrate when they fall.",
+   "course": "il-29-threatlocker-ai-cybersecurity-mastery",
+   "figures": [],
+   "hook": "On February 23, 2017, Google and Amsterdam researchers announced SHAttered: two different PDFs, one SHA-1 hash.",
+   "id": "il-29-threatlocker-ai-cybersecurity-mastery-story-3",
+   "moduleId": "IL29-M30",
+   "narrative": "SHA-1, designed by the NSA and published by NIST in 1995, was the world's workhorse hash: digital signatures, certificates, version control — Git itself is built on it. But hashes age. In 2005, Xiaoyun Wang's team showed theoretical collision attacks; the cryptographers warned, the industry nodded, and migration crawled. Then the SHAttered team — Google researchers and CWI Amsterdam — did it for real: 110 GPU-years of computation produced two distinct PDFs with the same SHA-1 digest, a practical collision announced February 23, 2017. The PDFs were visibly different documents with identical hashes — the death certificate for SHA-1 as a security function. Browsers had already begun distrusting SHA-1 certificates; Git began its long migration to SHA-256. The lesson for this module is crypto agility: every algorithm you deploy has a lifespan, and the migration must be planned before the break, not after. Wang's 2005 warning gave the industry twelve years; it still barely made it. When you learn hash functions here — SHA-2, SHA-3, the Merkle-Damgård construction and its successors — learn them as temporary residents. SHAttered is what happens at checkout time. The PDFs are still online, two different documents, one hash — the most elegant obituary in cryptography. The computation — 110 GPU-years — was the point: collisions had moved from theory to budget line, and any well-funded attacker could replicate it. Browsers had already begun distrusting SHA-1 certificates; Git began its long migration to SHA-256. In this module you'll learn hash functions as residents with leases — and SHAttered is the eviction notice, framed. The eviction notice was polite — twelve years of warning — and the industry still barely moved in time. In your work, schedule the migration before the break: crypto agility isn't a feature, it's the plan.  Agility isn't a feature; it's the migration plan.",
+   "title": "The story behind the death of SHA-1",
+   "verifiedClaims": [
+    "SHAttered was announced February 23, 2017, by Google and CWI Amsterdam",
+    "It produced a practical SHA-1 collision (two PDFs, one hash)",
+    "Wang's team showed theoretical attacks in 2005"
+   ]
+  },
+  {
+   "bridge": "ATT&CK is the map; this module teaches you to navigate it. Now let's learn threat intelligence and technique mapping — the common language of the SOC.",
+   "course": "il-29-threatlocker-ai-cybersecurity-mastery",
+   "figures": [],
+   "hook": "In 2013, MITRE decided the kill chain wasn't enough — and mapped the adversary's entire playbook.",
+   "id": "il-29-threatlocker-ai-cybersecurity-mastery-story-4",
+   "moduleId": "IL29-M43",
+   "narrative": "The cyber kill chain (2011) gave defenders phases, but phases are coarse: knowing you're in 'installation' doesn't tell you what to look for. MITRE's answer, launched in 2013, was ATT&CK — Adversarial Tactics, Techniques, and Common Knowledge: a matrix of what adversaries actually do, organized by tactic (the why: initial access, execution, persistence, privilege escalation, defense evasion, and more) and technique (the how: T1059 command-line interfaces, T1003 credential dumping, hundreds of entries, each with real-world procedure examples). It was built from MITRE's own red-team and detection work, released openly, and the industry adopted it as the common language: vendors map detections to techniques, threat intel reports cite technique IDs, and SOC analysts triage in ATT&CK terms. The framework keeps growing — mobile, ICS, cloud matrices — because the adversary keeps growing. For this module, ATT&CK is the map you'll navigate daily: when the assessment asks you to characterize an intrusion, the answer is a set of technique IDs, each linked to a detection and a mitigation. The kill chain told you where in the story you are; ATT&CK tells you what page you're on. Learn the matrix the way a city native learns streets — not as a list, but as a place you can move through. 2013 gave defenders the playbook. Your job is to read it faster than the adversary writes the next edition. The framework's power is compositional: techniques chain into procedures, procedures into campaigns, and the matrix gives every step a name, a detection, and a mitigation. Vendors, intel teams, and SOCs now speak it natively. In this module you'll map intrusions to the matrix until it's reflexive: see the behavior, name the technique, deploy the detection. MITRE gave the industry the playbook; fluency is the job. See the behavior, name the technique, deploy the detection — until it's reflexive.",
+   "title": "The story behind ATT&CK",
+   "verifiedClaims": [
+    "MITRE launched ATT&CK in 2013",
+    "It organizes adversary behavior by tactics and techniques",
+    "It became the industry's common detection language"
+   ]
+  }
+ ]
+}

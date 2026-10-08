@@ -1,0 +1,83 @@
+{
+ "course": "il-05-cloud-devsecops-platform-sre",
+ "stories": [
+  {
+   "bridge": "You are about to architect on the platform that memo created. Learn it the way Amazon learned it: as interfaces first, servers second.",
+   "course": "il-05-cloud-devsecops-platform-sre",
+   "figures": [
+    {
+     "dates": "b. 1964",
+     "name": "Jeff Bezos",
+     "role": "Founder of Amazon; issued the service-interface mandate"
+    },
+    {
+     "dates": "b. 1968",
+     "name": "Andy Jassy",
+     "role": "Led AWS from its inception; later CEO of Amazon"
+    }
+   ],
+   "hook": "Around 2002, Jeff Bezos issued an ultimatum to every team at Amazon: all data and functionality would be exposed through service interfaces — no exceptions.",
+   "id": "il-05-cloud-devsecops-platform-sre-story-1",
+   "moduleId": "il05-aws-architect",
+   "narrative": "The story comes to us secondhand — the engineer Steve Yegge described the mandate in a famous 2011 essay, recounting a directive that anyone who refused would be fired — but its effects are a matter of record. Amazon's internal systems were a tangle of direct database access and private APIs, and Bezos decreed that every team would communicate with every other team only through well-defined service interfaces, designed from the start as if they would be exposed to the outside world. No back doors, no shared databases, no exceptions. Whether or not the threat was literal, the discipline was real: Amazon rebuilt itself as a set of services talking to services, and in doing so it accidentally built the operational muscle — the deployment automation, the monitoring, the capacity planning — that running services at scale requires. Then someone asked the obvious question: if the plumbing is this good internally, why not sell it? In March 2006 Amazon launched the Simple Storage Service: unlimited storage, rented by the gigabyte, with no servers to buy and no capacity to plan. In August 2006 came the Elastic Compute Cloud: virtual servers by the hour, API-driven. The team was led by Andy Jassy, and the bet was that startups would rather rent infrastructure than build it — that the future belonged to whoever removed the server from the developer's mental model. They were right beyond anyone's forecast. Within a few years 'the cloud' meant AWS by default, venture funding stopped including a server budget, and the old model — buying servers, racking them, guessing capacity eighteen months out — collapsed. Every VPC, IAM policy, and availability zone you will design in this module is a descendant of that internal mandate: build everything as a service, even for yourself. Especially for yourself. The mandate's most quoted line — \"anyone who doesn't do this will be fired\" — may be apocryphal in its exact wording, but the organizational result is documented: Amazon became a company of small, autonomous service teams years before microservices had a name. When you design a VPC in this module, you're practicing the same discipline at a smaller scale: define the interface, hide the implementation, and let other teams build on your contract.",
+   "title": "The story behind AWS",
+   "verifiedClaims": [
+    "S3 launched in March 2006; EC2 followed in August 2006",
+    "The internal service-interface mandate at Amazon dates to approximately 2002",
+    "Andy Jassy led AWS from its inception"
+   ]
+  },
+  {
+   "bridge": "Error budgets are not bureaucracy — they are the treaty between speed and safety that Treynor's team invented. Now let's learn to operate under one.",
+   "course": "il-05-cloud-devsecops-platform-sre",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Ben Treynor",
+     "role": "Google VP; founded Site Reliability Engineering in 2003"
+    }
+   ],
+   "hook": "In 2003, Google hired Ben Treynor to run production — and he insisted on staffing the operations team with software engineers.",
+   "id": "il-05-cloud-devsecops-platform-sre-story-2",
+   "moduleId": "il05-devops-core",
+   "narrative": "Treynor's founding question became the field's koan: what happens when a software engineer is asked to design an operations team? His answer was that operations should be an engineering problem, not a ticket queue. If humans were doing repetitive operational work — 'toil,' in the vocabulary the team developed — that was a bug, and the fix was software: automate it, and cap toil at fifty percent of anyone's time so engineers could do engineering. The team Treynor built, Site Reliability Engineering, developed the discipline's core instruments: the service-level indicator (what you measure), the service-level objective (what you promise), and the error budget (how much failure you are allowed before you must stop shipping features and fix reliability). The error budget was the masterstroke — a treaty between developers who wanted velocity and operators who wanted stability, denominated in a single number both sides could read. Spend the budget on launches; when it's gone, you freeze features and burn down risk. Google ran this system quietly for over a decade before publishing it: 'Site Reliability Engineering,' the 2016 book by Betsy Beyer, Chris Jones, Jennifer Petoff, and Niall Richard Murphy, finally wrote down what the team had learned, and a sequel on the workbook followed. The industry adopted it wholesale — every serious platform team now speaks SLI/SLO. Today, when an interviewer asks you about error budgets, they are asking whether you can think the way Treynor's team learned to think: reliability is a feature, it has a price, the budget is the conversation, and hope is not a strategy. The fifty-percent toil cap is the detail most teams skip and most regret skipping: Treynor's rule was that no SRE should spend more than half their time on operational toil, with the excess automatically converted into engineering projects. Toil that can't be eliminated gets automated; toil that can't be automated gets a project. It's the difference between a team that operates a system and a team the system operates.",
+   "title": "The story behind SRE",
+   "verifiedClaims": [
+    "Treynor founded Google's SRE organization in 2003",
+    "The SRE book was published in 2016 (Beyer, Jones, Petoff, Murphy)",
+    "SLIs, SLOs, and error budgets are the discipline's core instruments"
+   ]
+  },
+  {
+   "bridge": "Kubernetes is Borg's lessons with the serial numbers filed off — open-sourced so everyone could use them. Now let's learn to operate the machine Google gave away.",
+   "course": "il-05-cloud-devsecops-platform-sre",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Joe Beda",
+     "role": "Co-creator of Kubernetes"
+    },
+    {
+     "dates": "",
+     "name": "Brendan Burns",
+     "role": "Co-creator of Kubernetes"
+    },
+    {
+     "dates": "",
+     "name": "Craig McLuckie",
+     "role": "Co-creator of Kubernetes"
+    }
+   ],
+   "hook": "In June 2014, Google open-sourced a decade of secret infrastructure knowledge in a single project.",
+   "id": "il-05-cloud-devsecops-platform-sre-story-3",
+   "moduleId": "il05-cloud-native",
+   "narrative": "Since the early 2000s, Google had run its empire on Borg, a cluster manager so far ahead of anything public that outsiders could barely imagine it: every service containerized, scheduled across tens of thousands of machines, automatically rescheduled when hardware died, with resources packed by algorithms the industry wouldn't see for years. Borg was followed by Omega, which pushed the design further toward flexible scheduling. The knowledge was a closely held trade secret — Google's moat wasn't just its algorithms but its ability to run them cheaply at planetary scale. Then three engineers — Joe Beda, Brendan Burns, and Craig McLuckie — convinced Google to distill a decade of lessons into an open-source project. They named it Kubernetes, from the Greek for helmsman — the same root as cybernetics — and released it in June 2014, with Docker containers as the packaging format and a clean API at the center. In 2015 Google donated it to the newly formed Cloud Native Computing Foundation, and the industry did the rest: every cloud, every vendor, every platform team converged on it, and the CNCF became the Linux Foundation's fastest-growing project. The genius of Kubernetes was not any single feature but the control loop — declare the desired state, and let the machine fight reality until it matches. That idea came straight from Borg. When you write a Deployment manifest in this module, you are using the interface Google spent ten years refining in secret, then gave to the world in an afternoon. The helmsman steers your containers now. The name was almost \"Seven of Nine\" — a Star Trek joke about Borg drones, with seven spokes in the original logo. Google chose the Greek instead, but the lineage is right there in the joke: Kubernetes is Borg, domesticated and donated. The CNCF, founded to hold it in 2015, became the home of the entire cloud-native ecosystem — Prometheus, Envoy, and everything else you'll meet in this program.",
+   "title": "The story behind Kubernetes",
+   "verifiedClaims": [
+    "Kubernetes was open-sourced by Google in June 2014",
+    "Its creators were Joe Beda, Brendan Burns, and Craig McLuckie",
+    "It was donated to the CNCF in 2015; its design descends from Google's Borg and Omega systems"
+   ]
+  }
+ ]
+}

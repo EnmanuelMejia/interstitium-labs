@@ -377,7 +377,20 @@
     "id": "m20-sets-logic-mock",
     "q": "You are asked: in 'if it rains, the ground is wet,' which is the necessary condition and which is sufficient?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Biconditional Statements | \"if and only if\"",
+     "url": "https://www.youtube.com/watch?v=oHijygNdx_8",
+     "source": "Dr. Trefor Bazett (YouTube)",
+     "blurb": "Trefor Bazett's discrete-math lesson on biconditional statements and 'if and only if' notation — core propositional-logic machinery for this module.",
+     "durationMin": 15,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-proof-methods",
@@ -660,46 +673,22 @@
     "id": "m20-proof-methods-mock",
     "q": "You are asked: prove that the sum of the first n odd numbers is n squared. Which method, and what are its required parts?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Intro to Mathematical Induction",
+     "url": "https://www.youtube.com/watch?v=GdM_iA1Zek4",
+     "source": "Dr. Trefor Bazett (YouTube)",
+     "blurb": "Trefor Bazett introduces mathematical induction step by step — basis case, induction hypothesis, induction step — the central proof method of this module.",
+     "durationMin": 15,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
-   "id": "m20-counting",
-   "code": "IL-20",
-   "title": "Counting & Combinatorics",
-   "weight": 1,
-   "summary": "Welcome to Module 3: Counting & Combinatorics. I'm your instructor, and this module answers the question ‘how many?’ — the mathematics behind password spaces, hash collisions, and every probability computation you'll meet in Module 12. Product and sum rules, permutations, combinations, the binomial theorem, and the pigeonhole principle: by the end you'll count an 8-bit string space in your sleep and know exactly why 367 people guarantee a shared birthday.",
-   "objectives": [
-    "Apply the product and sum rules to counting problems",
-    "Distinguish permutations from combinations",
-    "Use the binomial theorem and Pascal's identity",
-    "Apply the pigeonhole principle"
-   ],
-   "notes": [
-    {
-     "title": "Concepts",
-     "body": "- **product rule** — if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. An n-bit string has `2^n` possibilities; counting them is the same as counting subsets of an n-element set.\n- **sum rule** — if two tasks are disjoint, the total count is the sum of their counts.\n- **permutation** — `P(n,k) = n!/(n−k)!`: ordered selection of k from n.\n- **combination** — `C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n.\n- **ordering test** — rule of thumb: ask ‘does rearranging change the outcome?’ If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720.\n- **binomial theorem** — `(x+y)^n = Σ C(n,k) x^(n−k) y^k` for k=0..n.\n- **Pascal's identity** — `C(n,k) = C(n−1,k−1) + C(n−1,k)`: builds the triangle row by row.\n- **subset count** — setting x=y=1 in the binomial theorem gives `Σ C(n,k) = 2^n`: the number of subsets of an n-element set, matching the product rule.\n- **pigeonhole principle** — if n+1 items go into n boxes, some box holds at least 2 items. Generalization: with N items and k boxes, some box holds at least ⌈N/k⌉ items. Used constantly in hashing (collisions are unavoidable when keys exceed slots), scheduling, and lower-bound arguments."
-    },
-    {
-     "title": "Hands-on procedure",
-     "body": "Choose the right counting formula:\n1. Ask the ordering question: does rearranging change the outcome? Yes → permutation `P(n,k)`; no → combination `C(n,k)`.\n2. Is repetition allowed? Then it's the product rule: n^k (e.g., passwords).\n3. Are the cases disjoint alternatives? Add them (sum rule).\n4. Compute: expand the factorials and cancel before multiplying.\nWorked example: unordered 4-person team from 9 people. Order within the team doesn't matter → combination: C(9,4) = 9!/(4!5!) = (9·8·7·6)/(4·3·2·1) = 126."
-    },
-    {
-     "title": "Project brief",
-     "body": "You are sizing a system. (a) A password policy requires length 6 over 26 lowercase letters — compute the password space and, assuming an attacker tries 10^9 guesses per second, the expected time to exhaust it. (b) A hash table has k slots and will hold N keys — use the generalized pigeonhole principle to state exactly when collisions become unavoidable and how many items the fullest slot must hold. Deliverable: both computations with the formula choice justified by the ordering/repetition test from the Hands-on procedure section."
-    },
-    {
-     "title": "Noah check-in",
-     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
-    },
-    {
-     "title": "Common mistakes: Counting & Combinatorics",
-     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Counting & Combinatorics*, work Apply the product and sum rules to counting problems; Distinguish permutations from combinations with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
-    },
-    {
-     "title": "Key takeaways: Counting & Combinatorics",
-     "body": "**Lock in the essentials of Counting & Combinatorics before the drills.**\n- **Apply the product and sum rules to counting problems** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Distinguish permutations from combinations** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Use the binomial theorem and Pascal's identity** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Apply the pigeonhole principle** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
-    }
-   ],
    "cards": [
     {
      "front": "P(n,k) formula?",
@@ -749,6 +738,133 @@
      "front": "Define: combination",
      "back": "`C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n."
     }
+   ],
+   "code": "IL-20",
+   "drills": [
+    {
+     "id": "m20-counting-drill-recall",
+     "title": "Rapid recall — Counting & Combinatorics",
+     "items": [
+      {
+       "prompt": "In your own words, define “product rule”.",
+       "answer": "if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. An n-bit string has `2^n` possibilities; counting them is the same as counting subsets of an n-element set.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “sum rule”.",
+       "answer": "if two tasks are disjoint, the total count is the sum of their counts.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “permutation”.",
+       "answer": "`P(n,k) = n!/(n−k)!`: ordered selection of k from n.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “combination”.",
+       "answer": "`C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “ordering test”.",
+       "answer": "rule of thumb: ask ‘does rearranging change the outcome?’ If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      }
+     ]
+    },
+    {
+     "id": "m20-counting-drill-applied",
+     "title": "Applied judgment — Counting & Combinatorics",
+     "items": [
+      {
+       "prompt": "Number of ways to choose an unordered 4-person team from 9 people?",
+       "answer": "126",
+       "explain": "C(9,4) = 9!/(4!5!) = 126. Order within the team doesn't matter. (Hands-on procedure section: order doesn't matter, so combine.)"
+      },
+      {
+       "prompt": "With 367 people in a room, by the pigeonhole principle:",
+       "answer": "Two share a birthday (ignoring leap years)",
+       "explain": "367 people, 366 possible birthdays (incl. Feb 29): some date is shared. (Concepts section: pigeonhole with 366 boxes.)"
+      },
+      {
+       "prompt": "The coefficient of x³ in (x+2)^5 is:",
+       "answer": "40",
+       "explain": "C(5,3)·x³·2² = 10·4·x³ = 40x³. (Concepts section: the binomial theorem.)"
+      },
+      {
+       "prompt": "Passwords of length 6 over 26 lowercase letters: how many?",
+       "answer": "26^6",
+       "explain": "Each of 6 positions has 26 independent choices: 26^6 (product rule with repetition). (Hands-on procedure section: repetition allowed, use the product rule.)"
+      },
+      {
+       "prompt": "C(10,3) equals:",
+       "answer": "120",
+       "explain": "10·9·8/3! = 720/6 = 120. (Module m20-counting.)"
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 270,
+   "handsOnLab": {
+    "id": "m20-counting-lab",
+    "title": "Hands-on lab: Counting & Combinatorics",
+    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
+    "steps": [
+     "Close the module. From memory, restate each key definition in this module (Apply the product and sum rules to counting problems) in your own words, then check against the notes and correct in a different color.",
+     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
+     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
+     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
+     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
+     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
+    ],
+    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
+    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
+   },
+   "id": "m20-counting",
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Multiply: order never matters.",
+     "Use permutations when order matters and combinations when it does not: the product and sum rules structure the count, and the pigeonhole principle finishes existence arguments.",
+     "Always use the binomial theorem.",
+     "Count by listing everything."
+    ],
+    "explain": "Order distinguishes permutations from combinations; the product and sum rules build counts, the binomial theorem and Pascal's identity handle binomial coefficients, and the pigeonhole principle proves forced collisions.",
+    "id": "m20-counting-mock",
+    "q": "You are asked: a committee of 3 is chosen from 10 people, and separately a president, VP, and secretary are chosen from 10. Which counting tools apply?",
+    "type": "choice"
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **product rule** — if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. An n-bit string has `2^n` possibilities; counting them is the same as counting subsets of an n-element set.\n- **sum rule** — if two tasks are disjoint, the total count is the sum of their counts.\n- **permutation** — `P(n,k) = n!/(n−k)!`: ordered selection of k from n.\n- **combination** — `C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n.\n- **ordering test** — rule of thumb: ask ‘does rearranging change the outcome?’ If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720.\n- **binomial theorem** — `(x+y)^n = Σ C(n,k) x^(n−k) y^k` for k=0..n.\n- **Pascal's identity** — `C(n,k) = C(n−1,k−1) + C(n−1,k)`: builds the triangle row by row.\n- **subset count** — setting x=y=1 in the binomial theorem gives `Σ C(n,k) = 2^n`: the number of subsets of an n-element set, matching the product rule.\n- **pigeonhole principle** — if n+1 items go into n boxes, some box holds at least 2 items. Generalization: with N items and k boxes, some box holds at least ⌈N/k⌉ items. Used constantly in hashing (collisions are unavoidable when keys exceed slots), scheduling, and lower-bound arguments."
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Choose the right counting formula:\n1. Ask the ordering question: does rearranging change the outcome? Yes → permutation `P(n,k)`; no → combination `C(n,k)`.\n2. Is repetition allowed? Then it's the product rule: n^k (e.g., passwords).\n3. Are the cases disjoint alternatives? Add them (sum rule).\n4. Compute: expand the factorials and cancel before multiplying.\nWorked example: unordered 4-person team from 9 people. Order within the team doesn't matter → combination: C(9,4) = 9!/(4!5!) = (9·8·7·6)/(4·3·2·1) = 126."
+    },
+    {
+     "title": "Project brief",
+     "body": "You are sizing a system. (a) A password policy requires length 6 over 26 lowercase letters — compute the password space and, assuming an attacker tries 10^9 guesses per second, the expected time to exhaust it. (b) A hash table has k slots and will hold N keys — use the generalized pigeonhole principle to state exactly when collisions become unavoidable and how many items the fullest slot must hold. Deliverable: both computations with the formula choice justified by the ordering/repetition test from the Hands-on procedure section."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
+    },
+    {
+     "title": "Common mistakes: Counting & Combinatorics",
+     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Counting & Combinatorics*, work Apply the product and sum rules to counting problems; Distinguish permutations from combinations with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
+    },
+    {
+     "title": "Key takeaways: Counting & Combinatorics",
+     "body": "**Lock in the essentials of Counting & Combinatorics before the drills.**\n- **Apply the product and sum rules to counting problems** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Distinguish permutations from combinations** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Use the binomial theorem and Pascal's identity** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Apply the pigeonhole principle** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
+    }
+   ],
+   "objectives": [
+    "Apply the product and sum rules to counting problems",
+    "Distinguish permutations from combinations",
+    "Use the binomial theorem and Pascal's identity",
+    "Apply the pigeonhole principle"
    ],
    "quiz": [
     {
@@ -851,138 +967,24 @@
      "explain": "“Pascal's identity” is defined in this module's notes as: `C(n,k) = C(n−1,k−1) + C(n−1,k)`: builds the triangle row by row. The other choices describe different terms from the same module."
     }
    ],
-   "drills": [
+   "summary": "Welcome to Module 3: Counting & Combinatorics. I'm your instructor, and this module answers the question ‘how many?’ — the mathematics behind password spaces, hash collisions, and every probability computation you'll meet in Module 12. Product and sum rules, permutations, combinations, the binomial theorem, and the pigeonhole principle: by the end you'll count an 8-bit string space in your sleep and know exactly why 367 people guarantee a shared birthday.",
+   "title": "Counting & Combinatorics",
+   "videos": [
     {
-     "id": "m20-counting-drill-recall",
-     "title": "Rapid recall — Counting & Combinatorics",
-     "items": [
-      {
-       "prompt": "In your own words, define “product rule”.",
-       "answer": "if a task has k stages with nᵢ, n₂, …, nₖ options, total outcomes = nᵢ·n₂·…·nₖ. An n-bit string has `2^n` possibilities; counting them is the same as counting subsets of an n-element set.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “sum rule”.",
-       "answer": "if two tasks are disjoint, the total count is the sum of their counts.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “permutation”.",
-       "answer": "`P(n,k) = n!/(n−k)!`: ordered selection of k from n.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “combination”.",
-       "answer": "`C(n,k) = n!/(k!(n−k)!)`: unordered selection of k from n.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “ordering test”.",
-       "answer": "rule of thumb: ask ‘does rearranging change the outcome?’ If yes, permutation; if no, combination. Choosing a 3-person committee from 10: C(10,3) = 120. Assigning them president/VP/treasurer: P(10,3) = 720.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      }
-     ]
-    },
-    {
-     "id": "m20-counting-drill-applied",
-     "title": "Applied judgment — Counting & Combinatorics",
-     "items": [
-      {
-       "prompt": "Number of ways to choose an unordered 4-person team from 9 people?",
-       "answer": "126",
-       "explain": "C(9,4) = 9!/(4!5!) = 126. Order within the team doesn't matter. (Hands-on procedure section: order doesn't matter, so combine.)"
-      },
-      {
-       "prompt": "With 367 people in a room, by the pigeonhole principle:",
-       "answer": "Two share a birthday (ignoring leap years)",
-       "explain": "367 people, 366 possible birthdays (incl. Feb 29): some date is shared. (Concepts section: pigeonhole with 366 boxes.)"
-      },
-      {
-       "prompt": "The coefficient of x³ in (x+2)^5 is:",
-       "answer": "40",
-       "explain": "C(5,3)·x³·2² = 10·4·x³ = 40x³. (Concepts section: the binomial theorem.)"
-      },
-      {
-       "prompt": "Passwords of length 6 over 26 lowercase letters: how many?",
-       "answer": "26^6",
-       "explain": "Each of 6 positions has 26 independent choices: 26^6 (product rule with repetition). (Hands-on procedure section: repetition allowed, use the product rule.)"
-      },
-      {
-       "prompt": "C(10,3) equals:",
-       "answer": "120",
-       "explain": "10·9·8/3! = 720/6 = 120. (Module m20-counting.)"
-      }
-     ]
+     "title": "Permutations and Combinations Tutorial",
+     "url": "https://www.youtube.com/watch?v=XJnIdRXUi7A",
+     "source": "The Organic Chemistry Tutor (YouTube)",
+     "blurb": "The Organic Chemistry Tutor's permutations and combinations tutorial — product and sum rules, binomial thinking, and the pigeonhole principle.",
+     "durationMin": 17,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "m20-counting-lab",
-    "title": "Hands-on lab: Counting & Combinatorics",
-    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
-    "steps": [
-     "Close the module. From memory, restate each key definition in this module (Apply the product and sum rules to counting problems) in your own words, then check against the notes and correct in a different color.",
-     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
-     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
-     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
-     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
-     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
-    ],
-    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
-    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
-   },
-   "estimatedMinutes": 270,
-   "mockTask": {
-    "answer": 1,
-    "choices": [
-     "Multiply: order never matters.",
-     "Use permutations when order matters and combinations when it does not: the product and sum rules structure the count, and the pigeonhole principle finishes existence arguments.",
-     "Always use the binomial theorem.",
-     "Count by listing everything."
-    ],
-    "explain": "Order distinguishes permutations from combinations; the product and sum rules build counts, the binomial theorem and Pascal's identity handle binomial coefficients, and the pigeonhole principle proves forced collisions.",
-    "id": "m20-counting-mock",
-    "q": "You are asked: a committee of 3 is chosen from 10 people, and separately a president, VP, and secretary are chosen from 10. Which counting tools apply?",
-    "type": "choice"
-   }
+   "weight": 1
   },
   {
-   "id": "m20-relations-functions",
-   "code": "IL-20",
-   "title": "Relations & Functions",
-   "weight": 1,
-   "summary": "Welcome to Module 4: Relations & Functions. I'm your instructor. Functions are the mappings between structures — every API, every hash table, every encoding is one — and this module gives you the precise vocabulary: injective, surjective, bijective, composition, inverses, equivalence relations, and partitions. By the end you'll classify any mapping on sight and understand why congruence classes mod n are the foundation of the cryptography in Module 12's successor courses.",
-   "objectives": [
-    "Classify functions as injective, surjective, or bijective",
-    "Compose functions and find inverses",
-    "Verify an equivalence relation and describe its classes",
-    "Connect bijections to counting (cardinality)"
-   ],
-   "notes": [
-    {
-     "title": "Concepts",
-     "body": "- **injective** — f: A → B is one-to-one if f(xᵢ)=f(x₂) implies xᵢ=x₂: distinct inputs map to distinct outputs.\n- **surjective** — onto: every y in B has some x with f(x)=y — the image covers B.\n- **bijective** — both injective and surjective: a perfect pairing, which is exactly when an inverse exists.\n- **inverse** — `f⁻¹: B → A` undoes f; exists if and only if f is bijective.\n- **composition** — `(g∘f)(x) = g(f(x))`: apply f first, then g. Associative but generally not commutative — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order).\n- **equivalence relation** — a relation ~ on A that is reflexive (x~x), symmetric (x~y ⇒ y~x), and transitive (x~y, y~z ⇒ x~z).\n- **equivalence class / partition** — every equivalence relation partitions A into disjoint equivalence classes.\n- **congruence mod n** — x ≡ y (mod n) iff n divides x−y; partitions the integers into n residue classes — the foundation of modular arithmetic used in cryptography.\n- **partial order** — reflexive, antisymmetric (x≤y, y≤x ⇒ x=y), transitive: replace symmetric with antisymmetric. Task-dependency graphs, version ordering, and type hierarchies are partial orders; topological sort linearizes them."
-    },
-    {
-     "title": "Hands-on procedure",
-     "body": "Classify a function f: A → B:\n1. Injectivity: does f(xᵢ)=f(x₂) force xᵢ=x₂? Hunt for a counterexample — two distinct inputs with the same output.\n2. Surjectivity: pick an arbitrary y in B and try to solve f(x)=y. If some y has no preimage, not surjective.\n3. Both hold → bijective: an inverse exists, and finite A, B have equal cardinality.\nWorked example: f(x) = x³ − x on ℝ. f(0)=f(1)=f(−1)=0, so not injective. But it is a continuous cubic with limits ±∞, hence attains every real value: surjective. Verdict: surjective only."
-    },
-    {
-     "title": "Project brief",
-     "body": "Model an organization's user→role assignment as a function. Classify it (injective? surjective? bijective?) and justify each answer with the Hands-on procedure. Then define the equivalence relation ‘same clearance level’ on users, list its equivalence classes, and show they partition the user set. Deliverable: the classification with counterexamples where it fails, the classes, and one paragraph on what breaks operationally if the assignment function is not surjective onto the roles that must be staffed."
-    },
-    {
-     "title": "Noah check-in",
-     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
-    },
-    {
-     "title": "Common mistakes: Relations & Functions",
-     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Relations & Functions*, work Classify functions as injective, surjective, or bijective; Compose functions and find inverses with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
-    },
-    {
-     "title": "Key takeaways: Relations & Functions",
-     "body": "**Lock in the essentials of Relations & Functions before the drills.**\n- **Classify functions as injective, surjective, or bijective** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Compose functions and find inverses** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Verify an equivalence relation and describe its classes** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Connect bijections to counting (cardinality)** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
-    }
-   ],
    "cards": [
     {
      "front": "Define injective, surjective, bijective.",
@@ -1032,6 +1034,133 @@
      "front": "Define: inverse",
      "back": "`f⁻¹: B → A` undoes f; exists if and only if f is bijective."
     }
+   ],
+   "code": "IL-20",
+   "drills": [
+    {
+     "id": "m20-relations-functions-drill-recall",
+     "title": "Rapid recall — Relations & Functions",
+     "items": [
+      {
+       "prompt": "In your own words, define “injective”.",
+       "answer": "f: A → B is one-to-one if f(xᵢ)=f(x₂) implies xᵢ=x₂: distinct inputs map to distinct outputs.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “surjective”.",
+       "answer": "onto: every y in B has some x with f(x)=y — the image covers B.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “bijective”.",
+       "answer": "both injective and surjective: a perfect pairing, which is exactly when an inverse exists.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “inverse”.",
+       "answer": "`f⁻¹: B → A` undoes f; exists if and only if f is bijective.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “composition”.",
+       "answer": "`(g∘f)(x) = g(f(x))`: apply f first, then g. Associative but generally not commutative — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order).",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      }
+     ]
+    },
+    {
+     "id": "m20-relations-functions-drill-applied",
+     "title": "Applied judgment — Relations & Functions",
+     "items": [
+      {
+       "prompt": "f: ℝ → ℝ, f(x) = x³ − x. This function is:",
+       "answer": "Surjective only",
+       "explain": "f(0)=f(1)=f(−1)=0, so not injective; as a continuous cubic with limits ±∞ it attains every real value, so surjective. (Hands-on procedure section: injectivity and surjectivity checks.)"
+      },
+      {
+       "prompt": "Which relation on ℤ is an equivalence relation?",
+       "answer": "xRy iff x−y is even",
+       "explain": "Same parity: reflexive, symmetric, transitive. < is not symmetric; divisibility is not symmetric; x+y>0 fails reflexivity (0+0>0 false). (Concepts section: equivalence relation properties.)"
+      },
+      {
+       "prompt": "(g∘f)(x) means:",
+       "answer": "f(x) then g",
+       "explain": "Rightmost applies first: (g∘f)(x) = g(f(x)). (Concepts section: composition order.)"
+      },
+      {
+       "prompt": "If f: A → B is bijective and |A| = 7, then |B| =",
+       "answer": "Exactly 7",
+       "explain": "A bijection pairs elements one-to-one, so the sets have equal cardinality. (Concepts section: bijections preserve cardinality.)"
+      },
+      {
+       "prompt": "Which function is injective on ℝ?",
+       "answer": "f(x) = 2x + 1",
+       "explain": "Strictly monotonic 2x+1 never repeats a value; the others do. (Module m20-relations-functions.)"
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 270,
+   "handsOnLab": {
+    "id": "m20-relations-functions-lab",
+    "title": "Hands-on lab: Relations & Functions",
+    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
+    "steps": [
+     "Close the module. From memory, restate each key definition in this module (Classify functions as injective, surjective, or bijective) in your own words, then check against the notes and correct in a different color.",
+     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
+     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
+     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
+     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
+     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
+    ],
+    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
+    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
+   },
+   "id": "m20-relations-functions",
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Injective means onto.",
+     "A function is bijective when it is both injective (distinct inputs give distinct outputs) and surjective (every output is hit): bijections pair sets for counting, and equivalence relations partition sets into classes.",
+     "Surjective implies injective.",
+     "Inverses exist for all functions."
+    ],
+    "explain": "Bijective means injective plus surjective; bijections connect to counting via cardinality, and equivalence relations are verified by reflexivity, symmetry, transitivity, then described by their classes.",
+    "id": "m20-relations-functions-mock",
+    "q": "You are asked: what makes a function bijective, and why do bijections matter for counting?",
+    "type": "choice"
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **injective** — f: A → B is one-to-one if f(xᵢ)=f(x₂) implies xᵢ=x₂: distinct inputs map to distinct outputs.\n- **surjective** — onto: every y in B has some x with f(x)=y — the image covers B.\n- **bijective** — both injective and surjective: a perfect pairing, which is exactly when an inverse exists.\n- **inverse** — `f⁻¹: B → A` undoes f; exists if and only if f is bijective.\n- **composition** — `(g∘f)(x) = g(f(x))`: apply f first, then g. Associative but generally not commutative — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order).\n- **equivalence relation** — a relation ~ on A that is reflexive (x~x), symmetric (x~y ⇒ y~x), and transitive (x~y, y~z ⇒ x~z).\n- **equivalence class / partition** — every equivalence relation partitions A into disjoint equivalence classes.\n- **congruence mod n** — x ≡ y (mod n) iff n divides x−y; partitions the integers into n residue classes — the foundation of modular arithmetic used in cryptography.\n- **partial order** — reflexive, antisymmetric (x≤y, y≤x ⇒ x=y), transitive: replace symmetric with antisymmetric. Task-dependency graphs, version ordering, and type hierarchies are partial orders; topological sort linearizes them."
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Classify a function f: A → B:\n1. Injectivity: does f(xᵢ)=f(x₂) force xᵢ=x₂? Hunt for a counterexample — two distinct inputs with the same output.\n2. Surjectivity: pick an arbitrary y in B and try to solve f(x)=y. If some y has no preimage, not surjective.\n3. Both hold → bijective: an inverse exists, and finite A, B have equal cardinality.\nWorked example: f(x) = x³ − x on ℝ. f(0)=f(1)=f(−1)=0, so not injective. But it is a continuous cubic with limits ±∞, hence attains every real value: surjective. Verdict: surjective only."
+    },
+    {
+     "title": "Project brief",
+     "body": "Model an organization's user→role assignment as a function. Classify it (injective? surjective? bijective?) and justify each answer with the Hands-on procedure. Then define the equivalence relation ‘same clearance level’ on users, list its equivalence classes, and show they partition the user set. Deliverable: the classification with counterexamples where it fails, the classes, and one paragraph on what breaks operationally if the assignment function is not surjective onto the roles that must be staffed."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
+    },
+    {
+     "title": "Common mistakes: Relations & Functions",
+     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Relations & Functions*, work Classify functions as injective, surjective, or bijective; Compose functions and find inverses with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
+    },
+    {
+     "title": "Key takeaways: Relations & Functions",
+     "body": "**Lock in the essentials of Relations & Functions before the drills.**\n- **Classify functions as injective, surjective, or bijective** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Compose functions and find inverses** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Verify an equivalence relation and describe its classes** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Connect bijections to counting (cardinality)** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
+    }
+   ],
+   "objectives": [
+    "Classify functions as injective, surjective, or bijective",
+    "Compose functions and find inverses",
+    "Verify an equivalence relation and describe its classes",
+    "Connect bijections to counting (cardinality)"
    ],
    "quiz": [
     {
@@ -1134,99 +1263,33 @@
      "explain": "“Compose functions and find inverses” is defined in this module's notes as: if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills. The other choices describe different terms from the same module."
     }
    ],
-   "drills": [
+   "summary": "Welcome to Module 4: Relations & Functions. I'm your instructor. Functions are the mappings between structures — every API, every hash table, every encoding is one — and this module gives you the precise vocabulary: injective, surjective, bijective, composition, inverses, equivalence relations, and partitions. By the end you'll classify any mapping on sight and understand why congruence classes mod n are the foundation of the cryptography in Module 12's successor courses.",
+   "title": "Relations & Functions",
+   "videos": [
     {
-     "id": "m20-relations-functions-drill-recall",
-     "title": "Rapid recall — Relations & Functions",
-     "items": [
-      {
-       "prompt": "In your own words, define “injective”.",
-       "answer": "f: A → B is one-to-one if f(xᵢ)=f(x₂) implies xᵢ=x₂: distinct inputs map to distinct outputs.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “surjective”.",
-       "answer": "onto: every y in B has some x with f(x)=y — the image covers B.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “bijective”.",
-       "answer": "both injective and surjective: a perfect pairing, which is exactly when an inverse exists.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “inverse”.",
-       "answer": "`f⁻¹: B → A` undoes f; exists if and only if f is bijective.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “composition”.",
-       "answer": "`(g∘f)(x) = g(f(x))`: apply f first, then g. Associative but generally not commutative — order matters. If f and g are both bijective, g∘f is bijective with inverse f⁻¹∘g⁻¹ (note the reversed order).",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      }
-     ]
+     "title": "RELATIONS - DISCRETE MATHEMATICS",
+     "url": "https://www.youtube.com/watch?v=FI6j5QZNVx0",
+     "source": "TrevTutor (YouTube)",
+     "blurb": "TrevTutor's relations video — reflexive, symmetric, and transitive properties for the equivalence-relation objectives.",
+     "durationMin": 15,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     },
     {
-     "id": "m20-relations-functions-drill-applied",
-     "title": "Applied judgment — Relations & Functions",
-     "items": [
-      {
-       "prompt": "f: ℝ → ℝ, f(x) = x³ − x. This function is:",
-       "answer": "Surjective only",
-       "explain": "f(0)=f(1)=f(−1)=0, so not injective; as a continuous cubic with limits ±∞ it attains every real value, so surjective. (Hands-on procedure section: injectivity and surjectivity checks.)"
-      },
-      {
-       "prompt": "Which relation on ℤ is an equivalence relation?",
-       "answer": "xRy iff x−y is even",
-       "explain": "Same parity: reflexive, symmetric, transitive. < is not symmetric; divisibility is not symmetric; x+y>0 fails reflexivity (0+0>0 false). (Concepts section: equivalence relation properties.)"
-      },
-      {
-       "prompt": "(g∘f)(x) means:",
-       "answer": "f(x) then g",
-       "explain": "Rightmost applies first: (g∘f)(x) = g(f(x)). (Concepts section: composition order.)"
-      },
-      {
-       "prompt": "If f: A → B is bijective and |A| = 7, then |B| =",
-       "answer": "Exactly 7",
-       "explain": "A bijection pairs elements one-to-one, so the sets have equal cardinality. (Concepts section: bijections preserve cardinality.)"
-      },
-      {
-       "prompt": "Which function is injective on ℝ?",
-       "answer": "f(x) = 2x + 1",
-       "explain": "Strictly monotonic 2x+1 never repeats a value; the others do. (Module m20-relations-functions.)"
-      }
-     ]
+     "title": "FUNCTIONS - DISCRETE MATHEMATICS",
+     "url": "https://www.youtube.com/watch?v=OixshZzH8t0",
+     "source": "TrevTutor (YouTube)",
+     "blurb": "TrevTutor's functions video — injective, surjective, bijective, composition, and inverses.",
+     "durationMin": 14,
+     "order": 2,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "m20-relations-functions-lab",
-    "title": "Hands-on lab: Relations & Functions",
-    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
-    "steps": [
-     "Close the module. From memory, restate each key definition in this module (Classify functions as injective, surjective, or bijective) in your own words, then check against the notes and correct in a different color.",
-     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
-     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
-     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
-     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
-     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
-    ],
-    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
-    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
-   },
-   "estimatedMinutes": 270,
-   "mockTask": {
-    "answer": 1,
-    "choices": [
-     "Injective means onto.",
-     "A function is bijective when it is both injective (distinct inputs give distinct outputs) and surjective (every output is hit): bijections pair sets for counting, and equivalence relations partition sets into classes.",
-     "Surjective implies injective.",
-     "Inverses exist for all functions."
-    ],
-    "explain": "Bijective means injective plus surjective; bijections connect to counting via cardinality, and equivalence relations are verified by reflexivity, symmetry, transitivity, then described by their classes.",
-    "id": "m20-relations-functions-mock",
-    "q": "You are asked: what makes a function bijective, and why do bijections matter for counting?",
-    "type": "choice"
-   }
+   "weight": 1
   },
   {
    "id": "m20-linear-algebra-1",
@@ -1509,7 +1572,20 @@
     "id": "m20-linear-algebra-1-mock",
     "q": "You are asked: when do three vectors in R3 form a basis?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Vectors | Chapter 1, Essence of linear algebra",
+     "url": "https://www.youtube.com/watch?v=fNk_zzaMoSs",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown's visual introduction to vectors from three perspectives — the geometric foundation for vectors and vector spaces.",
+     "durationMin": 10,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-linear-algebra-2",
@@ -1792,7 +1868,20 @@
     "id": "m20-linear-algebra-2-mock",
     "q": "You are asked: can you multiply a 2x3 matrix by a 3x4 matrix, and what does the result's shape tell you?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Matrix multiplication as composition | Chapter 4, Essence of linear algebra",
+     "url": "https://www.youtube.com/watch?v=XkY2DOUCWMU",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown on matrix multiplication as the composition of linear transformations — the key intuition behind matrix algebra.",
+     "durationMin": 10,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-linear-algebra-3",
@@ -2075,7 +2164,20 @@
     "id": "m20-linear-algebra-3-mock",
     "q": "You are asked: outline the eigenvalue workflow for a 2x2 matrix and state when diagonalization is guaranteed.",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Eigenvectors and eigenvalues | Chapter 14, Essence of linear algebra",
+     "url": "https://www.youtube.com/watch?v=PFDu9oVAE-g",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown's visual treatment of eigenvectors, eigenvalues, and the usefulness of an eigenbasis.",
+     "durationMin": 15,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-calculus-1",
@@ -2358,7 +2460,20 @@
     "id": "m20-calculus-1-mock",
     "q": "You are asked: how do you find and classify the extrema of a differentiable function?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "The paradox of the derivative | Chapter 2, Essence of calculus",
+     "url": "https://www.youtube.com/watch?v=9vKqVkMQHKk",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown resolves the 'instantaneous rate of change' paradox and builds the derivative from secant lines — the conceptual core of limits and derivatives.",
+     "durationMin": 17,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-calculus-2",
@@ -2641,7 +2756,20 @@
     "id": "m20-calculus-2-mock",
     "q": "You are asked: what is the Fundamental Theorem of Calculus, and how does it guide integration technique choice?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Integration and the fundamental theorem of calculus | Chapter 8, Essence of calculus",
+     "url": "https://www.youtube.com/watch?v=rfG8ce4nNh0",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown builds integrals as accumulated area and derives the fundamental theorem of calculus from first principles with animation.",
+     "durationMin": 20,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-series",
@@ -2924,7 +3052,20 @@
     "id": "m20-series-mock",
     "q": "You are asked: does the series converge, and on what interval does its power series represent the function?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Taylor series | Chapter 11, Essence of calculus",
+     "url": "https://www.youtube.com/watch?v=3d6DsjIBzJ4",
+     "source": "3Blue1Brown (YouTube)",
+     "blurb": "3Blue1Brown on reconstructing functions from their derivatives at a point — where Taylor polynomials and factorials come from.",
+     "durationMin": 20,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-multivariable",
@@ -3207,7 +3348,20 @@
     "id": "m20-multivariable-mock",
     "q": "You are asked: in which direction does a function increase fastest, and how do you optimize it under a constraint?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "What are the big ideas of Multivariable Calculus?? Full Course Intro",
+     "url": "https://www.youtube.com/watch?v=gsUgDpGWk-M",
+     "source": "Dr. Trefor Bazett (YouTube)",
+     "blurb": "Trefor Bazett's visual overview of the big ideas of multivariable calculus — surfaces, partial derivatives, optimization, and multiple integrals.",
+     "durationMin": 20,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-probability",
@@ -3490,7 +3644,20 @@
     "id": "m20-probability-mock",
     "q": "You are asked: a rare disease test is 99 percent accurate. A patient tests positive. Why is '99 percent chance they are sick' wrong?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Probability – Basics | Complete Concepts, Formulas & Worked Examples",
+     "url": "https://www.youtube.com/watch?v=dUSzo-RikBc",
+     "source": "SIDDIFY (YouTube)",
+     "blurb": "Complete probability basics class: sample spaces, conditional probability, independence, Bayes' theorem, and expected value with worked examples.",
+     "durationMin": 50,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-statistics",
@@ -3773,7 +3940,20 @@
     "id": "m20-statistics-mock",
     "q": "You are asked: a test returns p = 0.03. What does that actually mean?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Statistics - A Full University Course on Data Science Basics",
+     "url": "https://www.youtube.com/watch?v=xxpc-HPKN28",
+     "source": "freeCodeCamp.org (YouTube)",
+     "blurb": "FreeCodeCamp's 8-hour university-level statistics course — sampling, distributions, correlation, probability, and the central limit theorem.",
+     "durationMin": 480,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
    "id": "m20-graphs-recurrence",
@@ -4056,46 +4236,22 @@
     "id": "m20-graphs-recurrence-mock",
     "q": "You are asked: how many edges does a tree on n vertices have, and why does it matter for algorithms?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "Algorithms Course - Graph Theory Tutorial from a Google Engineer",
+     "url": "https://www.youtube.com/watch?v=09_LlHjoEiY",
+     "source": "freeCodeCamp.org (YouTube)",
+     "blurb": "Google engineer William Fiset's 7-hour graph theory course — representations, DFS/BFS, shortest paths, and traversals that underpin graph reasoning.",
+     "durationMin": 420,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   },
   {
-   "id": "m20-numerical-methods",
-   "code": "IL-20",
-   "title": "Numerical Methods",
-   "weight": 1,
-   "summary": "Welcome to Module 15: Numerical Methods. I'm your instructor. Closed forms fail more often than textbooks admit — this module is the honest toolkit for computing answers anyway: bisection, Newton's method, numerical integration, and error analysis. The mantra: guarantee first (bracket the root), then go fast (Newton inside the bracket). By the end you'll bound errors before you compute and distinguish a bad algorithm from a hard problem.",
-   "objectives": [
-    "Bracket a root with bisection and bound its error",
-    "Apply Newton's method and state its convergence requirement",
-    "Approximate integrals with trapezoidal and Simpson's rules",
-    "Quantify error order and condition sensitivity"
-   ],
-   "notes": [
-    {
-     "title": "Concepts",
-     "body": "- **bisection** — if f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. Guaranteed but linear convergence — slow and sure. Always check the sign-change precondition; without it, bisection proves nothing.\n- **Newton's method** — `xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)`: follow the tangent line to its x-intercept. Near a simple root it converges quadratically (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts diverge or cycle — pair with bisection bracketing for safety.\n- **trapezoidal rule** — h/2 · [f₀ + 2fᵢ + … + 2fₙ₊₁ + fₙ], error O(h²).\n- **Simpson's rule** — (n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too.\n- **truncation error** — error from the method's approximation (e.g., stopping a series, discretizing an integral).\n- **roundoff error** — error from finite floating-point precision.\n- **conditioning** — sensitivity of the problem itself: solving near-singular systems amplifies input errors.\n- **condition number** — κ(A) = ||A||·||A⁻¹|| bounds the blowup. A stable algorithm on an ill-conditioned problem still gives garbage: distinguish the two."
-    },
-    {
-     "title": "Hands-on procedure",
-     "body": "Bracket a root, then polish it:\n1. Find [a,b] with f(a)f(b) < 0 — the sign change guarantees a root exists.\n2. Bisect to a coarse tolerance: n steps give error ≤ (b−a)/2ⁿ.\n3. Switch to Newton's method inside the bracket for quadratic convergence.\n4. Guard every Newton step: if f'(xₙ) ≈ 0 or the iterate leaves the bracket, fall back to bisection.\nWorked example: one Newton step for f(x)=x²−2 from x₀=1: x₁ = 1 − (1−2)/2 = 1 + 0.5 = 1.5 — already within 0.09 of √2."
-    },
-    {
-     "title": "Project brief",
-     "body": "Ship a root-finder for a sensor calibration curve f on [0,5] with f(0) < 0 < f(5), f smooth, f' cheap to evaluate, and a required accuracy of 10⁻⁹. Specify the method sequence (bracket → bisect → Newton), compute how many bisection steps reach 10⁻³ before switching, bound the final error, and list the failure modes you guard against (zero derivative, leaving the bracket, multiple roots). Deliverable: the procedure, the step counts, and one paragraph on why ‘Newton from x=0 immediately’ was rejected."
-    },
-    {
-     "title": "Noah check-in",
-     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
-    },
-    {
-     "title": "Common mistakes: Numerical Methods",
-     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Numerical Methods*, work Bracket a root with bisection and bound its error; Apply Newton's method and state its convergence requirement with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
-    },
-    {
-     "title": "Key takeaways: Numerical Methods",
-     "body": "**Lock in the essentials of Numerical Methods before the drills.**\n- **Bracket a root with bisection and bound its error** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Apply Newton's method and state its convergence requirement** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Approximate integrals with trapezoidal and Simpson's rules** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Quantify error order and condition sensitivity** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
-    }
-   ],
    "cards": [
     {
      "front": "Bisection error after n steps?",
@@ -4145,6 +4301,133 @@
      "front": "Define: Simpson's rule",
      "back": "(n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too."
     }
+   ],
+   "code": "IL-20",
+   "drills": [
+    {
+     "id": "m20-numerical-methods-drill-recall",
+     "title": "Rapid recall — Numerical Methods",
+     "items": [
+      {
+       "prompt": "In your own words, define “bisection”.",
+       "answer": "if f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. Guaranteed but linear convergence — slow and sure. Always check the sign-change precondition",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “Newton's method”.",
+       "answer": "`xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)`: follow the tangent line to its x-intercept. Near a simple root it converges quadratically (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts dive",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “trapezoidal rule”.",
+       "answer": "h/2 · [f₀ + 2fᵢ + … + 2fₙ₊₁ + fₙ], error O(h²).",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “Simpson's rule”.",
+       "answer": "(n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too.",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      },
+      {
+       "prompt": "In your own words, define “truncation error”.",
+       "answer": "error from the method's approximation (e.g., stopping a series, discretizing an integral).",
+       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
+      }
+     ]
+    },
+    {
+     "id": "m20-numerical-methods-drill-applied",
+     "title": "Applied judgment — Numerical Methods",
+     "items": [
+      {
+       "prompt": "Bisection on [1,2] for 10 iterations bounds the root error by:",
+       "answer": "1/2^10 ≈ 0.001",
+       "explain": "(b−a)/2ⁿ = 1/1024 ≈ 0.001. (Concepts section: the bisection error bound.)"
+      },
+      {
+       "prompt": "One Newton step for f(x)=x²−2 from x₀=1:",
+       "answer": "1.5",
+       "explain": "x₁ = 1 − (1−2)/(2) = 1 + 0.5 = 1.5. (Hands-on procedure section: one Newton step.)"
+      },
+      {
+       "prompt": "Halving h in Simpson's rule roughly divides error by:",
+       "answer": "16",
+       "explain": "Error is O(h⁴): (1/2)⁴ = 1/16. (Concepts section: Simpson's O(h⁴) error.)"
+      },
+      {
+       "prompt": "Newton's method can fail when:",
+       "answer": "f'(xₙ) = 0",
+       "explain": "Division by f'(xₙ): a zero derivative blows up the step (also bad for flat regions and poor starts). (Concepts section: Newton's failure modes.)"
+      },
+      {
+       "prompt": "Bisection on [0,1]: after 3 iterations the root error is at most:",
+       "answer": "1/8",
+       "explain": "Error ≤ (b−a)/2ⁿ = 1/8. (Module m20-numerical-methods.)"
+      }
+     ]
+    }
+   ],
+   "estimatedMinutes": 270,
+   "handsOnLab": {
+    "id": "m20-numerical-methods-lab",
+    "title": "Hands-on lab: Numerical Methods",
+    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
+    "steps": [
+     "Close the module. From memory, restate each key definition in this module (Bracket a root with bisection and bound its error) in your own words, then check against the notes and correct in a different color.",
+     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
+     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
+     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
+     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
+     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
+    ],
+    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
+    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
+   },
+   "id": "m20-numerical-methods",
+   "mockTask": {
+    "answer": 1,
+    "choices": [
+     "Bisection always converges fastest.",
+     "Newton's method converges quadratically near a simple root but needs a good starting guess and a nonzero derivative: bracket with bisection first when safety matters, and bound error by the method's order.",
+     "Simpson's rule finds roots.",
+     "Error cannot be quantified."
+    ],
+    "explain": "Bisection brackets safely with a guaranteed error bound; Newton's method converges fast near a simple root but requires a good guess and nonzero derivative; trapezoidal and Simpson's rules approximate integrals with known error orders.",
+    "id": "m20-numerical-methods-mock",
+    "q": "You are asked: when is Newton's method the right root-finder, and what is its convergence requirement?",
+    "type": "choice"
+   },
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "- **bisection** — if f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. Guaranteed but linear convergence — slow and sure. Always check the sign-change precondition; without it, bisection proves nothing.\n- **Newton's method** — `xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)`: follow the tangent line to its x-intercept. Near a simple root it converges quadratically (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts diverge or cycle — pair with bisection bracketing for safety.\n- **trapezoidal rule** — h/2 · [f₀ + 2fᵢ + … + 2fₙ₊₁ + fₙ], error O(h²).\n- **Simpson's rule** — (n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too.\n- **truncation error** — error from the method's approximation (e.g., stopping a series, discretizing an integral).\n- **roundoff error** — error from finite floating-point precision.\n- **conditioning** — sensitivity of the problem itself: solving near-singular systems amplifies input errors.\n- **condition number** — κ(A) = ||A||·||A⁻¹|| bounds the blowup. A stable algorithm on an ill-conditioned problem still gives garbage: distinguish the two."
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "Bracket a root, then polish it:\n1. Find [a,b] with f(a)f(b) < 0 — the sign change guarantees a root exists.\n2. Bisect to a coarse tolerance: n steps give error ≤ (b−a)/2ⁿ.\n3. Switch to Newton's method inside the bracket for quadratic convergence.\n4. Guard every Newton step: if f'(xₙ) ≈ 0 or the iterate leaves the bracket, fall back to bisection.\nWorked example: one Newton step for f(x)=x²−2 from x₀=1: x₁ = 1 − (1−2)/2 = 1 + 0.5 = 1.5 — already within 0.09 of √2."
+    },
+    {
+     "title": "Project brief",
+     "body": "Ship a root-finder for a sensor calibration curve f on [0,5] with f(0) < 0 < f(5), f smooth, f' cheap to evaluate, and a required accuracy of 10⁻⁹. Specify the method sequence (bracket → bisect → Newton), compute how many bisection steps reach 10⁻³ before switching, bound the final error, and list the failure modes you guard against (zero derivative, leaving the bracket, multiple roots). Deliverable: the procedure, the step counts, and one paragraph on why ‘Newton from x=0 immediately’ was rejected."
+    },
+    {
+     "title": "Noah check-in",
+     "body": "Standard, established mathematics throughout — definitions, theorems, and procedures presented in original instructional prose; nothing here is invented. Every worked step is checkable by hand, and you should check it: recompute the examples yourself rather than taking my word for them. Practice material only — this course confers no certificate."
+    },
+    {
+     "title": "Common mistakes: Numerical Methods",
+     "body": "**Where math learners go wrong — and the fixes that actually work.**\n\n- **Reading without writing.** Mathematics is not a spectator activity; every theorem must be re-derived by hand at least once. If you can't reproduce the proof with the book closed, you don't know it.\n- **Symbol shuffling without meaning.** Manipulating notation you can't translate into plain language produces fragile skill. After each result, state it in words: what does it say, and when is it false?\n- **Skipping the edge cases.** Definitions are tested at boundaries (empty set, zero, non-invertible). Check every new concept against its degenerate cases.\n- **Memorizing proofs instead of ideas.** Memorized proofs evaporate; proof *ideas* (the one clever step) transfer. For each proof, name the single idea that makes it work.\n- **No spaced practice.** Crammed math decays in days. Revisit each module's drills on a 1–3–7 day schedule.\n\nFor *Numerical Methods*, work Bracket a root with bisection and bound its error; Apply Newton's method and state its convergence requirement with pencil and paper first — the worked example shows the pattern, your hand must reproduce it."
+    },
+    {
+     "title": "Key takeaways: Numerical Methods",
+     "body": "**Lock in the essentials of Numerical Methods before the drills.**\n- **Bracket a root with bisection and bound its error** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Apply Newton's method and state its convergence requirement** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Approximate integrals with trapezoidal and Simpson's rules** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n- **Quantify error order and condition sensitivity** — if you cannot explain this in two sentences without looking, re-read the notes above before attempting the drills.\n\n*Self-check:* cover this list and recite each takeaway from memory."
+    }
+   ],
+   "objectives": [
+    "Bracket a root with bisection and bound its error",
+    "Apply Newton's method and state its convergence requirement",
+    "Approximate integrals with trapezoidal and Simpson's rules",
+    "Quantify error order and condition sensitivity"
    ],
    "quiz": [
     {
@@ -4247,99 +4530,33 @@
      "explain": "“Simpson's rule” is defined in this module's notes as: (n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too. The other choices describe different terms from the same module."
     }
    ],
-   "drills": [
+   "summary": "Welcome to Module 15: Numerical Methods. I'm your instructor. Closed forms fail more often than textbooks admit — this module is the honest toolkit for computing answers anyway: bisection, Newton's method, numerical integration, and error analysis. The mantra: guarantee first (bracket the root), then go fast (Newton inside the bracket). By the end you'll bound errors before you compute and distinguish a bad algorithm from a hard problem.",
+   "title": "Numerical Methods",
+   "videos": [
     {
-     "id": "m20-numerical-methods-drill-recall",
-     "title": "Rapid recall — Numerical Methods",
-     "items": [
-      {
-       "prompt": "In your own words, define “bisection”.",
-       "answer": "if f is continuous with f(a)f(b) < 0, a root lies in (a,b). Halve repeatedly, keeping the sign change: after n steps the error is at most (b−a)/2ⁿ. Guaranteed but linear convergence — slow and sure. Always check the sign-change precondition",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “Newton's method”.",
-       "answer": "`xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)`: follow the tangent line to its x-intercept. Near a simple root it converges quadratically (correct digits roughly double per step). Requirements: a good starting guess, f'(xₙ) ≠ 0, and smoothness. Bad starts dive",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “trapezoidal rule”.",
-       "answer": "h/2 · [f₀ + 2fᵢ + … + 2fₙ₊₁ + fₙ], error O(h²).",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “Simpson's rule”.",
-       "answer": "(n even): h/3 · [f₀ + 4fᵢ + 2f₂ + … + 4fₙ₊₁ + fₙ], error O(h⁴): halving h cuts Simpson error ~16×. Simpson fits parabolas; it is exact for cubics too.",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      },
-      {
-       "prompt": "In your own words, define “truncation error”.",
-       "answer": "error from the method's approximation (e.g., stopping a series, discretizing an integral).",
-       "explain": "Core vocabulary from this module's Concepts note — say it cold before moving on."
-      }
-     ]
+     "title": "Newton's Method",
+     "url": "https://www.youtube.com/watch?v=-5e2cULI3H8",
+     "source": "The Organic Chemistry Tutor (YouTube)",
+     "blurb": "The Organic Chemistry Tutor's Newton's method — bracketing roots and the convergence requirement in action.",
+     "durationMin": 10,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     },
     {
-     "id": "m20-numerical-methods-drill-applied",
-     "title": "Applied judgment — Numerical Methods",
-     "items": [
-      {
-       "prompt": "Bisection on [1,2] for 10 iterations bounds the root error by:",
-       "answer": "1/2^10 ≈ 0.001",
-       "explain": "(b−a)/2ⁿ = 1/1024 ≈ 0.001. (Concepts section: the bisection error bound.)"
-      },
-      {
-       "prompt": "One Newton step for f(x)=x²−2 from x₀=1:",
-       "answer": "1.5",
-       "explain": "x₁ = 1 − (1−2)/(2) = 1 + 0.5 = 1.5. (Hands-on procedure section: one Newton step.)"
-      },
-      {
-       "prompt": "Halving h in Simpson's rule roughly divides error by:",
-       "answer": "16",
-       "explain": "Error is O(h⁴): (1/2)⁴ = 1/16. (Concepts section: Simpson's O(h⁴) error.)"
-      },
-      {
-       "prompt": "Newton's method can fail when:",
-       "answer": "f'(xₙ) = 0",
-       "explain": "Division by f'(xₙ): a zero derivative blows up the step (also bad for flat regions and poor starts). (Concepts section: Newton's failure modes.)"
-      },
-      {
-       "prompt": "Bisection on [0,1]: after 3 iterations the root error is at most:",
-       "answer": "1/8",
-       "explain": "Error ≤ (b−a)/2ⁿ = 1/8. (Module m20-numerical-methods.)"
-      }
-     ]
+     "title": "Trapezoidal Rule",
+     "url": "https://www.youtube.com/watch?v=Rn9Gr52zhrY",
+     "source": "The Organic Chemistry Tutor (YouTube)",
+     "blurb": "The Trapezoidal Rule worked through — the numerical-integration half of this module.",
+     "durationMin": 12,
+     "order": 2,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:41:10Z",
+     "httpStatus": 200
     }
    ],
-   "handsOnLab": {
-    "id": "m20-numerical-methods-lab",
-    "title": "Hands-on lab: Numerical Methods",
-    "brief": "A closed-book problem set: you will reproduce the module's key results by hand, test each definition against edge cases, and write up one proof in full sentences. The deliverable is your worked problem set — the only honest evidence of mathematical understanding.",
-    "steps": [
-     "Close the module. From memory, restate each key definition in this module (Bracket a root with bisection and bound its error) in your own words, then check against the notes and correct in a different color.",
-     "Test every definition against two edge cases (empty set, zero, identity, non-invertible, degenerate — whichever apply). Record which cases stress the definition.",
-     "Re-derive the module's central result by hand with the book closed. When stuck, allow yourself one peek, then restart the derivation from the top.",
-     "Solve three exercises: one routine computation, one proof, one counterexample-or-existence question. Show all steps.",
-     "Write up the proof in full sentences, as if for a reader who knows the definitions but hasn't seen the argument. Name the single clever idea that makes it work.",
-     "Create your own 'trick question' for this module — a plausible-sounding false statement — and refute it. Add it to your drill rotation."
-    ],
-    "deliverable": "Hand-worked problem set: definitions from memory (with corrections), edge-case tests, one full proof write-up, and your own trick question with refutation.",
-    "checkpoint": "Definitions reproduced closed-book; the central result re-derived by hand; the proof names its one clever idea; the trick question is refuted, not just stated."
-   },
-   "estimatedMinutes": 270,
-   "mockTask": {
-    "answer": 1,
-    "choices": [
-     "Bisection always converges fastest.",
-     "Newton's method converges quadratically near a simple root but needs a good starting guess and a nonzero derivative: bracket with bisection first when safety matters, and bound error by the method's order.",
-     "Simpson's rule finds roots.",
-     "Error cannot be quantified."
-    ],
-    "explain": "Bisection brackets safely with a guaranteed error bound; Newton's method converges fast near a simple root but requires a good guess and nonzero derivative; trapezoidal and Simpson's rules approximate integrals with known error orders.",
-    "id": "m20-numerical-methods-mock",
-    "q": "You are asked: when is Newton's method the right root-finder, and what is its convergence requirement?",
-    "type": "choice"
-   }
+   "weight": 1
   },
   {
    "id": "m20-linear-systems-optimization",
@@ -4622,7 +4839,20 @@
     "id": "m20-linear-systems-optimization-mock",
     "q": "You are asked: a square system, an overdetermined fit, and a convex objective. Which solver for each?",
     "type": "choice"
-   }
+   },
+   "videos": [
+    {
+     "title": "15. Linear Programming: LP, reductions, Simplex",
+     "url": "https://www.youtube.com/watch?v=WwMz2fJwUCg",
+     "source": "MIT OpenCourseWare (YouTube)",
+     "blurb": "MIT 6.046 lecture introducing linear programming, reductions, and the simplex method — the optimization foundation of this module.",
+     "durationMin": 80,
+     "order": 1,
+     "watchBefore": "notes",
+     "verifiedUtc": "2026-10-08T22:14:24Z",
+     "httpStatus": 200
+    }
+   ]
   }
  ],
  "scriptLabs": [
