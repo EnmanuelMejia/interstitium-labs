@@ -430,6 +430,7 @@
       if (ext) ext.loseContext();
     } catch (e) { /* ignore */ }
     if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
+    this._unbindResize();
     this.gl = null;
     this.canvas = null;
     this._authored = null;
@@ -552,12 +553,23 @@
     gl.enable(gl.CULL_FACE);
     this._paintHud();
     this._resize();
-    var self = this;
-    if (!this._resizeBound) {
-      this._resizeBound = true;
-      g.addEventListener('resize', function (){ self._resize(); });
-    }
+    this._bindResize();
     this._loop();
+  };
+
+  ScenePlayer.prototype._bindResize = function () {
+    if (this._onResize) return;
+    var self = this;
+    this._onResize = function () {
+      if (self.gl) self._resize();
+    };
+    g.addEventListener("resize", this._onResize);
+  };
+
+  ScenePlayer.prototype._unbindResize = function () {
+    if (!this._onResize) return;
+    g.removeEventListener("resize", this._onResize);
+    this._onResize = null;
   };
 
   ScenePlayer.prototype._paintHud = function (){
