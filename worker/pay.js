@@ -41,12 +41,22 @@ export const ASSETS = {
     token: "0x4a220E6096B25EADb88358cb44068A3248254675",
     priced: true,
   },
+  xmr: { symbol: "XMR", kind: "monero", decimals: 12, priced: true },
 };
 
 export const TRANSFER_TOPIC =
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
 const RPCS = ["https://ethereum-rpc.publicnode.com", "https://1rpc.io/eth"];
+
+const B58 = "[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]";
+const XMR_STANDARD = new RegExp("^4" + B58 + "{94}$");
+const XMR_SUB = new RegExp("^8" + B58 + "{94}$");
+const XMR_INTEGRATED = new RegExp("^4" + B58 + "{105}$");
+
+export function moneroAddress(value) {
+  return XMR_STANDARD.test(value) || XMR_SUB.test(value) || XMR_INTEGRATED.test(value);
+}
 
 export function stableAmount(asset, usdCents) {
   const spec = ASSETS[asset];
@@ -56,7 +66,7 @@ export function stableAmount(asset, usdCents) {
 }
 
 export async function spotAmount(asset, usdCents) {
-  const pair = asset === "eth" ? "ETH-USD" : asset === "qnt" ? "QNT-USD" : null;
+  const pair = { eth: "ETH-USD", qnt: "QNT-USD", xmr: "XMR-USD" }[asset];
   if (!pair) return null;
   const res = await fetch("https://api.coinbase.com/v2/prices/" + pair + "/spot", {
     headers: { accept: "application/json" },
@@ -108,7 +118,7 @@ function padAddress(address) {
 export async function verifyTransfer(txHash, asset, minimum) {
   if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) return { ok: false, status: "bad-hash" };
   const spec = ASSETS[asset];
-  if (!spec) return { ok: false, status: "bad-asset" };
+  if (!spec || spec.kind === "monero") return { ok: false, status: "bad-asset" };
   const tx = await rpc("eth_getTransactionByHash", [txHash]);
   if (!tx) return { ok: false, status: "not-found" };
   const receipt = await rpc("eth_getTransactionReceipt", [txHash]);
