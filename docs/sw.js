@@ -45,7 +45,7 @@ self.addEventListener("activate", function (event) {
           if (url.searchParams.get("il_heal") === "1") return Promise.resolve();
           url.searchParams.set("il_heal", "1");
           try {
-            return c.navigate(url.href);
+            return Promise.resolve(c.navigate(url.href)).catch(function () {});
           } catch (e4) {
             return Promise.resolve();
           }
