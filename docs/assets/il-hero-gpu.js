@@ -1,6 +1,6 @@
-/* Pick a hero master the GPU can actually decode well.
-   RTX 30-series (Legion 7, WQXGA): 2560x1440 from the 5K mezzanine.
-   Quadro P1000 (Pascal, 4 GB): 1080p H.264, Level 4.0. No AV1, no 5K HDR. */
+/* RTX 3080 on the Legion: 2560x1440, the WQXGA panel width.
+   Quadro P1000: skip 5K HEVC. Wide screens keep the 5K H.264 file,
+   because the dual Xeon can decode it. Smaller screens get 1080p Level 4.0. */
 (function () {
   var video = document.querySelector(".il-hero__video");
   if (!video || video.getAttribute("data-il-gpu")) return;
@@ -18,9 +18,10 @@
     return;
   }
   var name = renderer.toLowerCase();
+  var wide = Math.max(screen.width || 0, window.innerWidth || 0) >= 2400;
   var src = "";
   if (/rtx|geforce/.test(name)) src = "/assets/chrome/hero-rtx.mp4";
-  else if (/p1000|quadro/.test(name)) src = "/assets/chrome/hero-p1000.mp4";
+  else if (/p1000|quadro/.test(name)) src = wide ? "/assets/chrome/hero-5k.mp4" : "/assets/chrome/hero-p1000.mp4";
   if (!src) return;
   var nodes = video.querySelectorAll("source");
   for (var i = 0; i < nodes.length; i++) nodes[i].remove();
