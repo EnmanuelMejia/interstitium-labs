@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academy — Interstitium Labs</title>
+<meta name="description" content="Interstitium Labs academy detail: paths, hours, and the adaptive route through one academy.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/academy.html">
+<meta property="og:title" content="Interstitium Labs — Learning University">
+<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Interstitium Labs — Learning University">
+<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/academy.html">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+<link rel="stylesheet" href="css/il-pillnav.css">
+<link rel="stylesheet" href="css/il-progress.css">
+</head>
+<body>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="il-hero block" aria-labelledby="acad-h">
+    <div class="wrap" data-catalog-slot id="acad-wrap">
+      <p class="eyebrow"><a href="index.html#academies">Academies</a> <span class="dot">·</span> <span id="acad-code-crumb"></span></p>
+      <h1 id="acad-h"></h1>
+      <p class="lede" id="acad-blurb"></p>
+      <div id="ilprog-continue-slot" style="display:none" aria-live="polite"></div>
+      <div id="acad-course-cta" style="margin-top:1.1rem"></div>
+      <div id="ilprog-course-progress" style="margin-top:.9rem" aria-live="polite"></div>
+      <dl class="kv" style="margin-top:1.2rem">
+        <dt>Hours</dt><dd id="acad-hours"></dd>
+        <dt>Paths</dt><dd id="acad-npaths"></dd>
+      </dl>
+      <h2 style="margin-top:2.2rem">Paths in this academy</h2>
+      <div class="grid grid-3" id="acad-paths" style="margin-top:1.2rem"></div>
+      <h2 style="margin-top:2.4rem">Mastery</h2>
+      <div id="acad-mastery" aria-live="polite"></div>
+      <div id="ilprog-track-group" aria-live="polite"></div>
+      <h2 style="margin-top:2.4rem">Repair queue</h2>
+      <div id="acad-repair" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script src="js/il-progress.js"></script>
+<script src="js/il-guided.js"></script>
+<script src="js/il-mastery.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* Academies with an interactive 6-tab course shell (Phase 2 unification). */
+  var COURSE_SLUGS = {
+    'IL-01': 'il-01-esoteric-foundations',
+    'IL-02': 'il-02-mathematical-maturity-engine',
+    'IL-03': 'il-03-programming-language-forge',
+    'IL-04': 'il-04-systems-linux-windows-networks',
+    'IL-05': 'il-05-cloud-devsecops-platform-sre',
+    'IL-06': 'il-06-cybersecurity-secure-engineering',
+    'IL-07': 'il-07-data-engineering-analytics-ai',
+    'IL-08': 'il-08-algorithms-compilers-distributed-formal',
+    'IL-09': 'il-09-adaptive-certification-command',
+    'IL-10': 'il-10-portfolio-career-professional-practice',
+    'IL-11': 'il-11-zero-trust-endpoint-defense',
+    'IL-12': 'il-12-ai-engineering',
+    'IL-13': 'il-13-software-engineering-interview-prep',
+    'IL-14': 'il-14-sre-devops-cloud-security-interview-prep',
+    'IL-15': 'il-15-data-engineering-analytics-interview-prep',
+    'IL-16': 'il-16-machine-learning-ai-engineering',
+    'IL-17': 'il-17-agentic-ai-engineering',
+    'IL-18': 'il-18-technical-leadership-interview-prep',
+    'IL-19': 'il-19-multicloud-devops-ai-bootcamp',
+    'IL-20': 'il-20-mathematics',
+    'IL-21': 'il-21-humanities',
+    'IL-22': 'il-22-esoteric-secret-knowledge',
+    'IL-23': 'il-23-frontier-knowledge',
+    'IL-24': 'il-24-threatlocker-assessment-prep-cbt',
+    'IL-25': 'il-25-cybersecurity-professional-certificate',
+    'IL-26': 'il-26-data-analyst-certification-senior-mastery',
+    'IL-27': 'il-27-it-infrastructure-specialist-threatlocker-mastery',
+    'IL-28': 'il-28-devsecops-cloud-infrastructure-mastery',
+    'IL-29': 'il-29-threatlocker-ai-cybersecurity-mastery'
+  };
+  function render() {
+    var code = IL.qs('id');
+    var wrap = document.getElementById('acad-wrap');
+    var a = code && IL.academyByCode(code);
+    if (!a) {
+      document.title = 'Academy not found — Interstitium Labs';
+      wrap.innerHTML = '<div class="empty-state"><h3>Academy not found</h3>' +
+        '<p>No academy matches <span style="font-family:var(--mono)">' + IL.esc(code || '(none)') + '</span>. ' +
+        'The standing index is IL-01 through IL-23 — <a href="index.html#academies">browse the academies</a>.</p></div>';
+      return;
+    }
+    document.title = a.code + ' · ' + a.name + ' — Interstitium Labs';
+    document.getElementById('acad-code-crumb').textContent = a.code;
+    document.getElementById('acad-h').textContent = a.code + ' · ' + a.name;
+    document.getElementById('acad-blurb').textContent = a.blurb || a.tagline || '';
+    var FREE_COURSE_CODES = { 'IL-27': 1, 'IL-28': 1, 'IL-29': 1 };
+    var cta = document.getElementById('acad-course-cta');
+    if (cta) {
+      var cslug = COURSE_SLUGS[a.code];
+      if (!cslug) {
+        cta.innerHTML = '';
+      } else {
+        /* Paywall badge (2026-10-08): FREE for IL-27/28/29, lock badge for paid courses. */
+        var badge = FREE_COURSE_CODES[a.code]
+          ? '<span class="il-badge il-badge-free">FREE · open access</span>'
+          : '<span class="il-badge il-badge-paid"><svg class="il-lock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid course · unlocks at checkout</span>';
+        cta.innerHTML = badge +
+          '<div style="margin-top:.7rem"><a class="btn" href="course.html?course=' + IL.esc(cslug) + '">' +
+          'Launch the interactive course — 6-tab shell, Noah AI tutor</a></div>';
+      }
+    }
+    document.getElementById('acad-hours').textContent = IL.fmtHours(a.hours);
+
+    /* 2026-10-08: unified progress — resume banner + course progress bar.
+       localStorage "il-progress-v1"; tracks regardless of paywall gating.
+       2026-10-08 (scope fix): banner is COURSE-SCOPED — "Continue where you
+       left off" when progress exists, "Start the {CODE} guided path" for
+       THIS academy's course on a fresh device. Never a universal IL-01
+       push onto unrelated academies. */
+    try {
+      var lpSlot = document.getElementById('ilprog-continue-slot');
+      var pHost = document.getElementById('ilprog-course-progress');
+      var pSlug = COURSE_SLUGS[a.code];
+      if (window.ILProgress && pSlug) {
+        ILProgress.loadSequence(function (seq) {
+          var entry = null;
+          if (seq && seq.courses) {
+            for (var i = 0; i < seq.courses.length; i++) {
+              if (seq.courses[i].slug === pSlug) { entry = seq.courses[i]; break; }
+            }
+          }
+          /* Course-scoped guided-path banner (never universal IL-01). */
+          if (lpSlot) ILProgress.paintResume(lpSlot, { courseId: entry ? entry.courseId : null });
+          if (!entry) { if (pHost) pHost.innerHTML = ''; return; }
+          var st = ILProgress.courseStats(entry.courseId, entry.moduleCount);
+          if (pHost) pHost.innerHTML = '<div class="ilprog-cardbar">' +
+            ILProgress.progressBarHTML(st, { label: entry.code + ' · ' + st.done + ' of ' + st.total + ' modules · ' + st.pct + '%' }) +
+            /* 2026-10-08 (WORKSTREAM 2): per-course guided mastery. */
+            (window.ILGuided ? ILGuided.masteryLineHTML(entry.courseId, entry.moduleCount) : '') +
+            '</div>';
+          /* 2026-10-08 (scope fix): guided-path display grouped by TRACK —
+             related courses in this track, never the flat 29-course chain. */
+          var trackHost = document.getElementById('ilprog-track-group');
+          if (trackHost) {
+            var rel = ILProgress.relatedCourses(seq, entry.courseId, 6);
+            var tname = ILProgress.trackName(seq, entry.courseId) || 'this track';
+            if (rel.length) {
+              var cards = '';
+              for (var ri = 0; ri < rel.length; ri++) {
+                var rst = ILProgress.courseStats(rel[ri].courseId, rel[ri].moduleCount);
+                cards += '<a class="ilprog-track-card" href="' + ILProgress.esc(ILProgress.courseURL(rel[ri])) + '">' +
+                  '<span class="ilprog-track-card__code">' + ILProgress.esc(rel[ri].code) + '</span>' +
+                  '<span class="ilprog-track-card__title">' + ILProgress.esc(rel[ri].title) + '</span>' +
+                  '<span class="ilprog-track-card__meta">' + rst.pct + '% · ' + rel[ri].moduleCount + ' modules</span></a>';
+              }
+              trackHost.innerHTML = '<h2 style="margin-top:2.4rem">Continue in ' + ILProgress.esc(tname) + '</h2>' +
+                '<p class="muted">Related courses in this track — your guided path stays inside related material.</p>' +
+                '<div class="ilprog-track-grid">' + cards + '</div>';
+            } else { trackHost.innerHTML = ''; }
+          }
+        });
+      } else if (lpSlot && window.ILProgress) {
+        ILProgress.paintResume(lpSlot, {});
+      }
+    } catch (e) {}
+    var paths = IL.pathsForAcademy(a.code);
+    document.getElementById('acad-npaths').textContent = String(paths.length);
+
+    var box = document.getElementById('acad-paths');
+    box.innerHTML = '';
+    if (!paths.length) {
+      box.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Paths incoming</h3>' +
+        '<p>Paths for ' + IL.esc(a.code) + ' are still being published — nothing here is placeholder. ' +
+        'Meanwhile, the adaptive engine below runs on any topic you name.</p>' +
+        '<p><a class="btn btn-ghost" href="learn.html">Open a free sitting</a></p></div>';
+    } else {
+      paths.forEach(function (p) {
+        var c = document.createElement('article');
+        c.className = 'card';
+        c.innerHTML =
+          '<div class="code">' + IL.esc(p.type || '') + '</div>' +
+          '<h3><a href="path.html?id=' + IL.esc(p.id) + '">' + IL.esc(p.title) + '</a></h3>' +
+          '<p>' + IL.esc(p.subtitle || '') + '</p>' +
+          '<div class="meta"><span><b>' + IL.esc(IL.fmtHours(p.hours)) + '</b></span>' +
+          '<span>' + IL.esc(p.difficulty || '') + '</span></div>';
+        box.appendChild(c);
+      });
+    }
+
+    /* 2026-10-08 (WORKSTREAM 5): skill-mastery dashboard + exam readiness
+       (brief §5/#1) and repair queue (brief §4/#8). Demonstrated skill from
+       il-guided-v1 replaces "% watched". All localStorage reads are
+       same-device; nothing here touches entitlement or the paywall. */
+    (function renderMastery() {
+      var mHost = document.getElementById('acad-mastery');
+      var rHost = document.getElementById('acad-repair');
+      if (!mHost || !window.ILMastery) return;
+      var slug = COURSE_SLUGS[a.code];
+      if (!slug) {
+        mHost.innerHTML = '<p class="muted">No course data for this academy yet.</p>';
+        return;
+      }
+      mHost.innerHTML = '<p class="muted">Loading mastery data…</p>';
+      if (!window.__ilCertIndex) {
+        window.__ilCertIndex = fetch('data/cert-index.json', { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+      fetch('data/courses/' + slug + '.json', { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (d) {
+          window.__ilCertIndex.then(function (idx) {
+            try { paintMastery(d, idx || { certs: {} }); }
+            catch (e) { mHost.innerHTML = '<p class="muted">Mastery data unavailable.</p>'; }
+          });
+        })
+        .catch(function () { mHost.innerHTML = '<p class="muted">Mastery data unavailable.</p>'; });
+
+      function paintMastery(d, idx) {
+        var courseId = d.courseId, modules = d.modules || [];
+        var html = '<p class="section-sub" style="margin-top:0">Demonstrated skill per module — ' +
+          'green means mastered (≥70% quick-check gate), not watch time.</p>';
+        html += ILMastery.heatHTML(courseId, modules, {
+          linkFor: function (cell) {
+            return 'course.html?course=' + encodeURIComponent(slug) +
+              '&module=' + encodeURIComponent(cell.id);
+          }
+        });
+        /* Certification tracks: certifications[] (IL-01–19) + certGates[]
+           (IL-24–29). IL-20/21/22/23 map to nothing — shown honestly. */
+        var certs = [];
+        (d.certifications || []).forEach(function (c) {
+          if (c && c.name && !ILMastery.isUnmappedCert(c.name, c.issuer))
+            certs.push({ name: c.name, issuer: c.issuer });
+        });
+        (d.certGates || []).forEach(function (gt) {
+          if (gt && gt.cert) {
+            var e = idx.certs && idx.certs[gt.cert];
+            certs.push({ name: gt.cert, issuer: e ? e.issuer : 'Various' });
+          }
+        });
+        var seen = {}, uniq = [];
+        certs.forEach(function (c) { if (!seen[c.name]) { seen[c.name] = 1; uniq.push(c); } });
+        html += '<h3 style="margin-top:1.6rem">Exam readiness</h3>';
+        if (!uniq.length) {
+          html += '<div class="il-cert__none"><b>No mapped certification.</b> ' +
+            'This academy confers understanding, not credentials — mastery is tracked per module above.</div>';
+        } else {
+          uniq.forEach(function (c) {
+            var rd = ILMastery.readinessFor(c.name, idx);
+            html += rd ? ILMastery.readinessHTML(rd)
+              : '<div class="il-cert__none">' + ILMastery.esc(c.name) +
+                ' — readiness data unavailable.</div>';
+          });
+        }
+        mHost.innerHTML = html;
+        if (rHost) {
+          var items = ILMastery.repairItems(courseId, modules);
+          rHost.innerHTML = '<p class="section-sub" style="margin-top:0">Missed quick checks in this ' +
+            'academy\'s course — one tap back to the exact question.</p>' +
+            ILMastery.repairHTML(items, {
+              linkFor: function (it) {
+                return 'course.html?course=' + encodeURIComponent(slug) +
+                  '&module=' + encodeURIComponent(it.moduleId) + '&q=' + it.qi;
+              }
+            });
+        }
+      }
+    })();
+  }
+  IL.renderPage = render;
+  IL.onCatalog(render);
+})();
+</script>
+<script src="js/noah.js"></script>
+<style>
+/* Paywall badges (2026-10-08) — scoped .il-badge, global like the footer styles below */
+.il-badge{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;padding:.32rem .95rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid}
+.il-badge-free{color:#3ddc97;border-color:rgba(61,220,151,.55);background:rgba(61,220,151,.08)}
+.il-badge-paid{color:#d4af37;border-color:rgba(212,175,55,.55);background:rgba(212,175,55,.07)}
+.il-lock-ic{width:12px;height:12px}
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<style>/* canonical footer (page does not load il-unified.css) */
+/* ================================================================
+ * §21 — Canonical site footer (2026-10-08).
+ * Centered layout; gold brand; crisp rendering (no blur,
+ * filter, or backdrop-filter anywhere in these rules).
+ * ================================================================ */
+.il-footer-canonical {
+  border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  padding: 3rem 1.25rem 4.5rem;
+  text-align: center;
+}
+.il-fc-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.il-fc-logo { width: 56px; height: 56px; }
+.il-fc-brand {
+  color: var(--gold, #c9a227);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  font-size: 0.95rem;
+}
+.il-fc-tagline {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  font-size: 0.72rem;
+}
+.il-fc-created {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.66rem;
+}
+.il-fc-course {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  font-size: 0.66rem;
+}
+.il-fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.6rem;
+}
+.il-fc-nav a {
+  color: var(--muted, #8b93a5);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+}
+.il-fc-nav a:hover { color: var(--gold, #c9a227); }
+.il-fc-lang {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  color: var(--muted, #8b93a5);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/>
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</body>
+</html>

@@ -1,29 +1,41 @@
 #!/bin/bash
-# Track 7 redirect chain tracer: follows hops manually, prints full chain.
-# Usage: trace.sh <url> [label]
+# Track 7 redirect chain tracer (v3): marker-based parse, retry on 000, loop detect.
+UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 trace() {
-  local url="$1" label="$2" max=6 hop=0
+  local url="$1" label="$2" max=6 hop=0 seen=""
   echo "== ${label:-$url}"
   while [ $hop -lt $max ]; do
-    local out code loc
-    out=$(curl -s -o /dev/null -D - --max-time 25 -w $'\n%{http_code}\n%{redirect_url}\n' "$url")
-    # after cmdsubst+echo the last two lines are: <code>, <redirect_url>
-    code=$(echo "$out" | tail -2 | head -1 | tr -d '\r')
-    loc=$(echo "$out" | tail -1 | tr -d '\r')
+    local marker code loc attempt=0
+    while [ $attempt -lt 4 ]; do
+      marker=$(curl -s -o /dev/null -A "$UA" --connect-timeout 15 --max-time 60 \
+        -w $'\n###%{http_code}###%{redirect_url}###\n' "$url" 2>/dev/null | grep -a '^###' | tail -1)
+      code=$(printf '%s' "$marker" | sed -E 's/^###([0-9]*)###.*$/\1/')
+      if [ -n "$code" ] && [ "$code" != "000" ]; then break; fi
+      attempt=$((attempt+1)); sleep 3
+    done
+    loc=$(printf '%s' "$marker" | sed -E 's/^###[0-9]*###(.*)###$/\1/')
     hop=$((hop+1))
-    echo "  hop $hop: [$code] $url"
-    if [ -z "$loc" ]; then
-      echo "  FINAL: $code (no redirect)"
+    if [ -z "$code" ] || [ "$code" = "000" ]; then
+      echo "  hop $hop: [TIMEOUT/000 after 4 tries] $url -- couldn't-check beyond here"
       return
     fi
-    # resolve relative location
+    if [ -z "$loc" ]; then
+      echo "  hop $hop: [$code] $url"
+      echo "  FINAL: $code $url"
+      return
+    fi
+    echo "  hop $hop: [$code] $url -> $loc"
     case "$loc" in
       http*://*) url="$loc" ;;
-      /*) base=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|'); url="${base}${loc}" ;;
-      *) base=$(echo "$url" | sed -E 's|(https?://[^/]+).*|\1|'); url="${base}/${loc}" ;;
+      /*) base=$(printf '%s' "$url" | sed -E 's|(https?://[^/]+).*|\1|'); url="${base}${loc}" ;;
+      *) base=$(printf '%s' "$url" | sed -E 's|(https?://[^/]+).*|\1|'); url="${base}/${loc}" ;;
     esac
+    case "$seen" in
+      *"|$url|"*) echo "  LOOP DETECTED: $url already visited"; return ;;
+    esac
+    seen="${seen}|$url|"
   done
-  echo "  FINAL: chain exceeded $max hops (LOOP?)"
+  echo "  FINAL: chain exceeded $max hops (possible loop) -- last: $url"
 }
 while IFS=$'\t' read -r url label; do
   [ -z "$url" ] && continue
