@@ -1,10 +1,12 @@
 /**
- * IL Immersive Sims v1.1.0 (2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.2.0 (2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
  * AWS IAM policy evaluation, NetworkPolicy isolation, RBAC binding scope, scheduler filter/score,
- * HPA autoscaling/v2 math). Option order is shuffled per attempt so the keyed answer is not positional. Predict-then-reveal checkpoints record correctness + latency.
+ * HPA autoscaling/v2 math; v1.2.0: PV/PVC binding + reclaim, Ingress pathType/endpoints/TLS, ConfigMap/Secret
+ * propagation, CNI readiness/CIDR/Service VIP/DNS, mesh injection + mTLS modes, control-plane component failures).
+ * Keyed answers vary by index in the data as well; option order is shuffled per attempt so the keyed answer is not positional. Predict-then-reveal checkpoints record correctness + latency.
  *
  * Honest scope: rules are computed in the browser. No live cluster, no AWS account, no hosted fleet.
  * Pure + UMD so `node --test` exercises the same logic the browser runs.
@@ -560,8 +562,527 @@
     }
   };
 
+  /* ── Storage: StorageClass · CSI · PV/PVC binding · reclaim (CKA storage) ──
+   * Scene contract (storage-csi-pv.glb): pvc-1 is a dynamic claim (10Gi RWO, no storageClassName → default
+   * class) mounted by consumer-pod on worker-node via pv-1/backend-disk-1. pvc-0 is a static claim
+   * (storageClassName: manual, 20Gi RWO) that can only bind pv-0. pv-2 is an Available PV of class fast-ssd. */
+  function storageDecide(s) {
+    var provisioned = !!s.scDefault && (!s.wffc || !!s.podCreated);
+    var inUse = !!s.podCreated && !s.podDeleted;   /* podCreated = a consumer was created at some point (drives WFFC); podDeleted = it is gone now */
+    var terminating = !!s.pvcDeleted && inUse; /* kubernetes.io/pvc-protection finalizer */
+    var gone = !!s.pvcDeleted && !inUse;
+    var pvc1, pv1, disk1;
+    if (gone) {
+      pvc1 = 'deleted';
+      pv1 = provisioned ? (s.retain ? 'Released' : 'deleted') : 'none';
+      disk1 = provisioned ? (s.retain ? 'kept' : 'deleted') : 'none';
+    } else {
+      pvc1 = provisioned ? (terminating ? 'Terminating' : 'Bound') : 'Pending';
+      pv1 = provisioned ? 'Bound' : 'none';
+      disk1 = provisioned ? 'kept' : 'none';
+    }
+    var pendingWhy = !s.scDefault ? 'no-default-class' : (!provisioned ? 'wait-for-first-consumer' : null);
+    var pod = 'none';
+    if (s.podCreated && s.podDeleted) pod = 'deleted';
+    else if (inUse) {
+      if (!provisioned) pod = 'Pending';
+      else pod = s.secondNode ? 'multi-attach' : 'Running';
+    }
+    var pvc0 = !!s.pv0Big && !s.pvc0Rwx ? 'Bound' : 'Pending';
+    return { provisioned: provisioned, pvc1: pvc1, pv1: pv1, disk1: disk1, pod: pod, pendingWhy: pendingWhy,
+      pvc0: pvc0, pv0Capacity: s.pv0Big ? '50Gi' : '5Gi' };
+  }
+
+  var storage = {
+    id: 'storage-csi',
+    title: 'Storage drill — StorageClass · CSI · PV/PVC binding · reclaim',
+    cert: 'CKA',
+    glb: '/assets/immersive/storage-csi-pv.glb',
+    initial: { scDefault: true, wffc: true, podCreated: true, podDeleted: false, secondNode: false, retain: false, pvcDeleted: false, pv0Big: true, pvc0Rwx: false },
+    toggles: [
+      { id: 'scDefault', label: 'default StorageClass', on: 'csi-gp3 (default)', off: 'none' },
+      { id: 'wffc', label: 'volumeBindingMode', on: 'WaitForFirstConsumer', off: 'Immediate', risk: 'none' },
+      { id: 'podCreated', label: 'pod using pvc-1', on: 'created', off: 'not created yet', risk: 'none' },
+      { id: 'podDeleted', label: 'that pod', on: 'deleted since', off: 'still running', risk: 'none' },
+      { id: 'secondNode', label: 'replica-2 on node-b (same RWO claim)', on: 'scheduled', off: 'none', risk: 'on' },
+      { id: 'retain', label: 'reclaimPolicy', on: 'Retain', off: 'Delete', risk: 'none' },
+      { id: 'pvcDeleted', label: 'pvc-1', on: 'deleted', off: 'present', risk: 'on' },
+      { id: 'pv0Big', label: 'pv-0 capacity (manual)', on: '50Gi', off: '5Gi' },
+      { id: 'pvc0Rwx', label: 'pvc-0 accessModes', on: 'ReadWriteMany', off: 'ReadWriteOnce', risk: 'on' }
+    ],
+    scenarios: [
+      { id: 'no-default-sc', label: 'No default StorageClass', set: { scDefault: false, wffc: false, podCreated: true, podDeleted: false, secondNode: false, pvcDeleted: false },
+        predict: { q: 'The cluster has no default StorageClass, and pvc-1 omits storageClassName. A pod mounts pvc-1. What happens?',
+          options: ['The CSI driver provisions a volume with its built-in defaults', 'pvc-1 stays Pending — no provisioner is ever asked; the pod stays Pending (unbound PersistentVolumeClaim)', 'The API server rejects the PVC at create time'],
+          answer: 1, why: 'Without a default class, a claim with no storageClassName can only bind an existing PV that has no class; nothing triggers dynamic provisioning. Fix: set storageClassName, or mark a class with storageclass.kubernetes.io/is-default-class: "true" (the claim is then updated retroactively).' } },
+      { id: 'wffc', label: 'WaitForFirstConsumer, no pod', set: { scDefault: true, wffc: true, podCreated: false, podDeleted: false, secondNode: false, pvcDeleted: false },
+        predict: { q: 'The default StorageClass uses volumeBindingMode: WaitForFirstConsumer. You create pvc-1 but no pod uses it yet. Status?',
+          options: ['Pending (WaitForFirstConsumer) — no PV is provisioned until a pod using it is scheduled', 'Bound — dynamic provisioning always happens at PVC creation', 'Lost — the claim is garbage-collected without a consumer'],
+          answer: 0, why: 'WaitForFirstConsumer delays binding and provisioning until the scheduler picks a node for a consuming pod, so the disk is created in that node’s zone/topology. `kubectl describe pvc` shows “waiting for first consumer to be created before binding”. Immediate mode would provision right away.' } },
+      { id: 'static-size', label: 'Static PV too small', set: { pv0Big: false, pvc0Rwx: false },
+        predict: { q: 'pvc-0 requests 20Gi, ReadWriteOnce, storageClassName: manual. The only Available manual PV, pv-0, is 5Gi (pv-2 is 100Gi but class fast-ssd). Does pvc-0 bind?',
+          options: ['Yes — it binds to pv-2, the larger PV', 'Yes — to pv-0, and the volume grows to 20Gi', 'No — stays Pending: a PV must match the class and offer ≥ the requested size and every requested access mode'],
+          answer: 2, why: 'The binder only considers PVs of the same storageClassName whose capacity ≥ the request and whose accessModes include the requested ones. A bigger PV of another class never matches. With a 50Gi manual pv-0 the claim binds 1:1 and reports the whole 50Gi.' } },
+      { id: 'multi-attach', label: 'RWO claim on a second node', set: { scDefault: true, podCreated: true, podDeleted: false, secondNode: true, pvcDeleted: false },
+        predict: { q: 'A second replica of the Deployment, using the same ReadWriteOnce pvc-1, lands on node-b while replica-1 runs on node-a. Result?',
+          options: ['Replica-2 is stuck ContainerCreating with a Multi-Attach error — an RWO volume attaches to one node at a time', 'Both run — RWO means one writer pod, readers are fine', 'The scheduler always co-locates pods that share a PVC'],
+          answer: 0, why: 'ReadWriteOnce is per node: pods on the same node can share it, a second node cannot attach it (FailedAttachVolume “Multi-Attach error”). Use RWX storage, a StatefulSet with volumeClaimTemplates, or ReadWriteOncePod to make the single-pod intent explicit.' } },
+      { id: 'pvc-protect', label: 'Delete PVC still in use', set: { scDefault: true, podCreated: true, podDeleted: false, secondNode: false, pvcDeleted: true },
+        predict: { q: 'You run kubectl delete pvc pvc-1 while the pod is still using it. What happens?',
+          options: ['The PVC and its data are deleted immediately; the pod crashes', 'pvc-1 sits in Terminating until the pod is gone (pvc-protection finalizer); the pod keeps its data', 'The delete is rejected with Forbidden'],
+          answer: 1, why: 'Storage Object in Use Protection adds the kubernetes.io/pvc-protection finalizer: deletion is postponed until no pod uses the claim. Only then does the reclaimPolicy run.' } },
+      { id: 'reclaim-delete', label: 'Delete PVC · reclaim Delete', set: { scDefault: true, podCreated: true, podDeleted: true, secondNode: false, retain: false, pvcDeleted: true },
+        predict: { q: 'The pod is gone and you delete pvc-1. Its dynamically provisioned PV has reclaimPolicy: Delete (the StorageClass default). What happens to the disk?',
+          options: ['The PV is kept as Released so you can recover the data', 'Nothing until an admin runs kubectl delete pv', 'The PV and the backing disk are deleted by the CSI driver — the data is gone'],
+          answer: 2, why: 'Dynamically provisioned PVs inherit the StorageClass reclaimPolicy, which defaults to Delete: the external provisioner deletes the PV and calls the CSI DeleteVolume on the backend disk.' } },
+      { id: 'reclaim-retain', label: 'Delete PVC · reclaim Retain', set: { scDefault: true, podCreated: true, podDeleted: true, secondNode: false, retain: true, pvcDeleted: true },
+        predict: { q: 'Same delete, but the PV has reclaimPolicy: Retain. Afterwards?',
+          options: ['PV becomes Released with the data intact; it will not bind a new claim until an admin clears claimRef or recreates it', 'PV goes back to Available and binds the next matching claim', 'PV and disk are deleted, just later'],
+          answer: 0, why: 'Retain keeps both the PV object and the disk. A Released PV still carries the old claimRef, so it cannot be reused automatically — manual reclamation is the point.' } },
+      { id: 'heal', label: 'Reset', set: { scDefault: true, wffc: true, podCreated: true, podDeleted: false, secondNode: false, retain: false, pvcDeleted: false, pv0Big: true, pvc0Rwx: false } }
+    ],
+    derive: function (s) {
+      var d = storageDecide(s);
+      var rules = [];
+      rules.push(rule('^(storage-class|sc-provisioner)$', s.scDefault ? { tint: 'gold', glow: 0.35 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^edge-sc-csi$', s.scDefault ? { tint: 'gold', glow: 0.3 } : { tint: 'down', glow: 0 }));
+      var waiting = d.pendingWhy === 'wait-for-first-consumer';
+      rules.push(rule('^csi-driver$', d.provisioned ? { tint: 'ok', glow: 0.3 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^csi-controller$', waiting ? { tint: 'gold', glow: 0.6, pulse: true } : (d.provisioned ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 })));
+      var pv1Live = d.pv1 === 'Bound' || d.pv1 === 'Released';
+      rules.push(rule('^edge-csi-pv1$', pv1Live ? { tint: 'ok', glow: 0.35 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^pv-1$', d.pv1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pv1 === 'Released' ? { tint: 'warn', glow: 0.55, pulse: true } : { hide: true })));
+      rules.push(rule('^(backend-disk|platter)-1$', d.disk1 === 'kept' ? { tint: 'gold', glow: 0.3 } : (d.disk1 === 'deleted' ? { tint: 'deny', glow: 0.5, pulse: true } : { hide: true })));
+      rules.push(rule('^edge-disk-pv1$', pv1Live ? { tint: 'gold', glow: 0.3 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^pvc-1$', d.pvc1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pvc1 === 'deleted' ? { hide: true } : { tint: 'warn', glow: 0.6, pulse: true })));
+      rules.push(rule('^edge-pv1-pvc1$', d.pvc1 === 'Bound' || d.pvc1 === 'Terminating' ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      var mounted = d.pod === 'Running' || d.pod === 'multi-attach';
+      rules.push(rule('^consumer-pod$', d.pod === 'none' || d.pod === 'deleted' ? { hide: true } : (d.pod === 'Pending' ? { tint: 'muted', glow: 0.3, pulse: true } : { tint: 'gold', glow: 0.4 })));
+      rules.push(rule('^edge-pvc-pod$', mounted ? { tint: 'ok', glow: 0.45 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^volume-mount$', d.pod === 'multi-attach' ? { tint: 'deny', glow: 0.85, pulse: true } : (mounted ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 })));
+      rules.push(rule('^worker-node$', d.pod === 'multi-attach' ? { tint: 'warn', glow: 0.5, pulse: true } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^io-bead-\\d$', mounted ? { tint: 'ok', glow: 0.6, pulse: true } : { hide: true }));
+      var b0 = d.pvc0 === 'Bound';
+      rules.push(rule('^pvc-0$', b0 ? { tint: 'ok', glow: 0.4 } : { tint: 'warn', glow: 0.6, pulse: true }));
+      rules.push(rule('^edge-pv0-pvc0$', b0 ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^pv-0$', b0 ? { tint: 'ok', glow: 0.35 } : { tint: 'muted', glow: 0.15 }));
+      rules.push(rule('^edge-csi-pv0$', { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^(pv-2|backend-disk-2|platter-2)$', { tint: 'muted', glow: 0.1 }));
+      var cap = [];
+      if (d.pvc1 === 'Pending') cap.push('pvc-1 Pending (' + (d.pendingWhy === 'no-default-class' ? 'no default StorageClass — nothing provisions' : 'WaitForFirstConsumer — no pod scheduled yet') + ')');
+      else if (d.pvc1 === 'Terminating') cap.push('pvc-1 Terminating — pvc-protection holds it while the pod uses it');
+      else if (d.pvc1 === 'deleted') cap.push('pvc-1 deleted → ' + (d.pv1 === 'none' ? 'nothing was provisioned' : (d.pv1 === 'Released' ? 'pv-1 Released, disk kept (Retain)' : 'pv-1 + disk deleted (reclaim Delete)')));
+      else cap.push('pvc-1 Bound → pv-1 (CSI-provisioned 10Gi RWO)');
+      if (d.pod === 'multi-attach') cap.push('replica-2 ContainerCreating: Multi-Attach error (RWO on node-a)');
+      else if (d.pod === 'Pending') cap.push('pod Pending (unbound PVC)');
+      else if (d.pod === 'Running') cap.push('pod Running with /data mounted');
+      else if (d.pod === 'deleted') cap.push('consumer pod deleted');
+      cap.push('pvc-0 ' + (b0 ? 'Bound → pv-0 (' + d.pv0Capacity + ')' : 'Pending (' + (s.pvc0Rwx ? 'pv-0 offers only RWO' : 'pv-0 ' + d.pv0Capacity + ' < 20Gi') + ')'));
+      var verdict;
+      if (d.pv1 === 'deleted') verdict = 'data-deleted';
+      else if (d.pod === 'multi-attach') verdict = 'down';
+      else if (d.pvc1 === 'Bound' && b0 && d.pod === 'Running') verdict = 'healthy';
+      else if (d.pv1 === 'Released') verdict = 'released';
+      else if (d.pvc1 === 'Terminating') verdict = 'terminating';
+      else verdict = 'pending';
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
+  /* ── Ingress: controller · pathType · endpoints · TLS (CKA services & networking) ──
+   * Scene contract (ingress-gateway.glb): rule-0 = /api → service-0 (endpoint-pod-0/1), rule-1 = /web → service-1
+   * (endpoint-pod-2/3), rule-2 = tls host shop.example.com (secret shop-tls). Clients: client-0 GET /api/v1/orders,
+   * client-1 GET /api, client-2 GET /web/cart. */
+  var INGRESS_CLIENTS = ['/api/v1/orders', '/api', '/web/cart'];
+  /** Ingress path matching (networking.k8s.io/v1): Exact = whole path; Prefix = element-wise; longest match wins, Exact beats Prefix on a tie. */
+  function ingressMatch(path, rules) {
+    var best = null;
+    rules.forEach(function (r) {
+      var p = r.path.replace(/\/+$/, '') || '/';
+      var hit = r.type === 'Exact' ? path === r.path
+        : (p === '/' ? true : (path === p || path.indexOf(p + '/') === 0));
+      if (!hit) return;
+      if (!best || p.length > best.len || (p.length === best.len && r.type === 'Exact')) best = { rule: r, len: p.length };
+    });
+    return best ? best.rule : null;
+  }
+  function ingressDecide(s) {
+    var rules = [{ path: '/api', type: s.apiExact ? 'Exact' : 'Prefix', svc: 0 }, { path: '/web', type: 'Prefix', svc: 1 }];
+    var clients = INGRESS_CLIENTS.map(function (path) {
+      if (!s.controller) return { path: path, status: 'no-route', svc: null };
+      var r = ingressMatch(path, rules);
+      if (!r) return { path: path, status: 404, svc: null };
+      if (r.svc === 0 && !s.apiReady) return { path: path, status: 503, svc: 0 };
+      return { path: path, status: 200, svc: r.svc };
+    });
+    return { clients: clients, cert: !s.controller ? null : (s.tlsSecret ? 'shop-tls' : 'controller-default'), apiType: rules[0].type };
+  }
+
+  var ingress = {
+    id: 'ingress-routing',
+    title: 'Ingress drill — controller · pathType · endpoints · TLS',
+    cert: 'CKA',
+    glb: '/assets/immersive/ingress-gateway.glb',
+    initial: { controller: true, apiExact: false, apiReady: true, tlsSecret: true },
+    toggles: [
+      { id: 'controller', label: 'ingress controller (class nginx)', on: 'installed', off: 'none' },
+      { id: 'apiExact', label: 'rule /api pathType', on: 'Exact', off: 'Prefix', risk: 'none' },
+      { id: 'apiReady', label: 'service-0 ready endpoints', on: '2 Ready', off: '0 (selector mismatch)' },
+      { id: 'tlsSecret', label: 'Secret shop-tls', on: 'present', off: 'missing' }
+    ],
+    scenarios: [
+      { id: 'no-controller', label: 'No controller', set: { controller: false, apiExact: false, apiReady: true, tlsSecret: true },
+        predict: { q: 'You kubectl apply an Ingress with ingressClassName: nginx, but no ingress controller is installed. What happens to https://shop.example.com/api/v1/orders?',
+          options: ['kube-proxy routes it to service-0', 'Nothing routes it — the Ingress is stored but no controller implements it, so it never gets an ADDRESS', 'The API server rejects the Ingress'],
+          answer: 1, why: 'An Ingress is just configuration. Something (ingress-nginx, Traefik, a cloud LB controller…) must watch its IngressClass and program a proxy. `kubectl get ingress` shows an empty ADDRESS.' } },
+      { id: 'exact', label: 'pathType Exact', set: { controller: true, apiExact: true, apiReady: true, tlsSecret: true },
+        predict: { q: 'Rule /api is changed to pathType: Exact. Where does GET /api/v1/orders go?',
+          options: ['404 from the default backend — Exact matches only /api itself', 'service-0 — Exact still matches sub-paths', 'service-1, the next rule'],
+          answer: 0, why: 'Exact is a case-sensitive whole-path match. GET /api still reaches service-0; /api/v1/orders matches no rule, so the controller’s default backend answers 404.' } },
+      { id: 'prefix', label: 'pathType Prefix', set: { controller: true, apiExact: false, apiReady: true, tlsSecret: true },
+        predict: { q: 'Back to pathType: Prefix for /api. Which requests reach service-0?',
+          options: ['Only /api', 'Any path starting with the characters “/api”, including /apiv2', '/api and /api/v1/orders — Prefix matches by path element, so /apiv2 would not match'],
+          answer: 2, why: 'Prefix splits on “/” and compares element by element: /api matches /api, /api/ and /api/v1/orders but not /apiv2. When several rules match, the longest path wins.' } },
+      { id: 'no-endpoints', label: 'Backend has no ready pods', set: { controller: true, apiExact: false, apiReady: false, tlsSecret: true },
+        predict: { q: 'service-0’s selector no longer matches any Ready pod. What does the client get for /api/v1/orders?',
+          options: ['503 Service Unavailable — the route exists but the Service has no ready endpoints', '404 Not Found', 'The request is load-balanced to service-1'],
+          answer: 0, why: 'Routing still resolves to service-0; the controller has no upstream to send it to. Check `kubectl get endpointslices -l kubernetes.io/service-name=service-0` and the Service selector vs pod labels.' } },
+      { id: 'tls-missing', label: 'TLS Secret missing', set: { controller: true, apiExact: false, apiReady: true, tlsSecret: false },
+        predict: { q: 'spec.tls references secretName shop-tls, which does not exist. What do HTTPS clients see?',
+          options: ['The API server rejects the Ingress', 'The controller serves its default certificate (ingress-nginx: a self-signed “Kubernetes Ingress Controller Fake Certificate”) — a browser warning, but routing still works', 'The controller falls back to plain HTTP only'],
+          answer: 1, why: 'The Ingress API does not validate that the Secret exists. ingress-nginx logs the missing secret and presents its default/self-signed cert; other controllers behave similarly. Create the kubernetes.io/tls Secret in the Ingress’s namespace.' } },
+      { id: 'heal', label: 'Reset', set: { controller: true, apiExact: false, apiReady: true, tlsSecret: true } }
+    ],
+    derive: function (s) {
+      var d = ingressDecide(s);
+      var rules = [];
+      rules.push(rule('^ingress-controller$', s.controller ? { tint: 'ok', glow: 0.35 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^tls-terminate$', !s.controller ? { tint: 'down', glow: 0 } : (s.tlsSecret ? { tint: 'ok', glow: 0.5 } : { tint: 'warn', glow: 0.8, pulse: true })));
+      rules.push(rule('^rule-2$', !s.controller ? { tint: 'down', glow: 0 } : (s.tlsSecret ? { tint: 'gold', glow: 0.3 } : { tint: 'warn', glow: 0.5, pulse: true })));
+      rules.push(rule('^rule-0$', !s.controller ? { tint: 'down', glow: 0 } : (s.apiExact ? { tint: 'warn', glow: 0.45 } : { tint: 'gold', glow: 0.35 })));
+      rules.push(rule('^rule-1$', !s.controller ? { tint: 'down', glow: 0 } : { tint: 'gold', glow: 0.35 }));
+      var STYLE = { 200: { tint: 'ok', glow: 0.55, pulse: true }, 404: { tint: 'warn', glow: 0.55, pulse: true }, 503: { tint: 'deny', glow: 0.75, pulse: true }, 'no-route': { tint: 'down', glow: 0 } };
+      var toSvc = [false, false], svcErr = [false, false];
+      d.clients.forEach(function (c, i) {
+        rules.push(rule('^req-' + i + '-\\d$', STYLE[c.status]));
+        rules.push(rule('^client-' + i + '$', c.status === 200 ? { tint: 'gold', glow: 0.4 } : (c.status === 'no-route' ? { tint: 'muted', glow: 0.1 } : { tint: c.status === 503 ? 'deny' : 'warn', glow: 0.4 })));
+        if (c.svc !== null) { toSvc[c.svc] = true; if (c.status === 503) svcErr[c.svc] = true; }
+      });
+      [0, 1].forEach(function (k) {
+        rules.push(rule('^route-' + k + '-\\d$', toSvc[k] ? (svcErr[k] ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.5, pulse: true }) : { hide: true }));
+      });
+      rules.push(rule('^service-0$', s.apiReady ? { tint: 'gold', glow: 0.35 } : { tint: 'deny', glow: 0.7, pulse: true }));
+      rules.push(rule('^service-1$', { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^endpoint-pod-[01]$', s.apiReady ? { tint: 'ok', glow: 0.3 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^endpoint-pod-[23]$', { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^ep-[01]-\\d$', toSvc[0] && s.apiReady ? { tint: 'ok', glow: 0.5, pulse: true } : { hide: true }));
+      rules.push(rule('^ep-[23]-\\d$', toSvc[1] ? { tint: 'ok', glow: 0.5, pulse: true } : { hide: true }));
+      var codes = d.clients.map(function (c) { return 'GET ' + c.path + ' → ' + (c.status === 'no-route' ? 'no route (no controller)' : c.status + (c.svc !== null ? ' service-' + c.svc : ' default backend')); });
+      var bad = d.clients.filter(function (c) { return c.status !== 200; }).length;
+      var verdict = !s.controller ? 'down' : (bad ? 'degraded' : (s.tlsSecret ? 'healthy' : 'cert-warning'));
+      var tls = !s.controller ? '' : (s.tlsSecret ? ' · TLS shop-tls' : ' · TLS: controller default cert (shop-tls missing)');
+      return { verdict: verdict, metrics: d, caption: codes.join(' · ') + ' · /api ' + d.apiType + tls, rules: rules };
+    }
+  };
+
+  /* ── ConfigMaps & Secrets: update propagation · immutable · missing keys · etcd at rest (CKA workloads) ──
+   * Scene contract (secrets-configmaps.glb): env-chip-0 = DB_PASS ← secretKeyRef db-creds/password (secret-key-1),
+   * env-chip-1 = LOG_LEVEL ← configMapKeyRef, volume-configmap = app-config at /etc/config. */
+  function configDecide(s) {
+    var editApplied = !!s.cmEdited && !s.immutable;
+    var volumeFresh = !editApplied || !!s.restarted || (!s.subPath && !!s.synced);
+    var envFresh = !editApplied || !!s.restarted;
+    return {
+      editApplied: editApplied,
+      editRejected: !!s.cmEdited && !!s.immutable,
+      volumeFresh: volumeFresh,
+      envFresh: envFresh,
+      pod: s.keyMissing ? 'CreateContainerConfigError' : 'Running',
+      etcdAtRest: s.encryptAtRest ? 'encrypted' : 'unencrypted'
+    };
+  }
+
+  var config = {
+    id: 'config-propagation',
+    title: 'ConfigMap & Secret drill — what updates, what never does',
+    cert: 'CKA',
+    glb: '/assets/immersive/secrets-configmaps.glb',
+    initial: { cmEdited: false, synced: false, subPath: false, immutable: false, restarted: false, keyMissing: false, encryptAtRest: false },
+    toggles: [
+      { id: 'cmEdited', label: 'kubectl edit app-config (LOG_LEVEL=debug)', on: 'edited', off: 'original', risk: 'none' },
+      { id: 'synced', label: 'kubelet sync period', on: 'elapsed', off: 'not yet', risk: 'none' },
+      { id: 'subPath', label: 'app.properties mount', on: 'subPath', off: 'whole volume', risk: 'on' },
+      { id: 'immutable', label: 'app-config immutable', on: 'true', off: 'false', risk: 'none' },
+      { id: 'restarted', label: 'pods since edit', on: 'rollout restart', off: 'same pods', risk: 'none' },
+      { id: 'keyMissing', label: 'db-creds key “password”', on: 'missing', off: 'present', risk: 'on' },
+      { id: 'encryptAtRest', label: 'EncryptionConfiguration (etcd)', on: 'aescbc/KMS', off: 'none' }
+    ],
+    scenarios: [
+      { id: 'volume-vs-env', label: 'Edit ConfigMap, wait', set: { cmEdited: true, synced: true, subPath: false, immutable: false, restarted: false, keyMissing: false },
+        predict: { q: 'You kubectl edit configmap app-config to LOG_LEVEL=debug. The pod mounts it as a volume at /etc/config AND reads LOG_LEVEL via configMapKeyRef. A couple of minutes later, with no restart, what does the container see?',
+          options: ['Both the file and the env var show debug', 'Neither — ConfigMaps are read once at scheduling', 'The mounted file shows debug (kubelet sync); the env var still has the old value'],
+          answer: 2, why: 'Projected ConfigMap volumes are refreshed by the kubelet on its sync loop (delay ≈ sync period + cache TTL, often up to a minute or two). Environment variables are resolved once, at container start.' } },
+      { id: 'subpath', label: 'subPath mount', set: { cmEdited: true, synced: true, subPath: true, immutable: false, restarted: false, keyMissing: false },
+        predict: { q: 'Same edit, but /etc/config/app.properties is mounted with subPath. After the kubelet sync?',
+          options: ['Still the old content — subPath mounts never receive ConfigMap updates', 'Updated, just later than a full volume', 'The container is restarted automatically'],
+          answer: 0, why: 'A subPath is bind-mounted once from the volume and is not swapped on update. Only a new container (rollout restart) sees the change — or mount the whole volume instead.' } },
+      { id: 'immutable', label: 'immutable: true', set: { cmEdited: true, synced: true, subPath: false, immutable: true, restarted: false, keyMissing: false },
+        predict: { q: 'app-config has immutable: true. You try to change LOG_LEVEL with kubectl edit. What happens?',
+          options: ['The edit succeeds; pods only see it after a restart', 'The API server rejects the update — an immutable ConfigMap can only be deleted and recreated', 'The edit succeeds but the kubelet ignores it'],
+          answer: 1, why: 'immutable: true makes data/binaryData read-only (and lets the kubelet stop watching it, which reduces apiserver load). The usual pattern is a new name (app-config-v2) plus a rollout.' } },
+      { id: 'restart', label: 'Rollout restart', set: { cmEdited: true, synced: false, subPath: true, immutable: false, restarted: true, keyMissing: false },
+        predict: { q: 'With the subPath mount still in place, you run kubectl rollout restart deployment/api. What do the new pods see?',
+          options: ['The new value everywhere — env vars, subPath and volume files are all read when the container starts', 'Only the env var updates', 'Nothing — subPath pins the original content forever'],
+          answer: 0, why: 'New pods resolve env vars and set up mounts from the current ConfigMap. Restart (or a hash annotation that changes the pod template) is the reliable way to roll config.' } },
+      { id: 'missing-key', label: 'secretKeyRef to a missing key', set: { cmEdited: false, keyMissing: true, restarted: false },
+        predict: { q: 'env DB_PASS uses secretKeyRef {name: db-creds, key: password} with optional unset (false). The Secret has no “password” key. Pod status?',
+          options: ['Running with DB_PASS set to an empty string', 'CreateContainerConfigError — the container is not started until the key exists', 'CrashLoopBackOff'],
+          answer: 1, why: 'A required (non-optional) reference to a missing Secret/ConfigMap or key fails container creation; `kubectl describe pod` shows “couldn’t find key password in Secret”. With optional: true the variable is simply omitted.' } },
+      { id: 'base64', label: 'Secrets at rest', set: { cmEdited: false, keyMissing: false, encryptAtRest: false },
+        predict: { q: 'kube-apiserver has no EncryptionConfiguration. Someone with read access to etcd dumps /registry/secrets/default/db-creds. What do they get?',
+          options: ['AES ciphertext — Secrets are always encrypted in etcd', 'Nothing — Secret data only lives in kubelet tmpfs', 'The password, readable — without encryption at rest Secret data is stored unencrypted; base64 in the API is encoding, not encryption'],
+          answer: 2, why: 'Encryption at rest is opt-in: --encryption-provider-config with aescbc/aesgcm/secretbox or a KMS provider, then rewrite existing Secrets. Also lock down RBAC on get/list secrets — anyone who can read them gets the plaintext.' } },
+      { id: 'heal', label: 'Reset', set: { cmEdited: false, synced: false, subPath: false, immutable: false, restarted: false, keyMissing: false, encryptAtRest: false } }
+    ],
+    derive: function (s) {
+      var d = configDecide(s);
+      var rules = [];
+      rules.push(rule('^configmap-app-config$', d.editRejected ? { tint: 'deny', glow: 0.8, pulse: true } : (s.immutable ? { tint: 'gold', glow: 0.45 } : { tint: 'ok', glow: 0.25 })));
+      rules.push(rule('^configmap-sheet-\\d$', { tint: s.immutable ? 'gold' : 'ok', glow: 0.15 }));
+      rules.push(rule('^configmap-sheet-0$', d.editApplied ? { tint: 'gold', glow: 0.7, pulse: true } : (d.editRejected ? { tint: 'deny', glow: 0.5 } : { tint: s.immutable ? 'gold' : 'ok', glow: 0.2 })));
+      var stale = { tint: 'warn', glow: 0.7, pulse: true };
+      rules.push(rule('^volume-configmap$', !d.volumeFresh ? stale : (d.editApplied ? { tint: 'ok', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.3 })));
+      rules.push(rule('^edge-configmap-mount$', !d.volumeFresh ? { tint: 'warn', glow: 0.4 } : { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^env-chip-1$', !d.envFresh ? stale : { tint: 'ok', glow: 0.35 }));
+      var syncing = d.editApplied && !s.synced && !s.subPath && !s.restarted;
+      rules.push(rule('^kubelet-led$', syncing ? { tint: 'gold', glow: 0.8, pulse: true } : { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^secret-key-1$', s.keyMissing ? { hide: true } : { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^env-chip-0$', s.keyMissing ? { tint: 'deny', glow: 0.85, pulse: true } : { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^(container-app|pod-boundary)$', s.keyMissing ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^etcd-store$', s.encryptAtRest ? { tint: 'ok', glow: 0.45 } : { tint: 'warn', glow: 0.5, pulse: true }));
+      rules.push(rule('^edge-etcd-secret$', s.encryptAtRest ? { tint: 'ok', glow: 0.3 } : { tint: 'warn', glow: 0.45 }));
+      rules.push(rule('^secret-lock$', { tint: 'gold', glow: 0.4 }));
+      var cap = [];
+      if (d.editRejected) cap.push('edit REJECTED — app-config is immutable');
+      else if (d.editApplied) cap.push('LOG_LEVEL=debug in the API · /etc/config ' + (d.volumeFresh ? 'updated' : (s.subPath ? 'stale (subPath never updates)' : 'stale until kubelet sync')) + ' · env ' + (d.envFresh ? 'updated (new pods)' : 'stale until restart'));
+      else cap.push('LOG_LEVEL=info everywhere');
+      cap.push(s.keyMissing ? 'pod CreateContainerConfigError (db-creds has no key “password”)' : 'pod Running · DB_PASS from db-creds');
+      cap.push('etcd: Secret data ' + (s.encryptAtRest ? 'encrypted at rest' : 'NOT encrypted (base64 ≠ encryption)'));
+      var verdict = s.keyMissing ? 'down' : (d.editRejected ? 'rejected' : ((!d.volumeFresh || !d.envFresh) ? 'stale' : (s.encryptAtRest ? 'healthy' : 'exposed-at-rest')));
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
+  /* ── CNI / pod networking (CKA services & networking + troubleshooting) ──
+   * Scene contract (cni-pod-network.glb): two nodes × three pods, cni-bridge + overlay arcs (cross-node),
+   * cluster-ip (Service VIP, programmed by kube-proxy), coredns (assumed scheduled on node-1). */
+  function cniDecide(s) {
+    var cni = !!s.cniInstalled;
+    var sameNode = cni;
+    var crossNode = cni && !s.cidrOverlap;
+    var clusterIp = cni && !!s.kubeProxy;                 /* VIP → endpoint rules programmed on every node */
+    var dns = clusterIp && !!s.corednsUp && crossNode;   /* client on node-0 reaches CoreDNS on node-1 via the kube-dns VIP */
+    return { nodesReady: cni, podsNetworked: cni, sameNode: sameNode, crossNode: crossNode, clusterIp: clusterIp, dns: dns };
+  }
+
+  var cni = {
+    id: 'cni-network',
+    title: 'CNI drill — node readiness · pod CIDR · Service VIP · DNS',
+    cert: 'CKA',
+    glb: '/assets/immersive/cni-pod-network.glb',
+    initial: { cniInstalled: true, cidrOverlap: false, kubeProxy: true, corednsUp: true },
+    toggles: [
+      { id: 'cniInstalled', label: 'CNI plugin (/etc/cni/net.d)', on: 'installed', off: 'none' },
+      { id: 'cidrOverlap', label: 'pod CIDR vs VPC 10.0.0.0/16', on: 'overlaps', off: '192.168.0.0/16 (distinct)', risk: 'on' },
+      { id: 'kubeProxy', label: 'kube-proxy (or replacement)', on: 'running', off: 'not deployed' },
+      { id: 'corednsUp', label: 'CoreDNS', on: '2 replicas', off: 'scaled to 0' }
+    ],
+    scenarios: [
+      { id: 'no-cni', label: 'No CNI installed', set: { cniInstalled: false, cidrOverlap: false, kubeProxy: true, corednsUp: true },
+        predict: { q: 'Right after kubeadm init/join, before any CNI plugin is installed: what do kubectl get nodes and the CoreDNS pods show?',
+          options: ['Nodes NotReady (network plugin not ready); CoreDNS and new pods stay Pending or ContainerCreating — no pod sandbox gets a network', 'Nodes Ready; pods fall back to host networking', 'kubeadm init fails until a CNI is chosen'],
+          answer: 0, why: 'The kubelet reports NetworkReady=false (“cni plugin not initialized”) so the node is NotReady and tainted not-ready. Pods that do land fail sandbox creation. Installing Calico/Cilium/flannel fixes both.' } },
+      { id: 'cidr-overlap', label: 'Pod CIDR overlaps VPC', set: { cniInstalled: true, cidrOverlap: true, kubeProxy: true, corednsUp: true },
+        predict: { q: 'The cluster was created with --pod-network-cidr=10.0.0.0/16 — the same range as the VPC subnet the nodes live in. What breaks?',
+          options: ['Nothing — the CNI NATs every packet', 'Routing: pod IPs collide with node/VPC addresses, so cross-node pod traffic (and anything through it, like DNS on the other node) is misrouted', 'kube-apiserver refuses to start'],
+          answer: 1, why: 'Pod, Service and node networks must not overlap. Routes for 10.0.x.x become ambiguous: cross-node pod traffic and pod↔host traffic go to the wrong place. Same-node traffic over the bridge can still work, which makes it confusing to debug. Rebuild with a distinct CIDR.' } },
+      { id: 'no-kube-proxy', label: 'No kube-proxy', set: { cniInstalled: true, cidrOverlap: false, kubeProxy: false, corednsUp: true },
+        predict: { q: 'kube-proxy was never deployed and nothing replaces it (no eBPF kube-proxy replacement). Pod → pod IP works. What about curl to a Service ClusterIP?',
+          options: ['Fails — nothing programs the ClusterIP → endpoint rules (iptables/IPVS/nftables) on the nodes', 'Works — the CNI plugin always implements Services', 'Works — CoreDNS returns pod IPs instead'],
+          answer: 0, why: 'A ClusterIP is a virtual IP that only exists as rules written by kube-proxy (or a replacement such as Cilium’s). DNS breaks too, because pods reach CoreDNS through the kube-dns ClusterIP.' } },
+      { id: 'dns-down', label: 'CoreDNS scaled to 0', set: { cniInstalled: true, cidrOverlap: false, kubeProxy: true, corednsUp: false },
+        predict: { q: 'CoreDNS is scaled to 0. A pod curls http://api.default.svc.cluster.local and http://10.96.45.12 (that Service’s ClusterIP). Which works?',
+          options: ['Both', 'Only the ClusterIP — name resolution needs CoreDNS, Service routing does not', 'Neither'],
+          answer: 1, why: 'Service VIP routing is kube-proxy’s job; DNS is CoreDNS’s. Troubleshoot with `nslookup kubernetes.default` from a pod and `kubectl -n kube-system get pods -l k8s-app=kube-dns`.' } },
+      { id: 'heal', label: 'Reset', set: { cniInstalled: true, cidrOverlap: false, kubeProxy: true, corednsUp: true } }
+    ],
+    derive: function (s) {
+      var d = cniDecide(s);
+      var rules = [];
+      rules.push(rule('^(node|kubelet)-\\d$', d.nodesReady ? { tint: 'ok', glow: 0.25 } : { tint: 'warn', glow: 0.6, pulse: true }));
+      rules.push(rule('^node-\\d$', d.nodesReady ? { tint: 'muted', glow: 0.1 } : { tint: 'warn', glow: 0.35, pulse: true }));
+      rules.push(rule('^pod-\\d-\\d$', d.podsNetworked ? { tint: 'ok', glow: 0.35 } : { tint: 'muted', glow: 0.3, pulse: true }));
+      rules.push(rule('^veth-\\d-\\d$', d.podsNetworked ? { tint: 'gold', glow: 0.3 } : { hide: true }));
+      rules.push(rule('^cni-bridge$', s.cniInstalled ? (s.cidrOverlap ? { tint: 'warn', glow: 0.5 } : { tint: 'ok', glow: 0.4 }) : { tint: 'down', glow: 0 }));
+      rules.push(rule('^overlay-arc-\\d-\\d$', d.crossNode ? { tint: 'ok', glow: 0.5, pulse: true } : (d.podsNetworked ? { tint: 'deny', glow: 0.7, pulse: true } : { hide: true })));
+      rules.push(rule('^cluster-ip$', d.clusterIp ? { tint: 'gold', glow: 0.5 } : (d.podsNetworked ? { tint: 'deny', glow: 0.7, pulse: true } : { tint: 'down', glow: 0 })));
+      rules.push(rule('^coredns$', d.dns ? { tint: 'ok', glow: 0.35 } : (s.corednsUp && d.podsNetworked ? { tint: 'warn', glow: 0.5, pulse: true } : { tint: 'deny', glow: 0.6, pulse: true })));
+      var yn = function (b) { return b ? 'OK' : 'FAIL'; };
+      var cap = !d.nodesReady
+        ? 'Nodes NotReady (NetworkReady=false: cni plugin not initialized) · pods Pending/ContainerCreating · CoreDNS Pending'
+        : 'Nodes Ready · same-node pod↔pod ' + yn(d.sameNode) + ' · cross-node ' + yn(d.crossNode) + (s.cidrOverlap ? ' (pod CIDR overlaps VPC)' : '') +
+          ' · ClusterIP rules ' + (d.clusterIp ? 'programmed' : 'MISSING') + ' · DNS ' + yn(d.dns);
+      var verdict = !d.nodesReady ? 'down' : ((d.crossNode && d.clusterIp && d.dns) ? 'healthy' : 'degraded');
+      return { verdict: verdict, metrics: d, caption: cap, rules: rules };
+    }
+  };
+
+  /* ── Service mesh: sidecar injection · mTLS modes · control-plane outage ──
+   * Scene contract (service-mesh-sidecar.glb): app-0 = frontend (ns shop, the client), app-1 = payments (already meshed,
+   * PeerAuthentication on its namespace). sidecar-0/mtls-0 exist only when frontend pods were created after injection was enabled. */
+  function meshDecide(s) {
+    var clientSidecar = !!s.nsLabeled && !!s.restarted;
+    var mode = s.strict ? 'STRICT' : 'PERMISSIVE';
+    var transport = clientSidecar ? 'mTLS' : 'plaintext';
+    var accepted = clientSidecar || !s.strict;
+    return { clientSidecar: clientSidecar, mode: mode, transport: transport, accepted: accepted, configPush: !!s.cpUp };
+  }
+
+  var mesh = {
+    id: 'mesh-mtls',
+    title: 'Service mesh drill — sidecar injection · STRICT vs PERMISSIVE mTLS',
+    cert: 'CKA+ / Istio (ICA)',
+    glb: '/assets/immersive/service-mesh-sidecar.glb',
+    initial: { nsLabeled: true, restarted: true, strict: true, cpUp: true },
+    toggles: [
+      { id: 'nsLabeled', label: 'ns shop label istio-injection', on: 'enabled', off: 'absent' },
+      { id: 'restarted', label: 'frontend pods', on: 'recreated after label', off: 'pre-date the label' },
+      { id: 'strict', label: 'payments PeerAuthentication', on: 'STRICT', off: 'PERMISSIVE', risk: 'none' },
+      { id: 'cpUp', label: 'istiod', on: 'up', off: 'down' }
+    ],
+    scenarios: [
+      { id: 'label-no-restart', label: 'Label namespace only', set: { nsLabeled: true, restarted: false, strict: false, cpUp: true },
+        predict: { q: 'You kubectl label namespace shop istio-injection=enabled. The frontend pods were already running. Do they get sidecars?',
+          options: ['Yes — istiod patches running pods within seconds', 'No — injection is a mutating admission webhook that only runs when a pod is created; restart the workload', 'Only after the node reboots'],
+          answer: 1, why: 'The sidecar is added to the pod spec at admission. Pod specs are (mostly) immutable, so existing pods stay unmeshed until `kubectl rollout restart deployment/frontend`.' } },
+      { id: 'strict-plain', label: 'STRICT + unmeshed client', set: { nsLabeled: true, restarted: false, strict: true, cpUp: true },
+        predict: { q: 'payments has PeerAuthentication mode: STRICT. frontend still has no sidecar. Does frontend → payments work?',
+          options: ['No — STRICT accepts only mTLS; the plaintext connection is rejected (reset) by the payments sidecar', 'Yes — the server sidecar upgrades plaintext to mTLS', 'Yes — STRICT only logs violations'],
+          answer: 0, why: 'The server-side proxy requires a client certificate in STRICT mode. Non-mesh clients typically see “connection reset by peer” / “upstream connect error”.' } },
+      { id: 'permissive', label: 'PERMISSIVE', set: { nsLabeled: true, restarted: false, strict: false, cpUp: true },
+        predict: { q: 'Switch payments to PERMISSIVE, frontend still without a sidecar. Result?',
+          options: ['Still rejected until frontend is meshed', 'It works over mTLS anyway', 'It works, in plaintext — PERMISSIVE accepts both mTLS and plaintext (the migration mode)'],
+          answer: 2, why: 'PERMISSIVE lets meshed and non-meshed clients talk to the workload during migration. Meshed clients still get auto-mTLS; this one is plaintext — fine for a rollout, not as an end state.' } },
+      { id: 'restart', label: 'Rollout restart', set: { nsLabeled: true, restarted: true, strict: true, cpUp: true },
+        predict: { q: 'Keep STRICT and run kubectl rollout restart deployment/frontend. Now?',
+          options: ['Works over mTLS — the new pods get the sidecar and auto-mTLS upgrades the call', 'Still rejected — STRICT needs a DestinationRule first', 'Works in plaintext'],
+          answer: 0, why: 'Recreated pods pass the injection webhook. With auto mTLS (the Istio default), the client sidecar detects the server proxy and originates mTLS without extra config.' } },
+      { id: 'cp-down', label: 'istiod down', set: { nsLabeled: true, restarted: true, strict: true, cpUp: false },
+        predict: { q: 'istiod crashes. What happens to existing meshed traffic frontend → payments?',
+          options: ['Stops immediately — every request needs istiod', 'Keeps flowing — sidecars keep the last pushed config; config changes and certificate rotation stop until istiod returns', 'Falls back to plaintext'],
+          answer: 1, why: 'The control plane is not in the request path. Proxies keep serving with cached xDS config and current certs (default workload cert lifetime 24h); new config, new endpoints and new sidecar injection are what you lose.' } },
+      { id: 'heal', label: 'Reset', set: { nsLabeled: true, restarted: true, strict: true, cpUp: true } }
+    ],
+    derive: function (s) {
+      var d = meshDecide(s);
+      var rules = [];
+      rules.push(rule('^(sidecar|mtls)-0$', d.clientSidecar ? { tint: 'ok', glow: 0.45 } : { hide: true }));
+      rules.push(rule('^mtls-0$', d.clientSidecar ? { tint: 'gold', glow: 0.6 } : { hide: true }));
+      rules.push(rule('^sidecar-1$', { tint: 'ok', glow: 0.4 }));
+      rules.push(rule('^mtls-1$', s.strict ? { tint: 'gold', glow: 0.7, pulse: !d.accepted } : { tint: 'warn', glow: 0.35 }));
+      var hop = !d.accepted ? { tint: 'deny', glow: 0.8, pulse: true } : (d.transport === 'mTLS' ? { tint: 'gold', glow: 0.55, pulse: true } : { tint: 'warn', glow: 0.55, pulse: true });
+      rules.push(rule('^dataplane-hop-\\d$', hop));
+      rules.push(rule('^app-0$', { tint: 'muted', glow: 0.15 }));
+      rules.push(rule('^app-1$', d.accepted ? { tint: 'ok', glow: 0.3 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^(mesh-control-plane|cp-halo)$', s.cpUp ? { tint: 'gold', glow: 0.35 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^xds-1-\\d$', s.cpUp ? { tint: 'ok', glow: 0.45, pulse: true } : { hide: true }));
+      rules.push(rule('^xds-0-\\d$', s.cpUp && d.clientSidecar ? { tint: 'ok', glow: 0.45, pulse: true } : { hide: true }));
+      var cap = 'frontend ' + (d.clientSidecar ? 'has sidecar' : (s.nsLabeled ? 'NO sidecar (pods pre-date the label)' : 'NO sidecar (namespace not labeled)')) +
+        ' → payments (' + d.mode + '): ' + (d.accepted ? d.transport + ' accepted' : 'plaintext REJECTED') +
+        (s.cpUp ? '' : ' · istiod down — data plane on last-known config, no new config/cert rotation');
+      var verdict = !d.accepted ? 'down' : ((d.transport === 'plaintext' || !s.cpUp) ? 'degraded' : 'healthy');
+      return { verdict: verdict, metrics: d, caption: cap, rules: rules };
+    }
+  };
+
+  /* ── Control-plane component failures (CKA troubleshooting) ──
+   * Scene contract (lecture-k8s-control-plane.glb): api-server, scheduler, controller-manager on the control plane;
+   * worker-0..4 with kubelet-led-N. Workload: Deployment web (3 replicas) already Running. */
+  function controlPlaneDecide(s) {
+    var api = !!s.apiUp, sched = !!s.schedUp, cm = !!s.cmUp;
+    return {
+      kubectl: api,
+      runningPodsKeepRunning: true,
+      /* Pods for a scale-up or a deleted replica are created by the ReplicaSet controller (kcm), then bound by the scheduler. */
+      controllerPods: !api ? 'no-api' : (!cm ? 'not-created' : (!sched ? 'pending' : 'scheduled')),
+      deletedPodReplaced: api && cm,
+      /* The node lifecycle controller (in kube-controller-manager) marks a silent node NotReady/Unknown. */
+      worker2NotReady: !s.kubelet2Up && api && cm,
+      worker2Silent: !s.kubelet2Up
+    };
+  }
+
+  var controlPlane = {
+    id: 'control-plane-failure',
+    title: 'Control-plane failure drill — which component did you lose?',
+    cert: 'CKA',
+    glb: '/assets/immersive/lecture-k8s-control-plane.glb',
+    initial: { apiUp: true, schedUp: true, cmUp: true, kubelet2Up: true },
+    toggles: [
+      { id: 'apiUp', label: 'kube-apiserver', on: 'up', off: 'down' },
+      { id: 'schedUp', label: 'kube-scheduler', on: 'up', off: 'down' },
+      { id: 'cmUp', label: 'kube-controller-manager', on: 'up', off: 'down' },
+      { id: 'kubelet2Up', label: 'kubelet on worker-2', on: 'running', off: 'stopped' }
+    ],
+    scenarios: [
+      { id: 'api-down', label: 'API server down', set: { apiUp: false, schedUp: true, cmUp: true, kubelet2Up: true },
+        predict: { q: 'kube-apiserver is down (a bad flag in its static pod manifest). What happens to the pods already running on the workers?',
+          options: ['They are evicted after the grace period', 'They keep running — kubelets keep existing containers alive; kubectl and every controller just lose the API', 'They restart in a loop until the API returns'],
+          answer: 1, why: 'The data plane does not need the API server to keep running containers. Fix the manifest in /etc/kubernetes/manifests; check with crictl ps and the kubelet logs while kubectl is unavailable.' } },
+      { id: 'sched-down', label: 'Scheduler down', set: { apiUp: true, schedUp: false, cmUp: true, kubelet2Up: true },
+        predict: { q: 'kube-scheduler is down. You kubectl scale deployment web --replicas=5 (from 3). Result?',
+          options: ['Two new pods are created but stay Pending with no nodeName until the scheduler returns', 'The scale command is rejected', 'The kubelets schedule the pods themselves'],
+          answer: 0, why: 'The ReplicaSet controller creates the pod objects; binding them to nodes is the scheduler’s job. Pending pods with no events from default-scheduler point at the scheduler.' } },
+      { id: 'cm-down', label: 'Controller-manager down', set: { apiUp: true, schedUp: true, cmUp: false, kubelet2Up: true },
+        predict: { q: 'kube-controller-manager is down. You delete one pod of the 3-replica web Deployment. What happens?',
+          options: ['The scheduler recreates it', 'The kubelet restarts it on the same node', 'It is not replaced — the ReplicaSet controller is not running, so web stays at 2 until kcm returns'],
+          answer: 2, why: 'Reconciliation (ReplicaSet, Deployment, node lifecycle, endpoints …) lives in kube-controller-manager. Without it, desired state is stored but nobody acts on it.' } },
+      { id: 'kubelet-down', label: 'kubelet stops on worker-2', set: { apiUp: true, schedUp: true, cmUp: true, kubelet2Up: false },
+        predict: { q: 'The kubelet on worker-2 stops. What does kubectl get nodes show, and what happens to its pods?',
+          options: ['worker-2 NotReady once node-monitor-grace-period passes (50s default since v1.32, 40s before); its pods are evicted about 5 minutes later (default 300s unreachable toleration)', 'worker-2 disappears from the node list immediately', 'Ready — its containers are still running'],
+          answer: 0, why: 'The node lifecycle controller in kube-controller-manager stops seeing lease/status updates, sets Ready=Unknown (shown as NotReady) and taints the node unreachable:NoExecute. Pods tolerate that for 300s by default, then get evicted and recreated elsewhere.' } },
+      { id: 'heal', label: 'Reset', set: { apiUp: true, schedUp: true, cmUp: true, kubelet2Up: true } }
+    ],
+    derive: function (s) {
+      var d = controlPlaneDecide(s);
+      var rules = [];
+      rules.push(rule('^api-server$', s.apiUp ? { tint: 'ok', glow: 0.4 } : { tint: 'deny', glow: 0.85, pulse: true }));
+      rules.push(rule('^cp-halo$', s.apiUp ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.5, pulse: true }));
+      rules.push(rule('^scheduler$', s.schedUp ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^controller-manager$', s.cmUp ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      var allUp = s.apiUp && s.schedUp && s.cmUp;
+      rules.push(rule('^control-plane$', allUp ? { tint: 'gold', glow: 0.3 } : { tint: 'warn', glow: 0.45, pulse: true }));
+      rules.push(rule('^kubelet-led-\\d$', { tint: 'ok', glow: 0.5 }));
+      rules.push(rule('^worker-\\d$', { tint: 'muted', glow: 0.12 }));
+      rules.push(rule('^kubelet-led-2$', s.kubelet2Up ? { tint: 'ok', glow: 0.5 } : { tint: 'deny', glow: 0.85, pulse: true }));
+      rules.push(rule('^worker-2$', d.worker2NotReady ? { tint: 'warn', glow: 0.55, pulse: true } : (d.worker2Silent ? { tint: 'muted', glow: 0.25, pulse: true } : { tint: 'muted', glow: 0.12 })));
+      var cap = [];
+      cap.push(s.apiUp ? 'kubectl OK' : 'kubectl: connection refused (API down)');
+      cap.push('running pods keep running');
+      if (!s.apiUp) cap.push('no scheduling, no reconciliation');
+      else {
+        cap.push('scale-up / replacement pods ' + ({ 'not-created': 'never created (no ReplicaSet controller)', pending: 'created but Pending (no scheduler)', scheduled: 'created and scheduled' })[d.controllerPods]);
+      }
+      if (!s.kubelet2Up) cap.push(d.worker2NotReady ? 'worker-2 NotReady after node-monitor-grace-period → evictions after 300s' : 'worker-2 kubelet silent but nobody marks it NotReady (no node lifecycle controller)');
+      var verdict = !s.apiUp ? 'down' : ((s.schedUp && s.cmUp && s.kubelet2Up) ? 'healthy' : 'degraded');
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
-    'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa };
+    'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
+    'storage-csi': storage, 'ingress-routing': ingress, 'config-propagation': config, 'cni-network': cni,
+    'mesh-mtls': mesh, 'control-plane-failure': controlPlane };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -606,7 +1127,7 @@
   }
 
   return {
-    VERSION: '1.1.0',
+    VERSION: '1.2.0',
     TINTS: TINTS,
     get: get,
     list: list,
@@ -621,6 +1142,13 @@
     rbacDecide: rbacDecide,
     schedDecide: schedDecide,
     hpaDesired: hpaDesired,
+    storageDecide: storageDecide,
+    ingressMatch: ingressMatch,
+    ingressDecide: ingressDecide,
+    configDecide: configDecide,
+    cniDecide: cniDecide,
+    meshDecide: meshDecide,
+    controlPlaneDecide: controlPlaneDecide,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

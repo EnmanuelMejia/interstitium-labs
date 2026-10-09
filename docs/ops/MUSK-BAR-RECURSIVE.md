@@ -1,7 +1,43 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-07 ~09:50 EDT (America/New_York)._  
+_Last updated: 2026-10-09 ~09:40 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-08/09 Musk-bar pass
+
+_Built 2026-10-08; that run stopped before shipping because the browser suite failed. Shipped 2026-10-09 after fixing the cause: the test read `_authored` on stages that had released their WebGL context off-screen (v1.4.0 context cap) before they woke and re-uploaded. The product path was correct; the test now waits for wake → re-upload. Also defused the fake PEM fixture in `noah-session.test.js` so `security-check.sh` passes again._
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? After yesterday, **storage CSI, Ingress, Secrets/ConfigMaps, CNI and service mesh were still orbit-only dioramas**, and the control-plane lecture scene — the first thing every CKA learner meets — was a spinning prop with no failure drill. Audit also found sim stages **overwrote the authored-glTF provenance caption** (node count / LOD1 skipped) with the sim caption, and every keyed answer in the data was still index 0 (shuffled on screen, but the browser test only ever clicked option 0). **No.** |
+| After this ship | **Closer / still NO** | **Every CKA spatial scene is now a stateful drill (11 CKA-side sims + 2 AWS)**: storage (no default StorageClass, WaitForFirstConsumer, size/accessMode/class matching, RWO Multi-Attach, pvc-protection, Retain vs Delete), Ingress (no controller, Exact vs element-wise Prefix, 503 with no ready endpoints, missing TLS Secret → controller default cert), ConfigMap/Secret propagation (volume after kubelet sync, env + subPath only on restart, immutable, missing key → CreateContainerConfigError, base64 ≠ encryption at rest), CNI (NotReady without a plugin, pod CIDR overlap, kube-proxy owns ClusterIPs, CoreDNS owns names), mesh (injection only on new pods, STRICT vs PERMISSIVE, data plane survives istiod), control plane (API down spares running pods, scheduler → Pending, kcm → no replacement and no NotReady marking, kubelet → NotReady after node-monitor-grace-period). **31 new predict-then-reveal checkpoints**, keyed answers spread across positions. Still **no live UE host**, **no hosted fleet / live cluster**. |
+| Fake YES risk | Rejected | Rules engine over the existing Blender-polished glTF (no new assets). Mesh drill is labelled Istio semantics, not CKA core. Controller-specific behaviour (ingress-nginx default cert) is called out as such. |
+
+## Scorecard (0–10, self-assessed rubric — not measured) — 2026-10-08
+
+| Dimension | Prior (10-07) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | 9.0 | Same scenes; more of them react |
+| Live labs density | 7.0 | **7.4** | 13 interactive sims (was 7); still no hosted fleet |
+| Adaptive learning | 7.6 | **7.8** | 31 more scored checkpoints feed per-sim next-drill |
+| Honesty / trust | 9.9 | 9.9 | Sim captions now also keep the authored-glTF provenance |
+| Curriculum SoT | 9.0 | **9.2** | 6 new published `lab-sim-*` in labs + mirror; manifest scenes carry `sim` + anchored gallery |
+| Immersive / 3D gate | 9.3 | **9.5** | No CKA spatial scene is orbit-only any more |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest win: an exam mode that chains drills under a timer (killer.sh-style pressure) and a troubleshooting "mystery" mode where the learner must find which toggle was flipped.
+
+## Competitor delta (2026-10-08)
+
+Not re-researched today — the 2026-10-07 table below still stands. Today's delta: peers (KodeKloud, Killercoda, A Cloud Guru) teach PV/PVC binding, Ingress pathType, ConfigMap propagation and control-plane troubleshooting as video + terminal; IL now has a predict-then-reveal 3D drill for each, while they keep the real-cluster advantage.
+
+## Shipped this pass (2026-10-08)
+
+1. `il-immersive-sims.js` v1.2.0: `storage-csi`, `ingress-routing`, `config-propagation`, `cni-network`, `mesh-mtls`, `control-plane-failure` (pure helpers `storageDecide` / `ingressMatch` / `ingressDecide` / `configDecide` / `cniDecide` / `meshDecide` / `controlPlaneDecide` exported for tests)
+2. Player v1.6.0: sim captions keep the authored .glb provenance
+3. Wired on `/immersive/` (new `#cka-storage`, `#cka-ingress`, `#cka-cni`, `#cka-service-mesh`, `#cka-control-plane`; `#cka-secrets-configmaps` now interactive), `/labs/` links, curriculum OS labs + mirror, manifest `cka_coverage.interactive` / `sims.list` / scene `sim` fields
+4. Tests: 7 new unit tests (K8s semantics per drill + wiring/answer-spread check); browser suite runs all 13 sims with the keyed answer by index, plus storage / mesh / ingress / CNI / config / control-plane toggles and a provenance-caption check on every sim stage
+
+---
 
 ## Verdict — 2026-10-07 Musk-bar pass
 

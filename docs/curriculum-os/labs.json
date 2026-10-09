@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-07T09:40:00-04:00",
+  "updated": "2026-10-08T09:40:00-04:00",
   "items": [
     {
       "id": "lab-superlab-sim",
@@ -235,6 +235,138 @@
         "sim": "hpa-scale"
       },
       "gltf": "/assets/immersive/hpa-autoscaling.glb"
+    },
+    {
+      "id": "lab-sim-storage-csi",
+      "name": "Storage Drill: StorageClass, PV/PVC binding, reclaim (interactive 3D)",
+      "slug": "lab-sim-storage-csi",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "No default StorageClass, WaitForFirstConsumer, size/accessMode/class matching, RWO Multi-Attach, pvc-protection, Retain vs Delete \u2014 predict, then watch PVs and disks appear, go Released or vanish (rules engine; no live cluster)",
+      "surfaceUrl": "/immersive/#cka-storage",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/storage-csi-pv.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-storage",
+        "sim": "storage-csi"
+      },
+      "gltf": "/assets/immersive/storage-csi-pv.glb"
+    },
+    {
+      "id": "lab-sim-ingress-routing",
+      "name": "Ingress Routing Drill: controller, pathType, endpoints, TLS (interactive 3D)",
+      "slug": "lab-sim-ingress-routing",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "No controller routes nothing, Exact vs element-wise Prefix, 503 with no ready endpoints, missing TLS Secret falls back to the controller default cert \u2014 request beads turn 200/404/503 (rules engine; no live cluster)",
+      "surfaceUrl": "/immersive/#cka-ingress",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/ingress-gateway.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-ingress",
+        "sim": "ingress-routing"
+      },
+      "gltf": "/assets/immersive/ingress-gateway.glb"
+    },
+    {
+      "id": "lab-sim-config-propagation",
+      "name": "ConfigMap & Secret Propagation Drill (interactive 3D)",
+      "slug": "lab-sim-config-propagation",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Volume mounts update after kubelet sync, env vars and subPath only on restart, immutable rejects edits, a missing secretKeyRef key blocks container start, base64 is not encryption at rest (rules engine; no live cluster)",
+      "surfaceUrl": "/immersive/#cka-secrets-configmaps",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/secrets-configmaps.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-config",
+        "sim": "config-propagation"
+      },
+      "gltf": "/assets/immersive/secrets-configmaps.glb"
+    },
+    {
+      "id": "lab-sim-cni-network",
+      "name": "CNI & Pod Networking Failure Drill (interactive 3D)",
+      "slug": "lab-sim-cni-network",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "No CNI plugin \u2192 NotReady nodes, pod CIDR overlapping the VPC breaks cross-node routing, kube-proxy owns ClusterIPs, CoreDNS owns names (rules engine; no live cluster)",
+      "surfaceUrl": "/immersive/#cka-cni",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/cni-pod-network.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-cni",
+        "sim": "cni-network"
+      },
+      "gltf": "/assets/immersive/cni-pod-network.glb"
+    },
+    {
+      "id": "lab-sim-mesh-mtls",
+      "name": "Service Mesh Drill: sidecar injection, STRICT vs PERMISSIVE mTLS (interactive 3D)",
+      "slug": "lab-sim-mesh-mtls",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Namespace label without restart leaves pods unmeshed, STRICT rejects plaintext, PERMISSIVE accepts both, data plane survives an istiod outage (Istio semantics; rules engine; no live mesh)",
+      "surfaceUrl": "/immersive/#cka-service-mesh",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/service-mesh-sidecar.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "mesh",
+        "sim": "mesh-mtls"
+      },
+      "gltf": "/assets/immersive/service-mesh-sidecar.glb"
+    },
+    {
+      "id": "lab-sim-control-plane-failure",
+      "name": "Control-Plane Failure Drill: apiserver, scheduler, controller-manager, kubelet (interactive 3D)",
+      "slug": "lab-sim-control-plane-failure",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "API down spares running pods, scheduler down leaves pods Pending, controller-manager down stops replacement and NotReady marking, a silent kubelet goes NotReady after node-monitor-grace-period (rules engine; no live cluster)",
+      "surfaceUrl": "/immersive/#cka-control-plane",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/lecture-k8s-control-plane.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cka-troubleshooting",
+        "sim": "control-plane-failure"
+      },
+      "gltf": "/assets/immersive/lecture-k8s-control-plane.glb"
     }
   ]
 }
