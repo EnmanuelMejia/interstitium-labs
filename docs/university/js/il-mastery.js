@@ -2,8 +2,8 @@
  * ILMastery — skill-mastery dashboard, repair queue, and exam-readiness
  * library shared by the course player and the academy page.
  *
- * WORKSTREAM 5 (2026-10-08): KodeKloud-pattern 10X implementation.
- * Original implementation; patterns extracted, no KodeKloud content.
+ * WORKSTREAM 5 (2026-10-08): guided-mastery-pattern 10X implementation.
+ * Original implementation; patterns extracted, no third-party content.
  *
  * Reads (local device only, no network, no entitlement):
  *   - localStorage "il-guided-v1"   (ILGuided mastery records)

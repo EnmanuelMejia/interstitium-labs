@@ -22,6 +22,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#06080c">
 <link rel="stylesheet" href="css/il.css">
+<link rel="stylesheet" href="css/il-pillnav.css">
 <link rel="stylesheet" href="css/il-progress.css">
 <link rel="stylesheet" href="css/il-stories.css">
 </head>
@@ -258,11 +259,11 @@
       var lpBlock = document.getElementById('ilprog-continue-block');
       var lpSlot = document.getElementById('ilprog-continue-slot');
       if (lpBlock && lpSlot && window.ILProgress) {
-        /* 2026-10-08 (resume fix): unified paintResume — explicit
-           "Continue where you left off" button when progress exists,
-           "Start your guided path" variant (IL-01) on a fresh device. */
-        ILProgress.paintResume(lpSlot, {});
-        lpBlock.style.display = '';
+        /* 2026-10-08 (scope fix): unified paintResume — explicit
+           "Continue where you left off" button when progress exists.
+           No course context here, so a fresh device shows NOTHING —
+           never a universal IL-01 push. */
+        ILProgress.paintResume(lpSlot, { onDone: function (shown) { lpBlock.style.display = shown ? '' : 'none'; } });
       }
     } catch (e) {}
     try {

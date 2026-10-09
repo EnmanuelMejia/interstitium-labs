@@ -489,7 +489,18 @@ function refreshILProgress() {
     var cwrap = document.getElementById('ilprog-continue-wrap');
     if (brief) {
       ILProgress.loadSequence(function (seq) {
-        var html = lp ? ILProgress.continueHTML(lp, seq, {}) : ILProgress.startPathHTML(seq, {});
+        /* 2026-10-08 (scope fix, BUG 1): remove ALL existing
+           .ilprog-continue nodes document-wide (catches stale
+           bfcache/pre-fix variants by class, not just the current id),
+           then inject exactly one. */
+        var stale = document.querySelectorAll('.ilprog-continue');
+        for (var si = 0; si < stale.length; si++) {
+          if (stale[si].parentNode) stale[si].parentNode.removeChild(stale[si]);
+        }
+        /* 2026-10-08 (scope fix, BUG 2): course-scoped start banner —
+           "Start the {CODE} guided path" for THIS course, never a
+           universal IL-01 push onto unrelated courses. */
+        var html = lp ? ILProgress.continueHTML(lp, seq, {}) : ILProgress.startPathHTML(seq, COURSE.courseId, {});
         if (!html) { if (cwrap) cwrap.style.display = 'none'; return; }
         if (!cwrap) {
           cwrap = el('div', '');
@@ -497,7 +508,7 @@ function refreshILProgress() {
           brief.insertBefore(cwrap, brief.firstChild);
         }
         /* Re-render only when the resume anchor moved. */
-        var sig = lp ? (lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp) : 'start-path';
+        var sig = lp ? (lp.courseId + '|' + lp.moduleId + '|' + lp.timestamp) : ('start-path|' + (COURSE.courseId || ''));
         if (cwrap.dataset.lp !== sig) {
           cwrap.dataset.lp = sig;
           cwrap.innerHTML = html;
@@ -505,23 +516,29 @@ function refreshILProgress() {
         cwrap.style.display = '';
       });
     } else if (cwrap) { cwrap.style.display = 'none'; }
-    /* "Next up" prompt when this course is 100% complete. */
+    /* "Next up" prompt when this course is 100% complete — same-track
+       courses only (2026-10-08 scope fix), never the flat chain. */
     var main = $('#shell-main');
     var wrap = document.getElementById('ilprog-nextup-wrap');
     if (stats.total > 0 && stats.done >= stats.total) {
       ILProgress.loadSequence(function (seq) {
-        var next = seq ? ILProgress.nextEntry(seq, COURSE.courseId) : null;
-        if (!next) { if (wrap) wrap.style.display = 'none'; return; }
+        var rel = seq ? ILProgress.relatedCourses(seq, COURSE.courseId, 3) : [];
+        if (!rel.length) { if (wrap) wrap.style.display = 'none'; return; }
         if (!wrap) {
           wrap = el('div', '');
           wrap.id = 'ilprog-nextup-wrap';
           main.insertBefore(wrap, main.firstChild);
         }
-        wrap.innerHTML = '<div class="ilprog-nextup" role="region" aria-label="Course complete — next course">' +
-          '<div><p class="ilprog-nextup__eyebrow">Course complete — next up in the sequence</p>' +
-          '<p class="ilprog-nextup__desc"><strong>' + ILProgress.esc(next.code) + '</strong> · ' +
-          ILProgress.esc(next.title) + ' (' + (next.moduleCount || (next.moduleIds || []).length) + ' modules)</p></div>' +
-          '<a class="ilprog-nextup__btn" href="' + ILProgress.esc(ILProgress.courseURL(next)) + '">Start next course</a></div>';
+        var tname = ILProgress.trackName(seq, COURSE.courseId) || 'this track';
+        var links = '';
+        for (var ri = 0; ri < rel.length; ri++) {
+          links += '<a class="ilprog-nextup__btn" href="' + ILProgress.esc(ILProgress.courseURL(rel[ri])) + '">' +
+            ILProgress.esc(rel[ri].code) + ' · ' + ILProgress.esc(rel[ri].title) + '</a>';
+        }
+        wrap.innerHTML = '<div class="ilprog-nextup" role="region" aria-label="Course complete — continue in track">' +
+          '<div><p class="ilprog-nextup__eyebrow">Course complete — continue in ' + ILProgress.esc(tname) + '</p>' +
+          '<p class="ilprog-nextup__desc">Related courses in your track:</p>' +
+          '<div class="ilprog-nextup__links">' + links + '</div></div>';
         wrap.style.display = '';
       });
     } else if (wrap) {
@@ -5349,11 +5366,11 @@ window.__ilOpenModule = function (moduleId) {
 
 
 /* ==========================================================================
- * WORKSTREAM 5 (2026-10-08): KodeKloud-pattern 10X implementation pass.
+ * WORKSTREAM 5 (2026-10-08): guided-mastery-pattern 10X implementation pass.
  *
  * Abstract interaction patterns extracted from public research (brief:
- * .work/kodekloud-pattern-brief-20261008.md). Original implementations
- * below — no KodeKloud content, text, or copy reproduced.
+ * .work/guided-mastery-pattern-brief-20261008.md). Original implementations
+ * below — no third-party content, text, or copy reproduced.
  *
  *  1. (§5/#1) Skill-mastery dashboard + exam readiness — see academy.html
  *     "Mastery" section (js/il-mastery.js: heatFor/heatHTML/readinessFor).

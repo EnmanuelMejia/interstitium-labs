@@ -1,9 +1,9 @@
 /* =====================================================================
  * ILDiag — per-course "Test out" diagnostic (diagnostic-on-entry).
  *
- * WORKSTREAM 5 (2026-10-08): KodeKloud-pattern 10X implementation
+ * WORKSTREAM 5 (2026-10-08): guided-mastery-pattern 10X implementation
  * (brief §1, priority #5 — adaptive pathing via diagnostic-on-entry).
- * Original implementation; patterns extracted, no KodeKloud content.
+ * Original implementation; patterns extracted, no third-party content.
  *
  * Samples up to 5 questions from the course's OWN module quizzes —
  * the first unanswered quick-check question per module, in module order.

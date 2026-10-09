@@ -212,38 +212,51 @@
     'learn.html': 'index.html'
   };
 
+  /* 2026-10-08 (scope fix, BUG 3): the SAME floating pill nav as the main
+     site (docs/index.html) — same brand lockup, same link set, same
+     styling (university/css/il-pillnav.css), same zero-JS mobile
+     <details> collapse. Absolute URLs so it works at any path depth.
+     il-theme.js injects its toggle into .il-pillnav__row automatically. */
+  var PILL_LINKS = [
+    ['https://interstitiumlabs.dev/learn/', 'Learn'],
+    ['https://interstitiumlabs.dev/#academies', 'Academies'],
+    ['https://interstitiumlabs.dev/paths/', 'Paths'],
+    ['https://interstitiumlabs.dev/paths/roles/', 'Role Tracks'],
+    ['https://interstitiumlabs.dev/prep/drills/', 'Practice'],
+    ['https://interstitiumlabs.dev/labs/', 'Labs'],
+    ['https://interstitiumlabs.dev/noah/', 'Noah AI'],
+    ['https://interstitiumlabs.dev/coach/', 'Coach'],
+    ['https://interstitiumlabs.dev/play/', 'Play'],
+    ['https://interstitiumlabs.dev/cinema/', 'Cinema'],
+    ['https://interstitiumlabs.dev/jobs/', 'Jobs'],
+    ['https://interstitiumlabs.dev/adapt/', 'Adapt'],
+    ['https://interstitiumlabs.dev/about/', 'About Us'],
+    ['https://interstitiumlabs.dev/university/', 'University']
+  ];
+
   function renderHeader() {
     var host = document.getElementById('il-header');
     if (!host) return;
-    var page = currentPage();
-    var header = el('div', { 'class': 'site-header' }, [
-      el('div', { 'class': 'wrap' }, [
-        el('a', { 'class': 'brand', href: 'index.html', 'aria-label': 'Interstitium Labs — home' }, [
-          el('img', { src: '/assets/chrome/sigil-glyph.svg', alt: '', width: 30, height: 30 }),
-          el('span', { 'class': 'wordmark' }, [
-            'Interstitium Labs',
-            el('small', { text: 'SCIENTIA OMNIA VINCIT' })
-          ])
-        ]),
-        el('nav', { 'class': 'site-nav', 'aria-label': 'Primary' },
-          NAV.map(function (item) {
-            var a = el('a', { href: item[0], text: item[1] });
-            if (item[0] === page || NAV_PARENT[page] === item[0]) a.setAttribute('aria-current', 'page');
-            return a;
-          })
-        ),
-        el('button', {
-          'class': 'pal-hint', type: 'button',
-          'aria-label': 'Open command palette (Control K)',
-          title: 'Search the curriculum (Ctrl/⌘+K)',
-          onclick: function () { document.dispatchEvent(new CustomEvent('il:palette-open')); }
-        }, [
-          el('span', { 'class': 'pal-hint-label', text: 'Search' }),
-          el('kbd', { text: 'Ctrl K' })
-        ])
-      ])
-    ]);
-    host.appendChild(header);
+    var links = PILL_LINKS.map(function (item) {
+      var cur = item[1] === 'University' ? ' aria-current="page"' : '';
+      return '<a href="' + item[0] + '"' + cur + '>' + item[1] + '</a>';
+    }).join('');
+    var sheetLinks = PILL_LINKS.map(function (item) {
+      var cur = item[1] === 'University' ? ' aria-current="page"' : '';
+      return '<a href="' + item[0] + '"' + cur + '>' + item[1] + '</a>';
+    }).join('') + '<a href="https://interstitiumlabs.dev/enroll/">Enroll</a>';
+    host.innerHTML =
+      '<nav class="il-pillnav" aria-label="Primary">' +
+      '<div class="il-pillnav__row">' +
+      '<a class="il-brand" href="https://interstitiumlabs.dev/" aria-label="Interstitium Labs home">' +
+      '<img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>' +
+      '<span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span></a>' +
+      '<div class="il-pillnav__links">' + links + '</div>' +
+      '<div style="display:flex;align-items:center;gap:.5rem">' +
+      '<details class="il-menu"><summary aria-label="Open menu">MENU</summary>' +
+      '<div class="il-menu__sheet">' + sheetLinks + '</div></details>' +
+      '<a class="il-btn il-btn--gold il-btn--small" href="https://interstitiumlabs.dev/enroll/">Enroll</a>' +
+      '</div></div></nav>';
   }
 
   /* ---------- shared footer ---------- */

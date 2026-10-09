@@ -21,6 +21,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#06080c">
 <link rel="stylesheet" href="css/il.css">
+<link rel="stylesheet" href="css/il-pillnav.css">
 <link rel="stylesheet" href="css/il-progress.css">
 </head>
 <body>
@@ -45,6 +46,7 @@
       <div class="grid grid-3" id="acad-paths" style="margin-top:1.2rem"></div>
       <h2 style="margin-top:2.4rem">Mastery</h2>
       <div id="acad-mastery" aria-live="polite"></div>
+      <div id="ilprog-track-group" aria-live="polite"></div>
       <h2 style="margin-top:2.4rem">Repair queue</h2>
       <div id="acad-repair" aria-live="polite"></div>
     </div>
@@ -127,15 +129,15 @@
 
     /* 2026-10-08: unified progress — resume banner + course progress bar.
        localStorage "il-progress-v1"; tracks regardless of paywall gating.
-       2026-10-08 (resume fix): unified paintResume — "Continue where you
-       left off" when progress exists, "Start your guided path" (IL-01)
-       when the device is fresh. */
+       2026-10-08 (scope fix): banner is COURSE-SCOPED — "Continue where you
+       left off" when progress exists, "Start the {CODE} guided path" for
+       THIS academy's course on a fresh device. Never a universal IL-01
+       push onto unrelated academies. */
     try {
       var lpSlot = document.getElementById('ilprog-continue-slot');
-      if (lpSlot && window.ILProgress) ILProgress.paintResume(lpSlot, {});
       var pHost = document.getElementById('ilprog-course-progress');
       var pSlug = COURSE_SLUGS[a.code];
-      if (pHost && pSlug && window.ILProgress) {
+      if (window.ILProgress && pSlug) {
         ILProgress.loadSequence(function (seq) {
           var entry = null;
           if (seq && seq.courses) {
@@ -143,14 +145,38 @@
               if (seq.courses[i].slug === pSlug) { entry = seq.courses[i]; break; }
             }
           }
-          if (!entry) { pHost.innerHTML = ''; return; }
+          /* Course-scoped guided-path banner (never universal IL-01). */
+          if (lpSlot) ILProgress.paintResume(lpSlot, { courseId: entry ? entry.courseId : null });
+          if (!entry) { if (pHost) pHost.innerHTML = ''; return; }
           var st = ILProgress.courseStats(entry.courseId, entry.moduleCount);
-          pHost.innerHTML = '<div class="ilprog-cardbar">' +
+          if (pHost) pHost.innerHTML = '<div class="ilprog-cardbar">' +
             ILProgress.progressBarHTML(st, { label: entry.code + ' · ' + st.done + ' of ' + st.total + ' modules · ' + st.pct + '%' }) +
             /* 2026-10-08 (WORKSTREAM 2): per-course guided mastery. */
             (window.ILGuided ? ILGuided.masteryLineHTML(entry.courseId, entry.moduleCount) : '') +
             '</div>';
+          /* 2026-10-08 (scope fix): guided-path display grouped by TRACK —
+             related courses in this track, never the flat 29-course chain. */
+          var trackHost = document.getElementById('ilprog-track-group');
+          if (trackHost) {
+            var rel = ILProgress.relatedCourses(seq, entry.courseId, 6);
+            var tname = ILProgress.trackName(seq, entry.courseId) || 'this track';
+            if (rel.length) {
+              var cards = '';
+              for (var ri = 0; ri < rel.length; ri++) {
+                var rst = ILProgress.courseStats(rel[ri].courseId, rel[ri].moduleCount);
+                cards += '<a class="ilprog-track-card" href="' + ILProgress.esc(ILProgress.courseURL(rel[ri])) + '">' +
+                  '<span class="ilprog-track-card__code">' + ILProgress.esc(rel[ri].code) + '</span>' +
+                  '<span class="ilprog-track-card__title">' + ILProgress.esc(rel[ri].title) + '</span>' +
+                  '<span class="ilprog-track-card__meta">' + rst.pct + '% · ' + rel[ri].moduleCount + ' modules</span></a>';
+              }
+              trackHost.innerHTML = '<h2 style="margin-top:2.4rem">Continue in ' + ILProgress.esc(tname) + '</h2>' +
+                '<p class="muted">Related courses in this track — your guided path stays inside related material.</p>' +
+                '<div class="ilprog-track-grid">' + cards + '</div>';
+            } else { trackHost.innerHTML = ''; }
+          }
         });
+      } else if (lpSlot && window.ILProgress) {
+        ILProgress.paintResume(lpSlot, {});
       }
     } catch (e) {}
     var paths = IL.pathsForAcademy(a.code);

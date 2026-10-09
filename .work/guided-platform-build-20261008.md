@@ -21,7 +21,7 @@ User order ~19:32 EDT: "Wire it all — make this website a total guided Rosetta
 - course.html: script include. 11-group harness: all pass.
 
 ## Workstream 4 — KodeKloud pattern research (DONE)
-- `.work/kodekloud-pattern-brief-20261008.md`: public-pages-only research, patterns abstracted (no KodeKloud content reproduced). Top 8 prioritized: skill-mastery dashboard, explain-validations, always-on solutions, env-context headers, adaptive pathing, transcript-as-index, multicloud diff labs, repair queue.
+- `.work/guided-mastery-pattern-brief-20261008.md`: public-pages-only research, patterns abstracted (no third-party content reproduced). Top 8 prioritized: skill-mastery dashboard, explain-validations, always-on solutions, env-context headers, adaptive pathing, transcript-as-index, multicloud diff labs, repair queue.
 
 ## Workstream 5 — KodeKloud 10X implementation (DONE)
 - `docs/university/js/il-mastery.js` (new): heat computation/render (green≥70/yellow≥40/red/gray), repair-queue extraction, cross-course exam-readiness.

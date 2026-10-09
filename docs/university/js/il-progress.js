@@ -157,11 +157,42 @@
   }
 
   function nextEntry(seq, courseId) {
-    if (!seq || !seq.courses) return null;
-    for (var i = 0; i < seq.courses.length - 1; i++) {
-      if (seq.courses[i].courseId === courseId) return seq.courses[i + 1];
+    /* 2026-10-08 (scope fix): resolved via TRACK, not chain position.
+       Returns the next course in the same track (or null). */
+    var rel = relatedCourses(seq, courseId, 1);
+    return rel.length ? rel[0] : null;
+  }
+
+  /* Same-track related courses, excluding self, in track order.
+     Never the flat 29-course chain. */
+  function relatedCourses(seq, courseId, limit) {
+    limit = limit || 3;
+    if (!seq || !seq.courses) return [];
+    var self = findEntry(seq, courseId);
+    if (!self || !self.track) return [];
+    var out = [];
+    for (var i = 0; i < seq.courses.length && out.length < limit; i++) {
+      var e = seq.courses[i];
+      if (e.track === self.track && e.courseId !== self.courseId) out.push(e);
     }
-    return null;
+    /* Frontier cross-link: IL-23 also relates to IL-22 (esoteric). */
+    if (self.track === 'frontier' && seq.tracks && seq.tracks.frontier && seq.tracks.frontier.related) {
+      var rel = seq.tracks.frontier.related;
+      for (var j = 0; j < rel.length && out.length < limit; j++) {
+        var code = rel[j], k;
+        for (k = 0; k < seq.courses.length; k++) {
+          if (seq.courses[k].code === code) { out.push(seq.courses[k]); break; }
+        }
+      }
+    }
+    return out;
+  }
+
+  function trackName(seq, courseId) {
+    var e = findEntry(seq, courseId);
+    if (!e || !e.track) return '';
+    if (seq.tracks && seq.tracks[e.track] && seq.tracks[e.track].name) return seq.tracks[e.track].name;
+    return e.track;
   }
 
   function findModuleTitle(entry, moduleId) {
@@ -220,28 +251,45 @@
       '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Continue where you left off') + '</a></div>';
   }
 
-  /* "Start your guided path" variant — shown when the device has no
-     progress yet. Points at the curriculum start (first sequence entry,
-     IL-01). Falls back to the hardcoded IL-01 URL when the sequence doc
-     is unavailable. */
-  function startPathHTML(seq, opts) {
+  /* "Start the {CODE} guided path" — course-scoped (2026-10-08 scope fix).
+     Shown when the device has no progress yet AND a course context is
+     known. courseId may be a courseId or a slug. Points at THAT course's
+     first module (?course=<slug>&module=<firstModuleId>) — never a
+     universal IL-01 push onto unrelated courses. No course context →
+     returns '' (no banner). */
+  function startPathHTML(seq, courseId, opts) {
     opts = opts || {};
-    var first = (seq && seq.courses && seq.courses.length) ? seq.courses[0] : null;
-    var url = first ? courseURL(first) : '/university/course.html?course=il-01-esoteric-foundations';
-    var code = first ? first.code : 'IL-01';
-    var cTitle = first ? first.title : 'Esoteric Foundations';
+    var entry = null;
+    if (seq && seq.courses && courseId) {
+      for (var i = 0; i < seq.courses.length; i++) {
+        var e = seq.courses[i];
+        if (e.courseId === courseId || e.slug === courseId) { entry = e; break; }
+      }
+    }
+    if (!entry) return '';
+    var firstModuleId = (entry.modules && entry.modules.length && entry.modules[0].id) || null;
+    var url = courseURL(entry, firstModuleId);
     if (!url) return '';
-    return '<div class="ilprog-continue ilprog-continue--start" role="region" aria-label="Start your guided path">' +
+    var cta = opts.ctaLabel || ('Start the ' + entry.code + ' guided path');
+    return '<div class="ilprog-continue ilprog-continue--start" role="region" aria-label="' + esc(cta) + '">' +
       '<div class="ilprog-continue__txt">' +
-      '<p class="ilprog-continue__eyebrow">Begin the guided sequence</p>' +
-      '<p class="ilprog-continue__desc"><strong>' + esc(code) + '</strong> · ' + esc(cTitle) +
-      ' — the first step of the full curriculum</p></div>' +
-      '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Start your guided path') + '</a></div>';
+      '<p class="ilprog-continue__eyebrow">Begin this course\'s guided sequence</p>' +
+      '<p class="ilprog-continue__desc"><strong>' + esc(entry.code) + '</strong> · ' + esc(entry.title) + '</p></div>' +
+      '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(cta) + '</a></div>';
   }
 
   /* Paint the banner into a container if (and only if) a last position exists. */
   function paintContinue(container, opts) {
     if (!container) return;
+    /* 2026-10-08 (scope fix): nuke stale .ilprog-continue nodes in this
+       container's subtree before painting, so bfcache/pre-fix markup can
+       never stack duplicates. */
+    try {
+      var stale = container.querySelectorAll('.ilprog-continue');
+      for (var i = 0; i < stale.length; i++) {
+        if (stale[i].parentNode) stale[i].parentNode.removeChild(stale[i]);
+      }
+    } catch (e) {}
     var lp = getLastPosition();
     if (!lp) { container.style.display = 'none'; return; }
     loadSequence(function (seq) {
@@ -253,13 +301,23 @@
   }
 
   /* Unified resume painter (user order 2026-10-08): last position exists →
-     "Continue where you left off" banner; no progress yet → "Start your
-     guided path" variant pointing at the curriculum start. */
+     "Continue where you left off" banner; no progress yet → course-scoped
+     "Start the {CODE} guided path" when opts.courseId is known, otherwise
+     nothing (never a universal IL-01 push). */
   function paintResume(container, opts) {
     if (!container) return;
+    opts = opts || {};
+    try {
+      var stale = container.querySelectorAll('.ilprog-continue');
+      for (var i = 0; i < stale.length; i++) {
+        if (stale[i].parentNode) stale[i].parentNode.removeChild(stale[i]);
+      }
+    } catch (e) {}
     var lp = getLastPosition();
     loadSequence(function (seq) {
-      var html = lp ? continueHTML(lp, seq, opts) : startPathHTML(seq, opts);
+      var html = lp ? continueHTML(lp, seq, opts)
+                    : (opts.courseId ? startPathHTML(seq, opts.courseId, opts) : '');
+      if (typeof opts.onDone === 'function') { try { opts.onDone(!!html); } catch (e2) {} }
       if (!html) { container.style.display = 'none'; return; }
       container.innerHTML = html;
       container.style.display = '';
@@ -279,6 +337,8 @@
     loadSequence: loadSequence,
     findEntry: findEntry,
     nextEntry: nextEntry,
+    relatedCourses: relatedCourses,
+    trackName: trackName,
     findModuleTitle: findModuleTitle,
     courseURL: courseURL,
     progressBarHTML: progressBarHTML,
