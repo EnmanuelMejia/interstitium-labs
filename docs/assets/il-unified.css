@@ -1763,6 +1763,31 @@ html[dir="rtl"] #il-game-hud.il-hud, html[dir="rtl"] .il-hud {
   :root { --il-lockup-h-sm: var(--il-lockup-h-uw-xl); --il-header-h-sm: 5.5rem; }
   .il-hero-sigil { width: min(14vw, 280px); }
 }
+/* True 5K ultrawide / 5120x1440 (Philips 499P9) — merged from il-ultrawide.css */
+@media (min-width: 3840px) {
+  .il-readable,
+  .mx-auto.max-w-6xl,
+  .il-ux-shell,
+  .il-wrap {
+    max-width: min(100%, 100rem);
+  }
+  main .md\:grid-cols-3,
+  main .grid.md\:grid-cols-3,
+  .il-uw-cards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  main .md\:grid-cols-2,
+  main .sm\:grid-cols-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* Explicit 32:9 aspect ratio hook */
+@media (min-aspect-ratio: 3.2/1) and (min-width: 2560px) {
+  .il-hero-uw,
+  section.relative.isolate > .relative.mx-auto.grid.max-w-6xl {
+    padding-block: 3.5rem;
+  }
+}
 /* Landscape phones */
 @media (max-height: 480px) and (orientation: landscape) {
   header.sticky .h-14, header.sticky .sm\:h-16 { height: 2.75rem; }
