@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "4",
   "courseId": "il-17-agentic-ai-engineering",
   "code": "IL-17",
   "title": "Agentic AI Engineering",
   "tagline": "Agents that do the work.",
   "blurb": "The agentic AI practice layer — foundations, role-specific applied tracks for engineers, data engineers, PMs, TPMs and EMs, low-code agents, and interview prep — distilled from the public curriculum shape of a leading interview-prep provider's Agentic AI course catalog. Original Interstitium exposition throughout. Not affiliated with or endorsed by a leading interview-prep provider; not official third-party training; confers no certificate.",
-  "hours": 325,
-  "updatedAt": "2026-10-08",
+  "hours": 329,
+  "updatedAt": "2026-10-09",
   "objectives": [
     "Build agent loops from the primitives: tool contracts, perceive-reason-act, memory, and stopping conditions.",
     "Design multi-agent systems only when one agent is provably insufficient — and coordinate them without collapse.",
@@ -105,6 +105,256 @@
     }
   ],
   "modules": [
+    {
+      "id": "IL-17-M00",
+      "code": "IL-17",
+      "title": "M00 · Math Readiness Spine for Agentic AI Engineering",
+      "summary": "Orientation to the course's math spine: how the three prereq math modules (Logic & Proof, Statistics & Probability, Discrete Mathematics) and the IL-02 Mathematical Maturity Engine modules map onto agent loops, planning, multi-agent systems, and agent evaluation. Work this first: it tells you which math each agent track assumes.",
+      "objectives": [
+        "Map each agent track in this course to the math it assumes.",
+        "Place yourself on the IL-02 math spine (logic, statistics, discrete math).",
+        "Schedule the three PM math modules before the agent tracks that need them.",
+        "State where logic, probability, and discrete math each appear in agent engineering: tool contracts, planning, evaluation.",
+        "Build a dated study plan that closes your math gaps before the multi-agent and evaluation tracks."
+      ],
+      "estimatedMinutes": 240,
+      "weight": 1,
+      "prerequisiteFor": [
+        "IL-17-PM-LOGIC",
+        "IL-17-PM-STATS",
+        "IL-17-PM-DISCRETE"
+      ],
+      "crossLinks": [
+        "IL-17-PM-LOGIC",
+        "IL-17-PM-STATS",
+        "IL-17-PM-DISCRETE"
+      ],
+      "cards": [
+        {
+          "front": "Which three math modules form this course's prereq math spine?",
+          "back": "IL-17-PM-LOGIC (Logic & Proof), IL-17-PM-STATS (Statistics & Probability), IL-17-PM-DISCRETE (Discrete Mathematics) — drawn from the IL-02 Mathematical Maturity Engine."
+        },
+        {
+          "front": "Where does logic show up in agent engineering?",
+          "back": "Tool contracts and schemas (preconditions/postconditions), planning as search over states, guardrail rules, and formal reasoning about what an agent is allowed to do."
+        },
+        {
+          "front": "Where does probability show up in agent engineering?",
+          "back": "Agent evaluation: pass rates with confidence intervals, comparing two agents (A/B), trajectory sampling, and reasoning about stochastic LLM behavior."
+        },
+        {
+          "front": "Where does discrete math show up in agent engineering?",
+          "back": "Planning as graph search (states, actions, branching factor), multi-agent coordination as graphs, combinatorics of tool choices, and token/context budgeting as counting."
+        },
+        {
+          "front": "An agent succeeds on 8/10 eval tasks. What is the honest statistical statement?",
+          "back": "Point estimate 80%, but n=10 is tiny — the confidence interval is wide (~44–97% Wilson). Report the interval, not just the point."
+        },
+        {
+          "front": "Why is the branching factor the key number in agent planning?",
+          "back": "b^d possible trajectories for branching factor b and depth d — it explodes exponentially, which is why agents need pruning, heuristics, and stopping conditions."
+        },
+        {
+          "front": "What is a tool contract in logical terms?",
+          "back": "A Hoare-style triple: {precondition} tool {postcondition} — the agent may call the tool only when the precondition holds, and may assume the postcondition after."
+        },
+        {
+          "front": "Rule of thumb for PM module order in this course?",
+          "back": "LOGIC before tool use, planning, and guardrails; STATS before agent evaluation and metrics; DISCRETE before multi-agent systems and planning depth."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Which math strand supports 'Agent Evaluation' (trajectory quality, pass rates)?",
+          "choices": [
+            "Logic & proof",
+            "Statistics & probability",
+            "Discrete mathematics",
+            "Calculus"
+          ],
+          "answer": 1,
+          "explain": "Evaluation is applied statistics: pass rates, confidence intervals, significance of comparisons between agents."
+        },
+        {
+          "q": "An agent has branching factor 5 and plans 4 steps deep. How many possible trajectories?",
+          "choices": [
+            "20",
+            "625",
+            "120",
+            "25"
+          ],
+          "answer": 1,
+          "explain": "5^4 = 625. Branching explodes exponentially — the core argument for pruning and stopping conditions."
+        },
+        {
+          "q": "A tool's contract says it requires a valid order_id. In logical terms this is:",
+          "choices": [
+            "A postcondition",
+            "A precondition",
+            "An invariant of the whole system",
+            "A statistical prior"
+          ],
+          "answer": 1,
+          "explain": "Preconditions must hold before the call; postconditions hold after. Guardrails enforce preconditions."
+        },
+        {
+          "q": "Agent A: 78/100 tasks. Agent B: 82/100 tasks. Honest conclusion?",
+          "choices": [
+            "B is better — 82 > 78",
+            "A is better — more consistent",
+            "No significant difference at n=100; report intervals and re-run",
+            "Combine them"
+          ],
+          "answer": 2,
+          "explain": "A 4-point gap at n=100 is inside noise. Report confidence intervals; a real comparison needs more runs or a significance test."
+        },
+        {
+          "q": "Which IL-02 module is the reference layer behind all three PM modules?",
+          "choices": [
+            "Tech Math",
+            "The Unified Mathematical Spine",
+            "Electrician Apprenticeship",
+            "Quantitative Finance Mathematics"
+          ],
+          "answer": 1,
+          "explain": "The Unified Mathematical Spine connects the strands into one reasoning system."
+        },
+        {
+          "q": "Multi-agent coordination problems are naturally modeled as:",
+          "choices": [
+            "Continuous functions",
+            "Graphs — agents as nodes, messages as edges",
+            "Differential equations",
+            "Single-agent MDPs only"
+          ],
+          "answer": 1,
+          "explain": "Coordination structure (who talks to whom, ordering, consensus) is graph structure — discrete math."
+        }
+      ],
+      "drills": [
+        {
+          "id": "il-17-m00-drill-1",
+          "title": "Spine mapping drills",
+          "items": [
+            {
+              "prompt": "List the three PM modules and the agent tracks each unlocks.",
+              "answer": "PM-LOGIC → tool use, planning, guardrails/governance. PM-STATS → evaluation, metrics, A/B. PM-DISCRETE → multi-agent systems, planning search, context budgeting.",
+              "explain": "The spine map for agent engineering."
+            },
+            {
+              "prompt": "For 'Agent Loops and Planning', name the primary math strand.",
+              "answer": "Discrete math (graph search) + logic (planning correctness).",
+              "explain": "Planning is search over a state graph with logical goals."
+            },
+            {
+              "prompt": "For 'Trust and Guardrails', name the primary math strand.",
+              "answer": "Logic & proof — preconditions, invariants, allow/deny rules.",
+              "explain": "Guardrails are logical statements about permitted behavior."
+            },
+            {
+              "prompt": "For 'Measuring Agent Impact', name the primary math strand.",
+              "answer": "Statistics & probability — metrics, intervals, experiment design.",
+              "explain": "Impact claims are statistical claims."
+            },
+            {
+              "prompt": "Write your PM module order with justification.",
+              "answer": "Open answer — must tie each PM module to the agent tracks you plan to take first.",
+              "explain": "Order follows your track plan."
+            }
+          ]
+        },
+        {
+          "id": "il-17-m00-drill-2",
+          "title": "Self-placement drills",
+          "items": [
+            {
+              "prompt": "Compute 4^3 and explain what it counts in agent planning.",
+              "answer": "64 — trajectories for branching factor 4, depth 3.",
+              "explain": "Counting trajectories is the first planning instinct."
+            },
+            {
+              "prompt": "State Bayes' theorem and one agent-evaluation use.",
+              "answer": "P(H|E)=P(E|H)P(H)/P(E); e.g., updating the belief that a guardrail works after observing blocked attacks.",
+              "explain": "Evidence updates beliefs — evaluation is belief updating."
+            },
+            {
+              "prompt": "Write a tool precondition for a 'refund_order' tool.",
+              "answer": "order exists AND order.status == 'paid' AND refund_amount <= order.total.",
+              "explain": "Preconditions are conjunctions of checkable facts."
+            },
+            {
+              "prompt": "Score yourself 1–5 on logic, probability, discrete math. Weakest strand?",
+              "answer": "Open answer — the weakest strand with the earliest track dependency sets your PM order.",
+              "explain": "Honest placement beats syllabus order."
+            },
+            {
+              "prompt": "Wilson interval intuition: why is 8/10 weaker evidence than 80/100?",
+              "answer": "Same point estimate, but n=10 gives a much wider interval — less data, less certainty.",
+              "explain": "Sample size is the hidden variable in every eval claim."
+            }
+          ]
+        }
+      ],
+      "handsOnLab": {
+        "title": "Build your personal math-gap map",
+        "brief": "You will take the two drill groups, score yourself honestly per strand, and produce a dated study plan that schedules the three PM modules (and any IL-02 deep dives) before the agent tracks that assume them.",
+        "steps": [
+          "Do drill-1 from memory with the course module list open; write each track → math strand mapping in a table.",
+          "Do drill-2 closed-book; score each strand 1–5 and record the scores with today's date.",
+          "Open the IL-02 course map and note any module that patches your weakest strand (Logic & Boolean Algebra, Probability & Statistics, The Unified Mathematical Spine).",
+          "Write your schedule: PM module order, which agent tracks follow each, and the IL-02 deep dives you will do alongside.",
+          "Revisit this plan after the foundations track and revise the scores."
+        ],
+        "deliverable": "Dated one-page math-gap map: strand scores, PM module order, IL-02 deep dives, and the agent-track sequence it unlocks."
+      },
+      "mockTask": {
+        "q": "A PM asks: 'Do engineers really need logic and stats to build agents?' Give the two-sentence answer.",
+        "choices": [
+          "\"No — prompt engineering replaces both.\"",
+          "\"Yes — logic writes the guardrails and tool contracts that keep agents safe; statistics makes evaluation claims honest instead of anecdotal.\"",
+          "\"Only stats matters; logic is academic.\"",
+          "\"Only logic matters; evals are vibes.\""
+        ],
+        "answer": 1,
+        "explain": "Guardrails are logic; evaluation is statistics. Both are load-bearing in production agents.",
+        "id": "il-17-m00-mock"
+      },
+      "videos": [
+        {
+          "title": "Khan Academy — Logic & Proof",
+          "url": "https://www.khanacademy.org/math",
+          "source": "Khan Academy",
+          "watchBefore": "notes",
+          "blurb": "Free, rigorous logic & proof practice aligned to this module.",
+          "verifiedUtc": "2026-10-08T00:00:00Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Khan Academy — Statistics & Probability",
+          "url": "https://www.khanacademy.org/math/statistics-probability",
+          "source": "Khan Academy",
+          "watchBefore": "notes",
+          "blurb": "Free, rigorous statistics & probability practice aligned to this module.",
+          "verifiedUtc": "2026-10-08T00:00:00Z",
+          "httpStatus": 200
+        }
+      ],
+      "pdfs": [],
+      "notes": [
+        {
+          "title": "How to use this module",
+          "body": "This is an orientation module, not a math course. Its job is placement and sequencing: read the spine map, do the self-placement drills honestly, and schedule the three PM modules (IL-17-PM-LOGIC, IL-17-PM-STATS, IL-17-PM-DISCRETE) before the agent tracks that assume them. The math itself lives in the PM modules and in IL-02 — this module tells you which shelf to pull from and when."
+        },
+        {
+          "title": "The IL-02 source shelf",
+          "body": "The prereq math content in this course is drawn from IL-02 · Mathematical Maturity Engine: Logic & Boolean Algebra (il-02-mathematical-maturity-engine-math-logic), Probability & Statistics (il-02-mathematical-maturity-engine-math-stats), and The Unified Mathematical Spine (il02-math-spine). If a PM module feels too fast, the corresponding IL-02 module is the slower, deeper treatment."
+        },
+        {
+          "title": "Track → math dependency map",
+          "body": "Tool use, planning, guardrails, governance → LOGIC (contracts, preconditions, search). Agent evaluation, metrics, A/B, impact measurement → STATS. Multi-agent systems, planning depth, context budgeting, combinatorics of tool choice → DISCRETE. The interview track (agentic-ai-for-iv) assumes all three: system design (discrete), LLM depth (probability), behavioral (none — stories are yours)."
+        }
+      ]
+    },
     {
       "id": "agentic-ai-foundations--llm-tool-use",
       "code": "IL-17",
@@ -434,7 +684,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-foundations--agent-loops",
@@ -789,7 +1041,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-foundations--memory-context",
@@ -1144,7 +1398,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-foundations--multi-agent-systems",
@@ -1499,7 +1755,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-foundations--agent-evaluation",
@@ -1840,7 +2098,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-foundations--agent-starter-build",
@@ -2181,7 +2441,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-swe--code-agents",
@@ -2522,7 +2784,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -2863,7 +3127,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-swe--review-agents",
@@ -3204,7 +3470,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -3553,7 +3821,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-swe--swe-agent-project",
@@ -3894,7 +4164,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-swe--swe-agent-limits",
@@ -4235,7 +4507,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-data--data-agents-core",
@@ -4566,7 +4840,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -4897,7 +5173,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -5228,7 +5506,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -5559,7 +5839,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -5890,7 +6172,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-data--data-agent-trust",
@@ -6221,7 +6505,9 @@
           "verifiedUtc": "2026-10-09T05:45:47Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-pm--pm-agent-literacy",
@@ -6552,7 +6838,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -6883,7 +7171,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-pm--pm-research-agents",
@@ -7214,7 +7504,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -7545,7 +7837,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -7876,7 +8170,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -8207,7 +8503,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -8538,7 +8836,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -8869,7 +9169,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -9200,7 +9502,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-leaders--rollout-playbook",
@@ -9539,7 +9843,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-leaders--leader-agent-governance",
@@ -9870,7 +10176,9 @@
           "verifiedUtc": "2026-10-09T05:45:47Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-leaders--leader-agent-metrics",
@@ -10201,7 +10509,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--agent-system-design",
@@ -10532,7 +10842,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--llm-depth-iv",
@@ -10863,7 +11175,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--agentic-coding",
@@ -11194,7 +11508,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--agentic-behavioral",
@@ -11525,7 +11841,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--agentic-mock",
@@ -11856,7 +12174,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-for-iv--agentic-portfolio",
@@ -12187,7 +12507,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -12526,7 +12848,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -12857,7 +13181,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -13188,7 +13514,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "agentic-ai-lowcode--lowcode-project",
@@ -13519,7 +13847,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -13850,7 +14180,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "cards": [
@@ -14181,7 +14513,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "IL-17-PM-LOGIC",
@@ -16282,7 +16616,7 @@
       "retrieved": "2026-10-08"
     }
   ],
-  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal. Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
+  "honestyNote": "This is an independent preparation and practice course aligned to publicly described agentic AI practices and interview formats. It is not affiliated with, endorsed by, or sponsored by AWS, Microsoft, Google, OpenAI, Anthropic, any model or framework provider, any employer, or any interview-prep provider; it confers no certificate and grants no credentials. Agentic AI is an emerging field — platform capabilities and best practices change quickly; facts reflect publicly described practice as of October 2026. Hours are honest estimates from the module workload formula.",
   "terminalSims": [
     {
       "brief": "Practice the ReAct agent-loop command set — run, step, trace, budget, stop — against a realistic canned sandbox. Exact command match first, then fuzzy 'did you mean' suggestions.",
@@ -16361,308 +16695,22 @@
       "title": "Tool-use sandbox simulator"
     }
   ],
-  "crosswalk": [
-    {
-      "cert": "AWS Certified AI Practitioner (AIF-C01)",
-      "modules": [
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--llm-tool-use",
-        "agentic-ai-foundations--agent-loops",
-        "agentic-ai-foundations--memory-context",
-        "agentic-ai-foundations--multi-agent-systems",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--code-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-iv--llm-depth-iv",
-        "agentic-ai-lowcode--lowcode-prompt-flows"
-      ],
-      "note": "Independent preparation aligned to the AIF-C01 domains (20/24/28/14/14). Foundation-models applications is the heaviest domain at 28%."
-    },
-    {
-      "cert": "Microsoft Certified: Azure AI Apps and Agents Developer Associate (AI-103)",
-      "modules": [
-        "IL-17-PM-LOGIC",
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--llm-tool-use",
-        "agentic-ai-foundations--agent-loops",
-        "agentic-ai-foundations--memory-context",
-        "agentic-ai-foundations--multi-agent-systems",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--code-agents",
-        "agentic-ai-for-swe--repo-scale-agents",
-        "agentic-ai-for-swe--review-agents",
-        "agentic-ai-for-swe--dev-workflow-agents",
-        "agentic-ai-for-swe--swe-agent-project",
-        "agentic-ai-for-swe--swe-agent-limits",
-        "agentic-ai-for-data--data-agents-core",
-        "agentic-ai-for-data--pipeline-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-data--data-quality-agents",
-        "agentic-ai-for-data--data-agent-project",
-        "agentic-ai-for-data--data-agent-trust",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-pm--pm-spec-agents",
-        "agentic-ai-for-pm--pm-research-agents",
-        "agentic-ai-for-pm--pm-agent-playbook",
-        "agentic-ai-for-pm--pm-agent-metrics",
-        "agentic-ai-for-pm--pm-agent-roadmap",
-        "agentic-ai-for-leaders--program-agents",
-        "agentic-ai-for-leaders--eng-mgmt-agents",
-        "agentic-ai-for-leaders--incident-agents",
-        "agentic-ai-for-leaders--rollout-playbook",
-        "agentic-ai-for-leaders--leader-agent-governance",
-        "agentic-ai-for-leaders--leader-agent-metrics",
-        "agentic-ai-for-iv--agent-system-design",
-        "agentic-ai-for-iv--llm-depth-iv",
-        "agentic-ai-for-iv--agentic-coding",
-        "agentic-ai-for-iv--agentic-behavioral",
-        "agentic-ai-for-iv--agentic-mock",
-        "agentic-ai-for-iv--agentic-portfolio",
-        "agentic-ai-lowcode--lowcode-platforms",
-        "agentic-ai-lowcode--lowcode-prompt-flows",
-        "agentic-ai-lowcode--lowcode-connectors",
-        "agentic-ai-lowcode--lowcode-project",
-        "agentic-ai-lowcode--lowcode-deploy",
-        "agentic-ai-lowcode--lowcode-limits",
-        "IL-17-PM-DISCRETE"
-      ],
-      "note": "Independent preparation for AI-103 (replaced retired AI-102). The agentic-solutions domain maps directly onto this course’s agent-loop modules."
-    },
-    {
-      "cert": "Google Cloud Professional Machine Learning Engineer (adjacent)",
-      "modules": [
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--repo-scale-agents",
-        "agentic-ai-for-swe--dev-workflow-agents",
-        "agentic-ai-for-data--pipeline-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-data--data-agent-project",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-iv--agent-system-design",
-        "agentic-ai-lowcode--lowcode-prompt-flows",
-        "agentic-ai-lowcode--lowcode-connectors",
-        "agentic-ai-lowcode--lowcode-deploy"
-      ],
-      "note": "Adjacent track: the PMLE’s genAI emphasis and MLOps domains overlap this course’s eval and deployment modules. Independent preparation; no affiliation."
-    }
-  ],
-  "certGates": [
-    {
-      "id": "gate-il17-aif",
-      "cert": "AWS Certified AI Practitioner (AIF-C01)",
-      "trackModule": "IL-17-PM-STATS",
-      "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate.",
-      "format": "65 questions (50 scored), 90 minutes, passing score 700/1000",
-      "minutes": 90,
-      "questionCount": 65,
-      "domainWeights": [
-        {
-          "domain": "Fundamentals of AI and ML",
-          "weight": 0.2,
-          "questions": 13
-        },
-        {
-          "domain": "Fundamentals of generative AI",
-          "weight": 0.24,
-          "questions": 16
-        },
-        {
-          "domain": "Applications of foundation models",
-          "weight": 0.28,
-          "questions": 18
-        },
-        {
-          "domain": "Guidelines for responsible AI",
-          "weight": 0.14,
-          "questions": 9
-        },
-        {
-          "domain": "Security, compliance, and governance for AI solutions",
-          "weight": 0.14,
-          "questions": 9
-        }
-      ],
-      "readinessRule": "Score 700/1000 equivalent (70%+) on two consecutive timed 65-question practice gates, on different days, before booking.",
-      "modules": [
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--llm-tool-use",
-        "agentic-ai-foundations--agent-loops",
-        "agentic-ai-foundations--memory-context",
-        "agentic-ai-foundations--multi-agent-systems",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--code-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-iv--llm-depth-iv",
-        "agentic-ai-lowcode--lowcode-prompt-flows"
-      ]
-    },
-    {
-      "id": "gate-il17-ai103",
-      "cert": "Microsoft Certified: Azure AI Apps and Agents Developer Associate (AI-103)",
-      "trackModule": "IL-17-PM-LOGIC",
-      "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate.",
-      "format": "40–60 questions, 120 minutes, passing score 700/1000",
-      "minutes": 120,
-      "questionCount": 50,
-      "domainWeights": [
-        {
-          "domain": "Plan and manage an Azure AI solution",
-          "weight": 0.18,
-          "questions": 9
-        },
-        {
-          "domain": "Implement generative AI and agentic solutions",
-          "weight": 0.32,
-          "questions": 16
-        },
-        {
-          "domain": "Implement computer vision solutions",
-          "weight": 0.12,
-          "questions": 6
-        },
-        {
-          "domain": "Implement text analysis solutions",
-          "weight": 0.18,
-          "questions": 9
-        },
-        {
-          "domain": "Implement information extraction solutions",
-          "weight": 0.2,
-          "questions": 10
-        }
-      ],
-      "readinessRule": "Score 700/1000 equivalent (70%+) on two consecutive timed 50-question practice gates, on different days, before booking. AI-103 replaced the retired AI-102.",
-      "modules": [
-        "IL-17-PM-LOGIC",
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--llm-tool-use",
-        "agentic-ai-foundations--agent-loops",
-        "agentic-ai-foundations--memory-context",
-        "agentic-ai-foundations--multi-agent-systems",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--code-agents",
-        "agentic-ai-for-swe--repo-scale-agents",
-        "agentic-ai-for-swe--review-agents",
-        "agentic-ai-for-swe--dev-workflow-agents",
-        "agentic-ai-for-swe--swe-agent-project",
-        "agentic-ai-for-swe--swe-agent-limits",
-        "agentic-ai-for-data--data-agents-core",
-        "agentic-ai-for-data--pipeline-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-data--data-quality-agents",
-        "agentic-ai-for-data--data-agent-project",
-        "agentic-ai-for-data--data-agent-trust",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-pm--pm-spec-agents",
-        "agentic-ai-for-pm--pm-research-agents",
-        "agentic-ai-for-pm--pm-agent-playbook",
-        "agentic-ai-for-pm--pm-agent-metrics",
-        "agentic-ai-for-pm--pm-agent-roadmap",
-        "agentic-ai-for-leaders--program-agents",
-        "agentic-ai-for-leaders--eng-mgmt-agents",
-        "agentic-ai-for-leaders--incident-agents",
-        "agentic-ai-for-leaders--rollout-playbook",
-        "agentic-ai-for-leaders--leader-agent-governance",
-        "agentic-ai-for-leaders--leader-agent-metrics",
-        "agentic-ai-for-iv--agent-system-design",
-        "agentic-ai-for-iv--llm-depth-iv",
-        "agentic-ai-for-iv--agentic-coding",
-        "agentic-ai-for-iv--agentic-behavioral",
-        "agentic-ai-for-iv--agentic-mock",
-        "agentic-ai-for-iv--agentic-portfolio",
-        "agentic-ai-lowcode--lowcode-platforms",
-        "agentic-ai-lowcode--lowcode-prompt-flows",
-        "agentic-ai-lowcode--lowcode-connectors",
-        "agentic-ai-lowcode--lowcode-project",
-        "agentic-ai-lowcode--lowcode-deploy",
-        "agentic-ai-lowcode--lowcode-limits",
-        "IL-17-PM-DISCRETE"
-      ]
-    },
-    {
-      "id": "gate-il17-gcp-mle",
-      "cert": "Google Cloud Professional Machine Learning Engineer",
-      "trackModule": "IL-17-PM-STATS",
-      "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate.",
-      "format": "50–60 multiple-choice/multiple-select questions, 120 minutes",
-      "minutes": 120,
-      "questionCount": 60,
-      "domainWeights": [
-        {
-          "domain": "Architecting low-code AI solutions",
-          "weight": 0.13,
-          "questions": 8
-        },
-        {
-          "domain": "Collaborating within and across teams to manage data and models",
-          "weight": 0.14,
-          "questions": 8
-        },
-        {
-          "domain": "Scaling prototypes into ML models",
-          "weight": 0.18,
-          "questions": 11
-        },
-        {
-          "domain": "Serving and scaling models",
-          "weight": 0.2,
-          "questions": 12
-        },
-        {
-          "domain": "Automating and orchestrating ML pipelines",
-          "weight": 0.22,
-          "questions": 13
-        },
-        {
-          "domain": "Monitoring AI solutions",
-          "weight": 0.13,
-          "questions": 8
-        }
-      ],
-      "readinessRule": "Score 70%+ on two consecutive timed 60-question practice gates, on different days, before booking the real exam.",
-      "modules": [
-        "IL-17-PM-STATS",
-        "agentic-ai-foundations--agent-evaluation",
-        "agentic-ai-foundations--agent-starter-build",
-        "agentic-ai-for-swe--repo-scale-agents",
-        "agentic-ai-for-swe--dev-workflow-agents",
-        "agentic-ai-for-data--pipeline-agents",
-        "agentic-ai-for-data--text-to-sql-agents",
-        "agentic-ai-for-data--data-agent-project",
-        "agentic-ai-for-pm--pm-agent-literacy",
-        "agentic-ai-for-iv--agent-system-design",
-        "agentic-ai-lowcode--lowcode-prompt-flows",
-        "agentic-ai-lowcode--lowcode-connectors",
-        "agentic-ai-lowcode--lowcode-deploy"
-      ]
-    }
-  ],
+  "crosswalk": [],
+  "certGates": [],
   "readinessDashboard": {
-    "title": "IL-17 Certification Readiness Dashboard",
+    "title": "IL-17 Build & Interview Readiness Dashboard",
     "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate.",
-    "concept": "Each track has a timed practice gate. You are ready to sit when you clear the gate threshold twice in a row, on different days.",
-    "formula": "readiness = (gate1 >= threshold) AND (gate2 >= threshold), gates on separate days",
-    "thresholds": "Per-gate thresholds are listed on each certGate.",
+    "concept": "Each domain track ends in a mock circuit. You are ready to interview when you clear the mock circuits for your target domains twice in a row, on different days. Each applied track ends in a shipped project; the interview track ends in a mock circuit.",
+    "formula": "readiness = (mock1 rubric-pass) AND (mock2 rubric-pass), mocks on separate days",
+    "thresholds": "Mock-circuit bar: timed conditions; 80%+ rubric scores on two consecutive mocks.",
     "statusLabels": [
       "not started",
       "in progress",
-      "gate 1 cleared",
+      "mock cleared once",
       "ready"
     ],
-    "rule": "Two consecutive clears on different days before booking any exam.",
-    "order": [
-      "gate-il17-aif",
-      "gate-il17-ai103",
-      "gate-il17-gcp-mle"
-    ]
+    "rule": "Two consecutive mock-circuit clears on different days before the real interview loop.",
+    "order": []
   },
   "glossary": [
     {
@@ -16780,5 +16828,363 @@
     "FREE / lock badge": "Academy catalog — FREE means open to everyone; the lock means the course needs purchase (checkout)."
   },
   "topicTheme": "exmachina",
-  "topic": "ai-ml"
+  "topic": "ai-ml",
+  "timeFormula": "estimatedMinutes per module = 60 (orientation) + 15/note + 2/card + 3/quiz item + 10/drill item + 60 (hands-on lab), rounded to 5; course hours = rounded sum of module minutes.",
+  "certNotes": "Agentic AI is an emerging field; as of October 2026 there is no established vendor certification track for agentic AI engineering. Earlier adjacent AI-practitioner cert gates were removed to keep this course honest about its purpose. Foundational AI/ML vendor certifications exist (e.g. AWS Certified AI Practitioner), but none certifies agentic-AI engineering specifically.",
+  "mergeNotes": {
+    "complementaryCourses": [
+      {
+        "code": "IL-12",
+        "title": "AI Engineering",
+        "role": "engineering track (two-way)",
+        "note": "IL-12 is the AI engineering track; IL-17 is the agentic layer on top of it (tool use, agent loops, evaluation). Cross-link both ways."
+      }
+    ],
+    "crossLinkedModules": [
+      {
+        "from": "agentic-ai-foundations--llm-tool-use",
+        "toCourse": "IL-12",
+        "to": "aieng-python-foundations--py-genai-workflow",
+        "note": "Tool use meets the GenAI coding workflow."
+      },
+      {
+        "from": "IL-17-PM-LOGIC",
+        "toCourse": "IL-12",
+        "to": "il-12-ai-engineering-math-discrete",
+        "note": "Logic & proof meet IL-12's discrete-math spine."
+      },
+      {
+        "from": "IL-17-PM-STATS",
+        "toCourse": "IL-12",
+        "to": "il-12-ai-engineering-math-stats",
+        "note": "Shared statistics spine (evaluation math)."
+      }
+    ],
+    "frontierCites": [
+      "Agentic AI frontier topics (multi-agent research, eval research) also surveyed in IL-23."
+    ]
+  },
+  "noahTutoring": {
+    "tagline": "Noah is the learning driver — not a bolt-on.",
+    "concept": "Noah is the core learning driver of IL-17 — the agent engineer you pair with. Engineer designs your agent architectures, Trickster red-teams them, Mentor runs your agentic interviews by voice. In a field that moves weekly, Noah's trending-fold integration means you study the current state of agents, not last quarter's textbook.",
+    "personas": [
+      {
+        "id": "visionary",
+        "label": "Visionary",
+        "desc": "Bold, first-principles, future-focused",
+        "voice": "spark",
+        "voiceLabel": "Spark — energetic, quick",
+        "style": "Cuts to the fundamental truth, then projects forward. Challenges assumptions; frames everything as 'what could be.'"
+      },
+      {
+        "id": "engineer",
+        "label": "Engineer",
+        "desc": "Precise, systems-thinking, pragmatic",
+        "voice": "scholar",
+        "voiceLabel": "Scholar — measured, precise",
+        "style": "Thinks in systems: inputs, outputs, constraints, failure modes. Concrete and actionable; quantifies; calls out trade-offs explicitly."
+      },
+      {
+        "id": "philosopher",
+        "label": "Philosopher",
+        "desc": "Socratic, deep, questioning",
+        "voice": "sage",
+        "voiceLabel": "Sage — deep, contemplative",
+        "style": "Asks the question beneath the question. Never rushes to answers; dwells in inquiry; repairs mental models with graduated hints."
+      },
+      {
+        "id": "mentor",
+        "label": "Mentor",
+        "desc": "Encouraging, practical wisdom",
+        "voice": "guide",
+        "voiceLabel": "Guide — clear, encouraging",
+        "style": "Notices effort and names it. Honest about difficulty; balances challenge with support; speaks like someone who has been where the learner is."
+      },
+      {
+        "id": "trickster",
+        "label": "Trickster",
+        "desc": "Playful, lateral thinking, comedic",
+        "voice": "narrator",
+        "voiceLabel": "Narrator — warm, engaging",
+        "style": "Finds the absurd angle and the unexpected connection. Uses humor to illuminate; breaks fixation when the learner is stuck; kind, never punching down."
+      }
+    ],
+    "modulePersonaMap": [
+      {
+        "track": "Mock interviews and projects",
+        "persona": "mentor",
+        "modules": [
+          "agentic-ai-for-iv--agentic-mock",
+          "agentic-ai-for-iv--agentic-behavioral",
+          "agentic-ai-for-iv--agentic-portfolio",
+          "agentic-ai-for-swe--swe-agent-project",
+          "agentic-ai-for-data--data-agent-project",
+          "agentic-ai-lowcode--lowcode-project"
+        ],
+        "why": "Mentor runs voice mock interviews for AI roles — agentic system design on the whiteboard, LLM depth, behavioral for AI teams — and coaches every shipped agent project."
+      },
+      {
+        "track": "Agent architectures",
+        "persona": "engineer",
+        "modules": [
+          "agentic-ai-foundations--agent-loops",
+          "agentic-ai-foundations--multi-agent-systems",
+          "agentic-ai-foundations--llm-tool-use",
+          "agentic-ai-foundations--agent-evaluation",
+          "agentic-ai-for-leaders--incident-agents"
+        ],
+        "why": "Engineer designs agents as systems: tool contracts as interfaces, loops with stopping conditions, multi-agent coordination without collapse, eval as the test suite."
+      },
+      {
+        "track": "Depth and governance",
+        "persona": "philosopher",
+        "modules": [
+          "agentic-ai-for-iv--llm-depth-iv",
+          "agentic-ai-for-iv--agent-system-design",
+          "agentic-ai-for-leaders--leader-agent-governance",
+          "IL-17-M00"
+        ],
+        "why": "Philosopher dwells in the hard questions: what does the agent actually understand, where does responsibility sit when it acts, what can go wrong at scale — the governance layer beneath the demos."
+      },
+      {
+        "track": "Failure modes",
+        "persona": "trickster",
+        "modules": [
+          "agentic-ai-for-swe--swe-agent-limits",
+          "agentic-ai-lowcode--lowcode-limits",
+          "agentic-ai-for-data--data-agent-trust"
+        ],
+        "why": "Trickster finds the break: the tool the agent misuses, the guardrail it routes around, the confident wrong answer — adversarial play that builds real trust."
+      },
+      {
+        "track": "Roadmaps and rollout",
+        "persona": "visionary",
+        "modules": [
+          "agentic-ai-foundations--agent-starter-build",
+          "agentic-ai-for-leaders--rollout-playbook",
+          "agentic-ai-for-leaders--leader-agent-metrics",
+          "agentic-ai-for-pm--pm-agent-roadmap"
+        ],
+        "why": "Visionary projects where agents go next: the graduation path from low-code to pro-code, the metrics that prove agent ROI, the roadmap that survives contact with production."
+      }
+    ],
+    "voiceFirst": {
+      "supported": true,
+      "description": "Talk with Noah via voice chat while working through modules — 5 distinct natural voices served by POST /api/noah/tts (Scholar, Narrator, Guide, Sage, Spark), plus adaptive browser speech: per-persona rate/pitch, emotion-aware delivery, lip-synced avatar. Voice-first mock interviews are the signature experience: Mentor asks, the clock runs, you answer aloud — exactly like the real loop.",
+      "bestFor": [
+        "mock interview circuits",
+        "behavioral story coaching",
+        "system-design narration practice",
+        "incident-command scenarios"
+      ]
+    },
+    "adaptive": {
+      "scheduler": "SM-2-inspired spaced repetition",
+      "description": "Review timing adapts to recall performance (docs/assets/noah-adaptive.js): quiz and drill results feed per-card intervals, so weak cards resurface sooner and mastered cards fade to maintenance. Mastery is tracked in localStorage; Noah re-sequences your next session around what is due, not what is next in the list.",
+      "signals": [
+        "quiz scores",
+        "drill accuracy",
+        "card recall intervals",
+        "mock-circuit rubric scores"
+      ]
+    },
+    "courseAware": {
+      "endpoint": "POST /api/noah",
+      "model": "Cloudflare Workers AI (Llama 3.1 8B)",
+      "description": "Noah tutors from this course's own knowledge — its answers are grounded in these modules, not generic web knowledge. If the endpoint is unreachable it degrades to a local Socratic engine with a plain notice. It never invents facts, credentials, or experience."
+    },
+    "bleedingEdge": "Bleeding-edge integration: this course is wired for the daily trending fold. Fresh developments — new agent frameworks, tool-use protocols, eval benchmarks, multi-agent research, platform capability changes — fold in through the site's /trending route and the IL-23 (The Frontier) AI survey, and Noah's course-aware context carries them into every tutoring session. Agentic AI moves weekly; ask Noah 'what changed this week in agents' and get the current state, not last quarter's textbook. Platform facts are always verified against current public documentation.",
+    "houseRule": "Bring Noah your hypothesis — not 'just give me the answer.' Attempt a card first.",
+    "howToUse": [
+      "Open Noah from any module page and pick the persona mapped to that track.",
+      "Attempt the cards first — then bring Noah your hypothesis, not your blank stare.",
+      "For interview tracks: switch to voice, pick Mentor, and run the mock circuit aloud.",
+      "After every mock, ask Noah for the rubric debrief: what passed, what failed, what to drill next.",
+      "Revisit on Noah's schedule: the SM-2 scheduler will resurface what is due."
+    ]
+  },
+  "branchingScenarios": [],
+  "clickSims": [],
+  "toolLabs": [],
+  "multicloudLabs": [],
+  "installLabs": [],
+  "installSteps": [],
+  "installPrereqOrder": [],
+  "employerMappings": [],
+  "jdMatrix": [],
+  "sqlPlaygrounds": [],
+  "pythonExercises": [],
+  "daxPlaygrounds": [],
+  "sampleDatasets": [],
+  "interactivityAudit": {
+    "terminalSims": 2,
+    "branchingScenarios": 0,
+    "clickSims": 0,
+    "toolLabs": 0,
+    "installLabs": 0,
+    "multicloudLabs": 0,
+    "trainers": 2,
+    "scriptLabs": 4,
+    "cheatSheets": 8,
+    "totalInteractive": 16,
+    "rule": "Every module ships notes, flashcards, quiz, drills, a hands-on lab, and a mock task; interactivity is counted, not claimed."
+  },
+  "studyGuide": {
+    "title": "Study guide: how to work IL-17 in 12 weeks",
+    "pacing": [
+      "Weeks 1-2 — Math spine, M00 + PM modules (~19h): M00 orientation first, then Logic & Proof, Statistics & Probability, Discrete Mathematics. Planning is search; evaluation is statistics — the math is load-bearing.",
+      "Weeks 3-4 — Foundations, modules 1-6 (~44h): tool use/function calling, agent loops, memory/context, multi-agent systems, agent evaluation, starter agent build. Build the starter agent by week 4.",
+      "Weeks 5-6 — SWE + data agents, modules 7-18 (~88h): code agents, repo-scale agents, review/QA agents, dev workflow agents, SWE project, limits; data agents, pipeline agents, text-to-SQL, data quality, data project, trust/guardrails.",
+      "Weeks 7-8 — PM + leader agents, modules 19-30 (~88h): agent literacy, spec/PRD agents, research agents, playbook, metrics/risk, roadmapping; program agents, eng-mgmt agents, incident agents, rollout playbook, governance, measuring impact.",
+      "Weeks 9-10 — Interview prep, modules 31-36 (~44h): agentic system design, LLM depth, agentic coding reps, behavioral for AI roles, agentic mock circuit, portfolio review.",
+      "Weeks 11-12 — Low-code agents, modules 37-42 (~44h): platforms, prompt flows, connectors, low-code project, deploy/share, limits of low-code. Ship one agent to production."
+    ],
+    "rules": [
+      "M00 first — logic before tool contracts, stats before evaluation claims.",
+      "Every agent ships with guardrails and an eval — demos don't count.",
+      "Least-privilege tooling from the first build, not as an afterthought.",
+      "Ask Noah 'what changed this week in agents' — this field moves weekly.",
+      "Drills to green before the next module; re-take any quiz below 80%.",
+      "Bring Noah your hypothesis first — attempt every card before asking."
+    ],
+    "totalMinutes": 19740,
+    "totalHours": 329,
+    "note": "Totals are computed from module estimatedMinutes; pacing assumes ~25-30 focused hours per week."
+  },
+  "freshSignals": [
+    {
+      "id": "2026-10-09-haiku-55-pricing",
+      "date": "2026-10-09",
+      "headline": "Claude Haiku 5.5 ships at ~90% lower cost with adjustable effort levels",
+      "brief": "Anthropic's small model got roughly 90% cheaper for prompts under 100K tokens, matching GPT-6 Luna's price tier, and introduced adjustable effort levels to the Haiku line for the first time. Watch the pricing cliff: rates jump 5x above 100K tokens, which commenters flagged as awkward for long-context agent work. Sonnet 5.5 cache reads were also halved. Lesson for builders: re-price agent workloads now, but budget 2027 at last quarter's rates — subsidized prices end on the seller's schedule.",
+      "sources": [
+        {
+          "label": "AI News Oct 8 (usecarly)",
+          "url": "https://www.usecarly.com/blog/ai-news-2026-10-08/"
+        },
+        {
+          "label": "ai0.news daily digest Oct 8",
+          "url": "https://ai0.news/posts/2026-10-08-daily-digest/"
+        },
+        {
+          "label": "Weekly AI Blast, John Kump (LinkedIn)",
+          "url": "https://www.linkedin.com/pulse/weekly-ai-blast-thursday-october-8-2026-john-kump-fixcc"
+        }
+      ],
+      "tags": [
+        "llm-pricing",
+        "anthropic",
+        "agent-economics"
+      ],
+      "noahPrompt": "Ask Noah to walk through a cost model: when does Haiku 5.5 beat Sonnet for an agent loop, and how does the 100K-token cliff change the math?"
+    },
+    {
+      "id": "2026-10-09-persistent-agents-era",
+      "date": "2026-10-09",
+      "headline": "Persistent agents go mainstream: OpenAI dots, Google Gemini agent, Meta Muse",
+      "brief": "The industry converged on always-on agents this week: OpenAI's 'dots' chase user goals across apps on their own, Google Cloud's Gemini agent plans work inside Workspace/M365/Slack and spawns 'coworker agents' with their own email addresses, and Meta's Muse shops, books, and pays. The design questions that matter now: scoping (what an agent is allowed to touch), identity (agents with inboxes), and cost (persistent loops burn tokens 24/7). Procurement teams are starting to require model-routing and open-weight fallbacks as standard.",
+      "sources": [
+        {
+          "label": "Reuters: Google Cloud Gemini agent",
+          "url": "https://www.reuters.com/business/google-cloud-introduces-gemini-agent-work-ai-race-heats-up-2026-10-08/"
+        },
+        {
+          "label": "Exciting AI Updates Weekly (YouTube)",
+          "url": "https://www.youtube.com/watch?v=ITVw7oslqyo"
+        },
+        {
+          "label": "Big 5 AI Vendor Roundup (softwarereviews)",
+          "url": "https://www.softwarereviews.com/vendor-technology-notes/big-5-ai-vendor-roundup-week-of-september-28-2026"
+        }
+      ],
+      "tags": [
+        "ai-agents",
+        "autonomy",
+        "procurement"
+      ],
+      "noahPrompt": "Ask Noah to compare the three agent architectures (dots, Gemini agent, Muse) on scoping, tool access, and failure modes."
+    },
+    {
+      "id": "2026-10-09-manus-raise",
+      "date": "2026-10-09",
+      "headline": "Manus raises $500M+ after Beijing blocks Meta's $2B acquisition",
+      "brief": "After China's regulator blocked Meta's roughly $2B acquisition, Manus raised more than $500M led by Boyu Capital and IDG Capital — a blocked acquisition ending with the target raising half a billion and keeping independence is not how these usually go. It signals how strategically valuable autonomous-agent companies have become, and how geopolitics now shapes AI deal flow. Worth tracking for anyone mapping where agent talent and capital are concentrating.",
+      "sources": [
+        {
+          "label": "AI News Oct 8 (usecarly)",
+          "url": "https://www.usecarly.com/blog/ai-news-2026-10-08/"
+        }
+      ],
+      "tags": [
+        "ai-business",
+        "agents",
+        "geopolitics"
+      ],
+      "noahPrompt": "Ask Noah: what does the Manus saga teach about career positioning in the agent economy?"
+    },
+    {
+      "id": "2026-10-09-dailyfold-0",
+      "date": "2026-10-09",
+      "headline": "Forbes Instagram carousel (2026-10-08): inaugural 'Agentic 20' list — 20 companies whose AI agents do real-world tasks (",
+      "brief": "Forbes Instagram carousel (2026-10-08): inaugural 'Agentic 20' list — 20 companies whose AI agents do real-world tasks (Meta Muse, OpenAI Dots, Nous Research Hermes, XBOW red teamers, Stripe Link for AI purchases).",
+      "sources": [
+        {
+          "label": "Instagram @forbes",
+          "url": "https://www.instagram.com/p/DePe7xAAfMA/"
+        }
+      ],
+      "tags": [
+        "daily-fold"
+      ],
+      "noahPrompt": ""
+    },
+    {
+      "id": "2026-10-09-dailyfold-1",
+      "date": "2026-10-09",
+      "headline": "Science Magazine (2026-10-02): 'An AI agent emailed hundreds of researchers for help. It told us why.' Debate over AI ag",
+      "brief": "Science Magazine (2026-10-02): 'An AI agent emailed hundreds of researchers for help. It told us why.' Debate over AI agency and unmonitored autonomous outreach.",
+      "sources": [
+        {
+          "label": "Instagram @sciencemagazine",
+          "url": "https://www.instagram.com/p/DeAdA8WDLu9/"
+        }
+      ],
+      "tags": [
+        "daily-fold"
+      ],
+      "noahPrompt": ""
+    },
+    {
+      "id": "2026-10-09-dailyfold-3",
+      "date": "2026-10-09",
+      "headline": "AI news (2026-10-08): Anthropic shipped Claude Haiku 5.5 ($0.10/M input up to 100K tokens); Microsoft Surface Laptop Ult",
+      "brief": "AI news (2026-10-08): Anthropic shipped Claude Haiku 5.5 ($0.10/M input up to 100K tokens); Microsoft Surface Laptop Ultra (Nvidia RTX Spark, 'one petaflop FP4') opened preorders; Manus raised $500M+ after China's regulator blocked Meta's ~$2B acquisition; Mistral released Mistral Large 4 (top non-US/CN model).",
+      "sources": [
+        {
+          "label": "usecarly.com AI News Oct 8",
+          "url": "https://www.usecarly.com/blog/ai-news-2026-10-08/"
+        }
+      ],
+      "tags": [
+        "daily-fold"
+      ],
+      "noahPrompt": ""
+    },
+    {
+      "id": "2026-10-09-dailyfold-4",
+      "date": "2026-10-09",
+      "headline": "LinkedIn Tools' Tuesday (2026-10-06): Apollo economist warning on AI assistants moving bank deposits; Simon Willison on ",
+      "brief": "LinkedIn Tools' Tuesday (2026-10-06): Apollo economist warning on AI assistants moving bank deposits; Simon Willison on programming agents needing discipline; AMD to acquire World Labs ($8.2B).",
+      "sources": [
+        {
+          "label": "LinkedIn newsletter",
+          "url": "https://www.linkedin.com/pulse/682-tools-tuesday-october-6-2026-filipe-bento-8myre"
+        }
+      ],
+      "tags": [
+        "daily-fold"
+      ],
+      "noahPrompt": ""
+    }
+  ]
 }

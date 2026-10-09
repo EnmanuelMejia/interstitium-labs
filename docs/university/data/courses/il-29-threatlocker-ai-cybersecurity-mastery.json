@@ -6,8 +6,8 @@
   "blurb": "IL-29 is a cybersecurity mastery bootcamp built around zero-trust endpoint defense: you will operate allowlisting, ringfencing, elevation control, storage control, network control, and Detect triage the way a Cyber Hero support operator does — under pressure, with evidence, and with every decision documented. MIT 6.858 computer-security concepts, machine-learning anomaly detection, and the prereq math spine give your decisions first-principles depth, while independent-preparation tracks for Security+, CySA+, CISSP, GSEC, MIT xPRO, and the Google/IBM certificates convert that depth into credentials. The course culminates in a ThreatLocker panel interview simulation and two portfolio capstones, so you walk into the October 13 interview already operating at the job's bar.",
   "hours": 431,
   "mockMinutes": 90,
-  "schemaVersion": 4,
-  "updatedAt": "2026-10-08T00:00:00Z",
+  "schemaVersion": "4",
+  "updatedAt": "2026-10-09",
   "honestyNote": "This is an independent preparation and practice course aligned to publicly published exam objectives and a real interview experience. It is not affiliated with, endorsed by, or sponsored by ThreatLocker, MIT xPRO, MIT OpenCourseWare, CompTIA, ISC2, GIAC, SANS, Google, or IBM; it confers no certificate and grants no credentials. Exam facts (domains, weights, question counts, durations, passing scores, program lengths and prices) reflect publicly published objectives and program descriptions as of October 2026 — always verify against the vendor's current published objectives before booking. ThreatLocker product descriptions reflect publicly documented platform capabilities; portal workflows are taught generically and no affiliation with ThreatLocker is claimed. Hours are honest estimates from the module workload formula.",
   "objectives": [
     "Operate a zero-trust endpoint defense platform at operator depth: allowlisting, ringfencing, elevation control, storage control, network control, Detect triage, and centralized Defender configuration.",
@@ -142,7 +142,13 @@
       "crossLinks": [
         "IL29-M02",
         "IL29-M06",
-        "IL29-M07"
+        "IL29-M07",
+        {
+          "course": "il-11-zero-trust-endpoint-defense",
+          "moduleId": "il11-zero-trust-foundations--zt-default-deny",
+          "topic": "Default-Deny Architecture",
+          "why": "IL-11 teaches zero-trust theory; this module applies it at ThreatLocker operator depth."
+        }
       ],
       "drills": [
         {
@@ -15605,7 +15611,13 @@
       },
       "crossLinks": [
         "IL29-M42",
-        "IL29-M43"
+        "IL29-M43",
+        {
+          "course": "il-06-cybersecurity-secure-engineering",
+          "moduleId": "il06-defensive",
+          "topic": "Defensive Operations: SOC to Incident Response",
+          "why": "IL-06 teaches security operations; this module applies IR at the endpoint."
+        }
       ],
       "prerequisiteFor": [
         "IL29-M45"
@@ -18723,7 +18735,7 @@
       "id": "gate-threatlocker-operator",
       "cert": "ThreatLocker Operator Readiness (internal, not a vendor certification)",
       "trackModule": "IL29-M45",
-      "framing": "Internal operator-readiness assessment for the IT Infrastructure Specialist / Cyber Hero support role. This is not a ThreatLocker certification and confers no credential; it measures whether you can do the job's core tasks. Not affiliated with, endorsed by, or sponsored by ThreatLocker.",
+      "framing": "Independent operator-readiness preparation and assessment for the IT Infrastructure Specialist / Cyber Hero support role. This is not a ThreatLocker certification and confers no credential; it measures whether you can do the job's core tasks. Not affiliated with, endorsed by, or sponsored by ThreatLocker.",
       "format": "Practical operator gate: 8 live triage tickets + 1 policy build, timed at 3 hours",
       "minutes": 180,
       "questionCount": 9,
@@ -18787,7 +18799,36 @@
       "gate-threatlocker-operator"
     ]
   },
-  "scriptLabs": [],
+  "scriptLabs": [
+    {
+      "id": "lab-powershell-triage",
+      "title": "PowerShell Triage Collector",
+      "brief": "Write a PowerShell script that collects the first-response artifact set from a Windows host: running processes with command lines, established network connections with owning PIDs, autorun persistence points, and recently modified executables — all into a timestamped folder.",
+      "starter": "# Triage collector — fill in each TODO section\n$outDir = \"C:\\Triage\\$(Get-Date -Format 'yyyyMMdd-HHmmss')\"\nNew-Item -ItemType Directory -Path $outDir | Out-Null\n\n# TODO 1: export Get-Process with Id, ProcessName, Path, CommandLine to processes.csv\n\n# TODO 2: export Get-NetTCPConnection (State=Established) joined to owning process names to net.csv\n\n# TODO 3: enumerate HKLM/HKCU Run keys + Startup folders to persistence.csv\n\n# TODO 4: list .exe files under C:\\Users modified in the last 7 days to newbinaries.csv\n\nWrite-Host \"Triage bundle written to $outDir\"",
+      "required": "Four CSVs in the timestamped folder: processes.csv (with command lines), net.csv (established connections mapped to process names), persistence.csv (Run keys + Startup), newbinaries.csv (recent executables) — the script must run without elevation errors on missing keys."
+    },
+    {
+      "id": "lab-python-detect-parser",
+      "title": "Detect Alert Summarizer",
+      "brief": "Given a CSV export of ThreatLocker Detect alerts (timestamp, host, severity, tactic, technique, process), write a Python script that prints: alert counts by severity, the top 5 MITRE techniques, and the hosts with the most high-severity alerts.",
+      "starter": "import csv, sys\nfrom collections import Counter\n\n# TODO 1: read the CSV path from sys.argv[1] with csv.DictReader\n\n# TODO 2: count alerts by severity -> Counter\n\n# TODO 3: count MITRE techniques, print the top 5\n\n# TODO 4: for severity == 'High', count by host and print the top hosts\n\n# Expected output sections: 'BY SEVERITY', 'TOP TECHNIQUES', 'HOTTEST HOSTS'",
+      "required": "Running `python summarizer.py alerts.csv` prints three labeled sections with correct counts; the script handles a missing file with a usage message instead of a traceback."
+    },
+    {
+      "id": "lab-allowlist-policy",
+      "title": "Allowlist Policy Generator",
+      "brief": "From an application inventory CSV (path, publisher, hash, install_date), generate a deny-by-default allowlist policy JSON: allow rules for publishers with 2+ installed apps, per-hash rules for the rest, and a report of unsigned binaries needing review.",
+      "starter": "import csv, json, sys\nfrom collections import Counter\n\n# TODO 1: load inventory rows; group by publisher\n\n# TODO 2: publishers with >= 2 apps -> {'type': 'publisher', 'name': ...} rules\n\n# TODO 3: remaining apps -> {'type': 'hash', 'sha256': ...} rules\n\n# TODO 4: rows with empty publisher -> review list\n\n# TODO 5: write {'default': 'deny', 'rules': [...]} to policy.json and print the review list",
+      "required": "policy.json contains a default-deny policy with publisher rules and hash rules, and the script prints the unsigned-binary review list — no app from the inventory is silently dropped."
+    },
+    {
+      "id": "lab-incident-timeline",
+      "title": "Incident Timeline Builder",
+      "brief": "Given mixed log lines (timestamps in two formats plus free text), build a normalized incident timeline: parse, sort chronologically, and print a clean time/action/source table for the incident report.",
+      "starter": "import re, sys\nfrom datetime import datetime\n\nFORMATS = ['%Y-%m-%d %H:%M:%S', '%m/%d/%Y %I:%M %p']\n# TODO 1: read lines from sys.argv[1]; extract a timestamp with regex per line\n\n# TODO 2: try each FORMAT until one parses; skip lines with no timestamp (count them)\n\n# TODO 3: sort events chronologically\n\n# TODO 4: print 'YYYY-MM-DD HH:MM:SS | source | message' rows, then the skipped-line count",
+      "required": "The timeline prints in chronological order across both timestamp formats, skipped lines are counted and reported, and the output is directly pastable into the incident report's timeline table."
+    }
+  ],
   "drills": [
     {
       "id": "drill-il29-res1",
@@ -18855,8 +18896,220 @@
       "explain": "Stakeholder language: behavior → risk → path forward. Technique IDs go in the ticket, not the conversation."
     }
   ],
-  "scenarios": [],
-  "trainers": [],
+  "scenarios": [
+    {
+      "id": "scenario-2am-triage",
+      "title": "2 AM: The Ransomware Call",
+      "context": "02:14 AM. The on-call phone rings: a 60-user site reports files renaming with a ransom note on three machines. You are the Cyber Hero on shift. This scenario tests IR discipline under pressure — containment before eradication, evidence before cleanup.",
+      "steps": [
+        {
+          "prompt": "Your first three actions, in order?",
+          "options": [
+            {
+              "text": "Isolate the affected hosts from the network (leave powered on), confirm the scope via Detect/EDR, and escalate per the playbook.",
+              "correct": true,
+              "why": "Containment first, but network-only — memory holds forensic evidence. Scope before eradication."
+            },
+            {
+              "text": "Immediately reimage the three machines to stop the spread.",
+              "correct": false,
+              "why": "Eradication before scoping destroys evidence and you will miss patient zero and persistence."
+            },
+            {
+              "text": "Pay the ransom — it is 2 AM and speed matters.",
+              "correct": false,
+              "why": "Payment funds the adversary, rarely restores everything, and skips the entire IR process."
+            },
+            {
+              "text": "Shut everything down site-wide to be safe.",
+              "correct": false,
+              "why": "Indiscriminate shutdown destroys volatile evidence across clean machines and maximizes business damage."
+            }
+          ]
+        },
+        {
+          "prompt": "You find the entry vector: a phishing macro, plus a scheduled-task persistence mechanism. Before eradicating, you:",
+          "options": [
+            {
+              "text": "Preserve memory and disk images of patient zero, document the persistence mechanism, then eradicate.",
+              "correct": true,
+              "why": "Forensics before cleanup — you need the how for the report and to be sure eradication is complete."
+            },
+            {
+              "text": "Delete the scheduled task and move on — the vector is obvious.",
+              "correct": false,
+              "why": "'Obvious' is how second persistence mechanisms survive. Document, then eradicate, then verify."
+            },
+            {
+              "text": "Email the whole company about the phishing email immediately.",
+              "correct": false,
+              "why": "Notification matters, but mid-incident it tips off no one useful and distracts the response."
+            }
+          ]
+        },
+        {
+          "prompt": "Recovery: the 2 AM backup is clean; the last user file changes were at 6 PM. You:",
+          "options": [
+            {
+              "text": "Restore from the 2 AM backup, verify integrity on a sample, and declare the 2 AM–6 PM window as the data-loss interval in the report.",
+              "correct": true,
+              "why": "Honest RPO: the loss window is stated plainly so the business can re-create the work — no silent gaps."
+            },
+            {
+              "text": "Restore and tell users nothing was lost.",
+              "correct": false,
+              "why": "The 2 AM–6 PM gap is real; hiding it guarantees the business discovers it from an angry user."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scenario-blocked-lob-app",
+      "title": "Monday 9 AM: The Blocked Line-of-Business App",
+      "context": "The new allowlist policy went live overnight. Forty accountants cannot open the invoicing app — the exact scenario that gets security projects killed. This tests break-fix discipline: restore the user through the control, never by deleting it.",
+      "steps": [
+        {
+          "prompt": "First, you check:",
+          "options": [
+            {
+              "text": "The block event details: which rule fired, the file hash, the publisher, and how many hosts are affected.",
+              "correct": true,
+              "why": "The event tells you exactly what the policy saw — scope and cause in one read."
+            },
+            {
+              "text": "Whether the policy can be disabled org-wide quickly.",
+              "correct": false,
+              "why": "Disabling the control 'temporarily' is how temporary becomes permanent — and unlogged."
+            },
+            {
+              "text": "The vendor's support line.",
+              "correct": false,
+              "why": "The vendor did not block the app; your policy did. The answer is in your console."
+            }
+          ]
+        },
+        {
+          "prompt": "The app is legitimate, signed by a known publisher, missed in the inventory. You:",
+          "options": [
+            {
+              "text": "Issue a scoped publisher-or-hash approval for the app, document the exception, and add the publisher to the next inventory review.",
+              "correct": true,
+              "why": "Restore through the control: targeted approval, documented, with a process fix so it does not recur."
+            },
+            {
+              "text": "Tell finance to wait for the next policy review cycle.",
+              "correct": false,
+              "why": "Business-stopping blocks get emergency handling — the process must have a fast lane."
+            },
+            {
+              "text": "Approve the file hash only, on every host, manually.",
+              "correct": false,
+              "why": "Per-host manual approvals do not scale and leave no auditable policy — use the policy engine."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scenario-phishing-credential-theft",
+      "title": "The Clicked Link: Credential Phishing Triage",
+      "context": "A user reports clicking a 'password expiry' link 20 minutes ago and entering credentials. The domain is a fresh lookalike. This tests account-containment sequencing.",
+      "steps": [
+        {
+          "prompt": "Order of operations:",
+          "options": [
+            {
+              "text": "Force password reset + revoke sessions, check mailbox rules for forwarding, then reimage/verify the endpoint.",
+              "correct": true,
+              "why": "Account first (the credential is live), then mailbox persistence, then endpoint — in the order the attacker monetizes."
+            },
+            {
+              "text": "Reimage the endpoint first, then deal with the account.",
+              "correct": false,
+              "why": "While you reimage, the stolen credential is being used — the account is the bleeding artery."
+            },
+            {
+              "text": "Monitor the account for a day to gather threat intel.",
+              "correct": false,
+              "why": "Watching an active compromise to 'learn' is negligence with extra steps."
+            }
+          ]
+        },
+        {
+          "prompt": "The mailbox has a new forwarding rule to an external address. This tells you:",
+          "options": [
+            {
+              "text": "The attacker established persistence for BEC-style follow-on — remove it, check sent items, and expand the scope to the user's contacts.",
+              "correct": true,
+              "why": "Forwarding rules are the quiet persistence of credential phishing — the inbox keeps paying out after the password changes."
+            },
+            {
+              "text": "The user set it up themselves and forgot.",
+              "correct": false,
+              "why": "External forwarding appearing with a phishing click is attacker tradecraft until proven otherwise."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scenario-angry-lockout-call",
+      "title": "The Angry Caller: Elevation Control Lockout",
+      "context": "A department head calls the Cyber Hero line furious: Elevation Control blocked their software install 10 minutes before a client demo. This tests support under pressure — empathy plus control integrity.",
+      "steps": [
+        {
+          "prompt": "Your opening move on the call:",
+          "options": [
+            {
+              "text": "Acknowledge the urgency, verify their identity and the business need, then walk the approved emergency elevation path — never a permanent grant.",
+              "correct": true,
+              "why": "Empathy plus process: the demo matters AND the control stands. Emergency paths exist precisely for this call."
+            },
+            {
+              "text": "Grant them local admin — the demo is more important than policy.",
+              "correct": false,
+              "why": "One permanent admin grant under pressure becomes the standing privilege the next attacker harvests."
+            },
+            {
+              "text": "Quote the policy and end the call.",
+              "correct": false,
+              "why": "Correct policy, failed support — the user will now route around you, which is worse than the exception."
+            }
+          ]
+        },
+        {
+          "prompt": "After the demo, you:",
+          "options": [
+            {
+              "text": "Review the emergency elevation in the audit log, confirm it was scoped and time-limited, and suggest a standing approval if the software is legitimate and recurring.",
+              "correct": true,
+              "why": "Close the loop: verify the exception behaved, then convert the recurring need into proper policy — the control learns."
+            },
+            {
+              "text": "Forget it — the emergency is over.",
+              "correct": false,
+              "why": "Unexamined exceptions rot into shadow policy. The review is the job."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "trainers": [
+    {
+      "id": "trainer-attack-recall",
+      "title": "ATT&CK Tactic → Technique Recall",
+      "brief": "Rapid-fire recall: given a tactic, name two techniques; given a technique, name its tactic. Builds the mapping fluency the Detect triage workflow and the panel both reward.",
+      "kind": "custom"
+    },
+    {
+      "id": "trainer-ir-sequencing",
+      "title": "IR Order-of-Operations Recall",
+      "brief": "Rapid-fire sequencing: given a scrambled set of response actions (isolate, image memory, scope, eradicate, recover, report), put them in NIST 800-61 order and justify each position. Builds the discipline that survives 2 AM.",
+      "kind": "custom"
+    }
+  ],
   "terminalSims": [
     {
       "id": "IL29-TS-01",
@@ -19089,7 +19342,320 @@
       "answer": "A detector is a threshold with a tradeoff: raising it buys precision (fewer false alarms) and costs recall (more missed attacks). Compute both from labeled data, move the threshold both directions to feel the tradeoff, then choose the setting your SOC queue can actually live with — and write down why."
     }
   ],
-  "mockTasks": [],
+  "mockTasks": [
+    {
+      "id": "IL29-MOCK-01",
+      "type": "choice",
+      "q": "A workstation runs default-deny application control. A user double-clicks an unapproved installer. What happens?",
+      "choices": [
+        "The installer runs, but is sandboxed automatically.",
+        "Execution is blocked and an event is logged; nothing runs until an explicit allow rule exists.",
+        "The installer runs once, then is blocked on the second launch.",
+        "Windows SmartScreen decides based on reputation."
+      ],
+      "answer": 1,
+      "explain": "Deny-by-default means no allow rule, no execution — the block is the safe default and the log entry is the audit trail. Reputation-based second chances belong to allow-by-default antivirus thinking."
+    },
+    {
+      "id": "IL29-MOCK-02",
+      "type": "choice",
+      "q": "Ringfencing in a zero-trust endpoint platform primarily restricts:",
+      "choices": [
+        "Which applications may execute at all.",
+        "What an already-allowed application may do — its files, registry, network, and child processes.",
+        "Which users may log on to the machine.",
+        "The physical network ports on the switch."
+      ],
+      "answer": 1,
+      "explain": "Allowlisting answers 'may it run'; ringfencing answers 'what may it touch'. A permitted browser that cannot spawn PowerShell or reach the LAN is a contained browser — least privilege applied to application behavior."
+    },
+    {
+      "id": "IL29-MOCK-03",
+      "type": "choice",
+      "q": "Elevation Control handles a standard user's request for admin rights by:",
+      "choices": [
+        "Granting permanent local admin — it is faster.",
+        "Applying just-in-time, scoped, audited elevation for the specific approved action, then removing it.",
+        "Disabling UAC so prompts stop appearing.",
+        "Adding the user to Domain Admins temporarily."
+      ],
+      "answer": 1,
+      "explain": "Standing admin rights are the credential-theft jackpot. Elevation Control grants the minimum privilege for the approved task, logs it, and takes it back — JIT administration instead of permanent privilege."
+    },
+    {
+      "id": "IL29-MOCK-04",
+      "type": "choice",
+      "q": "Storage Control blocks an unauthorized USB drive. The security principle at work is:",
+      "choices": [
+        "Data-loss prevention at the removable-media boundary — unapproved devices never mount.",
+        "Antivirus scanning of the drive's contents.",
+        "Encrypting the drive automatically.",
+        "Backing up the drive before allowing access."
+      ],
+      "answer": 0,
+      "explain": "If the device never mounts, nothing exfiltrates and nothing infects via autorun-style vectors. Blocking at the mount point is prevention; scanning after mount is detection hoping to be fast enough."
+    },
+    {
+      "id": "IL29-MOCK-05",
+      "type": "choice",
+      "q": "ThreatLocker Detect complements allowlisting by:",
+      "choices": [
+        "Replacing application control entirely.",
+        "Providing EDR-style behavioral detection and response on top of the deny-by-default baseline — telemetry, alerting, and triage for what the controls observe.",
+        "Scanning email attachments only.",
+        "Managing firewall rules on the perimeter."
+      ],
+      "answer": 1,
+      "explain": "Controls prevent; Detect observes and responds. The layered story: allowlisting stops the unknown binary, ringfencing contains the allowed one, and Detect gives the analyst the telemetry to hunt what slipped between the controls."
+    },
+    {
+      "id": "IL29-MOCK-06",
+      "type": "choice",
+      "q": "A classic stack buffer overflow lets an attacker overwrite the saved return address. The fundamental fix class is:",
+      "choices": [
+        "Faster CPUs so the overflow cannot keep up.",
+        "Memory safety — bounds checking, safe languages, or hardware enforcement (e.g., stack canaries as mitigation, not fix).",
+        "Longer passwords on the affected service.",
+        "Blocking the attacker's IP at the firewall."
+      ],
+      "answer": 1,
+      "explain": "Control hijacking is a memory-safety failure: the attacker redirects control flow by corrupting code pointers. The fix is making the corruption impossible (bounds checks, safe languages); canaries and ASLR only raise the cost."
+    },
+    {
+      "id": "IL29-MOCK-07",
+      "type": "choice",
+      "q": "Privilege separation (as in OpenSSH's design) means:",
+      "choices": [
+        "Running everything as root for simplicity.",
+        "Splitting the program so the privileged part is tiny and the bulk of the code runs unprivileged — a compromise of the bulk cannot directly yield privilege.",
+        "Requiring two passwords for every login.",
+        "Encrypting all inter-process communication."
+      ],
+      "answer": 1,
+      "explain": "The 6.858 lesson: shrink the trusted computing base. A small, auditable privileged monitor plus unprivileged workers means the attacker's foothold starts without the keys to the kingdom."
+    },
+    {
+      "id": "IL29-MOCK-08",
+      "type": "choice",
+      "q": "Sandboxing an untrusted renderer process primarily defends against:",
+      "choices": [
+        "Phishing emails reaching the inbox.",
+        "A compromised renderer escaping to the rest of the system — the sandbox confines the blast radius of an exploited component.",
+        "Weak user passwords.",
+        "DDoS against the web server."
+      ],
+      "answer": 1,
+      "explain": "Assume the parser will fall: sandboxing puts the fall inside a box with no filesystem, no network, and a narrow IPC broker. Chrome's multi-process architecture is the canonical example."
+    },
+    {
+      "id": "IL29-MOCK-09",
+      "type": "choice",
+      "q": "TLS protects data in transit against eavesdropping and tampering. It does NOT protect against:",
+      "choices": [
+        "A passive network sniffer reading the plaintext.",
+        "A compromised endpoint or a malicious insider with legitimate access — TLS ends at the endpoints.",
+        "An active MITM during the handshake (given valid PKI).",
+        "Downgrade to plaintext by a middlebox."
+      ],
+      "answer": 1,
+      "explain": "Cryptography secures the channel, not the endpoints. If the endpoint is owned — malware, malicious insider, compelled access — TLS delivers the attacker's data faithfully and confidentially."
+    },
+    {
+      "id": "IL29-MOCK-10",
+      "type": "choice",
+      "q": "A timing side channel leaks a secret because:",
+      "choices": [
+        "The encryption algorithm is mathematically broken.",
+        "The implementation's runtime varies with secret data (e.g., early-exit comparisons), letting an observer infer the secret from duration.",
+        "The key is too short.",
+        "The network is too slow."
+      ],
+      "answer": 1,
+      "explain": "Side channels attack the implementation, not the math: secret-dependent branches, cache lines, or timing turn physical behavior into an oracle. Constant-time code and blinding are the defenses."
+    },
+    {
+      "id": "IL29-MOCK-11",
+      "type": "choice",
+      "q": "Passkeys improve on passwords primarily because:",
+      "choices": [
+        "They are longer strings the user memorizes.",
+        "The private key never leaves the device and authentication is bound to the origin — phishing a passkey means stealing the device, not tricking the user into typing a secret.",
+        "They expire every 90 days.",
+        "They are stored in the browser's password manager as text."
+      ],
+      "answer": 1,
+      "explain": "Passwords are phishable shared secrets; passkeys are origin-bound public-key credentials. The server holds only a public key, so a breached database yields nothing reusable and a fake login page gets nothing to replay."
+    },
+    {
+      "id": "IL29-MOCK-12",
+      "type": "choice",
+      "q": "An LLM agent with email-tool access receives a message containing hidden instructions to forward all mail to an attacker. This is:",
+      "choices": [
+        "A bug in the email client.",
+        "Indirect prompt injection — untrusted data treated as instructions; the fix is a data/instruction boundary (tool-output sanitization, confirmation for sensitive actions, least-privilege tool scopes).",
+        "A normal feature of email.",
+        "Solved by a longer system prompt."
+      ],
+      "answer": 1,
+      "explain": "The model cannot natively distinguish 'text to summarize' from 'orders to obey'. Agents must treat tool outputs as data, confirm destructive actions, and scope tools to least privilege — prompt wording alone is not a boundary."
+    },
+    {
+      "id": "IL29-MOCK-13",
+      "type": "choice",
+      "q": "In AI supply chain security, model poisoning means:",
+      "choices": [
+        "The GPU overheating during training.",
+        "An attacker corrupting training data or the model artifact so the deployed model misbehaves on trigger inputs — defend with provenance, dataset hygiene, and artifact signing.",
+        "Using too small a model.",
+        "Forgetting to set a random seed."
+      ],
+      "answer": 1,
+      "explain": "The model is software: whoever controls its training data or its weights controls its behavior. Provenance attestation and signed artifacts move 'trust the model' from faith to verification."
+    },
+    {
+      "id": "IL29-MOCK-14",
+      "type": "choice",
+      "q": "An adversarial evasion attack against an ML malware classifier works by:",
+      "choices": [
+        "Deleting the classifier's training data.",
+        "Crafting inputs with small perturbations that cross the model's decision boundary while looking benign to humans.",
+        "Unplugging the inference server.",
+        "Training a better classifier."
+      ],
+      "answer": 0,
+      "explain": "Evasion exploits the gap between human and model perception: imperceptible changes flip the prediction. Defenses (adversarial training, input validation, ensemble + non-ML controls) raise cost but the arms race is structural."
+    },
+    {
+      "id": "IL29-MOCK-15",
+      "type": "choice",
+      "q": "NIST SP 800-61's incident response lifecycle order is:",
+      "choices": [
+        "Eradication, detection, recovery, lessons learned.",
+        "Preparation; detection and analysis; containment, eradication, and recovery; post-incident activity.",
+        "Recovery first, then figure out what happened.",
+        "Detection, prosecution, preparation."
+      ],
+      "answer": 1,
+      "explain": "You cannot contain what you have not detected, and you must not eradicate before you understand scope — premature cleanup destroys forensic evidence. Preparation (playbooks, contacts, tooling) is phase zero."
+    },
+    {
+      "id": "IL29-MOCK-16",
+      "type": "choice",
+      "q": "Per the order of volatility, you collect this FIRST from a live compromised host:",
+      "choices": [
+        "The disk image — it holds everything.",
+        "Memory (RAM) contents and other ephemeral state: registers, cache, process table, network connections — gone at power-off.",
+        "The backup tapes.",
+        "The firewall logs from last month."
+      ],
+      "answer": 1,
+      "explain": "Volatile first: RAM, process state, live network connections evaporate on shutdown. Image memory before you touch the disk; every reboot is evidence destruction you chose."
+    },
+    {
+      "id": "IL29-MOCK-17",
+      "type": "choice",
+      "q": "In MITRE ATT&CK, the difference between a tactic and a technique is:",
+      "choices": [
+        "There is none — the terms are interchangeable.",
+        "A tactic is the adversary's goal (the 'why': e.g., Persistence); a technique is how they achieve it (e.g., Scheduled Task). Procedures are the specific implementations.",
+        "Tactics are defensive, techniques are offensive.",
+        "Techniques are only for malware."
+      ],
+      "answer": 1,
+      "explain": "Tactic = objective (Initial Access, Exfiltration); technique = method (Phishing, Scheduled Task/Job); procedure = the concrete variant. Mapping detections to techniques is how you measure coverage honestly."
+    },
+    {
+      "id": "IL29-MOCK-18",
+      "type": "choice",
+      "q": "The most effective single control against credential phishing is:",
+      "choices": [
+        "Longer password complexity rules.",
+        "Phishing-resistant MFA (FIDO2/passkeys) — the stolen password alone is useless without the hardware-bound second factor.",
+        "Monthly security awareness slides.",
+        "Blocking all external email."
+      ],
+      "answer": 1,
+      "explain": "Awareness helps; architecture decides. SMS/TOTP codes are phishable in real time — only origin-bound, hardware-backed factors (FIDO2) break the credential-replay chain that phishing depends on."
+    },
+    {
+      "id": "IL29-MOCK-19",
+      "type": "choice",
+      "q": "The 'weakest link' insight of security economics says defenders should:",
+      "choices": [
+        "Spend equally on all controls.",
+        "Find the cheapest attack path the adversary actually uses and raise its cost first — attackers, like water, take the path of least resistance.",
+        "Buy the most expensive firewall.",
+        "Focus only on zero-days."
+      ],
+      "answer": 1,
+      "explain": "Security is a weakest-link game: the attacker picks your cheapest failure. Economics beats maximalism — measure where attacks actually land (phishing, unpatched edge, misconfig) and spend there first."
+    },
+    {
+      "id": "IL29-MOCK-20",
+      "type": "choice",
+      "q": "In ThreatLocker portal administration, least privilege means an analyst role should:",
+      "choices": [
+        "Be a Global Admin so nothing ever blocks their work.",
+        "Hold only the permissions its duties require — e.g., view policies and approve requests, not edit global defaults — with sensitive actions logged and reviewable.",
+        "Share one admin account for the whole team.",
+        "Have no access at all, for safety."
+      ],
+      "answer": 1,
+      "explain": "Admin consoles are high-value targets: role-based access with minimum necessary permissions, individual accounts, and audit logging turn the portal from a single point of compromise into a governed control plane."
+    },
+    {
+      "id": "IL29-MOCK-21",
+      "type": "choice",
+      "q": "A legitimate line-of-business app is blocked by the new allowlist policy on Monday morning. Your FIRST step as the Cyber Hero on shift is:",
+      "choices": [
+        "Disable application control org-wide until the complaints stop.",
+        "Confirm scope and business impact, check the block event details, and route an emergency approval or targeted exception — restore the user fast without dismantling the control.",
+        "Tell the user to work from home.",
+        "Reinstall the application."
+      ],
+      "answer": 1,
+      "explain": "Break-fix discipline: restore the user through the control (scoped exception/approval), never by deleting the control. The block event tells you exactly which rule fired — read it before you act."
+    },
+    {
+      "id": "IL29-MOCK-22",
+      "type": "choice",
+      "q": "Detect raises a high-severity alert: a signed binary spawning PowerShell with encoded commands. Your triage priority is:",
+      "choices": [
+        "Close the alert — the binary is signed.",
+        "Treat signature as one signal, not a verdict: isolate the host, capture process tree and command line, and check the binary's reputation and parent chain — signed malware and LOLBins are routine.",
+        "Email the user asking if they ran something.",
+        "Wait for a second alert to confirm."
+      ],
+      "answer": 1,
+      "explain": "Signed does not mean benign — stolen certs and living-off-the-land binaries are standard tradecraft. Isolate first (containment beats curiosity), then investigate the process tree; the encoded command line is the tell."
+    },
+    {
+      "id": "IL29-MOCK-23",
+      "type": "choice",
+      "q": "A user reports their files renamed with a ransom note. The FIRST containment action is:",
+      "choices": [
+        "Pay the ransom quickly to limit damage.",
+        "Isolate the host from the network (keep it powered for forensics), then identify patient zero and scope before eradication.",
+        "Delete the ransom note.",
+        "Reboot into safe mode and keep working."
+      ],
+      "answer": 1,
+      "explain": "Containment before eradication, and never pay as a first move: isolate (network, not power — memory holds evidence), scope the blast radius, preserve forensics, then eradicate and recover from known-clean backups."
+    },
+    {
+      "id": "IL29-MOCK-24",
+      "type": "choice",
+      "q": "The panel asks: 'Sell me zero trust in 60 seconds.' The structure that scores is:",
+      "choices": [
+        "A 60-second recitation of the NIST 800-207 abstract.",
+        "Problem (perimeter assumed trusted insiders) → principle (never trust, always verify; deny by default) → mechanism (identity, device, allowlisting, microsegmentation) → outcome (breach contained to one identity, one device).",
+        "A story about a firewall you once configured.",
+        "Listing every ThreatLocker feature alphabetically."
+      ],
+      "answer": 1,
+      "explain": "Sixty seconds rewards structure, not completeness: problem, principle, mechanism, outcome. Name the nouns (identity, device, least privilege, deny-by-default) and land on the business result — smaller blast radius."
+    }
+  ],
   "cheatSheets": [
     {
       "id": "IL29-CH-ZEROTRUST",
@@ -20662,5 +21228,112 @@
     "FREE / lock badge": "Academy catalog — FREE means open to everyone; the lock means the course needs purchase (checkout)."
   },
   "topicTheme": "mr-robot",
-  "topic": "cybersecurity"
+  "topic": "cybersecurity",
+  "noahTutoring": {
+    "enabled": true,
+    "driver": "Noah AI is the core tutoring driver for this course — personalized, self-paced, voice-first tutoring, not a bolt-on.",
+    "differentiator": "Self-paced personalized tutoring powered by Noah: the course adapts to the learner, not the other way around.",
+    "personas": [
+      "trickster",
+      "engineer",
+      "mentor",
+      "visionary"
+    ],
+    "personaRoles": {
+      "trickster": "Adversary mindset (defensive), edge cases, \"what breaks this?\" thinking",
+      "engineer": "Hands-on labs, debugging, building, technical deep-dives",
+      "mentor": "Guided practice, encouragement, review, study planning",
+      "visionary": "Big-picture connections, future implications, \"why this matters\" framing"
+    },
+    "primaryPersona": "trickster",
+    "moduleGuidance": "Trickster fronts zero-trust/threat modules (defensive); Engineer fronts hands-on labs; Mentor fronts assessment-prep modules.",
+    "voices": {
+      "count": 5,
+      "note": "Five distinct natural server-generated voices. Learners choose their tutor voice; each persona can carry its own voice."
+    },
+    "adaptive": "SM-2 spaced repetition drives review scheduling; Noah tracks mastery per module and re-routes the learner to weak areas.",
+    "voiceChat": true,
+    "voiceChatNote": "Full voice conversation with Noah while working through modules — ask questions aloud, get spoken explanations.",
+    "courseAware": true,
+    "courseAwareNote": "Noah is course-aware for IL-29: it knows the module sequence, prerequisites, and certification objectives, and tutors accordingly.",
+    "focusNotes": "Trickster teaches zero-trust adversary thinking (defensive); Engineer runs allowlisting/ringfencing labs; Mentor drives assessment readiness. ThreatLocker branding stays prominent; independent-prep framing preserved."
+  },
+  "freshSignals": [
+    {
+      "id": "2026-10-09-nsa-zero-trust-ot",
+      "date": "2026-10-09",
+      "headline": "NSA releases zero-trust guidance for hardening OT environments",
+      "brief": "NSA's October 8 Cybersecurity Information Sheet translates zero trust into 26 high-impact activities for legacy operational technology — organized into ten mitigation steps from remote-access hardening to AD/domain-controller hardening. Key insight for defenders: most OT devices can't support modern auth or be patched without disrupting operations, so NSA recommends wrapping legacy assets in external compensating controls. The CSI also warns adversaries are using advanced AI to automate reconnaissance and accelerate exploit development.",
+      "sources": [
+        {
+          "label": "WaterISAC: NSA Zero Trust CSI summary",
+          "url": "https://www.waterisac.org/tlpclear-nsa-releases-zero-trust-guidance-for-hardening-ot-environments-cites-water-sector-threats"
+        },
+        {
+          "label": "EIN Presswire: NSA zero trust guidance",
+          "url": "https://tpp.einnews.com/pr_news/948385289/nsa-recommends-adoption-of-zero-trust-controls-to-improve-cybersecurity-of-essential-functions"
+        }
+      ],
+      "tags": [
+        "zero-trust",
+        "ot-security",
+        "nsa"
+      ],
+      "noahPrompt": "Ask Noah to map the NSA's 26 activities to the zero-trust pillars you learned in IL-11 and identify which three to do first in a water utility."
+    },
+    {
+      "id": "2026-10-09-citrix-netscaler-zeroday",
+      "date": "2026-10-09",
+      "headline": "Citrix NetScaler hit by third zero-day in ten days (CVE-2026-88779)",
+      "brief": "CVE-2026-88779 is a memory-overflow zero-day in the NetScaler ADC/Gateway SAML parser (CVSS 4.0 score 8.7), under active exploitation — the third actively exploited NetScaler zero-day in about ten days, after two RCEs (CVSS 9.5). CISA ordered federal agencies to patch by October 7. Edge appliances that terminate authentication are high-value targets: one crafted request can crash the service, and repeated requests keep it offline. This is exactly the 'assume breach, verify continuously' scenario zero-trust architecture is built for.",
+      "sources": [
+        {
+          "label": "DeafNews: NetScaler third zero-day",
+          "url": "https://deafnews.it/en/news/cybersecurity/citrix-netscaler-third-zero-day-in-10-days-cisa-sets-oct-7-deadline"
+        }
+      ],
+      "tags": [
+        "zero-day",
+        "cve",
+        "edge-security"
+      ],
+      "noahPrompt": "Ask Noah: why are edge ADC/gateway appliances such attractive targets, and what does defense-in-depth look like when the edge itself is compromised?"
+    },
+    {
+      "id": "2026-10-09-guardium-cves",
+      "date": "2026-10-09",
+      "headline": "IBM Guardium's 11 CVEs: when the data-protection product needs protection",
+      "brief": "IBM Guardium — a product literally built to protect data — picked up eleven CVEs this week, including three separate unauthenticated paths into the same product: an access-control bypass, a deserialization bug leading to code execution, and a listener on TCP port 16017 reachable by anyone who could reach it. The pattern: 'if you can reach it.' When a service has no network presence until a verified identity is authenticated, there is no allowlist to bypass and no port to find. Reachability decides how much is at stake while the patch is pending.",
+      "sources": [
+        {
+          "label": "NetFoundry Reachability Watch (LinkedIn)",
+          "url": "https://www.linkedin.com/company/netfoundry/"
+        }
+      ],
+      "tags": [
+        "vulnerability",
+        "zero-trust",
+        "reachability"
+      ],
+      "noahPrompt": "Ask Noah to explain the 'reachability' argument: how does removing network presence change the economics of exploitation?"
+    },
+    {
+      "id": "2026-10-09-zscaler-zero-trust-demand",
+      "date": "2026-10-09",
+      "headline": "Zscaler: AI agents are driving zero-trust demand",
+      "brief": "Zscaler reaffirmed FY27 guidance on growing demand for its Zero Trust platform — management says enterprises need stronger zero-trust defenses as AI agents create new attack surfaces. ARR grew 25% to $3.77B. The through-line with this week's NSA OT guidance and the Guardium CVEs: identity-centric, agent-aware security architecture is where the market and the threat landscape are both heading.",
+      "sources": [
+        {
+          "label": "Barron's: Zscaler stock",
+          "url": "https://www.barrons.com/articles/zscaler-stock-ai-cybersecurity-tech-9768b94e"
+        }
+      ],
+      "tags": [
+        "zero-trust",
+        "ai-agents",
+        "market"
+      ],
+      "noahPrompt": "Ask Noah: how do AI agents change the zero-trust threat model compared to human users?"
+    }
+  ]
 }

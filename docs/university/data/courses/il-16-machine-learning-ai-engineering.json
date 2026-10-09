@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "4",
   "courseId": "il-16-machine-learning-ai-engineering",
   "code": "IL-16",
   "title": "Machine Learning & AI Engineering",
   "tagline": "The models, end to end.",
   "blurb": "The applied machine-learning and AI practice layer — advanced ML, generative AI, NLP, and AI-enabled software, built as hands-on practice with portfolio-grade projects — distilled from the public curriculum shape of a leading interview-prep provider's AI/ML course catalog. Original Interstitium exposition throughout. Not affiliated with or endorsed by a leading interview-prep provider; not official third-party training; confers no certificate.",
-  "hours": 445,
-  "updatedAt": "2026-10-08",
+  "hours": 449,
+  "updatedAt": "2026-10-09",
   "objectives": [
     "Run the applied ML loop end to end: frame, baseline, evaluate, iterate, ship.",
     "Engineer features without leakage and audit data pipelines for target contamination.",
@@ -118,6 +118,316 @@
     }
   ],
   "modules": [
+    {
+      "id": "IL-16-M00",
+      "code": "IL-16",
+      "title": "M00 · Math Readiness Spine for ML & AI Engineering",
+      "summary": "Orientation to the course's math spine: how the three prereq math modules (Statistics & Probability, Linear Algebra, Discrete Mathematics) and the IL-02 Mathematical Maturity Engine modules map onto every ML/AI track in this course. Work this first: it tells you exactly which math each later module assumes.",
+      "objectives": [
+        "Map each ML/AI track in this course to the math it assumes.",
+        "Place yourself on the IL-02 math spine (logic, statistics, linear algebra, discrete math).",
+        "Schedule the three PM math modules before the technical tracks that need them.",
+        "Identify which math gaps to close first using the diagnostic drills.",
+        "State, in your own words, where statistics, linear algebra, and discrete math each show up in the applied ML workflow."
+      ],
+      "estimatedMinutes": 240,
+      "weight": 1,
+      "prerequisiteFor": [
+        "IL-16-PM-STATS",
+        "IL-16-PM-LINALG",
+        "IL-16-PM-DISCRETE"
+      ],
+      "crossLinks": [
+        "IL-16-PM-STATS",
+        "IL-16-PM-LINALG",
+        "IL-16-PM-DISCRETE"
+      ],
+      "cards": [
+        {
+          "front": "Which three math modules form this course's prereq math spine?",
+          "back": "IL-16-PM-STATS (Statistics & Probability), IL-16-PM-LINALG (Linear Algebra), IL-16-PM-DISCRETE (Discrete Mathematics) — drawn from the IL-02 Mathematical Maturity Engine."
+        },
+        {
+          "front": "Where does probability show up in the applied ML workflow?",
+          "back": "Evaluation metrics (precision/recall), confidence intervals, A/B model comparisons, calibration of probabilistic models, and alert triage math (Bayes' theorem)."
+        },
+        {
+          "front": "Where does linear algebra show up in ML?",
+          "back": "Data as vectors/matrices, dot products in embeddings and attention, matrix factorization, eigen-decomposition in PCA, and the weight matrices of neural networks."
+        },
+        {
+          "front": "Where does discrete math show up in ML engineering?",
+          "back": "Combinatorial counting (feature interactions, hyperparameter grids), set logic (data filtering joins), graph structures (pipelines, attention as graphs), and induction-style reasoning about algorithms."
+        },
+        {
+          "front": "Why is calculus needed for deep learning?",
+          "back": "Gradient-based optimization: backpropagation is the chain rule applied to the loss; learning rates, curvature, and convergence all rest on derivatives."
+        },
+        {
+          "front": "What is the bias–variance tradeoff in one sentence?",
+          "back": "Total error decomposes into bias² + variance + irreducible noise — simple models underfit (high bias), complex models overfit (high variance)."
+        },
+        {
+          "front": "What does the IL-02 'Unified Mathematical Spine' module give you?",
+          "back": "The through-line connecting logic, statistics, linear algebra, and discrete math into one reasoning system — the reference layer behind the three PM modules."
+        },
+        {
+          "front": "Rule of thumb for when to take each PM module?",
+          "back": "STATS before any evaluation/modeling module; LINALG before embeddings, transformers, and deep architectures; DISCRETE before pipelines, graphs, and search/optimization reasoning."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "An ML course covers evaluation metrics, attention, and hyperparameter grids. Which math strand supports each?",
+          "choices": [
+            "Stats → metrics; linear algebra → attention; discrete → grids",
+            "Discrete → metrics; stats → attention; linear algebra → grids",
+            "Linear algebra → metrics; discrete → attention; stats → grids",
+            "Calculus covers all three"
+          ],
+          "answer": 0,
+          "explain": "Statistics owns evaluation (metrics, intervals, tests); linear algebra owns attention (Q/K/V projections) and embeddings; discrete math owns counting structures like hyperparameter grids."
+        },
+        {
+          "q": "You must take one PM module before 'Transformer Architectures'. Which is most urgent?",
+          "choices": [
+            "IL-16-PM-DISCRETE",
+            "IL-16-PM-LINALG",
+            "IL-16-PM-STATS",
+            "None — skip math"
+          ],
+          "answer": 1,
+          "explain": "Transformers are linear algebra: query/key/value projections, dot-product attention, matrix multiplications. LINALG is the direct prerequisite."
+        },
+        {
+          "q": "Which IL-02 module is the reference layer behind all three PM modules?",
+          "choices": [
+            "Tech Math",
+            "The Unified Mathematical Spine",
+            "Electrician Apprenticeship",
+            "Quantitative Finance Mathematics"
+          ],
+          "answer": 1,
+          "explain": "The Unified Mathematical Spine connects logic, statistics, linear algebra, and discrete math into one system."
+        },
+        {
+          "q": "A teammate says 'deep learning needs no math, the framework handles it.' The correct response:",
+          "choices": [
+            "Agree — autograd replaces understanding",
+            "Agree for applied work",
+            "Disagree — debugging training (divergence, NaNs, plateaus) requires calculus and linear algebra",
+            "Disagree — only statistics matters"
+          ],
+          "answer": 2,
+          "explain": "Frameworks compute gradients; humans diagnose why training fails — learning-rate/divergence, vanishing/exploding gradients, and conditioning are calculus and linear-algebra questions."
+        },
+        {
+          "q": "Bias–variance: a model has 2% training error and 31% validation error. What is it doing?",
+          "choices": [
+            "Underfitting (high bias)",
+            "Overfitting (high variance)",
+            "Perfectly calibrated",
+            "Data leakage"
+          ],
+          "answer": 1,
+          "explain": "Huge train/validation gap with low training error is the signature of overfitting: low bias, high variance."
+        },
+        {
+          "q": "Where does Bayes' theorem appear in this course's ML tracks?",
+          "choices": [
+            "Only in the stats PM module",
+            "Model calibration, anomaly-detector triage, and A/B decision reasoning",
+            "Nowhere — ML is frequentist",
+            "Only in NLP"
+          ],
+          "answer": 1,
+          "explain": "Bayes updates beliefs with evidence: calibrated probabilities, detector triage (base rates), and interpreting A/B test outcomes all use it."
+        }
+      ],
+      "drills": [
+        {
+          "id": "il-16-m00-drill-1",
+          "title": "Spine mapping drills",
+          "items": [
+            {
+              "prompt": "List, from memory, the three PM math modules and the one-line math strand each covers.",
+              "answer": "PM-STATS: probability & statistics; PM-LINALG: vectors, matrices, eigen; PM-DISCRETE: counting, sets, graphs, induction.",
+              "explain": "This is the spine map you will use all course."
+            },
+            {
+              "prompt": "For 'Embeddings' (advanced-nlp-practice--embeddings-practice), name the primary math strand.",
+              "answer": "Linear algebra — embeddings are learned vector representations; similarity is dot product / cosine.",
+              "explain": "Any module about vectors and similarity is linear algebra."
+            },
+            {
+              "prompt": "For 'GenAI Evaluation', name the primary math strand.",
+              "answer": "Statistics & probability — metrics, confidence, significance, and calibration.",
+              "explain": "Evaluation is applied statistics."
+            },
+            {
+              "prompt": "For 'ML Pipelines', name the primary math strand.",
+              "answer": "Discrete math — DAGs, set operations on data, combinatorial validation splits.",
+              "explain": "Pipelines are graphs; discrete structures."
+            },
+            {
+              "prompt": "Write the M00 study order for yourself: which PM module first and why?",
+              "answer": "Open answer — must justify from the tracks you plan to take (e.g., evaluation-heavy → STATS first).",
+              "explain": "The order follows your track plan, not a fixed sequence."
+            }
+          ]
+        },
+        {
+          "id": "il-16-m00-drill-2",
+          "title": "Self-placement drills",
+          "items": [
+            {
+              "prompt": "Without notes: state the chain rule for d/dx f(g(x)).",
+              "answer": "f′(g(x)) · g′(x).",
+              "explain": "The atomic operation of backpropagation."
+            },
+            {
+              "prompt": "Without notes: what is a dot product of [1,2,3] and [4,5,6]?",
+              "answer": "1·4+2·5+3·6 = 4+10+18 = 32.",
+              "explain": "The atomic operation of attention and similarity."
+            },
+            {
+              "prompt": "Without notes: P(A|B) in terms of P(B|A)?",
+              "answer": "P(A|B) = P(B|A)·P(A)/P(B).",
+              "explain": "Bayes' theorem — the triage formula."
+            },
+            {
+              "prompt": "Score yourself 1–5 on each: calculus, linear algebra, probability, discrete math. Which PM module do you take first?",
+              "answer": "Open answer — the lowest score with the earliest track dependency wins.",
+              "explain": "Honest self-placement beats syllabus order."
+            },
+            {
+              "prompt": "Name two IL-02 modules beyond the spine that could help an ML engineer.",
+              "answer": "Quantitative Finance Mathematics (optimization under uncertainty) and Tech Math (trade-applied computation).",
+              "explain": "IL-02 is a library, not just a spine — use the shelf."
+            }
+          ]
+        }
+      ],
+      "handsOnLab": {
+        "title": "Build your personal math-gap map",
+        "brief": "You will take the two drill groups, score yourself honestly per strand, and produce a dated study plan that schedules the three PM modules (and any IL-02 deep dives) before the technical tracks that assume them.",
+        "steps": [
+          "Do drill-1 from memory with the course module list open; write each track → math strand mapping in a table.",
+          "Do drill-2 closed-book; score each strand 1–5 and record the scores with today's date.",
+          "Open the IL-02 course map (modules: Logic & Boolean Algebra, Probability & Statistics, The Unified Mathematical Spine, Tech Math, Electrician Apprenticeship, Quantitative Finance Mathematics) and note any module that patches your weakest strand.",
+          "Write your schedule: PM module order, which technical tracks follow each, and the IL-02 deep dives you will do alongside.",
+          "Revisit this plan after finishing the first technical track and revise the scores."
+        ],
+        "deliverable": "Dated one-page math-gap map: strand scores, PM module order, IL-02 deep dives, and the technical-track sequence it unlocks."
+      },
+      "mockTask": {
+        "q": "A colleague asks: 'Do I really need the math modules before the transformer track?' Give the two-sentence answer you would use.",
+        "choices": [
+          "\"No — the framework handles the math, skip to transformers.\"",
+          "\"Yes — transformers are linear algebra (Q/K/V projections, attention scores); without it you can run the code but cannot debug it.\"",
+          "\"Only the statistics module matters for transformers.\"",
+          "\"Take discrete math instead; transformers are graphs.\""
+        ],
+        "answer": 1,
+        "explain": "Transformers are matrix computation throughout; LINALG is the debugging toolkit for them.",
+        "id": "il-16-m00-mock"
+      },
+      "videos": [
+        {
+          "title": "Khan Academy — Statistics & Probability",
+          "url": "https://www.khanacademy.org/math/statistics-probability",
+          "source": "Khan Academy",
+          "watchBefore": "notes",
+          "blurb": "Free, rigorous statistics & probability practice aligned to this module.",
+          "verifiedUtc": "2026-10-08T00:00:00Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Khan Academy — Math library",
+          "url": "https://www.khanacademy.org/math",
+          "source": "Khan Academy",
+          "watchBefore": "notes",
+          "blurb": "The full free math library for deeper practice.",
+          "verifiedUtc": "2026-10-08T00:00:00Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Khan Academy — Linear Algebra",
+          "url": "https://www.khanacademy.org/math/linear-algebra",
+          "source": "Khan Academy",
+          "watchBefore": "notes",
+          "blurb": "Free, rigorous linear algebra practice aligned to this module.",
+          "verifiedUtc": "2026-10-08T00:00:00Z",
+          "httpStatus": 200
+        }
+      ],
+      "pdfs": [
+        {
+          "title": "Calculus for Machine Learning — Visual Guide",
+          "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-calculus-ml.pdf",
+          "source": "Interstitium Labs",
+          "blurb": "Derivatives, gradients, and the chain rule — the calculus that powers backprop and optimization.",
+          "pages": 8,
+          "animated": true,
+          "verifiedUtc": "2026-10-09T05:56:03Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Linear Algebra — Visual Guide",
+          "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-linear-algebra.pdf",
+          "source": "Interstitium Labs",
+          "blurb": "Vectors, matrices, and eigen-things — the math behind ML, graphics, and data science.",
+          "pages": 8,
+          "animated": true,
+          "verifiedUtc": "2026-10-09T05:56:03Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Probability — Visual Guide",
+          "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-probability.pdf",
+          "source": "Interstitium Labs",
+          "blurb": "Randomness, quantified — distributions, Bayes' theorem, expectation, and probabilistic reasoning.",
+          "pages": 8,
+          "animated": true,
+          "verifiedUtc": "2026-10-09T05:56:03Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Statistics — Visual Guide",
+          "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-statistics.pdf",
+          "source": "Interstitium Labs",
+          "blurb": "Data, summarized — distributions, hypothesis testing, confidence intervals, and statistical thinking.",
+          "pages": 8,
+          "animated": true,
+          "verifiedUtc": "2026-10-09T05:56:03Z",
+          "httpStatus": 200
+        },
+        {
+          "title": "Information Theory — Visual Guide",
+          "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-info-theory.pdf",
+          "source": "Interstitium Labs",
+          "blurb": "Entropy, bits, and compression — Shannon's theory of how much information data really carries.",
+          "pages": 8,
+          "animated": true,
+          "verifiedUtc": "2026-10-09T05:56:03Z",
+          "httpStatus": 200
+        }
+      ],
+      "notes": [
+        {
+          "title": "How to use this module",
+          "body": "This is an orientation module, not a math course. Its job is placement and sequencing: read the spine map, do the self-placement drills honestly, and schedule the three PM modules (IL-16-PM-STATS, IL-16-PM-LINALG, IL-16-PM-DISCRETE) before the technical tracks that assume them. The math itself lives in the PM modules and in IL-02 — this module tells you which shelf to pull from and when."
+        },
+        {
+          "title": "The IL-02 source shelf",
+          "body": "The prereq math content in this course is drawn from IL-02 · Mathematical Maturity Engine: Logic & Boolean Algebra (il-02-mathematical-maturity-engine-math-logic), Probability & Statistics (il-02-mathematical-maturity-engine-math-stats), The Unified Mathematical Spine (il02-math-spine), Tech Math (il02-tech-math), and Quantitative Finance Mathematics (il02-quant-math). If a PM module feels too fast, the corresponding IL-02 module is the slower, deeper treatment."
+        },
+        {
+          "title": "Track → math dependency map",
+          "body": "Evaluation, calibration, A/B comparisons → STATS. Embeddings, attention, transformers, PCA, deep architectures → LINALG. Pipelines (DAGs), hyperparameter grids, search, data structures → DISCRETE. Optimization and training dynamics → calculus (inside the deep-learning modules, reinforced by the Calculus-for-ML visual guide). Probabilistic ML → STATS + DISCRETE."
+        }
+      ]
+    },
     {
       "id": "ml-in-practice--ml-workflow",
       "code": "IL-16",
@@ -459,7 +769,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ml-in-practice--feature-engineering-practice",
@@ -788,7 +1100,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ml-in-practice--model-evaluation-practice",
@@ -1141,7 +1455,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ml-in-practice--ml-pipelines-practice",
@@ -1494,7 +1810,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ml-in-practice--ml-deployment-practice",
@@ -1833,7 +2151,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ml-in-practice--ml-practice-capstone",
@@ -2172,7 +2492,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--ensemble-methods-practice",
@@ -2511,7 +2833,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--probabilistic-ml",
@@ -2850,7 +3174,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--deep-architectures-practice",
@@ -3189,7 +3515,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--optimization-advanced",
@@ -3528,7 +3856,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--model-interpretation-practice",
@@ -3857,7 +4187,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--advanced-ml-project",
@@ -4196,7 +4528,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--numpy-pandas-practice",
@@ -4546,7 +4880,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--visualization-practice",
@@ -4885,7 +5221,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--sklearn-api-practice",
@@ -5224,7 +5562,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--python-ml-ecosystem",
@@ -5563,7 +5903,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--working-with-real-data",
@@ -5902,7 +6244,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "python-for-ml--ml-python-project",
@@ -6241,7 +6585,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--transformer-arch-practice",
@@ -6580,7 +6926,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--pretrain-finetune-practice",
@@ -6919,7 +7267,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--alignment-practice",
@@ -7258,7 +7608,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--genai-eval-practice",
@@ -7597,7 +7949,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--inference-serving-practice",
@@ -7924,7 +8278,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-genai--genai-capstone",
@@ -8263,7 +8619,9 @@
           "verifiedUtc": "2026-10-09T05:56:03Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--nlp-pipelines-practice",
@@ -8592,7 +8950,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--embeddings-practice",
@@ -8929,7 +9289,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--sequence-models-practice",
@@ -9258,7 +9620,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--llm-for-nlp",
@@ -9587,7 +9951,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--retrieval-practice",
@@ -9916,7 +10282,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-nlp-practice--nlp-project",
@@ -10245,7 +10613,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--llm-apis-practice",
@@ -10574,7 +10944,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--rag-practice",
@@ -10903,7 +11275,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--eval-harness-practice",
@@ -11240,7 +11614,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--tool-use-practice",
@@ -11569,7 +11945,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--shipping-ai-features",
@@ -11898,7 +12276,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "ai-enabled-software--ai-feature-project",
@@ -12227,7 +12607,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--problem-framing-ai",
@@ -12556,7 +12938,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--data-strategy-ai",
@@ -12885,7 +13269,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--prototyping-ai",
@@ -13214,7 +13600,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--stakeholder-comm-ai",
@@ -13543,7 +13931,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--measuring-ai-value",
@@ -13872,7 +14262,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "applied-ai-production--applied-ai-capstone",
@@ -14201,7 +14593,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "advanced-ml--re-bench-agents-ml-research",
@@ -14528,7 +14922,9 @@
           "verifiedUtc": "2026-10-09T05:45:07Z",
           "httpStatus": 200
         }
-      ]
+      ],
+      "prerequisiteFor": [],
+      "crossLinks": []
     },
     {
       "id": "IL-16-PM-STATS",
@@ -16789,9 +17185,27 @@
       "url": "https://www.kaggle.com/learn",
       "note": "Hands-on ML micro-courses for the portfolio projects.",
       "retrieved": "2026-10-08"
+    },
+    {
+      "name": "QA — AWS Certified Machine Learning Engineer – Associate (MLA-C01) exam structure",
+      "url": "https://www.qa.com/browse/certifications/aws-certifications/aws-certified-machine-learning-engineer-associate/",
+      "note": "65 questions, 720/1000 passing score; MLA-C01 domain structure.",
+      "retrieved": "2026-10-09"
+    },
+    {
+      "name": "Digital Watch Observatory — AWS retires ML Specialty (MLS-C01) March 31, 2026",
+      "url": "https://dig.watch/updates/aws-launches-new-generative-ai-certification-and-updates-security-exams",
+      "note": "Retirement announcement for MLS-C01; candidates pointed to MLA-C01 and the Generative AI Developer credential.",
+      "retrieved": "2026-10-09"
+    },
+    {
+      "name": "TensorFlow Deep Learning course notes — TensorFlow Developer Certificate closure",
+      "url": "https://github.com/emmex43/tensorflow-deep-learning",
+      "note": "Documents the TensorFlow Developer Certificate program closure to new candidates on May 1, 2024.",
+      "retrieved": "2026-10-09"
     }
   ],
-  "honestyNote": "Preparation only — this course confers no certificate. Vendor certification exams are taken through the vendor's own portal. Certification tracks are independent preparation aligned to each vendor’s publicly published exam objectives as of October 2026; this course is not affiliated with, endorsed by, or sponsored by any vendor and confers no certificate. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives — always verify against the vendor’s current published objectives before booking.",
+  "honestyNote": "This is an independent preparation and practice course aligned to publicly published exam objectives and real ML/AI engineering practice. It is not affiliated with, endorsed by, or sponsored by AWS, Google, Microsoft, TensorFlow, or any employer; it confers no certificate and grants no credentials. Exam facts (domains, weights, question counts, durations, passing scores) reflect publicly published objectives as of October 2026 — always verify against the vendor's current published objectives before booking. The AWS Certified Machine Learning – Specialty (MLS-C01) exam was retired March 31, 2026 and is no longer bookable; AWS points ML candidates to the Machine Learning Engineer – Associate (MLA-C01). The TensorFlow Developer Certificate program was closed to new candidates on May 1, 2024 and is no longer bookable. Hours are honest estimates from the module workload formula.",
   "crosswalk": [
     {
       "cert": "Google Cloud Professional Machine Learning Engineer",
@@ -16895,6 +17309,32 @@
         "advanced-ml--re-bench-agents-ml-research"
       ],
       "note": "Independent preparation for the AI-103 exam (replaced retired AI-102). GenAI/agentic domain is ~one-third of the exam."
+    },
+    {
+      "cert": "AWS Certified Machine Learning – Specialty (MLS-C01) — RETIRED",
+      "modules": [
+        "ml-in-practice--feature-engineering-practice",
+        "ml-in-practice--ml-pipelines-practice",
+        "ml-in-practice--ml-workflow",
+        "advanced-ml--optimization-advanced",
+        "ml-in-practice--model-evaluation-practice",
+        "ml-in-practice--ml-deployment-practice",
+        "advanced-genai--inference-serving-practice",
+        "advanced-ml--model-interpretation-practice",
+        "advanced-genai--genai-eval-practice",
+        "IL-16-PM-STATS"
+      ],
+      "note": "Retired March 31, 2026; not bookable. Skill domains carry over to the active MLA-C01 — independent preparation only."
+    },
+    {
+      "cert": "TensorFlow Developer Certificate — RETIRED",
+      "modules": [
+        "python-for-ml--sklearn-api-practice",
+        "advanced-ml--deep-architectures-practice",
+        "advanced-nlp-practice--sequence-models-practice",
+        "advanced-nlp-practice--nlp-project"
+      ],
+      "note": "Program closed May 1, 2024; not bookable. Historical skill-domain alignment for practice only — independent preparation."
     }
   ],
   "certGates": [
@@ -16975,7 +17415,7 @@
       "cert": "AWS Certified Machine Learning Engineer – Associate (MLA-C01)",
       "trackModule": "IL-16-PM-STATS",
       "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate.",
-      "format": "65 questions, 130 minutes, passing score 720/1000",
+      "format": "65 questions (multiple-choice/multiple-response), passing score 720/1000; duration per AWS's current published exam guide — verify before booking",
       "minutes": 130,
       "questionCount": 65,
       "domainWeights": [
@@ -17098,6 +17538,49 @@
         "ai-enabled-software--ai-feature-project",
         "applied-ai-production--data-strategy-ai",
         "advanced-ml--re-bench-agents-ml-research"
+      ]
+    },
+    {
+      "id": "gate-il16-tf-dev-retired",
+      "cert": "TensorFlow Developer Certificate (retired track — not bookable)",
+      "trackModule": "python-for-ml--sklearn-api-practice",
+      "framing": "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate. This track is historical skill-domain practice only: the TensorFlow Developer Certificate program was closed to new candidates on May 1, 2024.",
+      "format": "Historical format: 5-hour performance-based exam, 5 TensorFlow 2.x coding tasks (regression, classification, image processing, NLP, time series/forecasting). Program closed May 1, 2024 — not bookable; practice only.",
+      "minutes": 300,
+      "questionCount": 5,
+      "domainWeights": [
+        {
+          "domain": "Regression modeling with TensorFlow",
+          "weight": 0.2,
+          "questions": 1
+        },
+        {
+          "domain": "Classification modeling with TensorFlow",
+          "weight": 0.2,
+          "questions": 1
+        },
+        {
+          "domain": "Image processing / CNNs",
+          "weight": 0.2,
+          "questions": 1
+        },
+        {
+          "domain": "Natural language processing",
+          "weight": 0.2,
+          "questions": 1
+        },
+        {
+          "domain": "Time series and forecasting",
+          "weight": 0.2,
+          "questions": 1
+        }
+      ],
+      "readinessRule": "Practice-only: complete all 5 historical task domains as portfolio builds. There is no exam to book.",
+      "modules": [
+        "python-for-ml--sklearn-api-practice",
+        "advanced-ml--deep-architectures-practice",
+        "advanced-nlp-practice--sequence-models-practice",
+        "advanced-nlp-practice--nlp-project"
       ]
     }
   ],
@@ -17252,5 +17735,313 @@
     "FREE / lock badge": "Academy catalog — FREE means open to everyone; the lock means the course needs purchase (checkout)."
   },
   "topicTheme": "exmachina",
-  "topic": "ai-ml"
+  "topic": "ai-ml",
+  "timeFormula": "estimatedMinutes per module = 60 (orientation) + 15/note + 2/card + 3/quiz item + 10/drill item + 60 (hands-on lab), rounded to 5; course hours = rounded sum of module minutes.",
+  "certNotes": "Certification tracks are independent preparation aligned to each vendor's publicly published exam objectives as of October 2026. The AWS Certified Machine Learning – Specialty (MLS-C01) exam was retired March 31, 2026 — the active AWS machine-learning certification is the Machine Learning Engineer – Associate (MLA-C01). The TensorFlow Developer Certificate program was closed to new candidates on May 1, 2024 — its track below is historical skill-domain practice only and cannot be booked.",
+  "mergeNotes": {
+    "complementaryCourses": [
+      {
+        "code": "IL-12",
+        "title": "AI Engineering",
+        "role": "engineering track (two-way)",
+        "note": "IL-12 is the AI engineering track (Python foundations, GenAI-assisted coding, LLM engineering); IL-16 is the applied-ML depth layer. Cross-link both ways."
+      },
+      {
+        "code": "IL-07",
+        "title": "SQL, Data Engineering, Analytics & AI",
+        "role": "data foundation",
+        "note": "Data preparation depth behind the ML workflow."
+      }
+    ],
+    "crossLinkedModules": [
+      {
+        "from": "advanced-genai--transformer-arch-practice",
+        "toCourse": "IL-12",
+        "to": "il-12-ai-engineering-math-linalg",
+        "note": "Transformer math meets IL-12's linear-algebra spine."
+      },
+      {
+        "from": "ai-enabled-software--llm-apis-practice",
+        "toCourse": "IL-12",
+        "to": "aieng-python-foundations--py-genai-workflow",
+        "note": "LLM features meet GenAI-assisted coding workflow."
+      },
+      {
+        "from": "IL-16-PM-STATS",
+        "toCourse": "IL-12",
+        "to": "il-12-ai-engineering-math-stats",
+        "note": "Shared statistics spine."
+      },
+      {
+        "from": "IL-16-PM-DISCRETE",
+        "toCourse": "IL-12",
+        "to": "il-12-ai-engineering-math-discrete",
+        "note": "Shared discrete-math spine."
+      },
+      {
+        "from": "advanced-ml--re-bench-agents-ml-research",
+        "toCourse": "IL-23",
+        "to": "frontier-survey",
+        "note": "Frontier: agents doing ML research — see IL-23 (The Frontier) for the research survey."
+      }
+    ],
+    "frontierCites": [
+      "AI frontier topics (agents doing ML research) also surveyed in IL-23."
+    ]
+  },
+  "noahTutoring": {
+    "tagline": "Noah is the learning driver — not a bolt-on.",
+    "concept": "Noah is the core learning driver of IL-16 — a research partner with five minds. Philosopher keeps your evaluation honest, Engineer systems-thinks your pipelines, Mentor coaches your portfolio projects and stakeholder defenses. Paired with the daily trending fold, Noah keeps the curriculum bleeding-edge: new models and eval results flow into your tutoring sessions as they land.",
+    "personas": [
+      {
+        "id": "visionary",
+        "label": "Visionary",
+        "desc": "Bold, first-principles, future-focused",
+        "voice": "spark",
+        "voiceLabel": "Spark — energetic, quick",
+        "style": "Cuts to the fundamental truth, then projects forward. Challenges assumptions; frames everything as 'what could be.'"
+      },
+      {
+        "id": "engineer",
+        "label": "Engineer",
+        "desc": "Precise, systems-thinking, pragmatic",
+        "voice": "scholar",
+        "voiceLabel": "Scholar — measured, precise",
+        "style": "Thinks in systems: inputs, outputs, constraints, failure modes. Concrete and actionable; quantifies; calls out trade-offs explicitly."
+      },
+      {
+        "id": "philosopher",
+        "label": "Philosopher",
+        "desc": "Socratic, deep, questioning",
+        "voice": "sage",
+        "voiceLabel": "Sage — deep, contemplative",
+        "style": "Asks the question beneath the question. Never rushes to answers; dwells in inquiry; repairs mental models with graduated hints."
+      },
+      {
+        "id": "mentor",
+        "label": "Mentor",
+        "desc": "Encouraging, practical wisdom",
+        "voice": "guide",
+        "voiceLabel": "Guide — clear, encouraging",
+        "style": "Notices effort and names it. Honest about difficulty; balances challenge with support; speaks like someone who has been where the learner is."
+      },
+      {
+        "id": "trickster",
+        "label": "Trickster",
+        "desc": "Playful, lateral thinking, comedic",
+        "voice": "narrator",
+        "voiceLabel": "Narrator — warm, engaging",
+        "style": "Finds the absurd angle and the unexpected connection. Uses humor to illuminate; breaks fixation when the learner is stuck; kind, never punching down."
+      }
+    ],
+    "modulePersonaMap": [
+      {
+        "track": "Projects and capstones",
+        "persona": "mentor",
+        "modules": [
+          "ml-in-practice--ml-practice-capstone",
+          "advanced-ml--advanced-ml-project",
+          "python-for-ml--ml-python-project",
+          "advanced-genai--genai-capstone",
+          "advanced-nlp-practice--nlp-project",
+          "ai-enabled-software--ai-feature-project",
+          "applied-ai-production--applied-ai-capstone"
+        ],
+        "why": "Mentor coaches the portfolio builds: scopes the project honestly, reviews the eval results without flinching, and rehearses the stakeholder defense — 'why this metric, why this model, what would you do with 10x data.'"
+      },
+      {
+        "track": "ML systems and optimization",
+        "persona": "engineer",
+        "modules": [
+          "ml-in-practice--ml-workflow",
+          "ml-in-practice--feature-engineering-practice",
+          "ml-in-practice--ml-pipelines-practice",
+          "ml-in-practice--ml-deployment-practice",
+          "advanced-ml--optimization-advanced",
+          "advanced-genai--inference-serving-practice"
+        ],
+        "why": "Engineer thinks in systems: feature leakage as a systems failure, training/serving skew, the cost curve of inference — concrete, quantified, no hand-waving."
+      },
+      {
+        "track": "Evaluation and calibration",
+        "persona": "philosopher",
+        "modules": [
+          "ml-in-practice--model-evaluation-practice",
+          "advanced-ml--probabilistic-ml",
+          "advanced-ml--model-interpretation-practice",
+          "advanced-genai--genai-eval-practice",
+          "IL-16-M00"
+        ],
+        "why": "Philosopher keeps evaluation honest: what the metric hides, when the leaderboard lies, what 'calibrated' actually means — Socratic rigor for the part of ML most people fake."
+      },
+      {
+        "track": "Adversarial angles",
+        "persona": "trickster",
+        "modules": [
+          "advanced-ml--re-bench-agents-ml-research",
+          "advanced-genai--alignment-practice"
+        ],
+        "why": "Trickster red-teams the work: the prompt injection you didn't consider, the eval the model games — playful mischief that hardens real systems."
+      },
+      {
+        "track": "Where the field goes",
+        "persona": "visionary",
+        "modules": [
+          "advanced-genai--transformer-arch-practice",
+          "advanced-genai--pretrain-finetune-practice",
+          "applied-ai-production--problem-framing-ai",
+          "applied-ai-production--measuring-ai-value"
+        ],
+        "why": "Visionary reads the field first-principles: what transformers made obsolete, what agentic workflows make newly possible, where applied AI creates durable value."
+      }
+    ],
+    "voiceFirst": {
+      "supported": true,
+      "description": "Talk with Noah via voice chat while working through modules — 5 distinct natural voices served by POST /api/noah/tts (Scholar, Narrator, Guide, Sage, Spark), plus adaptive browser speech: per-persona rate/pitch, emotion-aware delivery, lip-synced avatar. Voice-first mock interviews are the signature experience: Mentor asks, the clock runs, you answer aloud — exactly like the real loop.",
+      "bestFor": [
+        "mock interview circuits",
+        "behavioral story coaching",
+        "system-design narration practice",
+        "incident-command scenarios"
+      ]
+    },
+    "adaptive": {
+      "scheduler": "SM-2-inspired spaced repetition",
+      "description": "Review timing adapts to recall performance (docs/assets/noah-adaptive.js): quiz and drill results feed per-card intervals, so weak cards resurface sooner and mastered cards fade to maintenance. Mastery is tracked in localStorage; Noah re-sequences your next session around what is due, not what is next in the list.",
+      "signals": [
+        "quiz scores",
+        "drill accuracy",
+        "card recall intervals",
+        "mock-circuit rubric scores"
+      ]
+    },
+    "courseAware": {
+      "endpoint": "POST /api/noah",
+      "model": "Cloudflare Workers AI (Llama 3.1 8B)",
+      "description": "Noah tutors from this course's own knowledge — its answers are grounded in these modules, not generic web knowledge. If the endpoint is unreachable it degrades to a local Socratic engine with a plain notice. It never invents facts, credentials, or experience."
+    },
+    "bleedingEdge": "Bleeding-edge integration: this course is wired for the daily trending fold. Fresh developments — new models, training techniques, eval results, framework releases — fold in through the site's /trending route and the IL-23 (The Frontier) AI survey, and Noah's course-aware context carries them into every tutoring session. Ask Noah 'what changed this week in <topic>' and study against the freshest material alongside the stable curriculum spine. The RE-Bench module (agents doing ML research) is the frontier anchor: Noah tracks that research line as it moves.",
+    "houseRule": "Bring Noah your hypothesis — not 'just give me the answer.' Attempt a card first.",
+    "howToUse": [
+      "Open Noah from any module page and pick the persona mapped to that track.",
+      "Attempt the cards first — then bring Noah your hypothesis, not your blank stare.",
+      "For interview tracks: switch to voice, pick Mentor, and run the mock circuit aloud.",
+      "After every mock, ask Noah for the rubric debrief: what passed, what failed, what to drill next.",
+      "Revisit on Noah's schedule: the SM-2 scheduler will resurface what is due."
+    ]
+  },
+  "branchingScenarios": [],
+  "clickSims": [],
+  "toolLabs": [],
+  "multicloudLabs": [],
+  "installLabs": [],
+  "installSteps": [],
+  "installPrereqOrder": [],
+  "employerMappings": [],
+  "jdMatrix": [],
+  "sqlPlaygrounds": [],
+  "pythonExercises": [],
+  "daxPlaygrounds": [],
+  "sampleDatasets": [],
+  "interactivityAudit": {
+    "terminalSims": 2,
+    "branchingScenarios": 0,
+    "clickSims": 0,
+    "toolLabs": 0,
+    "installLabs": 0,
+    "multicloudLabs": 0,
+    "trainers": 2,
+    "scriptLabs": 4,
+    "cheatSheets": 8,
+    "totalInteractive": 16,
+    "rule": "Every module ships notes, flashcards, quiz, drills, a hands-on lab, and a mock task; interactivity is counted, not claimed."
+  },
+  "studyGuide": {
+    "title": "Study guide: how to work IL-16 in 14 weeks",
+    "pacing": [
+      "Weeks 1-2 — Math spine, M00 + PM modules (~19h): M00 orientation first, then Statistics & Probability, Linear Algebra, Discrete Mathematics. Do not skip — every track assumes this math.",
+      "Weeks 3-4 — Applied ML in practice, modules 1-6 (~60h): workflow, feature engineering, model evaluation, ML pipelines, deployment practice, ML practice capstone.",
+      "Weeks 5-6 — Advanced ML, modules 7-12 (~60h): ensembles, probabilistic ML, deep architectures, optimization, model interpretation, advanced ML project.",
+      "Weeks 7-8 — Python for ML, modules 13-18 (~60h): NumPy/pandas, visualization, scikit-learn API, the ecosystem, real data, ML Python project.",
+      "Weeks 9-10 — Generative AI, modules 19-24 (~60h): transformers, pretraining/fine-tuning, alignment, GenAI evaluation, inference/serving, GenAI capstone.",
+      "Weeks 11-12 — NLP, modules 25-30 (~60h): NLP pipelines, embeddings, sequence models, LLMs for NLP, information retrieval, advanced NLP project.",
+      "Week 13 — AI-enabled software, modules 31-36 (~60h): LLM APIs, RAG, eval harnesses, tool use, shipping AI features, AI feature project.",
+      "Week 14 — Applied AI in production, modules 37-43 (~70h): problem framing, data strategy, rapid prototyping, stakeholder communication, measuring AI value, applied AI capstone, RE-Bench."
+    ],
+    "rules": [
+      "Math first, always — M00 then the PM modules before any technical track.",
+      "Every project ships to the portfolio with an eval harness, not just a notebook.",
+      "Evaluation before opinions: no model claim without a metric and a baseline.",
+      "Ask Noah 'what changed this week' — the trending fold keeps this course current.",
+      "Drills to green before the next module; re-take any quiz below 80%.",
+      "Bring Noah your hypothesis first — attempt every card before asking."
+    ],
+    "totalMinutes": 26940,
+    "totalHours": 449,
+    "note": "Totals are computed from module estimatedMinutes; pacing assumes ~25-30 focused hours per week."
+  },
+  "freshSignals": [
+    {
+      "id": "2026-10-09-haiku-55-pricing",
+      "date": "2026-10-09",
+      "headline": "Claude Haiku 5.5 ships at ~90% lower cost with adjustable effort levels",
+      "brief": "Anthropic's small model got roughly 90% cheaper for prompts under 100K tokens, matching GPT-6 Luna's price tier, and introduced adjustable effort levels to the Haiku line for the first time. Watch the pricing cliff: rates jump 5x above 100K tokens, which commenters flagged as awkward for long-context agent work. Sonnet 5.5 cache reads were also halved. Lesson for builders: re-price agent workloads now, but budget 2027 at last quarter's rates — subsidized prices end on the seller's schedule.",
+      "sources": [
+        {
+          "label": "AI News Oct 8 (usecarly)",
+          "url": "https://www.usecarly.com/blog/ai-news-2026-10-08/"
+        },
+        {
+          "label": "ai0.news daily digest Oct 8",
+          "url": "https://ai0.news/posts/2026-10-08-daily-digest/"
+        },
+        {
+          "label": "Weekly AI Blast, John Kump (LinkedIn)",
+          "url": "https://www.linkedin.com/pulse/weekly-ai-blast-thursday-october-8-2026-john-kump-fixcc"
+        }
+      ],
+      "tags": [
+        "llm-pricing",
+        "anthropic",
+        "agent-economics"
+      ],
+      "noahPrompt": "Ask Noah to walk through a cost model: when does Haiku 5.5 beat Sonnet for an agent loop, and how does the 100K-token cliff change the math?"
+    },
+    {
+      "id": "2026-10-09-coding-models-spark-qwen",
+      "date": "2026-10-09",
+      "headline": "Meta Muse Spark 1.3 and Qwen3.8-Max push the coding-model frontier",
+      "brief": "Meta's newest coding model claims ~20% fewer tool calls and ~25% fewer tokens than 1.2 on coding evaluations, positioned as its most capable for coding and agentic tasks — available in Muse Code and the Meta Model API, with open weights still to come. Meanwhile Alibaba's Qwen3.8-Max ('0902' snapshot) tops the Arena AI Code leaderboard for web development, ahead of Claude Opus 5. The open-weight frontier keeps compressing the gap: evaluate on your own tasks, not just leaderboards.",
+      "sources": [
+        {
+          "label": "Last Week in AI (opendatascience)",
+          "url": "https://opendatascience.com/in-case-you-missed-it-last-week-in-ai-august-31-to-september-6-2026/"
+        }
+      ],
+      "tags": [
+        "coding-models",
+        "open-weights",
+        "benchmarks"
+      ],
+      "noahPrompt": "Ask Noah: how would you design a fair head-to-head eval of two coding models on your own codebase?"
+    },
+    {
+      "id": "2026-10-09-deepseek-vision-mit",
+      "date": "2026-10-09",
+      "headline": "DeepSeek open-sources native vision model under MIT license",
+      "brief": "DeepSeek released its first native vision model under an MIT license on Hugging Face, matching its text model's performance on agents, reasoning, and world knowledge while adding multimodal input. An MIT-licensed frontier-class multimodal model is a big deal for builders: no API gatekeeper, fine-tunable, deployable anywhere. Pair this with the week's local-inference hardware news and the self-hosted stack keeps getting stronger.",
+      "sources": [
+        {
+          "label": "Last Week in AI (opendatascience)",
+          "url": "https://opendatascience.com/in-case-you-missed-it-last-week-in-ai-august-31-to-september-6-2026/"
+        }
+      ],
+      "tags": [
+        "open-weights",
+        "vision",
+        "mit-license"
+      ],
+      "noahPrompt": "Ask Noah: what changes in your system design when the vision model is MIT-licensed and self-hostable versus API-only?"
+    }
+  ]
 }
