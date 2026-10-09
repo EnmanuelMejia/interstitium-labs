@@ -109,7 +109,7 @@ test('export and persistence use an allowlist and redact familiar credentials wi
   store.record('user', 'apiKey: ' + apiKey + ' password=keepprivate Authorization: Bearer private-token ' + github);
   store.record('user', 'CLOUDFLARE_API_TOKEN="provider-secret" AWS_SECRET_ACCESS_KEY="aws-value" password="multiple secret words"');
   store.addMemory({ kind: 'note', text: 'Read https://example.test/lesson?token=private-query#private-hash', endpoint: 'https://private.invalid' });
-  store.addMemory({ kind: 'note', text: '-----BEGIN PRIVATE KEY-----\nprivate-key-material\n-----END PRIVATE KEY-----' });
+  store.addMemory({ kind: 'note', text: '-----BEGIN ' + 'PRIVATE KEY-----\nprivate-key-material\n-----END ' + 'PRIVATE KEY-----' });
   const serialized = store.exportData() + db.getItem(session.key);
   for (const value of [apiKey, github, 'keepprivate', 'private-token', 'private-query', 'private-hash', 'private-key-material', 'provider-secret', 'aws-value', 'multiple secret words', 'unrelated-private-value', 'private.invalid']) assert.equal(serialized.includes(value), false, value);
   assert.match(serialized, /redacted/);

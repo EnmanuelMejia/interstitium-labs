@@ -51,12 +51,13 @@ test('IAM evaluation order: explicit Deny > SCP > resource grant > identity > bo
   assert.equal(d({ sessionSet: true, sessionAllow: false }), 'implicit-deny');
 });
 
-test('every scenario predicts the outcome its own derive() produces, and option 0 is the keyed answer', () => {
+test('every scenario predicts the outcome its own derive() produces, and its keyed answer index is in range', () => {
   for (const id of S.list()) {
     const sim = S.get(id);
     for (const sc of sim.scenarios) {
       if (!sc.predict) continue;
       assert.ok(sc.predict.options.length >= 2, id + '/' + sc.id);
+      assert.ok(Number.isInteger(sc.predict.answer) && sc.predict.answer >= 0 && sc.predict.answer < sc.predict.options.length, id + '/' + sc.id + ' answer index');
       assert.equal(S.scorePredict(id, sc.id, sc.predict.answer).correct, true);
       assert.equal(S.scorePredict(id, sc.id, (sc.predict.answer + 1) % sc.predict.options.length).correct, false);
       const out = sim.derive(S.merge(sim.initial, sc.set));
@@ -189,4 +190,133 @@ test('predict options shuffle per attempt but stay a permutation of original ind
   }
   assert.equal(seen.size, 3, 'keyed answer appears in every position across attempts');
   assert.ok(S.list().length >= 7);
+});
+
+// 2026-10-08: the last orbit-only CKA dioramas (storage, ingress, config, CNI, mesh, control plane) become drills.
+const NEW_0108 = ['storage-csi', 'ingress-routing', 'config-propagation', 'cni-network', 'mesh-mtls', 'control-plane-failure'];
+
+test('Storage: default class, WaitForFirstConsumer, size/accessMode/class matching, RWO multi-attach, pvc-protection, reclaim', () => {
+  const sim = S.get('storage-csi');
+  const d = (o) => S.storageDecide(S.merge(sim.initial, o));
+  assert.equal(d({}).pvc1, 'Bound'); assert.equal(d({}).pod, 'Running');
+  const noSc = d({ scDefault: false, wffc: false });
+  assert.equal(noSc.pvc1, 'Pending'); assert.equal(noSc.pendingWhy, 'no-default-class'); assert.equal(noSc.pod, 'Pending');
+  const wffc = d({ wffc: true, podCreated: false });
+  assert.equal(wffc.pvc1, 'Pending'); assert.equal(wffc.pendingWhy, 'wait-for-first-consumer'); assert.equal(wffc.pv1, 'none');
+  assert.equal(d({ wffc: false, podCreated: false }).pvc1, 'Bound', 'Immediate binds without a consumer');
+  assert.equal(d({ pv0Big: false }).pvc0, 'Pending', '5Gi PV cannot satisfy a 20Gi claim');
+  assert.equal(d({ pv0Big: true, pvc0Rwx: true }).pvc0, 'Pending', 'RWX request vs RWO-only PV');
+  assert.equal(d({ pv0Big: true }).pv0Capacity, '50Gi', 'claim binds the whole PV');
+  assert.equal(d({ secondNode: true }).pod, 'multi-attach');
+  const inUse = d({ pvcDeleted: true, podCreated: true });
+  assert.equal(inUse.pvc1, 'Terminating'); assert.equal(inUse.disk1, 'kept');
+  assert.equal(d({ podDeleted: true }).pvc1, 'Bound', 'deleting the consumer does not unbind a WFFC claim');
+  const del = d({ pvcDeleted: true, podDeleted: true, retain: false });
+  assert.equal(del.pv1, 'deleted'); assert.equal(del.disk1, 'deleted');
+  const ret = d({ pvcDeleted: true, podDeleted: true, retain: true });
+  assert.equal(ret.pv1, 'Released'); assert.equal(ret.disk1, 'kept');
+  const out = (o) => sim.derive(S.merge(sim.initial, o));
+  assert.equal(S.styleFor('pv-1', out({ wffc: true, podCreated: false }).rules).hide, true, 'no PV exists before provisioning');
+  assert.equal(S.styleFor('pv-1', out({}).rules).hide, false);
+  assert.equal(S.styleFor('io-bead-0', out({ secondNode: true }).rules).hide, false, 'replica-1 still does I/O');
+  assert.equal(out({ pvcDeleted: true, podDeleted: true }).verdict, 'data-deleted');
+  assert.equal(out({ pvcDeleted: true, podCreated: false, podDeleted: false }).metrics.pv1, 'none', 'WFFC claim deleted before any consumer: nothing to reclaim');
+});
+
+test('Ingress: no controller routes nothing; Exact vs element-wise Prefix; no ready endpoints → 503; missing TLS Secret → default cert', () => {
+  const R = [{ path: '/api', type: 'Prefix', svc: 0 }];
+  assert.equal(S.ingressMatch('/api/v1/orders', R).svc, 0);
+  assert.equal(S.ingressMatch('/api', R).svc, 0);
+  assert.equal(S.ingressMatch('/apiv2', R), null, 'Prefix is per path element');
+  assert.equal(S.ingressMatch('/api/v1', [{ path: '/api', type: 'Exact', svc: 0 }]), null);
+  assert.equal(S.ingressMatch('/api/v1', [{ path: '/', type: 'Prefix', svc: 1 }, { path: '/api', type: 'Prefix', svc: 0 }]).svc, 0, 'longest match wins');
+  assert.equal(S.ingressMatch('/api', [{ path: '/api', type: 'Prefix', svc: 1 }, { path: '/api', type: 'Exact', svc: 0 }]).svc, 0, 'Exact beats Prefix on a tie');
+  const sim = S.get('ingress-routing');
+  const d = (o) => S.ingressDecide(S.merge(sim.initial, o));
+  assert.deepEqual(d({}).clients.map(c => c.status), [200, 200, 200]);
+  assert.deepEqual(d({ controller: false }).clients.map(c => c.status), ['no-route', 'no-route', 'no-route']);
+  assert.deepEqual(d({ apiExact: true }).clients.map(c => c.status), [404, 200, 200]);
+  assert.deepEqual(d({ apiReady: false }).clients.map(c => c.status), [503, 503, 200]);
+  assert.equal(d({ tlsSecret: false }).cert, 'controller-default');
+  assert.equal(sim.derive(S.merge(sim.initial, { tlsSecret: false })).verdict, 'cert-warning');
+  assert.equal(S.styleFor('route-0-2', sim.derive(S.merge(sim.initial, { apiExact: true, apiReady: true })).rules).hide, false, '/api still routes to service-0');
+});
+
+test('ConfigMap/Secret: volumes update after kubelet sync, env and subPath only on restart; immutable rejects edits; missing key blocks start', () => {
+  const sim = S.get('config-propagation');
+  const d = (o) => S.configDecide(S.merge(sim.initial, o));
+  assert.equal(d({ cmEdited: true, synced: false }).volumeFresh, false, 'eventual, not instant');
+  assert.equal(d({ cmEdited: true, synced: true }).volumeFresh, true);
+  assert.equal(d({ cmEdited: true, synced: true }).envFresh, false, 'env vars never update in a running container');
+  assert.equal(d({ cmEdited: true, synced: true, subPath: true }).volumeFresh, false, 'subPath never updates');
+  const r = d({ cmEdited: true, subPath: true, restarted: true });
+  assert.equal(r.volumeFresh && r.envFresh, true, 'new pods read everything fresh');
+  const imm = d({ cmEdited: true, immutable: true, synced: true });
+  assert.equal(imm.editRejected, true); assert.equal(imm.editApplied, false); assert.equal(imm.volumeFresh, true);
+  assert.equal(d({ keyMissing: true }).pod, 'CreateContainerConfigError');
+  assert.equal(d({}).etcdAtRest, 'unencrypted', 'encryption at rest is opt-in');
+  assert.equal(d({ encryptAtRest: true }).etcdAtRest, 'encrypted');
+  assert.equal(sim.derive(S.merge(sim.initial, { encryptAtRest: true })).verdict, 'healthy');
+});
+
+test('CNI: no plugin → nodes NotReady; CIDR overlap breaks cross-node; kube-proxy owns ClusterIPs; CoreDNS owns names', () => {
+  const sim = S.get('cni-network');
+  const d = (o) => S.cniDecide(S.merge(sim.initial, o));
+  assert.deepEqual(d({}), { nodesReady: true, podsNetworked: true, sameNode: true, crossNode: true, clusterIp: true, dns: true });
+  const none = d({ cniInstalled: false });
+  assert.equal(none.nodesReady, false); assert.equal(none.podsNetworked, false); assert.equal(none.dns, false);
+  const ov = d({ cidrOverlap: true });
+  assert.equal(ov.sameNode, true); assert.equal(ov.crossNode, false); assert.equal(ov.dns, false);
+  const np = d({ kubeProxy: false });
+  assert.equal(np.crossNode, true, 'pod IPs still route'); assert.equal(np.clusterIp, false); assert.equal(np.dns, false, 'kube-dns is a ClusterIP');
+  const nd = d({ corednsUp: false });
+  assert.equal(nd.clusterIp, true); assert.equal(nd.dns, false);
+  assert.equal(S.styleFor('veth-0-0', sim.derive(S.merge(sim.initial, { cniInstalled: false })).rules).hide, true, 'no veth without CNI ADD');
+});
+
+test('Service mesh: injection only on new pods; STRICT rejects plaintext, PERMISSIVE accepts both; data plane survives istiod loss', () => {
+  const sim = S.get('mesh-mtls');
+  const d = (o) => S.meshDecide(S.merge(sim.initial, o));
+  assert.equal(d({ nsLabeled: true, restarted: false }).clientSidecar, false);
+  assert.equal(d({ nsLabeled: false, restarted: true }).clientSidecar, false);
+  assert.equal(d({ restarted: false, strict: true }).accepted, false);
+  const perm = d({ restarted: false, strict: false });
+  assert.equal(perm.accepted, true); assert.equal(perm.transport, 'plaintext');
+  assert.equal(d({ strict: true }).transport, 'mTLS');
+  assert.equal(d({ cpUp: false }).accepted, true, 'cached xDS config keeps serving');
+  assert.equal(S.styleFor('sidecar-0', sim.derive(S.merge(sim.initial, { restarted: false })).rules).hide, true, 'no sidecar container');
+  assert.equal(sim.derive(S.merge(sim.initial, { restarted: false, strict: true })).verdict, 'down');
+});
+
+test('Control plane: API down spares running pods; scheduler down → Pending; kcm down → no replacement and nobody marks nodes NotReady', () => {
+  const sim = S.get('control-plane-failure');
+  const d = (o) => S.controlPlaneDecide(S.merge(sim.initial, o));
+  const api = d({ apiUp: false });
+  assert.equal(api.kubectl, false); assert.equal(api.runningPodsKeepRunning, true);
+  assert.equal(d({ schedUp: false }).controllerPods, 'pending');
+  assert.equal(d({ cmUp: false }).controllerPods, 'not-created');
+  assert.equal(d({ cmUp: false }).deletedPodReplaced, false);
+  assert.equal(d({ kubelet2Up: false }).worker2NotReady, true);
+  assert.equal(d({ kubelet2Up: false, cmUp: false }).worker2NotReady, false, 'node lifecycle controller lives in kcm');
+  assert.equal(sim.derive(S.merge(sim.initial, { apiUp: false })).verdict, 'down');
+});
+
+test('2026-10-08 drills: keyed answers are not all the same index, and every new sim is wired on /immersive/ and published in the curriculum OS', () => {
+  const answers = [];
+  for (const id of NEW_0108) for (const sc of S.get(id).scenarios) if (sc.predict) answers.push(sc.predict.answer);
+  assert.ok(answers.length >= 30, 'predict checkpoints: ' + answers.length);
+  assert.ok(new Set(answers).size === 3, 'keys spread over positions 0-2');
+  const html = fs.readFileSync(path.join(docs, 'immersive', 'index.html'), 'utf8');
+  const labs = JSON.parse(fs.readFileSync(path.join(docs, 'curriculum-os', 'labs.json'), 'utf8')).items;
+  const mirror = JSON.parse(fs.readFileSync(path.join(docs, 'curriculum-os', 'mirror.json'), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(docs, 'assets', 'scenes', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.sims.runtime_version, S.VERSION);
+  for (const id of NEW_0108) {
+    const sim = S.get(id);
+    assert.match(html, new RegExp('data-il-sim="' + id + '"[^>]*\\n?\\s*data-gltf="' + sim.glb.replace(/\./g, '\\.') + '"'), id + ' host on /immersive/ uses ' + sim.glb);
+    const lab = labs.find(l => l.immersive && l.immersive.sim === id);
+    assert.ok(lab && lab.publishStatus === 'published' && lab.gltf === sim.glb, id + ' in labs.json');
+    assert.ok(mirror.labs.some(l => l.id === lab.id), id + ' in mirror.json');
+    assert.ok(manifest.sims.list.includes(id) && manifest.cka_coverage.interactive.includes(id), id + ' in manifest');
+  }
 });

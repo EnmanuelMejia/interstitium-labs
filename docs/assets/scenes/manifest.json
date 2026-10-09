@@ -1,7 +1,7 @@
 {
   "v": 5,
-  "updated": "2026-10-07T09:40:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt.",
+  "updated": "2026-10-08T09:40:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions.",
   "engines": [
     "webgl",
     "webgpu",
@@ -79,7 +79,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-01",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-cni",
+      "sim": "cni-network"
     },
     {
       "id": "cert-rbac-authz",
@@ -91,7 +92,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-01",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-rbac",
+      "sim": "rbac-authz"
     },
     {
       "id": "lecture-service-mesh",
@@ -103,7 +105,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-01",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-service-mesh",
+      "sim": "mesh-mtls"
     },
     {
       "id": "cert-storage-csi",
@@ -115,7 +118,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-02",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-storage",
+      "sim": "storage-csi"
     },
     {
       "id": "cert-ingress-gateway",
@@ -127,7 +131,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-02",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-ingress",
+      "sim": "ingress-routing"
     },
     {
       "id": "cert-hpa-autoscaling",
@@ -139,7 +144,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-02",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-hpa",
+      "sim": "hpa-scale"
     },
     {
       "id": "cert-network-policy",
@@ -151,7 +157,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-05",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-network-policy",
+      "sim": "netpol-isolation"
     },
     {
       "id": "cert-secrets-configmaps",
@@ -163,7 +170,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-05",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-secrets-configmaps",
+      "sim": "config-propagation"
     },
     {
       "id": "cert-scheduling-affinity",
@@ -175,7 +183,8 @@
       "cert": "CKA",
       "polish": "blender-cli",
       "polishedOn": "2026-10-05",
-      "gallery": "/immersive/"
+      "gallery": "/immersive/#cka-scheduling",
+      "sim": "sched-taints"
     },
     {
       "id": "cert-aws-multi-az",
@@ -202,6 +211,20 @@
       "polishedOn": "2026-10-06",
       "gallery": "/immersive/#aws-iam-eval",
       "sim": "iam-eval"
+    },
+    {
+      "id": "cert-control-plane-failure",
+      "kind": "cert",
+      "gltf": "/assets/immersive/lecture-k8s-control-plane.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-troubleshooting",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-01",
+      "gallery": "/immersive/#cka-control-plane",
+      "sim": "control-plane-failure",
+      "note": "Reuses the lecture control-plane glTF; no new asset."
     }
   ],
   "scaffolds": {
@@ -222,14 +245,21 @@
       "hpa",
       "network-policy",
       "secrets-configmaps",
-      "scheduling"
+      "scheduling",
+      "control-plane"
     ],
     "interactive": [
       "etcd-quorum",
       "netpol-isolation",
       "rbac-authz",
       "sched-taints",
-      "hpa-scale"
+      "hpa-scale",
+      "storage-csi",
+      "ingress-routing",
+      "config-propagation",
+      "cni-network",
+      "mesh-mtls",
+      "control-plane-failure"
     ],
     "hostedFleet": false,
     "liveUnrealHost": false,
@@ -245,7 +275,13 @@
       "netpol-isolation",
       "rbac-authz",
       "sched-taints",
-      "hpa-scale"
+      "hpa-scale",
+      "storage-csi",
+      "ingress-routing",
+      "config-propagation",
+      "cni-network",
+      "mesh-mtls",
+      "control-plane-failure"
     ],
     "predictThenReveal": true,
     "analytics": [
@@ -254,7 +290,7 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.1.0"
+    "runtime_version": "1.2.0"
   },
   "aws_coverage": {
     "spatial": [

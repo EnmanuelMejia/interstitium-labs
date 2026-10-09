@@ -64,7 +64,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <main id="main" class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-il-curriculum-surface="learn">
   <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">3D-first · WebGL · Blender · Unreal</p>
   <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Curriculum immersive stages.</h1>
-  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender CLI polish landed 2026-10-01 / 2026-10-02 / 2026-10-05 / 2026-10-06 via <code class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). <strong class="text-paper">New:</strong> <a class="text-cyan" href="#aws-az-failure">interactive sims</a> where state changes the authored scene (etcd quorum · AWS Multi-AZ failure · IAM evaluation · NetworkPolicy · RBAC · scheduling · HPA). <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline</a> · <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="text-cyan" href="/coach/">Noah</a>.</p>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender CLI polish landed 2026-10-01 / 2026-10-02 / 2026-10-05 / 2026-10-06 via <code class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). <strong class="text-paper">New:</strong> <a class="text-cyan" href="#aws-az-failure">interactive sims</a> where state changes the authored scene (etcd quorum · AWS Multi-AZ failure · IAM evaluation · NetworkPolicy · RBAC · scheduling · HPA · <a class="text-cyan" href="#cka-storage">storage</a> · <a class="text-cyan" href="#cka-ingress">Ingress</a> · <a class="text-cyan" href="#cka-secrets-configmaps">ConfigMaps/Secrets</a> · <a class="text-cyan" href="#cka-cni">CNI</a> · <a class="text-cyan" href="#cka-service-mesh">service mesh</a> · <a class="text-cyan" href="#cka-control-plane">control-plane failures</a>). <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline</a> · <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="text-cyan" href="/coach/">Noah</a>.</p>
 
   <div class="mt-10 grid gap-6 lg:grid-cols-2">
     <div>
@@ -102,12 +102,12 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cka-etcd-quorum.glb","webgpu":true,"frontier":"cka-etcd","sim":"etcd-quorum"}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6">
+  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6" id="cka-cni">
     <h2 class="font-display text-xl text-cyan">CKA CNI / pod networking (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Competitors mostly show flat CNI diagrams. Authored <code class="text-cyan">cni-pod-network.glb</code> — nodes, pods, veth, CNI bridge, overlay arcs, ClusterIP, CoreDNS. Blender CLI polished 2026-10-01. Not a hosted networking fleet.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="CNI pod network" data-il-scene="k8s"
+    <p class="mt-2 text-sm text-muted">Competitors mostly show flat CNI diagrams. Authored <code class="text-cyan">cni-pod-network.glb</code> — nodes, pods, veth, CNI bridge, overlay arcs, ClusterIP, CoreDNS. Blender CLI polished 2026-10-01. Not a hosted networking fleet. <strong class="text-paper">Interactive (2026-10-08):</strong> remove the CNI plugin, overlap the pod CIDR with the VPC, drop kube-proxy or CoreDNS — nodes go NotReady, veth pairs vanish, overlay arcs and the Service VIP turn red exactly where the packet path breaks.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="CNI pod network" data-il-scene="k8s" data-il-sim="cni-network"
       data-gltf="/assets/immersive/cni-pod-network.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cni-pod-network.glb","webgpu":true,"frontier":"cka-cni"}'></div>
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cni-pod-network.glb","webgpu":true,"frontier":"cka-cni","sim":"cni-network"}'></div>
   </section>
 
   <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6" id="cka-rbac">
@@ -118,28 +118,28 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/rbac-authz-graph.glb","webgpu":true,"frontier":"cka-rbac","sim":"rbac-authz"}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6">
+  <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6" id="cka-service-mesh">
     <h2 class="font-display text-xl">Service mesh sidecar (optional exceed)</h2>
-    <p class="mt-2 text-sm text-muted"><code class="text-cyan">service-mesh-sidecar.glb</code> — control-plane vs sidecar data-plane, mTLS hops, xDS config arcs. Blender CLI polished 2026-10-01.</p>
-    <div class="mt-4" data-il-immersive data-kind="lecture" data-title="Service mesh sidecar" data-il-scene="k8s"
+    <p class="mt-2 text-sm text-muted"><code class="text-cyan">service-mesh-sidecar.glb</code> — control-plane vs sidecar data-plane, mTLS hops, xDS config arcs. Blender CLI polished 2026-10-01. <strong class="text-paper">Interactive (2026-10-08):</strong> label the namespace without restarting, flip PeerAuthentication STRICT ↔ PERMISSIVE, kill istiod — the client sidecar only appears for recreated pods and plaintext hops turn red under STRICT (Istio semantics; not CKA core).</p>
+    <div class="mt-4" data-il-immersive data-kind="lecture" data-title="Service mesh sidecar" data-il-scene="k8s" data-il-sim="mesh-mtls"
       data-gltf="/assets/immersive/service-mesh-sidecar.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/service-mesh-sidecar.glb","webgpu":true,"frontier":"mesh"}'></div>
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/service-mesh-sidecar.glb","webgpu":true,"frontier":"mesh","sim":"mesh-mtls"}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6">
+  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6" id="cka-storage">
     <h2 class="font-display text-xl text-cyan">CKA storage CSI / PV (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Competitors mostly show flat PV/PVC tables. Authored <code class="text-cyan">storage-csi-pv.glb</code> — StorageClass → CSI driver → PV → PVC → Pod volumeMount + backend disks. Blender CLI polished 2026-10-02. Not a hosted storage fleet.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Storage CSI PV" data-il-scene="k8s"
+    <p class="mt-2 text-sm text-muted">Competitors mostly show flat PV/PVC tables. Authored <code class="text-cyan">storage-csi-pv.glb</code> — StorageClass → CSI driver → PV → PVC → Pod volumeMount + backend disks. Blender CLI polished 2026-10-02. Not a hosted storage fleet. <strong class="text-paper">Interactive (2026-10-08):</strong> remove the default StorageClass, switch WaitForFirstConsumer, shrink a static PV, attach an RWO claim from a second node, delete a claim in use, Retain vs Delete — PVs and disks appear, go Released or disappear as the binder and reclaim policy dictate.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Storage CSI PV" data-il-scene="k8s" data-il-sim="storage-csi"
       data-gltf="/assets/immersive/storage-csi-pv.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/storage-csi-pv.glb","webgpu":true,"frontier":"cka-storage"}'></div>
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/storage-csi-pv.glb","webgpu":true,"frontier":"cka-storage","sim":"storage-csi"}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6">
+  <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6" id="cka-ingress">
     <h2 class="font-display text-xl text-gold">CKA Ingress / Gateway path (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Spatial <code class="text-cyan">ingress-gateway.glb</code> — Client → Ingress/Gateway (TLS + host/path rules) → Service → Endpoints/Pods. Blender CLI polished 2026-10-02. Flat Ingress YAML diagrams stay on peers.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Ingress gateway" data-il-scene="k8s"
+    <p class="mt-2 text-sm text-muted">Spatial <code class="text-cyan">ingress-gateway.glb</code> — Client → Ingress/Gateway (TLS + host/path rules) → Service → Endpoints/Pods. Blender CLI polished 2026-10-02. Flat Ingress YAML diagrams stay on peers. <strong class="text-paper">Interactive (2026-10-08):</strong> uninstall the controller, flip pathType Exact ↔ Prefix, empty a Service’s endpoints, delete the TLS Secret — each client’s request beads turn 200 / 404 / 503 along the real path.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Ingress gateway" data-il-scene="k8s" data-il-sim="ingress-routing"
       data-gltf="/assets/immersive/ingress-gateway.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-ingress"}'></div>
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-ingress","sim":"ingress-routing"}'></div>
   </section>
 
   <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6" id="cka-hpa">
@@ -160,10 +160,18 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6" id="cka-secrets-configmaps">
     <h2 class="font-display text-xl text-gold">CKA Secrets vs ConfigMaps (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Authored <code class="text-cyan">secrets-configmaps.glb</code> — Pod with a <strong class="text-paper">Secret</strong> volume (emissive gold, tmpfs, RBAC-gated) beside a <strong class="text-paper">ConfigMap</strong> volume (paper sheets), env <code class="text-cyan">secretKeyRef</code> / <code class="text-cyan">configMapKeyRef</code> chips, volumeMount edges, etcd store. Blender CLI polished 2026-10-05.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Secrets vs ConfigMaps" data-il-scene="k8s"
+    <p class="mt-2 text-sm text-muted">Authored <code class="text-cyan">secrets-configmaps.glb</code> — Pod with a <strong class="text-paper">Secret</strong> volume (emissive gold, tmpfs, RBAC-gated) beside a <strong class="text-paper">ConfigMap</strong> volume (paper sheets), env <code class="text-cyan">secretKeyRef</code> / <code class="text-cyan">configMapKeyRef</code> chips, volumeMount edges, etcd store. Blender CLI polished 2026-10-05. <strong class="text-paper">Interactive (2026-10-08):</strong> edit the ConfigMap and watch which consumers go stale (volume until kubelet sync, env and subPath until restart), make it immutable, reference a missing Secret key, and see what etcd holds without encryption at rest.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Secrets vs ConfigMaps" data-il-scene="k8s" data-il-sim="config-propagation"
       data-gltf="/assets/immersive/secrets-configmaps.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/secrets-configmaps.glb","webgpu":true,"frontier":"cka-config"}'></div>
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/secrets-configmaps.glb","webgpu":true,"frontier":"cka-config","sim":"config-propagation"}'></div>
+  </section>
+
+  <section class="mt-12 rounded-xl border border-gold/30 bg-ink/40 p-6" id="cka-control-plane">
+    <h2 class="font-display text-xl text-gold">CKA control-plane failure drill (interactive 3D)</h2>
+    <p class="mt-2 text-sm text-muted">The lecture scene <code class="text-cyan">lecture-k8s-control-plane.glb</code> (kube-apiserver, kube-scheduler, kube-controller-manager, five workers with kubelet LEDs; Blender CLI polished 2026-10-01) becomes a troubleshooting drill. <strong class="text-paper">Interactive (2026-10-08):</strong> take down the API server, the scheduler, the controller-manager or one kubelet, predict what still works, then watch the component go dark — running pods survive an API outage; Pending, unreplaced or NotReady are each a different culprit.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Control-plane failure drill" data-il-scene="k8s" data-il-sim="control-plane-failure"
+      data-gltf="/assets/immersive/lecture-k8s-control-plane.glb"
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/lecture-k8s-control-plane.glb","webgpu":true,"frontier":"cka-troubleshooting","sim":"control-plane-failure"}'></div>
   </section>
 
   <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6" id="cka-scheduling">

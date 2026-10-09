@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -76,7 +76,9 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 });
 
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
-  ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded']]) {
+  ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
+  ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['config-propagation', 'missing-key', 'down'],
+  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -85,7 +87,9 @@ for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db',
     const before = await host.getAttribute('data-il-sim-verdict');
     await host.locator(`[data-il-sim-scenario="${scenario}"]`).click();
     assert.equal(await host.getAttribute('data-il-sim-verdict'), before, 'scene must not change before the prediction');
-    await host.locator('[data-il-sim-option="0"]').click();
+    /* Click the keyed answer by its original index (answers are no longer always option 0). */
+    const key = await page.evaluate(([id, scId]) => window.ILImmersiveSims.get(id).scenarios.find(x => x.id === scId).predict.answer, [sim, scenario]);
+    await host.locator(`[data-il-sim-option="${key}"]`).click();
     assert.equal(await host.getAttribute('data-il-sim-verdict'), expectVerdict);
     const res = await host.locator('.il-immersive__sim-result').textContent();
     assert.match(res, /^Correct\./);
@@ -128,6 +132,83 @@ await check('RBAC toggle: RoleBinding → ClusterRoleBinding grants cluster-scop
   assert.equal([...order].sort().join(''), '012', 'options are a permutation of original indices');
   await page.close();
   return 'degraded → allow · option order ' + order;
+});
+
+await check('Storage toggle: delete a PVC still mounted → Terminating (pvc-protection), pod keeps I/O', async () => {
+  const { page, errors } = await open('/immersive/');
+  await page.locator('[data-il-sim="storage-csi"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="storage-csi"]');
+  await host.waitFor({ timeout: 30000 });
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'healthy');
+  await host.locator('[data-il-sim-toggle="pvcDeleted"]').click();
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'terminating');
+  const st = await host.evaluate(el => { const a = el._ilImmersive._authored; const f = n => a.find(v => v.name === n).simStyle; return { pvc: f('pvc-1').hide, bead: f('io-bead-0').hide, pv: f('pv-1').hide }; });
+  assert.deepEqual(st, { pvc: false, bead: false, pv: false });
+  await host.locator('[data-il-sim-toggle="podDeleted"]').click();
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'data-deleted', 'pod gone → reclaim Delete runs');
+  assert.equal(await host.evaluate(el => el._ilImmersive._authored.find(v => v.name === 'pv-1').simStyle.hide), true);
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'healthy → terminating → data-deleted';
+});
+
+await check('Mesh toggle: pods pre-date the injection label → sidecar-0 hidden; STRICT rejects; PERMISSIVE accepts plaintext', async () => {
+  const { page, errors } = await open('/immersive/');
+  await page.locator('[data-il-sim="mesh-mtls"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="mesh-mtls"]');
+  await host.waitFor({ timeout: 30000 });
+  const sidecarHidden = () => host.evaluate(el => el._ilImmersive._authored.filter(v => v.name === 'sidecar-0').every(v => v.simStyle && v.simStyle.hide));
+  assert.equal(await sidecarHidden(), false);
+  await host.locator('[data-il-sim-toggle="restarted"]').click();
+  assert.equal(await sidecarHidden(), true);
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'down');
+  await host.locator('[data-il-sim-toggle="strict"]').click();
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'degraded');
+  assert.match(await host.locator('.il-immersive__captions').first().textContent(), /plaintext accepted/);
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'sidecar hidden · STRICT down → PERMISSIVE degraded';
+});
+
+await check('Ingress + CNI + control-plane toggles re-derive the authored scene', async () => {
+  const { page, errors } = await open('/immersive/');
+  const out = [];
+  for (const [sim, toggle, want] of [['ingress-routing', 'controller', 'down'], ['ingress-routing', 'controller', 'healthy'], ['ingress-routing', 'apiExact', 'degraded'],
+    ['cni-network', 'kubeProxy', 'degraded'], ['config-propagation', 'encryptAtRest', 'healthy'], ['control-plane-failure', 'cmUp', 'degraded']]) {
+    await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
+    const host = page.locator(`[data-il-sim-ready="${sim}"]`);
+    await host.waitFor({ timeout: 30000 });
+    await host.locator(`[data-il-sim-toggle="${toggle}"]`).click();
+    assert.equal(await host.getAttribute('data-il-sim-verdict'), want, sim + ' ' + toggle);
+    out.push(sim + ':' + toggle + '→' + want);
+  }
+  const simHosts = page.locator('[data-il-sim]');
+  const nSims = await simHosts.count();
+  const matched = [];
+  for (let i = 0; i < nSims; i++) {
+    const h = simHosts.nth(i);
+    await h.scrollIntoViewIfNeeded();
+    const id = await h.getAttribute('data-il-sim');
+    await page.locator(`[data-il-sim-ready="${id}"]`).waitFor({ timeout: 30000 });
+    /* Off-screen stages release their WebGL context (v1.4.0) and drop _authored; wait for the
+     * wake → re-upload → sim re-apply cycle instead of reading a sleeping stage. */
+    await h.evaluate(el => new Promise((ok, no) => {
+      const t0 = Date.now();
+      (function poll() {
+        if ((el._ilImmersive._authored || []).length) return ok();
+        if (Date.now() - t0 > 30000) return no(new Error('stage never re-uploaded after wake'));
+        setTimeout(poll, 100);
+      })();
+    }));
+    const n = await h.evaluate(el => (el._ilImmersive._authored || []).filter(v => v.simStyle && v.simStyle.matched).length);
+    assert.ok(n > 0, id + ' rules hit authored nodes');
+    assert.match(await h.locator('.il-immersive__captions').first().textContent(), /sim \(rules engine, not a live system\) · authored \.glb \(\d+ nodes/, id + ' caption keeps glTF provenance');
+    matched.push(id);
+  }
+  assert.ok(matched.length >= 13, 'sims mounted: ' + matched.length);
+  assert.deepEqual(errors, []);
+  await page.close();
+  return out.join(' · ') + ' · ' + matched.length + ' sims mounted';
 });
 
 for (const p of ['/learn/', '/paths/aws-cloud-practitioner-plus/', '/paths/aws-cloud-ops/', '/paths/k8s-cka-exceed/']) {
