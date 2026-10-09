@@ -230,7 +230,11 @@ var index_default = {
     if (env.COURSE_GATEWAY_ENABLED !== "true" || !env.MEMBERSHIP?.fetch || !env[service]?.fetch) return reply("temporarily-unavailable", 503);
     if (!["GET", "HEAD"].includes(request.method)) return reply("legacy-account-migration-required", 503);
     const freeBootcamp = path.startsWith("/bootcamps/threatlocker-assessment-prep/") ||
-      path.startsWith("/bootcamps/tl-interview/");
+      path.startsWith("/bootcamps/tl-interview/") ||
+      /* 2026-10-08: the free bootcamps' shared engine assets (CSS/JS) live
+         under /bootcamps/_engine/ — outside the page paths above. Without
+         this bypass the pages render with zero styles/scripts (401s). */
+      path.startsWith("/bootcamps/_engine/");
     if (!freeBootcamp) {
       const cookie = sessionCookie(request);
       if (!cookie) return denied(request, false);
