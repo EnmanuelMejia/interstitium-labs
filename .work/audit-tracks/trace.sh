@@ -6,17 +6,17 @@ trace() {
   echo "== ${label:-$url}"
   while [ $hop -lt $max ]; do
     local marker code loc attempt=0
-    while [ $attempt -lt 4 ]; do
-      marker=$(curl -s -o /dev/null -A "$UA" --connect-timeout 15 --max-time 60 \
+    while [ $attempt -lt 3 ]; do
+      marker=$(curl -s -o /dev/null -A "$UA" --connect-timeout 12 --max-time 45 \
         -w $'\n###%{http_code}###%{redirect_url}###\n' "$url" 2>/dev/null | grep -a '^###' | tail -1)
       code=$(printf '%s' "$marker" | sed -E 's/^###([0-9]*)###.*$/\1/')
       if [ -n "$code" ] && [ "$code" != "000" ]; then break; fi
-      attempt=$((attempt+1)); sleep 3
+      attempt=$((attempt+1)); sleep 2
     done
     loc=$(printf '%s' "$marker" | sed -E 's/^###[0-9]*###(.*)###$/\1/')
     hop=$((hop+1))
     if [ -z "$code" ] || [ "$code" = "000" ]; then
-      echo "  hop $hop: [TIMEOUT/000 after 4 tries] $url -- couldn't-check beyond here"
+      echo "  hop $hop: [TIMEOUT/000 after 3 tries] $url -- couldn't-check beyond here"
       return
     fi
     if [ -z "$loc" ]; then
