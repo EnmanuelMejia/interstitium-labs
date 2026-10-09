@@ -1340,6 +1340,8 @@ export {
 };
 
 // _worker.js
+
+
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
 
 function needsNoindex(path) {
@@ -1586,7 +1588,10 @@ var FREE_COURSE_SLUGS = [
   "il-29-threatlocker-ai-cybersecurity-mastery"
 ];
 
+var BUILD_CONTENT_SLUG = "il-build-content";
+
 var GATED_COURSE_SLUGS = [
+  "il-build-content",
   "il-01-esoteric-foundations",
   "il-02-mathematical-maturity-engine",
   "il-03-programming-language-forge",
@@ -1671,7 +1676,13 @@ function slugFromCourseJsonPath(path) {
      JSONs — a gated course's story text must not be fetchable by direct URL.
      stories/_index.json stays public (titles + module linkage only). */
   var s = /^\/university\/data\/courses\/stories\/([A-Za-z0-9-]+)-stories\.json$/.exec(p);
-  return s ? s[1] : null;
+  if (s) return s[1];
+  /* 2026-10-08 (P0 FIX): gate nested build subdirectories (e.g. _il26-build/) —
+     paid module content must not be fetchable by direct URL. Returns the
+     sentinel BUILD_CONTENT_SLUG which is in GATED_COURSE_SLUGS. */
+  var b = /^\/university\/data\/courses\/_[A-Za-z0-9-]+\//.exec(p);
+  if (b) return BUILD_CONTENT_SLUG;
+  return null;
 }
 
 /* Mirror of payment-routes.js verifyEntitlement (see note above). */
@@ -2710,3 +2721,4 @@ export {
   paywallResponse,
   json402Response,
 };
+// config-update 20261008-2155
