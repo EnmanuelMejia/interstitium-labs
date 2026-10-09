@@ -48,16 +48,17 @@ config = {
     "compatibility_date": "2026-09-23",
     "main_module": "_worker.bundle.js",
     "bindings": [
+        # NOTE: secret_text bindings (ENTITLEMENT_SECRET, SESSION_SECRET) are
+        # intentionally OMITTED — the API rejects them without a value, and
+        # omitting preserves the live secrets server-side untouched.
         {"name": "AI", "type": "ai", "project": "<catalog>"},
         {"name": "ASSETS", "type": "assets"},
-        {"name": "ENTITLEMENT_SECRET", "type": "secret_text"},
         {"name": "IL_ACCOUNTS", "type": "kv_namespace",
          "namespace_id": "1dbec2d5ffa1400989e3363ba5d5e1ec"},
         {"name": "IL_AUTH", "type": "kv_namespace",
          "namespace_id": "739945c3eed841288cf167d88c8d39b1"},
         {"name": "NOAH_STATS", "type": "kv_namespace",
          "namespace_id": "6c7b016f095d439b83d8231ee2ad4af5"},
-        {"name": "SESSION_SECRET", "type": "secret_text"},
         {"name": "WAITLIST", "type": "kv_namespace",
          "namespace_id": "a26c514c707d4baa9263610c5ac8c4ac"},
     ],
