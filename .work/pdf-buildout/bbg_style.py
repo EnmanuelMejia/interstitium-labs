@@ -44,11 +44,15 @@ def new_canvas(path):
     return c
 
 
-def title_page(c, title, subtitle, category, page_num_ref):
-    """Cover page — cinematic standard (2026-10-09). Delegates to il_cinematic_pdf."""
+def title_page(c, title, subtitle, category, page_num_ref, theme=None):
+    """Cover page — cinematic standard (2026-10-09). Delegates to il_cinematic_pdf.
+
+    theme: optional topic-theme key (one of the 12 themed-content themes);
+    recolors the cover's accent palette. theme=None keeps the default
+    cyan/orange identity (all existing gen_* scripts are unaffected)."""
     try:
         from il_cinematic_pdf import cinematic_cover
-        return cinematic_cover(c, title, subtitle, category, page_num_ref)
+        return cinematic_cover(c, title, subtitle, category, page_num_ref, theme=theme)
     except Exception:
         pass
     # legacy fallback

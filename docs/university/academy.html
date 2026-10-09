@@ -93,7 +93,9 @@
     'IL-26': 'il-26-data-analyst-certification-senior-mastery',
     'IL-27': 'il-27-it-infrastructure-specialist-threatlocker-mastery',
     'IL-28': 'il-28-devsecops-cloud-infrastructure-mastery',
-    'IL-29': 'il-29-threatlocker-ai-cybersecurity-mastery'
+    'IL-29': 'il-29-threatlocker-ai-cybersecurity-mastery',
+    'IL-30': 'il-30-post-quantum-cryptography-quantum-safe',
+    'IL-31': 'il-31-ai-red-teaming-safety-evals'
   };
   function render() {
     var code = IL.qs('id');
@@ -117,10 +119,10 @@
       if (!cslug) {
         cta.innerHTML = '';
       } else {
-        /* Paywall badge (2026-10-08): FREE for IL-27/28/29, lock badge for paid courses. */
+        /* Paywall badge (2026-10-08): FREE for IL-27/28/29, $249 badge for paid courses. */
         var badge = FREE_COURSE_CODES[a.code]
           ? '<span class="il-badge il-badge-free">FREE · open access</span>'
-          : '<span class="il-badge il-badge-paid"><svg class="il-lock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid course · unlocks at checkout</span>';
+          : '<span class="il-badge il-badge-paid"><svg class="il-lock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>$249 · unlocks at checkout</span>';
         cta.innerHTML = badge +
           '<div style="margin-top:.7rem"><a class="btn" href="course.html?course=' + IL.esc(cslug) + '">' +
           'Launch the interactive course — 6-tab shell, Noah AI tutor</a></div>';
@@ -295,7 +297,7 @@
   IL.onCatalog(render);
 })();
 </script>
-<script src="js/noah.js"></script>
+<script src="/assets/noah-full.js"></script>
 <style>
 /* Paywall badges (2026-10-08) — scoped .il-badge, global like the footer styles below */
 .il-badge{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;padding:.32rem .95rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid}
@@ -389,7 +391,7 @@
 </style>
 <footer class="il-footer-canonical">
   <div class="il-fc-inner">
-    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/>
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
     <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
     <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
     <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>

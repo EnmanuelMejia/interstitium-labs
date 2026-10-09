@@ -172,12 +172,50 @@
     }
     root.innerHTML =
       '<div class="il-auth-box"><p class="il-kicker">Sign in</p>' +
-      '<h3 class="il-auth-title">Continue with email</h3>' +
+      '<h3 class="il-auth-title">Continue with</h3>' +
+      '<div data-il-oauth-buttons style="display:flex;flex-direction:column;gap:.6rem;margin:.8rem 0 1.2rem"></div>' +
+      '<p class="il-auth-hint" style="text-align:center;margin:.4rem 0">— or —</p>' +
+      '<h3 class="il-auth-title" style="font-size:1.1rem">Continue with email</h3>' +
       '<p class="il-auth-hint">No password — we email you a one-time sign-in link.</p>' +
       '<form data-il-auth-form novalidate><label class="il-field"><span>Email</span>' +
       '<input type="email" name="email" autocomplete="email" required placeholder="you@example.com"/></label>' +
       '<p class="il-auth-error" data-il-auth-error hidden></p>' +
       '<button type="submit" class="il-btn" data-il-auth-submit>Send sign-in link</button></form></div>';
+    /* 2026-10-09: OAuth social login buttons. */
+    (function renderOAuth() {
+      var wrap = root.querySelector("[data-il-oauth-buttons]");
+      if (!wrap) return;
+      api("/api/auth/oauth/providers", { method: "GET" }).then(function (r) {
+        if (!r || !r.ok || !Array.isArray(r.providers)) return;
+        var names = { github: "GitHub", google: "Google", linkedin: "LinkedIn", twitter: "X (Twitter)", facebook: "Facebook" };
+        var configuredCount = 0;
+        r.providers.forEach(function (p) {
+          var b = document.createElement("a");
+          b.className = "il-btn il-btn-ghost";
+          b.style.cssText = "width:100%;text-decoration:none";
+          b.textContent = "Continue with " + (names[p.provider] || p.provider);
+          if (p.configured) {
+            configuredCount++;
+            b.href = "/auth/oauth/" + p.provider;
+          } else {
+            b.href = "#";
+            b.style.opacity = ".45";
+            b.title = "Social login coming soon — provider setup pending";
+            b.addEventListener("click", function (e) { e.preventDefault(); });
+          }
+          wrap.appendChild(b);
+        });
+        if (!wrap.children.length) { wrap.style.display = "none"; return; }
+        /* 2026-10-09: clear "setup required" state when no providers configured */
+        if (configuredCount === 0) {
+          var note = document.createElement("p");
+          note.className = "il-auth-hint";
+          note.style.cssText = "text-align:center;font-size:.78rem;margin:.2rem 0 0";
+          note.textContent = "Social sign-in is coming soon — use email for now.";
+          wrap.appendChild(note);
+        }
+      }, function () {});
+    })();
     var form = root.querySelector("[data-il-auth-form]");
     var errEl = root.querySelector("[data-il-auth-error]");
     var submitBtn = root.querySelector("[data-il-auth-submit]");

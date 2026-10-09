@@ -67,6 +67,22 @@ Charts, graphs, dashboards for the data analyst course.
 
 **CAVEAT for B12 builder:** `~/workspace/cert-bootcamps/site/bootcamps/threatlocker-assessment-prep/` does not exist — `wire_bootcamp_b12.py` will fail on that slug until the directory is created with a content.json. All other 78 slugs verified. B12 builder must create this directory first (model on tl-interview/content.json structure).
 
+### 2026-10-09 ~02:39 EDT — B5 Complete ✅ / CRITICAL: File Deleter Active 🚨
+- B5 builder completed: 36/36 videos rendered, wired, deployed (both workers), verified HTTP 200
+- Bootcamp coverage: 54/143
+
+**🚨 CRITICAL ISSUE: Unidentified bc-*.mp4 deleter**
+- Between 01:35–05:10 EDT: ~126 B1–B4 bc-*.mp4 files (+sidecars) deleted
+- Between 05:14–05:56 EDT: all 36 B5 files + ~8 B6 files deleted in bursts
+- Confirmed via honeypot bait files (deleted within 1–3 min)
+- NOT a cron, NOT the trash tool, no local script contains deletion logic, disk has 83G free
+- Pattern suggests uncoordinated cleanup step in some agent's task
+- System reboot 06:03 UTC wiped /tmp and killed renders; deleter has not reappeared post-reboot
+- Post-reboot B5 re-render: 36/36 clean
+- **Current state:** Only 45 bc-*.mp4 files present (B5 only); 153 B1–B4 files MISSING
+- **Action required:** Investigate deleter BEFORE dispatching B6–B12 renders
+- Rerender script exists: `~/workspace/apex-audit/.work/rerender_b1b4.py` (not currently running)
+
 ### Status Summary
 | Batch | Videos | Generator | Rendered | Wired | Deployed |
 |---|---|---|---|---|---|

@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cinematic Project Cards — Interstitium Labs</title>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta name="description" content="TikTok-style cinematic cards for all Interstitium Labs projects.">
 <link rel="stylesheet" href="/assets/il-unified.css">
 <style>
@@ -20,6 +23,7 @@
 .page-header h1 { color: #00d4ff; font-size: 2.5rem; margin-bottom: 0.5rem; }
 .page-header p { color: #8899aa; font-size: 1.1rem; }
 </style>
+<script src="/assets/il-raf-governor.js"></script>
 </head>
 <body>
 <main>
@@ -52,14 +56,14 @@ PROJECTS.forEach(p => {
   const div = document.createElement('div');
   div.className = 'card-item';
   div.innerHTML = `
-    <video controls preload="metadata" poster="/assets/cards/hq/hq-${p.hq}_poster.png">
-      <source src="/assets/cards/hq/hq-${p.hq}_9x16.mp4" type="video/mp4">
+    <video controls preload="metadata" poster="/assets/cards/hq/hq-${p.hq}_16x9_poster.png">
+      <source src="/assets/cards/hq/hq-${p.hq}_16x9.mp4" type="video/mp4">
     </video>
     <div class="card-info">
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
       <div class="downloads">
-        <a href="/assets/cards/${p.key}_16x9.mp4" download>16:9 Video</a>
+        <a href="/assets/cards/hq/hq-${p.hq}_16x9.mp4" download>16:9 Widescreen (HQ)</a>
         <a href="/assets/cards/hq/hq-${p.hq}_9x16.mp4" download>9:16 TikTok (HQ)</a>
         <a href="/assets/cards/hq/hq-${p.hq}_linkedin.png" download>LinkedIn PNG</a>
       </div>

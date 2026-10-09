@@ -35,3 +35,26 @@
 - Running total: 4,863 animated diagrams. W1, W2 still running.
 - [03:05] W1 COMPLETE: 188 animated diagrams (IL-01–IL-06, 43 modules × 4). Zero static ever built.
 - Running total: 5,051 animated diagrams. Only W2 (IL-07–IL-12) still running.
+
+## FINAL — DEPLOYED 2026-10-09 ~06:31 UTC
+
+| Worker | Scope | Diagrams | Animated |
+|---|---|---|---|
+| W1 | IL-01–IL-06 (43 mods) | 188 | 188/188 |
+| W2 | IL-07–IL-12 (129 mods) | 516 | 516/516 |
+| W3 | IL-13–IL-18 (244 mods) | 976 | 976/976 |
+| W4 | IL-19–IL-24 (148 mods) | 592 | 592/592 |
+| W5 | IL-25–IL-29 (236 mods) | 944 | 944/944 |
+| W6 | 135 bootcamps (607 lessons) | 1,821 | 1,821/1,821 |
+| W7 | 530 legacy static SVGs | 530 | 530/530 (CSS injection) |
+| **TOTAL** | | **5,567** | **5,567/5,567 (100%)** |
+
+**Deployments:**
+- Flagship (solitary-sound-015a): 06:29 UTC — courses + mdLite SVG passthrough fix verified live
+- Cert-bootcamps: 06:31 UTC (retry after transient CF 500) — 92 files, bootcamp content.json + SVGs live
+
+**Verification:**
+- course-shell.js live contains SVG preservation logic
+- 3,216 inline figures confirmed in course JSONs
+- 2,355 SVGs with il-anim class on disk, deployed
+- Zero static diagrams remain platform-wide

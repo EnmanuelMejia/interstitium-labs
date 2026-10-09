@@ -1,0 +1,550 @@
+/* ============================================================================
+   Interstitium Labs — Topic Hero System (il-topic-heroes.css)
+   Full-viewport, per-theme cinematic heroes for the 12 topic hubs.
+   All original work: pure CSS gradients, patterns, and animations only.
+   No external images, no copyrighted assets. Dark-mode cinematic base.
+
+   Structure expected:
+     <header class="th-hero th-hero--<theme>" data-topic-theme="<theme-key>">
+       <div class="th-hero__bg">
+         <video class="th-hero__video">...</video>
+         <div class="th-hero__tint"></div>      <!-- theme color wash -->
+         <div class="th-hero__fx" data-fx="..."></div>  <!-- animated layers -->
+       </div>
+       <div class="th-hero__content">
+         <p class="th-hero__eyebrow">…</p>
+         <h1 class="th-hero__title">…</h1>
+         <p class="th-hero__tag">…</p>
+         <div class="th-hero__cta">…</div>
+         <div class="th-hero__decor">…theme decor…</div>
+       </div>
+     </header>
+   ========================================================================== */
+
+.th-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  color: #f2ede1;
+}
+.th-hero__bg { position: absolute; inset: 0; z-index: 0; }
+.th-hero__video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: .38; filter: saturate(1.1);
+}
+.th-hero__tint { position: absolute; inset: 0; }
+.th-hero__fx { position: absolute; inset: 0; pointer-events: none; }
+.th-hero__content {
+  position: relative; z-index: 2;
+  width: min(1120px, 92vw); margin: 0 auto;
+  padding: 16svh 0 12svh;
+}
+.th-hero__eyebrow {
+  font-size: .72rem; letter-spacing: .34em; text-transform: uppercase;
+  margin: 0 0 1.1rem; opacity: .85;
+}
+.th-hero__title {
+  margin: 0 0 1.2rem;
+  font-size: clamp(3rem, 9vw, 7.5rem);
+  line-height: .95; font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.th-hero__tag {
+  margin: 0 0 2rem; max-width: 44rem;
+  font-size: clamp(1rem, 2.2vw, 1.35rem); line-height: 1.55; opacity: .92;
+}
+.th-hero__cta { display: flex; gap: .9rem; flex-wrap: wrap; }
+.th-hero__decor { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .th-hero__fx, .th-hero__decor > * { animation: none !important; }
+  .th-hero__video { display: none; }
+}
+
+/* ==========================================================================
+   1. mr-robot — Cybersecurity
+   Black terminal. Green scanlines, CRT flicker, glitch RGB-split title,
+   blinking block cursor, terminal frame.
+   ========================================================================== */
+.th-hero--mr-robot { background: #030303; font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; }
+.th-hero--mr-robot .th-hero__tint {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(0,255,65,.10), transparent 70%),
+    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 40%, rgba(0,0,0,.72));
+}
+.th-hero--mr-robot .th-hero__fx[data-fx="scan"] {
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.42) 0 2px, transparent 2px 4px);
+  animation: thfx-crt 8s linear infinite;
+}
+.th-hero--mr-robot .th-hero__fx[data-fx="flicker"] {
+  background: rgba(0,255,65,.028);
+  animation: thfx-flicker 4.2s steps(12) infinite;
+}
+.th-hero--mr-robot .th-hero__eyebrow { color: #00ff41; }
+.th-hero--mr-robot .th-hero__title {
+  color: #00ff41; font-family: inherit;
+  text-shadow: 3px 0 rgba(0,255,65,.4), -3px 0 rgba(0,143,17,.45), 0 0 26px rgba(0,255,65,.5);
+  animation: thfx-glitch 6s infinite;
+}
+.th-hero--mr-robot .th-hero__title::after {
+  content: "▊"; color: #00ff41; animation: thfx-blink 1.06s steps(1) infinite;
+}
+.th-hero--mr-robot .th-hero__tag { color: #b8ffd0; }
+.th-hero--mr-robot .th-hero__decor .term-frame {
+  position: absolute; inset: 6svh 4vw; border: 1px solid rgba(0,255,65,.28);
+  border-radius: 6px; pointer-events: none;
+}
+.th-hero--mr-robot .th-hero__decor .term-frame::before {
+  content: "root@interstitium:~# — 443/tcp open"; position: absolute; top: -1px; left: 18px;
+  transform: translateY(-50%); background: #030303; padding: 0 .8em;
+  color: rgba(0,255,65,.75); font-size: .72rem; letter-spacing: .12em;
+}
+
+/* ==========================================================================
+   2. cyberpunk — System Design
+   Violet-black, neon rain streaks, pink/cyan dual-neon title with flicker,
+   abstract geometric marks.
+   ========================================================================== */
+.th-hero--cyberpunk { background: #0d0221; }
+.th-hero--cyberpunk .th-hero__tint {
+  background:
+    radial-gradient(ellipse 70% 55% at 78% 18%, rgba(255,42,109,.16), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 15% 85%, rgba(5,217,232,.12), transparent 65%),
+    linear-gradient(180deg, rgba(13,2,33,.5), rgba(13,2,33,.15) 45%, rgba(13,2,33,.78));
+}
+.th-hero--cyberpunk .th-hero__fx[data-fx="rain"] {
+  background-image:
+    repeating-linear-gradient(100deg, transparent 0 26px, rgba(5,217,232,.14) 26px 27px, transparent 27px 60px),
+    repeating-linear-gradient(100deg, transparent 0 44px, rgba(255,42,109,.10) 44px 45px, transparent 45px 90px);
+  animation: thfx-raindrop 1.6s linear infinite;
+}
+.th-hero--cyberpunk .th-hero__fx[data-fx="gridfloor"] {
+  background:
+    linear-gradient(transparent 62%, rgba(255,42,109,.20) 63%, transparent 64%),
+    repeating-linear-gradient(90deg, transparent 0 90px, rgba(5,217,232,.10) 90px 91px, transparent 91px 180px);
+  -webkit-mask-image: linear-gradient(180deg, transparent 55%, #000 78%);
+          mask-image: linear-gradient(180deg, transparent 55%, #000 78%);
+}
+.th-hero--cyberpunk .th-hero__eyebrow { color: #05d9e8; }
+.th-hero--cyberpunk .th-hero__title {
+  color: #fff;
+  text-shadow: 0 0 8px #ff2a6d, 0 0 30px rgba(255,42,109,.85), 4px 4px 0 rgba(5,217,232,.55);
+  animation: thfx-neonflicker 7s infinite;
+}
+.th-hero--cyberpunk .th-hero__decor .cp-mark {
+  position: absolute; font-size: clamp(4rem,10vw,8rem); font-weight: 900; line-height: 1;
+  color: transparent; -webkit-text-stroke: 1px rgba(5,217,232,.5);
+  top: 12svh; right: 6vw; transform: rotate(8deg); user-select: none;
+}
+
+/* ==========================================================================
+   3. tron — Networking
+   Electric-blue perspective grid racing toward viewer, light-trail title,
+   circuit nodes.
+   ========================================================================== */
+.th-hero--tron { background: #01040a; }
+.th-hero--tron .th-hero__tint {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 108%, rgba(0,180,255,.28), transparent 65%),
+    linear-gradient(180deg, rgba(1,4,10,.62), rgba(1,4,10,.18) 45%, rgba(1,4,10,.8));
+}
+.th-hero--tron .th-hero__fx[data-fx="gridrun"] {
+  background-image:
+    linear-gradient(rgba(0,200,255,.30) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,.30) 1px, transparent 1px);
+  background-size: 72px 72px;
+  transform: perspective(420px) rotateX(58deg) scale(1.6);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 42%, #000 88%);
+          mask-image: linear-gradient(180deg, transparent 42%, #000 88%);
+  animation: thfx-gridrun 2.4s linear infinite;
+}
+.th-hero--tron .th-hero__fx[data-fx="horizon"] {
+  background: linear-gradient(180deg, transparent 64.5%, rgba(0,220,255,.65) 65%, rgba(0,220,255,.65) 65.6%, transparent 66.2%);
+}
+.th-hero--tron .th-hero__eyebrow { color: #00dcff; }
+.th-hero--tron .th-hero__title {
+  color: #eafcff;
+  text-shadow: 0 0 12px rgba(0,220,255,.9), 0 0 44px rgba(0,180,255,.6);
+  letter-spacing: .02em;
+}
+.th-hero--tron .th-hero__decor .tron-node {
+  position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  background: #00dcff; box-shadow: 0 0 18px 4px rgba(0,220,255,.8);
+  animation: thfx-nodepulse 2.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   4. steampunk — Cloud & DevOps
+   Brass/copper sky, rotating gears, riveted frame, engraved serif title.
+   ========================================================================== */
+.th-hero--steampunk { background: #171006; }
+.th-hero--steampunk .th-hero__tint {
+  background:
+    radial-gradient(ellipse 75% 60% at 50% 0%, rgba(255,178,90,.20), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 90%, rgba(160,82,20,.25), transparent 60%),
+    linear-gradient(180deg, rgba(23,16,6,.45), rgba(23,16,6,.25) 50%, rgba(23,16,6,.75));
+}
+.th-hero--steampunk .th-hero__fx[data-fx="haze"] {
+  background: radial-gradient(ellipse 45% 30% at 30% 70%, rgba(255,200,130,.07), transparent 70%),
+              radial-gradient(ellipse 40% 28% at 72% 30%, rgba(255,200,130,.06), transparent 70%);
+  animation: thfx-drift 14s ease-in-out infinite alternate;
+}
+.th-hero--steampunk .th-hero__eyebrow { color: #e8a34f; font-family: Georgia, "Times New Roman", serif; }
+.th-hero--steampunk .th-hero__title {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 700;
+  color: #f3d9a4;
+  text-shadow: 0 2px 0 #5c3a12, 0 0 34px rgba(232,163,79,.45);
+  letter-spacing: .01em;
+}
+.th-hero--steampunk .th-hero__tag { color: #e9d9b8; }
+.th-hero--steampunk .th-hero__decor .gear {
+  position: absolute; border-radius: 50%;
+  background:
+    radial-gradient(circle at center, transparent 31%, rgba(232,163,79,.5) 32%, rgba(232,163,79,.5) 46%, transparent 47%),
+    repeating-conic-gradient(rgba(232,163,79,.45) 0 9deg, transparent 9deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 26%, #000 27%);
+          mask: radial-gradient(circle, transparent 26%, #000 27%);
+  animation: thfx-spin 26s linear infinite;
+  opacity: .8;
+}
+.th-hero--steampunk .th-hero__decor .rivets {
+  position: absolute; inset: 5svh 3.5vw; pointer-events: none;
+  border: 2px solid rgba(232,163,79,.4); border-radius: 10px;
+  background-image:
+    radial-gradient(circle 5px at 14px 14px, #e8a34f 4px, #5c3a12 5px, transparent 6px),
+    radial-gradient(circle 5px at calc(100% - 14px) 14px, #e8a34f 4px, #5c3a12 5px, transparent 6px),
+    radial-gradient(circle 5px at 14px calc(100% - 14px), #e8a34f 4px, #5c3a12 5px, transparent 6px),
+    radial-gradient(circle 5px at calc(100% - 14px) calc(100% - 14px), #e8a34f 4px, #5c3a12 5px, transparent 6px);
+}
+
+/* ==========================================================================
+   5. exmachina — AI & Machine Learning
+   Stark precision: near-white on black, thin animated lines, hairline
+   frame, clinical letterspaced title.
+   ========================================================================== */
+.th-hero--exmachina { background: #060607; }
+.th-hero--exmachina .th-hero__tint {
+  background: linear-gradient(180deg, rgba(6,6,7,.55), rgba(6,6,7,.12) 45%, rgba(6,6,7,.72));
+}
+.th-hero--exmachina .th-hero__fx[data-fx="hairlines"] {
+  background-image:
+    linear-gradient(rgba(240,244,248,.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240,244,248,.10) 1px, transparent 1px);
+  background-size: 120px 120px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+          mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+}
+.th-hero--exmachina .th-hero__fx[data-fx="scanline-v"] {
+  background: linear-gradient(90deg, transparent 49.7%, rgba(180,220,255,.35) 50%, transparent 50.3%);
+  animation: thfx-vscan 9s ease-in-out infinite alternate;
+}
+.th-hero--exmachina .th-hero__eyebrow { color: #9fb6c9; letter-spacing: .5em; }
+.th-hero--exmachina .th-hero__title {
+  color: #f4f7fa; font-weight: 300; letter-spacing: .14em; text-transform: uppercase;
+  font-size: clamp(2.2rem, 6.5vw, 5.2rem);
+  text-shadow: 0 0 22px rgba(190,220,255,.35);
+}
+.th-hero--exmachina .th-hero__decor .xm-frame {
+  position: absolute; inset: 8svh 6vw; border: 1px solid rgba(240,244,248,.22); pointer-events: none;
+}
+.th-hero--exmachina .th-hero__decor .xm-frame::after {
+  content: ""; position: absolute; left: 50%; top: -1px; width: 120px; height: 1px;
+  transform: translateX(-50%); background: #bfe0ff; box-shadow: 0 0 14px 2px rgba(160,210,255,.8);
+  animation: thfx-vscan 9s ease-in-out infinite alternate;
+}
+
+/* ==========================================================================
+   6. oceandeep — Data Engineering
+   Abyssal blue, drifting bioluminescent currents, sonar rings, flowing type.
+   ========================================================================== */
+.th-hero--oceandeep { background: #020d18; }
+.th-hero--oceandeep .th-hero__tint {
+  background:
+    radial-gradient(ellipse 60% 45% at 20% 80%, rgba(0,220,190,.14), transparent 65%),
+    radial-gradient(ellipse 55% 40% at 82% 25%, rgba(40,140,255,.16), transparent 65%),
+    linear-gradient(180deg, rgba(2,13,24,.5), rgba(2,13,24,.15) 50%, rgba(1,8,16,.8));
+}
+.th-hero--oceandeep .th-hero__fx[data-fx="current"] {
+  background:
+    radial-gradient(ellipse 34% 12% at 25% 62%, rgba(0,230,200,.16), transparent 70%),
+    radial-gradient(ellipse 28% 10% at 68% 38%, rgba(70,160,255,.15), transparent 70%),
+    radial-gradient(ellipse 22% 9% at 48% 80%, rgba(0,200,255,.12), transparent 70%);
+  animation: thfx-drift 16s ease-in-out infinite alternate;
+  filter: blur(6px);
+}
+.th-hero--oceandeep .th-hero__fx[data-fx="plankton"] {
+  background-image: radial-gradient(circle, rgba(140,255,230,.5) 1px, transparent 1.6px);
+  background-size: 90px 70px;
+  animation: thfx-rise 22s linear infinite;
+  opacity: .5;
+}
+.th-hero--oceandeep .th-hero__eyebrow { color: #5eead4; }
+.th-hero--oceandeep .th-hero__title {
+  color: #e6fbff;
+  text-shadow: 0 0 26px rgba(94,234,212,.55), 0 0 70px rgba(40,140,255,.35);
+  font-style: italic;
+}
+.th-hero--oceandeep .th-hero__decor .sonar {
+  position: absolute; left: 50%; top: 50%; width: 46vmin; height: 46vmin;
+  transform: translate(-50%,-50%); border: 1px solid rgba(94,234,212,.4); border-radius: 50%;
+  animation: thfx-sonar 5s ease-out infinite;
+}
+
+/* ==========================================================================
+   7. hackers95 — Programming
+   Clashing neon on black, skewed graffiti title, sticker badge, zigzag tape.
+   ========================================================================== */
+.th-hero--hackers95 { background: #0a0a0c; transform: none; }
+.th-hero--hackers95 .th-hero__tint {
+  background:
+    radial-gradient(ellipse 65% 50% at 12% 12%, rgba(255,0,255,.14), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 88%, rgba(0,255,255,.12), transparent 60%),
+    linear-gradient(180deg, rgba(10,10,12,.55), rgba(10,10,12,.2) 50%, rgba(10,10,12,.8));
+}
+.th-hero--hackers95 .th-hero__fx[data-fx="static"] {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,255,255,.03) 0 2px, transparent 2px 5px);
+  animation: thfx-static 0.9s steps(3) infinite;
+}
+.th-hero--hackers95 .th-hero__eyebrow {
+  display: inline-block; color: #0a0a0c; background: #ccff00;
+  padding: .35em 1em; letter-spacing: .18em; font-weight: 800;
+  transform: rotate(-2deg); box-shadow: 4px 4px 0 #ff00ff;
+}
+.th-hero--hackers95 .th-hero__title {
+  color: #fff; transform: rotate(-1.5deg);
+  text-shadow: 3px 3px 0 #ff00ff, 6px 6px 0 rgba(0,255,255,.7), 0 0 34px rgba(255,0,255,.5);
+  font-style: italic;
+}
+.th-hero--hackers95 .th-hero__decor .tape {
+  position: absolute; left: -4vw; right: -4vw; height: 34px; top: 9svh;
+  background: repeating-linear-gradient(-45deg, #ccff00 0 26px, #0a0a0c 26px 52px);
+  transform: rotate(1.6deg); opacity: .9;
+}
+.th-hero--hackers95 .th-hero__decor .tape.b { top: auto; bottom: 8svh; transform: rotate(-1.2deg); }
+
+/* ==========================================================================
+   8. alexandria — Databases
+   Marble white + gold, column motifs, classical serif, laurel dividers.
+   ========================================================================== */
+.th-hero--alexandria { background: #0e0b06; }
+.th-hero--alexandria .th-hero__tint {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 30%, rgba(212,175,105,.16), transparent 65%),
+    linear-gradient(180deg, rgba(14,11,6,.55), rgba(14,11,6,.2) 50%, rgba(14,11,6,.82));
+}
+.th-hero--alexandria .th-hero__fx[data-fx="dust"] {
+  background-image: radial-gradient(circle, rgba(230,200,140,.4) 1px, transparent 1.8px);
+  background-size: 110px 90px;
+  animation: thfx-rise 26s linear infinite;
+  opacity: .35;
+}
+.th-hero--alexandria .th-hero__eyebrow { color: #d4af69; font-family: Georgia, serif; letter-spacing: .42em; }
+.th-hero--alexandria .th-hero__title {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 400;
+  color: #f5e8cd; letter-spacing: .06em;
+  text-shadow: 0 0 30px rgba(212,175,105,.4);
+}
+.th-hero--alexandria .th-hero__decor .column {
+  position: absolute; top: 0; bottom: 0; width: clamp(48px, 7vw, 110px);
+  background:
+    linear-gradient(90deg, rgba(212,175,105,.16), rgba(212,175,105,.05) 30%, rgba(212,175,105,.16)),
+    repeating-linear-gradient(0deg, transparent 0 46px, rgba(212,175,105,.25) 46px 48px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+          mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+.th-hero--alexandria .th-hero__decor .column.l { left: 3vw; }
+.th-hero--alexandria .th-hero__decor .column.r { right: 3vw; }
+.th-hero--alexandria .th-hero__decor .laurel {
+  text-align: center; color: #d4af69; letter-spacing: 1.2em; font-size: 1.1rem; opacity: .8;
+  margin-bottom: 1.4rem;
+}
+
+/* ==========================================================================
+   9. industrial — Linux & Systems
+   Amber phosphor, chunky riveted borders, hazard stripes, blocky type.
+   ========================================================================== */
+.th-hero--industrial { background: #0c0803; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.th-hero--industrial .th-hero__tint {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(255,170,0,.12), transparent 65%),
+    linear-gradient(180deg, rgba(12,8,3,.6), rgba(12,8,3,.25) 50%, rgba(12,8,3,.82));
+}
+.th-hero--industrial .th-hero__fx[data-fx="phosphor"] {
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 3px, transparent 3px 5px);
+}
+.th-hero--industrial .th-hero__fx[data-fx="hazard"] {
+  inset: auto 0 0 0; height: 26px; top: auto;
+  background: repeating-linear-gradient(-45deg, #ffb000 0 30px, #0c0803 30px 60px);
+  opacity: .85;
+}
+.th-hero--industrial .th-hero__eyebrow {
+  display: inline-block; color: #0c0803; background: #ffb000; font-weight: 800;
+  padding: .35em 1.1em; letter-spacing: .22em;
+}
+.th-hero--industrial .th-hero__title {
+  color: #ffb000; font-family: inherit; font-weight: 800;
+  text-shadow: 0 0 24px rgba(255,176,0,.55);
+  border-left: 10px solid #ffb000; padding-left: .5em;
+}
+.th-hero--industrial .th-hero__decor .plate {
+  position: absolute; inset: 6svh 4vw; border: 4px solid rgba(255,176,0,.5); pointer-events: none;
+  background-image:
+    radial-gradient(circle 6px at 20px 20px, #ffb000 5px, #6b4a00 6px, transparent 7px),
+    radial-gradient(circle 6px at calc(100% - 20px) 20px, #ffb000 5px, #6b4a00 6px, transparent 7px),
+    radial-gradient(circle 6px at 20px calc(100% - 20px), #ffb000 5px, #6b4a00 6px, transparent 7px),
+    radial-gradient(circle 6px at calc(100% - 20px) calc(100% - 20px), #ffb000 5px, #6b4a00 6px, transparent 7px);
+}
+
+/* ==========================================================================
+   10. sacredgeo — Mathematics
+   Gold geometric lattice: rotating concentric rings, precise symmetry,
+   elegant numerals.
+   ========================================================================== */
+.th-hero--sacredgeo { background: #070503; }
+.th-hero--sacredgeo .th-hero__tint {
+  background: radial-gradient(ellipse 75% 65% at 50% 42%, rgba(212,175,105,.14), transparent 68%),
+              linear-gradient(180deg, rgba(7,5,3,.55), rgba(7,5,3,.2) 50%, rgba(7,5,3,.8));
+}
+.th-hero--sacredgeo .th-hero__fx[data-fx="lattice"] {
+  background-image:
+    linear-gradient(30deg, rgba(212,175,105,.10) 1px, transparent 1px),
+    linear-gradient(150deg, rgba(212,175,105,.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,105,.07) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 45%, #000 25%, transparent 78%);
+          mask-image: radial-gradient(ellipse 65% 60% at 50% 45%, #000 25%, transparent 78%);
+}
+.th-hero--sacredgeo .th-hero__eyebrow { color: #d4af69; letter-spacing: .5em; }
+.th-hero--sacredgeo .th-hero__title {
+  color: #f3e3bb; font-weight: 300; letter-spacing: .1em;
+  text-shadow: 0 0 34px rgba(212,175,105,.45);
+}
+.th-hero--sacredgeo .th-hero__decor .rings {
+  position: absolute; left: 50%; top: 44%; width: 78vmin; height: 78vmin;
+  transform: translate(-50%,-50%); pointer-events: none; opacity: .8;
+}
+.th-hero--sacredgeo .th-hero__decor .rings i {
+  position: absolute; inset: 0; border: 1px solid rgba(212,175,105,.35); border-radius: 50%;
+  animation: thfx-spin 60s linear infinite;
+}
+.th-hero--sacredgeo .th-hero__decor .rings i:nth-child(2) { inset: 12%; animation-duration: 45s; animation-direction: reverse; border-style: dashed; }
+.th-hero--sacredgeo .th-hero__decor .rings i:nth-child(3) { inset: 26%; animation-duration: 70s; }
+.th-hero--sacredgeo .th-hero__decor .rings i:nth-child(4) { inset: 40%; animation-duration: 38s; animation-direction: reverse; border-style: dotted; }
+
+/* ==========================================================================
+   11. vaporwave — Web Development
+   Sunset gradient, chrome metallic title, retro sun, grid horizon.
+   ========================================================================== */
+.th-hero--vaporwave { background: #12041f; }
+.th-hero--vaporwave .th-hero__tint {
+  background:
+    radial-gradient(ellipse 55% 42% at 50% 68%, rgba(255,113,206,.30), transparent 62%),
+    linear-gradient(180deg, rgba(18,4,31,.35) 0%, rgba(1,205,254,.06) 45%, rgba(18,4,31,.55) 78%, rgba(18,4,31,.88));
+}
+.th-hero--vaporwave .th-hero__fx[data-fx="sun"] {
+  background:
+    radial-gradient(circle 150px at 50% 66%, #ffd319 0 34%, #ff2975 58%, #8c1eff 78%, transparent 79%);
+  -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 78%);
+          mask-image: linear-gradient(180deg, #000 62%, transparent 78%);
+  animation: thfx-sunrise 12s ease-in-out infinite alternate;
+}
+.th-hero--vaporwave .th-hero__fx[data-fx="vwgrid"] {
+  background-image:
+    linear-gradient(rgba(1,205,254,.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,41,117,.35) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(380px) rotateX(60deg) scale(1.7);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 60%, #000 92%);
+          mask-image: linear-gradient(180deg, transparent 60%, #000 92%);
+  animation: thfx-gridrun 3s linear infinite;
+}
+.th-hero--vaporwave .th-hero__eyebrow { color: #01cdfe; letter-spacing: .4em; }
+.th-hero--vaporwave .th-hero__title {
+  font-style: italic; font-weight: 900;
+  background: linear-gradient(180deg, #fff 8%, #ffd319 32%, #ff2975 62%, #8c1eff 88%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 0 rgba(1,205,254,.35)) drop-shadow(0 0 26px rgba(255,41,117,.4));
+}
+.th-hero--vaporwave .th-hero__decor .vw-kanji {
+  position: absolute; top: 14svh; right: 7vw; font-size: clamp(3rem,8vw,6rem); font-weight: 900;
+  color: transparent; -webkit-text-stroke: 1px rgba(1,205,254,.55); transform: rotate(-6deg); user-select: none;
+}
+
+/* ==========================================================================
+   12. goldrush — Blockchain
+   Gold + dark, circuit traces, glint sweeps, bold bullion title.
+   ========================================================================== */
+.th-hero--goldrush { background: #0a0702; }
+.th-hero--goldrush .th-hero__tint {
+  background:
+    radial-gradient(ellipse 65% 50% at 50% 20%, rgba(255,200,60,.14), transparent 62%),
+    linear-gradient(180deg, rgba(10,7,2,.5), rgba(10,7,2,.18) 50%, rgba(10,7,2,.8));
+}
+.th-hero--goldrush .th-hero__fx[data-fx="circuits"] {
+  background-image:
+    linear-gradient(90deg, transparent 0 118px, rgba(255,200,60,.22) 118px 120px, transparent 120px 240px),
+    linear-gradient(0deg, transparent 0 88px, rgba(255,200,60,.18) 88px 90px, transparent 90px 180px),
+    radial-gradient(circle 3px at 120px 90px, rgba(255,215,100,.9) 2.4px, transparent 3px),
+    radial-gradient(circle 3px at 240px 180px, rgba(255,215,100,.9) 2.4px, transparent 3px);
+  background-size: 240px 180px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 20%, transparent 80%);
+          mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 20%, transparent 80%);
+  animation: thfx-drift 20s ease-in-out infinite alternate;
+}
+.th-hero--goldrush .th-hero__fx[data-fx="glint"] {
+  background: linear-gradient(105deg, transparent 42%, rgba(255,240,200,.14) 50%, transparent 58%);
+  background-size: 280% 100%;
+  animation: thfx-glint 7s ease-in-out infinite;
+}
+.th-hero--goldrush .th-hero__eyebrow { color: #ffd75e; letter-spacing: .34em; }
+.th-hero--goldrush .th-hero__title {
+  color: #ffe9a8; font-weight: 900;
+  text-shadow: 0 2px 0 #7a5b12, 0 0 40px rgba(255,200,60,.5);
+  letter-spacing: .02em;
+}
+.th-hero--goldrush .th-hero__decor .bullion {
+  position: absolute; bottom: 10svh; right: 8vw; width: clamp(90px,12vw,170px); height: clamp(46px,6vw,86px);
+  background: linear-gradient(160deg, #ffe9a8 0%, #d4a017 45%, #8a6a10 75%, #ffd75e 100%);
+  clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
+  box-shadow: 0 0 44px rgba(255,200,60,.45);
+  animation: thfx-floaty 6s ease-in-out infinite;
+  opacity: .9;
+}
+
+/* ---------- shared keyframes ---------- */
+@keyframes thfx-crt { 0% { background-position: 0 0; } 100% { background-position: 0 120px; } }
+@keyframes thfx-flicker {
+  0%, 100% { opacity: .5; } 8% { opacity: .9; } 9% { opacity: .4; }
+  42% { opacity: .8; } 43% { opacity: .5; } 78% { opacity: 1; } 79% { opacity: .55; }
+}
+@keyframes thfx-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes thfx-glitch {
+  0%, 90%, 94%, 100% { transform: translate(0); clip-path: inset(0); }
+  91% { transform: translate(-4px, 2px); clip-path: inset(10% 0 55% 0); }
+  92% { transform: translate(4px, -2px); clip-path: inset(60% 0 8% 0); }
+  93% { transform: translate(-2px, 1px); clip-path: inset(30% 0 40% 0); }
+}
+@keyframes thfx-raindrop { 0% { background-position: 0 0, 0 0; } 100% { background-position: -140px 420px, -100px 380px; } }
+@keyframes thfx-gridrun { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 72px, 0 0; } }
+@keyframes thfx-neonflicker {
+  0%, 100% { opacity: 1; } 3% { opacity: .82; } 4% { opacity: 1; }
+  52% { opacity: 1; } 53% { opacity: .7; } 54% { opacity: 1; } 55% { opacity: .9; } 56% { opacity: 1; }
+}
+@keyframes thfx-spin { to { transform: rotate(360deg); } }
+@keyframes thfx-drift { 0% { background-position: 0 0, 0 0, 0 0; transform: translateX(-2%); } 100% { background-position: 60px 30px, -40px 20px, 30px -30px; transform: translateX(2%); } }
+@keyframes thfx-nodepulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.7); opacity: .55; } }
+@keyframes thfx-vscan { 0% { left: 8%; } 100% { left: 92%; } }
+@keyframes thfx-rise { 0% { background-position: 0 0; } 100% { background-position: 40px -900px; } }
+@keyframes thfx-static { 0% { opacity: .9; } 50% { opacity: .55; } 100% { opacity: .85; } }
+@keyframes thfx-sonar { 0% { transform: translate(-50%,-50%) scale(.25); opacity: .9; } 100% { transform: translate(-50%,-50%) scale(1.6); opacity: 0; } }
+@keyframes thfx-sunrise { 0% { transform: translateY(2.5%); } 100% { transform: translateY(-2.5%); } }
+@keyframes thfx-glint { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+@keyframes thfx-floaty { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-16px) rotate(2deg); } }
+/* deploy-trigger 20261009-0955 */

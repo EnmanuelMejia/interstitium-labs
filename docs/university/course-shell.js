@@ -714,7 +714,7 @@ function heroHTML() {
   var hours = COURSE.hours ? ' · ' + COURSE.hours + ' hours' : '';
   /* 2026-10-09 cinematic rollout (S1): course poster banner. */
   var poster = (/^IL-(0[1-9]|[12][0-9])$/.test(String(COURSE.code || '')))
-    ? '<div class="hero-poster"><img src="/assets/cinematic/courses/' + esc(COURSE.code) + '.png" alt="" loading="lazy"></div>' : '';
+    ? '<div class="hero-poster"><img src="/assets/cinematic/courses/' + esc(COURSE.code) + '-hero.webp" alt="" loading="lazy" decoding="async" width="1280" height="720"></div>' : '';
   return '<div class="hero">' + poster +
     '<div class="dateline">' + dl + esc(COURSE.code) + ' · SCIENTIA OMNIA VINCIT' + hours + '</div>' +
     '<h1>' + esc(COURSE.title) + '</h1>' +

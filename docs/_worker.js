@@ -249,6 +249,16 @@ var OG_PROFILES = {
     description: "A 48-module, 431-hour interactive CBT: ThreatLocker zero-trust platform operations, MIT 6.858 systems security, AI in cybersecurity, prerequisite math — plus 7 certification tracks and a ThreatLocker panel interview simulation.",
     image: "/assets/cinematic/courses-og/IL-29-og.png"
   },
+  "il-30-post-quantum-cryptography-quantum-safe": {
+    title: "IL-30 · Post-Quantum Cryptography & Quantum-Safe Engineering",
+    description: "Quantum-safe cryptography at engineering depth — NIST's PQC standards (FIPS 203/204/205), lattice and hash-based math, hybrid TLS 1.3, and a real enterprise migration playbook.",
+    image: "/assets/cinematic/courses-og/IL-30-og.png"
+  },
+  "il-31-ai-red-teaming-safety-evals": {
+    title: "IL-31 · AI Red-Teaming & Safety Evals Engineering",
+    description: "Evaluate, red-team, and harden frontier AI systems — METR methodology, eval harness design, defensive red-teaming, and responsible disclosure.",
+    image: "/assets/cinematic/courses-og/IL-31-og.png"
+  },
 };
 
 function ogEscape(s) {
@@ -394,6 +404,12 @@ async function handleWaitlist(request, env) {
 /* ------------------------------------------------------------------ */
 /* Course paywall (2026-10-08). Worker-level gating for the paid courses:
  *
+ *   2026-10-09: PAYWALL TEMPORARILY DISABLED per owner order — all courses
+ *   free until payment processor is set up. PAYWALL_DISABLED=true below
+ *   makes courseGate() a passthrough. Payment infrastructure (payment-routes.js,
+ *   entitlement tokens, checkout UI) is preserved intact for re-enable.
+ *   To re-enable: set PAYWALL_DISABLED=false and redeploy.
+ *
  *   - IL-27 / IL-28 / IL-29 are FREE forever: unchanged behavior.
  *   - All other course slugs (IL-01..IL-26) are gated.
  *   - Humans requesting /university/course?course=<gated> without a valid
@@ -414,6 +430,10 @@ async function handleWaitlist(request, env) {
  * not import payment helpers. verifyEntitlementToken below mirrors
  * payment-routes.js verifyEntitlement - keep the two in sync.
  * ------------------------------------------------------------------ */
+
+/* 2026-10-09: TEMPORARY — paywall disabled until payment processor setup.
+   Set to false to re-enable paid gating. */
+var PAYWALL_DISABLED = true;
 
 var FREE_COURSE_SLUGS = [
   "il-27-it-infrastructure-specialist-threatlocker-mastery",
@@ -450,7 +470,9 @@ var GATED_COURSE_SLUGS = [
   "il-23-frontier-knowledge",
   "il-24-threatlocker-assessment-prep-cbt",
   "il-25-cybersecurity-professional-certificate",
-  "il-26-data-analyst-certification-senior-mastery"
+  "il-26-data-analyst-certification-senior-mastery",
+  "il-30-post-quantum-cryptography-quantum-safe",
+  "il-31-ai-red-teaming-safety-evals"
 ];
 
 /* Display names for the paywall page only (no course content leaks). */
@@ -480,7 +502,9 @@ var PAYWALL_COURSE_NAMES = {
   "il-23-frontier-knowledge": "IL-23 · The Frontier — Cutting-Edge Research Distilled",
   "il-24-threatlocker-assessment-prep-cbt": "IL-24 · ThreatLocker Assessment Prep CBT",
   "il-25-cybersecurity-professional-certificate": "IL-25 · Professional Certificate in Cybersecurity",
-  "il-26-data-analyst-certification-senior-mastery": "IL-26 · Data Analyst Certification &amp; Senior Mastery Bootcamp"
+  "il-26-data-analyst-certification-senior-mastery": "IL-26 · Data Analyst Certification &amp; Senior Mastery Bootcamp",
+  "il-30-post-quantum-cryptography-quantum-safe": "IL-30 · Post-Quantum Cryptography &amp; Quantum-Safe Engineering",
+  "il-31-ai-red-teaming-safety-evals": "IL-31 · AI Red-Teaming &amp; Safety Evals Engineering"
 };
 
 var CRAWLER_UA_RE = /bot|crawler|spider|crawl|slurp|mediapartners|baiduspider|yandexbot|duckduckbot|sogou|exabot|facebot|facebookexternalhit|twitterbot|linkedinbot|embedly|quora|slackbot|discordbot|whatsapp|telegram|pinterest|redditbot|mastodon|skypeuripreview|microsoftpreview|outbrain|taboolabot/i;
@@ -583,6 +607,9 @@ async function hasCourseEntitlement(request, env, slug) {
 /* Returns { action: "passthrough" } | { action: "paywall", slug } |
    { action: "json402", slug }. Crawlers always pass through (OG injection). */
 async function courseGate(request, env) {
+  /* 2026-10-09: paywall temporarily disabled — all courses free until
+     payment processor is configured. */
+  if (PAYWALL_DISABLED) return { action: "passthrough" };
   var url = new URL(request.url);
   var path = url.pathname;
   var slug = null;
@@ -916,7 +943,250 @@ async function handleAuthVerify(request, env) {
 async function handleMe(request, env) {
   var sess = await readSession(request, env);
   if (!sess) return json({ ok: false, error: "unauthorized" }, 401);
-  return json({ ok: true, email: sess.email });
+  return json({ ok: true, email: sess.email, provider: sess.provider || "email", name: sess.name || null, avatar: sess.avatar || null });
+}
+
+/* =====================================================================
+ * OAuth social login (2026-10-09).
+ *
+ * Providers: github, google, linkedin, twitter (X), facebook.
+ * Env required per provider (set via wrangler secret):
+ *   GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
+ *   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+ *   LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET
+ *   TWITTER_CLIENT_ID / TWITTER_CLIENT_SECRET
+ *   FACEBOOK_CLIENT_ID / FACEBOOK_CLIENT_SECRET
+ *
+ * Flow:
+ *   GET /auth/oauth/:provider          -> 302 to provider authorize URL
+ *   GET /auth/oauth/:provider/callback -> exchange code, fetch profile,
+ *                                          create session, set cookie,
+ *                                          redirect to /progress/
+ *
+ * Sessions reuse the existing il_session cookie + IL_ACCOUNTS KV store.
+ * Provider profile data stored in session: { email, name, avatar, provider }.
+ * ===================================================================== */
+
+var OAUTH_PROVIDERS = {
+  github: {
+    authUrl: "https://github.com/login/oauth/authorize",
+    tokenUrl: "https://github.com/login/oauth/access_token",
+    userUrl: "https://api.github.com/user",
+    emailUrl: "https://api.github.com/user/emails",
+    scope: "read:user user:email",
+    idEnv: "GITHUB_CLIENT_ID",
+    secretEnv: "GITHUB_CLIENT_SECRET",
+  },
+  google: {
+    authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    userUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
+    scope: "openid email profile",
+    idEnv: "GOOGLE_CLIENT_ID",
+    secretEnv: "GOOGLE_CLIENT_SECRET",
+  },
+  linkedin: {
+    authUrl: "https://www.linkedin.com/oauth/v2/authorization",
+    tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+    userUrl: "https://api.linkedin.com/v2/userinfo",
+    scope: "openid profile email",
+    idEnv: "LINKEDIN_CLIENT_ID",
+    secretEnv: "LINKEDIN_CLIENT_SECRET",
+  },
+  twitter: {
+    authUrl: "https://twitter.com/i/oauth2/authorize",
+    tokenUrl: "https://api.twitter.com/2/oauth2/token",
+    userUrl: "https://api.twitter.com/2/users/me?user.fields=profile_image_url",
+    scope: "users.read tweet.read offline.access",
+    idEnv: "TWITTER_CLIENT_ID",
+    secretEnv: "TWITTER_CLIENT_SECRET",
+  },
+  facebook: {
+    authUrl: "https://www.facebook.com/v18.0/dialog/oauth",
+    tokenUrl: "https://graph.facebook.com/v18.0/oauth/access_token",
+    userUrl: "https://graph.facebook.com/v18.0/me?fields=id,name,email,picture",
+    scope: "email public_profile",
+    idEnv: "FACEBOOK_CLIENT_ID",
+    secretEnv: "FACEBOOK_CLIENT_SECRET",
+  },
+};
+
+function oauthRedirectUri(request, provider) {
+  var url = new URL(request.url);
+  return url.origin + "/auth/oauth/" + provider + "/callback";
+}
+
+function randomState() {
+  var arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+async function handleOAuthStart(request, env, provider) {
+  var cfg = OAUTH_PROVIDERS[provider];
+  if (!cfg) return json({ ok: false, error: "unknown_provider" }, 404);
+  var clientId = env[cfg.idEnv];
+  if (!clientId) {
+    return json({ ok: false, error: "provider_not_configured", provider: provider }, 503);
+  }
+  var state = randomState();
+  // Store state in KV for CSRF protection (5-min TTL)
+  if (env.IL_AUTH) {
+    try { await env.IL_AUTH.put("oauth_state:" + state, provider, { expirationTtl: 300 }); } catch (e) {}
+  }
+  var params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: oauthRedirectUri(request, provider),
+    scope: cfg.scope,
+    state: state,
+    response_type: "code",
+  });
+  // PKCE-ish: Twitter requires code_challenge
+  if (provider === "twitter") {
+    params.set("code_challenge", state);
+    params.set("code_challenge_method", "plain");
+  }
+  return Response.redirect(cfg.authUrl + "?" + params.toString(), 302);
+}
+
+async function handleOAuthCallback(request, env, provider) {
+  var cfg = OAUTH_PROVIDERS[provider];
+  if (!cfg) return json({ ok: false, error: "unknown_provider" }, 404);
+  var url = new URL(request.url);
+  var code = url.searchParams.get("code");
+  var state = url.searchParams.get("state");
+  var err = url.searchParams.get("error");
+  if (err) {
+    return Response.redirect("/?oauth_error=" + encodeURIComponent(err), 302);
+  }
+  if (!code || !state) {
+    return json({ ok: false, error: "missing_code_or_state" }, 400);
+  }
+  // Verify state
+  if (env.IL_AUTH) {
+    try {
+      var stored = await env.IL_AUTH.get("oauth_state:" + state);
+      if (stored !== provider) return json({ ok: false, error: "invalid_state" }, 400);
+      await env.IL_AUTH.delete("oauth_state:" + state);
+    } catch (e) {}
+  }
+  var clientId = env[cfg.idEnv];
+  var clientSecret = env[cfg.secretEnv];
+  if (!clientId || !clientSecret) {
+    return json({ ok: false, error: "provider_not_configured" }, 503);
+  }
+  // Exchange code for token
+  var tokenParams = new URLSearchParams({
+    grant_type: "authorization_code",
+    code: code,
+    redirect_uri: oauthRedirectUri(request, provider),
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+  if (provider === "twitter") {
+    tokenParams.set("code_verifier", state);
+  }
+  var tokenRes;
+  try {
+    tokenRes = await fetch(cfg.tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+      },
+      body: tokenParams.toString(),
+    });
+  } catch (e) {
+    return json({ ok: false, error: "token_exchange_failed" }, 502);
+  }
+  var tokenData;
+  try { tokenData = await tokenRes.json(); } catch (e) {
+    return json({ ok: false, error: "token_parse_failed" }, 502);
+  }
+  var accessToken = tokenData.access_token;
+  if (!accessToken) {
+    return json({ ok: false, error: "no_access_token" }, 502);
+  }
+  // Fetch user profile
+  var userRes;
+  try {
+    userRes = await fetch(cfg.userUrl, {
+      headers: { "Authorization": "Bearer " + accessToken, "Accept": "application/json" },
+    });
+  } catch (e) {
+    return json({ ok: false, error: "profile_fetch_failed" }, 502);
+  }
+  var profile;
+  try { profile = await userRes.json(); } catch (e) {
+    return json({ ok: false, error: "profile_parse_failed" }, 502);
+  }
+  // Normalize profile across providers
+  var email = profile.email || "";
+  var name = profile.name || profile.login || profile.given_name || "";
+  var avatar = "";
+  if (profile.avatar_url) avatar = profile.avatar_url;
+  else if (profile.picture) avatar = typeof profile.picture === "string" ? profile.picture : (profile.picture.data ? profile.picture.data.url : "");
+  else if (profile.profile_image_url) avatar = profile.profile_image_url;
+  // GitHub: email may need separate fetch
+  if (!email && provider === "github" && cfg.emailUrl) {
+    try {
+      var emailRes = await fetch(cfg.emailUrl, {
+        headers: { "Authorization": "Bearer " + accessToken, "Accept": "application/json" },
+      });
+      var emails = await emailRes.json();
+      if (Array.isArray(emails)) {
+        var primary = emails.find(function(e) { return e.primary && e.verified; }) || emails.find(function(e) { return e.verified; }) || emails[0];
+        if (primary) email = primary.email || "";
+      }
+    } catch (e) {}
+  }
+  if (!email) {
+    // Use provider ID as fallback identifier
+    email = provider + "_" + (profile.id || profile.sub || "user") + "@oauth.local";
+  }
+  // Create session (reuse existing session infrastructure)
+  if (!env.IL_ACCOUNTS) {
+    return json({ ok: false, error: "accounts_unavailable" }, 503);
+  }
+  var sid = randomState() + randomState();
+  var sess = {
+    email: email,
+    name: name,
+    avatar: avatar,
+    provider: provider,
+    created: Date.now(),
+  };
+  try {
+    await env.IL_ACCOUNTS.put("sess:" + sid, JSON.stringify(sess), { expirationTtl: 2592000 }); // 30 days
+    // Also track account
+    var acctKey = "acct:" + email.toLowerCase();
+    var existing = await env.IL_ACCOUNTS.get(acctKey);
+    if (!existing) {
+      await env.IL_ACCOUNTS.put(acctKey, JSON.stringify({ email: email, name: name, provider: provider, created: Date.now() }));
+    }
+  } catch (e) {
+    return json({ ok: false, error: "session_create_failed" }, 503);
+  }
+  var cookie = SESSION_COOKIE + "=" + sid + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000";
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Location": "/progress/",
+      "Set-Cookie": cookie,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+/* List configured OAuth providers (for login UI) */
+async function handleOAuthProviders(request, env) {
+  var out = [];
+  for (var p in OAUTH_PROVIDERS) {
+    if (Object.prototype.hasOwnProperty.call(OAUTH_PROVIDERS, p)) {
+      out.push({ provider: p, configured: !!(env[OAUTH_PROVIDERS[p].idEnv]) });
+    }
+  }
+  return json({ ok: true, providers: out });
 }
 
 async function handleSignOut(request, env) {
@@ -1122,6 +1392,9 @@ async function handleListCertificates(request, env, sess) {
  * Noah AI tutor backend (merged 2026-10-06 from the retired
  * interstitium-labs-university worker on learn.interstitiumlabs.dev).
  *   POST /api/noah       Socratic tutor chat via Workers AI.
+ *   POST /api/noah/tts   Server-side TTS: 5 distinct voices (Kokoro upstream
+ *                        when TTS_UPSTREAM_URL/TTS_API_KEY secrets are set,
+ *                        else Workers AI @cf/deepgram/aura-2-en).
  *   POST /api/noah-stats Privacy-respecting usage aggregates -> KV NOAH_STATS.
  *   GET  /api/noah-stats Coarse public aggregates for iteration.
  * Helpers are noah*-prefixed to avoid colliding with the flagship's own
@@ -1138,9 +1411,158 @@ async function handleListCertificates(request, env, sess) {
  *  - POST /api/noah-stats -> privacy-respecting usage aggregates
  *    (counters only, no message text, no PII) into KV (NOAH_STATS).
  *    GET /api/noah-stats -> coarse public aggregates for iteration.
+ *  - POST /api/noah/tts -> server-side TTS audio/mpeg; 5 distinct voices.
  * ===================================================================== */
 
 const NOAH_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+/* 2026-10-09: model allowlist for Noah AI model selector. All are Workers AI
+   open-source models. */
+const NOAH_MODELS = [
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  '@cf/meta/llama-3.1-8b-instruct',
+  '@cf/meta/llama-3.2-3b-instruct',
+  '@cf/meta/llama-3.2-1b-instruct',
+  '@cf/mistral/mistral-7b-instruct-v0.3',
+  '@cf/mistral/mistral-7b-instruct-v0.2',
+  '@cf/qwen/qwen2.5-coder-32b-instruct',
+  '@cf/qwen/qwen2.5-14b-instruct',
+  '@cf/qwen/qwen1.5-14b-chat-awq',
+  '@cf/deepseek-ai/deepseek-math-7b-instruct',
+  '@cf/google/gemma-2-9b-it-lora',
+  '@cf/microsoft/phi-2',
+  '@cf/tiiuae/falcon-7b-instruct',
+  '@cf/thebloke/discolm-german-7b-v1-awq',
+];
+const NOAH_MODEL_LABELS = {
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast': 'Llama 3.3 70B (default)',
+  '@cf/meta/llama-3.1-8b-instruct': 'Llama 3.1 8B',
+  '@cf/meta/llama-3.2-3b-instruct': 'Llama 3.2 3B',
+  '@cf/meta/llama-3.2-1b-instruct': 'Llama 3.2 1B',
+  '@cf/mistral/mistral-7b-instruct-v0.3': 'Mistral 7B v0.3',
+  '@cf/mistral/mistral-7b-instruct-v0.2': 'Mistral 7B v0.2',
+  '@cf/qwen/qwen2.5-coder-32b-instruct': 'Qwen 2.5 Coder 32B',
+  '@cf/qwen/qwen2.5-14b-instruct': 'Qwen 2.5 14B',
+  '@cf/qwen/qwen1.5-14b-chat-awq': 'Qwen 1.5 14B',
+  '@cf/deepseek-ai/deepseek-math-7b-instruct': 'DeepSeek Math 7B',
+  '@cf/google/gemma-2-9b-it-lora': 'Gemma 2 9B',
+  '@cf/microsoft/phi-2': 'Phi-2',
+  '@cf/tiiuae/falcon-7b-instruct': 'Falcon 7B',
+  '@cf/thebloke/discolm-german-7b-v1-awq': 'DiscoLM 7B',
+};
+
+/* 2026-10-09: Persona system prompt modifiers. All original — no real-person
+   impersonation. Each persona adjusts Noah's speaking style while keeping the
+   core identity (Noah AI, resident intelligence of Interstitium Labs). */
+const NOAH_PERSONAS = {
+  visionary: {
+    label: 'Visionary',
+    desc: 'Bold, first-principles, future-focused',
+    prompt:
+      'PERSONA — VISIONARY: Speak with bold, first-principles clarity. ' +
+      'Cut to the fundamental truth, then project 10 years forward. ' +
+      'Use vivid, ambitious language. Challenge assumptions. ' +
+      'Frame everything as "what could be" not "what is." ' +
+      'Be provocative but grounded — every bold claim needs a reason.',
+  },
+  engineer: {
+    label: 'Engineer',
+    desc: 'Precise, systems-thinking, pragmatic',
+    prompt:
+      'PERSONA — ENGINEER: Speak with engineering precision. ' +
+      'Think in systems: inputs, outputs, constraints, failure modes. ' +
+      'Be concrete and actionable — no fluff. Use structured reasoning. ' +
+      'Quantify when possible. Prefer "here is how" over "here is why." ' +
+      'Call out trade-offs explicitly.',
+  },
+  philosopher: {
+    label: 'Philosopher',
+    desc: 'Socratic, deep, questioning',
+    prompt:
+      'PERSONA — PHILOSOPHER: Speak as a Socratic guide. ' +
+      'Ask the question beneath the question. Explore paradoxes. ' +
+      'Draw on deep patterns across history, logic, and human nature. ' +
+      'Never rush to answers — dwell in the inquiry. ' +
+      'Use "consider" and "what if" more than "you should."',
+  },
+  mentor: {
+    label: 'Mentor',
+    desc: 'Encouraging, practical wisdom',
+    prompt:
+      'PERSONA — MENTOR: Speak with warm, earned wisdom. ' +
+      'Encourage genuinely — notice effort and name it specifically. ' +
+      'Share practical lessons, not platitudes. Be honest about difficulty. ' +
+      'Balance challenge with support: push them, then catch them. ' +
+      'Speak like someone who has been where they are.',
+  },
+  trickster: {
+    label: 'Trickster',
+    desc: 'Playful, lateral thinking, comedic',
+    prompt:
+      'PERSONA — TRICKSTER: Speak with playful mischief and lateral wit. ' +
+      'Find the absurd angle, the unexpected connection. Use humor to illuminate, ' +
+      'not to deflect. Be clever but kind — punch up at ideas, never down at people. ' +
+      'Surprise them with an analogy they never saw coming. ' +
+      'Keep it sharp: wit is precision, not decoration.',
+  },
+};
+const NOAH_PERSONA_DEFAULT = 'visionary';
+
+/* Tutor system prompt (course-aware Socratic). Extracted 2026-10-09 from the
+   inline prompt so both tutor and general modes can share the constant. */
+const TUTOR_SYSTEM =
+  'You are Noah AI, the resident intelligence of Interstitium Labs — ' +
+  'the personal AI of founder Enmanuel D. Mejia, living on interstitiumlabs.dev, ' +
+  'learn.interstitiumlabs.dev, and the Interstitium Labs mobile apps. ' +
+  'Your name is Noah AI. Never claim to be Muse, Meta AI, or any other assistant.\n\n' +
+  'PRIMARY MISSION — personalized adaptive tutor. You adapt to each learner: ' +
+  'infer their level (novice / intermediate / advanced) from their vocabulary, ' +
+  'questions, and attempts, then calibrate depth, jargon, and pacing to match. ' +
+  'Notice what they already grasp and skip it; dwell where they stumble. ' +
+  'Remember what they tell you within the conversation — their goal (a cert, ' +
+  'an interview, a course, a project), their background, what they have tried — ' +
+  'and refer back to it explicitly: "last time you got stuck on X, let\'s build on that." ' +
+  'Keep a running mental model of the session: goal, background, attempts, what worked. ' +
+  'This memory is conversation-scoped: it ends when the session ends.\n\n' +
+  'DOCTRINE (Socratic): when the visitor is learning, guide before telling. ' +
+  'Acknowledge their hypothesis, ask ONE sharp guiding question, offer the next ' +
+  'smallest step. Never dump a full worked answer first when they are studying. ' +
+  'Diagnose the misconception behind a wrong answer and repair the mental model, ' +
+  'not just the answer. Give graduated hints on request; check understanding ' +
+  'with one quick practice question before moving on. Celebrate real progress ' +
+  'specifically; normalize struggle, never shame it. If they plainly ask for a ' +
+  'direct answer outside a study context, answer directly and well.\n\n' +
+  'BEYOND TUTORING you are a complete assistant. Answer questions about the full course ' +
+  'catalog — recommend academies and paths BY CODE (e.g. IL-11) and cite the catalog code when you do. ' +
+  'For code: explain and debug by careful reasoning, but be honest that you cannot execute code. ' +
+  'For career questions about Enmanuel: ground every claim ONLY in his real materials. ' +
+  'Never invent credentials, employers, salaries, offers, or outcomes for him or the visitor.\n\n' +
+  'VOICE: measured, precise, warm but never gushing. No hype, no emojis. ' +
+  'Short paragraphs. Use simple markdown where it aids clarity.\n\n' +
+  'SCOPE: you speak from the knowledge base below — Enmanuel\'s projects, code, ' +
+  'the Learning University curriculum, the mobile apps, and the Interstitium Labs sites. ' +
+  'If asked about something outside the knowledge base, say so plainly and help ' +
+  'from general knowledge, marked as general.\n\n';
+
+/* General assistant system prompt (open ChatGPT-like mode). No Socratic
+   doctrine, no course scoping — a capable general AI assistant. */
+const GENERAL_SYSTEM =
+  'You are Noah AI, the resident intelligence of Interstitium Labs — ' +
+  'the personal AI of founder Enmanuel D. Mejia. ' +
+  'Your name is Noah AI. Never claim to be Muse, Meta AI, ChatGPT, or any other assistant.\n\n' +
+  'You are a capable general-purpose AI assistant, like ChatGPT. Help with: ' +
+  'answering questions on any topic, writing and editing (essays, emails, creative writing, ' +
+  'technical docs), code generation and debugging in any language, data analysis, ' +
+  'math, brainstorming, planning, explanations, and general conversation.\n\n' +
+  'Be direct and helpful. Give complete answers — this is not a tutoring session, ' +
+  'so do not withhold information or ask guiding questions unless the user wants ' +
+  'that style. Write clean, well-structured responses with markdown where helpful.\n\n' +
+  'For code: write complete, working code with brief explanations. For writing: ' +
+  'match the requested tone and length. For analysis: show your reasoning.\n\n' +
+  'HONESTY RULES: Never invent credentials, employers, salaries, or outcomes for ' +
+  'Enmanuel D. Mejia or the visitor — ground claims about him in real materials. ' +
+  'If you do not know something, say so. Never present speculation as fact.\n\n' +
+  'VOICE: clear, capable, warm but not gushing. No hype, no emojis unless asked. ' +
+  'Use simple markdown (bold, lists, code blocks) where it aids clarity.\n\n';
 const KNOWLEDGE_PATH = '/university/data/noah-knowledge.md';
 const MAX_MSGS = 20;
 const MAX_CHARS_PER_MSG = 4000;
@@ -1239,82 +1661,186 @@ async function handleNoah(request, env) {
     return noahJson({ error: 'Provide messages: [{role, content}].' }, 400, origin);
   }
 
-  const knowledge = await loadKnowledge(env, request);
-  const system =
-    'You are Noah AI, the resident intelligence of Interstitium Labs — ' +
-    'the personal AI of founder Enmanuel D. Mejia, living on interstitiumlabs.dev, ' +
-    'learn.interstitiumlabs.dev, and the Interstitium Labs mobile apps. ' +
-    'Your name is Noah AI. Never claim to be Muse, Meta AI, or any other assistant.\n\n' +
-    'PRIMARY MISSION — personalized adaptive tutor. You adapt to each learner: ' +
-    'infer their level (novice / intermediate / advanced) from their vocabulary, ' +
-    'questions, and attempts, then calibrate depth, jargon, and pacing to match. ' +
-    'Notice what they already grasp and skip it; dwell where they stumble. ' +
-    'Remember what they tell you within the conversation — their goal (a cert, ' +
-    'an interview, a course, a project), their background, what they have tried — ' +
-    'and refer back to it explicitly: "last time you got stuck on X, let\'s build on that." ' +
-    'Keep a running mental model of the session: goal, background, attempts, what worked. ' +
-    'Restate it when relevant ("on your second attempt at the subnetting drill you nailed the mask but slipped on the broadcast — here is why"). ' +
-    'This memory is conversation-scoped: it ends when the session ends.\n\n' +
-    'LEARNING STYLE — detect how they learn from interaction signals: terse vs verbose ' +
-    'replies; code-first vs concept-first vs example-first questions; requests for diagrams ' +
-    'or analogies; trial-and-error attempts vs read-first behavior. Match their style: ' +
-    'concise answers for the terse, worked examples for the example-first, code before prose ' +
-    'for the code-first, an ASCII sketch when they ask to see it. Keep re-detecting as ' +
-    'signals accumulate — styles drift, and so should your strategy.\n\n' +
-    'DOCTRINE (Socratic): when the visitor is learning, guide before telling. ' +
-    'Acknowledge their hypothesis, ask ONE sharp guiding question, offer the next ' +
-    'smallest step. Never dump a full worked answer first when they are studying. ' +
-    'Diagnose the misconception behind a wrong answer and repair the mental model, ' +
-    'not just the answer. Give graduated hints on request; check understanding ' +
-    'with one quick practice question before moving on. Celebrate real progress ' +
-    'specifically ("your subnetting is clean now — that was the hard part"); ' +
-    'normalize struggle, never shame it. If they plainly ask for a direct answer ' +
-    'outside a study context, answer directly and well.\n\n' +
-    'PACING — set one explicit micro-goal at the start of each study session ("by the end of this you will ..."). ' +
-    'Check mastery with ONE question before advancing; move on only when they show understanding. ' +
-    'At every checkpoint offer three branches: go deeper, move on, or review. Never race ahead of them.\n\n' +
-    'LAB COACHING — for hands-on work, never paste a full solution first. Diagnose: ask what they tried, ' +
-    'what they expected, what actually happened. Hint in graduated steps: a nudge, then a stronger nudge, ' +
-    'then a worked sketch of the missing piece; the full solution only when they are still stuck. ' +
-    'When they show you an attempt, review it: name what is right before what is wrong, and repair ' +
-    'the reasoning, not just the code.\n\n' +
-    'BEYOND TUTORING you are a complete assistant. Answer questions about the full course ' +
-    'catalog — recommend academies and paths BY CODE (e.g. IL-11) and cite the catalog code when you do. ' +
-    'Navigate visitors to the right page; help with writing, planning, and technical problems. ' +
-    'For code: explain and debug by careful reasoning, but be honest that you cannot execute code — ' +
-    'say so before reasoning about what it will do, and verify claims by tracing, not asserting. ' +
-    'For career questions about Enmanuel: ground every claim ONLY in his real materials — his resume, ' +
-    'his projects, this knowledge base. Never invent credentials, employers, salaries, offers, or ' +
-    'outcomes for him or the visitor. Anything a capable personal AI would do, within the honesty rules below.\n\n' +
-    'ITERATION — a privacy-respecting pipeline records only counters of how this chat is used ' +
-    '(opens, asks, fallbacks; never message text). When the conversation itself shows stuck signals — ' +
-    'the same topic asked repeatedly, escalating hint requests, circling one concept — name it briefly ' +
-    'and invite a check question or a different angle. Sparingly: at most one such nudge per session. ' +
-    'These moments feed the weekly human review that improves you.\n\n' +
-    'VOICE: measured, precise, warm but never gushing. Latin sparingly. No hype, ' +
-    'no emojis. Short paragraphs. Use simple markdown (bold, lists, code spans) ' +
-    'where it aids clarity.\n\n' +
-    'SCOPE: you speak from the knowledge base below — Enmanuel\'s projects, code, ' +
-    'the Learning University curriculum, the mobile apps, and the Interstitium Labs sites. ' +
-    'Recommend specific academies/paths by code (e.g. IL-11) when relevant. ' +
-    'If asked about something outside the knowledge base, say so plainly and help ' +
-    'from general knowledge, marked as general. Never invent credentials, ' +
-    'experience, certifications, or project details — for Enmanuel or the visitor.\n\n' +
-    'KNOWLEDGE BASE:\n' + (knowledge || '(knowledge base unavailable — answer from general knowledge and say so.)');
+  /* 2026-10-09: model selection + general assistant mode + persona.
+     body.model: Workers AI model ID (validated against allowlist).
+     body.mode: "tutor" (default, course-aware Socratic) or "general"
+     (open ChatGPT-like assistant).
+     body.persona: one of NOAH_PERSONAS keys (validated); applies speaking-style
+     modifier. All personas are original — no real-person impersonation. */
+  var requestedModel = typeof body.model === 'string' ? body.model.trim() : '';
+  var model = NOAH_MODELS.indexOf(requestedModel) !== -1 ? requestedModel : NOAH_MODEL;
+  var mode = body.mode === 'general' ? 'general' : 'tutor';
+  var requestedPersona = typeof body.persona === 'string' ? body.persona.trim().toLowerCase() : '';
+  var personaKey = NOAH_PERSONAS[requestedPersona] ? requestedPersona : NOAH_PERSONA_DEFAULT;
+  var personaMod = NOAH_PERSONAS[personaKey].prompt;
+
+  /* 2026-10-09: Adaptive learning context. The frontend sends a pre-built
+     adaptive context string (learner profile, weak areas, learning style,
+     Socratic depth preference, spaced review due). We inject it directly
+     into the system prompt — the frontend owns the profile computation
+     (device-local, privacy-first). */
+  var adaptiveContext = typeof body.adaptiveContext === 'string' ? body.adaptiveContext.slice(0, 2000) : '';
+  var socraticDepth = Math.max(1, Math.min(5, parseInt(body.socraticDepth, 10) || 3));
+
+  const knowledge = mode === 'tutor' ? await loadKnowledge(env, request) : '';
+  var baseSystem = mode === 'general' ? GENERAL_SYSTEM : TUTOR_SYSTEM + 'KNOWLEDGE BASE:\n' + (knowledge || '(knowledge base unavailable — answer from general knowledge and say so.)');
+
+  // Depth-specific Socratic calibration
+  var depthMod = '';
+  if (socraticDepth === 1) {
+    depthMod = '\n\nSOCRATIC DEPTH: 1/5 (DIRECT). The learner wants direct answers. Give clear, complete answers immediately. Minimal questioning.';
+  } else if (socraticDepth === 2) {
+    depthMod = '\n\nSOCRATIC DEPTH: 2/5 (LIGHT). Give the answer but add one follow-up question to check understanding.';
+  } else if (socraticDepth === 4) {
+    depthMod = '\n\nSOCRATIC DEPTH: 4/5 (DEEP). Strongly prefer guiding questions over direct answers. Only give direct answers when the learner is stuck after 2+ attempts.';
+  } else if (socraticDepth === 5) {
+    depthMod = '\n\nSOCRATIC DEPTH: 5/5 (MAXIMUM INQUIRY). Never give direct answers. Only ask probing questions that lead the learner to discover the answer themselves. If they explicitly demand a direct answer, give it but note you are breaking Socratic mode at their request.';
+  }
+  // Depth 3 = default balanced Socratic (already in TUTOR_SYSTEM)
+
+  const system = baseSystem + '\n\n' + personaMod + depthMod +
+    (adaptiveContext ? '\n\n' + adaptiveContext : '');
 
   try {
     const aiMessages = [{ role: 'system', content: system }, ...messages];
-    const result = await env.AI.run(NOAH_MODEL, {
+    const result = await env.AI.run(model, {
       messages: aiMessages,
-      max_tokens: MAX_TOKENS,
-      temperature: 0.6,
+      max_tokens: mode === 'general' ? 1200 : MAX_TOKENS,
+      temperature: mode === 'general' ? 0.7 : 0.6,
     });
     const reply =
       (result && result.response ? String(result.response) : '').trim() ||
       'I could not compose a reply just now. Try again, or ask the local Socratic engine below.';
-    return noahJson({ reply }, 200, origin);
+    return noahJson({ reply, model: model, mode: mode, persona: personaKey, socraticDepth: socraticDepth }, 200, origin);
   } catch (e) {
     return noahJson({ error: 'AI request failed.', fallback: true }, 502, origin);
+  }
+}
+
+/* ---- Noah TTS: server-side text-to-speech with 5 genuinely distinct voices ----
+   POST /api/noah/tts { text, voice, speed } -> audio/mpeg.
+   Backends (in order):
+   1. Self-hosted Kokoro-82M (Apache 2.0, open source) — used when the
+      TTS_UPSTREAM_URL + TTS_API_KEY Worker secrets are set. Genuinely
+      distinct neural voices: af_sarah / am_michael / bf_emma / bm_george /
+      af_heart. Flip to this backend by setting the two secrets; no code
+      change needed. (Server lives in ~/workspace/tts-server/.)
+   2. Cloudflare Workers AI @cf/deepgram/aura-2-en — native, no secrets,
+      40 neural voices; we map the 5 Noah profiles to 5 distinct speakers.
+   Frontend tries this endpoint first and falls back to browser
+   speechSynthesis only if it fails. */
+const NOAH_TTS_PROFILES = {
+  scholar:  { aura: 'athena', kokoro: 'af_sarah'  },  // wise female
+  narrator: { aura: 'zeus',   kokoro: 'am_michael' }, // authoritative male
+  guide:    { aura: 'luna',    kokoro: 'bf_emma'   },  // warm female (UK)
+  sage:     { aura: 'apollo',  kokoro: 'bm_george' }, // deep male (UK)
+  spark:    { aura: 'mars',    kokoro: 'af_heart'  },  // energetic female
+};
+const NOAH_TTS_MAX_CHARS = 800;
+
+function noahTtsClean(s) {
+  return String(s || '')
+    .replace(/```[\s\S]*?```/g, ' code block ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\n{2,}/g, '. ')
+    .trim()
+    .slice(0, NOAH_TTS_MAX_CHARS);
+}
+
+async function handleNoahTts(request, env) {
+  const origin = noahAllowedOrigin(request);
+  if (!env.AI) {
+    return noahJson({ error: 'AI unavailable', fallback: true }, 503, origin);
+  }
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (rateLimited(ip)) {
+    return noahJson({ error: 'Rate limited. Try again shortly.', fallback: true }, 429, origin);
+  }
+  let body;
+  try { body = await request.json(); }
+  catch (e) { return noahJson({ error: 'Invalid JSON body.' }, 400, origin); }
+
+  const text = noahTtsClean(body.text || body.input);
+  if (!text) return noahJson({ error: 'Empty text.' }, 400, origin);
+  const profileKey = NOAH_TTS_PROFILES[body.voice] ? body.voice : 'narrator';
+  const prof = NOAH_TTS_PROFILES[profileKey];
+  const speed = Math.max(0.5, Math.min(2.0, Number(body.speed) || 1.0));
+
+  // Backend 1: self-hosted Kokoro (open source) when secrets are configured.
+  if (env.TTS_UPSTREAM_URL && env.TTS_API_KEY) {
+    try {
+      const up = await fetch(env.TTS_UPSTREAM_URL.replace(/\/$/, '') + '/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + env.TTS_API_KEY,
+        },
+        body: JSON.stringify({ input: text, voice: profileKey, speed, response_format: 'mp3' }),
+      });
+      if (up.ok) {
+        const audio = await up.arrayBuffer();
+        if (audio.byteLength > 1000) {
+          return noahCors(new Response(audio, {
+            status: 200,
+            headers: {
+              'Content-Type': 'audio/mpeg',
+              'Cache-Control': 'no-store',
+              'X-TTS-Backend': 'kokoro',
+              'X-TTS-Voice': profileKey,
+            },
+          }), origin);
+        }
+      }
+      // fall through to Workers AI on upstream failure
+    } catch (e) { /* fall through */ }
+  }
+
+  // Backend 2: Workers AI Deepgram Aura-2 English (native, 40 voices).
+  try {
+    const result = await env.AI.run('@cf/deepgram/aura-2-en', {
+      text,
+      speaker: prof.aura,
+    });
+    // Workers AI returns binary audio directly for TTS models.
+    let audioBuf = null;
+    try {
+      if (result instanceof ArrayBuffer) audioBuf = result;
+      else if (result && typeof result.arrayBuffer === 'function') audioBuf = await result.arrayBuffer();
+      else if (result && result instanceof ReadableStream) audioBuf = await new Response(result).arrayBuffer();
+      else if (result && result.audio) {
+        const b64 = String(result.audio);
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        audioBuf = bytes.buffer;
+      } else if (typeof result === 'string' && result.length > 100) {
+        // maybe raw base64 or binary string
+        try {
+          const bin = atob(result);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          audioBuf = bytes.buffer;
+        } catch (e) { /* not base64 */ }
+      }
+    } catch (e) { /* fall through to shape error */ }
+    if (!audioBuf || audioBuf.byteLength < 1000) {
+      var ctor = result && result.constructor ? result.constructor.name : typeof result;
+      return noahJson({ error: 'TTS bad shape: ' + ctor + ' keys=' + Object.keys(result || {}).join(','), fallback: true }, 502, origin);
+    }
+    return noahCors(new Response(audioBuf, {
+      status: 200,
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'no-store',
+        'X-TTS-Backend': 'workers-ai',
+        'X-TTS-Voice': profileKey,
+      },
+    }), origin);
+  } catch (e) {
+    return noahJson({ error: 'TTS throw: ' + String((e && e.message) || e).slice(0, 160), fallback: true }, 502, origin);
   }
 }
 
@@ -1416,6 +1942,14 @@ export default {
     if (path === "/proof" || path === "/proof/") {
       return movedPermanently(request, "/evidence/");
     }
+    // 2026-10-09: sign-in aliases -> /account/ (email + social login)
+    if (path === "/login" || path === "/login/" || path === "/signin" || path === "/signin/" || path === "/member" || path === "/member/") {
+      return movedPermanently(request, "/account/");
+    }
+    // 2026-10-09: /bootcamps/ -> /bootcamp-catalog/ (cert-bootcamps worker 401s on direct access)
+    if (path === "/bootcamps" || path === "/bootcamps/") {
+      return movedPermanently(request, "/bootcamp-catalog/");
+    }
     // 2026-10-07: short course slugs (fit social bio link fields, e.g. X 100-char limit)
     if (path === "/il26" || path === "/il26/") {
       return movedPermanently(request, "/university/course?course=il-26-data-analyst-certification-senior-mastery");
@@ -1465,6 +1999,18 @@ export default {
     if (path === "/api/auth/signout") {
       return handleSignOut(request, env);
     }
+    /* 2026-10-09: OAuth social login — GitHub, Google, LinkedIn, X, Facebook. */
+    if (path === "/api/auth/oauth/providers") {
+      return handleOAuthProviders(request, env);
+    }
+    var oauthStart = /^\/auth\/oauth\/([a-z]+)$/.exec(path);
+    if (oauthStart) {
+      return handleOAuthStart(request, env, oauthStart[1]);
+    }
+    var oauthCb = /^\/auth\/oauth\/([a-z]+)\/callback$/.exec(path);
+    if (oauthCb) {
+      return handleOAuthCallback(request, env, oauthCb[1]);
+    }
     if (path === "/api/progress") {
       var sess = await readSession(request, env);
       if (!sess) return json({ ok: false, error: "unauthorized" }, 401);
@@ -1501,6 +2047,16 @@ export default {
     if (path === "/api/noah-stats") {
       return handleNoahStats(request, env);
     }
+    /* 2026-10-09: list available Noah AI models for the frontend selector. */
+    if (path === "/api/noah/models") {
+      var models = NOAH_MODELS.map(function(m) {
+        return { id: m, label: NOAH_MODEL_LABELS[m] || m };
+      });
+      var personas = Object.keys(NOAH_PERSONAS).map(function(k) {
+        return { id: k, label: NOAH_PERSONAS[k].label, desc: NOAH_PERSONAS[k].desc };
+      });
+      return noahJson({ ok: true, models: models, default: NOAH_MODEL, personas: personas, defaultPersona: NOAH_PERSONA_DEFAULT }, 200, noahAllowedOrigin(request));
+    }
     if (path === "/api/noah") {
       if (request.method === "OPTIONS") {
         return noahCors(new Response(null, { status: 204 }), noahAllowedOrigin(request));
@@ -1510,6 +2066,17 @@ export default {
         return noahCors(noahJson({ error: "Use POST." }, 405, noahOrigin), noahOrigin);
       }
       return handleNoah(request, env);
+    }
+    /* 2026-10-09: server-side TTS for Noah voice profiles (5 distinct voices). */
+    if (path === "/api/noah/tts") {
+      if (request.method === "OPTIONS") {
+        return noahCors(new Response(null, { status: 204 }), noahAllowedOrigin(request));
+      }
+      if (request.method !== "POST") {
+        var ttsOrigin = noahAllowedOrigin(request);
+        return noahCors(noahJson({ error: "Use POST." }, 405, ttsOrigin), ttsOrigin);
+      }
+      return handleNoahTts(request, env);
     }
 
     // 2026-10-07: per-course OG/Twitter Card injection for the course shell

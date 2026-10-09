@@ -125,7 +125,7 @@ footer = m2.group(0)
 def head_for(title, desc, canon):
     h = cinema_head
     h = h.replace('<link rel="stylesheet" href="/assets/il-unified.css"/>',
-                  '<link rel="stylesheet" href="/assets/il-unified.css"/>\n<link rel="stylesheet" href="/assets/il-topic-themes.css"/>', 1)
+                  '<link rel="stylesheet" href="/assets/il-unified.css"/>\n<link rel="stylesheet" href="/assets/il-topic-themes.css"/>\n<link rel="stylesheet" href="/assets/il-topic-heroes.css"/>', 1)
     h = re.sub(r'<title>.*?</title>', f'<title>{html.escape(title)}</title>', h, count=1)
     h = re.sub(r'<meta name="description" content=".*?"',
                f'<meta name="description" content="{html.escape(desc)}"', h, count=1)
@@ -149,29 +149,78 @@ def nav_for(active_slug=None):
                   '<a href="/paths/">Paths</a>\n          <a href="/topics/">Topics</a>\n          <a href="/paths/roles/">Role Tracks</a>', 1)
     return n
 
+# Per-theme hero configuration: eyebrow, fx layers, decor HTML.
+THEME_HERO = {
+ "mr-robot":    dict(cls="th-hero--mr-robot", eyebrow="DOMAIN 01 // SECURE CHANNEL",
+                     fx=["scan", "flicker"],
+                     decor='<div class="term-frame"></div>'),
+ "cyberpunk":   dict(cls="th-hero--cyberpunk", eyebrow="SECTOR 02 // NEON DISTRICT",
+                     fx=["rain", "gridfloor"],
+                     decor='<div class="cp-mark">&#9678;</div>'),
+ "tron":        dict(cls="th-hero--tron", eyebrow="GRID 03 // LIGHT CYCLE ONLINE",
+                     fx=["gridrun", "horizon"],
+                     decor=('<div class="tron-node" style="left:18%;top:30%"></div>'
+                            '<div class="tron-node" style="left:82%;top:64%;animation-delay:1.1s"></div>'
+                            '<div class="tron-node" style="left:64%;top:20%;animation-delay:2s"></div>')),
+ "steampunk":   dict(cls="th-hero--steampunk", eyebrow="WORKS No. 4 // PRESSURE NOMINAL",
+                     fx=["haze"],
+                     decor=('<div class="rivets"></div>'
+                            '<div class="gear" style="width:220px;height:220px;right:9vw;top:16svh"></div>'
+                            '<div class="gear" style="width:130px;height:130px;right:22vw;top:52svh;animation-direction:reverse;animation-duration:18s"></div>')),
+ "exmachina":   dict(cls="th-hero--exmachina", eyebrow="LAB 05 // COGNITION DIVISION",
+                     fx=["hairlines", "scanline-v"],
+                     decor='<div class="xm-frame"></div>'),
+ "oceandeep":   dict(cls="th-hero--oceandeep", eyebrow="TRENCH 06 // CURRENT SURVEY",
+                     fx=["current", "plankton"],
+                     decor='<div class="sonar"></div>'),
+ "hackers95":   dict(cls="th-hero--hackers95", eyebrow="BBS 07 // 56K HANDSHAKE OK",
+                     fx=["static"],
+                     decor='<div class="tape"></div><div class="tape b"></div>'),
+ "alexandria":  dict(cls="th-hero--alexandria", eyebrow="WING VIII // SCROLL ARCHIVE",
+                     fx=["dust"],
+                     decor='<div class="column l"></div><div class="column r"></div>'),
+ "industrial":  dict(cls="th-hero--industrial", eyebrow="BAY 09 // SYSTEMS ONLINE",
+                     fx=["phosphor", "hazard"],
+                     decor='<div class="plate"></div>'),
+ "sacredgeo":   dict(cls="th-hero--sacredgeo", eyebrow="PLATE X // HARMONIC ORDER",
+                     fx=["lattice"],
+                     decor='<div class="rings"><i></i><i></i><i></i><i></i></div>'),
+ "vaporwave":   dict(cls="th-hero--vaporwave", eyebrow="CHANNEL 11 // SIGNAL FOUND",
+                     fx=["sun", "vwgrid"],
+                     decor='<div class="vw-kanji">&#9651;</div>'),
+ "goldrush":    dict(cls="th-hero--goldrush", eyebrow="CLAIM 12 // VEIN CONFIRMED",
+                     fx=["circuits", "glint"],
+                     decor='<div class="bullion"></div>'),
+}
+
 def hero_html(t):
     slug, theme = t["slug"], t["theme"]
+    cfg = THEME_HERO.get(theme, THEME_HERO["mr-robot"])
     first_course = t["courses"][0] if t["courses"] else None
     cta1 = (f'<a class="il-btn il-btn--gold" href="/university/course?course={first_course}">Start learning</a>'
             if first_course else '<a class="il-btn il-btn--gold" href="/university/">Start learning</a>')
-    return f'''<!-- Hero -->
-<header class="il-hero" data-topic-theme="{theme}">
-  <div class="il-hero__bg" aria-hidden="true">
-    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/topics/{slug}-hero.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/topics/{slug}-hero.mp4" type="video/mp4"/></video>
+    fx_html = "".join(
+        f'<div class="th-hero__fx" data-fx="{f}" aria-hidden="true"></div>' for f in cfg["fx"])
+    laurel = '<div class="laurel">&#10022; &#10022; &#10022;</div>' if theme == "alexandria" else ""
+    return f"""<!-- Themed hero -->
+<header class="th-hero {cfg["cls"]}" data-topic-theme="{theme}">
+  <div class="th-hero__bg" aria-hidden="true">
+    <video class="th-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/topics/{slug}-hero.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/topics/{slug}-hero.mp4" type="video/mp4"/></video>
+    <div class="th-hero__tint"></div>
+{fx_html}
   </div>
-  <div class="il-hero__scrim" aria-hidden="true"></div>
-  <div class="il-wrap">
-    <p class="th-badge" style="margin-bottom:1rem">Topic Hub</p>
-    <h1 class="il-h">{html.escape(t["name"])}</h1>
-    <p class="il-hero__sub">{html.escape(t["tag"])} {html.escape(t["desc"])}</p>
-    <div class="il-hero__cta">
+  <div class="th-hero__decor" aria-hidden="true">{cfg["decor"]}</div>
+  <div class="th-hero__content">
+    {laurel}
+    <p class="th-hero__eyebrow">{cfg["eyebrow"]}</p>
+    <h1 class="th-hero__title">{html.escape(t["name"])}</h1>
+    <p class="th-hero__tag">{html.escape(t["tag"])} {html.escape(t["desc"])}</p>
+    <div class="th-hero__cta">
       {cta1}
       <a class="il-btn il-btn--ghost" href="/pdf-library/{t["pdf"]}">Visual guides</a>
     </div>
-    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
-    <p class="il-hero__caption" style="margin-top:.9rem;font-size:.68rem;letter-spacing:.05em;color:rgba(242,237,225,.55)">Background motion: the {html.escape(t["name"])} themed loop (muted, no audio).</p>
   </div>
-</header>'''
+</header>"""
 
 def card_grid(items):
     out = ['<div class="il-grid">']

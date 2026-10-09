@@ -509,8 +509,12 @@
       st.frame = (st.frame || 0) + 1;
       if (st.frame % 15 === 0) updatePlates(st);
       govern(st, dt * 1000); // clamped delta: backgrounding spikes can't false-downgrade
+      st.raf = requestAnimationFrame(function (n) { loop(st, n); });
+    } else {
+      // 2026-10-09 perf: fully stop rAF when off-screen instead of spinning idle
+      st.raf = 0;
+      st.running = false;
     }
-    st.raf = requestAnimationFrame(function (n) { loop(st, n); });
   }
 
   function start(st) {

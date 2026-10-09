@@ -1293,5 +1293,45 @@
     get: function () { return KB; },
     answer: answerFromKB
   };
+
+  /* 2026-10-09: auto-load the voice + model-selector module.
+     Skipped when noah-full.js is the loader (window.__noahFullLoader) —
+     it injects the modules itself in order; the attribute guards below
+     cannot catch it because they run at noah-ai.js parse time. */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-voice]')) {
+      var vs = document.createElement('script');
+      vs.src = '/assets/noah-voice.js';
+      vs.defer = true;
+      vs.setAttribute('data-noah-voice', '1');
+      document.head.appendChild(vs);
+    }
+  } catch (e) {}
+
+  /* 2026-10-09: auto-load the persona & voice expansion module (after voice).
+     Skipped under noah-full.js (see above). */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-personas]')) {
+      var ps = document.createElement('script');
+      ps.src = '/assets/noah-personas.js';
+      ps.defer = true;
+      ps.setAttribute('data-noah-personas', '1');
+      // Load after voice module — delay slightly to ensure ordering
+      setTimeout(function () { document.head.appendChild(ps); }, 500);
+    }
+  } catch (e) {}
+
+  /* 2026-10-09: auto-load the adaptive learning engine (after personas).
+     Skipped under noah-full.js (see above). */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-adaptive]')) {
+      var as = document.createElement('script');
+      as.src = '/assets/noah-adaptive.js';
+      as.defer = true;
+      as.setAttribute('data-noah-adaptive', '1');
+      // Load after personas module — longer delay to ensure ordering
+      setTimeout(function () { document.head.appendChild(as); }, 1200);
+    }
+  } catch (e) {}
 })(typeof window !== 'undefined' ? window : this);
 
