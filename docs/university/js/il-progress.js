@@ -271,10 +271,14 @@
     var url = courseURL(entry, firstModuleId);
     if (!url) return '';
     var cta = opts.ctaLabel || ('Start the ' + entry.code + ' guided path');
+    /* 2026-10-08: titles like "IL-29 · ThreatLocker ..." already carry the
+       code — don't print it twice. */
+    var titleShown = entry.title.indexOf(entry.code) === 0
+      ? entry.title : (entry.code + ' · ' + entry.title);
     return '<div class="ilprog-continue ilprog-continue--start" role="region" aria-label="' + esc(cta) + '">' +
       '<div class="ilprog-continue__txt">' +
       '<p class="ilprog-continue__eyebrow">Begin this course\'s guided sequence</p>' +
-      '<p class="ilprog-continue__desc"><strong>' + esc(entry.code) + '</strong> · ' + esc(entry.title) + '</p></div>' +
+      '<p class="ilprog-continue__desc"><strong>' + esc(titleShown) + '</strong></p></div>' +
       '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(cta) + '</a></div>';
   }
 
