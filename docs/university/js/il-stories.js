@@ -135,6 +135,16 @@
     return paras.length ? paras : [txt];
   }
 
+  /* ---- story video map (2026-10-08): original animated story videos.
+     Videos are silent previews (voiceover pending TTS recovery) — labeled
+     as such per the no-silent-production rule. */
+  var STORY_VIDEOS = {
+    'il-20-mathematics-story-1': '/assets/videos/story-bit-shannon.mp4',
+    'il-03-programming-language-forge-story-1': '/assets/videos/story-bug-hopper.mp4',
+    'il-04-systems-linux-windows-networks-story-1': '/assets/videos/story-linux-torvalds.mp4',
+    'il-04-systems-linux-windows-networks-story-3': '/assets/videos/story-arpanet-lo.mp4'
+  };
+
   /**
    * storyCardHTML(story) -> HTML string. Hook as headline, narrative as body,
    * figures as a small cast line, bridge as the transition. Semantic
@@ -150,9 +160,19 @@
         (f.role ? ' — ' + esc(f.role) : '') +
         (f.dates ? ' (' + esc(f.dates) + ')' : '');
     }).join(' · ');
+    var videoUrl = STORY_VIDEOS[String(story.id || '')];
+    var videoHtml = videoUrl ?
+      '<div class="il-story__video" style="margin:12px 0">' +
+      '<video controls preload="metadata" style="width:100%;max-width:720px;border-radius:8px;background:#000" ' +
+      'aria-label="Animated story: ' + esc(story.title || story.hook || '') + '">' +
+      '<source src="' + esc(videoUrl) + '" type="video/mp4">' +
+      'Your browser does not support the video tag.</video>' +
+      '<p class="small muted"><span class="il-badge il-badge-preview">Preview</span> ' +
+      'Original Interstitium Labs animation — voiceover narration coming soon.</p></div>' : '';
     return '<aside class="il-story" aria-labelledby="' + id + '-hook">' +
       '<div class="il-story__kicker">THE STORY BEHIND</div>' +
       '<h3 class="il-story__hook" id="' + id + '-hook">' + esc(story.hook) + '</h3>' +
+      videoHtml +
       '<div class="il-story__narr">' + paras + '</div>' +
       (cast ? '<p class="il-story__cast"><span class="il-story__cast-label">Cast:</span> ' + cast + '</p>' : '') +
       (story.bridge ? '<p class="il-story__bridge">' + esc(story.bridge) + '</p>' : '') +

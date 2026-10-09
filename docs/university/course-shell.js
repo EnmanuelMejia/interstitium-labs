@@ -2934,17 +2934,32 @@ function il26_renderMockTask(m, host) {
 function il26_renderModuleVideos(m, host) {
   if (!(m.videos || []).length) return;
   var card = el('div', 'scriptlab');
-  card.innerHTML = '<h3>Videos</h3><p class="small muted">Third-party videos are linked, not hosted. ' +
-    'Watch in order; each unlocks the next stage.</p>';
+  card.innerHTML = '<h3>Videos</h3><p class="small muted">Original Interstitium Labs animations play inline; ' +
+    'third-party videos are linked. Watch in order; each unlocks the next stage.</p>';
   m.videos.forEach(function (v, i) {
     var watched = Progress.get('video:' + m.id + ':' + i) === '1';
     var row = el('div', 'mock-task');
+    var isMp4 = /\.mp4(\?|$)/i.test(v.url || '');
+    var previewNote = (v.preview ? ' <span class="il-badge il-badge-preview">Preview — narration coming</span>' : '');
+    var videoHtml = '';
+    if (isMp4) {
+      videoHtml = '<div class="il-video-wrap" style="margin:8px 0">' +
+        '<video controls preload="metadata" style="width:100%;max-width:720px;border-radius:8px;background:#000" ' +
+        'aria-label="' + esc(v.title) + '">' +
+        '<source src="' + esc(v.url) + '" type="video/mp4">' +
+        'Your browser does not support the video tag.</video>' +
+        (v.preview ? '<p class="small muted">Animated explainer (preview) — voiceover narration coming soon.</p>' : '') +
+        '</div>';
+    }
     row.innerHTML = '<div><b>' + (i + 1) + '. ' + esc(v.title) + '</b> ' +
       '<span class="muted small">(' + esc(v.source || '') + (v.durationMin ? ' · ' + esc(String(v.durationMin)) + ' min' : '') +
-      (v.watchBefore ? ' · watch before ' + esc(v.watchBefore) : '') + ')</span></div>' +
-      '<div class="small muted">' + esc(v.blurb || '') + '</div>' +
-      '<div class="btn-row" style="margin-top:6px"><a class="btn ghost" href="' + esc(v.url) +
-      '" target="_blank" rel="noopener">Watch</a></div>';
+      (v.watchBefore ? ' · watch before ' + esc(v.watchBefore) : '') + ')</span>' + previewNote + '</div>' +
+      '<div class="small muted">' + esc(v.blurb || '') + '</div>' + videoHtml +
+      '<div class="btn-row" style="margin-top:6px">' +
+      (isMp4
+        ? '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Open full screen</a>'
+        : '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Watch</a>') +
+      '</div>';
     var btn = el('button', 'btn' + (watched ? '' : ' primary'), watched ? '✓ Watched' : 'Mark watched');
     btn.type = 'button';
     btn.addEventListener('click', function () {
