@@ -457,7 +457,7 @@
         html +=
           '<div class="mb-6 flex flex-wrap items-end justify-between gap-3"><div>' +
           '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold" data-i18n="frontier.kicker">Frontier · MIT · LinkedIn · X</p>' +
-          '<p class="mt-2 max-w-2xl text-sm text-muted" data-i18n="frontier.lede">External advanced courses joined to path <code class="text-cyan">frontier_track_ids</code>. We link out — we do not pirate video. Exceed path IA stays primary.</p>' +
+          '<p class="mt-2 max-w-2xl text-sm text-muted" data-i18n="frontier.lede">External advanced courses joined to Frontier track pathways. We link out — we do not pirate video. Exceed path IA stays primary.</p>' +
           "</div>" +
           '<p class="font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted">' +
           esc(cat.refreshedAtLabel || cat.refreshedAt || "") +
