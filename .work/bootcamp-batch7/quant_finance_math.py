@@ -123,7 +123,7 @@ SIMS = [
                 "Equate the portfolio's drift to r — this yields the Black-Scholes PDE"
             ],
             "correct_order": [0, 1, 2, 3, 4]
-        ],
+        },
         "debrief": "Model, hedge, eliminate randomness, invoke no-arbitrage, read off the PDE. The derivation's moral: the option's price comes from the hedge, not from anyone's view of the future — that's why the drift vanishes.",
         "points": 10
     },

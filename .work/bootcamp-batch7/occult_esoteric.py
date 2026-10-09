@@ -124,7 +124,7 @@ SIMS = [
                 "Casaubon's philological dating shows the texts are late antique, not Mosaic (1614)"
             ],
             "correct_order": [0, 1, 2, 3, 4]
-        ],
+        },
         "debrief": "Egyptian composition, Arabic preservation, Florentine translation, print explosion, then philological correction. Transmission is a relay across civilizations — every handoff reshapes what arrives.",
         "points": 10
     },

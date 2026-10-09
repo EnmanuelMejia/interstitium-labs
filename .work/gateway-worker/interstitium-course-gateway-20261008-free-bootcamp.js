@@ -1,6 +1,9 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
+// Public bootcamp catalog (2026-10-08) — served at /bootcamps/ without auth.
+var BOOTCAMP_CATALOG_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certification Bootcamps — Interstitium Labs</title><style>body{background:#0a0f1d;color:#e8eaf0;font-family:system-ui,sans-serif;margin:0;padding:2rem;max-width:800px;margin:0 auto}h1{color:#f5c518}a{color:#4dd0e1}.card{border:1px solid #333;border-radius:12px;padding:1.5rem;margin:1rem 0;background:#111827}.free{color:#4ade80;font-weight:bold}</style></head><body><h1>Certification Bootcamps</h1><p>Interactive prep bootcamps with hands-on labs, simulations, and terminal missions.</p><div class="card"><h2>ThreatLocker Interview Prep <span class="free">FREE</span></h2><p>Zero Trust, deny-by-default, allowlisting, and interview judgment for the ThreatLocker IT Infrastructure Specialist role.</p><a href="/bootcamps/tl-interview/">Start free →</a></div><div class="card"><h2>ThreatLocker Assessment Prep <span class="free">FREE</span></h2><p>Hands-on assessment preparation with scored scenarios.</p><a href="/bootcamps/threatlocker-assessment-prep/">Start free →</a></div><div class="card"><h2>Full Catalog — Members</h2><p>60+ additional bootcamps (CompTIA, AWS, Kubernetes, Python, and more) are available with membership.</p><a href="/enroll/">Become a member →</a></div><p><a href="/">← Back to Interstitium Labs</a></p></body></html>';
+
 // ../brand-logo-paths.mjs
 var CANONICAL_LOGO = "/assets/chrome/il-logo-v2.png";
 var RETIRED_LOGO_PATHS = /* @__PURE__ */ new Set([
@@ -229,6 +232,14 @@ var index_default = {
     if (url.origin !== ORIGIN) return reply("unavailable-host", 421);
     if (env.COURSE_GATEWAY_ENABLED !== "true" || !env.MEMBERSHIP?.fetch || !env[service]?.fetch) return reply("temporarily-unavailable", 503);
     if (!["GET", "HEAD"].includes(request.method)) return reply("legacy-account-migration-required", 503);
+    /* 2026-10-08: public catalog page — lists free bootcamps, no auth required.
+       The portfolio links here ("Explore the catalog"). */
+    if (path === "/bootcamps/" || path === "/bootcamps") {
+      return new Response(BOOTCAMP_CATALOG_HTML, {
+        status: 200,
+        headers: { ...HEADERS, "Content-Type": "text/html; charset=utf-8" }
+      });
+    }
     const freeBootcamp = path.startsWith("/bootcamps/threatlocker-assessment-prep/") ||
       path.startsWith("/bootcamps/tl-interview/") ||
       /* 2026-10-08: the free bootcamps' shared engine assets (CSS/JS) live

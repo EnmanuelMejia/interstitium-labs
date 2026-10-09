@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/il-pillnav.css">
 <link rel="stylesheet" href="css/il-progress.css">
 <link rel="stylesheet" href="css/il-stories.css">
+    <link rel="stylesheet" href="../assets/il-topic-themes.css">
 </head>
 <body>
 <noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
@@ -224,6 +225,9 @@
   function academyCard(a) {
     var c = document.createElement('article');
     c.className = 'card';
+    /* 2026-10-09 themed-content rollout: per-course topic theme for il-topic-themes.css. */
+    var th = (window.IL && IL.topicThemeForCode) ? IL.topicThemeForCode(a.code) : '';
+    if (th) c.setAttribute('data-topic-theme', th);
     c.innerHTML =
       '<div class="code">' + IL.esc(a.code) + '</div>' +
       '<h3><a href="academy.html?id=' + IL.esc(a.code) + '">' + IL.esc(a.name) + '</a></h3>' +
@@ -237,6 +241,9 @@
   function pathCard(p) {
     var c = document.createElement('article');
     c.className = 'card';
+    /* 2026-10-09 themed-content rollout: per-course topic theme for il-topic-themes.css. */
+    var th = (window.IL && IL.topicThemeForCode) ? IL.topicThemeForCode(p.academy) : '';
+    if (th) c.setAttribute('data-topic-theme', th);
     var tags = (p.tags || []).slice(0, 3).map(function (t) {
       return '<span class="tag skill">' + IL.esc(t) + '</span>';
     }).join('');

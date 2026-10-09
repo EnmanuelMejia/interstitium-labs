@@ -49,6 +49,26 @@
   IL.fmtHours = fmtHours;
   IL.qs = qs;
 
+  /* ---------- topic themes (2026-10-09 themed-content rollout) ----------
+     Academy code -> topic theme key, mirroring the "topicTheme" field added
+     to data/courses/*.json. Used by card templates to set
+     data-topic-theme so il-topic-themes.css activates. */
+  var TOPIC_THEME_BY_CODE = {
+    'IL-01': 'sacredgeo', 'IL-02': 'sacredgeo', 'IL-03': 'hackers95',
+    'IL-04': 'industrial', 'IL-05': 'steampunk', 'IL-06': 'mr-robot',
+    'IL-07': 'oceandeep', 'IL-08': 'hackers95', 'IL-09': 'mr-robot',
+    'IL-10': 'vaporwave', 'IL-11': 'mr-robot', 'IL-12': 'exmachina',
+    'IL-13': 'hackers95', 'IL-14': 'steampunk', 'IL-15': 'oceandeep',
+    'IL-16': 'exmachina', 'IL-17': 'exmachina', 'IL-18': 'cyberpunk',
+    'IL-19': 'steampunk', 'IL-20': 'sacredgeo', 'IL-21': 'sacredgeo',
+    'IL-22': 'sacredgeo', 'IL-23': 'exmachina', 'IL-24': 'mr-robot',
+    'IL-25': 'mr-robot', 'IL-26': 'oceandeep', 'IL-27': 'mr-robot',
+    'IL-28': 'steampunk', 'IL-29': 'mr-robot'
+  };
+  IL.topicThemeForCode = function (code) {
+    return TOPIC_THEME_BY_CODE[String(code || '').toUpperCase()] || '';
+  };
+
   /* ---------- fallback academy index (verified against the live site 2026-09-30;
        used only when the sharded catalog (data/catalog/index.json) cannot be loaded) ---------- */
   var FALLBACK_ACADEMIES = [

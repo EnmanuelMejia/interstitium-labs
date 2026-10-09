@@ -1,0 +1,1724 @@
+{
+  "slug": "acad-hermetica",
+  "title": "Hermetica",
+  "tagline": "Systems thinking for technologists: mental models, feedback loops, first-principles reasoning, and seeing second-order effects. General educational material; confers no certificate and implies no endo",
+  "vendor": {
+    "name": "Independent interview prep (not affiliated with ThreatLocker)",
+    "certs": "",
+    "docs": "https://www.threatlocker.com"
+  },
+  "disclaimer": "Independent interview-prep material by Interstitium Labs. Not affiliated with, endorsed by, or sponsored by ThreatLocker or any vendor mentioned. Confers no certificate. All scenarios are original practice content; no exam or vendor-training content is reproduced.",
+  "accent": "#e5484d",
+  "domains": [
+    {
+      "id": "acad-hermetica",
+      "name": "Hermetica",
+      "summary": "Systems thinking for technologists: mental models, feedback loops, first-principles reasoning, and seeing second-order effects. General educational material; confers no certificate and implies no endorsement.",
+      "scenarios": [
+        {
+          "id": "acad-hermetica-sc1",
+          "title": "The scaling oscillation",
+          "situation": "Your autoscaler adds servers when CPU exceeds 70%. After each scale-up, CPU drops to 30%, so it removes servers, CPU spikes to 85%, and it adds them again. The fleet oscillates all day, and each cycle causes brief latency spikes.",
+          "prompt": "What mental model explains this, and what is the fix?",
+          "evidence": [],
+          "choices": [
+            "A balancing feedback loop with delay and no deadband: add cooldown periods and scale-down thresholds well below the scale-up threshold (hysteresis)",
+            "The servers are too slow; upgrade to larger instances",
+            "CPU metrics are wrong; switch to memory-based scaling",
+            "Disable the autoscaler and over-provision permanently"
+          ],
+          "answer": 0,
+          "why": "This is classic control-loop oscillation: the balancing loop overcorrects because it reacts to delayed measurements with symmetric thresholds. Hysteresis (different up/down thresholds) plus cooldowns damps the oscillation. Bigger instances or different metrics do not fix a loop-dynamics problem.",
+          "hint": "What happens when a thermostat's on and off temperatures are identical?",
+          "objectives": [
+            "feedback loops",
+            "oscillation"
+          ],
+          "mins": 6,
+          "difficulty": 1
+        },
+        {
+          "id": "acad-hermetica-sc2",
+          "title": "Analogy or atoms",
+          "situation": "Your team debates a new architecture. One engineer argues: 'Company X uses microservices, and they are successful, so we should too.' Another says: 'Let us list our actual constraints: team size, deploy frequency, and failure modes, then derive the architecture.'",
+          "prompt": "Which reasoning approach is stronger here?",
+          "evidence": [],
+          "choices": [
+            "The second: first-principles reasoning from your own constraints beats reasoning by analogy to a company with different scale and problems",
+            "The first: successful companies are the best evidence for architectural choices",
+            "Both are equally valid; pick whichever the team prefers",
+            "Neither: architecture should be decided by the most senior engineer"
+          ],
+          "answer": 0,
+          "why": "Reasoning by analogy imports conclusions without the premises that produced them: Company X's architecture solved Company X's constraints. First-principles thinking decomposes your problem to fundamentals (team size, change rate, failure tolerance) and rebuilds upward, which is the only way to know whether the analogy even applies.",
+          "hint": "What did Company X know about their constraints that you do not know about yours?",
+          "objectives": [
+            "first principles",
+            "reasoning by analogy"
+          ],
+          "mins": 6,
+          "difficulty": 1
+        },
+        {
+          "id": "acad-hermetica-sc3",
+          "title": "Treating the symptom",
+          "situation": "Support tickets about slow page loads keep rising. Each time, the team adds caching or increases timeouts, and tickets dip for a month, then return worse. The database has tripled in size in a year with no archiving strategy.",
+          "prompt": "What is the systems-level diagnosis?",
+          "evidence": [],
+          "choices": [
+            "Shifting the burden: symptomatic fixes (caches, timeouts) mask a growing structural problem (unbounded data growth) that needs a fundamental solution (archiving, partitioning)",
+            "The caches are misconfigured; tune them more aggressively",
+            "Users are too demanding; the performance is fine by industry standards",
+            "The team needs to respond to tickets faster"
+          ],
+          "answer": 0,
+          "why": "This is the 'shifting the burden' archetype: quick fixes relieve pressure and reduce the urgency to address the root cause, so the underlying problem grows until the fixes stop working. Each cache layer added complexity while the real stock (data volume) kept growing. The leverage is in the structure, not the symptom.",
+          "hint": "What grows monotonically while the fixes only buy months?",
+          "objectives": [
+            "systems archetypes",
+            "shifting the burden"
+          ],
+          "mins": 7,
+          "difficulty": 2
+        },
+        {
+          "id": "acad-hermetica-sc4",
+          "title": "The metric becomes the target",
+          "situation": "Leadership starts bonusing teams on 'tickets closed per week.' Within two months, ticket counts soar: agents split single issues into three tickets, close and reopen tickets, and rush closures that generate follow-up tickets.",
+          "prompt": "What principle is at work, and what is the remedy?",
+          "evidence": [],
+          "choices": [
+            "Goodhart's law: when a measure becomes a target, it ceases to be a good measure; replace it with harder-to-game outcome metrics like resolution quality and customer satisfaction",
+            "The team is lazy; increase the ticket target to force real productivity",
+            "Ticket metrics are useless; stop measuring support work entirely",
+            "The bonus is too small; larger bonuses will align behavior"
+          ],
+          "answer": 0,
+          "why": "Goodhart's law predicts exactly this: agents optimize the metric, not the mission, and every gaming strategy is rational under the incentive. The remedy is not bigger targets but better measures: outcomes that are hard to fake (was the customer actually helped?) and multiple counterbalanced metrics so gaming one is visible in another.",
+          "hint": "Are agents behaving irrationally, or responding rationally to the incentive?",
+          "objectives": [
+            "Goodhart's law",
+            "incentives"
+          ],
+          "mins": 7,
+          "difficulty": 2
+        },
+        {
+          "id": "acad-hermetica-sc5",
+          "title": "Where to intervene",
+          "situation": "A deployment pipeline is slow and flaky. Proposed fixes: (a) buy faster build machines, (b) add a retry button for failed builds, (c) change the rule that every PR needs three approvals, (d) rewrite the pipeline in a new tool.",
+          "prompt": "Using leverage-points thinking, which intervention is likely highest-leverage?",
+          "evidence": [],
+          "choices": [
+            "(c): changing the approval rule alters the system's rules and information flow, which out-leverages tuning parameters like machine speed or adding retries",
+            "(a): faster machines directly attack the slownness with no process risk",
+            "(d): a modern tool eliminates the accumulated cruft causing flakiness",
+            "(b): retries make flakiness painless, which is the cheapest fix"
+          ],
+          "answer": 0,
+          "why": "In systems thinking, leverage increases as you move from parameters (machine speed) to feedback loops to rules to goals. The three-approval rule shapes every developer's daily flow; changing it alters the system's behavior far more than faster hardware. Retries mask flakiness (shifting the burden), and rewrites reset the parameter level while preserving the rules that caused the pain.",
+          "hint": "Which fix changes how the system behaves every day, versus making the same behavior slightly faster?",
+          "objectives": [
+            "leverage points",
+            "systems intervention"
+          ],
+          "mins": 8,
+          "difficulty": 3
+        },
+        {
+          "id": "acad-hermetica-sc6",
+          "title": "The premortem",
+          "situation": "Your team is about to launch a critical migration. Everyone is optimistic; planning docs list only success criteria. You have one meeting left before the launch window.",
+          "prompt": "What is the highest-value use of that meeting?",
+          "evidence": [],
+          "choices": [
+            "Run a premortem: assume the migration has failed spectacularly, and have everyone independently write down why, then mitigate the top causes",
+            "Review the success criteria once more to boost confidence",
+            "Assign someone to write a longer runbook",
+            "Cancel the meeting; optimism means the plan is solid"
+          ],
+          "answer": 0,
+          "why": "Inversion (the premortem) defeats optimism bias and groupthink: asking 'why did we fail?' gives people psychological permission to voice doubts they would suppress when asked 'will this work?' Independent written answers surface risks the plan's authors are blind to, and you still have time to mitigate them.",
+          "hint": "What question makes it safe to say the scary thing out loud?",
+          "objectives": [
+            "inversion",
+            "premortem"
+          ],
+          "mins": 8,
+          "difficulty": 3
+        }
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "domain_id": "acad-hermetica",
+      "title": "Hermetica — Core concepts",
+      "concepts": [
+        "Think in stocks and flows: levels (backlog, data volume, technical debt) accumulate from rates (inflow minus outflow); most chronic problems are stocks growing faster than their drains.",
+        "Name the feedback loop: reinforcing loops amplify (virality, compounding debt), balancing loops stabilize (thermostats, autoscalers); oscillation means a balancing loop with delay and no deadband.",
+        "Reason from first principles: decompose to the fundamental constraints of your situation, then rebuild; analogy imports conclusions without the premises that produced them.",
+        "Beware shifting the burden: symptomatic fixes relieve pressure to fix the structure, so the root cause grows until the fixes fail; invest in the fundamental solution early.",
+        "Expect Goodhart: any metric used as a target will be gamed; pair metrics with counterbalances and measure outcomes, not just activity.",
+        "Invert: ask how a plan could fail (premortem) before asking whether it will succeed; seek leverage at the level of rules and goals, not parameters."
+      ],
+      "example": {
+        "lang": "shell",
+        "code": "$ x=100; for i in 1 2 3 4 5; do x=$((x + x/10)); echo \"year $i: $x\"; done\nyear 1: 110\nyear 2: 121\nyear 3: 133\nyear 4: 146\nyear 5: 161",
+        "walkthrough": "A reinforcing loop in six lines: each year's growth feeds next year's base. Technical debt, data volume, and alert fatigue all compound this way, which is why linear intuition ('it grew 10 last year, so 10 next year') chronically underestimates them."
+      },
+      "pitfalls": [
+        "Common trap: linear thinking about exponential processes; compounding always surprises the linear mind.",
+        "Common trap: confusing correlation with causation in dashboards; the loop diagram is the test.",
+        "Common trap: optimizing your subsystem (team velocity) at the expense of the whole (system reliability).",
+        "Common trap: treating the map as the territory; models guide attention, they are not the system."
+      ],
+      "try_it": "Work through this in the Labs tab."
+    }
+  ],
+  "labs": [
+    {
+      "id": "acad-hermetica-lab1",
+      "domain_id": "acad-hermetica",
+      "title": "Map a feedback loop",
+      "objective": "Diagram a real reinforcing or balancing loop in a system you use, in plain text.",
+      "steps": [
+        "Pick a system you touch weekly (on-call load, build times, inbox).",
+        "Identify one stock (a level that accumulates) and its inflow and outflow.",
+        "Draw the loop in loops.txt using arrows: A -> B -> A.",
+        "Label it reinforcing (amplifies) or balancing (stabilizes) and state the evidence.",
+        "Name one intervention point and predict its effect on the loop."
+      ],
+      "checks": [
+        {
+          "command_pattern": "^cat\\s+loops\\.txt",
+          "expect_contains": "->",
+          "hint": "Your file should contain an arrow-drawn loop."
+        },
+        {
+          "command_pattern": "^grep\\s+-i",
+          "expect_contains": "reinforcing",
+          "hint": "The file must label the loop reinforcing or balancing (case-insensitive)."
+        }
+      ]
+    },
+    {
+      "id": "acad-hermetica-lab2",
+      "domain_id": "acad-hermetica",
+      "title": "First-principles teardown",
+      "objective": "Decompose a real technical decision to its fundamental constraints and rebuild the recommendation.",
+      "steps": [
+        "Write the decision you face at the top of teardown.txt.",
+        "List every 'we should do X because Y does X' analogy and set it aside.",
+        "List the irreducible constraints: physics, math, team size, budget, law.",
+        "Derive the viable options from the constraints alone.",
+        "Write the recommendation and what evidence would change your mind."
+      ],
+      "checks": [
+        {
+          "command_pattern": "^cat\\s+teardown\\.txt",
+          "expect_contains": "constraints",
+          "hint": "Your teardown must name explicit constraints."
+        }
+      ]
+    }
+  ],
+  "simulations": [
+    {
+      "id": "acad-hermetica-sim-1",
+      "title": "The fix that broke more",
+      "kind": "troubleshoot",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "You fixed the slow query with a cache. Latency dropped — then the database fell over, then the retry storm took down the API. Your fix had a feedback loop in it. Find it.",
+      "steps": [
+        {
+          "symptom": "Cache added in front of the slow query. P99 latency halved for an hour — then the database CPU hit 100% and the API started timing out.",
+          "evidence": [
+            [
+              "Timeline",
+              "10:00 cache deployed | 10:00-11:00 P99 halved\n11:05 DB CPU 100% | 11:10 API timeouts\nCache hit rate: 95% (the cache is working!)"
+            ]
+          ],
+          "options": [
+            "Remove the cache — it clearly caused this",
+            "Look for the loop: what does the cache change about downstream behavior? Check retries and thundering-herd on expiry",
+            "Add more database capacity",
+            "Increase the cache TTL"
+          ],
+          "correct": 1,
+          "explain": "The cache works — that is the trap. The 5% miss rate on a hot key expires all at once, every miss hammers the DB, slow DB triggers client retries, retries multiply the load: a reinforcing loop. Fixes that change behavior create new dynamics; you have to model the loop, not just the component."
+        },
+        {
+          "symptom": "Confirmed: cache stampede on expiry plus aggressive client retries — each timeout triples the load.",
+          "evidence": [
+            [
+              "Loop",
+              "Cache expiry -> 5% misses hit DB at once\nSlow DB -> client timeouts -> 3x retries\nRetries -> more DB load -> more timeouts (reinforcing)"
+            ]
+          ],
+          "options": [
+            "Disable retries entirely",
+            "Break the loop at two points: staggered cache expiry (jitter) plus bounded retries with backoff and circuit-breaking",
+            "Make the cache never expire",
+            "Tell clients to stop retrying"
+          ],
+          "correct": 1,
+          "explain": "Reinforcing loops get broken at multiple points: jittered expiry spreads the stampede, bounded backoff retries stop the multiplication, and a circuit breaker caps the damage. One fix leaves the loop alive; two fixes starve it."
+        },
+        {
+          "symptom": "Loop broken, system stable. What do you change about how the team ships fixes?",
+          "evidence": [
+            [
+              "Ask",
+              "Team: 'How do we catch the next feedback loop before production?'"
+            ]
+          ],
+          "options": [
+            "Require a 'second-order effects' section in every change proposal: what behavior does this change, and what loops could that create?",
+            "Ban caches",
+            "Only allow senior engineers to ship fixes",
+            "Add more dashboards"
+          ],
+          "correct": 0,
+          "explain": "Make the thinking explicit and mandatory: every change proposal names its second-order effects and the loops it might create. You cannot outlaw emergence, but you can require people to look for it before shipping."
+        }
+      ],
+      "debrief": "You modeled the loop instead of blaming the component, broke it at two points, and made second-order thinking part of the process. Systems thinking is asking 'and then what?' until the answer stops changing.",
+      "points": 30
+    },
+    {
+      "id": "acad-hermetica-sim-2",
+      "title": "Incentives vs intentions",
+      "kind": "decide",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "Support is now bonused on tickets closed per day. Closures are up 40% — and reopen rates tripled. The incentive is working exactly as designed, which is the problem.",
+      "steps": [
+        {
+          "symptom": "Tickets closed/day: +40%. Reopened tickets: 3x. Customer satisfaction: falling.",
+          "evidence": [
+            [
+              "Metrics",
+              "Closed/day +40% | reopen rate 3x\nCSAT falling | sample ticket: closed with 'please try restarting'"
+            ]
+          ],
+          "options": [
+            "Raise the bonus — closures are up, the system works",
+            "Recognize the perverse incentive: you are measuring closures, so you get closures — not resolutions. Change what you reward",
+            "Punish agents with high reopen rates",
+            "Close the metrics dashboard so nobody games it"
+          ],
+          "correct": 1,
+          "explain": "Every metric is an incentive, and people optimize the metric, not the intention behind it. 'Tickets closed' measures speed of closing; you wanted resolution. When a measure becomes a target, it ceases to be a good measure."
+        },
+        {
+          "symptom": "You need a better metric. What do you reward instead?",
+          "evidence": [
+            [
+              "Goal",
+              "Reward real resolution without creating a new gaming surface"
+            ]
+          ],
+          "options": [
+            "Tickets closed per day, but with a manager reviewing each one",
+            "Resolution confirmed by the customer (no reopen in 7 days), balanced with a quality sample review — slower, harder to game, aligned with the actual goal",
+            "Customer satisfaction scores alone",
+            "Hours worked"
+          ],
+          "correct": 1,
+          "explain": "Good metrics are hard to game and close to the real goal: customer-confirmed resolution, with sampling to catch the rest. Every metric can be gamed — so you pick the one whose gaming still produces value, and you keep watching."
+        },
+        {
+          "symptom": "New metric in place. An agent asks: 'So should I spend longer on each ticket now?'",
+          "evidence": [
+            [
+              "Ask",
+              "Agent: 'What does good look like under the new system?'"
+            ]
+          ],
+          "options": [
+            "'Just hit the new numbers.'",
+            "'Solve it properly the first time. A ticket that stays closed is worth five fast ones — the metric now agrees with the craft.'",
+            "'Do whatever the metric rewards.'",
+            "'Ask your manager for each ticket.'"
+          ],
+          "correct": 1,
+          "explain": "Say the principle out loud: the metric now rewards the craft, not the shortcut. People follow incentives, but they also follow clearly stated principles — give them both, aligned."
+        }
+      ],
+      "debrief": "You saw the incentive behind the metric, replaced it with one closer to the real goal, and stated the principle. Systems do what they are rewarded for — design the rewards, design the system.",
+      "points": 30
+    },
+    {
+      "id": "acad-hermetica-sim-3",
+      "title": "The second-order outage",
+      "kind": "respond",
+      "domain_id": "acad-hermetica",
+      "difficulty": 3,
+      "brief": "A routine certificate rotation took down the monitoring system — which meant nobody saw the REAL outage starting underneath it. Respond to the outage behind the outage.",
+      "steps": [
+        {
+          "symptom": "Cert rotation at 09:00. By 09:15 monitoring is dark. By 09:30, users report the API is down — and you have no telemetry to see why.",
+          "evidence": [
+            [
+              "Timeline",
+              "09:00 cert rotation | 09:15 monitoring dark (cert pinned)\n09:30 user reports: API down | telemetry: none\nYou are flying blind"
+            ]
+          ],
+          "options": [
+            "Fix monitoring first — you need visibility",
+            "Check the API directly (logs, health endpoints, user-facing probes) while someone in parallel fixes monitoring — the user outage outranks the visibility outage",
+            "Roll back the cert rotation immediately",
+            "Wait for monitoring to come back on its own"
+          ],
+          "correct": 1,
+          "explain": "Two outages, one priority: users beat dashboards. You work the API directly (logs and probes still exist) while monitoring gets fixed in parallel. Fixing visibility first while users burn is instrumenting the fire instead of fighting it."
+        },
+        {
+          "symptom": "API is back (a stuck deploy queue, cleared manually). Monitoring is back (cert updated). Now the uncomfortable question: why did one rotation break two systems?",
+          "evidence": [
+            [
+              "Coupling",
+              "Monitoring agent pinned the old cert (undocumented)\nDeploy queue had no alerting except via the monitoring that was down\nSingle rotation -> dual failure"
+            ]
+          ],
+          "options": [
+            "Blame the rotation engineer",
+            "Map the hidden coupling: monitoring depended on the cert process, the deploy queue depended on monitoring. Fix both couplings — and rotate certs in a drill first next time",
+            "Never rotate certs again",
+            "Add more monitoring to the monitoring"
+          ],
+          "correct": 1,
+          "explain": "Second-order failures come from hidden coupling: A depends on B depends on C, and nobody drew the arrows. The fix is mapping the real dependency graph and drilling the rotation — the outage was a coupling problem wearing a certificate costume."
+        },
+        {
+          "symptom": "Coupling mapped and fixed. What single practice would have caught this cheapest?",
+          "evidence": [
+            [
+              "Ask",
+              "Team: 'What is the one thing we add?'"
+            ]
+          ],
+          "options": [
+            "More dashboards",
+            "Pre-mortems for routine changes: before any 'routine' change, ask 'what breaks if this goes wrong?' and trace two levels of dependency",
+            "Longer change-approval forms",
+            "A bigger on-call rotation"
+          ],
+          "correct": 1,
+          "explain": "Pre-mortems are cheap second-order thinking: ten minutes asking 'what breaks two levels down?' before a routine change. The cert rotation was 'routine' — which is exactly why nobody traced its dependencies."
+        }
+      ],
+      "debrief": "You prioritized users over visibility, mapped the hidden coupling, and installed pre-mortems for routine changes. Outages are rarely about the first failure — they are about the second and third.",
+      "points": 30
+    },
+    {
+      "id": "acad-hermetica-sim-4",
+      "title": "Map the system",
+      "kind": "troubleshoot",
+      "domain_id": "acad-hermetica",
+      "difficulty": 3,
+      "brief": "The same incident has happened four times this quarter: the queue backs up, someone restarts it, it recovers, everyone moves on. The restart is not a fix — it is a ritual. Find the structure.",
+      "steps": [
+        {
+          "symptom": "Fourth queue backup this quarter. Same symptom, same restart, same recovery. Nobody knows why it backs up.",
+          "evidence": [
+            [
+              "History",
+              "Q1: 4 identical incidents | fix each time: restart\nTime to backup: ~3 weeks after each restart\nMonitoring: queue depth only (no consumer metrics)"
+            ]
+          ],
+          "options": [
+            "Restart it again — it works",
+            "Stop treating the event and start treating the pattern: instrument the consumers, and ask what accumulates over three weeks",
+            "Replace the queue with a bigger one",
+            "Add an auto-restart cron job"
+          ],
+          "correct": 1,
+          "explain": "Events are symptoms; patterns are the system talking. Four identical incidents mean a structure is generating them — something accumulates on a three-week cycle. Auto-restart would just make the ritual automatic."
+        },
+        {
+          "symptom": "Instrumented: one consumer slows down over weeks — a memory leak. Each restart resets the leak's clock.",
+          "evidence": [
+            [
+              "Finding",
+              "Consumer-3: memory grows 2%/day, GC pauses lengthen\nAfter ~21 days: pauses exceed the poll timeout -> backup\nRestart resets memory -> 'fix'"
+            ]
+          ],
+          "options": [
+            "Keep restarting — now on a schedule, before 21 days",
+            "Fix the leak, add memory alerting on the consumers, and document the pattern so the next 'mystery backup' gets diagnosed in hours not quarters",
+            "Add more consumers to spread the load",
+            "Restart all consumers weekly as hygiene"
+          ],
+          "correct": 1,
+          "explain": "The restart was treating the symptom on a schedule; the leak is the structure. Fix the leak, alert on the leading indicator (memory growth), and write down the pattern — the next slow-accumulation bug will wear a different costume."
+        },
+        {
+          "symptom": "Leak fixed. The team asks what changes about incident review.",
+          "evidence": [
+            [
+              "Ask",
+              "Team: 'How do we stop ritual-fixing?'"
+            ]
+          ],
+          "options": [
+            "Ban restarts",
+            "Add a review rule: any incident fixed by restart twice gets a mandatory structural investigation the third time — events get fixed, patterns get studied",
+            "Require root cause for every incident",
+            "Hire a reliability engineer"
+          ],
+          "correct": 1,
+          "explain": "'Root cause for everything' burns people out on trivia; 'patterns get studied' focuses energy where structure hides. Two restarts is data; the third is an investigation. That is the difference between fighting events and understanding systems."
+        }
+      ],
+      "debrief": "You looked past the event to the pattern, found the accumulating structure, and made pattern-investigation a rule. Systems thinking is refusing to be satisfied with the fix that works but explains nothing.",
+      "points": 30
+    },
+    {
+      "id": "acad-hermetica-sim-5",
+      "title": "Borrowed mental models",
+      "kind": "decide",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "Three problems, three borrowed models: a traffic jam, an epidemic, and a bank run. Match each problem to the model that actually fits — models are tools, not truths.",
+      "steps": [
+        {
+          "symptom": "Problem 1: a rumor about layoffs is spreading through the company, and each person who hears it tells two more.",
+          "evidence": [
+            [
+              "Problem 1",
+              "Rumor spreading person-to-person, exponential early growth\nQuestion: how do we slow it?"
+            ]
+          ],
+          "options": [
+            "Traffic-jam model: add more lanes (more communication channels)",
+            "Epidemic model: reduce the transmission rate — address the rumor at the source quickly and visibly, like containing an outbreak",
+            "Bank-run model: freeze all communication",
+            "No model fits — treat the rumor as a unique crisis with no precedent"
+          ],
+          "correct": 1,
+          "explain": "Person-to-person exponential spread is epidemic dynamics: the lever is transmission rate. A fast, visible, credible correction at the source works like quarantine — it does not convince everyone, but it slows the spread below the panic threshold."
+        },
+        {
+          "symptom": "Problem 2: deploys queue up behind a single manual approval step, and the queue grows every release day.",
+          "evidence": [
+            [
+              "Problem 2",
+              "Single approval bottleneck | queue grows on release days\nQuestion: how do we fix throughput?"
+            ]
+          ],
+          "options": [
+            "Epidemic model: quarantine the approver",
+            "Traffic-jam model: the bottleneck sets the throughput — add lanes (more approvers, or automate the check) instead of pushing more cars at it",
+            "Bank-run model: limit withdrawals (fewer deploys)",
+            "Bank-run model: reassure deployers the queue is fine and ask them to wait calmly"
+          ],
+          "correct": 1,
+          "explain": "A single constriction with growing queues is traffic dynamics: throughput is set by the narrowest point. You widen the bottleneck (parallel approvers, automated checks) — pushing harder upstream just lengthens the jam."
+        },
+        {
+          "symptom": "Problem 3: users are withdrawing funds after a scary headline, and each withdrawal makes the next user more nervous.",
+          "evidence": [
+            [
+              "Problem 3",
+              "Withdrawals accelerate as others withdraw\nQuestion: how do we stop the spiral?"
+            ]
+          ],
+          "options": [
+            "Traffic-jam model: open more teller windows",
+            "Bank-run model: break the feedback loop — credible assurance plus visible liquidity, because the spiral is driven by others' behavior, not the underlying facts",
+            "Epidemic model: quarantine the worriers",
+            "Traffic-jam model: process withdrawals faster to clear the queue"
+          ],
+          "correct": 1,
+          "explain": "Self-reinforcing panic is bank-run dynamics: the loop is 'others withdrawing -> I should too.' The fix targets the loop itself — credible, visible assurance that breaks the reinforcement. Facts alone do not stop a run; breaking the feedback does."
+        }
+      ],
+      "debrief": "You matched the model to the dynamics: epidemics for spread, traffic for bottlenecks, bank runs for panic loops. Mental models are borrowed lenses — the skill is picking the right one, and knowing when none of them fit.",
+      "points": 30
+    }
+  ],
+  "consoleSims": [
+    {
+      "id": "acad-hermetica-csim-siem-1",
+      "title": "Watch for reinforcing patterns",
+      "console": "siem-dashboard",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "Feedback loops show up in telemetry before they show up in outages. Create a detection rule named 'feedback-loop-watch' for reinforcing patterns, then acknowledge ALT-103 (unusual outbound volume) so it is being worked.",
+      "tasks": [
+        {
+          "id": "t1",
+          "instruction": "Create a detection rule named 'feedback-loop-watch'.",
+          "validate": {
+            "action": "create-rule",
+            "params": {
+              "name": "feedback-loop-watch"
+            }
+          },
+          "hint": "Open Detection rules: NAME=feedback-loop-watch, QUERY describing a reinforcing pattern (any descriptive query works)."
+        },
+        {
+          "id": "t2",
+          "instruction": "Acknowledge alert ALT-103.",
+          "validate": {
+            "action": "acknowledge-alert",
+            "params": {
+              "id": "ALT-103"
+            }
+          },
+          "hint": "Click Ack on the ALT-103 row (Unusual outbound volume)."
+        }
+      ],
+      "debrief": "Name the pattern, watch for it, work what fires. Detection rules are mental models made executable."
+    },
+    {
+      "id": "acad-hermetica-csim-tick-1",
+      "title": "Log the second-order review",
+      "console": "ticketing",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "A cache change is proposed. Open a ticket for the second-order effects review, then add a note to INC-9001 recording the loop you are watching for.",
+      "tasks": [
+        {
+          "id": "t1",
+          "instruction": "Create a ticket titled 'Second-order review: cache change' with priority P3.",
+          "validate": {
+            "action": "create-ticket",
+            "params": {
+              "title": "Second-order review: cache change",
+              "priority": "P3"
+            }
+          },
+          "hint": "Open New ticket: TITLE='Second-order review: cache change', PRIORITY=P3."
+        },
+        {
+          "id": "t2",
+          "instruction": "Add a note to INC-9001: 'Watching for retry amplification loop.'",
+          "validate": {
+            "action": "add-note",
+            "params": {
+              "id": "INC-9001",
+              "text": "Watching for retry amplification loop."
+            }
+          },
+          "hint": "Add a note on INC-9001 with the exact text about the retry loop."
+        }
+      ],
+      "debrief": "Second-order effects get tickets and notes like everything else. What gets written down gets watched."
+    },
+    {
+      "id": "acad-hermetica-csim-web-1",
+      "title": "Start the decision journal",
+      "console": "generic-web",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "Systems thinkers keep decision journals: what you decided, why, and what you expected. Set the journal title and owner, then submit it.",
+      "tasks": [
+        {
+          "id": "t1",
+          "instruction": "Set the site_name field to 'Decision journal'.",
+          "validate": {
+            "action": "set-field",
+            "params": {
+              "id": "site_name",
+              "value": "Decision journal"
+            }
+          },
+          "hint": "Set field: FIELD=site_name, VALUE='Decision journal'."
+        },
+        {
+          "id": "t2",
+          "instruction": "Set the admin_email field to 'keeper@example.com'.",
+          "validate": {
+            "action": "set-field",
+            "params": {
+              "id": "admin_email",
+              "value": "keeper@example.com"
+            }
+          },
+          "hint": "Set field: FIELD=admin_email, VALUE=keeper@example.com."
+        },
+        {
+          "id": "t3",
+          "instruction": "Submit the form.",
+          "validate": {
+            "action": "submit-form",
+            "params": {}
+          },
+          "hint": "Click Submit settings."
+        }
+      ],
+      "debrief": "A decision journal turns hindsight into foresight: write the expectation down, and reality gets to grade you later."
+    },
+    {
+      "id": "acad-hermetica-csim-git-1",
+      "title": "Publish the mental model",
+      "console": "git-host",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "You wrote up the feedback-loop model from the outage. Create a branch models/feedback-loops, then comment on PR #1 linking the writeup for the team.",
+      "tasks": [
+        {
+          "id": "t1",
+          "instruction": "Create a branch named models/feedback-loops.",
+          "validate": {
+            "action": "create-branch",
+            "params": {
+              "name": "models/feedback-loops"
+            }
+          },
+          "hint": "Open Branches and create: NAME=models/feedback-loops."
+        },
+        {
+          "id": "t2",
+          "instruction": "Add a comment to PR #1: 'Feedback-loop writeup linked for review.'",
+          "validate": {
+            "action": "add-comment",
+            "params": {
+              "pr": 1,
+              "text": "Feedback-loop writeup linked for review."
+            }
+          },
+          "hint": "Comment on PR #1 with the exact text."
+        }
+      ],
+      "debrief": "Models shared are models improved. Publishing the writeup invites the correction you did not think of."
+    }
+  ],
+  "terminalMissions": [
+    {
+      "id": "acad-hermetica-mission-1",
+      "title": "Who is observing",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "The observer is part of the system. Print your username.",
+      "objectives": [
+        "Print your username"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^whoami$",
+          "expect_contains": "candidate",
+          "hint": "Run: whoami — name the observer."
+        }
+      ],
+      "success_message": "Observer named. You are in the system you are studying."
+    },
+    {
+      "id": "acad-hermetica-mission-2",
+      "title": "Name the system",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "Name the thing you are thinking about. Print the hostname.",
+      "objectives": [
+        "Print the system name"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^hostname$",
+          "expect_contains": "interstitium",
+          "hint": "Run: hostname — name the system."
+        }
+      ],
+      "success_message": "System named. Unnamed systems cannot be discussed."
+    },
+    {
+      "id": "acad-hermetica-mission-3",
+      "title": "Map the components",
+      "domain_id": "acad-hermetica",
+      "difficulty": 1,
+      "brief": "Map the territory as it is. List the home directory.",
+      "objectives": [
+        "Map the components"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^ls$",
+          "expect_contains": "README.md",
+          "hint": "Run: ls — map the components."
+        }
+      ],
+      "success_message": "Components mapped. Models built on unmapped territory are fiction."
+    },
+    {
+      "id": "acad-hermetica-mission-4",
+      "title": "Name the pattern",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "Unnamed patterns cannot be discussed. State the pattern you have been studying with echo — use the word \"reinforcing\".",
+      "objectives": [
+        "Name the pattern"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^echo\\s+.*reinforcing.*$",
+          "expect_contains": "reinforcing",
+          "hint": "Run: echo naming the pattern (e.g. echo \"a reinforcing feedback loop\")."
+        }
+      ],
+      "success_message": "Pattern named. What gets named gets noticed."
+    },
+    {
+      "id": "acad-hermetica-mission-5",
+      "title": "Locate yourself in the system",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "Print your working directory — know where you stand inside the system.",
+      "objectives": [
+        "Print your position"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^pwd$",
+          "expect_contains": "/home/candidate",
+          "hint": "Run: pwd — locate yourself."
+        }
+      ],
+      "success_message": "Position located. The map includes the mapmaker."
+    },
+    {
+      "id": "acad-hermetica-mission-6",
+      "title": "Check the substrate",
+      "domain_id": "acad-hermetica",
+      "difficulty": 2,
+      "brief": "Every system runs on a substrate. Print the full system information.",
+      "objectives": [
+        "Print the substrate"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^uname\\s+-a$",
+          "expect_contains": "Linux",
+          "hint": "Run: uname -a — check the substrate."
+        }
+      ],
+      "success_message": "Substrate checked. Abstractions rest on something — know what."
+    },
+    {
+      "id": "acad-hermetica-mission-7",
+      "title": "State the whole",
+      "domain_id": "acad-hermetica",
+      "difficulty": 3,
+      "brief": "State the core principle with echo (\"the map is not the territory\"), then print your identity record — the observer signs the map.",
+      "objectives": [
+        "State the principle",
+        "Sign the map"
+      ],
+      "checks": [
+        {
+          "command_pattern": "^echo\\s+.*territory.*$",
+          "expect_contains": "territory",
+          "hint": "Run: echo with the principle (e.g. echo \"the map is not the territory\")."
+        },
+        {
+          "command_pattern": "^id$",
+          "expect_contains": "candidate",
+          "hint": "Run: id — sign the map."
+        }
+      ],
+      "success_message": "Principle stated, map signed. Hold models lightly; verify the territory."
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-full-spectrum",
+      "title": "Full Spectrum Dominance — core path",
+      "kind": "core",
+      "lectures": [],
+      "lab_ids": [
+        "fsd-tl-lab-1",
+        "fsd-tl-lab-2",
+        "fsd-tl-lab-3",
+        "fsd-sg-lab-1",
+        "fsd-sg-lab-2",
+        "fsd-sg-lab-3",
+        "fsd-ai-lab-1",
+        "fsd-ai-lab-2",
+        "fsd-ai-lab-3"
+      ],
+      "drill_domain_ids": [
+        "tl-interview",
+        "tl-endpoint-ops",
+        "sec-graphs",
+        "graph-defense",
+        "ml-defense",
+        "ai-agent-sec"
+      ]
+    }
+  ],
+  "behavioral": [
+    {
+      "prompt": "Tell me about the most technically difficult problem you have run into — a homelab, a broken environment, anything — and how you solved it.",
+      "framework": "STAR",
+      "points": [
+        "Pick ONE problem with a real evidence trail: the symptom, what you measured, the hypothesis you tested",
+        "Show the loop: scope, observe, hypothesize, smallest safe change, validate — interviewers score the method, not just the fix",
+        "Name the tools (VM build, networking, logs) and the lesson it taught you",
+        "Close with the result in concrete terms: what works now that did not before"
+      ],
+      "pitfalls": [
+        "Choosing a story with no real obstacle (“I Googled it” is not a story)",
+        "Skipping validation — saying it worked without proving it",
+        "Rambling past two minutes without reaching the result"
+      ]
+    },
+    {
+      "prompt": "Tell me about a time you dealt with a frustrated customer or user while something was broken.",
+      "framework": "STAR",
+      "points": [
+        "Lead with empathy and ownership: acknowledge the impact before the technical detail",
+        "Show translation: what you told them, in their language, plus the timeline you committed to",
+        "Show judgment: the narrow fix you chose and what you refused to do (e.g., disabling the control to clear the symptom)",
+        "Close with the relationship outcome, not just the technical one"
+      ],
+      "pitfalls": [
+        "Badmouthing the customer to sound decisive",
+        "Promising a timeline you could not keep",
+        "Framing the user as the problem rather than the situation"
+      ]
+    },
+    {
+      "prompt": "Why ThreatLocker, and why cybersecurity?",
+      "framework": "STAR",
+      "points": [
+        "Connect prevention to something concrete: a moment you saw detection arrive too late, or a system you hardened",
+        "Tie their model to your instincts: deny-by-default matches how you already think about trust",
+        "Show service orientation: the Cyber Hero culture rewards the 2 a.m. helper — give an example of being one",
+        "Name one forward-looking reason: Zero Trust, the MSP mission, or the bootcamp community investment"
+      ],
+      "pitfalls": [
+        "Generic flattery with no specifics about the company",
+        "Leading with compensation, title, or location convenience",
+        "Claiming expertise in products you have only read about — frame it as studied, not mastered"
+      ]
+    },
+    {
+      "framework": "STAR",
+      "pitfalls": [
+        "Staying vague ('I analyzed the data') instead of naming what you connected.",
+        "Skipping your own role: what did YOU see that others missed?",
+        "No outcome: what changed because you joined the dots?"
+      ],
+      "points": [
+        "The scattered signals and why nobody had connected them yet",
+        "The specific links you drew between them (shared host, time, infrastructure)",
+        "What the bigger picture turned out to be and what action it drove",
+        "What the experience taught you about investigating"
+      ],
+      "prompt": "Tell me about a time you connected scattered clues into a bigger picture that others had missed."
+    },
+    {
+      "framework": "STAR",
+      "pitfalls": [
+        "Claiming you fixed everything: credibility comes from trade-offs, not heroics.",
+        "Hiding the constraint: the limitation is what makes the prioritization story real.",
+        "No metric: 'better' needs a before-and-after."
+      ],
+      "points": [
+        "The constraint (time, budget, staff) and the size of the backlog",
+        "How you decided what mattered most (what was reachable, what was critical)",
+        "What you did first and what you deliberately deferred",
+        "The measurable result of the prioritization"
+      ],
+      "prompt": "Describe a time you had to prioritize risks or fixes with limited time or resources. How did you decide what came first?"
+    },
+    {
+      "framework": "STAR",
+      "pitfalls": [
+        "Reciting jargon to a non-technical audience and calling it communication.",
+        "Skipping the audience's reaction: did they actually understand and act?",
+        "Making yourself the hero instead of the translator."
+      ],
+      "points": [
+        "The technical finding and why it mattered",
+        "Who the audience was and what they cared about",
+        "How you reframed it (a picture, an analogy, a story)",
+        "What decision or action the audience took because they understood"
+      ],
+      "prompt": "Tell me about a time you explained a complex technical finding to a non-technical audience and it changed a decision."
+    },
+    {
+      "prompt": "Tell me about a time you used automation or AI to solve a security problem.",
+      "framework": "STAR",
+      "points": [
+        "The repetitive security task and what it cost in analyst time",
+        "The automation or AI approach you built and how you validated it",
+        "Measured outcome: time saved, detection gained, false positives changed"
+      ],
+      "pitfalls": [
+        "Describing the tool but never the validation",
+        "No measurable outcome"
+      ]
+    },
+    {
+      "prompt": "Describe a time you had to decide whether to trust an automated security decision.",
+      "framework": "STAR",
+      "points": [
+        "The stakes of the automated action and its blast radius",
+        "How you verified before acting (or the gate you built)",
+        "What happened and what you would automate differently next time"
+      ],
+      "pitfalls": [
+        "Saying you always trust the tool",
+        "No mention of blast radius or reversibility"
+      ]
+    }
+  ],
+  "resources": {
+    "cheatsheet": {
+      "title": "Full Spectrum Dominance — field reference",
+      "sections": [
+        {
+          "heading": "Company facts (verified)",
+          "items": [
+            "Founded 2017 in Orlando, FL — Danny Jenkins (CEO), Sami Jenkins (COO), John Carolan (QA)",
+            "Philosophy: deny-by-default / default-deny — approve known-good, deny the rest",
+            "Customers: 70,000+ organizations, sold heavily through the MSP channel",
+            "Funding: $190M Series F, July 2026 (Elephant-led); ~730 employees",
+            "Interview address: 1901 Summit Tower Blvd, Orlando, FL 32810",
+            "Culture: in-office 5 days/week; free lunch; post-offer background + drug screening"
+          ]
+        },
+        {
+          "heading": "Product stack",
+          "items": [
+            "Allowlisting — default-deny execution control for apps, DLLs, scripts, installers",
+            "Ringfencing — constrains allowed apps: app-to-app, file, registry, network",
+            "Storage Control — USB/device policy by serial, user, file type, encryption",
+            "Elevation Control — just-in-time per-app admin, no standing rights",
+            "Network Control — host firewall; port/IP/dynamic-ACL rules; ZTNA foundation",
+            "Web Control — agent-based DNS/URL category filtering, works off-network",
+            "Cyber Hero MDR — 24/7/365 US-based response, ~60-second average",
+            "Testing Environment — one-button VDI sandbox; checks AV flags, canary files, registry changes"
+          ]
+        },
+        {
+          "heading": "Rule strength (strongest to weakest)",
+          "items": [
+            "Certificate/publisher rules — survive version updates",
+            "Hash rules — precise but break on every new version",
+            "Path rules — weakest; never in user-writable locations",
+            "Learning Mode catalogs before enforcement; Installation Mode pauses blocking — scope and time-box both"
+          ]
+        },
+        {
+          "heading": "Terminal evidence commands",
+          "items": [
+            "nmap <host> — which ports answer (22/80/443 open)",
+            "dig <name> — ANSWER SECTION with the A record",
+            "ss — listening sockets",
+            "systemctl status <svc> — unit state",
+            "journalctl -u <svc> — service logs",
+            "sha256sum <file> — real SHA-256 identity",
+            "grep <pattern> <file> — search the record",
+            "ps — what is actually running"
+          ]
+        },
+        {
+          "heading": "Graph vocabulary",
+          "items": [
+            "node — any entity tracked in the model (user, host, IP, domain, file hash, vulnerability)",
+            "edge — a labeled relationship between two nodes (logged into, resolved to, downloaded)",
+            "degree — number of edges on a node; high-degree nodes are attacker highways",
+            "centrality — how much traffic or how many paths flow through a node",
+            "directed edge — a relationship with a direction (A downloaded FROM B)",
+            "security graph — the living model of your whole environment as nodes and edges",
+            "attack graph — the subgraph of exploitable paths to your targets",
+            "knowledge graph — threat-intel indicators linked to campaigns and actors"
+          ]
+        },
+        {
+          "heading": "Attack-graph playbook",
+          "items": [
+            "inventory first — you cannot graph what you have not discovered",
+            "model flaws AND misconfigs as exploit edges",
+            "compute shortest paths to the crown jewels",
+            "find the choke point (highest betweenness on those paths)",
+            "break the path: patch, segment, or remove the edge",
+            "re-scan and re-run the graph to prove the path is gone",
+            "never trust yesterday's graph — redeployments redraw the map"
+          ]
+        },
+        {
+          "heading": "Zero Trust + graphs",
+          "items": [
+            "never trust, always verify — re-evaluate every access decision",
+            "assume breach — treat unexpected edges as hostile until proven otherwise",
+            "microsegmentation — allow-list approved edges, alert on new ones",
+            "ReBAC — policies are path queries on the identity graph",
+            "continuous verification — device/location/behavior edges change, trust follows",
+            "anomalous edge — a first-seen connection between strangers is the classic signal"
+          ]
+        },
+        {
+          "heading": "ML detection vocabulary",
+          "items": [
+            "Supervised learning — learns from labeled examples; strong on known threats, blind to novel ones",
+            "Unsupervised learning — finds structure without labels; clustering and dimensionality reduction",
+            "Anomaly detection — models 'normal' and flags deviations; the workhorse for novel threats",
+            "UEBA — user and entity behavior analytics: per-user baselines plus peer-group comparison",
+            "Feature engineering — encoding raw logs into model inputs (login velocity, rare processes, domain entropy)",
+            "Concept drift — model decay as attacker behavior and legitimate traffic shift over time"
+          ]
+        },
+        {
+          "heading": "Detection metrics",
+          "items": [
+            "Precision — of all flagged alerts, how many were real",
+            "Recall — of all real attacks, how many were flagged",
+            "Threshold tuning — sliding the decision cutoff trades precision against recall",
+            "Alert fatigue — when false positives train analysts to ignore the queue",
+            "DGA — domain generation algorithm; detected via character entropy of domain names"
+          ]
+        },
+        {
+          "heading": "Agent and LLM security",
+          "items": [
+            "Direct prompt injection — attacker input overrides app instructions (OWASP LLM01:2025, the #1 LLM risk)",
+            "Indirect prompt injection — hidden instructions inside retrieved data (email, web, docs)",
+            "Jailbreak — defeating the model's own safety policy; distinct from hijacking app behavior",
+            "Tool poisoning — malicious tool descriptions or metadata steer an agent to misuse its tools (MCP ecosystem risk)",
+            "Insecure output handling — executing or trusting model output without validation",
+            "Least-privilege tools — grant each tool only the scope its task requires"
+          ]
+        },
+        {
+          "heading": "Adversarial ML and governance",
+          "items": [
+            "Evasion — perturbing inputs at inference time to dodge a classifier",
+            "Poisoning — corrupting training data to corrupt the model",
+            "Extraction — querying a model to steal its behavior or parameters",
+            "MITRE ATLAS — knowledge base of adversarial ML tactics and techniques",
+            "Red-teaming and evals — adversarial testing of AI systems before deployment",
+            "Human-in-the-loop — required approval for high-impact or irreversible agent actions",
+            "SOAR — security orchestration, automation and response; automate enrichment, gate containment"
+          ]
+        }
+      ]
+    },
+    "glossary": [
+      {
+        "term": "Allowlisting",
+        "def": "Default-deny execution control: only explicitly approved applications, scripts, and installers may run."
+      },
+      {
+        "term": "Blocklisting",
+        "def": "Default-allow model: everything runs except recognized-bad items — the window zero-days live in."
+      },
+      {
+        "term": "Default-deny",
+        "def": "Deny-by-default posture: unknown code, devices, or connections are refused unless explicitly approved."
+      },
+      {
+        "term": "Ringfencing",
+        "def": "Containment applied on top of allowlisting; restricts what a permitted app may do across app-to-app, file, registry, and network dimensions."
+      },
+      {
+        "term": "Learning Mode",
+        "def": "Agent mode that catalogs applications and dependencies and auto-builds policies before enforcement; temporarily disables file blocking."
+      },
+      {
+        "term": "Installation Mode",
+        "def": "Temporary mode that pauses file blocking for installs — must be tightly scoped and time-boxed."
+      },
+      {
+        "term": "Elevation Control",
+        "def": "Grants specific approved applications admin rights for standard users — just-in-time, per-app, time-boxed — without standing admin rights."
+      },
+      {
+        "term": "Application hopping",
+        "def": "An elevated or trusted process spawning another tool (e.g., PowerShell) to inherit its privileges — countered by ringfencing the elevated process."
+      },
+      {
+        "term": "Storage Control",
+        "def": "Device and path policy: USB approved by serial, user, file type, time, and encryption; unapproved devices do not connect."
+      },
+      {
+        "term": "Network Control",
+        "def": "Centrally managed host firewall; rules by port, source IP, and dynamic ACLs; egress allowlisting pins apps to approved destinations."
+      },
+      {
+        "term": "ZTNA",
+        "def": "Zero Trust Network Access: per-session, per-application brokered connections (commonly over port 443) with no open inbound ports — deny-by-default for network access."
+      },
+      {
+        "term": "Approval Center",
+        "def": "Portal queue where end-user software requests arrive for admin review and decision."
+      },
+      {
+        "term": "Unified Audit",
+        "def": "Real-time audit showing what was allowed or denied across endpoints — and why; the evidence layer for triage."
+      },
+      {
+        "term": "Testing Environment",
+        "def": "One-button cloud VDI sandbox launched from an approval request; logs AV flags, canary-file access, and registry/system changes."
+      },
+      {
+        "term": "Cyber Hero MDR",
+        "def": "24/7/365 US-based managed detection and response team; validates alerts, isolates hosts, acts on customer runbooks; ~60-second average response."
+      },
+      {
+        "term": "Assume breach",
+        "def": "Design and operate as if the attacker already has a foothold — least privilege, containment, and monitoring everywhere."
+      },
+      {
+        "term": "Living off the land",
+        "def": "Attacks that hijack trusted built-in tools (Word, PowerShell) instead of dropping malware — defeated by behavior containment, not signatures."
+      },
+      {
+        "term": "Change control",
+        "def": "Scoped, ticketed, tested changes with validation and rollback — emergency speed never cancels the process."
+      },
+      {
+        "def": "A node in an attack graph representing a system or weakness, connected by edges that represent steps an attacker could take between them.",
+        "term": "attack graph"
+      },
+      {
+        "def": "How central a node is to paths through the graph (for example, betweenness: how many shortest paths cross it).",
+        "term": "centrality"
+      },
+      {
+        "def": "The most valuable assets in the environment (customer data, finance systems, source code): what attack paths are measured against.",
+        "term": "crown jewels"
+      },
+      {
+        "def": "A labeled connection between two nodes, representing a relationship such as 'logged into' or 'resolved to'.",
+        "term": "edge"
+      },
+      {
+        "def": "A graph of threat indicators (IPs, domains, hashes) linked to campaigns, actors, and each other through shared infrastructure.",
+        "term": "knowledge graph"
+      },
+      {
+        "def": "The practice of mapping relationships in data to reveal hidden associations; rooted in Euler's 1736 graph theory, 1970s paper link charts, and post-2001 intelligence work.",
+        "term": "link analysis"
+      },
+      {
+        "def": "A segment of the network so small that its allowed communications can be enumerated as a graph of approved edges.",
+        "term": "microsegmentation"
+      },
+      {
+        "def": "An entity in the graph: a user, host, IP address, domain, file, or vulnerability.",
+        "term": "node"
+      },
+      {
+        "def": "Access control where policy is evaluated by traversing relationships on a graph (for example: user reports_to manager who owns the resource's project).",
+        "term": "ReBAC"
+      },
+      {
+        "def": "A machine-learning model that operates directly on graph structure to classify nodes or subgraphs, for example labeling attack vs normal behavior.",
+        "term": "graph neural network (GNN)"
+      },
+      {
+        "def": "Monitoring user and entity behavior by modeling their normal relationship patterns and flagging structural anomalies.",
+        "term": "UEBA"
+      },
+      {
+        "term": "Supervised learning",
+        "def": "ML trained on labeled examples; classifies new inputs into known categories."
+      },
+      {
+        "term": "Anomaly detection",
+        "def": "ML approach that models normal behavior and flags statistically rare deviations."
+      },
+      {
+        "term": "Feature engineering",
+        "def": "Turning raw telemetry into numeric model inputs, e.g. login velocity or domain entropy."
+      },
+      {
+        "term": "Precision",
+        "def": "Share of flagged alerts that were real; the false-positive economics of the queue."
+      },
+      {
+        "term": "Recall",
+        "def": "Share of real attacks the detector flagged; the miss rate's complement."
+      },
+      {
+        "term": "Concept drift",
+        "def": "Decay of model performance as the data distribution shifts over time."
+      },
+      {
+        "term": "Prompt injection",
+        "def": "Attacker-crafted instructions that override an LLM application's intended behavior; direct (user input) or indirect (retrieved data)."
+      },
+      {
+        "term": "Jailbreak",
+        "def": "Crafted input that defeats an LLM's own safety policy or refusal behavior."
+      },
+      {
+        "term": "Tool poisoning",
+        "def": "Malicious tool descriptions or metadata that manipulate an AI agent into misusing its tools."
+      },
+      {
+        "term": "Insecure output handling",
+        "def": "Failing to validate LLM output before acting on it, e.g. executing generated commands."
+      },
+      {
+        "term": "Evasion attack",
+        "def": "Adversarial ML technique: perturbing inputs to cross a classifier's decision boundary."
+      },
+      {
+        "term": "MITRE ATLAS",
+        "def": "Adversarial Threat Landscape for AI Systems; MITRE's knowledge base of AI attack tactics."
+      },
+      {
+        "term": "SOAR",
+        "def": "Security orchestration, automation and response; playbooks that enrich automatically and gate containment on humans."
+      },
+      {
+        "term": "Human-in-the-loop",
+        "def": "Required human approval before high-impact or irreversible automated actions."
+      }
+    ],
+    "links": [
+      {
+        "label": "ThreatLocker Zero Trust platform explainer (official)",
+        "url": "https://www.threatlocker.com/blog/edr-xdr-vs-zero-trust-prevention",
+        "note": "EDR/XDR vs Zero Trust prevention — the deny-by-default argument in their own words."
+      },
+      {
+        "label": "ThreatLocker Bootcamp page (official)",
+        "url": "https://www.threatlocker.com/bootcamp",
+        "note": "Free six-week program: phases, format, and what completion leads to."
+      },
+      {
+        "label": "ThreatLocker Careers (official)",
+        "url": "https://www.threatlocker.com/company/careers",
+        "note": "Open roles and the hiring-event listing; roles are in-office in Orlando."
+      },
+      {
+        "label": "Elevation Control (official)",
+        "url": "https://www.threatlocker.com/secure-privileges-without-sacrificing-agility",
+        "note": "Just-in-time privilege without standing admin."
+      },
+      {
+        "label": "Storage Control (official)",
+        "url": "https://www.threatlocker.com/capabilities/external-storage-device-control",
+        "note": "USB/device policy by serial, user, file type, encryption."
+      },
+      {
+        "label": "Web Control (official)",
+        "url": "https://www.threatlocker.com/capabilities/web-content-control",
+        "note": "Agent-based DNS/URL filtering, including off-network."
+      },
+      {
+        "label": "Cyber Hero MDR (official)",
+        "url": "https://www.threatlocker.com/get-threat-response-in-minutes",
+        "note": "24/7/365 managed response positioning."
+      },
+      {
+        "label": "MDR capabilities (official)",
+        "url": "https://www.threatlocker.com/capabilities/managed-detection-and-response",
+        "note": "Detection and response capability detail."
+      },
+      {
+        "label": "NIST SP 800-207 — Zero Trust Architecture",
+        "url": "https://csrc.nist.gov/pubs/sp/800/207/final",
+        "note": "The canonical Zero Trust reference: tenets, deployment models, policy engine trust algorithm."
+      },
+      {
+        "label": "CISA Zero Trust Maturity Model",
+        "url": "https://www.cisa.gov/zero-trust-maturity-model",
+        "note": "Federal maturity steps across identity, devices, networks, applications, and data."
+      },
+      {
+        "label": "MITRE ATT&CK",
+        "note": "The adversary-tactics framework; codify its tactic chains as subgraphs to hunt for in your security graph.",
+        "url": "https://attack.mitre.org/"
+      },
+      {
+        "label": "CISA — Cybersecurity and Infrastructure Security Agency",
+        "note": "US government advisories, alerts, and guidance frequently referenced in threat-intel work.",
+        "url": "https://www.cisa.gov/"
+      },
+      {
+        "label": "Neo4j getting started",
+        "note": "A widely used graph database; the book's call to action suggests piloting graph queries on exported security data with tools like this.",
+        "url": "https://neo4j.com/docs/getting-started/"
+      },
+      {
+        "label": "OWASP GenAI Security Project",
+        "url": "https://genai.owasp.org/",
+        "note": "Home of the LLM Top 10 and GenAI security guidance"
+      },
+      {
+        "label": "OWASP Top 10 for LLM Applications",
+        "url": "https://genai.owasp.org/llm-top-10/",
+        "note": "The ranked LLM risk list — prompt injection is #1"
+      },
+      {
+        "label": "NIST AI Risk Management Framework",
+        "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+        "note": "The standard governance framework for managing AI risk"
+      },
+      {
+        "label": "MITRE ATLAS",
+        "url": "https://atlas.mitre.org/",
+        "note": "Adversarial Threat Landscape for AI Systems — tactics and techniques"
+      },
+      {
+        "label": "CISA AI guidance",
+        "url": "https://www.cisa.gov/ai",
+        "note": "CISA's AI security resources and guidance"
+      }
+    ],
+    "checklist": [
+      "Sixty-second company brief rehearsed out loud: year, city, philosophy, three products, one milestone",
+      "Two STAR stories ready: hardest technical problem; a frustrated customer or user",
+      "“Why ThreatLocker / why cybersecurity” answer tied to prevention and service, not slogans",
+      "Ringfencing explained in one plain-English sentence (the Word-on-a-leash version)",
+      "Elevation Control answer ready: just-in-time, per-app, time-boxed, ringfenced, logged",
+      "Triage loop memorized: scope → observe → hypothesize → smallest safe change → validate → explain",
+      "Three questions to ask them: team on-call shape, approval SLA expectations, what “most helpful” looks like on the team",
+      "Logistics: 1901 Summit Tower Blvd, Orlando FL; in-office role; ID and references ready",
+      "Define your crown jewels before you model anything.",
+      "Build the asset-and-access graph from live sources (scans, configs, identity), not from the CMDB alone.",
+      "Model vulnerabilities AND misconfigurations as exploit edges.",
+      "Compute shortest attack paths to each crown jewel; name the choke points.",
+      "Prioritize remediation by path risk, not by raw severity score.",
+      "Express at least one access policy as a relationship path (ReBAC pilot).",
+      "Baseline approved communication edges per segment; alert on first-seen edges.",
+      "Brief the next incident or risk review with the graph, not a spreadsheet.",
+      "Can you explain supervised vs unsupervised vs anomaly detection with a security example for each?",
+      "Can you name three log features you would engineer for a C2 detector and why?",
+      "Can you walk through a UEBA alert (baseline, deviation, verification) end to end?",
+      "Can you explain the precision/recall tradeoff and how you would set a threshold for a fatigued SOC?",
+      "Can you define concept drift and describe a retraining process?",
+      "Can you distinguish direct vs indirect prompt injection and jailbreaking?",
+      "Can you explain tool poisoning in the MCP ecosystem and three controls against it?",
+      "Can you describe insecure output handling and how you would validate agent output?",
+      "Can you name the three adversarial ML attack classes and one defense for evasion?",
+      "Can you design a SOAR playbook gate: what automates freely, what needs human approval?"
+    ]
+  },
+  "chat": {
+    "persona": "You are a rigorous but encouraging interviewer preparing a candidate for a Zero Trust endpoint security role. Probe with 'why' and 'how would you explain that' follow-ups. Stay on topic: ThreatLocker-style endpoint defense, security graphs, and AI-powered security. All practice is original; never reproduce vendor material.",
+    "topics": [
+      {
+        "id": "tl-interview",
+        "name": "ThreatLocker Interview Prep",
+        "key_points": [
+          "allowlisting",
+          "ringfencing",
+          "default-deny",
+          "cyber hero",
+          "zero trust tenets",
+          "STAR stories"
+        ],
+        "followups": [
+          "Can you give an example?",
+          "How would you explain that to a CFO?"
+        ]
+      },
+      {
+        "id": "tl-endpoint-ops",
+        "name": "Zero Trust Endpoint Operations",
+        "key_points": [
+          "default-deny",
+          "ringfencing dimensions",
+          "elevation control",
+          "storage control",
+          "network control",
+          "change control"
+        ],
+        "followups": [
+          "Walk me through the triage order.",
+          "When would you deny outright?"
+        ]
+      },
+      {
+        "followups": [
+          "Can you walk through an example?",
+          "How does this change patch prioritization?",
+          "What is the difference between a security graph and an attack graph?"
+        ],
+        "id": "sec-graphs",
+        "key_points": [
+          "nodes",
+          "edges",
+          "attack graphs",
+          "kill chain",
+          "link analysis",
+          "threat intel graphs"
+        ],
+        "name": "Security Graphs: Think Like an Attacker"
+      },
+      {
+        "followups": [
+          "How do graphs change patch prioritization?",
+          "What is ReBAC and how is it different from RBAC?",
+          "How would a small team start with graphs?"
+        ],
+        "id": "graph-defense",
+        "key_points": [
+          "attack-path analysis",
+          "insider threat",
+          "vulnerability graphs",
+          "Zero Trust",
+          "microsegmentation",
+          "blast radius"
+        ],
+        "name": "Graph-Powered Defense Operations"
+      },
+      {
+        "id": "ml-defense",
+        "name": "ML-Powered Threat Defense",
+        "key_points": [
+          "anomaly detection",
+          "UEBA",
+          "alert fatigue",
+          "concept drift",
+          "threat hunting",
+          "precision recall"
+        ],
+        "followups": [
+          "Walk me through an example.",
+          "How do you handle false positives?"
+        ]
+      },
+      {
+        "id": "ai-agent-sec",
+        "name": "Securing AI Systems & Agents",
+        "key_points": [
+          "prompt injection",
+          "tool poisoning",
+          "MCP risks",
+          "insecure output handling",
+          "SOAR gates",
+          "adversarial ML"
+        ],
+        "followups": [
+          "Walk me through an example.",
+          "How do you secure an AI agent end to end?"
+        ]
+      }
+    ]
+  },
+  "simulation": {
+    "items": 12,
+    "minutes": 180,
+    "evidence_cost_mins": 2
+  },
+  "media": [
+    {
+      "id": "tl-allowlist-vs-blocklist",
+      "kind": "diagram",
+      "title": "Allowlisting vs blocklisting: default-deny vs default-allow",
+      "svg": "assets/diagrams/tl-allowlist-vs-blocklist.svg",
+      "lesson_ref": "c-tl-endpoint-ops",
+      "caption": "Default-deny stops unknown code without a signature; default-allow runs it until one exists.",
+      "alt": "Side-by-side comparison: on the left, a default-deny gate runs known-good payroll software and denies unknown ransomware with no signature needed; on the right, a default-allow gate runs both until the ransomware is recognized as bad."
+    },
+    {
+      "id": "tl-ringfencing",
+      "kind": "diagram",
+      "title": "Ringfencing: four leashes on an allowed application",
+      "svg": "assets/diagrams/tl-ringfencing.svg",
+      "lesson_ref": "c-tl-endpoint-ops",
+      "caption": "Word stays approved, but it cannot spawn PowerShell, read the credential store, or reach the internet — while opening its document is allowed.",
+      "alt": "An approved Word application inside a dashed containment ring: arrows show PowerShell launch denied, credential-store registry access denied, external network denied, and document file access allowed."
+    },
+    {
+      "id": "tl-zero-trust-stack",
+      "kind": "diagram",
+      "title": "The Zero Trust endpoint stack",
+      "svg": "assets/diagrams/tl-zero-trust-stack.svg",
+      "lesson_ref": "c-tl-interview",
+      "caption": "Five deny-by-default layers — Allowlisting, Ringfencing, Elevation, Storage, Network — watched by Web Control, the Testing Environment, Unified Audit, and the Cyber Hero MDR team.",
+      "alt": "A vertical stack of five layers from Allowlisting at the foundation up through Ringfencing, Elevation Control, Storage Control, and Network Control, with side boxes for Web Control, Testing Environment, Unified Audit, and Cyber Hero MDR."
+    },
+    {
+      "id": "tl-triage-flow",
+      "kind": "diagram",
+      "title": "Application-request triage flow",
+      "svg": "assets/diagrams/tl-triage-flow.svg",
+      "lesson_ref": "c-tl-endpoint-ops",
+      "caption": "Gather evidence first, then branch: trusted gets a scoped rule, unknown goes to the sandbox, malicious gets a documented deny.",
+      "alt": "Flowchart from request arrival through evidence gathering to a decision diamond branching into three outcomes: approve with a scoped rule, detonate in the Testing Environment then ringfence, or deny with documented evidence."
+    },
+    {
+      "alt": "Diagram of four labeled nodes (user, host, file, domain, IP) joined by labeled directed edges such as logged into, downloaded, and resolved to, illustrating graph vocabulary.",
+      "caption": "Nodes are the things; edges are the relationships. Attackers move along the edges.",
+      "id": "sg-graph-vocabulary",
+      "kind": "diagram",
+      "lesson_ref": "c-sec-graphs",
+      "svg": "assets/diagrams/sg-graph-vocabulary.svg",
+      "title": "Graph vocabulary: nodes and edges"
+    },
+    {
+      "alt": "Attack graph with four nodes in a chain: external attacker to VPN gateway to file server to customer database, with a dead-end branch to a printer, showing the shortest path to the crown jewel.",
+      "caption": "The shortest path to the crown jewel is length 3. Break the choke point and the campaign dies.",
+      "id": "sg-attack-path",
+      "kind": "diagram",
+      "lesson_ref": "c-sec-graphs",
+      "svg": "assets/diagrams/sg-attack-path.svg",
+      "title": "Attack graph: shortest path to the crown jewels"
+    },
+    {
+      "alt": "Seven kill-chain stages as connected graph nodes: reconnaissance, weaponization, delivery, exploitation, installation, command and control, actions. Three alerts are annotated at delivery, installation, and command and control.",
+      "caption": "Three 'unrelated' alerts, one kill-chain subgraph. Correlate by shared entities, not by severity.",
+      "id": "sg-kill-chain",
+      "kind": "diagram",
+      "lesson_ref": "c-sec-graphs",
+      "svg": "assets/diagrams/sg-kill-chain.svg",
+      "title": "Kill chain as a graph"
+    },
+    {
+      "alt": "A policy engine at the center of a small graph evaluates an access request from a finance user on an untrusted laptop to an R and D code server. The request is denied because there is no prior relationship edge and the device is untrusted.",
+      "caption": "Valid credentials are not enough. The graph checks device trust, history, and relationships on every request.",
+      "id": "sg-zero-trust",
+      "kind": "diagram",
+      "lesson_ref": "c-graph-defense",
+      "svg": "assets/diagrams/sg-zero-trust.svg",
+      "title": "Zero Trust runs on relationships"
+    },
+    {
+      "id": "ai-ml-pipeline",
+      "kind": "diagram",
+      "title": "ML detection pipeline: telemetry to triage",
+      "svg": "assets/diagrams/ai-ml-pipeline.svg",
+      "lesson_ref": "c-ml-defense",
+      "caption": "How raw telemetry becomes scored alerts: features feed the model, the model scores, analysts triage top-down — and analyst verdicts feed retraining.",
+      "alt": "Flow diagram: telemetry sources feed feature extraction, which feeds an ML model, which outputs scored alerts into an analyst triage queue, with a feedback arrow for retraining."
+    },
+    {
+      "id": "ai-ueba-baseline-diagram",
+      "kind": "diagram",
+      "title": "UEBA: baseline vs deviation",
+      "svg": "assets/diagrams/ai-ueba-baseline.svg",
+      "lesson_ref": "c-ml-defense",
+      "caption": "UEBA learns each user's normal hours, locations, and volumes, then scores deviations from that baseline.",
+      "alt": "24-hour timeline showing a shaded normal login window from 8 AM to 6 PM with normal logins inside it, and a red anomaly marker at 2:47 AM for a foreign login scoring 97 out of 100."
+    },
+    {
+      "id": "ai-injection-flow",
+      "kind": "diagram",
+      "title": "Indirect prompt injection attack flow",
+      "svg": "assets/diagrams/ai-injection-flow.svg",
+      "lesson_ref": "c-ai-agent-sec",
+      "caption": "An attacker hides instructions in data the agent retrieves; the agent mistakes data for instructions and misuses its tools.",
+      "alt": "Attack flow diagram: hidden instruction in an email is read by an AI agent, which mistakes it for a command and calls a privileged tool, causing fraud; three defense boxes below: sanitize content, least-privilege tools, human approval."
+    },
+    {
+      "id": "acad-hermetica",
+      "kind": "diagram",
+      "title": "The Hermetic corpus and its six branches",
+      "svg": "assets/diagrams/acad-hermetica.svg",
+      "lesson_ref": "c-acad-hermetica",
+      "caption": "Hermetica studies the Corpus Hermeticum and the traditions that grew from it across two millennia.",
+      "alt": "Hub diagram of Hermetic traditions around the Hermetic corpus."
+    },
+    {
+      "id": "acad-hermetica-acad-hermetica-d1",
+      "kind": "diagram",
+      "title": "Hermetica — concept contract",
+      "svg": "assets/diagrams/acad-hermetica-acad-hermetica-d1.svg",
+      "lesson_ref": "c-acad-hermetica",
+      "caption": "The concept contract for Hermetica — each key idea, what it means, and where it pays off. Think in stocks and flows: levels (backlog, data volume, technical debt) accumulate from rates (inflow minus outflow); most chronic problem…",
+      "alt": "Animated diagram: Hermetica — concept contract."
+    },
+    {
+      "id": "acad-hermetica-acad-hermetica-d2",
+      "kind": "diagram",
+      "title": "Hermetica — ideas at a glance",
+      "svg": "assets/diagrams/acad-hermetica-acad-hermetica-d2.svg",
+      "lesson_ref": "c-acad-hermetica",
+      "caption": "Hermetica at a glance: core ideas on the left, the traps that bite practitioners on the right. Think in stocks and flows: levels (backlog, data volume, technical debt) accumulate from rates (inflow minus outflow); most chronic problem…",
+      "alt": "Animated diagram: Hermetica — ideas at a glance."
+    },
+    {
+      "id": "acad-hermetica-acad-hermetica-d3",
+      "kind": "diagram",
+      "title": "Hermetica — knowledge stack",
+      "svg": "assets/diagrams/acad-hermetica-acad-hermetica-d3.svg",
+      "lesson_ref": "c-acad-hermetica",
+      "caption": "The Hermetica stack builds top-down, one layer at a time — from the highest abstraction down to the ground truth. Think in stocks and flows: levels (backlog, data volume, technical debt) accumulate from rates (inflow minus outflow); most chronic problem…",
+      "alt": "Animated diagram: Hermetica — knowledge stack."
+    }
+  ],
+  "foundations": [
+    {
+      "track": "linux-cli",
+      "why_needed": "Terminal labs and missions run in a simulated Linux shell; command-line fluency is required to complete them."
+    },
+    {
+      "track": "security-basics",
+      "why_needed": "Security-graph and ML-detection lessons assume baseline vocabulary (CIA triad, malware types, incident response phases)."
+    }
+  ],
+  "math": [
+    "stats",
+    "probability"
+  ],
+  "videos": [
+    {
+      "title": "The Fix That Broke More",
+      "url": "/assets/videos/bc-story-hermetica-fix-broke-more.mp4",
+      "source": "Interstitium Labs",
+      "blurb": "Systems thinking through the fix that broke more: speeding up the queue overloaded the database — the reinforcing loop, drawn. (Preview — narration coming; voiceover pending TTS restore.)",
+      "durationMin": 1,
+      "order": 1,
+      "preview": true,
+      "captionsUrl": "/assets/videos/bc-story-hermetica-fix-broke-more.vtt",
+      "narrationUrl": "/assets/videos/bc-story-hermetica-fix-broke-more.narration.md",
+      "verifiedUtc": "2026-10-09T04:08:23Z",
+      "httpStatus": 200
+    },
+    {
+      "title": "Feedback Loops, Visualized",
+      "url": "/assets/videos/bc-3b1b-hermetica-feedback-loops.mp4",
+      "source": "Interstitium Labs",
+      "blurb": "A mathematical visualization of feedback loops: the reinforcing curve that amplifies and the balancing oscillation that stabilizes. (Preview — narration coming; voiceover pending TTS restore.)",
+      "durationMin": 1,
+      "order": 2,
+      "preview": true,
+      "captionsUrl": "/assets/videos/bc-3b1b-hermetica-feedback-loops.vtt",
+      "narrationUrl": "/assets/videos/bc-3b1b-hermetica-feedback-loops.narration.md",
+      "verifiedUtc": "2026-10-09T04:08:23Z",
+      "httpStatus": 200
+    },
+    {
+      "title": "Goodhart's Law",
+      "url": "/assets/videos/bc-primer-hermetica-goodhart.mp4",
+      "source": "Interstitium Labs",
+      "blurb": "A simulation of Goodhart's law: the metric rises as teams game it while real quality stays flat — measure outcomes, rotate metrics. (Preview — narration coming; voiceover pending TTS restore.)",
+      "durationMin": 1,
+      "order": 3,
+      "preview": true,
+      "captionsUrl": "/assets/videos/bc-primer-hermetica-goodhart.vtt",
+      "narrationUrl": "/assets/videos/bc-primer-hermetica-goodhart.narration.md",
+      "verifiedUtc": "2026-10-09T04:08:23Z",
+      "httpStatus": 200
+    }
+  ],
+  "pdfGuides": [
+    {
+      "title": "Cloud Architecture Patterns — Visual Guide",
+      "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-cloud-patterns.pdf",
+      "source": "Interstitium Labs",
+      "pages": 8,
+      "animated": true,
+      "verifiedUtc": "2026-10-09T05:27:58Z"
+    },
+    {
+      "title": "TLS Handshake — Visual Guide",
+      "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-tls-handshake.pdf",
+      "source": "Interstitium Labs",
+      "pages": 8,
+      "animated": true,
+      "verifiedUtc": "2026-10-09T05:27:58Z"
+    },
+    {
+      "title": "Big-O Notation — Visual Guide",
+      "url": "https://interstitiumlabs.dev/assets/pdfs/bbg-big-o.pdf",
+      "source": "Interstitium Labs",
+      "blurb": "Reading time and space complexity — O(1) to O(2^n), amortized analysis, and why constants still matter in practice.",
+      "pages": 8,
+      "animated": true,
+      "verifiedUtc": "2026-10-09T05:56:41Z"
+    }
+  ]
+}

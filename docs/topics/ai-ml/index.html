@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>AI &amp; Machine Learning — Interstitium Labs</title>
+<meta name="description" content="Machines that learn. Engineers who understand. Neural networks, transformers, LLMs, agents, and MLOps — from backprop to production AI systems."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/topics/ai-ml/"/>
+<meta property="og:title" content="AI &amp; Machine Learning — Interstitium Labs"/>
+<meta property="og:description" content="Machines that learn. Engineers who understand. Neural networks, transformers, LLMs, agents, and MLOps — from backprop to production AI systems."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/topics/ai-ml/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+
+
+
+
+<link rel="stylesheet" href="/assets/il-ux.css"/>
+<link rel="stylesheet" href="/assets/il-hdr.css"/>
+<link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+
+<link rel="stylesheet" href="/assets/il-genahead.css"/>
+<link rel="stylesheet" href="/assets/il-muse.css"/><link rel="stylesheet" href="/assets/il-muse-mobile.css"/><link rel="stylesheet" href="/assets/il-muse-3d.css"/><link rel="stylesheet" href="/assets/il-noah-avatar.css"/><link rel="stylesheet" href="/assets/il-model-panel.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/assets/il-topic-themes.css"/>
+<link rel="stylesheet" href="/assets/il-wow.css"/>
+</head>
+<body class="min-h-dvh bg-void text-paper" data-topic-theme="exmachina">
+<a class="il-skip" href="#main">Skip to content</a>
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/learn/">Learn</a>
+      <a href="#academies">Academies</a>
+      <a href="/paths/">Paths</a>
+      <a href="/topics/">Topics</a>
+      <a href="/paths/roles/">Role Tracks</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/labs/">Labs</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/coach/">Coach</a>
+      <a href="/play/">Play</a>
+      <a href="/cinema/">Cinema</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/adapt/">Adapt</a>
+      <a href="/about/">About Us</a>
+      <a href="/university/">University</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/learn/">Learn</a>
+          <a href="#academies">Academies</a>
+          <a href="/paths/">Paths</a>
+          <a href="/topics/">Topics</a>
+          <a href="/paths/roles/">Role Tracks</a>
+          <a href="/prep/drills/">Practice & Exams</a>
+          <a href="/labs/">Labs</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/coach/">Coach</a>
+          <a href="/play/">Play</a>
+          <a href="/cinema/">Cinema</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/adapt/">Adapt</a>
+          <a href="/enroll/">Enroll</a>
+          <a href="/about/">About Us</a>
+          <a href="/university/">University</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/topics/">Topics</a></li><li aria-current="page">AI &amp; Machine Learning</li></ol></nav>
+<!-- Hero -->
+<header class="il-hero" data-topic-theme="exmachina">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/topics/ai-ml-hero.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/topics/ai-ml-hero.mp4" type="video/mp4"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="th-badge" style="margin-bottom:1rem">Topic Hub</p>
+    <h1 class="il-h">AI &amp; Machine Learning</h1>
+    <p class="il-hero__sub">Machines that learn. Engineers who understand. Neural networks, transformers, LLMs, agents, and MLOps — from backprop to production AI systems.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="/university/course?course=il-12-ai-engineering">Start learning</a>
+      <a class="il-btn il-btn--ghost" href="/pdf-library/#ai-ml">Visual guides</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+    <p class="il-hero__caption" style="margin-top:.9rem;font-size:.68rem;letter-spacing:.05em;color:rgba(242,237,225,.55)">Background motion: the AI &amp; Machine Learning themed loop (muted, no audio).</p>
+  </div>
+</header>
+<main id="main">
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Courses</h2><div class="il-grid">
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/university/course?course=il-12-ai-engineering" style="color:inherit">AI Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Full course — guided path, labs, and assessments.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/university/course?course=il-16-machine-learning-ai-engineering" style="color:inherit">Machine Learning &amp; AI Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Full course — guided path, labs, and assessments.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/university/course?course=il-17-agentic-ai-engineering" style="color:inherit">Agentic AI Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Full course — guided path, labs, and assessments.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/university/course?course=il-07-data-engineering-analytics-ai" style="color:inherit">SQL, Data Engineering, Analytics &amp; AI</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Full course — guided path, labs, and assessments.</p>
+</article>
+</div></div></section>
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Bootcamps</h2><div class="il-grid">
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/il12-ai-engineering/" style="color:inherit">Il12 Ai Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/llm-engineering/" style="color:inherit">Llm Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/nlp-engineering/" style="color:inherit">Nlp Engineering</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/nlp-advanced/" style="color:inherit">Nlp Advanced</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/deep-learning/" style="color:inherit">Deep Learning</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/datascience-ml/" style="color:inherit">Datascience Ml</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/neuroai/" style="color:inherit">Neuroai</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/nvidia-ai/" style="color:inherit">Nvidia Ai</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/ai-lab/" style="color:inherit">Ai Lab</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/ai-product/" style="color:inherit">Ai Product</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/alan-turing/" style="color:inherit">Alan Turing</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+<article class="th-card">
+  <h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/bootcamps/ai-agent-sec/" style="color:inherit">Ai Agent Sec</a></h3>
+  <p style="margin:0;font-size:.9rem;opacity:.85">Interactive certification prep bootcamp.</p>
+</article>
+</div></div></section>
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Media &amp; Guides</h2>
+<div class="il-grid">
+<article class="th-card"><h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/pdf-library/#ai-ml" style="color:inherit">Visual guides</a></h3><p style="margin:0;font-size:.9rem;opacity:.85">Byte-byte-go style animated guides for AI &amp; Machine Learning.</p></article>
+<article class="th-card"><h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/cinema/" style="color:inherit">Cinema</a></h3><p style="margin:0;font-size:.9rem;opacity:.85">Watch the cinematic reels.</p></article>
+<article class="th-card"><h3 style="margin:0 0 .4rem;font-size:1.05rem"><a href="/noah/" style="color:inherit">Noah AI</a></h3><p style="margin:0;font-size:.9rem;opacity:.85">Train with the AI coach on AI &amp; Machine Learning.</p></article>
+</div></div></section>
+</main>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/>
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</div>
+<script src="/assets/il-compat.js" defer></script>
+<script src="/assets/il-game.js" defer></script>
+<script src="/assets/il-motion.js" defer></script>
+<script src="/assets/il-pwa.js?v=heal2" defer></script>
+<script src="/analytics/config.js" defer></script>
+<script src="/assets/il-analytics.js" defer></script>
+<script src="/assets/il-i18n.js" defer></script>
+<script src="/assets/il-coach.js" defer></script>
+<script src="/assets/il-model-router.js" defer></script>
+<script src="/assets/il-model-analytics.js" defer></script>
+<script src="/assets/il-model-panel.js" defer></script>
+<script src="/assets/il-scene-kit.js" defer></script>
+<script src="/assets/il-noah-avatar.js" defer></script>
+<script src="/assets/il-muse.js" defer></script>
+<script src="/assets/il-challenge.js" defer></script>
+<script src="/assets/noah-ai.js" defer></script>
+</body>
+</html>
+
+</body>
+</html>

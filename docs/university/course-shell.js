@@ -24,7 +24,18 @@ function esc(s) {
 
 /* markdown-lite: **bold**, `code`, ```fences```, - lists. Everything else escaped. */
 function mdLite(src) {
-  var h = esc(src), blocks = [];
+  var h = String(src), blocks = [];
+  /* 2026-10-09: preserve inline SVG diagrams + figure wrappers verbatim
+     (embedded by the diagram buildout) — extract before escaping. */
+  h = h.replace(/<figure[\s\S]*?<\/figure>/g, function (m) {
+    blocks.push(m);
+    return '\u0000D' + (blocks.length - 1) + '\u0000';
+  });
+  h = h.replace(/<svg[\s\S]*?<\/svg>/g, function (m) {
+    blocks.push(m);
+    return '\u0000D' + (blocks.length - 1) + '\u0000';
+  });
+  h = esc(h);
   h = h.replace(/```([\s\S]*?)```/g, function (m, code) {
     blocks.push('<pre><code>' + code.replace(/^\n/, '') + '</code></pre>');
     return '\u0000B' + (blocks.length - 1) + '\u0000';
@@ -44,7 +55,7 @@ function mdLite(src) {
   });
   if (inList) out.push('</ul>');
   h = out.join('');
-  h = h.replace(/\u0000B(\d+)\u0000/g, function (m, i) { return blocks[+i]; });
+  h = h.replace(/\u0000[BD](\d+)\u0000/g, function (m, i) { return blocks[+i]; });
   return h;
 }
 
@@ -137,7 +148,10 @@ function normCourse(raw) {
     honestyNote: d.honestyNote || '',
     crosswalk: d.crosswalk || [],
     certGates: d.certGates || [],
-    readinessDashboard: d.readinessDashboard || null
+    readinessDashboard: d.readinessDashboard || null,
+    /* 2026-10-09 themed-content rollout: per-course topic theme for il-topic-themes.css. */
+    topicTheme: d.topicTheme || '',
+    topic: d.topic || ''
   };
   return out;
 }
@@ -2931,25 +2945,147 @@ function il26_renderMockTask(m, host) {
   card.appendChild(why);
   host.appendChild(card);
 }
+/* ---- TikTok-style inline video standard (2026-10-09) ----
+   All animated media plays inline as muted autoplay previews:
+   IntersectionObserver plays when scrolled into view, pauses when out.
+   Tap/click unmutes + reveals controls. prefers-reduced-motion => poster
+   + native controls, no autoplay. */
+var ilReducedMotion = (typeof window !== 'undefined' && typeof window.matchMedia === 'function') &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function il_youtubeId(url) {
+  if (!url) return null;
+  var m = String(url).match(/(?:youtube\.com\/(?:watch\?[^#]*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function il_videoPoster(url) {
+  if (!url) return '';
+  var clean = String(url).split('?')[0].split('#')[0];
+  if (/\.mp4$/i.test(clean) && clean.indexOf('/assets/videos/') !== -1) {
+    return clean.replace('/assets/videos/', '/assets/videos/thumbnails/').replace(/\.mp4$/i, '.jpg');
+  }
+  var yid = il_youtubeId(url);
+  if (yid) return 'https://i.ytimg.com/vi/' + yid + '/hqdefault.jpg';
+  return '';
+}
+function il_ytFacadeHTML(yid, title) {
+  return '<div class="il-yt-facade" data-yt="' + yid + '" data-title="' + esc(title) + '"' +
+    ' style="position:relative;aspect-ratio:16/9;width:100%;max-width:720px;border-radius:8px;overflow:hidden;background:#000;margin:8px 0;cursor:pointer" role="button" tabindex="0" aria-label="Play ' + esc(title) + '">' +
+    '<img src="https://i.ytimg.com/vi/' + yid + '/hqdefault.jpg" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0">' +
+    '<span style="position:absolute;inset:0;margin:auto;width:68px;height:48px;border-radius:12px;background:rgba(0,0,0,.65);color:#fff;font-size:22px;line-height:48px;text-align:center;pointer-events:none" aria-hidden="true">▶</span>' +
+    '</div>';
+}
+function il_autoplayVideos(root) {
+  var scope = root || (typeof document !== 'undefined' ? document : null);
+  if (!scope || !scope.querySelectorAll) return;
+  /* local MP4 previews */
+  Array.prototype.forEach.call(scope.querySelectorAll('video[data-il-autoplay]'), function (v) {
+    if (v._ilBound) return; v._ilBound = true;
+    v.muted = true; v.loop = true;
+    if (!v.hasAttribute('playsinline')) v.setAttribute('playsinline', '');
+    if (ilReducedMotion) {
+      v.setAttribute('controls', '');
+      v.removeAttribute('data-il-autoplay');
+      return; /* poster + native controls, no autoplay */
+    }
+    v.addEventListener('click', function () {
+      if (v.muted) {
+        v.muted = false;
+        v.setAttribute('controls', '');
+        if (v.paused) v.play().catch(function () {});
+      }
+    });
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            if (v.getAttribute('preload') === 'none') v.setAttribute('preload', 'metadata');
+            if (v.paused) v.play().catch(function () {});
+          } else {
+            v.pause();
+          }
+        });
+      }, { rootMargin: '200px 0px', threshold: 0.1 });
+      io.observe(v);
+    }
+  });
+  /* lazy YouTube embeds: muted autoplay preview on approach, pause offscreen */
+  Array.prototype.forEach.call(scope.querySelectorAll('.il-yt-facade[data-yt]'), function (f) {
+    if (f._ilBound) return; f._ilBound = true;
+    var yid = f.getAttribute('data-yt');
+    var title = f.getAttribute('data-title') || 'video';
+    function loadYT(withSound) {
+      if (f._ilLoaded) return; f._ilLoaded = true;
+      if (withSound) f._ilUser = true;
+      var q = withSound
+        ? 'autoplay=1&rel=0&playsinline=1&enablejsapi=1'
+        : 'autoplay=1&mute=1&loop=1&playlist=' + yid + '&rel=0&playsinline=1&enablejsapi=1';
+      f.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yid + '?' + q + '"' +
+        ' title="' + title.replace(/"/g, '&quot;') + '"' +
+        ' style="position:absolute;inset:0;width:100%;height:100%;border:0" loading="lazy"' +
+        ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"' +
+        ' allowfullscreen></iframe>';
+    }
+    function pauseYT() {
+      var fr = f.querySelector('iframe');
+      if (fr && fr.contentWindow) {
+        fr.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      }
+    }
+    function playYT() {
+      var fr = f.querySelector('iframe');
+      if (fr && fr.contentWindow) {
+        fr.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }
+    }
+    function onTap() { loadYT(true); }
+    f.addEventListener('click', onTap);
+    f.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(); }
+    });
+    if (ilReducedMotion) return; /* poster + play button only */
+    if ('IntersectionObserver' in window) {
+      var io2 = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            if (!f._ilLoaded) loadYT(false);
+            else if (!f._ilUser) playYT();
+          } else if (f._ilLoaded && !f._ilUser) {
+            pauseYT();
+          }
+        });
+      }, { rootMargin: '200px 0px' });
+      io2.observe(f);
+    }
+  });
+}
 function il26_renderModuleVideos(m, host) {
   if (!(m.videos || []).length) return;
   var card = el('div', 'scriptlab');
-  card.innerHTML = '<h3>Videos</h3><p class="small muted">Original Interstitium Labs animations play inline; ' +
-    'third-party videos are linked. Watch in order; each unlocks the next stage.</p>';
+  card.innerHTML = '<h3>Videos</h3><p class="small muted">Videos play inline as muted previews — tap for sound &amp; controls. ' +
+    'Watch in order; each unlocks the next stage.</p>';
   m.videos.forEach(function (v, i) {
     var watched = Progress.get('video:' + m.id + ':' + i) === '1';
     var row = el('div', 'mock-task');
     var isMp4 = /\.mp4(\?|$)/i.test(v.url || '');
+    var yid = !isMp4 ? il_youtubeId(v.url || '') : null;
     var previewNote = (v.preview ? ' <span class="il-badge il-badge-preview">Preview — narration coming</span>' : '');
     var videoHtml = '';
     if (isMp4) {
+      var poster = il_videoPoster(v.url);
+      var capSrc = String(v.url).split('?')[0].replace(/\.mp4$/i, '.vtt');
       videoHtml = '<div class="il-video-wrap" style="margin:8px 0">' +
-        '<video controls preload="metadata" style="width:100%;max-width:720px;border-radius:8px;background:#000" ' +
-        'aria-label="' + esc(v.title) + '">' +
+        '<video data-il-autoplay muted loop playsinline preload="metadata" style="width:100%;max-width:720px;border-radius:8px;background:#000" ' +
+        'aria-label="' + esc(v.title) + '"' +
+        (poster ? ' poster="' + esc(poster) + '"' : '') + '>' +
         '<source src="' + esc(v.url) + '" type="video/mp4">' +
+        '<track kind="captions" src="' + esc(capSrc) + '" srclang="en" label="English">' +
         'Your browser does not support the video tag.</video>' +
-        (v.preview ? '<p class="small muted">Animated explainer (preview) — voiceover narration coming soon.</p>' : '') +
+        '<p class="small muted">🔇 Muted preview — tap video for sound &amp; controls.' +
+        (v.preview ? ' Animated explainer (preview) — voiceover narration coming soon.' : '') + '</p>' +
         '</div>';
+    } else if (yid) {
+      videoHtml = il_ytFacadeHTML(yid, v.title || 'Video') +
+        '<p class="small muted">🔇 Muted preview — tap video for sound.</p>';
     }
     row.innerHTML = '<div><b>' + (i + 1) + '. ' + esc(v.title) + '</b> ' +
       '<span class="muted small">(' + esc(v.source || '') + (v.durationMin ? ' · ' + esc(String(v.durationMin)) + ' min' : '') +
@@ -2958,7 +3094,9 @@ function il26_renderModuleVideos(m, host) {
       '<div class="btn-row" style="margin-top:6px">' +
       (isMp4
         ? '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Open full screen</a>'
-        : '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Watch</a>') +
+        : (yid
+          ? '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Watch on YouTube</a>'
+          : '<a class="btn ghost" href="' + esc(v.url) + '" target="_blank" rel="noopener">Watch</a>')) +
       '</div>';
     var btn = el('button', 'btn' + (watched ? '' : ' primary'), watched ? '✓ Watched' : 'Mark watched');
     btn.type = 'button';
@@ -2973,6 +3111,7 @@ function il26_renderModuleVideos(m, host) {
     card.appendChild(row);
   });
   host.appendChild(card);
+  il_autoplayVideos(card);
 }
 
 /* ---- module PDF guides (visual guides, byte-byte-go style) ---- */
@@ -4015,6 +4154,11 @@ function boot() {
     if (!raw) { showError('No course JSON found.'); return; }
     if (raw.__parseError) { showError('Course JSON parse error: ' + raw.__parseError); return; }
     COURSE = normCourse(raw);
+    /* 2026-10-09 themed-content rollout: activate the per-course topic theme
+       (il-topic-themes.css) on the course page. */
+    try {
+      if (COURSE.topicTheme && document.body) document.body.setAttribute('data-topic-theme', COURSE.topicTheme);
+    } catch (e) {}
     if (COURSE.crosswalk && COURSE.crosswalk.length && !TABS.some(function (t) { return t.id === 'crosswalk'; })) {
       TABS.push({ id: 'crosswalk', num: '07', label: 'Crosswalk' });
     /* IL-27: Fast Track + Objectives tabs (course-scoped; other courses unaffected) */

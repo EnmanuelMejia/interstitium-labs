@@ -117,7 +117,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 </section>
 <section class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
   <div class="il-cinema-player" id="cinema-stage">
-    <video id="cinema-video" controls preload="metadata" playsinline poster="/assets/chrome/hero-cinematic-poster.jpg" aria-describedby="cinema-caption">
+    <video id="cinema-video" muted loop playsinline preload="metadata" poster="/assets/chrome/hero-cinematic-poster.jpg" aria-describedby="cinema-caption" aria-label="Cinematic reel — muted preview, tap for sound and controls">
       <source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/>
       <p>Your browser cannot play this video. <a class="text-cyan" href="/assets/chrome/hero-cinematic-loop.mp4">Download the file directly</a>.</p>
     </video>
@@ -163,6 +163,33 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   var titleEl = document.getElementById('cinema-title');
   var descEl = document.getElementById('cinema-desc');
   if(!video || !stage) return;
+  /* TikTok-style muted autoplay preview (2026-10-09 standard):
+     plays when scrolled into view, pauses when out; tap unmutes + controls.
+     prefers-reduced-motion => poster + native controls, no autoplay. */
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function unmuteCinema(){
+    if(video.muted){
+      video.muted = false;
+      video.setAttribute('controls','');
+      if(video.paused) video.play().catch(function(){});
+    }
+  }
+  if(reduced){
+    video.setAttribute('controls','');
+    video.muted = false;
+  } else {
+    video.addEventListener('click', unmuteCinema);
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){ if(video.paused) video.play().catch(function(){}); }
+          else video.pause();
+        });
+      }, {rootMargin: '200px 0px', threshold: 0.1}).observe(stage);
+    } else if(video.paused){
+      video.play().catch(function(){});
+    }
+  }
   function setFsLabel(){
     var fs = document.fullscreenElement === stage;
     fsBtn.textContent = fs ? 'Exit fullscreen' : 'Enter fullscreen';
@@ -185,15 +212,15 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     btn.addEventListener('click', function(){
       items.forEach(function(b){ b.setAttribute('aria-current','false'); });
       btn.setAttribute('aria-current','true');
-      var wasPaused = video.paused;
       video.pause();
       var src = video.querySelector('source');
       src.setAttribute('src', btn.getAttribute('data-src'));
       video.setAttribute('poster', btn.getAttribute('data-poster'));
       titleEl.textContent = btn.getAttribute('data-title');
       descEl.innerHTML = btn.getAttribute('data-desc');
+      if(!reduced){ video.muted = true; video.removeAttribute('controls'); }
       video.load();
-      if(!wasPaused){ video.play().catch(function(){}); }
+      if(!reduced){ video.play().catch(function(){}); }
     });
   });
 })();
