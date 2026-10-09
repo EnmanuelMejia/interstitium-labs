@@ -5,7 +5,7 @@
  "title": "The Frontier — Cutting-Edge Research Distilled",
  "tagline": "Transformers, quantum, CRISPR, fusion, BCIs, agents, chips, synbio, space — the durable core of fast-moving fields, with the method to track the edge.",
  "blurb": "Twelve seed modules on frontier topics written from established knowledge and dated honestly: transformer architectures, quantum computing, CRISPR, fusion energy, brain–computer interfaces, AI agents, semiconductor scaling, synthetic biology, space infrastructure, and the frontier method itself (how to read preprints, detect hype, and date every claim). Each module separates the durable mechanism-core from the perishable edge, and every module carries an as-of date — frontier means fast-moving, and this course says so up front. Designed for a daily pipeline to append new modules; see the frontier README for the append contract. Original instructional content; confers no certificate. New: capability forecasting from physical inputs (Epoch AI) and AI capability evaluation (METR).",
- "hours": 63,
+ "hours": 67,
  "updatedAt": "2026-10-09",
  "objectives": [
   "Explain the settled core mechanisms of twelve frontier fields",
@@ -5240,6 +5240,299 @@
      "httpStatus": 200
     }
    ]
+  },
+  {
+   "id": "m23-blockchain-finance",
+   "code": "IL-23",
+   "title": "Blockchain & the Design of Financial Systems",
+   "weight": 1,
+   "asOf": "2026-10-09",
+   "summary": "Distributed ledgers, smart contracts, and encryption as tools for financial-system design — distilled from MIT 14.129 (Prof. Robert M. Townsend, Spring 2025). Treats blockchain as a special-form database, ledgers as information solutions, contracts as coordination solutions, and applies mechanism design plus game theory to judge real proposals. As of October 2026.",
+   "objectives": [
+    "Explain why a blockchain is best understood as a special-form database of signed, chained transaction records",
+    "Describe how distributed ledgers solve information problems and smart contracts solve coordination problems",
+    "Explain tokenization, multilateral trade-credit set-off, and stochastic financial networks with liquidity and contagion",
+    "Apply mechanism design, encryption, and algorithmic game theory to evaluate a financial-system proposal"
+   ],
+   "notes": [
+    {
+     "title": "Concepts",
+     "body": "**Blockchain as a special-form database.** At its core, blockchain technology is a ledger for storing information about transactions: data is stored as signed blocks linked to each other, creating a chain of immutable, interconnected entries. The course's key corrective: stop associating blockchain with money by default. Any data structure used to store information can be considered a database — a blockchain is simply a database with a particular append-only, cryptographically-linked structure. Bitcoin's creation popularized it, but the technology and the currency are separable ideas.\n\n**Distributed ledger as an information solution.** Financial accounts are themselves special-form databases. A distributed ledger gives every participant a consistent view of the same transaction history, which solves an *information problem*: fragmented, private ledgers create disagreement about who owes what. Unifying the ledger removes a whole class of reconciliation failures. Tensions remain between individualized perspectives and the community view, and current deployments still struggle with throughput and governance.\n\n**Smart contracts as a coordination solution.** Adding contracting on top of a shared ledger addresses a *coordination problem*. The canonical case: privately issued securities circulating as monies. Without coordination, fragmented markets and privately issued circulating debt can trigger market crises. A multiagent smart contract can coordinate settlement and prevent the crisis — not by eliminating the debt, but by automating the coordination its holders cannot achieve alone. The efficiency benchmark: compare the contract outcome against the Pareto frontier of the same economy without the contract.\n\n**Tokenized and programmable assets.** Tokenization wraps a real-world claim (a security, a commodity, a payment obligation) in a programmable digital representation that a smart contract can move, split, or condition on events. Programmability turns static claims into state machines: payment if and only if delivery is recorded, for example.\n\n**Multilateral trade-credit set-off.** In supply chains, firms owe each other in a dense web. Multilateral set-off nets these obligations against one another so only residual balances settle — a direct application of shared-ledger thinking to trade credit, reducing liquidity needs.\n\n**Stochastic financial networks.** Markets vary over time and with shocks. A stochastic financial network models who participates in which market when; the policy question is where to inject liquidity ex ante as a buffer. The analysis identifies the *most valued player* to receive an injection — the one whose participation carries liquidity into subsequent markets — and contrasts this with contagion dynamics, where the same network structure spreads distress. Market-making via targeted injections versus blunt restrictions: the framework lets you compare the two.\n\n**Mechanism design vs. protocols and trust.** Mechanism design asks what rules make self-interested agents produce a desired outcome; protocols are the concrete message-passing rules they run. Different notions of trust (cryptographic verification, economic incentives, legal recourse) substitute for one another. The course's method: unpack the technology bundle — authentication plus commitment schemes plus an execution engine — and ask which pieces actually do the work, rather than accepting conventional labels like 'blockchain' or 'DeFi' as units of analysis.\n\n**Modern encryption: key concepts.** Authentication (proving who sent a message), commitment schemes (binding yourself to a value now, revealing it later), and multiparty encryption (computing on data no single party sees in the clear, with optimal scrambling to hide which inputs matter). These primitives let financial infrastructure verify and settle without exposing the underlying positions.\n\n**Algorithmic game theory.** Nash equilibria describe stable strategy profiles, but computing them can be intractable; correlated equilibria — where a shared signal coordinates play — are computationally feasible and often more realistic for designed markets. Case study: the limit order book as a designed game, where the rules of the book determine which equilibria are reachable.\n\n(Distilled from MIT OpenCourseWare 14.129, Spring 2025, Prof. Robert M. Townsend; lecture videos and notes linked below. Course material is CC BY-NC-SA.)"
+    },
+    {
+     "title": "Hands-on procedure",
+     "body": "1. Watch MIT OCW Lecture 2 ('Blockchain as a Database') and write, in your own words, the one-sentence distinction between a blockchain and a general database.\n\n2. Sketch a three-firm supply chain where A owes B $100, B owes C $100, and C owes A $100. Compute the multilateral net settlement. Then add a fourth firm D that owes A $50 with no offsetting claim, and recompute. State the liquidity saved versus gross settlement.\n\n3. Read the Lecture 4 transcript section on privately issued circulating debt. Identify (a) the economic problem, (b) the coordination failure, and (c) what the smart contract automates. Write each in one sentence.\n\n4. In the stochastic-networks framing, define 'most valued player' for liquidity injection in your own words, then give one real-world analogue (a clearinghouse, a market maker, a correspondent bank) and argue why it fits or does not.\n\n5. Take one live crypto/fintech proposal you have seen marketed this month. Apply the unpacking method: list its authentication, commitment, execution, and consensus components separately, and mark which are doing real work versus label decoration. Deliver as a one-page brief."
+    },
+    {
+     "title": "Project brief",
+     "body": "Build a 2-page 'design review' of a tokenized-asset proposal of your choice (stablecoin, tokenized treasury, on-chain trade finance). Cover: the information problem it claims to solve, the coordination problem if any, the trust assumptions it actually relies on, and the failure mode its mechanism design does not cover. Cite the OCW lectures that inform each judgment."
+    },
+    {
+     "title": "Frontier honesty",
+     "body": "This module's stance follows the course: avoid hype and ideological positions. Most production 'blockchain' deployments use only a subset of the bundle (often no consensus algorithm at all, sometimes trusted escrow). Evaluate proposals by the economic problem they solve, not by the labels they wear. Nothing here is investment advice; several mechanisms described are research-stage."
+    },
+    {
+     "title": "Worked example: multilateral set-off",
+     "body": "Three firms: Alpha owes Beta 100, Beta owes Gamma 100, Gamma owes Alpha 100. Gross settlement moves 300. Net positions: each firm's payables equal its receivables, so all net to zero — nothing needs to move. Add Delta, which owes Alpha 50 and is owed nothing: Delta pays 50 to Alpha, everything else nets. Total moved: 50 instead of 350. The shared ledger's job is making the obligation graph visible so the netting can be computed and enforced."
+    },
+    {
+     "title": "Common mistakes: Blockchain & the Design of Financial Systems",
+     "body": "**Mistake 1: 'Blockchain = money.'** The ledger is a database technology; money is one application. Conflating them blocks you from seeing trade-credit, identity, and settlement uses.\n\n**Mistake 2: Assuming decentralization is doing the work.** Many deployments keep the cryptography and drop the consensus. Ask which component enforces the property you care about.\n\n**Mistake 3: Smart contracts eliminate trust.** They relocate it — into the code, the oracles feeding it data, and the governance that can upgrade it.\n\n**Mistake 4: Treating tokenization as value creation.** Wrapping a claim changes its transferability and programmability, not the creditworthiness of the issuer.\n\n**Mistake 5: Ignoring the information problem.** If participants cannot agree on the state of obligations, no contract logic on top will save the design — fix the ledger first."
+    },
+    {
+     "title": "Frontier fold-in",
+     "body": "Folded 2026-10-09 from MIT OCW 14.129 (Spring 2025). Pairs with the module's encryption cross-links in IL-06 and the consensus/game-theory cross-links in IL-08 and IL-20. Ask Noah to extend any section: 'unpack the trust assumptions in [proposal]' or 'walk me through the set-off math with four firms.'"
+    }
+   ],
+   "cards": [
+    {
+     "front": "Blockchain, in one sentence (14.129 framing)?",
+     "back": "A special-form database: signed blocks of transaction records linked into an immutable chain. A database technology, not a currency."
+    },
+    {
+     "front": "What information problem does a distributed ledger solve?",
+     "back": "Fragmented private ledgers disagree about who owes what; a shared ledger gives all participants one consistent view of obligations."
+    },
+    {
+     "front": "What coordination problem do smart contracts solve?",
+     "back": "Fragmented markets with privately issued circulating debt can spiral into crises; an automated multiagent contract coordinates settlement the holders cannot achieve alone."
+    },
+    {
+     "front": "Tokenization = ?",
+     "back": "Wrapping a real-world claim in a programmable digital representation a contract can move, split, or condition on events."
+    },
+    {
+     "front": "Multilateral trade-credit set-off?",
+     "back": "Netting a dense web of mutual obligations so only residual balances settle — cuts liquidity needs versus gross settlement."
+    },
+    {
+     "front": "'Most valued player' in a stochastic financial network?",
+     "back": "The agent whose participation best carries an injected unit of liquidity into subsequent markets — the optimal recipient of ex ante liquidity buffers."
+    },
+    {
+     "front": "Mechanism design vs. protocol?",
+     "back": "Mechanism design = rules that make self-interested agents produce a desired outcome; protocol = the concrete message-passing rules they execute."
+    },
+    {
+     "front": "Name three encryption primitives used in financial infrastructure.",
+     "back": "Authentication, commitment schemes, multiparty encryption (computing on data no single party sees in the clear)."
+    },
+    {
+     "front": "Why are correlated equilibria more practical than Nash for designed markets?",
+     "back": "Nash equilibria can be computationally intractable; correlated equilibria (coordinated by a shared signal) are feasible to compute and realistic for designed rules like a limit order book."
+    },
+    {
+     "front": "The course's 'unpacking' method?",
+     "back": "Separate the bundle — authentication, commitment, execution engine, consensus — and ask which piece does the real work, instead of accepting labels like 'blockchain' or 'DeFi'."
+    },
+    {
+     "front": "Smart contracts eliminate trust — true or false?",
+     "back": "False. They relocate trust into the code, the oracles, and the upgrade governance."
+    },
+    {
+     "front": "Prerequisites for MIT 14.129?",
+     "back": "Graduate microeconomic theory / contract economics or instructor permission — it is a research-oriented course with no final exam, graded on research engagement."
+    }
+   ],
+   "quiz": [
+    {
+     "q": "In the 14.129 framing, a blockchain is best described as:",
+     "choices": [
+      "A type of money",
+      "A special-form database of signed, chained transaction records",
+      "A consensus algorithm",
+      "A smart contract language"
+     ],
+     "answer": 1,
+     "explain": "The course stresses: blockchain technology at its core is a ledger for storing transaction information — separable from any currency."
+    },
+    {
+     "q": "A distributed ledger primarily solves:",
+     "choices": [
+      "Slow block times",
+      "An information problem — disagreement across fragmented private ledgers",
+      "High gas fees",
+      "Miner centralization"
+     ],
+     "answer": 1,
+     "explain": "Unifying the ledger gives every participant a consistent view of obligations, removing reconciliation failures."
+    },
+    {
+     "q": "Smart contracts in the course solve:",
+     "choices": [
+      "An information problem",
+      "A coordination problem — e.g., crises from privately issued circulating debt",
+      "The double-spend problem only",
+      "Oracle latency"
+     ],
+     "answer": 1,
+     "explain": "Lecture 4's case: without coordination, fragmented markets and circulating private debt trigger crises; the contract automates the coordination."
+    },
+    {
+     "q": "Multilateral trade-credit set-off reduces:",
+     "choices": [
+      "The number of firms",
+      "Liquidity needed for settlement, by netting mutual obligations",
+      "Contract enforceability",
+      "Ledger size"
+     ],
+     "answer": 1,
+     "explain": "Only residual balances settle after netting — the worked example moves 50 instead of 350."
+    },
+    {
+     "q": "The 'most valued player' for a liquidity injection is:",
+     "choices": [
+      "The largest bank",
+      "The agent whose participation best carries liquidity into subsequent markets",
+      "The most leveraged firm",
+      "The central bank"
+     ],
+     "answer": 1,
+     "explain": "Stochastic financial networks: target the injection where it propagates furthest through future market participation."
+    },
+    {
+     "q": "Which trust notion does NOT substitute for the others in the course's framing?",
+     "choices": [
+      "Cryptographic verification",
+      "Economic incentives",
+      "Legal recourse",
+      "None — the point is they substitute for one another"
+     ],
+     "answer": 3,
+     "explain": "The method explicitly treats cryptographic, incentive-based, and legal trust as substitutes to be unpacked per design."
+    },
+    {
+     "q": "A commitment scheme lets you:",
+     "choices": [
+      "Mine blocks faster",
+      "Bind yourself to a value now and reveal it later",
+      "Reverse a transaction",
+      "Avoid all fees"
+     ],
+     "answer": 1,
+     "explain": "Commit now, reveal later — a core primitive for financial infrastructure built on encryption."
+    },
+    {
+     "q": "Correlated equilibria are preferred over Nash in designed markets because:",
+     "choices": [
+      "They always pay more",
+      "They are computationally feasible where Nash can be intractable",
+      "They need no shared signal",
+      "They eliminate all risk"
+     ],
+     "answer": 1,
+     "explain": "Lecture 11: tractability matters — a shared coordinating signal makes the equilibrium computable and realistic."
+    },
+    {
+     "q": "Applying the 'unpacking' method to a proposal means:",
+     "choices": [
+      "Accepting its marketing labels",
+      "Separating authentication, commitment, execution, and consensus to see which does real work",
+      "Checking its token price",
+      "Counting its GitHub stars"
+     ],
+     "answer": 1,
+     "explain": "Never accept conventional bundles and labels; identify the component actually enforcing each claimed property."
+    }
+   ],
+   "drills": [
+    {
+     "id": "m23-blockchain-drill-recall",
+     "title": "Rapid recall — Blockchain & Financial System Design",
+     "items": [
+      {
+       "prompt": "In your own words, define 'blockchain as a special-form database.'",
+       "answer": "A database whose records are signed blocks of transactions linked into an immutable chain — a ledger technology, separable from money.",
+       "explain": "Core vocabulary from this module's Concepts note."
+      },
+      {
+       "prompt": "State the information problem and the coordination problem in one sentence each.",
+       "answer": "Information: fragmented private ledgers disagree about obligations. Coordination: fragmented markets with circulating private debt can spiral into crises without automated coordination.",
+       "explain": "Lectures 3 and 4: ledgers fix information, contracts fix coordination."
+      },
+      {
+       "prompt": "What does multilateral set-off save, and how?",
+       "answer": "Liquidity: netting mutual obligations so only residuals settle.",
+       "explain": "Worked example: 50 moves instead of 350."
+      }
+     ]
+    },
+    {
+     "id": "m23-blockchain-drill-unpack",
+     "title": "Design review drill — unpack a proposal",
+     "items": [
+      {
+       "prompt": "List the four bundle components to separate when reviewing any 'blockchain' proposal.",
+       "answer": "Authentication, commitment schemes, execution engine, consensus algorithm.",
+       "explain": "The unpacking method from the Concepts note."
+      },
+      {
+       "prompt": "Name one trust assumption that smart contracts relocate rather than remove.",
+       "answer": "Any of: correctness of the code, honesty of oracles feeding data, governance controlling upgrades.",
+       "explain": "Common mistakes note: contracts relocate trust."
+      }
+     ]
+    }
+   ],
+   "handsOnLab": {
+    "id": "m23-blockchain-lab",
+    "title": "Hands-on lab: Blockchain & the Design of Financial Systems",
+    "brief": "You will write an evidence-graded research brief on this module's topic: trace the strongest claim back to its primary source, grade the evidence, and steelman the skeptical case. The deliverable is a 2-page brief a careful reader could trust.",
+    "steps": [
+     "Pick the single most striking claim in this module (e.g., 'smart contracts prevent crises from privately issued circulating debt'). Write it down verbatim with its cited source.",
+     "Trace it to the primary source: the lecture transcript, the paper, the dataset — not a news article about it. Record the full citation.",
+     "Grade the evidence A–F: A = replicated, peer-reviewed; F = assertion without data. Justify the grade in two sentences.",
+     "Steelman the skeptic: write the strongest three-sentence case against the claim (e.g., oracle risk, governance capture, the Lucas critique of mechanism design).",
+     "Close with a one-paragraph design review of a live proposal using the unpacking method."
+    ]
+   },
+   "estimatedMinutes": 240,
+   "mockTask": {
+    "q": "A founder pitches 'a blockchain for trade finance.' What is your first analytical move?",
+    "choices": [
+     "Ask about the token price.",
+     "Unpack the bundle: which of authentication, commitment, execution, consensus does real work — and name the information or coordination problem it solves.",
+     "Check the consensus algorithm's TPS.",
+     "Ask which chain it is built on."
+    ],
+    "answer": 1,
+    "explain": "The course method: identify the economic problem first (information vs. coordination), then check which components do real work versus label decoration."
+   },
+   "videos": [
+    {
+     "title": "Lecture 2: Blockchain as a Database — MIT 14.129 (Spring 2025)",
+     "url": "https://www.youtube.com/watch?v=8fAC2QEtmgQ",
+     "source": "MIT OpenCourseWare (YouTube)",
+     "blurb": "Prof. Townsend's unified view of distributed ledgers and financial accounts as databases — the 'special-form database' framing this module builds on. CC BY-NC-SA."
+    },
+    {
+     "title": "Lecture 10: Designs of Financial Infrastructure Utilizing Encryption — MIT 14.129",
+     "url": "https://www.youtube.com/watch?v=dM0I2g8pEfc",
+     "source": "MIT OpenCourseWare (YouTube)",
+     "blurb": "Auctions, hybrid credit, and insurance built on encryption primitives — authentication, commitment, and multiparty computation in financial design. CC BY-NC-SA."
+    },
+    {
+     "title": "Lecture 11: Algorithmic Game Theory — MIT 14.129",
+     "url": "https://www.youtube.com/watch?v=ruqjxyUsTlY",
+     "source": "MIT OpenCourseWare (YouTube)",
+     "blurb": "Correlated equilibria and computationally feasible algorithms for designed markets, including the limit order book as a designed game. CC BY-NC-SA."
+    }
+   ],
+   "pdfs": [
+    {
+     "title": "MIT 14.129 — Blockchain and the Design of Financial Systems (course page)",
+     "url": "https://ocw.mit.edu/courses/14-129-blockchain-and-the-design-of-financial-systems-spring-2025/",
+     "source": "MIT OpenCourseWare",
+     "blurb": "Syllabus, lecture notes, and videos for the Spring 2025 graduate course by Prof. Robert M. Townsend. Free under CC BY-NC-SA; linked, not mirrored."
+    }
+   ],
+   "crossLinks": [
+    "il06-crypto-foundations",
+    "il08-distributed-consensus",
+    "il20-game-theory",
+    "m23-metr-evals"
+   ],
+   "prerequisiteFor": []
   }
  ],
  "scriptLabs": [
@@ -6745,6 +7038,11 @@
    "url": "https://ocw.mit.edu/courses/7-01sc-fundamentals-of-biology-fall-2011/",
    "retrieved": "2026-10-09",
    "note": "OCW Scholar course drawing on 7.012/7.013/7.014 (Lander, Weinberg, Jacks, Sive, Walker, Chisholm). Four units: Biochemistry, Molecular Biology, Genetics, Recombinant DNA. Lecture excerpts, problems with solutions, TA help sessions, key terms."
+  },
+  {
+   "name": "MIT OpenCourseWare — 14.129 Blockchain and the Design of Financial Systems (Spring 2025)",
+   "url": "https://ocw.mit.edu/courses/14-129-blockchain-and-the-design-of-financial-systems-spring-2025/",
+   "retrieved": "2026-10-09"
   }
  ],
  "honestyNote": "Original instructional content. Frontier topics are dated as-of 2026-10-07 and flagged as fast-moving; leadership and product claims carry short half-lives and must be re-verified before citing. Confers no certificate. It is not affiliated with, endorsed by, or sponsored by any research lab, company, or institution named; it confers no certificate and grants no credentials.",
@@ -7177,7 +7475,8 @@
      "m23-transformers",
      "m23-fusion",
      "m23-bci",
-     "m23-epoch-ai"
+     "m23-epoch-ai",
+     "m23-blockchain-finance"
     ]
    },
    {
@@ -7186,7 +7485,8 @@
     "moduleIds": [
      "m23-transformers",
      "m23-quantum",
-     "m23-semiconductors"
+     "m23-semiconductors",
+     "m23-blockchain-finance"
     ]
    },
    {
@@ -7194,7 +7494,8 @@
     "role": "Asks the hard questions the papers skip: what would change your mind, what is the crux?",
     "moduleIds": [
      "m23-frontier-method",
-     "m23-metr-evals"
+     "m23-metr-evals",
+     "m23-blockchain-finance"
     ]
    },
    {
@@ -7244,15 +7545,18 @@
   "modulePersonaMap": {
    "p0": [
     "m23-transformers",
-    "m23-agents"
+    "m23-agents",
+    "m23-blockchain-finance"
    ],
    "p1": [
     "m23-quantum",
-    "m23-semiconductors"
+    "m23-semiconductors",
+    "m23-blockchain-finance"
    ],
    "p2": [
     "m23-crispr",
-    "m23-synbio"
+    "m23-synbio",
+    "m23-blockchain-finance"
    ],
    "p3": [
     "m23-fusion"
