@@ -80,8 +80,6 @@ details.check>summary::-webkit-details-marker{color:var(--gold,#c9a227)}
       <h2 style="margin-top:2.6rem">Modules</h2>
       <div id="modules"></div>
 
-      <div id="path-projects"></div>
-
       <div id="open-shelf-wrap"></div>
 
       <h2 style="margin-top:2.2rem">Assessments</h2>
@@ -260,29 +258,10 @@ details.check>summary::-webkit-details-marker{color:var(--gold,#c9a227)}
       mbox.innerHTML = '<div class="empty-state"><h3>Modules being published</h3><p>Module detail for this path is still being written.</p></div>';
     }
 
-    /* Guided projects vs Capstone projects showcases (third-party layout pattern) */
-    function projCard(m) {
-      var anchor = 'module-' + String(m.id || '').replace(/[^a-z0-9-]/gi, '-');
-      return '<article class="card"><div class="code">' + IL.esc(m.kind || 'project') + '</div>' +
-        '<h3>' + IL.esc(m.title) + '</h3>' +
-        (m.il_provides ? '<p>' + IL.esc(m.il_provides) + '</p>' : '') +
-        '<p style="margin-top:0.8rem"><a class="btn btn-sm btn-ghost" href="#' + anchor + '">Open the module</a></p></article>';
-    }
-    var projBox = document.getElementById('path-projects');
-    var guided = (p.modules || []).filter(function (m) { return m.kind === 'guided-project'; });
-    var stones = (p.modules || []).filter(function (m) { return m.kind === 'capstone'; });
-    var projHtml = '';
-    if (guided.length) {
-      projHtml += '<h2 style="margin-top:2.4rem">Guided projects</h2>' +
-        '<p style="color:var(--ink-dim)">Build alongside the spine — scoped, mentored, and finished inside the path.</p>' +
-        '<div class="proj-grid">' + guided.map(projCard).join('') + '</div>';
-    }
-    if (stones.length) {
-      projHtml += '<h2 style="margin-top:2.4rem">Capstone projects</h2>' +
-        '<p style="color:var(--ink-dim)">Prove it end to end — the portfolio-grade build this path is remembered by.</p>' +
-        '<div class="proj-grid">' + stones.map(projCard).join('') + '</div>';
-    }
-    projBox.innerHTML = projHtml;
+    /* 2026-10-09 dedup: removed the Guided/Capstone project showcase cards —
+       they re-rendered the same project-kind modules already shown in full in
+       #modules above (same titles, subset of data). The full modules are the
+       canonical instance; kind labels ("guided-project"/"capstone") remain. */
 
     var shelfWrap = document.getElementById('open-shelf-wrap');
     if (shelfWrap) {
