@@ -47,6 +47,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 .cat-hero{position:relative;min-height:62svh;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
 .cat-hero__bg{position:absolute;inset:0;z-index:-2}
 .cat-hero__bg video{width:100%;height:100%;object-fit:cover;object-position:center}
+.cat-hero__bg canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .cat-hero__scrim{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(6,8,12,.42) 0%,rgba(6,8,12,.18) 34%,rgba(6,8,12,.88) 100%)}
 .cat-hero__inner{width:100%;max-width:1200px;margin:0 auto;padding:4.5rem 1.25rem 2.6rem}
 .cat-hero__eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--cat-accent,#7fd4e8)}
@@ -196,19 +197,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
   <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
+<script src="/assets/il-theme-heroes.js"></script>
+<script src="/assets/il-cine-cards.js"></script>
 <script src="/assets/noah-full.js" defer></script>
 <script>
 /* Categories hub data — 2026-10-09. All facts from course JSONs; no invented content.
+   Heroes: ILThemeHeroes canvas engine (themed generative scenes); old MP4s kept as no-engine fallback.
+   Cards: ILCineCards TikTok-style cinematic cards (15s loops, step pills, Noah TTS voiceover).
    Pricing: IL-27/28/29 free; all others $249; bundle $999. */
 (function(){
 "use strict";
-var FREE = {"IL-27":1,"IL-28":1,"IL-29":1};
-var OG = {
-  "IL-26": "/university/og/il-26-data-analyst-og.png",
-  "IL-27": "/university/og/il-27-it-infrastructure-og.png",
-  "IL-28": "/university/og/il-28-devsecops-og.png",
-  "IL-29": "/university/og/il-29-threatlocker-og.png"
-};
 var CATS = [
  { id:"ai", name:"AI & Machine Learning", accent:"#7fd4e8",
    hero:"/assets/topics/ai-ml-hero.mp4",
@@ -299,35 +297,58 @@ var CATS = [
    ]}
 ];
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function priceBadge(code){
-  if(FREE[code]) return '<span class="cat-badge cat-badge--free">Free · Open access</span>';
-  return '<span class="cat-badge cat-badge--price">$249 · unlocks at checkout</span>';
+/* Mounted hero canvases, keyed by tab id — only the active tab animates. */
+var HERO_MOUNTED = {};
+function mountHero(id){
+  try{
+    var bg = document.querySelector('[data-hero-bg="'+id+'"]');
+    if(!bg) return;
+    var cv = bg.querySelector('[data-theme-canvas]');
+    var fb = bg.querySelector('[data-hero-fallback]');
+    if(window.ILThemeHeroes && cv){
+      if(fb) fb.style.display = "none";
+      cv.style.display = "block";
+      Object.keys(HERO_MOUNTED).forEach(function(k){
+        if(k !== id && HERO_MOUNTED[k]){
+          try{ ILThemeHeroes.unmount(HERO_MOUNTED[k]); }catch(e){}
+          delete HERO_MOUNTED[k];
+        }
+      });
+      if(!HERO_MOUNTED[id]){ ILThemeHeroes.mount(cv, id); HERO_MOUNTED[id] = cv; }
+    } else if(fb){
+      /* Engine failed to load — fall back to the legacy MP4 hero. */
+      if(cv) cv.style.display = "none";
+      fb.style.display = "block";
+      try{ var pr = fb.play(); if(pr && pr.catch){ pr.catch(function(){}); } }catch(e){}
+    }
+  }catch(e){}
 }
-function cardHTML(code,title,hours,mods,blurb,accent){
-  var og = OG[code];
-  var media = og
-    ? '<div class="cat-card__media"><img src="'+og+'" alt="'+esc(title)+' preview" loading="lazy" width="1200" height="630"/></div>'
-    : '<div class="cat-card__media cat-card__media--gen" style="--cat-accent:'+accent+';--cat-accent-glow:'+accent+'55"><span class="cat-card__code">'+esc(code)+'</span></div>';
-  return '<a class="cat-card" href="/university/academy?id='+esc(code)+'" style="--cat-accent:'+accent+'">'
-    + media
-    + '<div class="cat-card__body"><h4 class="cat-card__title">'+esc(code)+' · '+esc(title)+'</h4>'
-    + '<p class="cat-card__meta">'+esc(hours)+' hours · '+esc(mods)+' modules</p>'
-    + '<p style="margin:0;font-size:.88rem;color:rgba(242,237,225,.7);line-height:1.5">'+esc(blurb)+'</p>'
-    + '<div class="cat-card__badges">'+priceBadge(code)+'<span class="cat-badge cat-badge--noah">Noah-tutored</span></div>'
-    + '</div></a>';
+/* Render TikTok-style cinematic cards into each panel's grid, once. */
+function renderCineGrids(){
+  try{
+    if(!window.ILCineCards) return;
+    CATS.forEach(function(c){
+      var g = document.querySelector('[data-cine-grid="'+c.id+'"]');
+      if(g && !g.getAttribute("data-cine-done")){
+        ILCineCards.renderAll(g, c.programs.map(function(p){ return p[0]; }));
+        g.setAttribute("data-cine-done", "1");
+      }
+    });
+  }catch(e){}
 }
 function panelHTML(c, active){
   var totalH = c.programs.reduce(function(a,p){return a+(parseInt(p[2],10)||0);},0);
   var totalM = c.programs.reduce(function(a,p){return a+(parseInt(p[3],10)||0);},0);
-  var cards = c.programs.map(function(p){return cardHTML(p[0],p[1],p[2],p[3],p[4],c.accent);}).join("");
   var topics = c.topics.length
     ? '<div class="cat-topics"><h4>Absorbed topic hubs</h4><div class="cat-topics__row">'
       + c.topics.map(function(t){return '<a class="cat-topic" href="'+t[1]+'">'+esc(t[0])+' →</a>';}).join("")
       + '</div></div>'
     : '';
-  var vidPreload = active ? 'auto' : 'none';
   return '<section class="cat-panel'+(active?' cat-panel--active':'')+'" id="panel-'+c.id+'" role="tabpanel" aria-label="'+esc(c.name)+'" style="--cat-accent:'+c.accent+'">'
-    + '<div class="cat-hero"><div class="cat-hero__bg"><video '+(active?'autoplay ':'')+'muted loop playsinline preload="'+vidPreload+'" data-hero-video aria-hidden="true" tabindex="-1"><source src="'+c.hero+'" type="video/mp4"/></video></div>'
+    + '<div class="cat-hero"><div class="cat-hero__bg" data-hero-bg="'+c.id+'">'
+    + '<canvas data-theme-canvas="'+c.id+'" aria-hidden="true"></canvas>'
+    + '<video data-hero-fallback muted loop playsinline preload="none" aria-hidden="true" style="display:none"><source src="'+c.hero+'" type="video/mp4"/></video>'
+    + '</div>'
     + '<div class="cat-hero__scrim"></div>'
     + '<div class="cat-hero__inner"><p class="cat-hero__eyebrow">Theme · '+esc(c.name)+'</p>'
     + '<h2>'+esc(c.tagline)+'</h2>'
@@ -339,14 +360,17 @@ function panelHTML(c, active){
     + '</div></div>'
     + '<div class="cat-noah"><div class="cat-noah__inner"><span class="cat-noah__orb" aria-hidden="true"></span>'
     + '<p><b>Noah</b> tutors every program in '+esc(c.name)+' — adaptive check-ins after every lesson, five personas, voice and text, personal remediation paths.</p></div></div>'
-    + '<div class="cat-grid-section"><h3>Programs in '+esc(c.name)+'</h3><div class="cat-grid">'+cards+'</div></div>'
+    + '<div class="cat-grid-section"><h3>Programs in '+esc(c.name)+'</h3><div data-cine-grid="'+c.id+'"></div></div>'
     + topics
     + '</section>';
 }
 var panelsEl = document.getElementById("catPanels");
 var tabs = Array.prototype.slice.call(document.querySelectorAll(".cat-tab"));
-function renderAll(activeId){
-  panelsEl.innerHTML = CATS.map(function(c){return panelHTML(c, c.id===activeId);}).join("");
+/* Build all panels once; cine cards render once into each grid (lazy via
+   IntersectionObserver); heroes mount only for the active tab. */
+function buildOnce(){
+  panelsEl.innerHTML = CATS.map(function(c){ return panelHTML(c, false); }).join("");
+  renderCineGrids();
 }
 function activate(id, push){
   var found = CATS.some(function(c){return c.id===id;});
@@ -358,13 +382,12 @@ function activate(id, push){
   });
   var cur = panelsEl.querySelector(".cat-panel--active");
   var nxt = document.getElementById("panel-"+id);
-  if(cur===nxt && cur){ return; }
-  renderAll(id);
-  /* start the newly visible hero video */
-  try{
-    var v = document.querySelector("#panel-"+id+" [data-hero-video]");
-    if(v){ v.load(); var pr=v.play(); if(pr&&pr.catch){pr.catch(function(){});} }
-  }catch(e){}
+  if(cur !== nxt){
+    if(cur) cur.classList.remove("cat-panel--active");
+    if(nxt) nxt.classList.add("cat-panel--active");
+  }
+  /* Start the newly visible themed hero (canvas engine), pause the rest. */
+  mountHero(id);
   if(push!==false){ try{ history.replaceState(null,"","#"+id); }catch(e){} }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
 }
@@ -376,7 +399,7 @@ window.addEventListener("hashchange", function(){
   if(id) activate(id, false);
 });
 var initial = (location.hash||"").replace("#","") || CATS[0].id;
-renderAll(initial);
+buildOnce();
 activate(initial, false);
 })();
 </script>
