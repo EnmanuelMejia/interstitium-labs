@@ -36,4 +36,24 @@ User order ~19:32 EDT: "Wire it all — make this website a total guided Rosetta
 Paywall (IL-27/28/29 free, IL-01–26 gated at worker), dark-mode default, multicloud theme, hero animated untouched, footer standard, $249/$999 pricing, verified facts only.
 
 ## Deployment
-(See below — filled at deploy time.)
+- Committed: "Guided platform: story wiring + guided engine + Noah tutor + KodeKloud 10X (user order 2026-10-08)"
+- Deployed: solitary-sound-015a, etag d72314b37c05, 2026-10-08T23:51:49Z (14 files uploaded)
+- Live verification (curl, 2026-10-08 ~19:52 EDT): homepage 200; course page (IL-29) 200 with all 6 JS (il-progress/stories/guided/noah-tutor/mastery/diagnostic) + 2 CSS includes; academy 200 with Mastery + Repair queue sections; stories _index.json 200; IL-29 stories JSON 200 (free); IL-01 stories JSON 402 (gated ✓); IL-01 course JSON 402 / IL-29 course JSON 200 (paywall intact ✓). One transient 404 on il-guided.js immediately post-deploy resolved on retry (edge propagation).
+- Note: no live-browser interactive test was possible (subagent constraint); DOM integration validated via node harnesses only. Recommend parent run a browser smoke test: Study tab → story card → answer quiz → compare button → repair queue → diagnostic → Noah nudge.
+
+## Resume fix — "Continue where you left off" (2026-10-08 ~19:55 EDT, commit 8dba916)
+- Smoke test found no explicit resume button (banner existed but CTA read "Resume").
+- `university/js/il-progress.js`: default CTA is now literally "Continue where you left off"; added `startPathHTML()` ("Start your guided path" → IL-01, with hardcoded fallback) and unified `paintResume()` (progress → continue banner; fresh device → start variant).
+- `university/course-shell.js`: Brief-tab injection uses paintResume semantics; re-render guard preserved.
+- `university/academy.html`, `docs/index.html`, `university/index.html`: all switched to `paintResume`.
+- `university/css/il-progress.css`: prominent hero-grade banner styling (gold glow button, green start variant), dark-safe, reduced-motion respected.
+- "YOU ARE HERE" wayfinding untouched (additive only). Gating unchanged (resume into gated course hits paywall).
+- Deployed solitary-sound-015a (etag d72314b37c05). Live verified: il-progress.js, academy.html, course-shell.js/css, course.html all serve new code.
+
+## Tips + legends + Next buttons (2026-10-08 ~20:00 EDT, commit 88f4be6)
+- `tips[]`: 6 per course × 29 courses = 174 tips, generated from each course's real data (cert names from certGates, math module titles, hours, lab presence). Study-strategy only — no invented exam specifics. Time tip fixed for large courses (10h/week framing).
+- `legends{}`: 13-entry shared map per course (✓ Complete/Mastered/Tested out, ● You are here, → Up next, 🔒 Locked, ⚠ Mastery gate, Readiness ring, Noah, Continue, Next →, Mark complete, FREE/lock badge) — all verified against actual player UI strings.
+- Player wiring: "Study tips" card in Brief tab (buildBrief); "Legend" button in player header → dialog popover with COURSE.legends (Esc closes); explicit "Next →" button in every module foot — advances via goToModule() honoring guided lock (disabled with reason when locked: mastery-gate ≥70% or complete-module requirement); hidden on last module; repainted in Guided.refresh().
+- CSS: .legend-btn/.legend-dlg/.ilgd-next-btn in course-shell.css, dark-safe, reduced-motion respected.
+- node --check clean on both JS files. Deployed solitary-sound-015a. Live verified: tips+legends in served JSON (IL-29: 6/13), legend-btn in course.html, new JS/CSS served. Paywall intact (IL-01 JSON 402, IL-29 200).
+- Interactive browser verification (button click-through, quiz→resume flow) not possible from subagent — recommend parent run a live browser task.

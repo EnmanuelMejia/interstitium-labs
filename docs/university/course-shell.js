@@ -128,6 +128,8 @@ function normCourse(raw) {
     mockMinutes: d.mockMinutes || 60,
     mockTasks: d.mockTasks || [],
     cheatSheets: d.cheatSheets || [],
+    tips: d.tips || [],
+    legends: d.legends || {},
     answerBank: d.answerBank || [],
     sourceLinks: d.sourceLinks || [],
     glossary: d.glossary || [],
@@ -435,7 +437,15 @@ function showTab(id) {
   if (pane && !pane.dataset.built) { pane.dataset.built = '1'; BUILDERS[id](pane); }
   /* 2026-10-08: scroll-reveal + progress-bar animation pass (il-animate.js). */
   if (pane && window.ILAnimate) window.ILAnimate.observe(pane);
-  if (id === 'brief') refreshReadiness();
+  if (id === 'brief') {
+    refreshReadiness();
+    /* 2026-10-08 (fix round): BUILDERS.brief rebuilds the pane via
+       innerHTML, wiping the "Continue where you left off" banner that
+       refreshILProgress() injected into the un-built pane. Re-inject
+       after every build/switch so the resume banner survives reloads
+       and tab switches whenever progress exists. */
+    try { refreshILProgress(); } catch (e) {}
+  }
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
 }
 
@@ -645,10 +655,13 @@ var Guided = {
               nxtBtn.disabled = true;
               nxtBtn.classList.remove('primary');
               nxtBtn.removeAttribute('data-next-id');
+              /* 2026-10-08 (fix round): keep the literal "Next →" label even
+                 when locked — the gate reason follows the label, never
+                 replaces it. */
               if (s.hasGate && !s.mastered) {
-                nxtBtn.textContent = '⚠ Pass the mastery check (≥70%) to unlock next';
+                nxtBtn.innerHTML = 'Next → <span class="ilgd-next__r">⚠ Pass the mastery check (≥70%) to unlock</span>';
               } else {
-                nxtBtn.textContent = '🔒 Complete this module to unlock next';
+                nxtBtn.innerHTML = 'Next → <span class="ilgd-next__r">🔒 Complete this module to unlock</span>';
               }
               nxtBtn.title = 'Complete this module to unlock the next one';
             }
