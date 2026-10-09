@@ -242,11 +242,14 @@
     var mTitle = findModuleTitle(entry, lp.moduleId) || lp.moduleId;
     var url = entry ? courseURL(entry, lp.moduleId) : null;
     if (!url) return '';
+    /* 2026-10-09: titles like "IL-28 · DevSecOps ..." already carry the
+       code — don't print it twice (same guard as startPathHTML). */
+    var cTitleShown = (cTitle && cTitle.indexOf(code) === 0)
+      ? cTitle : (cTitle ? code + ' · ' + cTitle : code);
     return '<div class="ilprog-continue" role="region" aria-label="Continue where you left off">' +
       '<div class="ilprog-continue__txt">' +
       '<p class="ilprog-continue__eyebrow">Pick up right where you stopped</p>' +
-      '<p class="ilprog-continue__desc"><strong>' + esc(code) + '</strong>' +
-      (cTitle ? ' · ' + esc(cTitle) : '') +
+      '<p class="ilprog-continue__desc"><strong>' + esc(cTitleShown) + '</strong>' +
       ' — ' + esc(mTitle) + '</p></div>' +
       '<a class="ilprog-continue__btn" href="' + esc(url) + '">' + esc(opts.ctaLabel || 'Continue where you left off') + '</a></div>';
   }

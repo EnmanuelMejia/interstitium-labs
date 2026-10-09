@@ -1340,6 +1340,7 @@ export {
 };
 
 // _worker.js
+
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
 
 function needsNoindex(path) {
@@ -1486,7 +1487,7 @@ var OG_PROFILES = {
   },
   "il-19-multicloud-devops-ai-bootcamp": {
     title: "IL-19 · MultiCloud, DevOps & AI Bootcamp",
-    description: "Six clouds. One discipline. Noah-tutored.",
+    description: "Four clouds. One discipline. Noah-tutored.",
     image: "/assets/cinematic/courses-og/IL-19-og.png"
   },
   "il-20-mathematics": {
