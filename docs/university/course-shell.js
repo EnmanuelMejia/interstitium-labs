@@ -2975,6 +2975,44 @@ function il26_renderModuleVideos(m, host) {
   host.appendChild(card);
 }
 
+/* ---- module PDF guides (visual guides, byte-byte-go style) ---- */
+function il26_renderModulePdfs(m, host) {
+  if (!(m.pdfs || []).length) return;
+  var card = el('div', 'scriptlab');
+  card.innerHTML = '<h3>Visual guides</h3><p class="small muted">Step-by-step animated PDF guides. ' +
+    'Open in the built-in viewer or download.</p>';
+  m.pdfs.forEach(function (p, i) {
+    var row = el('div', 'mock-task');
+    row.innerHTML = '<div><b>' + (i + 1) + '. ' + esc(p.title) + '</b> ' +
+      '<span class="muted small">(' + esc(p.pages || '?') + ' pages' +
+      (p.animated ? ' · animated' : '') + ')</span></div>' +
+      '<div class="small muted">' + esc(p.blurb || '') + '</div>' +
+      '<div class="btn-row" style="margin-top:6px">' +
+      '<a class="btn ghost" href="' + esc(p.url) + '" target="_blank" rel="noopener">Open guide</a>' +
+      '<a class="btn ghost" href="' + esc(p.url) + '" download>Download PDF</a>' +
+      '</div>';
+    card.appendChild(row);
+  });
+  host.appendChild(card);
+}
+
+/* ---- module audio clips (staged for TTS voiceover return) ---- */
+function il26_renderModuleAudio(m, host) {
+  if (!(m.audio || []).length) return;
+  var card = el('div', 'scriptlab');
+  card.innerHTML = '<h3>Audio</h3><p class="small muted">Narrated walkthroughs.</p>';
+  m.audio.forEach(function (a, i) {
+    var row = el('div', 'mock-task');
+    row.innerHTML = '<div><b>' + (i + 1) + '. ' + esc(a.title) + '</b></div>' +
+      '<div class="small muted">' + esc(a.blurb || '') + '</div>' +
+      (a.url ? '<audio controls preload="metadata" style="width:100%;margin-top:6px"><source src="' +
+        esc(a.url) + '" type="audio/mpeg">Your browser does not support audio.</audio>'
+        : '<p class="small muted"><i>Audio coming soon — narration script staged.</i></p>');
+    card.appendChild(row);
+  });
+  host.appendChild(card);
+}
+
 /* ================= Rich media (4d) — IL-26 only =================
  * Lightweight SVG/Canvas: function grapher, distribution shader, SQL
  * execution-order diagram, ETL pipeline diagram, regression fitter.
@@ -3592,6 +3630,8 @@ moduleHTML = function (m) {
   if (isIL27()) {
     /* IL-27: render every content section (no stage gating) */
     il26_renderModuleVideos(m, body);
+    il26_renderModulePdfs(m, body);
+    il26_renderModuleAudio(m, body);
     il26_renderModuleDrills(m, body);
     il26_renderHandsOnLab(m, body);
     il26_renderMockTask(m, body);
@@ -3662,6 +3702,9 @@ moduleHTML = function (m) {
                 ' · <b>' + o.status.toUpperCase() + '</b></span></div>';
             });
           }
+          /* visual guides + audio render inside the reading stage (never gated) */
+          il26_renderModulePdfs(m, sec);
+          il26_renderModuleAudio(m, sec);
         }
       }
       stageHost.appendChild(sec);
