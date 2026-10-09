@@ -1340,8 +1340,6 @@ export {
 };
 
 // _worker.js
-
-
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
 
 function needsNoindex(path) {
@@ -1396,26 +1394,151 @@ function applyAssetHeaders(res, path) {
 // non-HTML responses fall through unchanged.
 var OG_SITE = "https://interstitiumlabs.dev";
 var OG_PROFILES = {
+  "il-01-esoteric-foundations": {
+    title: "IL-01 · Esoteric Foundations",
+    description: "The Western esoteric current, studied as documented history.",
+    image: "/assets/cinematic/courses-og/IL-01-og.png"
+  },
+  "il-02-mathematical-maturity-engine": {
+    title: "IL-02 · Mathematical Maturity Engine",
+    description: "The ground under everything — from arithmetic fluency to measure-theoretic probability.",
+    image: "/assets/cinematic/courses-og/IL-02-og.png"
+  },
+  "il-03-programming-language-forge": {
+    title: "IL-03 · Programming Language Forge",
+    description: "Languages as instruments, not identities — Python, Java, C++, and the systems beneath them.",
+    image: "/assets/cinematic/courses-og/IL-03-og.png"
+  },
+  "il-04-systems-linux-windows-networks": {
+    title: "IL-04 · Systems, Linux, Windows & Networks",
+    description: "The machine, administered — Linux to RHCSA/RHCE, Windows Server, and networks with packet literacy.",
+    image: "/assets/cinematic/courses-og/IL-04-og.png"
+  },
+  "il-05-cloud-devsecops-platform-sre": {
+    title: "IL-05 · Cloud, DevSecOps, Platform & SRE",
+    description: "Ship it, then keep it alive — DevOps, Kubernetes, Terraform, AWS, Azure, and OpenShift certification depth.",
+    image: "/assets/cinematic/courses-og/IL-05-og.png"
+  },
+  "il-06-cybersecurity-secure-engineering": {
+    title: "IL-06 · Cybersecurity & Secure Engineering",
+    description: "Know the attack to earn the defense — offensive operations, SOC defense, and secure engineering.",
+    image: "/assets/cinematic/courses-og/IL-06-og.png"
+  },
+  "il-07-data-engineering-analytics-ai": {
+    title: "IL-07 · SQL, Data Engineering, Analytics & AI",
+    description: "From the row to the model — documents, pipelines, machine learning, and agents.",
+    image: "/assets/cinematic/courses-og/IL-07-og.png"
+  },
+  "il-08-algorithms-compilers-distributed-formal": {
+    title: "IL-08 · Algorithms, Compilers, Distributed & Formal",
+    description: "The deep core, in order — MIT, CMU, and Stanford distilled to their load-bearing ideas.",
+    image: "/assets/cinematic/courses-og/IL-08-og.png"
+  },
+  "il-09-adaptive-certification-command": {
+    title: "IL-09 · Adaptive Certification Command",
+    description: "Credentials, orchestrated honestly — one command deck for every certification that matters to this career.",
+    image: "/assets/cinematic/courses-og/IL-09-og.png"
+  },
+  "il-10-portfolio-career-professional-practice": {
+    title: "IL-10 · Portfolio, Career & Professional Practice",
+    description: "The work, presented; the career, directed.",
+    image: "/assets/cinematic/courses-og/IL-10-og.png"
+  },
+  "il-11-zero-trust-endpoint-defense": {
+    title: "IL-11 · Zero Trust & Endpoint Defense",
+    description: "Never trust, always verify — the defender's discipline.",
+    image: "/assets/cinematic/courses-og/IL-11-og.png"
+  },
+  "il-12-ai-engineering": {
+    title: "IL-12 · AI Engineering",
+    description: "From data to deployed intelligence.",
+    image: "/assets/cinematic/courses-og/IL-12-og.png"
+  },
+  "il-13-software-engineering-interview-prep": {
+    title: "IL-13 · Software Engineering Interview Prep",
+    description: "Domain tracks, interview-ready.",
+    image: "/assets/cinematic/courses-og/IL-13-og.png"
+  },
+  "il-14-sre-devops-cloud-security-interview-prep": {
+    title: "IL-14 · SRE, DevOps, Cloud & Security Interview Prep",
+    description: "Keep it alive, then prove it in the interview.",
+    image: "/assets/cinematic/courses-og/IL-14-og.png"
+  },
+  "il-15-data-engineering-analytics-interview-prep": {
+    title: "IL-15 · Data Engineering & Analytics Interview Prep",
+    description: "From the row to the offer.",
+    image: "/assets/cinematic/courses-og/IL-15-og.png"
+  },
+  "il-16-machine-learning-ai-engineering": {
+    title: "IL-16 · Machine Learning & AI Engineering",
+    description: "The models, end to end.",
+    image: "/assets/cinematic/courses-og/IL-16-og.png"
+  },
+  "il-17-agentic-ai-engineering": {
+    title: "IL-17 · Agentic AI Engineering",
+    description: "Agents that do the work.",
+    image: "/assets/cinematic/courses-og/IL-17-og.png"
+  },
+  "il-18-technical-leadership-interview-prep": {
+    title: "IL-18 · Technical Leadership Interview Prep",
+    description: "Lead the work, land the role.",
+    image: "/assets/cinematic/courses-og/IL-18-og.png"
+  },
+  "il-19-multicloud-devops-ai-bootcamp": {
+    title: "IL-19 · MultiCloud, DevOps & AI Bootcamp",
+    description: "Six clouds. One discipline. Noah-tutored.",
+    image: "/assets/cinematic/courses-og/IL-19-og.png"
+  },
+  "il-20-mathematics": {
+    title: "IL-20 · Mathematics for Engineers & Scientists",
+    description: "The mathematical spine of engineering: discrete structures, linear algebra, calculus, probability, and numerical computation.",
+    image: "/assets/cinematic/courses-og/IL-20-og.png"
+  },
+  "il-21-humanities": {
+    title: "IL-21 · Humanities for Technologists",
+    description: "Philosophy, history, writing, rhetoric, economics, and law — the disciplines of judgment for people who build.",
+    image: "/assets/cinematic/courses-og/IL-21-og.png"
+  },
+  "il-22-esoteric-secret-knowledge": {
+    title: "IL-22 · The Deep Library — Esoteric & Secret Knowledge",
+    description: "Kabbalah, Hermeticism, alchemy, astrology, tarot, Enochian, Rosicrucianism, Theosophy, the Golden Dawn: the Western mystery traditions and their Eastern counterparts, studied as traditions.",
+    image: "/assets/cinematic/courses-og/IL-22-og.png"
+  },
+  "il-23-frontier-knowledge": {
+    title: "IL-23 · The Frontier — Cutting-Edge Research Distilled",
+    description: "Transformers, quantum, CRISPR, fusion, BCIs, agents, chips, synbio, space — the durable core of fast-moving fields, with the method to track the edge.",
+    image: "/assets/cinematic/courses-og/IL-23-og.png"
+  },
+  "il-24-threatlocker-assessment-prep-cbt": {
+    title: "IL-24 · ThreatLocker Assessment Prep CBT",
+    description: "Zero Trust endpoint defense + security graphs + AI-aided SOC — an assessment-style computer-based training course",
+    image: "/assets/cinematic/courses-og/IL-24-og.png"
+  },
+  "il-25-cybersecurity-professional-certificate": {
+    title: "IL-25 · Professional Certificate in Cybersecurity",
+    description: "Think like an attacker. Defend like a professional.",
+    image: "/assets/cinematic/courses-og/IL-25-og.png"
+  },
   "il-26-data-analyst-certification-senior-mastery": {
     title: "IL-26 · Data Analyst Certification & Senior Mastery Bootcamp",
     description: "A 51-module interactive CBT preparing you for 7 industry certifications — Google Data Analytics, PL-300, Tableau, CompTIA Data+, IBM, AWS, Databricks — with senior Palantir and BNY Mellon tracks.",
-    image: "/university/og/il-26-data-analyst-og.png"
+    image: "/assets/cinematic/courses-og/IL-26-og.png"
   },
   "il-27-it-infrastructure-specialist-threatlocker-mastery": {
     title: "IL-27 - IT Infrastructure Specialist: Zero Trust Infrastructure Mastery",
     description: "A 54-module interactive course covering the full IT infrastructure stack through a Zero Trust lens: Windows and Linux administration, TCP/IP and subnetting, Active Directory, virtualization, hardening, and security operations - plus a 6-day interview fast track.",
-    image: "/university/og/il-27-it-infrastructure-og.png"
+    image: "/assets/cinematic/courses-og/IL-27-og.png"
   },
   "il-28-devsecops-cloud-infrastructure-mastery": {
     title: "IL-28 · DevSecOps & Cloud Infrastructure — Production Mastery Bootcamp",
     description: "A 50-module interactive CBT taking you from foundational math to production DevSecOps: Linux/RHEL, networking, Docker, Kubernetes, Terraform, Ansible, Jenkins, Azure/AWS/GCP, observability, DevSecOps, SRE — plus certification tracks and a BNY panel interview simulation.",
-    image: "/university/og/il-28-devsecops-og.png"
+    image: "/assets/cinematic/courses-og/IL-28-og.png"
   },
   "il-29-threatlocker-ai-cybersecurity-mastery": {
     title: "IL-29 · ThreatLocker Zero-Trust CBT with AI — Cybersecurity Mastery Bootcamp",
     description: "A 48-module, 431-hour interactive CBT: ThreatLocker zero-trust platform operations, MIT 6.858 systems security, AI in cybersecurity, prerequisite math — plus 7 certification tracks and a ThreatLocker panel interview simulation.",
-    image: "/university/og/il-29-threatlocker-og.png"
-  }
+    image: "/assets/cinematic/courses-og/IL-29-og.png"
+  },
 };
 
 function ogEscape(s) {

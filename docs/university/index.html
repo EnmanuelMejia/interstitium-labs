@@ -228,7 +228,10 @@
     /* 2026-10-09 themed-content rollout: per-course topic theme for il-topic-themes.css. */
     var th = (window.IL && IL.topicThemeForCode) ? IL.topicThemeForCode(a.code) : '';
     if (th) c.setAttribute('data-topic-theme', th);
-    c.innerHTML =
+    /* 2026-10-09 cinematic rollout (S1): poster per course code. */
+    var poster = (/^IL-(0[1-9]|[12][0-9])$/.test(String(a.code || '')))
+      ? '<img class="card-poster" src="/assets/cinematic/courses/' + IL.esc(a.code) + '.png" alt="" loading="lazy">' : '';
+    c.innerHTML = poster +
       '<div class="code">' + IL.esc(a.code) + '</div>' +
       '<h3><a href="academy.html?id=' + IL.esc(a.code) + '">' + IL.esc(a.name) + '</a></h3>' +
       '<p>' + IL.esc(a.blurb || a.tagline || '') + '</p>' +
