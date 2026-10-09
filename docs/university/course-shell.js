@@ -373,6 +373,55 @@ function renderChrome() {
   });
 }
 
+/* ============================== symbol legend ========================
+ * 2026-10-08 (resume fix extension): "Legend" button in the player chrome.
+ * Opens a dialog explaining the icon/badge/symbol vocabulary (COURSE.legends
+ * from the course JSON) — no symbol is ever mysterious. Esc closes. */
+function wireLegend() {
+  try {
+    var btn = document.getElementById('legend-btn');
+    if (!btn || btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    var dlg = null;
+    function close() {
+      if (dlg) { dlg.style.display = 'none'; }
+      btn.setAttribute('aria-expanded', 'false');
+    }
+    function open() {
+      if (!dlg) {
+        dlg = el('div', 'legend-dlg');
+        dlg.setAttribute('role', 'dialog');
+        dlg.setAttribute('aria-label', 'Symbol legend');
+        var legends = (typeof COURSE !== 'undefined' && COURSE && COURSE.legends) || {};
+        var keys = Object.keys(legends);
+        var html = '<div class="legend-dlg__head"><strong>Symbol legend</strong>' +
+          '<button class="legend-dlg__close" type="button" aria-label="Close legend">✕</button></div>';
+        if (keys.length) {
+          html += '<dl class="legend-dlg__list">';
+          keys.forEach(function (k) {
+            html += '<dt>' + esc(k) + '</dt><dd>' + esc(String(legends[k])) + '</dd>';
+          });
+          html += '</dl>';
+        } else {
+          html += '<p class="muted">No legend entries for this course.</p>';
+        }
+        dlg.innerHTML = html;
+        dlg.style.display = 'none';
+        document.body.appendChild(dlg);
+        dlg.querySelector('.legend-dlg__close').addEventListener('click', close);
+      }
+      dlg.style.display = '';
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    btn.addEventListener('click', function () {
+      if (btn.getAttribute('aria-expanded') === 'true') close(); else open();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close();
+    });
+  } catch (e) {}
+}
+
 function showTab(id) {
   if (!TABS.some(function (t) { return t.id === id; })) id = 'brief';
   activeTab = id;
@@ -576,6 +625,35 @@ var Guided = {
           gate.textContent = msg;
           gate.style.display = msg ? '' : 'none';
         }
+        /* 2026-10-08 (resume fix extension): explicit "Next →" button at
+           every module foot — advances in guided sequence, honors the
+           mastery-gate lock (disabled with the reason when locked). */
+        var nxtBtn = wrap.querySelector('[data-ilgd-next]');
+        if (nxtBtn) {
+          var following = (s.index + 1 < states.length) ? states[s.index + 1] : null;
+          if (!following) {
+            nxtBtn.style.display = 'none';
+          } else {
+            nxtBtn.style.display = '';
+            if (following.state === 'current') {
+              nxtBtn.disabled = false;
+              nxtBtn.classList.add('primary');
+              nxtBtn.innerHTML = 'Next → <span class="ilgd-next__t">' + esc(following.title) + '</span>';
+              nxtBtn.title = 'Go to ' + following.title;
+              nxtBtn.setAttribute('data-next-id', following.id);
+            } else {
+              nxtBtn.disabled = true;
+              nxtBtn.classList.remove('primary');
+              nxtBtn.removeAttribute('data-next-id');
+              if (s.hasGate && !s.mastered) {
+                nxtBtn.textContent = '⚠ Pass the mastery check (≥70%) to unlock next';
+              } else {
+                nxtBtn.textContent = '🔒 Complete this module to unlock next';
+              }
+              nxtBtn.title = 'Complete this module to unlock the next one';
+            }
+          }
+        }
         /* drop stale lock notices once unlocked */
         if (!locked) {
           var ln = wrap.querySelector('.ilgd-locknote');
@@ -644,6 +722,22 @@ function buildBrief(root) {
   if (window.ILStories && COURSE && COURSE.courseId) {
     try { window.ILStories.buildRail(storiesHost, COURSE.courseId); } catch (e) {}
   }
+  /* 2026-10-08 (resume fix extension): Study tips — practical, course-
+     specific tips from the course JSON (COURSE.tips). Nothing renders
+     when the course has no tips. */
+  try {
+    if (COURSE.tips && COURSE.tips.length) {
+      var tipsHost = el('div', 'card');
+      tipsHost.id = 'il-tips-card';
+      var tipsHTML = '<h2>Study tips</h2><ul class="obj-list">';
+      COURSE.tips.forEach(function (t) {
+        tipsHTML += '<li>💡 ' + esc(String(t)) + '</li>';
+      });
+      tipsHTML += '</ul>';
+      tipsHost.innerHTML = tipsHTML;
+      root.appendChild(tipsHost);
+    }
+  } catch (e) {}
 }
 
 /* ============================== Plan =============================== */
@@ -836,6 +930,44 @@ function flashcardHTML(mod, ci, card) {
   return wrap;
 }
 
+/* ============================== guided "Next →" navigation =========
+ * 2026-10-08 (resume fix extension): programmatic module advance for the
+ * explicit per-module "Next →" button. Respects the guided lock — a locked
+ * target shows the unlock rule instead of opening. Reuses the real head
+ * toggle so auto-mark arming, progress touch, and animations all fire. */
+function goToModule(mid) {
+  try {
+    if (typeof COURSE === 'undefined' || !COURSE) return;
+    var target = null;
+    (COURSE.modules || []).forEach(function (mm) { if (mm.id === mid) target = mm; });
+    if (!target) return;
+    var locked = false;
+    try {
+      if (typeof ILGuided !== 'undefined' && ILGuided && typeof Guided !== 'undefined' && Guided.infos) {
+        var st = ILGuided.stateFor(COURSE.courseId, mid, Guided.infos());
+        locked = !st || st.state === 'locked' || (st.state === 'next' && !st.unlocked);
+      }
+    } catch (e) {}
+    var mw = document.getElementById('mod-' + mid);
+    if (!mw) return;
+    if (locked) {
+      try { if (typeof Guided !== 'undefined' && Guided.lockNotice) Guided.lockNotice(mw); } catch (e2) {}
+      return;
+    }
+    var bdy = mw.querySelector('.mod-body');
+    var hd = mw.querySelector('.mod-head');
+    if (bdy && bdy.style.display === 'none' && hd && typeof hd.click === 'function') {
+      hd.click();
+    } else {
+      try {
+        if (typeof ILProgress !== 'undefined' && ILProgress) ILProgress.touch(COURSE.courseId, mid);
+      } catch (e3) {}
+    }
+    try { mw.scrollIntoView({ block: 'start' }); } catch (e4) {}
+    try { if (typeof refreshILProgress !== 'undefined') refreshILProgress(); } catch (e5) {}
+  } catch (e) {}
+}
+
 function moduleHTML(m) {
   var done = Progress.get('module:' + m.id) === '1';
   var wrap = el('div', 'mod');
@@ -962,6 +1094,20 @@ function moduleHTML(m) {
     } catch (e2) {}
   });
   foot.appendChild(doneBtn);
+  /* 2026-10-08 (resume fix extension): explicit "Next →" button — advances
+     to the next module in the guided sequence. State (enabled/disabled +
+     reason) is painted by Guided.refresh(); the target id is stamped at
+     repaint time. */
+  var nextBtn = el('button', 'btn ilgd-next-btn', 'Next →');
+  nextBtn.type = 'button';
+  nextBtn.setAttribute('data-ilgd-next', '1');
+  nextBtn.setAttribute('aria-label', 'Go to the next module');
+  nextBtn.addEventListener('click', function () {
+    if (nextBtn.disabled) return;
+    var nid = nextBtn.getAttribute('data-next-id');
+    if (nid) goToModule(nid);
+  });
+  foot.appendChild(nextBtn);
   body.appendChild(foot);
   wrap.appendChild(head); wrap.appendChild(body);
 
@@ -3796,6 +3942,7 @@ function boot() {
     document.title = COURSE.title + ' · ' + (COURSE.code || 'Interstitium Labs');
     renderChrome();
     Sync.init($('#sync-note'));
+    wireLegend();
     window.addEventListener('hashchange', route);
     route();
     /* Deep-link support for module anchors: #/study then #mod-<id> handled by Study hash. */
