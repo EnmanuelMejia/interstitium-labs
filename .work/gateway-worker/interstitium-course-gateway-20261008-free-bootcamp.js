@@ -2,7 +2,7 @@ var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
 // ../brand-logo-paths.mjs
-var CANONICAL_LOGO = "/assets/chrome/interstitium-logo.png";
+var CANONICAL_LOGO = "/assets/chrome/interstitium-logo-3d.png";
 var RETIRED_LOGO_PATHS = /* @__PURE__ */ new Set([
   "/assets/chrome/canonical-lockup-2x.webp",
   "/assets/chrome/canonical-lockup-3x.webp",
