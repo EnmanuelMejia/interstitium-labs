@@ -1190,7 +1190,7 @@
       if (!ep && creds[active.backendId]) ep = creds[active.backendId].baseUrl || '';
 
       var suggest = (demand && demand.suggestedTier)
-        ? '<p class="hint" style="color:#d4a853">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
+        ? '<p class="hint" style="color:#c9a227">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
         : '';
 
       var rank = ((demand && demand.ranking) || []).map(function (r) {
@@ -1246,7 +1246,7 @@
         { id: 'wisp', label: 'Wisp', hint: 'Nebula ghost · drifting star-wisp' }
       ];
       var accents = (g.ILNoahAvatar && g.ILNoahAvatar.ACCENTS) || {
-        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#D4A853' },
+        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#c9a227' },
         violet: { label: 'Violet', css: '#A78BFA' }, emerald: { label: 'Emerald', css: '#34D399' }
       };
       var inten = (g.ILNoahAvatar && g.ILNoahAvatar.INTENSITY) || {

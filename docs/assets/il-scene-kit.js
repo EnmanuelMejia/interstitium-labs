@@ -1,7 +1,7 @@
 /**
  * IL Scene Kit — shared WebGL / curriculum 3D utilities (CSP-safe, no CDN).
  * Used by Noah 3D familiar + Immersive Player (lectures / cert labs / sims).
- * Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16. Interstitium original.
+ * Palette: cyan #5EEAD4 · gold #c9a227 · void #070B16. Interstitium original.
  * Optional Three.js/glTF path: see docs/ops/IMMERSIVE-3D.md (vendored when present).
  */
 (function (g) {
@@ -430,7 +430,7 @@
 
   g.ILSceneKit = {
     CYAN: CYAN, GOLD: GOLD, VOID: VOID,
-    HEX: { cyan: '#5EEAD4', gold: '#D4A853', void: '#070B16' },
+    HEX: { cyan: '#5EEAD4', gold: '#c9a227', void: '#070B16' },
     prefersReducedMotion: prefersReducedMotion,
     isMobile: isMobile,
     dprCap: dprCap,

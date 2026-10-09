@@ -22,7 +22,7 @@
 
   var ACCENTS = {
     cyan:    { label: 'Cyan',    rgb: [0.369, 0.918, 0.831], css: '#5EEAD4' },
-    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#D4A853' },
+    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#c9a227' },
     violet:  { label: 'Violet',  rgb: [0.654, 0.545, 0.980], css: '#A78BFA' },
     emerald: { label: 'Emerald', rgb: [0.204, 0.831, 0.600], css: '#34D399' }
   };

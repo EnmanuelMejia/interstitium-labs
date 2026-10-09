@@ -70,7 +70,7 @@
   };
   var ACCENTS = {
     cyan:    { label: 'Cyan',    css: '#5EEAD4' },
-    gold:    { label: 'Gold',    css: '#D4A853' },
+    gold:    { label: 'Gold',    css: '#c9a227' },
     violet:  { label: 'Violet',  css: '#A78BFA' },
     emerald: { label: 'Emerald', css: '#34D399' },
   };

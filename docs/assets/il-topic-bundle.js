@@ -4239,7 +4239,7 @@ window.IL_ANALYTICS = {
 /**
  * IL Scene Kit — shared WebGL / curriculum 3D utilities (CSP-safe, no CDN).
  * Used by Noah 3D familiar + Immersive Player (lectures / cert labs / sims).
- * Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16. Interstitium original.
+ * Palette: cyan #5EEAD4 · gold #c9a227 · void #070B16. Interstitium original.
  * Optional Three.js/glTF path: see docs/ops/IMMERSIVE-3D.md (vendored when present).
  */
 (function (g) {
@@ -4668,7 +4668,7 @@ window.IL_ANALYTICS = {
 
   g.ILSceneKit = {
     CYAN: CYAN, GOLD: GOLD, VOID: VOID,
-    HEX: { cyan: '#5EEAD4', gold: '#D4A853', void: '#070B16' },
+    HEX: { cyan: '#5EEAD4', gold: '#c9a227', void: '#070B16' },
     prefersReducedMotion: prefersReducedMotion,
     isMobile: isMobile,
     dprCap: dprCap,
@@ -4724,7 +4724,7 @@ window.IL_ANALYTICS = {
 
   var ACCENTS = {
     cyan:    { label: 'Cyan',    rgb: [0.369, 0.918, 0.831], css: '#5EEAD4' },
-    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#D4A853' },
+    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#c9a227' },
     violet:  { label: 'Violet',  rgb: [0.654, 0.545, 0.980], css: '#A78BFA' },
     emerald: { label: 'Emerald', rgb: [0.204, 0.831, 0.600], css: '#34D399' }
   };
@@ -7060,7 +7060,7 @@ window.IL_ANALYTICS = {
       if (!ep && creds[active.backendId]) ep = creds[active.backendId].baseUrl || '';
 
       var suggest = (demand && demand.suggestedTier)
-        ? '<p class="hint" style="color:#d4a853">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
+        ? '<p class="hint" style="color:#c9a227">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
         : '';
 
       var rank = ((demand && demand.ranking) || []).map(function (r) {
@@ -7116,7 +7116,7 @@ window.IL_ANALYTICS = {
         { id: 'wisp', label: 'Wisp', hint: 'Nebula ghost · drifting star-wisp' }
       ];
       var accents = (g.ILNoahAvatar && g.ILNoahAvatar.ACCENTS) || {
-        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#D4A853' },
+        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#c9a227' },
         violet: { label: 'Violet', css: '#A78BFA' }, emerald: { label: 'Emerald', css: '#34D399' }
       };
       var inten = (g.ILNoahAvatar && g.ILNoahAvatar.INTENSITY) || {
