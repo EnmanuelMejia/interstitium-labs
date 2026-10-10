@@ -47,4 +47,4 @@ Independent product work by Enmanuel D. Mejia. Pair with [devops-superlab](https
 
 ## Selected architecture work
 
-- [Sovereign Hybrid AI for Print & Packaging Manufacturing](case-studies/sundance-hybrid-ai/README.md): independent SunDance USA candidate case study (September–October 2026); 37-page architecture proposal, 17-slide executive presentation, data-residency-first model routing, four proposed human-governed agents, and phased roadmap. These are authored deliverables, **not** a paid consulting engagement or production deployment. [Public project page](https://interstitiumlabs.dev/projects/sundance-ai-architecture/).
+- [Sovereign Hybrid AI for Print & Packaging Manufacturing](case-studies/sundance-hybrid-ai/README.md): independent SunDance USA candidate case study (September–October 2026); 37-page architecture proposal, 17-slide executive presentation, data-residency-first model routing, four proposed human-governed agents, and phased roadmap. These are authored deliverables, **not** a paid consulting engagement or production deployment..
