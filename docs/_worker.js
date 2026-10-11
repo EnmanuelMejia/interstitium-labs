@@ -3499,10 +3499,10 @@ async function handleReminders(request, env, sess, path) {
   return json({ ok: false, error: "not_found" }, 404);
 }
 
-async function handleBriefing(request, env, sess) {
-  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
-  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
-  var email = String(sess.email || "").toLowerCase();
+/* 2026-10-11 (parity-plus): briefing computation extracted so the
+   scheduled pre-compute and the live route share one implementation. */
+async function buildBriefingData(env, email) {
+  email = String(email || "").toLowerCase();
   var today = goalToday();
 
   var goals = await goalListRecords(env, email);
@@ -3563,11 +3563,106 @@ async function handleBriefing(request, env, sess) {
   if (jobAlerts) {
     lines.push("💼 Job alerts are on (" + jobAlerts + (jobAlerts === 1 ? " watch" : " watches") + ") — new matches land in the Jobs suite.");
   }
-  return json({
+  return {
     ok: true, date: today, lines: lines,
     due_goals: dueGoals, due_reminders: dueRems,
     next_reminder: nextRem, active_goals: activeGoals, job_alerts: jobAlerts
-  });
+  };
+}
+
+/* 2026-10-11 (parity-plus): unified Noah/Genesis memory. One KV
+   family (memory:<email>:<key>) shared by both twins — the same handlers,
+   the same store, never a per-tutor copy. Included in account
+   export/delete from day one. */
+async function memoryExport(env, email) {
+  var out = {};
+  try {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    for (var i = 0; i < keys.length; i++) {
+      var v = await env.IL_ACCOUNTS.get(keys[i]);
+      if (v != null) out[keys[i].slice(("memory:" + email + ":").length)] = v;
+    }
+  } catch (e) {}
+  return out;
+}
+async function memoryErase(env, email) {
+  var n = 0;
+  try {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    for (var i = 0; i < keys.length; i++) {
+      try { await env.IL_ACCOUNTS.delete(keys[i]); n++; } catch (e) {}
+    }
+  } catch (e) {}
+  return n;
+}
+async function handleNoahMemory(request, env, sess, sub) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  function mkey(raw) {
+    return String(raw || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 120);
+  }
+  if (request.method === "GET" && (sub === "" || sub === "/")) {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    return json({ ok: true, keys: keys.map(function (k) { return k.slice(("memory:" + email + ":").length); }) });
+  }
+  if (request.method === "POST" && (sub === "" || sub === "/")) {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var k = mkey(body && body.key);
+    var v = body && body.value != null ? String(body.value).slice(0, 4000) : "";
+    if (!k || !v) return json({ ok: false, error: "key_and_value_required" }, 400);
+    await env.IL_ACCOUNTS.put("memory:" + email + ":" + k, v);
+    await authLog(env, request, "memory_write", email, { key: k });
+    return json({ ok: true, key: k });
+  }
+  if (request.method === "DELETE" && sub && sub.charAt(0) === "/") {
+    var dk = mkey(decodeURIComponent(sub.slice(1)));
+    if (!dk) return json({ ok: false, error: "invalid_key" }, 400);
+    await env.IL_ACCOUNTS.delete("memory:" + email + ":" + dk);
+    await authLog(env, request, "memory_delete", email, { key: dk });
+    return json({ ok: true, key: dk });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
+async function handleBriefing(request, env, sess) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
+  var email = String(sess.email || "").toLowerCase();
+  var today = goalToday();
+  /* Prefer the scheduled pre-compute when it is fresh (same day). */
+  try {
+    var pre = await env.IL_ACCOUNTS.get("briefing:ready:" + email + ":" + today);
+    if (pre) {
+      var pj = JSON.parse(pre);
+      if (pj && pj.briefing && pj.briefing.ok) {
+        pj.briefing.precomputed = true;
+        pj.briefing.computed_at = pj.computed_at;
+        return json(pj.briefing);
+      }
+    }
+  } catch (e) {}
+  return json(await buildBriefingData(env, email));
+}
+
+/* 2026-10-11 (parity-plus): proactive briefing delivery. The scheduled
+   worker pre-computes the daily briefing for every opted-in account into
+   KV; the Today section and Noah open surface it. No push/email channel
+   exists yet — the briefing is ready the moment the user opens Noah. */
+async function handleScheduledBriefings(env) {
+  if (!env.IL_ACCOUNTS) return;
+  var today = new Date().toISOString().slice(0, 10);
+  var keys = [];
+  try { keys = await kvListKeys(env.IL_ACCOUNTS, "briefing_optin:", 500); } catch (e) { return; }
+  for (var i = 0; i < keys.length; i++) {
+    try {
+      var email = keys[i].slice("briefing_optin:".length);
+      var data = await buildBriefingData(env, email);
+      await env.IL_ACCOUNTS.put("briefing:ready:" + email + ":" + today,
+        JSON.stringify({ computed_at: new Date().toISOString(), briefing: data }),
+        { expirationTtl: 36 * 3600 });
+    } catch (e) {}
+  }
 }
 
 async function handleAccountActivity(request, env, sess) {
@@ -3729,7 +3824,8 @@ async function handleAccountExport(request, env, sess) {
     orders: [],
     entitlements: [],
     saved_logins: await foldinCredIndexMeta(env, email),
-    reminders: await foldinExportReminders(env, email)
+    reminders: await foldinExportReminders(env, email),
+    shared_memory: await memoryExport(env, email)
   };
   var storeNames = Object.keys(SYNC_STORES).concat(['goals']);
   for (var i = 0; i < storeNames.length; i++) {
@@ -3815,6 +3911,7 @@ async function handleAccountDelete(request, env, sess) {
   deleted.jobs_alerts = await del('jobsalerts:' + email);
   deleted.saved_logins = await foldinEraseCredentials(env, email);
   deleted.reminders = await foldinEraseReminders(env, email);
+  deleted.shared_memory = await memoryErase(env, email);
   deleted.xapi_statements = await del('xapi:' + email);
   var entKeys = await kvListKeys(env.IL_ACCOUNTS, 'pay:entitle:' + email + ':', 200);
   var entCount = 0;
@@ -8333,6 +8430,12 @@ async function handleJobsAlertsCheck(request, env, sess) {
 }
 
 export default {
+  /* 2026-10-11 (parity-plus): cron pre-computes daily briefings for
+     opted-in accounts. Enable with a workers cron trigger (e.g. daily
+     11:00 UTC) — until then, briefings compute live on open. */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleScheduledBriefings(env));
+  },
   async fetch(request, env) {
     var url = new URL(request.url);
     var path = url.pathname;
@@ -8625,6 +8728,36 @@ export default {
       var bsess = await readSession(request, env);
       if (!bsess) return json({ ok: false, error: "unauthorized" }, 401);
       return handleBriefing(request, env, bsess);
+    }
+    /* 2026-10-11 (parity-plus): unified memory API + briefing opt-in. */
+    if (path === "/api/noah/memory" || path.indexOf("/api/noah/memory/") === 0) {
+      var msess = await readSession(request, env);
+      if (!msess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahMemory(request, env, msess, path.slice("/api/noah/memory".length));
+    }
+    if (path === "/api/noah/briefing/optin" && request.method === "POST") {
+      var osess = await readSession(request, env);
+      if (!osess) return json({ ok: false, error: "unauthorized" }, 401);
+      var obody = null;
+      try { obody = await request.json(); } catch (e) {}
+      var oemail = String(osess.email).toLowerCase();
+      if (obody && obody.enabled === false) {
+        try { await env.IL_ACCOUNTS.delete("briefing_optin:" + oemail); } catch (e) {}
+        return json({ ok: true, opted_in: false });
+      }
+      try {
+        await env.IL_ACCOUNTS.put("briefing_optin:" + oemail,
+          JSON.stringify({ at: new Date().toISOString() }));
+      } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+      return json({ ok: true, opted_in: true });
+    }
+    if (path === "/api/noah/briefing/optin" && request.method === "GET") {
+      var gsess = await readSession(request, env);
+      if (!gsess) return json({ ok: false, error: "unauthorized" }, 401);
+      var gemail = String(gsess.email).toLowerCase();
+      var grav = null;
+      try { grav = await env.IL_ACCOUNTS.get("briefing_optin:" + gemail); } catch (e) {}
+      return json({ ok: true, opted_in: !!grav });
     }
     if (path === "/api/account/activity") {
       var asess = await readSession(request, env);
