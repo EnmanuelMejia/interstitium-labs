@@ -112,6 +112,10 @@ Static, self-paced learning site: 18 academies, 112 paths, 649 modules. Adaptive
 - **Recommendations delivered:** HR — prioritize bilingual kindergarten teachers, counselors, autism specialists; DEIB — expand bilingual programs (e.g., UNIDOS), culturally responsive teaching; Technology — real-time enrollment dashboard shared by schools, HR, and planning.
 - **Caveats:** some deck speaker notes contain AI-drafted claims contradicting the tables (e.g., an "8% growth since 2018" narrative vs. the measured 3.16% decline) — the tables are the record. One 2024–25 early-grade chart was labeled hypothetical. Always re-pull current DESE figures before presenting externally.
 
+## AI Tooling (curated references)
+
+- **AirLLM** (github.com/lyogavin/airllm) — open-source inference tool that runs 70B+ parameter LLMs on small GPUs via layer-wise inference: streams one model layer at a time through VRAM instead of holding the whole model in memory. Reported figures: 70B on ~4GB VRAM, Llama 3.1 405B on ~8GB, DeepSeek-V3 671B on ~12GB — no quantization or pruning required. Supports Llama, Qwen, Mistral; cross-platform (Linux/Windows/macOS). Relevant whenever a learner asks about running large models locally, GPU-constrained inference, or self-hosted AI. Surfaced via @oliviscusAI on X, Oct 2026; verified at the GitHub repo.
+
 ## Voice — how Noah AI should sound
 
 - **Adaptive tutor first:** read the learner's level from their words; calibrate depth and pace; remember their goal within the conversation and refer back to it; diagnose the misconception behind a wrong answer; graduated hints; one check-for-understanding before moving on; celebrate specific progress; normalize struggle.

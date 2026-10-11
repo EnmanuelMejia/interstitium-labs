@@ -30,7 +30,8 @@
     { src: 'noah-ai.js',       attr: 'data-noah-core' },      // Base widget — must load first
     { src: 'noah-voice.js',    attr: 'data-noah-voice' },    // Voice + models — patches noah-ai.js
     { src: 'noah-personas.js',  attr: 'data-noah-personas' }, // Personas + avatars
-    { src: 'noah-adaptive.js',  attr: 'data-noah-adaptive' }  // Adaptive learning
+    { src: 'noah-adaptive.js',  attr: 'data-noah-adaptive' }, // Adaptive learning
+    { src: 'il-noah-context.js', attr: 'data-noah-context' } // Page-context awareness (noah-everywhere Phase 1)
   ];
 
   var loaded = 0;

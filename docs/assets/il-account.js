@@ -187,20 +187,24 @@
       if (!wrap) return;
       api("/api/auth/oauth/providers", { method: "GET" }).then(function (r) {
         if (!r || !r.ok || !Array.isArray(r.providers)) return;
-        var names = { github: "GitHub", google: "Google", linkedin: "LinkedIn", twitter: "X (Twitter)", facebook: "Facebook" };
+        var names = { github: "GitHub", google: "Google", microsoft: "Microsoft", apple: "Apple", linkedin: "LinkedIn", twitter: "X (Twitter)", facebook: "Facebook" };
         var configuredCount = 0;
         r.providers.forEach(function (p) {
           var b = document.createElement("a");
           b.className = "il-btn il-btn-ghost";
           b.style.cssText = "width:100%;text-decoration:none";
-          b.textContent = "Continue with " + (names[p.provider] || p.provider);
           if (p.configured) {
             configuredCount++;
+            b.textContent = "Continue with " + (names[p.provider] || p.provider);
             b.href = "/auth/oauth/" + p.provider;
           } else {
+            /* Provider activates when the owner adds its keys — show the
+               roadmap honestly instead of a dead button. */
+            b.textContent = "Continue with " + (names[p.provider] || p.provider) + " — coming soon";
             b.href = "#";
             b.style.opacity = ".45";
-            b.title = "Social login coming soon — provider setup pending";
+            b.setAttribute("aria-disabled", "true");
+            b.title = "This sign-in option is being configured";
             b.addEventListener("click", function (e) { e.preventDefault(); });
           }
           wrap.appendChild(b);
@@ -211,7 +215,7 @@
           var note = document.createElement("p");
           note.className = "il-auth-hint";
           note.style.cssText = "text-align:center;font-size:.78rem;margin:.2rem 0 0";
-          note.textContent = "Social sign-in is coming soon — use email for now.";
+          note.textContent = "Social sign-in is unavailable — use email for now.";
           wrap.appendChild(note);
         }
       }, function () {});

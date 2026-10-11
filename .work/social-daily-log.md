@@ -94,3 +94,29 @@ Posting more today would violate the body's own anti-spam rules, so the rotation
 - Threads (superlab 9x16): post_id 18129442966834026 (https://www.threads.net/@enmanueldmejia/post/18129442966834026)
 - X + LinkedIn (superlab): NOT posted — require browser task, delegated to parent
 - Next in rotation: rhel
+
+## 2026-10-10 — Daily social refresh cron (09:00 EDT run)
+
+**Rotation item:** RHEL AI & Systems Fabric (next per rotation after superlab).
+
+**State check:** interstitiumlabs.dev and enmanueldmejia.com verified live. Site activity since last run: course-content "Social refresh" commit (06:01 EDT, 15 IL course JSONs) + "Daily fold" trending-catalog update (07:38 EDT). New hq-il19 video (Oct 9 21:11) noted — IL-19 is NOT in the 11-project rotation; candidate for a future slot. RHEL project page verified live: https://interstitiumlabs.dev/rhel-fabric/
+
+**Assets (HQ, voiceover):** hq-rhel_9x16.mp4 (10.03s, AAC audio, 6.6MB) + hq-rhel_9x16_poster.png cover; hq-rhel_16x9.mp4 (10.00s, 5.8MB) for X/LinkedIn.
+
+### Published (video with voiceover)
+- **Instagram** (@enmanueldmejia) — reel: media_fbid 17950690734290922 (native approval: approved)
+- **Threads** (@enmanueldmejia) — video post: post_id 18121666883001829 (native approval: approved)
+- **Facebook** (Interstitium Labs page) — video reel: https://facebook.com/reel/1377115007535132/ (post_id 122102807775501941, state: published)
+
+### Dispatched to browser tasks (pending at log time)
+- **X** (@enmanuelmejia): video post task (hq-rhel_16x9.mp4 + professional copy) — browser-task:cd10e938-cf12-4f77-9089-603ac8125d8f
+- **LinkedIn**: feed video post task (hq-rhel_16x9.mp4 + professional copy; feed-only, no Featured/About/headline changes) — browser-task:97610318-41de-45e9-aeb5-2a2b1f29955e
+
+### Not posted (no API / needs user action)
+- **TikTok**: no API — rhel entry in ~/workspace/apex-audit/.work/tiktok-upload-queue.md updated with correct project link (https://interstitiumlabs.dev/rhel-fabric/); mobile-app upload still pending (7 projects queued).
+
+**Next in rotation:** catalog
+
+### Browser task outcomes (received ~09:52 EDT)
+- **X** (@enmanuelmejia): BLOCKED — no account signed in to X in this browser session; x.com/home redirects to the login dialog. Task did not sign in or switch accounts per instructions. Nothing posted, video not uploaded. Resumable once he signs in as @enmanuelmejia in this browser (steer browser-task:cd10e938-cf12-4f77-9089-603ac8125d8f).
+- **LinkedIn**: BLOCKED — no active LinkedIn session; linkedin.com/feed redirects to the sign-in page showing last-used profile "Enmanuel D. Mejia" (e*****@bu.edu) with a password field, but no active session. Nothing posted, video not uploaded. Resumable once signed in (steer browser-task:97610318-41de-45e9-aeb5-2a2b1f29955e). Note: last-used LinkedIn identity appears to be under the BU email, not keeper Gmail.

@@ -1,48 +1,191 @@
 <!DOCTYPE html>
-<html lang="en">
-<head><script src="/assets/il-theme.js"></script>
+<html lang="en" class="antialiased">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
 if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
 }catch(e){}})();</script>
 <style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src 'self' https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="robots" content="noindex,nofollow"/>
-<meta http-equiv="refresh" content="0;url=/learn/"/>
-<link rel="canonical" href="https://interstitiumlabs.dev/learn/"/>
-<title>Library moved into the Learning OS — Interstitium Labs</title>
-<meta name="twitter:card" content="summary_large_image"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Library — Interstitium Labs</title>
+<meta name="description" content="The Interstitium Labs library: every course, topic, visual guide, project card, video reel, and quest — one shelf."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="https://interstitiumlabs.dev/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/library/"/>
+<meta property="og:title" content="Library — Interstitium Labs"/>
+<meta property="og:description" content="Every course, topic, visual guide, project card, video reel, and quest — one shelf."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/library/"/>
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
-<meta name="twitter:image" content="https://interstitiumlabs.dev/og.jpg"/>
-<link rel="stylesheet" href="/assets/il-unified.css"/></head>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+<style>
+.lib-hero{position:relative;overflow:hidden;border-bottom:1px solid rgba(201,162,39,.18);background:radial-gradient(1100px 420px at 50% -80px,rgba(201,162,39,.10),transparent 70%),radial-gradient(800px 380px at 85% 120px,rgba(64,224,208,.07),transparent 70%)}
+.lib-hero__inner{max-width:1100px;margin:0 auto;padding:4.2rem 1.25rem 2.6rem;text-align:center}
+.lib-eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.28em;color:#c9a227;text-transform:uppercase}
+.lib-hero h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(2.2rem,5.4vw,3.6rem);margin:.7rem 0 .8rem;letter-spacing:-.01em}
+.lib-hero h1 .gold{color:#c9a227}
+.lib-lede{max-width:640px;margin:0 auto;font-size:1.02rem;line-height:1.65;opacity:.82}
+.lib-grid{max-width:1100px;margin:0 auto;padding:2.2rem 1.25rem 3.4rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem}
+.lib-card{display:block;border:1px solid rgba(201,162,39,.16);border-radius:14px;padding:1.35rem 1.3rem;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0));color:inherit;text-decoration:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.lib-card:hover{transform:translateY(-3px);border-color:rgba(201,162,39,.5);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+.lib-card__k{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.22em;color:#c9a227;text-transform:uppercase}
+.lib-card h2{font-family:"Space Grotesk",sans-serif;font-size:1.3rem;margin:.55rem 0 .5rem}
+.lib-card p{margin:0;font-size:.92rem;line-height:1.6;opacity:.78}
+.lib-card__go{display:inline-block;margin-top:.9rem;font-size:.85rem;color:#c9a227;font-weight:600}
+.lib-note{max-width:1100px;margin:0 auto;padding:0 1.25rem 3rem;font-size:.85rem;opacity:.6;line-height:1.6}
+@media (max-width:640px){.lib-hero__inner{padding:3rem 1rem 2rem}}
+</style>
+</head>
 <body>
-<h1>Library moved into the Learning OS. Continue to <a href="/learn/">/learn/</a>.</h1>
-<script src="/assets/noah-full.js" defer></script>
+<a class="il-skip" href="#main">Skip to content</a>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38" loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li aria-current="page">Library</li></ol></nav>
+
+<main id="main">
+  <header class="il-hero">
+    <div class="il-hero__bg" aria-hidden="true">
+      <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="https://interstitiumlabs.dev/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/></video>
+    </div>
+    <div class="il-hero__scrim" aria-hidden="true"></div>
+    <div class="il-wrap">
+      <p class="il-eyebrow">Interstitium Labs · SCIENTIA OMNIA VINCIT</p>
+      <h1 class="il-h">The <span style="color:#c9a227">Library</span></h1>
+      <p class="il-hero__sub">Every course, topic, visual guide, project card, video reel, and quest — one shelf. Start anywhere; the Learning OS keeps your place.</p>
+      <div class="il-hero__cta">
+        <a class="il-btn il-btn--gold" href="/topics/">Start learning</a>
+        <a class="il-btn il-btn--ghost" href="/topics/">Browse topics</a>
+      </div>
+      <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+    </div>
+  </header>
+
+  <div class="lib-grid">
+    <a class="lib-card" href="/topics/">
+      <span class="lib-card__k">Curriculum</span>
+      <h2>Learn — the Curriculum OS</h2>
+      <p>The full course catalog: 31 courses across cloud, AI, security, data, and engineering. Your progress syncs everywhere.</p>
+      <span class="lib-card__go">Open Learn →</span>
+    </a>
+    <a class="lib-card" href="/topics/">
+      <span class="lib-card__k">Twelve worlds</span>
+      <h2>Topics</h2>
+      <p>Twelve themed topic hubs — cybersecurity, system design, networking, cloud &amp; DevOps, AI/ML, data engineering, programming, databases, Linux, math, web, blockchain.</p>
+      <span class="lib-card__go">Browse Topics →</span>
+    </a>
+    <a class="lib-card" href="/university/">
+      <span class="lib-card__k">Academies</span>
+      <h2>University</h2>
+      <p>Deep academies with paths, mastery heatmaps, certification maps, and Noah tutoring — including the flagship IL-19 MultiCloud, DevOps &amp; AI Bootcamp.</p>
+      <span class="lib-card__go">Enter University →</span>
+    </a>
+    <a class="lib-card" href="/topics/">
+      <span class="lib-card__k">Guided journeys</span>
+      <h2>Learning Paths</h2>
+      <p>21 sequenced paths and 52 career tracks that carry you from first principles to job-ready, step by step.</p>
+      <span class="lib-card__go">Follow a Path →</span>
+    </a>
+    <a class="lib-card" href="/pdf-library/">
+      <span class="lib-card__k">Visual guides</span>
+      <h2>Visual Guide Library</h2>
+      <p>Diagram-first reference guides you can read in minutes and keep forever — the visual spine of the curriculum.</p>
+      <span class="lib-card__go">Read the guides →</span>
+    </a>
+    <a class="lib-card" href="/topics/">
+      <span class="lib-card__k">Showcase</span>
+      <h2>Project Cards</h2>
+      <p>Cinematic cards for every build and bootcamp — what it is, what you learn, and where it takes you.</p>
+      <span class="lib-card__go">See the cards →</span>
+    </a>
+    <a class="lib-card" href="/topics/">
+      <span class="lib-card__k">Video</span>
+      <h2>Cinema</h2>
+      <p>The video reels: cinematic loops, the Noah neural-loop visualizer, and motion pieces from across the Learning OS.</p>
+      <span class="lib-card__go">Watch Cinema →</span>
+    </a>
+    <a class="lib-card" href="/prep/drills/">
+      <span class="lib-card__k">Quests</span>
+      <h2>Play — Quest Board</h2>
+      <p>Learn by doing: quests, drills, and challenges that turn study time into shipped skill.</p>
+      <span class="lib-card__go">Take a quest →</span>
+    </a>
+    <a class="lib-card" href="/prep/drills/">
+      <span class="lib-card__k">Hands-on</span>
+      <h2>Labs</h2>
+      <p>Real sandboxes and guided labs — break things safely, then prove you can fix them.</p>
+      <span class="lib-card__go">Enter the labs →</span>
+    </a>
+  </div>
+
+  <p class="lib-note">New here? Start with <a href="/topics/" style="color:#c9a227">Learn</a> for the full curriculum, <a href="/topics/" style="color:#c9a227">Topics</a> to explore a field, or <a href="/university/academy?id=IL-19" style="color:#c9a227">IL-19</a> for the flagship MultiCloud, DevOps &amp; AI Bootcamp.</p>
+</main>
+
 <footer class="il-footer-canonical">
   <div class="il-fc-inner">
-    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
     <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
     <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
     <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
     <nav class="il-fc-nav" aria-label="Footer">
-      <a href="/about/">ABOUT</a>
-      <a href="/founders/">FOUNDERS</a>
-      <a href="/learn/">LEARN</a>
-      <a href="/university/">UNIVERSITY</a>
-      <a href="/prep/">PREP</a>
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
     </nav>
     <nav class="il-fc-nav" aria-label="Footer secondary">
-      <a href="/paths/">PATHS</a>
-      <a href="/labs/">LABS</a>
       <a href="/noah/">Noah</a>
-      <a href="/adapt/">ADAPT</a>
-      <a href="/enroll/">ENROLL</a>
-      <a href="/play/">PLAY</a>
-    </nav>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
   <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

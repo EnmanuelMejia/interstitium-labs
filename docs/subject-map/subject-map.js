@@ -74,7 +74,7 @@
       }).join('') + '</div>' +
       '<h3 style="font-size:.95rem;color:#c7d3e4;margin:.6rem 0">MIT OpenCourseWare courses <span style="font-weight:400;color:#64748b">(external links)</span></h3>' +
       '<div class="sm-mitcourses">' + s.mitCourses.map(function (c) {
-        return '<a class="sm-mit sm-link" style="text-decoration:none" href="https://ocw.mit.edu/courses/' + esc(c.number.toLowerCase().replace(/\./g, '-')) + '/" target="_blank" rel="noopener">' +
+        return '<a class="sm-mit sm-link" style="text-decoration:none" href="' + esc(c.ocwUrl || ('https://ocw.mit.edu/search/?q=' + c.number.toLowerCase().replace(/\./g, '-'))) + '" target="_blank" rel="noopener">' +
           '<div class="sm-mit__num">' + esc(c.number) + ' ↗</div>' +
           '<div class="sm-mit__name">' + esc(c.name) + '</div></a>';
       }).join('') + '</div>' +

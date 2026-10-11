@@ -28,7 +28,7 @@
 |---|---|---|
 | POST | `/api/pay/create` | `{provider, item, coin?, email?}` → order + `redirect_url`, or direct-wallet details |
 | GET | `/api/pay/status?order=` | Order status / entitlement check |
-| GET | `/api/pay/ud` | Resolved addresses for `enmanuelmejia.crypto` (cached 24h) |
+| GET | `/api/pay/ud` | Resolved addresses for the owner's Unstoppable Domain (cached 24h) |
 | POST | `/api/pay/webhook/stripe` | Stripe webhook (HMAC-SHA256 verified) |
 | POST | `/api/pay/webhook/paypal` | PayPal webhook (verified via PayPal API) |
 | POST | `/api/pay/ipn/nowpayments` | NOWPayments IPN (HMAC-SHA512 verified) |
@@ -133,13 +133,15 @@ shared/exchange address:**
 - The checkout UI shows the tag/memo as a **required, copyable field** next to
   the QR code whenever it is configured.
 
-## 5. Unstoppable Domain — `enmanuelmejia.crypto`
+## 5. Unstoppable Domain (owner's .crypto domain)
 
-The checkout displays **"Pay to enmanuelmejia.crypto"** for the direct rail
-and resolves each coin's address at runtime via the UD Resolution API
+The receiving name is deliberately never printed in page source or docs
+(scraper hygiene): checkout shows a click-to-reveal widget, and the name
+itself lives only in the owner's private setup notes. The direct rail
+resolves each coin's address at runtime via the UD Resolution API
 (cached 24h in KV; falls back to the `WALLET_*` secrets above per coin).
 
-In your Unstoppable Domains dashboard (ud.me) → `enmanuelmejia.crypto` →
+In your Unstoppable Domains dashboard (ud.me) → your .crypto domain →
 **Records → Crypto**, set these records:
 
 | Record key | Value |

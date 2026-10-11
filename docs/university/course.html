@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <!-- 2026-10-07: per-course Open Graph / Twitter Card tags are injected at the
      edge by the worker (serveCourseWithOg) for ?course= URLs, because social
      crawlers don't execute the client-side course loader. See docs/_worker.js. -->
@@ -20,7 +21,7 @@
 <link rel="stylesheet" href="css/il-progress.css">
 <link rel="stylesheet" href="css/il-guided.css">
 <link rel="stylesheet" href="css/il-stories.css">
-  <link rel="stylesheet" href="/assets/il-algo-viz.css"/>
+  <link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-algo-viz.css"/>
 </head>
 <body data-course="">
 <a class="skip-link" href="#shell-main">Skip to course content</a>
@@ -31,50 +32,38 @@
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="https://interstitiumlabs.dev/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="https://interstitiumlabs.dev/learn/">Learn</a>
-      <a href="https://interstitiumlabs.dev/#academies">Academies</a>
-      <a href="https://interstitiumlabs.dev/paths/">Paths</a>
-      <a href="https://interstitiumlabs.dev/paths/roles/">Role Tracks</a>
-      <a href="https://interstitiumlabs.dev/prep/drills/">Practice</a>
-      <a href="https://interstitiumlabs.dev/labs/">Labs</a>
-      <a href="https://interstitiumlabs.dev/noah/">Noah AI</a>
-      <a href="https://interstitiumlabs.dev/coach/">Coach</a>
-      <a href="https://interstitiumlabs.dev/play/">Play</a>
-      <a href="https://interstitiumlabs.dev/cinema/">Cinema</a>
-      <a href="https://interstitiumlabs.dev/jobs/">Jobs</a>
-      <a href="https://interstitiumlabs.dev/adapt/">Adapt</a>
-      <a href="https://interstitiumlabs.dev/about/">About Us</a>
-      <a href="https://interstitiumlabs.dev/university/" aria-current="page">University</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <details class="il-menu">
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
-          <a href="https://interstitiumlabs.dev/learn/">Learn</a>
-          <a href="https://interstitiumlabs.dev/#academies">Academies</a>
-          <a href="https://interstitiumlabs.dev/paths/">Paths</a>
-          <a href="https://interstitiumlabs.dev/paths/roles/">Role Tracks</a>
-          <a href="https://interstitiumlabs.dev/prep/drills/">Practice</a>
-          <a href="https://interstitiumlabs.dev/labs/">Labs</a>
-          <a href="https://interstitiumlabs.dev/noah/">Noah AI</a>
-          <a href="https://interstitiumlabs.dev/coach/">Coach</a>
-          <a href="https://interstitiumlabs.dev/play/">Play</a>
-          <a href="https://interstitiumlabs.dev/cinema/">Cinema</a>
-          <a href="https://interstitiumlabs.dev/jobs/">Jobs</a>
-          <a href="https://interstitiumlabs.dev/adapt/">Adapt</a>
-          <a href="https://interstitiumlabs.dev/about/">About Us</a>
-          <a href="https://interstitiumlabs.dev/university/" aria-current="page">University</a>
-          <a href="https://interstitiumlabs.dev/enroll/">Enroll</a>
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
         </div>
       </details>
       <a class="il-btn il-btn--gold il-btn--small" href="https://interstitiumlabs.dev/enroll/">Enroll</a>
     </div>
   </div>
 </nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/university/">Courses</a></li><li aria-current="page">Course</li></ol></nav>
 
 <header class="shell-header">
   <span class="sync-note" id="sync-note"></span>
@@ -171,26 +160,21 @@
 </style>
 <footer class="il-footer-canonical">
   <div class="il-fc-inner">
-    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
     <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
     <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
     <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
-    <div class="il-fc-course" id="ft-course"></div>
     <nav class="il-fc-nav" aria-label="Footer">
-      <a href="/about/">ABOUT</a>
-      <a href="/founders/">FOUNDERS</a>
-      <a href="/learn/">LEARN</a>
-      <a href="/university/">UNIVERSITY</a>
-      <a href="/prep/">PREP</a>
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
     </nav>
     <nav class="il-fc-nav" aria-label="Footer secondary">
-      <a href="/paths/">PATHS</a>
-      <a href="/labs/">LABS</a>
       <a href="/noah/">Noah</a>
-      <a href="/adapt/">ADAPT</a>
-      <a href="/enroll/">ENROLL</a>
-      <a href="/play/">PLAY</a>
-    </nav>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
   <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
@@ -201,7 +185,7 @@
      or load via ?data=<path> / ?course=<id>. Empty = shell shows a loader error. -->
 <script type="application/json" id="il-course-data"></script>
 
-<script src="/assets/noah-full.js"></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js"></script>
 <script src="js/il-progress.js"></script>
 <script src="js/il-guided.js"></script>
 <script src="js/il-stories.js"></script>
@@ -213,6 +197,8 @@
 <script>
   try { document.getElementById('ft-year').textContent = new Date().getFullYear(); } catch (e) {}
 </script>
-  <script src="/assets/il-algo-viz.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-algo-viz.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

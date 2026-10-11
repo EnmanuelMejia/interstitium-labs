@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Visual Guide Library — Interstitium Labs</title>
@@ -8,7 +9,7 @@
 <meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta name="twitter:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta name="description" content="Animated step-by-step visual guides: system design, networking, cloud, security, AI/ML, data engineering, databases, Linux, math. Original diagrams, free to read.">
-<link rel="stylesheet" href="/assets/il-unified.css">
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css">
 <style>
 .pdf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;margin:2rem 0}
 .pdf-card{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1.25rem;background:rgba(255,255,255,.03)}
@@ -24,6 +25,8 @@
 .pdf-preview{position:relative;margin:.75rem 0;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:#fff}
 .pdf-frame{display:block;width:100%;height:280px;border:0;background:#fff;transition:opacity .28s ease}
 .pdf-frame.fading{opacity:0}
+.pdf-thumb{display:block;width:100%;height:280px;object-fit:contain;background:#fff;transition:opacity .28s ease}
+.pdf-thumb.fading{opacity:0}
 .pdf-expand{position:absolute;top:.5rem;right:.5rem;padding:.35rem .7rem;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(13,16,32,.88);color:#fff;font-size:.8rem;font-weight:600;cursor:pointer}
 .pdf-expand:hover{background:#4361ee}
 .pdf-live{position:absolute;top:.65rem;left:.65rem;width:.6rem;height:.6rem;border-radius:50%;background:#22c55e;display:none}
@@ -48,14 +51,27 @@
 #pdf-modal-frame{flex:1;width:100%;border:0;background:#fff}
 @media(max-width:640px){.pdf-modal-inner{width:97%;height:96vh;margin:2vh auto}.pdf-frame{height:240px}}
 </style>
-<script src="/assets/il-raf-governor.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-raf-governor.js"></script>
 </head>
 <body>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li aria-current="page">Visual Guides</li></ol></nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="https://interstitiumlabs.dev/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Library · Interstitium Labs</p>
+    <h1 class="il-h">Visual Guide Library</h1>
+    <p class="il-hero__sub">Animated step-by-step visual guides — original diagrams drawn for Interstitium Labs. 241 guides, free to read, no sign-in. Every card auto-plays an animated preview inline.</p>
+    <div class="il-hero__cta" style="max-width:640px">
+      <input id="pdf-search" type="search" placeholder="Search the guides — e.g. consensus, B-trees, OAuth" aria-label="Search the guides">
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
 <main style="max-width:1100px;margin:0 auto;padding:2rem">
-<p><a href="/">← Interstitium Labs</a></p>
-<h1>Visual Guide Library</h1>
-<p class="lede" style="max-width:640px">Animated step-by-step visual guides in the byte-byte-go tradition — original diagrams drawn for Interstitium Labs. Step through the pages to play each animation. 241 guides, free to read, no sign-in. Every card auto-plays an animated preview of the guide inline — scroll to load, or hit Expand to read the full PDF without leaving the page.</p>
-<input id="pdf-search" type="search" placeholder="Search the guides — e.g. consensus, B-trees, OAuth">
+<p><a href="/topics/">← Library</a> · <a href="/">Interstitium Labs</a></p>
 
 <div class="toc">
 <div><a href="#system-design">System Design (33)</a></div>
@@ -379,9 +395,26 @@
 (function(){
 "use strict";
 var CYCLE_PAGES=4, CYCLE_MS=2500;
+/* 2026-10-09: mobile browsers cannot render PDFs inside iframes (broken
+   document icon). Serve pre-rendered page thumbnails instead. */
+var IS_MOBILE_PDF=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent||"");
+function thumbFor(pdf,n){var b=pdf.split("/").pop().replace(/\.pdf$/i,"");return "/assets/pdfs/thumbs/"+b+"-p"+n+".png";}
 var previews=Array.prototype.slice.call(document.querySelectorAll(".pdf-preview"));
-var frames=previews.map(function(p){return p.querySelector("iframe.pdf-frame");});
-function loadFrame(f){var u=f.getAttribute("data-src");if(u){f.setAttribute("src",u);f.removeAttribute("data-src");}}
+if(IS_MOBILE_PDF){
+previews.forEach(function(p){
+var f=p.querySelector("iframe.pdf-frame");if(!f){return;}
+var pdf=p.getAttribute("data-pdf");
+var img=document.createElement("img");
+img.className="pdf-thumb";img.alt="Guide preview, page 1";
+img.setAttribute("loading","lazy");
+img.setAttribute("src",thumbFor(pdf,1));
+img.onerror=function(){var s=img.getAttribute("src");if(!/-p1\.png$/.test(s)){img.setAttribute("src",thumbFor(pdf,1));}};
+f.parentNode.replaceChild(img,f);
+});
+}
+function frameEl(p){return p.querySelector("iframe.pdf-frame")||p.querySelector("img.pdf-thumb");}
+var frames=previews.map(frameEl);
+function loadFrame(f){if(!f||f.tagName==="IMG"){return;}var u=f.getAttribute("data-src");if(u){f.setAttribute("src",u);f.removeAttribute("data-src");}}
 /* 1. lazy first-page load: src only set near the viewport */
 if("IntersectionObserver" in window){
 var lazyIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){loadFrame(e.target);lazyIO.unobserve(e.target);}});},{rootMargin:"400px 0px"});
@@ -391,16 +424,17 @@ frames.forEach(function(f){lazyIO.observe(f);});
 var pageIdx={}, active=null, timer=null, ratios=new Map();
 function swapTo(p,n){
 var key=p.getAttribute("data-pdf");
-var f=p.querySelector("iframe.pdf-frame");
+var f=frameEl(p);
 var dots=p.querySelectorAll(".pdf-pager span");
 pageIdx[key]=n;
 f.classList.add("fading");
 var done=false;
 function show(){if(done){return;}done=true;f.classList.remove("fading");}
-f.addEventListener("load",show,{once:true});
+if(f.tagName!=="IMG"){f.addEventListener("load",show,{once:true});}
 setTimeout(show,2000);
 setTimeout(function(){
-f.setAttribute("src",key+"#page="+n+"&toolbar=0&navpanes=0");
+if(f.tagName==="IMG"){f.setAttribute("src",thumbFor(key,n));}
+else{f.setAttribute("src",key+"#page="+n+"&toolbar=0&navpanes=0");}
 dots.forEach(function(d,i){d.className=(i===n-1)?"on":"";});
 },280);
 }
@@ -412,7 +446,7 @@ if(timer){clearInterval(timer);timer=null;}
 if(!p){return;}
 p.classList.add("cycling");
 var key=p.getAttribute("data-pdf");
-loadFrame(p.querySelector("iframe.pdf-frame"));
+loadFrame(frameEl(p));
 if(!(pageIdx[key]>=1)){pageIdx[key]=1;}
 timer=setInterval(function(){
 if(document.hidden){return;}
@@ -438,7 +472,10 @@ var modal=document.getElementById("pdf-modal"),
 mframe=document.getElementById("pdf-modal-frame"),
 mtitle=document.getElementById("pdf-modal-title"),
 mdl=document.getElementById("pdf-modal-dl");
-function openModal(url,name){mtitle.textContent=name;mdl.href=url;mframe.setAttribute("src",url+"#page=1");modal.hidden=false;document.body.style.overflow="hidden";}
+function openModal(url,name){
+/* mobile: no inline PDF rendering — open natively instead of a broken iframe */
+if(IS_MOBILE_PDF){window.open(url,"_blank");return;}
+mtitle.textContent=name;mdl.href=url;mframe.setAttribute("src",url+"#page=1");modal.hidden=false;document.body.style.overflow="hidden";}
 function closeModal(){mframe.setAttribute("src","about:blank");modal.hidden=true;document.body.style.overflow="";}
 document.addEventListener("click",function(e){
 var t=e.target;
@@ -480,5 +517,26 @@ if(h&&h.tagName==="H2"){h.style.display=any?"":"none";}
 })();
 </script>
 
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-ambient-synth.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
+<style>html{background:#06080c}body{background:#06080c;color:#dbe4ee;min-height:100dvh}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src 'self' https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>My Notes — Workspace · Interstitium Labs</title>
+<meta name="description" content="Your personal workspace: Markdown notes with wikilinks and backlinks, a knowledge graph of everything you are learning, mind maps for every bootcamp, and your progress — all local-first, all yours."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/my-notes/"/>
+<meta property="og:title" content="My Notes — Workspace · Interstitium Labs"/>
+<meta property="og:url" content="https://interstitiumlabs.dev/my-notes/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-workspace.css"/>
+<script src="https://interstitiumlabs.dev/assets/noah-viz.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-notes.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-mindmap.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-workspace.js" defer></script>
+</head>
+<body>
+<main class="ilw-wrap">
+  <header class="ilw-head">
+    <p class="ilw-kicker">Interstitium Labs · Personal Workspace</p>
+    <h1>My Notes</h1>
+    <p class="ilw-sub">Your second brain for everything you are learning here — Markdown notes with
+      <strong>[[wikilinks]]</strong> and automatic backlinks, a living knowledge graph, and a mind map
+      for every bootcamp. Stored on this device; exportable any time.</p>
+    <nav class="ilw-topnav" aria-label="Workspace">
+      <a href="/">Home</a>
+      <a href="/bootcamps/">Bootcamps</a>
+      <a href="/noah/">Ask Noah</a>
+      <a href="/progress/">My Progress</a>
+    </nav>
+  </header>
+
+  <div class="ilw-tabs" role="tablist" aria-label="Workspace views">
+    <button type="button" role="tab" data-ilw-view="dashboard" class="on">Dashboard</button>
+    <button type="button" role="tab" data-ilw-view="notes">Notes</button>
+    <button type="button" role="tab" data-ilw-view="graph">Knowledge Graph</button>
+    <button type="button" role="tab" data-ilw-view="maps">Mind Maps</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section id="ilw-view-dashboard" class="ilw-view">
+    <div class="ilw-stats" id="ilw-stats"></div>
+
+    <div class="ilw-card">
+      <div class="ilw-cardhead">
+        <h2>Start from a template</h2>
+        <button type="button" class="ilw-btn" id="ilw-export-all">Export all notes (.md)</button>
+      </div>
+      <div class="ilw-templates" id="ilw-templates"></div>
+    </div>
+
+    <div class="ilw-card">
+      <div class="ilw-cardhead"><h2>My bootcamps</h2><span class="ilw-hint">Click a column to sort. Status lives on this device.</span></div>
+      <div class="ilw-tablewrap">
+        <table class="ilw-table" id="ilw-cbt-table">
+          <thead><tr>
+            <th data-sort="title">Bootcamp</th>
+            <th data-sort="level">Level</th>
+            <th data-sort="lessons">Lessons done</th>
+            <th data-sort="scenarios">Scenarios attempted</th>
+            <th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="ilw-hint" id="ilw-cbt-empty" hidden>No bootcamp activity on this device yet — open one and it will appear here.</p>
+    </div>
+
+    <div class="ilw-two">
+      <div class="ilw-card">
+        <div class="ilw-cardhead"><h2>Recent notes</h2><button type="button" class="ilw-btn primary" id="ilw-new-note-1">+ New note</button></div>
+        <ul class="ilw-list" id="ilw-recent"></ul>
+      </div>
+      <div class="ilw-card">
+        <div class="ilw-cardhead"><h2>Bookmarks</h2></div>
+        <ul class="ilw-list" id="ilw-bookmarks"></ul>
+        <p class="ilw-hint">Bookmark any page from Noah or a lesson with “Bookmark this page”.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTES -->
+  <section id="ilw-view-notes" class="ilw-view" hidden>
+    <div class="ilw-card">
+      <div class="ilw-cardhead">
+        <input type="search" id="ilw-search" class="ilw-search" placeholder="Search my notes…" aria-label="Search my notes">
+        <button type="button" class="ilw-btn primary" id="ilw-new-note-2">+ New note</button>
+      </div>
+      <ul class="ilw-list big" id="ilw-notes-list"></ul>
+      <p class="ilw-hint" id="ilw-notes-empty" hidden>No notes match. Create one — or press “Add note” inside any lesson.</p>
+    </div>
+  </section>
+
+  <!-- GRAPH -->
+  <section id="ilw-view-graph" class="ilw-view" hidden>
+    <div class="ilw-card">
+      <div class="ilw-cardhead">
+        <h2>Your knowledge graph</h2>
+        <button type="button" class="ilw-btn" id="ilw-graph-refresh">Rebuild graph</button>
+      </div>
+      <div class="ilw-canvasbox"><canvas id="ilw-graph-canvas" height="560" aria-label="Knowledge graph of your notes and concepts"></canvas></div>
+      <p class="ilw-hint">Nodes are your notes (and the concepts they link to). Gold = mastered, cyan = proficient,
+        blue = learning, dim = not started. Click a node to open it. Drag to pin a node in place.</p>
+    </div>
+  </section>
+
+  <!-- MIND MAPS -->
+  <section id="ilw-view-maps" class="ilw-view" hidden>
+    <div class="ilw-card">
+      <div class="ilw-cardhead">
+        <h2>Mind maps</h2>
+        <div class="ilw-row">
+          <button type="button" class="ilw-btn" id="ilw-map-export">Export PNG</button>
+          <button type="button" class="ilw-btn primary" id="ilw-map-new">+ New custom map</button>
+        </div>
+      </div>
+      <div class="ilw-row ilw-mapbar">
+        <label>Bootcamp map
+          <select id="ilw-map-cbt" class="ilw-select"><option value="">Choose a bootcamp…</option></select>
+        </label>
+        <label>My maps
+          <select id="ilw-map-mine" class="ilw-select"><option value="">Choose a custom map…</option></select>
+        </label>
+      </div>
+      <div class="ilw-canvasbox"><canvas id="ilw-map-canvas" height="560" aria-label="Mind map"></canvas></div>
+      <p class="ilw-hint">Click a branch badge (+/–) to expand or collapse it. Drag to pan.</p>
+      <div id="ilw-map-editor" class="ilw-mapeditor" hidden>
+        <h3>Edit selected branch</h3>
+        <div class="ilw-row">
+          <input type="text" id="ilw-map-label" class="ilw-search" aria-label="Branch label">
+          <button type="button" class="ilw-btn" id="ilw-map-rename">Rename</button>
+          <button type="button" class="ilw-btn" id="ilw-map-add">Add sub-branch</button>
+          <button type="button" class="ilw-btn danger" id="ilw-map-delete">Delete branch</button>
+        </div>
+        <p class="ilw-hint">Changes save to this map note automatically.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ilw-foot">
+    <p>Notes live in your browser on this device (local-first). Noah and Genesis can read and search them when you ask —
+      nothing leaves the device unless you ask Noah a question the on-device engine cannot answer.</p>
+  </footer>
+</main>
+</body>
+</html>

@@ -12,8 +12,8 @@
  *   nowpayments — Hosted invoice (all 11 coins). IPN verified with
  *               HMAC-SHA512 over recursively key-sorted JSON (x-nowpayments-sig).
  *   direct      — Direct-wallet fallback: per-coin address + QR rendered by
- *               the checkout UI. Addresses resolve from the Unstoppable Domain
- *               `enmanuelmejia.crypto` (UD Resolution API) with per-coin
+ *               the checkout UI. Addresses resolve from the owner's
+ *               Unstoppable Domain (UD Resolution API) with per-coin
  *               WALLET_* env fallback. XRP destination-tag / XLM memo
  *               supported via XRP_DESTINATION_TAG / XLM_MEMO.
  *
@@ -57,8 +57,9 @@ var ITEMS = {
 
 /* ---------------- course paywall pricing (2026-10-08) ---------------- */
 /* PAYWALL_CONFIG — RESEARCHED PRICES (market analysis 2026-10-08).
-   $249/course: below CompTIA CertMaster Learn ($599 list), below Dion's
-   premium bundle ($349), far above Udemy impulse pricing ($15-30 video-only);
+   $249/course: below CompTIA CertMaster Learn ($599 list), below premium
+   third-party bundles ($349), far above discount-marketplace impulse pricing
+   ($15-30 video-only);
    buys 400+ honest hours of interactive sim content per course — a depth no
    competitor sells at consumer prices. Accessible for a price-sensitive
    audience (career changers, students), credible for the depth.
@@ -125,14 +126,22 @@ function courseItemSlugs() {
 }
 
 var CURRENCY = "usd";
-var UD_DOMAIN = "enmanuelmejia.crypto";
+/* Receiving domain for UD resolution. PRIVACY (2026-10-10): the name is
+   never stored as a literal — scrapers crawl source and API responses.
+   Assembled from fragments at runtime; overridable via the UD_DOMAIN
+   worker secret. Clients receive it only as split fragments from
+   POST /api/pay/ud/reveal after an explicit user click. */
+function udDomain(env) {
+  if (env && env.UD_DOMAIN) return String(env.UD_DOMAIN).trim();
+  return ["enmanuel", "mejia"].join("") + "." + ["cry", "pto"].join("");
+}
 var UD_RESOLVE_URL = "https://resolve.unstoppabledomains.com/domains/";
 var UD_CACHE_TTL = 24 * 60 * 60; // 24h, seconds
 
 /* ---------------- USER_CONFIG: owner-provided wallet setup ---------------- */
 /* The user (site owner) fills these in. Empty string = not provided. These
    are read at REQUEST time from this object, falling back BELOW env
-   WALLET_* vars and the enmanuelmejia.crypto Unstoppable Domain records.
+   WALLET_* vars and the owner's Unstoppable Domain records.
    Resolution priority: UD records -> env vars -> USER_CONFIG below.
    NEVER invent addresses here. */
 var USER_CONFIG = {
@@ -474,8 +483,8 @@ async function markPaid(store, order, providerRef, extra) {
 
 /* ---------------- Unstoppable Domains resolution ---------------- */
 
-async function fetchUdRecords() {
-  var res = await fetch(UD_RESOLVE_URL + encodeURIComponent(UD_DOMAIN), {
+async function fetchUdRecords(env) {
+  var res = await fetch(UD_RESOLVE_URL + encodeURIComponent(udDomain(env)), {
     headers: { accept: "application/json" },
   });
   if (!res.ok) throw new Error("ud_http_" + res.status);
@@ -485,7 +494,7 @@ async function fetchUdRecords() {
 
 async function resolveCoinAddresses(env, store) {
   // 24h KV cache; on failure fall back to env wallets per coin.
-  var cacheKey = "pay:ud:" + UD_DOMAIN;
+  var cacheKey = "pay:ud:" + udDomain(env);
   var cached = null;
   try {
     var raw = await store.get(cacheKey);
@@ -498,7 +507,7 @@ async function resolveCoinAddresses(env, store) {
     source = cached.source || "ud";
   } else {
     try {
-      records = await fetchUdRecords();
+      records = await fetchUdRecords(env);
       source = "ud";
       try {
         await store.put(
@@ -530,7 +539,6 @@ async function resolveCoinAddresses(env, store) {
       name: c.name,
       address: addr,
       source: source,
-      ud_domain: UD_DOMAIN,
     };
     if (c.extra) {
       var extraVal = (env && env[c.extra] ? String(env[c.extra]).trim() : "") ||
@@ -542,7 +550,7 @@ async function resolveCoinAddresses(env, store) {
     }
     out.push(entry);
   }
-  return { domain: UD_DOMAIN, coins: out, resolved_via: source, fetched_at: nowIso() };
+  return { coins: out, resolved_via: source, fetched_at: nowIso() };
 }
 
 /* ---------------- request validation ---------------- */
@@ -866,7 +874,6 @@ async function handleCreate(request, env, store) {
       order.direct = {
         address: entry.address,
         source: entry.source,
-        ud_domain: UD_DOMAIN,
         qr_payload: directQrPayload(v.coin.code, entry.address),
       };
       if (entry.destination_tag) {
@@ -933,7 +940,7 @@ async function handleUd(request, env, store) {
   }
   // Public shape: addresses + provenance only, never env secret names.
   var coins = resolved.coins.map(function (c) {
-    var o = { code: c.code, name: c.name, address: c.address, source: c.source, ud_domain: c.ud_domain };
+    var o = { code: c.code, name: c.name, address: c.address, source: c.source };
     if (c.destination_tag) o.destination_tag = c.destination_tag;
     if (c.memo) o.memo = c.memo;
     if (c.extra_label) o.extra_label = c.extra_label;
@@ -941,7 +948,6 @@ async function handleUd(request, env, store) {
   });
   return payJson({
     ok: true,
-    domain: resolved.domain,
     resolved_via: resolved.resolved_via,
     fetched_at: resolved.fetched_at,
     coins: coins,
@@ -1280,6 +1286,33 @@ async function handleStripeReturn(request, env, store) {
 
 /* ---------------- top-level dispatch (called from _worker.js) ---------------- */
 
+/* Click-to-reveal for the crypto receiving name (privacy, 2026-10-10).
+   The name is never present in page source or API responses as a single
+   string. A real user clicks "reveal" in checkout; this endpoint returns
+   split fragments the client assembles in the DOM. Rate-limited per IP. */
+async function handleUdReveal(request, env, store) {
+  if (request.method !== "POST") return payJson({ ok: false, error: "method_not_allowed" }, 405);
+  var ip = request.headers.get("cf-connecting-ip") || "unknown";
+  try {
+    var rlKey = "pay:reveal:" + ip;
+    var raw = await store.get(rlKey);
+    var rec = raw ? JSON.parse(raw) : null;
+    var now = Date.now();
+    if (rec && now - rec.start < 3600000 && rec.count >= 30) {
+      return payJson({ ok: false, error: "too_many_requests" }, 429);
+    }
+    if (!rec || now - rec.start >= 3600000) rec = { count: 0, start: now };
+    rec.count++;
+    await store.put(rlKey, JSON.stringify(rec));
+  } catch (e) { /* rate limit is best-effort; never block a real buyer */ }
+  var d = udDomain(env);
+  var dot = d.lastIndexOf(".");
+  var local = dot > 0 ? d.slice(0, dot) : d;
+  var tld = dot > 0 ? d.slice(dot + 1) : "";
+  var mid = Math.ceil(local.length / 2);
+  return payJson({ ok: true, parts: [local.slice(0, mid), local.slice(mid)], tld: tld });
+}
+
 async function handlePay(request, env) {
   var url = new URL(request.url);
   var path = url.pathname;
@@ -1288,6 +1321,7 @@ async function handlePay(request, env) {
   if (path === "/api/pay/create") return handleCreate(request, env, store);
   if (path === "/api/pay/status") return handleStatus(request, env, store);
   if (path === "/api/pay/ud") return handleUd(request, env, store);
+  if (path === "/api/pay/ud/reveal") return handleUdReveal(request, env, store);
   if (path === "/api/pay/webhook/stripe") return handleStripeWebhook(request, env, store);
   if (path === "/api/pay/webhook/paypal") return handlePaypalWebhook(request, env, store);
   if (path === "/api/pay/ipn/nowpayments") return handleNowpaymentsIpn(request, env, store);
@@ -1322,7 +1356,7 @@ export {
   COURSES,
   PAYWALL_CONFIG,
   USER_CONFIG,
-  UD_DOMAIN,
+  udDomain,
   sortKeysDeep,
   nowpaymentsSignature,
   verifyNowpaymentsIpn,

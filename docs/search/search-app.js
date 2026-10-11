@@ -79,7 +79,7 @@ function ilSearch(index, query) {
   fetch("/assets/search-index.json", { cache: "no-store" })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
-      index = data;
+      index = (data && data.items) || [];
       count.textContent = "Index ready · " + index.length + " pages";
       var hash = decodeURIComponent((location.hash || "").replace(/^#q=/, ""));
       if (hash) { input.value = hash; }

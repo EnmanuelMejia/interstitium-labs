@@ -117,7 +117,7 @@ p { margin: 0 0 1em; max-width: 72ch; }
 
 /* ---------- layout ---------- */
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem); }
-section.block { padding: clamp(2.5rem, 6vw, 5rem) 0; }
+section.block { padding: clamp(1.25rem, 3vw, 2.5rem) 0; }
 .rule {
   border: 0; border-top: 1px solid var(--line-soft);
   margin: 0;
@@ -438,7 +438,7 @@ table.ledger strong.fail { color: var(--gold-bright); }
   border: 1px solid var(--line); border-radius: var(--radius);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   display: flex; flex-direction: column; overflow: hidden;
-  min-height: 380px; max-height: 640px;
+  min-height: 300px; max-height: 640px;
 }
 .noah-head {
   display: flex; align-items: center; gap: 0.7rem;
@@ -747,3 +747,17 @@ body.il-leaving #il-veil { opacity: 1; }
   display: block;
   background: #06080c;
 }
+
+/* Breadcrumbs — consistent sitewide (2026-10-09) */
+.il-breadcrumbs { margin: 0 0 1.75rem; padding: 1rem 1.5rem 0; }
+.il-breadcrumbs ol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+  list-style: none; margin: 0; padding: 0;
+  font-family: ui-monospace, monospace; font-size: 0.72rem; letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.il-breadcrumbs li { display: inline-flex; align-items: center; gap: 0.35rem; }
+.il-breadcrumbs li + li::before { content: "/"; color: #8b93a5; opacity: 0.7; }
+.il-breadcrumbs a { color: #8b93a5; text-decoration: none; }
+.il-breadcrumbs a:hover { color: #c9a227; }
+.il-breadcrumbs [aria-current="page"] { color: #e8eaf0; }

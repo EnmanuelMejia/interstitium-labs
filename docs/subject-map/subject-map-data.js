@@ -310,62 +310,62 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "6.100L",
     "name": "Introduction to CS and Programming using Python",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-100l"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-100l"
    },
    {
     "number": "6.092",
     "name": "Introduction to Programming in Java",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-092"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-092"
    },
    {
     "number": "18.05",
     "name": "Introduction to Probability and Statistics",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-05"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-05"
    },
    {
     "number": "6.0002",
     "name": "Introduction to Computational Thinking and Data Science",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-0002"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-0002"
    },
    {
     "number": "6.006",
     "name": "Introduction to Algorithms",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-006"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-006"
    },
    {
     "number": "6.034",
     "name": "Artificial Intelligence",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-034"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-034"
    },
    {
     "number": "6.S096",
     "name": "Introduction to C and C++",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-s096"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-s096"
    },
    {
     "number": "6.033",
     "name": "Computer System Engineering",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-033"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-033"
    },
    {
     "number": "6.042J",
     "name": "Mathematics for Computer Science",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-042j"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-042j"
    },
    {
     "number": "11.521",
     "name": "Spatial Database Management and Advanced Geographic Information Systems",
-    "ocwUrl": "https://ocw.mit.edu/courses/11-521"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=11-521"
    },
    {
     "number": "6.857",
     "name": "Network and Computer Security",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-857"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-857"
    },
    {
     "number": "RES.1-002",
     "name": "Introduction to R and Geographic Information Systems (GIS)",
-    "ocwUrl": "https://ocw.mit.edu/courses/res-1-002"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=res-1-002"
    }
   ]
  },
@@ -573,47 +573,47 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "18.06SC",
     "name": "Linear Algebra",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-06sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-06sc"
    },
    {
     "number": "18.01SC",
     "name": "Single Variable Calculus",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-01sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-01sc"
    },
    {
     "number": "18.700",
     "name": "Linear Algebra",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-700"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-700"
    },
    {
     "number": "18.657",
     "name": "Mathematics of Machine Learning",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-657"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-657"
    },
    {
     "number": "18.02SC",
     "name": "Multivariable Calculus",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-02sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-02sc"
    },
    {
     "number": "RES.6-012",
     "name": "Introduction to Probability",
-    "ocwUrl": "https://ocw.mit.edu/courses/res-6-012"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=res-6-012"
    },
    {
     "number": "18.03SC",
     "name": "Differential Equations",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-03sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-03sc"
    },
    {
     "number": "18.100A",
     "name": "Real Analysis",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-100a"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-100a"
    },
    {
     "number": "18.065",
     "name": "Matrix Methods in Data Analysis, Signal Processing, and Machine Learning",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-065"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-065"
    }
   ]
  },
@@ -914,47 +914,47 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "RES.6-007",
     "name": "Signals and Systems",
-    "ocwUrl": "https://ocw.mit.edu/courses/res-6-007"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=res-6-007"
    },
    {
     "number": "6.002",
     "name": "Circuits and Electronics",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-002"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-002"
    },
    {
     "number": "6.01SC",
     "name": "Introduction to Electrical Engineering and Computer Science I",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-01sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-01sc"
    },
    {
     "number": "2.003SC",
     "name": "Engineering Dynamics",
-    "ocwUrl": "https://ocw.mit.edu/courses/2-003sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=2-003sc"
    },
    {
     "number": "6.622",
     "name": "Power Electronics",
-    "ocwUrl": "https://ocw.mit.edu/courses/6-622"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=6-622"
    },
    {
     "number": "22.01",
     "name": "Introduction to Nuclear Engineering and Ionizing Radiation",
-    "ocwUrl": "https://ocw.mit.edu/courses/22-01"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=22-01"
    },
    {
     "number": "EC.701J",
     "name": "D-Lab I: Development",
-    "ocwUrl": "https://ocw.mit.edu/courses/ec-701j"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=ec-701j"
    },
    {
     "number": "EC.720J",
     "name": "D-Lab II: Design",
-    "ocwUrl": "https://ocw.mit.edu/courses/ec-720j"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=ec-720j"
    },
    {
     "number": "EC.716",
     "name": "D-Lab: Waste",
-    "ocwUrl": "https://ocw.mit.edu/courses/ec-716"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=ec-716"
    }
   ]
  },
@@ -1186,47 +1186,47 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "1.89",
     "name": "Environmental Microbiology",
-    "ocwUrl": "https://ocw.mit.edu/courses/1-89"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=1-89"
    },
    {
     "number": "8.04",
     "name": "Quantum Physics I",
-    "ocwUrl": "https://ocw.mit.edu/courses/8-04"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=8-04"
    },
    {
     "number": "8.02",
     "name": "Physics II: Electricity and Magnetism",
-    "ocwUrl": "https://ocw.mit.edu/courses/8-02"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=8-02"
    },
    {
     "number": "8.01SC",
     "name": "Classical Mechanics",
-    "ocwUrl": "https://ocw.mit.edu/courses/8-01sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=8-01sc"
    },
    {
     "number": "8.03SC",
     "name": "Physics III: Vibrations and Waves",
-    "ocwUrl": "https://ocw.mit.edu/courses/8-03sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=8-03sc"
    },
    {
     "number": "5.111SC",
     "name": "Principles of Chemical Science",
-    "ocwUrl": "https://ocw.mit.edu/courses/5-111sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=5-111sc"
    },
    {
     "number": "3.091SC",
     "name": "Introduction to Solid State Chemistry",
-    "ocwUrl": "https://ocw.mit.edu/courses/3-091sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=3-091sc"
    },
    {
     "number": "7.016",
     "name": "Introductory Biology",
-    "ocwUrl": "https://ocw.mit.edu/courses/7-016"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=7-016"
    },
    {
     "number": "9.13",
     "name": "The Human Brain",
-    "ocwUrl": "https://ocw.mit.edu/courses/9-13"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=9-13"
    }
   ]
  },
@@ -1433,32 +1433,32 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "18.S096",
     "name": "Topics in Mathematics with Applications in Finance",
-    "ocwUrl": "https://ocw.mit.edu/courses/18-s096"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=18-s096"
    },
    {
     "number": "15.401",
     "name": "Finance Theory I",
-    "ocwUrl": "https://ocw.mit.edu/courses/15-401"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=15-401"
    },
    {
     "number": "15.390",
     "name": "New Enterprises",
-    "ocwUrl": "https://ocw.mit.edu/courses/15-390"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=15-390"
    },
    {
     "number": "15.S50",
     "name": "Poker Theory and Analytics",
-    "ocwUrl": "https://ocw.mit.edu/courses/15-s50"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=15-s50"
    },
    {
     "number": "15.S12",
     "name": "Blockchain and Money",
-    "ocwUrl": "https://ocw.mit.edu/courses/15-s12"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=15-s12"
    },
    {
     "number": "15.S08",
     "name": "FinTech: Shaping the Financial World ",
-    "ocwUrl": "https://ocw.mit.edu/courses/15-s08"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=15-s08"
    }
   ]
  },
@@ -1570,22 +1570,22 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "9.00SC",
     "name": "Introduction to Psychology",
-    "ocwUrl": "https://ocw.mit.edu/courses/9-00sc"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=9-00sc"
    },
    {
     "number": "14.01",
     "name": "Principles of Microeconomics ",
-    "ocwUrl": "https://ocw.mit.edu/courses/14-01"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=14-01"
    },
    {
     "number": "17.41",
     "name": "Introduction to International Relations",
-    "ocwUrl": "https://ocw.mit.edu/courses/17-41"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=17-41"
    },
    {
     "number": "17.50",
     "name": "Introduction to Comparative Politics",
-    "ocwUrl": "https://ocw.mit.edu/courses/17-50"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=17-50"
    }
   ]
  },
@@ -1831,52 +1831,52 @@ window.IL_SUBJECT_MAP = [
    {
     "number": "24.908",
     "name": "Creole Languages and Caribbean Identities",
-    "ocwUrl": "https://ocw.mit.edu/courses/24-908"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=24-908"
    },
    {
     "number": "21L.011",
     "name": "The Film Experience",
-    "ocwUrl": "https://ocw.mit.edu/courses/21l-011"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=21l-011"
    },
    {
     "number": "CMS.611J",
     "name": "Creating Video Games",
-    "ocwUrl": "https://ocw.mit.edu/courses/cms-611j"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=cms-611j"
    },
    {
     "number": "STS.042J",
     "name": "Einstein, Oppenheimer, Feynman: Physics in the 20th Century",
-    "ocwUrl": "https://ocw.mit.edu/courses/sts-042j"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=sts-042j"
    },
    {
     "number": "24.900",
     "name": "Introduction to Linguistics",
-    "ocwUrl": "https://ocw.mit.edu/courses/24-900"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=24-900"
    },
    {
     "number": "21G.223",
     "name": "Listening, Speaking, and Pronunciation",
-    "ocwUrl": "https://ocw.mit.edu/courses/21g-223"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=21g-223"
    },
    {
     "number": "24.912",
     "name": "Black Matters: Introduction to Black Studies",
-    "ocwUrl": "https://ocw.mit.edu/courses/24-912"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=24-912"
    },
    {
     "number": "CMS.608",
     "name": "Game Design",
-    "ocwUrl": "https://ocw.mit.edu/courses/cms-608"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=cms-608"
    },
    {
     "number": "21H.001",
     "name": "How to Stage a Revolution",
-    "ocwUrl": "https://ocw.mit.edu/courses/21h-001"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=21h-001"
    },
    {
     "number": "STS.003",
     "name": "The Rise of Modern Science",
-    "ocwUrl": "https://ocw.mit.edu/courses/sts-003"
+    "ocwUrl": "https://ocw.mit.edu/search/?q=sts-003"
    }
   ]
  }

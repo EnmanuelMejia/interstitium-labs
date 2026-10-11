@@ -118,3 +118,40 @@
     paintChrome();
   }
 })();
+
+/* Interstitium Labs — back-to-top (2026-10-09). A floating gold button
+ * appears once the reader scrolls past ~600px on every page; clicking it
+ * smooth-scrolls to the top. Injected here because il-theme.js already
+ * loads synchronously on every page. */
+(function () {
+  function initTop() {
+    if (document.getElementById("il-to-top")) return;
+    var b = document.createElement("button");
+    b.id = "il-to-top";
+    b.type = "button";
+    b.className = "il-to-top";
+    b.setAttribute("aria-label", "Scroll back to top");
+    b.title = "Back to top";
+    b.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>';
+    b.addEventListener("click", function () {
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        window.scrollTo(0, 0);
+      }
+    });
+    document.body.appendChild(b);
+    var onScroll = function () {
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      b.classList.toggle("il-to-top--show", y > 600);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTop);
+  } else {
+    initTop();
+  }
+})();

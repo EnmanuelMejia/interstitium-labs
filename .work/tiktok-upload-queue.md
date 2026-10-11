@@ -19,8 +19,8 @@ All videos: HQ 9:16 with voiceover, from ~/workspace/apex-audit/docs/assets/card
 ## 2. RHEL — RHEL AI & Systems Fabric
 - Video: `~/workspace/apex-audit/docs/assets/cards/hq/hq-rhel_9x16.mp4`
 - Cover: `~/workspace/apex-audit/docs/assets/cards/hq/hq-rhel_9x16_poster.png`
-- Link: https://interstitiumlabs.dev/university/
-- Caption (casual): "RHEL AI & Systems Fabric — enterprise Linux, AI workloads, and systems engineering taught hands-on. The way I learned the craft: structured sittings, inspectable work. interstitiumlabs.dev/university #rhel #linux #sysadmin #redhat"
+- Link: https://interstitiumlabs.dev/rhel-fabric/
+- Caption (casual): "RHEL AI & Systems Fabric — bare-metal RHEL 10: KVM virtualization, rootless Podman for AI workloads, Ansible automation, SELinux enforcing. Every layer reproducible from code. interstitiumlabs.dev/rhel-fabric #rhel #linux #sysadmin #homelab"
 
 ## 3. CATALOG — 68 Bootcamps Catalog
 - Video: `~/workspace/apex-audit/docs/assets/cards/hq/hq-catalog_9x16.mp4`

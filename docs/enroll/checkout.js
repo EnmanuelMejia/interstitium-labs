@@ -99,7 +99,7 @@
     {
       id: "direct",
       title: "Crypto — direct wallet",
-      sub: "Send straight to enmanuelmejia.crypto. Address + QR shown here; no middleman.",
+      sub: "Send straight to our crypto receiving name. Address + QR shown here; no middleman.",
     },
   ];
 
@@ -220,7 +220,7 @@
       '<p class="il-hint">' +
       (state.rail === "hosted"
         ? "A secure hosted page handles the transfer — it shows the exact coin amount and a QR code."
-        : "Pay straight to <strong>enmanuelmejia.crypto</strong>. We show the address and QR here; include the destination tag / memo where shown.") +
+        : "Pay straight to our receiving name (revealed with the address below). We show the address and QR here; include the destination tag / memo where shown.") +
       "</p></div>";
     return (
       railToggle +
@@ -379,9 +379,9 @@
     var html =
       '<section class="il-card il-direct" aria-label="Direct wallet payment">' +
       "<h2 class='il-order__tier'>Pay with " + esc(coinName) + "</h2>" +
-      '<p class="il-ud">Pay to enmanuelmejia.crypto</p>' +
+      '<p class="il-ud">Pay to <span data-il-ud-reveal></span></p>' +
       '<div class="il-qr" id="il-qr" role="img" aria-label="QR code for the receiving address"></div>' +
-      '<p class="il-hint">Receiving address' + (d.source ? " · via " + esc(d.source === "ud" ? "enmanuelmejia.crypto" : "configured wallet") : "") + "</p>" +
+      '<p class="il-hint">Receiving address' + (d.source ? " · via " + esc(d.source === "ud" ? "resolved receiving name" : "configured wallet") : "") + "</p>" +
       '<p class="il-addr">' + esc(d.address) + "</p>" +
       '<button class="il-copy" type="button" data-copy="' + esc(d.address) + '">Copy address</button>' +
       extraRow +
@@ -400,6 +400,7 @@
       "</form>" +
       "</section>";
     root.innerHTML = html;
+    if (window.ILUdReveal) window.ILUdReveal.scan();
     renderQr(document.getElementById("il-qr"), d.qr_payload || d.address);
     root.querySelectorAll("[data-copy]").forEach(function (b) {
       b.addEventListener("click", function () { copyText(b.getAttribute("data-copy"), b); });

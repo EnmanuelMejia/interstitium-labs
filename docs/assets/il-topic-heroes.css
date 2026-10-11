@@ -33,7 +33,11 @@
 .th-hero__bg { position: absolute; inset: 0; z-index: 0; }
 .th-hero__video {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; opacity: .38; filter: saturate(1.1);
+  object-fit: cover; opacity: .55; filter: saturate(1.1);
+}
+.th-hero__poster {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: .55; display: none;
 }
 .th-hero__tint { position: absolute; inset: 0; }
 .th-hero__fx { position: absolute; inset: 0; pointer-events: none; }
@@ -547,4 +551,148 @@
 @keyframes thfx-sunrise { 0% { transform: translateY(2.5%); } 100% { transform: translateY(-2.5%); } }
 @keyframes thfx-glint { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 @keyframes thfx-floaty { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-16px) rotate(2deg); } }
+/* ==========================================================================
+   13. ledger — Cryptocurrency
+   Deep navy vault. Silver-blue hash chains, consensus pulse, ledger rows.
+   ========================================================================== */
+.th-hero--ledger { background: #04070f; }
+.th-hero--ledger .th-hero__tint {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(125,211,252,.14), transparent 65%),
+    linear-gradient(180deg, rgba(4,7,15,.55), rgba(4,7,15,.2) 45%, rgba(4,7,15,.8));
+}
+.th-hero--ledger .th-hero__fx[data-fx="chain"] {
+  background: repeating-linear-gradient(90deg, rgba(125,211,252,.12) 0 2px, transparent 2px 44px);
+  animation: thfx-chainmove 12s linear infinite;
+}
+.th-hero--ledger .th-hero__fx[data-fx="pulse"] {
+  background: radial-gradient(ellipse 40% 30% at 50% 60%, rgba(125,211,252,.08), transparent 70%);
+  animation: thfx-nodepulse 3s ease-in-out infinite;
+}
+.th-hero--ledger .th-hero__eyebrow { color: #7dd3fc; }
+.th-hero--ledger .th-hero__title {
+  color: #e8f4ff;
+  text-shadow: 0 0 30px rgba(125,211,252,.5), 0 2px 0 rgba(125,211,252,.3);
+}
+.th-hero--ledger .th-hero__tag { color: #b8d4ea; }
+@keyframes thfx-chainmove { 0% { background-position: 0 0; } 100% { background-position: 44px 0; } }
+
+/* ==========================================================================
+   14. feedback — Cybernetics
+   Control-room amber. Oscilloscope traces, feedback loop rings, signal glow.
+   ========================================================================== */
+.th-hero--feedback { background: #0b0805; font-family: ui-monospace, "JetBrains Mono", monospace; }
+.th-hero--feedback .th-hero__tint {
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 55%, rgba(251,146,60,.12), transparent 65%),
+    linear-gradient(180deg, rgba(11,8,5,.55), rgba(11,8,5,.2) 45%, rgba(11,8,5,.8));
+}
+.th-hero--feedback .th-hero__fx[data-fx="scope"] {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 46px, rgba(251,146,60,.08) 46px 47px),
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(251,146,60,.08) 46px 47px);
+  animation: thfx-scopedrift 20s linear infinite;
+}
+.th-hero--feedback .th-hero__fx[data-fx="loop"] {
+  background: radial-gradient(circle at 50% 50%, transparent 38%, rgba(45,212,191,.1) 39%, transparent 41%);
+  background-size: 180px 180px;
+  animation: thfx-spin 24s linear infinite;
+}
+.th-hero--feedback .th-hero__eyebrow { color: #fb923c; }
+.th-hero--feedback .th-hero__title {
+  color: #fb923c;
+  text-shadow: 0 0 26px rgba(251,146,60,.55);
+}
+.th-hero--feedback .th-hero__tag { color: #f5d6b8; }
+@keyframes thfx-scopedrift { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 46px, 46px 0; } }
+
+/* ==========================================================================
+   15. dee — Esoteric / John Dee
+   Ritual violet. Enochian rings, candlelight flicker, gold sigil glow.
+   ========================================================================== */
+.th-hero--dee { background: #0d0618; }
+.th-hero--dee .th-hero__tint {
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 40%, rgba(167,139,250,.14), transparent 65%),
+    radial-gradient(ellipse 40% 30% at 50% 90%, rgba(201,162,39,.1), transparent 60%),
+    linear-gradient(180deg, rgba(13,6,24,.55), rgba(13,6,24,.2) 45%, rgba(13,6,24,.82));
+}
+.th-hero--dee .th-hero__fx[data-fx="rings"] {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 30%, rgba(201,162,39,.09) 31%, transparent 33%),
+    radial-gradient(circle at 50% 50%, transparent 48%, rgba(167,139,250,.07) 49%, transparent 51%);
+  background-size: 340px 340px;
+  animation: thfx-spin 60s linear infinite;
+}
+.th-hero--dee .th-hero__fx[data-fx="candle"] {
+  background: radial-gradient(ellipse 30% 20% at 50% 85%, rgba(201,162,39,.08), transparent 70%);
+  animation: thfx-flicker 5s steps(14) infinite;
+}
+.th-hero--dee .th-hero__eyebrow { color: #c9a227; letter-spacing: .4em; }
+.th-hero--dee .th-hero__title {
+  color: #f5eeda;
+  text-shadow: 0 0 34px rgba(201,162,39,.55), 0 0 60px rgba(167,139,250,.25);
+  font-family: Georgia, "Space Grotesk", serif;
+}
+.th-hero--dee .th-hero__tag { color: #d8cba8; }
+
+/* ==========================================================================
+   16. resonance — Om / Meditation
+   Deep indigo stillness. Breathing light, expanding ripples, warm core.
+   ========================================================================== */
+.th-hero--resonance { background: #080614; }
+.th-hero--resonance .th-hero__tint {
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251,191,36,.12), transparent 65%),
+    linear-gradient(180deg, rgba(8,6,20,.5), rgba(8,6,20,.15) 45%, rgba(8,6,20,.8));
+}
+.th-hero--resonance .th-hero__fx[data-fx="breath"] {
+  background: radial-gradient(ellipse 35% 28% at 50% 55%, rgba(251,191,36,.1), transparent 70%);
+  animation: thfx-breathe 8s ease-in-out infinite;
+}
+.th-hero--resonance .th-hero__fx[data-fx="ripples"] {
+  background: radial-gradient(circle at 50% 55%, transparent 20%, rgba(129,140,248,.06) 21%, transparent 23%);
+  background-size: 400px 400px;
+  animation: thfx-rippleout 8s ease-out infinite;
+}
+.th-hero--resonance .th-hero__eyebrow { color: #fbbf24; letter-spacing: .5em; }
+.th-hero--resonance .th-hero__title {
+  color: #fef9ec;
+  text-shadow: 0 0 40px rgba(251,191,36,.45);
+  font-weight: 300; letter-spacing: .06em;
+}
+.th-hero--resonance .th-hero__tag { color: #e8dfc8; }
+@keyframes thfx-breathe {
+  0%, 100% { transform: scale(1); opacity: .6; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+@keyframes thfx-rippleout {
+  0% { background-size: 100px 100px; opacity: .8; }
+  100% { background-size: 600px 600px; opacity: 0; }
+}
+
 /* deploy-trigger 20261009-0955 */
+
+.th-hero__scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(7, 11, 22, 0.5) 100%),
+    linear-gradient(180deg, rgba(7, 11, 22, 0.62) 0%, rgba(7, 11, 22, 0.28) 40%, rgba(7, 11, 22, 0.82) 100%);
+}
+@keyframes th-hero-enter {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.th-hero__eyebrow { animation: th-hero-enter 0.9s cubic-bezier(0.22,1,0.36,1) both; }
+.th-hero__title { animation: th-hero-enter 0.9s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
+.th-hero__tag { animation: th-hero-enter 0.9s cubic-bezier(0.22,1,0.36,1) 0.24s both; }
+.th-hero__cta { animation: th-hero-enter 0.9s cubic-bezier(0.22,1,0.36,1) 0.36s both; }
+@media (prefers-reduced-motion: reduce) {
+  .th-hero__eyebrow, .th-hero__title, .th-hero__tag, .th-hero__cta { animation: none; }
+  .th-hero__video { display: none; }
+}
+/* Save-Data / mobile: poster only, no video download */
+@media (max-width: 640px) {
+  .th-hero__video { display: none; }
+  .th-hero__poster { display: block; }
+}

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
 if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
 }catch(e){}})();</script>
 <style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src 'self' https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>My Progress — Interstitium Labs</title>
@@ -20,13 +21,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Interstitium Labs"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
 <style>
   .il-kicker{font-size:.68rem;text-transform:uppercase;letter-spacing:.2em;color:#c9a227}
   .il-card{background:rgba(12,18,34,.72);border:1px solid rgba(232,238,245,.12);border-radius:1rem;padding:1.25rem}
@@ -52,15 +53,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/paths/">Paths</a>
-      <a href="/progress/" aria-current="page">My Progress</a>
-      <a href="/certificates/">Certificates</a>
-      <a href="/about/">About Us</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
   </div>
 </nav>
@@ -111,7 +113,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section aria-label="Export and import" class="mt-8">
     <h2 class="text-xl font-semibold">Export / import learner state</h2>
-    <p class="il-muted" style="max-width:44rem">Export downloads a JSON snapshot of every <code>il.*</code> value on this device plus your account record. Import restores <code>il.*</code> keys on this device and merges the snapshot into your account. Keep the file safe — it is your offline backup.</p>
+    <p class="il-muted" style="max-width:44rem">Export downloads a JSON snapshot of every <code translate="no">il.*</code> value on this device plus your account record. Import restores <code translate="no">il.*</code> keys on this device and merges the snapshot into your account. Keep the file safe — it is your offline backup.</p>
     <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
       <button type="button" class="il-btn" data-il-export>Export JSON</button>
       <label class="il-btn il-btn-ghost" style="cursor:pointer">Import JSON<input type="file" accept="application/json,.json" data-il-import-file hidden/></label>
@@ -120,7 +122,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     <p class="il-ok mt-2" data-il-io-ok hidden></p>
   </section>
 </main>
-<script src="/assets/il-account.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-account.js"></script>
 <script>
 (function () {
   "use strict";
@@ -192,7 +194,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     }
     var slugs = Object.keys(keys).sort();
     if (!slugs.length) {
-      grid.innerHTML = '<div class="il-card"><p class="il-muted">Nothing yet. Work through any <a href="/paths/" style="color:#7dd3fc">learning path</a> and your progress will appear here.</p></div>';
+      grid.innerHTML = '<div class="il-card"><p class="il-muted">Nothing yet. Work through any <a href="/topics/" style="color:#7dd3fc">learning path</a> and your progress will appear here.</p></div>';
       setStat("paths", "0");
       return;
     }
@@ -407,7 +409,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   if (window.ILAccount) refreshServer();
 })();
 </script>
-<script src="/assets/noah-full.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
 <style>/* canonical footer (page does not load il-unified.css) */
 /* ================================================================
  * §21 — Canonical site footer (2026-10-08).
@@ -487,27 +489,24 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 </style>
 <footer class="il-footer-canonical">
   <div class="il-fc-inner">
-    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
     <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
     <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
     <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
     <nav class="il-fc-nav" aria-label="Footer">
-      <a href="/about/">ABOUT</a>
-      <a href="/founders/">FOUNDERS</a>
-      <a href="/learn/">LEARN</a>
-      <a href="/university/">UNIVERSITY</a>
-      <a href="/prep/">PREP</a>
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
     </nav>
     <nav class="il-fc-nav" aria-label="Footer secondary">
-      <a href="/paths/">PATHS</a>
-      <a href="/labs/">LABS</a>
       <a href="/noah/">Noah</a>
-      <a href="/adapt/">ADAPT</a>
-      <a href="/enroll/">ENROLL</a>
-      <a href="/play/">PLAY</a>
-    </nav>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
   <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

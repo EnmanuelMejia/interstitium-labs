@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Interstitium Labs — Knowledge Operating System</title>
+<title>Courses — Interstitium Labs</title>
 <meta name="description" content="Interstitium Labs: a knowledge operating system. Structured sittings, adaptive math, Socratic AI tutor. A plant, not a video LMS.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Interstitium Labs Learning University">
 <meta property="og:url" content="https://interstitiumlabs.dev/university/">
 <meta property="og:title" content="Interstitium Labs — Learning University">
-<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:description" content="A knowledge operating system. 31 courses, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
 <meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Interstitium Labs — Learning University">
-<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:description" content="31 courses, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
 <meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
 <link rel="canonical" href="https://interstitiumlabs.dev/university/">
 
@@ -28,6 +29,7 @@
     <link rel="stylesheet" href="../assets/il-topic-themes.css">
 </head>
 <body>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li aria-current="page">Courses</li></ol></nav>
 <noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
 <a class="skip-link" href="#il-main">Skip to main content</a>
 <div id="il-header"></div>
@@ -50,7 +52,7 @@
       <div class="pantheon-ctas">
         <a class="btn" href="paths.html">Begin a sitting</a>
         <a class="btn" href="tracks.html">Browse the tracks</a>
-        <a class="btn btn-ghost" href="#academies">Browse the academies</a>
+        <a class="btn btn-ghost" href="#academies">Browse the courses</a>
         <a class="btn btn-ghost" href="https://learn.interstitiumlabs.dev/bootcamps/threatlocker-assessment-prep/">Free interview bootcamp</a>
       </div>
     </div>
@@ -91,7 +93,7 @@
   <section class="block" id="academies" aria-labelledby="acad-h">
     <div class="wrap" data-catalog-slot>
       <p class="eyebrow">Curriculum OS</p>
-      <h2 id="acad-h">The academies</h2>
+      <h2 id="acad-h">The courses</h2>
       <p class="lede">Esoteric study is source-critical. Engineering is inspectable. Math sits on a cert. Code is a sitting you can fail. Not a photocopy of anyone's PDF.</p>
       <div class="grid grid-3" id="academy-grid" style="margin-top:1.6rem"></div>
     </div>
@@ -105,7 +107,6 @@
       <div class="grid grid-3" id="path-preview" style="margin-top:1.6rem"></div>
     </div>
   </section>
-
 
   <section class="block" id="stories" aria-labelledby="stories-h">
     <div class="wrap">
@@ -158,7 +159,7 @@
 <script src="js/app.js"></script>
 <script src="js/il-progress.js"></script>
 <script src="js/il-stories.js"></script>
-<script src="/assets/noah-full.js"></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js"></script>
 <script src="js/hero.js"></script>
 <script>
 (function () {
@@ -230,7 +231,7 @@
     if (th) c.setAttribute('data-topic-theme', th);
     /* 2026-10-09 cinematic rollout (S1): poster per course code. */
     var poster = (/^IL-(0[1-9]|[12][0-9])$/.test(String(a.code || '')))
-      ? '<img class="card-poster" src="/assets/cinematic/courses/' + IL.esc(a.code) + '.webp" alt="" loading="lazy" decoding="async" width="640" height="360">' : '';
+      ? '<img class="card-poster" src="https://interstitiumlabs.dev/assets/cinematic/courses/' + IL.esc(a.code) + '.webp" alt="" loading="lazy" decoding="async" width="640" height="360">' : '';
     c.innerHTML = poster +
       '<div class="code">' + IL.esc(a.code) + '</div>' +
       '<h3><a href="academy.html?id=' + IL.esc(a.code) + '">' + IL.esc(a.name) + '</a></h3>' +
@@ -309,7 +310,7 @@
     var sittings = 0;
     cat.paths.forEach(function (p) { sittings += (p.modules || []).length; });
     if (!sittings) sittings = 138;
-    box.appendChild(counter(String(nAcad), 'academies'));
+    box.appendChild(counter(String(nAcad), 'courses'));
     box.appendChild(counter(hours.toLocaleString('en-US'), 'hours'));
     box.appendChild(counter(String(sittings), 'sittings'));
     box.appendChild(counter(String(IL.assessments().length || 11), 'assessments'));
@@ -317,7 +318,7 @@
     // Keep the academies heading honest: it follows the catalog, not the copy.
     var acadH = document.getElementById('acad-h');
     if (acadH && cat.academies.length) {
-      acadH.textContent = cat.academies.length + ' academies';
+      acadH.textContent = cat.academies.length + ' courses';
     }
 
     var grid = document.getElementById('academy-grid');
@@ -331,7 +332,7 @@
     var paths = cat.paths.slice(0, 6);
     if (!paths.length) {
       prev.innerHTML = '<div class="empty-state"><h3>Paths are being published</h3>' +
-        '<p>The path catalog is still being assembled. The academies above are the standing index — check back, or <a href="honesty.html">read the ledger</a>.</p></div>';
+        '<p>The path catalog is still being assembled. The courses above are the standing index — check back, or <a href="honesty.html">read the ledger</a>.</p></div>';
     } else {
       paths.forEach(function (p) { prev.appendChild(pathCard(p)); });
     }
@@ -416,7 +417,7 @@
  * ================================================================ */
 .il-footer-canonical {
   border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
-  padding: 3rem 1.25rem 4.5rem;
+  padding: 2rem 1.25rem 2rem;
   text-align: center;
 }
 .il-fc-inner {
@@ -484,30 +485,68 @@
   cursor: pointer;
 }
 .il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+/* Floating language picker (mirrors il-unified.css; page does not load it).
+   il-translate.js toggles .is-open; menu opens upward from bottom-fixed button. */
+.il-fc-lang-wrap { position: fixed; left: 1rem; bottom: 1rem; z-index: 61; }
+.il-fc-lang-wrap .il-fc-lang { position: static; }
+.il-lang-menu {
+  position: absolute; bottom: calc(100% + 0.35rem); left: 0; z-index: 62;
+  min-width: 11rem; max-height: min(70vh, 22rem); overflow-y: auto;
+  padding: 0.35rem; border-radius: 0.65rem; display: none;
+  background: #0d1226; border: 1px solid rgba(201,162,39,.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,.55);
+}
+.il-lang-menu.is-open { display: block; }
+.il-lang-menu button {
+  display: flex; width: 100%; align-items: center; min-height: 44px;
+  padding: 0.45rem 0.65rem; border: 0; border-radius: 0.4rem;
+  background: transparent; color: #f2ede1; font-size: 0.8rem;
+  text-align: left; cursor: pointer;
+}
+.il-lang-menu button:hover { background: rgba(201,162,39,.12); color: #c9a227; }
+/* Sitewide search overlay (mirrors il-unified.css; page does not load it). */
+.il-search__btn{background:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#cfd6e4;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px}
+.il-search__btn:hover{border-color:#c9a227;color:#c9a227}
+.il-search__overlay{position:fixed;inset:0;z-index:2000;background:rgba(4,6,12,.72);backdrop-filter:blur(6px);display:flex;justify-content:center;align-items:flex-start;padding:12vh 1rem 1rem}
+.il-search__overlay[hidden]{display:none}
+.il-search__panel{width:min(620px,100%);background:#0d1226;border:1px solid rgba(201,162,39,.35);border-radius:14px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.il-search__bar{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);color:#8b93a8}
+.il-search__input{flex:1;background:none;border:0;color:#f2ede1;font-size:1.05rem;outline:none;min-width:0}
+.il-search__input::placeholder{color:#5b6376}
+.il-search__close{background:none;border:0;color:#8b93a8;font-size:1.6rem;cursor:pointer;line-height:1;padding:.2rem .4rem}
+.il-search__close:hover{color:#fff}
+.il-search__results{max-height:60vh;overflow-y:auto;padding:.4rem}
+.il-search__hint{padding:1.2rem;text-align:center;color:#8b93a8;font-size:.9rem}
+.il-search__hint kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.1rem .4rem;font-size:.8rem}
+.il-search__item{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;border-radius:10px;text-decoration:none;color:inherit}
+.il-search__item:hover{background:rgba(201,162,39,.08)}
+.il-search__type{flex:none;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9a227;background:rgba(201,162,39,.1);border:1px solid rgba(201,162,39,.3);border-radius:6px;padding:.25rem .5rem;min-width:64px;text-align:center}
+.il-search__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:.15rem}
+.il-search__title{font-weight:600;color:#f2ede1;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.il-search__desc{font-size:.8rem;color:#8b93a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.il-search__theme{flex:none;font-size:.72rem;color:#6b7398}
 </style>
 <footer class="il-footer-canonical">
   <div class="il-fc-inner">
-    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
     <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
     <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
     <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
     <nav class="il-fc-nav" aria-label="Footer">
-      <a href="/about/">ABOUT</a>
-      <a href="/founders/">FOUNDERS</a>
-      <a href="/learn/">LEARN</a>
-      <a href="/university/">UNIVERSITY</a>
-      <a href="/prep/">PREP</a>
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
     </nav>
     <nav class="il-fc-nav" aria-label="Footer secondary">
-      <a href="/paths/">PATHS</a>
-      <a href="/labs/">LABS</a>
       <a href="/noah/">Noah</a>
-      <a href="/adapt/">ADAPT</a>
-      <a href="/enroll/">ENROLL</a>
-      <a href="/play/">PLAY</a>
-    </nav>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
   <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
+<script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

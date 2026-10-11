@@ -168,7 +168,7 @@
       '<source src="' + esc(videoUrl) + '" type="video/mp4">' +
       'Your browser does not support the video tag.</video>' +
       '<p class="small muted"><span class="il-badge il-badge-preview">Preview</span> ' +
-      'Original Interstitium Labs animation — voiceover narration coming soon.</p></div>' : '';
+      'Original Interstitium Labs animation.</p></div>' : '';
     return '<aside class="il-story" aria-labelledby="' + id + '-hook">' +
       '<div class="il-story__kicker">THE STORY BEHIND</div>' +
       '<h3 class="il-story__hook" id="' + id + '-hook">' + esc(story.hook) + '</h3>' +

@@ -357,9 +357,8 @@ var TABS = [
 var activeTab = 'brief';
 
 function renderChrome() {
-  $('#hdr-code').textContent = COURSE.code || '';
-  $('#hdr-code').title = COURSE.title;
-  $('#ft-course').textContent = COURSE.title + (COURSE.code ? ' · ' + COURSE.code : '');
+  var hc = $('#hdr-code'); if (hc) { hc.textContent = COURSE.code || ''; hc.title = COURSE.title; }
+  var fc = $('#ft-course'); if (fc) fc.textContent = COURSE.title + (COURSE.code ? ' · ' + COURSE.code : '');
 
   var nav = $('#shell-nav'), mnav = $('#mobile-nav .row');
   nav.innerHTML = ''; mnav.innerHTML = '';
@@ -712,9 +711,8 @@ var Guided = {
 function heroHTML() {
   var dl = COURSE.updatedAt ? esc(COURSE.updatedAt) + ' · ' : '';
   var hours = COURSE.hours ? ' · ' + COURSE.hours + ' hours' : '';
-  /* 2026-10-09 cinematic rollout (S1): course poster banner. */
-  var poster = (/^IL-(0[1-9]|[12][0-9])$/.test(String(COURSE.code || '')))
-    ? '<div class="hero-poster"><img src="/assets/cinematic/courses/' + esc(COURSE.code) + '-hero.webp" alt="" loading="lazy" decoding="async" width="1280" height="720"></div>' : '';
+  /* 2026-10-09: hero poster removed per user order — less is more. */
+  var poster = '';
   return '<div class="hero">' + poster +
     '<div class="dateline">' + dl + esc(COURSE.code) + ' · SCIENTIA OMNIA VINCIT' + hours + '</div>' +
     '<h1>' + esc(COURSE.title) + '</h1>' +
@@ -3084,7 +3082,7 @@ function il26_renderModuleVideos(m, host) {
         '<track kind="captions" src="' + esc(capSrc) + '" srclang="en" label="English">' +
         'Your browser does not support the video tag.</video>' +
         '<p class="small muted">🔇 Muted preview — tap video for sound &amp; controls.' +
-        (v.preview ? ' Animated explainer (preview) — voiceover narration coming soon.' : '') + '</p>' +
+        (v.preview ? ' Animated explainer (preview).' : '') + '</p>' +
         '</div>';
     } else if (yid) {
       videoHtml = il_ytFacadeHTML(yid, v.title || 'Video') +
@@ -3149,7 +3147,7 @@ function il26_renderModuleAudio(m, host) {
       '<div class="small muted">' + esc(a.blurb || '') + '</div>' +
       (a.url ? '<audio controls preload="metadata" style="width:100%;margin-top:6px"><source src="' +
         esc(a.url) + '" type="audio/mpeg">Your browser does not support audio.</audio>'
-        : '<p class="small muted"><i>Audio coming soon — narration script staged.</i></p>');
+        : '');
     card.appendChild(row);
   });
   host.appendChild(card);

@@ -266,31 +266,23 @@
      <details> collapse. Absolute URLs so it works at any path depth.
      il-theme.js injects its toggle into .il-pillnav__row automatically. */
   var PILL_LINKS = [
-    ['https://interstitiumlabs.dev/learn/', 'Learn'],
-    ['https://interstitiumlabs.dev/#academies', 'Academies'],
-    ['https://interstitiumlabs.dev/paths/', 'Paths'],
-    ['https://interstitiumlabs.dev/paths/roles/', 'Role Tracks'],
+    ['https://interstitiumlabs.dev/university/', 'Courses'],
+    ['https://interstitiumlabs.dev/topics/', 'Topics'],
     ['https://interstitiumlabs.dev/prep/drills/', 'Practice'],
-    ['https://interstitiumlabs.dev/labs/', 'Labs'],
     ['https://interstitiumlabs.dev/noah/', 'Noah AI'],
-    ['https://interstitiumlabs.dev/coach/', 'Coach'],
-    ['https://interstitiumlabs.dev/play/', 'Play'],
-    ['https://interstitiumlabs.dev/cinema/', 'Cinema'],
     ['https://interstitiumlabs.dev/jobs/', 'Jobs'],
-    ['https://interstitiumlabs.dev/adapt/', 'Adapt'],
-    ['https://interstitiumlabs.dev/about/', 'About Us'],
-    ['https://interstitiumlabs.dev/university/', 'University']
+    ['https://interstitiumlabs.dev/about/', 'About']
   ];
 
   function renderHeader() {
     var host = document.getElementById('il-header');
     if (!host) return;
     var links = PILL_LINKS.map(function (item) {
-      var cur = item[1] === 'University' ? ' aria-current="page"' : '';
+      var cur = item[1] === 'Courses' ? ' aria-current="page"' : '';
       return '<a href="' + item[0] + '"' + cur + '>' + item[1] + '</a>';
     }).join('');
     var sheetLinks = PILL_LINKS.map(function (item) {
-      var cur = item[1] === 'University' ? ' aria-current="page"' : '';
+      var cur = item[1] === 'Courses' ? ' aria-current="page"' : '';
       return '<a href="' + item[0] + '"' + cur + '>' + item[1] + '</a>';
     }).join('') + '<a href="https://interstitiumlabs.dev/enroll/">Enroll</a>';
     host.innerHTML =
@@ -301,38 +293,15 @@
       '<span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span></a>' +
       '<div class="il-pillnav__links">' + links + '</div>' +
       '<div style="display:flex;align-items:center;gap:.5rem">' +
+      '<button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>' +
       '<details class="il-menu"><summary aria-label="Open menu">MENU</summary>' +
       '<div class="il-menu__sheet">' + sheetLinks + '</div></details>' +
       '<a class="il-btn il-btn--gold il-btn--small" href="https://interstitiumlabs.dev/enroll/">Enroll</a>' +
       '</div></div></nav>';
   }
 
-  /* ---------- shared footer ---------- */
-  function renderFooter() {
-    var host = document.getElementById('il-footer');
-    if (!host) return;
-    var year = new Date().getFullYear();
-    var foot = el('footer', { 'class': 'site-footer' }, [
-      el('div', { 'class': 'wrap' }, [
-        el('div', { 'class': 'seal' }, [
-          el('img', { src: '/assets/chrome/sigil-glyph.svg', alt: 'Interstitium Labs sigil', width: 44, height: 44 }),
-          el('div', {}, [
-            el('div', { 'class': 'latin', text: 'SCIENTIA OMNIA VINCIT' }),
-            el('div', { 'class': 'quatrain', text: 'Quaerere · Intelligere · Liberare · Transcendere' })
-          ])
-        ]),
-        el('nav', { 'class': 'footer-nav', 'aria-label': 'Footer' },
-          NAV.map(function (item) { return el('a', { href: item[0], text: item[1] }); })
-        ),
-        el('p', { 'class': 'footer-note' }, [
-          'A plant, not a video LMS. Mastery lives in your browser — no fake API keys, no faked cloud fleet. ',
-          'Checkout is offline on purpose until Payment Links are live. ',
-          'Created by Interstitium Labs. © ' + year + ' Interstitium Labs. Founded by Enmanuel D. Mejia — the work is the record.'
-        ])
-      ])
-    ]);
-    host.appendChild(foot);
-  }
+  
 
   /* ---------- graceful catalog-offline notice ---------- */
   function renderOfflineNotices() {
@@ -492,7 +461,6 @@
   /* ---------- boot ---------- */
   function boot() {
     renderHeader();
-    renderFooter();
     syncMotionDataset(); // pages without hero.js still honor the persisted choice
     initReveals();
     initCountUp();

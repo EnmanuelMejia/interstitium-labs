@@ -59,14 +59,16 @@
     philosopher: { label: 'Philosopher', icon: '🏛️', voice: { rate: 0.85, pitch: 0.85 }, avatar: 'monas',  accent: 'violet'  },
     mentor:      { label: 'Mentor',      icon: '🌱', voice: { rate: 0.95, pitch: 1.1  }, avatar: 'wisp',   accent: 'emerald' },
     trickster:   { label: 'Trickster',   icon: '🃏', voice: { rate: 1.15, pitch: 1.2  }, avatar: 'sigil',  accent: 'cyan'    },
+    companion:   { label: 'Companion',   icon: '🎧', voice: { rate: 1.0,  pitch: 1.0  }, avatar: 'operator', accent: 'cyan'  },
   };
-  var PERSONA_ORDER = ['visionary', 'engineer', 'philosopher', 'mentor', 'trickster'];
+  var PERSONA_ORDER = ['companion', 'visionary', 'engineer', 'philosopher', 'mentor', 'trickster'];
 
   var AVATARS = {
-    monas:  { label: 'Monas',  icon: '💠' },
-    orrery: { label: 'Orrery', icon: '🪐' },
-    sigil:  { label: 'Sigil',  icon: '✨' },
-    wisp:   { label: 'Wisp',   icon: '🌌' },
+    monas:    { label: 'Monas',    icon: '💠' },
+    orrery:   { label: 'Orrery',   icon: '🪐' },
+    sigil:    { label: 'Sigil',    icon: '✨' },
+    wisp:     { label: 'Wisp',     icon: '🌌' },
+    operator: { label: 'Operator', icon: '🎧' },
   };
   var ACCENTS = {
     cyan:    { label: 'Cyan',    css: '#5EEAD4' },
@@ -97,7 +99,7 @@
   ];
 
   var state = {
-    persona: 'visionary',
+    persona: 'companion',
     voiceProfile: 'narrator',
     browserVoice: null, // actual SpeechSynthesisVoice
     avatar: 'sigil',
@@ -249,7 +251,7 @@
       var complexityRate = analyzeComplexity(clean);
       var emotion = detectEmotion(clean);
 
-      var persona = PERSONAS[state.persona] || PERSONAS.visionary;
+      var persona = PERSONAS[state.persona] || PERSONAS.companion;
       var voiceProf = VOICE_PROFILES.find(function (v) { return v.id === state.voiceProfile; }) || VOICE_PROFILES[1];
 
       // Combine: persona base × voice profile × adaptive × emotion
@@ -380,6 +382,19 @@
       localStorage.setItem('noah-persona-avatar', avatarId);
       localStorage.setItem('noah-persona-accent', accentId);
     } catch (e) {}
+  }
+
+  /* ---------- Twin tutor (Noah / Genesis) ---------- */
+
+  /* The tutor choice is owned by the avatar profile (il-noah-profile):
+     avatar 'genesis' → Genesis, anything else → Noah. Read live so the
+     chat engine always matches the visible avatar. */
+  function currentTutor() {
+    try {
+      var p = JSON.parse((g.localStorage && g.localStorage.getItem('il-noah-profile')) || '{}');
+      if (p && p.avatar === 'genesis') return 'genesis';
+    } catch (e) {}
+    return 'noah';
   }
 
   /* ---------- Fetch personas from backend ---------- */
@@ -626,8 +641,10 @@
       g.speechSynthesis.onvoiceschanged = initVoices;
     }
 
-    // --- Patch fetch to include persona ---
-    // noah-voice.js already patches fetch for model+mode; we chain ours
+    // --- Patch fetch to include persona + tutor ---
+    // noah-voice.js already patches fetch for model+mode; we chain ours.
+    // Tutor (noah | genesis) mirrors the avatar profile — the twins share
+    // capabilities; the backend applies the matching identity prompt.
     var origFetch = g.fetch;
     g.fetch = function (url, opts) {
       if (typeof url === 'string' && url.indexOf('/api/noah') === 0 &&
@@ -635,6 +652,7 @@
         try {
           var body = JSON.parse(opts.body);
           body.persona = state.persona;
+          if (!body.tutor) body.tutor = currentTutor();
           opts = Object.assign({}, opts, { body: JSON.stringify(body) });
         } catch (e) {}
       }
@@ -684,6 +702,7 @@
     },
     getPersona: function () { return state.persona; },
     getPersonas: function () { return Object.keys(PERSONAS); },
+    getTutor: function () { return currentTutor(); },
     setVoiceProfile: function (v) { state.voiceProfile = v; syncVoiceSelect(); },
     adaptiveSpeak: adaptiveSpeak,
     analyzeComplexity: analyzeComplexity,

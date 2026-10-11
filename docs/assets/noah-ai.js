@@ -185,8 +185,27 @@
   var START_RE = /what should i learn first|where (do|should) i start|how do i (get started|begin)|learning path/;
   var IL11_RE = /\bil-?11\b/;
 
-  var A_GREET = 'Hey — I\u2019m **Noah**, answering on-device from this site\u2019s curriculum. ' +
-    'Ask me about any track — blockchain, quantum, DevOps, Kubernetes, deep work — or tap a suggestion below.';
+  /* Twin tutors: Noah (default) and Genesis, his twin sister. The choice
+     lives in the avatar profile (il-noah-profile); capabilities are
+     identical — only the presence differs. */
+  function tutorId() {
+    try {
+      if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) {
+        return g.ILNoahAvatar.getProfile().avatar === 'genesis' ? 'genesis' : 'noah';
+      }
+    } catch (e) {}
+    try {
+      var p = JSON.parse(g.localStorage.getItem('il-noah-profile') || '{}');
+      if (p && p.avatar === 'genesis') return 'genesis';
+    } catch (e2) {}
+    return 'noah';
+  }
+  function tutorLabel() { return tutorId() === 'genesis' ? 'Genesis' : 'Noah'; }
+
+  function greetReply() {
+    return 'Hey — I\u2019m **' + tutorLabel() + '**, answering on-device from this site\u2019s curriculum. ' +
+      'Ask me about any track — blockchain, quantum, DevOps, Kubernetes, deep work — or tap a suggestion below.';
+  }
   var A_BUILDER = 'Interstitium Labs was built by **Enmanuel Mejia** — Founder and DevSecOps/Full Stack Developer. ' +
     'This site is his knowledge operating system: curriculum tracks, labs, and study guides distilled from his work ' +
     'across IT operations, DevOps, security, and systems engineering. Everything I tell you comes from these on-site ' +
@@ -318,15 +337,71 @@
     return 'general';
   }
 
+  /* Personal-notes intents over the ILNotes vault (il-notes.js).
+     Returns a local answer object or null when not a notes intent. */
+  function notesIntent(input, lower) {
+    var N = (typeof g !== 'undefined' && g.ILNotes) || (typeof window !== 'undefined' && window.ILNotes);
+    if (!N) return null;
+    var clean = function (s) { return String(s || '').replace(/[?.!\s]+$/, '').trim(); };
+
+    /* "save that / save this explanation" — capture the last tutor reply. */
+    if (/^(please\s+)?save (that|this)( explanation| answer| reply| one)?( to my notes)?[.!]?$/.test(lower)) {
+      var last = null;
+      try {
+        var store = sessionStore();
+        var conv = store ? store.snapshot().conversation : [];
+        for (var i = conv.length - 1; i >= 0; i--) {
+          if (conv[i].role === 'assistant' && conv[i].content) { last = conv[i].content; break; }
+        }
+      } catch (e) {}
+      if (!last) return { reply: 'There is no explanation above to save yet — ask me something first, then say “save that”.', nudges: [] };
+      var firstLine = last.split('\n')[0].replace(/^[#*\s]+/, '').slice(0, 60) || 'Saved explanation';
+      var saved = N.saveTextAsNote('Noah — ' + firstLine, last, { type: 'chat' });
+      return { reply: 'Saved to your notes as **“' + saved.title + '”**. Find it any time in [My Notes](/my-notes/) — and link it to other ideas with [[' + 'wikilinks]].', nudges: [] };
+    }
+
+    /* "note: …" / "save a note: …" — quick capture. */
+    var cap = /^note[:\s]+(.{3,})$/i.exec(input) || /^save (?:a )?note[:\s]+(.{3,})$/i.exec(input);
+    if (cap) {
+      var text = cap[1].trim();
+      var title = text.split(/\s+/).slice(0, 6).join(' ').slice(0, 60);
+      var made = N.create({ title: title, body: text, tags: ['quick'], source: { type: 'chat' } });
+      return { reply: 'Noted — **“' + made.title + '”** is in [My Notes](/my-notes/).', nudges: [] };
+    }
+
+    /* "what did I note about X" / "search my notes for X" / "show my notes". */
+    var m = /(?:what did i (?:note|write|save) about|my notes? (?:on|about|for)|search my notes?(?: for)?|find in my notes?(?: for)?|notes? (?:on|about))\s+(.+)$/i.exec(input);
+    if (m || /^(show|list|open) my notes[.!]?$/.test(lower)) {
+      var q = m ? clean(m[1]) : '';
+      var hits = N.search(q);
+      if (!hits.length) {
+        return { reply: q
+          ? 'You have no notes matching **' + q + '** yet. Say “note: …” to capture one, or press **Add note** inside a lesson.'
+          : 'Your vault is empty so far. Say “note: …” to capture your first note.', nudges: [] };
+      }
+      var lines = hits.slice(0, 3).map(function (h) {
+        return '**' + h.note.title + '** — ' + h.excerpt;
+      });
+      return { reply: (q ? 'From your notes on **' + q + '**:\n\n' : 'Your most recent notes:\n\n') +
+        lines.join('\n\n') + '\n\nFull vault: [My Notes](/my-notes/)', nudges: [] };
+    }
+    return null;
+  }
+
   function ask(text, ctx) {
     var input = String(text == null ? '' : text);
     var lower = input.toLowerCase();
     /* 1 · direct special cases (verified facts only) */
-    if (GREET_RE.test(lower) && input.trim().length < 32) return { reply: A_GREET, nudges: [] };
+    if (GREET_RE.test(lower) && input.trim().length < 32) return { reply: greetReply(), nudges: [] };
     if (BUILDER_RE.test(lower)) return { reply: A_BUILDER, nudges: [] };
     if (START_RE.test(lower)) return { reply: A_START, nudges: [] };
     if (IL11_RE.test(lower)) return { reply: A_IL11, nudges: [] };
     if (/zero.?trust/.test(lower)) return { reply: A_ZT, nudges: [] };
+    /* 1a · personal notes intents (ILNotes vault, on-device only).
+       Guarded: when il-notes.js has not loaded, these fall through to the
+       normal router untouched. Notes never leave the device from here. */
+    var noteHit = notesIntent(input, lower);
+    if (noteHit) return noteHit;
     /* 1b · course catalog intents (verified bundle data only) */
     var ilm = ILCODE_RE.exec(lower);
     if (ilm && !/il-?11\b/.test(lower)) {
@@ -344,13 +419,13 @@
     /* 2 · the knowledge bundle: direct answers with cited on-site links */
     var hit = answerFromKB(input);
     if (hit) {
-      var topic = detectTopic(lower);
+      var topic = topicWithPageBias(lower);
       var guide = GUIDE[topic];
       var nudges = (guide && topic && topic !== 'general') ? [guide.question] : [];
       return { reply: hit.reply, nudges: nudges };
     }
     /* 3 · Socratic topic guides (bundle unreachable or genuinely uncovered) */
-    var topic2 = detectTopic(lower);
+    var topic2 = topicWithPageBias(lower);
     if (topic2 && topic2 !== 'general' && GUIDE[topic2]) {
       var g2 = GUIDE[topic2];
       return { reply: g2.question + ' ' + g2.nudge1, nudges: [g2.nudge2] };
@@ -419,13 +494,23 @@
     return fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: msgs.slice(-12), context: store ? store.remoteContext(options) : undefined }),
+      body: JSON.stringify({ messages: msgs.slice(-12), tutor: tutorId(), citations: true, context: store ? store.remoteContext(options) : undefined }),
       signal: controller ? controller.signal : undefined
     }).then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {
         if (out.res.ok && out.data && typeof out.data.reply === 'string' && out.data.reply.trim() && !out.data.fallback) {
           var screened = screenRemote(out.data.reply.slice(0, 18000), text);
-          return { reply: screened.reply, remote: !screened.replaced, local: screened.replaced, remoteScreened: screened.replaced,
+          /* 2026-10-11: live-source citations from the Knowledge Source
+             Layer — render the returned citations as a Sources list so
+             every grounded claim is one tap from its source. */
+          var replyText = screened.reply;
+          var cites = Array.isArray(out.data.citations) ? out.data.citations : [];
+          if (cites.length && !screened.replaced) {
+            replyText += '\n\n**Sources**\n' + cites.map(function (c) {
+              return '- [' + c.n + '] [' + c.title + '](' + c.url + ') — ' + c.source;
+            }).join('\n');
+          }
+          return { reply: replyText, citations: cites, remote: !screened.replaced, local: screened.replaced, remoteScreened: screened.replaced,
             notice: screened.replaced ? LOCAL_NOTICE + ' A remote response was replaced because it described IL-11 as a published track.' : REMOTE_NOTICE };
         }
         return fallback();
@@ -587,6 +672,9 @@
     '@keyframes noah-blink{0%,100%{opacity:1;}50%{opacity:.45;}}',
     '#noah-close{background:none;border:none;color:#7d8ea3;font-size:20px;cursor:pointer;line-height:1;padding:4px;}',
     '#noah-close:hover{color:#f2e8c9;}',
+    '#noah-settings-btn{background:none;border:none;color:#7d8ea3;font-size:16px;cursor:pointer;line-height:1;padding:4px;margin-right:2px;}',
+    '#noah-settings-btn:hover{color:#c9a227;}',
+    '.noah-settings-wrap{background:rgba(255,255,255,0.03);border:1px solid rgba(201,162,39,0.2);border-radius:12px;padding:16px;margin:8px 0;}',
     '#noah-msgs{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;}',
     '.noah-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.55;',
     'animation:noah-in .3s ease;word-wrap:break-word;}',
@@ -916,12 +1004,36 @@
     study: 'study method', career: 'career prep'
   };
   var fallbackNoted = false;
+
+  /* ---- Page-context awareness (noah-everywhere Phase 1) ----
+     il-noah-context.js publishes page metadata via setPageContext().
+     Used for: topic bias when the question text is ambiguous, and
+     context-aware suggestion chips. Page context never overrides an
+     explicit topic detected in the question text. */
+  var pageContext = null;
+  var pageChips = [];
+  function setPageContext(ctx, chips) {
+    pageContext = (ctx && typeof ctx === 'object') ? ctx : null;
+    pageChips = Array.isArray(chips) ? chips.filter(function (c) { return typeof c === 'string' && c; }).slice(0, 4) : [];
+  }
+  function topicWithPageBias(lower) {
+    var t = detectTopic(lower);
+    if (t !== 'general') return t;
+    if (pageContext && pageContext.topic && pageContext.topic !== 'general' && TOPIC_LABEL[pageContext.topic]) {
+      return pageContext.topic;
+    }
+    return 'general';
+  }
   function adaptiveChips() {
     var chips = CHIPS.slice();
     var top = NoahStats.topTopic();
     if (top && TOPIC_LABEL[top.topic]) {
       var label = 'Keep going with ' + TOPIC_LABEL[top.topic];
       chips = [label].concat(chips.filter(function (c) { return c !== label; }));
+    }
+    // Page-context chips first (deduped against the rest).
+    for (var i = pageChips.length - 1; i >= 0; i--) {
+      (function (c) { chips = [c].concat(chips.filter(function (x) { return x !== c; })); })(pageChips[i]);
     }
     return chips;
   }
@@ -1150,6 +1262,26 @@
     } catch (e) {}
   }
 
+  /* 3D Operator avatar adapter (unified shell): prefer the WebGL Operator
+     avatar (Noah at the keyboard, headphones on) when il-noah-avatar.js has
+     loaded; fall back to the built-in 2D canvas portrait. Matches the
+     { setState(s), parallax(x,y) } interface the widget expects. */
+  function mountAvatar(slot, size) {
+    try {
+      if (window.ILNoahAvatar && window.ILNoahAvatar.mount) {
+        var inst = window.ILNoahAvatar.mount(slot, {});
+        if (inst) {
+          try { if (inst.setAvatar) inst.setAvatar('operator'); } catch (eA) {}
+          return {
+            setState: function (s) { try { inst.setStatus(s); } catch (e) {} },
+            parallax: function () {}
+          };
+        }
+      }
+    } catch (e) {}
+    return NoahAvatar.mount(slot, size);
+  }
+
   function buildWidget() {
     if (document.getElementById('noah-launcher')) return;
     /* One canonical Noah per page: the full coach chat owns pages that mount it
@@ -1165,7 +1297,7 @@
     launcher.setAttribute('aria-controls', 'noah-panel');
     launcher.setAttribute('aria-expanded', 'false');
     launcher.addEventListener('click', toggle);
-    avatarCtl.launcher = NoahAvatar.mount(launcher.querySelector('.noah-orb'), 52);
+    avatarCtl.launcher = mountAvatar(launcher.querySelector('.noah-orb'), 52);
     launcher.addEventListener('pointermove', function (e) {
       var r = launcher.getBoundingClientRect();
       avatarCtl.launcher.parallax(((e.clientX - r.left) / r.width - 0.5) * 2, ((e.clientY - r.top) / r.height - 0.5) * 2);
@@ -1181,13 +1313,14 @@
       '<div id="noah-head"><span class="noah-avatar" aria-hidden="true"></span>' +
       '<span class="noah-title"><span class="noah-name">Noah AI</span><br>' +
       '<span class="noah-status"><span class="noah-dot"></span><span id="noah-status-text">On-device · site curriculum</span></span></span>' +
+      '<button id="noah-settings-btn" aria-label="Noah settings" title="Settings & connected services">⚙</button>' +
       '<button id="noah-close" aria-label="Close chat">×</button></div>' +
       '<div id="noah-msgs" role="log" aria-label="Noah conversation" aria-live="polite"></div>' +
       '<div id="noah-chips"></div>' +
       '<form id="noah-form" method="post"><label for="noah-input">Message Noah</label><textarea id="noah-input" name="message" rows="1" maxlength="4000" placeholder="Ask Noah AI anything…" required></textarea>' +
       '<button id="noah-send" type="submit">Send</button></form>' +
       '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Memory stays in this browser. No cross-device sync.</div>';
-    avatarCtl.head = NoahAvatar.mount(panel.querySelector('.noah-avatar'), 40);
+    avatarCtl.head = mountAvatar(panel.querySelector('.noah-avatar'), 40);
 
     document.body.appendChild(launcher);
     document.body.appendChild(panel);
@@ -1202,6 +1335,59 @@
     };
 
     panel.querySelector('#noah-close').addEventListener('click', close);
+    /* 2026-10-11: settings panel — connected services, API keys, preferences */
+    var settingsBtn = panel.querySelector('#noah-settings-btn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function () {
+        try {
+          if (!window.NoahOnboarding) return;
+          var msgs = panel.querySelector('#noah-msgs');
+          var wrap = document.createElement('div');
+          wrap.className = 'noah-settings-wrap';
+          wrap.innerHTML = window.NoahOnboarding.renderSettings();
+          msgs.appendChild(wrap);
+          msgs.scrollTop = msgs.scrollHeight;
+          /* wire save/close/connect buttons */
+          var saveBtn = wrap.querySelector('.noah-settings-save');
+          if (saveBtn) saveBtn.addEventListener('click', function () {
+            var keys = window.NoahOnboarding.getApiKeys();
+            wrap.querySelectorAll('input[data-key]').forEach(function (inp) {
+              var v = inp.value.trim();
+              /* skip masked placeholder values */
+              if (v && v.indexOf('•') === -1) window.NoahOnboarding.setApiKey(inp.dataset.key, v);
+            });
+            var p = window.NoahOnboarding.getProfile();
+            var goalsInp = wrap.querySelector('input[data-pref="goals-text"]');
+            if (goalsInp) p.goals = goalsInp.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            window.NoahOnboarding.saveProfile(p);
+            wrap.innerHTML = '<p style="color:#34d399;font-size:14px">✓ Settings saved.</p>';
+            setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 1200);
+          });
+          var closeBtn = wrap.querySelector('.noah-settings-close');
+          if (closeBtn) closeBtn.addEventListener('click', function () {
+            if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+          });
+          wrap.querySelectorAll('button[data-svc]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var svc = btn.dataset.svc, act = btn.dataset.act;
+              if (act === 'connect') {
+                var url = (window.NoahConnectors && window.NoahConnectors.getSetupUrl)
+                  ? window.NoahConnectors.getSetupUrl(svc) : '/noah/#settings';
+                if (url) window.open(url, '_blank', 'noopener');
+              } else {
+                var p2 = window.NoahOnboarding.getProfile();
+                if (p2.connections) delete p2.connections[svc];
+                window.NoahOnboarding.saveProfile(p2);
+                window.NoahOnboarding.setApiKey(svc, null);
+                btn.textContent = 'Connect'; btn.dataset.act = 'connect';
+                var st = btn.parentNode.querySelector('.noah-settings-status');
+                if (st) { st.textContent = 'Not connected'; st.className = 'noah-settings-status off'; }
+              }
+            });
+          });
+        } catch (e) {}
+      });
+    }
     els.form.addEventListener('submit', function (e) { e.preventDefault(); sendText(els.input.value); els.input.value = ''; });
     els.input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); els.form.requestSubmit(); }
@@ -1282,6 +1468,9 @@
     ask: answer,
     converse: converse,
     renderReply: renderReply,
+    /* Noah-everywhere Phase 1: page-context awareness. */
+    setPageContext: setPageContext,
+    pageContext: function () { return pageContext; },
     session: sessionStore(),
     ready: ensureSession,
     activity: function () { var store = sessionStore(); return store ? store.activity() : 'idle'; },

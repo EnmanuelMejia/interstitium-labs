@@ -80,12 +80,81 @@
     return ('SpeechRecognition' in g) || ('webkitSpeechRecognition' in g);
   }
 
-  function toggleListen(btn, inputEl, sendFn) {
+  function recorderSupported() {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia &&
+      typeof MediaRecorder !== 'undefined');
+  }
+
+  /* Server transcription via POST /api/ai/transcribe — NVIDIA Parakeet
+     (parakeet-tdt-0.6b-v3) when a self-hosted upstream is configured,
+     Workers AI Whisper otherwise. Takes a Blob, resolves transcript
+     text ('' on failure). Audio is sent once, never stored. */
+  function transcribeBlob(blob, opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var rd = new FileReader();
+      rd.onload = function () {
+        var b64 = String(rd.result || '').split(',')[1] || '';
+        if (!b64) { resolve(''); return; }
+        fetch('/api/ai/transcribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audio: b64, language: opts.language || 'auto' }),
+        }).then(function (r) { return r.json(); }).then(function (d) {
+          resolve(d && d.text ? String(d.text) : '');
+        }).catch(function () { resolve(''); });
+      };
+      rd.onerror = function () { resolve(''); };
+      rd.readAsDataURL(blob);
+    });
+  }
+
+  /* Push-to-talk via MediaRecorder -> /api/ai/transcribe. Used where
+     SpeechRecognition is unavailable (Firefox, some WebViews). */
+  function toggleRecordListen(btn, inputEl, sendFn) {
     if (state.listening) {
-      stopListen();
+      if (toggleListen._stopRec) toggleListen._stopRec();
       return;
     }
-    if (!sttSupported()) return;
+    if (!recorderSupported()) return;
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      var mime = '';
+      ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].forEach(function (m) {
+        if (!mime && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) mime = m;
+      });
+      var mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      var chunks = [];
+      state.listening = true;
+      btn.classList.add('listening');
+      btn.setAttribute('aria-label', 'Stop listening');
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      mr.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        state.listening = false;
+        btn.classList.remove('listening');
+        btn.setAttribute('aria-label', 'Voice input');
+        var blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        if (inputEl) inputEl.value = 'Transcribing…';
+        transcribeBlob(blob, {}).then(function (text) {
+          if (text && text.trim()) {
+            if (inputEl) inputEl.value = '';
+            sendFn(text.trim());
+          } else if (inputEl) {
+            inputEl.value = '';
+          }
+        });
+      };
+      toggleListen._stopRec = function () { try { mr.stop(); } catch (e) {} };
+      mr.start(250);
+    }).catch(function () { /* mic denied: no-op, button stays available */ });
+  }
+
+  function toggleListen(btn, inputEl, sendFn) {
+    if (state.listening) {
+      if (toggleListen._stop) toggleListen._stop();
+      if (toggleListen._stopRec) toggleListen._stopRec();
+      return;
+    }
+    if (!sttSupported()) { toggleRecordListen(btn, inputEl, sendFn); return; }
     var SR = g.SpeechRecognition || g.webkitSpeechRecognition;
     var rec = new SR();
     rec.lang = 'en-US';
@@ -319,6 +388,8 @@
   g.IL.noahVoice = {
     speak: speak,
     stop: stopSpeak,
+    transcribeBlob: transcribeBlob,
+    recorderSupported: recorderSupported,
     get state() { return { voiceOut: state.voiceOut, model: state.model, mode: state.mode }; },
     setModel: function (id) { state.model = id; },
     setMode: function (m) { if (m === 'tutor' || m === 'general') state.mode = m; },

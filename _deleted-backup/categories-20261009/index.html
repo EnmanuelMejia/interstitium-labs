@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Browse by Theme — Interstitium Labs</title>
+<meta name="description" content="Every Interstitium Labs program, organized by cinematic theme. Eight tracks — AI, cybersecurity, cloud, data, code, math, career prep, and the frontier — each with its own cinematic hero and Noah AI tutoring built in."/>
+<meta name="theme-color" content="#06080c"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<meta property="og:title" content="Browse by Theme — Interstitium Labs"/>
+<meta property="og:description" content="31 programs across 8 cinematic themes. Every one Noah-tutored."/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:url" content="https://interstitiumlabs.dev/categories/"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/categories/"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"/>
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+<style>
+/* ============ CATEGORIES HUB — themed cinematic tabs ============ */
+.cat-page{background:#06080c;color:#f2ede1}
+.cat-mast{max-width:1200px;margin:0 auto;padding:3.2rem 1.25rem 1rem;text-align:center}
+.cat-mast__eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.32em;color:#7fd4e8;text-transform:uppercase}
+.cat-mast h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(2rem,5.4vw,3.4rem);margin:.7rem 0 .6rem;line-height:1.05}
+.cat-mast p{color:rgba(242,237,225,.72);max-width:44rem;margin:0 auto;font-size:1.02rem}
+/* Sticky tab bar */
+.cat-tabs{position:sticky;top:0;z-index:40;background:rgba(6,8,12,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}
+.cat-tabs__row{max-width:1400px;margin:0 auto;display:flex;gap:.35rem;overflow-x:auto;padding:.7rem 1rem;scrollbar-width:none}
+.cat-tabs__row::-webkit-scrollbar{display:none}
+.cat-tab{flex:0 0 auto;font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(242,237,225,.6);background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:.62rem 1.05rem;cursor:pointer;transition:all .22s ease;white-space:nowrap}
+.cat-tab:hover{color:#f2ede1;border-color:rgba(255,255,255,.3)}
+.cat-tab[aria-selected="true"]{color:#06080c;background:var(--cat-accent,#7fd4e8);border-color:var(--cat-accent,#7fd4e8);font-weight:600}
+/* Panels */
+.cat-panel{display:none}
+.cat-panel--active{display:block;animation:catFade .45s ease}
+@keyframes catFade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* Cinematic hero per tab */
+.cat-hero{position:relative;min-height:62svh;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate}
+.cat-hero__bg{position:absolute;inset:0;z-index:-2}
+.cat-hero__bg video{width:100%;height:100%;object-fit:cover;object-position:center}
+.cat-hero__bg canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cat-hero__scrim{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(6,8,12,.42) 0%,rgba(6,8,12,.18) 34%,rgba(6,8,12,.88) 100%)}
+.cat-hero__inner{width:100%;max-width:1200px;margin:0 auto;padding:4.5rem 1.25rem 2.6rem}
+.cat-hero__eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--cat-accent,#7fd4e8)}
+.cat-hero h2{font-family:"Space Grotesk",sans-serif;font-size:clamp(2.1rem,6vw,4rem);line-height:1.02;margin:.6rem 0 .7rem;text-shadow:0 2px 30px rgba(0,0,0,.6)}
+.cat-hero__desc{max-width:38rem;color:rgba(242,237,225,.85);font-size:clamp(.98rem,2.4vw,1.15rem);line-height:1.55;text-shadow:0 1px 12px rgba(0,0,0,.7)}
+.cat-hero__stats{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.3rem}
+.cat-stat{font-family:"JetBrains Mono",monospace;font-size:.76rem;letter-spacing:.06em;background:rgba(6,8,12,.55);border:1px solid rgba(255,255,255,.16);border-radius:.6rem;padding:.55rem .9rem;backdrop-filter:blur(6px)}
+.cat-stat b{color:var(--cat-accent,#7fd4e8)}
+/* Noah strip */
+.cat-noah{border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);background:rgba(127,212,232,.05)}
+.cat-noah__inner{max-width:1200px;margin:0 auto;padding:1.1rem 1.25rem;display:flex;align-items:center;gap:.9rem;flex-wrap:wrap}
+.cat-noah__orb{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#7fd4e8,#2b6f8e 70%);box-shadow:0 0 24px rgba(127,212,232,.5);flex:0 0 auto;animation:catPulse 3s ease-in-out infinite}
+@keyframes catPulse{0%,100%{transform:scale(1);box-shadow:0 0 18px rgba(127,212,232,.4)}50%{transform:scale(1.07);box-shadow:0 0 32px rgba(127,212,232,.65)}}
+.cat-noah p{margin:0;font-size:.94rem;color:rgba(242,237,225,.85)}
+.cat-noah p b{color:#7fd4e8}
+/* Program cards */
+.cat-grid-section{max-width:1200px;margin:0 auto;padding:2.4rem 1.25rem 1rem}
+.cat-grid-section h3{font-family:"Space Grotesk",sans-serif;font-size:1.35rem;margin:0 0 1.1rem}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem}
+.cat-card{display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.1);border-radius:1rem;overflow:hidden;background:#0b0f1a;text-decoration:none;color:inherit;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.cat-card:hover{transform:translateY(-4px);border-color:var(--cat-accent,#7fd4e8);box-shadow:0 18px 44px rgba(0,0,0,.5)}
+.cat-card__media{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0e1420}
+.cat-card__media img{width:100%;height:100%;object-fit:cover;display:block}
+.cat-card__media--gen{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b0f1a 0%,#131b2e 55%,#0b0f1a 100%);position:relative}
+.cat-card__media--gen::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,var(--cat-accent-glow,rgba(127,212,232,.22)),transparent 60%);animation:catShimmer 6s ease-in-out infinite alternate}
+@keyframes catShimmer{from{opacity:.5}to{opacity:1}}
+.cat-card__code{font-family:"JetBrains Mono",monospace;font-size:2.2rem;font-weight:700;letter-spacing:.06em;color:var(--cat-accent,#7fd4e8);position:relative;z-index:1;text-shadow:0 0 26px var(--cat-accent-glow,rgba(127,212,232,.4))}
+.cat-card__body{padding:1.05rem 1.1rem 1.15rem;display:flex;flex-direction:column;gap:.55rem;flex:1}
+.cat-card__title{font-family:"Space Grotesk",sans-serif;font-size:1.06rem;line-height:1.3;margin:0}
+.cat-card__meta{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:rgba(242,237,225,.6);letter-spacing:.04em}
+.cat-card__badges{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;padding-top:.4rem}
+.cat-badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:.32rem .7rem;border:1px solid rgba(255,255,255,.16);color:rgba(242,237,225,.8)}
+.cat-badge--free{background:#1a7a4a;border-color:#1a7a4a;color:#fff;font-weight:600}
+.cat-badge--price{background:rgba(240,192,64,.14);border-color:rgba(240,192,64,.5);color:#f0c040}
+.cat-badge--noah{background:rgba(127,212,232,.12);border-color:rgba(127,212,232,.45);color:#7fd4e8}
+/* Absorbed topics */
+.cat-topics{max-width:1200px;margin:0 auto;padding:0 1.25rem 3rem}
+.cat-topics h4{font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(242,237,225,.5);margin:0 0 .8rem}
+.cat-topics__row{display:flex;flex-wrap:wrap;gap:.5rem}
+.cat-topic{font-size:.85rem;color:#7fd4e8;border:1px solid rgba(127,212,232,.35);border-radius:999px;padding:.5rem 1rem;text-decoration:none;transition:all .2s}
+.cat-topic:hover{background:rgba(127,212,232,.14)}
+/* Device optimizations */
+/* Ultrawide 5120x1440: cap content, let video fill */
+@media (min-width:2560px){
+  .cat-hero{min-height:74svh}
+  .cat-hero__inner,.cat-mast,.cat-grid-section,.cat-topics,.cat-noah__inner{max-width:1800px}
+  .cat-hero h2{font-size:clamp(2.6rem,4.2vw,5.2rem)}
+}
+/* Notebook sane default is base styles */
+/* Mobile 1344x2992 & smaller: taller hero, readable type, scrollable tabs */
+@media (max-width:768px){
+  .cat-hero{min-height:82svh;align-items:flex-end}
+  .cat-hero__inner{padding:3.4rem 1.1rem 2.2rem}
+  .cat-hero__bg video{object-position:center 30%}
+  .cat-mast{padding:2.2rem 1.1rem .6rem}
+  .cat-grid{grid-template-columns:1fr}
+  .cat-tabs__row{padding:.6rem .8rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .cat-panel--active{animation:none}
+  .cat-noah__orb,.cat-card__media--gen::before{animation:none}
+}
+</style>
+</head>
+<body class="cat-page">
+<a class="il-skip" href="#main">Skip to content</a>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38" loading="lazy"/>
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li aria-current="page">Browse by Theme</li></ol></nav>
+
+<main id="main">
+<div class="cat-mast">
+  <p class="cat-mast__eyebrow">Browse by theme</p>
+  <h1>Every program. Eight cinematic worlds.</h1>
+  <p>All 31 Interstitium Labs programs, distributed by theme. Each world has its own cinematic hero, its own programs, and Noah AI tutoring woven through every lesson.</p>
+</div>
+
+<div class="cat-tabs" role="tablist" aria-label="Program themes">
+  <div class="cat-tabs__row" id="catTabRow">
+    <button class="cat-tab" role="tab" data-tab="ai" aria-selected="true" style="--cat-accent:#7fd4e8">AI &amp; ML</button>
+    <button class="cat-tab" role="tab" data-tab="security" aria-selected="false" style="--cat-accent:#ff6b6b">Cybersecurity</button>
+    <button class="cat-tab" role="tab" data-tab="cloud" aria-selected="false" style="--cat-accent:#6ba8ff">Cloud &amp; DevOps</button>
+    <button class="cat-tab" role="tab" data-tab="data" aria-selected="false" style="--cat-accent:#4ade80">Data &amp; Analytics</button>
+    <button class="cat-tab" role="tab" data-tab="code" aria-selected="false" style="--cat-accent:#a3e635">Programming &amp; Systems</button>
+    <button class="cat-tab" role="tab" data-tab="math" aria-selected="false" style="--cat-accent:#fbbf24">Math Foundations</button>
+    <button class="cat-tab" role="tab" data-tab="career" aria-selected="false" style="--cat-accent:#f0c040">Career &amp; Interview Prep</button>
+    <button class="cat-tab" role="tab" data-tab="frontier" aria-selected="false" style="--cat-accent:#c084fc">Frontier &amp; Deep Library</button>
+  </div>
+</div>
+
+<div id="catPanels"><!-- panels injected by script --></div>
+</main>
+
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/topics/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/prep/drills/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/prep/drills/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+<script src="/assets/il-theme-heroes.js"></script>
+<script src="/assets/il-cine-cards.js"></script>
+<script src="/assets/noah-full.js" defer></script>
+<script>
+/* Categories hub data — 2026-10-09. All facts from course JSONs; no invented content.
+   Heroes: ILThemeHeroes canvas engine (themed generative scenes); old MP4s kept as no-engine fallback.
+   Cards: ILCineCards TikTok-style cinematic cards (15s loops, step pills, Noah TTS voiceover).
+   Pricing: IL-27/28/29 free; all others $249; bundle $999. */
+(function(){
+"use strict";
+var CATS = [
+ { id:"ai", name:"AI & Machine Learning", accent:"#7fd4e8",
+   hero:"/assets/topics/ai-ml-hero.mp4",
+   tagline:"From first model to agentic systems — the full AI engineer spine.",
+   desc:"Four programs covering the complete AI practice: core AI engineering, applied machine learning, agentic systems, and AI red-teaming. Animated algorithm visualizations with numbered steps and Noah narration run through every module.",
+   topics:[["AI & ML","/topics/ai-ml/"]],
+   programs:[
+    ["IL-12","AI Engineering","414","73","The full AI-engineer spine — Python, data science, ML, deep learning, generative AI, NLP, agentic systems."],
+    ["IL-16","Machine Learning & AI Engineering","449","48","Applied ML and AI practice layer — advanced ML, generative AI, NLP, AI-enabled software."],
+    ["IL-17","Agentic AI Engineering","329","46","The agentic AI practice layer — foundations plus role-specific applied tracks for engineers, PMs, TPMs."],
+    ["IL-31","AI Red-Teaming & Safety Evals Engineering","100","16","How to measure what AI systems do — safety evals, red-teaming methods, and evaluation engineering."]
+   ]},
+ { id:"security", name:"Cybersecurity & Zero Trust", accent:"#ff6b6b",
+   hero:"/assets/topics/cybersecurity-hero.mp4",
+   tagline:"Think like an attacker. Defend like an engineer.",
+   desc:"Seven programs from hacker-curriculum fundamentals to zero-trust endpoint defense and post-quantum cryptography. Includes the free ThreatLocker mastery bootcamp and independent certification prep — framed as independent preparation, no affiliation claimed.",
+   topics:[["Cybersecurity","/topics/cybersecurity/"]],
+   programs:[
+    ["IL-06","Cybersecurity & Secure Engineering","46","9","The hacker-curriculum spine — Linux, networking, OSINT, web exploitation, secure engineering."],
+    ["IL-11","Zero Trust & Endpoint Defense","155","28","Distilled from the public shape of zero-trust bootcamp material: foundational IT, endpoint defense."],
+    ["IL-24","ThreatLocker Assessment Prep CBT","70","16","Assessment-preparation CBT: instructor-voice lessons, hands-on labs, timed drills."],
+    ["IL-25","Professional Cybersecurity Certificate Prep","111","27","Independent practice aligned to a public professional cybersecurity topic map."],
+    ["IL-27","IT Infrastructure Specialist — Zero Trust Infrastructure","252","56","Enterprise-grade self-paced mastery of the full IT infrastructure stack through a Zero Trust lens."],
+    ["IL-29","ThreatLocker Zero-Trust CBT with AI — Cybersecurity Mastery","431","48","Cybersecurity mastery bootcamp built around zero-trust endpoint defense: allowlisting, ringfencing, and AI-tutored labs."],
+    ["IL-30","Post-Quantum Cryptography & Quantum-Safe Engineering","165","16","Quantum-safe engineering on NIST's finalized post-quantum standards: ML-KEM, ML-DSA, SLH-DSA."]
+   ]},
+ { id:"cloud", name:"Cloud, DevOps & SRE", accent:"#6ba8ff",
+   hero:"/assets/topics/cloud-devops-hero.mp4",
+   tagline:"Four clouds. One discipline. Ship it.",
+   desc:"Three programs spanning the DevOps role map — Linux, Git, Docker, CI/CD, Kubernetes, Ansible, observability — across AWS, Azure, Google Cloud, and Oracle Cloud, plus the production-grade DevSecOps mastery bootcamp.",
+   topics:[["Cloud & DevOps","/topics/cloud-devops/"]],
+   programs:[
+    ["IL-05","Cloud, DevSecOps, Platform & SRE","92","17","The cloud-and-platform academy: the DevOps role map from Linux to Kubernetes to observability."],
+    ["IL-19","MultiCloud, DevOps & AI Bootcamp","343","67","Hands-on, self-paced bootcamp across four cloud platforms plus DevOps and AI, with certification maps and guided missions."],
+    ["IL-28","DevSecOps & Cloud Infrastructure — Production Mastery","473","52","Independent, interactive DevSecOps and cloud-infrastructure bootcamp built from real DevOps practice."]
+   ]},
+ { id:"data", name:"Data Engineering & Analytics", accent:"#4ade80",
+   hero:"/assets/topics/data-eng-hero.mp4",
+   tagline:"From the database row to the decision.",
+   desc:"Three programs running from SQL and data engineering through analytics to senior data-analyst mastery. Includes the senior-bar data analyst bootcamp with advanced SQL, Python, probability, and product sense.",
+   topics:[["Data Engineering","/topics/data-eng/"],["Databases","/topics/databases/"]],
+   programs:[
+    ["IL-07","SQL, Data Engineering, Analytics & AI","63","12","From the database row to the AI model — SQL, document databases, aggregation, analytics."],
+    ["IL-15","Data Engineering & Analytics Interview Prep","184","32","The data interview spine — data engineering, data science, analytics, and ML interview prep with SQL drills."],
+    ["IL-26","Data Analyst Certification & Senior Mastery","414","54","Independent practice for data analysts, sequenced from zero: math foundations through senior-level analytics."]
+   ]},
+ { id:"code", name:"Programming & Systems", accent:"#a3e635",
+   hero:"/assets/topics/programming-hero.mp4",
+   tagline:"The machine, the language, the proof.",
+   desc:"Three programs forging the engineering backbone: programming languages as instruments, systems administration from first principles, and the deep-core curriculum — algorithms, compilers, distributed systems, and formal methods.",
+   topics:[["Programming","/topics/programming/"],["Linux & Systems","/topics/linux-systems/"],["Networking","/topics/networking/"],["System Design","/topics/system-design/"],["Web Dev","/topics/web-dev/"]],
+   programs:[
+    ["IL-03","Programming Language Forge","34","8","Python, Java, and C++ taught as instruments with shared ideas — OOP, generics, memory, concurrency."],
+    ["IL-04","Systems, Linux, Windows & Networks","34","7","Systems administration from first principles through the RHCSA performance exam path."],
+    ["IL-08","Algorithms, Compilers, Distributed & Formal","29","5","The deep-core academy: algorithms, compilers, distributed systems, and formal methods."]
+   ]},
+ { id:"math", name:"Math Foundations", accent:"#fbbf24",
+   hero:"/assets/topics/math-hero.mp4",
+   tagline:"The spine every engineer stands on.",
+   desc:"Two programs building mathematical maturity from college algebra through calculus, linear algebra, discrete math, and probability — the working mathematics engineers and scientists actually use, with Noah-tutored drills.",
+   topics:[["Math","/topics/math/"]],
+   programs:[
+    ["IL-02","Mathematical Maturity Engine","34","7","The unified mathematical spine — algebra through calculus, built for engineering readiness."],
+    ["IL-20","Mathematics for Engineers & Scientists","77","18","The mathematics working engineers use: sets, logic, proof, calculus, linear algebra, probability."]
+   ]},
+ { id:"career", name:"Career & Interview Prep", accent:"#f0c040",
+   hero:"/assets/cards/hq/hq-tl-interview_16x9.mp4",
+   tagline:"Interviews are a skill. Train it like one.",
+   desc:"Five programs covering certifications, portfolios, and interview spines across software engineering, SRE/DevOps, and technical leadership — timed drills, system-design practice, and career strategy with Noah as your coach.",
+   topics:[],
+   programs:[
+    ["IL-09","Adaptive Certification Command","52","9","The certification command center: core and security stacks, data/cloud expansion, AI credentials."],
+    ["IL-10","Portfolio, Career & Professional Practice","29","6","The forward-deployed career arc — discover, model, prove, integrate, operate, generalize."],
+    ["IL-13","Software Engineering Interview Prep","334","58","The software-engineering interview spine — data structures, algorithms, system design, domain tracks."],
+    ["IL-14","SRE, DevOps, Cloud & Security Interview Prep","178","31","The reliability-engineering interview spine — SRE, DevOps, cloud, and security interview prep."],
+    ["IL-18","Technical Leadership Interview Prep","250","32","The technical-leadership interview spine — TPM, engineering management, and product management."]
+   ]},
+ { id:"frontier", name:"Frontier & Deep Library", accent:"#c084fc",
+   hero:"/assets/topics/blockchain-hero.mp4",
+   tagline:"Where the map ends, the library begins.",
+   desc:"Four programs at the edges of the curriculum: esoteric foundations, the humanities as working disciplines, the deep library of secret knowledge, and cutting-edge research distilled honestly — transformers, quantum, and what's next.",
+   topics:[["Blockchain","/topics/blockchain/"]],
+   programs:[
+    ["IL-01","Esoteric Foundations","29","5","Hermetic foundations — the Corpus, the Golden Dawn, Wicca and Thelema, chaos magic, and the Western mystery current."],
+    ["IL-21","Humanities for Technologists","62","17","The humanities as working disciplines: philosophy, logic, ethics, history of science, writing, economics, law."],
+    ["IL-22","The Deep Library — Esoteric & Secret Knowledge","68","18","Sixteen modules, one per tradition: Kabbalah, Hermeticism, alchemy, astrology, tarot, Enochian, and more."],
+    ["IL-23","The Frontier — Cutting-Edge Research Distilled","67","17","Frontier topics written from established knowledge and dated honestly: transformers, quantum computing, and beyond."]
+   ]}
+];
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+/* Mounted hero canvases, keyed by tab id — only the active tab animates. */
+var HERO_MOUNTED = {};
+function mountHero(id){
+  try{
+    var bg = document.querySelector('[data-hero-bg="'+id+'"]');
+    if(!bg) return;
+    var cv = bg.querySelector('[data-theme-canvas]');
+    var fb = bg.querySelector('[data-hero-fallback]');
+    if(window.ILThemeHeroes && cv){
+      if(fb) fb.style.display = "none";
+      cv.style.display = "block";
+      Object.keys(HERO_MOUNTED).forEach(function(k){
+        if(k !== id && HERO_MOUNTED[k]){
+          try{ ILThemeHeroes.unmount(HERO_MOUNTED[k]); }catch(e){}
+          delete HERO_MOUNTED[k];
+        }
+      });
+      if(!HERO_MOUNTED[id]){ ILThemeHeroes.mount(cv, id); HERO_MOUNTED[id] = cv; }
+    } else if(fb){
+      /* Engine failed to load — fall back to the legacy MP4 hero. */
+      if(cv) cv.style.display = "none";
+      fb.style.display = "block";
+      try{ var pr = fb.play(); if(pr && pr.catch){ pr.catch(function(){}); } }catch(e){}
+    }
+  }catch(e){}
+}
+/* Render TikTok-style cinematic cards into each panel's grid, once. */
+function renderCineGrids(){
+  try{
+    if(!window.ILCineCards) return;
+    CATS.forEach(function(c){
+      var g = document.querySelector('[data-cine-grid="'+c.id+'"]');
+      if(g && !g.getAttribute("data-cine-done")){
+        ILCineCards.renderAll(g, c.programs.map(function(p){ return p[0]; }));
+        g.setAttribute("data-cine-done", "1");
+      }
+    });
+  }catch(e){}
+}
+function panelHTML(c, active){
+  var totalH = c.programs.reduce(function(a,p){return a+(parseInt(p[2],10)||0);},0);
+  var totalM = c.programs.reduce(function(a,p){return a+(parseInt(p[3],10)||0);},0);
+  var topics = c.topics.length
+    ? '<div class="cat-topics"><h4>Absorbed topic hubs</h4><div class="cat-topics__row">'
+      + c.topics.map(function(t){return '<a class="cat-topic" href="'+t[1]+'">'+esc(t[0])+' →</a>';}).join("")
+      + '</div></div>'
+    : '';
+  return '<section class="cat-panel'+(active?' cat-panel--active':'')+'" id="panel-'+c.id+'" role="tabpanel" aria-label="'+esc(c.name)+'" style="--cat-accent:'+c.accent+'">'
+    + '<div class="cat-hero"><div class="cat-hero__bg" data-hero-bg="'+c.id+'">'
+    + '<canvas data-theme-canvas="'+c.id+'" aria-hidden="true"></canvas>'
+    + '<video data-hero-fallback muted loop playsinline preload="none" aria-hidden="true" style="display:none"><source src="'+c.hero+'" type="video/mp4"/></video>'
+    + '</div>'
+    + '<div class="cat-hero__scrim"></div>'
+    + '<div class="cat-hero__inner"><p class="cat-hero__eyebrow">Theme · '+esc(c.name)+'</p>'
+    + '<h2>'+esc(c.tagline)+'</h2>'
+    + '<p class="cat-hero__desc">'+esc(c.desc)+'</p>'
+    + '<div class="cat-hero__stats"><span class="cat-stat"><b>'+c.programs.length+'</b> programs</span>'
+    + '<span class="cat-stat"><b>'+totalH+'</b> hours</span>'
+    + '<span class="cat-stat"><b>'+totalM+'</b> modules</span>'
+    + '<span class="cat-stat"><b>Noah</b> AI tutor built in</span></div>'
+    + '</div></div>'
+    + '<div class="cat-noah"><div class="cat-noah__inner"><span class="cat-noah__orb" aria-hidden="true"></span>'
+    + '<p><b>Noah</b> tutors every program in '+esc(c.name)+' — adaptive check-ins after every lesson, five personas, voice and text, personal remediation paths.</p></div></div>'
+    + '<div class="cat-grid-section"><h3>Programs in '+esc(c.name)+'</h3><div data-cine-grid="'+c.id+'"></div></div>'
+    + topics
+    + '</section>';
+}
+var panelsEl = document.getElementById("catPanels");
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".cat-tab"));
+/* Build all panels once; cine cards render once into each grid (lazy via
+   IntersectionObserver); heroes mount only for the active tab. */
+function buildOnce(){
+  panelsEl.innerHTML = CATS.map(function(c){ return panelHTML(c, false); }).join("");
+  renderCineGrids();
+}
+function activate(id, push){
+  var found = CATS.some(function(c){return c.id===id;});
+  if(!found) id = CATS[0].id;
+  tabs.forEach(function(t){
+    var on = t.getAttribute("data-tab")===id;
+    t.setAttribute("aria-selected", on?"true":"false");
+    if(on){ try{ t.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); }catch(e){} }
+  });
+  var cur = panelsEl.querySelector(".cat-panel--active");
+  var nxt = document.getElementById("panel-"+id);
+  if(cur !== nxt){
+    if(cur) cur.classList.remove("cat-panel--active");
+    if(nxt) nxt.classList.add("cat-panel--active");
+  }
+  /* Start the newly visible themed hero (canvas engine), pause the rest. */
+  mountHero(id);
+  if(push!==false){ try{ history.replaceState(null,"","#"+id); }catch(e){} }
+  try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
+}
+tabs.forEach(function(t){
+  t.addEventListener("click", function(){ activate(t.getAttribute("data-tab")); });
+});
+window.addEventListener("hashchange", function(){
+  var id = (location.hash||"").replace("#","");
+  if(id) activate(id, false);
+});
+var initial = (location.hash||"").replace("#","") || CATS[0].id;
+buildOnce();
+activate(initial, false);
+})();
+</script>
+  <script src="/assets/il-search.js" defer></script>
+</body>
+</html>
