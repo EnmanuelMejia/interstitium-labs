@@ -141,7 +141,7 @@ _Live:_ https://interstitiumlabs.dev
 ## Shipped this pass (2026-10-02)
 
 1. **New pedagogical glTF** (kit-v2 → Blender CLI polish → promote): `storage-csi-pv.glb`, `ingress-gateway.glb`, `hpa-autoscaling.glb`
-2. **Promoted polish** on previously kit-only: `rack-19u.glb`, `hermetic-monas.glb`, `sim-superlab.glb` (`k8s-cluster.glb` already polished alias — skipped)
+2. **Promoted polish** on previously kit-only: `rack-19u.glb`, `hermetic-monas.glb`, `sim-superlab.glb` (`lecture-k8s-control-plane.glb`; the `k8s-cluster.glb` alias was retired as a byte-identical duplicate 2026-10-07 — skipped)
 3. **Wired** `/immersive/` sections + `curriculum-os/assets3d.json` + `mirror.json` certs
 4. **Lab Muse 3D v1.5.0** — per-node ampRole (core/accent/body/lod) → emissive boost, differential breathe, LOD hide when amp high
 5. **Pixel Streaming honesty** — P920 UE host checklist in `PIXEL-STREAMING-DEV.md` + fail-closed `docker-compose.ue-host.skeleton.yml`
@@ -151,8 +151,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Still wins | IL exceed today |
 |------|------------|-----------------|
-| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Spatial **storage / Ingress / HPA** pedagogy peers keep as flat 2D; Muse amp→material/LOD |
-| A Cloud Guru / Skillsoft / LF training | Catalog breadth + some hosted sandboxes | IL 3D-first CKA graph scenes + honest UE bring-up path |
+| Leading lab platform | Hosted labs fleet + AI Tutor in-lab | Spatial **storage / Ingress / HPA** pedagogy peers keep as flat 2D; Muse amp→material/LOD |
+| Cloud training / corporate learning platforms / LF training | Catalog breadth + some hosted sandboxes | IL 3D-first CKA graph scenes + honest UE bring-up path |
 | Killercoda | Instant browser terminals | IL spatial cert stage (no fake fleet) |
 | Meta Muse | Voice UX polish / product chrome | IL authored Dee/Monas glTF with amp→emissive/scale/LOD — local/OSS, no fake cloud |
 
@@ -196,8 +196,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Still wins | IL exceed today |
 |------|------------|-----------------|
-| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
-| Brilliant / Codecademy / ALEKS | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
+| Leading lab platform | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
+| A leading STEM learning platform / interactive coding platforms / a leading adaptive-learning platform | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
 | Peer LMS 3D | Mostly video / 2D diagrams | IL ships polished glTF binaries + honest UE PS bring-up path |
 
 ---
@@ -242,8 +242,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Delta | IL response |
 |------|-------|-------------|
-| KodeKloud **AI Tutor Live Assist** | Real-time in-lab help + hosted labs | Noah Live Assist remains; **still no hosted fleet** (honest) |
-| Brilliant **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
+| Hosted AI-tutor live assist (peer) | Real-time in-lab help + hosted labs | Noah Live Assist remains; **still no hosted fleet** (honest) |
+| A leading STEM learning platform **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
 | Peer LMS 3D | Most still flat video / 2D diagrams | IL ships **real glTF meshes** + **Pixel Streaming client path** to stay generations ahead of flat LMS |
 
 ## Immersive 3D gate (product law)

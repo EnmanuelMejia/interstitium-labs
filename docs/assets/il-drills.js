@@ -1,5 +1,5 @@
 /**
- * Brilliant-style interactive drill cards with instant feedback.
+ * premium-style interactive drill cards with instant feedback.
  * Mount: <div data-il-drills data-il-drills-set="cidr|git|k8s|mixed"></div>
  * Never dumps full answer first — Socratic feedback on wrong picks.
  */

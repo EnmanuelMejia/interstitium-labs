@@ -1,0 +1,638 @@
+{
+ "clickSims": [
+  {
+   "id": "IL27-CLICK-01",
+   "moduleId": "IL27-M03",
+   "tool": "Active Directory Users and Computers",
+   "title": "Create an AD user in ADUC",
+   "steps": [
+    {
+     "screen": "ADUC open, connected to lab.local; OU=Users selected in the left tree.",
+     "instruction": "Right-click OU=Users > New > User.",
+     "hotspots": [
+      "OU=Users",
+      "New",
+      "User"
+     ],
+     "feedback": "New Object - User dialog opens."
+    },
+    {
+     "screen": "New Object - User dialog: name fields empty.",
+     "instruction": "Fill First name 'Test', Last name 'User', User logon name 'tuser' (pre-Windows 2000 name auto-fills as TUSER). Click Next.",
+     "hotspots": [
+      "First name field",
+      "User logon name field",
+      "Next"
+     ],
+     "feedback": "Password screen appears."
+    },
+    {
+     "screen": "Password screen: fields empty.",
+     "instruction": "Type the temporary password twice, CHECK 'User must change password at next logon', UNCHECK 'Password never expires'. Click Next.",
+     "hotspots": [
+      "Password fields",
+      "'User must change password at next logon'",
+      "Next"
+     ],
+     "feedback": "Summary screen shows the new account details."
+    },
+    {
+     "screen": "Summary screen: CN=Test User, OU=Users,DC=lab,DC=local.",
+     "instruction": "Click Finish.",
+     "hotspots": [
+      "Finish"
+     ],
+     "feedback": "Test User appears in the OU=Users results pane."
+    }
+   ]
+  },
+  {
+   "id": "IL27-CLICK-02",
+   "moduleId": "IL27-M04",
+   "tool": "Group Policy Management Console",
+   "title": "Create and link a GPO",
+   "steps": [
+    {
+     "screen": "GPMC open; forest lab.local expanded; Group Policy Objects container visible.",
+     "instruction": "Right-click 'Group Policy Objects' > New. Name it 'LAB-Screen-Lock-15min'. Click OK.",
+     "hotspots": [
+      "Group Policy Objects",
+      "New",
+      "Name field",
+      "OK"
+     ],
+     "feedback": "The new GPO appears in the list, unlinked (no links yet)."
+    },
+    {
+     "screen": "The new GPO is selected; right pane shows Scope/S ettings tabs.",
+     "instruction": "Right-click the GPO > Edit. This opens the Group Policy Management Editor.",
+     "hotspots": [
+      "Edit"
+     ],
+     "feedback": "Editor opens with Computer Configuration and User Configuration trees."
+    },
+    {
+     "screen": "Editor: User Configuration tree visible.",
+     "instruction": "Navigate User Configuration > Policies > Administrative Templates > Control Panel > Personalization. Double-click 'Screen saver timeout'.",
+     "hotspots": [
+      "User Configuration",
+      "Administrative Templates",
+      "Personalization",
+      "Screen saver timeout"
+     ],
+     "feedback": "The policy setting dialog opens."
+    },
+    {
+     "screen": "Setting dialog: 'Not Configured' selected.",
+     "instruction": "Select Enabled, set seconds to 900. Click OK. Then enable 'Password protect the screen saver' the same way.",
+     "hotspots": [
+      "Enabled",
+      "seconds field (900)",
+      "OK"
+     ],
+     "feedback": "Both settings show as Enabled in the editor."
+    },
+    {
+     "screen": "Back in GPMC, GPO still unlinked.",
+     "instruction": "Drag the GPO onto OU=Workstations (or right-click OU=Workstations > Link an Existing GPO and select it).",
+     "hotspots": [
+      "OU=Workstations",
+      "Link an Existing GPO"
+     ],
+     "feedback": "The GPO appears under OU=Workstations with Link Enabled = Yes."
+    },
+    {
+     "screen": "Linked GPO selected; right pane Scope tab.",
+     "instruction": "Confirm: Links show OU=Workstations; Security Filtering shows Authenticated Users. Close GPMC.",
+     "hotspots": [
+      "Scope tab",
+      "Links",
+      "Security Filtering"
+     ],
+     "feedback": "GPO is linked, filtered, and ready \u2014 verify on a client with gpresult /r."
+    }
+   ]
+  },
+  {
+   "id": "IL27-CLICK-03",
+   "moduleId": "IL27-M07",
+   "tool": "Hyper-V Manager",
+   "title": "Create a Hyper-V virtual machine",
+   "steps": [
+    {
+     "screen": "Hyper-V Manager open, host selected in the left pane.",
+     "instruction": "In the Actions pane click New > Virtual Machine. The wizard opens.",
+     "hotspots": [
+      "Actions pane",
+      "New",
+      "Virtual Machine"
+     ],
+     "feedback": "Before You Begin page of the New Virtual Machine Wizard."
+    },
+    {
+     "screen": "Specify Name and Location page.",
+     "instruction": "Name it 'LAB-FS01'. Keep the default location (or tick 'Store the virtual machine in a different location' for your lab drive). Click Next.",
+     "hotspots": [
+      "Name field",
+      "Next"
+     ],
+     "feedback": "Specify Generation page appears."
+    },
+    {
+     "screen": "Specify Generation page: Generation 1 / Generation 2.",
+     "instruction": "Select Generation 2 (UEFI, modern OS). Click Next.",
+     "hotspots": [
+      "Generation 2",
+      "Next"
+     ],
+     "feedback": "Assign Memory page appears."
+    },
+    {
+     "screen": "Assign Memory: Startup memory 2048 MB; 'Use Dynamic Memory' ticked.",
+     "instruction": "Set 4096 MB for a server VM. Click Next.",
+     "hotspots": [
+      "Startup memory field",
+      "Next"
+     ],
+     "feedback": "Configure Networking page appears."
+    },
+    {
+     "screen": "Configure Networking: Connection dropdown lists your virtual switches.",
+     "instruction": "Select 'Lab-Internal'. Click Next.",
+     "hotspots": [
+      "Connection dropdown",
+      "Lab-Internal",
+      "Next"
+     ],
+     "feedback": "Connect Virtual Hard Disk page appears."
+    },
+    {
+     "screen": "Connect Virtual Hard Disk: 'Create a virtual hard disk' selected, 127 GB default.",
+     "instruction": "Set 100 GB (dynamic is fine for lab). Click Next, then on the Installation Options page choose 'Install an operating system from a bootable image file' and browse to your Server 2025 ISO. Click Finish.",
+     "hotspots": [
+      "Size field",
+      "bootable image file",
+      "ISO browse",
+      "Finish"
+     ],
+     "feedback": "LAB-FS01 appears in the Virtual Machines list, State: Off \u2014 ready to start and install."
+    }
+   ]
+  },
+  {
+   "id": "IL27-CLICK-04",
+   "moduleId": "IL27-M05",
+   "tool": "DHCP Console",
+   "title": "Configure a DHCP scope",
+   "steps": [
+    {
+     "screen": "DHCP console (dhcpmgmt.msc) open; server lab-dc01.lab.local expanded; IPv4 selected.",
+     "instruction": "Right-click IPv4 > New Scope. The New Scope Wizard opens.",
+     "hotspots": [
+      "IPv4",
+      "New Scope"
+     ],
+     "feedback": "Welcome page of the New Scope Wizard."
+    },
+    {
+     "screen": "Scope Name page: empty Name/Description.",
+     "instruction": "Name: 'Lab-Workstations', Description: 'DHCP for lab client VLAN'. Click Next.",
+     "hotspots": [
+      "Name field",
+      "Next"
+     ],
+     "feedback": "IP Address Range page appears."
+    },
+    {
+     "screen": "IP Address Range: Start/End IP, subnet mask fields.",
+     "instruction": "Start 192.168.10.100, End 192.168.10.200, Length 24 (mask auto-fills 255.255.255.0). Click Next.",
+     "hotspots": [
+      "Start IP",
+      "End IP",
+      "Next"
+     ],
+     "feedback": "Add Exclusions page appears."
+    },
+    {
+     "screen": "Add Exclusions and Delay page.",
+     "instruction": "Exclude 192.168.10.150-192.168.10.160 (reserved for printers/static lab gear). Click Next.",
+     "hotspots": [
+      "Excluded address range",
+      "Add",
+      "Next"
+     ],
+     "feedback": "Lease Duration page appears (default 8 days)."
+    },
+    {
+     "screen": "Lease Duration: 8 days default.",
+     "instruction": "Set 1 day (lab churn is high; short leases recycle faster). Click Next.",
+     "hotspots": [
+      "Days field (1)",
+      "Next"
+     ],
+     "feedback": "Configure DHCP Options: Yes, I want to configure these options now."
+    },
+    {
+     "screen": "Router (Default Gateway) option page.",
+     "instruction": "Enter 192.168.10.1, click Add. Next: DNS Servers \u2014 enter 192.168.20.10, Add. Next: WINS \u2014 skip (Next).",
+     "hotspots": [
+      "Router field",
+      "Add",
+      "DNS field",
+      "Add"
+     ],
+     "feedback": "Activate Scope page: 'Yes, I want to activate this scope now'."
+    },
+    {
+     "screen": "Activate Scope page.",
+     "instruction": "Keep Yes selected, click Finish.",
+     "hotspots": [
+      "Finish"
+     ],
+     "feedback": "Scope 'Lab-Workstations' appears under IPv4 with a green up-arrow \u2014 active and leasing."
+    }
+   ]
+  },
+  {
+   "id": "IL27-CLICK-05",
+   "moduleId": "IL27-M11",
+   "tool": "Zabbix Frontend",
+   "title": "Add a host in Zabbix",
+   "steps": [
+    {
+     "screen": "Zabbix UI: logged in as Admin; left menu visible.",
+     "instruction": "Go to Data collection > Hosts. Click 'Create host' (top right).",
+     "hotspots": [
+      "Data collection",
+      "Hosts",
+      "Create host"
+     ],
+     "feedback": "New host form opens."
+    },
+    {
+     "screen": "Host tab: Host name, Templates, Host groups empty.",
+     "instruction": "Host name: 'LAB-DC01'. Click Select next to Templates, choose 'Windows by Zabbix agent'. Host groups: select 'Windows servers'.",
+     "hotspots": [
+      "Host name field",
+      "Select (Templates)",
+      "Windows by Zabbix agent"
+     ],
+     "feedback": "Template and group attached."
+    },
+    {
+     "screen": "Still on Host tab: Interfaces section shows 'No interfaces'.",
+     "instruction": "Click Add > Agent. Enter IP 192.168.20.10, port 10050. Click Add.",
+     "hotspots": [
+      "Add",
+      "Agent",
+      "IP field",
+      "Port"
+     ],
+     "feedback": "An Agent interface row appears with the IP."
+    },
+    {
+     "screen": "Top of the form: 'Enabled' toggle.",
+     "instruction": "Confirm Enabled is on. Click Add (bottom) to save the host.",
+     "hotspots": [
+      "Add (save)"
+     ],
+     "feedback": "Host list shows LAB-DC01. The ZBX icon is grey \u2014 agent not yet reporting."
+    },
+    {
+     "screen": "Hosts list: LAB-DC01 row visible.",
+     "instruction": "Wait ~2 minutes, then refresh. The ZBX icon turns green.",
+     "hotspots": [
+      "refresh",
+      "ZBX icon"
+     ],
+     "feedback": "Green ZBX = Zabbix is collecting. Open Monitoring > Latest data, filter host LAB-DC01 \u2014 metrics are flowing."
+    }
+   ]
+  }
+ ],
+ "trainers": [
+  {
+   "id": "IL27-TRAIN-01",
+   "moduleId": "IL27-M05",
+   "title": "Subnetting trainer",
+   "kind": "rapid-fire",
+   "description": "Timed rapid-fire subnetting: network/broadcast addresses, host counts, CIDR conversions. Infinite practice via parameterized templates.",
+   "items": [
+    {
+     "q": "How many usable host addresses in a /26?",
+     "answer": "62",
+     "explanation": "2^(32-26) - 2 = 64 - 2 = 62."
+    },
+    {
+     "q": "Network address of 192.168.10.77/27?",
+     "answer": "192.168.10.64",
+     "explanation": "/27 blocks of 32: 77 falls in 64-95, network is .64."
+    },
+    {
+     "q": "Broadcast address of 10.4.0.200/22?",
+     "answer": "10.4.3.255",
+     "explanation": "/22 = block of 4 in third octet: 0-3, broadcast is last address 10.4.3.255."
+    },
+    {
+     "q": "CIDR for mask 255.255.255.240?",
+     "answer": "/28",
+     "explanation": "240 = 11110000, 24 + 4 = /28."
+    },
+    {
+     "q": "Broadcast address of 172.16.4.0/23?",
+     "answer": "172.16.5.255",
+     "explanation": "/23 spans two /24s: 172.16.4.0 through 172.16.5.255; broadcast is the last address."
+    },
+    {
+     "q": "Smallest subnet fitting 40 hosts?",
+     "answer": "/26",
+     "explanation": "/26 gives 62 usable; /27 gives only 30. Always round UP."
+    },
+    {
+     "q": "How many /26 subnets fit in a /24?",
+     "answer": "4",
+     "explanation": "2^(26-24) = 4."
+    },
+    {
+     "q": "First usable host of 192.168.99.128/25?",
+     "answer": "192.168.99.129",
+     "explanation": "Network .128, first usable .129."
+    }
+   ]
+  },
+  {
+   "id": "IL27-TRAIN-02",
+   "moduleId": "IL27-M10",
+   "title": "PowerShell cmdlet trainer",
+   "kind": "rapid-fire",
+   "description": "Match the task to the cmdlet \u2014 the 40 cmdlets an infrastructure specialist types weekly. Infinite practice via templates.",
+   "items": [
+    {
+     "q": "Create a new AD user account",
+     "choices": [
+      "New-ADUser",
+      "Add-ADUser",
+      "Set-ADUser",
+      "Install-ADUser"
+     ],
+     "answer": "New-ADUser",
+     "explanation": "New-* creates; Set-* modifies; Add-* adds to collections."
+    },
+    {
+     "q": "Test whether TCP port 443 is open on a host",
+     "choices": [
+      "Test-NetConnection",
+      "Test-Connection",
+      "Invoke-WebRequest",
+      "Get-NetTCPConnection"
+     ],
+     "answer": "Test-NetConnection",
+     "explanation": "Test-NetConnection -Port does TCP port tests; Test-Connection is ICMP-only."
+    },
+    {
+     "q": "List the last 24h of failed logons (event 4625)",
+     "choices": [
+      "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625}",
+      "Get-EventLog Security | Where Id -eq 4625",
+      "Get-WinEvent -LogName Security -MaxEvents 10",
+      "wevtutil qe Security"
+     ],
+     "answer": "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625}",
+     "explanation": "FilterHashtable filters server-side \u2014 fastest and the modern cmdlet."
+    },
+    {
+     "q": "Restart the Print Spooler service",
+     "choices": [
+      "Restart-Service Spooler",
+      "Start-Service Spooler -Force",
+      "Set-Service Spooler -Status Running",
+      "sc.exe start Spooler"
+     ],
+     "answer": "Restart-Service Spooler",
+     "explanation": "Restart-Service handles stop+start; Start-Service fails if already running."
+    },
+    {
+     "q": "Find which process is listening on port 53",
+     "choices": [
+      "Get-NetTCPConnection -LocalPort 53",
+      "netstat -ano | findstr :53 then tasklist",
+      "Get-Process -Port 53",
+      "ss -tlnp (Linux only)"
+     ],
+     "answer": "Get-NetTCPConnection -LocalPort 53",
+     "explanation": "Native PowerShell object output with OwningProcess \u2014 pipe to Get-Process."
+    },
+    {
+     "q": "Export AD users to CSV without type junk on line 1",
+     "choices": [
+      "Export-Csv -NoTypeInformation",
+      "Export-Csv -NoHeader",
+      "ConvertTo-Csv | Out-File",
+      "Export-Clixml"
+     ],
+     "answer": "Export-Csv -NoTypeInformation",
+     "explanation": "-NoTypeInformation drops the #TYPE header line."
+    },
+    {
+     "q": "Show disk usage per drive with % free",
+     "choices": [
+      "Get-PSDrive",
+      "Get-Disk",
+      "Get-Volume",
+      "Get-Partition"
+     ],
+     "answer": "Get-PSDrive",
+     "explanation": "Get-PSDrive shows Used/Free per filesystem drive in one view."
+    },
+    {
+     "q": "Run a command on 10 servers at once",
+     "choices": [
+      "Invoke-Command -ComputerName $s -ScriptBlock {}",
+      "Enter-PSSession in a loop",
+      "psexec @file",
+      "Start-Job per server"
+     ],
+     "answer": "Invoke-Command -ComputerName $s -ScriptBlock {}",
+     "explanation": "Invoke-Command fans out in parallel over WinRM \u2014 the admin's force multiplier."
+    }
+   ]
+  },
+  {
+   "id": "IL27-TRAIN-03",
+   "moduleId": "IL27-M05",
+   "title": "Port & protocol trainer",
+   "kind": "rapid-fire",
+   "description": "Name the port, name the service \u2014 the ports that appear in firewall rules, incident tickets, and interviews. Infinite practice via templates.",
+   "items": [
+    {
+     "q": "Port 53",
+     "answer": "DNS",
+     "explanation": "UDP 53 (queries) + TCP 53 (zone transfers, large responses)."
+    },
+    {
+     "q": "Port 88",
+     "answer": "Kerberos",
+     "explanation": "AD authentication. If 88 is blocked, domain logons fail."
+    },
+    {
+     "q": "Port 389",
+     "answer": "LDAP",
+     "explanation": "AD directory queries; 636 = LDAPS."
+    },
+    {
+     "q": "Port 445",
+     "answer": "SMB",
+     "explanation": "File shares, Group Policy, AD replication. Prime ransomware lateral-movement port."
+    },
+    {
+     "q": "Port 3389",
+     "answer": "RDP",
+     "explanation": "Remote Desktop. Never expose to the internet unprotected."
+    },
+    {
+     "q": "Port 22",
+     "answer": "SSH",
+     "explanation": "Linux remote admin; key auth, not passwords."
+    },
+    {
+     "q": "Ports 80 / 443",
+     "answer": "HTTP / HTTPS",
+     "explanation": "Web traffic; 443 is TLS-encrypted."
+    },
+    {
+     "q": "Port 25 / 587",
+     "answer": "SMTP / SMTP submission",
+     "explanation": "Mail routing (25) vs authenticated client submission (587)."
+    },
+    {
+     "q": "Port 67 / 68",
+     "answer": "DHCP",
+     "explanation": "67 server, 68 client \u2014 UDP."
+    },
+    {
+     "q": "Port 161",
+     "answer": "SNMP",
+     "explanation": "Monitoring queries (what Zabbix uses for network gear)."
+    },
+    {
+     "q": "Port 10050 / 10051",
+     "answer": "Zabbix agent / Zabbix server",
+     "explanation": "10050 agent listener, 10051 server/trapper."
+    },
+    {
+     "q": "Port 5985 / 5986",
+     "answer": "WinRM HTTP / HTTPS",
+     "explanation": "PowerShell remoting. 5986 is the encrypted one."
+    }
+   ]
+  }
+ ],
+ "mockTasks": [
+  {
+   "id": "IL27-MOCK-01",
+   "moduleId": "IL27-M15",
+   "title": "Write an incident report",
+   "kind": "writing",
+   "brief": "Turn the ransomware drill (IL27-TL-12) into a one-page incident report a manager and an auditor can both use.",
+   "scenario": "At 2:14 PM Zabbix alerted on mass file renames on LAB-W11-01. You isolated the host at 2:16, preserved a snapshot, found a phishing macro as patient zero plus a scheduled-task persistence mechanism, eradicated both, and restored the user's files from the 2 AM backup by 5 PM.",
+   "deliverable": "A one-page incident report (PDF or Markdown) with: executive summary (3 lines), timeline table (time/action/actor), root cause, impact, containment + eradication + recovery actions, and two preventive controls with owners.",
+   "rubric": [
+    "Timeline is complete and timestamps are consistent",
+    "Root cause names the actual vector (phishing macro), not 'malware'",
+    "Recovery point (2 AM backup) and data-loss window stated",
+    "Preventive controls are specific and owned (not 'be more careful')",
+    "Tone is factual, no blame, no jargon without explanation"
+   ]
+  },
+  {
+   "id": "IL27-MOCK-02",
+   "moduleId": "IL27-M16",
+   "title": "Draft a change request",
+   "kind": "writing",
+   "brief": "Write the change request you'd file BEFORE aligning the VPN crypto proposals (IL27-BRANCH-04) \u2014 because in production, you don't touch crypto without paper.",
+   "scenario": "The branch-office VPN tunnel is down after their firmware update changed phase-2 defaults. You plan to align proposals to AES-256/GCM + SHA256 + DH14 on both firewalls during tonight's 10 PM-11 PM window.",
+   "deliverable": "A change request with: summary, business justification, scope (exact devices + settings), risk assessment, backout plan (config backup restore, tested), test plan (tunnel up + branch traffic matrix), and approver sign-off line.",
+   "rubric": [
+    "Backout plan is concrete and tested (config backup exists)",
+    "Risk assessment names the real risks (extended outage, crypto mismatch)",
+    "Test plan verifies business traffic, not just 'tunnel up'",
+    "Maintenance window and rollback timebox stated",
+    "Approver and implementer are different people (separation of duties)"
+   ]
+  },
+  {
+   "id": "IL27-MOCK-03",
+   "moduleId": "IL27-M06",
+   "title": "Build a network diagram from a description",
+   "kind": "diagram",
+   "brief": "Convert a written description into a clean network diagram \u2014 the skill every infrastructure interview tests.",
+   "scenario": "The lab has: an ISP handoff into pfSense WAN; pfSense LAN 192.168.10.1/24 with 3 workstations and a printer; pfSense OPT1 (DMZ) 192.168.20.1/24 with LAB-DC01 (192.168.20.10, AD/DNS/DHCP) and LAB-FS01 (192.168.20.11, files); lab-linux01 (192.168.10.20) running Zabbix + Docker. Firewall rules: LAN->DMZ limited to DNS/AD/SMB; DMZ->LAN deny by default; DMZ->WAN allowed for updates.",
+   "deliverable": "A network diagram (any tool: draw.io, Excalidraw, even neat ASCII) showing: all segments with CIDRs, every host with IP + role, firewall rule summaries on the inter-segment arrows, and a legend.",
+   "rubric": [
+    "Every IP from the description appears and matches",
+    "Segments are visually separated with CIDR labels",
+    "Firewall rules annotated on the correct arrows",
+    "Legend explains all symbols/colors",
+    "A stranger could rebuild the addressing from the diagram alone"
+   ]
+  }
+ ],
+ "animations": [
+  {
+   "id": "IL27-ANIM-01",
+   "moduleId": "IL27-M06",
+   "title": "Network topology builder",
+   "kind": "canvas",
+   "description": "Interactive canvas: the learner drags device icons (firewall, switch, server, workstation, printer, cloud/ISP) onto a grid and draws links between them. Each placed device gets an editable property panel (hostname, IP/CIDR, role). A 'validate' button checks the topology against the IL-27 lab spec (pfSense with WAN/LAN/DMZ, DC + file server on DMZ, workstations on LAN) and highlights mismatches. Animated packet dots flow along links when 'simulate traffic' is pressed, turning red when a link crosses a firewall rule that would deny it. Export produces the addressing table used by later labs."
+  },
+  {
+   "id": "IL27-ANIM-02",
+   "moduleId": "IL27-M03",
+   "title": "AD forest / domain tree",
+   "kind": "svg",
+   "description": "Animated SVG of the lab.local domain: the domain root node expands into the five OUs (Workstations, Servers, Users, Groups, ServiceAccounts), each OU expanding to show its member objects (users, computers, groups) with distinct icons. Clicking any object shows its key attributes (DN, SID, memberOf). A replication animation draws pulsing arrows between the DC node and a (future) second DC, with a toggle for 'what replicates' (schema, configuration, domain partitions). A time-slider shows the promotion sequence: standalone server -> AD DS installed -> forest created -> DNS integrated."
+  },
+  {
+   "id": "IL27-ANIM-03",
+   "moduleId": "IL27-M06",
+   "title": "Zero Trust request flow",
+   "kind": "svg",
+   "description": "Step-through SVG animation of a single access request under Zero Trust: (1) user/device on LAN requests the file share, (2) request hits the policy engine (identity check: who + device health + MFA), (3) explicit allow/deny decision rendered as a gate, (4) encrypted session to the resource, (5) continuous verification ticking in the background. Each step highlights with a caption explaining the principle ('never trust, always verify', 'least privilege', 'assume breach'). A toggle switches between 'flat network' (request walks straight through, red flags) and 'segmented' (request passes the gate, green) to show why the IL-27 lab segments LAN/DMZ."
+  },
+  {
+   "id": "IL27-ANIM-04",
+   "moduleId": "IL27-M05",
+   "title": "DHCP DORA sequence",
+   "kind": "svg",
+   "description": "Animated sequence diagram of DHCP DORA: client broadcasts DISCOVER (packet expands to the broadcast domain), server responds OFFER (unicast, with offered IP highlighted), client broadcasts REQUEST, server answers ACK. Each packet is drawn with its real fields (op, xid, yiaddr, options 51/54/3/6) and the learner can hover any field for a plain-English explanation. A 'lease timeline' bar below shows T1/T2 renewal and expiry; pressing 'renew' replays REQUEST/ACK. A fault-injection toggle ('rogue server') shows a second OFFER racing the legitimate one, teaching why DHCP snooping exists."
+  },
+  {
+   "id": "IL27-ANIM-05",
+   "moduleId": "IL27-M05",
+   "title": "DNS resolution chain",
+   "kind": "svg",
+   "description": "Full recursive-resolution walkthrough as an animated chain: stub resolver -> pfSense forwarder -> (root hints -> TLD -> authoritative) for an internet name, contrasted with the short path for lab.local (forwarder -> domain override -> LAB-DC01). Each hop lights up in order with the query/response packet contents shown; caching is visualized as a fading memory bar at each resolver ('TTL countdown'). The learner can type any name and watch the chain build; a toggle shows what breaks when the DC's DNS stops (lab.local goes dark while internet still resolves) \u2014 the exact IL27-BRANCH-02 incident, visualized."
+  },
+  {
+   "id": "IL27-ANIM-06",
+   "moduleId": "IL27-M04",
+   "title": "GPO processing order",
+   "kind": "svg",
+   "description": "LSDOU processing order animated: Local -> Site -> Domain -> OU, with each layer's policies stacking onto a sample setting (e.g. screen-saver timeout) and later layers visibly overriding earlier ones. Toggles for 'Block Inheritance' (red X cuts the chain at that OU) and 'Enforced' (policy punches through the block, highlighted). A conflict demo sets the same setting at Domain and OU levels with different values and shows the winner plus WHY. Links to the learner's own lab: they can input their three IL27-TL-05 GPOs and watch them apply to a test computer object moving between OUs."
+  },
+  {
+   "id": "IL27-ANIM-07",
+   "moduleId": "IL27-M12",
+   "title": "Backup rotation scheme",
+   "kind": "canvas",
+   "description": "Interactive Grandfather-Father-Son rotation visualizer on a calendar canvas: daily incrementals (sons), weekly fulls (fathers), monthly fulls (grandfathers), with retention bars showing how far back each tier reaches. The learner drags the 'today' marker and the diagram highlights exactly which backup sets would restore any given date, computing the RPO. A 'disk cost' meter totals the storage consumed by the scheme vs a naive daily-full scheme. A disaster button ('file server dies on the 17th') walks the restore: pick the recovery point, list the sets needed (last full + incrementals since), and flag the data-loss window."
+  },
+  {
+   "id": "IL27-ANIM-08",
+   "moduleId": "IL27-M15",
+   "title": "Incident response lifecycle",
+   "kind": "svg",
+   "description": "The six-phase IR lifecycle (Preparation -> Detection & Analysis -> Containment -> Eradication -> Recovery -> Lessons Learned) as a circular animated diagram. Clicking a phase expands it with the IL-27 lab's concrete actions (e.g. Containment: 'disable NIC at hypervisor'; Lessons Learned: 'write the report, add the AppLocker rule'). An animated scenario dot travels the circle using the ransomware drill timeline (2:14 PM detection -> 5 PM recovery), pausing at each phase with the actual action taken. A 'what if you skip' toggle removes a phase and shows the consequence cascade (skip Eradication -> reinfection animation). Printable as the one-page IR playbook for the interview."
+  }
+ ]
+}

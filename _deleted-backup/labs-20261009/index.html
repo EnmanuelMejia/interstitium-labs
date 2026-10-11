@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Open Labs — Interstitium Labs</title>
+<meta name="description" content="Public open labs from Interstitium: DevOps SuperLab flagship portfolio lab (kind, GitOps, CI/CD, policy). Not paid production tenure."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/labs/"/>
+<link rel="alternate" hreflang="en" href="https://interstitiumlabs.dev/labs/?lang=en" data-il-hreflang="1"/>
+<link rel="alternate" hreflang="es" href="https://interstitiumlabs.dev/labs/?lang=es" data-il-hreflang="1"/>
+<link rel="alternate" hreflang="x-default" href="https://interstitiumlabs.dev/labs/" data-il-hreflang="1"/>
+<meta property="og:title" content="Open Labs — Interstitium Labs"/>
+<meta property="og:description" content="Flagship open lab: DevOps SuperLab — portfolio / interview demo. Honest scope."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/labs/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="/assets/il-ux.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="stylesheet" href="/assets/il-immersive.css"/>
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<a class="il-skip" href="#main">Skip to content</a>
+<div class="flex min-h-dvh flex-col bg-void text-paper">
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Labs</li></ol></nav>
+
+<main id="main" class="il-fluid-type flex-1" data-il-auto-reveal data-il-curriculum-surface="labs">
+
+<!-- IL immersive 3D-first scaffold (procedural v1; real .glb optional) -->
+<section class="il-immersive il-immersive--compact mx-auto max-w-6xl px-5 sm:px-8" data-il-immersive data-il-scene="k8s" data-il-engine="three" data-il-compact="1" data-immersive='{"mode":"3d-first","engine":"three","asset":"procedural:k8s","webgpu":true}' aria-label="Immersive lab">
+  <noscript><p class="p-4 text-sm text-muted">3D stage requires JavaScript. Asset: procedural:k8s</p></noscript>
+</section>
+
+<section class="border-b border-paper/10 relative isolate overflow-hidden">
+  <div class="il-hero-field" data-il-starfield aria-hidden="true"></div>
+  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20 relative z-[1]">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan" data-i18n="labs.kicker">Labs · Open public work</p>
+    <h1 class="mt-4 max-w-3xl font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl" data-i18n="labs.title">Open labs students can clone.</h1>
+    <p class="mt-5 max-w-2xl text-base text-muted" data-i18n="labs.lead">Inspectable GitHub labs paired with the Curriculum OS. Portfolio and interview demos — <strong class="text-gold">not</strong> paid production tenure claims.</p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Flagship</p>
+  <a href="/labs/superlab/" class="il-surface mt-6 block rounded-xl border border-cyan/30 bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)] sm:p-8">
+    <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div>
+        <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">DevOps SuperLab</p>
+        <h2 class="mt-3 font-display text-3xl tracking-[-0.02em]">kind · Kustomize · Argo CD · GHA · Gatekeeper</h2>
+        <p class="mt-3 text-sm leading-relaxed text-muted">Public portfolio / interview demo lab by Enmanuel Mejia. Clone → <code class="text-cyan">make bootstrap</code> → <code class="text-cyan">make kind-up</code>. Honest disclaimer: not a customer production deployment.</p>
+        <p class="mt-5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-cyan">Enter Learning OS hub →</p>
+      </div>
+      <img src="/assets/featured-devops-superlab.jpg" alt="DevOps SuperLab preview" width="640" height="360" class="w-full rounded-lg border border-paper/10 object-cover" loading="lazy"/>
+    </div>
+  </a>
+
+  <div class="mt-10 grid gap-4 md:grid-cols-3">
+    <a href="/prep/" class="il-surface rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">
+      <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Companion</p>
+      <h3 class="mt-2 font-display text-xl">Interview Prep</h3>
+      <p class="mt-2 text-sm text-muted">Use SuperLab as the weekend ship target for the 3-phase sprint.</p>
+    </a>
+    <a href="/paths/devsecops-mastery/" class="il-surface rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">
+      <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Long arc</p>
+      <h3 class="mt-2 font-display text-xl">DevSecOps Mastery</h3>
+      <p class="mt-2 text-sm text-muted">12-month curriculum — SuperLab is the recurring hands-on spine.</p>
+    </a>
+    <a href="/founders/#proof" class="il-surface rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">
+      <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Proof</p>
+      <h3 class="mt-2 font-display text-xl">Founders proof wall</h3>
+      <p class="mt-2 text-sm text-muted">SuperLab seal sits with resume, a client, and GitHub evidence.</p>
+    </a>
+  </div>
+</section>
+<section class="border-t border-paper/10 bg-ink/40"><div class="mx-auto max-w-6xl px-5 py-10 sm:px-8"><p class="il-kicker">Daily proof</p><h2 class="mt-2 font-display text-2xl">Challenge of the Day</h2><a href="/labs/challenge/" class="mt-4 inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] uppercase tracking-[0.14em] text-void">Open CotD</a></div></section>
+<section class="border-b border-paper/10" data-il-immersive-cta="1">
+  <div class="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">3D-first</p>
+    <h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">Immersive stages for labs.</h2>
+    <p class="mt-2 max-w-2xl text-sm text-muted">Authored kit-v2 .glb now · Blender polish path + Unreal Pixel Streaming client. <a class="text-cyan" href="/immersive/">Open immersive demo</a> ·</p>
+    <div class="mt-5 max-w-xl" data-il-immersive data-il-scene="k8s" data-kind="cert" data-il-cert-shell="1" data-title="CKA Lab 3D Shell" data-gltf="/assets/immersive/cert-cka.glb" data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cert-cka.glb","webgpu":true}'></div>
+<<<<<<< HEAD:_deleted-backup/labs-20261009/index.html
+    <p class="mt-3 text-sm text-muted">Authored kit-v2 <code class="text-cyan">cert-cka.glb</code> · etcd quorum scene on <a class="text-cyan" href="/immersive/">/immersive/</a> · Noah Live Assist below (honest vs hosted live assist — no fake fleet).</p>
+=======
+    <p class="mt-3 text-sm text-muted">Authored kit-v2 <code class="text-cyan">cert-cka.glb</code> · etcd quorum scene on <a class="text-cyan" href="/immersive/">/immersive/</a> · Noah Live Assist below (honest vs KodeKloud hosted Live Assist — no fake fleet).</p>
+    <p class="mt-2 text-sm text-muted">CKA spatial scenes (authored glTF, Blender CLI polished — not a hosted fleet): etcd quorum · CNI · RBAC · service mesh · storage CSI · Ingress · HPA · <a class="text-cyan" href="/immersive/#cka-network-policy">NetworkPolicy isolation</a> · <a class="text-cyan" href="/immersive/#cka-secrets-configmaps">Secrets vs ConfigMaps</a> · <a class="text-cyan" href="/immersive/#cka-scheduling">Scheduling affinity/taints</a>.</p>
+    <p class="mt-2 text-sm text-muted"><strong class="text-paper">Interactive 3D sims (2026-10-06)</strong> — predict, then watch the scene change: etcd quorum loss · <a class="text-cyan" href="/immersive/#aws-az-failure">AWS Multi-AZ failure</a> · <a class="text-cyan" href="/immersive/#aws-iam-eval">IAM policy evaluation</a>. Rules engine in-browser; no hosted fleet or AWS account.</p>
+>>>>>>> origin/main:docs/labs/index.html
+  </div>
+</section>
+
+<section class="border-b border-paper/10 bg-ink/50" id="noah-live-assist">
+  <div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+    <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Exceed hosted live assist</p>
+    <h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">Noah Live Assist — in-lab, Socratic, honest.</h2>
+    <p class="mt-3 max-w-2xl text-sm text-muted">A leading training platform ships terminal Live Assist + on-demand micro-lessons inside hosted labs. We ship <strong class="text-paper">lab-context coaching</strong> on this static Learning OS: paste errors, get Socratic nudges, optional local Ollama router. No fake API keys. No claimed multi-cloud sandbox fleet — SuperLab stays cloneable proof.</p>
+    <div class="mt-6" data-il-live-assist data-il-coach data-il-lab-scene="labs" data-il-coach-topic="k8s"></div>
+    <p class="mt-4 text-sm text-muted"><a class="text-cyan" href="/labs/challenge/">Challenge of the Day</a> · <a class="text-cyan" href="/noah/">Full Noah shell</a></p>
+  </div>
+</section>
+
+<section class="border-t border-paper/10 bg-ink/40"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Concept glossary</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">The words the labs use</h2>
+<ul class="mt-6 grid gap-3 md:grid-cols-2 text-sm text-muted">
+<li><strong class="text-paper">SuperLab</strong> — the flagship open portfolio lab: kind &middot; Kustomize &middot; Argo CD &middot; GitHub Actions &middot; Gatekeeper. Cloneable proof you can screen-share — not paid production tenure.</li>
+<li><strong class="text-paper">Scenario card</strong> — a guided checklist (exact commands included) for one failure mode or workflow: GitOps sync, Gatekeeper deny, GHA build failure, kind cold start.</li>
+<li><strong class="text-paper">Playground vs guided</strong> — the guided scenario cards run on your machine or in SuperLab; the playground is the deep SuperLab itself. We do not claim a hosted multi-cloud sandbox fleet.</li>
+<li><strong class="text-paper">Noah Live Assist</strong> — in-lab, Socratic coaching: paste errors, get nudges, optional local Ollama router. No fake API keys.</li>
+<li><strong class="text-paper">Challenge of the Day</strong> — the daily proof ritual: one SuperLab check, every day, logged locally.</li>
+<li><strong class="text-paper">kind</strong> — Kubernetes-in-Docker: the local cluster engine behind the SuperLab quickstart (make kind-up).</li>
+<li><strong class="text-paper">GitOps</strong> — the deploy model: desired state lives in git (Kustomize overlays, app-of-apps) and Argo CD syncs the cluster to it.</li>
+<li><strong class="text-paper">Policy gate</strong> — admission control (Gatekeeper constraints, Conftest checks) that refuses bad workloads before they land — the lab's honesty layer.</li>
+</ul>
+</div></section>
+
+<section class="border-t border-paper/10"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Worked procedure</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">Work one lab scenario, start to finish</h2>
+<ol class="mt-6 list-decimal space-y-3 pl-5 text-sm text-muted">
+<li><strong class="text-paper">Pick a scenario card.</strong> Choose the failure mode you want to rehearse: broken GitOps sync, Gatekeeper deny, red GHA build, or a cold kind start.</li>
+<li><strong class="text-paper">Read the checklist, then run it.</strong> Work the card's exact commands on your machine or inside the SuperLab — the cards assume the <a class="text-cyan" href="/labs/superlab/#quickstart">SuperLab quickstart</a> (make bootstrap &rarr; make kind-up).</li>
+<li><strong class="text-paper">Get stuck on purpose.</strong> When a step fails, paste the error into <strong class="text-paper">Noah Live Assist</strong> above and take the Socratic nudge — the debugging is the lesson, not the happy path.</li>
+<li><strong class="text-paper">Verify the fix.</strong> Re-run the card's verification command (kubectl get, argocd app get, or the CI re-run) until the scenario is green.</li>
+<li><strong class="text-paper">Log the proof.</strong> Note the scenario, the failure, and the fix in your evidence log — that entry is what you narrate in an interview, with the SuperLab screen-shared behind it.</li>
+</ol>
+</div></section>
+
+<section class="border-t border-paper/10 bg-ink/40"><div class="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Project brief</p>
+<h2 class="mt-2 font-display text-2xl tracking-[-0.02em]">The lab portfolio brief</h2>
+<p class="mt-4 max-w-2xl text-sm text-muted"><strong class="text-paper">Deliverable:</strong> a cloned, running SuperLab plus a lab journal — every scenario card worked with its failure and fix, one interview-ready walkthrough (clone &rarr; bootstrap &rarr; kind-up &rarr; GitOps &rarr; policy), and the Challenge-of-the-Day streak to prove cadence.</p>
+<p class="mt-3 max-w-2xl text-sm text-muted"><strong class="text-paper">Acceptance:</strong> you can bring the cluster up cold, break a scenario on demand, fix it live, and explain what each gate refused and why. Honest labels throughout: lab = lab, never production tenure.</p>
+<div class="mt-6 flex flex-wrap gap-3">
+<a href="/labs/superlab/" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void">Enter SuperLab</a>
+<a href="/labs/challenge/" class="inline-flex h-10 items-center rounded-lg border border-cyan/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-cyan">Challenge of the Day</a>
+</div>
+</div></section>
+
+<section class="border-t border-paper/10"><div class="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">As of &middot; limits</p>
+<p class="mt-3 max-w-2xl text-sm text-muted"><strong class="text-paper">As of 2026-10-07:</strong> the flagship open lab is the DevOps SuperLab (cloneable, local-first). Full hands-on multi-cloud playgrounds need hosted VMs we do not operate yet — the scenario cards are checklist plus terminal paths into the cloneable SuperLab, portfolio-grade rather than a SaaS sandbox fleet. All progress and XP stay in your browser.</p>
+</div></section>
+</main>
+
+<section class="border-t border-paper/10 bg-ink/40" id="playground" data-il-auto-reveal>
+  <div class="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+    <p class="il-kicker">lab-grade hub</p>
+    <h2 class="mt-3 font-display text-3xl tracking-[-0.03em]">Guided path vs playground</h2>
+    <p class="mt-3 max-w-2xl text-sm text-muted">We do not fake 800 cloud sandboxes. SuperLab is the deep playground; scenarios below are guided checklists that terminate in SuperLab.</p>
+    <div class="il-lab-split mt-8">
+      <div class="il-lab-split__pane il-lab-split__pane--guided">
+        <p class="il-kicker">Guided</p>
+        <h3 class="mt-2 font-display text-xl">Scenario cards</h3>
+        <p class="mt-2 text-sm text-muted">Checklist + exact commands. You run them on your machine or in SuperLab.</p>
+      </div>
+      <div class="il-lab-split__pane il-lab-split__pane--play">
+        <p class="il-kicker">Playground</p>
+        <h3 class="mt-2 font-display text-xl">DevOps SuperLab</h3>
+        <p class="mt-2 text-sm text-muted">kind · Kustomize · Argo CD · GHA · Gatekeeper. Clone → bootstrap → explore.</p>
+        <a href="/labs/superlab/" class="mt-4 inline-flex font-mono text-[0.62rem] uppercase tracking-[0.18em] text-cyan">Enter SuperLab →</a>
+      </div>
+    </div>
+
+    <div class="il-scenario-grid mt-10">
+      <article class="il-scenario">
+        <p class="il-scenario__meta">Scenario · GitOps</p>
+        <h3>Sync a broken Application</h3>
+        <p>Argo CD shows OutOfSync. Trace desired vs live, then sync with respect for hooks.</p>
+        <ul class="il-scenario__list">
+          <li>Open Argo UI / CLI; note sync status</li>
+          <li>Diff manifests; identify drift source</li>
+          <li>Sync with prune only if intentional</li>
+        </ul>
+        <pre class="il-scenario__cmds">kubectl get applications -n argocd
+argocd app get &lt;name&gt; --grpc-web
+argocd app sync &lt;name&gt; --grpc-web</pre>
+        <a class="il-scenario__cta" href="/labs/superlab/#map">Open in SuperLab →</a>
+      </article>
+      <article class="il-scenario">
+        <p class="il-scenario__meta">Scenario · Policy</p>
+        <h3>Gatekeeper denies a Pod</h3>
+        <p>A deploy fails admission. Read the constraint message; fix the workload or the template.</p>
+        <ul class="il-scenario__list">
+          <li>kubectl describe / events for admission errors</li>
+          <li>Map message → ConstraintTemplate</li>
+          <li>Patch Pod security context; re-apply</li>
+        </ul>
+        <pre class="il-scenario__cmds">kubectl get constrainttemplates
+kubectl get k8spspprivilegedcontainer
+kubectl apply -f apps/demo/ — watch deny</pre>
+        <a class="il-scenario__cta" href="/labs/superlab/#map">Open in SuperLab →</a>
+      </article>
+      <article class="il-scenario">
+        <p class="il-scenario__meta">Scenario · CI</p>
+        <h3>GHA fails on image build</h3>
+        <p>Pipeline red on docker build. Separate registry auth from Dockerfile bugs.</p>
+        <ul class="il-scenario__list">
+          <li>Open Actions log; find first failing step</li>
+          <li>Reproduce locally with same tags</li>
+          <li>Fix layer or secret; re-run</li>
+        </ul>
+        <pre class="il-scenario__cmds">gh run list --workflow=ci.yml
+docker build -t demo:local .
+# then push only with scoped creds</pre>
+        <a class="il-scenario__cta" href="/labs/superlab/#map">Open in SuperLab →</a>
+      </article>
+      <article class="il-scenario">
+        <p class="il-scenario__meta">Scenario · Cluster</p>
+        <h3>kind cluster cold start</h3>
+        <p>From zero: bootstrap tools, bring cluster up, verify nodes Ready.</p>
+        <ul class="il-scenario__list">
+          <li>Install deps via make bootstrap</li>
+          <li>make kind-up && kubectl get nodes</li>
+          <li>Deploy sample via kustomize</li>
+        </ul>
+        <pre class="il-scenario__cmds">make bootstrap
+make kind-up
+kubectl get nodes -o wide</pre>
+        <a class="il-scenario__cta" href="/labs/superlab/">Open in SuperLab →</a>
+      </article>
+    </div>
+    <p class="il-honest-note mt-8"><strong>Infra honesty:</strong> Full hands-on multi-cloud playgrounds need hosted VMs we do not operate yet. These scenarios are checklist + terminal paths into the cloneable SuperLab — portfolio-grade, not a SaaS sandbox fleet.</p>
+  </div>
+</section>
+
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/topics/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/prep/drills/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/prep/drills/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</div>
+<script src="/assets/il-compat.js" defer></script>
+<script src="/assets/il-game.js" defer></script>
+<script src="/assets/il-motion.js" defer></script>
+<script src="/assets/il-pwa.js?v=heal2" defer></script>
+<script src="/analytics/config.js" defer></script>
+<script src="/assets/il-analytics.js" defer></script>
+<script src="/assets/il-i18n.js" defer></script>
+<script src="/assets/il-immersive-3d.js" defer></script>
+<script src="/assets/il-radar.js" defer></script>
+<script src="/assets/il-mastery.js" defer></script>
+<script src="/assets/il-drills.js" defer></script>
+<script src="/assets/il-coach.js" defer></script>
+<script src="/assets/il-scene-kit.js" defer></script>
+<script src="/assets/il-immersive.js" defer></script>
+<script src="/assets/il-curriculum-sync.js" defer></script>
+<script src="/assets/noah-full.js" defer></script>
+  <script src="/assets/il-search.js" defer></script>
+  <script src="/assets/il-translate.js" defer></script>
+</body>
+</html>

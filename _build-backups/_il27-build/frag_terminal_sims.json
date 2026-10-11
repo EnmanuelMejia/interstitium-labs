@@ -1,0 +1,413 @@
+[
+ {
+  "id": "IL27-TERM-01",
+  "title": "Bulk New-ADUser creation",
+  "moduleId": "IL27-M03",
+  "brief": "HR just sent a CSV of 12 new hires starting Monday. Create all accounts in OU=Users, set temporary passwords, force change at next logon, and verify \u2014 without clicking through ADUC 12 times.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "Import-Module ActiveDirectory",
+    "out": ""
+   },
+   {
+    "cmd": "$users = Import-Csv .\\newhires.csv",
+    "out": ""
+   },
+   {
+    "cmd": "$users | Select-Object -First 3 | Format-Table Name, Department",
+    "out": "Name              Department\n----              ----------\nA. Rivera         Finance\nJ. Okafor         IT\nM. Chen           HR"
+   },
+   {
+    "cmd": "$users.Count",
+    "out": "12"
+   },
+   {
+    "cmd": "$sec = Read-Host -AsSecureString -Prompt 'Temp password'",
+    "out": "Temp password: **************"
+   },
+   {
+    "cmd": "foreach ($u in $users) { New-ADUser -Name $u.Name -SamAccountName $u.Sam -GivenName $u.First -Surname $u.Last -UserPrincipalName ($u.Sam + '@lab.local') -Path 'OU=Users,DC=lab,DC=local' -AccountPassword $sec -Enabled $true -ChangePasswordAtLogon $true -Department $u.Department }",
+    "out": ""
+   },
+   {
+    "cmd": "Get-ADUser -Filter * -SearchBase 'OU=Users,DC=lab,DC=local' | Measure-Object | Select-Object -ExpandProperty Count",
+    "out": "12"
+   },
+   {
+    "cmd": "Get-ADUser -Filter * -SearchBase 'OU=Users,DC=lab,DC=local' -Properties Department | Group-Object Department | Select-Object Name, Count",
+    "out": "Name      Count\n----      -----\nFinance       4\nIT            5\nHR            3"
+   },
+   {
+    "cmd": "Get-ADUser -Identity arivera -Properties PasswordExpired | Select-Object SamAccountName, PasswordExpired",
+    "out": "SamAccountName PasswordExpired\n-------------- ---------------\narivera                 True"
+   },
+   {
+    "cmd": "# spot check one account can authenticate (test with runas or wait for Monday)",
+    "out": ""
+   },
+   {
+    "cmd": "Write-Host \"Created $($users.Count) accounts; all flagged for password change at logon\"",
+    "out": "Created 12 accounts; all flagged for password change at logon"
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-02",
+  "title": "Log triage: failed logons with Get-WinEvent",
+  "moduleId": "IL27-M15",
+  "brief": "The morning ticket says 'possible brute force against the DC last night.' Triage the Security log: pull event 4625s, rank source IPs, and decide whether to escalate.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "Get-WinEvent -ListLog Security | Select-Object LogName, RecordCount",
+    "out": "LogName  RecordCount\n-------  -----------\nSecurity       48213"
+   },
+   {
+    "cmd": "$ev = Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=(Get-Date).AddHours(-12)}",
+    "out": ""
+   },
+   {
+    "cmd": "$ev.Count",
+    "out": "137"
+   },
+   {
+    "cmd": "$sample = $ev[0]; $sample.Properties[5].Value; $sample.Properties[19].Value",
+    "out": "administrator\n203.0.113.44"
+   },
+   {
+    "cmd": "$parsed = foreach ($e in $ev) { [pscustomobject]@{Time=$e.TimeCreated; User=$e.Properties[5].Value; IP=$e.Properties[19].Value} }",
+    "out": ""
+   },
+   {
+    "cmd": "$parsed | Group-Object IP | Select-Object Name, Count | Sort-Object Count -Descending | Select-Object -First 5 | Format-Table",
+    "out": "Name          Count\n----          -----\n203.0.113.44      121\n198.51.100.7        9\n192.0.2.15          7"
+   },
+   {
+    "cmd": "$parsed | Where-Object IP -eq '203.0.113.44' | Select-Object -First 2 -Last 1 Time",
+    "out": "Time\n----\n10/7/2026 3:12:04 AM"
+   },
+   {
+    "cmd": "$parsed | Where-Object IP -eq '203.0.113.44' | Select-Object -ExpandProperty Time | Measure-Object -Minimum -Maximum | Select-Object Minimum, Maximum",
+    "out": "Minimum              Maximum\n-------              -------\n10/6/2026 11:48:02 PM 10/7/2026 3:12:04 AM"
+   },
+   {
+    "cmd": "# 121 failures in ~3.5h from one external IP against 'administrator' = brute force pattern",
+    "out": ""
+   },
+   {
+    "cmd": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4740; StartTime=(Get-Date).AddHours(-12)} | Select-Object -First 3 TimeCreated, @{n='User';e={$_.Properties[0].Value}}",
+    "out": "TimeCreated          User\n-----------          ----\n10/7/2026 2:58:11 AM administrator"
+   },
+   {
+    "cmd": "Write-Warning 'ESCALATE: brute-force from 203.0.113.44 locked out administrator; block IP at pfSense and open incident IR-2026-1042'",
+    "out": "WARNING: ESCALATE: brute-force from 203.0.113.44 locked out administrator; block IP at pfSense and open incident IR-2026-1042"
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-03",
+  "title": "DNS diagnosis with Test-NetConnection",
+  "moduleId": "IL27-M05",
+  "brief": "Nobody in the office can reach intranet.lab.local, but the internet works. Isolate the fault: local resolver, DNS server, or the record itself.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "Resolve-DnsName intranet.lab.local",
+    "out": "Resolve-DnsName : intranet.lab.local : DNS name does not exist"
+   },
+   {
+    "cmd": "ipconfig /all | Select-String 'DNS Servers'",
+    "out": "DNS Servers . . . . . . . . . . . : 192.168.10.1"
+   },
+   {
+    "cmd": "# client points at pfSense (192.168.10.1), not the DC \u2014 suspect forwarder issue; test the DC directly",
+    "out": ""
+   },
+   {
+    "cmd": "Resolve-DnsName intranet.lab.local -Server 192.168.20.10",
+    "out": "Name                         Type   TTL   Section    IPAddress\n----                         ----   ---   -------    ---------\nintranet.lab.local             A      3600  Answer     192.168.20.25"
+   },
+   {
+    "cmd": "# record EXISTS on the DC \u2014 the fault is between client and DC, i.e. the pfSense forwarder",
+    "out": ""
+   },
+   {
+    "cmd": "Test-NetConnection 192.168.20.10 -Port 53 | Select-Object ComputerName, TcpTestSucceeded",
+    "out": "ComputerName     TcpTestSucceeded\n------------     ----------------\n192.168.20.10                True"
+   },
+   {
+    "cmd": "Test-NetConnection 192.168.10.1 -Port 53 | Select-Object ComputerName, TcpTestSucceeded",
+    "out": "ComputerName     TcpTestSucceeded\n------------     ----------------\n192.168.10.1                 True"
+   },
+   {
+    "cmd": "nslookup intranet.lab.local 192.168.10.1",
+    "out": "Server:  pfSense.lab.local\nAddress:  192.168.10.1\n*** pfSense.lab.local can't find intranet.lab.local: Non-existent domain"
+   },
+   {
+    "cmd": "# pfSense DNS forwarder is not forwarding lab.local to the DC \u2014 fix: add domain override for lab.local -> 192.168.20.10",
+    "out": ""
+   },
+   {
+    "cmd": "Write-Host 'Fix: pfSense Services > DNS Resolver > Domain Overrides: lab.local -> 192.168.20.10; then re-test'",
+    "out": "Fix: pfSense Services > DNS Resolver > Domain Overrides: lab.local -> 192.168.20.10; then re-test"
+   },
+   {
+    "cmd": "Resolve-DnsName intranet.lab.local",
+    "out": "Name                         Type   TTL   Section    IPAddress\n----                         ----   ---   -------    ---------\nintranet.lab.local             A      3600  Answer     192.168.20.25"
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-04",
+  "title": "Disk cleanup and management",
+  "moduleId": "IL27-M02",
+  "brief": "LAB-DC01's C: drive is at 91%. Find what's eating the space, clean safely, and extend the volume \u2014 without rebooting the DC.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "Get-PSDrive C | Select-Object Used, Free, @{n='PctFree';e={[math]::Round($_.Free/($_.Used+$_.Free)*100,1)}}",
+    "out": "Used           Free PctFree\n----           ---- -------\n91268034560  8934320128     8.9"
+   },
+   {
+    "cmd": "Get-ChildItem C:\\ -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum; [pscustomobject]@{Dir=$_.Name; GB=[math]::Round($s/1GB,1)} } | Sort-Object GB -Descending | Select-Object -First 5",
+    "out": "Dir            GB\n---            --\nWindows       38.2\ninetpub       12.6\nUsers          8.4\nProgram Files  6.1"
+   },
+   {
+    "cmd": "Get-ChildItem C:\\inetpub\\logs -Recurse -File | Measure-Object Length -Sum | Select-Object @{n='GB';e={[math]::Round($_.Sum/1GB,2)}}, Count",
+    "out": "GB    Count\n--    -----\n12.58    3412"
+   },
+   {
+    "cmd": "# IIS logs: safe to trim. Keep 30 days, delete the rest.",
+    "out": ""
+   },
+   {
+    "cmd": "Get-ChildItem C:\\inetpub\\logs -Recurse -File | Where-Object LastWriteTime -lt (Get-Date).AddDays(-30) | Remove-Item -Force -WhatIf | Measure-Object | Select-Object Count",
+    "out": "Count : 2988"
+   },
+   {
+    "cmd": "Get-ChildItem C:\\inetpub\\logs -Recurse -File | Where-Object LastWriteTime -lt (Get-Date).AddDays(-30) | Remove-Item -Force",
+    "out": ""
+   },
+   {
+    "cmd": "cleanmgr /sageset:1  # (opens UI once to define the set; then...) ",
+    "out": ""
+   },
+   {
+    "cmd": "cleanmgr /sagerun:1",
+    "out": ""
+   },
+   {
+    "cmd": "vssadmin list shadows | Select-String 'Shadow Copy Volume' | Measure-Object | Select-Object Count",
+    "out": "Count : 14"
+   },
+   {
+    "cmd": "vssadmin resize shadowstorage /for=C: /on=C: /maxsize=10GB",
+    "out": "Successfully resized the shadow copy storage association"
+   },
+   {
+    "cmd": "Get-PSDrive C | Select-Object @{n='PctFree';e={[math]::Round($_.Free/($_.Used+$_.Free)*100,1)}}",
+    "out": "PctFree\n-------\n   21.4"
+   },
+   {
+    "cmd": "# 8.9% -> 21.4% with zero downtime. Long-term fix: extend the VHD + volume, and cap IIS log retention.",
+    "out": ""
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-05",
+  "title": "Service recovery: Print Spooler crash loop",
+  "moduleId": "IL27-M02",
+  "brief": "The file server's Print Spooler keeps crashing every few minutes, and the helpdesk queue is filling. Diagnose, stabilize, and set recovery so it heals itself next time.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "Get-Service Spooler | Select-Object Name, Status, StartType",
+    "out": "Name    Status  StartType\n----    ------  ---------\nSpooler  Stopped Automatic"
+   },
+   {
+    "cmd": "Start-Service Spooler; Start-Sleep 5; Get-Service Spooler | Select-Object Status",
+    "out": "Status\n------\nRunning"
+   },
+   {
+    "cmd": "Get-WinEvent -FilterHashtable @{LogName='System'; Id=7034; StartTime=(Get-Date).AddHours(-2)} | Select-Object -First 3 TimeCreated, Message",
+    "out": "TimeCreated          Message\n-----------          -------\n10/7/2026 1:42:03 PM The Print Spooler service terminated unexpectedly...\n10/7/2026 1:36:51 PM The Print Spooler service terminated unexpectedly..."
+   },
+   {
+    "cmd": "Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='PrintService'; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 5 | Select-Object TimeCreated, Id, Message",
+    "out": "TimeCreated          Id Message\n-----------          -- -------\n10/7/2026 1:42:01 PM 372  The print spooler failed to load plug-in module C:\\Windows\\System32\\spool\\drivers\\x64\\3\\BADPRINT.dll"
+   },
+   {
+    "cmd": "# culprit: a bad third-party print driver module. Stop spooler, clear the driver store entry, restart.",
+    "out": ""
+   },
+   {
+    "cmd": "Stop-Service Spooler -Force",
+    "out": ""
+   },
+   {
+    "cmd": "Remove-Item 'C:\\Windows\\System32\\spool\\drivers\\x64\\3\\BADPRINT.dll' -Force",
+    "out": ""
+   },
+   {
+    "cmd": "Remove-PrinterDriver -Name 'Acme BadPrint 3000' -ErrorAction SilentlyContinue",
+    "out": ""
+   },
+   {
+    "cmd": "Start-Service Spooler; Get-Service Spooler | Select-Object Status",
+    "out": "Status\n------\nRunning"
+   },
+   {
+    "cmd": "sc.exe failure Spooler reset= 86400 actions= restart/60000/restart/60000/reboot/60000",
+    "out": "[SC] ChangeServiceConfig2 SUCCESS"
+   },
+   {
+    "cmd": "# recovery policy set: restart twice, then reboot the box. Verify in services.msc > Spooler > Recovery tab.",
+    "out": ""
+   },
+   {
+    "cmd": "Get-WinEvent -FilterHashtable @{LogName='System'; Id=7036; StartTime=(Get-Date).AddMinutes(-10)} | Where-Object Message -like '*Spooler*running*' | Select-Object -First 1 TimeCreated",
+    "out": "TimeCreated\n-----------\n10/7/2026 1:55:12 PM"
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-06",
+  "title": "Network diagnosis flow: ipconfig to root cause",
+  "moduleId": "IL27-M05",
+  "brief": "A workstation reports 'no internet.' Walk the full diagnosis flow: link, IP, gateway, DNS, beyond \u2014 and find which layer is broken.",
+  "prompt": "PS C:\\>",
+  "commands": [
+   {
+    "cmd": "ipconfig /all | Select-String 'IPv4|DHCP Enabled|Default Gateway|DNS Servers' | Select-Object -First 6",
+    "out": "DHCP Enabled. . . . . . . . . . . : Yes\n   IPv4 Address. . . . . . . . . . . : 169.254.87.12(Preferred)\n   Default Gateway . . . . . . . . . :"
+   },
+   {
+    "cmd": "# 169.254.x.x = APIPA. The client got NO DHCP address. Layer check: is it even on the right switch?",
+    "out": ""
+   },
+   {
+    "cmd": "Test-Connection 192.168.10.1 -Count 2 -Quiet",
+    "out": "False"
+   },
+   {
+    "cmd": "Get-NetAdapter | Select-Object Name, Status, LinkSpeed",
+    "out": "Name   Status LinkSpeed\n----   ------ ---------\nEthernet Up     10 Gbps"
+   },
+   {
+    "cmd": "# link is UP but no DHCP and no gateway ping -> DHCP server unreachable or scope exhausted; check from the DC side",
+    "out": ""
+   },
+   {
+    "cmd": "Get-DhcpServerv4Scope -ComputerName lab-dc01.lab.local | Select-Object ScopeId, State",
+    "out": "ScopeId       State\n-------       -----\n192.168.10.0  Active"
+   },
+   {
+    "cmd": "Get-DhcpServerv4ScopeStatistics -ComputerName lab-dc01.lab.local -ScopeId 192.168.10.0 | Select-Object Free, InUse, PercentageInUse",
+    "out": "Free InUse PercentageInUse\n---- ----- --------------\n   0   101            100"
+   },
+   {
+    "cmd": "# scope EXHAUSTED: 101 leases, 0 free. Someone is squatting \u2014 check for the rogue.",
+    "out": ""
+   },
+   {
+    "cmd": "Get-DhcpServerv4Lease -ComputerName lab-dc01.lab.local -ScopeId 192.168.10.0 | Group-Object HostName | Sort-Object Count -Descending | Select-Object -First 3 Name, Count",
+    "out": "Name              Count\n----              -----\nlab-test-old           38\nLAB-W11-01            1"
+   },
+   {
+    "cmd": "# lab-test-old holds 38 leases (stale reservations). Reclaim: shorten lease to 8h, delete stale leases, expand scope to .50-.250.",
+    "out": ""
+   },
+   {
+    "cmd": "Set-DhcpServerv4Scope -ComputerName lab-dc01.lab.local -ScopeId 192.168.10.0 -LeaseDuration (New-TimeSpan -Hours 8)",
+    "out": ""
+   },
+   {
+    "cmd": "ipconfig /release; ipconfig /renew",
+    "out": ""
+   },
+   {
+    "cmd": "ipconfig | Select-String 'IPv4'",
+    "out": "IPv4 Address. . . . . . . . . . . : 192.168.10.150(Preferred)"
+   },
+   {
+    "cmd": "Test-Connection 8.8.8.8 -Count 2 -Quiet",
+    "out": "True"
+   }
+  ]
+ },
+ {
+  "id": "IL27-TERM-07",
+  "title": "Linux service triage: systemctl + journalctl",
+  "moduleId": "IL27-M08",
+  "brief": "lab-linux01's status page (IL27-TL-08) stopped responding on port 8080. Triage from the shell: is the container up, is Docker up, what do the logs say?",
+  "prompt": "ops@lab-linux01:~$",
+  "commands": [
+   {
+    "cmd": "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080; echo",
+    "out": "000"
+   },
+   {
+    "cmd": "systemctl is-active docker",
+    "out": "active"
+   },
+   {
+    "cmd": "docker ps --format '{{.Names}} {{.Status}}'",
+    "out": "status         Up 3 days"
+   },
+   {
+    "cmd": "# container is UP but curl gets 000 = connection refused. Check what the container is actually listening on.",
+    "out": ""
+   },
+   {
+    "cmd": "docker port status",
+    "out": "80/tcp -> 0.0.0.0:8080"
+   },
+   {
+    "cmd": "ss -tlnp | grep 8080",
+    "out": "LISTEN 0 4096 *:8080 *:* users:(\"docker-proxy\",pid=812,fd=4)"
+   },
+   {
+    "cmd": "# port IS listening. So the proxy accepts but the app drops it \u2014 check container logs.",
+    "out": ""
+   },
+   {
+    "cmd": "docker logs --tail 20 status",
+    "out": "2026/10/07 14:02:11 [emerg] 1#1: open() \"/etc/nginx/conf.d/custom.conf\" failed (2: No such file or directory)\nnginx: [emerg] ... test failed"
+   },
+   {
+    "cmd": "# nginx died at 14:02 after a config change; docker shows Up because the proxy holds the port. Inspect the bad volume mount.",
+    "out": ""
+   },
+   {
+    "cmd": "docker inspect status --format '{{json .Mounts}}' | python3 -m json.tool | grep -A2 Source",
+    "out": "\"Source\": \"/home/ops/status-page/conf.d\",\n            \"Destination\": \"/etc/nginx/conf.d\""
+   },
+   {
+    "cmd": "ls /home/ops/status-page/conf.d/",
+    "out": "ls: cannot access '/home/ops/status-page/conf.d/': No such file or directory"
+   },
+   {
+    "cmd": "# someone deleted the conf.d dir. Recreate it and restart.",
+    "out": ""
+   },
+   {
+    "cmd": "mkdir -p /home/ops/status-page/conf.d && docker restart status",
+    "out": "status"
+   },
+   {
+    "cmd": "sleep 3; curl -s -o /dev/null -w '%{http_code}' http://localhost:8080; echo",
+    "out": "200"
+   },
+   {
+    "cmd": "journalctl -u docker --since '15 minutes ago' --no-pager | tail -5",
+    "out": "Oct 07 14:20:11 lab-linux01 dockerd[701]: ... container status restarted"
+   },
+   {
+    "cmd": "echo 'Root cause: deleted nginx conf.d volume; container proxy masked the failure. Fix: recreate dir + restart; add Zabbix check on HTTP 200.'",
+    "out": "Root cause: deleted nginx conf.d volume; container proxy masked the failure. Fix: recreate dir + restart; add Zabbix check on HTTP 200."
+   }
+  ]
+ }
+]

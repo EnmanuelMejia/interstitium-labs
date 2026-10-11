@@ -17,13 +17,23 @@
 
   var STORAGE = 'il.muse.v1';
 
-  /** Avatar themes — SVG marks in /assets/. Dee is default. */
+  /** Avatar themes — Noah (his likeness) is the default; Genesis (his twin
+      sister's likeness) is the second tutor. Same capabilities either way. */
   var AVATARS = [
+    { id: 'noah', label: 'Noah', src: '/assets/noah/noah-avatar-3d.webp', hint: 'Noah — the face of Noah AI' },
+    { id: 'genesis', label: 'Genesis', src: '/assets/noah/genesis-avatar-3d.webp', hint: "Genesis — Noah's twin · the face of Genesis AI" },
     { id: 'dee', label: 'Dee', src: '/assets/il-muse-avatar-dee.svg', hint: 'Monas / hermetic scholar' },
     { id: 'sigil', label: 'Sigil', src: '/assets/il-muse-avatar-sigil.svg', hint: 'Interstitium orbital' },
     { id: 'cap', label: 'Cap', src: '/assets/il-muse-avatar-cap.svg', hint: 'Scholar hood silhouette' }
   ];
-  var AVATAR_DEFAULT = 'dee';
+  var AVATAR_DEFAULT = 'noah';
+
+  /** The twin tutors. Identical capabilities — presence preference only.
+      Accent follows the tutor's tones (Noah: cyan/blue, Genesis: warm gold). */
+  var TUTORS = {
+    noah:    { id: 'noah',    label: 'Noah',    accent: 'cyan', src: '/assets/noah/noah-avatar-3d.webp',       hint: 'Noah — the face of Noah AI' },
+    genesis: { id: 'genesis', label: 'Genesis', accent: 'gold', src: '/assets/noah/genesis-avatar-3d.webp',    hint: "Genesis — Noah's twin · the face of Genesis AI" }
+  };
   var PERSONALITY_DEE = 'Dee · precise · Socratic · hermetic scholar';
   var PERSONALITY_LEGACY = 'Socratic · precise · patient';
 
@@ -1194,7 +1204,7 @@
       if (!ep && creds[active.backendId]) ep = creds[active.backendId].baseUrl || '';
 
       var suggest = (demand && demand.suggestedTier)
-        ? '<p class="hint" style="color:#d4a853">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
+        ? '<p class="hint" style="color:#c9a227">' + esc(demand.suggestReason || ('Consider ' + demand.suggestedTier)) + '</p>'
         : '';
 
       var rank = ((demand && demand.ranking) || []).map(function (r) {
@@ -1237,20 +1247,42 @@
       try {
         if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) return g.ILNoahAvatar.getProfile();
       } catch (e) {}
-      return { avatar: 'monas', name: 'Noah', accent: 'cyan', intensity: 'balanced' };
+      return { avatar: 'noah', name: 'Noah', accent: 'cyan', intensity: 'balanced' };
+    }
+
+    /* Choose your tutor: Noah / Genesis — the twins. Same mind, same
+       capabilities, same knowledge; only the presence (and tone accent)
+       changes. Persisted to il-noah-profile via noahPatch. */
+    function tutorPickerHTML(P) {
+      var cur = TUTORS[P.avatar] ? P.avatar : 'noah';
+      var cards = Object.keys(TUTORS).map(function (id) {
+        var t = TUTORS[id];
+        var on = cur === id;
+        return '<button type="button" class="il-noah-tutor-card' + (on ? ' is-on' : '') + '"' +
+          ' data-noah-tutor-pick="' + esc(id) + '" data-noah-tutor="' + esc(id) + '"' +
+          ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '" title="' + esc(t.hint) + '">' +
+          '<img src="' + esc(t.src) + '" width="48" height="48" alt="" decoding="async"/>' +
+          '<span><span class="il-noah-tutor-card__name">' + esc(t.label) + '</span>' +
+          '<span class="il-noah-tutor-card__hint">' + esc(t.hint) + '</span></span></button>';
+      }).join('');
+      return '<div class="il-muse-field"><label>Choose your tutor</label>' +
+        '<div class="il-noah-tutor-picker" role="radiogroup" aria-label="Choose your tutor">' + cards + '</div>' +
+        '<p class="hint">Noah and Genesis are twins — identical capabilities, knowledge, and voice. Pick the presence you learn best with; switch any time.</p></div>';
     }
 
     /* 3D avatar gallery + accent + motion personalization (il-noah-profile). */
     function noahAvatarPanel() {
       var P = noahProfile();
       var list = (g.ILNoahAvatar && g.ILNoahAvatar.AVATARS) || [
+        { id: 'noah', label: 'Noah', hint: 'Noah — the face of Noah AI' },
+        { id: 'genesis', label: 'Genesis', hint: "Genesis — Noah's twin · the face of Genesis AI" },
         { id: 'monas', label: 'Monas', hint: 'Crystalline Monas · orrery rings' },
         { id: 'orrery', label: 'Orrery', hint: 'Ringed worlds · orbital mechanics' },
         { id: 'sigil', label: 'Sigil Core', hint: 'Radiant sigil · counter-rotating glyph rings' },
         { id: 'wisp', label: 'Wisp', hint: 'Nebula ghost · drifting star-wisp' }
       ];
       var accents = (g.ILNoahAvatar && g.ILNoahAvatar.ACCENTS) || {
-        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#D4A853' },
+        cyan: { label: 'Cyan', css: '#5EEAD4' }, gold: { label: 'Gold', css: '#c9a227' },
         violet: { label: 'Violet', css: '#A78BFA' }, emerald: { label: 'Emerald', css: '#34D399' }
       };
       var inten = (g.ILNoahAvatar && g.ILNoahAvatar.INTENSITY) || {
@@ -1277,9 +1309,44 @@
         return '<button type="button" class="' + (on ? 'is-on' : '') + '" data-noah-intensity-pick="' + esc(key) + '"' +
           ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '">' + esc(inten[key].label) + '</button>';
       }).join('');
-      return '<div class="il-muse-field"><label>3D avatar</label>' +
+      var photoUI = '';
+      if (P.avatar === 'noah' || P.avatar === 'genesis') {
+        var pstyles = (g.ILNoahAvatar && g.ILNoahAvatar.PHOTO_STYLES) || {
+          'default': { label: 'Default' }, headphones: { label: 'Headphones' }, custom: { label: 'Custom' }
+        };
+        var pbgs = (g.ILNoahAvatar && g.ILNoahAvatar.PHOTO_BGS) || {
+          'void': { label: 'Void' }, aura: { label: 'Aura' }, halo: { label: 'Halo' }, none: { label: 'None' }
+        };
+        var pstyle = P.photoStyle || 'default';
+        var pbg = P.photoBg || 'void';
+        var styleBtns = Object.keys(pstyles).map(function (key) {
+          var on = pstyle === key;
+          return '<button type="button" class="' + (on ? 'is-on' : '') + '" data-noah-photostyle-pick="' + esc(key) + '"' +
+            ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '">' + esc(pstyles[key].label) + '</button>';
+        }).join('');
+        var bgBtns = Object.keys(pbgs).map(function (key) {
+          var on = pbg === key;
+          return '<button type="button" class="' + (on ? 'is-on' : '') + '" data-noah-photobg-pick="' + esc(key) + '"' +
+            ' role="radio" aria-checked="' + (on ? 'true' : 'false') + '">' + esc(pbgs[key].label) + '</button>';
+        }).join('');
+        var thumb = (P.customAvatar)
+          ? '<img class="il-noah-photo-thumb" src="' + P.customAvatar + '" alt="" aria-hidden="true"/>'
+          : '';
+        photoUI =
+          '<div class="il-muse-field"><label>Photo style</label>' +
+          '<div class="il-noah-photo-style" role="radiogroup" aria-label="Photo style">' + styleBtns + '</div>' +
+          '<div class="il-noah-photo-upload">' + thumb +
+          '<input type="file" id="noahPhotoFile" accept="image/*" data-noah-photo-upload/>' +
+          '<label for="noahPhotoFile">Upload your own photo</label></div>' +
+          '<p class="hint">Custom photos stay on your device (localStorage, resized to 256px) — never uploaded anywhere.</p></div>' +
+          '<div class="il-muse-field"><label>Photo background</label>' +
+          '<div class="il-noah-photo-bg" role="radiogroup" aria-label="Photo background">' + bgBtns + '</div></div>';
+      }
+      return tutorPickerHTML(P) +
+        '<div class="il-muse-field"><label>3D avatar</label>' +
         '<div class="il-noah-3d-gallery" role="radiogroup" aria-label="3D avatar">' + cards + '</div>' +
         '<p class="hint">Live 3D stage · renders on-device in your browser, no cloud. Switches instantly and reacts to Idle / Listening / Thinking / Speaking.</p></div>' +
+        photoUI +
         '<div class="il-muse-field"><label>Accent</label>' +
         '<div class="il-noah-accents" role="radiogroup" aria-label="Accent color">' + sw + '</div></div>' +
         '<div class="il-muse-field"><label>Motion</label>' +
@@ -1305,7 +1372,7 @@
             '<img src="' + esc(a.src) + '" width="40" height="40" alt="" decoding="async"/>' +
             '<span>' + esc(a.label) + '</span></button>';
         }).join('') + '</div>' +
-        '<p class="hint">Default: Dee (Monas-derived). Alts: Interstitium sigil / scholar cap. Original artwork.</p></div>' +
+        '<p class="hint">Default: Noah — the face of Noah AI. Genesis — his twin sister — is the face of Genesis AI. Alts: Dee (Monas-derived), Interstitium sigil, scholar cap. Original artwork.</p></div>' +
         noahAvatarPanel() +
         '<div class="il-muse-field"><label>Personality</label><input data-muse-personality value="' + esc(state.personality) + '"/></div>' +
         '<div class="il-muse-field"><label>Tone</label><select data-muse-tone">' +
@@ -1657,6 +1724,24 @@
           noahPatch({ avatar: id }, '3D avatar · ' + id);
         });
       });
+      /* Choose your tutor (Noah / Genesis): switches the profile avatar +
+         tone accent, and syncs the widget's own avatar + display name when
+         they still carry a tutor default (never overrides a custom name). */
+      app.querySelectorAll('[data-noah-tutor-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-noah-tutor-pick');
+          var t = TUTORS[id];
+          if (!t) return;
+          var patch = { avatar: id, accent: t.accent };
+          var profName = '';
+          try { profName = (g.ILNoahAvatar && g.ILNoahAvatar.getProfile().name) || ''; } catch (eP) {}
+          if (profName === 'Noah' || profName === 'Genesis' || !profName) patch.name = t.label;
+          if (state.name === 'Noah' || state.name === 'Genesis') state.name = t.label;
+          state.avatarId = id;
+          persist();
+          noahPatch(patch, 'Tutor · ' + t.label);
+        });
+      });
       app.querySelectorAll('[data-noah-accent-pick]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var key = btn.getAttribute('data-noah-accent-pick');
@@ -1672,6 +1757,45 @@
           if (!known) return;
           noahPatch({ intensity: key }, 'Motion · ' + known.label);
         });
+      });
+      /* Noah photo personalization: style / background / custom upload — all local. */
+      app.querySelectorAll('[data-noah-photostyle-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-noah-photostyle-pick');
+          var known = g.ILNoahAvatar && g.ILNoahAvatar.PHOTO_STYLES && g.ILNoahAvatar.PHOTO_STYLES[key];
+          if (!known) return;
+          noahPatch({ photoStyle: key }, 'Noah photo style · ' + known.label);
+        });
+      });
+      app.querySelectorAll('[data-noah-photobg-pick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-noah-photobg-pick');
+          var known = g.ILNoahAvatar && g.ILNoahAvatar.PHOTO_BGS && g.ILNoahAvatar.PHOTO_BGS[key];
+          if (!known) return;
+          noahPatch({ photoBg: key }, 'Noah photo background · ' + known.label);
+        });
+      });
+      var photoFile = app.querySelector('[data-noah-photo-upload]');
+      if (photoFile) photoFile.addEventListener('change', function () {
+        var f = photoFile.files && photoFile.files[0];
+        if (!f || !/^image\//.test(f.type || '')) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var image = new Image();
+          image.onload = function () {
+            try {
+              var S = 256, c = document.createElement('canvas');
+              var scale = Math.min(1, S / Math.max(image.width || 1, image.height || 1));
+              c.width = Math.max(1, Math.round(image.width * scale));
+              c.height = Math.max(1, Math.round(image.height * scale));
+              c.getContext('2d').drawImage(image, 0, 0, c.width, c.height);
+              var url = c.toDataURL('image/jpeg', 0.82);
+              noahPatch({ photoStyle: 'custom', customAvatar: url }, 'Noah photo · custom upload');
+            } catch (e) {}
+          };
+          image.src = reader.result;
+        };
+        try { reader.readAsDataURL(f); } catch (e2) {}
       });
       var memAdd = app.querySelector('[data-muse-mem-add]');
       if (memAdd) memAdd.addEventListener('click', function () {

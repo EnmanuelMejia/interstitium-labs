@@ -1,0 +1,116 @@
+{
+ "course": "il-06-cybersecurity-secure-engineering",
+ "stories": [
+  {
+   "bridge": "Every HTTPS handshake, every signed update, every encrypted message you will touch in this course is their 'impossible' idea, working. Now let's learn the number theory that makes it real.",
+   "course": "il-06-cybersecurity-secure-engineering",
+   "figures": [
+    {
+     "dates": "b. 1944",
+     "name": "Whitfield Diffie",
+     "role": "Co-author of 'New Directions in Cryptography'"
+    },
+    {
+     "dates": "b. 1945",
+     "name": "Martin Hellman",
+     "role": "Co-author of 'New Directions in Cryptography'"
+    },
+    {
+     "dates": "b. 1952",
+     "name": "Ralph Merkle",
+     "role": "Invented public-key distribution as a Berkeley graduate student project"
+    },
+    {
+     "dates": "1924–1997",
+     "name": "James Ellis",
+     "role": "GCHQ mathematician; conceived non-secret encryption in 1969"
+    },
+    {
+     "dates": "b. 1950",
+     "name": "Clifford Cocks",
+     "role": "GCHQ; invented the RSA-equivalent algorithm in 1973"
+    }
+   ],
+   "hook": "In November 1976, two outsiders with no institutional backing published a paper claiming the impossible: secret communication without a shared secret.",
+   "id": "il-06-cybersecurity-secure-engineering-story-1",
+   "moduleId": "il-06-cybersecurity-secure-engineering-math-numtheory",
+   "narrative": "Whitfield Diffie was a programmer with an obsession — he had been thinking about the key-distribution problem for years, convinced there had to be a way for strangers to communicate securely. Martin Hellman was a Stanford electrical engineering professor willing to gamble his reputation on an outsider's intuition. Working largely outside the classified world, they asked whether two people could agree on a secret key over a channel the enemy could hear — and answered yes. Their paper, 'New Directions in Cryptography,' published in the IEEE Transactions on Information Theory in November 1976, introduced the Diffie-Hellman key exchange and, more importantly, the concept of public-key cryptography itself: a public half that encrypts, a private half that decrypts, with the two linked by a mathematical one-way function — easy to compute forward, practically impossible to reverse. The third founder was nearly lost to history: Ralph Merkle, a Berkeley graduate student whose 1974 course project on 'secure communication over insecure channels' was rejected by his professor and ignored by journals before finally being published in 1978. Then came the twist worthy of a spy novel. In 1997, Britain's GCHQ declassified a secret: its mathematician James Ellis had conceived the same idea — he called it 'non-secret encryption' — in 1969; Clifford Cocks had invented the equivalent of the RSA algorithm in 1973; Malcolm Williamson had invented the equivalent of Diffie-Hellman in 1974. All of it classified, all of it unused, all of it discovered too late to matter. A year after Diffie and Hellman, three MIT researchers — Ron Rivest, Adi Shamir, and Leonard Adleman — published the practical implementation: RSA, circulated as an MIT memo in 1977 and published in 1978, built on the beautiful fact that multiplying two large primes is easy and factoring the product is hard. The lesson for a security engineer cuts two ways: the math doesn't care who discovers it first — it only matters who builds with it — and the open world, by publishing, built the internet's trust on it. Every TLS handshake you'll study is 1976, running.",
+   "title": "The story behind public-key cryptography",
+   "verifiedClaims": [
+    "Diffie and Hellman's 'New Directions in Cryptography' was published November 1976",
+    "Merkle's public-key distribution work began as a 1974 Berkeley project, published 1978",
+    "GCHQ's Ellis (1969), Cocks (1973), and Williamson (1974) work was declassified in 1997",
+    "RSA was published by Rivest, Shamir, and Adleman in 1977–1978"
+   ]
+  },
+  {
+   "bridge": "Perfect secrecy exists — and its price explains why we use the imperfect kind everywhere else. Now let's learn the modular arithmetic behind the ciphers we actually deploy.",
+   "course": "il-06-cybersecurity-secure-engineering",
+   "figures": [
+    {
+     "dates": "1890–1960",
+     "name": "Gilbert Vernam",
+     "role": "AT&T engineer; inventor of the unbreakable stream cipher"
+    },
+    {
+     "dates": "1916–2001",
+     "name": "Claude Shannon",
+     "role": "Proved the one-time pad's perfect secrecy in 1949"
+    }
+   ],
+   "hook": "In 1917, an AT&T engineer patented a cipher that mathematics would prove perfect — thirty-two years later.",
+   "id": "il-06-cybersecurity-secure-engineering-story-2",
+   "moduleId": "il-06-cybersecurity-secure-engineering-math-numtheory",
+   "narrative": "Gilbert Vernam worked on securing teletype communications during the First World War, when wire traffic was the nervous system of armies. His system combined the plaintext with a key tape, character by character, using what we'd now call XOR; his colleague Joseph Mauborgne added the crucial refinement — the key had to be truly random, as long as the message itself, and never reused. Used correctly, the resulting 'one-time pad' cannot be broken, not by cleverness and not by computers: every possible plaintext is equally likely given the ciphertext, so the encrypted message contains literally zero information about the original. But 'used correctly' did enormous work in that sentence, and for three decades the claim was engineering folklore — plausible, unproven, and terrifyingly fragile in practice, since any reuse or pattern in the key destroys the guarantee. Then Claude Shannon — the same Shannon of the bit — published 'Communication Theory of Secrecy Systems' in 1949 and proved it: the one-time pad achieves perfect secrecy, mathematically, the only cipher ever proven to do so. The catch is the key: it must be as long as the message, perfectly random, and delivered securely to both parties — which is exactly as hard as the original problem of communicating secretly. So the pad saw narrow, serious use — the Moscow-Washington hotline reportedly used one-time pads for its most sensitive traffic — while the world adopted ciphers that trade perfection for practicality. The one-time pad remains the North Star of cryptography: the standard every cipher is measured against, and the permanent reminder that in security, the key-management problem is always the real problem. When this module teaches you key exchange, remember: we're all just trying to approximate 1917 without paying its price. The Soviet Union learned the price the hard way: reused one-time-pad keys in the 1940s let American cryptanalysts break into KGB traffic in the Venona project — proof that the pad's perfection evaporates the instant the discipline slips. Perfect secrecy is a property of the procedure, not the paper. That's why this module teaches key management as the main event, not the footnote.",
+   "title": "The story behind the unbreakable cipher",
+   "verifiedClaims": [
+    "Vernam developed his cipher at AT&T in 1917; Mauborgne contributed the random-key requirement",
+    "Shannon proved perfect secrecy for the one-time pad in his 1949 paper",
+    "The pad requires a random key as long as the message, never reused"
+   ]
+  },
+  {
+   "bridge": "Assume the enemy knows your system — then build one that survives anyway. That is the mindset behind everything in this spine. Let's begin.",
+   "course": "il-06-cybersecurity-secure-engineering",
+   "figures": [
+    {
+     "dates": "1835–1903",
+     "name": "Auguste Kerckhoffs",
+     "role": "Dutch linguist; author of 'La Cryptographie Militaire' (1883)"
+    }
+   ],
+   "hook": "In January 1883, a Dutch linguist wrote the sentence that still governs cybersecurity: a system must remain secure even if everything about it, except the key, is public.",
+   "id": "il-06-cybersecurity-secure-engineering-story-3",
+   "moduleId": "il06-hackers-arise",
+   "narrative": "Auguste Kerckhoffs taught modern languages at a commercial school — not the biography you'd expect for a founding father of cryptography. But in 1883 he published 'La Cryptographie Militaire' in the Journal des Sciences Militaires, and in it he laid down six principles for military ciphers. The second is immortal: the system must not require secrecy; it must remain secure even if the enemy knows everything about how it works. Only the key may be secret. At the time it was aimed at a practical problem — armies couldn't keep their cipher methods secret once widely deployed among troops — but the principle outgrew its century completely. Claude Shannon restated it in 1949 as his maxim: 'the enemy knows the system.' Every open cryptographic standard since — DES, AES, RSA, the SHA family — has been designed in the open, published, attacked by the world's best minds, and trusted precisely because it survived the attack. The opposite approach, security through obscurity, has failed so reliably that its failures have their own folklore, from proprietary wireless ciphers to secret ballot-machine software. Kerckhoffs's principle is also the philosophical license for open-source security: you may read the code, audit the algorithm, know the protocol — and still not break it, because the security lives in the key, not in the hiding. When you evaluate a security product in this course and the vendor says 'our algorithm is proprietary, trust us,' you now know the 1883 answer. And when you design systems yourself, you'll feel the principle as a discipline: every secret your design depends on is a liability; every mechanism that survives publicity is an asset. Kerckhoffs wrote for an audience of artillery officers, and his six principles included practical ones — the system should be easy to use, the key should be memorable and changeable. The second principle survived because it aligned incentives: a public algorithm gets attacked by everyone, including its friends, and what survives is trustworthy. Security through obscurity, by contrast, gets attacked only by its enemies — and you hear about it last.",
+   "title": "The story behind Kerckhoffs's principle",
+   "verifiedClaims": [
+    "Kerckhoffs published 'La Cryptographie Militaire' in 1883",
+    "Its second principle requires that only the key be secret, not the system",
+    "Shannon restated it as 'the enemy knows the system' in 1949"
+   ]
+  },
+  {
+   "bridge": "The worm taught the industry that response is a discipline, not an improvisation. Now let's learn defensive operations the way that November forced everyone to learn them — for real.",
+   "course": "il-06-cybersecurity-secure-engineering",
+   "figures": [
+    {
+     "dates": "b. 1965",
+     "name": "Robert Tappan Morris Jr.",
+     "role": "Cornell graduate student; author of the Morris worm"
+    }
+   ],
+   "hook": "On the evening of November 2, 1988, machines across the young internet began to slow — then stop.",
+   "id": "il-06-cybersecurity-secure-engineering-story-4",
+   "moduleId": "il06-defensive",
+   "narrative": "Robert Tappan Morris Jr. was a first-year graduate student at Cornell — and, as the son of a NSA cryptographer, someone who had grown up around computers. He later said he wanted to measure the size of the internet; what he released from MIT that evening was a self-replicating program that exploited known flaws in fingerd and sendmail to copy itself from machine to machine. A coding error made it far more aggressive than intended: instead of politely checking whether a machine was already infected, it reinfected relentlessly, and thousands of systems collapsed under the load. Within a day, an estimated six thousand machines — roughly a tenth of the entire internet, which then numbered only about sixty thousand hosts — were affected or unusable. There was no playbook. Administrators who had never spoken to each other coordinated by phone through the night, dissecting the worm's code, writing defenses, sharing fixes across the country. It was incident response before the term existed, improvised under fire. Out of that chaos came the institution: within weeks, DARPA funded the Computer Emergency Response Team Coordination Center at Carnegie Mellon — CERT/CC, the first of its kind, the ancestor of every SOC, every CSIRT, every incident-response retainer in the industry. Morris was identified, tried, and in 1991 became the first person convicted under the Computer Fraud and Abuse Act of 1986. He went on to become a respected computer scientist, a professor at MIT, and a successful entrepreneur. The worm's true legacy wasn't the damage — it was the realization that a connected world needs organized defenders. Incident response was born on November 2, 1988, at about 6 PM Eastern, when nobody knew what to do. This module is the great-grandchild of that night. The graduate student at the center of it became a case study in second acts: Morris went on to co-found Viaweb, become a partner at Y Combinator, and take a professorship at MIT. The internet forgave him; the lesson stuck. And the worm's code had one more legacy — its techniques were studied so thoroughly that they became the curriculum. You're studying them now.",
+   "title": "The story behind the first internet worm",
+   "verifiedClaims": [
+    "The Morris worm was released November 2, 1988, by Cornell graduate student Robert Morris Jr.",
+    "An estimated ~6,000 of ~60,000 internet hosts were affected",
+    "CERT/CC was founded at Carnegie Mellon shortly after, funded by DARPA",
+    "Morris was the first convicted under the CFAA (1991)"
+   ]
+  }
+ ]
+}

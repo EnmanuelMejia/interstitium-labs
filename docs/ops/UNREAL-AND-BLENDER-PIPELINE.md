@@ -49,7 +49,7 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 "immersive": {
   "mode": "3d-first",
   "engine": "three",
-  "asset": "/assets/immersive/k8s-cluster.glb"
+  "asset": "/assets/immersive/lecture-k8s-control-plane.glb"
 }
 ```
 
@@ -61,7 +61,7 @@ See `IMMERSIVE-3D-CURRICULUM.md`.
 |-------|----------------|
 | Hermetica / Monas lecture | `hermetic-monas.glb` |
 | Server rack / DC | `rack-19u.glb` |
-| Kubernetes cluster | `k8s-cluster.glb` |
+| Kubernetes cluster | `lecture-k8s-control-plane.glb` |
 
 **2026-10-01:** Blender **CLI polish** landed on priority + new pedagogical assets via `scripts/blender_polish_glb.py --all --promote` (Blender 4.2.3 LTS on authoring box). Provenance: kit glTF + CLI shade-smooth/weighted-normals/LOD1 — **still not** hand-sculpted artist sets. New competitive scenes: `cni-pod-network.glb`, `rbac-authz-graph.glb`, `service-mesh-sidecar.glb`.
 

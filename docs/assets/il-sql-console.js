@@ -19,7 +19,8 @@
     "(5,'Donald Knuth','donald@example.com','Austin','2026-02-19'),",
     "(6,'Barbara Liskov','barbara@example.com','Boston','2026-03-05'),",
     "(7,'Linus Torvalds','linus@example.com','Portland','2026-04-22'),",
-    "(8,'Margaret Hamilton','margaret@example.com','New York','2026-05-09');",
+    "(8,'Margaret Hamilton','margaret@example.com','New York','2026-05-09'),",
+    "(9,'Edsger Dijkstra','edsger@example.com','Austin','2026-06-18');",
     "INSERT INTO products VALUES",
     "(1,'Laptop Pro 16','Computers',1899.00),",
     "(2,'Mechanical Keyboard','Accessories',129.00),",
@@ -42,7 +43,16 @@
     "(12,4,2,1,'2026-06-30','completed'),",
     "(13,3,1,1,'2026-07-08','completed'),",
     "(14,6,4,1,'2026-07-19','completed'),",
-    "(15,5,3,1,'2026-08-03','completed');"
+    "(15,5,3,1,'2026-08-03','completed');",
+    "CREATE TABLE reviews (id INTEGER PRIMARY KEY, product_id INTEGER, customer_id INTEGER, rating INTEGER, review_date TEXT, title TEXT);",
+    "INSERT INTO reviews VALUES",
+    "(1,1,1,5,'2026-02-10','Excellent laptop'),",
+    "(2,2,1,4,'2026-03-01','Good keyboard'),",
+    "(3,5,2,5,'2026-03-15','Great value'),",
+    "(4,3,3,3,'2026-04-20','Decent monitor'),",
+    "(5,2,4,2,'2026-05-11','Keys feel cheap'),",
+    "(6,3,5,4,'2026-06-25','Sharp display'),",
+    "(7,6,6,4,'2026-07-30','Sharp image');"
   ].join("\n");
 
   /* ---------- guided exercises (original) ---------- */
@@ -106,6 +116,42 @@
       task: "For 2026 orders, show the order id, status, and a period label: 'recent' when order_date is on/after 2026-06-01, else 'earlier'.",
       hint: "CASE WHEN order_date >= '2026-06-01' THEN 'recent' ELSE 'earlier' END AS period.",
       solution: "SELECT id, status, CASE WHEN order_date >= '2026-06-01' THEN 'recent' ELSE 'earlier' END AS period FROM orders WHERE order_date >= '2026-01-01' AND order_date < '2027-01-01';"
+    },
+    {
+      id: "ex11", title: "11 · LEFT JOIN (anti-join)",
+      task: "List the names of customers who have never placed an order.",
+      hint: "LEFT JOIN orders to customers, keep rows where the order side is NULL.",
+      solution: "SELECT customers.name FROM customers LEFT JOIN orders ON orders.customer_id = customers.id WHERE orders.id IS NULL;"
+    },
+    {
+      id: "ex12", title: "12 · Three-table aggregate",
+      task: "For each customer city, show total revenue (qty × price across all their orders).",
+      hint: "JOIN orders → customers and orders → products, GROUP BY city, SUM(qty * price).",
+      solution: "SELECT customers.city, SUM(orders.qty * products.price) AS revenue FROM orders JOIN customers ON orders.customer_id = customers.id JOIN products ON orders.product_id = products.id GROUP BY customers.city;"
+    },
+    {
+      id: "ex13", title: "13 · UNION",
+      task: "List every name — customers and products — in a single column called name.",
+      hint: "UNION the two name lists; column types must match.",
+      solution: "SELECT name FROM customers UNION SELECT name FROM products;"
+    },
+    {
+      id: "ex14", title: "14 · Date truncation",
+      task: "For 2026, show each month (YYYY-MM) and how many orders were placed that month, oldest month first.",
+      hint: "strftime('%Y-%m', order_date) truncates to month; GROUP BY it.",
+      solution: "SELECT strftime('%Y-%m', order_date) AS month, COUNT(*) AS n FROM orders WHERE order_date >= '2026-01-01' AND order_date < '2027-01-01' GROUP BY month ORDER BY month;"
+    },
+    {
+      id: "ex15", title: "15 · Window: top-N per group",
+      task: "Show the 2 most expensive products in each category: name, category, price.",
+      hint: "ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC), then filter rn <= 2.",
+      solution: "SELECT name, category, price FROM (SELECT name, category, price, ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) AS rn FROM products) WHERE rn <= 2;"
+    },
+    {
+      id: "ex16", title: "16 · Multi-table EXISTS",
+      task: "List the distinct names of customers who reviewed a product they also ordered.",
+      hint: "JOIN reviews to orders on both customer_id and product_id, then to customers.",
+      solution: "SELECT DISTINCT customers.name FROM customers JOIN reviews ON reviews.customer_id = customers.id JOIN orders ON orders.customer_id = customers.id AND orders.product_id = reviews.product_id;"
     }
   ];
 
@@ -230,9 +276,9 @@
   function loadSample() {
     if (!engineReady) return;
     db = newSeededDb();
-    var t = db.exec("SELECT (SELECT COUNT(*) FROM customers) AS customers, (SELECT COUNT(*) FROM products) AS products, (SELECT COUNT(*) FROM orders) AS orders;");
+    var t = db.exec("SELECT (SELECT COUNT(*) FROM customers) AS customers, (SELECT COUNT(*) FROM products) AS products, (SELECT COUNT(*) FROM orders) AS orders, (SELECT COUNT(*) FROM reviews) AS reviews;");
     renderResults(t);
-    setStatus("Sample dataset loaded: customers, products, orders.", false);
+    setStatus("Sample dataset loaded: customers, products, orders, reviews.", false);
   }
 
   function resetDb() {

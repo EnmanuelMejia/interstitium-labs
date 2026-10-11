@@ -904,7 +904,7 @@
     DEFAULT_GLTF: '/assets/immersive/muse-dee-monas.glb',
     VERSION: '1.5.0',
     CYAN: '#5EEAD4',
-    GOLD: '#D4A853',
+    GOLD: '#c9a227',
     VOID: '#070B16',
     get kit() { return g.ILSceneKit || null; },
     get immersive() { return g.ILImmersive || null; }

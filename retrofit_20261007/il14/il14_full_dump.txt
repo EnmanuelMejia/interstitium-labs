@@ -1,0 +1,1477 @@
+======================================================================
+MODULE sre-interview-prep--sre-sli-slo | SLIs, SLOs, and Error Budgets | w=1
+======================================================================
+SUMMARY: In this module: Choosing SLIs: the four golden signals; SLO targets and measurement windows; Error budgets as release policy. The vocabulary every SRE interview runs on: what to measure, what target to promise, and what happens when the budget burns.
+
+OBJECTIVES:
+- Understand and apply: choosing SLIs: the four golden signals
+- Understand and apply: SLO targets and measurement windows
+- Understand and apply: error budgets as release policy
+- Understand and apply: burn-rate alerting
+- Understand and apply: budget-exhaustion consequences
+
+--- NOTE: What this covers ---
+- Choosing SLIs: the four golden signals
+- SLO targets and measurement windows
+- Error budgets as release policy
+- Burn-rate alerting
+- Budget-exhaustion consequences
+- Measuring SLIs with Prometheus
+
+--- NOTE: How Interstitium Labs teaches this ---
+The vocabulary every SRE interview runs on: what to measure, what target to promise, and what happens when the budget burns.
+
+--- NOTE: Sources ---
+- **Google SRE Books** (https://sre.google/) — The SRE book and workbook: SLIs/SLOs, incidents, and reliability math, from the source.
+- **Prometheus Documentation** (https://prometheus.io/docs/) — Metrics, PromQL, and alerting references for the observability spine.
+
+--- CARDS ---
+What are the four golden signals? ||| Latency, traffic, errors, saturation — the minimum dashboard for any service. In an interview, reach for them first: ‘I’d check the four golden signals’ is the SRE equivalent of ‘let me reproduce it.’
+SLI vs SLO vs SLA? ||| SLI: the measured indicator (e.g. successful requests / total). SLO: the target on the SLI (99.9% over 30 days). SLA: the contract with consequences. The interview line: ‘SLIs are facts, SLOs are promises, SLAs are contracts.’
+How do error budgets govern releases? ||| Budget remaining → ship freely. Budget exhausted → freeze risky changes until reliability recovers. It replaces arguments about ‘are we reliable enough’ with arithmetic — the interview line: ‘the budget turns reliability into a joint product decision.’
+How do you explain burn-rate alerting? ||| Instead of alerting on raw error counts, alert on how fast the error budget is being consumed relative to the SLO window: fast-burn (page now) vs slow-burn (ticket). Multiwindow alerts catch both without paging on blips.
+How do you measure SLIs with Prometheus? ||| Counters for requests and errors (rate over windows), histograms/summaries for latency percentiles, recording rules to precompute SLI ratios, and burn-rate alert rules on top. The interview line: ‘the SLI is a PromQL expression with an SLO attached.’
+
+--- QUIZ ---
+Q: A latency SLI in Prometheus is typically built from:
+ choices: ['Gauges only', 'Histogram buckets — enabling accurate percentile computation over windows', 'Logs', 'Traces']
+ answer: 1 explain: Histograms preserve the distribution: any percentile over any window is computable.
+
+Q: Burn-rate alerting’s advantage over static error thresholds is:
+ choices: ['Simpler config', 'It measures budget consumption relative to the SLO — paging only when the objective is actually at risk', 'Fewer metrics', 'No Prometheus needed']
+ answer: 1 explain: Thresholds don’t know your SLO; burn rate ties paging directly to objective risk.
+
+Q: When the error budget is exhausted, the correct policy is:
+ choices: ['Ship faster', 'Freeze or slow risky releases until the budget recovers', 'Lower the SLO', 'Ignore it']
+ answer: 1 explain: The budget is the agreed tradeoff dial: spending it all means reliability work comes first.
+
+Q: An error budget is:
+ choices: ['The on-call schedule', '1 − SLO: the allowed failure rate, spent deliberately on releases and risk', 'A financial budget', 'The alert threshold']
+ answer: 1 explain: 99.9% SLO → 0.1% budget: reliability as a spendable resource balancing velocity and stability.
+
+======================================================================
+MODULE sre-interview-prep--sre-incident-command | Incident Response and Command | w=1
+======================================================================
+SUMMARY: In this module: Incident lifecycle: detect, respond, mitigate, resolve; Roles: incident commander, communications, scribe; Severity levels and paging policy. Incidents as a rehearsed discipline: the roles, the cadence, and the postmortem that fixes systems instead of blaming people.
+
+OBJECTIVES:
+- Practice: incident lifecycle: detect, respond, mitigate, resolve
+- Practice: roles: incident commander, communications, scribe
+- Practice: severity levels and paging policy
+- Practice: communicating during an outage
+- Practice: blameless postmortem structure
+
+--- NOTE: What this covers ---
+- Incident lifecycle: detect, respond, mitigate, resolve
+- Roles: incident commander, communications, scribe
+- Severity levels and paging policy
+- Communicating during an outage
+- Blameless postmortem structure
+- Practicing a mock incident end to end
+
+--- NOTE: How Interstitium Labs teaches this ---
+Incidents as a rehearsed discipline: the roles, the cadence, and the postmortem that fixes systems instead of blaming people.
+
+--- NOTE: Sources ---
+- **Google SRE Books** (https://sre.google/) — The SRE book and workbook: SLIs/SLOs, incidents, and reliability math, from the source.
+- **CISA Resources & Tools** (https://www.cisa.gov/resources-tools) — US government guidance on hardening, incident response, and best practice.
+
+--- CARDS ---
+Walk the incident lifecycle. ||| Detect (alerts, user reports) → respond (declare, assemble, IC takes command) → mitigate (stop the bleeding — rollback, shed load) → resolve → learn (blameless postmortem). The interview line: ‘mitigate first, understand second.’
+What are the incident command roles? ||| Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard.
+How do you discuss defect lifecycle and severity? ||| Lifecycle: new → triaged → in progress → fixed → verified → closed (reopened if it regresses). Severity (impact) vs priority (fix order) are different axes — a cosmetic bug on the checkout button can be high priority. The interview line: ‘severity is impact; priority is scheduling.’
+How do you communicate during an outage? ||| One channel (#incident), regular cadence (every 15–30 min even with ‘no update’), impact-first language (who’s affected, what we’re doing, when’s the next update), and a single comms owner. The interview line: ‘silence during an outage is a second outage.’
+What makes a postmortem blameless and useful? ||| Blameless: systems and process, never people — or nobody will write honestly. Structure: timeline, impact, root causes (plural — ‘five whys’), action items with owners and dates. The interview line: ‘the postmortem’s value is the action items, not the document.’
+
+--- QUIZ ---
+Q: An ML system design that only covers the model is weak because:
+ choices: ['Models don’t matter', 'Production value lives in data, serving, and monitoring — the model is one piece', 'It’s too short', 'Interviewers are bored']
+ answer: 1 explain: Most ML failures are systems failures: skew, drift, latency — not the algorithm.
+
+Q: Blameless postmortems work because:
+ choices: ['They’re shorter', 'Removing blame gets honest timelines — people report what really happened', 'They skip action items', 'They’re optional']
+ answer: 1 explain: Honest data requires psychological safety; blame produces cover stories instead of root causes.
+
+Q: Status updates during an outage should lead with:
+ choices: ['Technical details', 'Customer impact: who’s affected and what’s being done', 'Blame', 'The timeline']
+ answer: 1 explain: Stakeholders need impact and next-update time; deep technical detail follows for those who need it.
+
+Q: Severity vs priority differ in that:
+ choices: ['They’re synonyms', 'Severity = impact on users; priority = order of fixing (business decision)', 'Priority is technical', 'Severity is decided by testers only']
+ answer: 1 explain: A severe bug in a deprecated feature can be low priority; a trivial bug blocking launch is high priority.
+
+======================================================================
+MODULE sre-interview-prep--sre-monitoring | Monitoring, Tracing, and Alerting | w=1
+======================================================================
+SUMMARY: In this module: Metrics, logs, traces: the three pillars; The four golden signals in practice; USE and RED methods. Observability as an interview topic: what to measure, how to alert without paging yourself to death, and where traces earn their keep.
+
+OBJECTIVES:
+- Understand and apply: metrics, logs, traces: the three pillars
+- Understand and apply: the four golden signals in practice
+- Understand and apply: USE and RED methods
+- Understand and apply: alerting on symptoms, not causes
+- Understand and apply: dashboards that answer questions
+
+--- NOTE: What this covers ---
+- Metrics, logs, traces: the three pillars
+- The four golden signals in practice
+- USE and RED methods
+- Alerting on symptoms, not causes
+- Dashboards that answer questions
+- Cardinality and its cost
+
+--- NOTE: How Interstitium Labs teaches this ---
+Observability as an interview topic: what to measure, how to alert without paging yourself to death, and where traces earn their keep.
+
+--- NOTE: Sources ---
+- **Prometheus Documentation** (https://prometheus.io/docs/) — Metrics, PromQL, and alerting references for the observability spine.
+- **Grafana Documentation** (https://grafana.com/docs/) — Dashboards and alerting documentation used in the troubleshooting modules.
+- **OpenTelemetry Documentation** (https://opentelemetry.io/docs/) — Vendor-neutral tracing, metrics, and logs instrumentation guides.
+
+--- CARDS ---
+Metrics, logs, traces — the three pillars in an SRE interview? ||| Metrics: numbers over time (alerts, trends). Logs: discrete events with context (the why). Traces: request journeys across services (the where). The interview line: ‘metrics tell me something’s wrong, traces show me where, logs tell me why.’
+What are the four golden signals? ||| Latency, traffic, errors, saturation — the minimum dashboard for any service. In an interview, reach for them first: ‘I’d check the four golden signals’ is the SRE equivalent of ‘let me reproduce it.’
+USE vs RED methods? ||| USE (Utilization, Saturation, Errors) for resources — ‘is the box healthy.’ RED (Rate, Errors, Duration) for services — ‘is the service healthy.’ In an interview, name which lens fits: debugging a host → USE; debugging an API → RED.
+Why alert on symptoms, not causes? ||| Users feel symptoms (latency, error rate); causes are legion and change. Symptom alerts (burn rate, golden signals) page on user impact; cause-based alerts (‘disk 90%’) page on things that may not matter — alert fatigue follows.
+What makes a dashboard that ‘answers questions’? ||| Golden signals up top, drill-down from symptom to cause, time-range comparisons, and annotations for deploys — organized by the questions on-call asks at 3am, not by data source. The interview line: ‘a dashboard is a UI for incident questions.’
+
+--- QUIZ ---
+Q: Putting user_id in a Prometheus label is dangerous because:
+ choices: ['It’s PII only', 'Each unique value creates a new time series — cardinality explosion', 'It’s slow to type', 'Labels can’t be strings']
+ answer: 1 explain: Unbounded label values × metrics = millions of series; memory and query costs follow.
+
+Q: Deploy annotations on dashboards help because:
+ choices: ['They look nice', 'They correlate behavior changes with releases — the first suspect in any regression', 'They’re required', 'They speed queries']
+ answer: 1 explain: ‘What changed?’ is the first incident question; annotations answer it at a glance.
+
+Q: Alerting on symptoms means paging when:
+ choices: ['A disk hits 90%', 'User-facing indicators (latency/errors) breach SLO — regardless of underlying cause', 'CPU spikes briefly', 'A deploy happens']
+ answer: 1 explain: Pages should mean user impact; cause metrics are for dashboards and diagnosis, not paging.
+
+Q: The RED method suits:
+ choices: ['Disk debugging', 'Request-driven services: rate, errors, duration', 'Network cables', 'CPU fans']
+ answer: 1 explain: RED describes service behavior from the requester’s view; USE describes resource internals.
+
+======================================================================
+MODULE sre-interview-prep--sre-capacity | Capacity Planning and Scaling | w=1
+======================================================================
+SUMMARY: In this module: Demand forecasting; Load testing with k6; Autoscaling: horizontal vs vertical. Capacity as applied arithmetic: forecast, test, provision headroom — and narrate the cost of every extra nine.
+
+OBJECTIVES:
+- Understand and apply: demand forecasting
+- Understand and apply: load testing with k6
+- Understand and apply: autoscaling: horizontal vs vertical
+- Understand and apply: saturation and the utilization wall
+- Understand and apply: headroom and the N+1 rule
+
+--- NOTE: What this covers ---
+- Demand forecasting
+- Load testing with k6
+- Autoscaling: horizontal vs vertical
+- Saturation and the utilization wall
+- Headroom and the N+1 rule
+- Cost-aware capacity tradeoffs
+
+--- NOTE: How Interstitium Labs teaches this ---
+Capacity as applied arithmetic: forecast, test, provision headroom — and narrate the cost of every extra nine.
+
+--- NOTE: Sources ---
+- **Google SRE Books** (https://sre.google/) — The SRE book and workbook: SLIs/SLOs, incidents, and reliability math, from the source.
+- **Kubernetes Documentation** (https://kubernetes.io/docs/) — Core objects, networking, and failure-mode references for orchestration modules.
+
+--- CARDS ---
+How do you forecast demand for capacity planning? ||| Historical growth rates plus known events (launches, seasonality, marketing), expressed as ranges not points, translated through the capacity model (requests → resources). The interview line: ‘forecasts are ranges with assumptions, reviewed on a cadence.’
+k6 vs JMeter — how do you compare them? ||| k6: JS-scripted, developer-friendly, great for CI-integrated load tests with thresholds as gates. JMeter: GUI-driven, mature, huge protocol support, heavier. The interview line: ‘k6 for code-reviewed load tests in the pipeline; JMeter where the team already lives in it.’
+HPA vs VPA? ||| HPA: more pods when load rises (horizontal — the cloud-native default). VPA: bigger pods (vertical — for workloads that can’t scale out, needs restarts). The interview caveat: autoscaling isn’t instant — cold starts and scaling lag mean you still need headroom.
+What’s the utilization wall? ||| Latency degrades nonlinearly as utilization approaches 100% (queueing theory): a system at 90%+ has no headroom for bursts — the ‘wall’ where small load increases cause large latency spikes. The interview line: ‘I plan headroom against the wall, not against the average.’
+What’s the N+1 query problem and its fix? ||| Loading N parents then one query per parent’s children: N+1 round trips. The fix is eager loading — a JOIN or batched second query (and ORMs have explicit eager-loading APIs). Name it when you see loops over queries.
+
+--- QUIZ ---
+Q: Spot instances fit batch workloads because:
+ choices: ['They’re faster', 'Interruption-tolerant work buys spare capacity at deep discounts', 'They’re reliable', 'No setup']
+ answer: 1 explain: Price follows preemptibility; batch work that checkpoints doesn’t care.
+
+Q: Eager loading fixes N+1 by:
+ choices: ['Adding more indexes', 'Fetching related rows in bulk (JOIN or batched query) instead of one query per parent', 'Caching the database', 'Using NoSQL']
+ answer: 1 explain: One bulk fetch replaces N per-row queries; round trips collapse from N+1 to ~2.
+
+Q: Running a service at 95% CPU is risky because:
+ choices: ['It’s inefficient', 'Queueing effects make latency spike nonlinearly near saturation — no burst headroom', 'It wastes power', 'CPUs degrade']
+ answer: 1 explain: Near 100% utilization, tiny load increases produce huge queueing delays.
+
+Q: Horizontal Pod Autoscaler reacts to load by:
+ choices: ['Increasing pod CPU limits', 'Adding more pod replicas', 'Restarting nodes', 'Throttling traffic']
+ answer: 1 explain: HPA scales replica count on metrics; VPA resizes individual pods.
+
+======================================================================
+MODULE sre-interview-prep--sre-design-reps | SRE System Design Reps | w=1
+======================================================================
+SUMMARY: In this module: Designing a multi-region web service; High-availability database design; Queues and backpressure. Six full design reps with reliability as the graded axis: every choice defended against failure, scale, and cost.
+
+OBJECTIVES:
+- Build and demonstrate: designing a multi-region web service
+- Build and demonstrate: high-availability database design
+- Build and demonstrate: queues and backpressure
+- Build and demonstrate: caching layers under failure
+- Build and demonstrate: rate limiting and load shedding
+
+--- NOTE: What this covers ---
+- Designing a multi-region web service
+- High-availability database design
+- Queues and backpressure
+- Caching layers under failure
+- Rate limiting and load shedding
+- Rehearsing the design-interview loop
+
+--- NOTE: How Interstitium Labs teaches this ---
+Six full design reps with reliability as the graded axis: every choice defended against failure, scale, and cost.
+
+--- NOTE: Sources ---
+- **Google SRE Books** (https://sre.google/) — The SRE book and workbook: SLIs/SLOs, incidents, and reliability math, from the source.
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+
+--- CARDS ---
+How do you design for multi-region in an interview? ||| Active-passive (one serves, one stands by) vs active-active (both serve — needs conflict resolution); data replication with RPO/RTO stated; DNS or anycast failover; and the honest cost: complexity and consistency tradeoffs multiply. The interview line: ‘multi-region is a business decision with an engineering price.’
+What is backpressure, and where do you put it? ||| When consumers are slower than producers, pressure must go somewhere: bounded queues that block/shed, reactive streams with demand signaling, or Kafka consumer-lag alerting. The interview point: an unbounded queue is a deferred outage.
+How do caching layers behave under failure? ||| Cache stampedes on cold start, thundering herd on hot-key expiry, and the deadly combo: cache down → DB overload → cascading failure. Defenses: request coalescing, staggered TTLs, circuit breakers, and graceful degradation (serve stale while revalidating).
+What’s load shedding, and when do you use it? ||| Deliberately dropping low-priority work to protect the core: priority queues, shedding non-critical traffic at the edge, degrading features gracefully. The interview line: ‘shedding is a choice — uncontrolled collapse is not.’
+What’s the standard system-design walkthrough? ||| Requirements → estimation → API → data model → happy-path design → scaling/bottlenecks → failure modes → tradeoffs summary. Drive with questions, think aloud, and treat the interviewer as a collaborator, not an examiner.
+
+--- QUIZ ---
+Q: In a design round, the interviewer is best treated as:
+ choices: ['An examiner to impress', 'A collaborator — ask questions, incorporate feedback, design together', 'An adversary', 'An audience']
+ answer: 1 explain: Design rounds simulate real design work: collaborative, iterative, tradeoff-driven.
+
+Q: Load shedding differs from a cascading failure in that it’s:
+ choices: ['Faster', 'Deliberate and prioritized — you choose what degrades instead of everything failing', 'Automatic only', 'A bug']
+ answer: 1 explain: Controlled degradation preserves the critical path; cascades take everything down.
+
+Q: Serving stale cache during an origin outage is:
+ choices: ['A bug', 'Graceful degradation — slightly old data beats no data', 'Data loss', 'Insecure']
+ answer: 1 explain: Stale-while-revalidate as a failure mode keeps the product usable while the origin recovers.
+
+Q: A bounded queue with a drop-or-block policy implements:
+ choices: ['Caching', 'Backpressure — the producer feels the consumer’s slowness', 'Load balancing', 'Encryption']
+ answer: 1 explain: Bounded buffers propagate slowness upstream instead of growing memory until collapse.
+
+======================================================================
+MODULE sre-interview-prep--sre-mock | SRE Mock Circuit | w=1
+======================================================================
+SUMMARY: In this module: Mock incident round; Mock metrics and SLO round; Mock system-design round. A complete simulated SRE loop with rubrics: where your answers land, and exactly what to fix before the real one.
+
+OBJECTIVES:
+- Apply in professional practice: mock incident round
+- Apply in professional practice: mock metrics and SLO round
+- Apply in professional practice: mock system-design round
+- Apply in professional practice: behavioral round for SREs
+- Apply in professional practice: scoring against an interview rubric
+
+--- NOTE: What this covers ---
+- Mock incident round
+- Mock metrics and SLO round
+- Mock system-design round
+- Behavioral round for SREs
+- Scoring against an interview rubric
+- The 48-hour pre-interview checklist
+
+--- NOTE: How Interstitium Labs teaches this ---
+A complete simulated SRE loop with rubrics: where your answers land, and exactly what to fix before the real one.
+
+--- NOTE: Sources ---
+- **Google SRE Books** (https://sre.google/) — The SRE book and workbook: SLIs/SLOs, incidents, and reliability math, from the source.
+
+--- CARDS ---
+How do you prep for SRE mock rounds (incident, metrics/SLO, system design)? ||| Incident: run the lifecycle aloud (declare, mitigate first, comms cadence). Metrics/SLO: define SLIs, do the budget math, name burn-rate alerting. Design: requirements → estimation → HA design → failure modes. The interview line: ‘each round has a shape — I rehearse the shape.’
+How do behavioral rounds differ for SREs? ||| They probe ownership under pressure: on-call stories, incident decisions, disagreements about risk, and learning from outages — all STAR, all blameless. The interview line: ‘SRE behavioral rounds grade how I act when the pager fires.’
+How do you score yourself against an interview rubric? ||| Fixed axes per round type: correctness, complexity analysis, communication, time management, tradeoffs named. Score honestly after every mock; the rubric turns feelings into data. The interview line: ‘I grade myself the way they’ll grade me.’
+What’s the final two-week taper? ||| Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise.
+The interviewer asks you to go deep on 'Mock incident round'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: The taper period’s rule is:
+ choices: ['Learn new topics', 'No new material — redrill weak spots, mock timed, rest', 'Stop practicing', 'Memorize solutions']
+ answer: 1 explain: Performance comes from consolidation and recovery, not last-minute breadth.
+
+Q: Rubric scoring beats gut feeling because:
+ choices: ['It’s formal', 'It makes weaknesses comparable across mocks — triage needs data', 'It’s faster', 'Interviewers share rubrics']
+ answer: 1 explain: You can’t triage what you haven’t measured.
+
+Q: An SRE behavioral answer should emphasize:
+ choices: ['Technical depth only', 'Decisions under pressure, communication, and systemic learning', 'Heroics', 'Tools']
+ answer: 1 explain: Reliability is a team sport; the graded behaviors are judgment and coordination.
+
+Q: Rehearsing each round’s ‘shape’ helps because:
+ choices: ['It’s memorization', 'Interviews grade method under pressure — the shape is the method, made automatic', 'It’s faster', 'Interviewers are predictable']
+ answer: 1 explain: Automatic structure frees mental budget for the novel parts of the problem.
+
+======================================================================
+MODULE devops-interview-prep--devops-ci-cd | CI/CD Systems | w=1
+======================================================================
+SUMMARY: In this module: Trunk-based development; CI stages: lint, build, test, scan; Artifacts and registries. Pipelines as the artifact the interview is really about: every stage, every strategy, and the rollback plan that proves you have shipped before.
+
+OBJECTIVES:
+- Understand and apply: trunk-based development
+- Understand and apply: CI stages: lint, build, test, scan
+- Understand and apply: artifacts and registries
+- Understand and apply: deployment strategies: blue-green, canary, rolling
+- Understand and apply: pipeline-as-code
+
+--- NOTE: What this covers ---
+- Trunk-based development
+- CI stages: lint, build, test, scan
+- Artifacts and registries
+- Deployment strategies: blue-green, canary, rolling
+- Pipeline-as-code
+- Rollback design
+
+--- NOTE: How Interstitium Labs teaches this ---
+Pipelines as the artifact the interview is really about: every stage, every strategy, and the rollback plan that proves you have shipped before.
+
+--- NOTE: Sources ---
+- **GitHub Actions Documentation** (https://docs.github.com/en/actions) — Pipeline-as-code reference for the CI/CD modules.
+- **Jenkins Documentation** (https://jenkins.io/doc/) — Classic CI server reference; still the system most interview pipelines were built on.
+
+--- CARDS ---
+What’s the case for trunk-based development? ||| Small, frequent merges to main behind feature flags: integration pain drops with merge frequency, main stays releasable, and long-lived branch divergence dies. The interview line: ‘branches are inventory — trunk-based keeps inventory near zero.’
+What belongs in CI stages, and in what order? ||| Fast-first: lint and unit tests (minutes), then build, integration tests, security scans, artifact publish. The interview line: ‘fail fast and cheap — a 40-minute pipeline that fails at minute 39 teaches nothing quickly.’
+Why do artifacts and registries matter? ||| Build once, promote the same immutable artifact through environments — registries (container/image, package) make ‘what’s running where’ answerable. The interview line: ‘if you rebuild per environment, you didn’t test what you shipped.’
+Blue-green vs canary vs rolling? ||| Blue-green: two full environments, instant cutover and rollback — costs double capacity. Canary: new version to a small % first, promote on metrics — safest for risky changes. Rolling: gradual replacement — simplest, slowest rollback. Choose by blast-radius tolerance.
+What does pipeline-as-code buy you? ||| The pipeline is versioned, reviewed, and reproducible like the app: workflow files in the repo, changes via PR, history in git. The interview line: ‘if the pipeline isn’t in version control, it’s folklore.’
+
+--- QUIZ ---
+Q: The rollback-vs-fix-forward decision hinges on:
+ choices: ['Pride', 'Blast radius and diagnosis confidence — big blast or uncertain cause means roll back', 'Speed', 'Team preference']
+ answer: 1 explain: Uncertain cause + user impact = roll back first, understand second.
+
+Q: Storing CI configuration in the repo enables:
+ choices: ['Faster builds', 'Review, versioning, and reproducibility of the pipeline itself', 'More stages', 'Parallel jobs']
+ answer: 1 explain: Pipeline changes get the same rigor as code changes: PRs, history, rollback.
+
+Q: Canary deployment’s defining feature is:
+ choices: ['Two full environments', 'Releasing to a small subset first and promoting based on observed metrics', 'Instant cutover', 'No automation']
+ answer: 1 explain: Progressive exposure with metric gates: problems hit 1% before 100%.
+
+Q: Promoting the same immutable artifact through environments ensures:
+ choices: ['Faster deploys', 'What you tested is what you ship — no rebuild skew between staging and prod', 'Smaller images', 'Less storage']
+ answer: 1 explain: Rebuilding per environment invalidates testing; immutable artifacts preserve it.
+
+======================================================================
+MODULE devops-interview-prep--devops-iac | Infrastructure as Code Patterns | w=1
+======================================================================
+SUMMARY: In this module: Declarative vs imperative; Terraform workflow: plan and apply; State management and backends. IaC the way interviews probe it: state, modules, drift — the three topics that separate users from operators.
+
+OBJECTIVES:
+- Understand and apply: declarative vs imperative
+- Understand and apply: terraform workflow: plan and apply
+- Understand and apply: state management and backends
+- Understand and apply: modules and composition
+- Understand and apply: drift detection
+
+--- NOTE: What this covers ---
+- Declarative vs imperative
+- Terraform workflow: plan and apply
+- State management and backends
+- Modules and composition
+- Drift detection
+- Policy-as-code basics
+
+--- NOTE: How Interstitium Labs teaches this ---
+IaC the way interviews probe it: state, modules, drift — the three topics that separate users from operators.
+
+--- NOTE: Sources ---
+- **Terraform Documentation** (https://developer.hashicorp.com/terraform/docs) — Workflow, state, and module references for the IaC modules.
+
+--- CARDS ---
+Declarative vs imperative infrastructure? ||| Declarative: state the desired end state, the tool converges (Terraform, K8s manifests) — idempotent and auditable. Imperative: script the steps — flexible but order-dependent and drift-prone. The interview line: ‘I declare the destination; the tool figures out the route.’
+How do you explain Terraform’s workflow? ||| Write declarative HCL, plan to preview the diff, apply to converge. State tracks reality (remote backend, locking!); modules compose reusable units. The interview traps: state drift, and why plan-before-apply is non-negotiable.
+How do you discuss state management tradeoffs? ||| Lift state to the lowest common parent first; context for truly global low-churn data (theme, auth) — not as a state manager, since context re-renders all consumers; external stores (Zustand/Redux) for complex shared state with selective subscriptions.
+How do you structure Terraform modules and composition? ||| Small composable modules (one concern each: network, compute, data), composed in environment roots with explicit inputs — no deep nesting. The interview line: ‘modules are functions; roots are the programs that call them.’
+What is infrastructure drift, and how do you fight it? ||| Reality diverging from declared config (manual console clicks). Detection: scheduled plan runs that alert on diffs; prevention: make the console read-only, everything through code. The interview line: ‘drift is how outages hide.’
+
+--- QUIZ ---
+Q: Enforcing policy at plan time (vs after deploy) is better because:
+ choices: ['It’s faster', 'Violations are blocked before they exist — prevention beats detection', 'Auditors prefer it', 'It’s cheaper']
+ answer: 1 explain: Shift-left for governance: the bad change never reaches the cloud.
+
+Q: The primary defense against drift is:
+ choices: ['More dashboards', 'Everything through code + scheduled plan/detect cycles', 'Bigger teams', 'Manual audits']
+ answer: 1 explain: If all changes flow through IaC, reality can’t silently diverge.
+
+Q: Deep module nesting is an anti-pattern because:
+ choices: ['It’s slow', 'Inputs tunnel through layers opaquely — debugging and reuse both suffer', 'It’s ugly', 'State breaks']
+ answer: 1 explain: Flat composition keeps the dependency graph legible; nesting hides it.
+
+Q: React context is a poor state manager for high-churn state because:
+ choices: ['It’s slow to write', 'Every consumer re-renders on any context value change', 'It can’t hold objects', 'It’s deprecated']
+ answer: 1 explain: Context has no selectors: one value change re-renders all consumers regardless of what they use.
+
+======================================================================
+MODULE devops-interview-prep--devops-containers | Containers and Orchestration | w=1
+======================================================================
+SUMMARY: In this module: Docker images and layers; Registries and tagging discipline; Kubernetes core objects. Containers to orchestration in one arc: what Docker packages, what Kubernetes schedules, and where each breaks.
+
+OBJECTIVES:
+- Understand and apply: docker images and layers
+- Understand and apply: registries and tagging discipline
+- Understand and apply: kubernetes core objects
+- Understand and apply: deployments, Services, Ingress
+- Understand and apply: configMaps, Secrets, volumes
+
+--- NOTE: What this covers ---
+- Docker images and layers
+- Registries and tagging discipline
+- Kubernetes core objects
+- Deployments, Services, Ingress
+- ConfigMaps, Secrets, volumes
+- Helm at a glance
+
+--- NOTE: How Interstitium Labs teaches this ---
+Containers to orchestration in one arc: what Docker packages, what Kubernetes schedules, and where each breaks.
+
+--- NOTE: Sources ---
+- **Docker Documentation** (https://docs.docker.com/) — Image builds, registries, and container runtime references.
+- **Kubernetes Documentation** (https://kubernetes.io/docs/) — Core objects, networking, and failure-mode references for orchestration modules.
+
+--- CARDS ---
+How do Docker layers affect your Dockerfile? ||| Each instruction is a cached layer: order matters — put slow-changing steps (dependency install) before fast-changing ones (code copy) to maximize cache hits. Multi-stage builds keep runtime images small: build in one stage, ship only artifacts.
+What’s tagging discipline for container registries? ||| Immutable tags per build (git SHA), floating tags (latest) only for convenience — never deploy ‘latest’ to prod. The interview line: ‘mutable tags make ‘what’s running?’ unanswerable.’
+The Kubernetes objects you must know cold? ||| Pod (smallest unit), Deployment (declarative replicas + rolling updates), Service (stable networking), Ingress (external HTTP routing), ConfigMap/Secret (config separation), PersistentVolume for state. The interview walk: ‘my app runs as a Deployment behind a Service, exposed via Ingress.’
+How do Deployments, Services, and Ingress fit together? ||| Deployment: declares the desired pods and rolling-update strategy. Service: stable internal endpoint selecting those pods. Ingress: external HTTP routing (host/path → service). The interview line: ‘three layers: run it, find it, expose it.’
+How do you handle config vs secrets in Kubernetes? ||| ConfigMaps for non-sensitive config, Secrets for sensitive (base64-encoded, not encrypted by default — use external secret managers or encryption at rest for real protection). Mount as env or files; never bake into images. The interview line: ‘config travels with the deployment, not the image.’
+
+--- QUIZ ---
+Q: Helm’s ‘values’ mechanism lets you:
+ choices: ['Skip Kubernetes', 'Deploy the same chart across environments with different configuration', 'Avoid YAML', 'Scale automatically']
+ answer: 1 explain: One chart, many values files: dev/staging/prod differ by values, not by forked manifests.
+
+Q: Kubernetes Secrets are base64-encoded, which means:
+ choices: ['They’re encrypted', 'They’re obfuscated, not encrypted — anyone with API access can decode them', 'They’re compressed', 'They’re safe anywhere']
+ answer: 1 explain: Base64 is encoding, not encryption: etcd encryption or external secret managers provide real protection.
+
+Q: An Ingress resource needs an Ingress controller because:
+ choices: ['It’s optional', 'Ingress is just config — the controller is the actual proxy implementing the routing', 'DNS requires it', 'TLS requires it']
+ answer: 1 explain: The resource declares intent; the controller (nginx, traefik) does the work.
+
+Q: A Kubernetes Service provides:
+ choices: ['Storage', 'Stable networking (DNS + load balancing) for a set of pods', 'Config', 'Ingress']
+ answer: 1 explain: Pods are ephemeral; the Service gives them a stable virtual IP and DNS name.
+
+======================================================================
+MODULE devops-interview-prep--devops-troubleshoot | Troubleshooting Under Pressure | w=1
+======================================================================
+SUMMARY: In this module: Reading logs under pressure; The five whys for systems; Network debugging: DNS, TLS, routing. The live round, rehearsed: timed failure drills where the graded skill is structured diagnosis narrated in real time.
+
+OBJECTIVES:
+- Practice: reading logs under pressure
+- Practice: the five whys for systems
+- Practice: network debugging: DNS, TLS, routing
+- Practice: kubernetes failure modes
+- Practice: time-boxed diagnosis drills
+
+--- NOTE: What this covers ---
+- Reading logs under pressure
+- The five whys for systems
+- Network debugging: DNS, TLS, routing
+- Kubernetes failure modes
+- Time-boxed diagnosis drills
+- Narrating your thinking aloud
+
+--- NOTE: How Interstitium Labs teaches this ---
+The live round, rehearsed: timed failure drills where the graded skill is structured diagnosis narrated in real time.
+
+--- NOTE: Sources ---
+- **Kubernetes Documentation** (https://kubernetes.io/docs/) — Core objects, networking, and failure-mode references for orchestration modules.
+- **Grafana Documentation** (https://grafana.com/docs/) — Dashboards and alerting documentation used in the troubleshooting modules.
+
+--- CARDS ---
+How do you read logs under pressure? ||| Filter ruthlessly: time window around the incident, the failing service first, errors before info, one clear signal at a time. Correlate with deploys and metric spikes. The interview line: ‘I narrow before I read — logs are guilty until filtered innocent.’
+How do you actually run five whys on a system? ||| Start from the symptom and ask ‘why’ iteratively, following evidence (logs, metrics, deploys) not hunches — until you reach a process/systemic cause with an action item. The discipline: every ‘why’ needs data, and the fifth why usually points at a missing guardrail.
+How do you debug network issues methodically? ||| Layer by layer: DNS resolves? (dig/nslookup) TCP connects? (curl -v, telnet) TLS handshakes? (openssl s_client) HTTP responds? Each layer’s test isolates the fault — the interview line: ‘I bisect the stack instead of guessing.’
+What Kubernetes failure modes must you know? ||| CrashLoopBackOff (bad image/config, failing probes), ImagePullBackOff (registry/auth), OOMKilled (limits vs reality), Pending (no schedulable node/resources), probe misconfiguration (killing healthy pods). The interview line: ‘kubectl describe tells you the story; events are the narrator.’
+Why do interviewers grade ‘thinking aloud’ in troubleshooting rounds? ||| Because silent debugging is unscoreable: narrating hypotheses, what each command tests, and what the output means lets them evaluate your method. The structure: hypothesis → test → observe → update, said out loud.
+
+--- QUIZ ---
+Q: Narrating while troubleshooting helps the interviewer assess:
+ choices: ['Typing speed', 'Your diagnostic method — hypotheses, tests, and how you update on evidence', 'Memory', 'Tool knowledge only']
+ answer: 1 explain: Method is what’s graded; narration makes the invisible visible.
+
+Q: CrashLoopBackOff most often means:
+ choices: ['Node failure', 'The container starts then exits — bad command, missing config, or failing startup probe', 'Network partition', 'DNS outage']
+ answer: 1 explain: The kubelet keeps retrying a container that can’t stay alive; describe/events reveal why it dies.
+
+Q: curl -v failing at ‘Could not resolve host’ means:
+ choices: ['The server is down', 'DNS failure — the name never became an IP', 'TLS misconfiguration', 'Firewall block']
+ answer: 1 explain: Resolution happens before any connection: the fault is in DNS, not the server.
+
+Q: Five whys stops being useful when:
+ choices: ['You reach 5 exactly', 'Answers become speculation without evidence — each why needs data', 'It’s too fast', 'People agree']
+ answer: 1 explain: Whys without evidence are storytelling; the method works when each level is grounded in telemetry.
+
+======================================================================
+MODULE devops-interview-prep--devops-platform-build | Guided Platform Build | w=1
+======================================================================
+SUMMARY: In this module: Repo scaffold: app plus Dockerfile; Terraform for a VPC; Cluster bootstrap. A portfolio-grade platform: repo to running cluster, fully automated, documented well enough to walk an interviewer through it.
+
+OBJECTIVES:
+- Build and demonstrate: repo scaffold: app plus Dockerfile
+- Build and demonstrate: terraform for a VPC
+- Build and demonstrate: cluster bootstrap
+- Build and demonstrate: CI pipeline with GitHub Actions
+- Build and demonstrate: gitOps deploy with Argo CD
+
+--- NOTE: What this covers ---
+- Repo scaffold: app plus Dockerfile
+- Terraform for a VPC
+- Cluster bootstrap
+- CI pipeline with GitHub Actions
+- GitOps deploy with Argo CD
+- Documentation as a deliverable
+
+--- NOTE: How Interstitium Labs teaches this ---
+A portfolio-grade platform: repo to running cluster, fully automated, documented well enough to walk an interviewer through it.
+
+--- NOTE: Sources ---
+- **Terraform Documentation** (https://developer.hashicorp.com/terraform/docs) — Workflow, state, and module references for the IaC modules.
+- **GitHub Actions Documentation** (https://docs.github.com/en/actions) — Pipeline-as-code reference for the CI/CD modules.
+- **Kubernetes Documentation** (https://kubernetes.io/docs/) — Core objects, networking, and failure-mode references for orchestration modules.
+
+--- CARDS ---
+What does a good platform-build scaffold include? ||| Repo layout (app + infra + pipeline), VPC via Terraform, cluster bootstrap scripted, CI pipeline, GitOps deploy — each piece documented as a deliverable. The interview line: ‘the scaffold is the platform’s first impression.’
+How do you discuss undefined behavior in a C interview? ||| As the compiler’s license to assume: signed overflow, null dereference, use-after-free, data races — ‘anything can happen’ includes ‘works until the optimizer upgrades.’ The interview line: ‘I write so UB can’t happen; sanitizers prove it.’
+What is GitOps, concretely? ||| Git as the single source of truth for desired state; an agent (Argo CD/Flux) continuously reconciles the cluster to it. Pull-based, auditable, self-healing: drift gets reverted automatically, and every change is a git commit.
+Why is documentation a deliverable in platform work? ||| Because platforms have customers: runbooks, ADRs, and onboarding docs are the API of the platform team. The interview line: ‘undocumented automation is a ticket queue with extra steps.’
+The interviewer asks you to go deep on 'Repo scaffold: app plus Dockerfile'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: An Architecture Decision Record (ADR) captures:
+ choices: ['Code', 'The decision, its context, alternatives considered, and consequences — why, not just what', 'Diagrams only', 'Meeting notes']
+ answer: 1 explain: Future-you needs the reasoning, not just the outcome; ADRs preserve the why.
+
+Q: In GitOps, cluster drift is handled by:
+ choices: ['Manual fixes', 'The agent reconciling actual state back to the git-declared desired state', 'Alerts only', 'Redeploying everything']
+ answer: 1 explain: Continuous reconciliation closes the loop: declared state wins automatically.
+
+Q: Signed integer overflow in C is:
+ choices: ['Defined as wraparound', 'Undefined behavior — the optimizer may assume it never happens', 'A runtime error', 'Saturation']
+ answer: 1 explain: Compilers exploit the UB assumption for optimization; ‘works in debug’ proves nothing.
+
+Q: Scripting the cluster bootstrap (vs clicking) matters because:
+ choices: ['It’s faster once', 'It’s reproducible and reviewable — the cluster becomes code, not folklore', 'It’s trendy', 'Clicks are banned']
+ answer: 1 explain: Unscripted setup can’t be rebuilt, reviewed, or audited.
+
+======================================================================
+MODULE devops-interview-prep--devops-mock | DevOps Mock Circuit | w=1
+======================================================================
+SUMMARY: In this module: Mock pipeline-design round; Mock live troubleshooting round; Mock behavioral round. The full DevOps loop simulated: design, live debugging, and the behavioral round where ops stories win offers.
+
+OBJECTIVES:
+- Apply in professional practice: mock pipeline-design round
+- Apply in professional practice: mock live troubleshooting round
+- Apply in professional practice: mock behavioral round
+- Apply in professional practice: the STAR format for ops stories
+- Apply in professional practice: questions to ask the interviewer
+
+--- NOTE: What this covers ---
+- Mock pipeline-design round
+- Mock live troubleshooting round
+- Mock behavioral round
+- The STAR format for ops stories
+- Questions to ask the interviewer
+- Offer and negotiation basics
+
+--- NOTE: How Interstitium Labs teaches this ---
+The full DevOps loop simulated: design, live debugging, and the behavioral round where ops stories win offers.
+
+--- NOTE: Sources ---
+- **GitHub Actions Documentation** (https://docs.github.com/en/actions) — Pipeline-as-code reference for the CI/CD modules.
+- **Indeed Career Guide: Interviewing** (https://www.indeed.com/career-advice) — Free interview-prep articles: STAR format, common questions, preparation checklists.
+
+--- CARDS ---
+How do you handle DevOps mock rounds (pipeline design, live troubleshooting)? ||| Pipeline design: stages in order, artifact promotion, rollback story. Live troubleshooting: hypothesis → test → observe, narrated, time-boxed. The interview line: ‘design shows judgment; troubleshooting shows method.’
+How do behavioral rounds differ for SREs? ||| They probe ownership under pressure: on-call stories, incident decisions, disagreements about risk, and learning from outages — all STAR, all blameless. The interview line: ‘SRE behavioral rounds grade how I act when the pager fires.’
+What’s the STAR structure, and why does it work for behavioral rounds? ||| Situation (2 sentences of context), Task (your responsibility), Action (what YOU did — the bulk), Result (measurable outcome + lesson). It works because interviewers score evidence of behavior, and STAR forces a complete evidence unit.
+What questions should you ask the interviewer? ||| Ones that reveal the job’s reality: ‘what does success look like in 6 months?’, ‘what’s the hardest technical problem the team faces?’, ‘how are on-call and incidents handled?’, ‘why is this role open?’ Never ask what the website answers.
+How do you handle offer and negotiation basics? ||| Know your market range from data (levels.fyi, peers), let them anchor first when possible, negotiate the whole package (base, equity, bonus, start date) — never just base salary — and get everything in writing. The interview line: ‘I negotiate once, informed and in good faith.’
+
+--- QUIZ ---
+Q: Negotiating only base salary is weak because:
+ choices: ['Base doesn’t matter', 'Total compensation includes equity, bonus, and benefits — often larger than base deltas', 'It’s rude', 'Companies refuse']
+ answer: 1 explain: The package is the number; single-dimension negotiation leaves money unclaimed.
+
+Q: The strongest interviewer question reveals:
+ choices: ['Salary immediately', 'The role’s reality: success criteria, hard problems, team health', 'Their personal life', 'Stock price']
+ answer: 1 explain: You’re interviewing them too: these answers predict your actual day-to-day.
+
+Q: In a STAR answer, the ‘A’ should emphasize:
+ choices: ['The team’s actions', 'Your specific actions and decisions', 'The company’s revenue', 'Your feelings']
+ answer: 1 explain: ‘We’ stories hide your contribution — interviewers evaluate you, so make your decisions explicit.
+
+Q: An SRE behavioral answer should emphasize:
+ choices: ['Technical depth only', 'Decisions under pressure, communication, and systemic learning', 'Heroics', 'Tools']
+ answer: 1 explain: Reliability is a team sport; the graded behaviors are judgment and coordination.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-concepts | Core Cloud Concepts | w=1
+======================================================================
+SUMMARY: In this module: Regions, availability zones, and edge; The shared-responsibility model; Compute: VMs, containers, serverless. The conceptual floor every cloud interview stands on: what the cloud is, who secures what, and when each compute primitive wins.
+
+OBJECTIVES:
+- Understand and apply: regions, availability zones, and edge
+- Understand and apply: the shared-responsibility model
+- Understand and apply: compute: VMs, containers, serverless
+- Understand and apply: the cloud value props, honestly
+- Understand and apply: capEx vs OpEx
+
+--- NOTE: What this covers ---
+- Regions, availability zones, and edge
+- The shared-responsibility model
+- Compute: VMs, containers, serverless
+- The cloud value props, honestly
+- CapEx vs OpEx
+- Vendor-neutral vs vendor-specific knowledge
+
+--- NOTE: How Interstitium Labs teaches this ---
+The conceptual floor every cloud interview stands on: what the cloud is, who secures what, and when each compute primitive wins.
+
+--- NOTE: Sources ---
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+- **Google Cloud Documentation** (https://cloud.google.com/docs) — GCP-side primitives for vendor-neutral cloud depth.
+
+--- CARDS ---
+Regions vs Availability Zones? ||| Region: geographic area. AZ: isolated data center(s) within a region with independent power/network. Design rule: run across ≥2 AZs for HA; regions are for disaster recovery and data residency. The interview line: ‘one AZ is a single point of failure.’
+What is the shared-responsibility model? ||| The provider secures OF the cloud (physical, hypervisor, network fabric); you secure what’s IN it (data, IAM, OS, app config). The interview trap: ‘the cloud is secure’ — no, your S3 bucket policy is your job.
+What does Docker actually give you? ||| A portable, reproducible runtime: the image bundles code + dependencies + OS userland, so ‘works on my machine’ dies. Containers share the host kernel (lighter than VMs, weaker isolation) — and the interview follow-up is always about image size and layer caching.
+CapEx vs OpEx in cloud interviews? ||| CapEx: buy servers upfront (fixed, depreciating). OpEx: pay per use (variable, scales with demand). Cloud’s pitch is OpEx agility — but the honest follow-up is FinOps: without governance, variable spend surprises you.
+Vendor-neutral vs vendor-specific knowledge? ||| Neutral: concepts that transfer (VPCs, IAM, queues, object storage). Specific: the console clicks and service quirks. The interview line: ‘I learn the concept once, the console twice — concepts transfer, click-paths don’t.’
+
+--- QUIZ ---
+Q: Leading with vendor-neutral concepts in an interview is strong because:
+ choices: ['Vendors don’t matter', 'It proves transferable understanding, not memorized console paths', 'It’s faster', 'Interviewers dislike AWS']
+ answer: 1 explain: Concepts survive provider changes; click-path knowledge expires with the UI.
+
+Q: Cloud’s OpEx model primarily buys:
+ choices: ['Lower total cost always', 'Agility — spend scales with demand instead of upfront provisioning', 'Free resources', 'No billing']
+ answer: 1 explain: Pay-per-use trades fixed capacity bets for variable spend — with cost governance as the required discipline.
+
+Q: Containers differ from VMs in that they:
+ choices: ['Are slower', 'Share the host OS kernel instead of virtualizing hardware', 'Can’t run Linux', 'Need no images']
+ answer: 1 explain: No guest kernel per container: faster startup, denser packing, but a shared kernel attack surface.
+
+Q: Under shared responsibility, an open S3 bucket is:
+ choices: ['AWS’s fault', 'The customer’s fault — data access control is in the customer’s layer', 'Nobody’s fault', 'The auditor’s fault']
+ answer: 1 explain: The provider secures the service; you configure who can read your objects.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-networking | Cloud Networking | w=1
+======================================================================
+SUMMARY: In this module: VPCs, subnets, and route tables; Security groups and NACLs; Load balancers. The module that decides cloud interviews: packets, routes, and firewalls — taught until you can debug a dead connection aloud.
+
+OBJECTIVES:
+- Understand and apply: vPCs, subnets, and route tables
+- Understand and apply: security groups and NACLs
+- Understand and apply: load balancers
+- Understand and apply: DNS and private DNS
+- Understand and apply: NAT, VPN, and peering
+
+--- NOTE: What this covers ---
+- VPCs, subnets, and route tables
+- Security groups and NACLs
+- Load balancers
+- DNS and private DNS
+- NAT, VPN, and peering
+- Troubleshooting connectivity
+
+--- NOTE: How Interstitium Labs teaches this ---
+The module that decides cloud interviews: packets, routes, and firewalls — taught until you can debug a dead connection aloud.
+
+--- NOTE: Sources ---
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+- **Google Cloud Documentation** (https://cloud.google.com/docs) — GCP-side primitives for vendor-neutral cloud depth.
+
+--- CARDS ---
+VPC, subnets, route tables — the 60-second version? ||| VPC: your isolated network. Subnets: public (route to internet gateway) vs private (no direct inbound, NAT for outbound). Route tables decide where packets go; security groups (stateful, instance-level) and NACLs (stateless, subnet-level) filter them.
+LCP, INP, CLS — what does each measure? ||| LCP (Largest Contentful Paint): loading — when the main content appears. INP (Interaction to Next Paint): responsiveness — worst-case input latency. CLS (Cumulative Layout Shift): visual stability — unexpected movement. For all three, lower is better.
+What do cloud load balancers do beyond spreading traffic? ||| Health checks (route only to healthy targets), TLS termination, sticky sessions when needed, and L7 routing (path/host rules). The interview line: ‘the LB is the first reliability device in the path.’
+How do you discuss DNS in cloud interviews? ||| Public DNS for the world, private hosted zones for internal service discovery, TTLs controlling change propagation, and health-checked routing policies for failover. The interview line: ‘DNS is the control plane everyone forgets until it breaks.’
+NAT vs VPN vs peering? ||| NAT: private resources reach the internet outbound. VPN: encrypted tunnel extending your network (site-to-site or client). Peering: private VPC-to-VPC connectivity without internet. The interview line: ‘each answers a different ‘how do these networks talk’ question.’
+
+--- QUIZ ---
+Q: VPC flow logs show:
+ choices: ['Application errors', 'Allowed/rejected IP traffic metadata — who tried to reach whom', 'DNS queries', 'CPU metrics']
+ answer: 1 explain: Flow logs are the packet-level audit trail for security-group and routing diagnosis.
+
+Q: VPC peering is preferred over public IPs for inter-VPC traffic because:
+ choices: ['It’s faster to set up', 'Traffic stays on the private backbone — no internet exposure', 'It’s free always', 'It encrypts']
+ answer: 1 explain: Private routing beats public routing for both security and latency.
+
+Q: A low TTL on a DNS record is used when:
+ choices: ['You want caching', 'You expect to change the target soon and need fast propagation', 'It’s cheaper', 'For static sites']
+ answer: 1 explain: Low TTL trades query volume for agility: changes propagate as fast as the TTL allows.
+
+Q: Load balancer health checks matter because:
+ choices: ['They’re fast', 'Traffic must avoid dead targets — the LB routes only to passing instances', 'They encrypt', 'They cache']
+ answer: 1 explain: Without health checks, the balancer sprays traffic onto broken instances.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-data | Data and Storage Services | w=1
+======================================================================
+SUMMARY: In this module: Object storage patterns; Managed SQL; NoSQL: key-value and document. Data services as design choices: which store for which workload, and the backup story that proves production thinking.
+
+OBJECTIVES:
+- Understand and apply: object storage patterns
+- Understand and apply: managed SQL
+- Understand and apply: noSQL: key-value and document
+- Understand and apply: caching
+- Understand and apply: data lifecycle and tiering
+
+--- NOTE: What this covers ---
+- Object storage patterns
+- Managed SQL
+- NoSQL: key-value and document
+- Caching
+- Data lifecycle and tiering
+- Backup and disaster recovery
+
+--- NOTE: How Interstitium Labs teaches this ---
+Data services as design choices: which store for which workload, and the backup story that proves production thinking.
+
+--- NOTE: Sources ---
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+- **Azure Architecture Center** (https://learn.microsoft.com/en-us/azure/architecture/) — Reference architectures and design guidance for the architecture modules.
+
+--- CARDS ---
+How do you handle file uploads at scale? ||| Direct-to-object-storage uploads (presigned URLs — the app server never proxies bytes), async processing (thumbnails, virus scan) via queues, CDN in front for reads. The interview line: ‘bytes never touch my app servers.’
+What do managed SQL services buy you? ||| Backups, patching, failover, and read replicas handled by the provider — you keep schema design and query tuning. The interview line: ‘I outsource the undifferentiated heavy lifting, not the data model.’
+How do you discuss managed NoSQL in a cloud interview? ||| By access pattern: key-value (DynamoDB-style single-digit-ms lookups), document (flexible JSON), wide-column (massive write scale). The interview line: ‘I choose the NoSQL by the query pattern, then take the managed version of that choice.’
+How do you discuss caching in a cloud interview? ||| What to cache (read-heavy, slow-changing), where (CDN edge, app cache, DB query cache), invalidation strategy, and the failure story (thundering herd, stale reads). The interview line: ‘caching is a tradeoff with an invalidation plan, not a speedup.’
+How do you manage data lifecycle and tiering? ||| Classify by access pattern and compliance needs: hot (frequent, fast storage), warm, cold/archive (cheap, slow retrieval). Automate transitions with lifecycle policies; the interview line: ‘every byte has a cost curve — tiering matches cost to value.’
+
+--- QUIZ ---
+Q: RPO and RTO define:
+ choices: ['Backup size', 'How much data loss is tolerable and how fast recovery must complete', 'Cost', 'Region count']
+ answer: 1 explain: RPO bounds data loss (backup frequency); RTO bounds downtime (recovery speed).
+
+Q: Archiving compliance data to glacier-class storage is justified because:
+ choices: ['It’s faster', 'Rarely-accessed retention data shouldn’t pay hot-storage prices', 'It’s encrypted', 'It’s required']
+ answer: 1 explain: Storage cost should follow access frequency; compliance retention is the classic cold tier.
+
+Q: Every caching decision must name:
+ choices: ['The vendor', 'The invalidation strategy — stale data is caching’s permanent tax', 'The size', 'The cost']
+ answer: 1 explain: Cache without an invalidation story is a future incident.
+
+Q: Managed NoSQL’s pitch is:
+ choices: ['Speed', 'Operational burden offloaded — scaling, patching, and failover handled', 'Free', 'No queries']
+ answer: 1 explain: You keep the data-model decisions; the provider keeps the cluster healthy.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-security-controls | Cloud Security Controls | w=1
+======================================================================
+SUMMARY: In this module: IAM: users, roles, policies; Least privilege in practice; Encryption at rest and in transit. Security as the interview's trust test: identity, encryption, and the guardrails that keep an account from becoming a headline.
+
+OBJECTIVES:
+- Understand and apply: IAM: users, roles, policies
+- Understand and apply: least privilege in practice
+- Understand and apply: encryption at rest and in transit
+- Understand and apply: secrets management
+- Understand and apply: logging and audit trails
+
+--- NOTE: What this covers ---
+- IAM: users, roles, policies
+- Least privilege in practice
+- Encryption at rest and in transit
+- Secrets management
+- Logging and audit trails
+- Guardrails: SCPs, policies, config rules
+
+--- NOTE: How Interstitium Labs teaches this ---
+Security as the interview's trust test: identity, encryption, and the guardrails that keep an account from becoming a headline.
+
+--- NOTE: Sources ---
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+- **CISA Resources & Tools** (https://www.cisa.gov/resources-tools) — US government guidance on hardening, incident response, and best practice.
+
+--- CARDS ---
+What are the incident command roles? ||| Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard.
+How do you do IAM least privilege in practice? ||| Roles over users, policies scoped to specific actions on specific resources, no wildcards in production, permission boundaries and SCPs as guardrails, regular access reviews. The interview line: ‘every permission has a reason and an expiry conversation.’
+What makes an API ‘RESTful’ in an interview answer? ||| Resources as nouns in URLs, HTTP verbs as actions, status codes as the contract (200/201/400/401/403/404/429/500), stateless requests, and versioning — then the judgment calls: pagination, filtering, and idempotency.
+How do you manage secrets in the cloud? ||| Dedicated secret managers (rotation, audit, fine-grained access) — never env files in repos, never baked into images. Apps fetch at runtime with their workload role. The interview line: ‘secrets are fetched, not shipped.’
+What are cloud guardrails? ||| Preventive: SCPs and permission boundaries that make bad actions impossible. Detective: Config rules and CloudTrail audit trails that catch what happened. The interview line: ‘guardrails make the safe path the easy path.’
+
+--- QUIZ ---
+Q: CloudTrail’s primary purpose is:
+ choices: ['Metrics', 'An audit log of who did what via the API — the forensic record', 'Cost tracking', 'Alerting']
+ answer: 1 explain: Every API call recorded with identity and time: the basis for incident forensics and compliance.
+
+Q: Baking secrets into container images is wrong because:
+ choices: ['Images are large', 'Anyone with registry access gets the secrets — images are widely shared artifacts', 'It’s slow', 'Secrets expire']
+ answer: 1 explain: Images travel through registries and caches; secrets must be injected at runtime, not build time.
+
+Q: Creating the same resource twice with POST vs PUT: the key difference is:
+ choices: ['POST is faster', 'PUT is idempotent — repeating it has the same effect; POST is not guaranteed to be', 'PUT can’t create', 'There is no difference']
+ answer: 1 explain: Idempotency is the contract: safe retries depend on it.
+
+Q: An IAM policy with Action: ‘*’ on Resource: ‘*’ is:
+ choices: ['Best practice', 'A violation of least privilege — blast radius is the whole account', 'Required for admins', 'Fine for dev']
+ answer: 1 explain: Wildcard-everything grants total control; compromise of those credentials compromises the account.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-arch-build | Guided Cloud Architecture | w=1
+======================================================================
+SUMMARY: In this module: Requirements and constraints; Reference architecture: three-tier on AWS; IaC the whole stack. One complete, costed, failure-reviewed architecture — the artifact you walk an interviewer through when they say 'design something.'
+
+OBJECTIVES:
+- Build and demonstrate: requirements and constraints
+- Build and demonstrate: reference architecture: three-tier on AWS
+- Build and demonstrate: iaC the whole stack
+- Build and demonstrate: cost estimate
+- Build and demonstrate: failure-mode review
+
+--- NOTE: What this covers ---
+- Requirements and constraints
+- Reference architecture: three-tier on AWS
+- IaC the whole stack
+- Cost estimate
+- Failure-mode review
+- Architecture decision record
+
+--- NOTE: How Interstitium Labs teaches this ---
+One complete, costed, failure-reviewed architecture — the artifact you walk an interviewer through when they say 'design something.'
+
+--- NOTE: Sources ---
+- **AWS Well-Architected Framework** (https://docs.aws.amazon.com/well-architected/) — The six pillars and their review questions; the architecture interview's rubric.
+- **Terraform Documentation** (https://developer.hashicorp.com/terraform/docs) — Workflow, state, and module references for the IaC modules.
+
+--- CARDS ---
+How do you discuss Auto Layout? ||| Constraints as linear equations the solver satisfies; intrinsic content size vs explicit constraints; ambiguity and conflicts (and how you read the logs); performance (flatten deep hierarchies). The interview line: ‘I think in constraints, not frames.’
+Walk the classic three-tier cloud architecture. ||| Presentation (ALB + CDN) → application (auto-scaled compute across AZs) → data (managed DB with replicas, caches). Public subnets for the LB, private for app and data. The interview line: ‘tiers are failure and scaling boundaries, not just boxes.’
+How do you present a cloud architecture with cost honesty? ||| IaC for the whole stack (reproducible, reviewable), a cost estimate with assumptions stated (requests, storage, transfer — transfer is the surprise line item), and the tradeoff: ‘here’s what drives the bill and the lever that moves it.’
+What’s an ADR, and why do architects write them? ||| Architecture Decision Record: the decision, context, alternatives considered, and consequences — the ‘why’ behind the design. Paired with a failure-mode review (what breaks, how we degrade). The interview line: ‘ADRs are how architecture survives team turnover.’
+The interviewer asks you to go deep on 'Requirements and constraints'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: A failure-mode review asks:
+ choices: ['What’s the happy path', 'What breaks, how the system degrades, and whether that degradation is acceptable', 'Who’s on call', 'What it costs']
+ answer: 1 explain: Designing for the unhappy path is what separates architecture from diagramming.
+
+Q: Data transfer is the classic cloud cost surprise because:
+ choices: ['It’s expensive per GB', 'Architectures that chat across AZs/regions pay per GB — it compounds silently', 'It’s untracked', 'It’s fixed']
+ answer: 1 explain: Egress and cross-AZ transfer bill by volume; chatty designs pay continuously.
+
+Q: The app tier sits in private subnets because:
+ choices: ['It’s cheaper', 'Only the load balancer needs internet exposure — app servers stay unreachable directly', 'It’s faster', 'NAT requires it']
+ answer: 1 explain: Minimizing internet-facing surface: one controlled entry point, defense in depth behind it.
+
+Q: An ‘ambiguous layout’ warning means:
+ choices: ['A crash', 'The constraints don’t fully determine position/size — the solver is guessing', 'A conflict', 'Slow layout']
+ answer: 1 explain: Ambiguity = under-constrained; conflicts = over-constrained. Different problems, different fixes.
+
+======================================================================
+MODULE cloud-interview-prep--cloud-mock | Cloud Mock Circuit | w=1
+======================================================================
+SUMMARY: In this module: Mock architecture-design round; Mock cloud deep-dive round; 'Design X on AWS' patterns. Simulated cloud loops with the Well-Architected rubric: architecture, deep-dive, and the cost questions candidates forget to prepare.
+
+OBJECTIVES:
+- Apply in professional practice: mock architecture-design round
+- Apply in professional practice: mock cloud deep-dive round
+- Apply in professional practice: 'Design X on AWS' patterns
+- Apply in professional practice: cost and tradeoff narration
+- Apply in professional practice: behavioral round
+
+--- NOTE: What this covers ---
+- Mock architecture-design round
+- Mock cloud deep-dive round
+- 'Design X on AWS' patterns
+- Cost and tradeoff narration
+- Behavioral round
+- The 48-hour pre-interview checklist
+
+--- NOTE: How Interstitium Labs teaches this ---
+Simulated cloud loops with the Well-Architected rubric: architecture, deep-dive, and the cost questions candidates forget to prepare.
+
+--- NOTE: Sources ---
+- **AWS Well-Architected Framework** (https://docs.aws.amazon.com/well-architected/) — The six pillars and their review questions; the architecture interview's rubric.
+- **Azure Architecture Center** (https://learn.microsoft.com/en-us/azure/architecture/) — Reference architectures and design guidance for the architecture modules.
+
+--- CARDS ---
+How do you handle cloud mock rounds (architecture design, deep dives)? ||| Architecture: requirements → reference design → costed, with tradeoffs narrated. Deep dive: one service’s internals (how the LB, the queue, the DB actually work) — mechanism, not marketing. The interview line: ‘I can draw it and I can explain the boxes.’
+‘Design X on AWS’ — how do you narrate cost and tradeoffs? ||| Name the managed services you’d use and why, state the cost drivers honestly (transfer, provisioned capacity), and offer the cheaper alternative with its tradeoff. The interview line: ‘I’ll show you the Cadillac and the Honda, and tell you when each wins.’
+How do behavioral rounds differ for SREs? ||| They probe ownership under pressure: on-call stories, incident decisions, disagreements about risk, and learning from outages — all STAR, all blameless. The interview line: ‘SRE behavioral rounds grade how I act when the pager fires.’
+What’s the final two-week taper? ||| Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise.
+The interviewer asks you to go deep on 'Mock architecture-design round'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: The taper period’s rule is:
+ choices: ['Learn new topics', 'No new material — redrill weak spots, mock timed, rest', 'Stop practicing', 'Memorize solutions']
+ answer: 1 explain: Performance comes from consolidation and recovery, not last-minute breadth.
+
+Q: An SRE behavioral answer should emphasize:
+ choices: ['Technical depth only', 'Decisions under pressure, communication, and systemic learning', 'Heroics', 'Tools']
+ answer: 1 explain: Reliability is a team sport; the graded behaviors are judgment and coordination.
+
+Q: Offering a cheaper alternative with tradeoffs is strong because:
+ choices: ['It saves money', 'It proves you optimize for value, not resume-driven architecture', 'Interviewers are cheap', 'It’s humble']
+ answer: 1 explain: Judgment about cost vs benefit is an architect-level signal.
+
+Q: Cloud deep dives test:
+ choices: ['Certifications', 'Whether you know how the managed service actually works under the abstraction', 'Memory', 'Speed']
+ answer: 1 explain: Abstractions leak; interviewers probe the layer below the console.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-appsec | Application Security Fundamentals | w=1
+======================================================================
+SUMMARY: In this module: The OWASP Top 10, current edition; Injection and cross-site scripting; Authentication and authorization flaws. AppSec as the interview's favorite ambush: the Top 10 taught as mechanisms and fixes, not as a list to recite.
+
+OBJECTIVES:
+- Understand and apply: the OWASP Top 10, current edition
+- Understand and apply: injection and cross-site scripting
+- Understand and apply: authentication and authorization flaws
+- Understand and apply: SSRF and deserialization
+- Understand and apply: secure coding patterns
+
+--- NOTE: What this covers ---
+- The OWASP Top 10, current edition
+- Injection and cross-site scripting
+- Authentication and authorization flaws
+- SSRF and deserialization
+- Secure coding patterns
+- Finding vulnerabilities in code review
+
+--- NOTE: How Interstitium Labs teaches this ---
+AppSec as the interview's favorite ambush: the Top 10 taught as mechanisms and fixes, not as a list to recite.
+
+--- NOTE: Sources ---
+- **OWASP** (https://owasp.org/) — The Top 10 and project pages anchoring the AppSec modules.
+- **OWASP Cheat Sheet Series** (https://cheatsheetseries.owasp.org/) — Concise defensive guidance: auth, crypto, injection, and more.
+
+--- CARDS ---
+How do you discuss the OWASP Top 10 without just listing it? ||| As risk categories with a current example each: injection, broken access control, crypto failures, SSRF, and so on — then pivot to YOUR experience: ‘here’s how I found one in code review and what the fix was.’ Categories frame; stories score.
+XSS types and the fix? ||| Stored (persisted, served to victims), reflected (in a crafted URL), DOM-based (client-side sink). The fix: output encoding/contextual escaping, Content-Security-Policy as defense in depth, and frameworks’ auto-escaping — never innerHTML with untrusted data.
+What auth flaws do you hunt in code review? ||| Broken authentication (credential stuffing without rate limits, weak session handling), broken object-level authorization (IDOR), missing function-level checks, JWT ‘none’ algorithm or missing expiry validation. The interview line: ‘I check every endpoint for ‘who can call this’ — not just the login page.’
+What’s SSRF and why is it nasty in the cloud? ||| Server-Side Request Forgery: the server fetches attacker-chosen URLs — in cloud, that means the instance metadata endpoint (169.254.169.254) and credential theft. Fixes: allowlist egress, validate/sanitize URLs, block metadata IP, IMDSv2. (Deserialization: never unserialize untrusted data — it’s remote code execution.)
+What do you look for in a security code review? ||| Injection sinks, auth checks on every route, crypto done right (no custom algorithms), secrets handling, error messages that don’t leak internals, and dependency versions. The interview line: ‘I review the trust boundaries first — where untrusted data enters.’
+
+--- QUIZ ---
+Q: Error messages that include stack traces are a finding because:
+ choices: ['They’re ugly', 'They leak internals (paths, versions, queries) that aid attackers', 'They’re slow', 'Users dislike them']
+ answer: 1 explain: Information disclosure sharpens every subsequent attack; production errors stay generic.
+
+Q: SSRF’s cloud nightmare scenario is:
+ choices: ['Slow responses', 'Hitting the instance metadata service to steal temporary credentials', 'DNS failure', 'High bills']
+ answer: 1 explain: The metadata endpoint is one hop from the vulnerable server — credentials included.
+
+Q: IDOR (Insecure Direct Object Reference) means:
+ choices: ['SQL injection', 'Changing an object ID in a request accesses another user’s data — missing authorization check', 'XSS', 'CSRF']
+ answer: 1 explain: Authentication proves who you are; authorization must then prove you may touch this object.
+
+Q: The root fix for XSS is:
+ choices: ['Firewalls', 'Context-appropriate output encoding of untrusted data (+ CSP in depth)', 'Longer passwords', 'HTTPS']
+ answer: 1 explain: XSS is code/data confusion in the browser; encoding keeps untrusted data as data.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-network | Network Security in Practice | w=1
+======================================================================
+SUMMARY: In this module: TLS: handshake, certificates, pinning; Firewalls and segmentation; VPNs and zero trust. Network security you can defend aloud: what TLS actually guarantees, how segmentation contains breaches, and where zero trust replaces the moat.
+
+OBJECTIVES:
+- Understand and apply: TLS: handshake, certificates, pinning
+- Understand and apply: firewalls and segmentation
+- Understand and apply: vPNs and zero trust
+- Understand and apply: DNS security
+- Understand and apply: dDoS mitigation
+
+--- NOTE: What this covers ---
+- TLS: handshake, certificates, pinning
+- Firewalls and segmentation
+- VPNs and zero trust
+- DNS security
+- DDoS mitigation
+- Packet-level debugging
+
+--- NOTE: How Interstitium Labs teaches this ---
+Network security you can defend aloud: what TLS actually guarantees, how segmentation contains breaches, and where zero trust replaces the moat.
+
+--- NOTE: Sources ---
+- **CISA Resources & Tools** (https://www.cisa.gov/resources-tools) — US government guidance on hardening, incident response, and best practice.
+- **NIST Cybersecurity Framework** (https://www.nist.gov/cyberframework) — The Identify/Protect/Detect/Respond/Recover frame behind defense-in-depth modules.
+
+--- CARDS ---
+Walk the TLS handshake at interview depth. ||| ClientHello (ciphers) → ServerHello + certificate → key exchange (ECDHE for forward secrecy) → encrypted session. Validate: cert chain to a trusted root, hostname match, expiry — and pinning for high-value mobile/API clients.
+How do you talk about firewalls and segmentation? ||| Defense in depth through zones: public DMZ, app tier, data tier — traffic only flows where explicitly allowed, east-west as well as north-south. The interview line: ‘segmentation turns one breach into a contained incident instead of a network-wide event.’
+What does zero trust actually require? ||| ‘Never trust, always verify’: identity-based access (not network location), least privilege, device posture, continuous verification, micro-segmentation. The interview line: ‘the VPN perimeter is dead; every request authenticates and authorizes.’
+What’s DNS security in practice? ||| DNSSEC for integrity (responses are signed), DoH/DoT for query privacy, monitoring for tunneling/exfiltration (long odd queries), and registrar hygiene (locks, MFA). The interview line: ‘DNS is trusted by everything and verified by almost nothing — I verify.’
+How do you discuss DDoS mitigation? ||| Layers: edge absorption (CDN/anycast scrubbing), rate limiting, WAF rules for L7, and capacity headroom. Distinguish volumetric (bandwidth) from application-layer (expensive requests) — they need different defenses. The interview line: ‘you don’t outrun a botnet; you absorb and filter at the edge.’
+
+--- QUIZ ---
+Q: Wireshark showing repeated TCP retransmissions indicates:
+ choices: ['An app bug', 'Packet loss or an unresponsive peer — a network-path problem, not application logic', 'DNS failure', 'TLS misconfiguration']
+ answer: 1 explain: Retransmits are the transport layer saying ‘my packets aren’t getting through.’
+
+Q: Application-layer (L7) DDoS differs from volumetric in that it:
+ choices: ['Is smaller', 'Uses expensive legitimate-looking requests — filtering needs behavioral/WAF rules, not just bandwidth', 'Is easier', 'Targets DNS only']
+ answer: 1 explain: A few thousand costly requests can hurt more than gigabits of junk; defense is semantic.
+
+Q: DNS tunneling exfiltrates data by:
+ choices: ['Hacking the server', 'Encoding data in DNS queries to an attacker-controlled domain — DNS is rarely filtered', 'Spoofing IPs', 'DDoS']
+ answer: 1 explain: DNS’s ubiquity makes it a covert channel; monitoring query patterns catches it.
+
+Q: Zero trust’s core shift is:
+ choices: ['Stronger firewalls', 'Access decisions from identity and context, not network location', 'No authentication', 'Bigger VPNs']
+ answer: 1 explain: Being inside the network grants nothing; every request proves who/what it is.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-crypto | Cryptography in Practice | w=1
+======================================================================
+SUMMARY: In this module: Symmetric vs asymmetric; Hashing and password storage; TLS in practice. Just enough cryptography to be dangerous in the right direction: the primitives, the password-storage answer, and the never-roll-your-own rule.
+
+OBJECTIVES:
+- Understand and apply: symmetric vs asymmetric
+- Understand and apply: hashing and password storage
+- Understand and apply: TLS in practice
+- Understand and apply: key management and rotation
+- Understand and apply: randomness done right
+
+--- NOTE: What this covers ---
+- Symmetric vs asymmetric
+- Hashing and password storage
+- TLS in practice
+- Key management and rotation
+- Randomness done right
+- What to never build yourself
+
+--- NOTE: How Interstitium Labs teaches this ---
+Just enough cryptography to be dangerous in the right direction: the primitives, the password-storage answer, and the never-roll-your-own rule.
+
+--- NOTE: Sources ---
+- **OWASP Cheat Sheet Series** (https://cheatsheetseries.owasp.org/) — Concise defensive guidance: auth, crypto, injection, and more.
+- **NIST Cybersecurity Framework** (https://www.nist.gov/cyberframework) — The Identify/Protect/Detect/Respond/Recover frame behind defense-in-depth modules.
+
+--- CARDS ---
+Symmetric vs asymmetric crypto — the interview version? ||| Symmetric (AES): one shared key, fast — for bulk data. Asymmetric (RSA/ECDH): key pairs, slow — for key exchange and signatures. Hybrid in practice: asymmetric establishes, symmetric encrypts. The interview line: ‘asymmetric for trust, symmetric for speed.’
+How do you store passwords — the security interview version? ||| Argon2id (or bcrypt) with unique per-user salts and a tuned work factor; pepper via KMS/HSM as defense in depth. Never MD5/SHA-256 alone (too fast — GPUs crack them), never reversible encryption.
+What’s ‘TLS in practice’ beyond the handshake? ||| Version and cipher hygiene (TLS 1.2+, strong suites), cert lifecycle (automation via ACME, expiry monitoring), HSTS, and pinning for high-value clients. The interview line: ‘handshake knowledge gets you hired; lifecycle hygiene keeps you employed.’
+What does real key management look like? ||| Keys in a KMS/HSM, never in code or repos; envelope encryption; rotation on a schedule and on incident; separate keys per environment/data class; audit every use. The interview line: ‘if I can see the key in the repo, we’ve already lost.’
+What does ‘randomness done right’ mean? ||| Cryptographic randomness (CSPRNG: /dev/urandom, secrets module) for keys, tokens, and nonces — never Math.random() or seeded PRNGs for security purposes. The interview line: ‘predictable randomness is no randomness.’
+
+--- QUIZ ---
+Q: Custom crypto is dangerous because:
+ choices: ['It’s slow', 'Subtle flaws survive testing and review — even experts get it wrong; use vetted primitives', 'It’s unpatented', 'It’s hard to type']
+ answer: 1 explain: Cryptographic failures are silent until exploited; peer-reviewed primitives are the only sane choice.
+
+Q: Math.random() is unfit for security tokens because:
+ choices: ['It’s slow', 'It’s a predictable PRNG — outputs can be reconstructed by attackers', 'It’s not random', 'It needs seeding']
+ answer: 1 explain: Non-cryptographic PRNGs have observable state; CSPRNGs are designed to resist prediction.
+
+Q: Key rotation limits damage because:
+ choices: ['It’s compliance theater', 'A leaked key has a bounded useful lifetime', 'It’s faster', 'Keys get stronger']
+ answer: 1 explain: Rotation shrinks the window where a compromised key is valuable.
+
+Q: Certificate expiry monitoring matters because:
+ choices: ['It’s trendy', 'Expired certs are a top-5 outage cause — entirely preventable with automation', 'Browsers require it', 'It’s cheap']
+ answer: 1 explain: Letting certs expire is an unforced outage; ACME + monitoring ends it.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-detection | Detection and Response | w=1
+======================================================================
+SUMMARY: In this module: ATT&CK as a map; Logs that matter; Detection engineering basics. The defender's half of the interview: how attacks map to techniques, what logs catch them, and how response actually runs.
+
+OBJECTIVES:
+- Understand and apply: ATT&CK as a map
+- Understand and apply: logs that matter
+- Understand and apply: detection engineering basics
+- Understand and apply: incident response phases
+- Understand and apply: containment and eradication
+
+--- NOTE: What this covers ---
+- ATT&CK as a map
+- Logs that matter
+- Detection engineering basics
+- Incident response phases
+- Containment and eradication
+- Post-incident review
+
+--- NOTE: How Interstitium Labs teaches this ---
+The defender's half of the interview: how attacks map to techniques, what logs catch them, and how response actually runs.
+
+--- NOTE: Sources ---
+- **MITRE ATT&CK** (https://attack.mitre.org/) — The adversary tactic/technique matrix used in detection modules.
+- **CISA Resources & Tools** (https://www.cisa.gov/resources-tools) — US government guidance on hardening, incident response, and best practice.
+
+--- CARDS ---
+How do you use MITRE ATT&CK in an interview? ||| As a shared map of adversary behavior: tactics (why — initial access, persistence, exfiltration) → techniques (how). Detection engineering maps log sources to techniques and writes detections per technique — coverage measured against the matrix, not vibes.
+What makes detection engineering real? ||| Detections mapped to ATT&CK techniques, built on log sources you’ve verified produce the needed telemetry, tuned for signal (precision/recall on alerts), and tested with simulated adversary activity. The interview line: ‘a detection without a tested log source is a hope.’
+Walk the incident response phases. ||| Preparation → Detection & Analysis → Containment → Eradication → Recovery → Lessons Learned (NIST 800-61). The interview emphasis: contain before you eradicate (don’t tip off the adversary / destroy evidence), and lessons-learned feeds back into preparation.
+How do you tell a breach story in an interview? ||| Blameless framing, the timeline as you understood it then, what the investigation actually showed, the action items with owners — and what you personally changed afterward. The interview line: ‘I talk about what the incident taught the system, not who failed.’
+The interviewer asks you to go deep on 'ATT&CK as a map'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: A breach story should emphasize:
+ choices: ['Who caused it', 'Timeline, evidence-driven findings, and systemic fixes with owners', 'The drama', 'Tool names']
+ answer: 1 explain: Interviewers score learning and systems thinking — blame and heroics score nothing.
+
+Q: Containment comes before eradication because:
+ choices: ['It’s faster', 'You stop the bleeding and preserve evidence before removing the threat', 'It’s optional', 'Eradication is hard']
+ answer: 1 explain: Eradicating first can destroy forensic evidence and alert the adversary mid-investigation.
+
+Q: A detection rule needs tuning because:
+ choices: ['Rules are slow', 'Untuned rules alert on benign activity — alert fatigue kills the SOC’s trust', 'Logs are big', 'Attackers adapt only']
+ answer: 1 explain: Precision matters as much as recall: a noisy rule gets ignored, then the real alert dies in the noise.
+
+Q: ATT&CK’s tactics vs techniques distinction is:
+ choices: ['Marketing', 'Tactics are adversary goals; techniques are how they achieve them', 'Old vs new', 'Windows vs Linux']
+ answer: 1 explain: The hierarchy lets defenders map ‘what could happen’ to ‘what we’d see’ systematically.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-design-review | Secure Design Review | w=1
+======================================================================
+SUMMARY: In this module: Threat modeling: STRIDE lite; Reviewing a sample architecture; Designing authentication for a new service. A full design review on a sample system: threat model, controls, and a written review doc — the artifact security interviews revolve around.
+
+OBJECTIVES:
+- Build and demonstrate: threat modeling: STRIDE lite
+- Build and demonstrate: reviewing a sample architecture
+- Build and demonstrate: designing authentication for a new service
+- Build and demonstrate: secrets and key design
+- Build and demonstrate: writing the security review document
+
+--- NOTE: What this covers ---
+- Threat modeling: STRIDE lite
+- Reviewing a sample architecture
+- Designing authentication for a new service
+- Secrets and key design
+- Writing the security review document
+- Presenting findings like a consultant
+
+--- NOTE: How Interstitium Labs teaches this ---
+A full design review on a sample system: threat model, controls, and a written review doc — the artifact security interviews revolve around.
+
+--- NOTE: Sources ---
+- **OWASP** (https://owasp.org/) — The Top 10 and project pages anchoring the AppSec modules.
+- **HashiCorp Vault Documentation** (https://developer.hashicorp.com/vault/docs) — Secrets engines, auth methods, and dynamic-credential references.
+
+--- CARDS ---
+How do you run a STRIDE threat model quickly? ||| Per component/data flow, ask: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege. Enumerate threats, rank by risk, assign mitigations with owners. The interview line: ‘threat modeling is structured pessimism with a spreadsheet.’
+How do you review a sample architecture in an interview? ||| Systematically: trust boundaries, data flows, failure modes, scaling story, cost drivers — then findings risk-ranked with concrete fixes. The interview line: ‘I review like an attacker and report like a consultant.’
+How do you design authentication for a new service? ||| Threat-model first (what are we protecting from whom), then: phishing-resistant MFA where it matters, short-lived tokens, secure session handling, rate-limited login, and secrets in a manager — never in config. The interview line: ‘auth design starts from the threat model, not the library.’
+How do you present security findings like a consultant? ||| Risk-ranked, evidence-backed, and actionable: finding → impact in business terms → likelihood → concrete remediation with effort estimate. Lead with the criticals, never with a 200-item undifferentiated list.
+The interviewer asks you to go deep on 'Threat modeling: STRIDE lite'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: A security review should lead with:
+ choices: ['All findings alphabetically', 'Risk-ranked criticals with business impact and concrete fixes', 'Tool output', 'Compliance clauses']
+ answer: 1 explain: Decision-makers need prioritization: what burns first, what it costs, how to fix it.
+
+Q: Short-lived access tokens limit damage because:
+ choices: ['They’re faster', 'A stolen token is useful only briefly — the exposure window shrinks', 'They’re smaller', 'Users like logging in']
+ answer: 1 explain: Token lifetime bounds the value of theft; refresh tokens (rotated, bound) handle continuity.
+
+Q: Leading the review with trust boundaries is strong because:
+ choices: ['It’s trendy', 'Security architecture is about where untrusted data crosses — boundaries frame everything', 'It’s fast', 'Diagrams need it']
+ answer: 1 explain: Every finding lives at a boundary; mapping them first organizes the review.
+
+Q: In STRIDE, ‘Repudiation’ threats are about:
+ choices: ['DDoS', 'An attacker denying their actions — fixed with non-repudiation (audit logs, signatures)', 'Spoofing', 'Malware']
+ answer: 1 explain: Without tamper-evident logs, attackers can plausibly deny what they did.
+
+======================================================================
+MODULE security-eng-interview-prep--sec-mock | Security Mock Circuit | w=1
+======================================================================
+SUMMARY: In this module: Mock secure-design round; Mock attacker-mindset round; Mock incident-response round. Simulated security loops: design review, think-like-an-attacker, and incident response — scored like a hiring panel scores them.
+
+OBJECTIVES:
+- Apply in professional practice: mock secure-design round
+- Apply in professional practice: mock attacker-mindset round
+- Apply in professional practice: mock incident-response round
+- Apply in professional practice: behavioral: breach stories
+- Apply in professional practice: the security engineer's portfolio
+
+--- NOTE: What this covers ---
+- Mock secure-design round
+- Mock attacker-mindset round
+- Mock incident-response round
+- Behavioral: breach stories
+- The security engineer's portfolio
+- The 48-hour pre-interview checklist
+
+--- NOTE: How Interstitium Labs teaches this ---
+Simulated security loops: design review, think-like-an-attacker, and incident response — scored like a hiring panel scores them.
+
+--- NOTE: Sources ---
+- **OWASP** (https://owasp.org/) — The Top 10 and project pages anchoring the AppSec modules.
+- **MITRE ATT&CK** (https://attack.mitre.org/) — The adversary tactic/technique matrix used in detection modules.
+
+--- CARDS ---
+How do you handle security mock rounds? ||| Secure design: threat-model aloud (STRIDE-lite), name mitigations per threat. Attacker mindset: think in exploit primitives from the code/architecture. Incident response: contain before eradicate, preserve evidence. The interview line: ‘I show the thinking, not just the answer.’
+How do you tell a breach story in an interview? ||| Blameless framing, the timeline as you understood it then, what the investigation actually showed, the action items with owners — and what you personally changed afterward. The interview line: ‘I talk about what the incident taught the system, not who failed.’
+What goes in a security engineer’s portfolio? ||| Writeups that show method: a threat model, a code-review finding with the fix, a detection rule with its tuning rationale, a post-incident review — sanitized, of course. The interview line: ‘I show how I think, not just what I found.’
+What’s the final two-week taper? ||| Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise.
+The interviewer asks you to go deep on 'Mock secure-design round'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+
+--- QUIZ ---
+Q: The taper period’s rule is:
+ choices: ['Learn new topics', 'No new material — redrill weak spots, mock timed, rest', 'Stop practicing', 'Memorize solutions']
+ answer: 1 explain: Performance comes from consolidation and recovery, not last-minute breadth.
+
+Q: A portfolio writeup’s most valuable element is:
+ choices: ['The vulnerability’s severity', 'The reasoning: how you found it, why it matters, how you’d fix and verify it', 'Screenshots', 'Length']
+ answer: 1 explain: Method transfers across jobs; any single finding doesn’t.
+
+Q: A breach story should emphasize:
+ choices: ['Who caused it', 'Timeline, evidence-driven findings, and systemic fixes with owners', 'The drama', 'Tool names']
+ answer: 1 explain: Interviewers score learning and systems thinking — blame and heroics score nothing.
+
+Q: Thinking aloud in security rounds is graded because:
+ choices: ['It fills time', 'Security judgment is the product — the reasoning is what’s being evaluated', 'It’s polite', 'Answers are short']
+ answer: 1 explain: Two candidates can name the same control; the reasoning separates them.
+
+======================================================================
+MODULE tech-mock-interview-circuit--mock-dsa | DSA Speed Reps | w=1
+======================================================================
+SUMMARY: In this module: The core patterns: two pointers, sliding window; Trees, graphs, and heaps; Dynamic programming basics. DSA as a sport: pattern recognition, timed reps, and the narration habit that turns a solved problem into a passing round.
+
+OBJECTIVES:
+- Practice: the core patterns: two pointers, sliding window
+- Practice: trees, graphs, and heaps
+- Practice: dynamic programming basics
+- Practice: timed sets and the 30-minute bar
+- Practice: complexity analysis aloud
+
+--- NOTE: What this covers ---
+- The core patterns: two pointers, sliding window
+- Trees, graphs, and heaps
+- Dynamic programming basics
+- Timed sets and the 30-minute bar
+- Complexity analysis aloud
+- Reviewing wrong answers
+
+--- NOTE: How Interstitium Labs teaches this ---
+DSA as a sport: pattern recognition, timed reps, and the narration habit that turns a solved problem into a passing round.
+
+--- NOTE: Sources ---
+- **NeetCode** (https://neetcode.io/) — Pattern-organized DSA practice used for the speed-rep modules.
+- **Big-O Cheat Sheet** (https://www.bigocheatsheet.com/) — Complexity quick-reference for the analysis-aloud drills.
+
+--- CARDS ---
+When do you reach for two pointers? ||| Ordered data and pair-finding: opposite ends for sorted two-sum or container-with-most-water; same-direction fast/slow pointers for cycle detection or in-place dedup — O(n) time, O(1) space. Name which variant and why.
+How do you speed-rep DSA fundamentals? ||| Pattern batches under time: trees/graphs/heaps one session (traversals, BFS/DFS, top-k), DP basics the next (1D ladder, knapsack shapes) — always stating complexity aloud. The interview line: ‘speed reps build the reflex; the debrief builds the skill.’
+How do you handle the 30-minute coding bar? ||| Budget aloud: 5 min clarify + plan, 20 min code, 5 min test. Start with brute force stated and its complexity (it buys time and shows honesty), then optimize the bottleneck. A working brute force beats a half-written optimal.
+Why say complexity out loud? ||| Because the interviewer can’t grade silent thought: stating ‘this is O(n) time, O(1) space because…’ at each step turns reasoning into evidence. It’s also your early-warning system — saying it forces you to check it.
+How do you review wrong answers productively? ||| Classify the miss: wrong pattern, bug in implementation, complexity fumble, or time management — then redrill the class, not just the problem. The interview line: ‘I fix the category, not the instance.’
+
+--- QUIZ ---
+Q: Redrilling the miss category (not just the problem) works because:
+ choices: ['It’s faster', 'Interviews test categories under new disguises — the instance never repeats', 'Problems repeat', 'It’s trendy']
+ answer: 1 explain: The next problem will wear a different costume; the category is what transfers.
+
+Q: Stating complexity aloud during coding:
+ choices: ['Wastes time', 'Makes your reasoning gradable and forces self-checks', 'Is optional', 'Slows you down']
+ answer: 1 explain: Verbalized reasoning is scorable reasoning — and it catches your own mistakes mid-stream.
+
+Q: Stating the brute force first is strong because:
+ choices: ['It’s the expected answer', 'It shows honest complexity reasoning and gives a working fallback while you optimize', 'It’s faster', 'Interviewers require it']
+ answer: 1 explain: A correct slow solution on the board beats a blank editor; optimization then has a baseline.
+
+Q: Speed reps should always include stating complexity aloud because:
+ choices: ['It’s tradition', 'The interview grades the analysis as well as the code — rehearse both together', 'It slows you', 'It’s easy']
+ answer: 1 explain: Rehearsing code without narration trains half the interview.
+
+======================================================================
+MODULE tech-mock-interview-circuit--mock-sysdesign | System Design Reps | w=1
+======================================================================
+SUMMARY: In this module: Functional vs non-functional requirements; API and data-model design; Scaling: sharding, caching, queues. Design reps with the classics: requirements first, back-of-envelope math, then architecture defended against its own bottlenecks.
+
+OBJECTIVES:
+- Practice: functional vs non-functional requirements
+- Practice: API and data-model design
+- Practice: scaling: sharding, caching, queues
+- Practice: the classic designs: shortener, feed, chat
+- Practice: bottleneck analysis
+
+--- NOTE: What this covers ---
+- Functional vs non-functional requirements
+- API and data-model design
+- Scaling: sharding, caching, queues
+- The classic designs: shortener, feed, chat
+- Bottleneck analysis
+- Drawing the architecture live
+
+--- NOTE: How Interstitium Labs teaches this ---
+Design reps with the classics: requirements first, back-of-envelope math, then architecture defended against its own bottlenecks.
+
+--- NOTE: Sources ---
+- **System Design Primer** (https://github.com/donnemartin/system-design-primer) — Community-curated system-design study repo: the classic designs and tradeoffs.
+- **AWS Well-Architected Framework** (https://docs.aws.amazon.com/well-architected/) — The six pillars and their review questions; the architecture interview's rubric.
+
+--- CARDS ---
+How do you open a system design round? ||| Requirements before architecture: restate functional requirements (what the system does), then non-functional (scale, latency, availability, consistency). Scoping first proves you design the right system — candidates who draw boxes before asking get failed.
+How do you do API + data-model design in a system-design rep? ||| Resources and verbs first, then the storage that serves the access patterns — the two designed together, since API shape constrains queries and data shape constrains the API. The interview line: ‘the API and the model are one decision, not two.’
+How do you talk about scaling levers? ||| The three moves: shard the data (split the load), cache the hot paths (skip the work), queue the spikes (defer the work). The interview line: ‘scaling is choosing which of the three each bottleneck needs.’
+How do you prep the classic designs (shortener, feed, chat)? ||| One page each: requirements, estimation, the 2–3 key decisions, the scaling story. The classics are classics because they each teach one lesson — shortener: IDs and caching; feed: fan-out; chat: real-time. The interview line: ‘I learn the lesson, not the diagram.’
+How do you do bottleneck analysis in a design round? ||| Follow the request path and ask ‘what breaks first as load grows 10x?’ at each hop — then apply the right lever (shard/cache/queue) to that hop. The interview line: ‘bottlenecks are found by walking the path, not by guessing.’
+
+--- QUIZ ---
+Q: Labeling arrows with what flows matters because:
+ choices: ['It’s pretty', 'Unlabeled arrows hide the data story — the labels are where the design lives', 'It’s required', 'Tools do it']
+ answer: 1 explain: Architecture is data in motion; unlabeled arrows are just boxes.
+
+Q: Asking ‘what breaks first at 10x’ is the right question because:
+ choices: ['It’s dramatic', 'It forces ordered thinking about limits instead of vague ‘it scales’ claims', 'It’s trendy', 'Math is fun']
+ answer: 1 explain: Scaling claims need a named first failure; otherwise they’re wishes.
+
+Q: Learning the lesson (not the diagram) matters because:
+ choices: ['Diagrams are hard', 'Interviewers vary the problem — the transferable insight is what repeats', 'It’s faster', 'Diagrams are banned']
+ answer: 1 explain: The next question won’t be the shortener; the ID-generation insight will recur.
+
+Q: Queues handle spikes while caches handle hot data because:
+ choices: ['They’re similar', 'Queues defer work in time; caches skip work entirely — different bottlenecks, different tools', 'It’s trendy', 'Both are fast']
+ answer: 1 explain: Time-shifting vs work-avoidance: match the lever to the bottleneck’s nature.
+
+======================================================================
+MODULE tech-mock-interview-circuit--mock-behavioral | The Behavioral Story Bank | w=1
+======================================================================
+SUMMARY: In this module: The story bank: ten STAR stories; Conflict, failure, and leadership; 'Why this company'. Behavioral rounds are won before the interview: a bank of rehearsed STAR stories, practiced aloud until they sound unrehearsed.
+
+OBJECTIVES:
+- Apply in professional practice: the story bank: ten STAR stories
+- Apply in professional practice: conflict, failure, and leadership
+- Apply in professional practice: 'Why this company'
+- Apply in professional practice: questions for the interviewer
+- Apply in professional practice: practicing aloud, timed
+
+--- NOTE: What this covers ---
+- The story bank: ten STAR stories
+- Conflict, failure, and leadership
+- 'Why this company'
+- Questions for the interviewer
+- Practicing aloud, timed
+- Recording and reviewing yourself
+
+--- NOTE: How Interstitium Labs teaches this ---
+Behavioral rounds are won before the interview: a bank of rehearsed STAR stories, practiced aloud until they sound unrehearsed.
+
+--- NOTE: Sources ---
+- **Indeed Career Guide: Interviewing** (https://www.indeed.com/career-advice) — Free interview-prep articles: STAR format, common questions, preparation checklists.
+
+--- CARDS ---
+What’s the STAR structure, and why does it work for behavioral rounds? ||| Situation (2 sentences of context), Task (your responsibility), Action (what YOU did — the bulk), Result (measurable outcome + lesson). It works because interviewers score evidence of behavior, and STAR forces a complete evidence unit.
+How do you cover conflict, failure, and leadership stories? ||| One banked STAR story each: conflict (disagreement handled professionally), failure (owned, with the fix), leadership (influence without authority counts). The interview line: ‘I bank all three before the loop — the questions are predictable.’
+How do you answer ‘Why this company?’ convincingly? ||| Specific, researched, and tied to you: their product/technical challenges, something you learned from an employee/blog/post, and how your background maps to their problems. Generic flattery fails; specifics signal genuine interest.
+What questions should you ask the interviewer? ||| Ones that reveal the job’s reality: ‘what does success look like in 6 months?’, ‘what’s the hardest technical problem the team faces?’, ‘how are on-call and incidents handled?’, ‘why is this role open?’ Never ask what the website answers.
+Why practice behavioral answers aloud — and record them? ||| Aloud reveals pacing, filler, and rambling that silent rehearsal hides; recording lets you review like an interviewer. The interview line: ‘my first recording is always 40% too long — that’s what the practice is for.’
+
+--- QUIZ ---
+Q: Recording yourself works because:
+ choices: ['It’s trendy', 'You hear what the interviewer hears — pacing and filler invisible from inside', 'It’s fun', 'Phones exist']
+ answer: 1 explain: Self-perception lies about delivery; the recording doesn’t.
+
+Q: The strongest interviewer question reveals:
+ choices: ['Salary immediately', 'The role’s reality: success criteria, hard problems, team health', 'Their personal life', 'Stock price']
+ answer: 1 explain: You’re interviewing them too: these answers predict your actual day-to-day.
+
+Q: ‘Why this company?’ fails when the answer:
+ choices: ['Is short', 'Could apply to any company — no specifics about them', 'Mentions the product', 'Is honest']
+ answer: 1 explain: Interchangeable answers reveal no research; specifics prove interest.
+
+Q: Banking all three story types before the loop works because:
+ choices: ['It’s trendy', 'Behavioral questions are predictable — preparation converts them to free points', 'Stories are fun', 'It’s required']
+ answer: 1 explain: The question set barely varies; rehearsed stories answer them all.
+
+======================================================================
+MODULE tech-mock-interview-circuit--mock-domains | Domain Deep Dives | w=1
+======================================================================
+SUMMARY: In this module: Your domain: SRE, DevOps, cloud, security; Going one level deeper than the job post; Reading job descriptions as exams. The round candidates bomb: the deep dive. One level deeper than the job post demands, until you can teach the topic back.
+
+OBJECTIVES:
+- Understand and apply: your domain: SRE, DevOps, cloud, security
+- Understand and apply: going one level deeper than the job post
+- Understand and apply: reading job descriptions as exams
+- Understand and apply: targeted deep-dive prep
+- Understand and apply: the 'teach it back' test
+
+--- NOTE: What this covers ---
+- Your domain: SRE, DevOps, cloud, security
+- Going one level deeper than the job post
+- Reading job descriptions as exams
+- Targeted deep-dive prep
+- The 'teach it back' test
+
+--- NOTE: How Interstitium Labs teaches this ---
+The round candidates bomb: the deep dive. One level deeper than the job post demands, until you can teach the topic back.
+
+--- NOTE: Sources ---
+- **AWS Documentation** (https://docs.aws.amazon.com/) — Service references for compute, networking, data, and security primitives.
+- **OWASP** (https://owasp.org/) — The Top 10 and project pages anchoring the AppSec modules.
+
+--- CARDS ---
+How do you prep domain deep dives? ||| Go one level deeper than the job post: for each listed skill, prepare the mechanism, the tradeoff, and a story. Read the JD as an exam — each bullet is a predicted question. The interview line: ‘I prepare the layer below the buzzword.’
+How do you read a job description as an exam? ||| Extract the tested skills: every bullet becomes a predicted question (‘led migration to K8s’ → ‘walk me through that migration’s hardest decision’). Prepare one story and one deep-dive per bullet — the JD is the interviewer’s question list in disguise.
+What’s the ‘teach it back’ test? ||| Explain the concept as if teaching a junior: if you can’t produce a clear, ordered explanation with an example, you don’t know it deeply enough yet. It’s the fastest depth check — and exactly what interviewers do with follow-up questions.
+The interviewer asks you to go deep on 'Your domain: SRE, DevOps, cloud, security'. What answer structure makes you sound senior? ||| Three beats: (1) one-sentence definition, (2) how it works mechanically, (3) when it fits and its key tradeoff — then stop and invite the follow-up. Structure is what separates a senior answer from a recitation.
+For 'Going one level deeper than the job post', what’s the tradeoff question you should answer before the interviewer asks it? ||| Every technique has a cost: name what you gain, what you pay, and when you’d choose the alternative. ‘It depends’ is only a good answer when you then explain what it depends on.
+
+--- QUIZ ---
+Q: The teach-back test works because:
+ choices: ['It’s fun', 'Producing a clear explanation exposes gaps that recognition hides', 'It’s fast', 'Interviewers like it']
+ answer: 1 explain: Recognition ≠ recall ≠ teaching; each level demands deeper organization of knowledge.
+
+Q: Reading a JD as an exam means:
+ choices: ['Memorizing it', 'Turning each bullet into predicted interview questions with prepared stories', 'Applying everywhere', 'Ignoring it']
+ answer: 1 explain: Interviewers probe what’s on the JD; each requirement maps to questions you can pre-answer.
+
+Q: Preparing ‘one level deeper than the job post’ works because:
+ choices: ['It’s trendy', 'Interviewers probe past the bullet into mechanism and judgment — depth is where offers are won', 'Posts are vague', 'It’s fast']
+ answer: 1 explain: Surface answers tie; the deeper layer differentiates.
+
+Q: You’re asked about 'Your domain: SRE, DevOps, cloud, security' and your memory blanks. What’s the strongest recovery?
+ choices: ['Bluff through with confidence', 'State what you do know precisely, name the boundary, and reason from first principles aloud', 'Say ‘I don’t know’ and go silent', 'Change the subject to something you know']
+ answer: 1 explain: Interviewers score honesty + reasoning: a precise partial answer with clear boundaries beats a confident fabrication every time.
+
+======================================================================
+MODULE tech-mock-interview-circuit--mock-full-loop | Full-Loop Simulation | w=1
+======================================================================
+SUMMARY: In this module: Simulated loop day: four rounds; Rotating interviewer roles with a partner; Scoring against a rubric. The dress rehearsal: a full simulated loop day with a partner, rubrics, and a debrief that turns the weakest round into next week's plan.
+
+OBJECTIVES:
+- Demonstrate end to end: simulated loop day: four rounds
+- Demonstrate end to end: rotating interviewer roles with a partner
+- Demonstrate end to end: scoring against a rubric
+- Demonstrate end to end: weakness-targeting week
+- Demonstrate end to end: the final checklist
+
+--- NOTE: What this covers ---
+- Simulated loop day: four rounds
+- Rotating interviewer roles with a partner
+- Scoring against a rubric
+- Weakness-targeting week
+- The final checklist
+- Post-loop debrief template
+
+--- NOTE: How Interstitium Labs teaches this ---
+The dress rehearsal: a full simulated loop day with a partner, rubrics, and a debrief that turns the weakest round into next week's plan.
+
+--- NOTE: Sources ---
+- **System Design Primer** (https://github.com/donnemartin/system-design-primer) — Community-curated system-design study repo: the classic designs and tradeoffs.
+- **NeetCode** (https://neetcode.io/) — Pattern-organized DSA practice used for the speed-rep modules.
+
+--- CARDS ---
+How do you simulate a full interview loop? ||| Four timed rounds back-to-back (coding, design, domain deep-dive, behavioral) with a partner playing interviewer, scored against a rubric, then a weakness-targeting week on the lowest scores. The point: stamina and context-switching are skills you train.
+What are the incident command roles? ||| Incident Commander (decides, coordinates — doesn’t debug), Communications (status updates, stakeholders), Scribe (timeline), plus subject-matter experts debugging. The IC’s job is the incident, not the keyboard.
+How do you score yourself against an interview rubric? ||| Fixed axes per round type: correctness, complexity analysis, communication, time management, tradeoffs named. Score honestly after every mock; the rubric turns feelings into data. The interview line: ‘I grade myself the way they’ll grade me.’
+What’s a weakness-targeting week? ||| One week between full-loop simulation and the real loop, spent only on the lowest rubric scores: targeted drills, one more mock per weak area, then rest. The interview line: ‘the week has one job — raise the floor.’
+What’s the final two-week taper? ||| Stop learning new topics; redrill weak patterns from your debrief log, run full timed mocks, fix sleep, and rehearse your story bank aloud. The taper converts knowledge into performance — cramming new material now only adds noise.
+
+--- QUIZ ---
+Q: The highest-value activity right after a mock is:
+ choices: ['Immediately doing another mock', 'A written debrief naming what leaked, plus a redrill plan', 'Reading solutions', 'Resting a week']
+ answer: 1 explain: Improvement comes from the feedback loop: name the leak, target the redrill, verify next time.
+
+Q: The taper period’s rule is:
+ choices: ['Learn new topics', 'No new material — redrill weak spots, mock timed, rest', 'Stop practicing', 'Memorize solutions']
+ answer: 1 explain: Performance comes from consolidation and recovery, not last-minute breadth.
+
+Q: Targeting the floor (not the ceiling) is right because:
+ choices: ['It’s easier', 'Offers are lost on weak rounds, not won on strong ones — the minimum decides', 'It’s trendy', 'Strong areas don’t matter']
+ answer: 1 explain: Interview loops grade the weakest link; raising it raises the whole loop.
+
+Q: Rubric scoring beats gut feeling because:
+ choices: ['It’s formal', 'It makes weaknesses comparable across mocks — triage needs data', 'It’s faster', 'Interviewers share rubrics']
+ answer: 1 explain: You can’t triage what you haven’t measured.
+

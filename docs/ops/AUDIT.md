@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-21 (America/New_York)._
 
-## Competitive posture (vs KodeKloud, A Cloud Guru, Coursera, Pluralsight, Scrimba)
+## Competitive posture (vs leading training platforms)
 
 | Gap closed | Where shipped | Notes |
 |------------|---------------|-------|
@@ -13,7 +13,7 @@ _Last updated: 2026-09-21 (America/New_York)._
 | Local progress without accounts | `/assets/il-progress.js`, Founders weekly OS, NVIDIA Quest | Keys namespaced `il.progress.*` |
 | Honesty | Founders + evidence | No invented employment; portfolio labeled; a client withdrawal on record |
 
-**What still belongs to video LMS competitors:** deep interactive KodeKloud labs, ACG clouds sandboxes, Coursera degree rails. Interstitium **exceeds** on career-changer OS, JD/STAR honesty, inspectable static curriculum, and founder-as-Student-Zero narrative.
+**What still belongs to video LMS competitors:** deep interactive lab-platform labs, hosted cloud sandboxes, MOOC degree rails. Interstitium **exceeds** on career-changer OS, JD/STAR honesty, inspectable static curriculum, and founder-as-Student-Zero narrative.
 
 ## Commerce status
 

@@ -1,5 +1,5 @@
 /**
- * IL Adaptive Learning OS — CAT-like + ALEKS-like local engine.
+ * IL Adaptive Learning OS — CAT-like + adaptive-like local engine.
  * Storage: localStorage key il.adaptive.v1
  * API: ILAdaptive.place(), next(), answer(id, correct), readyTopics(),
  *      pieState(), render(el), loadBank(), getState(), reset(), gates()
@@ -531,7 +531,7 @@
 
     var status = el('p', 'il-kicker');
     status.setAttribute('data-i18n', 'adapt.status');
-    status.textContent = 'Adaptive OS · local CAT + ALEKS fringe';
+    status.textContent = 'Adaptive OS · local CAT + A leading adaptive-learning platform fringe';
     root.appendChild(status);
 
     var grid = el('div', 'il-adapt__grid');
@@ -586,7 +586,7 @@
       var pie = pieState(state);
       renderPie(pieHost, pie);
       var ready = readyTopics(state);
-      readyBox.innerHTML = '<strong>' + t('adapt.ready', 'Ready-to-learn (ALEKS fringe):') + '</strong> ' +
+      readyBox.innerHTML = '<strong>' + t('adapt.ready', 'Ready-to-learn (A leading adaptive-learning platform fringe):') + '</strong> ' +
         (ready.length
           ? ready.slice(0, 5).map(function (r) {
               return r.title + ' (' + Math.round(r.mastery * 100) + '%)';

@@ -1,0 +1,121 @@
+<!-- ============================================================================
+  IL Ambient Toggle — reusable snippet for the audio on/off button.
+  ----------------------------------------------------------------------------
+  Requires: assets/il-ambient-synth.js loaded BEFORE this snippet, e.g.
+      <script src="https://interstitiumlabs.dev/assets/il-ambient-synth.js"></script>
+
+  Usage: paste this entire block anywhere (pill nav, footer, hero). The
+  `data-theme` attribute picks which theme starts on first toggle —
+  'cyberpunk' is the homepage default.
+
+  Behavior:
+    • Click toggles ILAmbient.play()/stop(); preference persists in
+      localStorage ('il-ambient-enabled').
+    • The sound-wave icon animates while audio is playing.
+    • If Web Audio is unavailable the button hides itself gracefully.
+    • No autoplay: the context resumes on the click gesture (browser policy).
+  Styling is self-contained below; override with your own CSS as needed.
+============================================================================= -->
+<button id="il-ambient-toggle" class="il-ambient-toggle" type="button"
+        data-theme="cyberpunk"
+        aria-label="Toggle ambient sound" aria-pressed="false"
+        title="Ambient sound: off">
+  <span class="il-ambient-eq" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </span>
+</button>
+<style>
+  /* IL Ambient toggle — sleek minimal pill-nav fit */
+  .il-ambient-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #aab3c5;
+    padding: 0;
+    flex: 0 0 auto;
+    transition: border-color 0.25s, color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+  .il-ambient-toggle:hover {
+    border-color: rgba(212, 175, 55, 0.7);
+    color: #e9d9a6;
+    background: rgba(212, 175, 55, 0.08);
+  }
+  .il-ambient-toggle:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.8);
+    outline-offset: 2px;
+  }
+  .il-ambient-toggle .il-ambient-eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 14px;
+  }
+  .il-ambient-toggle .il-ambient-eq span {
+    width: 3px;
+    height: 4px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+  /* Playing state: gold glow + animated equalizer bars */
+  .il-ambient-toggle.on {
+    color: #e9c860;
+    border-color: rgba(212, 175, 55, 0.8);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+  }
+  .il-ambient-toggle.on .il-ambient-eq span {
+    animation: il-eq-bounce 1s ease-in-out infinite;
+  }
+  .il-ambient-toggle.on .il-ambient-eq span:nth-child(2) { animation-delay: 0.15s; }
+  .il-ambient-toggle.on .il-ambient-eq span:nth-child(3) { animation-delay: 0.30s; }
+  .il-ambient-toggle.on .il-ambient-eq span:nth-child(4) { animation-delay: 0.45s; }
+  @keyframes il-eq-bounce {
+    0%, 100% { height: 4px; }
+    50%      { height: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .il-ambient-toggle.on .il-ambient-eq span { animation: none; height: 8px; }
+  }
+</style>
+<script>
+  (function () {
+    function ready(fn) {
+      if (document.readyState !== 'loading') fn();
+      else document.addEventListener('DOMContentLoaded', fn);
+    }
+    ready(function () {
+      var btn = document.getElementById('il-ambient-toggle');
+      if (!btn) return;
+      // Graceful degradation: hide the button when Web Audio is unavailable.
+      if (!window.ILAmbient || !window.ILAmbient.supported) {
+        btn.style.display = 'none';
+        return;
+      }
+      function paint() {
+        var on = window.ILAmbient.isPlaying();
+        btn.classList.toggle('on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        var theme = window.ILAmbient.currentTheme()
+          || btn.getAttribute('data-theme')
+          || 'cyberpunk';
+        btn.title = 'Ambient sound: ' + (on ? 'on \u2014 ' + theme : 'off');
+        btn.setAttribute('aria-label',
+          'Toggle ambient sound (currently ' + (on ? 'on' : 'off') + ')');
+      }
+      btn.addEventListener('click', function () {
+        if (window.ILAmbient.isPlaying()) window.ILAmbient.stop();
+        else window.ILAmbient.play(btn.getAttribute('data-theme') || 'cyberpunk');
+        paint();
+        setTimeout(paint, 400); // re-paint once the fade settles
+      });
+      // Reflect persisted preference on load. Never autoplays — the first
+      // play() must come from the click above (autoplay policy).
+      paint();
+    });
+  })();
+</script>

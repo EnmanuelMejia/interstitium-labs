@@ -1,0 +1,110 @@
+{
+ "id": "il07-neuroai",
+ "code": "IL-07",
+ "title": "NeuroAI: Brain Principles in Computing",
+ "summary": "Computing from the brain outward: computational neuroscience fundamentals (neural coding — rate vs spike; leaky integrate-and-fire and Hodgkin-Huxley; Hebbian learning and STDP), neural modeling and simulation (NEURON compartmental models, Brian2 spiking networks, STDP in code), and NeuroAI proper — transformer attention vs biological attention (the honest analogy), predictive coding and the Bayesian brain, spiking neural networks and neuromorphic hardware.",
+ "objectives": [
+  "Simulate neurons: LIF and Hodgkin-Huxley dynamics.",
+  "Implement Hebbian/STDP learning rules in code.",
+  "State the honest analogies — and disanalogies — between transformers and brains.",
+  "Describe neuromorphic computing: spikes, event-driven hardware, efficiency."
+ ],
+ "notes": [
+  {
+   "title": "Neurons: coding and dynamics",
+   "body": "**Neural coding**: **rate** (spikes/second — the classical view) vs **spike timing** (temporal codes — the precise view). **Leaky integrate-and-fire**: membrane potential integrates inputs, leaks, spikes at threshold, resets — the workhorse model. **Hodgkin-Huxley**: the biophysical gold standard — ion channels (Na+/K+) with gating variables.\n\n**Hebbian learning** ('fire together, wire together') and **STDP** (spike-timing-dependent plasticity: pre-before-post strengthens — causality as a learning rule).\n\n- LIF: three lines of code, endless dynamics — the right abstraction level for networks\n- STDP: the timing window (~20ms) implements causal learning without a teacher\n- Rate vs timing is still debated — hold both views; the exam of reality is unsettled"
+  },
+  {
+   "title": "Simulation: NEURON and Brian2",
+   "body": "**NEURON**: compartmental models — morphology matters (dendrites compute). **Brian2**: spiking networks in Python — define equations as strings, simulate networks of thousands.\n\n**STDP in code**: the weight-update rule on spike pairs — watch a network learn temporal order.\n\n- Compartmental modeling: the dendrite is not a wire — active conductances compute locally\n- Brian2's equation strings: the model IS the code — transparency by construction\n- Simulation discipline: small networks, verified dynamics, then scale — emergent bugs hide in large nets"
+  },
+  {
+   "title": "NeuroAI: honest analogies",
+   "body": "**Transformer attention vs biological attention**: both select information — but softmax over tokens ≠ thalamic gating. The honest analogy: selection mechanisms; the disanalogy: everything about implementation, learning, and energy.\n\n**Predictive coding / Bayesian brain**: cortex as prediction machine — prediction errors drive learning; perception as inference.\n\n**Spiking neural networks and neuromorphic hardware** (Loihi, SpiNNaker): event-driven, sparse, milliwatt-scale — the efficiency argument for spikes.\n\n- Analogy hygiene: say what maps and what doesn't — 'attention is like attention' explains nothing\n- Predictive coding: the framework that unifies perception, action, and learning under prediction error\n- Neuromorphic: spikes are sparse in time — hardware that exploits sparsity wins on power"
+  }
+ ],
+ "cards": [
+  {
+   "front": "LIF model?",
+   "back": "Leaky integrate-and-fire: integrate inputs, leak, spike at threshold, reset."
+  },
+  {
+   "front": "STDP rule?",
+   "back": "Pre-before-post spikes strengthen the synapse — causality as plasticity (~20ms window)."
+  },
+  {
+   "front": "Hebbian slogan?",
+   "back": "Fire together, wire together — correlation-based strengthening."
+  },
+  {
+   "front": "Transformer vs biological attention: honest?",
+   "back": "Both select information; implementations, learning, and energy differ completely."
+  },
+  {
+   "front": "Predictive coding core?",
+   "back": "Brain as prediction machine — prediction errors drive perception and learning."
+  },
+  {
+   "front": "Neuromorphic advantage?",
+   "back": "Event-driven sparsity — spikes cost power only when firing."
+  }
+ ],
+ "quiz": [
+  {
+   "q": "STDP strengthens when?",
+   "choices": [
+    "randomly",
+    "pre-synaptic spike precedes post-synaptic (~20ms)",
+    "post before pre",
+    "never"
+   ],
+   "answer": 1,
+   "explain": "Causal order (pre→post) strengthens — the timing window encodes causality."
+  },
+  {
+   "q": "Why simulate with LIF instead of Hodgkin-Huxley for networks?",
+   "choices": [
+    "accuracy",
+    "computational cost — LIF captures dynamics cheaply at scale",
+    "HH is wrong",
+    "LIF is newer"
+   ],
+   "answer": 1,
+   "explain": "HH is biophysically detailed but expensive; LIF scales to networks."
+  },
+  {
+   "q": "Rate vs temporal coding debate status?",
+   "choices": [
+    "settled for rate",
+    "unsettled — hold both views",
+    "settled for timing",
+    "irrelevant"
+   ],
+   "answer": 1,
+   "explain": "Reality hasn't decided — good scientists hold the uncertainty."
+  },
+  {
+   "q": "Neuromorphic hardware exploits?",
+   "back": "x",
+   "choices": [
+    "dense matrix math",
+    "temporal sparsity of spikes",
+    "high clocks",
+    "big memory"
+   ],
+   "answer": 1,
+   "explain": "Spikes are rare events — event-driven hardware idles between them."
+  },
+  {
+   "q": "Predictive coding says perception is?",
+   "choices": [
+    "passive reception",
+    "inference — prediction corrected by error",
+    "random",
+    "memory replay"
+   ],
+   "answer": 1,
+   "explain": "The brain predicts input; errors update the model — perception as Bayesian inference."
+  }
+ ]
+}

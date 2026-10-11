@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script src="/assets/il-sw-purge.js" defer></script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Cinema — Interstitium Labs</title>
+<meta name="description" content="Watch the Interstitium Labs media reels in a real HTML5 player — the hero cinematic loop and the Noah neural loop."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/cinema/"/>
+<meta property="og:title" content="Cinema — Interstitium Labs"/>
+<meta property="og:description" content="Watch the Interstitium Labs media reels in a real HTML5 player — the hero cinematic loop and the Noah neural loop."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/cinema/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+
+
+
+
+<link rel="stylesheet" href="/assets/il-ux.css"/>
+<link rel="stylesheet" href="/assets/il-hdr.css"/>
+<link rel="stylesheet" href="/assets/il-ultrawide.css"/>
+
+<link rel="stylesheet" href="/assets/il-genahead.css"/>
+<link rel="stylesheet" href="/assets/il-muse.css"/><link rel="stylesheet" href="/assets/il-muse-mobile.css"/><link rel="stylesheet" href="/assets/il-muse-3d.css"/><link rel="stylesheet" href="/assets/il-noah-avatar.css"/><link rel="stylesheet" href="/assets/il-model-panel.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/assets/il-wow.css"/>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<a class="il-skip" href="#main">Skip to content</a>
+<div class="flex min-h-dvh flex-col bg-void text-paper">
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/paths/">Paths</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/cinema/">Videos</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/paths/">Paths</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/cinema/">Videos</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Cinema</li></ol></nav>
+<main id="main" class="il-fluid-type flex-1" data-il-auto-reveal>
+<style>
+  .il-cinema-player{aspect-ratio:16/9;background:#000;border-radius:.9rem;overflow:hidden;position:relative}
+  .il-cinema-player video{width:100%;height:100%;display:block}
+  .il-cinema-player:fullscreen{border-radius:0}
+  .il-cinema-player:fullscreen video{object-fit:contain}
+  .il-cinema-playlist{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .il-cinema-item{display:flex;gap:.9rem;align-items:center;text-align:left;border:1px solid rgba(232,238,245,.12);border-radius:.75rem;padding:.7rem;background:rgba(12,18,34,.6);cursor:pointer;color:inherit;width:100%}
+  .il-cinema-item:hover{border-color:rgba(201,162,39,.55)}
+  .il-cinema-item[aria-current="true"]{border-color:#c9a227;box-shadow:0 0 0 1px #c9a227}
+  .il-cinema-item img{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:.5rem;background:#000;flex:none}
+  .il-cinema-controls{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+</style>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Cinema · Interstitium Labs</p>
+    <h1 class="il-h">Reels, presented properly.</h1>
+    <p class="il-hero__sub">The site&rsquo;s real media, in a real player — the cinematic loops, the Noah neural render, and the twelve themed topic backgrounds. Pick a reel below; fullscreen is one click away.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#reels">Browse the reels</a>
+      <a class="il-btn il-btn--ghost" href="/topics/">Explore topics</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+<section class="mx-auto max-w-6xl px-5 py-10 sm:px-8" id="reels">
+  <h2 class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Now playing</h2>
+  <div class="il-cinema-player" id="cinema-stage">
+    <video id="cinema-video" muted loop playsinline autoplay preload="metadata" poster="/assets/chrome/hero-cinematic-poster.jpg" aria-describedby="cinema-caption" aria-label="Cinematic reel — muted preview, tap for sound and controls">
+      <source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/>
+      <p>Your browser cannot play this video. <a class="text-cyan" href="/assets/chrome/hero-cinematic-loop.mp4">Download the file directly</a>.</p>
+    </video>
+  </div>
+  <div class="il-cinema-controls mt-4">
+    <button type="button" id="cinema-sound" class="inline-flex h-10 items-center rounded-lg border border-gold/40 px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-gold hover:bg-gold/10" aria-pressed="false">Sound: off</button>
+    <button type="button" id="cinema-fs" class="inline-flex h-10 items-center rounded-lg bg-paper px-4 font-display text-[0.65rem] font-medium uppercase tracking-[0.14em] text-void hover:bg-paper/90">Enter fullscreen</button>
+    <p id="cinema-caption" class="text-sm text-muted"><strong class="text-paper" id="cinema-title">Hero cinematic loop</strong> &mdash; <span id="cinema-desc">the cinematic loop behind the site&rsquo;s homepage hero, muted and looping.</span></p>
+  </div>
+  <h2 class="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold" id="reel-selector">Reel selector</h2>
+  <div class="il-cinema-playlist mt-4" role="list">
+    <button type="button" class="il-cinema-item" aria-current="true"
+      data-src="/assets/chrome/hero-cinematic-loop.mp4"
+      data-poster="/assets/chrome/hero-cinematic-poster.jpg"
+      data-title="Hero cinematic loop"
+      data-desc="the cinematic loop behind the site&rsquo;s homepage hero, muted and looping.">
+      <img src="/assets/chrome/hero-cinematic-poster.jpg" alt="" loading="lazy"/ width="1280" height="720">
+      <span><strong class="font-display text-base text-paper">Hero cinematic loop</strong><br/><span class="text-xs text-muted">Site hero background &middot; MP4</span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/noah/noah-neural-loop.mp4"
+      data-poster="/assets/noah/noah-neural-poster.webp"
+      data-title="Noah neural loop"
+      data-desc="a looping render of the Noah neural avatar.">
+      <img src="/assets/noah/noah-neural-poster.webp" alt="" loading="lazy"/ width="5120" height="1440">
+      <span><strong class="font-display text-base text-paper">Noah neural loop</strong><br/><span class="text-xs text-muted">Noah avatar render &middot; MP4</span></span>
+    </button>
+  </div>
+  <h2 class="mt-10 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Themed backgrounds — the twelve topic worlds</h2>
+  <p class="mt-2 text-sm text-muted max-w-3xl">Every topic hub ships with its own cinematic hero background. Preview any of them here, then visit the topic to learn inside that world.</p>
+  <div class="il-cinema-playlist mt-4" role="list">
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/cybersecurity-hero.mp4"
+      data-poster="/assets/topics/cybersecurity-hero.jpg"
+      data-title="Cybersecurity — Mr. Robot"
+      data-desc="the themed hero background for the Cybersecurity topic hub.">
+      <img src="/assets/topics/cybersecurity-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Cybersecurity</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/cybersecurity/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/system-design-hero.mp4"
+      data-poster="/assets/topics/system-design-hero.jpg"
+      data-title="System Design — Cyberpunk"
+      data-desc="the themed hero background for the System Design topic hub.">
+      <img src="/assets/topics/system-design-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">System Design</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/system-design/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/networking-hero.mp4"
+      data-poster="/assets/topics/networking-hero.jpg"
+      data-title="Networking — Tron"
+      data-desc="the themed hero background for the Networking topic hub.">
+      <img src="/assets/topics/networking-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Networking</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/networking/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/cloud-devops-hero.mp4"
+      data-poster="/assets/topics/cloud-devops-hero.jpg"
+      data-title="Cloud &amp; DevOps — Steampunk"
+      data-desc="the themed hero background for the Cloud &amp; DevOps topic hub.">
+      <img src="/assets/topics/cloud-devops-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Cloud &amp; DevOps</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/cloud-devops/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/ai-ml-hero.mp4"
+      data-poster="/assets/topics/ai-ml-hero.jpg"
+      data-title="AI / ML — Ex Machina"
+      data-desc="the themed hero background for the AI/ML topic hub.">
+      <img src="/assets/topics/ai-ml-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">AI / ML</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/ai-ml/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/data-eng-hero.mp4"
+      data-poster="/assets/topics/data-eng-hero.jpg"
+      data-title="Data Engineering — Ocean Deep"
+      data-desc="the themed hero background for the Data Engineering topic hub.">
+      <img src="/assets/topics/data-eng-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Data Engineering</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/data-eng/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/programming-hero.mp4"
+      data-poster="/assets/topics/programming-hero.jpg"
+      data-title="Programming — Vaporwave"
+      data-desc="the themed hero background for the Programming topic hub.">
+      <img src="/assets/topics/programming-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Programming</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/programming/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/databases-hero.mp4"
+      data-poster="/assets/topics/databases-hero.jpg"
+      data-title="Databases — Industrial"
+      data-desc="the themed hero background for the Databases topic hub.">
+      <img src="/assets/topics/databases-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Databases</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/databases/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/linux-systems-hero.mp4"
+      data-poster="/assets/topics/linux-systems-hero.jpg"
+      data-title="Linux Systems — Gold Rush"
+      data-desc="the themed hero background for the Linux Systems topic hub.">
+      <img src="/assets/topics/linux-systems-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Linux Systems</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/linux-systems/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/math-hero.mp4"
+      data-poster="/assets/topics/math-hero.jpg"
+      data-title="Math — Sacred Geometry"
+      data-desc="the themed hero background for the Math topic hub.">
+      <img src="/assets/topics/math-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Math</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/math/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/web-dev-hero.mp4"
+      data-poster="/assets/topics/web-dev-hero.jpg"
+      data-title="Web Dev — Alexandria"
+      data-desc="the themed hero background for the Web Dev topic hub.">
+      <img src="/assets/topics/web-dev-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Web Dev</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/web-dev/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+    <button type="button" class="il-cinema-item" aria-current="false"
+      data-src="/assets/topics/blockchain-hero.mp4"
+      data-poster="/assets/topics/blockchain-hero.jpg"
+      data-title="Blockchain — Ledger"
+      data-desc="the themed hero background for the Blockchain topic hub.">
+      <img src="/assets/topics/blockchain-hero.jpg" alt="" loading="lazy" width="854" height="480">
+      <span><strong class="font-display text-base text-paper">Blockchain</strong><br/><span class="text-xs text-muted">Themed background &middot; MP4 &middot; <a href="/topics/blockchain/" class="text-cyan" style="pointer-events:auto" onclick="event.stopPropagation()">Visit topic →</a></span></span>
+    </button>
+  </div>
+  <noscript>
+    <div class="mt-8 rounded-xl border border-paper/10 bg-panel p-6">
+      <p class="text-sm text-muted">JavaScript is off, so the reel selector is unavailable — but the videos play directly:</p>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li><a class="text-cyan" href="/assets/chrome/hero-cinematic-loop.mp4">Hero cinematic loop (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/noah/noah-neural-loop.mp4">Noah neural loop (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/cybersecurity-hero.mp4">Cybersecurity themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/system-design-hero.mp4">System Design themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/networking-hero.mp4">Networking themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/cloud-devops-hero.mp4">Cloud &amp; DevOps themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/ai-ml-hero.mp4">AI/ML themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/data-eng-hero.mp4">Data Engineering themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/programming-hero.mp4">Programming themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/databases-hero.mp4">Databases themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/linux-systems-hero.mp4">Linux Systems themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/math-hero.mp4">Math themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/web-dev-hero.mp4">Web Dev themed background (MP4)</a></li>
+        <li><a class="text-cyan" href="/assets/topics/blockchain-hero.mp4">Blockchain themed background (MP4)</a></li>
+      </ul>
+    </div>
+  </noscript>
+</section>
+<script src="/assets/il-cinema.js" defer></script>
+</main>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</div>
+<script src="/assets/il-topic-bundle.js" defer></script>
+<script src="/assets/noah-full.js" defer></script>
+</body>
+</html>

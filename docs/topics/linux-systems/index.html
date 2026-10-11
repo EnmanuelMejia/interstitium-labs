@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Linux &amp; Systems — Interstitium Labs</title>
+<meta name="description" content="Own the machine. Linux internals, administration, virtualization, and bare-metal operations — RHEL-grade systems skill."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="https://interstitiumlabs.dev/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/topics/linux-systems/"/>
+<meta property="og:title" content="Linux &amp; Systems — Interstitium Labs"/>
+<meta property="og:description" content="Own the machine. Linux internals, administration, virtualization, and bare-metal operations — RHEL-grade systems skill."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/topics/linux-systems/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ux.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-genahead.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse-mobile.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse-3d.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-noah-avatar.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-model-panel.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-topic-themes.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-cinematic-framework.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-cinematic-devices.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-topic-heroes.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-cinematic-cards.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-wow.css"/>
+</head>
+<body class="min-h-dvh bg-void text-paper" data-topic-theme="industrial" data-audio-topic="linux-systems">
+<a class="il-skip" href="#main">Skip to content</a>
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/topics/">Topics</a></li><li aria-current="page">Linux &amp; Systems</li></ol></nav>
+<!-- Themed hero -->
+<header class="th-hero th-hero--industrial" data-topic-theme="industrial">
+  <div class="th-hero__bg" aria-hidden="true">
+    <div class="th-hero__scrim"></div>
+    <video class="th-hero__video" autoplay muted loop playsinline preload="auto" poster="https://interstitiumlabs.dev/assets/topics/linux-systems-hero.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/topics/linux-systems-hero.mp4" type="video/mp4"/></video>
+    <img src="https://interstitiumlabs.dev/assets/topics/linux-systems-hero.jpg" alt="" aria-hidden="true" class="th-hero__poster" loading="eager" width="1920" height="1080"/>
+    <div class="th-hero__tint"></div>
+<div class="th-hero__fx" data-fx="phosphor" aria-hidden="true"></div><div class="th-hero__fx" data-fx="hazard" aria-hidden="true"></div>
+  </div>
+  <div class="th-hero__decor" aria-hidden="true"><div class="plate"></div></div>
+  <div class="th-hero__content">
+    
+    <p class="th-hero__eyebrow">BAY 09 // SYSTEMS ONLINE</p>
+    <h1 class="th-hero__title">Linux &amp; Systems</h1>
+    <p class="th-hero__tag">Own the machine. Linux internals, administration, virtualization, and bare-metal operations — RHEL-grade systems skill.</p>
+    <div class="th-hero__cta">
+      <a class="il-btn il-btn--gold" href="/university/course?course=il-04-systems-linux-windows-networks">Start learning</a>
+      <a class="il-btn il-btn--ghost" href="/pdf-library/#linux-&-systems">Visual guides</a>
+    </div>
+  </div>
+</header>
+
+<style>
+@media(max-width:640px){
+}
+
+
+</style>
+
+
+<main id="main">
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Courses</h2><div class="cine-grid">
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL-04</span>
+    <span class="cine-card__ribbon">Course</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/university/course?course=il-04-systems-linux-windows-networks">Systems, Linux, Windows & Networks</a></h3>
+    <p class="cine-card__meta">IL-04 · Course</p>
+    <p class="cine-card__desc">Full course — guided path, labs, and assessments.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+</div></section>
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Bootcamps</h2><div class="cine-grid">
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">ACAD-SYS</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/acad-systems/">Acad Systems</a></h3>
+    <p class="cine-card__meta">ACAD-SYS · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">LINUX-ES</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/linux-essentials/">Linux Essentials</a></h3>
+    <p class="cine-card__meta">LINUX-ES · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">RHCSA</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/rhcsa/">Rhcsa</a></h3>
+    <p class="cine-card__meta">RHCSA · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">RHCE</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/rhce/">Rhce</a></h3>
+    <p class="cine-card__meta">RHCE · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">WINDOWS-</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/windows-admin/">Windows Admin</a></h3>
+    <p class="cine-card__meta">WINDOWS- · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">M365</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/m365/">M365</a></h3>
+    <p class="cine-card__meta">M365 · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">M365-END</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/m365-endpoint-admin/">M365 Endpoint Admin</a></h3>
+    <p class="cine-card__meta">M365-END · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">COMPTIA-</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/comptia-a-plus/">Comptia A Plus</a></h3>
+    <p class="cine-card__meta">COMPTIA- · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">COMPTIA-</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/comptia-core/">Comptia Core</a></h3>
+    <p class="cine-card__meta">COMPTIA- · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">COMPTIA-</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/comptia-infra/">Comptia Infra</a></h3>
+    <p class="cine-card__meta">COMPTIA- · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">EMBEDDED</span>
+    <span class="cine-card__ribbon">Bootcamp</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/bootcamps/embedded-interview/">Embedded Interview</a></h3>
+    <p class="cine-card__meta">EMBEDDED · Bootcamp</p>
+    <p class="cine-card__desc">Interactive certification prep bootcamp.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+</div></section>
+<section class="il-section"><div class="il-wrap"><h2 class="th-header">Media &amp; Guides</h2>
+<div class="cine-grid">
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL</span>
+    <span class="cine-card__ribbon">Explore</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/pdf-library/#linux-&-systems">Visual guides</a></h3>
+    <p class="cine-card__meta">IL · Explore</p>
+    <p class="cine-card__desc">Byte-byte-go style animated guides for Linux &amp; Systems.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL</span>
+    <span class="cine-card__ribbon">Explore</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/topics/">Cinema</a></h3>
+    <p class="cine-card__meta">IL · Explore</p>
+    <p class="cine-card__desc">Watch the cinematic reels.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL</span>
+    <span class="cine-card__ribbon">Explore</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/noah/">Noah AI</a></h3>
+    <p class="cine-card__meta">IL · Explore</p>
+    <p class="cine-card__desc">Train with the AI coach on Linux &amp; Systems.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+</div></section>
+<section class="il-section"><div class="il-wrap"><h2 class="th-header" id="learning-paths">Learning paths</h2><div class="cine-grid">
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL</span>
+    <span class="cine-card__ribbon">Path</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/paths/linux-lf-essentials/">Linux LF Essentials+</a></h3>
+    <p class="cine-card__meta">IL · Path</p>
+    <p class="cine-card__desc">Administer a Linux box from the shell, automate with bash, and clear LF Essentials–shaped readiness with lab evidence.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+<article class="cine-card" data-topic-theme="industrial">
+  <div class="cine-card__poster" aria-hidden="true">
+    <span class="cine-card__code">IL</span>
+    <span class="cine-card__ribbon">Path</span>
+    <span class="cine-card__glyph">▤</span>
+  </div>
+  <div class="cine-card__body">
+    <h3 class="cine-card__title"><a href="/paths/linux-rhcsa-spine/">Linux Performance Spine</a></h3>
+    <p class="cine-card__meta">IL · Path</p>
+    <p class="cine-card__desc">Linux fluency that survives SRE on-call screens — deepen with RH/LF for badges.</p>
+    <div class="cine-card__foot">
+      <span class="cine-card__cta">Enter <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+    </div>
+  </div>
+</article>
+</div></section>
+</main>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</div>
+<script src="https://interstitiumlabs.dev/assets/il-topic-bundle.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+
+<script>
+(function(){
+"use strict";
+document.querySelectorAll(");
+  inner.appendChild(btn);
+});
+})();
+</script>
+
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
+
+  <script src="https://interstitiumlabs.dev/assets/il-ambient-synth.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
+</body>
+</html>
+
+</body>
+</html>

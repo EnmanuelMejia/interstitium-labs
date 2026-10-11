@@ -1,0 +1,28 @@
+# Interstitium Labs — edge redirects.
+# Served two ways:
+#   1. This _redirects file (edge, Workers Static Assets).
+#   2. docs/worker.js code-level 301s as the backstop: /os and /proof have no
+#      asset files, so those requests miss the asset bundle and reach the worker.
+# Deploy notes (2026-10-04):
+#   - The API deploy passes explicit bindings, which replaces the auto-injected
+#     assets binding — the deploy config must also include
+#     {"type":"assets","name":"ASSETS"} or env.ASSETS is undefined in worker.js.
+#   - run_worker_first must stay UNSET: when set, the worker serves every
+#     request via env.ASSETS and the _headers file is silently bypassed.
+#   - NOTE: _headers is currently INERT in this API deploy path even unset
+#     (verified 2026-10-04: no CSP/X-Robots-Tag/Cache-Control rules applied).
+#     Per-page <meta http-equiv> carries CSP; worker.js injects X-Robots-Tag
+#     for operator prefixes; meta robots covers admin/ops HTML.
+/os       /learn/     301
+/os/      /learn/     301
+/proof    /evidence/  301
+/proof/   /evidence/  301
+
+# 2026-10-06: 19 stub slugs now 301 at worker.js code level (see STUB_REDIRECTS)
+
+# 2026-10-07: short course slugs (fit social bio link fields, e.g. X 100-char limit)
+# NOTE: _redirects is INERT in the API deploy path (like _headers) — these only
+# work via the code-level 301s in _worker.js + run_worker_first entries.
+/il26     /university/course?course=il-26-data-analyst-certification-senior-mastery 301
+/il27     /university/course?course=il-27-it-infrastructure-specialist-threatlocker-mastery 301
+/il28     /university/course?course=il-28-devsecops-cloud-infrastructure-mastery 301

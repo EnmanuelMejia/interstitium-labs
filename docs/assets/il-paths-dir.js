@@ -13,13 +13,13 @@
     var exceedOnly = root.getAttribute('data-il-paths-filter') === 'exceed';
     var paths = (catalog.paths || []).filter(function (p) {
       if (exceedOnly) return String(p.id || '').indexOf('exceed') >= 0 || String(p.slug || '').indexOf('exceed') >= 0 ||
-        ['k8s-cka-exceed','aws-cloud-ops','linux-rhcsa-spine','platform-sre','iac-terraform-gitops','secops-blue-team','python-systems','aleks-ops-math'].indexOf(p.slug) >= 0;
+        ['k8s-cka-exceed','aws-cloud-ops','linux-rhcsa-spine','platform-sre','iac-terraform-gitops','secops-blue-team','python-systems','adaptive-ops-math'].indexOf(p.slug) >= 0;
       return true;
     });
     // Prefer showing exceed cohort when filter set; else all
     if (exceedOnly) {
       paths = (catalog.paths || []).filter(function (p) {
-        return ['k8s-cka-exceed','aws-cloud-ops','linux-rhcsa-spine','platform-sre','iac-terraform-gitops','secops-blue-team','python-systems','aleks-ops-math'].indexOf(p.slug) >= 0;
+        return ['k8s-cka-exceed','aws-cloud-ops','linux-rhcsa-spine','platform-sre','iac-terraform-gitops','secops-blue-team','python-systems','adaptive-ops-math'].indexOf(p.slug) >= 0;
       });
     }
 

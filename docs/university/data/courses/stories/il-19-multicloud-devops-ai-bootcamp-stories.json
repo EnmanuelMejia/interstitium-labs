@@ -1,0 +1,109 @@
+{
+ "course": "il-19-multicloud-devops-ai-bootcamp",
+ "stories": [
+  {
+   "bridge": "Ten days in April 2005; now it's the memory of the industry. Let's learn Git the way Torvalds built it — distributed, fast, and unforgiving of confusion.",
+   "course": "il-19-multicloud-devops-ai-bootcamp",
+   "figures": [
+    {
+     "dates": "b. 1969",
+     "name": "Linus Torvalds",
+     "role": "Creator of Git"
+    },
+    {
+     "dates": "",
+     "name": "Larry McVoy",
+     "role": "Creator of BitKeeper; revoked Linux's free license in 2005"
+    }
+   ],
+   "hook": "In April 2005, Linus Torvalds lost his version control system — so he wrote a new one in about ten days.",
+   "id": "il-19-multicloud-devops-ai-bootcamp-story-1",
+   "moduleId": "DO-02",
+   "narrative": "For years, Linux kernel development had run on BitKeeper, a proprietary distributed version-control system whose creator, Larry McVoy, had granted the kernel team a free license. It worked beautifully — until April 2005, when a dispute over reverse-engineering led McVoy to revoke the free license. Torvalds suddenly needed a replacement that could handle the kernel's scale and its distributed, email-driven workflow, and nothing available was fast enough. So he wrote his own, with characteristic bluntness about the requirements: it had to be distributed (every developer has the full history), it had to be fast (Torvalds patches the kernel; slowness was disqualifying), and it had to be simple in design even if the interface was rough. He called it git — British slang for an unpleasant person, and, as he joked, named after himself. The first version was usable within days; by June it was managing the kernel. Git's design — content-addressed objects, cryptographic hashes as identity, branches as cheap pointers — was so right that it eventually ate the entire industry: GitHub (2008) made it social, and within a decade centralized version control was legacy. Every commit, branch, and merge in this bootcamp runs on those ten days in April. The lesson Torvalds embodied is pure DevOps: when the tool doesn't exist, build the tool — and build it for the workflow you actually have, not the one the vendors imagine. Git's data model is the reason it won: everything is a content-addressed object, history is a directed acyclic graph, and branches are just movable pointers — simple enough to reason about, powerful enough to scale to millions of commits. GitHub's 2008 insight was social, not technical: make the graph visible, add pull requests, and development becomes collaboration. In this module you'll learn the model first and the commands second, because the model is what makes the commands make sense.",
+   "title": "The story behind Git",
+   "verifiedClaims": [
+    "McVoy revoked BitKeeper's free Linux license in April 2005",
+    "Torvalds wrote Git in about ten days; it managed the kernel by mid-2005",
+    "GitHub launched in 2008"
+   ]
+  },
+  {
+   "bridge": "The lineage is forty years deep; the UX breakthrough was 2013. Now let's learn containers from the image up — and understand what the kernel is actually doing.",
+   "course": "il-19-multicloud-devops-ai-bootcamp",
+   "figures": [
+    {
+     "dates": "b. 1982",
+     "name": "Solomon Hykes",
+     "role": "Founder of dotCloud; creator of Docker"
+    }
+   ],
+   "hook": "In March 2013, Solomon Hykes demoed a tool at PyCon — and containerized the industry.",
+   "id": "il-19-multicloud-devops-ai-bootcamp-story-2",
+   "moduleId": "DO-05",
+   "narrative": "Hykes's company, dotCloud, was a platform-as-a-service struggling to find its market — but its internal tooling for packaging and shipping applications was exceptional. At PyCon 2013 in Santa Clara, Hykes gave a lightning talk demoing Docker, the tool they'd built to solve their own problem: a simple way to package an application and its dependencies into a portable container. The technology underneath wasn't new — it was a forty-year lineage. Unix got chroot in 1979 (a way to lie to a process about where the filesystem ends); FreeBSD got jails in 2000; Solaris got Zones in 2004; Linux got LXC containers in 2008, built on cgroups and namespaces. What Docker added was the developer experience: the Dockerfile, a recipe anyone could read; the image as a shippable artifact; the registry as distribution; the one-command run. Within months the industry converged on it — dotCloud pivoted entirely and renamed itself Docker Inc. — and 'it works on my machine' began its long decline as an excuse. The container didn't change what the kernel could do; it changed what a developer could do in an afternoon. That's the pattern to watch in this bootcamp: the breakthrough is rarely the primitive, it's the packaging. When you write your first Dockerfile in this module, you're using the interface that turned forty years of operating-system research into a five-minute workflow. The Dockerfile's genius was declarative simplicity: a readable recipe anyone could audit, version, and share — infrastructure as text, years before the phrase was standard. The registry completed the loop, making images distributable like packages. For the DevOps engineer, the lesson generalizes: adoption follows the developer experience, not the technology. When you containerize in this module, you're practicing the packaging discipline that turned a kernel feature into an industry. Packaging is the breakthrough; the primitive was waiting thirty-four years for its user interface.",
+   "title": "The story behind Docker",
+   "verifiedClaims": [
+    "Hykes demoed Docker at PyCon in March 2013",
+    "The lineage runs chroot (1979) → FreeBSD jails (2000) → Solaris Zones (2004) → LXC (2008)",
+    "dotCloud pivoted to Docker Inc."
+   ]
+  },
+  {
+   "bridge": "Declare, plan, apply — the loop that replaced clicking. Now let's learn Terraform properly: the language, the state, and the discipline of drift.",
+   "course": "il-19-multicloud-devops-ai-bootcamp",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Mitchell Hashimoto",
+     "role": "Co-founder of HashiCorp; creator of Vagrant and Terraform"
+    },
+    {
+     "dates": "",
+     "name": "Armon Dadgar",
+     "role": "Co-founder of HashiCorp"
+    }
+   ],
+   "hook": "In 2014, two HashiCorp founders bet that infrastructure should be declared, not clicked.",
+   "id": "il-19-multicloud-devops-ai-bootcamp-story-3",
+   "moduleId": "DO-03",
+   "narrative": "Mitchell Hashimoto and Armon Dadgar had met at the University of Washington and founded HashiCorp in 2012 on a simple thesis: the datacenter needed better tools, built the open-source way. Hashimoto had already created Vagrant (2010), which let developers declare virtual machines in a file — and watched it become essential. Terraform, launched in 2014, generalized the idea to everything: declare your desired infrastructure — servers, networks, DNS, databases — in a human-readable language, and let the tool figure out how to get there. The workflow became the industry's liturgy: write the declaration, run plan to see what will change, run apply to make it so. The state file — Terraform's memory of what exists — became the profession's shared obsession, and managing it (backends, locking, drift detection) became a discipline of its own. The bet underneath was philosophical: infrastructure is too important to be built by clicking through consoles, because clicks aren't reviewed, versioned, or repeatable. Code is. Terraform didn't invent infrastructure as code — CFEngine and Puppet came earlier — but it made it cloud-native, provider-agnostic, and declarative at exactly the moment the cloud exploded. Every plan/apply cycle you'll run in this module is that 2014 bet, executing. The console is for reading; the code is for building. The state file became the profession's shared obsession — and its sharpest lessons: state is the source of truth the plan diffs against, so backends, locking, and drift detection aren't trivia, they're the job. Terraform's provider ecosystem turned it into a universal adapter. In this module you'll learn the full discipline: modules for reuse, workspaces for environments, and the humility to run plan before apply, every single time. The console is for reading. The code is for building — and the plan is for thinking before you build.  Run plan before apply — every time, no exceptions.",
+   "title": "The story behind Terraform",
+   "verifiedClaims": [
+    "HashiCorp was founded in 2012 by Hashimoto and Dadgar",
+    "Terraform launched in 2014; Hashimoto created Vagrant in 2010",
+    "The plan/apply workflow with state files became the IaC standard"
+   ]
+  },
+  {
+   "bridge": "2009 gave the movement its name; this bootcamp gives you its practices. Let's start where Debois started — with culture, before tools.",
+   "course": "il-19-multicloud-devops-ai-bootcamp",
+   "figures": [
+    {
+     "dates": "",
+     "name": "John Allspaw",
+     "role": "Flickr operations engineer; co-presented the 2009 Velocity talk"
+    },
+    {
+     "dates": "",
+     "name": "Paul Hammond",
+     "role": "Flickr engineer; co-presented the 2009 Velocity talk"
+    },
+    {
+     "dates": "",
+     "name": "Patrick Debois",
+     "role": "Organizer of the first DevOpsDays (Ghent, 2009)"
+    }
+   ],
+   "hook": "In June 2009, two Flickr engineers told a conference they deployed more than ten times a day — and broke the industry's brain.",
+   "id": "il-19-multicloud-devops-ai-bootcamp-story-4",
+   "moduleId": "DO-01",
+   "narrative": "John Allspaw and Paul Hammond took the stage at O'Reilly's Velocity conference in San Jose with a talk titled '10+ Deploys Per Day: Dev and Ops Cooperation at Flickr.' Their message was heretical in 2009: developers and operations, instead of throwing work over a wall at each other, could collaborate so closely — with automated testing, incremental changes, and shared responsibility — that deploying became routine, boring, safe. Ten times a day. The audience was stunned; the traditional model held that deploys were dangerous events to be minimized. Watching via stream in Belgium, Patrick Debois — an operations engineer frustrated by the same wall — had an idea: get the two tribes in a room. He organized DevOpsDays in Ghent that October 2009, and the portmanteau stuck: DevOps. Andrew Shafer, who had tried and failed to organize a similar Birds of a Feather session at Velocity, became a co-conspirator. What followed was a decade of transformation: CALMS (Culture, Automation, Lean, Measurement, Sharing) as the movement's values, the 'three ways' of The Phoenix Project (2013), and the gradual realization that DevOps was never really about tools — it was about the wall. This bootcamp's first module is culture for exactly that reason: the pipelines, the containers, and the clouds you'll master are the easy part. The hard part, then and now, is getting dev and ops — and security, and the business — to act like one team with one goal. Flickr showed it was possible. Ghent gave it a name. Your job is to live it. The Phoenix Project (2013) novelized the movement for managers, and the \"three ways\" — flow, feedback, continual learning — gave it doctrine. But Debois's original insight remains the sharpest: the wall between dev and ops was organizational, and tools alone don't demolish it. Your bootcamp starts with culture because 2009's lesson endures: automate the pipeline, but integrate the people first.",
+   "title": "The story behind DevOps",
+   "verifiedClaims": [
+    "Allspaw and Hammond's '10+ Deploys Per Day' talk was at Velocity, June 2009",
+    "Debois organized the first DevOpsDays in Ghent, October 2009",
+    "CALMS became the movement's value framework"
+   ]
+  }
+ ]
+}

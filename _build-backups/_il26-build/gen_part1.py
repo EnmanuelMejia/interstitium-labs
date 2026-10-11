@@ -1,0 +1,114 @@
+# Part 1: IL26-M41 DuckDB, IL26-M42 Polars vs pandas
+import json
+
+M41 = {
+  "id": "IL26-M41",
+  "code": "IL-26",
+  "title": "DuckDB for Analytics",
+  "summary": "DuckDB is an in-process analytical SQL engine: install it with one pip command, then run fast OLAP queries directly on CSV and Parquet files without standing up a server. This module covers DuckDB's columnar design, zero-copy pandas/Polars handoff, direct file querying, window functions, and the habits that keep an embedded database honest at interview scale.",
+  "objectives": [
+    "Install DuckDB and run analytical SQL against CSV and Parquet files with no server setup",
+    "Explain why a columnar, vectorized, in-process engine is faster than row-based databases for aggregation",
+    "Move data between DuckDB, pandas, and Polars with zero-copy reads (df(), pl())",
+    "Use DuckDB window functions, CTEs, and pivots to answer multi-step business questions in one query",
+    "Apply DuckDB result-caching and export patterns (COPY TO Parquet) in a repeatable local workflow"
+  ],
+  "notes": [
+    {
+      "title": "Why DuckDB exists: the embedded analytics gap",
+      "body": "- Before DuckDB, the analyst's choices were: a heavyweight server database (Postgres, SQL Server) for real SQL, or an in-memory dataframe for speed — nothing fast, SQL-first, and zero-infrastructure in between.\n- DuckDB fills that gap: a single library (pip install duckdb) that runs the full analytical SQL dialect inside your Python process, on files sitting on disk.\n- It is columnar (stores each column contiguously) and vectorized (processes data in batches, not row by row), which is why aggregations over millions of rows feel instant while the same query crawls on a row-store.\n- Mental model: SQLite is to row-store OLTP what DuckDB is to column-store OLAP. SQLite for transactions, DuckDB for analytics.\n- Senior-bar framing: know when embedded is enough (exploration, interview take-homes, CI data tests) and when you graduate to a warehouse (concurrent writers, governed access, TB-scale storage).\n\n```python\n# One install, zero servers, query a CSV like a table\nimport duckdb\ncon = duckdb.connect()  # in-memory; pass a filename for a persistent file DB\nresult = con.execute(\"\"\"\n  SELECT region, COUNT(*) AS orders, SUM(amount) AS revenue\n  FROM read_csv('orders.csv', header=true)\n  GROUP BY region ORDER BY revenue DESC\n\"\"\").df()\nprint(result)\n```"
+    },
+    {
+      "title": "Zero-copy handoff with pandas and Polars",
+      "body": "- The killer feature for analysts: DuckDB can query your existing dataframes directly — `FROM my_df` — and hand results back as a dataframe with no serialization cost in the common paths.\n- Going SQL-first keeps logic in one language (SQL) and lets the engine optimize; going dataframe-first keeps you in Python when the logic is procedural. DuckDB lets you mix per-query.\n- Register a dataframe once (`con.register('df', pandas_df)`) or reference it by variable name inline.\n- Read results as pandas with `.df()`, as Polars with `.pl()`, as Arrow with `.arrow()` — pick the frame your downstream code expects.\n\n```python\nimport duckdb, pandas as pd\norders = pd.DataFrame({\n  'order_id': [1, 2, 3, 4],\n  'region': ['East', 'West', 'East', 'West'],\n  'amount': [120.0, 85.5, 200.0, 40.0]\n})\ncon = duckdb.connect()\n# Query the pandas dataframe with SQL, get a pandas dataframe back\navg_by_region = con.execute(\n  \"SELECT region, AVG(amount) AS avg_order FROM orders GROUP BY region\"\n).df()\n# Same query, Polars output\navg_pl = con.execute(\n  \"SELECT region, AVG(amount) AS avg_order FROM orders GROUP BY region\"\n).pl()\n```"
+    },
+    {
+      "title": "Window functions and multi-step questions in one query",
+      "body": "- DuckDB ships a full modern SQL dialect: window functions, CTEs, QUALIFY (filter on window results without a subquery), and PIVOT.\n- QUALIFY is the idiom interviewers love: rank-then-filter in a single pass, e.g. 'top 3 products per category by revenue'.\n- PIVOT turns long-format category rows into wide-format columns for dashboard-shaped output — do it in SQL so the BI tool receives a tidy table.\n- Worked example pattern: CTE builds monthly revenue, window function adds running total and month-over-month growth, QUALIFY keeps the top months.\n\n```sql\n-- Running totals + MoM growth + top-3 months, one query\nWITH monthly AS (\n  SELECT date_trunc('month', order_date) AS month,\n         SUM(amount) AS revenue\n  FROM read_csv('orders.csv', header=true)\n  GROUP BY 1\n)\nSELECT month, revenue,\n       SUM(revenue) OVER (ORDER BY month) AS running_revenue,\n       revenue / LAG(revenue) OVER (ORDER BY month) - 1 AS mom_growth\nFROM monthly\nQUALIFY ROW_NUMBER() OVER (ORDER BY revenue DESC) <= 3\nORDER BY revenue DESC;\n```\n\n```sql\n-- PIVOT: one column per region for a dashboard feed\nPIVOT read_csv('orders.csv', header=true)\nON region USING SUM(amount) GROUP BY date_trunc('month', order_date);\n```"
+    },
+    {
+      "title": "Repeatable local workflow: persist, cache, export",
+      "body": "- Default `duckdb.connect()` is in-memory: results vanish when the process ends. Pass a filename (`duckdb.connect('analytics.duckdb')`) and tables persist between sessions.\n- Pattern: ingest raw files once into a persistent `.duckdb` file, then run all exploration against the stored tables — faster than re-parsing CSVs every run and reproducible.\n- `COPY (SELECT ...) TO 'out.parquet' (FORMAT PARQUET)` writes query results to Parquet for downstream tools (dbt, Tableau extracts, S3 uploads).\n- ATTACH lets one query read from another database file — useful for joining a staging DB with a curated DB without copying data.\n- Discipline: the same data-validation habits apply — check row counts and nulls after ingest, because a local file DB has no warehouse governance watching it for you.\n\n```python\nimport duckdb\ncon = duckdb.connect('analytics.duckdb')\n# Ingest once, query many times\ncon.execute(\"CREATE OR REPLACE TABLE orders AS FROM read_csv('orders.csv', header=true)\")\nprint(con.execute('SELECT COUNT(*), COUNT(amount) FROM orders').fetchall())  # null check\n# Export a curated table for the BI layer\ncon.execute(\"COPY (SELECT * FROM orders WHERE amount > 0) TO 'orders_clean.parquet' (FORMAT PARQUET)\")\n```"
+    }
+  ],
+  "cards": [
+    {"front": "DuckDB in one sentence", "back": "An in-process, columnar, vectorized analytical SQL engine: one library install, no server, queries CSV/Parquet/dataframes directly."},
+    {"front": "DuckDB vs SQLite mental model", "back": "SQLite is row-store OLTP (transactions); DuckDB is column-store OLAP (aggregations). Both embedded, different workloads."},
+    {"front": "Why columnar storage wins for analytics", "back": "Columns stored contiguously; aggregations scan only the columns they need, in vectorized batches, skipping irrelevant data."},
+    {"front": "Query a pandas dataframe with SQL", "back": "con.execute('SELECT ... FROM my_df') — DuckDB sees Python-scope dataframes as tables; return with .df(), .pl(), or .arrow()."},
+    {"front": "What QUALIFY does", "back": "Filters on window-function results without a wrapping subquery: e.g. QUALIFY ROW_NUMBER() OVER (PARTITION BY cat ORDER BY rev DESC) <= 3."},
+    {"front": "PIVOT use case", "back": "Reshapes long category rows into wide columns (one per region/channel) in SQL, producing dashboard-shaped output."},
+    {"front": "In-memory vs file-backed connect()", "back": "duckdb.connect() is in-memory (vanishes on exit); duckdb.connect('file.duckdb') persists tables across sessions."},
+    {"front": "COPY TO PARQUET pattern", "back": "COPY (SELECT ...) TO 'out.parquet' (FORMAT PARQUET) — exports curated query results for dbt, BI extracts, or cloud upload."}
+  ],
+  "quiz": [
+    {"q": "Why is DuckDB typically faster than a row-store database for a SUM over 10M rows?", "choices": ["It stores each column contiguously and processes data in vectorized batches, scanning only needed columns", "It automatically creates indexes on every column at import", "It runs queries on the GPU by default", "It compresses SQL text before execution"], "answer": 0, "explain": "Columnar layout + vectorized execution is the core performance story: minimal I/O, batch CPU processing. (Module 41)"},
+    {"q": "You have a pandas dataframe `df` and want the average of column `x` by `g` using DuckDB, returned as pandas. Which is correct?", "choices": ["con.execute('SELECT g, AVG(x) FROM df').to_sql()", "duckdb.query(df).mean('x')", "con.execute('SELECT g, AVG(x) AS a FROM df GROUP BY g').df()", "con.register('df'); con.sql('AVG(x) BY g')"], "answer": 2, "explain": "Dataframes in scope are queryable as tables; .df() returns a pandas frame. (Module 41)"},
+    {"q": "What does QUALIFY ROW_NUMBER() OVER (ORDER BY revenue DESC) <= 3 do?", "choices": ["Deletes all but 3 rows from the table", "Limits the window frame to 3 preceding rows", "Returns the 3rd row only", "Keeps the top 3 rows by revenue without needing a subquery around the window function"], "answer": 3, "explain": "QUALIFY filters on window results directly — the idiom for top-N-per-group in one pass. (Module 41)"},
+    {"q": "An analyst re-parses a 2GB CSV on every script run and complains about speed. Best DuckDB-native fix?", "choices": ["Increase the CSV header row count", "Ingest once into a persistent .duckdb file (or Parquet) and query the stored table thereafter", "Switch to row-by-row Python iteration", "Rename the file with a .parquet extension"], "answer": 1, "explain": "Parse once, store in an efficient format, query many times — the repeatable local workflow. (Module 41)"},
+    {"q": "Which statement about DuckDB's deployment model is TRUE?", "choices": ["It is a client-server database requiring a running daemon", "It runs in-process as a library with no server to manage", "It only runs inside Docker containers", "It requires a cloud account to execute queries"], "answer": 1, "explain": "In-process = no server, no daemon, no account; it lives inside your Python/R process. (Module 41)"},
+    {"q": "You need monthly revenue pivoted into one column per region for a dashboard. Best approach?", "choices": ["Export raw rows and pivot manually in the dashboard designer every refresh", "Write one query per region and UNION them by hand each month", "PIVOT the query ON region USING SUM(amount), feeding the BI tool a wide tidy table", "Sort by region and hope the BI tool pivots automatically"], "answer": 2, "explain": "PIVOT in SQL produces the wide shape once, reproducibly, instead of manual per-refresh work. (Module 41)"},
+    {"q": "A teammate says 'DuckDB replaces our data warehouse.' The senior-level response is:", "choices": ["Agree — embedded engines handle all warehouse workloads", "Agree — but only on Tuesdays", "Disagree — DuckDB cannot run SQL", "Disagree — warehouses add concurrent writers, governed access, and TB-scale managed storage that embedded DuckDB does not"], "answer": 3, "explain": "Embedded is right for exploration/take-homes/CI; warehouses earn their keep on concurrency, governance, and scale. (Module 41)"},
+    {"q": "After loading orders.csv you want to verify data quality before analysis. The minimal honest check is:", "choices": ["SELECT COUNT(*), COUNT(amount) FROM orders — compare total rows vs non-null amounts", "SELECT * LIMIT 5 and eyeball it", "Assume the CSV is clean because it loaded without error", "Check the file size in the OS"], "answer": 0, "explain": "Row count vs non-null count per key column catches silent nulls; loading without error proves nothing about content. (Module 41)"}
+  ],
+  "weight": 1,
+  "prerequisiteFor": ["IL26-M42", "IL26-M43", "IL26-M44", "IL26-TL-02", "IL26-TL-03"]
+}
+
+M42 = {
+  "id": "IL26-M42",
+  "code": "IL-26",
+  "title": "Polars vs pandas",
+  "summary": "pandas is the incumbent analysts know; Polars is the fast, lazy, multithreaded challenger. This module teaches both honestly: where pandas still wins (ecosystem, familiarity), where Polars wins (speed, memory, query optimization), and the decision rules for choosing — plus the syntax mapping so you can read and write either.",
+  "objectives": [
+    "Contrast pandas' eager row-oriented model with Polars' lazy, columnar, multithreaded model",
+    "Translate core pandas operations (filter, groupby, join, assign) into Polars syntax and back",
+    "Explain lazy evaluation and query optimization (predicate/projection pushdown) in plain terms",
+    "Choose between pandas and Polars using explicit decision rules (ecosystem vs speed vs memory)",
+    "Profile a slow transformation and identify whether the bottleneck is Python loops, memory copies, or algorithm choice"
+  ],
+  "notes": [
+    {
+      "title": "Two engines, two philosophies",
+      "body": "- pandas (2008): eager — every operation executes immediately and materializes a result; single-threaded; built on NumPy; the biggest API surface and ecosystem in data Python.\n- Polars (2020): lazy-first — `.lazy()` builds a query plan that the optimizer rewrites before executing; multithreaded in Rust; columnar Arrow-based memory.\n- The practical consequence: a 5-step pandas chain runs 5 passes over the data; Polars' optimizer can fuse them, skip unneeded columns, and push filters down to the file scan.\n- Neither is 'the winner'. pandas wins on ecosystem (every library accepts a DataFrame) and hiring-manager familiarity; Polars wins on raw speed, memory, and large-file handling.\n\n```python\nimport pandas as pd\n# pandas: eager, each step runs now\npdf = pd.read_csv('orders.csv')\nout = (pdf[pdf['amount'] > 100]\n           .groupby('region')['amount'].sum()\n           .reset_index())\n\nimport polars as pl\n# Polars: lazy plan, optimized, then executed\nout2 = (pl.scan_csv('orders.csv')\n          .filter(pl.col('amount') > 100)\n          .group_by('region')\n          .agg(pl.col('amount').sum())\n          .collect())\n```"
+    },
+    {
+      "title": "Syntax mapping: read one, write the other",
+      "body": "- The 80% mapping analysts need: `df[df.x > 1]` → `df.filter(pl.col('x') > 1)`; `.groupby().agg()` → `.group_by().agg()`; `.merge()` → `.join()`; `df['new'] = ...` → `.with_columns(...)`.\n- Polars expressions (`pl.col('x').str.to_uppercase().alias('X')`) compose inside a single `with_columns` — one pass, many new columns; pandas assignment is one pass per column.\n- Nulls: pandas uses NaN/None/NaT inconsistently; Polars has a strict null type — `fill_null`, `drop_nulls`, and `is_null()` behave uniformly, which reduces silent bugs.\n- Strings and dates have dedicated namespaces (`.str`, `.dt`) in both, but Polars' are vectorized in Rust with no Python-loop fallback temptation.\n\n```python\nimport polars as pl\n# One with_columns, many derived columns, single pass\nclean = (pl.read_csv('orders.csv')\n  .with_columns([\n    pl.col('region').str.to_uppercase().alias('region'),\n    pl.col('order_date').str.to_date('%Y-%m-%d').alias('order_date'),\n    pl.col('amount').fill_null(0).alias('amount'),\n  ])\n  .filter(pl.col('amount') >= 0))\n\n# Join: explicit keys, explicit how — same idea as pandas merge\njoined = clean.join(customers, on='customer_id', how='left')\n```"
+    },
+    {
+      "title": "Lazy evaluation and what the optimizer does for you",
+      "body": "- Lazy = describe the computation, execute later. `scan_csv` + transforms + `.collect()` lets Polars see the whole plan before touching data.\n- Predicate pushdown: a `.filter()` written after the scan is pushed INTO the file read, so rows are skipped during parsing instead of loaded then dropped.\n- Projection pushdown: only columns used downstream are read from disk — a 50-column CSV with a 3-column query reads 3 columns.\n- `.explain()` prints the optimized plan — the single best debugging tool when a query is slow: read the plan before guessing.\n- Interview framing: 'lazy evaluation lets the engine optimize the whole query graph, like a SQL planner, instead of executing each step blindly.'\n\n```python\nimport polars as pl\nq = (pl.scan_csv('orders.csv')\n       .filter(pl.col('amount') > 100)   # pushed into the scan\n       .select(['region', 'amount']))     # only 2 columns read\nprint(q.explain())  # read the optimized plan\nresult = q.collect()  # nothing ran until this line\n```"
+    },
+    {
+      "title": "Decision rules: which frame, when",
+      "body": "- Choose pandas when: the downstream library demands it (statsmodels, many sklearn paths), the team standard is pandas, or the data fits comfortably in memory and speed is fine.\n- Choose Polars when: files are large relative to RAM, the pipeline is slow and profiling blames pandas, you want multithreading for free, or you are writing new ETL.\n- Never choose on hype: benchmark YOUR query on YOUR data. A 10k-row groupby will not care which engine you use; a 100M-row one will.\n- Migration tactic: new modules in Polars, old code untouched; convert at the boundary (`.to_pandas()` / `pl.from_pandas()`) rather than big-bang rewrites.\n- The meta-skill interviewers test: can you reason about the tradeoff (ecosystem vs performance vs team norms) instead of reciting a preference?\n\n```python\nimport time, polars as pl, pandas as pd\n# Benchmark YOUR workload, not a blog's\nt0 = time.perf_counter()\n(pd.read_csv('orders.csv').groupby('region')['amount'].sum())\npandas_s = time.perf_counter() - t0\nt0 = time.perf_counter()\n(pl.scan_csv('orders.csv').group_by('region').agg(pl.col('amount').sum()).collect())\npolars_s = time.perf_counter() - t0\nprint(f'pandas {pandas_s:.2f}s  polars {polars_s:.2f}s')\n```"
+    }
+  ],
+  "cards": [
+    {"front": "pandas execution model", "back": "Eager: every operation executes immediately and materializes a result; single-threaded; NumPy-backed."},
+    {"front": "Polars execution model", "back": "Lazy-first query plan, optimized before execution; multithreaded Rust core; Arrow columnar memory."},
+    {"front": "Predicate pushdown in plain English", "back": "A filter written after the file scan is pushed into the read itself, so unwanted rows are skipped during parsing."},
+    {"front": "Projection pushdown in plain English", "back": "Only columns used downstream are read from disk — a 3-column query on a 50-column file reads 3 columns."},
+    {"front": "Polars equivalent of df[df.x > 1]", "back": "df.filter(pl.col('x') > 1) — expressions compose inside filter/with_columns/select."},
+    {"front": "Polars equivalent of pandas merge", "back": ".join(other, on='key', how='left') — explicit keys and join type, same idea."},
+    {"front": "What .explain() shows", "back": "The optimizer's query plan after pushdowns and fusion — read it before guessing why a query is slow."},
+    {"front": "When pandas is still the right call", "back": "Downstream library requires it, team standard, data fits in memory comfortably, or speed is already fine — ecosystem beats hype."}
+  ],
+  "quiz": [
+    {"q": "The core architectural difference between pandas and Polars is:", "choices": ["pandas is eager and single-threaded; Polars builds a lazy plan, optimizes it, and executes multithreaded", "pandas is written in Rust and Polars in C", "Polars cannot read CSV files", "pandas is lazy and Polars is eager"], "answer": 0, "explain": "Eager/single-threaded vs lazy/optimized/multithreaded is the fundamental split. (Module 42)"},
+    {"q": "In Polars, nothing runs until .collect() is called. This design enables:", "choices": ["Query optimization across the whole plan (predicate/projection pushdown, fusion) before touching data", "Automatic deletion of source files", "Faster typing in the IDE", "Guaranteed identical results to pandas"], "answer": 0, "explain": "Seeing the full plan before executing is what lets the optimizer rewrite it. (Module 42)"},
+    {"q": "Translate to Polars: pandas `df[df['amount'] > 100]`", "choices": ["df.where('amount > 100')", "df.filter(pl.col('amount') > 100)", "df.query(pl.amount > 100)", "df.loc[pl.col('amount') > 100]"], "answer": 1, "explain": "filter + pl.col expression is the idiomatic Polars form. (Module 42)"},
+    {"q": "A 50-column CSV, but your query uses 3 columns. Why might Polars' scan_csv be much faster than pandas read_csv here?", "choices": ["Polars skips the header row", "Projection pushdown reads only the 3 needed columns from disk", "pandas reads the file twice", "CSV files are natively columnar"], "answer": 1, "explain": "Projection pushdown avoids reading 47 unused columns — a lazy-plan win. (Module 42)"},
+    {"q": "Your team's entire codebase and all downstream libraries expect pandas DataFrames. Data fits in memory. You should:", "choices": ["Rewrite everything in Polars immediately for principle", "Use Polars but convert at every function boundary for fun", "Stay with pandas — ecosystem and team norms outweigh a speed gain you don't need", "Ban pandas from the repo"], "answer": 2, "explain": "Decision rules: ecosystem/team fit wins when performance is already adequate. (Module 42)"},
+    {"q": "A Polars query is unexpectedly slow. The FIRST diagnostic step is:", "choices": ["Add more .filter() calls randomly", "Switch to pandas", "Call .explain() and read the optimized plan before changing anything", "Restart the kernel"], "answer": 2, "explain": "The plan shows what the optimizer actually did — diagnose from evidence, not guesses. (Module 42)"},
+    {"q": "Which is TRUE about null handling?", "choices": ["pandas has no nulls", "Polars silently drops nulls on read", "Both handle nulls identically", "Polars has a strict, uniform null type; pandas mixes NaN/None/NaT across dtypes"], "answer": 3, "explain": "Polars' uniform null semantics (fill_null/drop_nulls/is_null) reduce the silent-bug class pandas' mixed sentinels create. (Module 42)"},
+    {"q": "Safe migration strategy from pandas to Polars in a production codebase:", "choices": ["Rewrite all files in one commit over the weekend", "Run both engines on every query and average results", "Delete pandas from requirements to force the issue", "New modules in Polars, convert at boundaries (.to_pandas()/pl.from_pandas()), no big-bang rewrite"], "answer": 3, "explain": "Incremental adoption at boundaries contains risk; big-bang rewrites of working code rarely pay. (Module 42)"}
+  ],
+  "weight": 1,
+  "prerequisiteFor": ["IL26-M44", "IL26-TL-01", "IL26-TL-03"]
+}
+
+with open('/home/hatch/workspace/apex-audit/docs/university/data/courses/_il26-build/part1_modules.json', 'w') as f:
+    json.dump([M41, M42], f, indent=2)
+print('part1 ok:', len([M41, M42]))
