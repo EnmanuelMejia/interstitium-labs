@@ -328,37 +328,117 @@
   }
 
   /* ---------------- Connectors ---------------- */
+  /* ---------------- Connectors (parity-plus hub) ----------------
+   * Full connector surface: OAuth connect/disconnect per service, broker
+   * state (names only), stub manifests marked honestly. */
   function loadConnectors() {
     var el = slot('connectors');
+    var oauthNote = '';
+    try {
+      var om = /[?&]oauth=([a-z_]+)/.exec(location.hash + ' ' + location.search);
+      if (om) {
+        var omsgs = { connected: '\u2713 Connected \u2014 the service is ready for Noah and Genesis.',
+          denied: 'Connection was not approved at the provider.',
+          invalid: 'The connection request expired \u2014 try again.',
+          exchange_failed: 'The provider refused the connection \u2014 try again.',
+          store_unavailable: 'The secure store is not unlocked yet (the owner enables it first).' };
+        oauthNote = '<p class="ils-status ' + (om[1] === 'connected' ? 'ok' : '') + '">' +
+          esc(omsgs[om[1]] || 'Connection finished.') + '</p>';
+        try {
+          if (history.replaceState) {
+            history.replaceState(null, '',
+              location.pathname + location.hash.replace(/[?&]oauth=[a-z_]+/, '').replace(/\?$/, ''));
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
     var local = (window.NoahConnectors && NoahConnectors.list) ? NoahConnectors.list() : [];
     api('/api/noah/connectors').then(function (r) {
       var defs = (r.j && r.j.connectors) || [];
       var byId = {};
       local.forEach(function (c) { byId[c.id] = c; });
-      defs.forEach(function (c) { if (!byId[c.id]) byId[c.id] = c; });
+      defs.forEach(function (c) {
+        if (!byId[c.id]) { byId[c.id] = c; return; }
+        /* Local intent-routing defs win, but backfill server manifest fields. */
+        var l = byId[c.id];
+        ['tier', 'api', 'setup', 'scopes'].forEach(function (k) {
+          if (c[k] !== undefined && l[k] === undefined) l[k] = c[k];
+        });
+      });
       var ids = Object.keys(byId);
-      var p = obProfile();
-      var conns = p.connections || {};
       if (!ids.length) {
-        el.innerHTML = '<p class="ils-note">No connectors registered yet.</p>';
+        el.innerHTML = oauthNote + '<p class="ils-note">No connectors registered yet.</p>';
         return;
       }
-      el.innerHTML = '<p class="ils-note">Services ' + esc(tutorName()) + ' can act on for you. ' +
-        'Irreversible actions (send, schedule, trigger) always stop for your approval first.</p>' +
-        ids.map(function (id) {
+      api('/api/credentials').then(function (cr) {
+        var states = {};
+        ((cr.j && cr.j.services) || []).forEach(function (s) { states[s.id] = s.state; });
+        renderHub(states);
+      }).catch(function () { renderHub({}); });
+
+      function renderHub(states) {
+        var p = obProfile();
+        var conns = p.connections || {};
+        function card(c) {
+          var isOauth = c.auth && c.auth.indexOf('oauth-') === 0;
+          var connected = isOauth ? states[c.auth] === 'saved' : !!conns[c.id];
+          var pill = connected ? '<span class="ils-pill on">Connected</span>'
+            : (c.auth === 'none' ? '<span class="ils-pill on">Built-in</span>'
+            : '<span class="ils-pill off">Not connected</span>');
+          var btn = '';
+          if (isOauth && state.me) {
+            btn = connected
+              ? '<button type="button" class="ils-btn ghost" data-ils-disconn="' + esc(c.auth) + '">Disconnect</button>'
+              : '<button type="button" class="ils-btn" data-ils-conn="' + esc(c.id) + '">Connect</button>';
+          } else if (!isOauth && c.auth !== 'none' && state.me && !connected) {
+            btn = '<a class="ils-btn ghost" href="#settings/vault">Add in Secure Store</a>';
+          }
+          var acts = (c.actions || []).map(function (a) { return esc(a.label || a); }).join(' \u00b7 ');
+          var sub = '<div class="ils-sub">' + (acts || 'Connected service') + '</div>';
+          if (c.api) sub += '<div class="ils-sub">' + esc(c.api) + '</div>';
+          if (c.tier === 'stub' && c.setup) sub += '<div class="ils-sub">\u23f3 ' + esc(c.setup) + '</div>';
+          return '<div class="ils-row"><div class="ils-grow"><div>' + esc(c.icon || '\uD83D\uDD0C') + ' ' +
+            esc(c.label || c.id) + '</div>' + sub + '</div>' +
+            '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' + pill + btn + '</div></div>';
+        }
+        var live = [], soon = [];
+        ids.forEach(function (id) {
           var c = byId[id];
-          var connected = !!conns[id];
-          return '<div class="ils-row"><div class="ils-grow"><div>' + esc(c.icon || '🔌') + ' ' +
-            esc(c.label || id) + '</div><div class="ils-sub">' +
-            ((c.actions || []).map(function (a) { return esc(a.label); }).join(' · ') || 'Connected service') +
-            '</div></div>' +
-            '<span class="ils-pill ' + (connected ? 'on' : 'off') + '">' +
-            (connected ? 'Connected' : 'Not connected') + '</span></div>';
-        }).join('') +
-        '<p class="ils-note">Connect or disconnect a service from the ⚙ menu in the ' +
-        esc(tutorName()) + ' chat panel, or just ask ' + esc(tutorName()) + ' to use it.</p>';
+          if (c.jobs || c.tier === 'live' || c.auth === 'none') live.push(c); else soon.push(c);
+        });
+        el.innerHTML = oauthNote +
+          '<p class="ils-note">Services ' + esc(tutorName()) + ' can act on for you. ' +
+          'Reads run on their own; anything that sends, publishes, books, or deletes ' +
+          'always stops for your approval first.</p>' +
+          '<h4 class="ils-subh">Ready now</h4>' + live.map(card).join('') +
+          (soon.length ? '<h4 class="ils-subh">Connect to activate</h4>' + soon.map(card).join('') : '') +
+          '<p class="ils-note" id="ilsConnStatus" role="status"></p>';
+        if (!el.dataset.connWired) {
+          el.dataset.connWired = '1';
+          el.addEventListener('click', function (ev) {
+            var b = ev.target.closest ? ev.target.closest('[data-ils-conn]') : null;
+            if (b) {
+              b.disabled = true; b.textContent = 'Connecting\u2026';
+              api('/api/noah/oauth/start', { method: 'POST', body: { connector: b.getAttribute('data-ils-conn') } })
+                .then(function (rr) {
+                  if (rr.j && rr.j.ok && rr.j.auth_url) { location.href = rr.j.auth_url; return; }
+                  b.disabled = false; b.textContent = 'Connect';
+                  var st = $('ilsConnStatus');
+                  if (st) st.textContent = (rr.j && (rr.j.setup || rr.j.error)) || 'Could not start the connection.';
+                }).catch(function () { b.disabled = false; b.textContent = 'Connect'; });
+              return;
+            }
+            var d = ev.target.closest ? ev.target.closest('[data-ils-disconn]') : null;
+            if (d) {
+              if (!window.confirm('Disconnect this service? ' + tutorName() + ' will lose access until you reconnect.')) return;
+              api('/api/credentials/' + encodeURIComponent(d.getAttribute('data-ils-disconn')), { method: 'DELETE' })
+                .then(function () { loadConnectors(); });
+            }
+          });
+        }
+      }
     }).catch(function () {
-      el.innerHTML = '<p class="ils-note">Connector status could not be loaded just now.</p>';
+      el.innerHTML = oauthNote + '<p class="ils-note">Connector status could not be loaded just now.</p>';
     });
   }
 
@@ -518,6 +598,21 @@
       closePanel();
       if (window.ILViews) window.ILViews.show('ideas');
     });
+    /* Scheduled briefing opt-in (parity-plus). */
+    if (state.me) {
+      api('/api/noah/briefing/optin').then(function (r) {
+        var on = !!(r.j && r.j.ok && r.j.opted_in);
+        el.insertAdjacentHTML('beforeend',
+          '<label class="ils-switch" style="margin-top:.8rem"><input type="checkbox" id="ilsBriefOpt"' +
+          (on ? ' checked' : '') + '><span>Prepare my briefing each morning</span></label>' +
+          '<p class="ils-note">Your briefing is pre-computed overnight so it is ready the moment you open ' +
+          esc(tutorName()) + '.</p>');
+        var cb = $('ilsBriefOpt');
+        if (cb) cb.addEventListener('change', function () {
+          api('/api/noah/briefing/optin', { method: 'POST', body: { enabled: cb.checked } });
+        });
+      }).catch(function () {});
+    }
   }
 
   /* ---------------- Memory ---------------- */
@@ -564,6 +659,26 @@
           .then(done).catch(done);
       } else done();
     });
+    /* Shared Noah/Genesis memory (parity-plus): one store, both twins. */
+    if (state.me) {
+      api('/api/noah/memory').then(function (r) {
+        var keys = (r.j && r.j.ok && r.j.keys) || [];
+        var mh = '<h4 class="ils-subh">Shared memory \u2014 Noah &amp; Genesis</h4>' +
+          '<p class="ils-note">One memory both twins share. Included in your data export, erased with your account.</p>';
+        mh += keys.length ? keys.map(function (k) {
+          return '<div class="ils-row"><div class="ils-grow"><div>\uD83E\uDDE0 ' + esc(k) + '</div></div>' +
+            '<button type="button" class="ils-btn ghost" data-ils-memdel="' + esc(k) + '">Forget</button></div>';
+        }).join('') : '<p class="ils-note">Nothing stored yet \u2014 tell your tutor something worth remembering.</p>';
+        el.insertAdjacentHTML('beforeend', mh);
+        el.querySelectorAll('[data-ils-memdel]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (!window.confirm('Forget "' + b.getAttribute('data-ils-memdel') + '"?')) return;
+            api('/api/noah/memory/' + encodeURIComponent(b.getAttribute('data-ils-memdel')), { method: 'DELETE' })
+              .then(function () { renderMemory(); });
+          });
+        });
+      }).catch(function () {});
+    }
   }
 
   /* ---------------- Files & documents ---------------- */
@@ -619,6 +734,29 @@
       (state.me ? '<a class="ils-btn ghost" href="/api/account/export">My orders (in data export)</a>' : '') + '</p>' +
       '<p class="ils-note">Crypto checkout confirms manually after you submit a transaction hash — ' +
       'an order only counts as paid once it is verified.</p>';
+    /* Wallet surface (parity-plus): read-only orders + entitlements. */
+    if (state.me) {
+      api('/api/noah/wallet').then(function (r) {
+        var w = (r.j && r.j.ok) ? r.j : { orders: [], entitlements: [] };
+        var wh = '<h4 class="ils-subh">Wallet</h4>';
+        if (!w.orders.length && !w.entitlements.length) {
+          wh += '<p class="ils-note">No orders or entitlements yet.</p>';
+        } else {
+          w.orders.slice(0, 5).forEach(function (o) {
+            var meta = [o.status, (o.amount && o.currency) ? o.amount + ' ' + o.currency : null,
+              (o.created || '').slice(0, 10)].filter(Boolean).join(' \u00b7 ');
+            wh += '<div class="ils-row"><div class="ils-grow"><div>' + esc(o.description || o.id || 'Order') + '</div>' +
+              '<div class="ils-sub">' + esc(meta) + '</div></div></div>';
+          });
+          w.entitlements.slice(0, 5).forEach(function (e) {
+            var nm = String(e.key || '').split(':').pop();
+            wh += '<div class="ils-row"><div class="ils-grow"><div>\uD83C\uDF9F ' + esc(nm) + '</div></div>' +
+              '<span class="ils-pill on">Active</span></div>';
+          });
+        }
+        el.insertAdjacentHTML('beforeend', wh);
+      }).catch(function () {});
+    }
   }
 
   /* ---------------- Voice & tutor ---------------- */
@@ -681,6 +819,44 @@
       closePanel();
       if (window.ILAvatarFx) window.ILAvatarFx.card();
     });
+    /* Server-side voice preferences (parity-plus). */
+    el.insertAdjacentHTML('beforeend',
+      '<h4 class="ils-subh">Voice preferences</h4><div id="ilsVoicePrefs"><p class="ils-note">Loading&hellip;</p></div>');
+    (function () {
+      function drawVoicePrefs(prefs) {
+        var host = $('ilsVoicePrefs');
+        if (!host) return;
+        var voices = prefs.voices || ['noah'];
+        host.innerHTML =
+          '<div class="ils-form"><label>Voice<input id="ilsVoiceSel" type="text" list="ilsVoiceList" value="' + esc(prefs.voice || 'noah') + '">' +
+          '<datalist id="ilsVoiceList">' + voices.map(function (v) { return '<option value="' + esc(v) + '">'; }).join('') + '</datalist></label></div>' +
+          '<label class="ils-switch"><input type="checkbox" id="ilsVoiceAuto"' + (prefs.auto_read ? ' checked' : '') + '>' +
+          '<span>Read replies aloud automatically</span></label>' +
+          '<div class="ils-form"><label>Speech rate (' + Number(prefs.rate || 1).toFixed(1) + '&times;)<input id="ilsVoiceRate" type="range" min="0.5" max="2" step="0.1" value="' + (prefs.rate || 1) + '"></label></div>' +
+          '<p><button type="button" class="ils-btn" id="ilsVoiceSave">Save voice preferences</button></p>' +
+          '<p class="ils-status" id="ilsVoiceStatus" role="status"></p>';
+        $('ilsVoiceSave').addEventListener('click', function () {
+          var body = { voice: $('ilsVoiceSel').value.trim().slice(0, 20) || 'noah',
+            auto_read: $('ilsVoiceAuto').checked, rate: parseFloat($('ilsVoiceRate').value) || 1 };
+          api('/api/noah/voice', { method: 'POST', body: body }).then(function (r) {
+            var st = $('ilsVoiceStatus');
+            if (st) {
+              st.textContent = (r.j && r.j.ok) ? '\u2713 Voice preferences saved.' : 'Could not save just now.';
+              st.className = 'ils-status' + ((r.j && r.j.ok) ? ' ok' : '');
+            }
+            if (r.j && r.j.ok && r.j.prefs) drawVoicePrefs(r.j.prefs);
+          });
+        });
+      }
+      if (state.me) {
+        api('/api/noah/voice').then(function (r) {
+          drawVoicePrefs((r.j && r.j.ok && r.j.prefs) || { voice: 'noah', auto_read: false, rate: 1, voices: ['noah'] });
+        }).catch(function () { drawVoicePrefs({ voice: 'noah', auto_read: false, rate: 1, voices: ['noah'] }); });
+      } else {
+        var vh = $('ilsVoicePrefs');
+        if (vh) vh.innerHTML = '<p class="ils-note">Sign in to sync voice preferences.</p>';
+      }
+    })();
   }
 
   /* ---------------- Permissions ---------------- */
@@ -714,19 +890,60 @@
   }
 
   /* ---------------- Devices ---------------- */
+  /* ---------------- Devices (parity-plus pairing) ---------------- */
   function renderDevices() {
     var el = slot('devices');
     var ua = navigator.userAgent || '';
     var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'This device';
-    el.innerHTML =
-      '<div class="ils-row"><div class="ils-grow"><div>💻 This browser</div>' +
-      '<div class="ils-sub">' + esc(plat) + ' · ' + esc(window.screen.width + '×' + window.screen.height) + '</div></div>' +
+    var html =
+      '<div class="ils-row"><div class="ils-grow"><div>\uD83D\uDCBB This browser</div>' +
+      '<div class="ils-sub">' + esc(plat) + ' \u00b7 ' + esc(window.screen.width + '\u00d7' + window.screen.height) + '</div></div>' +
       '<span class="ils-pill on">Current</span></div>' +
-      '<p class="ils-note">' + esc(ua.slice(0, 140)) + '</p>' +
-      '<p class="ils-note">Interstitium Labs is a web platform — there are no paired devices to manage. ' +
-      'Sign in on any browser and your notes, goals, and settings follow your account automatically. ' +
-      'Sessions last up to 7 days; signing out here ends this browser\'s session.</p>' +
+      '<h4 class="ils-subh">Paired devices</h4>' +
+      '<div id="ilsDevList"><p class="ils-note">Loading\u2026</p></div>' +
+      (state.me ? '<p><button type="button" class="ils-btn" id="ilsPairBtn">\uFF0B Pair a new device</button></p>' +
+      '<div id="ilsPairBox"></div>' : '<p class="ils-note">Sign in to pair devices.</p>') +
+      '<p class="ils-note">Pair your phone to give ' + esc(tutorName()) + ' access to device features ' +
+      '\u2014 photo library, health data, voice. Sessions last up to 7 days.</p>' +
       (state.me ? '<p><button type="button" class="ils-btn ghost" id="ilsSignOut2">Sign out of this browser</button></p>' : '');
+    el.innerHTML = html;
+    function drawList(devs) {
+      var host = $('ilsDevList');
+      if (!host) return;
+      host.innerHTML = devs.length ? devs.map(function (d) {
+        return '<div class="ils-row"><div class="ils-grow"><div>\uD83D\uDCF1 ' + esc(d.name || 'Device') + '</div>' +
+          '<div class="ils-sub">' + esc(d.platform || '') + ' \u00b7 paired ' + esc((d.paired_at || '').slice(0, 10)) + '</div></div>' +
+          '<button type="button" class="ils-btn ghost" data-ils-unpair="' + esc(d.id) + '">Revoke</button></div>';
+      }).join('') : '<p class="ils-note">No paired devices yet.</p>';
+      host.querySelectorAll('[data-ils-unpair]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (!window.confirm('Revoke this device?')) return;
+          api('/api/noah/devices/' + encodeURIComponent(b.getAttribute('data-ils-unpair')), { method: 'DELETE' })
+            .then(function () { refreshDevs(); });
+        });
+      });
+    }
+    function refreshDevs() {
+      api('/api/noah/devices').then(function (r) {
+        drawList((r.j && r.j.ok && r.j.devices) || []);
+      }).catch(function () { drawList([]); });
+    }
+    if (state.me) refreshDevs(); else drawList([]);
+    var pb = $('ilsPairBtn');
+    if (pb) pb.addEventListener('click', function () {
+      pb.disabled = true;
+      api('/api/noah/devices/pair', { method: 'POST' }).then(function (r) {
+        pb.disabled = false;
+        var box = $('ilsPairBox');
+        if (r.j && r.j.ok) {
+          box.innerHTML = '<div class="ils-row"><div class="ils-grow"><div style="font-size:1.6rem;letter-spacing:.3em">' +
+            esc(r.j.code) + '</div><div class="ils-sub">On your phone: open Noah \u2192 Settings \u2192 Devices \u2192 enter this code. Expires in 10 minutes.</div></div></div>';
+          setTimeout(refreshDevs, 2000);
+        } else if (box) {
+          box.innerHTML = '<p class="ils-note">Could not start pairing just now.</p>';
+        }
+      }).catch(function () { pb.disabled = false; });
+    });
     var so = $('ilsSignOut2');
     if (so) so.addEventListener('click', function () {
       api('/api/auth/signout', { method: 'POST' }).then(function () {
