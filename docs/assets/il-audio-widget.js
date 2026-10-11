@@ -128,6 +128,18 @@
   function init() {
     if (!window.ILAmbient) { setTimeout(init, 500); return; }
 
+    // Inject widget CSS (the stylesheet is not linked in HTML; the widget auto-injects).
+    // Without this, touch-action:none never applies and finger-drag fails on mobile.
+    if (!document.getElementById('il-aw-css')) {
+      var cssLink = document.createElement('link');
+      cssLink.id = 'il-aw-css';
+      cssLink.rel = 'stylesheet';
+      cssLink.href = (document.currentScript && document.currentScript.src
+        ? document.currentScript.src.replace(/\/[^\/]*$/, '/')
+        : '/assets/') + 'il-audio-widget.css';
+      document.head.appendChild(cssLink);
+    }
+
     var root = document.getElementById(WIDGET_ID) || buildWidget();
     var $ = function (sel) { return root.querySelector(sel); };
     var $$ = function (sel) { return root.querySelectorAll(sel); };
