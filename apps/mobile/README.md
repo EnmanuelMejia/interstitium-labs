@@ -60,7 +60,7 @@ cp android-security/debug/res/xml/network_security_config.xml android/app/src/de
 
 ## Desktop later
 
-Same `www/` sync: Capacitor desktop targets, **or** Tauri/Electron wrapping synced assets — apply the same HTTPS / no-secrets / CSP policy from ENTERPRISE-SECURITY.md. PWA already installable via `docs/manifest.webmanifest` + `sw.js`.
+Same `www/` sync: Capacitor desktop targets, **or** Tauri/Electron wrapping synced assets — apply the same HTTPS / no-secrets / CSP policy from ENTERPRISE-SECURITY.md. PWA already installable via `docs/manifest.webmanifest`. `sw.js` only clears the retired offline cache.
 
 
 ## Open on a phone

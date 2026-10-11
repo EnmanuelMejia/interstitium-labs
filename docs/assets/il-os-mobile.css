@@ -1,0 +1,105 @@
+/**
+ * Time-to-hire OS: mobile usability + progressive enhancement.
+ * Scoped to /os/ so the site-wide design and other routes are unchanged.
+ * Loaded after theme tokens. No dependence on JavaScript or animation.
+ */
+.il-os-page .il-os-intro {
+  max-width: 42rem;
+  margin: 1rem 0 0;
+  color: var(--ink-soft);
+  font-size: clamp(.95rem, 1.4vw, 1.125rem);
+  line-height: 1.55;
+}
+.il-os-page .il-os { width: 100%; min-width: 0; }
+.il-os-page .il-os-stage-body { min-width: 0; }
+.il-os-page .il-os-stage-cta {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.il-os-page .il-os-pathbtn { min-height: 44px; }
+.il-os-page .il-os-stage-title,
+.il-os-page .il-os-stage-text { overflow-wrap: anywhere; }
+.il-os-page .il-os-actions a { min-height: 44px; }
+.il-os-page .il-os-meter-label { font-size: .72rem; letter-spacing: .06em; }
+.il-os-page .il-os-stage { background: var(--paper-elev, #101829); border-color: var(--hairline); }
+.il-os-page .il-os-stage-title { color: var(--ink); }
+.il-os-page .il-os-stage-text { color: var(--ink-soft); }
+.il-os-page .il-os-stage-n, .il-os-page .il-os-stage-cta { color: var(--gold-deep); }
+.il-os-page .il-os-pathbtn { color: var(--ink); border-color: var(--hairline); }
+.il-os-page .il-os-pathbtn.is-on { color: var(--gold-deep); border-color: var(--gold-deep); background: var(--gold-soft); }
+.il-os-page .il-os-meter { background: var(--paper-elev); border-color: var(--hairline); }
+.il-os-page .il-os-meter-label { color: var(--ink); }
+.il-os-page .il-os-check { color: var(--ok); }
+
+@media (max-width: 640px) {
+  /* Fit the brand, theme and one clear menu into a real 320–430px viewport. */
+  body.il-os-page { padding-top: calc(4.75rem + env(safe-area-inset-top, 0px)); }
+  .il-os-page .il-pillnav {
+    top: calc(.5rem + env(safe-area-inset-top, 0px));
+    width: calc(100% - 1rem);
+    max-width: 100%;
+    border-radius: 1.25rem;
+  }
+  .il-os-page .il-pillnav__row { padding: .45rem .55rem; gap: .35rem; }
+  .il-os-page .il-brand { min-width: 0; flex: 1 1 auto; gap: .35rem; }
+  .il-os-page .il-brand img { width: 1.8rem; height: 1.8rem; flex-shrink: 0; }
+  .il-os-page .il-brand__word {
+    display: block;
+    min-width: 0;
+    font-size: clamp(.72rem, 3vw, .92rem);
+    line-height: 1.13;
+    overflow-wrap: normal;
+  }
+  .il-os-page .il-brand__word small { display: none; }
+  .il-os-page .il-pillnav__row > div:last-child { gap: .3rem !important; flex-shrink: 0; }
+  .il-os-page .il-pillnav .il-btn--small { display: none; } /* Admissions remains in the menu. */
+  .il-os-page .il-theme-toggle { width: 44px; height: 44px; }
+  .il-os-page .il-menu summary {
+    padding: .5rem .6rem;
+    min-height: 44px;
+    font-size: .68rem;
+    letter-spacing: .07em;
+  }
+  .il-os-page .il-menu__sheet {
+    position: fixed;
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    right: .6rem;
+    left: auto;
+    width: min(17.5rem, calc(100vw - 1.2rem));
+    min-width: 0;
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+    z-index: 90;
+  }
+  .il-os-page main > section:first-child > div { padding-top: 1.35rem; padding-bottom: 1.25rem; }
+  .il-os-page main > section:nth-child(2) { width: 100%; }
+  .il-os-page main > section:nth-child(2) > div { padding-top: 1rem; padding-bottom: 2rem; }
+  .il-os-page main h1 { font-size: clamp(2rem, 8.5vw, 2.85rem); line-height: 1.1; }
+  .il-os-page .il-os h2 { font-size: clamp(1.4rem, 6vw, 2rem); line-height: 1.15; }
+  .il-os-page .il-os-stages { gap: .7rem; margin-top: 1.15rem; }
+  .il-os-page .il-os-stage { grid-template-columns: 1.75rem minmax(0, 1fr); gap: .75rem; padding: .9rem; }
+  .il-os-page .il-os-stage-n { font-size: 1.1rem; }
+  .il-os-page .il-os-pathgrid { display: grid; grid-template-columns: 1fr; }
+  .il-os-page .il-os-pathbtn { text-align: left; }
+  .il-os-page .il-os-actions { display: grid; grid-template-columns: 1fr; }
+  .il-os-page .il-os-actions a { justify-content: center; text-align: center; }
+  /* The floating XP pill covered footer links in the reported mobile view. */
+  .il-os-page .il-hud { display: none !important; }
+  .il-os-page footer > div { padding-top: 1.25rem; padding-bottom: 6rem; gap: 1.1rem; }
+  .il-os-page footer .flex.flex-wrap { row-gap: .8rem; column-gap: 1.1rem; }
+  .il-os-page #noah-launcher {
+    width: 54px;
+    height: 54px;
+    right: calc(.75rem + env(safe-area-inset-right, 0px));
+    bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 350px) {
+  .il-os-page .il-brand__word { font-size: .72rem; }
+  .il-os-page .il-pillnav__row { padding-inline: .35rem; }
+  .il-os-page .il-brand img { width: 1.55rem; height: 1.55rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-os-page .il-os-stage, .il-os-page .il-pillnav { animation: none; transition: none; }
+}

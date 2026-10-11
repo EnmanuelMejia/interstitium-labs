@@ -87,6 +87,7 @@ bpy.ops.export_scene.gltf(
     export_apply=True,
     export_normals=True,
     export_materials="EXPORT",
+    export_extras=True,  # 2026-10-06: keep kit pedagogy extras (labels/kind/simOnly) through polish
 )
 print("polished", out)
 '''
@@ -103,6 +104,11 @@ DEFAULT_TARGETS = (
     "storage-csi-pv.glb",
     "ingress-gateway.glb",
     "hpa-autoscaling.glb",
+    "network-policy-isolation.glb",
+    "secrets-configmaps.glb",
+    "scheduling-affinity.glb",
+    "aws-vpc-multi-az.glb",
+    "aws-iam-policy-eval.glb",
     "rack-19u.glb",
     "hermetic-monas.glb",
     "sim-superlab.glb",

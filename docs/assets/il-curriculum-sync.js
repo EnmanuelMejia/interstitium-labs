@@ -8,7 +8,7 @@
   'use strict';
 
   var MIRROR_URL = '/curriculum-os/mirror.json';
-  var VERSION = '1.2.0';
+  var VERSION = '1.2.1';
 
   function parseImmersive(el) {
     var raw = el.getAttribute('data-immersive');
@@ -62,7 +62,8 @@
     /* Prefer explicit meta.gltf; else asset path ending in .glb */
     var gltf = (meta && meta.gltf) || '';
     if (!gltf && imm.asset && /\.glb($|\?)/i.test(imm.asset)) gltf = imm.asset;
-    if (gltf) el.setAttribute('data-gltf', gltf);
+    var psHost = /unreal|pixel|ue5/.test(String(el.getAttribute('data-engine') || '').toLowerCase()) || el.getAttribute('data-ps-signaling');
+    if (gltf && !psHost) el.setAttribute('data-gltf', gltf);
 
     if (meta) {
       if (meta.kind) el.setAttribute('data-kind', meta.kind);
@@ -139,10 +140,15 @@
       var existing = parseImmersive(el);
       var imm = existing ? Object.assign({}, picked.imm, existing, { mode: '3d-first' }) : picked.imm;
       var meta = Object.assign({}, picked.meta);
-      if (!meta.gltf) {
-        var gAttr = el.getAttribute('data-gltf');
-        if (gAttr) meta.gltf = gAttr;
-      }
+      /* 2026-10-06: an element's own authored data-gltf / title / kind win over the surface default.
+       * Previously every host on /immersive/ was re-stamped with one surface row's .glb (and the
+       * Unreal PS stub got a glTF it never renders). */
+      var gAttr = el.getAttribute('data-gltf');
+      if (gAttr) meta.gltf = gAttr;
+      var engAttr = String(el.getAttribute('data-engine') || '').toLowerCase();
+      if (/unreal|pixel|ue5/.test(engAttr) || el.getAttribute('data-ps-signaling')) meta.gltf = null;
+      if (el.getAttribute('data-title')) delete meta.title;
+      if (el.getAttribute('data-kind')) delete meta.kind;
       if (!meta.kind) meta.kind = el.getAttribute('data-kind') || undefined;
       stampEl(el, imm, meta);
     }

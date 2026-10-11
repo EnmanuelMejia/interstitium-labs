@@ -18,7 +18,7 @@ Scaffold and CI notes live in-repo. **Enmanuel must complete Apple Developer + G
 | Security threat model | [MOBILE-SECURITY.md](./MOBILE-SECURITY.md) |
 | Android network security sample | `apps/mobile/android-security/` |
 | Mobile build CI (Android debug + release, unit tests, lint; unsigned iOS simulator build; launch tests on an API 36 emulator and an iPhone simulator) | `.github/workflows/mobile-build.yml` |
-| PWA (installable web) | `docs/manifest.webmanifest`, `docs/sw.js` |
+| PWA (installable web) | `docs/manifest.webmanifest` (sw.js is a cache kill switch, not an offline app) |
 | Noah mobile shell | `docs/assets/il-muse-mobile.css`, Dee avatar, Capacitor home → `/coach/` |
 
 **Not completable without Enmanuel:** paid Apple Developer Program, Google Play Console developer registration, store listing privacy forms, production signing secrets, final binary upload.
@@ -119,7 +119,7 @@ Confirm release manifest has cleartext disabled and merges `android-security/net
 
 | Channel | Status | Notes |
 | --- | --- | --- |
-| **PWA** | Ship with site | `manifest.webmanifest` + `sw.js` — installable from browser |
+| **PWA** | Ship with site | `manifest.webmanifest` — installable from the browser. `sw.js` only evicts the retired precache. |
 | **Capacitor desktop** | Later | Same `apps/mobile` webDir; evaluate Capacitor for Electron-like targets when needed |
 | **Electron / Tauri** | Documented option | Prefer Tauri for smaller rust shell **or** Electron if team prefers JS — wrap same `docs/` sync; apply same HTTPS / no-secrets rules |
 

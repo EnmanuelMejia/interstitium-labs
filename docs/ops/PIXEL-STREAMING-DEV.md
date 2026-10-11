@@ -104,5 +104,5 @@ See `docs/ops/pixel-streaming/docker-compose.ue-host.skeleton.yml`. It **exits n
 3. Only then treat status *Live Pixel Streaming track* as truth.
 4. Hosted multi-user fleet remains a separate product milestone — out of scope until provisioned.
 
-_Last checklist pass: 2026-10-02 (America/New_York). Musk verdict still requires live UE + hosted fleet for YES._
+_Last checklist pass: 2026-10-05 (America/New_York) on the shared box: no `nvidia-smi`, `IL_UE_PIXEL_STREAMING_BIN` unset, no `.uproject` found → checks **1–2 fail closed**; client stays the honest stub. Prior pass 2026-10-02. Musk verdict still requires live UE + hosted fleet for YES._
 
