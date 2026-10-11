@@ -378,6 +378,7 @@
       var b = $('ilsOpenGoals');
       if (b) b.addEventListener('click', function () {
         closePanel();
+        if (window.ILViews) { window.ILViews.show('goals'); return; }
         var gb = $('goalsBtn');
         if (gb) gb.click();
       });
@@ -504,7 +505,19 @@
       html += '<div class="ils-row"><div class="ils-grow"><div>⏰ ' + esc(rm.text || '') + '</div>' +
         '<div class="ils-sub">' + fmtDateTime(rm.due_at) + '</div></div></div>';
     });
+    html += '<p style="margin-top:.6rem"><button type="button" class="ils-btn" id="ilsOpenFeed">☀️ Open your Feed</button> ' +
+      '<button type="button" class="ils-btn ghost" id="ilsOpenIdeas">✨ Ideas for you</button></p>';
     el.innerHTML = html;
+    var ofb = $('ilsOpenFeed');
+    if (ofb) ofb.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('feed');
+    });
+    var oib = $('ilsOpenIdeas');
+    if (oib) oib.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('ideas');
+    });
   }
 
   /* ---------------- Memory ---------------- */
@@ -556,7 +569,10 @@
   /* ---------------- Files & documents ---------------- */
   function loadFiles() {
     var el = slot('files');
-    var html = '<p class="ils-note">Your documents across Interstitium Labs, in one place.</p>' +
+    var html = '<p class=\"ils-note\">Your documents across Interstitium Labs, in one place.</p>' +
+      '<div class="ils-row"><div class="ils-grow"><div>📚 Library</div>' +
+      '<div class="ils-sub">Certificates, notes, interviews and files — searchable, in Noah</div></div>' +
+      '<button type="button" class="ils-btn" id="ilsOpenLibrary">Open</button></div>' +
       '<div class="ils-row"><div class="ils-grow"><div>📝 Notes &amp; mind maps</div>' +
       '<div class="ils-sub">Your notes vault, synced to your account</div></div>' +
       '<a class="ils-btn ghost" href="/my-notes/">Open</a></div>' +
@@ -565,6 +581,7 @@
       '<a class="ils-btn ghost" href="/pdf-library/">Open</a></div>';
     if (!state.me) {
       el.innerHTML = html + '<p class="ils-note">Sign in to see your certificates here.</p>';
+      bindLibraryBtn();
       return;
     }
     api('/api/certificates').then(function (r) {
@@ -581,7 +598,15 @@
         html += '<p class="ils-note" style="margin-top:.6rem">No certificates yet — finish a course and your verifiable certificate lands here.</p>';
       }
       el.innerHTML = html;
-    }).catch(function () { el.innerHTML = html; });
+      bindLibraryBtn();
+    }).catch(function () { el.innerHTML = html; bindLibraryBtn(); });
+  }
+  function bindLibraryBtn() {
+    var b = $('ilsOpenLibrary');
+    if (b) b.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('library');
+    });
   }
 
   /* ---------------- Payments ---------------- */
@@ -606,7 +631,15 @@
       '<span>Voice replies — ' + esc(tutorName()) + ' reads answers aloud</span></label>' +
       '<p class="ils-note">Dictation is always available from the 🎙 mic in the composer. ' +
       'For a full spoken conversation, run a verbal mock interview:</p>' +
-      '<p><button type="button" class="ils-btn" id="ilsInterview">🎙 Start a verbal mock interview</button></p>';
+      '<p><button type="button" class="ils-btn" id="ilsInterview">🎙 Start a verbal mock interview</button></p>' +
+      '<h4 class="ils-subh">Avatar presentation</h4>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxPresence" checked>' +
+      '<span>Presence states — ' + esc(tutorName()) + ' shows listening / thinking / speaking around the avatar</span></label>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxReact" checked>' +
+      '<span>Reactions — ♥ on answers, and ' + esc(tutorName()) + ' reacts back</span></label>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxCelebrate" checked>' +
+      '<span>Celebrations — a little 🎉 when you finish a goal step</span></label>' +
+      '<p><button type="button" class="ils-btn ghost" id="ilsAvatarCard">🪪 View avatar card</button></p>';
     var cb = $('ilsVoiceOut');
     if (cb) cb.addEventListener('change', function () {
       try { localStorage.setItem('noah-voice-out', cb.checked ? '1' : '0'); } catch (e) {}
@@ -625,6 +658,28 @@
       closePanel();
       var mb = $('miBtn');
       if (mb) mb.click();
+    });
+    /* Avatar presentation preferences — the behavior layer's prefs
+     * API (noah-avatar-behavior.js) is the contract; keys live in the
+     * profile under avatarFx. */
+    function fxWire(id, key) {
+      var box = $(id);
+      if (!box) return;
+      if (window.ILAvatarFx) {
+        var p = window.ILAvatarFx.prefs();
+        box.checked = p[key] !== false;
+      }
+      box.addEventListener('change', function () {
+        if (window.ILAvatarFx) window.ILAvatarFx.setPref(key, box.checked);
+      });
+    }
+    fxWire('ilsFxPresence', 'presence');
+    fxWire('ilsFxReact', 'reactions');
+    fxWire('ilsFxCelebrate', 'celebrate');
+    var ac = $('ilsAvatarCard');
+    if (ac) ac.addEventListener('click', function () {
+      closePanel();
+      if (window.ILAvatarFx) window.ILAvatarFx.card();
     });
   }
 

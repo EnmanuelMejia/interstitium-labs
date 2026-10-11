@@ -19,6 +19,10 @@
  *   prefs      -> il-noah-profile, il-mock-interview-settings-v1
  *   goals      -> il-goals-v1 (Noah/Genesis goal summaries cache; the
  *                 goals engine also mirrors server-side into this store)
+ *   feed       -> il-feed-v1 (Feed brief + units; registered client-side
+ *                 2026-10-11 — activates when the staged UI worker patch
+ *                 adds "feed" to the server SYNC_STORES whitelist)
+ *   ideas      -> il-ideas-v1 (Ideas cards; same staged activation)
  * (CBT/course progress syncs through /api/progress + ILAccount's
  *  local_mirror; skills profiles live in the bootcamp shell and join
  *  this registry when present under il.skills.v1.)
@@ -36,6 +40,8 @@
     prefs: ["il-noah-profile", "il-mock-interview-settings-v1"],
     skills: ["il.skills.v1"],
     goals: ["il-goals-v1"],
+    feed: ["il-feed-v1"],
+    ideas: ["il-ideas-v1"],
   };
   var TICK_MS = 45000;
   var syncing = false;

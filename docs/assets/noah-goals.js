@@ -269,6 +269,11 @@
       .then(function (out) {
         if (out.data && out.data.goal) {
           var pub = out.data.goal;
+          /* Presence hook: the avatar behavior layer celebrates real
+           * progress (step/milestone events land on the timeline). */
+          try {
+            document.dispatchEvent(new CustomEvent('il:goal-progress', { detail: { goal: pub } }));
+          } catch (e) {}
           state.goals = state.goals.map(function (g) {
             return g.id === pub.id ? Object.assign({}, g, summaryOf(pub), { _full: pub }) : g;
           });
@@ -362,6 +367,219 @@
     }).catch(function () {});
   }
 
-  window.ILGoals = { refresh: refresh, open: openPanel, close: closePanel };
+  /* ---------- Full Goals view (Phase 2: the Goals tab) ----------
+   * Mounted by noah-views.js into the main column. Same engine, same
+   * records as the panel above — the panel is the quick view; this is
+   * the complete experience: account stats, the check-in briefing,
+   * status filters, per-goal detail with steps, milestones, progress
+   * notes, and the FULL activity timeline (the goal's history). */
+  var gv = { el: null, filter: 'all', full: {}, checkin: null, deleteArm: {} };
+
+  function gvReload() {
+    return refresh()
+      .then(function () {
+        var jobs = state.goals.map(function (g) {
+          return api(API + '/' + g.id).then(function (out) {
+            if (out.data && out.data.goal) gv.full[g.id] = out.data.goal;
+          }).catch(function () {});
+        });
+        jobs.push(api(API + '/checkin').then(function (out) {
+          if (out.data && out.data.ok) gv.checkin = out.data;
+        }).catch(function () {}));
+        return Promise.all(jobs);
+      })
+      .then(renderView);
+  }
+
+  function gvSummaryOf(pub) { return summaryOf(pub); }
+
+  function gvCardHtml(g) {
+    var f = gv.full[g.id] || g;
+    var meta = DOMAIN_META[g.domain] || DOMAIN_META.general;
+    var h = '<article class="ilg-card' + (g.status === 'paused' ? ' paused' : '') + '" data-gid="' + esc(g.id) + '">';
+    h += '<h3><span aria-hidden="true">' + meta.icon + '</span><span>' + esc(g.title) + '</span></h3>';
+    h += '<div class="meta">' + meta.label + ' · ' + esc(g.status) + ' · ' + esc(g.agent || '') +
+      ' · check-ins ' + esc(g.cadence) + ' · started ' + esc(String(g.created_at || '').slice(0, 10)) + '</div>';
+    if (f.text && f.text !== g.title) h += '<p class="ilg-next">“' + esc(f.text) + '”</p>';
+    h += '<div class="ilg-bar"><i style="width:' + (g.pct || 0) + '%"></i></div>';
+    if (g.status === 'completed') h += '<p class="ilg-next">🎉 <b>Complete</b></p>';
+    else h += '<p class="ilg-next">Next: <b>' + esc(g.next_action || '—') + '</b></p>';
+    var dt = dueText(g);
+    if (dt) h += '<p class="ilg-due' + dueClass(g) + '">' + esc(dt) + '</p>';
+    if (f.milestones && f.milestones.length) {
+      h += '<ul class="ilg-steps">' + f.milestones.map(function (m, i) {
+        return '<li class="' + (m.done ? 'done' : '') + '"><span>◆</span><span>' + esc(m.title) + '</span>' +
+          '<button type="button" data-gvmile="' + i + '" data-done="' + (m.done ? '0' : '1') + '">' + (m.done ? 'Reopen' : 'Reached') + '</button></li>';
+      }).join('') + '</ul>';
+    }
+    if (f.steps && f.steps.length) {
+      h += '<ul class="ilg-steps">' + f.steps.map(function (s) {
+        return '<li class="' + (s.state === 'done' || s.state === 'skipped' ? 'done' : '') + '">' +
+          '<span>' + (s.state === 'done' ? '✅' : s.state === 'skipped' ? '⏭' : '⬜') + '</span>' +
+          '<span>' + esc(s.title) + (s.due ? '<span class="due">due ' + esc(s.due) + '</span>' : '') + '</span>' +
+          (s.state !== 'done' && s.state !== 'skipped'
+            ? '<button type="button" data-gvstep="' + esc(s.id) + '">Done</button>' : '') +
+          '</li>';
+      }).join('') + '</ul>';
+    }
+    h += '<form class="ilgv-note" data-gvnote="' + esc(g.id) + '">' +
+      '<input type="text" maxlength="300" placeholder="Log a progress note…" aria-label="Log a progress note">' +
+      '<button type="submit">Log</button></form>';
+    if (f.timeline && f.timeline.length) {
+      h += '<div class="ilg-timeline"><b>Activity</b>' + f.timeline.slice().reverse().map(function (t) {
+        return '<div>' + esc(String(t.ts || '').slice(0, 10)) + ' — ' + esc(t.text) + '</div>';
+      }).join('') + '</div>';
+    }
+    h += '<div class="ilg-actions">';
+    if (g.status === 'active') {
+      h += '<button type="button" class="primary" data-gvact="next">✓ Step done</button>' +
+        '<button type="button" data-gvact="pause">Pause</button>' +
+        '<button type="button" data-gvact="complete">Complete</button>';
+    } else if (g.status === 'paused') {
+      h += '<button type="button" class="primary" data-gvact="resume">Resume</button>' +
+        '<button type="button" data-gvact="complete">Complete</button>';
+    } else {
+      h += '<button type="button" data-gvact="resume">Reopen</button>';
+    }
+    h += '<button type="button" data-gvact="delete">' + (gv.deleteArm[g.id] ? 'Tap again to delete' : 'Delete') + '</button>';
+    h += '</div></article>';
+    return h;
+  }
+
+  function renderView() {
+    var el = gv.el;
+    if (!el) return;
+    if (state.signedIn === false) {
+      el.innerHTML = '<p class="ilg-empty ilg-signin">Goals live in your account so Noah and Genesis ' +
+        'can carry them across every device. <a href="/account/">Sign in</a> to hand them a goal.</p>';
+      return;
+    }
+    var active = state.goals.filter(function (g) { return g.status === 'active'; });
+    var paused = state.goals.filter(function (g) { return g.status === 'paused'; });
+    var completed = state.goals.filter(function (g) { return g.status === 'completed'; });
+    var stepsTotal = state.goals.reduce(function (n, g) { return n + (g.steps_total || 0); }, 0);
+    var stepsDone = state.goals.reduce(function (n, g) { return n + (g.steps_done || 0); }, 0);
+    var h = '<div class="ilgv-stats">' +
+      '<span><b>' + active.length + '</b> active</span>' +
+      '<span><b>' + paused.length + '</b> paused</span>' +
+      '<span><b>' + completed.length + '</b> completed</span>' +
+      '<span><b>' + stepsDone + '/' + stepsTotal + '</b> steps done</span></div>';
+    if (gv.checkin && gv.checkin.due && gv.checkin.due.length) {
+      h += '<div class="ilg-checkin" style="margin:0 0 1rem;max-width:none"><p>' + esc(gv.checkin.brief) + '</p></div>';
+      h += '<div class="ilgv-due">' + gv.checkin.due.map(function (d) {
+        return '<div class="ilgv-duerow"><span>' + (d.overdue ? '🔴' : '☀️') + ' <b>' + esc(d.step) + '</b> · ' +
+          esc(d.title) + ' <span class="due">(' + (d.overdue ? 'overdue, was ' : 'due ') + esc(d.due) + ')</span></span>' +
+          '<button type="button" data-gvdue="' + esc(d.goal_id) + '" data-step="' + esc(d.step_id) + '">✓ Done</button></div>';
+      }).join('') + '</div>';
+    }
+    h += '<form class="ilg-add" id="ilgvAdd">' +
+      '<textarea id="ilgvText" maxlength="1000" placeholder="Hand Noah a goal — “Save $200 a month”, “Get fit by December”…" aria-label="New goal"></textarea>' +
+      '<div class="row"><select id="ilgvDomain" aria-label="Goal area">' +
+      '<option value="">Auto-detect area</option>' +
+      Object.keys(DOMAIN_META).map(function (k) {
+        return '<option value="' + k + '">' + DOMAIN_META[k].icon + ' ' + DOMAIN_META[k].label + '</option>';
+      }).join('') +
+      '</select><button type="submit" id="ilgvSubmit">Give it to Noah</button></div></form>';
+    var filters = [['all', 'All'], ['active', 'Active'], ['paused', 'Paused'], ['completed', 'Completed']];
+    h += '<div class="ilgv-filters" role="group" aria-label="Filter goals">' + filters.map(function (f) {
+      return '<button type="button" data-gvfilter="' + f[0] + '"' +
+        (gv.filter === f[0] ? ' class="on"' : '') + '>' + f[1] + '</button>';
+    }).join('') + '</div>';
+    var shown = state.goals.filter(function (g) { return gv.filter === 'all' || g.status === gv.filter; });
+    if (!state.goals.length) {
+      h += '<p class="ilg-empty">No goals yet. State one above — or just tell Noah in chat.</p>';
+    } else if (!shown.length) {
+      h += '<p class="ilg-empty">No ' + esc(gv.filter) + ' goals.</p>';
+    } else {
+      h += shown.map(gvCardHtml).join('');
+    }
+    el.innerHTML = h;
+
+    var form = $('ilgvAdd');
+    if (form) form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var text = $('ilgvText').value.trim();
+      var domain = $('ilgvDomain').value || undefined;
+      if (text.length < 3) return;
+      var btn = $('ilgvSubmit');
+      btn.disabled = true; btn.textContent = 'Noah is planning…';
+      api(API, { method: 'POST', body: JSON.stringify({ text: text, domain: domain }) })
+        .then(function () { gvReload(); })
+        .catch(function () { btn.disabled = false; btn.textContent = 'Give it to Noah'; });
+    });
+    el.querySelectorAll('button[data-gvfilter]').forEach(function (b) {
+      b.addEventListener('click', function () { gv.filter = b.getAttribute('data-gvfilter'); renderView(); });
+    });
+    el.querySelectorAll('button[data-gvdue]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        post(b.getAttribute('data-gvdue') + '/progress', { step_id: b.getAttribute('data-step'), state: 'done' })
+          .then(gvReload);
+      });
+    });
+    el.querySelectorAll('article[data-gid]').forEach(function (card) {
+      var id = card.getAttribute('data-gid');
+      card.querySelectorAll('button[data-gvstep]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          post(id + '/progress', { step_id: b.getAttribute('data-gvstep'), state: 'done' }).then(gvReload);
+        });
+      });
+      card.querySelectorAll('button[data-gvmile]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          post(id + '/progress', { milestone_index: parseInt(b.getAttribute('data-gvmile'), 10), milestone_done: b.getAttribute('data-done') === '1' })
+            .then(gvReload);
+        });
+      });
+      var noteForm = card.querySelector('form[data-gvnote]');
+      if (noteForm) noteForm.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var input = noteForm.querySelector('input');
+        var note = input.value.trim();
+        if (!note) return;
+        post(id + '/progress', { note: note }).then(gvReload);
+      });
+      card.querySelectorAll('button[data-gvact]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-gvact');
+          if (act === 'delete') {
+            if (!gv.deleteArm[id]) { gv.deleteArm[id] = true; renderView(); return; }
+            delete gv.deleteArm[id];
+            api(API + '/' + id, { method: 'DELETE' }).then(gvReload);
+            return;
+          }
+          if (act === 'next') post(id + '/progress', { complete_next: true }).then(gvReload);
+          else post(id + '/' + act, {}).then(gvReload);
+        });
+      });
+    });
+  }
+
+  var gvStyle = document.createElement('style');
+  gvStyle.id = 'il-goals-view-style';
+  gvStyle.textContent = [
+    '.ilgv-stats{display:flex;gap:1.1rem;flex-wrap:wrap;margin-bottom:1rem;font-size:.9rem;color:var(--muted2,#9a958a)}',
+    '.ilgv-stats b{color:var(--text,#e8e4da);font-size:1.05rem}',
+    '.ilgv-filters{display:flex;gap:.4rem;margin:.4rem 0 1rem;flex-wrap:wrap}',
+    '.ilgv-filters button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:inherit;border-radius:999px;padding:.3rem .75rem;font:inherit;font-size:.82rem;cursor:pointer}',
+    '.ilgv-filters button.on{background:#c9a227;color:#0a0e1a;border-color:#c9a227;font-weight:700}',
+    '.ilgv-due{margin-bottom:1rem}',
+    '.ilgv-duerow{display:flex;gap:.6rem;align-items:center;justify-content:space-between;padding:.45rem .6rem;border:1px solid rgba(201,162,39,.3);border-radius:10px;margin-bottom:.4rem;font-size:.86rem;background:rgba(201,162,39,.05)}',
+    '.ilgv-duerow .due{color:var(--muted2,#9a958a);font-size:.75rem}',
+    '.ilgv-duerow button{background:#c9a227;color:#0a0e1a;border:none;border-radius:7px;padding:.3rem .6rem;font-weight:700;cursor:pointer;flex:none}',
+    '.ilgv-note{display:flex;gap:.45rem;margin-top:.6rem}',
+    '.ilgv-note input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:inherit;padding:.4rem .55rem;font:inherit;font-size:.85rem}',
+    '.ilgv-note button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:8px;padding:.4rem .7rem;font:inherit;font-size:.82rem;cursor:pointer}',
+    '.ilg-timeline b{color:var(--text,#e8e4da);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}',
+  ].join('\n');
+  document.head.appendChild(gvStyle);
+
+  function mountView(el) {
+    gv.el = el;
+    renderView();
+    gvReload();
+  }
+  function unmountView() { gv.el = null; }
+
+  window.ILGoals = { refresh: refresh, open: openPanel, close: closePanel, mountView: mountView, unmountView: unmountView };
   refresh().then(checkin);
 })();
