@@ -5074,7 +5074,7 @@ async function handleAiOrchestrate(request, env) {
 }
 
 /* POST /api/ai/agent — multi-step agent execution with tool loop. */
-async function handleAiAgent(request, env) {
+async function handleAiAgent(request, env, opts) {
   const origin = noahAllowedOrigin(request);
   if (!env.AI) return noahJson({ error: 'AI unavailable', fallback: true }, 503, origin);
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -5094,11 +5094,23 @@ async function handleAiAgent(request, env) {
   const maxSteps = Math.max(1, Math.min(parseInt(body.maxSteps, 10) || 3, 5));
   const context = body.context && typeof body.context === 'object' ? body.context : {};
 
-  /* 2026-10-11: every agent inherits the credential broker tools. */
-  const agentTools = (agent.tools || []).concat(['credential_status', 'credential_request']);
+  /* 2026-10-11: every agent inherits the credential broker tools.
+     2026-10-11 (parity-plus): + connector/memory/delegation tools. */
+  const dlgDepth = (opts && opts.depth) || 0;
+  const agentTools = (agent.tools || []).concat(['credential_status', 'credential_request',
+    'connector_call', 'connector_approve', 'memory_read', 'memory_write']);
+  if (dlgDepth < 1) agentTools.push('delegate'); /* one delegation level max */
 
   /* Build context-aware system prompt. */
-  let system = IL_PLATFORM_RULES + '\n\n' + agent.system + '\n\n' + CRED_BROKER_RULES;
+  let system = IL_PLATFORM_RULES + '\n\n' + agent.system + '\n\n' + CRED_BROKER_RULES +
+    '\n\nGOVERNANCE (non-negotiable, applies to every tool call): ' +
+    'read-only actions (search, read, list, status) run autonomously. ' +
+    'Anything that sends, publishes, purchases, deletes, schedules, books, or shares ' +
+    'externally NEVER executes autonomously: the connector_call tool returns a draft ' +
+    'marked needs_approval \u2014 you present that draft to the user in your reply and take ' +
+    'no further action until they explicitly approve AND provide a fresh step-up token ' +
+    '(the user gets one from POST /api/auth/step-up with purpose "connector"). ' +
+    'You never invent credentials, metrics, affiliations, or URLs.';
   if (agentTools && agentTools.length) {
     system += '\n\nTools available to you: ' + agentTools.join(', ') + '. ' +
       'To call a tool, reply with ONLY a line in EXACTLY this form: [TOOL:tool_name arguments] — ' +
@@ -5229,6 +5241,141 @@ async function aiExecuteTool(name, args, env, request) {
   }
   if (name === 'credential_status') return await credToolStatus(env, request);
   if (name === 'credential_request') return credToolRequest(args);
+  if (name === 'connector_call') {
+    try {
+      var cSess = await readSession(request, env);
+      if (!cSess) return 'connector_call needs a signed-in user.';
+      var cparts = String(args).trim().split(/\s+/);
+      var ccId = (cparts.shift() || '').toLowerCase();
+      var ccAction = (cparts.shift() || '').toLowerCase();
+      var cparams = {};
+      cparts.forEach(function (p) { var i2 = p.indexOf('='); if (i2 > 0) cparams[p.slice(0, i2)] = p.slice(i2 + 1); });
+      var cdef = null;
+      for (var di = 0; di < NOAH_CONNECTOR_DEFS.length; di++) {
+        if (NOAH_CONNECTOR_DEFS[di].id === ccId) cdef = NOAH_CONNECTOR_DEFS[di];
+      }
+      if (!cdef) return 'Unknown connector: ' + ccId + '.';
+      if (cdef.actions.indexOf(ccAction) === -1) {
+        return 'Unknown action "' + ccAction + '" for ' + ccId + '. Available: ' + cdef.actions.join(', ');
+      }
+      /* Mutating actions: draft only, never execute. Governance rails. */
+      var MUT = { send: 1, schedule: 1, trigger: 1, post: 1, control: 1, upload: 1 };
+      if (MUT[ccAction]) {
+        var did = '';
+        try {
+          var drb = new Uint8Array(8); crypto.getRandomValues(drb);
+          did = Array.prototype.map.call(drb, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+        } catch (e) { did = 'd' + Date.now().toString(36); }
+        try {
+          if (env.IL_ACCOUNTS) await env.IL_ACCOUNTS.put(
+            'draft:' + String(cSess.email).toLowerCase() + ':' + did,
+            JSON.stringify({ connector: ccId, action: ccAction, params: cparams, by: 'agent', at: Date.now() }),
+            { expirationTtl: 900 });
+        } catch (e) {}
+        return 'DRAFT (needs_approval, draft_id=' + did + '): ' + cdef.label + ' \u2192 ' + ccAction +
+          ' with ' + JSON.stringify(cparams).slice(0, 500) +
+          '. Present this draft to the user and do NOT execute it. If they approve, ask them to complete ' +
+          'step-up (POST /api/auth/step-up, purpose "connector") and then call ' +
+          'connector_approve ' + did + ' step_up_token=<token>.';
+      }
+      /* Read-only: execute now. */
+      if ((ccId === 'gmail' || ccId === 'gcal' || ccId === 'gdrive') && cdef.tier === 'live') {
+        var lr = await googleConnectorAction(env, request, cSess, ccId, ccAction, cparams);
+        if (!lr.ok) return cdef.label + ' ' + ccAction + ' failed: ' + (lr.error || 'unknown') +
+          (lr.error === 'not_saved' ? ' \u2014 connect it from Noah settings \u2192 Connectors.' : '');
+        return cdef.label + ' ' + ccAction + ' result: ' + JSON.stringify(lr.data).slice(0, 3000);
+      }
+      if (cdef.jobs) {
+        var jagg = await jobsAggregate({ q: cparams.q || cparams.query || '', source: cdef.jobs, limit: 8 }, env);
+        if (!jagg.jobs.length) return 'No openings found.';
+        return jagg.jobs.map(function (j) { return '- ' + j.title + ' at ' + j.company + ': ' + j.url; }).join('\n');
+      }
+      return cdef.label + ' is registered but not connected yet. Setup: ' +
+        (cdef.setup || 'see Noah settings \u2192 Connectors.');
+    } catch (e) { return 'connector_call failed.'; }
+  }
+  if (name === 'connector_approve') {
+    try {
+      var aSess = await readSession(request, env);
+      if (!aSess) return 'connector_approve needs a signed-in user.';
+      var aparts = String(args).trim().split(/\s+/);
+      var adid = aparts.shift() || '';
+      var atok = '';
+      aparts.forEach(function (p) { if (p.indexOf('step_up_token=') === 0) atok = p.slice(14); });
+      if (!adid || !atok) return 'connector_approve needs a draft_id and step_up_token=<token>.';
+      var adraw = null;
+      try { adraw = await env.IL_ACCOUNTS.get('draft:' + String(aSess.email).toLowerCase() + ':' + adid); } catch (e) {}
+      if (!adraw) return 'Draft not found or expired \u2014 re-draft the action.';
+      var ad = JSON.parse(adraw);
+      var stepped = await consumeStepUp(env, aSess, atok, 'connector');
+      if (!stepped) return 'Step-up verification failed \u2014 the user must complete POST /api/auth/step-up (purpose "connector") and you must pass the fresh token.';
+      var exr = null;
+      if (ad.connector === 'gmail' && ad.action === 'send') {
+        var sraw2 = 'To: ' + (ad.params.to || '') + '\r\nSubject: ' + (ad.params.subject || '') +
+          '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' + (ad.params.body || '');
+        var sb642 = btoa(unescape(encodeURIComponent(sraw2)))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        exr = await googleApi(env, request, aSess, 'POST',
+          'gmail.googleapis.com/gmail/v1/users/me/messages/send', '', { raw: sb642 });
+      } else if (ad.connector === 'gcal' && ad.action === 'schedule') {
+        exr = await googleApi(env, request, aSess, 'POST',
+          'www.googleapis.com/calendar/v3/calendars/primary/events', '',
+          { summary: ad.params.title || 'Untitled event',
+            start: { dateTime: ad.params.start }, end: { dateTime: ad.params.end } });
+      } else {
+        return 'Approved, but this connector/action has no live mutation path yet: ' +
+          ad.connector + ' \u2192 ' + ad.action;
+      }
+      try { await env.IL_ACCOUNTS.delete('draft:' + String(aSess.email).toLowerCase() + ':' + adid); } catch (e) {}
+      await authLog(env, request, 'sensitive_action_done', aSess.email,
+        { surface: 'agent', connector: ad.connector, action: ad.action });
+      return exr.ok ? 'Executed: ' + ad.connector + ' \u2192 ' + ad.action + '.' :
+        'Execution failed: ' + (exr.error || 'unknown');
+    } catch (e) { return 'connector_approve failed.'; }
+  }
+  if (name === 'delegate') {
+    try {
+      var dparts = String(args).trim().split(/\s+/);
+      var dAgent = (dparts.shift() || '').toLowerCase();
+      var dTask = dparts.join(' ').slice(0, 2000);
+      if (!AI_AGENTS[dAgent]) return 'Unknown agent: ' + dAgent + '. Available: ' + Object.keys(AI_AGENTS).join(', ');
+      if (!dTask) return 'delegate needs an agent id and a subtask.';
+      var subBody = { agent: dAgent, input: dTask, maxSteps: 3, context: { delegated: true } };
+      var subReq = { url: request.url, headers: request.headers,
+        json: async function () { return subBody; } };
+      var subResp = await handleAiAgent(subReq, env, { depth: 1 });
+      var subJ = null;
+      try { subJ = await subResp.json(); } catch (e) {}
+      if (!subJ || !subJ.ok) return 'Delegation to ' + dAgent + ' failed: ' + ((subJ && subJ.error) || 'unknown');
+      return 'Result from ' + subJ.agentLabel + ': ' + String(subJ.answer || '').slice(0, 3000) +
+        (subJ.toolsUsed && subJ.toolsUsed.length ? ' [tools: ' + subJ.toolsUsed.join(', ') + ']' : '');
+    } catch (e) { return 'delegate failed.'; }
+  }
+  if (name === 'memory_read') {
+    try {
+      var memSess = await readSession(request, env);
+      if (!memSess || !memSess.email) return 'Memory is unavailable: no signed-in user.';
+      if (!env.IL_ACCOUNTS) return 'Memory store unavailable.';
+      var mkey = String(args).trim().slice(0, 120).toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (!mkey) return 'memory_read needs a key.';
+      var mraw = await env.IL_ACCOUNTS.get('memory:' + String(memSess.email).toLowerCase() + ':' + mkey);
+      return mraw ? 'Shared memory [' + mkey + ']: ' + String(mraw).slice(0, 2000)
+        : 'No shared memory stored under "' + mkey + '".';
+    } catch (e) { return 'Memory read failed.'; }
+  }
+  if (name === 'memory_write') {
+    try {
+      var memSess2 = await readSession(request, env);
+      if (!memSess2 || !memSess2.email) return 'Memory is unavailable: no signed-in user.';
+      if (!env.IL_ACCOUNTS) return 'Memory store unavailable.';
+      var wparts = String(args).trim().split(/\s+/);
+      var wkey = (wparts.shift() || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      var wval = wparts.join(' ').slice(0, 2000);
+      if (!wkey || !wval) return 'memory_write needs a key and a value.';
+      await env.IL_ACCOUNTS.put('memory:' + String(memSess2.email).toLowerCase() + ':' + wkey, wval);
+      return 'Saved to shared Noah/Genesis memory under "' + wkey + '".';
+    } catch (e) { return 'Memory write failed.'; }
+  }
   if (name === 'artifact_list' || name === 'artifact_inspect' || name === 'artifact_build') {
     return aiToolArtifacts(name, args, env, request);
   }
