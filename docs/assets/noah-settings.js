@@ -134,7 +134,12 @@
     '.ils-brief{background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:.7rem .85rem;margin:.4rem 0}',
     '.ils-brief p{margin:.25rem 0;font-size:.9rem;line-height:1.45}',
     '.ils-del-confirm{display:none;margin-top:.5rem}',
-    '.ils-del-confirm.on{display:block}'
+    '.ils-del-confirm.on{display:block}',
+    '.ils-tutor-pick{display:flex;gap:.6rem;margin:.5rem 0}',
+    '.ils-tutor{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:.7rem .8rem;cursor:pointer;color:inherit;text-align:left}',
+    '.ils-tutor--on{border-color:#c9a227;background:rgba(201,162,39,.12);box-shadow:0 0 0 1px #c9a227}',
+    '.ils-tutor__name{display:block;font-weight:700;font-size:1rem}',
+    '.ils-tutor__hint{display:block;font-size:.8rem;opacity:.7;margin-top:.2rem}'
   ].join('\n');
   var style = document.createElement('style');
   style.id = 'ils-css';
@@ -764,7 +769,21 @@
     var el = slot('voice');
     var on = false;
     try { on = localStorage.getItem('noah-voice-out') === '1'; } catch (e) {}
+    /* Tutor choice: Noah or Genesis. Stored in il-noah-profile.avatar. */
+    var isGenesis = false;
+    try {
+      var prof = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+      isGenesis = prof && prof.avatar === 'genesis';
+    } catch (e) {}
     el.innerHTML =
+      '<h4 class="ils-subh">Choose your tutor</h4>' +
+      '<div class="ils-tutor-pick" role="radiogroup" aria-label="Choose your tutor">' +
+      '<button type="button" class="ils-tutor' + (!isGenesis ? ' ils-tutor--on' : '') + '" data-tutor="noah" role="radio" aria-checked="' + (!isGenesis) + '">' +
+      '<span class="ils-tutor__name">Noah</span><span class="ils-tutor__hint">The face of Noah AI</span></button>' +
+      '<button type="button" class="ils-tutor' + (isGenesis ? ' ils-tutor--on' : '') + '" data-tutor="genesis" role="radio" aria-checked="' + (isGenesis) + '">' +
+      '<span class="ils-tutor__name">Genesis</span><span class="ils-tutor__hint">Noah\u2019s twin — same brain, different presence</span></button>' +
+      '</div>' +
+      '<p class="ils-note">The twins share capabilities and knowledge — you\u2019re picking a presence, not a model.</p>' +
       '<label class="ils-switch"><input type="checkbox" id="ilsVoiceOut" ' + (on ? 'checked' : '') + '>' +
       '<span>Voice replies — ' + esc(tutorName()) + ' reads answers aloud</span></label>' +
       '<p class="ils-note">Dictation is always available from the 🎙 mic in the composer. ' +
@@ -778,6 +797,27 @@
       '<label class="ils-switch"><input type="checkbox" id="ilsFxCelebrate" checked>' +
       '<span>Celebrations — a little 🎉 when you finish a goal step</span></label>' +
       '<p><button type="button" class="ils-btn ghost" id="ilsAvatarCard">🪪 View avatar card</button></p>';
+    /* Tutor picker wiring */
+    el.querySelectorAll('.ils-tutor').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pick = btn.getAttribute('data-tutor');
+        try {
+          var pr = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+          pr.avatar = pick === 'genesis' ? 'genesis' : 'noah';
+          localStorage.setItem('il-noah-profile', JSON.stringify(pr));
+        } catch (e) {}
+        el.querySelectorAll('.ils-tutor').forEach(function (b) {
+          var on = b.getAttribute('data-tutor') === pick;
+          b.classList.toggle('ils-tutor--on', on);
+          b.setAttribute('aria-checked', on);
+        });
+        /* Update the settings header tutor name */
+        var tn = document.getElementById('ilsTutorName');
+        if (tn) tn.textContent = pick === 'genesis' ? 'Genesis' : 'Noah';
+        /* Reload so the header avatar/video swaps to the chosen tutor */
+        setTimeout(function () { location.reload(); }, 400);
+      });
+    });
     var cb = $('ilsVoiceOut');
     if (cb) cb.addEventListener('change', function () {
       try { localStorage.setItem('noah-voice-out', cb.checked ? '1' : '0'); } catch (e) {}
