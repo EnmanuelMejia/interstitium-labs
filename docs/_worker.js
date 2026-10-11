@@ -2114,6 +2114,14 @@ var CRED_DIRECTORY = [
   { id: 'gmail',    label: 'Gmail',           kind: 'oauth' },
   { id: 'gcal',     label: 'Google Calendar', kind: 'oauth' },
   { id: 'github',   label: 'GitHub',          kind: 'oauth' },
+  /* 2026-10-11 (parity-plus): OAuth token services — tokens are stored by
+     the connector OAuth flow under these ids (broker AES-GCM envelopes). */
+  { id: 'oauth-google',    label: 'Google (OAuth tokens)',    kind: 'oauth' },
+  { id: 'oauth-github',    label: 'GitHub (OAuth tokens)',    kind: 'oauth' },
+  { id: 'oauth-microsoft', label: 'Microsoft (OAuth tokens)', kind: 'oauth' },
+  { id: 'oauth-spotify',   label: 'Spotify (OAuth tokens)',   kind: 'oauth' },
+  { id: 'oauth-meta',      label: 'Meta (OAuth tokens)',      kind: 'oauth' },
+  { id: 'oauth-apple',     label: 'Apple (OAuth tokens)',     kind: 'oauth' },
   { id: 'indeed',        label: 'Indeed',          kind: 'password', store_hint: 'proton-pass' },
   { id: 'linkedin',      label: 'LinkedIn',        kind: 'password', store_hint: 'proton-pass' },
   { id: 'ziprecruiter',  label: 'ZipRecruiter',    kind: 'password', store_hint: 'proton-pass' },
@@ -3499,10 +3507,10 @@ async function handleReminders(request, env, sess, path) {
   return json({ ok: false, error: "not_found" }, 404);
 }
 
-async function handleBriefing(request, env, sess) {
-  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
-  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
-  var email = String(sess.email || "").toLowerCase();
+/* 2026-10-11 (parity-plus): briefing computation extracted so the
+   scheduled pre-compute and the live route share one implementation. */
+async function buildBriefingData(env, email) {
+  email = String(email || "").toLowerCase();
   var today = goalToday();
 
   var goals = await goalListRecords(env, email);
@@ -3563,11 +3571,240 @@ async function handleBriefing(request, env, sess) {
   if (jobAlerts) {
     lines.push("💼 Job alerts are on (" + jobAlerts + (jobAlerts === 1 ? " watch" : " watches") + ") — new matches land in the Jobs suite.");
   }
-  return json({
+  return {
     ok: true, date: today, lines: lines,
     due_goals: dueGoals, due_reminders: dueRems,
     next_reminder: nextRem, active_goals: activeGoals, job_alerts: jobAlerts
-  });
+  };
+}
+
+/* 2026-10-11 (parity-plus): unified Noah/Genesis memory. One KV
+   family (memory:<email>:<key>) shared by both twins — the same handlers,
+   the same store, never a per-tutor copy. Included in account
+   export/delete from day one. */
+async function memoryExport(env, email) {
+  var out = {};
+  try {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    for (var i = 0; i < keys.length; i++) {
+      var v = await env.IL_ACCOUNTS.get(keys[i]);
+      if (v != null) out[keys[i].slice(("memory:" + email + ":").length)] = v;
+    }
+  } catch (e) {}
+  return out;
+}
+async function memoryErase(env, email) {
+  var n = 0;
+  try {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    for (var i = 0; i < keys.length; i++) {
+      try { await env.IL_ACCOUNTS.delete(keys[i]); n++; } catch (e) {}
+    }
+  } catch (e) {}
+  return n;
+}
+/* 2026-10-11 (parity-plus): device pairing. The owner pairs a phone
+   from Noah settings -> Devices: the site shows a 6-digit code (10-min
+   TTL); the device claims it with its name/platform. Listed devices can
+   be revoked. All session-gated. */
+async function handleNoahDevices(request, env, sess, sub) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  if (request.method === "GET" && (sub === "" || sub === "/")) {
+    var keys = [];
+    try { keys = await kvListKeys(env.IL_ACCOUNTS, "device:" + email + ":", 100); } catch (e) {}
+    var devs = [];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = await env.IL_ACCOUNTS.get(keys[i]);
+        if (raw) { var d = JSON.parse(raw); d.id = keys[i].slice(("device:" + email + ":").length); devs.push(d); }
+      } catch (e) {}
+    }
+    return json({ ok: true, devices: devs });
+  }
+  if (request.method === "POST" && sub === "/pair") {
+    var code = "";
+    try {
+      var rb = new Uint8Array(3); crypto.getRandomValues(rb);
+      code = String(100000 + ((((rb[0] << 16) | (rb[1] << 8) | rb[2]) % 900000)));
+    } catch (e) { code = String(100000 + Math.floor(Math.random() * 900000)); }
+    try {
+      await env.IL_ACCOUNTS.put("paircode:" + code, JSON.stringify({ email: email, at: Date.now() }),
+        { expirationTtl: 600 });
+    } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    await authLog(env, request, "device_pair_started", email, {});
+    return json({ ok: true, code: code, expires_in: 600 });
+  }
+  if (request.method === "POST" && sub === "/claim") {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var ccode = body && body.code ? String(body.code).replace(/[^0-9]/g, "").slice(0, 6) : "";
+    var name = body && body.name ? String(body.name).slice(0, 80) : "Unnamed device";
+    var platform = body && body.platform ? String(body.platform).slice(0, 40) : "unknown";
+    if (!ccode) return json({ ok: false, error: "code_required" }, 400);
+    var prec = null;
+    try { prec = await env.IL_ACCOUNTS.get("paircode:" + ccode); } catch (e) {}
+    if (!prec) return json({ ok: false, error: "invalid_or_expired_code" }, 400);
+    var pj2 = null;
+    try { pj2 = JSON.parse(prec); } catch (e) {}
+    if (!pj2 || pj2.email !== email) return json({ ok: false, error: "invalid_or_expired_code" }, 400);
+    var did = "";
+    try {
+      var db = new Uint8Array(8); crypto.getRandomValues(db);
+      did = Array.prototype.map.call(db, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    } catch (e) { did = "d" + Date.now().toString(36); }
+    try {
+      await env.IL_ACCOUNTS.put("device:" + email + ":" + did,
+        JSON.stringify({ name: name, platform: platform, paired_at: new Date().toISOString() }));
+      await env.IL_ACCOUNTS.delete("paircode:" + ccode);
+    } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    await authLog(env, request, "device_paired", email, { device: did, name: name });
+    return json({ ok: true, id: did, name: name });
+  }
+  if (request.method === "DELETE" && sub && sub.charAt(0) === "/") {
+    var rdid = decodeURIComponent(sub.slice(1)).replace(/[^a-z0-9]/g, "").slice(0, 32);
+    if (!rdid) return json({ ok: false, error: "invalid_id" }, 400);
+    try { await env.IL_ACCOUNTS.delete("device:" + email + ":" + rdid); } catch (e) {}
+    await authLog(env, request, "device_revoked", email, { device: rdid });
+    return json({ ok: true, id: rdid });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
+/* 2026-10-11 (parity-plus): wallet surface. Read-only view over the
+   existing payment records (orders + entitlements) — the same data the
+   account export carries. No new money movement. */
+async function handleNoahWallet(request, env, sess) {
+  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  var orders = [], entitlements = [];
+  try {
+    var orderKeys = await kvListKeys(env.IL_ACCOUNTS, "pay:order:", 200);
+    for (var o = 0; o < orderKeys.length; o++) {
+      try {
+        var ov = JSON.parse(await env.IL_ACCOUNTS.get(orderKeys[o]));
+        if (ov && String(ov.email || "").toLowerCase() === email) {
+          orders.push({ id: ov.id || orderKeys[o], amount: ov.amount || null,
+            currency: ov.currency || null, status: ov.status || null,
+            created: ov.created_at || ov.created || null,
+            description: ov.description || ov.memo || null });
+        }
+      } catch (e) {}
+    }
+    var entKeys = await kvListKeys(env.IL_ACCOUNTS, "pay:entitle:" + email + ":", 200);
+    for (var n = 0; n < entKeys.length; n++) {
+      try {
+        var ev = JSON.parse(await env.IL_ACCOUNTS.get(entKeys[n]));
+        entitlements.push({ key: entKeys[n], value: ev });
+      } catch (e) {}
+    }
+  } catch (e) {}
+  orders.sort(function (a, b) { return String(b.created || "") < String(a.created || "") ? -1 : 1; });
+  return json({ ok: true, orders: orders.slice(0, 50), entitlements: entitlements });
+}
+
+/* 2026-10-11 (parity-plus): voice preferences backing the Voice settings
+   section (voice id, auto-read replies, speech rate). TTS itself is the
+   existing POST /api/noah/tts; STT is POST /api/ai/transcribe. */
+var NOAH_VOICES = ["noah", "genesis", "sage", "ember", "alloy"];
+async function handleNoahVoice(request, env, sess) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  if (request.method === "GET") {
+    var cur = null;
+    try { cur = await env.IL_ACCOUNTS.get("voice:" + email); } catch (e) {}
+    var prefs = { voice: "noah", auto_read: false, rate: 1.0 };
+    try { if (cur) prefs = Object.assign(prefs, JSON.parse(cur)); } catch (e) {}
+    prefs.voices = NOAH_VOICES;
+    return json({ ok: true, prefs: prefs });
+  }
+  if (request.method === "POST") {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var prefs2 = { voice: "noah", auto_read: false, rate: 1.0 };
+    try { var ex = await env.IL_ACCOUNTS.get("voice:" + email); if (ex) prefs2 = Object.assign(prefs2, JSON.parse(ex)); } catch (e) {}
+    if (body) {
+      if (typeof body.voice === "string" && NOAH_VOICES.indexOf(body.voice) !== -1) prefs2.voice = body.voice;
+      if (typeof body.auto_read === "boolean") prefs2.auto_read = body.auto_read;
+      var rt = parseFloat(body.rate);
+      if (rt >= 0.5 && rt <= 2.0) prefs2.rate = rt;
+    }
+    try { await env.IL_ACCOUNTS.put("voice:" + email, JSON.stringify(prefs2)); }
+    catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    return json({ ok: true, prefs: prefs2 });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
+async function handleNoahMemory(request, env, sess, sub) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  function mkey(raw) {
+    return String(raw || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 120);
+  }
+  if (request.method === "GET" && (sub === "" || sub === "/")) {
+    var keys = await kvListKeys(env.IL_ACCOUNTS, "memory:" + email + ":", 500);
+    return json({ ok: true, keys: keys.map(function (k) { return k.slice(("memory:" + email + ":").length); }) });
+  }
+  if (request.method === "POST" && (sub === "" || sub === "/")) {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var k = mkey(body && body.key);
+    var v = body && body.value != null ? String(body.value).slice(0, 4000) : "";
+    if (!k || !v) return json({ ok: false, error: "key_and_value_required" }, 400);
+    await env.IL_ACCOUNTS.put("memory:" + email + ":" + k, v);
+    await authLog(env, request, "memory_write", email, { key: k });
+    return json({ ok: true, key: k });
+  }
+  if (request.method === "DELETE" && sub && sub.charAt(0) === "/") {
+    var dk = mkey(decodeURIComponent(sub.slice(1)));
+    if (!dk) return json({ ok: false, error: "invalid_key" }, 400);
+    await env.IL_ACCOUNTS.delete("memory:" + email + ":" + dk);
+    await authLog(env, request, "memory_delete", email, { key: dk });
+    return json({ ok: true, key: dk });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
+async function handleBriefing(request, env, sess) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
+  var email = String(sess.email || "").toLowerCase();
+  var today = goalToday();
+  /* Prefer the scheduled pre-compute when it is fresh (same day). */
+  try {
+    var pre = await env.IL_ACCOUNTS.get("briefing:ready:" + email + ":" + today);
+    if (pre) {
+      var pj = JSON.parse(pre);
+      if (pj && pj.briefing && pj.briefing.ok) {
+        pj.briefing.precomputed = true;
+        pj.briefing.computed_at = pj.computed_at;
+        return json(pj.briefing);
+      }
+    }
+  } catch (e) {}
+  return json(await buildBriefingData(env, email));
+}
+
+/* 2026-10-11 (parity-plus): proactive briefing delivery. The scheduled
+   worker pre-computes the daily briefing for every opted-in account into
+   KV; the Today section and Noah open surface it. No push/email channel
+   exists yet — the briefing is ready the moment the user opens Noah. */
+async function handleScheduledBriefings(env) {
+  if (!env.IL_ACCOUNTS) return;
+  var today = new Date().toISOString().slice(0, 10);
+  var keys = [];
+  try { keys = await kvListKeys(env.IL_ACCOUNTS, "briefing_optin:", 500); } catch (e) { return; }
+  for (var i = 0; i < keys.length; i++) {
+    try {
+      var email = keys[i].slice("briefing_optin:".length);
+      var data = await buildBriefingData(env, email);
+      await env.IL_ACCOUNTS.put("briefing:ready:" + email + ":" + today,
+        JSON.stringify({ computed_at: new Date().toISOString(), briefing: data }),
+        { expirationTtl: 36 * 3600 });
+    } catch (e) {}
+  }
 }
 
 async function handleAccountActivity(request, env, sess) {
@@ -3729,7 +3966,8 @@ async function handleAccountExport(request, env, sess) {
     orders: [],
     entitlements: [],
     saved_logins: await foldinCredIndexMeta(env, email),
-    reminders: await foldinExportReminders(env, email)
+    reminders: await foldinExportReminders(env, email),
+    shared_memory: await memoryExport(env, email)
   };
   var storeNames = Object.keys(SYNC_STORES).concat(['goals']);
   for (var i = 0; i < storeNames.length; i++) {
@@ -3815,6 +4053,7 @@ async function handleAccountDelete(request, env, sess) {
   deleted.jobs_alerts = await del('jobsalerts:' + email);
   deleted.saved_logins = await foldinEraseCredentials(env, email);
   deleted.reminders = await foldinEraseReminders(env, email);
+  deleted.shared_memory = await memoryErase(env, email);
   deleted.xapi_statements = await del('xapi:' + email);
   var entKeys = await kvListKeys(env.IL_ACCOUNTS, 'pay:entitle:' + email + ':', 200);
   var entCount = 0;
@@ -5074,7 +5313,7 @@ async function handleAiOrchestrate(request, env) {
 }
 
 /* POST /api/ai/agent — multi-step agent execution with tool loop. */
-async function handleAiAgent(request, env) {
+async function handleAiAgent(request, env, opts) {
   const origin = noahAllowedOrigin(request);
   if (!env.AI) return noahJson({ error: 'AI unavailable', fallback: true }, 503, origin);
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -5094,11 +5333,23 @@ async function handleAiAgent(request, env) {
   const maxSteps = Math.max(1, Math.min(parseInt(body.maxSteps, 10) || 3, 5));
   const context = body.context && typeof body.context === 'object' ? body.context : {};
 
-  /* 2026-10-11: every agent inherits the credential broker tools. */
-  const agentTools = (agent.tools || []).concat(['credential_status', 'credential_request']);
+  /* 2026-10-11: every agent inherits the credential broker tools.
+     2026-10-11 (parity-plus): + connector/memory/delegation tools. */
+  const dlgDepth = (opts && opts.depth) || 0;
+  const agentTools = (agent.tools || []).concat(['credential_status', 'credential_request',
+    'connector_call', 'connector_approve', 'memory_read', 'memory_write']);
+  if (dlgDepth < 1) agentTools.push('delegate'); /* one delegation level max */
 
   /* Build context-aware system prompt. */
-  let system = IL_PLATFORM_RULES + '\n\n' + agent.system + '\n\n' + CRED_BROKER_RULES;
+  let system = IL_PLATFORM_RULES + '\n\n' + agent.system + '\n\n' + CRED_BROKER_RULES +
+    '\n\nGOVERNANCE (non-negotiable, applies to every tool call): ' +
+    'read-only actions (search, read, list, status) run autonomously. ' +
+    'Anything that sends, publishes, purchases, deletes, schedules, books, or shares ' +
+    'externally NEVER executes autonomously: the connector_call tool returns a draft ' +
+    'marked needs_approval \u2014 you present that draft to the user in your reply and take ' +
+    'no further action until they explicitly approve AND provide a fresh step-up token ' +
+    '(the user gets one from POST /api/auth/step-up with purpose "connector"). ' +
+    'You never invent credentials, metrics, affiliations, or URLs.';
   if (agentTools && agentTools.length) {
     system += '\n\nTools available to you: ' + agentTools.join(', ') + '. ' +
       'To call a tool, reply with ONLY a line in EXACTLY this form: [TOOL:tool_name arguments] — ' +
@@ -5229,6 +5480,141 @@ async function aiExecuteTool(name, args, env, request) {
   }
   if (name === 'credential_status') return await credToolStatus(env, request);
   if (name === 'credential_request') return credToolRequest(args);
+  if (name === 'connector_call') {
+    try {
+      var cSess = await readSession(request, env);
+      if (!cSess) return 'connector_call needs a signed-in user.';
+      var cparts = String(args).trim().split(/\s+/);
+      var ccId = (cparts.shift() || '').toLowerCase();
+      var ccAction = (cparts.shift() || '').toLowerCase();
+      var cparams = {};
+      cparts.forEach(function (p) { var i2 = p.indexOf('='); if (i2 > 0) cparams[p.slice(0, i2)] = p.slice(i2 + 1); });
+      var cdef = null;
+      for (var di = 0; di < NOAH_CONNECTOR_DEFS.length; di++) {
+        if (NOAH_CONNECTOR_DEFS[di].id === ccId) cdef = NOAH_CONNECTOR_DEFS[di];
+      }
+      if (!cdef) return 'Unknown connector: ' + ccId + '.';
+      if (cdef.actions.indexOf(ccAction) === -1) {
+        return 'Unknown action "' + ccAction + '" for ' + ccId + '. Available: ' + cdef.actions.join(', ');
+      }
+      /* Mutating actions: draft only, never execute. Governance rails. */
+      var MUT = { send: 1, schedule: 1, trigger: 1, post: 1, control: 1, upload: 1 };
+      if (MUT[ccAction]) {
+        var did = '';
+        try {
+          var drb = new Uint8Array(8); crypto.getRandomValues(drb);
+          did = Array.prototype.map.call(drb, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+        } catch (e) { did = 'd' + Date.now().toString(36); }
+        try {
+          if (env.IL_ACCOUNTS) await env.IL_ACCOUNTS.put(
+            'draft:' + String(cSess.email).toLowerCase() + ':' + did,
+            JSON.stringify({ connector: ccId, action: ccAction, params: cparams, by: 'agent', at: Date.now() }),
+            { expirationTtl: 900 });
+        } catch (e) {}
+        return 'DRAFT (needs_approval, draft_id=' + did + '): ' + cdef.label + ' \u2192 ' + ccAction +
+          ' with ' + JSON.stringify(cparams).slice(0, 500) +
+          '. Present this draft to the user and do NOT execute it. If they approve, ask them to complete ' +
+          'step-up (POST /api/auth/step-up, purpose "connector") and then call ' +
+          'connector_approve ' + did + ' step_up_token=<token>.';
+      }
+      /* Read-only: execute now. */
+      if ((ccId === 'gmail' || ccId === 'gcal' || ccId === 'gdrive') && cdef.tier === 'live') {
+        var lr = await googleConnectorAction(env, request, cSess, ccId, ccAction, cparams);
+        if (!lr.ok) return cdef.label + ' ' + ccAction + ' failed: ' + (lr.error || 'unknown') +
+          (lr.error === 'not_saved' ? ' \u2014 connect it from Noah settings \u2192 Connectors.' : '');
+        return cdef.label + ' ' + ccAction + ' result: ' + JSON.stringify(lr.data).slice(0, 3000);
+      }
+      if (cdef.jobs) {
+        var jagg = await jobsAggregate({ q: cparams.q || cparams.query || '', source: cdef.jobs, limit: 8 }, env);
+        if (!jagg.jobs.length) return 'No openings found.';
+        return jagg.jobs.map(function (j) { return '- ' + j.title + ' at ' + j.company + ': ' + j.url; }).join('\n');
+      }
+      return cdef.label + ' is registered but not connected yet. Setup: ' +
+        (cdef.setup || 'see Noah settings \u2192 Connectors.');
+    } catch (e) { return 'connector_call failed.'; }
+  }
+  if (name === 'connector_approve') {
+    try {
+      var aSess = await readSession(request, env);
+      if (!aSess) return 'connector_approve needs a signed-in user.';
+      var aparts = String(args).trim().split(/\s+/);
+      var adid = aparts.shift() || '';
+      var atok = '';
+      aparts.forEach(function (p) { if (p.indexOf('step_up_token=') === 0) atok = p.slice(14); });
+      if (!adid || !atok) return 'connector_approve needs a draft_id and step_up_token=<token>.';
+      var adraw = null;
+      try { adraw = await env.IL_ACCOUNTS.get('draft:' + String(aSess.email).toLowerCase() + ':' + adid); } catch (e) {}
+      if (!adraw) return 'Draft not found or expired \u2014 re-draft the action.';
+      var ad = JSON.parse(adraw);
+      var stepped = await consumeStepUp(env, aSess, atok, 'connector');
+      if (!stepped) return 'Step-up verification failed \u2014 the user must complete POST /api/auth/step-up (purpose "connector") and you must pass the fresh token.';
+      var exr = null;
+      if (ad.connector === 'gmail' && ad.action === 'send') {
+        var sraw2 = 'To: ' + (ad.params.to || '') + '\r\nSubject: ' + (ad.params.subject || '') +
+          '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' + (ad.params.body || '');
+        var sb642 = btoa(unescape(encodeURIComponent(sraw2)))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        exr = await googleApi(env, request, aSess, 'POST',
+          'gmail.googleapis.com/gmail/v1/users/me/messages/send', '', { raw: sb642 });
+      } else if (ad.connector === 'gcal' && ad.action === 'schedule') {
+        exr = await googleApi(env, request, aSess, 'POST',
+          'www.googleapis.com/calendar/v3/calendars/primary/events', '',
+          { summary: ad.params.title || 'Untitled event',
+            start: { dateTime: ad.params.start }, end: { dateTime: ad.params.end } });
+      } else {
+        return 'Approved, but this connector/action has no live mutation path yet: ' +
+          ad.connector + ' \u2192 ' + ad.action;
+      }
+      try { await env.IL_ACCOUNTS.delete('draft:' + String(aSess.email).toLowerCase() + ':' + adid); } catch (e) {}
+      await authLog(env, request, 'sensitive_action_done', aSess.email,
+        { surface: 'agent', connector: ad.connector, action: ad.action });
+      return exr.ok ? 'Executed: ' + ad.connector + ' \u2192 ' + ad.action + '.' :
+        'Execution failed: ' + (exr.error || 'unknown');
+    } catch (e) { return 'connector_approve failed.'; }
+  }
+  if (name === 'delegate') {
+    try {
+      var dparts = String(args).trim().split(/\s+/);
+      var dAgent = (dparts.shift() || '').toLowerCase();
+      var dTask = dparts.join(' ').slice(0, 2000);
+      if (!AI_AGENTS[dAgent]) return 'Unknown agent: ' + dAgent + '. Available: ' + Object.keys(AI_AGENTS).join(', ');
+      if (!dTask) return 'delegate needs an agent id and a subtask.';
+      var subBody = { agent: dAgent, input: dTask, maxSteps: 3, context: { delegated: true } };
+      var subReq = { url: request.url, headers: request.headers,
+        json: async function () { return subBody; } };
+      var subResp = await handleAiAgent(subReq, env, { depth: 1 });
+      var subJ = null;
+      try { subJ = await subResp.json(); } catch (e) {}
+      if (!subJ || !subJ.ok) return 'Delegation to ' + dAgent + ' failed: ' + ((subJ && subJ.error) || 'unknown');
+      return 'Result from ' + subJ.agentLabel + ': ' + String(subJ.answer || '').slice(0, 3000) +
+        (subJ.toolsUsed && subJ.toolsUsed.length ? ' [tools: ' + subJ.toolsUsed.join(', ') + ']' : '');
+    } catch (e) { return 'delegate failed.'; }
+  }
+  if (name === 'memory_read') {
+    try {
+      var memSess = await readSession(request, env);
+      if (!memSess || !memSess.email) return 'Memory is unavailable: no signed-in user.';
+      if (!env.IL_ACCOUNTS) return 'Memory store unavailable.';
+      var mkey = String(args).trim().slice(0, 120).toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (!mkey) return 'memory_read needs a key.';
+      var mraw = await env.IL_ACCOUNTS.get('memory:' + String(memSess.email).toLowerCase() + ':' + mkey);
+      return mraw ? 'Shared memory [' + mkey + ']: ' + String(mraw).slice(0, 2000)
+        : 'No shared memory stored under "' + mkey + '".';
+    } catch (e) { return 'Memory read failed.'; }
+  }
+  if (name === 'memory_write') {
+    try {
+      var memSess2 = await readSession(request, env);
+      if (!memSess2 || !memSess2.email) return 'Memory is unavailable: no signed-in user.';
+      if (!env.IL_ACCOUNTS) return 'Memory store unavailable.';
+      var wparts = String(args).trim().split(/\s+/);
+      var wkey = (wparts.shift() || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      var wval = wparts.join(' ').slice(0, 2000);
+      if (!wkey || !wval) return 'memory_write needs a key and a value.';
+      await env.IL_ACCOUNTS.put('memory:' + String(memSess2.email).toLowerCase() + ':' + wkey, wval);
+      return 'Saved to shared Noah/Genesis memory under "' + wkey + '".';
+    } catch (e) { return 'Memory write failed.'; }
+  }
   if (name === 'artifact_list' || name === 'artifact_inspect' || name === 'artifact_build') {
     return aiToolArtifacts(name, args, env, request);
   }
@@ -5582,45 +5968,425 @@ const NOAH_TUTORS = {
 };
 const NOAH_TUTOR_DEFAULT = 'noah';
 
-/* 2026-10-11: Noah connector definitions — mirrored from noah-connectors.js
-   for the GET /api/noah/connectors listing. OAuth credentials are the
-   site owner's action (env vars); until configured, POST returns setup guidance. */
+/* 2026-10-11 (parity-plus): Noah/Genesis connector registry — the full
+   personal-agent connector surface, mirroring the skill catalog. Each entry
+   is a manifest: id, label, icon, auth kind, OAuth scopes, API surface,
+   actions, and tier. tier 'live' = executable now (reads autonomous,
+   mutations behind the confirm+step-up gate); tier 'stub' = real manifest,
+   API layer ships when the owner completes setup — never a silent failure. */
 const NOAH_CONNECTOR_DEFS = [
-  { id: 'gmail', label: 'Gmail', icon: '📧', auth: 'oauth-google',
+  /* ---- Google workspace (OAuth) — read paths live, writes gated ---- */
+  { id: 'gmail', label: 'Gmail', icon: '📧', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/gmail.readonly',
+             'https://www.googleapis.com/auth/gmail.compose'],
+    api: 'Gmail API v1 — messages.list/get, drafts.create',
     actions: ['search', 'read', 'draft', 'send'],
-    setup: 'Add GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  { id: 'gcal', label: 'Google Calendar', icon: '📅', auth: 'oauth-google',
-    actions: ['freebusy', 'schedule', 'list'],
-    setup: 'Add GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  { id: 'github', label: 'GitHub', icon: '🐙', auth: 'oauth-github',
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gcal', label: 'Google Calendar', icon: '📅', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly',
+             'https://www.googleapis.com/auth/calendar.events'],
+    api: 'Calendar API v3 — events.list, freebusy.query, events.insert',
+    actions: ['list', 'freebusy', 'schedule'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gdrive', label: 'Google Drive', icon: '💾', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    api: 'Drive API v3 — files.list/get (read-only)',
+    actions: ['search', 'list', 'read'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gphotos', label: 'Google Photos', icon: '🌄', auth: 'oauth-google', tier: 'stub',
+    scopes: ['https://www.googleapis.com/auth/photoslibrary.readonly'],
+    api: 'Photos Library API — mediaItems.search',
+    actions: ['search', 'list'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'google_fit', label: 'Google Health Connect', icon: '💚', auth: 'oauth-google', tier: 'stub',
+    scopes: ['https://www.googleapis.com/auth/fitness.activity.read',
+             'https://www.googleapis.com/auth/fitness.sleep.read'],
+    api: 'Google Fit REST API — sessions, datasets (read-only, wellness only)',
+    actions: ['metrics', 'sleep', 'workouts'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Microsoft ---- */
+  { id: 'outlook', label: 'Outlook Mail', icon: '📨', auth: 'oauth-microsoft', tier: 'stub',
+    scopes: ['Mail.Read', 'Mail.Send', 'Calendars.ReadWrite', 'offline_access'],
+    api: 'Microsoft Graph — /me/messages, /me/events',
+    actions: ['search', 'read', 'draft', 'send', 'schedule'],
+    setup: 'The site owner adds MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Media ---- */
+  { id: 'spotify', label: 'Spotify', icon: '🎵', auth: 'oauth-spotify', tier: 'stub',
+    scopes: ['user-read-playback-state', 'user-modify-playback-state',
+             'playlist-read-private', 'user-library-read'],
+    api: 'Spotify Web API — player, playlists, search',
+    actions: ['search', 'playlists', 'control'],
+    setup: 'The site owner adds SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Built-in (no auth) ---- */
+  { id: 'tts', label: 'Voice (TTS/STT)', icon: '🔊', auth: 'none', tier: 'live',
+    scopes: [],
+    api: 'Built-in — POST /api/noah/tts (5 voices), POST /api/ai/transcribe',
+    actions: ['speak', 'transcribe'], setup: '' },
+  { id: 'image_search', label: 'Image Search', icon: '🖼️', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in source layer (ships with the image index)',
+    actions: ['search'],
+    setup: 'Available with the next platform update.' },
+  /* ---- Finance (metadata only — never moves money) ---- */
+  { id: 'plaid', label: 'Bank Accounts (Plaid)', icon: '🏦', auth: 'api-key', tier: 'stub',
+    scopes: [],
+    api: 'Plaid API — accounts, balances, transactions (read-only)',
+    actions: ['accounts', 'transactions'],
+    setup: 'The site owner adds PLAID_CLIENT_ID / PLAID_SECRET / PLAID_ENV, then you connect from Noah settings.' },
+  { id: 'flightaware', label: 'FlightAware', icon: '✈️', auth: 'api-key', tier: 'stub',
+    scopes: [],
+    api: 'FlightAware AeroAPI — flight status, delays, tracking',
+    actions: ['status', 'track'],
+    setup: 'The site owner adds FLIGHTAWARE_API_KEY, then you connect from Noah settings.' },
+  /* ---- Travel & commerce (built-in planning; booking always gated) ---- */
+  { id: 'booking', label: 'Travel & Booking', icon: '🧳', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in travel planning + live availability checks',
+    actions: ['plan', 'availability'],
+    setup: 'Travel planning is built in — ask Noah to plan a trip. Any booking stops for your approval first.' },
+  { id: 'shopping', label: 'Shopping', icon: '🛒', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in product research via the source layer (never purchases)',
+    actions: ['search', 'compare'],
+    setup: 'Ask the Smart Shopper agent to research anything — it drafts a shortlist; you approve and buy.' },
+  { id: 'meta_ads', label: 'Meta Ads', icon: '📣', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['ads_read'],
+    api: 'Meta Marketing API — campaigns, insights (read-only)',
+    actions: ['report', 'list'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  /* ---- Social (publishing always gated) ---- */
+  { id: 'threads', label: 'Threads', icon: '🧵', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['threads_basic', 'threads_content_publish'],
+    api: 'Threads API — profile, posts, publishing (gated)',
+    actions: ['read', 'post'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  { id: 'instagram', label: 'Instagram', icon: '📸', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['instagram_basic', 'instagram_content_publish'],
+    api: 'Instagram Graph API — media, insights, publishing (gated)',
+    actions: ['read', 'post', 'insights'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  { id: 'facebook', label: 'Facebook', icon: '👥', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['pages_read_engagement', 'pages_manage_posts'],
+    api: 'Facebook Graph API — pages, posts (gated)',
+    actions: ['read', 'post'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  /* ---- Health (read-only, wellness — never medical advice) ---- */
+  { id: 'apple_health', label: 'Apple Health', icon: '❤️', auth: 'oauth-apple', tier: 'stub',
+    scopes: ['healthkit'],
+    api: 'HealthKit via paired-device sync',
+    actions: ['metrics', 'sleep', 'workouts'],
+    setup: 'Pair your iPhone from Noah settings → Devices, then connect Apple Health.' },
+  /* ---- Device-local ---- */
+  { id: 'media_library', label: 'Photo Library', icon: '🖼️', auth: 'device', tier: 'stub',
+    scopes: [],
+    api: 'Paired-device photo library access',
+    actions: ['search', 'view'],
+    setup: 'Pair your device from Noah settings → Devices first.' },
+  /* ---- Existing: GitHub ---- */
+  { id: 'github', label: 'GitHub', icon: '🐙', auth: 'oauth-github', tier: 'stub',
+    scopes: ['repo', 'read:user'],
+    api: 'GitHub REST API — repos, PRs, issues, Actions (trigger gated)',
     actions: ['status', 'prs', 'issues', 'trigger'],
-    setup: 'Add GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  /* 2026-10-11: Jobs Suite data connectors — public job sources, no auth.
-     Executed by the jobs branch in handleNoahConnector via the same
-     aggregator as /api/jobs/search. */
-  { id: 'jobs', label: 'Job Board (all sources)', icon: '💼', auth: 'none', jobs: 'all',
+    setup: 'The site owner adds GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Jobs Suite data connectors — public job sources, no auth. ---- */
+  { id: 'jobs', label: 'Job Board (all sources)', icon: '💼', auth: 'none', tier: 'live', jobs: 'all',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-greenhouse', label: 'Greenhouse Boards', icon: '🏢', auth: 'none', jobs: 'greenhouse',
+  { id: 'jobs-greenhouse', label: 'Greenhouse Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'greenhouse',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-lever', label: 'Lever Boards', icon: '🏢', auth: 'none', jobs: 'lever',
+  { id: 'jobs-lever', label: 'Lever Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'lever',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-ashby', label: 'Ashby Boards', icon: '🏢', auth: 'none', jobs: 'ashby',
+  { id: 'jobs-ashby', label: 'Ashby Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'ashby',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-remotive', label: 'Remotive', icon: '🌐', auth: 'none', jobs: 'remotive',
+  { id: 'jobs-remotive', label: 'Remotive', icon: '🌐', auth: 'none', tier: 'live', jobs: 'remotive',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-remoteok', label: 'Remote OK', icon: '🌐', auth: 'none', jobs: 'remoteok',
+  { id: 'jobs-remoteok', label: 'Remote OK', icon: '🌐', auth: 'none', tier: 'live', jobs: 'remoteok',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-arbeitnow', label: 'Arbeitnow', icon: '🌐', auth: 'none', jobs: 'arbeitnow',
+  { id: 'jobs-arbeitnow', label: 'Arbeitnow', icon: '🌐', auth: 'none', tier: 'live', jobs: 'arbeitnow',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-themuse', label: 'The Muse', icon: '🌐', auth: 'none', jobs: 'themuse',
+  { id: 'jobs-themuse', label: 'The Muse', icon: '🌐', auth: 'none', tier: 'live', jobs: 'themuse',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-weworkremotely', label: 'We Work Remotely', icon: '🌐', auth: 'none', jobs: 'weworkremotely',
+  { id: 'jobs-weworkremotely', label: 'We Work Remotely', icon: '🌐', auth: 'none', tier: 'live', jobs: 'weworkremotely',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-usajobs', label: 'USAJobs (federal)', icon: '🏛️', auth: 'none', jobs: 'usajobs',
+  { id: 'jobs-usajobs', label: 'USAJobs (federal)', icon: '🏛️', auth: 'none', tier: 'stub', jobs: 'usajobs',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: 'Activates when the owner adds USAJOBS_API_KEY + USAJOBS_USER_AGENT.' },
-  { id: 'jobs-adzuna', label: 'Adzuna', icon: '🌐', auth: 'none', jobs: 'adzuna',
+  { id: 'jobs-adzuna', label: 'Adzuna', icon: '🌐', auth: 'none', tier: 'stub', jobs: 'adzuna',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: 'Activates when the owner adds ADZUNA_APP_ID + ADZUNA_APP_KEY.' },
 ];
+
+/* 2026-10-11 (parity-plus): OAuth provider wiring for connectors.
+   Client IDs/secrets are the site owner's env vars. Tokens are stored in
+   the credential broker (AES-GCM, fails closed 503 until CRED_ENC_KEY is
+   set) under service 'oauth-<provider>' — username is the connected
+   account email, secret is the token JSON. */
+var NOAH_OAUTH_PROVIDERS = {
+  'oauth-google': {
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    clientIdEnv: 'GOOGLE_CLIENT_ID', clientSecretEnv: 'GOOGLE_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/google'
+  },
+  'oauth-github': {
+    authUrl: 'https://github.com/login/oauth/authorize',
+    tokenUrl: 'https://github.com/login/oauth/access_token',
+    clientIdEnv: 'GITHUB_CLIENT_ID', clientSecretEnv: 'GITHUB_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/github'
+  },
+  'oauth-microsoft': {
+    authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+    tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    clientIdEnv: 'MICROSOFT_CLIENT_ID', clientSecretEnv: 'MICROSOFT_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/microsoft'
+  },
+  'oauth-spotify': {
+    authUrl: 'https://accounts.spotify.com/authorize',
+    tokenUrl: 'https://accounts.spotify.com/api/token',
+    clientIdEnv: 'SPOTIFY_CLIENT_ID', clientSecretEnv: 'SPOTIFY_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/spotify'
+  },
+  'oauth-meta': {
+    authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
+    tokenUrl: 'https://graph.facebook.com/v19.0/oauth/access_token',
+    clientIdEnv: 'META_APP_ID', clientSecretEnv: 'META_APP_SECRET',
+    callbackPath: '/api/noah/oauth/callback/meta'
+  },
+  'oauth-apple': {
+    authUrl: null, tokenUrl: null,
+    clientIdEnv: 'APPLE_CLIENT_ID', clientSecretEnv: 'APPLE_TEAM_KEY',
+    callbackPath: '/api/noah/oauth/callback/apple'
+  }
+};
+
+function oauthProviderFor(connId) {
+  var def = null;
+  for (var i = 0; i < NOAH_CONNECTOR_DEFS.length; i++) {
+    if (NOAH_CONNECTOR_DEFS[i].id === connId) { def = NOAH_CONNECTOR_DEFS[i]; break; }
+  }
+  if (!def || !def.auth || def.auth.indexOf('oauth-') !== 0) return null;
+  var p = NOAH_OAUTH_PROVIDERS[def.auth];
+  return p ? { def: def, cfg: p, key: def.auth } : null;
+}
+
+/* Build the provider authorization URL. `state` is bound to the session
+   email in KV (10-min TTL) — the callback verifies it before storing. */
+async function oauthStartUrl(request, env, connId, sess) {
+  var prov = oauthProviderFor(connId);
+  if (!prov || !prov.cfg.authUrl) return { ok: false, error: 'oauth_unsupported' };
+  var clientId = '';
+  try { clientId = env[prov.cfg.clientIdEnv] || ''; } catch (e) {}
+  if (!clientId) {
+    return { ok: false, error: 'not_configured', setup: prov.def.setup };
+  }
+  var email = String(sess.email).toLowerCase();
+  var state = '';
+  try {
+    var rb = new Uint8Array(16);
+    crypto.getRandomValues(rb);
+    state = Array.prototype.map.call(rb, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  } catch (e) { state = 's' + Date.now().toString(36); }
+  try {
+    if (env.IL_ACCOUNTS) {
+      await env.IL_ACCOUNTS.put('oauthstate:' + state, JSON.stringify({ email: email, conn: connId }),
+        { expirationTtl: 600 });
+    }
+  } catch (e) {}
+  var origin = new URL(request.url).origin;
+  var url = prov.cfg.authUrl +
+    '?client_id=' + encodeURIComponent(clientId) +
+    '&redirect_uri=' + encodeURIComponent(origin + prov.cfg.callbackPath) +
+    '&response_type=code' +
+    '&scope=' + encodeURIComponent((prov.def.scopes || []).join(' ')) +
+    '&state=' + encodeURIComponent(state) +
+    '&access_type=offline&prompt=consent';
+  return { ok: true, auth_url: url };
+}
+
+/* OAuth callback: verify state, exchange code, store tokens in the broker. */
+async function handleNoahOAuthCallback(request, env, providerKey) {
+  var url = new URL(request.url);
+  var code = url.searchParams.get('code') || '';
+  var state = url.searchParams.get('state') || '';
+  var err = url.searchParams.get('error') || '';
+  var dest = '/noah/#settings/connectors';
+  function back(q) { return Response.redirect(new URL(dest + q, url.origin).toString(), 302); }
+  if (err) return back('?oauth=denied');
+  var sess = await readSession(request, env);
+  if (!sess) return Response.redirect(new URL('/account/?next=' + encodeURIComponent('/noah/'), url.origin).toString(), 302);
+  var email = String(sess.email).toLowerCase();
+  var stRaw = null;
+  try { stRaw = env.IL_ACCOUNTS ? await env.IL_ACCOUNTS.get('oauthstate:' + state) : null; } catch (e) {}
+  var st = null;
+  try { st = stRaw ? JSON.parse(stRaw) : null; } catch (e) {}
+  if (!st || st.email !== email || !code) {
+    await authLog(env, request, 'oauth_state_invalid', email, { provider: providerKey });
+    return back('?oauth=invalid');
+  }
+  try { if (env.IL_ACCOUNTS) await env.IL_ACCOUNTS.delete('oauthstate:' + state); } catch (e) {}
+  var prov = null;
+  for (var i = 0; i < NOAH_CONNECTOR_DEFS.length; i++) {
+    var d = NOAH_CONNECTOR_DEFS[i];
+    if (d.auth === providerKey && NOAH_OAUTH_PROVIDERS[providerKey]) { prov = { def: d, cfg: NOAH_OAUTH_PROVIDERS[providerKey] }; break; }
+  }
+  if (!prov) return back('?oauth=unknown');
+  var body = 'code=' + encodeURIComponent(code) +
+    '&client_id=' + encodeURIComponent(env[prov.cfg.clientIdEnv] || '') +
+    '&client_secret=' + encodeURIComponent(env[prov.cfg.clientSecretEnv] || '') +
+    '&redirect_uri=' + encodeURIComponent(url.origin + prov.cfg.callbackPath) +
+    '&grant_type=authorization_code';
+  var tr, tj = null;
+  try {
+    tr = await fetch(prov.cfg.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: body
+    });
+    tj = await tr.json();
+  } catch (e) {}
+  if (!tj || !tj.access_token) {
+    await authLog(env, request, 'oauth_exchange_failed', email, { provider: providerKey });
+    return back('?oauth=exchange_failed');
+  }
+  var secret = JSON.stringify({
+    access_token: tj.access_token,
+    refresh_token: tj.refresh_token || null,
+    expires_at: Date.now() + (parseInt(tj.expires_in, 10) || 3600) * 1000,
+    scope: tj.scope || (prov.def.scopes || []).join(' '),
+    token_type: tj.token_type || 'Bearer'
+  });
+  var cap = await brokerCapture(env, email, providerKey, email, secret);
+  if (!cap.ok) {
+    await authLog(env, request, 'oauth_store_failed', email, { provider: providerKey, reason: cap.error });
+    return back('?oauth=store_unavailable');
+  }
+  await authLog(env, request, 'oauth_connected', email, { provider: providerKey, conn: st.conn });
+  return back('?oauth=connected');
+}
+
+/* Google REST helper: resolves the brokered OAuth token, refreshes it
+   when expired, and performs one authenticated request. Read-only by
+   default; callers choose method/body for the gated write actions. */
+async function googleApi(env, request, sess, method, apiPath, query, bodyObj) {
+  var res = await brokerResolve(env, request, sess, 'oauth-google', {});
+  if (!res.ok) return { ok: false, error: res.error };
+  var tok = null;
+  try { tok = JSON.parse(res.secret); } catch (e) { return { ok: false, error: 'bad_token' }; }
+  if (tok.expires_at && Date.now() > tok.expires_at - 60000 && tok.refresh_token) {
+    try {
+      var tr = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'client_id=' + encodeURIComponent(env.GOOGLE_CLIENT_ID || '') +
+          '&client_secret=' + encodeURIComponent(env.GOOGLE_CLIENT_SECRET || '') +
+          '&refresh_token=' + encodeURIComponent(tok.refresh_token) +
+          '&grant_type=refresh_token'
+      });
+      var tj = await tr.json();
+      if (tj && tj.access_token) {
+        tok.access_token = tj.access_token;
+        tok.expires_at = Date.now() + (parseInt(tj.expires_in, 10) || 3600) * 1000;
+        await brokerCapture(env, String(sess.email).toLowerCase(), 'oauth-google', res.username || '', JSON.stringify(tok));
+      }
+    } catch (e) {}
+  }
+  var url = 'https://' + apiPath + (query ? '?' + query : '');
+  var opts = { method: method || 'GET', headers: { 'Authorization': 'Bearer ' + tok.access_token } };
+  if (bodyObj) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(bodyObj); }
+  var r;
+  try { r = await fetch(url, opts); } catch (e) { return { ok: false, error: 'api_unreachable' }; }
+  var j = null;
+  try { j = await r.json(); } catch (e) {}
+  if (r.status === 401) return { ok: false, error: 'token_expired' };
+  if (!r.ok) return { ok: false, error: 'api_error', status: r.status, detail: j && j.error && j.error.message };
+  return { ok: true, data: j };
+}
+
+function gmailHeader(payload, name) {
+  try {
+    var hs = payload.headers || [];
+    for (var i = 0; i < hs.length; i++) {
+      if (String(hs[i].name).toLowerCase() === name) return hs[i].value;
+    }
+  } catch (e) {}
+  return '';
+}
+
+/* Live Google read actions (writes stay behind the confirm+step-up gate). */
+async function googleConnectorAction(env, request, sess, connId, action, params) {
+  params = params || {};
+  function q(v) { return encodeURIComponent(String(v == null ? '' : v).slice(0, 300)); }
+  if (connId === 'gmail' && action === 'search') {
+    var g = await googleApi(env, request, sess, 'GET',
+      'gmail.googleapis.com/gmail/v1/users/me/messages', 'q=' + q(params.q || '') + '&maxResults=10');
+    if (!g.ok) return g;
+    var msgs = (g.data && g.data.messages) || [];
+    var out = [];
+    for (var i = 0; i < Math.min(msgs.length, 10); i++) {
+      var m = await googleApi(env, request, sess, 'GET',
+        'gmail.googleapis.com/gmail/v1/users/me/messages/' + msgs[i].id, 'format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date');
+      if (m.ok && m.data) {
+        out.push({ id: msgs[i].id, from: gmailHeader(m.data.payload, 'from'),
+          subject: gmailHeader(m.data.payload, 'subject'), date: gmailHeader(m.data.payload, 'date'),
+          snippet: m.data.snippet || '' });
+      }
+    }
+    return { ok: true, data: { messages: out, resultSizeEstimate: g.data.resultSizeEstimate || out.length } };
+  }
+  if (connId === 'gmail' && action === 'read') {
+    var r = await googleApi(env, request, sess, 'GET',
+      'gmail.googleapis.com/gmail/v1/users/me/messages/' + q(params.id || ''), 'format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date');
+    if (!r.ok) return r;
+    return { ok: true, data: { id: r.data.id, from: gmailHeader(r.data.payload, 'from'),
+      subject: gmailHeader(r.data.payload, 'subject'), date: gmailHeader(r.data.payload, 'date'),
+      snippet: r.data.snippet || '', labels: r.data.labelIds || [] } };
+  }
+  if (connId === 'gmail' && action === 'draft') {
+    /* Draft only — never sends. The send action stays behind the gate. */
+    var raw = 'To: ' + (params.to || '') + '\r\nSubject: ' + (params.subject || '') +
+      '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' + (params.body || '');
+    var b64;
+    try {
+      b64 = btoa(unescape(encodeURIComponent(raw))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } catch (e) { return { ok: false, error: 'draft_encode_failed' }; }
+    return await googleApi(env, request, sess, 'POST',
+      'gmail.googleapis.com/gmail/v1/users/me/drafts', '', { message: { raw: b64 } });
+  }
+  if (connId === 'gcal' && action === 'list') {
+    var now = new Date().toISOString();
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/calendar/v3/calendars/primary/events',
+      'maxResults=10&singleEvents=true&orderBy=startTime&timeMin=' + q(now) +
+      (params.q ? '&q=' + q(params.q) : ''));
+  }
+  if (connId === 'gcal' && action === 'freebusy') {
+    var t0 = params.timeMin || new Date().toISOString();
+    var t1 = params.timeMax || new Date(Date.now() + 7 * 864e5).toISOString();
+    return await googleApi(env, request, sess, 'POST',
+      'www.googleapis.com/calendar/v3/freeBusy', '',
+      { timeMin: t0, timeMax: t1, items: [{ id: 'primary' }] });
+  }
+  if (connId === 'gdrive' && (action === 'search' || action === 'list')) {
+    var qq = params.q ? "name contains '" + String(params.q).replace(/'/g, "\\'") + "'" : 'trashed=false';
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/drive/v3/files',
+      'q=' + q(qq) + '&pageSize=20&fields=files(id,name,mimeType,modifiedTime,size)&orderBy=modifiedTime%20desc');
+  }
+  if (connId === 'gdrive' && action === 'read') {
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/drive/v3/files/' + q(params.id || ''),
+      'fields=id,name,mimeType,modifiedTime,size,webViewLink');
+  }
+  return { ok: false, error: 'action_not_implemented', action: action };
+}
 
 /* 2026-10-11: POST /api/noah/connectors/:id handler.
    v1: validates the connector/action, enforces the confirmation gate for
@@ -5720,21 +6486,71 @@ async function handleNoahConnector(request, env, connId) {
     }
   } catch (e) {}
 
-  /* v1: OAuth not yet configured — return setup guidance, not a silent failure */
-  var envKey = def.auth === 'oauth-google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
-  var configured = false;
-  try { configured = !!(env && env[envKey]); } catch (e) {}
-  if (!configured) {
-    return ok({ ok: false, error: def.label + ' is not connected yet.',
-      setup: def.setup,
-      setup_url: '/noah/#settings',
-      credential_state: credState,
-      quota: { limit: 30, window: '1m' } }, 200);
+  /* 2026-10-11 (parity-plus): provider configuration check, generalized
+     across OAuth providers (was Google/GitHub only). */
+  var prov2 = oauthProviderFor(connId);
+  if (prov2) {
+    var envKey = prov2.cfg.clientIdEnv;
+    var configured = false;
+    try { configured = !!(env && env[envKey]); } catch (e) {}
+    if (!configured) {
+      return ok({ ok: false, error: def.label + ' is not connected yet.',
+        setup: def.setup,
+        setup_url: '/noah/#settings',
+        credential_state: credState,
+        quota: { limit: 30, window: '1m' } }, 200);
+    }
+    /* Live Google read/write actions. Writes passed the confirm+step-up
+       gate above; reads are autonomous. */
+    if ((connId === 'gmail' || connId === 'gcal' || connId === 'gdrive') && def.tier === 'live') {
+      if (connId === 'gmail' && action === 'send') {
+        var sraw = 'To: ' + ((body.params || {}).to || '') + '\r\nSubject: ' +
+          ((body.params || {}).subject || '') +
+          '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' +
+          ((body.params || {}).body || '');
+        var sb64 = '';
+        try {
+          sb64 = btoa(unescape(encodeURIComponent(sraw)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        } catch (e) { return ok({ ok: false, error: 'send_encode_failed' }, 500); }
+        var sent = await googleApi(env, request, connSess, 'POST',
+          'gmail.googleapis.com/gmail/v1/users/me/messages/send', '', { raw: sb64 });
+        await authLog(env, request, 'sensitive_action_done', connSess.email,
+          { surface: 'connector', connector: connId, action: 'send' });
+        return ok({ ok: !!sent.ok, data: sent.data || null, error: sent.error || null,
+          quota: { limit: 30, window: '1m' } }, sent.ok ? 200 : 502);
+      }
+      if (connId === 'gcal' && action === 'schedule') {
+        var sp = body.params || {};
+        var ev = await googleApi(env, request, connSess, 'POST',
+          'www.googleapis.com/calendar/v3/calendars/primary/events', '',
+          { summary: sp.title || 'Untitled event', description: sp.description || '',
+            start: { dateTime: sp.start }, end: { dateTime: sp.end },
+            attendees: (sp.attendees || []).map(function (e) { return { email: e }; }) });
+        await authLog(env, request, 'sensitive_action_done', connSess.email,
+          { surface: 'connector', connector: connId, action: 'schedule' });
+        return ok({ ok: !!ev.ok, data: ev.data || null, error: ev.error || null,
+          quota: { limit: 30, window: '1m' } }, ev.ok ? 200 : 502);
+      }
+      var live = await googleConnectorAction(env, request, connSess, connId, action, body.params || {});
+      if (!live.ok && live.error === 'not_saved') {
+        return ok({ ok: false, error: def.label + ' is not connected yet.',
+          setup: 'Connect ' + def.label + ' from Noah settings \u2192 Connectors.',
+          setup_url: '/noah/#settings', credential_state: credState }, 200);
+      }
+      if (!live.ok && live.error === 'token_expired') {
+        return ok({ ok: false, error: 'The ' + def.label + ' connection expired \u2014 reconnect from Noah settings.',
+          setup_url: '/noah/#settings', credential_state: credState }, 200);
+      }
+      return ok({ ok: !!live.ok, data: live.data || null, error: live.error || null,
+        quota: { limit: 30, window: '1m' } }, live.ok ? 200 : 502);
+    }
   }
 
-  /* OAuth configured but action handlers land in v2 — honest stub */
-  return ok({ ok: false, error: 'Action handler for ' + def.label + ' → ' + action + ' ships in v2.',
-    setup_url: '/noah/#settings' }, 501);
+  /* Honest stub for everything not yet executable — real manifest, marked. */
+  return ok({ ok: false, error: def.label + ' is registered but its live API layer is not connected yet.',
+    needs_owner: true, setup: def.setup, setup_url: '/noah/#settings',
+    tier: def.tier || 'stub' }, 501);
 }
 
 /* Tutor system prompt (course-aware Socratic). Extracted 2026-10-09 from the
@@ -7756,6 +8572,12 @@ async function handleJobsAlertsCheck(request, env, sess) {
 }
 
 export default {
+  /* 2026-10-11 (parity-plus): cron pre-computes daily briefings for
+     opted-in accounts. Enable with a workers cron trigger (e.g. daily
+     11:00 UTC) — until then, briefings compute live on open. */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleScheduledBriefings(env));
+  },
   async fetch(request, env) {
     var url = new URL(request.url);
     var path = url.pathname;
@@ -8049,6 +8871,52 @@ export default {
       if (!bsess) return json({ ok: false, error: "unauthorized" }, 401);
       return handleBriefing(request, env, bsess);
     }
+    /* 2026-10-11 (parity-plus): unified memory API + briefing opt-in. */
+    if (path === "/api/noah/memory" || path.indexOf("/api/noah/memory/") === 0) {
+      var msess = await readSession(request, env);
+      if (!msess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahMemory(request, env, msess, path.slice("/api/noah/memory".length));
+    }
+    if (path === "/api/noah/briefing/optin" && request.method === "POST") {
+      var osess = await readSession(request, env);
+      if (!osess) return json({ ok: false, error: "unauthorized" }, 401);
+      var obody = null;
+      try { obody = await request.json(); } catch (e) {}
+      var oemail = String(osess.email).toLowerCase();
+      if (obody && obody.enabled === false) {
+        try { await env.IL_ACCOUNTS.delete("briefing_optin:" + oemail); } catch (e) {}
+        return json({ ok: true, opted_in: false });
+      }
+      try {
+        await env.IL_ACCOUNTS.put("briefing_optin:" + oemail,
+          JSON.stringify({ at: new Date().toISOString() }));
+      } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+      return json({ ok: true, opted_in: true });
+    }
+    /* 2026-10-11 (parity-plus): devices, wallet, voice. */
+    if (path === "/api/noah/devices" || path.indexOf("/api/noah/devices/") === 0) {
+      var dsess = await readSession(request, env);
+      if (!dsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahDevices(request, env, dsess, path.slice("/api/noah/devices".length));
+    }
+    if (path === "/api/noah/wallet") {
+      var wsess = await readSession(request, env);
+      if (!wsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahWallet(request, env, wsess);
+    }
+    if (path === "/api/noah/voice") {
+      var vsess = await readSession(request, env);
+      if (!vsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahVoice(request, env, vsess);
+    }
+    if (path === "/api/noah/briefing/optin" && request.method === "GET") {
+      var gsess = await readSession(request, env);
+      if (!gsess) return json({ ok: false, error: "unauthorized" }, 401);
+      var gemail = String(gsess.email).toLowerCase();
+      var grav = null;
+      try { grav = await env.IL_ACCOUNTS.get("briefing_optin:" + gemail); } catch (e) {}
+      return json({ ok: true, opted_in: !!grav });
+    }
     if (path === "/api/account/activity") {
       var asess = await readSession(request, env);
       if (!asess) return json({ ok: false, error: "unauthorized" }, 401);
@@ -8278,6 +9146,22 @@ export default {
       }
       var connId = decodeURIComponent(path.slice("/api/noah/connectors/".length).split("/")[0]);
       return handleNoahConnector(request, env, connId);
+    }
+    /* 2026-10-11 (parity-plus): OAuth connect start + provider callback. */
+    if (path === "/api/noah/oauth/start" && request.method === "POST") {
+      var oasOrigin = noahAllowedOrigin(request);
+      var oasSess = await readSession(request, env);
+      if (!oasSess) {
+        return noahCors(noahJson({ ok: false, error: 'unauthorized', needs_auth: true }, 401, oasOrigin), oasOrigin);
+      }
+      var oasBody = {};
+      try { oasBody = await request.json(); } catch (e) {}
+      var oasRes = await oauthStartUrl(request, env, String(oasBody.connector || ''), oasSess);
+      return noahCors(noahJson(oasRes, oasRes.ok ? 200 : 400, oasOrigin), oasOrigin);
+    }
+    if (path.indexOf("/api/noah/oauth/callback/") === 0 && request.method === "GET") {
+      var oap = path.slice("/api/noah/oauth/callback/".length).split("/")[0];
+      return handleNoahOAuthCallback(request, env, 'oauth-' + oap);
     }
 
     // 2026-10-07: per-course OG/Twitter Card injection for the course shell

@@ -31,6 +31,13 @@
     { id: 'gmail',    label: 'Gmail',           kind: 'oauth' },
     { id: 'gcal',     label: 'Google Calendar', kind: 'oauth' },
     { id: 'github',   label: 'GitHub',          kind: 'oauth' },
+    /* 2026-10-11 (parity-plus): OAuth token services (broker envelopes). */
+    { id: 'oauth-google',    label: 'Google (OAuth tokens)',    kind: 'oauth' },
+    { id: 'oauth-github',    label: 'GitHub (OAuth tokens)',    kind: 'oauth' },
+    { id: 'oauth-microsoft', label: 'Microsoft (OAuth tokens)', kind: 'oauth' },
+    { id: 'oauth-spotify',   label: 'Spotify (OAuth tokens)',    kind: 'oauth' },
+    { id: 'oauth-meta',      label: 'Meta (OAuth tokens)',      kind: 'oauth' },
+    { id: 'oauth-apple',     label: 'Apple (OAuth tokens)',     kind: 'oauth' },
     { id: 'indeed',        label: 'Indeed',          kind: 'password', store_hint: 'proton-pass' },
     { id: 'linkedin',      label: 'LinkedIn',        kind: 'password', store_hint: 'proton-pass' },
     { id: 'ziprecruiter',  label: 'ZipRecruiter',    kind: 'password', store_hint: 'proton-pass' },
@@ -171,14 +178,17 @@
       var html = '';
       DIRECTORY.forEach(function (d) {
         var ds = displayState(st, d);
+        var isOauthSvc = d.id.indexOf('oauth-') === 0;
         html += '<div class="ilcred-row" data-svc="' + d.id + '">' +
           '<span class="nm">' + esc(d.label) + '</span>' +
           '<span class="ilcred-chip ' + ds.key + '">' + esc(ds.label) + '</span>' +
           (ds.key === 'saved' || ds.key === 'external'
             ? '<button type="button" data-act="revoke">Remove</button>'
-            : '<a href="' + captureUrl(d.id) + '" target="_blank" rel="noopener">Save securely</a>' +
-              (d.store_hint === 'proton-pass'
-                ? '<button type="button" data-act="external">It\'s in my Proton Pass</button>' : '')) +
+            : (isOauthSvc
+              ? '<a href="/noah/#settings/connectors">Connect</a>'
+              : '<a href="' + captureUrl(d.id) + '" target="_blank" rel="noopener">Save securely</a>' +
+                (d.store_hint === 'proton-pass'
+                  ? '<button type="button" data-act="external">It\'s in my Proton Pass</button>' : ''))) +
           '</div>';
       });
       body.innerHTML = html;
