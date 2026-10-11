@@ -5582,45 +5582,425 @@ const NOAH_TUTORS = {
 };
 const NOAH_TUTOR_DEFAULT = 'noah';
 
-/* 2026-10-11: Noah connector definitions — mirrored from noah-connectors.js
-   for the GET /api/noah/connectors listing. OAuth credentials are the
-   site owner's action (env vars); until configured, POST returns setup guidance. */
+/* 2026-10-11 (parity-plus): Noah/Genesis connector registry — the full
+   personal-agent connector surface, mirroring the skill catalog. Each entry
+   is a manifest: id, label, icon, auth kind, OAuth scopes, API surface,
+   actions, and tier. tier 'live' = executable now (reads autonomous,
+   mutations behind the confirm+step-up gate); tier 'stub' = real manifest,
+   API layer ships when the owner completes setup — never a silent failure. */
 const NOAH_CONNECTOR_DEFS = [
-  { id: 'gmail', label: 'Gmail', icon: '📧', auth: 'oauth-google',
+  /* ---- Google workspace (OAuth) — read paths live, writes gated ---- */
+  { id: 'gmail', label: 'Gmail', icon: '📧', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/gmail.readonly',
+             'https://www.googleapis.com/auth/gmail.compose'],
+    api: 'Gmail API v1 — messages.list/get, drafts.create',
     actions: ['search', 'read', 'draft', 'send'],
-    setup: 'Add GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  { id: 'gcal', label: 'Google Calendar', icon: '📅', auth: 'oauth-google',
-    actions: ['freebusy', 'schedule', 'list'],
-    setup: 'Add GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  { id: 'github', label: 'GitHub', icon: '🐙', auth: 'oauth-github',
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gcal', label: 'Google Calendar', icon: '📅', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly',
+             'https://www.googleapis.com/auth/calendar.events'],
+    api: 'Calendar API v3 — events.list, freebusy.query, events.insert',
+    actions: ['list', 'freebusy', 'schedule'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gdrive', label: 'Google Drive', icon: '💾', auth: 'oauth-google', tier: 'live',
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    api: 'Drive API v3 — files.list/get (read-only)',
+    actions: ['search', 'list', 'read'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'gphotos', label: 'Google Photos', icon: '🌄', auth: 'oauth-google', tier: 'stub',
+    scopes: ['https://www.googleapis.com/auth/photoslibrary.readonly'],
+    api: 'Photos Library API — mediaItems.search',
+    actions: ['search', 'list'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  { id: 'google_fit', label: 'Google Health Connect', icon: '💚', auth: 'oauth-google', tier: 'stub',
+    scopes: ['https://www.googleapis.com/auth/fitness.activity.read',
+             'https://www.googleapis.com/auth/fitness.sleep.read'],
+    api: 'Google Fit REST API — sessions, datasets (read-only, wellness only)',
+    actions: ['metrics', 'sleep', 'workouts'],
+    setup: 'The site owner adds GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Microsoft ---- */
+  { id: 'outlook', label: 'Outlook Mail', icon: '📨', auth: 'oauth-microsoft', tier: 'stub',
+    scopes: ['Mail.Read', 'Mail.Send', 'Calendars.ReadWrite', 'offline_access'],
+    api: 'Microsoft Graph — /me/messages, /me/events',
+    actions: ['search', 'read', 'draft', 'send', 'schedule'],
+    setup: 'The site owner adds MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Media ---- */
+  { id: 'spotify', label: 'Spotify', icon: '🎵', auth: 'oauth-spotify', tier: 'stub',
+    scopes: ['user-read-playback-state', 'user-modify-playback-state',
+             'playlist-read-private', 'user-library-read'],
+    api: 'Spotify Web API — player, playlists, search',
+    actions: ['search', 'playlists', 'control'],
+    setup: 'The site owner adds SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Built-in (no auth) ---- */
+  { id: 'tts', label: 'Voice (TTS/STT)', icon: '🔊', auth: 'none', tier: 'live',
+    scopes: [],
+    api: 'Built-in — POST /api/noah/tts (5 voices), POST /api/ai/transcribe',
+    actions: ['speak', 'transcribe'], setup: '' },
+  { id: 'image_search', label: 'Image Search', icon: '🖼️', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in source layer (ships with the image index)',
+    actions: ['search'],
+    setup: 'Available with the next platform update.' },
+  /* ---- Finance (metadata only — never moves money) ---- */
+  { id: 'plaid', label: 'Bank Accounts (Plaid)', icon: '🏦', auth: 'api-key', tier: 'stub',
+    scopes: [],
+    api: 'Plaid API — accounts, balances, transactions (read-only)',
+    actions: ['accounts', 'transactions'],
+    setup: 'The site owner adds PLAID_CLIENT_ID / PLAID_SECRET / PLAID_ENV, then you connect from Noah settings.' },
+  { id: 'flightaware', label: 'FlightAware', icon: '✈️', auth: 'api-key', tier: 'stub',
+    scopes: [],
+    api: 'FlightAware AeroAPI — flight status, delays, tracking',
+    actions: ['status', 'track'],
+    setup: 'The site owner adds FLIGHTAWARE_API_KEY, then you connect from Noah settings.' },
+  /* ---- Travel & commerce (built-in planning; booking always gated) ---- */
+  { id: 'booking', label: 'Travel & Booking', icon: '🧳', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in travel planning + live availability checks',
+    actions: ['plan', 'availability'],
+    setup: 'Travel planning is built in — ask Noah to plan a trip. Any booking stops for your approval first.' },
+  { id: 'shopping', label: 'Shopping', icon: '🛒', auth: 'none', tier: 'stub',
+    scopes: [],
+    api: 'Built-in product research via the source layer (never purchases)',
+    actions: ['search', 'compare'],
+    setup: 'Ask the Smart Shopper agent to research anything — it drafts a shortlist; you approve and buy.' },
+  { id: 'meta_ads', label: 'Meta Ads', icon: '📣', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['ads_read'],
+    api: 'Meta Marketing API — campaigns, insights (read-only)',
+    actions: ['report', 'list'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  /* ---- Social (publishing always gated) ---- */
+  { id: 'threads', label: 'Threads', icon: '🧵', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['threads_basic', 'threads_content_publish'],
+    api: 'Threads API — profile, posts, publishing (gated)',
+    actions: ['read', 'post'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  { id: 'instagram', label: 'Instagram', icon: '📸', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['instagram_basic', 'instagram_content_publish'],
+    api: 'Instagram Graph API — media, insights, publishing (gated)',
+    actions: ['read', 'post', 'insights'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  { id: 'facebook', label: 'Facebook', icon: '👥', auth: 'oauth-meta', tier: 'stub',
+    scopes: ['pages_read_engagement', 'pages_manage_posts'],
+    api: 'Facebook Graph API — pages, posts (gated)',
+    actions: ['read', 'post'],
+    setup: 'The site owner adds META_APP_ID / META_APP_SECRET, then you connect from Noah settings.' },
+  /* ---- Health (read-only, wellness — never medical advice) ---- */
+  { id: 'apple_health', label: 'Apple Health', icon: '❤️', auth: 'oauth-apple', tier: 'stub',
+    scopes: ['healthkit'],
+    api: 'HealthKit via paired-device sync',
+    actions: ['metrics', 'sleep', 'workouts'],
+    setup: 'Pair your iPhone from Noah settings → Devices, then connect Apple Health.' },
+  /* ---- Device-local ---- */
+  { id: 'media_library', label: 'Photo Library', icon: '🖼️', auth: 'device', tier: 'stub',
+    scopes: [],
+    api: 'Paired-device photo library access',
+    actions: ['search', 'view'],
+    setup: 'Pair your device from Noah settings → Devices first.' },
+  /* ---- Existing: GitHub ---- */
+  { id: 'github', label: 'GitHub', icon: '🐙', auth: 'oauth-github', tier: 'stub',
+    scopes: ['repo', 'read:user'],
+    api: 'GitHub REST API — repos, PRs, issues, Actions (trigger gated)',
     actions: ['status', 'prs', 'issues', 'trigger'],
-    setup: 'Add GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET env vars, then connect via Noah settings.' },
-  /* 2026-10-11: Jobs Suite data connectors — public job sources, no auth.
-     Executed by the jobs branch in handleNoahConnector via the same
-     aggregator as /api/jobs/search. */
-  { id: 'jobs', label: 'Job Board (all sources)', icon: '💼', auth: 'none', jobs: 'all',
+    setup: 'The site owner adds GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET, then you connect from Noah settings.' },
+  /* ---- Jobs Suite data connectors — public job sources, no auth. ---- */
+  { id: 'jobs', label: 'Job Board (all sources)', icon: '💼', auth: 'none', tier: 'live', jobs: 'all',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-greenhouse', label: 'Greenhouse Boards', icon: '🏢', auth: 'none', jobs: 'greenhouse',
+  { id: 'jobs-greenhouse', label: 'Greenhouse Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'greenhouse',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-lever', label: 'Lever Boards', icon: '🏢', auth: 'none', jobs: 'lever',
+  { id: 'jobs-lever', label: 'Lever Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'lever',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-ashby', label: 'Ashby Boards', icon: '🏢', auth: 'none', jobs: 'ashby',
+  { id: 'jobs-ashby', label: 'Ashby Boards', icon: '🏢', auth: 'none', tier: 'live', jobs: 'ashby',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-remotive', label: 'Remotive', icon: '🌐', auth: 'none', jobs: 'remotive',
+  { id: 'jobs-remotive', label: 'Remotive', icon: '🌐', auth: 'none', tier: 'live', jobs: 'remotive',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-remoteok', label: 'Remote OK', icon: '🌐', auth: 'none', jobs: 'remoteok',
+  { id: 'jobs-remoteok', label: 'Remote OK', icon: '🌐', auth: 'none', tier: 'live', jobs: 'remoteok',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-arbeitnow', label: 'Arbeitnow', icon: '🌐', auth: 'none', jobs: 'arbeitnow',
+  { id: 'jobs-arbeitnow', label: 'Arbeitnow', icon: '🌐', auth: 'none', tier: 'live', jobs: 'arbeitnow',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-themuse', label: 'The Muse', icon: '🌐', auth: 'none', jobs: 'themuse',
+  { id: 'jobs-themuse', label: 'The Muse', icon: '🌐', auth: 'none', tier: 'live', jobs: 'themuse',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-weworkremotely', label: 'We Work Remotely', icon: '🌐', auth: 'none', jobs: 'weworkremotely',
+  { id: 'jobs-weworkremotely', label: 'We Work Remotely', icon: '🌐', auth: 'none', tier: 'live', jobs: 'weworkremotely',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: '' },
-  { id: 'jobs-usajobs', label: 'USAJobs (federal)', icon: '🏛️', auth: 'none', jobs: 'usajobs',
+  { id: 'jobs-usajobs', label: 'USAJobs (federal)', icon: '🏛️', auth: 'none', tier: 'stub', jobs: 'usajobs',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: 'Activates when the owner adds USAJOBS_API_KEY + USAJOBS_USER_AGENT.' },
-  { id: 'jobs-adzuna', label: 'Adzuna', icon: '🌐', auth: 'none', jobs: 'adzuna',
+  { id: 'jobs-adzuna', label: 'Adzuna', icon: '🌐', auth: 'none', tier: 'stub', jobs: 'adzuna',
+    scopes: [], api: 'Built-in multi-source aggregator',
     actions: ['search'], setup: 'Activates when the owner adds ADZUNA_APP_ID + ADZUNA_APP_KEY.' },
 ];
+
+/* 2026-10-11 (parity-plus): OAuth provider wiring for connectors.
+   Client IDs/secrets are the site owner's env vars. Tokens are stored in
+   the credential broker (AES-GCM, fails closed 503 until CRED_ENC_KEY is
+   set) under service 'oauth-<provider>' — username is the connected
+   account email, secret is the token JSON. */
+var OAUTH_PROVIDERS = {
+  'oauth-google': {
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    clientIdEnv: 'GOOGLE_CLIENT_ID', clientSecretEnv: 'GOOGLE_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/google'
+  },
+  'oauth-github': {
+    authUrl: 'https://github.com/login/oauth/authorize',
+    tokenUrl: 'https://github.com/login/oauth/access_token',
+    clientIdEnv: 'GITHUB_CLIENT_ID', clientSecretEnv: 'GITHUB_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/github'
+  },
+  'oauth-microsoft': {
+    authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+    tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    clientIdEnv: 'MICROSOFT_CLIENT_ID', clientSecretEnv: 'MICROSOFT_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/microsoft'
+  },
+  'oauth-spotify': {
+    authUrl: 'https://accounts.spotify.com/authorize',
+    tokenUrl: 'https://accounts.spotify.com/api/token',
+    clientIdEnv: 'SPOTIFY_CLIENT_ID', clientSecretEnv: 'SPOTIFY_CLIENT_SECRET',
+    callbackPath: '/api/noah/oauth/callback/spotify'
+  },
+  'oauth-meta': {
+    authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
+    tokenUrl: 'https://graph.facebook.com/v19.0/oauth/access_token',
+    clientIdEnv: 'META_APP_ID', clientSecretEnv: 'META_APP_SECRET',
+    callbackPath: '/api/noah/oauth/callback/meta'
+  },
+  'oauth-apple': {
+    authUrl: null, tokenUrl: null,
+    clientIdEnv: 'APPLE_CLIENT_ID', clientSecretEnv: 'APPLE_TEAM_KEY',
+    callbackPath: '/api/noah/oauth/callback/apple'
+  }
+};
+
+function oauthProviderFor(connId) {
+  var def = null;
+  for (var i = 0; i < NOAH_CONNECTOR_DEFS.length; i++) {
+    if (NOAH_CONNECTOR_DEFS[i].id === connId) { def = NOAH_CONNECTOR_DEFS[i]; break; }
+  }
+  if (!def || !def.auth || def.auth.indexOf('oauth-') !== 0) return null;
+  var p = OAUTH_PROVIDERS[def.auth];
+  return p ? { def: def, cfg: p, key: def.auth } : null;
+}
+
+/* Build the provider authorization URL. `state` is bound to the session
+   email in KV (10-min TTL) — the callback verifies it before storing. */
+async function oauthStartUrl(request, env, connId, sess) {
+  var prov = oauthProviderFor(connId);
+  if (!prov || !prov.cfg.authUrl) return { ok: false, error: 'oauth_unsupported' };
+  var clientId = '';
+  try { clientId = env[prov.cfg.clientIdEnv] || ''; } catch (e) {}
+  if (!clientId) {
+    return { ok: false, error: 'not_configured', setup: prov.def.setup };
+  }
+  var email = String(sess.email).toLowerCase();
+  var state = '';
+  try {
+    var rb = new Uint8Array(16);
+    crypto.getRandomValues(rb);
+    state = Array.prototype.map.call(rb, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  } catch (e) { state = 's' + Date.now().toString(36); }
+  try {
+    if (env.IL_ACCOUNTS) {
+      await env.IL_ACCOUNTS.put('oauthstate:' + state, JSON.stringify({ email: email, conn: connId }),
+        { expirationTtl: 600 });
+    }
+  } catch (e) {}
+  var origin = new URL(request.url).origin;
+  var url = prov.cfg.authUrl +
+    '?client_id=' + encodeURIComponent(clientId) +
+    '&redirect_uri=' + encodeURIComponent(origin + prov.cfg.callbackPath) +
+    '&response_type=code' +
+    '&scope=' + encodeURIComponent((prov.def.scopes || []).join(' ')) +
+    '&state=' + encodeURIComponent(state) +
+    '&access_type=offline&prompt=consent';
+  return { ok: true, auth_url: url };
+}
+
+/* OAuth callback: verify state, exchange code, store tokens in the broker. */
+async function handleOAuthCallback(request, env, providerKey) {
+  var url = new URL(request.url);
+  var code = url.searchParams.get('code') || '';
+  var state = url.searchParams.get('state') || '';
+  var err = url.searchParams.get('error') || '';
+  var dest = '/noah/#settings/connectors';
+  function back(q) { return Response.redirect(new URL(dest + q, url.origin).toString(), 302); }
+  if (err) return back('?oauth=denied');
+  var sess = await readSession(request, env);
+  if (!sess) return Response.redirect(new URL('/account/?next=' + encodeURIComponent('/noah/'), url.origin).toString(), 302);
+  var email = String(sess.email).toLowerCase();
+  var stRaw = null;
+  try { stRaw = env.IL_ACCOUNTS ? await env.IL_ACCOUNTS.get('oauthstate:' + state) : null; } catch (e) {}
+  var st = null;
+  try { st = stRaw ? JSON.parse(stRaw) : null; } catch (e) {}
+  if (!st || st.email !== email || !code) {
+    await authLog(env, request, 'oauth_state_invalid', email, { provider: providerKey });
+    return back('?oauth=invalid');
+  }
+  try { if (env.IL_ACCOUNTS) await env.IL_ACCOUNTS.delete('oauthstate:' + state); } catch (e) {}
+  var prov = null;
+  for (var i = 0; i < NOAH_CONNECTOR_DEFS.length; i++) {
+    var d = NOAH_CONNECTOR_DEFS[i];
+    if (d.auth === providerKey && OAUTH_PROVIDERS[providerKey]) { prov = { def: d, cfg: OAUTH_PROVIDERS[providerKey] }; break; }
+  }
+  if (!prov) return back('?oauth=unknown');
+  var body = 'code=' + encodeURIComponent(code) +
+    '&client_id=' + encodeURIComponent(env[prov.cfg.clientIdEnv] || '') +
+    '&client_secret=' + encodeURIComponent(env[prov.cfg.clientSecretEnv] || '') +
+    '&redirect_uri=' + encodeURIComponent(url.origin + prov.cfg.callbackPath) +
+    '&grant_type=authorization_code';
+  var tr, tj = null;
+  try {
+    tr = await fetch(prov.cfg.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: body
+    });
+    tj = await tr.json();
+  } catch (e) {}
+  if (!tj || !tj.access_token) {
+    await authLog(env, request, 'oauth_exchange_failed', email, { provider: providerKey });
+    return back('?oauth=exchange_failed');
+  }
+  var secret = JSON.stringify({
+    access_token: tj.access_token,
+    refresh_token: tj.refresh_token || null,
+    expires_at: Date.now() + (parseInt(tj.expires_in, 10) || 3600) * 1000,
+    scope: tj.scope || (prov.def.scopes || []).join(' '),
+    token_type: tj.token_type || 'Bearer'
+  });
+  var cap = await brokerCapture(env, email, providerKey, email, secret);
+  if (!cap.ok) {
+    await authLog(env, request, 'oauth_store_failed', email, { provider: providerKey, reason: cap.error });
+    return back('?oauth=store_unavailable');
+  }
+  await authLog(env, request, 'oauth_connected', email, { provider: providerKey, conn: st.conn });
+  return back('?oauth=connected');
+}
+
+/* Google REST helper: resolves the brokered OAuth token, refreshes it
+   when expired, and performs one authenticated request. Read-only by
+   default; callers choose method/body for the gated write actions. */
+async function googleApi(env, request, sess, method, apiPath, query, bodyObj) {
+  var res = await brokerResolve(env, request, sess, 'oauth-google', {});
+  if (!res.ok) return { ok: false, error: res.error };
+  var tok = null;
+  try { tok = JSON.parse(res.secret); } catch (e) { return { ok: false, error: 'bad_token' }; }
+  if (tok.expires_at && Date.now() > tok.expires_at - 60000 && tok.refresh_token) {
+    try {
+      var tr = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'client_id=' + encodeURIComponent(env.GOOGLE_CLIENT_ID || '') +
+          '&client_secret=' + encodeURIComponent(env.GOOGLE_CLIENT_SECRET || '') +
+          '&refresh_token=' + encodeURIComponent(tok.refresh_token) +
+          '&grant_type=refresh_token'
+      });
+      var tj = await tr.json();
+      if (tj && tj.access_token) {
+        tok.access_token = tj.access_token;
+        tok.expires_at = Date.now() + (parseInt(tj.expires_in, 10) || 3600) * 1000;
+        await brokerCapture(env, String(sess.email).toLowerCase(), 'oauth-google', res.username || '', JSON.stringify(tok));
+      }
+    } catch (e) {}
+  }
+  var url = 'https://' + apiPath + (query ? '?' + query : '');
+  var opts = { method: method || 'GET', headers: { 'Authorization': 'Bearer ' + tok.access_token } };
+  if (bodyObj) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(bodyObj); }
+  var r;
+  try { r = await fetch(url, opts); } catch (e) { return { ok: false, error: 'api_unreachable' }; }
+  var j = null;
+  try { j = await r.json(); } catch (e) {}
+  if (r.status === 401) return { ok: false, error: 'token_expired' };
+  if (!r.ok) return { ok: false, error: 'api_error', status: r.status, detail: j && j.error && j.error.message };
+  return { ok: true, data: j };
+}
+
+function gmailHeader(payload, name) {
+  try {
+    var hs = payload.headers || [];
+    for (var i = 0; i < hs.length; i++) {
+      if (String(hs[i].name).toLowerCase() === name) return hs[i].value;
+    }
+  } catch (e) {}
+  return '';
+}
+
+/* Live Google read actions (writes stay behind the confirm+step-up gate). */
+async function googleConnectorAction(env, request, sess, connId, action, params) {
+  params = params || {};
+  function q(v) { return encodeURIComponent(String(v == null ? '' : v).slice(0, 300)); }
+  if (connId === 'gmail' && action === 'search') {
+    var g = await googleApi(env, request, sess, 'GET',
+      'gmail.googleapis.com/gmail/v1/users/me/messages', 'q=' + q(params.q || '') + '&maxResults=10');
+    if (!g.ok) return g;
+    var msgs = (g.data && g.data.messages) || [];
+    var out = [];
+    for (var i = 0; i < Math.min(msgs.length, 10); i++) {
+      var m = await googleApi(env, request, sess, 'GET',
+        'gmail.googleapis.com/gmail/v1/users/me/messages/' + msgs[i].id, 'format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date');
+      if (m.ok && m.data) {
+        out.push({ id: msgs[i].id, from: gmailHeader(m.data.payload, 'from'),
+          subject: gmailHeader(m.data.payload, 'subject'), date: gmailHeader(m.data.payload, 'date'),
+          snippet: m.data.snippet || '' });
+      }
+    }
+    return { ok: true, data: { messages: out, resultSizeEstimate: g.data.resultSizeEstimate || out.length } };
+  }
+  if (connId === 'gmail' && action === 'read') {
+    var r = await googleApi(env, request, sess, 'GET',
+      'gmail.googleapis.com/gmail/v1/users/me/messages/' + q(params.id || ''), 'format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date');
+    if (!r.ok) return r;
+    return { ok: true, data: { id: r.data.id, from: gmailHeader(r.data.payload, 'from'),
+      subject: gmailHeader(r.data.payload, 'subject'), date: gmailHeader(r.data.payload, 'date'),
+      snippet: r.data.snippet || '', labels: r.data.labelIds || [] } };
+  }
+  if (connId === 'gmail' && action === 'draft') {
+    /* Draft only — never sends. The send action stays behind the gate. */
+    var raw = 'To: ' + (params.to || '') + '\r\nSubject: ' + (params.subject || '') +
+      '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' + (params.body || '');
+    var b64;
+    try {
+      b64 = btoa(unescape(encodeURIComponent(raw))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } catch (e) { return { ok: false, error: 'draft_encode_failed' }; }
+    return await googleApi(env, request, sess, 'POST',
+      'gmail.googleapis.com/gmail/v1/users/me/drafts', '', { message: { raw: b64 } });
+  }
+  if (connId === 'gcal' && action === 'list') {
+    var now = new Date().toISOString();
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/calendar/v3/calendars/primary/events',
+      'maxResults=10&singleEvents=true&orderBy=startTime&timeMin=' + q(now) +
+      (params.q ? '&q=' + q(params.q) : ''));
+  }
+  if (connId === 'gcal' && action === 'freebusy') {
+    var t0 = params.timeMin || new Date().toISOString();
+    var t1 = params.timeMax || new Date(Date.now() + 7 * 864e5).toISOString();
+    return await googleApi(env, request, sess, 'POST',
+      'www.googleapis.com/calendar/v3/freeBusy', '',
+      { timeMin: t0, timeMax: t1, items: [{ id: 'primary' }] });
+  }
+  if (connId === 'gdrive' && (action === 'search' || action === 'list')) {
+    var qq = params.q ? "name contains '" + String(params.q).replace(/'/g, "\\'") + "'" : 'trashed=false';
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/drive/v3/files',
+      'q=' + q(qq) + '&pageSize=20&fields=files(id,name,mimeType,modifiedTime,size)&orderBy=modifiedTime%20desc');
+  }
+  if (connId === 'gdrive' && action === 'read') {
+    return await googleApi(env, request, sess, 'GET',
+      'www.googleapis.com/drive/v3/files/' + q(params.id || ''),
+      'fields=id,name,mimeType,modifiedTime,size,webViewLink');
+  }
+  return { ok: false, error: 'action_not_implemented', action: action };
+}
 
 /* 2026-10-11: POST /api/noah/connectors/:id handler.
    v1: validates the connector/action, enforces the confirmation gate for
@@ -5720,21 +6100,71 @@ async function handleNoahConnector(request, env, connId) {
     }
   } catch (e) {}
 
-  /* v1: OAuth not yet configured — return setup guidance, not a silent failure */
-  var envKey = def.auth === 'oauth-google' ? 'GOOGLE_CLIENT_ID' : 'GITHUB_CLIENT_ID';
-  var configured = false;
-  try { configured = !!(env && env[envKey]); } catch (e) {}
-  if (!configured) {
-    return ok({ ok: false, error: def.label + ' is not connected yet.',
-      setup: def.setup,
-      setup_url: '/noah/#settings',
-      credential_state: credState,
-      quota: { limit: 30, window: '1m' } }, 200);
+  /* 2026-10-11 (parity-plus): provider configuration check, generalized
+     across OAuth providers (was Google/GitHub only). */
+  var prov2 = oauthProviderFor(connId);
+  if (prov2) {
+    var envKey = prov2.cfg.clientIdEnv;
+    var configured = false;
+    try { configured = !!(env && env[envKey]); } catch (e) {}
+    if (!configured) {
+      return ok({ ok: false, error: def.label + ' is not connected yet.',
+        setup: def.setup,
+        setup_url: '/noah/#settings',
+        credential_state: credState,
+        quota: { limit: 30, window: '1m' } }, 200);
+    }
+    /* Live Google read/write actions. Writes passed the confirm+step-up
+       gate above; reads are autonomous. */
+    if ((connId === 'gmail' || connId === 'gcal' || connId === 'gdrive') && def.tier === 'live') {
+      if (connId === 'gmail' && action === 'send') {
+        var sraw = 'To: ' + ((body.params || {}).to || '') + '\r\nSubject: ' +
+          ((body.params || {}).subject || '') +
+          '\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n' +
+          ((body.params || {}).body || '');
+        var sb64 = '';
+        try {
+          sb64 = btoa(unescape(encodeURIComponent(sraw)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        } catch (e) { return ok({ ok: false, error: 'send_encode_failed' }, 500); }
+        var sent = await googleApi(env, request, connSess, 'POST',
+          'gmail.googleapis.com/gmail/v1/users/me/messages/send', '', { raw: sb64 });
+        await authLog(env, request, 'sensitive_action_done', connSess.email,
+          { surface: 'connector', connector: connId, action: 'send' });
+        return ok({ ok: !!sent.ok, data: sent.data || null, error: sent.error || null,
+          quota: { limit: 30, window: '1m' } }, sent.ok ? 200 : 502);
+      }
+      if (connId === 'gcal' && action === 'schedule') {
+        var sp = body.params || {};
+        var ev = await googleApi(env, request, connSess, 'POST',
+          'www.googleapis.com/calendar/v3/calendars/primary/events', '',
+          { summary: sp.title || 'Untitled event', description: sp.description || '',
+            start: { dateTime: sp.start }, end: { dateTime: sp.end },
+            attendees: (sp.attendees || []).map(function (e) { return { email: e }; }) });
+        await authLog(env, request, 'sensitive_action_done', connSess.email,
+          { surface: 'connector', connector: connId, action: 'schedule' });
+        return ok({ ok: !!ev.ok, data: ev.data || null, error: ev.error || null,
+          quota: { limit: 30, window: '1m' } }, ev.ok ? 200 : 502);
+      }
+      var live = await googleConnectorAction(env, request, connSess, connId, action, body.params || {});
+      if (!live.ok && live.error === 'not_saved') {
+        return ok({ ok: false, error: def.label + ' is not connected yet.',
+          setup: 'Connect ' + def.label + ' from Noah settings \u2192 Connectors.',
+          setup_url: '/noah/#settings', credential_state: credState }, 200);
+      }
+      if (!live.ok && live.error === 'token_expired') {
+        return ok({ ok: false, error: 'The ' + def.label + ' connection expired \u2014 reconnect from Noah settings.',
+          setup_url: '/noah/#settings', credential_state: credState }, 200);
+      }
+      return ok({ ok: !!live.ok, data: live.data || null, error: live.error || null,
+        quota: { limit: 30, window: '1m' } }, live.ok ? 200 : 502);
+    }
   }
 
-  /* OAuth configured but action handlers land in v2 — honest stub */
-  return ok({ ok: false, error: 'Action handler for ' + def.label + ' → ' + action + ' ships in v2.',
-    setup_url: '/noah/#settings' }, 501);
+  /* Honest stub for everything not yet executable — real manifest, marked. */
+  return ok({ ok: false, error: def.label + ' is registered but its live API layer is not connected yet.',
+    needs_owner: true, setup: def.setup, setup_url: '/noah/#settings',
+    tier: def.tier || 'stub' }, 501);
 }
 
 /* Tutor system prompt (course-aware Socratic). Extracted 2026-10-09 from the
@@ -8278,6 +8708,22 @@ export default {
       }
       var connId = decodeURIComponent(path.slice("/api/noah/connectors/".length).split("/")[0]);
       return handleNoahConnector(request, env, connId);
+    }
+    /* 2026-10-11 (parity-plus): OAuth connect start + provider callback. */
+    if (path === "/api/noah/oauth/start" && request.method === "POST") {
+      var oasOrigin = noahAllowedOrigin(request);
+      var oasSess = await readSession(request, env);
+      if (!oasSess) {
+        return noahCors(noahJson({ ok: false, error: 'unauthorized', needs_auth: true }, 401, oasOrigin), oasOrigin);
+      }
+      var oasBody = {};
+      try { oasBody = await request.json(); } catch (e) {}
+      var oasRes = await oauthStartUrl(request, env, String(oasBody.connector || ''), oasSess);
+      return noahCors(noahJson(oasRes, oasRes.ok ? 200 : 400, oasOrigin), oasOrigin);
+    }
+    if (path.indexOf("/api/noah/oauth/callback/") === 0 && request.method === "GET") {
+      var oap = path.slice("/api/noah/oauth/callback/".length).split("/")[0];
+      return handleOAuthCallback(request, env, 'oauth-' + oap);
     }
 
     // 2026-10-07: per-course OG/Twitter Card injection for the course shell
