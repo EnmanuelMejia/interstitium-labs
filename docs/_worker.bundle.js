@@ -3461,6 +3461,14 @@ var CRED_DIRECTORY = [
   { id: 'gmail',    label: 'Gmail',           kind: 'oauth' },
   { id: 'gcal',     label: 'Google Calendar', kind: 'oauth' },
   { id: 'github',   label: 'GitHub',          kind: 'oauth' },
+  /* 2026-10-11 (parity-plus): OAuth token services — tokens are stored by
+     the connector OAuth flow under these ids (broker AES-GCM envelopes). */
+  { id: 'oauth-google',    label: 'Google (OAuth tokens)',    kind: 'oauth' },
+  { id: 'oauth-github',    label: 'GitHub (OAuth tokens)',    kind: 'oauth' },
+  { id: 'oauth-microsoft', label: 'Microsoft (OAuth tokens)', kind: 'oauth' },
+  { id: 'oauth-spotify',   label: 'Spotify (OAuth tokens)',   kind: 'oauth' },
+  { id: 'oauth-meta',      label: 'Meta (OAuth tokens)',      kind: 'oauth' },
+  { id: 'oauth-apple',     label: 'Apple (OAuth tokens)',     kind: 'oauth' },
   { id: 'indeed',        label: 'Indeed',          kind: 'password', store_hint: 'proton-pass' },
   { id: 'linkedin',      label: 'LinkedIn',        kind: 'password', store_hint: 'proton-pass' },
   { id: 'ziprecruiter',  label: 'ZipRecruiter',    kind: 'password', store_hint: 'proton-pass' },
@@ -7468,7 +7476,7 @@ const NOAH_CONNECTOR_DEFS = [
    the credential broker (AES-GCM, fails closed 503 until CRED_ENC_KEY is
    set) under service 'oauth-<provider>' — username is the connected
    account email, secret is the token JSON. */
-var OAUTH_PROVIDERS = {
+var NOAH_OAUTH_PROVIDERS = {
   'oauth-google': {
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
@@ -7512,7 +7520,7 @@ function oauthProviderFor(connId) {
     if (NOAH_CONNECTOR_DEFS[i].id === connId) { def = NOAH_CONNECTOR_DEFS[i]; break; }
   }
   if (!def || !def.auth || def.auth.indexOf('oauth-') !== 0) return null;
-  var p = OAUTH_PROVIDERS[def.auth];
+  var p = NOAH_OAUTH_PROVIDERS[def.auth];
   return p ? { def: def, cfg: p, key: def.auth } : null;
 }
 
@@ -7551,7 +7559,7 @@ async function oauthStartUrl(request, env, connId, sess) {
 }
 
 /* OAuth callback: verify state, exchange code, store tokens in the broker. */
-async function handleOAuthCallback(request, env, providerKey) {
+async function handleNoahOAuthCallback(request, env, providerKey) {
   var url = new URL(request.url);
   var code = url.searchParams.get('code') || '';
   var state = url.searchParams.get('state') || '';
@@ -7574,7 +7582,7 @@ async function handleOAuthCallback(request, env, providerKey) {
   var prov = null;
   for (var i = 0; i < NOAH_CONNECTOR_DEFS.length; i++) {
     var d = NOAH_CONNECTOR_DEFS[i];
-    if (d.auth === providerKey && OAUTH_PROVIDERS[providerKey]) { prov = { def: d, cfg: OAUTH_PROVIDERS[providerKey] }; break; }
+    if (d.auth === providerKey && NOAH_OAUTH_PROVIDERS[providerKey]) { prov = { def: d, cfg: NOAH_OAUTH_PROVIDERS[providerKey] }; break; }
   }
   if (!prov) return back('?oauth=unknown');
   var body = 'code=' + encodeURIComponent(code) +
@@ -10500,7 +10508,7 @@ export default {
     }
     if (path.indexOf("/api/noah/oauth/callback/") === 0 && request.method === "GET") {
       var oap = path.slice("/api/noah/oauth/callback/".length).split("/")[0];
-      return handleOAuthCallback(request, env, 'oauth-' + oap);
+      return handleNoahOAuthCallback(request, env, 'oauth-' + oap);
     }
 
     // 2026-10-07: per-course OG/Twitter Card injection for the course shell
