@@ -4942,6 +4942,140 @@ async function memoryErase(env, email) {
   } catch (e) {}
   return n;
 }
+/* 2026-10-11 (parity-plus): device pairing. The owner pairs a phone
+   from Noah settings -> Devices: the site shows a 6-digit code (10-min
+   TTL); the device claims it with its name/platform. Listed devices can
+   be revoked. All session-gated. */
+async function handleNoahDevices(request, env, sess, sub) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  if (request.method === "GET" && (sub === "" || sub === "/")) {
+    var keys = [];
+    try { keys = await kvListKeys(env.IL_ACCOUNTS, "device:" + email + ":", 100); } catch (e) {}
+    var devs = [];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = await env.IL_ACCOUNTS.get(keys[i]);
+        if (raw) { var d = JSON.parse(raw); d.id = keys[i].slice(("device:" + email + ":").length); devs.push(d); }
+      } catch (e) {}
+    }
+    return json({ ok: true, devices: devs });
+  }
+  if (request.method === "POST" && sub === "/pair") {
+    var code = "";
+    try {
+      var rb = new Uint8Array(3); crypto.getRandomValues(rb);
+      code = String(100000 + ((((rb[0] << 16) | (rb[1] << 8) | rb[2]) % 900000)));
+    } catch (e) { code = String(100000 + Math.floor(Math.random() * 900000)); }
+    try {
+      await env.IL_ACCOUNTS.put("paircode:" + code, JSON.stringify({ email: email, at: Date.now() }),
+        { expirationTtl: 600 });
+    } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    await authLog(env, request, "device_pair_started", email, {});
+    return json({ ok: true, code: code, expires_in: 600 });
+  }
+  if (request.method === "POST" && sub === "/claim") {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var ccode = body && body.code ? String(body.code).replace(/[^0-9]/g, "").slice(0, 6) : "";
+    var name = body && body.name ? String(body.name).slice(0, 80) : "Unnamed device";
+    var platform = body && body.platform ? String(body.platform).slice(0, 40) : "unknown";
+    if (!ccode) return json({ ok: false, error: "code_required" }, 400);
+    var prec = null;
+    try { prec = await env.IL_ACCOUNTS.get("paircode:" + ccode); } catch (e) {}
+    if (!prec) return json({ ok: false, error: "invalid_or_expired_code" }, 400);
+    var pj2 = null;
+    try { pj2 = JSON.parse(prec); } catch (e) {}
+    if (!pj2 || pj2.email !== email) return json({ ok: false, error: "invalid_or_expired_code" }, 400);
+    var did = "";
+    try {
+      var db = new Uint8Array(8); crypto.getRandomValues(db);
+      did = Array.prototype.map.call(db, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    } catch (e) { did = "d" + Date.now().toString(36); }
+    try {
+      await env.IL_ACCOUNTS.put("device:" + email + ":" + did,
+        JSON.stringify({ name: name, platform: platform, paired_at: new Date().toISOString() }));
+      await env.IL_ACCOUNTS.delete("paircode:" + ccode);
+    } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    await authLog(env, request, "device_paired", email, { device: did, name: name });
+    return json({ ok: true, id: did, name: name });
+  }
+  if (request.method === "DELETE" && sub && sub.charAt(0) === "/") {
+    var rdid = decodeURIComponent(sub.slice(1)).replace(/[^a-z0-9]/g, "").slice(0, 32);
+    if (!rdid) return json({ ok: false, error: "invalid_id" }, 400);
+    try { await env.IL_ACCOUNTS.delete("device:" + email + ":" + rdid); } catch (e) {}
+    await authLog(env, request, "device_revoked", email, { device: rdid });
+    return json({ ok: true, id: rdid });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
+/* 2026-10-11 (parity-plus): wallet surface. Read-only view over the
+   existing payment records (orders + entitlements) — the same data the
+   account export carries. No new money movement. */
+async function handleNoahWallet(request, env, sess) {
+  if (request.method !== "GET") return json({ ok: false, error: "method_not_allowed" }, 405);
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  var orders = [], entitlements = [];
+  try {
+    var orderKeys = await kvListKeys(env.IL_ACCOUNTS, "pay:order:", 200);
+    for (var o = 0; o < orderKeys.length; o++) {
+      try {
+        var ov = JSON.parse(await env.IL_ACCOUNTS.get(orderKeys[o]));
+        if (ov && String(ov.email || "").toLowerCase() === email) {
+          orders.push({ id: ov.id || orderKeys[o], amount: ov.amount || null,
+            currency: ov.currency || null, status: ov.status || null,
+            created: ov.created_at || ov.created || null,
+            description: ov.description || ov.memo || null });
+        }
+      } catch (e) {}
+    }
+    var entKeys = await kvListKeys(env.IL_ACCOUNTS, "pay:entitle:" + email + ":", 200);
+    for (var n = 0; n < entKeys.length; n++) {
+      try {
+        var ev = JSON.parse(await env.IL_ACCOUNTS.get(entKeys[n]));
+        entitlements.push({ key: entKeys[n], value: ev });
+      } catch (e) {}
+    }
+  } catch (e) {}
+  orders.sort(function (a, b) { return String(b.created || "") < String(a.created || "") ? -1 : 1; });
+  return json({ ok: true, orders: orders.slice(0, 50), entitlements: entitlements });
+}
+
+/* 2026-10-11 (parity-plus): voice preferences backing the Voice settings
+   section (voice id, auto-read replies, speech rate). TTS itself is the
+   existing POST /api/noah/tts; STT is POST /api/ai/transcribe. */
+var NOAH_VOICES = ["noah", "genesis", "sage", "ember", "alloy"];
+async function handleNoahVoice(request, env, sess) {
+  if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
+  var email = String(sess.email || "").toLowerCase();
+  if (request.method === "GET") {
+    var cur = null;
+    try { cur = await env.IL_ACCOUNTS.get("voice:" + email); } catch (e) {}
+    var prefs = { voice: "noah", auto_read: false, rate: 1.0 };
+    try { if (cur) prefs = Object.assign(prefs, JSON.parse(cur)); } catch (e) {}
+    prefs.voices = NOAH_VOICES;
+    return json({ ok: true, prefs: prefs });
+  }
+  if (request.method === "POST") {
+    var body = null;
+    try { body = await request.json(); } catch (e) {}
+    var prefs2 = { voice: "noah", auto_read: false, rate: 1.0 };
+    try { var ex = await env.IL_ACCOUNTS.get("voice:" + email); if (ex) prefs2 = Object.assign(prefs2, JSON.parse(ex)); } catch (e) {}
+    if (body) {
+      if (typeof body.voice === "string" && NOAH_VOICES.indexOf(body.voice) !== -1) prefs2.voice = body.voice;
+      if (typeof body.auto_read === "boolean") prefs2.auto_read = body.auto_read;
+      var rt = parseFloat(body.rate);
+      if (rt >= 0.5 && rt <= 2.0) prefs2.rate = rt;
+    }
+    try { await env.IL_ACCOUNTS.put("voice:" + email, JSON.stringify(prefs2)); }
+    catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
+    return json({ ok: true, prefs: prefs2 });
+  }
+  return json({ ok: false, error: "method_not_allowed" }, 405);
+}
+
 async function handleNoahMemory(request, env, sess, sub) {
   if (!env.IL_ACCOUNTS) return json({ ok: false, error: "accounts_unavailable" }, 503);
   var email = String(sess.email || "").toLowerCase();
@@ -10097,6 +10231,22 @@ export default {
           JSON.stringify({ at: new Date().toISOString() }));
       } catch (e) { return json({ ok: false, error: "store_unavailable" }, 503); }
       return json({ ok: true, opted_in: true });
+    }
+    /* 2026-10-11 (parity-plus): devices, wallet, voice. */
+    if (path === "/api/noah/devices" || path.indexOf("/api/noah/devices/") === 0) {
+      var dsess = await readSession(request, env);
+      if (!dsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahDevices(request, env, dsess, path.slice("/api/noah/devices".length));
+    }
+    if (path === "/api/noah/wallet") {
+      var wsess = await readSession(request, env);
+      if (!wsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahWallet(request, env, wsess);
+    }
+    if (path === "/api/noah/voice") {
+      var vsess = await readSession(request, env);
+      if (!vsess) return json({ ok: false, error: "unauthorized" }, 401);
+      return handleNoahVoice(request, env, vsess);
     }
     if (path === "/api/noah/briefing/optin" && request.method === "GET") {
       var gsess = await readSession(request, env);
