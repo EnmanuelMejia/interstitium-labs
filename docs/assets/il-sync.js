@@ -17,6 +17,8 @@
  *   interviews -> il-mock-interviews-v1
  *   noah       -> noah-ai-history-v1, noah-session-v2
  *   prefs      -> il-noah-profile, il-mock-interview-settings-v1
+ *   goals      -> il-goals-v1 (Noah/Genesis goal summaries cache; the
+ *                 goals engine also mirrors server-side into this store)
  * (CBT/course progress syncs through /api/progress + ILAccount's
  *  local_mirror; skills profiles live in the bootcamp shell and join
  *  this registry when present under il.skills.v1.)
@@ -33,6 +35,7 @@
     noah: ["noah-ai-history-v1", "noah-session-v2"],
     prefs: ["il-noah-profile", "il-mock-interview-settings-v1"],
     skills: ["il.skills.v1"],
+    goals: ["il-goals-v1"],
   };
   var TICK_MS = 45000;
   var syncing = false;

@@ -1262,16 +1262,19 @@
     } catch (e) {}
   }
 
-  /* 3D Operator avatar adapter (unified shell): prefer the WebGL Operator
-     avatar (Noah at the keyboard, headphones on) when il-noah-avatar.js has
-     loaded; fall back to the built-in 2D canvas portrait. Matches the
-     { setState(s), parallax(x,y) } interface the widget expects. */
-  function mountAvatar(slot, size) {
+  /* Avatar adapter (unified shell): prefer the avatar engine's
+     profile-driven instance — by default the selected tutor's PHOTO
+     likeness (Noah, or Genesis when chosen in settings). The procedural
+     'operator' avatar is never forced here: its scene clears to a
+     near-black void, so at orb sizes it reads as an empty dark circle.
+     If the engine has not loaded yet (the loader chains race), start
+     with the built-in 2D canvas portrait and upgrade in place when the
+     engine arrives. Matches the { setState(s), parallax(x,y) } shape. */
+  function engineAvatar(slot) {
     try {
       if (window.ILNoahAvatar && window.ILNoahAvatar.mount) {
         var inst = window.ILNoahAvatar.mount(slot, {});
         if (inst) {
-          try { if (inst.setAvatar) inst.setAvatar('operator'); } catch (eA) {}
           return {
             setState: function (s) { try { inst.setStatus(s); } catch (e) {} },
             parallax: function () {}
@@ -1279,7 +1282,37 @@
         }
       }
     } catch (e) {}
-    return NoahAvatar.mount(slot, size);
+    return null;
+  }
+
+  function mountAvatar(slot, size) {
+    var ctl = engineAvatar(slot);
+    if (ctl) return ctl;
+    var inner = NoahAvatar.mount(slot, size);
+    var proxy = {
+      setState: function (s) { try { inner.setState(s); } catch (e) {} },
+      parallax: function (x, y) { try { if (inner.parallax) inner.parallax(x, y); } catch (e) {} }
+    };
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (!document.contains(slot) || tries > 15) { clearInterval(iv); return; }
+      var up = engineAvatar(slot);
+      if (up) {
+        clearInterval(iv);
+        /* The engine root mounts alongside the 2D fallback art — drop
+           every slot child that is not the engine root. */
+        try {
+          var kids = slot.childNodes;
+          for (var i = kids.length - 1; i >= 0; i--) {
+            var n = kids[i];
+            if (!n.hasAttribute || !n.hasAttribute('data-noah-avatar')) slot.removeChild(n);
+          }
+        } catch (e) {}
+        inner = up;
+      }
+    }, 400);
+    return proxy;
   }
 
   function buildWidget() {
@@ -1297,7 +1330,6 @@
     launcher.setAttribute('aria-controls', 'noah-panel');
     launcher.setAttribute('aria-expanded', 'false');
     launcher.addEventListener('click', toggle);
-    avatarCtl.launcher = mountAvatar(launcher.querySelector('.noah-orb'), 52);
     launcher.addEventListener('pointermove', function (e) {
       var r = launcher.getBoundingClientRect();
       avatarCtl.launcher.parallax(((e.clientX - r.left) / r.width - 0.5) * 2, ((e.clientY - r.top) / r.height - 0.5) * 2);
@@ -1319,11 +1351,33 @@
       '<div id="noah-chips"></div>' +
       '<form id="noah-form" method="post"><label for="noah-input">Message Noah</label><textarea id="noah-input" name="message" rows="1" maxlength="4000" placeholder="Ask Noah AI anything…" required></textarea>' +
       '<button id="noah-send" type="submit">Send</button></form>' +
-      '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Memory stays in this browser. No cross-device sync.</div>';
-    avatarCtl.head = mountAvatar(panel.querySelector('.noah-avatar'), 40);
+      '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Noah is an AI assistant — answers are AI-generated and can be wrong. Verify important facts. <a href="/privacy/">Privacy</a><br>Memory stays in this browser. No cross-device sync.</div>';
 
     document.body.appendChild(launcher);
     document.body.appendChild(panel);
+
+    /* Mount avatars ONLY after the widget is in the document: the avatar
+       engine's mount() reuses "orphaned" instances whose slot is not in
+       the document, so mounting into a detached tree let the panel-head
+       mount steal the launcher orb's instance — leaving the orb empty. */
+    avatarCtl.launcher = mountAvatar(launcher.querySelector('.noah-orb'), 52);
+    avatarCtl.head = mountAvatar(panel.querySelector('.noah-avatar'), 40);
+
+    /* Tutor identity: the header name, launcher label, and input
+       placeholder follow the selected tutor (Noah default / Genesis),
+       including live switches from the settings panel. */
+    function applyTutorName() {
+      try {
+        var label = tutorLabel() + ' AI';
+        var nameEl = panel.querySelector('.noah-name');
+        if (nameEl) nameEl.textContent = label;
+        launcher.setAttribute('aria-label', 'Chat with ' + label);
+        var inputEl = panel.querySelector('#noah-input');
+        if (inputEl) inputEl.setAttribute('placeholder', 'Ask ' + label + ' anything…');
+      } catch (e) {}
+    }
+    applyTutorName();
+    try { window.addEventListener('il-noah-profile', applyTutorName); } catch (e) {}
 
     els = {
       launcher: launcher, panel: panel,

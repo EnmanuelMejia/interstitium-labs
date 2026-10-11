@@ -70,9 +70,26 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<rs.length;i
   <p style="max-width:38rem">Your learner account syncs progress, lab completions, and assessment scores across devices — no password. Enter your email and we send a one-time sign-in link.</p>
   <div class="mt-6" data-il-auth></div>
   <noscript><p style="max-width:38rem">Sign-in needs JavaScript enabled. Your coursework pages remain fully readable without it.</p></noscript>
-  <p class="il-auth-hint" style="max-width:38rem;margin-top:2rem">Privacy: we store your email, progress records, and certificates on our Cloudflare edge store. Export or delete anytime from <a href="/progress/">your dashboard</a>.</p>
+  <p class="il-auth-hint" style="max-width:38rem;margin-top:2rem">Privacy: we store your email, progress records, and certificates on our Cloudflare edge store. Read exactly what and why in our <a href="/privacy/">privacy notice</a>.</p>
+  <section aria-label="Your data" style="max-width:38rem;margin-top:1.5rem">
+    <h2 style="font-size:1.15rem;margin:0 0 .5rem">Your data</h2>
+    <p class="il-auth-hint">Your <a href="/progress/">dashboard</a> exports the learner state stored on this device. The export below is everything in your account on our servers — profile, progress, synced notes and goals, certificates, jobs data, learning records, and orders — as one JSON file.</p>
+    <div class="il-auth-actions">
+      <a class="il-btn" id="il-export-btn" href="/api/account/export">Download full account export</a>
+      <button class="il-btn il-btn-ghost" id="il-delete-toggle" type="button">Delete my account</button>
+    </div>
+    <div id="il-delete-form" style="display:none;margin-top:1rem">
+      <p class="il-auth-error" style="color:#fca5a5">This permanently erases your account, progress, synced data, goals, certificates, jobs data, and sign-ins. Order records are kept as financial records with your email pseudonymized; security-log entries expire within 90 days. This cannot be undone.</p>
+      <label class="il-field"><span>Type your account email to confirm</span>
+        <input id="il-delete-email" type="email" autocomplete="email" placeholder="you@example.com"/>
+      </label>
+      <button class="il-btn" id="il-delete-btn" type="button" style="background:#b91c1c;color:#fff">Permanently delete my account</button>
+    </div>
+    <p class="il-auth-hint" id="il-data-status" role="status" aria-live="polite"></p>
+  </section>
 </main>
 <script src="https://interstitiumlabs.dev/assets/il-account.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-account-data.js" defer></script>
 <script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
 <style>/* canonical footer (page does not load il-unified.css) */
 /* ================================================================
@@ -160,6 +177,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<rs.length;i
     <nav class="il-fc-nav" aria-label="Footer">
       <a href="/about/">About</a>
       <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
       <a href="/topics/">Topics</a>
       <a href="/university/">Courses</a>
       <a href="/prep/">Prep</a>

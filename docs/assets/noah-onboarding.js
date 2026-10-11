@@ -32,7 +32,7 @@
   ];
 
   function esc(s) {
-    return String(s == null ? '' : '').replace(/&/g, '&amp;')
+    return String(s == null ? '' : s).replace(/&/g, '&amp;')
       .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
@@ -101,6 +101,81 @@
     'Just exploring'
   ];
 
+  /* ---- Selected tutor (Noah default / Genesis) ----
+     The tutor choice lives in the avatar profile ('il-noah-profile',
+     owned by il-noah-avatar.js). The onboarding always shows the
+     selected tutor's photo likeness — never an empty slot. */
+  function selectedTutor() {
+    try {
+      if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) {
+        var a = g.ILNoahAvatar.getProfile().avatar;
+        if (a === 'genesis' || a === 'noah') return a;
+      }
+    } catch (e) {}
+    try {
+      var p = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+      if (p && p.avatar === 'genesis') return 'genesis';
+    } catch (e) {}
+    return 'noah';
+  }
+
+  function tutorName() { return selectedTutor() === 'genesis' ? 'Genesis' : 'Noah'; }
+
+  function tutorImg() {
+    return '/assets/noah/' + selectedTutor() + '-avatar-3d.webp';
+  }
+
+  function personalize(text) {
+    return selectedTutor() === 'genesis' ? String(text).replace(/Noah/g, 'Genesis') : text;
+  }
+
+  /* Mount the live avatar engine over the fallback <img>. The <img> is
+     rendered synchronously in renderStep, so the slot is NEVER empty;
+     if the engine is still loading (parallel loader chains race), retry
+     briefly, then keep the <img>. Never force the procedural 'operator'
+     avatar — at onboarding sizes it renders as a near-black scene and
+     reads as an empty circle. */
+  function mountAvatarWithFallback(slot) {
+    if (!slot) return;
+    var tutor = selectedTutor();
+    var tries = 0;
+    (function attempt() {
+      if (!document.body || !document.body.contains(slot)) return; // step changed / done
+      if (g.ILNoahAvatar && g.ILNoahAvatar.mount) {
+        try {
+          var inst = g.ILNoahAvatar.mount(slot, { avatar: tutor });
+          if (inst && slot.querySelector('[data-noah-avatar]')) {
+            var fb = slot.querySelector('.noah-ob-avatar-img');
+            if (fb && fb.parentNode) fb.parentNode.removeChild(fb);
+            if (inst.setStatus) inst.setStatus('speaking');
+            return;
+          }
+        } catch (e) {}
+      }
+      if (++tries < 10) setTimeout(attempt, 300);
+    })();
+  }
+
+  /* ---- Services (connectors) ----
+     Static fallback so the step ALWAYS names the services, even if the
+     connector framework has not loaded yet. Status is reported honestly
+     from local connection state — never faked. */
+  var FALLBACK_SERVICES = [
+    { id: 'gmail', label: 'Gmail', icon: '📧' },
+    { id: 'gcal', label: 'Google Calendar', icon: '📅' },
+    { id: 'github', label: 'GitHub', icon: '🐙' }
+  ];
+
+  function serviceList() {
+    try {
+      if (g.NoahConnectors && g.NoahConnectors.list) {
+        var list = g.NoahConnectors.list();
+        if (list && list.length) return list;
+      }
+    } catch (e) {}
+    return FALLBACK_SERVICES;
+  }
+
   function renderStep() {
     var s = STEPS[step];
     var bodyHtml = '';
@@ -111,14 +186,16 @@
     } else if (s.body === 'services') {
       bodyHtml = renderServices();
     } else {
-      bodyHtml = '<p>' + s.body + '</p>';
+      bodyHtml = '<p>' + personalize(s.body) + '</p>';
     }
 
     overlay.innerHTML =
       '<div class="noah-ob-card">' +
-        '<div class="noah-ob-avatar" data-noah-3d-slot></div>' +
+        '<div class="noah-ob-avatar" data-noah-3d-slot>' +
+          '<img class="noah-ob-avatar-img" src="' + tutorImg() + '" alt="' + esc(tutorName()) + '" width="120" height="120" decoding="async">' +
+        '</div>' +
         '<div class="noah-ob-progress">' + (step + 1) + ' / ' + STEPS.length + '</div>' +
-        '<h2>' + esc(s.title) + '</h2>' +
+        '<h2>' + esc(personalize(s.title)) + '</h2>' +
         '<div class="noah-ob-body">' + bodyHtml + '</div>' +
         '<div class="noah-ob-actions">' +
           (step > 0 ? '<button class="noah-ob-back">Back</button>' : '') +
@@ -127,34 +204,26 @@
         '</div>' +
       '</div>';
 
-    // Mount 3D avatar in the slot
-    try {
-      var slot = overlay.querySelector('[data-noah-3d-slot]');
-      if (slot && g.ILNoahAvatar) {
-        var inst = g.ILNoahAvatar.mount(slot, {});
-        if (inst && inst.setAvatar) inst.setAvatar('operator');
-        if (inst) inst.setStatus('speaking');
-      }
-    } catch (e) {}
+    // Enhance the fallback <img> with the live avatar engine (photo tutor).
+    mountAvatarWithFallback(overlay.querySelector('[data-noah-3d-slot]'));
 
     bindStep();
   }
 
   function renderServices() {
-    var connectors = [];
-    try {
-      if (g.NoahConnectors && g.NoahConnectors.list) connectors = g.NoahConnectors.list();
-    } catch (e) {}
-    if (!connectors.length) {
-      return '<p class="noah-ob-hint">Service connections are coming soon. You can skip this step.</p>';
-    }
+    var connectors = serviceList();
+    var keys = getApiKeys();
+    var p = getProfile();
     return '<div class="noah-ob-services">' + connectors.map(function (c) {
+      var connected = !!(keys[c.id] || (p.connections && p.connections[c.id]));
       return '<div class="noah-ob-service" data-conn="' + esc(c.id) + '">' +
         '<span class="noah-ob-service-icon">' + esc(c.icon || '🔌') + '</span>' +
         '<span class="noah-ob-service-label">' + esc(c.label) + '</span>' +
+        '<span class="noah-ob-service-status ' + (connected ? 'on' : 'off') + '">' +
+          (connected ? 'Connected' : 'Not connected') + '</span>' +
         '<button class="noah-ob-connect">Connect</button>' +
       '</div>';
-    }).join('') + '</div><p class="noah-ob-hint">Connect services to let Noah act on your behalf. You can do this anytime from Noah\'s settings.</p>';
+    }).join('') + '</div><p class="noah-ob-hint">Connect services to let ' + esc(tutorName()) + ' act on your behalf. You can do this anytime from ' + esc(tutorName()) + '\'s settings.</p>';
   }
 
   function bindStep() {
@@ -264,10 +333,7 @@
 
   function renderSettings() {
     var keys = getApiKeys();
-    var connectors = [];
-    try {
-      if (g.NoahConnectors && g.NoahConnectors.list) connectors = g.NoahConnectors.list();
-    } catch (e) {}
+    var connectors = serviceList();
     var p = getProfile();
 
     var html = '<div class="noah-settings">';

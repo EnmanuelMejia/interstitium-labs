@@ -17,7 +17,7 @@
       cloudflare: ['workers', 'kv', 'd1', 'r2', 'ai', 'ai-gateway'],
       providers: ['google-oauth', 'github-oauth'],
       skills: ['tutor', 'lab-gen', 'research', 'code', 'viz', 'docs', 'voice', 'connectors', 'notes'],
-      ai: ['ai-client', 'ai-dynamic', 'noah-ai', 'noah-viz', 'noah-docrender'],
+      ai: ['ai-client', 'ai-dynamic', 'noah-ai', 'noah-viz', 'noah-docrender', 'il-cred-broker'],
       notes: ['il-notes', 'il-mindmap'],
     },
   };

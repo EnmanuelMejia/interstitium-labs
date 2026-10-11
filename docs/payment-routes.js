@@ -822,7 +822,20 @@ async function handleCreate(request, env, store) {
   }
   var v = validateCreate(body);
   if (!v.ok) return payJson({ ok: false, error: v.error, valid: v.valid }, 422);
-  if (!providerConfigured(env, v.provider)) {
+  var configured = providerConfigured(env, v.provider);
+  if (!configured && v.provider === "direct") {
+    /* Direct rail can also be served purely from the owner's Unstoppable
+       Domain records (no WALLET_* secrets). Resolve (24h KV-cached) and
+       treat the rail as configured when the requested coin has an
+       address from any source. */
+    try {
+      var pre = await resolveCoinAddresses(env, store);
+      for (var pi = 0; pi < pre.coins.length; pi++) {
+        if (pre.coins[pi].code === v.coin.code && pre.coins[pi].address) { configured = true; break; }
+      }
+    } catch (e) { /* resolution failure leaves the rail unconfigured */ }
+  }
+  if (!configured) {
     return payJson(
       { ok: false, error: "provider_unavailable", provider: v.provider, hint: "payments_not_configured" },
       503
@@ -1151,6 +1164,12 @@ async function handleAdminConfirm(request, env, store) {
     return payJson({ ok: false, error: "bad_json" }, 422);
   }
   if (!safeEqual(String((body && body.admin_token) || ""), String(env.ADMIN_TOKEN))) {
+    // Zero trust (2026-10-11): audit every failed owner-gate attempt.
+    // authLog lives in _worker.js (same concatenated bundle scope); the
+    // typeof guard keeps this file runnable standalone in node tests.
+    if (typeof authLog === "function") {
+      await authLog(env, request, "admin_confirm_failed", null, { reason: "bad_token" });
+    }
     return payJson({ ok: false, error: "unauthorized" }, 401);
   }
   var orderId = body && body.order ? String(body.order).trim() : "";
@@ -1161,6 +1180,9 @@ async function handleAdminConfirm(request, env, store) {
     admin_confirmed_at: nowIso(),
     admin_note: body && body.note ? String(body.note).slice(0, 500) : "",
   });
+  if (typeof authLog === "function") {
+    await authLog(env, request, "sensitive_action", null, { action: "pay_admin_confirm", order: order.id, item: order.item || null });
+  }
   var entitlement = null;
   if (env.ENTITLEMENT_SECRET && order.item && (ITEMS[order.item] || {}).kind !== "tier") {
     entitlement = await signEntitlement(

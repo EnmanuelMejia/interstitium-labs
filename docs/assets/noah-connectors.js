@@ -65,7 +65,7 @@
       '<div class="noahconn-head"><span>' + connector.icon + ' ' + esc(connector.label) +
       '</span><span class="noahconn-act">' + esc(action.label) + '</span></div>';
     if (result && result.summary) h += '<div class="noahconn-sum">' + result.summary + '</div>';
-    if (result && result.error) h += '<div class="noahconn-err">' + esc(result.error) + '</div>';
+    if (result && result.error) h += '<div class="noahconn-err">' + esc(result.needs_auth ? 'Sign in to use connectors.' : result.error) + '</div>';
     if (result && result.setup_url) {
       h += '<div class="noahconn-setup">Needs setup: <a href="' + esc(result.setup_url) +
         '" target="_blank" rel="noopener">connect ' + esc(connector.label) + '</a></div>';
@@ -97,14 +97,34 @@
     document.head.appendChild(s);
   }
 
-  function callBackend(connId, actionId, params, confirmToken) {
+  function callBackend(connId, actionId, params, confirmToken, stepUpToken) {
     var body = { action: actionId, params: params };
     if (confirmToken) body.confirm_token = confirmToken;
+    if (stepUpToken) body.step_up_token = stepUpToken;
     return fetch('/api/noah/connectors/' + encodeURIComponent(connId), {
       method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     }).then(function (r) { return r.json(); })
+    .then(function (out) {
+      /* Zero trust (2026-10-11): irreversible actions need a fresh
+         step-up token. Mint one against the live session and retry
+         once -- the human already confirmed in the card above. */
+      if (out && out.needs_stepup && confirmToken && !stepUpToken) {
+        return fetch('/api/auth/stepup', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ purpose: 'connector' })
+        }).then(function (r) { return r.json(); })
+        .then(function (s) {
+          if (s && s.ok && s.step_up_token) {
+            return callBackend(connId, actionId, params, confirmToken, s.step_up_token);
+          }
+          return out;
+        }).catch(function () { return out; });
+      }
+      return out;
+    })
     .catch(function () {
       return { ok: false, error: 'Connector service unreachable.',
                setup: 'The ' + connId + ' connector needs its backend route. See NOAH_CONNECTORS.md.' };
@@ -238,6 +258,100 @@
       { id: 'trigger', label: 'Trigger workflow', reversible: false,
         patterns: [/trigger (?:the )?workflow ([\w\-\/.]+) on ([\w\-\/.]+)/i, /run (?:the )?workflow ([\w\-\/.]+)/i],
         params: ['workflow', 'repo'] }
+    ]
+  });
+
+  /* 2026-10-11: Jobs Suite data connectors — public job sources, no auth.
+     They execute through POST /api/noah/connectors/:id, which runs the
+     same aggregator as /api/jobs/search (attributed, deduped). */
+  register({
+    id: 'jobs', label: 'Job Board (all sources)', icon: '💼',
+    actions: [
+      { id: 'search', label: 'Search jobs', reversible: true,
+        patterns: [/find (?:me )?(?:a |the )?jobs? (?:for|in|about) (.+)/i,
+                   /search (?:for )?jobs? (?:for |in |about )?(.+)/i,
+                   /jobs? for (.+)/i, /who is hiring (.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-greenhouse', label: 'Greenhouse Boards', icon: '🏢',
+    actions: [
+      { id: 'search', label: 'Search Greenhouse boards', reversible: true,
+        patterns: [/(.+?) jobs? on greenhouse/i, /greenhouse (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-lever', label: 'Lever Boards', icon: '🏢',
+    actions: [
+      { id: 'search', label: 'Search Lever boards', reversible: true,
+        patterns: [/(.+?) jobs? on lever/i, /lever (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-ashby', label: 'Ashby Boards', icon: '🏢',
+    actions: [
+      { id: 'search', label: 'Search Ashby boards', reversible: true,
+        patterns: [/(.+?) jobs? on ashby/i, /ashby (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-remotive', label: 'Remotive', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search Remotive', reversible: true,
+        patterns: [/(.+?) jobs? on remotive/i, /remotive (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-remoteok', label: 'Remote OK', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search Remote OK', reversible: true,
+        patterns: [/(.+?) jobs? on remote ?ok/i, /remote ?ok (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-arbeitnow', label: 'Arbeitnow', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search Arbeitnow', reversible: true,
+        patterns: [/(.+?) jobs? on arbeitnow/i, /arbeitnow (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-themuse', label: 'The Muse', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search The Muse', reversible: true,
+        patterns: [/(.+?) jobs? on (?:the )?muse/i, /(?:the )?muse (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-weworkremotely', label: 'We Work Remotely', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search We Work Remotely', reversible: true,
+        patterns: [/(.+?) jobs? on we ?work ?remotely/i, /we ?work ?remotely (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-usajobs', label: 'USAJobs (federal)', icon: '🏛️',
+    actions: [
+      { id: 'search', label: 'Search USAJobs', reversible: true,
+        patterns: [/(.+?) jobs? on usajobs/i, /federal jobs? (?:for )?(.+)/i, /usajobs (?:for )?(.+)/i],
+        params: ['query'] }
+    ]
+  });
+  register({
+    id: 'jobs-adzuna', label: 'Adzuna', icon: '🌐',
+    actions: [
+      { id: 'search', label: 'Search Adzuna', reversible: true,
+        patterns: [/(.+?) jobs? on adzuna/i, /adzuna (?:jobs?|openings?) (?:for )?(.+)/i],
+        params: ['query'] }
     ]
   });
 
