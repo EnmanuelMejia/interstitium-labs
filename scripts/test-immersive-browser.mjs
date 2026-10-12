@@ -219,7 +219,8 @@ await check('legacy learn/path URLs remain redirected in worker (nav simplificat
   const worker = await readFile(path.join(docs, '_worker.js'), 'utf8');
   for (const [from, to] of [['/learn', '/topics/'], ['/paths/aws-cloud-ops', '/topics/cloud-devops/'],
     ['/paths/aws-cloud-practitioner-plus', '/topics/cloud-devops/'], ['/paths/k8s-cka-exceed', '/topics/cloud-devops/']]) {
-    assert.match(worker, new RegExp('"' + from.replace(/\//g, '\\/') + '"\\s*:\\s*"' + to.replace(/\//g, '\\/') + '"'), from + ' → ' + to);
+    const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(worker, new RegExp('"' + esc(from) + '"\\s*:\\s*"' + esc(to) + '"'), from + ' → ' + to);
   }
   return '4 legacy redirects intact';
 });
