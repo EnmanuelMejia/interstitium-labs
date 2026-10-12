@@ -225,6 +225,25 @@ await check('legacy learn/path URLs remain redirected in worker (nav simplificat
   return '4 legacy redirects intact';
 });
 
+await check('/immersive/exam/: lobby lists pool and a paper can be started', async () => {
+  const { page, errors } = await open('/immersive/exam/');
+  const pool = await page.locator('[data-il-exam-pool]').textContent();
+  assert.ok(Number(pool) >= 40, 'pool ' + pool);
+  await page.locator('[data-il-exam-start]').first().click();
+  await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
+  await page.locator('[data-il-exam-option]').first().waitFor({ timeout: 30000 });
+  // Answer with whatever option 0 is on screen — just prove commit advances or scores.
+  const before = await page.locator('[data-il-exam-progress]').textContent();
+  await page.locator('[data-il-exam-option]').first().click();
+  await page.waitForTimeout(1600);
+  const after = await page.locator('[data-il-exam-progress]').textContent();
+  const finished = await page.locator('html').getAttribute('data-il-exam-finished');
+  assert.ok(after !== before || finished, 'exam progressed or finished');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'pool ' + pool + ' · ' + before + ' → ' + (after || finished);
+});
+
 await browser.close();
 server.close();
 if (failed) { console.error(failed + ' check(s) failed'); process.exit(1); }
