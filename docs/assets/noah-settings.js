@@ -1,0 +1,1061 @@
+/* Noah/Genesis Settings — the canonical Settings home (2026-10-11).
+ *
+ * Full-application fold-in: one Settings surface inside Noah (mirrored
+ * for Genesis — same page, tutor-aware) holding account & profile, the
+ * Secure Store (per-user saved logins), connectors, goals, reminders &
+ * briefing, memory controls, files & documents, payments, voice & tutor,
+ * permissions, devices, activity, and privacy & data.
+ *
+ * Entry points (<=2 taps from the Noah panel):
+ *   - the "⚙ Settings" sidebar button on /noah/
+ *   - the /noah/#settings deep link (the target the floating widget's
+ *     settings card already points at)
+ *   - window.ILSettings.open(section?)
+ *
+ * Secure Store rules (enforced server-side by the credential broker,
+ * /api/credentials): values are encrypted at rest, are NEVER returned
+ * by any endpoint, never rendered here, and never logged. This client
+ * never holds a secret at all — capture happens only on the protected
+ * /account/credentials/ page hosted by the broker's own module.
+ *
+ * Signed-out visitors get honest sign-in prompts per section — account
+ * data needs an account to follow you. */
+(function () {
+  'use strict';
+  if (window.ILSettings) return;
+  if (!document.getElementById('newChatBtn')) return; /* /noah/ only */
+
+  var state = {
+    open: false, me: undefined, /* undefined=unknown, null=signed out */
+    vault: null, vaultState: '', connectors: null, goals: null,
+    reminders: null, remindersState: '', briefing: null, certs: null,
+    activity: null, loaded: {}
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function $(id) { return document.getElementById(id); }
+  function api(path, opts) {
+    opts = opts || {};
+    var headers = { accept: 'application/json' };
+    if (opts.body != null) headers['content-type'] = 'application/json';
+    return fetch(path, {
+      method: opts.method || 'GET', credentials: 'same-origin', headers: headers,
+      body: opts.body != null ? JSON.stringify(opts.body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return { ok: false, error: 'bad_response' }; })
+        .then(function (j) { return { status: res.status, j: j }; });
+    });
+  }
+  function tutorId() {
+    try {
+      var p = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+      return p && p.avatar === 'genesis' ? 'genesis' : 'noah';
+    } catch (e) { return 'noah'; }
+  }
+  function tutorName() { return tutorId() === 'genesis' ? 'Genesis' : 'Noah'; }
+  function obProfile() {
+    try { return JSON.parse(localStorage.getItem('noah-user-profile') || '{}') || {}; }
+    catch (e) { return {}; }
+  }
+  function saveObProfile(p) {
+    try { localStorage.setItem('noah-user-profile', JSON.stringify(p)); } catch (e) {}
+    if (window.NoahOnboarding && NoahOnboarding.saveProfile) {
+      try { NoahOnboarding.saveProfile(p); } catch (e) {}
+    }
+  }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return esc(String(iso).slice(0, 10));
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function fmtDateTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return esc(String(iso).slice(0, 16).replace('T', ' '));
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  function signInNote(what) {
+    return '<p class="ils-note">Sign in to use ' + esc(what) + ' — they follow your account, not this browser.</p>' +
+      '<p><a class="ils-btn" href="/account/">Sign in</a></p>';
+  }
+
+  /* ---------------- CSS ---------------- */
+  var css = [
+    '#settingsBtn{position:relative}',
+    '.ils-overlay{position:fixed;inset:0;background:rgba(4,6,12,.55);z-index:70;opacity:0;pointer-events:none;transition:opacity .2s}',
+    '.ils-overlay.on{opacity:1;pointer-events:auto}',
+    '.ils-panel{position:fixed;top:0;right:0;height:100dvh;width:min(460px,96vw);z-index:71;',
+    'background:var(--panel,#10141d);color:var(--text,#e8e4da);border-left:1px solid rgba(201,162,39,.25);',
+    'transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column;',
+    'box-shadow:-18px 0 50px rgba(0,0,0,.5)}',
+    '.ils-panel.on{transform:none}',
+    '.ils-head{display:flex;align-items:center;gap:.6rem;padding:1rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.08)}',
+    '.ils-head h2{font-size:1.05rem;margin:0;flex:1}',
+    '.ils-head button{background:none;border:1px solid rgba(255,255,255,.15);color:inherit;border-radius:8px;padding:.3rem .6rem;cursor:pointer}',
+    '.ils-nav{display:flex;gap:.4rem;flex-wrap:wrap;padding:.7rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.06)}',
+    '.ils-nav a{font-size:.78rem;color:inherit;text-decoration:none;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:.25rem .6rem;white-space:nowrap}',
+    '.ils-nav a:hover{border-color:rgba(201,162,39,.6)}',
+    '.ils-body{overflow-y:auto;padding:0 1.1rem 2rem;flex:1}',
+    '.ils-sec{padding:1.05rem 0 .4rem;border-bottom:1px solid rgba(255,255,255,.06)}',
+    '.ils-sec:last-child{border-bottom:none}',
+    '.ils-sec h3{font-size:.98rem;margin:0 0 .55rem;display:flex;align-items:center;gap:.45rem}',
+    '.ils-note{color:var(--muted,#9aa7b8);font-size:.85rem;line-height:1.45;margin:.35rem 0}',
+    '.ils-row{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-top:1px solid rgba(255,255,255,.05)}',
+    '.ils-row:first-of-type{border-top:none}',
+    '.ils-row .ils-grow{flex:1;min-width:0}',
+    '.ils-row .ils-sub{color:var(--muted,#9aa7b8);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.ils-pill{font-size:.72rem;border-radius:999px;padding:.12rem .55rem;border:1px solid rgba(255,255,255,.18);white-space:nowrap}',
+    '.ils-pill.on{border-color:rgba(52,211,153,.6);color:#34d399}',
+    '.ils-pill.off{color:var(--muted,#9aa7b8)}',
+    '.ils-btn{display:inline-block;background:rgba(201,162,39,.14);border:1px solid rgba(201,162,39,.45);color:inherit;',
+    'border-radius:9px;padding:.42rem .8rem;font:inherit;font-size:.85rem;cursor:pointer;text-decoration:none}',
+    '.ils-btn:hover{background:rgba(201,162,39,.24)}',
+    '.ils-btn.ghost{background:none;border-color:rgba(255,255,255,.18)}',
+    '.ils-btn.danger{background:rgba(185,28,28,.16);border-color:rgba(185,28,28,.55)}',
+    '.ils-btn:disabled{opacity:.5;cursor:default}',
+    '.ils-form{display:flex;flex-direction:column;gap:.5rem;margin:.6rem 0}',
+    '.ils-form label{font-size:.8rem;color:var(--muted,#9aa7b8);display:flex;flex-direction:column;gap:.25rem}',
+    '.ils-form input,.ils-form select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);',
+    'border-radius:9px;color:inherit;padding:.55rem .65rem;font:inherit;font-size:.9rem;width:100%;box-sizing:border-box}',
+    '.ils-status{font-size:.85rem;min-height:1.1em;margin:.3rem 0}',
+    '.ils-status.err{color:#fca5a5}.ils-status.ok{color:#34d399}',
+    '.ils-tutors{display:flex;gap:.6rem;margin:.5rem 0}',
+    '.ils-tutor{flex:1;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:.7rem;text-align:center;cursor:pointer;background:none;color:inherit;font:inherit}',
+    '.ils-tutor.sel{border-color:rgba(201,162,39,.7);background:rgba(201,162,39,.08)}',
+    '.ils-tutor .ils-tname{font-weight:700;display:block;margin-top:.3rem}',
+    '.ils-tutor .ils-tsub{font-size:.75rem;color:var(--muted,#9aa7b8)}',
+    '.ils-switch{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.4rem 0}',
+    '.ils-switch input{width:1.1rem;height:1.1rem;accent-color:#c9a227}',
+    '.ils-brief{background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:.7rem .85rem;margin:.4rem 0}',
+    '.ils-brief p{margin:.25rem 0;font-size:.9rem;line-height:1.45}',
+    '.ils-del-confirm{display:none;margin-top:.5rem}',
+    '.ils-del-confirm.on{display:block}',
+    '.ils-tutor-pick{display:flex;gap:.6rem;margin:.5rem 0}',
+    '.ils-tutor{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:.7rem .8rem;cursor:pointer;color:inherit;text-align:left}',
+    '.ils-tutor--on{border-color:#c9a227;background:rgba(201,162,39,.12);box-shadow:0 0 0 1px #c9a227}',
+    '.ils-tutor__name{display:block;font-weight:700;font-size:1rem}',
+    '.ils-tutor__hint{display:block;font-size:.8rem;opacity:.7;margin-top:.2rem}'
+  ].join('\n');
+  var style = document.createElement('style');
+  style.id = 'ils-css';
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  /* ---------------- Panel skeleton ---------------- */
+  var newBtn = $('newChatBtn');
+  var settingsBtn = document.createElement('button');
+  settingsBtn.className = 'new-chat';
+  settingsBtn.id = 'settingsBtn';
+  settingsBtn.type = 'button';
+  settingsBtn.innerHTML = '⚙ Settings';
+  var anchor = $('goalsBtn') || newBtn;
+  anchor.parentNode.insertBefore(settingsBtn, anchor.nextSibling);
+
+  var overlay = document.createElement('div');
+  overlay.className = 'ils-overlay';
+  var panel = document.createElement('aside');
+  panel.className = 'ils-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', 'Settings');
+  panel.innerHTML =
+    '<div class="ils-head"><h2>⚙ Settings · <span id="ilsTutorName">Noah</span></h2>' +
+    '<button type="button" id="ilsClose" aria-label="Close settings">✕</button></div>' +
+    '<nav class="ils-nav" aria-label="Settings sections">' +
+    ['today|☀ Today', 'account|Account', 'vault|🔐 Secure Store', 'connectors|Connectors',
+     'goals|Goals', 'reminders|Reminders', 'memory|Memory', 'files|Files',
+     'payments|Payments', 'voice|Voice', 'privacy|Privacy & data']
+      .map(function (s) {
+        var p = s.split('|');
+        return '<a href="#settings/' + p[0] + '" data-ils-nav="' + p[0] + '">' + p[1] + '</a>';
+      }).join('') +
+    '</nav>' +
+    '<div class="ils-body" id="ilsBody">' +
+    '<section class="ils-sec" id="ils-sec-today"><h3>☀ Today</h3><div data-ils-slot="today"><p class="ils-note">Loading your briefing…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-account"><h3>👤 Account &amp; profile</h3><div data-ils-slot="account"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-vault"><h3>🔐 Secure Store</h3><div data-ils-slot="vault"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-connectors"><h3>🔌 Connectors</h3><div data-ils-slot="connectors"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-goals"><h3>🎯 Goals</h3><div data-ils-slot="goals"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-reminders"><h3>⏰ Reminders</h3><div data-ils-slot="reminders"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-memory"><h3>🧠 Memory</h3><div data-ils-slot="memory"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-files"><h3>📁 Files &amp; documents</h3><div data-ils-slot="files"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-payments"><h3>💳 Payments</h3><div data-ils-slot="payments"></div></section>' +
+    '<section class="ils-sec" id="ils-sec-voice"><h3>🎙 Voice &amp; tutor</h3><div data-ils-slot="voice"></div></section>' +
+    '<section class="ils-sec" id="ils-sec-perms"><h3>🛡 Permissions &amp; approvals</h3><div data-ils-slot="perms"></div></section>' +
+    '<section class="ils-sec" id="ils-sec-devices"><h3>📱 Devices</h3><div data-ils-slot="devices"></div></section>' +
+    '<section class="ils-sec" id="ils-sec-activity"><h3>🕘 Recent account activity</h3><div data-ils-slot="activity"><p class="ils-note">Loading…</p></div></section>' +
+    '<section class="ils-sec" id="ils-sec-privacy"><h3>🔒 Privacy &amp; data</h3><div data-ils-slot="privacy"></div></section>' +
+    '<section class="ils-sec" id="ils-sec-about"><h3>ℹ About &amp; legal</h3>' +
+    '<p class="ils-note">Interstitium Labs — Noah and Genesis are AI assistants; answers are AI-generated and can be wrong. Verify important facts.</p>' +
+    '<p><a class="ils-btn ghost" href="/privacy/">Privacy, in plain language</a> ' +
+    '<a class="ils-btn ghost" href="/about/">About Interstitium Labs</a></p></section>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  document.body.appendChild(panel);
+
+  function slot(name) { return panel.querySelector('[data-ils-slot="' + name + '"]'); }
+  function openPanel(section) {
+    state.open = true;
+    overlay.classList.add('on');
+    panel.classList.add('on');
+    var tn = $('ilsTutorName');
+    if (tn) tn.textContent = tutorName();
+    loadAll();
+    if (section) {
+      setTimeout(function () {
+        var el = $('ils-sec-' + section);
+        if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }, 280);
+    }
+    var c = $('ilsClose');
+    if (c) c.focus();
+  }
+  function closePanel() {
+    state.open = false;
+    overlay.classList.remove('on');
+    panel.classList.remove('on');
+    if (location.hash.indexOf('#settings') === 0) {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    }
+  }
+  settingsBtn.addEventListener('click', function () { state.open ? closePanel() : openPanel(); });
+  overlay.addEventListener('click', closePanel);
+  $('ilsClose').addEventListener('click', closePanel);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && state.open) closePanel();
+  });
+  panel.querySelectorAll('[data-ils-nav]').forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      var el = $('ils-sec-' + a.getAttribute('data-ils-nav'));
+      if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  });
+
+  function loadAll() {
+    loadMe().then(function () {
+      renderAccount(); renderVoice(); renderPerms(); renderDevices(); renderPayments(); renderPrivacy();
+      loadBriefing(); loadVault(); loadConnectors(); loadGoals(); loadReminders();
+      renderMemory(); loadFiles(); loadActivity();
+    });
+  }
+  function loadMe() {
+    if (state.me !== undefined) return Promise.resolve();
+    return api('/api/me').then(function (r) {
+      state.me = (r.status === 200 && r.j && r.j.ok && r.j.email) ? String(r.j.email) : null;
+    }).catch(function () { state.me = null; });
+  }
+
+  /* ---------------- Account & profile ---------------- */
+  function renderAccount() {
+    var el = slot('account');
+    var p = obProfile();
+    var t = tutorId();
+    var html = '';
+    if (state.me) {
+      html += '<div class="ils-row"><div class="ils-grow"><div>' + esc(state.me) + '</div>' +
+        '<div class="ils-sub">Signed in — your data follows this account on every device.</div></div>' +
+        '<span class="ils-pill on">Signed in</span></div>';
+    } else {
+      html += signInNote('your account settings');
+    }
+    html += '<div class="ils-form"><label>Your name (how ' + esc(tutorName()) + ' greets you)' +
+      '<input id="ilsName" type="text" maxlength="60" autocomplete="name" value="' + esc(p.name || '') + '" placeholder="Your name"></label></div>';
+    html += '<p class="ils-note" style="margin-bottom:.2rem">Your tutor — same brain, same memory, same everything. Pick who you talk to:</p>';
+    html += '<div class="ils-tutors">' +
+      '<button type="button" class="ils-tutor' + (t === 'noah' ? ' sel' : '') + '" data-ils-tutor="noah">' +
+      '<img src="/assets/noah/noah-avatar-3d.webp" alt="" width="52" height="52" style="border-radius:50%">' +
+      '<span class="ils-tname">Noah</span><span class="ils-tsub">Default tutor</span></button>' +
+      '<button type="button" class="ils-tutor' + (t === 'genesis' ? ' sel' : '') + '" data-ils-tutor="genesis">' +
+      '<img src="/assets/noah/genesis-avatar-3d.webp" alt="" width="52" height="52" style="border-radius:50%">' +
+      '<span class="ils-tname">Genesis</span><span class="ils-tsub">Twin tutor</span></button></div>';
+    html += '<p><button type="button" class="ils-btn" id="ilsSaveProfile">Save profile</button> ' +
+      (state.me ? '<button type="button" class="ils-btn ghost" id="ilsSignOut">Sign out</button>' : '') +
+      '</p><p class="ils-status" id="ilsAcctStatus" role="status"></p>';
+    el.innerHTML = html;
+    el.querySelectorAll('[data-ils-tutor]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        try {
+          var raw = JSON.parse(localStorage.getItem('il-noah-profile') || '{}') || {};
+          raw.avatar = b.getAttribute('data-ils-tutor');
+          localStorage.setItem('il-noah-profile', JSON.stringify(raw));
+          window.dispatchEvent(new Event('il-noah-profile'));
+        } catch (e) {}
+        var tn = $('ilsTutorName');
+        if (tn) tn.textContent = tutorName();
+        renderAccount(); renderVoice();
+      });
+    });
+    var save = $('ilsSaveProfile');
+    if (save) save.addEventListener('click', function () {
+      var pp = obProfile();
+      pp.name = ($('ilsName').value || '').trim().slice(0, 60);
+      saveObProfile(pp);
+      var st = $('ilsAcctStatus');
+      if (st) { st.textContent = '✓ Profile saved.'; st.className = 'ils-status ok'; }
+      if (window.ILSync && ILSync.syncNow) { try { ILSync.syncNow(); } catch (e) {} }
+    });
+    var so = $('ilsSignOut');
+    if (so) so.addEventListener('click', function () {
+      api('/api/auth/signout', { method: 'POST' }).then(function () {
+        state.me = null; state.loaded = {};
+        loadAll();
+      });
+    });
+  }
+
+  /* ---------------- Secure Store (credential broker) ----------------
+   * The store itself is the canonical credential broker
+   * (il-cred-broker.js + /api/credentials): a fixed service directory,
+   * AES-GCM envelopes server-side, capture only on the protected
+   * /account/credentials/ page. This section HOSTS the broker's own
+   * Settings section so there is exactly one store and one store UI —
+   * no second vault is built here. */
+  function loadVault() {
+    var el = slot('vault');
+    el.innerHTML = '<p class="ils-note">Your saved logins for the services ' + esc(tutorName()) +
+      ' works with. Values are encrypted on the server and are never shown anywhere — ' +
+      'you add a login once on the protected capture page, and ' + esc(tutorName()) +
+      ' only ever sees names and status.</p>' +
+      '<div id="ilsCredHost"></div>' +
+      '<p style="margin-top:.7rem"><a class="ils-btn" href="/account/credentials/" target="_blank" rel="noopener">' +
+      'Open the secure capture page</a></p>';
+    var host = el.querySelector('#ilsCredHost');
+    if (window.ILCredBroker && ILCredBroker.renderSettingsSection) {
+      try { ILCredBroker.renderSettingsSection(host); } catch (e) {}
+    } else {
+      host.innerHTML = '<p class="ils-note">The secure store module is still loading — reopen Settings in a moment.</p>';
+    }
+  }
+
+  /* ---------------- Connectors ---------------- */
+  /* ---------------- Connectors (parity-plus hub) ----------------
+   * Full connector surface: OAuth connect/disconnect per service, broker
+   * state (names only), stub manifests marked honestly. */
+  function loadConnectors() {
+    var el = slot('connectors');
+    var oauthNote = '';
+    try {
+      var om = /[?&]oauth=([a-z_]+)/.exec(location.hash + ' ' + location.search);
+      if (om) {
+        var omsgs = { connected: '\u2713 Connected \u2014 the service is ready for Noah and Genesis.',
+          denied: 'Connection was not approved at the provider.',
+          invalid: 'The connection request expired \u2014 try again.',
+          exchange_failed: 'The provider refused the connection \u2014 try again.',
+          store_unavailable: 'The secure store is not unlocked yet (the owner enables it first).' };
+        oauthNote = '<p class="ils-status ' + (om[1] === 'connected' ? 'ok' : '') + '">' +
+          esc(omsgs[om[1]] || 'Connection finished.') + '</p>';
+        try {
+          if (history.replaceState) {
+            history.replaceState(null, '',
+              location.pathname + location.hash.replace(/[?&]oauth=[a-z_]+/, '').replace(/\?$/, ''));
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
+    var local = (window.NoahConnectors && NoahConnectors.list) ? NoahConnectors.list() : [];
+    api('/api/noah/connectors').then(function (r) {
+      var defs = (r.j && r.j.connectors) || [];
+      var byId = {};
+      local.forEach(function (c) { byId[c.id] = c; });
+      defs.forEach(function (c) {
+        if (!byId[c.id]) { byId[c.id] = c; return; }
+        /* Local intent-routing defs win, but backfill server manifest fields. */
+        var l = byId[c.id];
+        ['tier', 'api', 'setup', 'scopes'].forEach(function (k) {
+          if (c[k] !== undefined && l[k] === undefined) l[k] = c[k];
+        });
+      });
+      var ids = Object.keys(byId);
+      if (!ids.length) {
+        el.innerHTML = oauthNote + '<p class="ils-note">No connectors registered yet.</p>';
+        return;
+      }
+      api('/api/credentials').then(function (cr) {
+        var states = {};
+        ((cr.j && cr.j.services) || []).forEach(function (s) { states[s.id] = s.state; });
+        renderHub(states);
+      }).catch(function () { renderHub({}); });
+
+      function renderHub(states) {
+        var p = obProfile();
+        var conns = p.connections || {};
+        function card(c) {
+          var isOauth = c.auth && c.auth.indexOf('oauth-') === 0;
+          var connected = isOauth ? states[c.auth] === 'saved' : !!conns[c.id];
+          var pill = connected ? '<span class="ils-pill on">Connected</span>'
+            : (c.auth === 'none' ? '<span class="ils-pill on">Built-in</span>'
+            : '<span class="ils-pill off">Not connected</span>');
+          var btn = '';
+          if (isOauth && state.me) {
+            btn = connected
+              ? '<button type="button" class="ils-btn ghost" data-ils-disconn="' + esc(c.auth) + '">Disconnect</button>'
+              : '<button type="button" class="ils-btn" data-ils-conn="' + esc(c.id) + '">Connect</button>';
+          } else if (!isOauth && c.auth !== 'none' && state.me && !connected) {
+            btn = '<a class="ils-btn ghost" href="#settings/vault">Add in Secure Store</a>';
+          }
+          var acts = (c.actions || []).map(function (a) { return esc(a.label || a); }).join(' \u00b7 ');
+          var sub = '<div class="ils-sub">' + (acts || 'Connected service') + '</div>';
+          if (c.api) sub += '<div class="ils-sub">' + esc(c.api) + '</div>';
+          if (c.tier === 'stub' && c.setup) sub += '<div class="ils-sub">\u23f3 ' + esc(c.setup) + '</div>';
+          return '<div class="ils-row"><div class="ils-grow"><div>' + esc(c.icon || '\uD83D\uDD0C') + ' ' +
+            esc(c.label || c.id) + '</div>' + sub + '</div>' +
+            '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' + pill + btn + '</div></div>';
+        }
+        var live = [], soon = [];
+        ids.forEach(function (id) {
+          var c = byId[id];
+          if (c.jobs || c.tier === 'live' || c.auth === 'none') live.push(c); else soon.push(c);
+        });
+        el.innerHTML = oauthNote +
+          '<p class="ils-note">Services ' + esc(tutorName()) + ' can act on for you. ' +
+          'Reads run on their own; anything that sends, publishes, books, or deletes ' +
+          'always stops for your approval first.</p>' +
+          '<h4 class="ils-subh">Ready now</h4>' + live.map(card).join('') +
+          (soon.length ? '<h4 class="ils-subh">Connect to activate</h4>' + soon.map(card).join('') : '') +
+          '<p class="ils-note" id="ilsConnStatus" role="status"></p>';
+        if (!el.dataset.connWired) {
+          el.dataset.connWired = '1';
+          el.addEventListener('click', function (ev) {
+            var b = ev.target.closest ? ev.target.closest('[data-ils-conn]') : null;
+            if (b) {
+              b.disabled = true; b.textContent = 'Connecting\u2026';
+              api('/api/noah/oauth/start', { method: 'POST', body: { connector: b.getAttribute('data-ils-conn') } })
+                .then(function (rr) {
+                  if (rr.j && rr.j.ok && rr.j.auth_url) { location.href = rr.j.auth_url; return; }
+                  b.disabled = false; b.textContent = 'Connect';
+                  var st = $('ilsConnStatus');
+                  if (st) st.textContent = (rr.j && (rr.j.setup || rr.j.error)) || 'Could not start the connection.';
+                }).catch(function () { b.disabled = false; b.textContent = 'Connect'; });
+              return;
+            }
+            var d = ev.target.closest ? ev.target.closest('[data-ils-disconn]') : null;
+            if (d) {
+              if (!window.confirm('Disconnect this service? ' + tutorName() + ' will lose access until you reconnect.')) return;
+              api('/api/credentials/' + encodeURIComponent(d.getAttribute('data-ils-disconn')), { method: 'DELETE' })
+                .then(function () { loadConnectors(); });
+            }
+          });
+        }
+      }
+    }).catch(function () {
+      el.innerHTML = oauthNote + '<p class="ils-note">Connector status could not be loaded just now.</p>';
+    });
+  }
+
+  /* ---------------- Goals ---------------- */
+  function loadGoals() {
+    var el = slot('goals');
+    if (!state.me) { el.innerHTML = signInNote('goals'); return; }
+    api('/api/goals').then(function (r) {
+      var goals = (r.j && r.j.goals) || [];
+      var active = goals.filter(function (g) { return g.status === 'active'; }).length;
+      var done = goals.filter(function (g) { return g.status === 'completed'; }).length;
+      el.innerHTML = '<p class="ils-note">Tell ' + esc(tutorName()) + ' a goal and it plans and works it with you — ' +
+        'tutoring, money, health, shopping, relationships.</p>' +
+        '<div class="ils-row"><div class="ils-grow"><div>' + active + ' active · ' + done + ' completed</div>' +
+        '<div class="ils-sub">' + goals.length + ' total</div></div>' +
+        '<button type="button" class="ils-btn" id="ilsOpenGoals">Open Goals</button></div>';
+      var b = $('ilsOpenGoals');
+      if (b) b.addEventListener('click', function () {
+        closePanel();
+        if (window.ILViews) { window.ILViews.show('goals'); return; }
+        var gb = $('goalsBtn');
+        if (gb) gb.click();
+      });
+    }).catch(function () {
+      el.innerHTML = '<p class="ils-note">Goal summary could not be loaded just now.</p>';
+    });
+  }
+
+  /* ---------------- Reminders ---------------- */
+  function loadReminders() {
+    var el = slot('reminders');
+    if (!state.me) { el.innerHTML = signInNote('reminders'); return; }
+    api('/api/reminders').then(function (r) {
+      if (r.status === 404) {
+        el.innerHTML = '<p class="ils-note">Reminders arrive with the next platform update — ' +
+          'your goals already nudge you when steps come due.</p>';
+        return;
+      }
+      if (!r.j || !r.j.ok) {
+        el.innerHTML = '<p class="ils-note">Reminders could not be loaded just now.</p>';
+        return;
+      }
+      state.reminders = r.j.reminders || [];
+      renderReminders();
+    }).catch(function () {
+      el.innerHTML = '<p class="ils-note">Reminders could not be loaded just now.</p>';
+    });
+  }
+  function renderReminders() {
+    var el = slot('reminders');
+    var list = (state.reminders || []).slice().sort(function (a, b) {
+      return String(a.due_at) < String(b.due_at) ? -1 : 1;
+    });
+    var now = Date.now();
+    var html = '<p class="ils-note">Reminders surface here, in your Today briefing, and when you open ' +
+      esc(tutorName()) + '. (Email/push delivery comes later.)</p>';
+    if (!list.length) html += '<p class="ils-note">No reminders set.</p>';
+    html += list.map(function (rm) {
+      var overdue = !rm.done && new Date(rm.due_at).getTime() < now;
+      return '<div class="ils-row"><div class="ils-grow"><div>' + (rm.done ? '<s>' : '') +
+        esc(rm.text) + (rm.done ? '</s>' : '') + '</div>' +
+        '<div class="ils-sub">' + (overdue ? '⚠ Overdue · ' : '') + fmtDateTime(rm.due_at) +
+        (rm.repeat && rm.repeat !== 'none' ? ' · repeats ' + esc(rm.repeat) : '') + '</div></div>' +
+        (rm.done ? '<span class="ils-pill on">Done</span>'
+          : '<button type="button" class="ils-btn ghost" data-ils-rdone="' + esc(rm.id) + '">Done</button>') +
+        '<button type="button" class="ils-btn ghost" data-ils-rdel="' + esc(rm.id) + '">Delete</button></div>';
+    }).join('');
+    html += '<form class="ils-form" id="ilsRemForm">' +
+      '<label>Reminder<input id="ilsRemText" type="text" maxlength="300" required placeholder="e.g. Review VPN notes"></label>' +
+      '<label>When<input id="ilsRemWhen" type="datetime-local" required></label>' +
+      '<label>Repeat<select id="ilsRemRepeat"><option value="none">Never</option>' +
+      '<option value="daily">Daily</option><option value="weekly">Weekly</option></select></label>' +
+      '<p style="margin:.2rem 0"><button type="submit" class="ils-btn">Add reminder</button></p>' +
+      '<p class="ils-status" id="ilsRemStatus" role="status"></p></form>';
+    el.innerHTML = html;
+    el.querySelectorAll('[data-ils-rdone]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        api('/api/reminders/' + encodeURIComponent(b.getAttribute('data-ils-rdone')) + '/done', { method: 'POST', body: {} })
+          .then(loadReminders);
+      });
+    });
+    el.querySelectorAll('[data-ils-rdel]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        api('/api/reminders/' + encodeURIComponent(b.getAttribute('data-ils-rdel')), { method: 'DELETE' })
+          .then(loadReminders);
+      });
+    });
+    var form = $('ilsRemForm');
+    if (form) form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var st = $('ilsRemStatus');
+      var when = $('ilsRemWhen').value;
+      if (!when) { st.textContent = 'Pick a date and time.'; st.className = 'ils-status err'; return; }
+      api('/api/reminders', {
+        method: 'POST',
+        body: {
+          text: ($('ilsRemText').value || '').trim(),
+          due_at: new Date(when).toISOString(),
+          repeat: $('ilsRemRepeat').value
+        }
+      }).then(function (r) {
+        if (r.j && r.j.ok) { loadReminders(); }
+        else { st.textContent = 'Could not add: ' + esc((r.j && r.j.error) || 'error'); st.className = 'ils-status err'; }
+      });
+    });
+  }
+
+  /* ---------------- Today briefing ---------------- */
+  function loadBriefing() {
+    var el = slot('today');
+    if (!state.me) {
+      el.innerHTML = '<p class="ils-note">Your daily briefing — goals due, reminders, and job alerts — appears here when you sign in.</p>' +
+        '<p><a class="ils-btn" href="/account/">Sign in</a></p>';
+      return;
+    }
+    api('/api/briefing').then(function (r) {
+      if (r.j && r.j.ok) { renderBriefing(r.j); return; }
+      /* Fallback: goal check-in alone (endpoint predates the briefing API). */
+      return api('/api/goals/checkin').then(function (c) {
+        var due = (c.j && c.j.due) || [];
+        renderBriefing({
+          lines: due.length
+            ? ['☀️ ' + due.length + (due.length === 1 ? ' goal step is' : ' goal steps are') + ' due.']
+            : ['☀️ Nothing due right now — a clean slate.'],
+          due_goals: due, due_reminders: []
+        });
+      });
+    }).catch(function () {
+      el.innerHTML = '<p class="ils-note">Your briefing could not be loaded just now.</p>';
+    });
+  }
+  function renderBriefing(b) {
+    var el = slot('today');
+    var html = '<div class="ils-brief">';
+    (b.lines && b.lines.length ? b.lines : ['☀️ Nothing due right now.']).forEach(function (ln) {
+      html += '<p>' + esc(ln) + '</p>';
+    });
+    html += '</div>';
+    (b.due_goals || []).slice(0, 4).forEach(function (d) {
+      html += '<div class="ils-row"><div class="ils-grow"><div>' + esc(d.step || '') + '</div>' +
+        '<div class="ils-sub">' + esc(d.title || '') + (d.overdue ? ' · overdue' : ' · due ' + fmtDate(d.due)) + '</div></div></div>';
+    });
+    (b.due_reminders || []).slice(0, 4).forEach(function (rm) {
+      html += '<div class="ils-row"><div class="ils-grow"><div>⏰ ' + esc(rm.text || '') + '</div>' +
+        '<div class="ils-sub">' + fmtDateTime(rm.due_at) + '</div></div></div>';
+    });
+    html += '<p style="margin-top:.6rem"><button type="button" class="ils-btn" id="ilsOpenFeed">☀️ Open your Feed</button> ' +
+      '<button type="button" class="ils-btn ghost" id="ilsOpenIdeas">✨ Ideas for you</button></p>';
+    el.innerHTML = html;
+    var ofb = $('ilsOpenFeed');
+    if (ofb) ofb.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('feed');
+    });
+    var oib = $('ilsOpenIdeas');
+    if (oib) oib.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('ideas');
+    });
+    /* Scheduled briefing opt-in (parity-plus). */
+    if (state.me) {
+      api('/api/noah/briefing/optin').then(function (r) {
+        var on = !!(r.j && r.j.ok && r.j.opted_in);
+        el.insertAdjacentHTML('beforeend',
+          '<label class="ils-switch" style="margin-top:.8rem"><input type="checkbox" id="ilsBriefOpt"' +
+          (on ? ' checked' : '') + '><span>Prepare my briefing each morning</span></label>' +
+          '<p class="ils-note">Your briefing is pre-computed overnight so it is ready the moment you open ' +
+          esc(tutorName()) + '.</p>');
+        var cb = $('ilsBriefOpt');
+        if (cb) cb.addEventListener('change', function () {
+          api('/api/noah/briefing/optin', { method: 'POST', body: { enabled: cb.checked } });
+        });
+      }).catch(function () {});
+    }
+  }
+
+  /* ---------------- Memory ---------------- */
+  function renderMemory() {
+    var el = slot('memory');
+    var p = obProfile();
+    var bits = [];
+    if (p.name) bits.push('Your name: ' + p.name);
+    if (p.goals && p.goals.length) bits.push('Learning goals: ' + p.goals.join(', '));
+    bits.push('Tutor: ' + tutorName());
+    var histLen = 0, notesLen = 0;
+    try {
+      var h = JSON.parse(localStorage.getItem('noah-ai-history-v1') || '[]');
+      if (Array.isArray(h)) histLen = h.length;
+      var n = JSON.parse(localStorage.getItem('il-notes-v1') || '[]');
+      if (Array.isArray(n)) notesLen = n.length; else if (n && typeof n === 'object') notesLen = Object.keys(n).length;
+    } catch (e) {}
+    var html = '<p class="ils-note">What ' + esc(tutorName()) + ' remembers lives in your profile and your ' +
+      'conversations with it — synced to your account, never shared with anyone else.</p>' +
+      '<div class="ils-row"><div class="ils-grow"><div>' + esc(bits.join(' · ') || 'Nothing saved yet') + '</div>' +
+      '<div class="ils-sub">' + histLen + ' saved conversation messages on this device · ' + notesLen + ' notes</div></div></div>' +
+      '<p><button type="button" class="ils-btn ghost" id="ilsEraseMem">Erase conversation memory</button></p>' +
+      '<div class="ils-del-confirm" id="ilsEraseConfirm"><p class="ils-note">This clears your chat history with ' +
+      esc(tutorName()) + ' on this device and your account. Notes, goals, and certificates are not touched.</p>' +
+      '<p><button type="button" class="ils-btn danger" id="ilsEraseGo">Yes, erase conversation memory</button></p></div>' +
+      '<p class="ils-status" id="ilsMemStatus" role="status"></p>';
+    el.innerHTML = html;
+    var tgl = $('ilsEraseMem');
+    if (tgl) tgl.addEventListener('click', function () {
+      $('ilsEraseConfirm').classList.toggle('on');
+    });
+    var go = $('ilsEraseGo');
+    if (go) go.addEventListener('click', function () {
+      var st = $('ilsMemStatus');
+      ['noah-ai-history-v1', 'noah-session-v2'].forEach(function (k) {
+        try { localStorage.removeItem(k); } catch (e) {}
+      });
+      var done = function () {
+        st.textContent = '✓ Conversation memory erased. Reload the page for a fresh thread.';
+        st.className = 'ils-status ok';
+      };
+      if (state.me) {
+        api('/api/user/sync', { method: 'PUT', body: { store: 'noah', data: {}, updated_at: new Date().toISOString() } })
+          .then(done).catch(done);
+      } else done();
+    });
+    /* Shared Noah/Genesis memory (parity-plus): one store, both twins. */
+    if (state.me) {
+      api('/api/noah/memory').then(function (r) {
+        var keys = (r.j && r.j.ok && r.j.keys) || [];
+        var mh = '<h4 class="ils-subh">Shared memory \u2014 Noah &amp; Genesis</h4>' +
+          '<p class="ils-note">One memory both twins share. Included in your data export, erased with your account.</p>';
+        mh += keys.length ? keys.map(function (k) {
+          return '<div class="ils-row"><div class="ils-grow"><div>\uD83E\uDDE0 ' + esc(k) + '</div></div>' +
+            '<button type="button" class="ils-btn ghost" data-ils-memdel="' + esc(k) + '">Forget</button></div>';
+        }).join('') : '<p class="ils-note">Nothing stored yet \u2014 tell your tutor something worth remembering.</p>';
+        el.insertAdjacentHTML('beforeend', mh);
+        el.querySelectorAll('[data-ils-memdel]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (!window.confirm('Forget "' + b.getAttribute('data-ils-memdel') + '"?')) return;
+            api('/api/noah/memory/' + encodeURIComponent(b.getAttribute('data-ils-memdel')), { method: 'DELETE' })
+              .then(function () { renderMemory(); });
+          });
+        });
+      }).catch(function () {});
+    }
+  }
+
+  /* ---------------- Files & documents ---------------- */
+  function loadFiles() {
+    var el = slot('files');
+    var html = '<p class=\"ils-note\">Your documents across Interstitium Labs, in one place.</p>' +
+      '<div class="ils-row"><div class="ils-grow"><div>📚 Library</div>' +
+      '<div class="ils-sub">Certificates, notes, interviews and files — searchable, in Noah</div></div>' +
+      '<button type="button" class="ils-btn" id="ilsOpenLibrary">Open</button></div>' +
+      '<div class="ils-row"><div class="ils-grow"><div>📝 Notes &amp; mind maps</div>' +
+      '<div class="ils-sub">Your notes vault, synced to your account</div></div>' +
+      '<a class="ils-btn ghost" href="/my-notes/">Open</a></div>' +
+      '<div class="ils-row"><div class="ils-grow"><div>📚 PDF library</div>' +
+      '<div class="ils-sub">Reference books and study PDFs</div></div>' +
+      '<a class="ils-btn ghost" href="/pdf-library/">Open</a></div>';
+    if (!state.me) {
+      el.innerHTML = html + '<p class="ils-note">Sign in to see your certificates here.</p>';
+      bindLibraryBtn();
+      return;
+    }
+    api('/api/certificates').then(function (r) {
+      var certs = (r.j && (r.j.certificates || r.j.certs)) || [];
+      if (certs.length) {
+        html += '<p class="ils-note" style="margin-top:.6rem">Your certificates:</p>' + certs.map(function (c) {
+          var id = c.id || c.cert_id || '';
+          return '<div class="ils-row"><div class="ils-grow"><div>🏅 ' + esc(c.course_title || c.title || c.course || 'Certificate') + '</div>' +
+            '<div class="ils-sub">Issued ' + fmtDate(c.issued_at || c.created_at) + '</div></div>' +
+            (id ? '<a class="ils-btn ghost" href="/api/certificates/verify?id=' + encodeURIComponent(id) + '" target="_blank" rel="noopener">Verify</a>' : '') +
+            '</div>';
+        }).join('');
+      } else {
+        html += '<p class="ils-note" style="margin-top:.6rem">No certificates yet — finish a course and your verifiable certificate lands here.</p>';
+      }
+      el.innerHTML = html;
+      bindLibraryBtn();
+    }).catch(function () { el.innerHTML = html; bindLibraryBtn(); });
+  }
+  function bindLibraryBtn() {
+    var b = $('ilsOpenLibrary');
+    if (b) b.addEventListener('click', function () {
+      closePanel();
+      if (window.ILViews) window.ILViews.show('library');
+    });
+  }
+
+  /* ---------------- Payments ---------------- */
+  function renderPayments() {
+    var el = slot('payments');
+    el.innerHTML =
+      '<p class="ils-note">Courses are $249 each or $999 for the full bundle (IL-27/28/29 are always free). ' +
+      'Card and wallet payments run through Stripe / PayPal at checkout — your card details are never stored here.</p>' +
+      '<p><a class="ils-btn" href="/enroll/">See plans &amp; enroll</a> ' +
+      (state.me ? '<a class="ils-btn ghost" href="/api/account/export">My orders (in data export)</a>' : '') + '</p>' +
+      '<p class="ils-note">Crypto checkout confirms manually after you submit a transaction hash — ' +
+      'an order only counts as paid once it is verified.</p>';
+    /* Wallet surface (parity-plus): read-only orders + entitlements. */
+    if (state.me) {
+      api('/api/noah/wallet').then(function (r) {
+        var w = (r.j && r.j.ok) ? r.j : { orders: [], entitlements: [] };
+        var wh = '<h4 class="ils-subh">Wallet</h4>';
+        if (!w.orders.length && !w.entitlements.length) {
+          wh += '<p class="ils-note">No orders or entitlements yet.</p>';
+        } else {
+          w.orders.slice(0, 5).forEach(function (o) {
+            var meta = [o.status, (o.amount && o.currency) ? o.amount + ' ' + o.currency : null,
+              (o.created || '').slice(0, 10)].filter(Boolean).join(' \u00b7 ');
+            wh += '<div class="ils-row"><div class="ils-grow"><div>' + esc(o.description || o.id || 'Order') + '</div>' +
+              '<div class="ils-sub">' + esc(meta) + '</div></div></div>';
+          });
+          w.entitlements.slice(0, 5).forEach(function (e) {
+            var nm = String(e.key || '').split(':').pop();
+            wh += '<div class="ils-row"><div class="ils-grow"><div>\uD83C\uDF9F ' + esc(nm) + '</div></div>' +
+              '<span class="ils-pill on">Active</span></div>';
+          });
+        }
+        el.insertAdjacentHTML('beforeend', wh);
+      }).catch(function () {});
+    }
+  }
+
+  /* ---------------- Voice & tutor ---------------- */
+  function renderVoice() {
+    var el = slot('voice');
+    var on = false;
+    try { on = localStorage.getItem('noah-voice-out') === '1'; } catch (e) {}
+    /* Tutor choice: Noah or Genesis. Stored in il-noah-profile.avatar. */
+    var isGenesis = false;
+    try {
+      var prof = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+      isGenesis = prof && prof.avatar === 'genesis';
+    } catch (e) {}
+    el.innerHTML =
+      '<h4 class="ils-subh">Choose your tutor</h4>' +
+      '<div class="ils-tutor-pick" role="radiogroup" aria-label="Choose your tutor">' +
+      '<button type="button" class="ils-tutor' + (!isGenesis ? ' ils-tutor--on' : '') + '" data-tutor="noah" role="radio" aria-checked="' + (!isGenesis) + '">' +
+      '<span class="ils-tutor__name">Noah</span><span class="ils-tutor__hint">The face of Noah AI</span></button>' +
+      '<button type="button" class="ils-tutor' + (isGenesis ? ' ils-tutor--on' : '') + '" data-tutor="genesis" role="radio" aria-checked="' + (isGenesis) + '">' +
+      '<span class="ils-tutor__name">Genesis</span><span class="ils-tutor__hint">Noah\u2019s twin — same brain, different presence</span></button>' +
+      '</div>' +
+      '<p class="ils-note">The twins share capabilities and knowledge — you\u2019re picking a presence, not a model.</p>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsVoiceOut" ' + (on ? 'checked' : '') + '>' +
+      '<span>Voice replies — ' + esc(tutorName()) + ' reads answers aloud</span></label>' +
+      '<p class="ils-note">Dictation is always available from the 🎙 mic in the composer. ' +
+      'For a full spoken conversation, run a verbal mock interview:</p>' +
+      '<p><button type="button" class="ils-btn" id="ilsInterview">🎙 Start a verbal mock interview</button></p>' +
+      '<h4 class="ils-subh">Avatar presentation</h4>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxPresence" checked>' +
+      '<span>Presence states — ' + esc(tutorName()) + ' shows listening / thinking / speaking around the avatar</span></label>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxReact" checked>' +
+      '<span>Reactions — ♥ on answers, and ' + esc(tutorName()) + ' reacts back</span></label>' +
+      '<label class="ils-switch"><input type="checkbox" id="ilsFxCelebrate" checked>' +
+      '<span>Celebrations — a little 🎉 when you finish a goal step</span></label>' +
+      '<p><button type="button" class="ils-btn ghost" id="ilsAvatarCard">🪪 View avatar card</button></p>';
+    /* Tutor picker wiring */
+    el.querySelectorAll('.ils-tutor').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pick = btn.getAttribute('data-tutor');
+        try {
+          var pr = JSON.parse(localStorage.getItem('il-noah-profile') || '{}');
+          pr.avatar = pick === 'genesis' ? 'genesis' : 'noah';
+          localStorage.setItem('il-noah-profile', JSON.stringify(pr));
+        } catch (e) {}
+        el.querySelectorAll('.ils-tutor').forEach(function (b) {
+          var on = b.getAttribute('data-tutor') === pick;
+          b.classList.toggle('ils-tutor--on', on);
+          b.setAttribute('aria-checked', on);
+        });
+        /* Update the settings header tutor name */
+        var tn = document.getElementById('ilsTutorName');
+        if (tn) tn.textContent = pick === 'genesis' ? 'Genesis' : 'Noah';
+        /* Reload so the header avatar/video swaps to the chosen tutor */
+        setTimeout(function () { location.reload(); }, 400);
+      });
+    });
+    var cb = $('ilsVoiceOut');
+    if (cb) cb.addEventListener('change', function () {
+      try { localStorage.setItem('noah-voice-out', cb.checked ? '1' : '0'); } catch (e) {}
+      var vb = $('voiceOutBtn');
+      if (vb) {
+        var cur = false;
+        try { cur = localStorage.getItem('noah-voice-out') === '1'; } catch (e) {}
+        /* Keep the header toggle in sync by re-reading state on next open;
+           simplest robust path: click it if its aria state disagrees. */
+        var pressed = vb.getAttribute('aria-pressed');
+        if (pressed !== null && (pressed === 'true') !== cur) vb.click();
+      }
+    });
+    var ib = $('ilsInterview');
+    if (ib) ib.addEventListener('click', function () {
+      closePanel();
+      var mb = $('miBtn');
+      if (mb) mb.click();
+    });
+    /* Avatar presentation preferences — the behavior layer's prefs
+     * API (noah-avatar-behavior.js) is the contract; keys live in the
+     * profile under avatarFx. */
+    function fxWire(id, key) {
+      var box = $(id);
+      if (!box) return;
+      if (window.ILAvatarFx) {
+        var p = window.ILAvatarFx.prefs();
+        box.checked = p[key] !== false;
+      }
+      box.addEventListener('change', function () {
+        if (window.ILAvatarFx) window.ILAvatarFx.setPref(key, box.checked);
+      });
+    }
+    fxWire('ilsFxPresence', 'presence');
+    fxWire('ilsFxReact', 'reactions');
+    fxWire('ilsFxCelebrate', 'celebrate');
+    var ac = $('ilsAvatarCard');
+    if (ac) ac.addEventListener('click', function () {
+      closePanel();
+      if (window.ILAvatarFx) window.ILAvatarFx.card();
+    });
+    /* Server-side voice preferences (parity-plus). */
+    el.insertAdjacentHTML('beforeend',
+      '<h4 class="ils-subh">Voice preferences</h4><div id="ilsVoicePrefs"><p class="ils-note">Loading&hellip;</p></div>');
+    (function () {
+      function drawVoicePrefs(prefs) {
+        var host = $('ilsVoicePrefs');
+        if (!host) return;
+        var voices = prefs.voices || ['noah'];
+        host.innerHTML =
+          '<div class="ils-form"><label>Voice<input id="ilsVoiceSel" type="text" list="ilsVoiceList" value="' + esc(prefs.voice || 'noah') + '">' +
+          '<datalist id="ilsVoiceList">' + voices.map(function (v) { return '<option value="' + esc(v) + '">'; }).join('') + '</datalist></label></div>' +
+          '<label class="ils-switch"><input type="checkbox" id="ilsVoiceAuto"' + (prefs.auto_read ? ' checked' : '') + '>' +
+          '<span>Read replies aloud automatically</span></label>' +
+          '<div class="ils-form"><label>Speech rate (' + Number(prefs.rate || 1).toFixed(1) + '&times;)<input id="ilsVoiceRate" type="range" min="0.5" max="2" step="0.1" value="' + (prefs.rate || 1) + '"></label></div>' +
+          '<p><button type="button" class="ils-btn" id="ilsVoiceSave">Save voice preferences</button></p>' +
+          '<p class="ils-status" id="ilsVoiceStatus" role="status"></p>';
+        $('ilsVoiceSave').addEventListener('click', function () {
+          var body = { voice: $('ilsVoiceSel').value.trim().slice(0, 20) || 'noah',
+            auto_read: $('ilsVoiceAuto').checked, rate: parseFloat($('ilsVoiceRate').value) || 1 };
+          api('/api/noah/voice', { method: 'POST', body: body }).then(function (r) {
+            var st = $('ilsVoiceStatus');
+            if (st) {
+              st.textContent = (r.j && r.j.ok) ? '\u2713 Voice preferences saved.' : 'Could not save just now.';
+              st.className = 'ils-status' + ((r.j && r.j.ok) ? ' ok' : '');
+            }
+            if (r.j && r.j.ok && r.j.prefs) drawVoicePrefs(r.j.prefs);
+          });
+        });
+      }
+      if (state.me) {
+        api('/api/noah/voice').then(function (r) {
+          drawVoicePrefs((r.j && r.j.ok && r.j.prefs) || { voice: 'noah', auto_read: false, rate: 1, voices: ['noah'] });
+        }).catch(function () { drawVoicePrefs({ voice: 'noah', auto_read: false, rate: 1, voices: ['noah'] }); });
+      } else {
+        var vh = $('ilsVoicePrefs');
+        if (vh) vh.innerHTML = '<p class="ils-note">Sign in to sync voice preferences.</p>';
+      }
+    })();
+  }
+
+  /* ---------------- Permissions ---------------- */
+  function renderPerms() {
+    var el = slot('perms');
+    var p = obProfile();
+    var policy = p.connPolicy || {};
+    var services = [['gmail', 'Gmail — send email'], ['gcal', 'Google Calendar — schedule events'], ['github', 'GitHub — trigger workflows']];
+    el.innerHTML =
+      '<p class="ils-note">The rule, everywhere: ' + esc(tutorName()) + ' drafts and prepares; ' +
+      '<b>you</b> approve anything irreversible — sending, scheduling, buying, deleting. ' +
+      'Sensitive account actions additionally need a fresh step-up approval (10 minutes, single use).</p>' +
+      services.map(function (s) {
+        var v = policy[s[0]] || 'ask';
+        return '<div class="ils-row"><div class="ils-grow"><div>' + esc(s[1]) + '</div></div>' +
+          '<select data-ils-policy="' + s[0] + '" class="ils-pill" style="background:none;color:inherit">' +
+          '<option value="ask"' + (v === 'ask' ? ' selected' : '') + '>Always ask me</option>' +
+          '<option value="draft"' + (v === 'draft' ? ' selected' : '') + '>Draft only, never send</option>' +
+          '</select></div>';
+      }).join('') +
+      '<p class="ils-note">These preferences are saved to your profile and followed by ' + esc(tutorName()) +
+      ' — the server still enforces approval + step-up regardless.</p>';
+    el.querySelectorAll('[data-ils-policy]').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var pp = obProfile();
+        pp.connPolicy = pp.connPolicy || {};
+        pp.connPolicy[sel.getAttribute('data-ils-policy')] = sel.value;
+        saveObProfile(pp);
+      });
+    });
+  }
+
+  /* ---------------- Devices ---------------- */
+  /* ---------------- Devices (parity-plus pairing) ---------------- */
+  function renderDevices() {
+    var el = slot('devices');
+    var ua = navigator.userAgent || '';
+    var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'This device';
+    var html =
+      '<div class="ils-row"><div class="ils-grow"><div>\uD83D\uDCBB This browser</div>' +
+      '<div class="ils-sub">' + esc(plat) + ' \u00b7 ' + esc(window.screen.width + '\u00d7' + window.screen.height) + '</div></div>' +
+      '<span class="ils-pill on">Current</span></div>' +
+      '<h4 class="ils-subh">Paired devices</h4>' +
+      '<div id="ilsDevList"><p class="ils-note">Loading\u2026</p></div>' +
+      (state.me ? '<p><button type="button" class="ils-btn" id="ilsPairBtn">\uFF0B Pair a new device</button></p>' +
+      '<div id="ilsPairBox"></div>' : '<p class="ils-note">Sign in to pair devices.</p>') +
+      '<p class="ils-note">Pair your phone to give ' + esc(tutorName()) + ' access to device features ' +
+      '\u2014 photo library, health data, voice. Sessions last up to 7 days.</p>' +
+      (state.me ? '<p><button type="button" class="ils-btn ghost" id="ilsSignOut2">Sign out of this browser</button></p>' : '');
+    el.innerHTML = html;
+    function drawList(devs) {
+      var host = $('ilsDevList');
+      if (!host) return;
+      host.innerHTML = devs.length ? devs.map(function (d) {
+        return '<div class="ils-row"><div class="ils-grow"><div>\uD83D\uDCF1 ' + esc(d.name || 'Device') + '</div>' +
+          '<div class="ils-sub">' + esc(d.platform || '') + ' \u00b7 paired ' + esc((d.paired_at || '').slice(0, 10)) + '</div></div>' +
+          '<button type="button" class="ils-btn ghost" data-ils-unpair="' + esc(d.id) + '">Revoke</button></div>';
+      }).join('') : '<p class="ils-note">No paired devices yet.</p>';
+      host.querySelectorAll('[data-ils-unpair]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (!window.confirm('Revoke this device?')) return;
+          api('/api/noah/devices/' + encodeURIComponent(b.getAttribute('data-ils-unpair')), { method: 'DELETE' })
+            .then(function () { refreshDevs(); });
+        });
+      });
+    }
+    function refreshDevs() {
+      api('/api/noah/devices').then(function (r) {
+        drawList((r.j && r.j.ok && r.j.devices) || []);
+      }).catch(function () { drawList([]); });
+    }
+    if (state.me) refreshDevs(); else drawList([]);
+    var pb = $('ilsPairBtn');
+    if (pb) pb.addEventListener('click', function () {
+      pb.disabled = true;
+      api('/api/noah/devices/pair', { method: 'POST' }).then(function (r) {
+        pb.disabled = false;
+        var box = $('ilsPairBox');
+        if (r.j && r.j.ok) {
+          box.innerHTML = '<div class="ils-row"><div class="ils-grow"><div style="font-size:1.6rem;letter-spacing:.3em">' +
+            esc(r.j.code) + '</div><div class="ils-sub">On your phone: open Noah \u2192 Settings \u2192 Devices \u2192 enter this code. Expires in 10 minutes.</div></div></div>';
+          setTimeout(refreshDevs, 2000);
+        } else if (box) {
+          box.innerHTML = '<p class="ils-note">Could not start pairing just now.</p>';
+        }
+      }).catch(function () { pb.disabled = false; });
+    });
+    var so = $('ilsSignOut2');
+    if (so) so.addEventListener('click', function () {
+      api('/api/auth/signout', { method: 'POST' }).then(function () {
+        state.me = null; loadAll();
+      });
+    });
+  }
+
+  /* ---------------- Activity ---------------- */
+  var EVENT_LABELS = {
+    login_success: '🔑 Signed in', login_failure: '⚠ Failed sign-in attempt',
+    magic_request: '✉ Magic link requested', signout: '👋 Signed out',
+    stepup_issued: '🛡 Step-up approval issued', sensitive_action: '✅ Approved sensitive action',
+    vault_save: '🔐 Login saved to Secure Store', vault_delete: '🗑 Login deleted from Secure Store',
+    vault_list: '🔐 Secure Store viewed', vault_use: '🔐 Saved login used by an agent',
+    admin_confirm_failed: '⚠ Failed admin confirmation'
+  };
+  function loadActivity() {
+    var el = slot('activity');
+    if (!state.me) { el.innerHTML = signInNote('your activity history'); return; }
+    api('/api/account/activity').then(function (r) {
+      if (r.status === 404 || !r.j || !r.j.ok) {
+        el.innerHTML = '<p class="ils-note">Your sign-in and security history arrives with the next platform update. ' +
+          'Every event is already recorded server-side.</p>';
+        return;
+      }
+      var events = r.j.events || [];
+      if (!events.length) {
+        el.innerHTML = '<p class="ils-note">No recorded activity yet.</p>';
+        return;
+      }
+      el.innerHTML = events.map(function (ev) {
+        return '<div class="ils-row"><div class="ils-grow"><div>' +
+          esc(EVENT_LABELS[ev.event] || ev.event || 'Event') + '</div>' +
+          '<div class="ils-sub">' + fmtDateTime(ev.ts) + (ev.country ? ' · ' + esc(ev.country) : '') +
+          (ev.extra && ev.extra.service ? ' · ' + esc(ev.extra.service) : '') + '</div></div></div>';
+      }).join('');
+    }).catch(function () {
+      el.innerHTML = '<p class="ils-note">Activity could not be loaded just now.</p>';
+    });
+  }
+
+  /* ---------------- Privacy & data ---------------- */
+  function renderPrivacy() {
+    var el = slot('privacy');
+    el.innerHTML =
+      '<p class="ils-note">Your data belongs to you: download everything we hold, erase ' +
+      esc(tutorName()) + '\'s conversation memory above, or delete the whole account.</p>' +
+      '<p>' + (state.me
+        ? '<a class="ils-btn" href="/api/account/export">⬇ Download my data</a> '
+        : '') +
+      '<a class="ils-btn ghost" href="/privacy/">Privacy policy</a> ' +
+      '<a class="ils-btn ghost" href="/account/">Account &amp; deletion</a></p>' +
+      '<p class="ils-note">Account deletion is confirm-gated on the account page and erases your ' +
+      'account record, progress, synced stores, goals, certificates, job data, reminders, and Secure Store logins. ' +
+      'Payment orders are kept as financial records with your email pseudonymized, as disclosed on the privacy page.</p>';
+  }
+
+  /* ---------------- Deep link ---------------- */
+  function maybeOpenFromHash() {
+    var h = location.hash || '';
+    if (h.indexOf('#settings') === 0) {
+      var parts = h.split('/');
+      openPanel(parts[1] || null);
+    }
+  }
+  window.addEventListener('hashchange', maybeOpenFromHash);
+  maybeOpenFromHash();
+
+  window.ILSettings = {
+    open: openPanel,
+    close: closePanel,
+    refresh: function () { state.me = undefined; state.loaded = {}; loadAll(); }
+  };
+})();

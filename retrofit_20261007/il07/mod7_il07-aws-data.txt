@@ -1,0 +1,120 @@
+{
+ "id": "il07-aws-data",
+ "code": "IL-07",
+ "title": "AWS Data Engineering",
+ "summary": "The AWS Certified Data Engineer Associate domains: ingestion (Kinesis, MSK, DMS, Transfer Family), transformation (Glue, EMR, Lambda, Step Functions), storage (S3 data lakes, Redshift, DynamoDB, RDS/Aurora patterns), and operations/security (Lake Formation, IAM, encryption, monitoring, cost) — every domain with a hands-on build.",
+ "objectives": [
+  "Ingest: choose Kinesis/MSK/DMS by pattern; land reliably.",
+  "Transform: Glue/EMR/Spark jobs with partitioning and file-format discipline.",
+  "Store: S3 lakehouse layout, Redshift modeling, DynamoDB single-table design.",
+  "Secure and operate: Lake Formation, encryption, monitoring, cost control."
+ ],
+ "notes": [
+  {
+   "title": "Ingestion and transformation",
+   "body": "**Ingestion**: **Kinesis** (Data Streams for real-time, Firehose for delivery-to-S3), **MSK** (managed Kafka — when you need Kafka semantics), **DMS** (database migration/replication, CDC), Transfer Family (SFTP into S3).\n\n**Transformation**: **Glue** (serverless Spark + Data Catalog + crawlers), **EMR** (managed Hadoop/Spark at scale), Lambda (event-driven micro-batch), **Step Functions** (orchestration).\n\n- Firehose vs Streams: Firehose delivers (no consumer management); Streams keeps (replay, multiple consumers)\n- CDC via DMS: the operational database becomes a stream — the modern ingestion pattern\n- Partition by query pattern (date/id) — partition pruning is the performance story"
+  },
+  {
+   "title": "Storage: the lakehouse and beyond",
+   "body": "**S3 data lakes**: raw → curated → serving zones; **Parquet** (columnar — the analytics format); partitioning; lifecycle to Glacier.\n\n**Redshift**: columnar warehouse, distribution styles (KEY/ALL/EVEN), sort keys. **DynamoDB**: single-table design (the access-pattern-first methodology). **RDS/Aurora**: the relational tier.\n\n- Parquet + partitioning: 10x less scanned = 10x cheaper and faster — format discipline pays\n- Redshift distkey: co-locate joins; sortkey: prune scans — the two knobs\n- DynamoDB: design for access patterns FIRST (GSIs for the alternates), not entities"
+  },
+  {
+   "title": "Security, operations, exam",
+   "body": "**Lake Formation**: centralized permissions on the lake (LF-tags). **Encryption**: SSE-S3/SSE-KMS, in-transit TLS. **Monitoring**: CloudWatch, Glue job bookmarks/metrics. **Cost**: S3 Intelligent-Tiering, Redshift pause/resume, right-sized Glue DPUs.\n\n**Exam prep**: scenario-heavy — every question is a pipeline decision. Domain weights guide study; build one pipeline per domain.\n\n- LF-tags: attribute-based lake permissions — scale without policy explosion\n- Job bookmarks: exactly-once-ish processing without reprocessing everything\n- The exam loves 'least operational overhead' — managed > self-managed when requirements allow"
+  }
+ ],
+ "cards": [
+  {
+   "front": "Firehose vs Data Streams?",
+   "back": "Firehose: delivers to destinations, no consumer mgmt. Streams: retained log, replay, multi-consumer."
+  },
+  {
+   "front": "Parquet's win?",
+   "back": "Columnar: scans only needed columns — 10x less I/O for analytics."
+  },
+  {
+   "front": "Redshift distkey vs sortkey?",
+   "back": "Distkey: co-locates joins (avoid network). Sortkey: prunes scans (zone maps)."
+  },
+  {
+   "front": "DynamoDB design order?",
+   "back": "Access patterns first — then tables/GSIs serve them. Never entity-first."
+  },
+  {
+   "front": "Lake Formation LF-tags?",
+   "back": "Attribute-based permissions on the lake — scale without policy explosion."
+  },
+  {
+   "front": "CDC ingestion pattern?",
+   "back": "DMS captures DB changes as a stream — the operational DB becomes event source."
+  }
+ ],
+ "quiz": [
+  {
+   "q": "Clickstream, 1M events/sec, deliver to S3, no replay needed?",
+   "choices": [
+    "Data Streams",
+    "Firehose",
+    "MSK",
+    "SQS"
+   ],
+   "answer": 1,
+   "explain": "Firehose: managed delivery to S3, no consumer code — least overhead."
+  },
+  {
+   "q": "Need Kafka protocol + replay + 5 consumers?",
+   "choices": [
+    "Firehose",
+    "MSK",
+    "Data Streams",
+    "Lambda"
+   ],
+   "answer": 1,
+   "explain": "Kafka semantics required → MSK. Streams is AWS-native; Kafka protocol needs MSK."
+  },
+  {
+   "q": "Analytics on 50TB, queries touch 3 of 200 columns?",
+   "choices": [
+    "CSV",
+    "Parquet partitioned",
+    "JSON lines",
+    "Avro only"
+   ],
+   "answer": 1,
+   "explain": "Columnar Parquet: reads 3 columns, skips 197 — the format decision."
+  },
+  {
+   "q": "Join 2B-row fact to 10M-row dim in Redshift?",
+   "choices": [
+    "EVEN both",
+    "distkey on join key both sides",
+    "ALL everything",
+    "no keys"
+   ],
+   "answer": 1,
+   "explain": "Co-distribute on the join key — the join stays local, no network shuffle."
+  },
+  {
+   "q": "Exactly-once-ish Glue reprocessing?",
+   "choices": [
+    "rerun all",
+    "job bookmarks",
+    "manual",
+    "ignore dupes"
+   ],
+   "answer": 1,
+   "explain": "Bookmarks track processed data — incremental without reprocessing."
+  },
+  {
+   "q": "Fine-grained lake access for 200 analysts?",
+   "choices": [
+    "bucket policies each",
+    "Lake Formation LF-tags",
+    "open lake",
+    "IAM users"
+   ],
+   "answer": 1,
+   "explain": "LF-tags: attribute-based — scales where per-user policies explode."
+  }
+ ]
+}

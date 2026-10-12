@@ -1,0 +1,341 @@
+{
+ "cards": [
+  {
+   "back": "Alerts on indicators of compromise that the other modules blocked — the block IS the signal.",
+   "front": "What is ThreatLocker Detect?"
+  },
+  {
+   "back": "Prevention-first: the attack is stopped at the attempt stage and the block becomes the alert. Detection-first: the attack runs and the hope is someone notices in time.",
+   "front": "Detect (prevention-first) vs traditional EDR (detection-first): the core difference?"
+  },
+  {
+   "back": "Because a blocked action is inherently suspicious — the alert fires on malice attempted, not on a probabilistic guess.",
+   "front": "Why are prevention-first alerts higher fidelity than detection-first alerts?"
+  },
+  {
+   "back": "Severity, asset criticality, user/role context, the blocked action's details, and pattern history — then verdict: benign, violation, or incident.",
+   "front": "Name the five inputs to the alert triage workflow."
+  },
+  {
+   "back": "Who/what/when/where, the blocked action with full context, what you already checked, and what you need — no raw log dumps.",
+   "front": "What does an MDR handoff ticket contain?"
+  },
+  {
+   "back": "Trigger, severity, context to gather, triage steps, verdict branches, and escalation criteria — so any analyst triages the same alert the same way.",
+   "front": "What are the six parts of a Detect alert runbook?"
+  },
+  {
+   "back": "Tune with baselines: suppress the known-benign patterns with documented rules, never with silence — every suppression is a decision with an owner.",
+   "front": "How do you fight alert fatigue without blinding yourself?"
+  },
+  {
+   "back": "Indicators of compromise: the forensic artifacts (hashes, IPs, behaviors) that indicate malicious activity — here, harvested from blocked attempts.",
+   "front": "What is an indicator of compromise (IOC)?"
+  },
+  {
+   "back": "The blocked child-process spawn from winword.exe: parent, attempted action, target, user, machine, time.",
+   "front": "In the M01 ransomware trace, what exactly did the Detect alert contain?"
+  },
+  {
+   "back": "That every alert gets the same triage, the same SLA, and the same documentation — consistency is what makes a SOC auditable.",
+   "front": "Why does the runbook matter more than any individual analyst's skill?"
+  },
+  {
+   "back": "Containment-first: isolate the machine, preserve evidence, then investigate — the block already bought you time, spend it wisely.",
+   "front": "A Detect alert indicates a real intrusion attempt. What is the first operational move?"
+  },
+  {
+   "back": "The verdict plus the reasoning and the evidence links — the next analyst (or auditor) must be able to reconstruct your thinking.",
+   "front": "What do you write when you close a triaged alert?"
+  }
+ ],
+ "code": "TL-ZTA-07",
+ "crossLinks": [
+  "IL29-M02",
+  "IL29-M06",
+  "IL29-M08"
+ ],
+ "drills": [
+  {
+   "id": "il29-m07-drill1",
+   "items": [
+    {
+     "answer": "Alerts on IOCs from blocked actions — the block is the signal.",
+     "explain": "Prevention-first: the attack dies at the gate and the attempt becomes the alert.",
+     "prompt": "One-sentence definition of ThreatLocker Detect."
+    },
+    {
+     "answer": "Prevention-first stops the attack at attempt stage; detection-first lets it run and hopes for timely notice.",
+     "explain": "The difference is where the timeline starts: attempt vs damage.",
+     "prompt": "Prevention-first vs detection-first?"
+    },
+    {
+     "answer": "A blocked action is inherently suspicious — malice attempted, not probabilistically guessed.",
+     "explain": "High fidelity comes from the enforcement: the alert fires because policy said no to something real.",
+     "prompt": "Why are prevention-first alerts higher fidelity?"
+    },
+    {
+     "answer": "Severity, asset criticality, user context, blocked-action details, pattern history.",
+     "explain": "Five inputs, one verdict: benign, violation, or incident.",
+     "prompt": "Five inputs to the triage workflow?"
+    },
+    {
+     "answer": "Who/what/when/where, blocked action with context, checks done, what you need.",
+     "explain": "The MDR can't act on a raw log dump — give them the triaged package.",
+     "prompt": "What does an MDR handoff contain?"
+    },
+    {
+     "answer": "Trigger, severity, context, triage steps, verdict branches, escalation criteria.",
+     "explain": "Consistency: any analyst, same alert, same triage.",
+     "prompt": "Six parts of a Detect runbook?"
+    }
+   ],
+   "title": "Rapid recall: Detect operations"
+  },
+  {
+   "id": "il29-m07-drill2",
+   "items": [
+    {
+     "answer": "Benign: the updater is approved and the block was a stale hash rule — fix the rule, document, close.",
+     "explain": "Not every block is malice; the triage workflow's first job is sorting signal from noise with evidence.",
+     "prompt": "Blocked updater binary on a finance machine, updater is vendor-signed and approved. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Incident: allowed parent spawning a disallowed interpreter child at 2 AM is the living-off-the-land pattern — isolate and escalate.",
+     "explain": "Context flips the verdict: same block type, different parent/time/child — the pattern is the finding.",
+     "prompt": "Blocked powershell.exe child of a signed IT tool at 2 AM. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Escalate: repeated blocked exfiltration attempts across machines and days are the insider pattern — preserve logs, engage IR.",
+     "explain": "The M05 walkthrough: single attempts get interviews, patterns get incident response.",
+     "prompt": "Third blocked USB-write alert for the same user this week, different machines. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Tune it: write a documented suppression for the known-benign pattern with an owner and review date — never silent deletion.",
+     "explain": "Alert fatigue is fought with baselined tuning, not with ignoring the queue.",
+     "prompt": "The same benign block fires 50 times a day. Handling? (Scenario)"
+    },
+    {
+     "answer": "Contain first: the block already stopped the attempt, so isolate the machine, preserve the evidence, then investigate calmly.",
+     "explain": "Prevention-first buys time — spend it on evidence, not panic.",
+     "prompt": "Detect alert shows a real intrusion attempt in progress. First move? (Scenario)"
+    },
+    {
+     "answer": "The verdict, the reasoning, and the evidence links — reconstructable by the next analyst or auditor.",
+     "explain": "Undocumented triage is untriageable triage; the close note is the product.",
+     "prompt": "What do you write when closing a triaged alert? (Scenario)"
+    }
+   ],
+   "title": "Scenario: triage verdicts"
+  }
+ ],
+ "estimatedMinutes": 520,
+ "handsOnLab": {
+  "brief": "You will build a complete Detect alert runbook for three alert types and then triage five sample alerts against it, producing verdicts with documented reasoning. This is the SOC-analyst muscle: consistent triage from a written standard.",
+  "checkpoint": "Every sample alert has a verdict, reasoning, and evidence cited; the runbook covers all three alert types with escalation criteria.",
+  "deliverable": "detect-runbook.md plus triage-decisions.md — the standard and five worked triages.",
+  "id": "il29-m07-lab",
+  "steps": [
+   "Define your three alert types: (1) blocked application execution (allowlist deny), (2) blocked child-process spawn (ringfence deny), (3) blocked storage/network attempt (storage or network deny).",
+   "For each type, write the runbook section: trigger description, default severity, context to gather (process, parent, user, machine, time, history), triage steps in order, verdict branches (benign / policy violation / incident), and escalation criteria.",
+   "Set the SLAs: triage start time per severity (e.g., critical 15 min, high 1 hr, medium 4 hr) and document them in the runbook.",
+   "Write the MDR handoff template: fields for who/what/when/where, blocked action with context, checks completed, evidence links, and the specific ask.",
+   "Now triage sample alert 1: 'Blocked execution of invoice_helper.exe (unsigned, temp folder) on ACCOUNTING-07, user m.reyes, 9:02 AM.' Write the verdict with reasoning.",
+   "Triage sample alert 2: 'Blocked child-process spawn: winword.exe attempted powershell.exe on ACCOUNTING-07, user m.reyes, 9:02 AM, encoded arguments.' Write the verdict with reasoning.",
+   "Triage sample alert 3: 'Blocked USB mass-storage write on WORKSTATION-23, user j.chen, files: client_master.xlsx, 6:47 PM, third occurrence this week.' Write the verdict with reasoning.",
+   "Triage sample alert 4: 'Blocked outbound HTTPS from unknown process update_svc.exe on IT-04, 2:14 AM, destination unlisted.' Write the verdict with reasoning.",
+   "Triage sample alert 5: 'Blocked registry write (Run key) by allowed PDF reader on SALES-11, user t.okafor, 11:30 AM.' Write the verdict with reasoning.",
+   "Review all five triages: confirm each cites evidence (not gut feeling), each follows the runbook's steps, and each ends with a concrete next action.",
+   "Write the tuning note: which of the five alert types would you baseline or suppress after 30 days of data, and what documented rule would you write."
+  ],
+  "title": "Detect alert runbook + five triages"
+ },
+ "id": "IL29-M07",
+ "mockTask": {
+  "answer": 0,
+  "choices": [
+   "It replaces the SOC entirely — no analysts needed",
+   "Detect alerts on IOCs harvested from blocked actions: because the other modules already stopped the attempt, every alert fires on malice attempted rather than probabilistically guessed — so the SOC triages high-fidelity leads at the attempt stage with full context (process, parent, user, machine, time), instead of reconstructing damage after the fact",
+   "It is just a renamed antivirus log",
+   "It only works on servers"
+  ],
+  "explain": "Contrast prevention-first with detection-first explicitly, explain the fidelity argument (blocked = inherently suspicious), and describe the triage workflow the alerts feed. Mention the MDR handoff to show you understand the operational chain beyond the tool.",
+  "id": "il29-m07-mock",
+  "q": "Panel question: 'How is ThreatLocker Detect different from the EDR alerts our SOC already handles?'",
+  "type": "choice"
+ },
+ "notes": [
+  {
+   "body": "ThreatLocker Detect is the module that turns prevention into intelligence: it alerts on the indicators of compromise that the other modules blocked. Every denied execution, every fenced child-process spawn, every blocked USB write and every denied lateral connection emits an alert carrying the full context — the process, its parent chain, the user, the machine, the timestamp, and exactly which policy said no. Understand why this inverts the traditional SOC experience. In a detection-first world (classic EDR), the sensor watches the attack run and tries to recognize malice in progress: behavioral analytics, machine-learning scores, threat-intel matches. The alert says, in effect, 'something looks 73% malicious, please investigate while it continues.' Analysts drown in probabilistic leads, most benign, and the true positives arrive while the damage is underway. In the prevention-first world, the enforcement already stopped the attempt — the alert says 'this specific action was attempted and denied,' which is a statement of fact, not a probability. A blocked child-process spawn from Word at 9:02 AM is not 73% suspicious; it is an attempted attack step, caught red-handed, with the evidence attached. This is why prevention-first alerts are higher fidelity: the enforcement decision pre-filters the noise. The benign application that behaves normally never triggers; the malicious step triggers by attempting the forbidden. Worked example: compare the two SOC mornings. Detection-first SOC: 400 alerts overnight — 380 benign (updaters, admin tools, user oddities scored as suspicious), 15 duplicates, 5 worth reading, 1 real. The analyst's morning is triage-as-archaeology, and the real one is buried. Prevention-first SOC: 12 alerts overnight — each a blocked action with full context. The analyst reads 12 factual events, clears 8 as benign-with-reason (stale hash rule, approved updater), and escalates 4 with evidence. Same company, same threats, radically different signal-to-noise — because the blocks did the filtering. Common gotcha: 'fewer alerts means less visibility.' The opposite: the prevented attempts are the highest-value visibility you can get — malice confirmed at the attempt stage, before damage. The SOC's job shifts from finding needles in haystacks to judging 12 needles, which is a job humans can actually do well. Second gotcha: treating Detect as 'just logging.' The alert pipeline — severity, routing, SLA, runbook — is what makes the blocks operationally useful. Blocks without triage are security theater with receipts.  Design the alert routing before the alerts arrive. Critical-severity alerts page the on-call analyst; high-severity alerts land in the priority queue with a one-hour triage SLA; everything else flows to the standard queue. Route by asset criticality too — the domain controller's medium is the kiosk's critical. And build the queue dashboards around the runbook's verdicts, not raw counts: 'alerts triaged to incident this week' is a security metric, 'total alerts' is just weather. The routing design is what keeps the 2 AM alert from waiting until 9 AM.",
+   "title": "What Detect is: the block becomes the signal"
+  },
+  {
+   "body": "Every alert gets the same five-input triage, in the same order, because consistency is what makes a SOC defensible and auditable. Input one: severity. The alert's initial severity comes from the policy that fired and the action blocked — a blocked unsigned execution in temp is higher severity than a blocked updater with a stale rule. Severity sets the SLA clock: critical starts triage in minutes, medium in hours. Input two: asset criticality. The same block on the domain controller and on a kiosk are different events — know your crown jewels (finance workstations, servers, executive machines, IT admin boxes) and weight accordingly. Input three: user and role context. Who was at the keyboard? The finance user's blocked macro at 9 AM during month-end reads differently than the same block on a service account at 3 AM. Check whether the user is where they should be, doing what they should do. Input four: the blocked action's details. Read the actual event: which process, which parent, what was attempted, what was the target, what arguments were passed? Encoded PowerShell arguments are a different universe from a missing file path. Input five: pattern history. Has this user, this machine, this process generated similar alerts? One blocked USB write is curiosity; three in a week across machines is intent. The verdict has three branches. Benign: the block was correct but harmless — stale rule, approved tool, user error. Action: fix the rule or educate the user, document, close. Policy violation without malice: the user tried to bypass policy for convenience. Action: document, retrain, check whether a broken legitimate workflow drove it. Incident: real attack attempt or suspicious pattern. Action: escalate per the runbook — isolate, preserve, investigate. Worked example: the 9:02 AM alert from M01. Severity: high (blocked child-process spawn, encoded args). Asset: accounting workstation (crown jewel — finance data). User: m.reyes, finance, at her desk at 9 AM (context fits). Action details: winword.exe → powershell.exe, encoded command line (malicious pattern). History: first alert for this user/machine. Verdict: incident — isolate ACCOUNTING-07, preserve the logs, escalate to IR. The triage took the five inputs in order and produced a defensible verdict in minutes. Common gotcha: verdict before context. Reading the alert title and deciding 'it's just the updater' without checking the arguments is how real intrusions get closed as benign. The workflow's order exists to prevent exactly this. Second gotcha: severity as destiny. Initial severity starts the clock; the triage determines the verdict. A 'medium' alert with a malicious pattern history becomes an incident — let the inputs move the verdict.",
+   "title": "The alert triage workflow: five inputs, three verdicts"
+  },
+  {
+   "body": "Prevention-first versus detection-first is the architectural debate underneath every EDR conversation, and you should be able to argue it from the operator's chair. Detection-first (traditional EDR) assumes the attack will run: the sensor monitors process behavior, network flows, and file activity, and tries to recognize malice while it executes. Its strengths are real: it catches fileless attacks, it sees the techniques that prevention misses, and its telemetry is invaluable for hunting. Its structural weakness is time: recognition happens during or after the malicious action, so the SOC races the attacker — and the attacker only needs to be faster than the analyst's queue. Prevention-first (Detect's model) assumes the attempt can be stopped: the policy denies the malicious action before it executes, and the denial becomes the alert. Its strength is the timeline: the SOC starts at the attempt stage, with the attack already dead. Its honest limitation is coverage: prevention stops what policy forbids, so novel techniques outside the fenced behaviors still need detection — which is why the mature design is prevention-first with detection depth, not prevention-only. The dwell-time argument needs care: you will hear claims about average attacker dwell times, but do not quote numbers you cannot source. The structural argument needs no numbers: an alert at the attempt stage is earlier than an alert at the damage stage, by construction. Worked example: the same intrusion against both architectures. Detection-first: the attacker lands, the EDR scores the behavior, an alert fires mid-encryption, the analyst starts triage while files encrypt — the race is on. Prevention-first: the attacker's first malicious step (the child-process spawn) is denied at 9:02:14, the alert fires at 9:02:15 with the attack dead — the analyst triages a corpse, calmly, with full evidence. The incident still gets investigated (how did the document arrive? are there others?), but nobody is racing encryption. Common gotcha: presenting prevention-first as making detection obsolete. It does not — it changes detection's job from 'catch the attack in progress' to 'judge the attempts and hunt what policy missed.' The SOC still hunts; it just hunts from a position of already having stopped the bleeding. Second gotcha: assuming prevented means uninteresting. The blocked attempt is the highest-quality threat intelligence the company produces — it names the attacker's current tools, targets, and timing. Feed it to the threat-intel process, not just the ticket queue.  Close the loop between triage and prevention. Every incident verdict should produce at least one candidate policy improvement: a new ringfence behavior to deny, an allowlist rule to tighten, an egress destination to remove. Track these as follow-up tickets owned by the policy team, not as informal suggestions — the SOC sees the attacks, the policy team owns the gates, and the feedback ticket is the bridge. A SOC whose findings never change policy is an expensive observation deck.",
+   "title": "Detect vs traditional EDR: prevention-first vs detection-first"
+  },
+  {
+   "body": "When an alert exceeds your authority, evidence, or expertise, it goes to the managed detection and response provider — and the quality of your handoff determines the quality of their response. The MDR handoff is a package, not a forward: it contains everything the MDR analyst needs to act without re-doing your triage. The package has six fields. Who/what/when/where: user, machine, timestamp, alert ID — the identifiers that let them pull their own telemetry. The blocked action with full context: which policy fired, which process and parent, what was attempted, the arguments or targets — the factual core. What you already checked: the triage steps completed and their results — 'verified the binary hash against the vendor's published value: no match' saves them an hour. Your verdict and reasoning: incident-suspected, with the two or three facts that drove it — they will form their own judgment, but they deserve your read. The evidence links: alert IDs, log locations, ticket numbers — no 'the logs are somewhere in the console.' The specific ask: what you need — 'please confirm whether this hash appears in your wider telemetry' or 'requesting containment approval for these three machines.' Worked example: the 2 AM unknown-process alert. Handoff: 'ACCOUNTING-07, user m.reyes, 02:14 — blocked outbound HTTPS from update_svc.exe (unsigned, temp path) to unlisted destination. Checked: binary not in allowlist, hash unknown to reputation, parent is a scheduled task created yesterday, user states they were asleep. Verdict: suspected intrusion — the process identity, timing, and persistence mechanism all indicate malice. Evidence: alert DET-8841, process tree in ticket IR-2203. Ask: please check your telemetry for this hash across our estate and advise on containment scope.' That handoff gets action in minutes; a bare alert forward gets questions for an hour. The escalation criteria in your runbook define when the handoff happens: suspected incidents go immediately, pattern-level suspicions go with the pattern summary, and anything involving crown-jewel assets goes faster. Common gotcha: handoff as abdication. The MDR extends your team; it does not replace your triage. A handoff that says 'please investigate this alert' with no context is a confession that you skipped the workflow. Second gotcha: no feedback loop. When the MDR closes the case, their verdict comes back into your runbook — the tuning, the new detection, the lessons learned. Handoffs without feedback are a treadmill.  Set handoff SLAs with the MDR provider in the contract, not in the crisis. Define the severity-to-response-time mapping, the escalation path when the SLA is missed, and the format of the verdict that comes back — because the feedback is what tunes your runbook. Review the handoff quality quarterly with real tickets: were the packages complete, were the asks specific, did the verdicts come back in time to act? The MDR relationship is operated like any vendor relationship: measured, reviewed, and improved.",
+   "title": "MDR handoff: packaging the alert for action"
+  },
+  {
+   "body": "The runbook is the module's deliverable because it makes triage a property of the organization, not of whoever happens to be on shift. A Detect alert runbook has six parts, and you will write one in the lab. Part one: the trigger — which alert, from which policy, in plain language ('blocked child-process spawn from an Office application'). Part two: default severity and SLA — how fast triage starts. Part three: context to gather — the exact fields and where to find them (process, parent chain, user, machine, time, the user's alert history). Part four: triage steps in order — the five-input workflow from this module, written as checkable steps. Part five: verdict branches — what benign, violation, and incident each look like for this alert type, with two or three concrete examples per branch. Part six: escalation criteria — exactly when this goes to the MDR, to IR, or to management, with the handoff package template attached. Worked example: the runbook section for 'blocked USB mass-storage write.' Trigger: storage policy deny on removable-media write. Severity: medium default; high if finance/engineering asset or repeat pattern. Context: device ID and registration status, user and role, file paths and byte counts, the user's 30-day alert history. Triage: check registration (registered drive blocked = possible stale exception), check the files (sensitive paths raise severity), check history (pattern = intent). Verdicts: benign — new hire unaware of policy, first occurrence, non-sensitive files (action: educate, close). Violation — repeat attempts, no malice indicators (action: retrain, check workflow gap). Incident — sensitive targets, multiple machines, off-hours, or combined with other module alerts (action: isolate, preserve, escalate to IR). Escalation: any incident-verdict goes to IR immediately; any pattern of three-plus attempts goes to the security lead same-day. The runbook also carries the tuning section: after 30 days, which alerts proved benign-by-pattern get documented suppressions — each suppression naming the pattern, the owner, and the review date. Common gotcha: the runbook as shelfware. A runbook nobody opens during triage is documentation theater — it must be short enough to use mid-incident, linked from the alert itself, and updated every time a triage teaches something new. Second gotcha: verdict branches without examples. 'Use your judgment' is not a branch — the examples are what let a junior analyst triage like a senior at 3 AM.  Version the runbook and review it on a schedule — monthly for the active sections, quarterly cover to cover. Every triage that teaches something new produces a runbook update: a new example in a verdict branch, a tightened escalation criterion, a new tuning rule. Keep a changelog so analysts can see what changed and why; a runbook that silently mutates loses trust. The review meeting is short when the changelog does the talking: what did we learn, what did we change, what needs re-tuning.",
+   "title": "Building the Detect alert runbook"
+  },
+  {
+   "body": "Alert fatigue is the SOC's chronic illness: too many alerts, too little signal, analysts skimming, real incidents missed in the noise. Prevention-first architectures start with an advantage — the blocks pre-filter — but the advantage erodes without tuning discipline. The tuning program has four parts. Baselining: for the first 30-60 days, every alert type gets its benign rate measured — which alerts fire, how often, and what fraction prove benign. You cannot tune what you have not measured. Documented suppression: benign-by-pattern alerts get suppression rules — but every suppression is a written decision naming the pattern, the evidence it is benign, the owner, and the review date. 'We suppressed updater blocks' is blindness; 'we suppress blocks where the binary is vendor-signed, the hash matches the vendor's published value, and the parent is the approved updater — owner: SOC lead, review: quarterly' is tuning. Anomaly preservation: suppressions target known-benign patterns only — anything novel, anything from a new process, anything off-pattern still fires. The day the 'known-benign' updater behaves differently is the day you want the alert. Review cadence: suppressions expire and are re-justified on schedule, because vendors get compromised and benign patterns change. Worked example: the updater-block tuning. Week one: 40 alerts — 'blocked execution of vendor updater, hash mismatch.' Triage shows the vendor rotated their signing certificate; the binaries are legitimate. Suppression written: allow the new certificate for the updater product, scoped, owner named, 90-day review. Alerts drop to zero for this pattern — legitimately, because the policy now reflects reality. Contrast with the lazy version: 'suppress all updater alerts' — which would also suppress the trojaned updater next quarter. The case walkthrough that ties the module together: the full M01 attack as a Detect story. 9:02:14 — blocked child-process spawn (winword.exe → powershell.exe), severity high, full context attached. 9:02:15 — blocked file write to temp. 9:02:16 — blocked unknown execution. Three alerts, one incident, one timeline: the SOC sees the attacker's playbook in the order it was attempted, each step already dead. The analyst's job is verdict and scope (how did the document arrive? any other recipients?), not a race against encryption. That is the prevention-first SOC: fewer alerts, each factual, triaged at the attempt stage. Common gotcha: tuning by volume instead of by pattern. 'Reduce alerts by 50%' as a goal produces blind suppressions; 'every alert type has a measured benign rate and a documented disposition' produces a tuned SOC. Second gotcha: the hero analyst who 'just knows.' Institutionalize the knowledge in the runbook — heroes go on vacation, runbooks do not.",
+   "title": "Alert fatigue, tuning, and the full attack as a Detect story"
+  }
+ ],
+ "objectives": [
+  "Explain the prevention-first model: how blocked actions become high-fidelity alerts at the attempt stage.",
+  "Run the five-input triage workflow (severity, asset, user, action details, history) to a documented verdict.",
+  "Contrast prevention-first Detect with detection-first EDR honestly, including what each misses.",
+  "Build a Detect alert runbook with triggers, SLAs, verdict branches, escalation criteria, and a tuning program."
+ ],
+ "prerequisiteFor": [
+  "IL29-M41"
+ ],
+ "quiz": [
+  {
+   "answer": 1,
+   "choices": [
+    "It logs all allowed application executions",
+    "It alerts on indicators of compromise harvested from blocked actions — the block is the signal",
+    "It replaces the firewall",
+    "It encrypts alert data"
+   ],
+   "explain": "Detect's feed is the other modules' enforcement: every denial carries full context and becomes an alert. The value is that the alert fires on a factual blocked attempt, not a probabilistic guess.",
+   "q": "What is ThreatLocker Detect's alert source?"
+  },
+  {
+   "answer": 0,
+   "choices": [
+    "Prevention-first stops the attempt and alerts on the blocked action; detection-first watches the attack run and tries to recognize it in time",
+    "They are identical",
+    "Prevention-first has no alerts",
+    "Detection-first blocks more"
+   ],
+   "explain": "The timeline differs by construction: Detect's SOC starts at the attempt stage with the attack dead; the detection-first SOC races the attacker from the damage stage. Each has honest limitations — prevention covers what policy forbids, detection covers what it misses.",
+   "q": "What is the core difference between prevention-first and detection-first?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "They use machine learning",
+    "A blocked action is inherently suspicious — the alert fires on malice attempted, with evidence attached",
+    "They are fewer in number",
+    "They are encrypted"
+   ],
+   "explain": "The enforcement pre-filters the noise: benign apps behaving normally never trigger, while malicious steps trigger by attempting the forbidden. Fidelity comes from the block, not from a smarter guess.",
+   "q": "Why are prevention-first alerts higher fidelity?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "The alert title alone",
+    "Severity, asset criticality, user/role context, blocked-action details, and pattern history — in that order",
+    "The analyst's gut feeling",
+    "The time of day only"
+   ],
+   "explain": "The five-input order prevents verdict-before-context errors. Skipping to conclusions from the title is how real intrusions get closed as benign.",
+   "q": "What are the five triage inputs, and why does their order matter?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Benign — updaters never get blocked maliciously",
+    "Incident — treat the pattern as hostile until proven otherwise: isolate, preserve, escalate",
+    "Ignore it; 2 AM alerts are always false positives",
+    "Wait until morning"
+   ],
+   "explain": "Allowed parent plus disallowed interpreter child plus off-hours plus obfuscation is the living-off-the-land pattern. Context flips the verdict — the same block type at noon from a known admin task would triage differently.",
+   "q": "Blocked powershell.exe child of a signed IT tool at 2 AM with obfuscated arguments. Verdict?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The raw alert forwarded as-is",
+    "Who/what/when/where, the blocked action with context, checks completed, your verdict and reasoning, evidence links, and the specific ask",
+    "A phone call with no documentation",
+    "Only the verdict"
+   ],
+   "explain": "The MDR acts on the package, not the forward. 'Checks completed' saves them an hour; the specific ask gets you action instead of questions.",
+   "q": "What does a proper MDR handoff package contain?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "To make audits longer",
+    "So any analyst triages the same alert the same way — consistency that survives shift changes and 3 AM",
+    "To replace training",
+    "Runbooks are optional"
+   ],
+   "explain": "The runbook institutionalizes judgment: triggers, SLAs, verdict branches with examples, escalation criteria. Heroes go on vacation; runbooks do not.",
+   "q": "Why does the runbook matter more than individual analyst skill?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Suppress all updater alerts permanently",
+    "Write a documented suppression for the verified benign pattern — named pattern, evidence, owner, review date",
+    "Delete the alerts",
+    "Tell users to stop updating"
+   ],
+   "explain": "Tuning is a written decision, not silence. 'Suppress all updater alerts' would also suppress the trojaned updater next quarter; the documented pattern preserves anomaly detection.",
+   "q": "The same benign updater block fires 50 times a day. What is the correct tuning response?"
+  },
+  {
+   "answer": 0,
+   "choices": [
+    "Isolate the machine, preserve evidence, then investigate — the block bought time, spend it on evidence not panic",
+    "Immediately wipe the machine",
+    "Wait to see if it happens again",
+    "Call the user and ask them to investigate"
+   ],
+   "explain": "Prevention-first means the attempt is already dead — containment and evidence preservation come first, calm investigation second. Wiping destroys the evidence the investigation needs.",
+   "q": "A Detect alert indicates a real intrusion attempt in progress. What is the first operational move?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Nothing — verbal handoffs are fine",
+    "The alert ID only",
+    "The verdict, the reasoning, and the evidence links, so the next analyst or auditor can reconstruct the thinking",
+    "Only incidents need notes"
+   ],
+   "explain": "Undocumented triage is untriageable. The close note is the product: future analysts learn from it, auditors verify from it, and patterns emerge from it.",
+   "q": "What must you write when closing a triaged alert?"
+  }
+ ],
+ "summary": "Every block is a signal. This module turns ThreatLocker Detect into an operational discipline: the prevention-first alert model, the five-input triage workflow, honest contrast with detection-first EDR, MDR handoff packaging, runbook construction, and the tuning program that keeps the SOC's signal-to-noise high.",
+ "title": "ThreatLocker Detect",
+ "videos": [
+  {
+   "blurb": "The public technique knowledge base — map the blocked behaviors in Detect alerts to named adversary techniques.",
+   "durationMin": 30,
+   "httpStatus": 200,
+   "order": 1,
+   "source": "MITRE",
+   "title": "MITRE ATT&CK — technique reference for alert mapping",
+   "url": "https://attack.mitre.org",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  },
+  {
+   "blurb": "CISA's published advisories — the real-world IOC and technique context that Detect alerts map to.",
+   "durationMin": 25,
+   "httpStatus": 200,
+   "order": 2,
+   "source": "CISA",
+   "title": "CISA Cybersecurity Advisories",
+   "url": "https://www.cisa.gov/news-events/cybersecurity-advisories",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  }
+ ],
+ "weight": 4
+}

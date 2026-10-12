@@ -211,17 +211,18 @@ await check('Ingress + CNI + control-plane toggles re-derive the authored scene'
   return out.join(' · ') + ' · ' + matched.length + ' sims mounted';
 });
 
-for (const p of ['/learn/', '/paths/aws-cloud-practitioner-plus/', '/paths/aws-cloud-ops/', '/paths/k8s-cka-exceed/']) {
-  await check(p + ' hero stage renders authored glTF (scene-kit load order fixed)', async () => {
-    const { page, errors } = await open(p);
-    await waitAuthored(page, 1);
-    const sim = await page.evaluate(() => document.querySelector('[data-il-sim-ready]')?.getAttribute('data-il-sim-ready') || '');
-    if (p === '/paths/k8s-cka-exceed/' || p === '/paths/aws-cloud-practitioner-plus/') await page.locator('.il-immersive').first().screenshot({ path: path.join(shots, 'immersive-hero-' + p.split('/').filter(Boolean).pop() + '.png') });
-    assert.deepEqual(errors, []);
-    await page.close();
-    return sim ? 'sim ' + sim : 'authored';
-  });
-}
+/* 2026-10-12 merge with main: /learn/ and the AWS/CKA path heroes were deleted in the
+ * Oct 10-11 nav simplification and now 301 → /topics/ (+ /topics/cloud-devops/). The
+ * immersive suite above already covers authored glTF + all 13 sims on /immersive/.
+ * Keep a smoke check that the worker redirect map still names those legacy URLs. */
+await check('legacy learn/path URLs remain redirected in worker (nav simplification)', async () => {
+  const worker = await readFile(path.join(docs, '_worker.js'), 'utf8');
+  for (const [from, to] of [['/learn', '/topics/'], ['/paths/aws-cloud-ops', '/topics/cloud-devops/'],
+    ['/paths/aws-cloud-practitioner-plus', '/topics/cloud-devops/'], ['/paths/k8s-cka-exceed', '/topics/cloud-devops/']]) {
+    assert.match(worker, new RegExp('"' + from.replace(/\//g, '\\/') + '"\\s*:\\s*"' + to.replace(/\//g, '\\/') + '"'), from + ' → ' + to);
+  }
+  return '4 legacy redirects intact';
+});
 
 await browser.close();
 server.close();

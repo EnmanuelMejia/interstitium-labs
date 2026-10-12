@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Mathematics for Machine Learning — original lessons | Interstitium Labs</title>
+<meta name="description" content="An original study guide to the mathematics behind machine learning: linear algebra via Gilbert Strang's free MIT lectures, calculus via Highlights of Calculus, Jean Gallier's free algebra/topology/differential calculus/optimization manuscript, and verified-free probability pointers — a free, ordered study track."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/math-for-ml/"/>
+<meta property="og:title" content="Mathematics for Machine Learning | Interstitium Labs"/>
+<meta property="og:description" content="An original study guide to the mathematics behind machine learning: linear algebra via Strang's free MIT lectures, calculus via Highlights of Calculus, Gallier's free deep manuscript, and verified-free probability pointers."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/math-for-ml/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+<link rel="stylesheet" href="/assets/il-seq.css"/>
+<link rel="stylesheet" href="/assets/il-seq.css"/>
+<link rel="stylesheet" href="/assets/il-seq.css"/>
+
+</head>
+<body data-il-seq="math-for-ml">
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/paths/">Paths</a>
+      <a href="/prep/drills/">Practice</a>
+      
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/paths/">Paths</a>
+          <a href="/prep/drills/">Practice</a>
+          
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/ loading="lazy" width="640" height="640"></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Machine Learning &middot; Mathematics</p>
+    <h1 class="il-h">Mathematics for Machine Learning</h1>
+    <p class="il-hero__sub">Linear algebra, calculus, optimization, and probability — taught here, in original lessons with worked examples, interactive diagrams, and in-browser validated exercises.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+<main id="main">
+
+<section class="il-section" id="overview" aria-labelledby="overview-h">
+<div class="il-wrap">
+<div class="il-section__head">
+<p class="il-eyebrow">The sequence</p>
+<h2 class="il-h il-h--section" id="overview-h">The math, taught here &mdash; not outsourced.</h2>
+</div>
+<div data-il-progress></div>
+<div class="il-prose">
+<p>Every machine learning system is mathematics made executable: data is vectors and matrices, models are parameterized functions, training is optimization, inference is probability. This sequence teaches that spine <strong>on this page</strong> &mdash; original lessons with definitions, worked examples, diagrams, and in-browser exercises you can validate yourself. Linked university materials appear only as <em>further study</em> at the end of each module.</p>
+<h3>Syllabus</h3>
+<ol>
+<li><strong>Vectors and Matrices</strong> (~45 min) &mdash; notation, dot products, norms, the dimension rule. <em>You will be able to check any Wx shape before you compute it.</em></li>
+<li><strong>Eigenvalues, Eigenvectors, and the SVD</strong> (~60 min) &mdash; characteristic equations, spectral theorem, the master factorization. <em>You will be able to explain PCA as eigen-decomposition.</em></li>
+<li><strong>Calculus: Derivatives, Gradients, the Chain Rule</strong> (~50 min) &mdash; differentiation rules, gradients, backpropagation's engine. <em>You will be able to derive a gradient by hand and predict vanishing/exploding behavior.</em></li>
+<li><strong>Optimization: Convexity, Constraints, Curvature</strong> (~60 min) &mdash; convex guarantees, Hessians, Lagrange/KKT. <em>You will be able to classify critical points and diagnose training failures.</em></li>
+<li><strong>Probability: Reasoning Under Uncertainty</strong> (~60 min) &mdash; axioms, Bayes, expectation, variance. <em>You will be able to update beliefs with Bayes' rule and spot base-rate neglect.</em></li>
+<li><strong>Statistics and Estimation</strong> (~60 min) &mdash; distributions, MLE, MAP/regularization, overfitting. <em>You will be able to derive an MLE and read a train/test gap.</em></li>
+</ol>
+<h3>Prerequisites</h3>
+<ul>
+<li>High-school algebra and comfort with functions; basic programming helps but is not required.</li>
+<li>Nothing else &mdash; Module 1 assumes you are meeting linear algebra for the first time.</li>
+</ul>
+<h3>How to use it</h3>
+<ul>
+<li>Work the modules in order; each builds on the last.</li>
+<li>Do every in-browser lab &mdash; the validators catch exactly the mistakes beginners make.</li>
+<li>Copy derivations by hand into a notebook. Watching math is entertainment; doing it is education.</li>
+<li>Mark each module complete as you finish; your progress persists in this browser.</li>
+</ul>
+</div>
+</div>
+</section>
+<hr class="il-rule"/>
+
+<section class="il-section" id="modules" aria-labelledby="modules-h">
+<div class="il-wrap">
+<div class="il-section__head">
+<p class="il-eyebrow">The curriculum</p>
+<h2 class="il-h il-h--section" id="modules-h">6 modules, in order.</h2>
+</div>
+<div class="il-modules">
+
+<article class="il-module" data-il-module id="m1">
+<p class="il-eyebrow">Module 1 &middot; ~45 min</p>
+<h3 class="il-h il-h--card">Vectors and Matrices: the Language of Data</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>Read vector and matrix notation fluently: dimensions, transpose, dot product, norm</li>
+<li>Multiply matrices by hand and check dimensions before you compute</li>
+<li>Explain what the equation <span class="math">A<em>x</em> = <em>b</em></span> means geometrically</li>
+<li>Use the dimension rule to catch shape bugs in model code</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<div class="il-def"><strong>Vector.</strong> An ordered list of numbers, written <span class="math"><em>x</em> = (x<sub>1</sub>, x<sub>2</sub>, &hellip;, x<sub>n</sub>)</span>. Geometrically it is an arrow from the origin; in ML it is one data example (n features) or one row of a dataset.</div>
+<div class="il-def"><strong>Matrix.</strong> A rectangular array of numbers with <span class="math"><em>m</em></span> rows and <span class="math"><em>n</em></span> columns — shape <span class="math"><em>m</em> &times; <em>n</em></span>. A dataset with m examples and n features <em>is</em> an m&times;n matrix. A neural-network layer <em>is</em> a matrix multiplication.</div>
+<h5>The dot product and the norm</h5>
+<p>The dot product of <span class="math"><em>u</em> = (u<sub>1</sub>, u<sub>2</sub>)</span> and <span class="math"><em>v</em> = (v<sub>1</sub>, v<sub>2</sub>)</span> is <span class="math"><em>u</em>&middot;<em>v</em> = u<sub>1</sub>v<sub>1</sub> + u<sub>2</sub>v<sub>2</sub></span>. It measures alignment: positive when the arrows point the same way, zero when they are perpendicular, negative when opposed. The (Euclidean) norm <span class="math">||<em>x</em>|| = &radic;(x<sub>1</sub><sup>2</sup> + &hellip; + x<sub>n</sub><sup>2</sup>)</span> is the arrow's length. Cosine similarity — the workhorse of embeddings and retrieval — is just a normalized dot product.</p>
+<h5>Matrix multiplication, and the dimension rule</h5>
+<p>Multiplying an <span class="math"><em>m</em> &times; <em>n</em></span> matrix <span class="math"><em>W</em></span> by an <span class="math"><em>n</em> &times; <em>p</em></span> matrix <span class="math"><em>V</em></span> is legal <em>only if the inner dimensions agree</em> (both <span class="math"><em>n</em></span>), and the result has the <em>outer</em> shape <span class="math"><em>m</em> &times; <em>p</em></span>. Entry <span class="math">(<em>WV</em>)<sub>ij</sub></span> is the dot product of row <span class="math"><em>i</em></span> of <span class="math"><em>W</em></span> with column <span class="math"><em>j</em></span> of <span class="math"><em>V</em></span>. The single most common bug in ML code is a shape mismatch — train yourself to check inner dimensions <em>before</em> computing, the way you check units before trusting a physics answer.</p>
+<div class="il-worked"><span class="il-worked__tag">Worked example</span>
+Let <span class="il-matrix" style="grid-template-columns:repeat(3,auto)"><span>2</span><span>&minus;1</span><span>0</span><span>4</span><span>0</span><span>3</span></span> times <span class="il-matrix" style="grid-template-columns:repeat(1,auto)"><span>1</span><span>5</span><span>&minus;2</span></span>.
+Row 1 dot (1, 5, &minus;2) = 2(1) + (&minus;1)(5) + 0(&minus;2) = <strong>&minus;3</strong>. Row 2 dot (1, 5, &minus;2) = 4(1) + 0(5) + 3(&minus;2) = <strong>&minus;2</strong>. Result: the 2-vector (&minus;3, &minus;2). Shape check first: (2&times;3)(3&times;1) &rarr; inner 3 = 3 &checkmark;, outer gives 2&times;1 &checkmark;.
+</div>
+<h5>What <span class="math">A<em>x</em> = <em>b</em></span> means</h5>
+<p>Read it two ways. Row-wise: each equation is a dot product of a row of <span class="math"><em>A</em></span> with <span class="math"><em>x</em></span> equaling one entry of <span class="math"><em>b</em></span>. Column-wise (the useful way): <span class="math"><em>A<em>x</em></em></span> is a <em>linear combination of the columns of A</em>, with the entries of <span class="math"><em>x</em></span> as weights — and <span class="math"><em>b</em></span> asks whether that combination can reach a target. Every "fit parameters to data" problem in ML is <span class="math">A<em>x</em> = <em>b</em></span> in disguise: the columns are your features, <span class="math"><em>x</em></span> the weights you seek, <span class="math"><em>b</em></span> the labels.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 210" role="img" aria-label="Matrix times vector dimension diagram">
+<defs><marker id="m1a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7ed4e0"/></marker></defs>
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">W  (2 x 3)</text>
+<g font-family="Georgia,serif" font-size="16" fill="#e8eef5" text-anchor="middle">
+<rect x="20" y="36" width="150" height="120" rx="8" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+<text x="58" y="82">2</text><text x="108" y="82">-1</text><text x="148" y="82">0</text>
+<text x="58" y="128">4</text><text x="108" y="128">0</text><text x="148" y="128">3</text>
+<text x="185" y="105" font-size="22">&#215;</text>
+<text x="215" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">x  (3 x 1)</text>
+<rect x="205" y="36" width="60" height="120" rx="8" fill="none" stroke="#7ed4e0" stroke-width="1.5"/>
+<text x="235" y="72">1</text><text x="235" y="108">5</text><text x="235" y="144">-2</text>
+<text x="280" y="105" font-size="22">=</text>
+<text x="315" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">Wx  (2 x 1)</text>
+<rect x="305" y="36" width="60" height="120" rx="8" fill="none" stroke="#e8eef5" stroke-width="1.5"/>
+<text x="335" y="90">-3</text><text x="335" y="126">-2</text>
+</g>
+<text x="20" y="182" fill="#8a93a6" font-size="12" font-family="monospace">row1: 2(1) + (-1)(5) + 0(-2) = -3</text>
+<text x="20" y="200" fill="#8a93a6" font-size="12" font-family="monospace">row2: 4(1) + 0(5) + 3(-2) = -2</text>
+<text x="400" y="100" fill="#c9a227" font-size="13" font-family="monospace">inner dims agree: 3 = 3</text>
+<text x="400" y="120" fill="#8a93a6" font-size="12" font-family="monospace">outer dims give the shape</text>
+</svg><figcaption>Matrix&ndash;vector multiplication, worked by hand. Check the inner dimensions (3 = 3) before computing; the outer dimensions (2 &times; 1) predict the answer’s shape.</figcaption></figure>
+<h4>In-browser lab: the dimension checker</h4>
+<div class="il-lab" id="lab-dim">
+<p class="il-kicker">Lab 1</p>
+<h5 class="il-lab__title">Will this multiplication compile in your head?</h5>
+<p>Enter shapes. The checker applies the inner-dimension rule and predicts the output shape &mdash; or tells you exactly why the product is illegal. This is the habit that kills shape bugs before they reach a stack trace.</p>
+<label for="lab-dim-a">Shape of A (rows &times; cols), e.g. 2x3</label>
+<input type="text" id="lab-dim-a" value="2x3" autocomplete="off"/>
+<label for="lab-dim-b">Shape of B (rows &times; cols), e.g. 3x1</label>
+<input type="text" id="lab-dim-b" value="3x1" autocomplete="off"/>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-dim-go">Check dimensions</button></div>
+<div class="il-lab__out" id="lab-dim-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m1" data-title="Module 1 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m1-q1", "stem": "W has shape (4, 7) and x is a vector in R^7. What is the shape of Wx?", "choices": [{"key": "A", "text": "A vector in R^4 \u2014 (4x7)(7x1) gives 4x1"}, {"key": "B", "text": "A vector in R^7 \u2014 shapes are preserved"}, {"key": "C", "text": "A (4,7) matrix \u2014 multiplication is elementwise"}, {"key": "D", "text": "Undefined"}], "answer": "A", "feedback": {"A": "Right: inner 7 = 7, outer gives 4x1.", "B": "The output lives in the row dimension of W.", "C": "That is the Hadamard product, not matvec.", "D": "Inner dimensions agree here."}, "why": "Matrix-vector multiplication needs the inner dimensions to agree; the outer dimensions give the result shape."}, {"id": "m1-q2", "stem": "u . v = 0 for nonzero u and v means:", "choices": [{"key": "A", "text": "u and v are perpendicular"}, {"key": "B", "text": "u and v are parallel"}, {"key": "C", "text": "One of them is zero"}, {"key": "D", "text": "The norm of u is 1"}], "answer": "A", "feedback": {"A": "Right: zero inner product is orthogonality.", "B": "Parallel vectors have maximal |u||v|.", "C": "Both are stated nonzero.", "D": "Unit length is a separate condition."}, "why": "The dot product measures alignment; zero means perpendicular."}, {"id": "m1-q3", "stem": "Reading Ax = b column-wise, the vector x gives:", "choices": [{"key": "A", "text": "The weights of a linear combination of A's columns that should equal b"}, {"key": "B", "text": "The row means of A"}, {"key": "C", "text": "The eigenvalues of A"}, {"key": "D", "text": "The solution only if A is square"}], "answer": "A", "feedback": {"A": "Right: Ax is the columns of A mixed by the entries of x.", "B": "Rows give the equation-wise reading.", "C": "Eigenvalues need Av = (lambda)v.", "D": "Rectangular systems are the norm in ML."}, "why": "Column-wise, Ax = b asks which mixture of the columns reaches the target b."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">MIT OCW Scholar 18.06SC &mdash; Linear Algebra</a>: the full lecture course this module distills; problem sets with solutions for pencil-and-paper practice.</li>
+</ul>
+</article>
+<article class="il-module" data-il-module id="m2">
+<p class="il-eyebrow">Module 2 &middot; ~60 min</p>
+<h3 class="il-h il-h--card">Eigenvalues, Eigenvectors, and the SVD</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>Define eigenvectors/values and compute them for 2&times;2 matrices by hand</li>
+<li>Explain why covariance matrices have orthogonal eigenvectors</li>
+<li>State the SVD and read the shapes of <span class="math"><em>U</em>, &Sigma;, <em>V</em><sup>T</sup></span></li>
+<li>Connect PCA and low-rank approximation to eigen-decomposition</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<div class="il-def"><strong>Eigenvector / eigenvalue.</strong> A nonzero vector <span class="math"><em>v</em></span> with <span class="math"><em>Av</em> = &lambda;<em>v</em></span> is an eigenvector of <span class="math"><em>A</em></span>; <span class="math">&lambda;</span> is its eigenvalue. The matrix stretches <span class="math"><em>v</em></span> by <span class="math">&lambda;</span> without rotating it &mdash; these are the matrix's <em>preferred directions</em>.</div>
+<p>To find them, rewrite as <span class="math">(<em>A</em> &minus; &lambda;<em>I</em>)<em>v</em> = 0</span>: a nonzero <span class="math"><em>v</em></span> exists exactly when <span class="math"><em>A</em> &minus; &lambda;<em>I</em></span> is singular, i.e. <span class="math">det(<em>A</em> &minus; &lambda;<em>I</em>) = 0</span> &mdash; the <em>characteristic equation</em>.</p>
+<div class="il-worked"><span class="il-worked__tag">Worked example</span>
+<span class="math"><em>A</em></span> = <span class="il-matrix" style="grid-template-columns:repeat(2,auto)"><span>3</span><span>1</span><span>0</span><span>2</span></span>.
+Then <span class="math">det(<em>A</em>&minus;&lambda;<em>I</em>) = (3&minus;&lambda;)(2&minus;&lambda;) &minus; 0 = 0</span>, so <span class="math">&lambda; = 3</span> or <span class="math">&lambda; = 2</span>.
+For <span class="math">&lambda;=3</span>: <span class="math">(<em>A</em>&minus;3<em>I</em>)<em>v</em>=0</span> gives <span class="math"><em>v</em> = (1, 0)</span> (check: <span class="math"><em>A</em>(1,0) = (3,0) = 3(1,0)</span> &checkmark;).
+For <span class="math">&lambda;=2</span>: <span class="math"><em>v</em> = (&minus;1, 1)</span> (check: <span class="math"><em>A</em>(&minus;1,1) = (&minus;2,2) = 2(&minus;1,1)</span> &checkmark;).
+Shortcut for 2&times;2: <span class="math">&lambda; = (tr &plusmn; &radic;(tr<sup>2</sup> &minus; 4det)) / 2</span>, where <span class="math">tr</span> is the trace (diagonal sum).
+</div>
+<h5>Why covariance eigenvectors are orthogonal</h5>
+<p>A covariance matrix <span class="math"><em>C</em></span> is symmetric (<span class="math"><em>C</em><sup>T</sup> = <em>C</em></span>). The spectral theorem says every real symmetric matrix has real eigenvalues and <em>orthogonal</em> eigenvectors. That is why PCA works: the principal components &mdash; eigenvectors of the covariance &mdash; form a proper perpendicular coordinate system aligned with the data's variance, and projecting onto the top few keeps the most information per dimension.</p>
+<h5>The SVD: the master factorization</h5>
+<div class="il-def"><strong>Singular value decomposition.</strong> Every <span class="math"><em>m</em> &times; <em>n</em></span> matrix factors as <span class="math"><em>A</em> = <em>U&Sigma;V</em><sup>T</sup></span>: <span class="math"><em>U</em></span> (<span class="math"><em>m</em>&times;<em>m</em></span>) and <span class="math"><em>V</em></span> (<span class="math"><em>n</em>&times;<em>n</em></span>) are orthogonal (rotations/reflections), and <span class="math">&Sigma;</span> (<span class="math"><em>m</em>&times;<em>n</em></span>) is diagonal with the <em>singular values</em> <span class="math">&sigma;<sub>1</sub> &ge; &sigma;<sub>2</sub> &ge; &hellip; &ge; 0</span>.</div>
+<p>Read it as: rotate (<span class="math"><em>V</em><sup>T</sup></span>), stretch along axes (<span class="math">&Sigma;</span>), rotate again (<span class="math"><em>U</em></span>). Truncating to the top <span class="math"><em>k</em></span> singular values gives the best rank-<span class="math"><em>k</em></span> approximation of <span class="math"><em>A</em></span> (Eckart&ndash;Young) &mdash; the engine behind image compression, recommender systems, and latent-factor models. The singular values also diagnose your data: a fast decay means low effective dimensionality; a flat tail means noise.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 220" role="img" aria-label="Eigenvector stretch diagram">
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">A = [[3,1],[0,2]] acting on the unit circle</text>
+<g transform="translate(140,125)">
+<circle r="52" fill="none" stroke="#8a93a6" stroke-width="1.5" stroke-dasharray="5,4"/>
+<line x1="-70" y1="0" x2="70" y2="0" stroke="#3a4356" stroke-width="1"/>
+<line x1="0" y1="-70" x2="0" y2="70" stroke="#3a4356" stroke-width="1"/>
+<line x1="-64" y1="0" x2="64" y2="0" stroke="#7ed4e0" stroke-width="2.5"/>
+<text x="-78" y="-6" fill="#7ed4e0" font-size="12" font-family="monospace">v1</text>
+<line x1="0" y1="-60" x2="0" y2="60" stroke="#c9a227" stroke-width="2"/>
+<text x="8" y="-52" fill="#c9a227" font-size="12" font-family="monospace">v2-ish</text>
+<text x="-150" y="92" fill="#8a93a6" font-size="12" font-family="monospace">before: unit circle</text>
+</g>
+<g transform="translate(420,125)">
+<ellipse rx="96" ry="52" fill="none" stroke="#8a93a6" stroke-width="1.5" stroke-dasharray="5,4" transform="rotate(-18)"/>
+<line x1="-70" y1="0" x2="70" y2="0" stroke="#3a4356" stroke-width="1"/>
+<line x1="0" y1="-70" x2="0" y2="70" stroke="#3a4356" stroke-width="1"/>
+<line x1="-118" y1="38" x2="118" y2="-38" stroke="#7ed4e0" stroke-width="2.5"/>
+<text x="-128" y="52" fill="#7ed4e0" font-size="12" font-family="monospace">3*v1</text>
+<line x1="30" y1="-48" x2="-30" y2="48" stroke="#c9a227" stroke-width="2"/>
+<text x="36" y="-40" fill="#c9a227" font-size="12" font-family="monospace">2*v2</text>
+<text x="-150" y="92" fill="#8a93a6" font-size="12" font-family="monospace">after: ellipse, axes stretched</text>
+</g>
+<text x="20" y="205" fill="#8a93a6" font-size="12" font-family="monospace">Eigenvectors keep their direction; eigenvalues 3 and 2 are the stretch factors.</text>
+</svg><figcaption>An eigenvector keeps its direction under A; only its length changes, by the eigenvalue. Two independent eigen-directions turn the circle into an ellipse.</figcaption></figure>
+<h4>In-browser lab: the 2&times;2 eigen-calculator</h4>
+<div class="il-lab" id="lab-eig">
+<p class="il-kicker">Lab 2</p>
+<h5 class="il-lab__title">Eigenvalues on demand</h5>
+<p>Enter a 2&times;2 matrix. The lab computes trace, determinant, discriminant, and both eigenvalues &mdash; then classifies the geometry (real/distinct, repeated, or complex pair). Verify the worked example above: [[3,1],[0,2]] should give &lambda; = 3, 2.</p>
+<label>Matrix entries a, b, c, d for [[a,b],[c,d]]</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;max-width:22rem">
+<input type="number" id="lab-eig-a" value="3" step="any"/><input type="number" id="lab-eig-b" value="1" step="any"/>
+<input type="number" id="lab-eig-c" value="0" step="any"/><input type="number" id="lab-eig-d" value="2" step="any"/>
+</div>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-eig-go">Compute eigenvalues</button></div>
+<div class="il-lab__out" id="lab-eig-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m2" data-title="Module 2 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m2-q1", "stem": "For A = [[3,1],[0,2]], the eigenvalues are:", "choices": [{"key": "A", "text": "3 and 2 \u2014 from (3-lambda)(2-lambda) = 0"}, {"key": "B", "text": "3 and 1 \u2014 the diagonal only"}, {"key": "C", "text": "5 and 0 \u2014 trace and determinant"}, {"key": "D", "text": "1 and 0"}], "answer": "A", "feedback": {"A": "Right: the characteristic equation gives 3 and 2.", "B": "Off-diagonals matter in general.", "C": "Trace is the sum, det the product.", "D": "Neither satisfies det(A - lI) = 0."}, "why": "Solve det(A - lambda I) = 0; for 2x2 use (tr +/- sqrt(tr^2 - 4 det))/2."}, {"id": "m2-q2", "stem": "Covariance matrices are guaranteed orthogonal eigenvectors because:", "choices": [{"key": "A", "text": "They are symmetric, and the spectral theorem applies"}, {"key": "B", "text": "They are always diagonal"}, {"key": "C", "text": "They are always invertible"}, {"key": "D", "text": "Covariance is always zero"}], "answer": "A", "feedback": {"A": "Right: real symmetric matrices have orthogonal eigenvectors.", "B": "Only for uncorrelated features.", "C": "Singular covariances are common.", "D": "That would mean no variance at all."}, "why": "Symmetry is the hypothesis of the spectral theorem; PCA's perpendicular components follow."}, {"id": "m2-q3", "stem": "Truncating the SVD to the top k singular values gives:", "choices": [{"key": "A", "text": "The best rank-k approximation of A (Eckart-Young)"}, {"key": "B", "text": "The exact inverse of A"}, {"key": "C", "text": "A diagonal matrix equal to A"}, {"key": "D", "text": "The eigenvalues of A"}], "answer": "A", "feedback": {"A": "Right: smallest reconstruction error among all rank-k matrices.", "B": "SVD is not inversion.", "C": "Truncation discards information by design.", "D": "Singular values generalize eigenvalues to rectangles."}, "why": "The SVD orders information by importance; truncation keeps the top-k directions."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/">MIT OCW 18.06SC</a>: lectures 21&ndash;25 (eigenvalues) and 29 (SVD) with problem sets.</li>
+<li><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/">MIT OCW 18.065</a>: lectures 6&ndash;7 on the SVD and the closest-rank-k theorem, keyed to ML.</li>
+</ul>
+</article>
+<article class="il-module" data-il-module id="m3">
+<p class="il-eyebrow">Module 3 &middot; ~50 min</p>
+<h3 class="il-h il-h--card">Calculus: Derivatives, Gradients, and the Chain Rule</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>Compute derivatives with the power, product, and chain rules</li>
+<li>Explain what a gradient is and why optimization steps against it</li>
+<li>Trace backpropagation to the chain rule, and vanishing gradients to products of small factors</li>
+<li>Read integrals as accumulation &mdash; the language probability speaks</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<div class="il-def"><strong>Derivative.</strong> <span class="math"><em>f&prime;(<em>x</em>)</em></span> measures how <span class="math"><em>f</em></span>'s output responds to a nudge of its input &mdash; the slope of the tangent line, the instantaneous rate of change. In ML the "input" is a parameter and the "output" is the loss: the derivative says which way to push the parameter to lower the loss.</div>
+<p>Three rules carry 95% of ML calculus. <strong>Power rule:</strong> <span class="math"><em>d/dx</em> <em>x<sup>n</sup></em> = <em>nx</em><sup><em>n</em>&minus;1</sup></span>. <strong>Product rule:</strong> <span class="math">(<em>fg</em>)&prime; = <em>f&prime;g</em> + <em>fg&prime;</em></span>. <strong>Chain rule:</strong> if <span class="math"><em>y</em></span> depends on <span class="math"><em>u</em></span> and <span class="math"><em>u</em></span> on <span class="math"><em>x</em></span>, then <span class="math"><em>dy/dx</em> = (<em>dy/du</em>)(<em>du/dx</em>)</span> &mdash; derivatives multiply along a composition.</p>
+<div class="il-worked"><span class="il-worked__tag">Worked example</span>
+Let <span class="math"><em>L</em>(<em>w</em>) = (<em>w</em><sub>1</sub><sup>2</sup> + 2<em>w</em><sub>2</sub>)<sup>2</sup></span>. Set <span class="math"><em>u</em> = <em>w</em><sub>1</sub><sup>2</sup> + 2<em>w</em><sub>2</sub></span>, so <span class="math"><em>L</em> = <em>u</em><sup>2</sup></span>.
+By the chain rule, <span class="math">&part;<em>L</em>/&part;<em>w</em><sub>1</sub> = 2<em>u</em> &middot; 2<em>w</em><sub>1</sub> = 4<em>w</em><sub>1</sub>(<em>w</em><sub>1</sub><sup>2</sup> + 2<em>w</em><sub>2</sub>)</span>, and <span class="math">&part;<em>L</em>/&part;<em>w</em><sub>2</sub> = 2<em>u</em> &middot; 2 = 4(<em>w</em><sub>1</sub><sup>2</sup> + 2<em>w</em><sub>2</sub>)</span>.
+At <span class="math">(<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>) = (1, 1)</span>: gradient = (12, 12) &mdash; steepest increase points along (1,1), so a descent step moves toward (&minus;1,&minus;1).
+</div>
+<h5>The gradient and why descent follows its negative</h5>
+<p>In many variables, the derivative becomes the <em>gradient</em> <span class="math">&nabla;<em>L</em></span>: the vector of partial derivatives, pointing in the direction of steepest <em>increase</em>. Gradient descent iterates <span class="math"><em>w</em> &larr; <em>w</em> &minus; &eta;&nabla;<em>L</em>(<em>w</em>)</span> &mdash; stepping against the gradient, downhill. Every optimizer you will ever meet (momentum, Adam, second-order methods) is a refinement of this one line.</p>
+<h5>The chain rule is backpropagation</h5>
+<p>A neural network is a long composition of functions; the loss's gradient with respect to an early weight is a product of every layer's local derivative along the path &mdash; the chain rule executed systematically. This immediately explains deep learning's gradient pathologies: <em>vanishing</em> gradients are products of many factors &lt; 1 shrinking to zero; <em>exploding</em> gradients are products of factors &gt; 1 blowing up. You never need to hand-derive backprop (autodiff does it), but the chain rule tells you why depth is dangerous.</p>
+<h5>Integrals as accumulation</h5>
+<p>The integral accumulates: area under a curve, total from a rate. Its ML role is probability &mdash; an <em>expectation</em> is an integral of values weighted by their density, and "probabilities sum to one" is the integral doing bookkeeping. Hold the intuition (<em>integral = weighted accumulation</em>) into Module 5.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 220" role="img" aria-label="Gradient descent on a contour map">
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">Gradient descent: follow -gradient downhill</text>
+<g transform="translate(180,125)">
+<ellipse rx="110" ry="80" fill="none" stroke="#3a4356" stroke-width="1"/>
+<ellipse rx="82" ry="58" fill="none" stroke="#3a4356" stroke-width="1"/>
+<ellipse rx="54" ry="36" fill="none" stroke="#3a4356" stroke-width="1"/>
+<ellipse rx="26" ry="16" fill="none" stroke="#3a4356" stroke-width="1"/>
+<circle r="4" fill="#c9a227"/>
+<text x="10" y="6" fill="#c9a227" font-size="12" font-family="monospace">minimum</text>
+<path d="M -104 -64 L -70 -40 L -44 -24 L -24 -12 L -10 -4 L 0 0" fill="none" stroke="#7ed4e0" stroke-width="2.5" marker-mid="url(#m3a)"/>
+<circle cx="-104" cy="-64" r="5" fill="#7ed4e0"/>
+<text x="-132" y="-70" fill="#7ed4e0" font-size="12" font-family="monospace">start</text>
+</g>
+<defs><marker id="m3a" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#7ed4e0"/></marker></defs>
+<g font-family="monospace" font-size="12" fill="#8a93a6">
+<text x="330" y="80">step = -lr x gradient</text>
+<text x="330" y="100">gradient points uphill</text>
+<text x="330" y="120">(steepest increase),</text>
+<text x="330" y="140">so we step the</text>
+<text x="330" y="160">opposite way.</text>
+<text x="330" y="190" fill="#c9a227">too large a step overshoots</text>
+<text x="330" y="206" fill="#c9a227">and diverges - see Lab 3.</text>
+</g>
+</svg><figcaption>Gradient descent on a contour map. Each step moves opposite the gradient &mdash; perpendicular to the contour lines, toward the minimum.</figcaption></figure>
+<h4>In-browser lab: the gradient-descent simulator</h4>
+<div class="il-lab" id="lab-gd">
+<p class="il-kicker">Lab 3</p>
+<h5 class="il-lab__title">Tune the learning rate, watch it converge &mdash; or blow up</h5>
+<p>Minimize <span class="math"><em>f</em>(<em>x</em>) = (<em>x</em> &minus; 3)<sup>2</sup></span> from <span class="math"><em>x</em><sub>0</sub> = 0</span> with 12 steps of <span class="math"><em>x</em> &larr; <em>x</em> &minus; &eta;<em>f&prime;</em>(<em>x</em>)</span>. Try &eta; = 0.1 (converges), &eta; = 0.9 (oscillates), &eta; = 1.1 (diverges). The verdict explains the stability limit.</p>
+<label for="lab-gd-lr">Learning rate &eta;</label>
+<input type="number" id="lab-gd-lr" value="0.1" step="0.05" min="0.01" max="2"/>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-gd-go">Run 12 steps</button></div>
+<div class="il-lab__out" id="lab-gd-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m3" data-title="Module 3 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m3-q1", "stem": "If L(w) = (w^2 + 1)^3, then dL/dw is:", "choices": [{"key": "A", "text": "6w(w^2 + 1)^2 \u2014 chain rule: outer 3u^2 times inner 2w"}, {"key": "B", "text": "3(w^2 + 1)^2 \u2014 the inner derivative is 1"}, {"key": "C", "text": "(w^2 + 1)^2 \u2014 constants vanish"}, {"key": "D", "text": "6w^2 + 6"}], "answer": "A", "feedback": {"A": "Right: d/du u^3 = 3u^2, du/dw = 2w, multiply.", "B": "The inner function w^2 + 1 differentiates to 2w, not 1.", "C": "You dropped the outer power.", "D": "Expand-then-differentiate also gives 6w^5 + 12w^3 + 6w."}, "why": "Chain rule: derivative of the outside at the inside, times derivative of the inside."}, {"id": "m3-q2", "stem": "Gradient descent steps in the negative gradient direction because:", "choices": [{"key": "A", "text": "The gradient points uphill (steepest increase); we want downhill"}, {"key": "B", "text": "Negative numbers are smaller"}, {"key": "C", "text": "The loss is always negative"}, {"key": "D", "text": "It avoids saddle points"}], "answer": "A", "feedback": {"A": "Right: -gradient is the steepest descent direction.", "B": "Sign has geometric meaning here.", "C": "Losses are usually nonnegative.", "D": "Saddles need curvature info, not sign."}, "why": "The gradient is the direction of steepest increase; descent negates it."}, {"id": "m3-q3", "stem": "Vanishing gradients in deep networks are caused by:", "choices": [{"key": "A", "text": "The chain rule multiplying many small (< 1) factors along the path"}, {"key": "B", "text": "Too much training data"}, {"key": "C", "text": "The learning rate being too large"}, {"key": "D", "text": "ReLU activations only"}], "answer": "A", "feedback": {"A": "Right: products of many small derivatives shrink to zero.", "B": "Data volume is unrelated.", "C": "Large steps cause divergence, not vanishing.", "D": "ReLUs mitigate vanishing; sigmoids cause it."}, "why": "Backprop is the chain rule across layers; long products of small factors vanish."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/res-18-005-highlights-of-calculus-spring-2010/">MIT OCW RES.18-005 &mdash; Highlights of Calculus</a>: short videos on exactly these ideas, with practice problems.</li>
+</ul>
+</article>
+<article class="il-module" data-il-module id="m4">
+<p class="il-eyebrow">Module 4 &middot; ~60 min</p>
+<h3 class="il-h il-h--card">Optimization: Convexity, Constraints, and Curvature</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>Define convex sets and functions; state what convexity guarantees</li>
+<li>Use the Hessian's eigenvalues to classify critical points</li>
+<li>Write the Lagrangian and state the KKT conditions for constrained optima</li>
+<li>Diagnose training failures in optimization terms (conditioning, geometry, steps)</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<div class="il-def"><strong>Convex function.</strong> <span class="math"><em>f</em>(<em>&theta;x</em> + (1&minus;<em>&theta;</em>)<em>y</em>) &le; <em>&theta;f</em>(<em>x</em>) + (1&minus;<em>&theta;</em>)<em>f</em>(<em>y</em>)</span> for all <span class="math"><em>&theta;</em> &isin; [0,1]</span> &mdash; the chord between any two points lies above the graph. One valley, no traps.</div>
+<p>Convexity buys the strongest guarantee in optimization: <strong>every local minimum of a convex function is a global minimum.</strong> Least squares, logistic regression, and SVMs are convex &mdash; which is why they are reliable. Deep networks are not, which is why training them is an art informed by this theory.</p>
+<h5>Curvature: the Hessian classifies critical points</h5>
+<p>Where the gradient is the slope, the <em>Hessian</em> <span class="math"><em>H</em></span> &mdash; the matrix of second partials &mdash; is the curvature. At a point with zero gradient: all eigenvalues of <span class="math"><em>H</em></span> positive &rarr; local <strong>minimum</strong>; all negative &rarr; local <strong>maximum</strong>; mixed signs &rarr; <strong>saddle</strong> (down in some directions, up in others). A twice-differentiable function is convex exactly when its Hessian is positive semidefinite everywhere. Saddle points &mdash; not poor minima &mdash; are the typical obstacle in high-dimensional non-convex training.</p>
+<div class="il-worked"><span class="il-worked__tag">Worked example</span>
+<span class="math"><em>f</em>(<em>x</em>,<em>y</em>) = <em>x</em><sup>2</sup> &minus; <em>y</em><sup>2</sup></span>. Gradient <span class="math">(2<em>x</em>, &minus;2<em>y</em>) = (0,0)</span> at the origin. Hessian <span class="math"><em>H</em></span> = <span class="il-matrix" style="grid-template-columns:repeat(2,auto)"><span>2</span><span>0</span><span>0</span><span>&minus;2</span></span>, eigenvalues 2 and &minus;2 &mdash; mixed signs, so the origin is a <strong>saddle</strong>: a minimum along <span class="math"><em>y</em> = 0</span>, a maximum along <span class="math"><em>x</em> = 0</span>. Gradient descent slows to a crawl near saddles because the gradient itself is tiny there.
+</div>
+<h5>Constraints: Lagrange and KKT</h5>
+<p>To minimize <span class="math"><em>f</em>(<em>x</em>)</span> subject to <span class="math"><em>g</em>(<em>x</em>) = 0</span>, form the <em>Lagrangian</em> <span class="math"><em>L</em> = <em>f</em> + &lambda;<em>g</em></span>: at the optimum, <span class="math">&nabla;<em>f</em></span> is parallel to <span class="math">&nabla;<em>g</em></span> &mdash; you cannot improve <span class="math"><em>f</em></span> without violating the constraint. The Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions generalize this to inequality constraints: stationarity, primal/dual feasibility, and <em>complementary slackness</em> (&lambda;<sub>i</sub> g<sub>i</sub> = 0 &mdash; either the constraint binds or its multiplier is zero). SVMs are KKT conditions wearing a trench coat: the support vectors are exactly the training points whose constraints bind.</p>
+<h5>The engineer's diagnostic taxonomy</h5>
+<p>When training misbehaves, classify it: <strong>bad conditioning</strong> (Hessian eigenvalues span orders of magnitude &rarr; slow, zigzagging descent &mdash; precondition or adapt the step); <strong>bad geometry</strong> (saddles, flat regions &mdash; momentum, restarts); <strong>bad constraints</strong> (infeasible projections &mdash; check the feasible set); <strong>bad step</strong> (learning rate &mdash; Lab 3). Theory gives the taxonomy; the taxonomy gives the fix.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 220" role="img" aria-label="Convex versus non-convex functions">
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">Convex: one valley. Non-convex: many traps.</text>
+<g transform="translate(150,120)">
+<path d="M -110 -70 Q 0 90 110 -70" fill="none" stroke="#7ed4e0" stroke-width="2.5"/>
+<circle cx="0" cy="20" r="5" fill="#7ed4e0"/>
+<text x="-118" y="-72" fill="#7ed4e0" font-size="12" font-family="monospace">convex</text>
+<text x="12" y="34" fill="#7ed4e0" font-size="12" font-family="monospace">global min</text>
+<line x1="-70" y1="-18" x2="70" y2="-18" stroke="#3a4356" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="-150" y="92" fill="#8a93a6" font-size="12" font-family="monospace">every local min is global</text>
+</g>
+<g transform="translate(420,120)">
+<path d="M -110 -40 Q -80 40 -50 -10 T 0 30 T 50 -20 T 110 -50" fill="none" stroke="#c9a227" stroke-width="2.5"/>
+<circle cx="-50" cy="-10" r="5" fill="#c9a227"/>
+<circle cx="50" cy="-20" r="5" fill="none" stroke="#c9a227" stroke-width="2"/>
+<text x="-118" y="-52" fill="#c9a227" font-size="12" font-family="monospace">non-convex</text>
+<text x="-92" y="-2" fill="#c9a227" font-size="12" font-family="monospace">local min</text>
+<text x="58" y="-12" fill="#8a93a6" font-size="12" font-family="monospace">saddle?</text>
+<text x="-150" y="92" fill="#8a93a6" font-size="12" font-family="monospace">descent can get stuck</text>
+</g>
+</svg><figcaption>Convexity is the friendly case: one valley, and every local minimum is global. Non-convex landscapes add local minima and saddles &mdash; the terrain deep learning actually trains on.</figcaption></figure>
+<h4>In-browser lab: the Hessian classifier</h4>
+<div class="il-lab" id="lab-hess">
+<p class="il-kicker">Lab 4</p>
+<h5 class="il-lab__title">Minimum, maximum, or saddle?</h5>
+<p>Enter a symmetric 2&times;2 Hessian (b = c). The lab computes its eigenvalues and classifies the critical point. Check the worked example: [[2,0],[0,-2]] must report a <em>saddle</em>.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;max-width:22rem">
+<input type="number" id="lab-hess-a" value="2" step="any" aria-label="H11"/><input type="number" id="lab-hess-b" value="0" step="any" aria-label="H12"/>
+<input type="number" id="lab-hess-c" value="0" step="any" aria-label="H21"/><input type="number" id="lab-hess-d" value="-2" step="any" aria-label="H22"/>
+</div>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-hess-go">Classify critical point</button></div>
+<div class="il-lab__out" id="lab-hess-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m4" data-title="Module 4 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m4-q1", "stem": "A twice-differentiable function is convex iff its Hessian is:", "choices": [{"key": "A", "text": "Positive semidefinite everywhere"}, {"key": "B", "text": "Negative definite"}, {"key": "C", "text": "The identity matrix"}, {"key": "D", "text": "Diagonal"}], "answer": "A", "feedback": {"A": "Right: PSD Hessian is exactly convexity for C^2 functions.", "B": "That characterizes concave functions.", "C": "Identity is one PSD instance.", "D": "Diagonal is not required."}, "why": "PSD-everywhere Hessian \u27fa convex \u27fa every stationary point is a global minimum."}, {"id": "m4-q2", "stem": "At a saddle point the Hessian has:", "choices": [{"key": "A", "text": "Both positive and negative eigenvalues"}, {"key": "B", "text": "All positive eigenvalues"}, {"key": "C", "text": "All zero eigenvalues"}, {"key": "D", "text": "No eigenvalues"}], "answer": "A", "feedback": {"A": "Right: indefinite Hessian \u2014 down some ways, up others.", "B": "That is a minimum.", "C": "That is degenerate/flat.", "D": "Square matrices always have eigenvalues."}, "why": "Mixed-sign eigenvalues are the saddle signature; pure descent stalls there."}, {"id": "m4-q3", "stem": "Complementary slackness (KKT) says, per inequality constraint:", "choices": [{"key": "A", "text": "Either the constraint binds (g_i = 0) or its multiplier is zero"}, {"key": "B", "text": "All multipliers are zero"}, {"key": "C", "text": "All constraints bind"}, {"key": "D", "text": "The Lagrangian is zero"}], "answer": "A", "feedback": {"A": "Right: lambda_i * g_i = 0 \u2014 inactive constraints carry no force.", "B": "Then constraints would be ignored.", "C": "Inactive constraints have slack.", "D": "The Lagrangian is stationary, not zero."}, "why": "Only binding constraints influence the optimum \u2014 SVM support vectors are the binding ones."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">Gallier &amp; Quaintance &mdash; <em>Algebra, Topology, Differential Calculus, and Optimization Theory</em></a>: Chapters 40 (extrema, Lagrange), 50 (KKT, SVMs) — the deep reference, free for educational use.</li>
+</ul>
+</article>
+<article class="il-module" data-il-module id="m5">
+<p class="il-eyebrow">Module 5 &middot; ~60 min</p>
+<h3 class="il-h il-h--card">Probability: Reasoning Under Uncertainty</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>State the probability axioms and compute with complements and independence</li>
+<li>Apply Bayes' rule and explain base-rate neglect</li>
+<li>Define expectation and variance; compute both for simple distributions</li>
+<li>Read a classifier's output as a probability, not a verdict</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<div class="il-def"><strong>Probability axioms.</strong> Probabilities are numbers in [0, 1]; the whole sample space has probability 1; disjoint events add. Everything else &mdash; including all of ML's uncertainty machinery &mdash; follows.</div>
+<p>Two workhorse rules: the <strong>complement</strong> <span class="math"><em>P</em>(not <em>A</em>) = 1 &minus; <em>P</em>(<em>A</em>)</span>, and <strong>independence</strong>: <span class="math"><em>A</em>, <em>B</em></span> independent means <span class="math"><em>P</em>(<em>A</em> and <em>B</em>) = <em>P</em>(<em>A</em>)<em>P</em>(<em>B</em>)</span>. Independence is a strong claim &mdash; assuming it when features are correlated is a classic modeling error (naive Bayes names its sin honestly).</p>
+<h5>Conditional probability and Bayes' rule</h5>
+<div class="il-def"><strong>Bayes' rule.</strong> <span class="math"><em>P</em>(<em>H</em>|<em>E</em>) = <em>P</em>(<em>E</em>|<em>H</em>) <em>P</em>(<em>H</em>) / <em>P</em>(<em>E</em>)</span>. The posterior (belief after evidence) is proportional to the likelihood (how well the hypothesis predicts the evidence) times the prior (belief before evidence).</div>
+<div class="il-worked"><span class="il-worked__tag">Worked example &mdash; the base-rate trap</span>
+A test detects a condition 90% of the time (<span class="math"><em>P</em>(+|disease) = 0.9</span>) with a 5% false-positive rate (<span class="math"><em>P</em>(+|healthy) = 0.05</span>). The condition affects 1% of people (<span class="math"><em>P</em>(disease) = 0.01</span>). You test positive &mdash; how worried?
+<span class="math"><em>P</em>(disease|+) = 0.9 &times; 0.01 / (0.9 &times; 0.01 + 0.05 &times; 0.99) = 0.009 / 0.0585 &asymp; <strong>15.4%</strong></span>.
+Despite a "90% accurate" test, a positive means only a 1-in-6 chance &mdash; because the condition is rare, false positives from the healthy 99% swamp the true positives. Forgetting the prior is <em>base-rate neglect</em>, and it is why every alerting system and classifier threshold must be read with Bayes, not with gut.
+</div>
+<h5>Expectation and variance</h5>
+<p>The <em>expectation</em> <span class="math"><em>E</em>[<em>X</em>]</span> is the probability-weighted average &mdash; the integral from Module 3 made concrete: <span class="math"><em>E</em>[<em>X</em>] = &sum; <em>x</em> &middot; <em>P</em>(<em>X</em>=<em>x</em>)</span>. The <em>variance</em> <span class="math">Var(<em>X</em>) = <em>E</em>[(<em>X</em>&minus;&mu;)<sup>2</sup>]</span> measures spread. A fair die: <span class="math"><em>E</em> = (1+2+3+4+5+6)/6 = 3.5</span>. Every "expected loss" you minimize in training is one of these.</p>
+<h5>Classifiers output probabilities</h5>
+<p>A classifier's 0.83 is not a verdict &mdash; it is <span class="math"><em>P</em>(positive | features)</span> under the model's assumptions, calibrated (or not) by training. Thresholds convert probabilities to decisions, and the threshold encodes <em>costs</em>: in fraud or medicine, missing a positive costs far more than a false alarm, so the threshold drops. Bayes plus costs is the whole decision theory of applied ML.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 230" role="img" aria-label="Bayes theorem tree diagram">
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">Bayes: P(disease | +) = P(+ | disease) P(disease) / P(+)</text>
+<g font-family="monospace" font-size="12">
+<circle cx="60" cy="120" r="6" fill="#e8eef5"/>
+<text x="20" y="150" fill="#e8eef5" font-size="12">population</text>
+<line x1="66" y1="120" x2="150" y2="70" stroke="#c9a227" stroke-width="2"/>
+<line x1="66" y1="120" x2="150" y2="170" stroke="#7ed4e0" stroke-width="2"/>
+<text x="150" y="62" fill="#c9a227">disease 1%</text>
+<text x="150" y="188" fill="#7ed4e0">healthy 99%</text>
+<line x1="230" y1="70" x2="310" y2="45" stroke="#c9a227" stroke-width="2"/>
+<line x1="230" y1="70" x2="310" y2="95" stroke="#8a93a6" stroke-width="1.5"/>
+<line x1="230" y1="170" x2="310" y2="145" stroke="#c9a227" stroke-width="1.5" stroke-dasharray="5,4"/>
+<line x1="230" y1="170" x2="310" y2="195" stroke="#7ed4e0" stroke-width="2"/>
+<text x="316" y="48" fill="#c9a227">+ 90%</text>
+<text x="316" y="98" fill="#8a93a6">- 10%</text>
+<text x="316" y="148" fill="#c9a227">+ 5% (false +)</text>
+<text x="316" y="198" fill="#7ed4e0">- 95%</text>
+<circle cx="150" cy="70" r="5" fill="#c9a227"/><circle cx="150" cy="170" r="5" fill="#7ed4e0"/>
+<circle cx="230" cy="70" r="4" fill="#8a93a6"/><circle cx="230" cy="170" r="4" fill="#8a93a6"/>
+</g>
+<text x="20" y="222" fill="#8a93a6" font-size="12" font-family="monospace">P(disease|+) = (0.9 x 0.01) / (0.9 x 0.01 + 0.05 x 0.99) = 15.4% - most positives are false alarms.</text>
+</svg><figcaption>Bayes’ rule as a tree. The rare-disease branch is thin, so even a good test’s positives are mostly false alarms &mdash; the base rate dominates.</figcaption></figure>
+<h4>In-browser lab: the Bayes calculator</h4>
+<div class="il-lab" id="lab-bayes">
+<p class="il-kicker">Lab 5</p>
+<h5 class="il-lab__title">Posterior on demand</h5>
+<p>Enter a prior, a true-positive rate (sensitivity), and a false-positive rate. The lab computes the posterior <span class="math"><em>P</em>(<em>H</em>|+)</span> and tells you whether the evidence moved your belief much. Reproduce the worked example: prior 0.01, TPR 0.9, FPR 0.05 &rarr; 15.4%.</p>
+<label for="lab-bayes-prior">Prior P(H), 0&ndash;1</label>
+<input type="number" id="lab-bayes-prior" value="0.01" step="0.001" min="0" max="1"/>
+<label for="lab-bayes-tpr">True-positive rate P(+|H), 0&ndash;1</label>
+<input type="number" id="lab-bayes-tpr" value="0.9" step="0.01" min="0" max="1"/>
+<label for="lab-bayes-fpr">False-positive rate P(+|not H), 0&ndash;1</label>
+<input type="number" id="lab-bayes-fpr" value="0.05" step="0.01" min="0" max="1"/>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-bayes-go">Compute posterior</button></div>
+<div class="il-lab__out" id="lab-bayes-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m5" data-title="Module 5 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m5-q1", "stem": "A test is 90% sensitive with 5% false positives; the condition affects 1%. P(condition | positive) is about:", "choices": [{"key": "A", "text": "15% \u2014 the base rate dominates: most positives are false alarms"}, {"key": "B", "text": "90% \u2014 the sensitivity"}, {"key": "C", "text": "95% \u2014 one minus the false-positive rate"}, {"key": "D", "text": "50%"}], "answer": "A", "feedback": {"A": "Right: 0.9*0.01/(0.9*0.01 + 0.05*0.99) \u2248 0.154.", "B": "Sensitivity is P(+|disease), not P(disease|+).", "C": "FPR is P(+|healthy).", "D": "Rare conditions make positives mostly false."}, "why": "Bayes' rule: posterior \u221d likelihood \u00d7 prior. Never skip the prior."}, {"id": "m5-q2", "stem": "Events A and B are independent. P(A) = 0.2, P(B) = 0.5. P(A and B) is:", "choices": [{"key": "A", "text": "0.1 \u2014 independence multiplies"}, {"key": "B", "text": "0.7 \u2014 probabilities add"}, {"key": "C", "text": "0.2 \u2014 unchanged"}, {"key": "D", "text": "0.4 \u2014 the average"}], "answer": "A", "feedback": {"A": "Right: 0.2 \u00d7 0.5 = 0.1.", "B": "Addition is for disjoint events.", "C": "Independence does not preserve marginals.", "D": "Averages are not probabilities."}, "why": "Independence is the license to multiply; without it you need the joint distribution."}, {"id": "m5-q3", "stem": "Variance measures:", "choices": [{"key": "A", "text": "Spread \u2014 the expected squared deviation from the mean"}, {"key": "B", "text": "The most likely value"}, {"key": "C", "text": "The direction of skew"}, {"key": "D", "text": "The sample size"}], "answer": "A", "feedback": {"A": "Right: Var(X) = E[(X\u2212\u03bc)\u00b2].", "B": "That is the mode.", "C": "That is skewness.", "D": "n is separate."}, "why": "Expectation locates the center; variance measures the spread around it."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/">MIT OCW 18.05 &mdash; Introduction to Probability and Statistics</a>: the full course behind this module's ideas.</li>
+<li><a href="https://math.dartmouth.edu/~doyle/docs/prob/prob.pdf">Grinstead &amp; Snell &mdash; <em>Introduction to Probability</em></a> (free PDF): deeper treatment of the same foundations.</li>
+</ul>
+</article>
+<article class="il-module" data-il-module id="m6">
+<p class="il-eyebrow">Module 6 &middot; ~60 min</p>
+<h3 class="il-h il-h--card">Statistics and Estimation: From Data to Models</h3>
+<h4>Learning objectives</h4>
+<ul>
+<li>Name the Bernoulli, Binomial, and Gaussian distributions and their parameters</li>
+<li>Derive the maximum-likelihood estimate for a coin's bias by hand</li>
+<li>Explain MAP estimation and its equivalence to regularized fitting</li>
+<li>Diagnose overfitting as a train/test gap, and name the standard defenses</li>
+</ul>
+<h4>Key concepts, explained</h4>
+<p>A <em>random variable</em> is an uncertain quantity with a distribution. Three distributions run ML: <strong>Bernoulli(<span class="math"><em>p</em></span>)</strong> &mdash; one coin flip, 1 with probability <span class="math"><em>p</em></span>; <strong>Binomial(<span class="math"><em>n</em>, <em>p</em></span>)</strong> &mdash; heads in <span class="math"><em>n</em></span> flips, mean <span class="math"><em>np</em></span>; <strong>Gaussian(<span class="math">&mu;</span>, <span class="math">&sigma;</em><sup>2</sup></span>)</strong> &mdash; the bell curve, mean <span class="math">&mu;</span>, variance <span class="math">&sigma;<sup>2</sup></span>, with the 68&ndash;95&ndash;99.7 rule (that fraction of mass within 1, 2, 3 standard deviations).</p>
+<h5>Maximum likelihood: the fitting principle</h5>
+<div class="il-def"><strong>Maximum likelihood estimation (MLE).</strong> Choose the parameters that make the observed data <em>most probable</em> under the model. Take the log (monotone, harmless), negate it, and you have a loss &mdash; the <em>negative log-likelihood</em> that gradient descent minimizes.</div>
+<div class="il-worked"><span class="il-worked__tag">Worked example &mdash; the smallest MLE</span>
+Coin flips: <span class="math"><em>h</em></span> heads, <span class="math"><em>t</em></span> tails, bias <span class="math"><em>p</em></span> unknown. Likelihood <span class="math"><em>L</em>(<em>p</em>) = <em>p<sup>h</sup></em>(1&minus;<em>p</em>)<sup><em>t</em></sup></span>; log-likelihood <span class="math"><em>l</em>(<em>p</em>) = <em>h</em> log <em>p</em> + <em>t</em> log(1&minus;<em>p</em>)</span>.
+Set the derivative to zero: <span class="math"><em>h</em>/<em>p</em> &minus; <em>t</em>/(1&minus;<em>p</em>) = 0</span> &rArr; <span class="math"><strong><em>p&#770;</em> = <em>h</em> / (<em>h</em> + <em>t</em>)</strong></span> &mdash; the observed frequency.
+Seven heads in ten flips &rarr; <span class="math"><em>p&#770;</em> = 0.7</span>. Logistic regression, language models, diffusion models: all maximum likelihood in heavier clothes.
+</div>
+<h5>MAP: priors are regularization</h5>
+<p>Maximum <em>a posteriori</em> estimation maximizes <span class="math"><em>P</em>(params | data) &prop; <em>P</em>(data | params) <em>P</em>(params)</span> &mdash; likelihood times <em>prior</em>. A Gaussian prior on weights (<span class="math"><em>P</em>(<em>w</em>) &prop; exp(&minus;||<em>w</em>||<sup>2</sup>/2&sigma;<sup>2</sup>)</span>) has log-prior <span class="math">&minus;||<em>w</em>||<sup>2</sup>/2&sigma;<sup>2</sup></span> &mdash; exactly the ridge (L2) penalty from Module 2. <em>Regularization is a prior belief that weights should be small, written in the language of probability.</em> (A Laplace prior gives the lasso's L1 penalty.)</p>
+<h5>Overfitting: the train/test gap</h5>
+<p>A model that memorizes training noise scores brilliantly on train and poorly on held-out test data &mdash; <em>overfitting</em>. The defenses form a ladder: more data, simpler models, regularization (Module 4's penalties = Module 6's priors), early stopping, and honest validation (never tune on the test set &mdash; a tuned-on test set is a validation set wearing a fake mustache). The train/test gap is the single number that tells you whether learning happened or memorization did.</p>
+<figure class="il-figure"><span class="il-fig-tag">Original diagram</span><svg viewBox="0 0 560 220" role="img" aria-label="Normal distribution with sigma bands">
+<text x="20" y="24" fill="#7ed4e0" font-size="13" font-family="monospace">Standard normal: 68 - 95 - 99.7</text>
+<g transform="translate(280,170)">
+<rect x="-132" y="-118" width="264" height="118" fill="rgba(126,212,224,0.10)"/>
+<rect x="-88" y="-118" width="176" height="118" fill="rgba(126,212,224,0.14)"/>
+<rect x="-44" y="-118" width="88" height="118" fill="rgba(126,212,224,0.18)"/>
+<path d="M -176 0 C -140 0 -110 -20 -88 -52 C -66 -84 -40 -112 0 -118 C 40 -112 66 -84 88 -52 C 110 -20 140 0 176 0" fill="none" stroke="#e8eef5" stroke-width="2.5"/>
+<line x1="-176" y1="0" x2="176" y2="0" stroke="#3a4356" stroke-width="1"/>
+<line x1="0" y1="0" x2="0" y2="-118" stroke="#8a93a6" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="-6" y="18" fill="#8a93a6" font-size="12" font-family="monospace">mu</text>
+<text x="-96" y="-126" fill="#7ed4e0" font-size="11" font-family="monospace">68%</text>
+<text x="-140" y="-126" fill="#7ed4e0" font-size="11" font-family="monospace">95%</text>
+<text x="-188" y="-126" fill="#7ed4e0" font-size="11" font-family="monospace">99.7%</text>
+<text x="46" y="18" fill="#8a93a6" font-size="12" font-family="monospace">sigma</text>
+<text x="92" y="18" fill="#8a93a6" font-size="12" font-family="monospace">2sigma</text>
+</g>
+</svg><figcaption>The standard normal bell curve. About 68% of draws fall within one standard deviation of the mean, 95% within two, 99.7% within three.</figcaption></figure>
+<h4>In-browser lab: the MLE coin lab</h4>
+<div class="il-lab" id="lab-mle">
+<p class="il-kicker">Lab 6</p>
+<h5 class="il-lab__title">Estimate the bias</h5>
+<p>Enter observed heads and tails. The lab computes the maximum-likelihood bias <span class="math"><em>p&#770;</em> = <em>h</em>/(<em>h</em>+<em>t</em>)</span>, then asks: with 1 head in 2 flips, should you trust <span class="math"><em>p&#770;</em> = 0.5</span>? The feedback explains why small samples need priors (Module 5 meets Module 6).</p>
+<label for="lab-mle-h">Heads observed</label>
+<input type="number" id="lab-mle-h" value="7" min="0" step="1"/>
+<label for="lab-mle-t">Tails observed</label>
+<input type="number" id="lab-mle-t" value="3" min="0" step="1"/>
+<div class="il-lab__row"><button type="button" class="il-btn il-btn--small" id="lab-mle-go">Compute MLE</button></div>
+<div class="il-lab__out" id="lab-mle-out" role="status"></div>
+</div>
+<h4>Self-check</h4>
+<div class="il-check" data-il-check data-id="m6" data-title="Module 6 check"></div>
+<script type="application/json" data-il-check-bank>[{"id": "m6-q1", "stem": "Seven heads and three tails. The MLE of the coin's bias is:", "choices": [{"key": "A", "text": "0.7 \u2014 h/(h+t), the observed frequency"}, {"key": "B", "text": "0.5 \u2014 coins are fair"}, {"key": "C", "text": "0.07 \u2014 heads over 100"}, {"key": "D", "text": "1.0 \u2014 heads happened"}], "answer": "A", "feedback": {"A": "Right: maximize p^h (1-p)^t \u2192 p\u0302 = h/(h+t).", "B": "MLE follows the data, not assumptions.", "C": "Denominator is total flips.", "D": "One-sided evidence is not proof."}, "why": "MLE picks the parameters that make the observed data most probable."}, {"id": "m6-q2", "stem": "Ridge regression's L2 penalty is equivalent to:", "choices": [{"key": "A", "text": "A Gaussian prior on the weights (MAP estimation)"}, {"key": "B", "text": "A uniform prior"}, {"key": "C", "text": "No prior \u2014 pure likelihood"}, {"key": "D", "text": "A Laplace prior"}], "answer": "A", "feedback": {"A": "Right: log of a Gaussian prior is -||w||\u00b2/2\u03c3\u00b2.", "B": "Uniform gives plain MLE.", "C": "The penalty IS the prior.", "D": "Laplace gives lasso (L1)."}, "why": "Regularization is a prior belief written as a penalty."}, {"id": "m6-q3", "stem": "Train accuracy 99%, test accuracy 61%. The diagnosis and first defense:", "choices": [{"key": "A", "text": "Overfitting \u2014 regularize, simplify, or gather more data"}, {"key": "B", "text": "Underfitting \u2014 add capacity"}, {"key": "C", "text": "Converged \u2014 ship it"}, {"key": "D", "text": "Label noise \u2014 relabel everything"}], "answer": "A", "feedback": {"A": "Right: the train/test gap is the overfitting signature.", "B": "Underfitting is bad on both.", "C": "The gap says memorization, not learning.", "D": "Noise is possible but structure first."}, "why": "The train/test gap distinguishes learning from memorization."}]</script>
+<h4>Further study</h4>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/18-05-introduction-to-probability-and-statistics-spring-2022/">MIT OCW 18.05</a>: the statistics half of the course — estimation, confidence, regression.</li>
+<li><a href="https://www.cis.upenn.edu/~jean/gbooks/geomath.html">Gallier &amp; Quaintance</a>: Chapters 53&ndash;55 (kernels, SVMs, ridge/lasso/elastic net) — the ML applications of this module's theory.</li>
+</ul>
+</article>
+</div>
+</div>
+</section>
+<hr class="il-rule"/>
+
+<section class="il-section" id="exam" aria-labelledby="exam-h">
+<div class="il-wrap">
+<div class="il-section__head">
+<p class="il-eyebrow">Final assessment</p>
+<h2 class="il-h il-h--section" id="exam-h">Prove it: the scenario exam.</h2>
+<p class="il-lede">Twelve scenarios drawn from all six modules &mdash; shape bugs, divergent training, saddle points, base-rate traps, MLE judgment calls. Misses link back to the exact module that teaches the fix, plus a Socratic Noah session. Scored locally; nothing leaves your browser.</p>
+</div>
+<div data-il-exam></div>
+<script type="application/json" data-il-exam-bank>[{"id": "math-ex-01", "domain": "Linear algebra", "stem": "A layer computes y = Wx with x in R^4, but W was initialized with shape (3, 5). The training script crashes. The precise fix?", "choices": [{"key": "A", "text": "Reshape W to (3, 4): inner dimensions must agree — (3x4)(4x1) maps R^4 to R^3"}, {"key": "B", "text": "Pad x to R^5 with a zero"}, {"key": "C", "text": "Transpose x to a row vector"}, {"key": "D", "text": "Reshape W to (5, 3)"}], "answer": "A", "why": "Inner dimensions must agree: (m×n) needs an n-vector. (3,4) maps R^4 → R^3.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m1", "coach": "/coach/?prompt=Matrix%20dimension%20checks%3A%20inner%20dimensions%20must%20agree."}}, {"id": "math-ex-02", "domain": "Linear algebra", "stem": "Two candidate solutions to Ax = b disagree. Elimination on the augmented matrix yields the row 0 = 1. What do you report?", "choices": [{"key": "A", "text": "No solution exists — b is not in the column space of A; the system is inconsistent"}, {"key": "B", "text": "x = 0 is the solution"}, {"key": "C", "text": "A must be singular so any x works"}, {"key": "D", "text": "The system has infinitely many solutions"}], "answer": "A", "why": "Inconsistency means b lies outside the reachable outputs of A.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m1", "coach": "/coach/?prompt=What%20Ax%20%3D%20b%20means%2C%20column-wise."}}, {"id": "math-ex-03", "domain": "Eigen & SVD", "stem": "A recommender team keeps the top 50 singular values of a user-item matrix and discards the rest. The mathematical justification?", "choices": [{"key": "A", "text": "Eckart-Young: truncated SVD is the best rank-50 approximation — minimal reconstruction error"}, {"key": "B", "text": "Singular values below 50 are always exactly zero"}, {"key": "C", "text": "The matrix becomes invertible"}, {"key": "D", "text": "PCA requires exactly 50 components"}], "answer": "A", "why": "Truncation keeps the top-k variance directions; the error is the sum of discarded squared singular values.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m2", "coach": "/coach/?prompt=The%20SVD%20and%20low-rank%20approximation."}}, {"id": "math-ex-04", "domain": "Eigen & SVD", "stem": "PCA on a dataset keeps components with the largest eigenvalues of the covariance matrix. Why are the resulting components guaranteed perpendicular?", "choices": [{"key": "A", "text": "The covariance matrix is symmetric, so the spectral theorem gives orthogonal eigenvectors"}, {"key": "B", "text": "Eigenvectors are always perpendicular"}, {"key": "C", "text": "The data was normalized"}, {"key": "D", "text": "PCA uses the SVD, not eigendecomposition"}], "answer": "A", "why": "Symmetry is the hypothesis; orthogonal principal axes are the conclusion.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m2", "coach": "/coach/?prompt=Why%20covariance%20eigenvectors%20are%20orthogonal."}}, {"id": "math-ex-05", "domain": "Calculus", "stem": "Gradient descent on a smooth loss explodes after a few steps. Your first move as the on-call engineer?", "choices": [{"key": "A", "text": "Cut the learning rate — divergence with fixed steps almost always means the step exceeds the stability limit"}, {"key": "B", "text": "Add more layers to absorb the gradient"}, {"key": "C", "text": "Increase the learning rate to jump over the bad region"}, {"key": "D", "text": "Switch to full-batch training"}], "answer": "A", "why": "Overshooting the valley oscillates outward; smaller η restores contraction.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m3", "coach": "/coach/?prompt=Gradient%20descent%3A%20the%20learning-rate-first%20diagnosis."}}, {"id": "math-ex-06", "domain": "Calculus", "stem": "A 40-layer network trains fine at the top layers but the first layers never update. The mechanism?", "choices": [{"key": "A", "text": "Vanishing gradients: the chain rule multiplies many sub-1 derivatives along the path to early layers"}, {"key": "B", "text": "The learning rate is too high"}, {"key": "C", "text": "The dataset is too small"}, {"key": "D", "text": "The loss is convex"}], "answer": "A", "why": "Long products of small factors shrink to zero — depth's signature pathology.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m3", "coach": "/coach/?prompt=The%20chain%20rule%20is%20backpropagation."}}, {"id": "math-ex-07", "domain": "Optimization", "stem": "At a critical point the Hessian has eigenvalues +4 and −1. Gradient descent crawls. Your diagnosis?", "choices": [{"key": "A", "text": "A saddle point: minimum along one axis, maximum along another — the tiny gradient near it stalls progress"}, {"key": "B", "text": "A global minimum — keep waiting"}, {"key": "C", "text": "A local maximum — restart is hopeless"}, {"key": "D", "text": "A convex region — it will converge fast"}], "answer": "A", "why": "Mixed-sign eigenvalues are the saddle signature; momentum or restarts help.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m4", "coach": "/coach/?prompt=Hessian%20classification%20of%20critical%20points."}}, {"id": "math-ex-08", "domain": "Optimization", "stem": "A model overfits badly. A colleague suggests 'just add an L2 penalty.' The Bayesian translation of that advice?", "choices": [{"key": "A", "text": "Assert a Gaussian prior on the weights — MAP with that prior is exactly ridge regression"}, {"key": "B", "text": "Assert a uniform prior"}, {"key": "C", "text": "Remove the likelihood term"}, {"key": "D", "text": "Switch to a Laplace prior for L2"}], "answer": "A", "why": "Log of a Gaussian prior is −||w||²/2σ² — the L2 penalty. (Laplace gives L1.)", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m4", "coach": "/coach/?prompt=Ridge%20as%20Gaussian%20prior%3A%20MAP%20estimation."}}, {"id": "math-ex-09", "domain": "Probability", "stem": "A fraud model with 90% recall and 1% false-positive rate flags a transaction. Fraud base rate is 0.1%. Your honest statement to the risk team?", "choices": [{"key": "A", "text": "Roughly an 8% chance it is fraud — with rare events most flags are false positives; do not auto-block on the flag alone"}, {"key": "B", "text": "90% chance — the recall number"}, {"key": "C", "text": "99% chance — one minus the false-positive rate"}, {"key": "D", "text": "It is certainly fraud"}], "answer": "A", "why": "Bayes: 0.9×0.001/(0.9×0.001+0.01×0.999) ≈ 0.083. Base rates dominate.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m5", "coach": "/coach/?prompt=Base-rate%20neglect%20in%20alerting."}}, {"id": "math-ex-10", "domain": "Probability", "stem": "Two monitoring checks fail independently with probability 0.05 each. You need P(at least one fails) for the SLO math. It is:", "choices": [{"key": "A", "text": "0.0975 — 1 − 0.95²"}, {"key": "B", "text": "0.10 — they add"}, {"key": "C", "text": "0.0025 — they multiply"}, {"key": "D", "text": "0.05 — unchanged"}], "answer": "A", "why": "Complement first: P(none) = 0.95², so P(at least one) = 1 − 0.9025.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m5", "coach": "/coach/?prompt=Complements%20and%20independence."}}, {"id": "math-ex-11", "domain": "Statistics", "stem": "You observe 2 heads in 3 flips of a new coin. A teammate reports bias = 0.67 as fact. Your correction?", "choices": [{"key": "A", "text": "That is the MLE, but with n=3 it is noisy — report it with uncertainty or add a prior (MAP)"}, {"key": "B", "text": "The MLE is wrong; the answer is 0.5"}, {"key": "C", "text": "More flips cannot change the estimate"}, {"key": "D", "text": "MLE does not apply to coins"}], "answer": "A", "why": "MLE is the observed frequency, but tiny samples need shrinkage toward a prior.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m6", "coach": "/coach/?prompt=MLE%20and%20why%20small%20samples%20need%20priors."}}, {"id": "math-ex-12", "domain": "Statistics", "stem": "Train accuracy 99%, validation 62%, and the gap widens each epoch. Name the condition and two defenses.", "choices": [{"key": "A", "text": "Overfitting — add regularization (L2/dropout), early-stop on validation, or gather more data"}, {"key": "B", "text": "Underfitting — increase model capacity"}, {"key": "C", "text": "Convergence — deploy immediately"}, {"key": "D", "text": "Data leakage — delete the validation set"}], "answer": "A", "why": "The widening train/val gap is memorization; constrain capacity or stop early.", "remediate": {"adapt": "/learn/sequences/math-for-ml/#m6", "coach": "/coach/?prompt=Overfitting%3A%20the%20train%2Ftest%20gap."}}]</script>
+<div class="il-honest"><strong>Honest framing.</strong> These scenarios are original to Interstitium Labs &mdash; written from the lessons above, never reproduced from any exam or textbook. A passing score confers no certificate and no credential; what it gives you is the exact list of scenarios you missed, with the reasoning attached. That miss list is your next study plan.</div>
+</div>
+</section>
+<hr class="il-rule"/>
+
+<section class="il-section" id="continue" aria-labelledby="continue-h">
+<div class="il-wrap">
+<div class="il-continue">
+<p class="il-eyebrow">Continue to &rarr;</p>
+<h2 id="continue-h">Put the math to work: Bitcoin protocol engineering.</h2>
+<p>You now read the machinery every ledger runs on &mdash; vectors, optimization, probability. The Bitcoin protocol sequence applies it: UTXO sets as linear bookkeeping, mining as a probabilistic race, fee markets as optimization under constraints. The math stops being abstract the moment a transaction is on the line.</p>
+<div class="il-continue__row">
+<a class="il-btn il-btn--gold" href="/learn/sequences/bitcoin-protocol/">Bitcoin protocol &rarr;</a>
+<a class="il-btn il-btn--ghost" href="/adapt/">Adaptive path</a>
+<a class="il-btn il-btn--ghost" href="/practice/">Practice wing</a>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<script>
+(function(){
+"use strict";
+function out(id, ok, html){ var e=document.getElementById(id); e.className="il-lab__out show "+(ok===true?"is-ok":ok===false?"is-no":"is-info"); e.innerHTML=html; }
+function num(id){ var v=parseFloat(document.getElementById(id).value); return isFinite(v)?v:NaN; }
+function parseShape(s){ var m=/^\s*(\d+)\s*[x×]\s*(\d+)\s*$/.exec(s||""); return m?[parseInt(m[1],10),parseInt(m[2],10)]:null; }
+/* Lab 1: dimension checker */
+var g1=document.getElementById("lab-dim-go");
+if(g1) g1.addEventListener("click", function(){
+  var a=parseShape(document.getElementById("lab-dim-a").value), b=parseShape(document.getElementById("lab-dim-b").value);
+  if(!a||!b){ out("lab-dim-out", false, "Could not parse a shape. Use the form <b>rows&times;cols</b>, e.g. <b>2x3</b>."); return; }
+  if(a[1]===b[0]){ out("lab-dim-out", true, "<b>Legal.</b> Inner dimensions agree ("+a[1]+" = "+b[0]+"). Output shape: <b>"+a[0]+"&times;"+b[1]+"</b> — ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") &rarr; "+a[0]+"x"+b[1]+"."); }
+  else { out("lab-dim-out", false, "<b>Illegal.</b> Inner dimensions disagree: A has "+a[1]+" columns but B has "+b[0]+" rows. ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") cannot be formed — check your shapes before computing."); }
+});
+/* Lab 2 & 4: 2x2 eigenvalues */
+function eig2(a,b,c,d){
+  var tr=a+d, det=a*d-b*c, disc=tr*tr-4*det;
+  if(disc>=0){ var s=Math.sqrt(disc); return {l1:(tr+s)/2, l2:(tr-s)/2, complex:false, tr:tr, det:det, disc:disc}; }
+  var re=tr/2, im=Math.sqrt(-disc)/2; return {l1:re+"+"+im+"i", l2:re+"-"+im+"i", complex:true, tr:tr, det:det, disc:disc};
+}
+function fmt(x){ return (Math.round(x*10000)/10000).toString(); }
+var g2=document.getElementById("lab-eig-go");
+if(g2) g2.addEventListener("click", function(){
+  var a=num("lab-eig-a"),b=num("lab-eig-b"),c=num("lab-eig-c"),d=num("lab-eig-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-eig-out", false, "Enter all four matrix entries as numbers."); return; }
+  var e=eig2(a,b,c,d);
+  var cls=e.complex?"Complex conjugate pair — rotation-like action; no real eigen-directions.":(Math.abs(e.disc)<1e-12?"Repeated real eigenvalue — one (possibly defective) eigen-direction.":"Two distinct real eigenvalues — two independent eigen-directions.");
+  out("lab-eig-out", "info", "trace = <b>"+fmt(e.tr)+"</b>, det = <b>"+fmt(e.det)+"</b>, discriminant = <b>"+fmt(e.disc)+"</b><br/>&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+cls+
+    (Math.abs(a-3)<1e-9&&Math.abs(b-1)<1e-9&&Math.abs(c)<1e-9&&Math.abs(d-2)<1e-9?"<br/><b>Matches the worked example</b> (&lambda; = 3, 2).":""));
+});
+var g4=document.getElementById("lab-hess-go");
+if(g4) g4.addEventListener("click", function(){
+  var a=num("lab-hess-a"),b=num("lab-hess-b"),c=num("lab-hess-c"),d=num("lab-hess-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-hess-out", false, "Enter all four Hessian entries as numbers."); return; }
+  var note="";
+  if(Math.abs(b-c)>1e-9){ note="<br/>Note: a true Hessian is symmetric — you entered b&ne;c; symmetrizing with their average."; b=c=(b+c)/2; }
+  var e=eig2(a,b,c,d);
+  var verdict, ok;
+  if(e.complex){ verdict="Unexpected: a symmetric Hessian always has real eigenvalues — check your entries."; ok=false; }
+  else if(e.l1>1e-9&&e.l2>1e-9){ verdict="<b>Local minimum.</b> Both eigenvalues positive — the surface curves upward in every direction."; ok=true; }
+  else if(e.l1<-1e-9&&e.l2<-1e-9){ verdict="<b>Local maximum.</b> Both eigenvalues negative — the surface curves downward everywhere."; ok=true; }
+  else if(Math.abs(e.l1)<1e-9||Math.abs(e.l2)<1e-9){ verdict="<b>Degenerate / flat direction.</b> A zero eigenvalue means the second-order test is inconclusive — higher-order terms decide."; ok="info"; }
+  else { verdict="<b>Saddle point.</b> Eigenvalues "+fmt(e.l1)+" and "+fmt(e.l2)+" have opposite signs — down some ways, up others."; ok=true; }
+  out("lab-hess-out", ok, "&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+verdict+note);
+});
+/* Lab 3: gradient descent */
+var g3=document.getElementById("lab-gd-go");
+if(g3) g3.addEventListener("click", function(){
+  var lr=num("lab-gd-lr");
+  if(!(lr>0&&lr<=2)){ out("lab-gd-out", false, "Enter a learning rate in (0, 2]."); return; }
+  var x=0, traj=[0], N=30;
+  for(var i=0;i<N;i++){ x=x-lr*2*(x-3); traj.push(x); if(!isFinite(x)||Math.abs(x)>1e12) break; }
+  var last=traj[traj.length-1], r=Math.abs(1-2*lr);
+  var shown=traj.slice(0,5).map(function(v){return fmt(v);}).join(" &rarr; ")+" &rarr; &hellip; &rarr; "+traj.slice(-3).map(function(v){return fmt(v);}).join(" &rarr; ");
+  var verdict, ok;
+  if(r>1||!isFinite(last)||Math.abs(last)>1e9){ verdict="<b>Diverged.</b> The contraction factor |1&minus;2&eta;| = "+fmt(r)+" &gt; 1, so each step overshoots farther than the last — the trajectory oscillates outward. This is what &eta; above the stability limit does."; ok=false; }
+  else if(Math.abs(last-3)<0.05){ verdict="<b>Converged</b> to x &asymp; 3. |1&minus;2&eta;| = "+fmt(r)+" &lt; 1, so errors shrink geometrically each step."; ok=true; }
+  else { verdict="<b>Not converged in "+N+" steps.</b> |1&minus;2&eta;| = "+fmt(r)+" — right at or near the stability boundary: it rings without settling. Try a smaller &eta;."; ok="info"; }
+  out("lab-gd-out", ok, "Trajectory ("+N+" steps): "+shown+"<br/>"+verdict+"<br/><span style='color:#8a93a6'>For f(x)=(x&minus;3)&sup2;, f&prime;(x)=2(x&minus;3); the iteration is x &larr; (1&minus;2&eta;)x + 6&eta;, a contraction iff |1&minus;2&eta;| &lt; 1, i.e. &eta; &lt; 1. Try &eta;=0.1 (converges), &eta;=1 (rings forever), &eta;=1.1 (diverges).</span>");
+});
+/* Lab 5: Bayes */
+var g5=document.getElementById("lab-bayes-go");
+if(g5) g5.addEventListener("click", function(){
+  var p=num("lab-bayes-prior"), tpr=num("lab-bayes-tpr"), fpr=num("lab-bayes-fpr");
+  if([p,tpr,fpr].some(isNaN)||p<0||p>1||tpr<0||tpr>1||fpr<0||fpr>1){ out("lab-bayes-out", false, "Enter three probabilities in [0, 1]."); return; }
+  var denom=tpr*p+fpr*(1-p);
+  if(denom<=0){ out("lab-bayes-out", false, "P(+) = 0 — no positive evidence is possible under these inputs."); return; }
+  var post=tpr*p/denom, pct=(post*100);
+  var moved=Math.abs(post-p);
+  var interp=moved<0.02?"<b>Barely moved.</b> The evidence is weak relative to the prior — or the false-positive rate swamps the signal.":post>p?"<b>Moved upward</b> — but compare against the base rate before acting.":"<b>Moved downward</b> — negative evidence also updates.";
+  out("lab-bayes-out", "info", "P(H|+) = <b>"+pct.toFixed(1)+"%</b> &nbsp;(prior was "+(p*100).toFixed(1)+"%)<br/>"+interp+
+    (Math.abs(p-0.01)<1e-9&&Math.abs(tpr-0.9)<1e-9&&Math.abs(fpr-0.05)<1e-9?"<br/><b>Matches the worked example</b> (15.4%) — most positives are false alarms.":""));
+});
+/* Lab 6: MLE */
+var g6=document.getElementById("lab-mle-go");
+if(g6) g6.addEventListener("click", function(){
+  var h=parseInt(document.getElementById("lab-mle-h").value,10), t=parseInt(document.getElementById("lab-mle-t").value,10);
+  if(!(h>=0&&t>=0)||isNaN(h)||isNaN(t)||h+t===0){ out("lab-mle-out", false, "Enter nonnegative counts with at least one flip."); return; }
+  var ph=h/(h+t), n=h+t;
+  var se=Math.sqrt(ph*(1-ph)/n);
+  var warn=n<30?"<br/><b>Small sample warning:</b> with n = "+n+", p&#770; = "+ph.toFixed(3)+" is noisy (s.e. &asymp; "+se.toFixed(3)+"). A prior (MAP) would shrink this toward 0.5 — Module 5 meets Module 6.":"<br/>n = "+n+" is reasonably large; the MLE is fairly tight (s.e. &asymp; "+se.toFixed(3)+").";
+  out("lab-mle-out", "info", "MLE bias <b>p&#770; = "+h+"/"+(h+t)+" = "+ph.toFixed(4)+"</b>"+warn);
+});
+})();
+</script>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+function out(id, ok, html){ var e=document.getElementById(id); e.className="il-lab__out show "+(ok===true?"is-ok":ok===false?"is-no":"is-info"); e.innerHTML=html; }
+function num(id){ var v=parseFloat(document.getElementById(id).value); return isFinite(v)?v:NaN; }
+function parseShape(s){ var m=/^\s*(\d+)\s*[x×]\s*(\d+)\s*$/.exec(s||""); return m?[parseInt(m[1],10),parseInt(m[2],10)]:null; }
+/* Lab 1: dimension checker */
+var g1=document.getElementById("lab-dim-go");
+if(g1) g1.addEventListener("click", function(){
+  var a=parseShape(document.getElementById("lab-dim-a").value), b=parseShape(document.getElementById("lab-dim-b").value);
+  if(!a||!b){ out("lab-dim-out", false, "Could not parse a shape. Use the form <b>rows&times;cols</b>, e.g. <b>2x3</b>."); return; }
+  if(a[1]===b[0]){ out("lab-dim-out", true, "<b>Legal.</b> Inner dimensions agree ("+a[1]+" = "+b[0]+"). Output shape: <b>"+a[0]+"&times;"+b[1]+"</b> — ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") &rarr; "+a[0]+"x"+b[1]+"."); }
+  else { out("lab-dim-out", false, "<b>Illegal.</b> Inner dimensions disagree: A has "+a[1]+" columns but B has "+b[0]+" rows. ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") cannot be formed — check your shapes before computing."); }
+});
+/* Lab 2 & 4: 2x2 eigenvalues */
+function eig2(a,b,c,d){
+  var tr=a+d, det=a*d-b*c, disc=tr*tr-4*det;
+  if(disc>=0){ var s=Math.sqrt(disc); return {l1:(tr+s)/2, l2:(tr-s)/2, complex:false, tr:tr, det:det, disc:disc}; }
+  var re=tr/2, im=Math.sqrt(-disc)/2; return {l1:re+"+"+im+"i", l2:re+"-"+im+"i", complex:true, tr:tr, det:det, disc:disc};
+}
+function fmt(x){ return (Math.round(x*10000)/10000).toString(); }
+var g2=document.getElementById("lab-eig-go");
+if(g2) g2.addEventListener("click", function(){
+  var a=num("lab-eig-a"),b=num("lab-eig-b"),c=num("lab-eig-c"),d=num("lab-eig-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-eig-out", false, "Enter all four matrix entries as numbers."); return; }
+  var e=eig2(a,b,c,d);
+  var cls=e.complex?"Complex conjugate pair — rotation-like action; no real eigen-directions.":(Math.abs(e.disc)<1e-12?"Repeated real eigenvalue — one (possibly defective) eigen-direction.":"Two distinct real eigenvalues — two independent eigen-directions.");
+  out("lab-eig-out", "info", "trace = <b>"+fmt(e.tr)+"</b>, det = <b>"+fmt(e.det)+"</b>, discriminant = <b>"+fmt(e.disc)+"</b><br/>&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+cls+
+    (Math.abs(a-3)<1e-9&&Math.abs(b-1)<1e-9&&Math.abs(c)<1e-9&&Math.abs(d-2)<1e-9?"<br/><b>Matches the worked example</b> (&lambda; = 3, 2).":""));
+});
+var g4=document.getElementById("lab-hess-go");
+if(g4) g4.addEventListener("click", function(){
+  var a=num("lab-hess-a"),b=num("lab-hess-b"),c=num("lab-hess-c"),d=num("lab-hess-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-hess-out", false, "Enter all four Hessian entries as numbers."); return; }
+  var note="";
+  if(Math.abs(b-c)>1e-9){ note="<br/>Note: a true Hessian is symmetric — you entered b&ne;c; symmetrizing with their average."; b=c=(b+c)/2; }
+  var e=eig2(a,b,c,d);
+  var verdict, ok;
+  if(e.complex){ verdict="Unexpected: a symmetric Hessian always has real eigenvalues — check your entries."; ok=false; }
+  else if(e.l1>1e-9&&e.l2>1e-9){ verdict="<b>Local minimum.</b> Both eigenvalues positive — the surface curves upward in every direction."; ok=true; }
+  else if(e.l1<-1e-9&&e.l2<-1e-9){ verdict="<b>Local maximum.</b> Both eigenvalues negative — the surface curves downward everywhere."; ok=true; }
+  else if(Math.abs(e.l1)<1e-9||Math.abs(e.l2)<1e-9){ verdict="<b>Degenerate / flat direction.</b> A zero eigenvalue means the second-order test is inconclusive — higher-order terms decide."; ok="info"; }
+  else { verdict="<b>Saddle point.</b> Eigenvalues "+fmt(e.l1)+" and "+fmt(e.l2)+" have opposite signs — down some ways, up others."; ok=true; }
+  out("lab-hess-out", ok, "&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+verdict+note);
+});
+/* Lab 3: gradient descent */
+var g3=document.getElementById("lab-gd-go");
+if(g3) g3.addEventListener("click", function(){
+  var lr=num("lab-gd-lr");
+  if(!(lr>0&&lr<=2)){ out("lab-gd-out", false, "Enter a learning rate in (0, 2]."); return; }
+  var x=0, traj=[0];
+  for(var i=0;i<12;i++){ x=x-lr*2*(x-3); traj.push(x); if(!isFinite(x)||Math.abs(x)>1e12) break; }
+  var last=traj[traj.length-1], conv=isFinite(last)&&Math.abs(last-3)<0.01;
+  var div=!isFinite(last)||Math.abs(last)>1e6;
+  var line=traj.map(function(v){ return isFinite(v)?fmt(v):"inf"; }).join(" &rarr; ");
+  var verdict=conv?"<b>Converged</b> to x &asymp; 3. The step was inside the stability limit.":div?"<b>Diverged.</b> The step overshot the valley and oscillated outward — this is what &eta; above the stability limit (here &eta; &gt; 1) does.":"<b>Oscillating / slow.</b> Near the stability boundary: it may converge eventually or ring. Try a smaller &eta;.";
+  out("lab-gd-out", conv?true:div?false:"info", "Trajectory: "+line+"<br/>"+verdict+"<br/><span style='color:#8a93a6'>For f(x)=(x&minus;3)&sup2;, f&prime;(x)=2(x&minus;3); the iteration is x &larr; (1&minus;2&eta;)x + 6&eta;, stable iff |1&minus;2&eta;| &lt; 1, i.e. &eta; &lt; 1.</span>");
+});
+/* Lab 5: Bayes */
+var g5=document.getElementById("lab-bayes-go");
+if(g5) g5.addEventListener("click", function(){
+  var p=num("lab-bayes-prior"), tpr=num("lab-bayes-tpr"), fpr=num("lab-bayes-fpr");
+  if([p,tpr,fpr].some(isNaN)||p<0||p>1||tpr<0||tpr>1||fpr<0||fpr>1){ out("lab-bayes-out", false, "Enter three probabilities in [0, 1]."); return; }
+  var denom=tpr*p+fpr*(1-p);
+  if(denom<=0){ out("lab-bayes-out", false, "P(+) = 0 — no positive evidence is possible under these inputs."); return; }
+  var post=tpr*p/denom, pct=(post*100);
+  var moved=Math.abs(post-p);
+  var interp=moved<0.02?"<b>Barely moved.</b> The evidence is weak relative to the prior — or the false-positive rate swamps the signal.":post>p?"<b>Moved upward</b> — but compare against the base rate before acting.":"<b>Moved downward</b> — negative evidence also updates.";
+  out("lab-bayes-out", "info", "P(H|+) = <b>"+pct.toFixed(1)+"%</b> &nbsp;(prior was "+(p*100).toFixed(1)+"%)<br/>"+interp+
+    (Math.abs(p-0.01)<1e-9&&Math.abs(tpr-0.9)<1e-9&&Math.abs(fpr-0.05)<1e-9?"<br/><b>Matches the worked example</b> (15.4%) — most positives are false alarms.":""));
+});
+/* Lab 6: MLE */
+var g6=document.getElementById("lab-mle-go");
+if(g6) g6.addEventListener("click", function(){
+  var h=parseInt(document.getElementById("lab-mle-h").value,10), t=parseInt(document.getElementById("lab-mle-t").value,10);
+  if(!(h>=0&&t>=0)||isNaN(h)||isNaN(t)||h+t===0){ out("lab-mle-out", false, "Enter nonnegative counts with at least one flip."); return; }
+  var ph=h/(h+t), n=h+t;
+  var se=Math.sqrt(ph*(1-ph)/n);
+  var warn=n<30?"<br/><b>Small sample warning:</b> with n = "+n+", p&#770; = "+ph.toFixed(3)+" is noisy (s.e. &asymp; "+se.toFixed(3)+"). A prior (MAP) would shrink this toward 0.5 — Module 5 meets Module 6.":"<br/>n = "+n+" is reasonably large; the MLE is fairly tight (s.e. &asymp; "+se.toFixed(3)+").";
+  out("lab-mle-out", "info", "MLE bias <b>p&#770; = "+h+"/"+(h+t)+" = "+ph.toFixed(4)+"</b>"+warn);
+});
+})();
+</script>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+function out(id, ok, html){ var e=document.getElementById(id); e.className="il-lab__out show "+(ok===true?"is-ok":ok===false?"is-no":"is-info"); e.innerHTML=html; }
+function num(id){ var v=parseFloat(document.getElementById(id).value); return isFinite(v)?v:NaN; }
+function parseShape(s){ var m=/^\s*(\d+)\s*[x×]\s*(\d+)\s*$/.exec(s||""); return m?[parseInt(m[1],10),parseInt(m[2],10)]:null; }
+/* Lab 1: dimension checker */
+var g1=document.getElementById("lab-dim-go");
+if(g1) g1.addEventListener("click", function(){
+  var a=parseShape(document.getElementById("lab-dim-a").value), b=parseShape(document.getElementById("lab-dim-b").value);
+  if(!a||!b){ out("lab-dim-out", false, "Could not parse a shape. Use the form <b>rows&times;cols</b>, e.g. <b>2x3</b>."); return; }
+  if(a[1]===b[0]){ out("lab-dim-out", true, "<b>Legal.</b> Inner dimensions agree ("+a[1]+" = "+b[0]+"). Output shape: <b>"+a[0]+"&times;"+b[1]+"</b> — ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") &rarr; "+a[0]+"x"+b[1]+"."); }
+  else { out("lab-dim-out", false, "<b>Illegal.</b> Inner dimensions disagree: A has "+a[1]+" columns but B has "+b[0]+" rows. ("+a[0]+"x"+a[1]+")("+b[0]+"x"+b[1]+") cannot be formed — check your shapes before computing."); }
+});
+/* Lab 2 & 4: 2x2 eigenvalues */
+function eig2(a,b,c,d){
+  var tr=a+d, det=a*d-b*c, disc=tr*tr-4*det;
+  if(disc>=0){ var s=Math.sqrt(disc); return {l1:(tr+s)/2, l2:(tr-s)/2, complex:false, tr:tr, det:det, disc:disc}; }
+  var re=tr/2, im=Math.sqrt(-disc)/2; return {l1:re+"+"+im+"i", l2:re+"-"+im+"i", complex:true, tr:tr, det:det, disc:disc};
+}
+function fmt(x){ return (Math.round(x*10000)/10000).toString(); }
+var g2=document.getElementById("lab-eig-go");
+if(g2) g2.addEventListener("click", function(){
+  var a=num("lab-eig-a"),b=num("lab-eig-b"),c=num("lab-eig-c"),d=num("lab-eig-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-eig-out", false, "Enter all four matrix entries as numbers."); return; }
+  var e=eig2(a,b,c,d);
+  var cls=e.complex?"Complex conjugate pair — rotation-like action; no real eigen-directions.":(Math.abs(e.disc)<1e-12?"Repeated real eigenvalue — one (possibly defective) eigen-direction.":"Two distinct real eigenvalues — two independent eigen-directions.");
+  out("lab-eig-out", "info", "trace = <b>"+fmt(e.tr)+"</b>, det = <b>"+fmt(e.det)+"</b>, discriminant = <b>"+fmt(e.disc)+"</b><br/>&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+cls+
+    (Math.abs(a-3)<1e-9&&Math.abs(b-1)<1e-9&&Math.abs(c)<1e-9&&Math.abs(d-2)<1e-9?"<br/><b>Matches the worked example</b> (&lambda; = 3, 2).":""));
+});
+var g4=document.getElementById("lab-hess-go");
+if(g4) g4.addEventListener("click", function(){
+  var a=num("lab-hess-a"),b=num("lab-hess-b"),c=num("lab-hess-c"),d=num("lab-hess-d");
+  if([a,b,c,d].some(isNaN)){ out("lab-hess-out", false, "Enter all four Hessian entries as numbers."); return; }
+  var note="";
+  if(Math.abs(b-c)>1e-9){ note="<br/>Note: a true Hessian is symmetric — you entered b&ne;c; symmetrizing with their average."; b=c=(b+c)/2; }
+  var e=eig2(a,b,c,d);
+  var verdict, ok;
+  if(e.complex){ verdict="Unexpected: a symmetric Hessian always has real eigenvalues — check your entries."; ok=false; }
+  else if(e.l1>1e-9&&e.l2>1e-9){ verdict="<b>Local minimum.</b> Both eigenvalues positive — the surface curves upward in every direction."; ok=true; }
+  else if(e.l1<-1e-9&&e.l2<-1e-9){ verdict="<b>Local maximum.</b> Both eigenvalues negative — the surface curves downward everywhere."; ok=true; }
+  else if(Math.abs(e.l1)<1e-9||Math.abs(e.l2)<1e-9){ verdict="<b>Degenerate / flat direction.</b> A zero eigenvalue means the second-order test is inconclusive — higher-order terms decide."; ok="info"; }
+  else { verdict="<b>Saddle point.</b> Eigenvalues "+fmt(e.l1)+" and "+fmt(e.l2)+" have opposite signs — down some ways, up others."; ok=true; }
+  out("lab-hess-out", ok, "&lambda;<sub>1</sub> = <b>"+fmt(e.l1)+"</b>, &lambda;<sub>2</sub> = <b>"+fmt(e.l2)+"</b><br/>"+verdict+note);
+});
+/* Lab 3: gradient descent */
+var g3=document.getElementById("lab-gd-go");
+if(g3) g3.addEventListener("click", function(){
+  var lr=num("lab-gd-lr");
+  if(!(lr>0&&lr<=2)){ out("lab-gd-out", false, "Enter a learning rate in (0, 2]."); return; }
+  var x=0, traj=[0];
+  for(var i=0;i<12;i++){ x=x-lr*2*(x-3); traj.push(x); if(!isFinite(x)||Math.abs(x)>1e12) break; }
+  var last=traj[traj.length-1], conv=isFinite(last)&&Math.abs(last-3)<0.01;
+  var div=!isFinite(last)||Math.abs(last)>1e6;
+  var line=traj.map(function(v){ return isFinite(v)?fmt(v):"inf"; }).join(" &rarr; ");
+  var verdict=conv?"<b>Converged</b> to x &asymp; 3. The step was inside the stability limit.":div?"<b>Diverged.</b> The step overshot the valley and oscillated outward — this is what &eta; above the stability limit (here &eta; &gt; 1) does.":"<b>Oscillating / slow.</b> Near the stability boundary: it may converge eventually or ring. Try a smaller &eta;.";
+  out("lab-gd-out", conv?true:div?false:"info", "Trajectory: "+line+"<br/>"+verdict+"<br/><span style='color:#8a93a6'>For f(x)=(x&minus;3)&sup2;, f&prime;(x)=2(x&minus;3); the iteration is x &larr; (1&minus;2&eta;)x + 6&eta;, stable iff |1&minus;2&eta;| &lt; 1, i.e. &eta; &lt; 1.</span>");
+});
+/* Lab 5: Bayes */
+var g5=document.getElementById("lab-bayes-go");
+if(g5) g5.addEventListener("click", function(){
+  var p=num("lab-bayes-prior"), tpr=num("lab-bayes-tpr"), fpr=num("lab-bayes-fpr");
+  if([p,tpr,fpr].some(isNaN)||p<0||p>1||tpr<0||tpr>1||fpr<0||fpr>1){ out("lab-bayes-out", false, "Enter three probabilities in [0, 1]."); return; }
+  var denom=tpr*p+fpr*(1-p);
+  if(denom<=0){ out("lab-bayes-out", false, "P(+) = 0 — no positive evidence is possible under these inputs."); return; }
+  var post=tpr*p/denom, pct=(post*100);
+  var moved=Math.abs(post-p);
+  var interp=moved<0.02?"<b>Barely moved.</b> The evidence is weak relative to the prior — or the false-positive rate swamps the signal.":post>p?"<b>Moved upward</b> — but compare against the base rate before acting.":"<b>Moved downward</b> — negative evidence also updates.";
+  out("lab-bayes-out", "info", "P(H|+) = <b>"+pct.toFixed(1)+"%</b> &nbsp;(prior was "+(p*100).toFixed(1)+"%)<br/>"+interp+
+    (Math.abs(p-0.01)<1e-9&&Math.abs(tpr-0.9)<1e-9&&Math.abs(fpr-0.05)<1e-9?"<br/><b>Matches the worked example</b> (15.4%) — most positives are false alarms.":""));
+});
+/* Lab 6: MLE */
+var g6=document.getElementById("lab-mle-go");
+if(g6) g6.addEventListener("click", function(){
+  var h=parseInt(document.getElementById("lab-mle-h").value,10), t=parseInt(document.getElementById("lab-mle-t").value,10);
+  if(!(h>=0&&t>=0)||isNaN(h)||isNaN(t)||h+t===0){ out("lab-mle-out", false, "Enter nonnegative counts with at least one flip."); return; }
+  var ph=h/(h+t), n=h+t;
+  var se=Math.sqrt(ph*(1-ph)/n);
+  var warn=n<30?"<br/><b>Small sample warning:</b> with n = "+n+", p&#770; = "+ph.toFixed(3)+" is noisy (s.e. &asymp; "+se.toFixed(3)+"). A prior (MAP) would shrink this toward 0.5 — Module 5 meets Module 6.":"<br/>n = "+n+" is reasonably large; the MLE is fairly tight (s.e. &asymp; "+se.toFixed(3)+").";
+  out("lab-mle-out", "info", "MLE bias <b>p&#770; = "+h+"/"+(h+t)+" = "+ph.toFixed(4)+"</b>"+warn);
+});
+})();
+</script>
+
+  <hr class="il-rule"/>
+  <!-- Template sections: concept glossary / worked procedure / project brief / as-of -->
+  <section class="il-section" id="glossary" aria-labelledby="glossary-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Concept glossary</p>
+        <h2 class="il-h il-h--section" id="glossary-h">The words this sequence uses.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li><strong>Vector / matrix</strong> — the language of data: vectors are ordered lists (data points, features), matrices are tables of them; every module here is written in this notation.</li>
+          <li><strong>Eigenvalue / eigenvector</strong> — the directions a matrix stretches without rotating, and how much: the 2&times;2 eigen-calculator lab makes them tactile.</li>
+          <li><strong>SVD</strong> — singular value decomposition: factors any matrix into rotations and stretches — the machinery behind dimensionality reduction and recommendation.</li>
+          <li><strong>Gradient</strong> — the vector of partial derivatives pointing uphill; gradient descent walks downhill by subtracting it. The chain rule is how the gradient flows through composed functions.</li>
+          <li><strong>Hessian</strong> — the matrix of second derivatives: curvature. It classifies critical points (minimum, maximum, saddle) — the Hessian classifier lab shows why first-order methods can stall.</li>
+          <li><strong>Convexity</strong> — the shape guarantee: on a convex function every local minimum is global, which is why optimization theory starts here before the non-convex reality of deep learning.</li>
+          <li><strong>Bayes' rule</strong> — P(H|E) = P(E|H)&middot;P(H) / P(E): the posterior (belief after evidence) is proportional to the likelihood (how well the hypothesis predicts the evidence) times the prior (belief before evidence).</li>
+          <li><strong>MLE / MAP</strong> — maximum likelihood estimation picks the parameters that make the observed data most probable; adding a prior gives the maximum a posteriori estimate — the MLE coin lab shows when small samples need the prior.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="worked-procedure" aria-labelledby="procedure-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Worked procedure</p>
+        <h2 class="il-h il-h--section" id="procedure-h">Run the base-rate trap yourself.</h2>
+      </div>
+      <div class="il-prose">
+        <ol>
+          <li><strong>State the prior.</strong> The condition affects 1% of people: P(disease) = 0.01. Write it down — the prior is the number most people forget.</li>
+          <li><strong>State the test characteristics.</strong> It detects the condition 90% of the time (P(+|disease) = 0.9) with a 5% false-positive rate (P(+|healthy) = 0.05).</li>
+          <li><strong>Compute the numerator.</strong> True positives: 0.9 &times; 0.01 = 0.009.</li>
+          <li><strong>Compute the denominator.</strong> All positives: 0.009 + 0.05 &times; 0.99 = 0.0585.</li>
+          <li><strong>Divide.</strong> P(disease|+) = 0.009 / 0.0585 &asymp; <strong>15.4%</strong> — a "90% accurate" test, and a positive means roughly a 1-in-6 chance.</li>
+          <li><strong>Interpret and verify.</strong> Because the condition is rare, false positives from the healthy 99% swamp the true positives — then re-run the numbers in the Bayes calculator lab above and watch the posterior move as you change the prior.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" id="project-brief" aria-labelledby="brief-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Project brief</p>
+        <h2 class="il-h il-h--section" id="brief-h">Put the math to work: the Bitcoin protocol brief.</h2>
+      </div>
+      <div class="il-prose">
+        <p><strong>Deliverable:</strong> work the <a href="/learn/sequences/bitcoin-protocol/">Bitcoin protocol sequence</a> as this sequence's applied capstone — UTXO sets as linear bookkeeping, mining as a probabilistic race, fee markets as optimization under constraints. For each module here, write one paragraph connecting the math (vectors, gradients, Bayes, estimation) to the ledger machinery.</p>
+        <p><strong>Acceptance:</strong> you can read the machinery every ledger runs on and explain where the math bites — the math stops being abstract the moment a transaction is on the line.</p>
+        <div class="il-center" style="margin-top:1.5rem">
+          <a class="il-btn il-btn--gold" href="/learn/sequences/bitcoin-protocol/">Bitcoin protocol &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="asof-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">As of &middot; limits</p>
+        <h2 class="il-h il-h--section" id="asof-h">As of 2026-10-07.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Independent study guide by Interstitium Labs — the mathematics here is taught on this page, not outsourced, with all teaching prose written fresh for this site. The math does not expire, but the further-study links may: verify them before relying on them. This guide confers no certification and reproduces no exam content.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+<script src="/assets/il-check.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-seq.js" defer></script>
+<script src="/assets/il-check.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-seq.js" defer></script>
+<script src="/assets/il-check.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-seq.js" defer></script>
+<script src="/assets/noah-full.js" defer></script>
+</body>
+</html>

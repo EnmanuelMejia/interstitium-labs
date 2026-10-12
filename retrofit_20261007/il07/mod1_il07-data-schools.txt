@@ -1,0 +1,120 @@
+{
+ "id": "il07-data-schools",
+ "code": "IL-07",
+ "title": "The Data-School Spine",
+ "summary": "The university data curriculum in four tracks — analyst (SQL, visualization, statistics, portfolio), data engineering (pipelines, orchestration, warehousing, batch/streaming, quality/governance), databases-deep (relational internals, indexing, query planning, transactions/isolation), big-data systems (distributed processing, the Hadoop/Spark lineage, mining massive datasets) — with MIT and Stanford credential maps.",
+ "objectives": [
+  "Analyze: SQL fluency, honest visualization, statistics for analysts.",
+  "Engineer: pipelines, dimensional modeling, batch + streaming, data quality.",
+  "Explain database internals: indexes, query plans, isolation levels.",
+  "Reason about distributed data systems: partitioning, shuffling, cost."
+ ],
+ "notes": [
+  {
+   "title": "Analyst and engineering tracks",
+   "body": "**Analyst**: **SQL fluency** (joins, windows, CTEs — the analyst's core), **visualization and reporting** (honest charts: the right encoding for the message), **statistics** (distributions, confidence, A/B basics), the **portfolio** (analyses that tell stories).\n\n**Data engineering**: **pipelines and orchestration** (DAGs, retries, backfills, idempotency), **warehousing: dimensional modeling** (facts, dimensions, star schemas, slowly changing dimensions), **batch and streaming** (exactly-once semantics, watermarks, late data), **quality and governance** (tests on data: freshness, volume, schema, distribution checks).\n\n- Orchestration: the DAG is the contract — retries and backfills are the reliability story\n- SCD Type 2: version the dimension row — history is a business requirement\n- Data quality tests run IN the pipeline — great expectations or dbt tests, not hope"
+  },
+  {
+   "title": "Databases deep",
+   "body": "**Relational internals**: pages, B-trees, the query planner (cost-based — statistics drive plans), **indexing and query planning** (read EXPLAIN like a story: scan types, join algorithms, row estimates vs actuals).\n\n**Transactions and isolation**: ACID, isolation levels (read committed → repeatable read → serializable), MVCC (readers don't block writers), anomalies (dirty/phantom/non-repeatable reads).\n\n- The planner lies when statistics are stale — ANALYZE is the fix for mystery slowdowns\n- Isolation levels trade anomalies for concurrency — know which anomaly each level permits\n- MVCC: Postgres/MySQL-InnoDB readers see snapshots — the mechanism behind non-blocking reads"
+  },
+  {
+   "title": "Big data and credential maps",
+   "body": "**Big data systems**: **distributed processing** (partition → shuffle → compute), the **Hadoop/Spark lineage** (MapReduce → RDDs → DataFrames → Spark SQL), **mining massive datasets** (sampling, sketching: HyperLogLog, Bloom filters), **cost and scale reasoning** (shuffle is the expensive operation).\n\n**Credential maps**: MIT xPRO Data Engineering / Advanced Analytics and MicroMasters SDS; Stanford's Data Mining, Mining Massive Data Sets, and Databases graduate certificates — preparation mapping for each.\n\n- Shuffle avoidance is the distributed performance game — partition by the join key\n- Sketches trade exactness for memory: HyperLogLog counts distincts in KBs\n- Credential honesty: certificates prove coursework; the portfolio proves ability — do both"
+  }
+ ],
+ "cards": [
+  {
+   "front": "SCD Type 2?",
+   "back": "Version the dimension row on change — preserves history (new row, same natural key)."
+  },
+  {
+   "front": "Exactly-once in streaming?",
+   "back": "Idempotent sinks + transactional writes + replayable sources — the three-part recipe."
+  },
+  {
+   "front": "MVCC benefit?",
+   "back": "Readers see snapshots — non-blocking reads under concurrent writes."
+  },
+  {
+   "front": "Phantom read prevented by?",
+   "back": "Serializable (or repeatable-read with predicate locking) — read committed allows phantoms."
+  },
+  {
+   "front": "Shuffle: why expensive?",
+   "back": "All-to-all network transfer + sort — partition by join key to avoid it."
+  },
+  {
+   "front": "HyperLogLog?",
+   "back": "Probabilistic distinct-count in KBs of memory — sketching for massive data."
+  }
+ ],
+ "quiz": [
+  {
+   "q": "Dimension attribute changes; history required. Model?",
+   "choices": [
+    "overwrite (Type 1)",
+    "Type 2 versioning",
+    "delete",
+    "ignore"
+   ],
+   "answer": 1,
+   "explain": "Type 2: new row per change — history preserved, current flagged."
+  },
+  {
+   "q": "Stale statistics cause?",
+   "choices": [
+    "nothing",
+    "planner picks bad plans — ANALYZE fixes",
+    "disk full",
+    "locks"
+   ],
+   "answer": 1,
+   "explain": "Cost-based planners need fresh stats; stale stats → mystery slowdowns."
+  },
+  {
+   "q": "Readers blocked by writers. Engine lacks?",
+   "choices": [
+    "indexes",
+    "MVCC",
+    "triggers",
+    "views"
+   ],
+   "answer": 1,
+   "explain": "MVCC gives readers snapshots — non-blocking reads."
+  },
+  {
+   "q": "Join 2TB × 500GB fastest?",
+   "choices": [
+    "broadcast",
+    "partition both by join key — avoid shuffle",
+    "nested loop",
+    "sample"
+   ],
+   "answer": 1,
+   "explain": "Co-partitioning eliminates the shuffle — the distributed join strategy."
+  },
+  {
+   "q": "Count distinct users in 10B events, 1MB memory?",
+   "choices": [
+    "exact count",
+    "HyperLogLog sketch",
+    "sample 1%",
+    "impossible"
+   ],
+   "answer": 1,
+   "explain": "Probabilistic sketch — ~2% error in kilobytes."
+  },
+  {
+   "q": "Pipeline reruns duplicate rows. Fix?",
+   "choices": [
+    "run once",
+    "idempotent loads (merge/upsert keys)",
+    "bigger warehouse",
+    "manual dedupe"
+   ],
+   "answer": 1,
+   "explain": "Idempotency: reruns converge — merge keys make backfills safe."
+  }
+ ]
+}

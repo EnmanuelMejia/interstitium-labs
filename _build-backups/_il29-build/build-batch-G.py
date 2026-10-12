@@ -1,0 +1,1021 @@
+# Build script for IL-29 batch G (course-level assets).
+# Writes _il29-build/batch-G.json and validates it.
+import json, os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "batch-G.json")
+
+# ---------------------------------------------------------------- terminalSims
+terminalSims = [
+    {
+        "id": "IL29-TS-01",
+        "title": "Allowlist break-fix triage: LedgerPro won't launch",
+        "moduleId": "IL29-M11",
+        "prompt": "A user reports the accounting app 'LedgerPro' fails to launch after its updater ran last night. The portal shows the launch was blocked by Application Control. Triage it like a Cyber Hero operator.",
+        "script": [
+            "Confirm the symptom: have the user launch LedgerPro again and note the exact block message/time.",
+            "Open the portal alert for the block; read the denied action: which process, which parent, what file identity (hash).",
+            "Compare the blocked child's hash to the approved hash in the LedgerPro policy.",
+            "Check the policy: does the parent rule cover child processes of LedgerPro's updater?",
+            "Grant a time-boxed approval for the new updater hash per the exception workflow.",
+            "Have the user retry the launch; confirm success and log the exception with an expiry date."
+        ],
+        "expected": [
+            "LedgerPro.exe launches, then its updater child process is denied",
+            "Denied action: child process launch; hash differs from approved version",
+            "Policy approves the parent binary only; updater child has no rule",
+            "Temporary approval granted for the new updater hash (expires in 7 days)",
+            "LedgerPro launches cleanly after approval",
+            "Exception documented: hash, reason (legit updater), expiry, approver"
+        ],
+        "answer": "The updater replaced the child binary, so its hash no longer matches the allowlist. The parent-only rule is doing its job. Fix: time-boxed approval for the new updater hash, verify the launch, document the exception with an expiry — never widen the rule to trust the whole folder."
+    },
+    {
+        "id": "IL29-TS-02",
+        "title": "Ringfence block investigation: Word calling PowerShell",
+        "moduleId": "IL29-M03",
+        "prompt": "ThreatLocker Detect fired: 'winword.exe attempted to launch powershell.exe - blocked by Ringfencing.' You are on shift. Investigate.",
+        "script": [
+            "Open the Detect alert; capture parent process (winword.exe), child (powershell.exe), user, host, timestamp.",
+            "Read the Office ringfence policy: is 'execute other applications' blocked for Word? Confirm the block is policy, not malfunction.",
+            "Identify the triggering document: which file did Word have open, where did it come from (email attachment? download?).",
+            "Check the host for persistence artifacts: Run keys, scheduled tasks, startup folder (document, do not clean yet).",
+            "Follow the runbook: isolate the host from the network if the document source is untrusted.",
+            "Write the incident note: alert ID, policy that fired, document source, host status, next step (forensics/MDR handoff)."
+        ],
+        "expected": [
+            "Alert: winword.exe -> powershell.exe, blocked, Ringfencing policy 'Office apps'",
+            "Policy blocks Office apps from executing other applications - block is expected behavior",
+            "Triggering file: invoice.docx from an external email attachment",
+            "No new persistence artifacts found on a quick check",
+            "Host isolated from the network pending review",
+            "Incident note filed with alert ID, source document, and escalation to the security lead"
+        ],
+        "answer": "Ringfencing did exactly what it is for: a trusted app (Word) was weaponized and the child launch was denied. Treat the block as an IOC, trace the malicious document, check persistence, isolate if the source is untrusted, and hand a clean incident note up the chain."
+    },
+    {
+        "id": "IL29-TS-03",
+        "title": "Detect alert triage: three alerts, one shift",
+        "moduleId": "IL29-M07",
+        "prompt": "Three Detect alerts queue up at once: (a) blocked registry edit by an updater, (b) blocked network session from a browser to an unknown IP, (c) blocked file write by a PDF reader. Classify and prioritize.",
+        "script": [
+            "Read all three alerts fully: process tree, blocked action, host, user, time.",
+            "Classify each by module and action type: updater/registry, browser/network, reader/file-write.",
+            "Score severity: which blocked action most resembles weaponization vs routine breakage?",
+            "Pick the highest-severity alert and investigate first; park the others with a note.",
+            "For the top alert, pull the parent process chain and the file/process that triggered it.",
+            "Write triage dispositions for all three: severity, verdict (malicious-likely / break-fix / false-positive-candidate), next step."
+        ],
+        "expected": [
+            "Alert details captured for all three (process trees, blocked actions, hosts)",
+            "Classification: updater break-fix candidate; browser C2-candidate; reader weaponization-candidate",
+            "Priority order: browser network block first, then reader file-write, then updater",
+            "Browser alert: parent chain shows updater download launched the browser with args",
+            "Reader alert: PDF came from an email attachment opened minutes before",
+            "Three disposition notes written with severity, verdict, and next step"
+        ],
+        "answer": "Triage is classification before action: read the blocked action, map it to weaponization likelihood, work the worst first. The browser-to-unknown-IP block and the reader file-write from an email attachment outrank a routine updater registry block. Document a disposition for every alert — even the ones you park."
+    },
+    {
+        "id": "IL29-TS-04",
+        "title": "Elevation request audit: spot the social engineer",
+        "moduleId": "IL29-M04",
+        "prompt": "Five elevation requests sit in the queue. One of them is a social-engineering attempt. Audit the queue and find it.",
+        "script": [
+            "List all five requests: requesting user, application, justification, time, host.",
+            "Check each application against the approved elevation policy: is this app allowed to elevate?",
+            "Flag anomalies: off-hours requests, apps never elevated before, justifications that don't match the app.",
+            "For the suspect request, check the user's recent activity: any password reset, new device, odd login?",
+            "Deny the suspicious request with a documented reason; approve or escalate the legitimate ones per policy.",
+            "Write the audit note: what was suspicious, what you did, what the helpdesk should tell the user."
+        ],
+        "expected": [
+            "Five requests listed with user, app, justification, time",
+            "Four match approved elevation policies; one does not",
+            "Suspect: remote-support tool requested at 2:14 AM by a user who never uses it, justification 'urgent fix'",
+            "User's account had a password reset yesterday from an unrecognized device",
+            "Suspicious request denied with reason; four legitimate ones processed",
+            "Audit note filed; helpdesk scripted to call the user back on a known number"
+        ],
+        "answer": "Elevation Control moves the decision from the user's UAC prompt to your policy queue — which makes the queue a social-engineering target. Audit for the anomalies: unusual app, off-hours, weak justification, account changes. Deny with a documented reason and verify the user out-of-band; never approve an elevation you can't explain."
+    },
+    {
+        "id": "IL29-TS-05",
+        "title": "Storage Control exfiltration block: the USB at 5 PM",
+        "moduleId": "IL29-M05",
+        "prompt": "Storage Control blocked a USB mass-storage write on a finance workstation: 400 MB of files attempted to a personal drive. Respond.",
+        "script": [
+            "Open the Storage Control block event: device ID, file paths attempted, user, host, timestamp.",
+            "Check the storage policy for this group: are personal USB drives denied? Confirm the block is policy-correct.",
+            "List the attempted file paths — are they sensitive (payroll, PII) or routine?",
+            "Check whether the user has a history of approved USB use or prior blocks.",
+            "Follow the runbook: preserve the event evidence, notify the supervisor per policy, interview the user with the helpdesk script.",
+            "Write the incident note: what was blocked, sensitivity of data, user explanation, escalation decision."
+        ],
+        "expected": [
+            "Block event: personal USB device, 400 MB, paths under the payroll share",
+            "Policy denies personal mass storage for the finance group - block is correct",
+            "Attempted files include payroll exports (sensitive)",
+            "No prior approved USB use for this user; first block event",
+            "Evidence preserved; supervisor notified per policy; user interview scheduled",
+            "Incident note filed with data-sensitivity assessment and escalation recommendation"
+        ],
+        "answer": "Storage Control turned a potential exfiltration into a blocked event with full evidence. Your job is not to unblock it — it is to assess: what data, whose device, what history, what policy says. Preserve the evidence, notify per the runbook, interview the user, and escalate based on data sensitivity, not on how loudly the user complains."
+    },
+    {
+        "id": "IL29-TS-06",
+        "title": "Network Control lateral-movement block: the chatty workstation",
+        "moduleId": "IL29-M06",
+        "prompt": "Network Control blocked a workstation attempting SMB connections to 20 other hosts in two minutes. The user says 'everything is fine.' It is not fine. Work it.",
+        "script": [
+            "Open the Network Control events: source host, destination hosts, ports (445), timeframe, blocked count.",
+            "Check the dynamic ACL state: was SMB ever legitimately open for this workstation? Confirm the blocks are policy.",
+            "Look at the source host's recent history: any Detect alerts, new processes, user logins in the last 24 hours.",
+            "Pattern-check: sequential host scanning vs a few legitimate shares — this smells like worm behavior.",
+            "Follow the runbook: isolate the source host from the network immediately; do not reimage before forensics triage.",
+            "Write the incident note: scope (20 hosts attempted), pattern, isolation time, handoff to IR/forensics."
+        ],
+        "expected": [
+            "Events: 20 distinct hosts on port 445 within 2 minutes, all blocked",
+            "No legitimate SMB ACL for this workstation - blocks are policy-correct",
+            "Source host shows a Detect alert 40 minutes earlier: blocked script execution",
+            "Pattern is sequential scanning, consistent with worm-like lateral movement",
+            "Source host isolated; reimage held pending forensics",
+            "Incident note filed with scope, timeline, isolation time, and IR handoff"
+        ],
+        "answer": "Twenty SMB targets in two minutes is not a user browsing shares — it is lateral movement, and Network Control's dynamic ACLs stopped it at the first hop. Correlate with the earlier Detect alert on the source host, isolate immediately, hold the reimage for forensics, and hand IR a scoped, timed incident note."
+    },
+    {
+        "id": "IL29-TS-07",
+        "title": "PowerShell log triage: find the blocked actions",
+        "moduleId": "IL29-M45",
+        "prompt": "You have a Windows event log export from a pilot machine. Use PowerShell to find every blocked application-launch event in the last 7 days, grouped by process name.",
+        "script": [
+            "Import the log export (CSV) into PowerShell with Import-Csv.",
+            "Filter rows to the last 7 days using Where-Object on the timestamp column.",
+            "Filter further to blocked/denied application-launch events.",
+            "Group by process name with Group-Object; sort by count descending.",
+            "Export the grouped result to a CSV for the pilot report.",
+            "Read the top 3 groups and write a one-line disposition for each (legit updater? unknown? needs policy?)."
+        ],
+        "expected": [
+            "CSV imported; row count matches the export",
+            "Date filter keeps only the last 7 days of events",
+            "Only blocked/denied launch events remain",
+            "Grouped output: process names with counts, sorted high to low",
+            "pilot-blocked-launches.csv written",
+            "Three disposition lines: e.g. 'updater.exe x42 - legit updater, needs child rule'"
+        ],
+        "answer": "PowerShell turns a raw log export into a triage list in six steps: import, date-filter, action-filter, group, export, disposition. The grouped counts tell you where the policy pain is — the top processes are your first policy fixes for the pilot report."
+    },
+    {
+        "id": "IL29-TS-08",
+        "title": "Hash verification of a quarantined file",
+        "moduleId": "IL29-M42",
+        "prompt": "A suspicious file was quarantined from a workstation. Before anyone declares it malware or safe, verify its identity properly: hash it, check its signature, and record chain of custody.",
+        "script": [
+            "Copy the quarantined file to your analysis folder; record source host, path, quarantine time, and your name (chain of custody).",
+            "Compute SHA-256 with Get-FileHash; record the full hash.",
+            "Check the file's digital signature with Get-AuthenticodeSignature; note signer and status.",
+            "Compare the hash against your known-good baseline list and note match/no-match (do not upload to third parties without authorization).",
+            "Record file metadata: size, timestamps, version info if present.",
+            "Write the verification note: hash, signature status, baseline comparison, and your verdict (verified-legit / unknown / suspicious) with reasoning."
+        ],
+        "expected": [
+            "Chain-of-custody line recorded: host, path, time, handler",
+            "SHA-256 hash computed and recorded in full",
+            "Signature status noted (e.g. Valid, signed by vendor / NotSigned)",
+            "Baseline comparison result recorded",
+            "Metadata captured: size, timestamps, version",
+            "Verification note with a reasoned verdict, not a guess"
+        ],
+        "answer": "Identity before verdict: hash the file, check its signature, compare to your baseline, and write down every step with chain of custody. A valid vendor signature plus a baseline hash match means legit; an unsigned binary with no match means treat-as-suspicious and escalate. Never declare malware from a filename."
+    },
+    {
+        "id": "IL29-TS-09",
+        "title": "Phishing header analysis: the 'IT helpdesk' email",
+        "moduleId": "IL29-M44",
+        "prompt": "A user forwarded a suspicious email claiming to be from the IT helpdesk asking them to 're-verify' credentials. Analyze the headers and content like a support operator.",
+        "script": [
+            "Open the full message headers; read the Received chain bottom-up to find the true origin.",
+            "Check the From address vs the Reply-To address for mismatch.",
+            "Check authentication results: SPF, DKIM, DMARC pass or fail.",
+            "Hover (don't click) the links: compare display text to the real destination domain.",
+            "Note urgency/threat language and credential-request red flags in the body.",
+            "Write the verdict note: phishing or legit, with 3+ cited evidence points, plus the user-facing explanation."
+        ],
+        "expected": [
+            "Received chain traced to an origin unrelated to the company's mail",
+            "From says 'IT Helpdesk' but Reply-To is an external freemail address",
+            "SPF/DKIM fail or are absent; DMARC not enforced for the spoofed domain",
+            "Link destinations point to a lookalike domain, not the company portal",
+            "Body uses urgency ('account locked in 24 hours') and asks for credentials",
+            "Verdict: phishing, with cited evidence and a plain-language user explanation"
+        ],
+        "answer": "Phishing analysis is evidence collection: the Received chain gives you origin, Reply-To vs From gives you impersonation, SPF/DKIM/DMARC gives you authentication, and the link destinations give you intent. Cite at least three evidence points in your verdict, then translate it into plain language the user will actually remember."
+    },
+    {
+        "id": "IL29-TS-10",
+        "title": "Run the Python anomaly detector on login data",
+        "moduleId": "IL29-M23",
+        "prompt": "You have a synthetic login CSV (user, hour, location, success). Run the course's baseline anomaly detector, interpret its precision/recall, and tune the threshold once.",
+        "script": [
+            "Inspect the CSV: columns, row count, and a few sample rows.",
+            "Run the detector script with the default threshold; capture its flagged logins.",
+            "Using the labeled answer column, compute true positives, false positives, precision and recall by hand.",
+            "Raise the threshold and re-run; note how precision and recall move.",
+            "Lower the threshold and re-run; note how precision and recall move.",
+            "Write the tuning note: which threshold you would ship for a SOC queue and why (alert fatigue vs missed attacks)."
+        ],
+        "expected": [
+            "CSV inspected: columns and sample rows understood",
+            "Default-threshold run flags a set of logins",
+            "Precision and recall computed from the labels",
+            "Higher threshold: fewer flags, higher precision, lower recall",
+            "Lower threshold: more flags, lower precision, higher recall",
+            "Tuning note with a chosen threshold justified by the precision/recall tradeoff"
+        ],
+        "answer": "A detector is a threshold with a tradeoff: raising it buys precision (fewer false alarms) and costs recall (more missed attacks). Compute both from labeled data, move the threshold both directions to feel the tradeoff, then choose the setting your SOC queue can actually live with — and write down why."
+    },
+]
+
+# ------------------------------------------------------- branchingScenarios
+branchingScenarios = [
+    {
+        "id": "IL29-BS-01",
+        "title": "Ransomware at 2 AM: the Detect alert that wakes you",
+        "moduleId": "IL29-M41",
+        "start": "02:14 AM. Your phone buzzes: ThreatLocker Detect fired on FILESERVER-02 — 'mass file rename blocked by Storage Control; ransomware-like behavior.' The on-call runbook says: assess, contain, escalate. What do you do first?",
+        "branches": [
+            {"choice": "Open the Detect alert and read the full event before touching anything", "result": "Correct first move. The alert shows a single user session renaming hundreds of files under the shared drive; Storage Control denied the writes. You now know scope before acting.", "next": "assess-scope"},
+            {"choice": "Immediately shut down FILESERVER-02 from the portal", "result": "Too fast. You just killed the file server for the whole company with no scoping — morning shift will find an outage AND an incident. Go back and assess first.", "next": "start"},
+            {"choice": "Call the user whose session is renaming files and ask what they're doing", "result": "The user doesn't answer at 2 AM, and you've tipped off a potentially compromised account. Go back and assess first.", "next": "start"}
+        ],
+        "nodes": {
+            "assess-scope": {
+                "text": "Scoped: one user session (j.rivera) on FILESERVER-02, ~800 rename attempts blocked in 6 minutes, writes denied. The session is still active. What's the containment call?",
+                "branches": [
+                    {"choice": "Isolate the affected workstation/session and disable the user account per the runbook", "result": "Correct. You cut the attacker's foothold without killing the server. The renames were all blocked, so the data is intact.", "next": "verify-data"},
+                    {"choice": "Just watch the session to 'gather more intel'", "result": "While you watch, the session pivots to a second share. Passive observation during active ransomware behavior is how incidents double in size. Go back.", "next": "assess-scope"},
+                    {"choice": "Delete the user's files to 'stop the encryption'", "result": "The files were never encrypted — the writes were blocked. Deleting them would destroy intact data. Go back.", "next": "assess-scope"}
+                ]
+            },
+            "verify-data": {
+                "text": "Contained. Now: were any writes NOT blocked? Storage Control denied the renames, but you must verify integrity before declaring victory.",
+                "branches": [
+                    {"choice": "Spot-check the share: confirm files open, check for ransom notes, review the block log for any allowed writes", "result": "Correct. No ransom notes, files open cleanly, block log shows 100% denial. You have verified, not assumed.", "next": "escalate"},
+                    {"choice": "Assume the blocks held and go back to sleep", "result": "Assumption is the enemy. One allowed write you didn't check becomes the foothold next week. Go back and verify.", "next": "verify-data"}
+                ]
+            },
+            "escalate": {
+                "text": "Verified intact. It's 2:40 AM. Who needs to know, and in what order?",
+                "branches": [
+                    {"choice": "Page the security lead now with a structured note (what, scope, containment, verification), then notify the account owner in the morning", "result": "Correct. The lead gets the facts while it's fresh; the user gets a calm, documented conversation at business hours.", "next": "post-incident"},
+                    {"choice": "Email the whole company about the attack right now", "result": "A 2 AM all-staff email about ransomware creates panic and leaks incident details. Escalate up the chain, not out to everyone. Go back.", "next": "escalate"}
+                ]
+            },
+            "post-incident": {
+                "text": "Morning. The lead asks for the post-incident writeup. What makes it complete?",
+                "branches": [
+                    {"choice": "Timeline, blocked-action evidence, containment steps, verification results, and two hardening actions (e.g. review j.rivera's access, tighten the share's storage policy)", "result": "Correct. A complete writeup ends with actions that make the next 2 AM call less likely.", "next": "done"},
+                    {"choice": "A one-liner: 'Ransomware blocked, all good.'", "result": "That teaches the organization nothing and protects no one. Go back and write the real report.", "next": "post-incident"}
+                ]
+            }
+        },
+        "resolution": "The winning path: read the alert fully, scope before acting, isolate the session (not the server), verify data integrity instead of assuming it, escalate up the chain with a structured note, and close with a post-incident report that includes hardening actions. Containment without verification is theater; verification without documentation is wasted."
+    },
+    {
+        "id": "IL29-BS-02",
+        "title": "Patch Tuesday: the legit app that stopped working",
+        "moduleId": "IL29-M11",
+        "start": "Wednesday morning after Patch Tuesday. Three users report the shipping app 'ShipFast' crashes on launch. The helpdesk swears 'nothing changed.' The portal shows Application Control blocks on ShipFast's updater service. Diagnose it.",
+        "branches": [
+            {"choice": "Check the blocked-action details: which binary, which hash, what changed vs the approved version", "result": "Correct. The updater's hash changed with the patch; the allowlist still holds the old hash. You found the actual cause.", "next": "scope-impact"},
+            {"choice": "Tell the users to reinstall ShipFast from the vendor site", "result": "A fresh install won't fix a hash-mismatch block — the new binary still isn't approved, and now you've added an unvetted installer to the mix. Go back and diagnose.", "next": "start"},
+            {"choice": "Temporarily disable Application Control on those machines 'until it works'", "result": "You just turned off the endpoint's primary protection on three machines to fix a crash. That is never the answer. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "scope-impact": {
+                "text": "Root cause found: patch changed the updater hash. Before fixing, how wide is this?",
+                "branches": [
+                    {"choice": "Check how many machines ran the patch and show the same block — scope the fix to all of them at once", "result": "Correct. It's 14 machines, not 3. One fix for all 14 beats 14 separate tickets.", "next": "fix-properly"},
+                    {"choice": "Fix just the three reported machines and move on", "result": "The other 11 will file tickets by lunch. Scope first, fix once. Go back.", "next": "scope-impact"}
+                ]
+            },
+            "fix-properly": {
+                "text": "14 machines affected. What's the right fix?",
+                "branches": [
+                    {"choice": "Approve the new updater hash through the exception workflow with a note tying it to the vendor patch, then verify launches on a test machine", "result": "Correct. Verified vendor patch + approved hash + test = a defensible, documented fix.", "next": "prevent-repeat"},
+                    {"choice": "Add a blanket allow rule for the whole ShipFast folder to 'prevent this next time'", "result": "A folder-wide allow rule means any malware dropped in that folder runs free. You traded a crash for a hole. Go back.", "next": "fix-properly"}
+                ]
+            },
+            "prevent-repeat": {
+                "text": "Fixed and verified. Patch Tuesday happens every month. What changes so this doesn't repeat?",
+                "branches": [
+                    {"choice": "Add a pre-patch step to the change process: check vendor release notes for binary changes, stage the patch on a pilot machine, pre-approve new hashes", "result": "Correct. You turned a break-fix into a process improvement — that's operator maturity.", "next": "done"},
+                    {"choice": "Nothing — you'll just fix it faster next month", "result": "Faster firefighting is still firefighting. Go back and build the process.", "next": "prevent-repeat"}
+                ]
+            }
+        },
+        "resolution": "Break-fix discipline: diagnose the blocked action (hash changed), scope the impact before fixing (14 machines, not 3), fix through the exception workflow with verification (never disable protection, never blanket-allow a folder), and close the loop with a process change so Patch Tuesday stops being a surprise."
+    },
+    {
+        "id": "IL29-BS-03",
+        "title": "The elevation request that isn't what it seems",
+        "moduleId": "IL29-M04",
+        "start": "An elevation request arrives: user m.chen requests admin rights for 'TeamViewer_QS.exe', justification: 'vendor needs to fix my printer urgently.' The phone number in the ticket doesn't match the directory. Walk it.",
+        "branches": [
+            {"choice": "Hold the request and verify the user through a known-good channel before deciding", "result": "Correct instinct. The mismatched phone number is a classic pretexting flag — verify identity out-of-band first.", "next": "verify-identity"},
+            {"choice": "Approve it — the user sounds urgent and printers are a common ticket", "result": "Urgency is the social engineer's favorite tool. You just gave admin to a stranger's remote-access tool. Go back.", "next": "start"},
+            {"choice": "Deny it silently with no note", "result": "If it's legit, the user is stuck; if it's an attack, nobody learns anything. Denials need documentation. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "verify-identity": {
+                "text": "You call m.chen on the directory-listed number. She says she never requested anything and her printer is fine. Now what?",
+                "branches": [
+                    {"choice": "Deny the request with a documented reason, flag the account for a password reset and review, notify the security lead", "result": "Correct. The request was fraudulent; the account may be compromised. Deny, document, reset, escalate.", "next": "check-scope"},
+                    {"choice": "Just deny it and close the ticket", "result": "The attacker still has the compromised account and will try again in an hour. Go back and treat the account as compromised.", "next": "verify-identity"}
+                ]
+            },
+            "check-scope": {
+                "text": "Account flagged. Do you check whether this attacker tried anything else?",
+                "branches": [
+                    {"choice": "Review the user's recent elevation requests, login history, and any Detect alerts on their machine in the last 48 hours", "result": "Correct. You find two more denied elevation attempts yesterday — a pattern, not a one-off. Now the lead has a real case.", "next": "harden"},
+                    {"choice": "No — one denied request is enough paperwork", "result": "Attackers retry. The pattern is the finding. Go back and look.", "next": "check-scope"}
+                ]
+            },
+            "harden": {
+                "text": "Pattern confirmed and escalated. What process change makes the next attempt harder?",
+                "branches": [
+                    {"choice": "Add an out-of-band identity verification step to the elevation runbook for any request with mismatched contact info, odd apps, or urgency pressure", "result": "Correct. You turned one attack into a standing control — the queue is now hardened against the exact pretext used.", "next": "done"},
+                    {"choice": "Nothing — the team handled it fine this time", "result": "Handling it once is luck; hardening the process is defense. Go back and close the loop.", "next": "harden"}
+                ]
+            }
+        },
+        "resolution": "Elevation queues are social-engineering targets because urgency bypasses thinking. The discipline: verify identity out-of-band on any anomaly (mismatched contact, odd app, urgency), treat a fraudulent request as a compromised account (deny + document + reset + escalate), and always check for a pattern — attackers retry."
+    },
+    {
+        "id": "IL29-BS-04",
+        "title": "USB exfiltration attempt: the contractor's drive",
+        "moduleId": "IL29-M05",
+        "start": "Storage Control blocked a contractor's laptop writing 2 GB to a personal USB drive. The files are under the engineering share. The contractor says it was 'just a backup.' Your move.",
+        "branches": [
+            {"choice": "Treat it as a potential exfiltration: preserve the event evidence and assess before accepting the explanation", "result": "Correct. 'Just a backup' to a personal drive of engineering files is exactly what exfiltration looks like. Evidence first, explanations second.", "next": "assess-data"},
+            {"choice": "Accept the explanation and approve a one-time USB exception so they can finish", "result": "You just authorized the exfiltration you were supposed to stop. Go back.", "next": "start"},
+            {"choice": "Confiscate the laptop immediately and call the police", "result": "Way over the line for a first block event with no policy for escalation defined. Follow the runbook's proportionate steps. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "assess-data": {
+                "text": "Evidence preserved. The 2 GB includes CAD drawings marked internal-only. The contractor's agreement: does it even permit personal-device copies?",
+                "branches": [
+                    {"choice": "Check the contractor agreement and the storage policy; escalate to the supervisor and security lead with the data classification", "result": "Correct. The agreement prohibits personal-device copies of internal-only files. This is now a policy violation with evidence, not a debate.", "next": "interview"},
+                    {"choice": "Decide yourself that it's fine since they're a contractor", "result": "Contractor status doesn't override data classification. Go back and check the actual policy.", "next": "assess-data"}
+                ]
+            },
+            "interview": {
+                "text": "Escalated. The lead asks you to sit in on the contractor interview. What's your role?",
+                "branches": [
+                    {"choice": "Present the facts (timestamps, file paths, policy) neutrally and let the lead run the conversation", "result": "Correct. You bring evidence, not accusations. The facts speak; your job is accuracy.", "next": "followup"},
+                    {"choice": "Open with 'we know you tried to steal our designs'", "result": "Accusations before the interview turn a fact-finding into a confrontation and can taint the process. Go back.", "next": "interview"}
+                ]
+            },
+            "followup": {
+                "text": "Interview done; the contractor claims misunderstanding. Regardless of intent, what changes going forward?",
+                "branches": [
+                    {"choice": "Recommend tightening contractor storage policy (registered devices only, no personal media) and a review of what engineering shares contractors can reach", "result": "Correct. The incident exposed over-broad contractor access — fixing the policy is the durable win, whatever the intent was.", "next": "done"},
+                    {"choice": "Close the ticket — the block worked, so the system is fine", "result": "The block worked this time; the over-broad access that made the attempt possible is still there. Go back and fix the root cause.", "next": "followup"}
+                ]
+            }
+        },
+        "resolution": "Storage Control gave you the gift of a blocked event with full evidence — don't waste it. Preserve first, check policy and data classification, escalate proportionately, and in the interview bring facts, not accusations. The block is the beginning of the response, not the end."
+    },
+    {
+        "id": "IL29-BS-05",
+        "title": "C2 callback blocked: the quiet workstation",
+        "moduleId": "IL29-M06",
+        "start": "Network Control blocked an outbound connection from a marketing workstation to an IP with no domain, on a high port, at 3 AM. No user was logged in. The machine 'seems fine.' It isn't. Work it.",
+        "branches": [
+            {"choice": "Treat the blocked callback as an IOC: pull the process that initiated it and check the host's recent history", "result": "Correct. A 3 AM callback to a bare IP with no user logged in is a textbook C2 pattern. The initiating process is your thread to pull.", "next": "find-patient-zero"},
+            {"choice": "Unblock the IP 'to see what it wanted' — maybe it's a legit service", "result": "You just re-opened a command-and-control channel to watch what happens. That is how you lose. Go back.", "next": "start"},
+                    {"choice": "Ignore it — the block worked, so there's no problem", "result": "The block stopped the callback; it didn't remove the malware making it. Go back and hunt.", "next": "start"}
+        ],
+        "nodes": {
+            "find-patient-zero": {
+                "text": "The initiating process is a scheduled task running a script from the user's temp folder, created two days ago. What's the blast radius?",
+                "branches": [
+                    {"choice": "Check Network Control and Detect history for the same indicators (IP, script name, task name) across the fleet", "result": "Correct. Two more workstations show the same blocked callback pattern. You have a small outbreak, not a single host.", "next": "contain"},
+                    {"choice": "Clean just this one host and close out", "result": "The other two hosts are still beaconing. Always check fleet-wide for the same IOCs. Go back.", "next": "find-patient-zero"}
+                ]
+            },
+            "contain": {
+                "text": "Three hosts affected. Containment order?",
+                "branches": [
+                    {"choice": "Isolate all three from the network, preserve the scheduled tasks and scripts as evidence, escalate to IR with the IOC package", "result": "Correct. Isolate, preserve, escalate with IOCs (IP, script hash, task name) so IR can hunt further.", "next": "close-vector"},
+                    {"choice": "Reimage all three immediately to 'get users back to work'", "result": "Reimaging destroys the evidence IR needs and you haven't confirmed the infection vector — it'll come back. Go back.", "next": "contain"}
+                ]
+            },
+            "close-vector": {
+                "text": "Contained and escalated. IR asks: how did it get in? The script dropped two days ago — what's the likely initial access?",
+                "branches": [
+                    {"choice": "Check the users' email and download history around the drop time for a phishing lure or malicious download, and recommend blocking the delivery vector", "result": "Correct. You find the phishing email with the malicious attachment from two days ago — now IR can block the sender domain and warn the org.", "next": "done"},
+                    {"choice": "Skip it — containment is done, initial access is IR's problem alone", "result": "Containment without closing the entry vector means reinfection. The operator who found it helps kill the vector. Go back.", "next": "close-vector"}
+                ]
+            }
+        },
+        "resolution": "A blocked C2 callback is detection gold: it tells you the malware is present and phoning home. Pull the thread (initiating process), hunt the IOCs fleet-wide (one host is never the whole story), then isolate, preserve evidence, and escalate with an IOC package. Never unblock to 'see what happens' and never reimage before forensics."
+    },
+    {
+        "id": "IL29-BS-06",
+        "title": "The AI triage copilot hallucinates",
+        "moduleId": "IL29-M26",
+        "start": "Your AI triage copilot summarizes a Detect alert: 'Benign — Chrome updater performing routine maintenance.' But the blocked action was chrome.exe launching a script from the temp folder. The AI is confident. You shouldn't be. What now?",
+        "branches": [
+            {"choice": "Distrust the summary and read the raw alert yourself: parent, child, path, hash", "result": "Correct. The raw alert shows the 'updater' is an unsigned binary in temp — nothing like a real Chrome updater. The AI hallucinated a benign story.", "next": "decide-layer"},
+            {"choice": "Accept the AI summary — it's usually right and you're busy", "result": "'Usually right' is how a hallucinated benign verdict lets malware walk past you. The AI doesn't get a vote on verdicts. Go back.", "next": "start"},
+            {"choice": "Immediately isolate the host based on your own read", "result": "Your read says suspicious, but one analyst's read isn't a verdict either — run it through the evaluated decision layer first. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "decide-layer": {
+                "text": "Your read contradicts the AI. The workflow says 'AI proposes, human disposes' with an evaluated decision layer. What does that mean here?",
+                "branches": [
+                    {"choice": "Score the alert against the decision checklist (signed? known path? expected parent? prior baseline?) and make the human verdict", "result": "Correct. Checklist: unsigned, temp path, abnormal parent chain, no baseline. Human verdict: suspicious — isolate and escalate.", "next": "feedback-loop"},
+                    {"choice": "Ask the AI to reconsider and go with its second answer", "result": "Asking the hallucinator to double-check itself is not a control. The human is the decision layer. Go back.", "next": "decide-layer"}
+                ]
+            },
+            "feedback-loop": {
+                "text": "Verdict made: suspicious, host isolated, escalated. The AI was wrong. What do you do about the copilot?",
+                "branches": [
+                    {"choice": "Log the failure with the alert ID, the AI's claim, and the ground truth — feed the evaluation set so the copilot improves", "result": "Correct. Every AI miss is training data for the evaluation loop. That's how 'AI-assisted' stays honest.", "next": "calibrate"},
+                    {"choice": "Turn the copilot off forever — AI can't be trusted", "result": "One failure doesn't invalidate the tool; it invalidates blind trust. The answer is evaluation and guardrails, not abandonment. Go back.", "next": "feedback-loop"}
+                ]
+            },
+            "calibrate": {
+                "text": "Failure logged. Going forward, what's your personal rule for using the copilot on the next shift?",
+                "branches": [
+                    {"choice": "Use summaries for triage ordering, but read the raw alert before any verdict — and spot-check one AI summary per shift against primary evidence", "result": "Correct. That's a calibrated workflow: AI for speed, primary evidence for verdicts, spot-checks to keep the AI honest.", "next": "done"},
+                    {"choice": "Trust the copilot again once the vendor ships an update", "result": "Vendor updates don't remove your verification duty. The guardrail is your workflow, not their release notes. Go back.", "next": "calibrate"}
+                ]
+            }
+        },
+        "resolution": "AI proposes, human disposes: never let a summary override the raw alert. When the AI hallucinates a benign story, read the primary evidence, run your own decision checklist, make the human verdict — then log the miss into the evaluation set. The guardrail isn't 'don't use AI'; it's 'verify every AI claim against primary evidence.'"
+    },
+    {
+        "id": "IL29-BS-07",
+        "title": "Interview curveball: 'Tell me about a time you were wrong'",
+        "moduleId": "IL29-M39",
+        "start": "October 13, 9:00 AM, Orlando. The panel is going well. Then: 'Tell me about a time you were wrong about a security call — and what it cost.' The room goes quiet. Answer it.",
+        "branches": [
+            {"choice": "Give a real STAR story: the wrong call, what it cost, what you changed — specific and owned", "result": "Correct. 'I approved an elevation I shouldn't have during a busy shift; it led to a policy review and now I verify out-of-band on any anomaly.' Honest, specific, growth-showing.", "next": "follow-up"},
+            {"choice": "Say 'I've never really made a wrong security call' and smile", "result": "Nobody believes that, and now they doubt your self-awareness more than your skills. Go back and be real.", "next": "start"},
+            {"choice": "Tell a story where you were secretly right all along", "result": "The humblebrag dodge is transparent to interviewers. They asked for a failure — give them one. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "follow-up": {
+                "text": "They nod. Follow-up: 'Our Cyber Heroes sometimes have to tell an angry customer their app stays blocked. How do you handle that?'",
+                "branches": [
+                    {"choice": "Explain the why in plain language, offer the exception path, stay calm and documented — the customer deserves the reasoning, not just the no", "result": "Correct. That's the support-triage mindset: firm on policy, human in delivery, always a documented path forward.", "next": "close-strong"},
+                    {"choice": "Say you'd unblock it to keep the customer happy", "result": "You just told a zero-trust company you'd bypass zero trust for politeness. Go back.", "next": "follow-up"}
+                ]
+            },
+            "close-strong": {
+                "text": "Last minute. 'Any questions for us?' — your closer.",
+                "branches": [
+                    {"choice": "Ask about the team's hardest triage call this month and what good looks like in the first 90 days", "result": "Correct. It shows operator curiosity and a desire to meet their bar, not just get hired.", "next": "debrief"},
+                    {"choice": "'No, I think you've covered everything!'", "result": "You just left your strongest minute on the table. Always have questions. Go back.", "next": "close-strong"}
+                ]
+            },
+            "debrief": {
+                "text": "You're out of the building. The interview is fresh — what do you capture right now?",
+                "branches": [
+                    {"choice": "Write the debrief immediately: every question asked, your answers, what landed, what you'd sharpen, and the names and roles of each interviewer", "result": "Correct. A same-day debrief is interview gold — it feeds your thank-you notes and your preparation for round two.", "next": "done"},
+                    {"choice": "Relax — you'll remember the important parts later", "result": "You won't. Details decay in hours. Write it now while it's fresh. Go back.", "next": "debrief"}
+                ]
+            }
+        },
+        "resolution": "Curveballs test self-awareness, not perfection: own a real mistake with its cost and your fix (STAR, 60-90 seconds), hold the policy line with angry customers while staying human, and close with questions that prove you think like an operator already on the team."
+    },
+    {
+        "id": "IL29-BS-08",
+        "title": "After the interview: the thank-you timing decision",
+        "moduleId": "IL29-M46",
+        "start": "The October 13 panel went well. You're in the car by 10:30 AM. The thank-you note: when, to whom, and saying what?",
+        "branches": [
+            {"choice": "Send individual thank-you emails this afternoon — one per interviewer, each referencing something specific they said", "result": "Correct. Same-day, specific, individual. It shows attention and professionalism while the conversation is fresh.", "next": "content"},
+            {"choice": "Wait a week so you don't seem desperate", "result": "A week later the note is irrelevant — hiring decisions move in days. Same-day is professional, not desperate. Go back.", "next": "start"},
+            {"choice": "Send one group email to everyone to save time", "result": "A group blast signals low effort. Individual notes with specific references signal genuine engagement. Go back.", "next": "start"}
+        ],
+        "nodes": {
+            "content": {
+                "text": "Writing the notes. What goes in them — and what stays out?",
+                "branches": [
+                    {"choice": "Gratitude, one specific discussion point per person, a brief reaffirmation of fit — no salary talk, no begging, no new claims", "result": "Correct. The note closes the loop on the conversation; it doesn't reopen negotiation.", "next": "follow-through"},
+                    {"choice": "Add 'I'm confident I'm the best candidate and hope to hear about the offer soon'", "result": "Presumptuous and it reframes gratitude as expectation. Keep it professional. Go back.", "next": "content"}
+                ]
+            },
+            "follow-through": {
+                "text": "Notes sent. Now the waiting. What's the disciplined follow-through?",
+                "branches": [
+                    {"choice": "Log the debrief (questions asked, your answers, what you'd improve), follow their stated timeline, one polite check-in if it lapses", "result": "Correct. Debrief while it's fresh, respect their timeline, one check-in max. Then keep preparing — momentum beats waiting.", "next": "round-two"},
+                    {"choice": "Email the recruiter daily for updates", "result": "Daily check-ins read as anxiety, not enthusiasm. One polite follow-up after their timeline lapses. Go back.", "next": "follow-through"}
+                ]
+            },
+            "round-two": {
+                "text": "A week later: the recruiter calls — they want a second round, deeper technical. How do you use everything you've captured?",
+                "branches": [
+                    {"choice": "Re-read your debrief, drill the questions you fumbled, and prepare two new operator stories that show growth since round one", "result": "Correct. Round two rewards the candidate who visibly leveled up between rounds — your debrief is the study guide.", "next": "done"},
+                    {"choice": "Wing it — you already passed round one, so you're fine", "result": "Round two is harder, not a formality. Preparation compounds. Go back.", "next": "round-two"}
+                ]
+            }
+        },
+        "resolution": "Post-interview discipline: individual thank-you notes the same afternoon, each with a specific reference to that interviewer's conversation; no salary talk, no presumption; then a written debrief, respect for their timeline, and at most one polite check-in. Professional persistence, not pressure."
+    },
+]
+
+# ---------------------------------------------------------------- clickSims
+clickSims = [
+    {
+        "id": "IL29-CS-01",
+        "moduleId": "IL29-M02",
+        "tool": "ThreatLocker portal — policy workspace",
+        "title": "Create an allowlist policy for a line-of-business app",
+        "steps": [
+            {"screen": "Portal dashboard; the Policies section is visible in the main navigation.", "instruction": "Open the Policies section and start a new Application Control (allowlisting) policy.", "hotspots": ["Policies section", "new policy control"], "feedback": "A blank new-policy form opens with policy type selection."},
+            {"screen": "New-policy form; policy type options listed.", "instruction": "Choose the Application Control / allowlisting policy type and name the policy after the app and site (e.g. 'LedgerPro - Accounting').", "hotspots": ["Application Control policy type", "policy name field"], "feedback": "The policy editor opens with empty rule sections."},
+            {"screen": "Policy editor; application identity section empty.", "instruction": "Define the application's identity: add the vendor's signed binary by its certificate and record the current file hash.", "hotspots": ["add application", "certificate selector", "hash field"], "feedback": "The application identity is recorded with certificate + hash."},
+            {"screen": "Policy editor; child-process / execution rules section.", "instruction": "Set the child-process rule: decide whether the app may launch other processes, and scope it to the updater only — not a blanket permission.", "hotspots": ["child process rule", "updater exception"], "feedback": "The child-process rule covers the updater explicitly."},
+            {"screen": "Policy editor; computer targeting section.", "instruction": "Target the policy to the Accounting computer group only — not the whole organization.", "hotspots": ["computer group targeting", "Accounting group"], "feedback": "Policy targets the Accounting group."},
+            {"screen": "Policy editor; review pane summarizing the policy.", "instruction": "Review the full policy: identity, child rules, targeting. Then save it in Monitor/Learning mode first, not Enforce.", "hotspots": ["review pane", "mode selector", "save"], "feedback": "Policy saved in Monitor mode; the portal confirms it is staged."},
+            {"screen": "Policy list; the new policy shows 'Monitor' status.", "instruction": "Open the policy's activity view and confirm it is logging what it WOULD block without denying anything.", "hotspots": ["policy status", "activity view"], "feedback": "Monitor-mode hits appear; no user impact."},
+            {"screen": "Activity view after a 48-hour monitor window; clean results.", "instruction": "After the monitor window with no unexpected blocks, switch the policy to Enforce and document the change with date and approver.", "hotspots": ["Enforce mode", "change note"], "feedback": "Policy is enforced; the change is documented."}
+        ]
+    },
+    {
+        "id": "IL29-CS-02",
+        "moduleId": "IL29-M03",
+        "tool": "ThreatLocker portal — policy workspace",
+        "title": "Build a ringfence policy for the company browser",
+        "steps": [
+            {"screen": "Policy list; existing policies visible.", "instruction": "Start a new Ringfencing policy and name it for the browser fleet (e.g. 'Ringfence - Chrome - All Workstations').", "hotspots": ["new policy control", "Ringfencing policy type", "name field"], "feedback": "The ringfence policy editor opens."},
+            {"screen": "Ringfence editor; application targeting empty.", "instruction": "Target the browser application by its signed identity so the ringfence follows the real browser, not just a filename.", "hotspots": ["application targeting", "signed identity"], "feedback": "The browser is targeted by identity."},
+            {"screen": "Ringfence editor; restriction categories listed (execute, registry, file, network).", "instruction": "Block the browser from executing other applications/processes — the classic weaponization path.", "hotspots": ["execute restriction", "deny"], "feedback": "Execution restriction set to deny."},
+            {"screen": "Restriction categories; registry and file sections.", "instruction": "Restrict registry edits and limit file write access to the browser's own profile and download folders.", "hotspots": ["registry restriction", "file path scoping"], "feedback": "Registry and file restrictions scoped."},
+            {"screen": "Network restriction section.", "instruction": "Leave normal web traffic allowed but review the network restriction options for unusual protocols the browser never needs.", "hotspots": ["network restriction review"], "feedback": "Network posture reviewed; unnecessary protocols denied."},
+            {"screen": "Policy editor; targeting and review.", "instruction": "Target the workstation fleet, save in Monitor mode, and verify in the activity view that legitimate browsing is unaffected.", "hotspots": ["fleet targeting", "Monitor mode", "activity view"], "feedback": "Monitor-mode data confirms no legit breakage."},
+            {"screen": "Activity view; one week of clean monitoring.", "instruction": "Promote to Enforce and log the change. Note the test you ran: a scripted browser-launch of a helper app should now be denied.", "hotspots": ["Enforce mode", "change log"], "feedback": "Ringfence enforced; verification test passes."}
+        ]
+    },
+    {
+        "id": "IL29-CS-03",
+        "moduleId": "IL29-M04",
+        "tool": "ThreatLocker portal — elevation policies",
+        "title": "Create a just-in-time elevation policy for IT tools",
+        "steps": [
+            {"screen": "Elevation Control policy list.", "instruction": "Start a new elevation policy for the IT support toolset.", "hotspots": ["new elevation policy"], "feedback": "The elevation policy editor opens."},
+            {"screen": "Application selection.", "instruction": "Add the approved support tools by signed identity — remote support and disk utilities the helpdesk actually uses.", "hotspots": ["add application", "signed identity"], "feedback": "Approved tools listed in the policy."},
+            {"screen": "Elevation scope settings.", "instruction": "Scope elevation to just these applications — not blanket local admin for the user.", "hotspots": ["per-application elevation", "deny blanket admin"], "feedback": "Elevation is per-application, not per-user."},
+            {"screen": "Approver / request workflow settings.", "instruction": "Configure the request workflow: who approves, what justification is required, and the time-box for each grant.", "hotspots": ["approver selection", "justification requirement", "time-box"], "feedback": "Request workflow configured with time-boxed grants."},
+            {"screen": "Audit logging settings.", "instruction": "Confirm every elevation grant is logged with user, application, timestamp, and approver — the audit trail is the point of Elevation Control.", "hotspots": ["audit log toggle", "grant detail fields"], "feedback": "Audit logging confirmed for all grants."},
+            {"screen": "Targeting and review.", "instruction": "Target the helpdesk group, save, and run a test: request elevation for an approved tool and confirm it works, then for an unapproved app and confirm it is denied.", "hotspots": ["group targeting", "save", "test request"], "feedback": "Approved tool elevates; unapproved app is denied. Policy verified."}
+        ]
+    },
+    {
+        "id": "IL29-CS-04",
+        "moduleId": "IL29-M05",
+        "tool": "ThreatLocker portal — storage policies",
+        "title": "Write a USB storage rule for the finance group",
+        "steps": [
+            {"screen": "Storage Control policy list.", "instruction": "Start a new storage policy scoped to removable media for the Finance group.", "hotspots": ["new storage policy", "removable media scope"], "feedback": "The storage policy editor opens."},
+            {"screen": "Device class selection.", "instruction": "Select USB mass-storage devices as the controlled class.", "hotspots": ["USB mass storage class"], "feedback": "Device class selected."},
+            {"screen": "Access rules.", "instruction": "Set the default to deny for personal/unregistered drives; allow only company-registered encrypted drives by device ID.", "hotspots": ["default deny", "registered device allowlist"], "feedback": "Deny-by-default with registered-device exceptions."},
+            {"screen": "Path and share scoping.", "instruction": "Add path rules: block writes of the payroll and PII shares to any removable media regardless of device.", "hotspots": ["path rule", "payroll share", "PII share"], "feedback": "Sensitive-share write blocks in place."},
+            {"screen": "Targeting.", "instruction": "Target the Finance computer group and user group; save in Monitor mode first.", "hotspots": ["Finance group targeting", "Monitor mode"], "feedback": "Policy staged in Monitor mode."},
+            {"screen": "Activity view after monitor window.", "instruction": "Review what would have been blocked, confirm no legitimate workflow breaks, then enforce and notify Finance of the new rule.", "hotspots": ["activity review", "Enforce", "user notification"], "feedback": "Policy enforced; Finance notified."}
+        ]
+    },
+    {
+        "id": "IL29-CS-05",
+        "moduleId": "IL29-M06",
+        "tool": "ThreatLocker portal — network policies",
+        "title": "Configure a dynamic ACL for a database server",
+        "steps": [
+            {"screen": "Network Control policy list.", "instruction": "Start a new network policy for the database server role.", "hotspots": ["new network policy"], "feedback": "The network policy editor opens."},
+            {"screen": "Endpoint targeting.", "instruction": "Target the DB-SERVERS computer group.", "hotspots": ["DB-SERVERS group"], "feedback": "Server group targeted."},
+            {"screen": "Inbound port rules.", "instruction": "Allow the database port inbound only from the application-server group — not from the whole network.", "hotspots": ["inbound rule", "database port", "app-server group"], "feedback": "Inbound scoped to app servers."},
+            {"screen": "Dynamic ACL settings.", "instruction": "Enable dynamic behavior: ports open only while the authorized application session is active, then close automatically.", "hotspots": ["dynamic ACL toggle", "session binding"], "feedback": "Dynamic ACL enabled on the rule."},
+            {"screen": "Egress rules.", "instruction": "Deny unexpected egress (e.g. the DB server initiating outbound connections it never legitimately makes).", "hotspots": ["egress deny rule"], "feedback": "Egress locked down."},
+            {"screen": "Review and staged rollout.", "instruction": "Save in Monitor mode, verify app connectivity is unaffected, then enforce during the maintenance window and document.", "hotspots": ["Monitor mode", "connectivity check", "Enforce"], "feedback": "Policy enforced; connectivity verified."}
+        ]
+    },
+    {
+        "id": "IL29-CS-06",
+        "moduleId": "IL29-M07",
+        "tool": "ThreatLocker portal — Detect console",
+        "title": "Triage a Detect alert queue end to end",
+        "steps": [
+            {"screen": "Detect alert queue; several new alerts listed with severity indicators.", "instruction": "Sort the queue by severity and time; note the count of unacknowledged alerts.", "hotspots": ["severity sort", "unacknowledged filter"], "feedback": "Queue ordered: highest severity first."},
+            {"screen": "Top alert detail view.", "instruction": "Open the highest-severity alert and read it fully: process tree, blocked action, host, user, timestamp.", "hotspots": ["alert detail", "process tree", "blocked action"], "feedback": "Full alert context captured."},
+            {"screen": "Alert detail; related-events view.", "instruction": "Pivot to related events on the same host in the last 24 hours — look for a pattern, not a single event.", "hotspots": ["related events", "host timeline"], "feedback": "Host timeline shows the alert in context."},
+            {"screen": "Disposition controls.", "instruction": "Set the disposition: severity, verdict (malicious-likely / break-fix / benign), and the next step. Acknowledge the alert.", "hotspots": ["severity", "verdict", "acknowledge"], "feedback": "Alert dispositioned and acknowledged."},
+            {"screen": "Escalation workflow.", "instruction": "For the malicious-likely verdict, open the escalation: attach the alert ID, process tree summary, and your notes to the security lead.", "hotspots": ["escalate", "attach evidence"], "feedback": "Escalation filed with evidence attached."},
+            {"screen": "Queue after triage.", "instruction": "Work the remaining alerts the same way; confirm the queue is empty and every alert has a disposition note.", "hotspots": ["remaining alerts", "queue empty check"], "feedback": "Queue clear; all alerts dispositioned."}
+        ]
+    },
+    {
+        "id": "IL29-CS-07",
+        "moduleId": "IL29-M08",
+        "tool": "ThreatLocker portal — Configuration Manager",
+        "title": "Push a centralized Defender policy and detect drift",
+        "steps": [
+            {"screen": "Configuration Manager dashboard; Defender policy templates visible.", "instruction": "Open the Microsoft Defender configuration section and select the standard workstation template.", "hotspots": ["Defender configuration", "workstation template"], "feedback": "The template editor opens."},
+            {"screen": "Template settings: real-time protection, cloud protection, exclusions.", "instruction": "Verify real-time protection and cloud-delivered protection are enabled; review the exclusion list and remove any stale entries.", "hotspots": ["real-time protection", "cloud protection", "exclusions"], "feedback": "Protections enabled; exclusions cleaned."},
+            {"screen": "Targeting.", "instruction": "Target the workstation fleet group and stage the policy.", "hotspots": ["fleet targeting", "stage"], "feedback": "Policy staged for the fleet."},
+            {"screen": "Deployment status view.", "instruction": "Deploy and watch the status view until the fleet reports compliant.", "hotspots": ["deploy", "compliance status"], "feedback": "Fleet reports compliant."},
+            {"screen": "Compliance dashboard; fleet status green.", "instruction": "Confirm the deployment is reflected in the compliance dashboard and record the policy version as the new baseline.", "hotspots": ["compliance dashboard", "baseline version note"], "feedback": "Baseline recorded; dashboard reflects the push."},
+            {"screen": "Drift detection view.", "instruction": "Open the drift view: find any machine whose local Defender settings differ from the pushed policy and remediate from the console.", "hotspots": ["drift view", "remediate"], "feedback": "Drifted machines remediated; fleet consistent."}
+        ]
+    },
+    {
+        "id": "IL29-CS-08",
+        "moduleId": "IL29-M09",
+        "tool": "ThreatLocker portal — computer management",
+        "title": "Onboard a new computer to the portal",
+        "steps": [
+            {"screen": "Computers section; the fleet list is visible.", "instruction": "Open the Computers section and start the new-computer onboarding flow.", "hotspots": ["Computers section", "add computer"], "feedback": "The onboarding flow opens with install options."},
+            {"screen": "Onboarding options: installer download and grouping.", "instruction": "Download the agent installer for the correct OS and assign the machine to its site/group during onboarding.", "hotspots": ["installer download", "site/group assignment"], "feedback": "Installer ready; grouping assigned."},
+            {"screen": "Target machine desktop (fresh install).", "instruction": "Run the installer on the target machine with the grouping token/key provided by the portal.", "hotspots": ["installer execution", "grouping key"], "feedback": "Agent installs and registers."},
+            {"screen": "Portal computers list; the new machine appears.", "instruction": "Confirm the machine appears in the portal with a healthy agent status and correct group.", "hotspots": ["computer entry", "agent health", "group"], "feedback": "Machine registered and healthy."},
+            {"screen": "Policy assignment view for the new machine.", "instruction": "Verify the correct policies applied to the new machine (allowlist, ringfence, elevation, storage, network baselines) and run a quick health check.", "hotspots": ["policy assignment", "health check"], "feedback": "Policies applied; onboarding complete."},
+            {"screen": "New machine desktop; policies confirmed applied.", "instruction": "Run a safe verification test: attempt a known-blocked action (e.g. launching an unapproved test binary) and confirm it is denied and logged.", "hotspots": ["test action", "block confirmation", "event log"], "feedback": "Test action denied and logged - the machine is truly protected."},
+        ]
+    },
+]
+
+# ----------------------------------------------------------------- certGates
+STD_FRAMING = "Independent practice and preparation. Not affiliated with, endorsed by, or sponsored by any vendor or employer; confers no certificate."
+
+certGates = [
+    {
+        "id": "gate-security-plus",
+        "cert": "CompTIA Security+ SY0-701",
+        "trackModule": "IL29-M33",
+        "framing": STD_FRAMING,
+        "format": "Up to 90 questions, 90 minutes, passing score 750/900",
+        "minutes": 90,
+        "questionCount": 90,
+        "domainWeights": [
+            {"domain": "1.0 General Security Concepts", "weight": 0.12, "questions": 11},
+            {"domain": "2.0 Threats, Vulnerabilities & Mitigations", "weight": 0.22, "questions": 20},
+            {"domain": "3.0 Security Architecture", "weight": 0.18, "questions": 16},
+            {"domain": "4.0 Security Operations", "weight": 0.28, "questions": 25},
+            {"domain": "5.0 Security Program Management & Oversight", "weight": 0.20, "questions": 18}
+        ],
+        "readinessRule": "Score 83%+ (750/900 equivalent) on two consecutive timed 90-question practice gates before booking the real exam.",
+        "modules": ["IL29-M01", "IL29-M02", "IL29-M03", "IL29-M04", "IL29-M05", "IL29-M06", "IL29-M07", "IL29-M13", "IL29-M17", "IL29-M18", "IL29-M20", "IL29-M33", "IL29-M41", "IL29-M43"]
+    },
+    {
+        "id": "gate-cysa-plus",
+        "cert": "CompTIA CySA+ CS0-003",
+        "trackModule": "IL29-M34",
+        "framing": STD_FRAMING,
+        "format": "Up to 85 questions (multiple-choice + performance-based), 165 minutes, passing score 750/900",
+        "minutes": 165,
+        "questionCount": 85,
+        "domainWeights": [
+            {"domain": "1.0 Security Operations", "weight": 0.33, "questions": 28},
+            {"domain": "2.0 Vulnerability Management", "weight": 0.30, "questions": 26},
+            {"domain": "3.0 Incident Response Management", "weight": 0.20, "questions": 17},
+            {"domain": "4.0 Reporting and Communication", "weight": 0.17, "questions": 14}
+        ],
+        "readinessRule": "Score 83%+ on two consecutive timed gates including at least 5 scenario/PBQ-style items per attempt before booking.",
+        "modules": ["IL29-M07", "IL29-M11", "IL29-M23", "IL29-M31", "IL29-M34", "IL29-M41", "IL29-M42", "IL29-M43", "IL29-M45"]
+    },
+    {
+        "id": "gate-cissp",
+        "cert": "ISC2 CISSP (2024, 8 domains)",
+        "trackModule": "IL29-M35",
+        "framing": STD_FRAMING,
+        "format": "100-150 computer-adaptive questions, 3 hours, passing score 700/1000",
+        "minutes": 180,
+        "questionCount": 150,
+        "domainWeights": [
+            {"domain": "1. Security and Risk Management", "weight": 0.16, "questions": 24},
+            {"domain": "2. Asset Security", "weight": 0.10, "questions": 15},
+            {"domain": "3. Security Architecture and Engineering", "weight": 0.13, "questions": 19},
+            {"domain": "4. Communication and Network Security", "weight": 0.13, "questions": 20},
+            {"domain": "5. Identity and Access Management", "weight": 0.13, "questions": 20},
+            {"domain": "6. Security Assessment and Testing", "weight": 0.12, "questions": 18},
+            {"domain": "7. Security Operations", "weight": 0.13, "questions": 19},
+            {"domain": "8. Software Development Security", "weight": 0.10, "questions": 15}
+        ],
+        "readinessRule": "Think like a manager, not a technician: score 70%+ on two consecutive 150-question adaptive-style gates with 'best management answer' reasoning before booking.",
+        "modules": ["IL29-M01", "IL29-M13", "IL29-M15", "IL29-M18", "IL29-M20", "IL29-M22", "IL29-M35", "IL29-M41"]
+    },
+    {
+        "id": "gate-gsec",
+        "cert": "GIAC GSEC (Security Essentials)",
+        "trackModule": "IL29-M36",
+        "framing": STD_FRAMING + " GSEC publishes no domain weights, so this gate uses equal practice weighting across study areas and an open-book index drill.",
+        "format": "106 questions, 4 hours, 72% to pass, open-book",
+        "minutes": 240,
+        "questionCount": 106,
+        "domainWeights": [
+            {"domain": "Defense in depth & access control", "weight": 0.20, "questions": 21},
+            {"domain": "Cryptography essentials", "weight": 0.20, "questions": 21},
+            {"domain": "Incident handling & response", "weight": 0.20, "questions": 21},
+            {"domain": "Windows security essentials", "weight": 0.20, "questions": 21},
+            {"domain": "Linux security & network essentials", "weight": 0.20, "questions": 22}
+        ],
+        "readinessRule": "Score 80%+ open-book on two consecutive 106-question gates using ONLY your own built index (no searching the internet) before booking.",
+        "modules": ["IL29-M01", "IL29-M18", "IL29-M20", "IL29-M30", "IL29-M36", "IL29-M41", "IL29-M42"]
+    },
+    {
+        "id": "gate-mit-xpro",
+        "cert": "MIT xPRO Professional Certificate in Cybersecurity (readiness)",
+        "trackModule": "IL29-M38",
+        "framing": "Independent readiness preparation for the 24-week MIT xPRO program (approx. 10-20 hrs/week, 36 CEUs, capstone project). Not affiliated with, endorsed by, or sponsored by MIT; confers no certificate.",
+        "format": "Phase-mapped readiness review: 5 program phases, untimed portfolio and knowledge checks",
+        "minutes": 0,
+        "questionCount": 0,
+        "domainWeights": [
+            {"domain": "Foundational cybersecurity phase", "weight": 0.20, "questions": 0},
+            {"domain": "Defensive cybersecurity phase", "weight": 0.20, "questions": 0},
+            {"domain": "Offensive cybersecurity phase", "weight": 0.20, "questions": 0},
+            {"domain": "NIST frameworks, MITRE ATT&CK & CSA Cloud Controls Matrix", "weight": 0.20, "questions": 0},
+            {"domain": "Capstone project readiness", "weight": 0.20, "questions": 0}
+        ],
+        "readinessRule": "Complete the phase checklist: every phase has a written summary, a worked artifact (lab, plan, or playbook), and a self-scored review before applying to the program.",
+        "modules": ["IL29-M13", "IL29-M14", "IL29-M15", "IL29-M16", "IL29-M17", "IL29-M18", "IL29-M38", "IL29-M41", "IL29-M43", "IL29-M47", "IL29-M48"]
+    },
+    {
+        "id": "gate-google-ibm",
+        "cert": "Google & IBM Cybersecurity Certificates (crosswalk readiness)",
+        "trackModule": "IL29-M37",
+        "framing": "Independent crosswalk preparation for the Google Cybersecurity Professional Certificate and the IBM Cybersecurity Analyst Professional Certificate (both on Coursera). Not affiliated with, endorsed by, or sponsored by Google or IBM; confers no certificate.",
+        "format": "Topic-area crosswalk check: map each certificate's public topic areas to IL-29 modules and self-test per area",
+        "minutes": 0,
+        "questionCount": 0,
+        "domainWeights": [
+            {"domain": "Security foundations & networking", "weight": 0.25, "questions": 0},
+            {"domain": "Linux, SQL & security tools", "weight": 0.25, "questions": 0},
+            {"domain": "Detection, incident response & SIEM thinking", "weight": 0.25, "questions": 0},
+            {"domain": "Governance, risk & communication", "weight": 0.25, "questions": 0}
+        ],
+        "readinessRule": "For each topic area, complete the mapped IL-29 modules and score 80%+ on their quizzes and drills before starting the corresponding certificate course.",
+        "modules": ["IL29-M01", "IL29-M07", "IL29-M18", "IL29-M20", "IL29-M37", "IL29-M41", "IL29-M44"]
+    },
+    {
+        "id": "gate-threatlocker-operator",
+        "cert": "ThreatLocker Operator Readiness (internal, not a vendor certification)",
+        "trackModule": "IL29-M45",
+        "framing": "Internal operator-readiness assessment for the IT Infrastructure Specialist / Cyber Hero support role. This is not a ThreatLocker certification and confers no credential; it measures whether you can do the job's core tasks. Not affiliated with, endorsed by, or sponsored by ThreatLocker.",
+        "format": "Practical operator gate: 8 live triage tickets + 1 policy build, timed at 3 hours",
+        "minutes": 180,
+        "questionCount": 9,
+        "domainWeights": [
+            {"domain": "Allowlisting break-fix triage", "weight": 0.25, "questions": 2},
+            {"domain": "Ringfencing & Detect alert investigation", "weight": 0.25, "questions": 2},
+            {"domain": "Elevation, storage & network control decisions", "weight": 0.25, "questions": 3},
+            {"domain": "Customer communication under pressure", "weight": 0.25, "questions": 2}
+        ],
+        "readinessRule": "Clear all 8 tickets with correct dispositions and build one clean policy in 3 hours, twice in a row, with every action documented. This is the bar for interview-day confidence.",
+        "modules": ["IL29-M02", "IL29-M03", "IL29-M04", "IL29-M05", "IL29-M06", "IL29-M07", "IL29-M10", "IL29-M11", "IL29-M39", "IL29-M45"]
+    },
+]
+
+# ----------------------------------------------------------------- crosswalk
+crosswalk = [
+    {"cert": "CompTIA Security+ SY0-701", "modules": ["IL29-M01", "IL29-M02", "IL29-M03", "IL29-M04", "IL29-M05", "IL29-M06", "IL29-M07", "IL29-M13", "IL29-M17", "IL29-M18", "IL29-M20", "IL29-M33", "IL29-M41", "IL29-M43"], "note": "Independent preparation aligned to the 5 published SY0-701 domains (12/22/18/28/20). Security Operations (28%) is the heaviest lift — M07, M11, M41, M45 carry it."},
+    {"cert": "CompTIA CySA+ CS0-003", "modules": ["IL29-M07", "IL29-M11", "IL29-M23", "IL29-M31", "IL29-M34", "IL29-M41", "IL29-M42", "IL29-M43", "IL29-M45"], "note": "Independent preparation aligned to the 4 published CS0-003 domains. Log analysis, detection statistics, and IR management are the core; M23/M31 give the analyst math."},
+    {"cert": "ISC2 CISSP (2024)", "modules": ["IL29-M01", "IL29-M13", "IL29-M15", "IL29-M18", "IL29-M20", "IL29-M22", "IL29-M35", "IL29-M41"], "note": "Independent preparation aligned to the 8 published 2024 CISSP domains. IL-29 is strongest on architecture, IAM, and operations; pair with dedicated risk-management study for Domain 1 depth."},
+    {"cert": "GIAC GSEC", "modules": ["IL29-M01", "IL29-M18", "IL29-M20", "IL29-M30", "IL29-M36", "IL29-M41", "IL29-M42"], "note": "Independent preparation for the 106-question open-book exam (72% to pass). Build your index from M36 as you go — the index IS the exam strategy."},
+    {"cert": "MIT xPRO Professional Certificate in Cybersecurity", "modules": ["IL29-M13", "IL29-M14", "IL29-M15", "IL29-M16", "IL29-M17", "IL29-M18", "IL29-M38", "IL29-M41", "IL29-M43", "IL29-M47", "IL29-M48"], "note": "Independent readiness for the 24-week program (approx. 10-20 hrs/week, 36 CEUs, capstone). MIT 6.858-concept modules plus the two capstones mirror the program's arc; see https://xpro.mit.edu/courses/course-v1:xPRO-PCCYx/."},
+    {"cert": "Google & IBM Cybersecurity Certificates", "modules": ["IL29-M01", "IL29-M07", "IL29-M18", "IL29-M20", "IL29-M37", "IL29-M41", "IL29-M44"], "note": "Independent crosswalk to both Coursera certificates' public topic areas. Use IL-29 as the deep bench behind the certificates' structured entry path."},
+    {"cert": "ThreatLocker Operator Readiness (internal)", "modules": ["IL29-M02", "IL29-M03", "IL29-M04", "IL29-M05", "IL29-M06", "IL29-M07", "IL29-M10", "IL29-M11", "IL29-M39", "IL29-M45"], "note": "Not a certification — an internal job-readiness bar for the IT Infrastructure Specialist interview (Oct 13, 2026, Orlando). Platform modules plus the live triage shift (M45) and technical drill (M39)."}
+]
+
+# ---------------------------------------------------------------- studyGuide
+studyGuide = {
+    "title": "Study guide: how to work IL-29 in 12 weeks",
+    "totalHours": 0,
+    "totalMinutes": 0,
+    "note": "totalHours/totalMinutes are filled by the assembler from module estimatedMinutes; the 0 values here are placeholders.",
+    "pacing": [
+        "INTERVIEW FAST-TRACK (do first if Oct 13 is near): jump straight to IL29-M39 (technical drill), IL29-M40 (STAR bank), and IL29-M46 (interview-day game plan), then return to Week 1. The interview does not wait for the syllabus.",
+        "Weeks 1-2 — Platform core, IL29-M01 to M08 (~4 modules/week): zero-trust architecture, allowlisting, ringfencing, elevation, storage, network control, Detect, Configuration Manager. Labs in this phase are the job: do every one hands-on.",
+        "Weeks 3-4 — Operations, IL29-M09 to M16: portal administration, Cyber Hero support ops, break-fix runbooks, deployment planning, then MIT 6.858 concepts part 1 (threat models, control hijacking, privilege separation, sandboxing).",
+        "Weeks 5-6 — Deep technical, IL29-M17 to M24: MIT 6.858 part 2 (web security, network/TLS, side channels, authentication, privacy, security economics) plus ML for anomaly detection and LLM security.",
+        "Weeks 7-8 — AI + math, IL29-M25 to M32: AI supply chain, AI-assisted SOC workflows, adversarial ML, then the prereq math spine (discrete math, boolean/bitwise, number theory, probability, linear algebra). Do the math with pencil and paper, not just reading.",
+        "Weeks 9-10 — Certification readiness, IL29-M33 to M40: Security+, CySA+, CISSP, GSEC, Google/IBM crosswalk, MIT xPRO readiness, then the ThreatLocker panel technical drill and STAR bank. Take every cert gate in this window.",
+        "Weeks 11-12 — Field readiness, IL29-M41 to M48: IR lifecycle, forensics, ATT&CK mapping, security awareness, the live Cyber Hero triage shift, interview-day execution, and both capstones. Finish with the operator gate (gate-threatlocker-operator) twice in a row."
+    ],
+    "rules": [
+        "Interview date beats syllabus order: if the panel is within 2 weeks, run the fast-track (M39, M40, M46) first.",
+        "Never skip the hands-on lab — the interview tests what you have done, not what you have read.",
+        "Drills to green before the next module; re-take any quiz below 80%.",
+        "Every break-fix gets a written disposition: cause, fix, and the process change that prevents recurrence.",
+        "Log every AI-assisted triage decision with the evidence you checked — the copilot never gets the final vote.",
+        "Score every cert gate twice in a row before booking any real exam.",
+        "Build the GSEC open-book index as you study; the index is the exam strategy.",
+        "Finish with the operator gate twice consecutively — that is your interview-day confidence bar."
+    ]
+}
+
+# --------------------------------------------------------------- cheatSheets
+cheatSheets = [
+    {
+        "id": "IL29-CH-ZEROTRUST",
+        "title": "Zero-trust principles — one-line memory aids",
+        "moduleId": "IL29-M01",
+        "items": [
+            "Never trust, always verify — every request is authenticated and authorized, every time",
+            "Default-deny: that which is not explicitly allowed is denied — allowlisting is the endpoint enforcement of this",
+            "Assume breach: design as if the attacker is already inside; limit blast radius, not just the perimeter",
+            "Least privilege: every app and user gets the minimum access needed — nothing more, never 'just in case'",
+            "Verify explicitly: identity, device health, and context — not network location",
+            "Policy engine decides, policy administrator executes, policy enforcement point blocks — know the three roles"
+        ]
+    },
+    {
+        "id": "IL29-CH-ALLOWLIST",
+        "title": "Allowlisting operations — one-line memory aids",
+        "moduleId": "IL29-M02",
+        "items": [
+            "Learning Mode baselines, Secured/Monitor enforces — never go straight to Enforce on a new policy",
+            "Identity by hash + certificate + path, in that order of strength — filenames prove nothing",
+            "A patched app is a NEW hash — pre-approve vendor updates or Patch Tuesday becomes ticket Tuesday",
+            "Parent rules do not cover children — updaters and helpers need their own explicit rules",
+            "Monitor-mode first: log what WOULD break for 48+ hours before enforcing",
+            "Every exception gets an expiry date, an approver, and a reason — undocumented exceptions are holes",
+            "Break-fix order: read the blocked action, check the policy, test the exception, document"
+        ]
+    },
+    {
+        "id": "IL29-CH-RINGFENCE",
+        "title": "Ringfencing rules of thumb — one-line memory aids",
+        "moduleId": "IL29-M03",
+        "items": [
+            "Ringfencing answers: 'this app is allowed, but what is it allowed TO DO?'",
+            "Block trusted apps from executing other apps — Word launching PowerShell is the canonical kill",
+            "Browsers, Office, PDF readers get the tightest rings — they face the internet and email",
+            "Restrict four axes: execute, registry, file read/write, network — scope each to what the app truly needs",
+            "A ringfence block is an IOC, not just a ticket — trace the triggering document or download",
+            "Test the ring with a scripted weaponization attempt before you call it done"
+        ]
+    },
+    {
+        "id": "IL29-CH-IR",
+        "title": "Incident response lifecycle — one-line memory aids",
+        "moduleId": "IL29-M41",
+        "items": [
+            "NIST 800-61 order: Preparation, Detection & Analysis, Containment/Eradication/Recovery, Post-Incident Activity",
+            "Scope before you act — one host or a fleet changes everything about containment",
+            "Isolate the session/host, not the server — stop the attacker without creating an outage",
+            "Verify, don't assume: check that blocks held, files open, no ransom notes — then declare",
+            "Preserve evidence before reimaging — reimage destroys the forensics IR needs",
+            "Every incident ends with a timeline, lessons learned, and hardening actions — or it will repeat",
+            "Escalate up the chain with facts (what, scope, containment, verification) — never all-staff panic emails"
+        ]
+    },
+    {
+        "id": "IL29-CH-CRYPTO",
+        "title": "Crypto math formulas — one-line memory aids",
+        "moduleId": "IL29-M30",
+        "items": [
+            "gcd via Euclid: gcd(a,b) = gcd(b, a mod b) — the workhorse under RSA key generation",
+            "Modular arithmetic: (a*b) mod m = ((a mod m)*(b mod m)) mod m — keeps numbers small",
+            "Euler's theorem: a^phi(n) = 1 mod n for coprime a,n — why RSA decryption undoes encryption",
+            "RSA: pick primes p,q; n=pq; phi=(p-1)(q-1); choose e coprime to phi; d = e^-1 mod phi; encrypt c=m^e mod n, decrypt m=c^d mod n",
+            "Diffie-Hellman: both sides compute g^(ab) mod p from exchanged g^a, g^b — shared secret, no shared secret sent",
+            "Hashing is one-way (SHA-256 for file identity); encryption is reversible with the key — don't confuse them",
+            "Salts defeat rainbow tables; work factors (bcrypt/Argon2) defeat brute force — passwords need both ideas"
+        ]
+    },
+    {
+        "id": "IL29-CH-ATTACK",
+        "title": "MITRE ATT&CK tactic order — one-line memory aids",
+        "moduleId": "IL29-M43",
+        "items": [
+            "Tactic order: Reconnaissance -> Resource Development -> Initial Access -> Execution -> Persistence -> Privilege Escalation -> Defense Evasion -> Credential Access -> Discovery -> Lateral Movement -> Collection -> Command and Control -> Exfiltration -> Impact",
+            "IOCs are artifacts (hashes, IPs); IOAs are behaviors (Word->PowerShell) — behaviors survive infrastructure changes",
+            "Map every blocked action to a tactic: it turns 'we blocked X' into a story executives understand",
+            "Ringfencing kills Execution and Defense Evasion; Network Control kills Lateral Movement and C2; Storage Control kills Exfiltration",
+            "Initial Access is usually phishing or external remote services — M44 and M06 are your shields there",
+            "When triaging, ask 'which tactic is the attacker ON?' — it tells you what comes next"
+        ]
+    },
+]
+
+# -------------------------------------------------------------- honestyNote
+honestyNote = ("This is an independent preparation and practice course aligned to publicly published exam objectives and "
+    "a real interview experience. It is not affiliated with, endorsed by, or sponsored by ThreatLocker, MIT xPRO, MIT OpenCourseWare, "
+    "CompTIA, ISC2, GIAC, SANS, Google, or IBM; it confers no certificate and grants no credentials. "
+    "Exam facts (domains, weights, question counts, durations, passing scores, program lengths and prices) reflect publicly published "
+    "objectives and program descriptions as of October 2026 — always verify against the vendor's current published objectives before booking. "
+    "ThreatLocker product descriptions reflect publicly documented platform capabilities; portal workflows are taught generically and no "
+    "affiliation with ThreatLocker is claimed. Hours are honest estimates from the module workload formula.")
+
+# -------------------------------------------------------------- objectives
+objectives = [
+    "Operate a zero-trust endpoint defense platform at operator depth: allowlisting, ringfencing, elevation control, storage control, network control, Detect triage, and centralized Defender configuration.",
+    "Triage blocked actions like a Cyber Hero: read the denied event, classify severity, investigate the process tree, disposition every alert, and escalate with evidence.",
+    "Run break-fix under default-deny: diagnose hash-mismatch and policy breaks, scope the impact, fix through the exception workflow, and close the loop with process changes.",
+    "Execute the incident response lifecycle (NIST 800-61): scope, contain, verify, preserve evidence, escalate, and write post-incident reports with hardening actions.",
+    "Apply MIT 6.858 computer-security concepts — threat models, control hijacking, privilege separation, sandboxing, web security, TLS, side channels, authentication, privacy, security economics — to endpoint defense decisions.",
+    "Build and evaluate ML anomaly detectors and use AI triage copilots safely: AI proposes, the human disposes, and every AI claim is verified against primary evidence.",
+    "Use the prereq math spine (logic, boolean/bitwise, number theory, probability, linear algebra) to reason about policies, crypto, and detection statistics including Bayes' theorem for alert triage.",
+    "Prepare independently for CompTIA Security+ SY0-701, CySA+ CS0-003, ISC2 CISSP, GIAC GSEC, the MIT xPRO Professional Certificate in Cybersecurity, and the Google/IBM cybersecurity certificates — aligned to their publicly published objectives.",
+    "Map adversary behavior to MITRE ATT&CK tactics and explain 'why we blocked this' to technical and non-technical stakeholders.",
+    "Walk into the ThreatLocker IT Infrastructure Specialist panel interview with operator-grade technical depth, STAR behavioral stories from real history, and a same-day execution plan."
+]
+
+# ---------------------------------------------------------------------- arc
+arc = ("IL-29 takes you from zero-trust theory to operator reality: first you master each ThreatLocker module as a working "
+    "tool, then you learn to run it under pressure through break-fix triage, Detect alert queues, and live incident scenarios. "
+    "MIT 6.858 concepts, AI-assisted SOC workflows, and the prereq math spine give you the reasoning depth behind every policy decision, "
+    "while the certification tracks and the ThreatLocker panel simulation convert that depth into credentials and a job offer. "
+    "You finish with two portfolio capstones and an operator gate you can clear twice in a row — the bar for interview-day confidence.")
+
+tagline = "Zero-trust endpoint defense at operator depth — ThreatLocker mastery, MIT-grade security reasoning, AI-augmented triage, and interview-day readiness."
+
+blurb = ("IL-29 is a cybersecurity mastery bootcamp built around zero-trust endpoint defense: you will operate allowlisting, "
+    "ringfencing, elevation control, storage control, network control, and Detect triage the way a Cyber Hero support operator does — "
+    "under pressure, with evidence, and with every decision documented. MIT 6.858 computer-security concepts, machine-learning anomaly "
+    "detection, and the prereq math spine give your decisions first-principles depth, while independent-preparation tracks for Security+, "
+    "CySA+, CISSP, GSEC, MIT xPRO, and the Google/IBM certificates convert that depth into credentials. The course culminates in a "
+    "ThreatLocker panel interview simulation and two portfolio capstones, so you walk into the October 13 interview already operating "
+    "at the job's bar.")
+
+# ---------------------------------------------------------------- assembly
+batch_g = {
+    "terminalSims": terminalSims,
+    "branchingScenarios": branchingScenarios,
+    "clickSims": clickSims,
+    "certGates": certGates,
+    "crosswalk": crosswalk,
+    "studyGuide": studyGuide,
+    "cheatSheets": cheatSheets,
+    "honestyNote": honestyNote,
+    "objectives": objectives,
+    "arc": arc,
+    "tagline": tagline,
+    "blurb": blurb,
+}
+
+with open(OUT, "w") as f:
+    json.dump(batch_g, f, indent=1, ensure_ascii=False)
+    f.write("\n")
+
+# ---------------------------------------------------------------- validation
+d = json.load(open(OUT))
+print("top-level keys:", list(d.keys()))
+counts = {
+    "terminalSims": len(d["terminalSims"]),
+    "branchingScenarios": len(d["branchingScenarios"]),
+    "clickSims": len(d["clickSims"]),
+    "certGates": len(d["certGates"]),
+    "crosswalk": len(d["crosswalk"]),
+    "cheatSheets": len(d["cheatSheets"]),
+    "objectives": len(d["objectives"]),
+}
+print("counts:", counts)
+assert counts["terminalSims"] == 10, "terminalSims"
+assert counts["branchingScenarios"] == 8, "branchingScenarios"
+assert counts["clickSims"] == 8, "clickSims"
+assert counts["certGates"] == 7, "certGates"
+assert counts["cheatSheets"] == 6, "cheatSheets"
+assert 8 <= counts["objectives"] <= 10, "objectives"
+
+# shape checks
+for t in d["terminalSims"]:
+    assert set(["id","title","moduleId","prompt","script","expected","answer"]) <= set(t.keys()), t["id"]
+    assert t["moduleId"].startswith("IL29-M") and 1 <= int(t["moduleId"][6:]) <= 48, t["id"]
+for b in d["branchingScenarios"]:
+    assert set(["id","title","moduleId","start","branches","resolution"]) <= set(b.keys()), b["id"]
+    for br in b["branches"]:
+        assert set(["choice","result","next"]) <= set(br.keys())
+    nodes = b.get("nodes", {})
+    assert 3 <= len(nodes) <= 5, b["id"] + " nodes"
+for c in d["clickSims"]:
+    assert set(["id","moduleId","tool","title","steps"]) <= set(c.keys()), c["id"]
+    assert 6 <= len(c["steps"]) <= 10, c["id"] + " steps"
+    for s in c["steps"]:
+        assert set(["screen","instruction","hotspots","feedback"]) <= set(s.keys()), c["id"]
+for g in d["certGates"]:
+    assert set(["id","cert","trackModule","framing","format","minutes","questionCount","domainWeights","readinessRule"]) <= set(g.keys()), g["id"]
+    for dw in g["domainWeights"]:
+        assert set(["domain","weight","questions"]) <= set(dw.keys()), g["id"]
+for s in d["cheatSheets"]:
+    assert set(["id","title","moduleId","items"]) <= set(s.keys()), s["id"]
+assert isinstance(d["studyGuide"], dict) and set(["title","totalHours","totalMinutes","pacing","rules"]) <= set(d["studyGuide"].keys())
+assert d["studyGuide"]["totalHours"] == 0 and d["studyGuide"]["totalMinutes"] == 0
+for x in d["crosswalk"]:
+    assert set(["cert","modules","note"]) <= set(x.keys())
+for k in ["honestyNote","arc","tagline","blurb"]:
+    assert isinstance(d[k], str) and len(d[k]) > 0, k
+
+# no invented portal button labels audit: flag risky exact-label claims
+import re
+risky = re.findall(r'"(?:Click|click) [A-Z][a-zA-Z ]+"', json.dumps(d))
+print("risky label patterns:", risky[:5])
+
+print("ALL VALIDATION PASSED")

@@ -1,0 +1,96 @@
+/* IL sequence builder kit — shared styles for self-checks, progress, labs, SVG figures,
+   math markup, honest-framing notes, and the scenario-exam mount. Loaded alongside
+   /assets/il-unified.css on sequence pages. Vanilla, offline-capable. */
+
+/* ---------- progress ---------- */
+.il-progress { border: 1px solid rgba(232,238,245,.12); border-radius: 1rem; padding: 1.1rem 1.25rem; margin: 0 0 1.75rem; background: rgba(7,11,22,.55); }
+.il-progress__top { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+.il-progress__label { font-family: "Space Grotesk", Inter, sans-serif; text-transform: uppercase; letter-spacing: .18em; font-size: .68rem; color: #7ed4e0; }
+.il-progress__pct { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .78rem; color: rgba(232,238,245,.75); }
+.il-progress__track { height: .55rem; border-radius: 999px; background: rgba(232,238,245,.1); margin: .8rem 0 1rem; overflow: hidden; }
+.il-progress__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7ed4e0, #c9a227); transition: width .4s ease; }
+.il-progress__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.il-progress__list li { display: flex; align-items: center; gap: .55rem; font-size: .82rem; color: rgba(232,238,245,.65); }
+.il-progress__list li.is-done { color: #e8eef5; }
+.il-progress__dot { display: inline-flex; width: 1.45rem; height: 1.45rem; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid rgba(232,238,245,.25); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .68rem; }
+li.is-done .il-progress__dot { background: #7ed4e0; border-color: #7ed4e0; color: #070b14; font-weight: 700; }
+.il-module-done { margin-top: 1.25rem; }
+.il-module-done.is-done { border-color: #7ed4e0; color: #7ed4e0; }
+
+/* ---------- interactive self-check ---------- */
+.il-check { border: 1px solid rgba(232,238,245,.12); border-radius: 1rem; padding: 1.25rem; margin: 1.5rem 0; background: rgba(7,11,22,.45); }
+.il-check__title { margin: .35rem 0 .25rem; font-size: 1.05rem; }
+.il-check__meta { font-size: .78rem; color: rgba(232,238,245,.6); font-family: "JetBrains Mono", ui-monospace, monospace; }
+.il-check__item { margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px dashed rgba(232,238,245,.12); }
+.il-check__stem { margin: 0 0 .7rem; font-size: .98rem; line-height: 1.55; }
+.il-check__num { display: inline-flex; width: 1.6rem; height: 1.6rem; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid rgba(126,212,224,.4); color: #7ed4e0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .7rem; margin-right: .4rem; }
+.il-check__choices { display: grid; gap: .5rem; }
+.il-check__choice { appearance: none; cursor: pointer; text-align: left; border-radius: .7rem; border: 1px solid rgba(232,238,245,.12); background: rgba(7,11,22,.65); color: #e8eef5; padding: .7rem .9rem; font-size: .9rem; line-height: 1.5; }
+.il-check__choice:hover:not([disabled]) { border-color: rgba(126,212,224,.45); }
+.il-check__choice[disabled] { cursor: default; }
+.il-check__choice.is-correct { border-color: rgba(126,212,224,.7); background: rgba(126,212,224,.08); }
+.il-check__choice.is-wrong { border-color: rgba(248,113,113,.6); background: rgba(248,113,113,.06); }
+.il-check__choice.is-dim { opacity: .55; }
+.il-check__key { display: inline-flex; width: 1.4rem; height: 1.4rem; align-items: center; justify-content: center; margin-right: .45rem; border-radius: 999px; border: 1px solid rgba(126,212,224,.35); color: #7ed4e0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .68rem; }
+.il-check__feedback { margin-top: .7rem; border-radius: .7rem; padding: .7rem .9rem; font-size: .87rem; line-height: 1.55; }
+.il-check__feedback.is-ok { border: 1px solid rgba(126,212,224,.35); background: rgba(126,212,224,.06); }
+.il-check__feedback.is-no { border: 1px solid rgba(248,113,113,.3); background: rgba(248,113,113,.05); }
+.il-check__foot { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.1rem; }
+.il-check__keylist { margin: 1rem 0 0; padding-left: 1.25rem; font-size: .86rem; line-height: 1.6; }
+.il-check__keylist li { margin-bottom: .55rem; }
+.il-check__why { color: rgba(232,238,245,.65); }
+
+/* ---------- SVG figures ---------- */
+.il-figure { margin: 1.4rem 0; border: 1px solid rgba(232,238,245,.1); border-radius: 1rem; padding: 1rem; background: rgba(7,11,22,.4); }
+.il-figure svg { display: block; width: 100%; height: auto; }
+.il-figure figcaption { margin-top: .7rem; font-size: .8rem; line-height: 1.55; color: rgba(232,238,245,.62); }
+.il-figure .il-fig-tag { display: inline-block; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .62rem; text-transform: uppercase; letter-spacing: .18em; color: #7ed4e0; margin-bottom: .25rem; }
+
+/* ---------- in-browser labs ---------- */
+.il-lab { border: 1px solid rgba(201,162,39,.3); border-radius: 1rem; padding: 1.25rem; margin: 1.5rem 0; background: rgba(201,162,39,.04); }
+.il-lab__title { margin: .35rem 0 .5rem; font-size: 1.02rem; }
+.il-lab p { font-size: .9rem; line-height: 1.6; color: rgba(232,238,245,.82); }
+.il-lab label { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(232,238,245,.6); margin: .9rem 0 .35rem; }
+.il-lab input[type="text"], .il-lab input[type="number"], .il-lab select, .il-lab textarea { width: 100%; box-sizing: border-box; background: #070b16; border: 1px solid rgba(232,238,245,.18); border-radius: .6rem; color: #e8eef5; padding: .65rem .8rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .88rem; }
+.il-lab textarea { min-height: 5rem; resize: vertical; }
+.il-lab__row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .9rem; }
+.il-lab__out { margin-top: .9rem; border-radius: .7rem; padding: .8rem 1rem; font-size: .88rem; line-height: 1.6; display: none; }
+.il-lab__out.show { display: block; }
+.il-lab__out.is-ok { border: 1px solid rgba(126,212,224,.4); background: rgba(126,212,224,.07); }
+.il-lab__out.is-no { border: 1px solid rgba(248,113,113,.35); background: rgba(248,113,113,.06); }
+.il-lab__out.is-info { border: 1px solid rgba(232,238,245,.16); background: rgba(7,11,22,.5); }
+.il-lab table { border-collapse: collapse; margin: .7rem 0; font-size: .84rem; }
+.il-lab th, .il-lab td { border: 1px solid rgba(232,238,245,.16); padding: .4rem .6rem; text-align: left; }
+.il-lab th { background: rgba(232,238,245,.06); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+
+/* ---------- math markup ---------- */
+.math { font-family: "Latin Modern Math", "STIX Two Math", Georgia, serif; font-style: italic; white-space: nowrap; }
+.math sub, .math sup { font-size: .68em; font-style: normal; }
+.il-matrix { display: inline-grid; border-left: 2px solid rgba(232,238,245,.55); border-right: 2px solid rgba(232,238,245,.55); border-radius: .5rem; padding: .35rem .7rem; gap: .15rem .9rem; font-family: Georgia, serif; font-style: italic; vertical-align: middle; margin: 0 .35rem; }
+.il-def { border-left: 3px solid #7ed4e0; padding: .6rem 1rem; margin: 1rem 0; background: rgba(126,212,224,.05); border-radius: 0 .7rem .7rem 0; font-size: .92rem; line-height: 1.65; }
+.il-def strong { font-style: normal; }
+.il-worked { border: 1px dashed rgba(232,238,245,.18); border-radius: .8rem; padding: 1rem 1.1rem; margin: 1rem 0; font-size: .9rem; line-height: 1.7; }
+.il-worked .il-worked__tag { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .62rem; text-transform: uppercase; letter-spacing: .18em; color: #c9a227; display: block; margin-bottom: .4rem; }
+
+/* ---------- honest framing ---------- */
+.il-honest { border: 1px solid rgba(232,238,245,.14); border-radius: .8rem; padding: .9rem 1.1rem; font-size: .82rem; line-height: 1.65; color: rgba(232,238,245,.68); margin: 1.5rem 0; background: rgba(7,11,22,.4); }
+.il-honest strong { color: #e8eef5; }
+
+/* ---------- continue footer ---------- */
+.il-continue { border: 1px solid rgba(126,212,224,.3); border-radius: 1rem; padding: 1.5rem; margin: 2rem 0 0; background: linear-gradient(135deg, rgba(126,212,224,.06), rgba(201,162,39,.05)); }
+.il-continue h2 { margin: .3rem 0 .6rem; font-size: 1.4rem; }
+.il-continue p { font-size: .92rem; color: rgba(232,238,245,.78); line-height: 1.65; }
+.il-continue__row { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1rem; }
+
+/* ---------- scenario exam mount (local copy of the exam styles) ---------- */
+.il-exam-choices { display: grid; gap: .55rem; }
+.il-exam-choice { appearance: none; cursor: pointer; text-align: left; border-radius: .85rem; border: 1px solid rgba(232,238,245,.12); background: rgba(7,11,22,.65); color: #e8eef5; padding: .85rem 1rem; font-size: .95rem; line-height: 1.5; }
+.il-exam-choice:hover { border-color: rgba(126,212,224,.4); }
+.il-exam-key { display: inline-flex; width: 1.5rem; height: 1.5rem; align-items: center; justify-content: center; margin-right: .4rem; border-radius: 999px; border: 1px solid rgba(126,212,224,.35); color: #7ed4e0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .7rem; }
+.il-exam-remediate { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; }
+.il-exam-miss { border-radius: .85rem; border: 1px solid rgba(248,113,113,.25); background: rgba(248,113,113,.05); padding: .9rem 1rem; }
+
+@media (max-width: 480px) {
+  .il-check, .il-lab, .il-figure { padding: .9rem; }
+  .il-progress__list { grid-template-columns: 1fr; }
+}

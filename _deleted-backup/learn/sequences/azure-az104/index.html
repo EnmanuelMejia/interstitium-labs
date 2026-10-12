@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Azure Administrator (AZ-104) | Interstitium Labs</title>
+<meta name="description" content="An original study guide for the Azure Administrator (AZ-104) domain: Entra identity, RBAC and policy, storage, compute, virtual networking, monitoring, backup and disaster recovery, and administration tooling — keyed to Microsoft Learn."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/azure-az104/"
+<meta property="og:title" content="Azure Administrator (AZ-104) | Interstitium Labs"/>
+<meta property="og:description" content="An original study guide for the Azure Administrator (AZ-104) domain: Entra identity, RBAC and policy, storage, compute, virtual networking, monitoring, backup and disaster recovery, and administration tooling — keyed to Microsoft Learn."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/azure-az104/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:type" content="website"/>/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600&amp;700&amp;display=swap"/>
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+
+<style>
+/* IL student-journey lab widgets (builder: cloud sequences) */
+.il-lab-widget{border:1px solid rgba(216,169,78,.28);border-radius:14px;padding:1.1rem 1.2rem;margin:1.4rem 0;background:rgba(19,28,51,.55)}
+.il-lab-widget .il-eyebrow{margin:0 0 .6rem}
+.il-widget-qtext{margin:.4rem 0 .8rem}
+.il-widget-opts{display:grid;gap:.5rem;margin:.6rem 0}
+.il-widget-opt{display:flex;gap:.6rem;align-items:baseline;text-align:left;background:rgba(10,15,29,.6);border:1px solid rgba(124,141,176,.35);color:#f2ede1;border-radius:10px;padding:.6rem .8rem;cursor:pointer;font:inherit;width:100%}
+.il-widget-opt:hover:not(:disabled){border-color:#d8a94e}
+.il-widget-opt:disabled{cursor:default;opacity:.92}
+.il-widget-opt--ok{border-color:#57c7d4;background:rgba(87,199,212,.12)}
+.il-widget-opt--bad{border-color:#e06c5b;background:rgba(224,108,91,.10)}
+.il-widget-opt--ans{border-color:#57c7d4}
+.il-widget-opt--picked{border-color:#d8a94e;background:rgba(216,169,78,.12)}
+.il-widget-key{display:inline-block;min-width:1.6em;text-align:center;border:1px solid rgba(124,141,176,.5);border-radius:6px;padding:.05em .35em;font-size:.8em;color:#9aa3b8}
+.il-widget-fb{margin:.8rem 0;padding:.7rem .9rem;border-radius:10px;display:none}
+.il-widget-fb--ok{display:block;border:1px solid rgba(87,199,212,.4);background:rgba(87,199,212,.08)}
+.il-widget-fb--bad{display:block;border:1px solid rgba(224,108,91,.4);background:rgba(224,108,91,.08)}
+.il-widget-why{font-size:.92em;color:#9aa3b8;margin:.5rem 0 0}
+.il-widget-input{width:100%;background:#0a0f1d;border:1px solid rgba(124,141,176,.4);border-radius:10px;color:#f2ede1;font-family:ui-monospace,monospace;font-size:.9em;padding:.7rem;margin:.5rem 0}
+.il-widget-code{background:#0a0f1d;border:1px solid rgba(124,141,176,.35);border-radius:10px;padding:.9rem;overflow-x:auto;font-size:.85em;margin:.6rem 0;white-space:pre}
+.il-widget-seq{font-size:.9em;color:#9aa3b8;min-height:1.6em}
+.il-widget-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.il-checks details{border:1px solid rgba(124,141,176,.25);border-radius:10px;margin:.5rem 0;background:rgba(19,28,51,.4)}
+.il-checks summary{cursor:pointer;padding:.7rem .9rem;font-weight:600;list-style:none}
+.il-checks summary::-webkit-details-marker{display:none}
+.il-checks summary::before{content:"▸ ";color:#d8a94e}
+.il-checks details[open] summary::before{content:"▾ "}
+.il-checks .il-check-a{padding:0 .9rem .9rem;color:#c9cfdd}
+.il-checklist details{border:1px solid rgba(216,169,78,.3);border-radius:10px;margin:.5rem 0;background:rgba(19,28,51,.4)}
+.il-checklist summary{cursor:pointer;padding:.7rem .9rem;font-weight:600}
+.il-checklist .il-check-a{padding:0 .9rem .9rem;color:#c9cfdd}
+.il-mod-done{margin:1rem 0 0;background:transparent;border:1px dashed rgba(216,169,78,.5);color:#d8a94e;border-radius:999px;padding:.5rem 1.1rem;cursor:pointer;font:inherit;font-size:.85em}
+.il-mod-done--on{border-style:solid;background:rgba(216,169,78,.12)}
+.il-progress-line{margin-top:1rem;color:#9aa3b8}
+.il-progress-bar{height:8px;border-radius:99px;background:rgba(124,141,176,.2);margin-top:.5rem;overflow:hidden}
+.il-progress-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#d8a94e,#57c7d4);transition:width .4s}
+.il-syllabus{margin:1rem 0 0;padding-left:1.2rem;color:#c9cfdd;font-size:.93em}
+.il-syllabus li{margin:.35rem 0}
+.il-syllabus .il-time{color:#d8a94e;font-size:.85em;white-space:nowrap}
+</style>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/paths/">Paths</a>
+      <a href="/prep/drills/">Practice</a>
+      
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/paths/">Paths</a>
+          <a href="/prep/drills/">Practice</a>
+          
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/ loading="lazy" width="640" height="640"></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Study Sequence &middot; Cloud Administration · Microsoft Azure</p>
+    <h1 class="il-h">Azure Administrator (AZ-104)</h1>
+    <p class="il-hero__sub">Identity, governance, storage, compute, networking, monitoring, and recovery — the working administrator's map of Microsoft Azure.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#overview">Start the sequence</a>
+      <a class="il-btn" href="/learn/">All sequences</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <!-- Overview -->
+  <section class="il-section" id="overview" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What you will learn, and how.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Microsoft Azure is a public cloud platform: compute, storage, networking, and identity delivered as services you provision through the portal, the command line, or infrastructure-as-code. The administrator's job is to make those services correct, secure, observable, and recoverable — and to do it repeatedly, at scale, without click-ops heroics.</p>
+        <p>This sequence follows the AZ-104 administrator domain in a practitioner's order. You begin with identity, because everything in Azure is gated by Microsoft Entra ID: users, groups, licenses, Conditional Access, MFA. Then governance — the management-group, subscription, and resource-group hierarchy plus RBAC, policy, locks, and tags — the guardrails that keep a tenant sane. Storage and compute come next: choosing the right account kinds, replication, VM families, scale sets, and App Service. Virtual networking follows, then monitoring and alerting with Azure Monitor and KQL, then backup and disaster recovery, and finally the tooling craft: CLI, PowerShell, Bicep, cost management, and an exam-day strategy.</p>
+        <p>Everything here is keyed to Microsoft Learn, which is authoritative for exact portal behavior, CLI syntax, and current service details. This page teaches the concepts and the judgment; Learn supplies the canonical reference.</p>
+        <h3>Who this sequence is for</h3>
+        <ul>
+          <li>System administrators moving on-premises Windows or hybrid workloads to Azure.</li>
+          <li>IT professionals preparing for the AZ-104 certification as working administrators, not just exam-takers.</li>
+          <li>Engineers who already understand networking and OS fundamentals and need the Azure-specific control plane.</li>
+        </ul>
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Familiarity with core IT concepts: virtual machines, DNS, TCP/IP subnets, and Active Directory basics.</li>
+          <li>An Azure free account for the labs — nearly every lab here can run on free-tier or low-cost resources; set a budget alert before you start.</li>
+          <li>Comfort with either Bash or PowerShell for the CLI labs.</li>
+        </ul>
+        <h3>How to use it</h3>
+        <ul>
+          <li>Work the modules in order; identity and governance underpin everything after them.</li>
+          <li>Do the labs in a dedicated lab subscription you can tear down. Azure bills by the meter — the budget-alert lab exists for a reason.</li>
+          <li>For each module, write the &quot;on paper&quot; artifacts (policy statements, DR plans, KQL queries) before touching the portal. Design first, click second.</li>
+          <li>Verify every CLI command and portal flow against current Microsoft Learn documentation; the cloud moves and this guide teaches concepts, not click paths.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  <!-- Modules -->
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">8 modules, in order.</h2>
+      </div><p class="il-progress-line" data-il-progress>Loading progress…</p><div class="il-progress-bar" aria-hidden="true"><i></i></div><ol class="il-syllabus"><li><a href="#module-1">Module 1 — Entra Identity Foundation</a> <span class="il-time">~50 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to explain tenant structure, license gates, Conditional Access design, and hybrid identity options.</span></li><li><a href="#module-2">Module 2 — Governance: Subscriptions, RBAC, and Policy</a> <span class="il-time">~55 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to design the management-group hierarchy, assign least-privilege RBAC, and enforce standards with policy.</span></li><li><a href="#module-3">Module 3 — Storage Engineering</a> <span class="il-time">~50 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to choose account kinds, replication, and tiers, and secure data with SAS and network controls.</span></li><li><a href="#module-4">Module 4 — Compute: VMs, Scale Sets, and App Service</a> <span class="il-time">~60 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to size VMs, design availability, configure VMSS autoscale, and deploy to App Service with slots.</span></li><li><a href="#module-5">Module 5 — Virtual Networking</a> <span class="il-time">~60 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to design VNet addressing, write NSG rules, connect networks, and choose load-balancing services.</span></li><li><a href="#module-6">Module 6 — Monitoring and Alerting</a> <span class="il-time">~55 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to build a metrics/logs baseline, write KQL, and design alert rules that do not page needlessly.</span></li><li><a href="#module-7">Module 7 — Backup and Disaster Recovery</a> <span class="il-time">~45 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to design backup policies, perform restores, and harden vaults against ransomware.</span></li><li><a href="#module-8">Module 8 — Administration Tooling and Exam Execution</a> <span class="il-time">~40 min</span><br/><span style="color:#9aa3b8;font-size:.88em">You will be able to script with az CLI, deploy Bicep with what-if review, and manage cost and exam pacing.</span></li></ol>
+      <div class="il-modules">
+        <article class="il-module" id="module-1">
+          <p class="il-eyebrow">Module 1</p>
+          <h3 class="il-h il-h--card">Entra Identity Foundation</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 278" width="100%" role="img" aria-label="Conditional Access decision flow" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr20339" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="135.0" y1="62.0" x2="300.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr20339)"/><text x="217.5" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">sign-in signals</text><line x1="380.0" y1="62.0" x2="545.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr20339)"/><text x="462.5" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">decision</text><path d="M340.0,102.0 Q310.0,132.0 340.0,162.0" fill="none" stroke="#d8a94e" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr20339)"/><text x="325.0" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">try first</text><rect x="20" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="95.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">User / Guest</text><text x="95.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">member vs B2B identity</text><rect x="255" y="20" width="170" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="340.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Conditional Access</text><text x="340.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">policy engine</text><rect x="510" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="585.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Grant control</text><text x="585.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">allow · MFA · block</text><rect x="255" y="160" width="170" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="340.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Report-only test</text><text x="340.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">validate before enforce</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Conditional Access decision flow — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Create and manage users, groups, and external guest accounts in Microsoft Entra ID.</li>
+            <li>Explain how licenses gate features like Conditional Access and Privileged Identity Management.</li>
+            <li>Describe hybrid identity concepts: password hash sync, pass-through auth, federation, and Seamless SSO.</li>
+            <li>Configure multifactor authentication enforcement for administrator accounts.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Tenant, directory, and administrative units</h5>
+          <p>A Microsoft Entra tenant is the dedicated instance of the identity service for your organization — the security boundary that holds your users, groups, and applications. The directory is the store itself; the tenant is your organization's isolated instance of it.</p>
+          <p>Administrative units let you delegate administration over a subset of users, groups, or devices without granting tenant-wide roles. They are how large organizations give a regional IT team control over their own people while keeping the global administrator role scarce.</p>
+          <h5>User types: member vs guest, and B2B invitations</h5>
+          <p>Member users are your organization's own identities; guest users are external collaborators invited through B2B. Guests get limited default permissions and are visibly marked, which keeps the trust boundary explicit.</p>
+          <p>A guest invitation alone grants no resource access — the invitation creates the identity, but access comes only from subsequent group memberships or role assignments. Identity and authorization are separate steps by design.</p>
+          <h5>Groups: security, Microsoft 365, dynamic membership rules</h5>
+          <p>Security groups exist for access control: assign a role or grant resource access to the group once, and membership changes propagate automatically. Microsoft 365 groups add a collaboration bundle (mailbox, SharePoint site, Teams) on top of the group.</p>
+          <p>Dynamic groups define membership with a rule — &quot;all users with department = Engineering&quot; — evaluated continuously. They eliminate the stale-membership problem for attributes the directory already knows, like department, job title, or user type.</p>
+          <h5>License tiers: Entra ID Free, P1, P2 and feature gates</h5>
+          <p>Entra ID comes in tiers, and the tier gates the features: Free covers basic user and group management; P1 unlocks Conditional Access, hybrid identity features, and dynamic groups; P2 adds Privileged Identity Management and Identity Protection risk-based policies.</p>
+          <p>This matters operationally because designs that assume Conditional Access or PIM simply do not work on a Free tenant. Know which features your tenant's licenses entitle you to before you promise them in a design.</p>
+          <h5>Conditional Access policy structure (signals, conditions, grant controls)</h5>
+          <p>Conditional Access is the policy engine that decides, per sign-in, whether access is granted, requires MFA, or is blocked. Each policy combines signals (who the user is, what device, what network, what risk level), conditions (which apps and users the policy applies to), and grant controls (require MFA, require compliant device, block).</p>
+          <p>The power — and the danger — is that policies compose: multiple policies apply to one sign-in, and the strictest grant control wins. Design policies as a small, reviewed set with a break-glass exclusion, and test in report-only mode before enforcing.</p>
+          <h5>MFA enforcement and SSPR concepts</h5>
+          <p>Multifactor authentication requires a second factor beyond the password — an authenticator app approval, a hardware key, a phone call — and administrator accounts should always require it, enforced by Conditional Access rather than by per-user settings.</p>
+          <p>Self-service password reset (SSPR) lets users recover their own accounts using registered authentication methods, which cuts help-desk load. Both MFA and SSPR depend on users having registered their methods in advance — enrollment is the part organizations always underestimate.</p>
+          <h5>Microsoft Entra Connect Sync object model basics</h5>
+          <p>Hybrid identity joins an on-premises Active Directory to Entra ID. Entra Connect Sync replicates user and group objects upward, joining them to cloud identities so one credential works in both worlds.</p>
+          <p>The sync engine maps on-premises attributes to cloud attributes according to sync rules, and the choice of authentication method — password hash sync, pass-through authentication, or federation — determines where the actual credential verification happens. Understand the object flow before troubleshooting sync errors, because most of them are attribute-mapping problems.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a free tenant; add two users and one guest, assign them to a security group.</strong><br/>Building the tenant yourself makes the member/guest distinction tangible. Invite a real external address as the guest so you see the B2B redemption flow end to end.</li>
+            <li><strong>Build a dynamic group with a rule based on department and verify membership updates.</strong><br/>Set the department attribute on your test users, write the rule, and watch membership resolve. Then change an attribute and confirm the group updates — the rule engine working visibly.</li>
+            <li><strong>Write a Conditional Access-style policy statement (on paper) requiring MFA for admins on risky sign-ins.</strong><br/>Writing the policy as sentences — &quot;when an administrator signs in from an unfamiliar location, require MFA&quot; — forces you to name the signals, conditions, and grant control explicitly before any portal clicking.</li>
+            <li><strong>Export users and group memberships with Azure PowerShell or az ad commands.</strong><br/>Scripted exports are the administrator's audit trail. Compare the CLI output against what the portal shows; the CLI teaches you the underlying object model the portal hides.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>Why does a guest invitation alone not grant resource access?</summary><div class="il-check-a"><strong>Answer:</strong> The invitation only creates the identity object. Authorization is a separate step — group memberships or role assignments granted afterwards. Entra separates authentication (who) from authorization (what) by design.</div></details><details><summary>Which identity sync option leaves the password in Microsoft Entra ID vs on-premises?</summary><div class="il-check-a"><strong>Answer:</strong> Password hash sync leaves a hash in Entra ID (cloud verifies). Pass-through authentication and federation keep verification on-premises — the password never lives in the cloud.</div></details><details><summary>Name two features gated behind Entra ID P1/P2 licenses.</summary><div class="il-check-a"><strong>Answer:</strong> P1: Conditional Access, hybrid identity features, dynamic groups. P2 adds: Privileged Identity Management and Identity Protection risk-based policies.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-1">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-2">
+          <p class="il-eyebrow">Module 2</p>
+          <h3 class="il-h il-h--card">Governance: Subscriptions, RBAC, and Policy</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 376" width="100%" role="img" aria-label="Azure management hierarchy and RBAC" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr32169" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="150.0" y1="70.0" x2="150.0" y2="102.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr32169)"/><text x="150.0" y="80.0" text-anchor="middle" font-size="11" fill="#9aa3b8">contains</text><line x1="150.0" y1="160.0" x2="150.0" y2="192.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr32169)"/><text x="150.0" y="170.0" text-anchor="middle" font-size="11" fill="#9aa3b8">contains</text><line x1="150.0" y1="250.0" x2="150.0" y2="282.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr32169)"/><text x="150.0" y="260.0" text-anchor="middle" font-size="11" fill="#9aa3b8">contains</text><line x1="179.0" y1="131.9" x2="470.0" y2="140.8" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr32169)"/><text x="324.5" y="130.3" text-anchor="middle" font-size="11" fill="#9aa3b8">scoped at</text><rect x="40" y="10" width="220" height="62" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="150.0" y="34" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Management group</text><text x="150.0" y="52" text-anchor="middle" font-size="11" fill="#9aa3b8">policy + RBAC across subscriptions</text><rect x="40" y="100" width="220" height="62" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="150.0" y="124" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Subscription</text><text x="150.0" y="142" text-anchor="middle" font-size="11" fill="#9aa3b8">billing + quota boundary</text><rect x="40" y="190" width="220" height="62" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="150.0" y="214" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Resource group</text><text x="150.0" y="232" text-anchor="middle" font-size="11" fill="#9aa3b8">lifecycle boundary</text><rect x="40" y="280" width="220" height="62" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="150.0" y="304" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Resource</text><text x="150.0" y="322" text-anchor="middle" font-size="11" fill="#9aa3b8">the actual service</text><rect x="380" y="100" width="260" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="510.0" y="124" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">RBAC assignment</text><text x="510.0" y="142" text-anchor="middle" font-size="11" fill="#9aa3b8">principal + role definition + scope</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Azure management hierarchy and RBAC — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Organize tenants into management groups, subscriptions, and resource groups with a naming scheme.</li>
+            <li>Assign role-based access control using least-privilege built-in roles and custom roles.</li>
+            <li>Author and assign Azure Policy definitions and initiatives to enforce organizational standards.</li>
+            <li>Apply resource locks and tagging to protect and classify production resources.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Hierarchy: management group &gt; subscription &gt; resource group &gt; resource</h5>
+          <p>Azure organizes everything in a four-level hierarchy. Management groups sit at the top and let you apply policy and RBAC across many subscriptions at once. Subscriptions are the billing and quota boundary. Resource groups are the deployment and lifecycle boundary — you deploy, manage, and eventually delete resources as a group. Resources are the actual services.</p>
+          <p>Design the hierarchy before creating anything: management groups by organizational division, subscriptions by workload or environment, resource groups by application lifecycle. A hierarchy designed up front prevents the &quot;one subscription with 400 unrelated resources&quot; sprawl that is painful to untangle.</p>
+          <h5>RBAC model: security principal, role definition, scope, assignment; allow-model only</h5>
+          <p>Role-based access control has four parts: a security principal (user, group, or service identity), a role definition (the set of permitted actions), a scope (where it applies — management group, subscription, resource group, or resource), and the assignment tying them together.</p>
+          <p>RBAC is an allow model: there are no deny assignments, only the absence of permission — plus explicit Deny used internally by features like locks and blueprints. Effective permission is the union of all assignments across scopes, which is why auditing effective access means enumerating every assignment, not reading one.</p>
+          <h5>Built-in roles: Owner, Contributor, Reader, User Access Administrator</h5>
+          <p>The four foundational roles: Owner can manage everything including access; Contributor can manage everything except access; Reader can view everything but change nothing; User Access Administrator can manage access but not resources.</p>
+          <p>Default to the least of these that gets the job done, and prefer group assignments over individual ones. Owner is almost never the right answer for a human's day-to-day work — it exists for the rare cases where access management and resource management must coincide.</p>
+          <h5>Custom roles: actions, notActions, assignable scopes, JSON structure</h5>
+          <p>When no built-in role fits — &quot;this team may restart VMs but not resize them&quot; — you write a custom role as JSON: actions lists the permitted operations as provider/action strings, notActions carves out exceptions, and assignableScopes bounds where the role may be granted.</p>
+          <p>Custom roles are powerful and therefore review-worthy: an overly broad actions list with a wildcard quietly recreates Contributor. Keep custom roles narrow, name them for the job they enable, and re-certify them periodically.</p>
+          <h5>Azure Policy: definition, assignment, initiative, compliance vs remediation, deny/audit/deployIfNotExists effects</h5>
+          <p>Azure Policy is the guardrail engine: a policy definition states a rule (&quot;resource groups must carry a cost-center tag&quot;); an assignment applies it at a scope; an initiative bundles definitions into one assignable set, like a compliance standard.</p>
+          <p>Effects determine teeth: audit flags violations, deny blocks non-compliant deployments, deployIfNotExists remediates by deploying the missing configuration. Compliance is the dashboard — what fraction of resources conform; remediation is the action. Start new policies in audit mode, review the compliance picture, then escalate to deny.</p>
+          <h5>Locks: CanNotDelete vs ReadOnly, inheritance behavior</h5>
+          <p>Resource locks protect against accidents: CanNotDelete blocks deletion while allowing modification; ReadOnly blocks both modification and deletion. Locks inherit down the hierarchy — a lock on a resource group protects every resource inside it.</p>
+          <p>Locks are the last line of defense for production, and they apply to everyone including Owners, which is exactly the point. The classic failure they prevent is the 2 AM &quot;wrong resource group deleted&quot; incident.</p>
+          <h5>Tags: key-value metadata, tag policies, inheritance limits</h5>
+          <p>Tags are free-form key-value metadata on resources — environment, cost-center, owner — that power cost reporting, automation targeting, and policy. A tagging standard enforced by policy is what makes chargeback and lifecycle automation possible.</p>
+          <p>Tags do not inherit: a tag on a resource group does not flow to its resources, which surprises everyone once. Enforce tagging at creation time with policy, because retroactive tagging of a large estate is a project nobody wants.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a resource group; assign Reader at subscription scope to a test user and Contributor at RG scope.</strong><br/>Sign in as the test user and confirm: read-only outside the resource group, full control inside it. Feeling the scope boundary as the user is worth more than reading about it.</li>
+            <li><strong>Write a custom role JSON granting VM restart-only rights; assign it and verify denied actions fail.</strong><br/>Craft the actions list narrowly, assign the role, then attempt a forbidden action — like resizing the VM — and watch it fail. The failure is the proof the role is least-privilege.</li>
+            <li><strong>Assign a built-in policy requiring tags on resource groups; deploy a resource and check compliance.</strong><br/>Assign the policy in audit mode first, deploy an untagged resource, and read the compliance result. Then switch to deny and watch the same deployment get blocked.</li>
+            <li><strong>Place a CanNotDelete lock on a resource group and attempt deletion to observe the block.</strong><br/>Try to delete the locked resource group and read the denial. Then remove the lock and delete successfully — the lock is a guardrail, not a vault.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>A user is Reader at subscription scope and Contributor at RG scope — what is the effective permission in that RG?</summary><div class="il-check-a"><strong>Answer:</strong> Contributor inside that resource group — RBAC is an allow model and effective permission is the union of all assignments. Reader elsewhere grants nothing extra.</div></details><details><summary>What happens to resources when a lock is placed on their parent resource group?</summary><div class="il-check-a"><strong>Answer:</strong> Locks inherit: every resource in the group is protected. CanNotDelete blocks deletion (allows modification); ReadOnly blocks both. They apply even to Owners.</div></details><details><summary>Distinguish a policy definition from an initiative and an assignment.</summary><div class="il-check-a"><strong>Answer:</strong> Definition = the rule itself. Initiative = a bundled set of definitions (e.g. a compliance standard). Assignment = applying a definition or initiative at a scope. Effects (audit/deny/deployIfNotExists) set the teeth.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-2">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-3">
+          <p class="il-eyebrow">Module 3</p>
+          <h3 class="il-h il-h--card">Storage Engineering</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 288" width="100%" role="img" aria-label="Storage account decisions" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr38167" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="140.0" y1="72.0" x2="290.0" y2="72.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr38167)"/><text x="215.0" y="66.0" text-anchor="middle" font-size="11" fill="#9aa3b8">durability</text><line x1="140.0" y1="72.0" x2="520.0" y2="72.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr38167)"/><text x="330.0" y="66.0" text-anchor="middle" font-size="11" fill="#9aa3b8">cost</text><line x1="527.2" y1="94.9" x2="392.8" y2="189.1" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr38167)"/><text x="460.0" y="136.0" text-anchor="middle" font-size="11" fill="#9aa3b8">automate descent</text><rect x="20" y="30" width="160" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="100.0" y="54" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">StorageV2 account</text><text x="100.0" y="72" text-anchor="middle" font-size="11" fill="#9aa3b8">blobs · files · queues ·</text><text x="100.0" y="87" text-anchor="middle" font-size="11" fill="#9aa3b8">tables</text><rect x="250" y="30" width="160" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="330.0" y="54" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Replication</text><text x="330.0" y="72" text-anchor="middle" font-size="11" fill="#9aa3b8">LRS · ZRS · GRS · GZRS</text><rect x="480" y="30" width="160" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="560.0" y="54" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Access tiers</text><text x="560.0" y="72" text-anchor="middle" font-size="11" fill="#9aa3b8">Hot · Cool · Cold ·</text><text x="560.0" y="87" text-anchor="middle" font-size="11" fill="#9aa3b8">Archive</text><rect x="250" y="170" width="220" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="360.0" y="194" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Lifecycle rules</text><text x="360.0" y="212" text-anchor="middle" font-size="11" fill="#9aa3b8">age-based tiering + deletion</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Storage account decisions — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose storage account kind, performance tier, and replication for a workload's SLA and cost profile.</li>
+            <li>Manage blob access tiers and lifecycle policies to control cost and retention.</li>
+            <li>Secure data with shared access signatures, stored access policies, and network rules.</li>
+            <li>Configure Azure Files shares with identity-based access for lift-and-shift scenarios.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Account kinds: StorageV2, BlobStorage, FileStorage, Premium tiers</h5>
+          <p>The general-purpose v2 (StorageV2) account is the default choice — it supports blobs, files, queues, and tables with tiering. BlobStorage accounts are blob-optimized legacy kinds; FileStorage provides premium file shares; premium tiers trade cost for consistent low latency.</p>
+          <p>Choose the kind by workload: object storage with lifecycle needs wants StorageV2; latency-sensitive file shares want premium. The account kind is set at creation and constrains what the account can do, so decide deliberately.</p>
+          <h5>Replication: LRS, ZRS, GRS, GZRS, RA variants; RPO/RTO implications</h5>
+          <p>Replication is the durability dial. LRS keeps three copies in one datacenter — cheap, vulnerable to facility loss. ZRS spreads copies across availability zones in a region — resilient to datacenter failure. GRS replicates to a paired region — resilient to regional disaster. GZRS combines both. Read-access variants (RA-GRS) add a readable secondary endpoint.</p>
+          <p>Each step up the ladder costs more and changes your recovery story: RPO (how much data you can lose) and RTO (how long recovery takes) follow from the replication choice. Match the replication to the data's actual value, not to your anxiety.</p>
+          <h5>Blob tiers: Hot, Cool, Cold, Archive; rehydration behavior</h5>
+          <p>Blob access tiers price storage against retrieval: Hot for frequently accessed data, Cool for infrequently accessed, Cold for rarely accessed, Archive for data that can sit offline for hours. Moving down the tiers cuts storage cost and raises access cost and latency.</p>
+          <p>Archive is the extreme: data is offline and must be rehydrated — copied back to an online tier — before it can be read, which takes hours and costs. Lifecycle policies automate the descent; rehydration is always a deliberate, planned operation.</p>
+          <h5>Lifecycle management rules: filters, actions, tier-to-archive automation</h5>
+          <p>Lifecycle management applies rules to blobs by prefix, age, and type: after N days move to Cool, after M days to Archive, after Y days delete. The rules run daily and turn a cost policy into an automatic behavior.</p>
+          <p>Write the rules from your retention requirements, not from guesswork: compliance retention sets the delete floor, access patterns set the tiering thresholds. Test rules against a sample container before pointing them at production data.</p>
+          <h5>SAS types: service, account, user-delegation; least-privilege scoping</h5>
+          <p>A shared access signature is a time-boxed, permission-scoped token appended to a URL — it grants delegated access without sharing the account key. Service SAS delegates access to one service; account SAS to the whole account; user-delegation SAS is bound to a Microsoft Entra identity via OAuth instead of the account key.</p>
+          <p>Prefer user-delegation SAS: it inherits Entra identity, supports revocation by disabling the identity, and never exposes the account keys. Scope every SAS to the minimum permissions, resource, IP range, and expiry the task needs — a SAS is a bearer token, and bearer tokens leak.</p>
+          <h5>Storage firewall, private endpoints, service endpoints</h5>
+          <p>By default a storage account is reachable from the public internet with the key. The storage firewall restricts access to selected virtual networks and IP ranges; service endpoints extend the VNet identity to the storage service; private endpoints give the account a private IP inside your VNet so traffic never crosses the public internet.</p>
+          <p>Defense in depth here means: firewall on, private endpoint for sensitive data, and keys rotated — with Entra-based access (RBAC, user-delegation SAS) preferred over key-based access wherever possible.</p>
+          <h5>Azure Files: SMB/NFS shares, AD/Entra DS authentication, share snapshots</h5>
+          <p>Azure Files exposes SMB and NFS shares in the cloud — the lift-and-shift answer for applications that expect a file share. Shares can authenticate with storage keys or, properly, with identity: on-premises AD or Entra Domain Services, so access follows the user, not a shared key.</p>
+          <p>Share snapshots capture point-in-time copies for recovery without a full backup product. For traditional file-server workloads, the combination of identity-based access plus snapshots covers the essentials.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Create a StorageV2 account with GRS; upload blobs via AzCopy and verify redundancy setting.</strong><br/>AzCopy is the workhorse for bulk transfer; the portal confirms the redundancy you configured. Do both so you learn the tool and the verification.</li>
+            <li><strong>Set a lifecycle rule moving blobs to Cool after 30 days; dry-run evaluation logic on sample data.</strong><br/>Apply the rule to a test container with old and new blobs and confirm only the old ones are candidates. Lifecycle mistakes on production data are expensive; the test container is cheap.</li>
+            <li><strong>Generate a time-boxed, IP-restricted SAS for one container and test read vs write denial.</strong><br/>Create the SAS with read-only permission, then attempt a write with it and watch it fail. Then let it expire and watch reads fail too — the token lifecycle made visible.</li>
+            <li><strong>Mount an Azure Files share from a VM and from a workstation over SMB with a stored key.</strong><br/>Mounting from both places demonstrates the share is network-attached storage, not VM-local. Note where the key is stored and consider how you would replace it with identity-based access.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>When is ZRS preferable to GRS, and what does RA-GRS add?</summary><div class="il-check-a"><strong>Answer:</strong> ZRS when the threat model is datacenter failure within a region and you want lower latency/cost than cross-region replication. GRS protects against losing the whole region. RA-GRS adds a readable secondary endpoint in the paired region.</div></details><details><summary>What minimum privilege and expiry should a SAS carry, and why prefer user-delegation SAS?</summary><div class="il-check-a"><strong>Answer:</strong> Minimum permissions, narrowest resource, shortest expiry, IP restriction where possible. User-delegation SAS is bound to an Entra identity (revocable, no account keys exposed) instead of the storage account key.</div></details><details><summary>How does Archive tier rehydration affect read latency and cost?</summary><div class="il-check-a"><strong>Answer:</strong> Archive blobs are offline: reads require rehydration to an online tier first, taking hours and incurring retrieval costs. Plan rehydration deliberately; never archive data you might need urgently.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-3">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-4">
+          <p class="il-eyebrow">Module 4</p>
+          <h3 class="il-h il-h--card">Compute: VMs, Scale Sets, and App Service</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 268" width="100%" role="img" aria-label="Compute options by workload shape" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr76780" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="135.0" y1="62.0" x2="265.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr76780)"/><text x="200.0" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">protect</text><line x1="135.0" y1="62.0" x2="475.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr76780)"/><text x="305.0" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">elastic fleet</text><line x1="123.3" y1="90.3" x2="196.7" y2="163.7" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr76780)"/><text x="160.0" y="121.0" text-anchor="middle" font-size="11" fill="#9aa3b8">managed web</text><line x1="132.7" y1="75.3" x2="427.3" y2="178.7" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr76780)"/><text x="280.0" y="121.0" text-anchor="middle" font-size="11" fill="#9aa3b8">containers</text><rect x="20" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="95.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Virtual machine</text><text x="95.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">series matched to</text><text x="95.0" y="77" text-anchor="middle" font-size="11" fill="#9aa3b8">workload</text><rect x="230" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="305.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Availability</text><text x="305.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">sets · zones · SLA math</text><rect x="440" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="515.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">VM Scale Set</text><text x="515.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">autoscale · rolling</text><text x="515.0" y="77" text-anchor="middle" font-size="11" fill="#9aa3b8">upgrade</text><rect x="135" y="150" width="180" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="225.0" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">App Service</text><text x="225.0" y="192" text-anchor="middle" font-size="11" fill="#9aa3b8">slots · swap · scale-out</text><rect x="375" y="150" width="180" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="465.0" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Container Instances</text><text x="465.0" y="192" text-anchor="middle" font-size="11" fill="#9aa3b8">burst jobs, no orchestrator</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Compute options by workload shape — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Size, deploy, and harden Azure VMs including disks, availability options, and extensions.</li>
+            <li>Configure Virtual Machine Scale Sets with autoscale rules for elastic workloads.</li>
+            <li>Deploy web workloads to App Service plans with deployment slots and scaling rules.</li>
+            <li>Run simple containerized workloads on Azure Container Instances.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>VM series families, vCPU/RAM ratios, and generation 1 vs 2 images</h5>
+          <p>Azure VM sizes are grouped in series by workload profile: B-series for burstable low-cost workloads, D-series for general compute, E-series for memory-heavy, F-series for compute-heavy, and specialized families for GPU, HPC, and storage. The series letter encodes the vCPU-to-RAM ratio and the price curve.</p>
+          <p>Generation 2 images add UEFI boot, larger disks, and security features like secure boot over generation 1's BIOS boot. Default to generation 2 for new deployments; generation 1 remains for legacy images that require it.</p>
+          <h5>Availability sets (fault/update domains) vs availability zones vs SLA math</h5>
+          <p>Availability is engineered in layers. Availability sets spread VMs across fault domains (separate racks/power) and update domains (separate maintenance groups) within one datacenter. Availability zones spread VMs across physically separate datacenters in a region — protection against datacenter-level failure.</p>
+          <p>Zones beat sets for fault tolerance, and the SLA reflects it: Azure's published SLAs require the prescribed deployment pattern (two or more instances across zones, for example) — a single VM carries no high-availability SLA regardless of how carefully you built it.</p>
+          <h5>Managed disks: SSD/HDD tiers, disk encryption, snapshots</h5>
+          <p>Managed disks abstract the storage accounts away: you pick a tier — Standard HDD, Standard SSD, Premium SSD, Ultra — and Azure handles the rest. The tier sets the IOPS and throughput ceiling, so disk performance is a sizing decision, not a tuning exercise.</p>
+          <p>Encrypt disks (Azure Disk Encryption or encryption at host), and use snapshots for point-in-time copies before risky changes. A snapshot before a major upgrade is the cheapest insurance in the cloud.</p>
+          <h5>VM extensions: Custom Script, Azure Monitor agent, Desired State Configuration</h5>
+          <p>Extensions are small agents installed on the VM by the Azure fabric: Custom Script runs your script at provisioning time, the Azure Monitor agent ships telemetry, and Desired State Configuration enforces configuration. They install without you logging into the VM.</p>
+          <p>Extensions are the bootstrap path: a VM can go from bare image to configured, monitored member of the fleet with no interactive session. But every extension is also attack surface and failure surface — install only what the workload needs.</p>
+          <h5>VMSS: uniform vs flexible orchestration, instance protection, rolling upgrades</h5>
+          <p>Virtual Machine Scale Sets manage a fleet of identical VMs as one resource: autoscale rules add and remove instances by metric, and upgrades roll across the set. Uniform orchestration treats instances as identical and interchangeable; flexible orchestration allows mixed VM types and standalone-VM behaviors within the set.</p>
+          <p>Instance protection pins specific instances against scale-in, and rolling upgrades update the set in batches with health gates. Choose flexible when the fleet is heterogeneous or when you are migrating from standalone VMs; uniform when the workload is truly cattle.</p>
+          <h5>App Service plans: tier capabilities, scale-out rules, slots and slot swapping</h5>
+          <p>App Service is the managed web platform: you deploy code, Azure runs the servers. The App Service plan defines the VM size, count, and feature tier — Free/Shared for experiments, Basic/Standard for production workloads, Premium and Isolated for scale and network isolation.</p>
+          <p>Deployment slots give you staging environments that swap with production — including sticky &quot;slot settings&quot; for connection strings that must not swap. Scale-out rules add instances by metric. The platform handles patching and load balancing; you own the code and the configuration.</p>
+          <h5>ACI: container groups, restart policies, volume mounts</h5>
+          <p>Azure Container Instances run containers without managing any orchestrator: you describe a container group — image, CPU, memory, ports, environment — and it runs, billed per second. Restart policies (always, on failure, never) control what happens when the container exits.</p>
+          <p>ACI is the right answer for burst workloads, CI agents, and simple single-container jobs. It is not a Kubernetes replacement: no service discovery, no rolling updates, no complex networking — just containers, fast.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Deploy a B-series VM from the portal and the CLI; attach a data disk and enable disk encryption concepts review.</strong><br/>Doing the same deployment twice — once by clicking, once by scripting — teaches the mapping between portal concepts and CLI parameters. The CLI version is the one you keep.</li>
+            <li><strong>Create a 2-instance VMSS with a CPU-based autoscale rule; generate load and watch instance count change.</strong><br/>Generate synthetic load, watch the metric cross the threshold, and observe a new instance join the set. Autoscale is only real once you have watched it fire.</li>
+            <li><strong>Publish a static site to App Service; add a staging slot and perform a swap with slot settings.</strong><br/>Deploy to the staging slot, verify it, then swap — and confirm the sticky setting stayed with the slot. The swap is the zero-downtime deployment in its simplest form.</li>
+            <li><strong>Run a container group in ACI with an environment variable and a mounted Azure Files volume.</strong><br/>Pass configuration via environment and persistent data via the file share. The container stays stateless; the state lives in the volume — the pattern that makes containers safe.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>Why do availability zones beat availability sets for datacenter-level fault tolerance?</summary><div class="il-check-a"><strong>Answer:</strong> Sets spread VMs across racks inside one datacenter (fault/update domains); zones spread them across physically separate datacenters. Zones survive datacenter-level failure; sets do not.</div></details><details><summary>What must be true of app settings for them to be 'sticky' to a deployment slot?</summary><div class="il-check-a"><strong>Answer:</strong> The app setting must be marked as a slot setting. Sticky settings stay with the slot during a swap (e.g. a staging connection string); non-sticky settings travel with the swap to production.</div></details><details><summary>When would VMSS flexible orchestration be chosen over uniform?</summary><div class="il-check-a"><strong>Answer:</strong> Flexible when the fleet is heterogeneous (mixed VM types) or you are migrating standalone VMs into a set. Uniform when instances are truly identical and interchangeable — the classic elastic web tier.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-4">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-5">
+          <p class="il-eyebrow">Module 5</p>
+          <h3 class="il-h il-h--card">Virtual Networking</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 264" width="100%" role="img" aria-label="Virtual network design" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr81441" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="148.0" y1="60.0" x2="292.0" y2="60.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr81441)"/><text x="220.0" y="54.0" text-anchor="middle" font-size="11" fill="#9aa3b8">subdivide</text><line x1="368.0" y1="60.0" x2="502.0" y2="60.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr81441)"/><text x="435.0" y="54.0" text-anchor="middle" font-size="11" fill="#9aa3b8">filter</text><line x1="135.2" y1="88.5" x2="199.8" y2="161.5" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr81441)"/><text x="167.5" y="119.0" text-anchor="middle" font-size="11" fill="#9aa3b8">connect</text><line x1="145.7" y1="73.1" x2="429.3" y2="176.9" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr81441)"/><text x="287.5" y="119.0" text-anchor="middle" font-size="11" fill="#9aa3b8">distribute</text><rect x="20" y="20" width="180" height="80" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="110.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">VNet 10.0.0.0/16</text><text x="110.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">private address space</text><rect x="255" y="20" width="150" height="80" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="330.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Subnets</text><text x="330.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">web · app · data tiers</text><rect x="460" y="20" width="160" height="80" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="540.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">NSG</text><text x="540.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">priority 5-tuple rules</text><rect x="135" y="150" width="180" height="80" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="225.0" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Peering</text><text x="225.0" y="192" text-anchor="middle" font-size="11" fill="#9aa3b8">non-transitive links</text><rect x="375" y="150" width="180" height="80" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="465.0" y="174" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Load balancing</text><text x="465.0" y="192" text-anchor="middle" font-size="11" fill="#9aa3b8">L4 · L7 · global</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Virtual network design — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design VNet address space, subnets, and delegation for multi-tier applications.</li>
+            <li>Control traffic with NSGs, ASGs, and route tables including forced tunneling concepts.</li>
+            <li>Connect networks via peering, VPN gateways, and understand ExpressRoute circuit concepts.</li>
+            <li>Provide name resolution with Azure DNS private zones and choose a load-balancing solution.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>VNet CIDR planning, subnet sizing, reserved addresses, delegated subnets</h5>
+          <p>A virtual network is your private address space in Azure, defined by CIDR blocks you choose. Plan it like real estate: large enough for growth, non-overlapping with on-premises ranges you will connect to, and subdivided into subnets per tier — web, app, data — sized with headroom.</p>
+          <p>Azure reserves a few addresses in each subnet (network, gateway, DNS, broadcast equivalents), and delegated subnets hand control of a subnet to a specific Azure service. The common failure is sizing subnets too tightly and discovering the service you need requires delegation space you did not leave.</p>
+          <h5>NSG rule evaluation: priority order, 5-tuple, default rules, service tags</h5>
+          <p>Network security groups filter traffic by rules evaluated in priority order — lower number wins — each matching on the 5-tuple: source, source port, destination, destination port, protocol. The first matching rule decides: allow or deny.</p>
+          <p>Default rules sit at the bottom: allow VNet-internal traffic and Azure load balancer probes, deny everything inbound from the internet. Service tags (like VirtualNetwork or AzureLoadBalancer) name Azure-defined address groups so rules survive IP changes. Design rule sets top-down: specific allows first, broad denies last, defaults as the backstop.</p>
+          <h5>Application Security Groups for workload-based grouping</h5>
+          <p>Application security groups let you tag VM network interfaces by workload role — &quot;web-servers,&quot; &quot;db-servers&quot; — and write NSG rules against those labels instead of IP ranges. When a new web server joins, it inherits the right rules by joining the group.</p>
+          <p>This decouples security policy from addressing: the rule &quot;web-servers may reach db-servers on 1433&quot; stays correct as instances come and go. Use ASGs wherever NSG rules would otherwise hardcode IPs that autoscale will invalidate.</p>
+          <h5>VNet peering: transitive routing limits, gateway transit, cross-region peering</h5>
+          <p>VNet peering connects two virtual networks with low-latency private connectivity, as if they were one network. Peering is explicitly non-transitive: if A peers with B and B peers with C, A cannot reach C through B — each relationship must be peered directly.</p>
+          <p>Gateway transit is the controlled exception: a peered VNet can use the other VNet's VPN or ExpressRoute gateway to reach on-premises, when configured. Cross-region peering extends the same model across regions. Design hub-and-spoke topologies with these rules in mind: the hub peers with every spoke, and transit is granted deliberately.</p>
+          <h5>VPN gateway SKUs, site-to-site vs point-to-site, BGP basics</h5>
+          <p>A VPN gateway connects your VNet to on-premises over encrypted IPsec tunnels. Site-to-site connects whole networks (branch office to Azure); point-to-site connects individual clients (remote workers to Azure). Gateway SKUs set the throughput and feature ceiling — size by expected traffic, not by optimism.</p>
+          <p>BGP (Border Gateway Protocol) exchanges routes dynamically between Azure and on-premises, so new subnets propagate automatically instead of requiring static route updates on both sides. For anything beyond a single static tunnel, BGP is worth the small configuration cost.</p>
+          <h5>ExpressRoute: circuits, peering types (private, Microsoft), FastPath</h5>
+          <p>ExpressRoute is a private, dedicated connection from your network to Azure through a connectivity provider — not over the public internet, with more predictable latency and throughput than VPN. A circuit is the provisioned connection; peering types define what it carries: private peering reaches your VNets, Microsoft peering reaches Microsoft 365 and other public services.</p>
+          <p>FastPath sends traffic directly to VMs in the VNet, bypassing the gateway for lower latency. ExpressRoute costs significantly more than VPN and takes weeks to provision — choose it for sustained high-throughput or compliance-driven private connectivity, not for convenience.</p>
+          <h5>DNS: Azure-provided vs private DNS zones, split-horizon concepts</h5>
+          <p>Every VNet gets Azure-provided DNS for internal name resolution, but private DNS zones give you authoritative control: define your own zone (corp.internal) whose records resolve only inside linked VNets. This is how private endpoints and internal services get stable names.</p>
+          <p>Split-horizon DNS serves different answers inside and outside: the same name resolves to a private IP internally and a public IP externally. It is the standard pattern for services reachable from both the office/VNet and the internet.</p>
+          <h5>Load Balancer (L4) vs Application Gateway (L7/WAF) vs Front Door vs Traffic Manager</h5>
+          <p>Azure has four load-balancing answers at different layers. Load Balancer is layer 4 — TCP/UDP distribution within a region, with inbound NAT and outbound rules. Application Gateway is layer 7 — HTTP routing, TLS termination, and an optional web application firewall. Front Door is the global layer-7 front end with edge caching and instant failover across regions. Traffic Manager is DNS-based global routing.</p>
+          <p>Choose by need: regional TCP spreading wants Load Balancer; HTTP routing and WAF want Application Gateway; multi-region web with fast failover wants Front Door; non-HTTP global distribution wants Traffic Manager. Matching the scenario to the layer is the whole decision.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Build two peered VNets with a web tier and DB tier; enforce DB access with an NSG allowing only the web subnet.</strong><br/>This is the classic three-tier network in miniature: peering for connectivity, NSG for segmentation. Test that the web tier reaches the database and that a jump host in a third subnet does not.</li>
+            <li><strong>Add a route table sending internet egress through a virtual appliance hop to observe UDR behavior.</strong><br/>User-defined routes override Azure's default system routes. Forcing egress through an appliance demonstrates how traffic steering works — and how a misconfigured route blackholes everything.</li>
+            <li><strong>Create a private DNS zone resolving a private endpoint hostname inside the VNet.</strong><br/>Link the zone to the VNet, add the record, and resolve it from a VM inside. The private name resolving to a private IP is the moment private DNS clicks.</li>
+            <li><strong>Stand up an internal Load Balancer across two VMs and verify session distribution.</strong><br/>Send traffic through the load balancer and confirm both backends serve requests. Then stop one backend and watch health probes pull it from rotation.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>In what order are NSG rules evaluated, and which default rule denies inbound internet traffic?</summary><div class="il-check-a"><strong>Answer:</strong> Priority order, lowest number first; the first matching rule wins (allow or deny). The built-in default rule <em>DenyAllInBound</em> (priority 65000) denies inbound internet traffic that no custom rule allowed.</div></details><details><summary>Why is VNet peering non-transitive, and how does gateway transit change the design?</summary><div class="il-check-a"><strong>Answer:</strong> A↔B and B↔C peering does not give A a path to C — each pair must peer directly. Gateway transit is the controlled exception: a spoke can use the hub's VPN/ExpressRoute gateway to reach on-premises when configured.</div></details><details><summary>Match four scenarios to Load Balancer, Application Gateway, Front Door, and Traffic Manager.</summary><div class="il-check-a"><strong>Answer:</strong> Regional TCP spreading → Load Balancer (L4). HTTP routing + WAF → Application Gateway (L7). Multi-region web with fast failover → Front Door. Non-HTTP global distribution → Traffic Manager (DNS).</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-5">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-6">
+          <p class="il-eyebrow">Module 6</p>
+          <h3 class="il-h il-h--card">Monitoring and Alerting</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 278" width="100%" role="img" aria-label="Monitoring: metrics alert, logs explain" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr2741" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="122.8" y1="90.8" x2="202.2" y2="173.2" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2741)"/><text x="162.5" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">threshold</text><line x1="286.1" y1="97.3" x2="248.9" y2="166.7" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2741)"/><text x="267.5" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">query</text><line x1="270.0" y1="202.0" x2="440.0" y2="202.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2741)"/><text x="355.0" y="196.0" text-anchor="middle" font-size="11" fill="#9aa3b8">fires into</text><rect x="20" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="95.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Metrics</text><text x="95.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">time-series · alert on</text><text x="95.0" y="77" text-anchor="middle" font-size="11" fill="#9aa3b8">these</text><rect x="230" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="305.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Logs</text><text x="305.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">Log Analytics · KQL</text><rect x="440" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="515.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Activity log</text><text x="515.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">who changed what</text><rect x="135" y="160" width="190" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="230.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Alert rule</text><text x="230.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">signal · condition · frequency</text><rect x="385" y="160" width="190" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="480.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Action group</text><text x="480.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">notify · webhook · ticket</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Monitoring: metrics alert, logs explain — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Build an Azure Monitor observability baseline: metrics, logs, and the Activity log.</li>
+            <li>Write KQL queries in Log Analytics to answer operational questions.</li>
+            <li>Configure alert rules with action groups and sensible thresholds to avoid alert fatigue.</li>
+            <li>Use Network Watcher tools to diagnose connectivity and packet flow.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Data platform: metrics (time-series) vs logs (Log Analytics workspaces)</h5>
+          <p>Azure Monitor collects two fundamentally different telemetry types. Metrics are numeric time series — CPU percent, request count, disk queue depth — cheap to store, fast to query, ideal for alerting on thresholds. Logs are rich semi-structured records — every request, every sign-in, every deployment event — stored in Log Analytics workspaces and queried with KQL.</p>
+          <p>The discipline: alert on metrics, investigate with logs. Metrics tell you something is wrong within seconds; logs tell you why within minutes. Sending everything to logs is expensive; sending nothing to logs leaves you blind during incidents.</p>
+          <h5>KQL essentials: where, project, summarize, joins, timechart</h5>
+          <p>The Kusto Query Language is the read path for all Azure logs. Its core verbs compose like a pipeline: where filters rows, project selects columns, summarize aggregates (count, avg, percentiles) by groups, join correlates tables, and render timechart turns a time-bucketed aggregation into a graph.</p>
+          <p>Learn KQL by answering real questions — &quot;which users failed sign-in most this week?&quot; — not by memorizing verbs. A working analyst's KQL is twenty verbs used fluently, and every investigation sharpens it.</p>
+          <h5>Alert anatomy: signal, condition, evaluation frequency, action groups, alert processing rules</h5>
+          <p>An alert rule names a signal (a metric or log query), a condition (threshold, operator, aggregation window), and an evaluation frequency (how often to check). When the condition holds, the rule fires into action groups — the notification and webhook targets — optionally shaped by alert processing rules that suppress or schedule notifications.</p>
+          <p>The failure modes are all here: thresholds without aggregation windows flap, evaluation frequencies slower than the incident miss it, and action groups that page everyone for everything train everyone to ignore pages. Design alerts like you design code: deliberately, and with tests.</p>
+          <h5>Diagnostic settings: routing platform logs to workspaces, storage, or event hubs</h5>
+          <p>Azure resources do not log verbosely by default; diagnostic settings decide where each resource's platform logs and metrics go — a Log Analytics workspace for analysis, a storage account for cheap long-term retention, an event hub for streaming to external SIEMs.</p>
+          <p>Enable diagnostics as part of provisioning, not after the first incident. The logs you need during an outage are the ones you configured last quarter.</p>
+          <h5>Activity log vs resource logs vs Entra sign-in logs</h5>
+          <p>Three log streams answer three questions. The Activity log records control-plane operations — who created, deleted, or modified what, and when. Resource logs (diagnostic logs) record data-plane behavior — what the service itself did. Entra sign-in logs record authentication events — who signed in, from where, with what result.</p>
+          <p>Incident triage starts by picking the right stream: &quot;who deleted the resource?&quot; is the Activity log; &quot;why is the app returning 500s?&quot; is resource logs; &quot;was this account compromised?&quot; is sign-in logs.</p>
+          <h5>Network Watcher: IP flow verify, connection troubleshoot, packet capture, NSG diagnostics</h5>
+          <p>Network Watcher is the packet-level truth for Azure networking. IP flow verify answers &quot;would this NSG rule allow this packet?&quot; without sending traffic. Connection troubleshoot tests end-to-end TCP connectivity and names the blocking hop. Packet capture grabs real packets from a VM for Wireshark-level analysis.</p>
+          <p>When connectivity fails, work this toolkit in order: verify the NSG decision, test the connection, capture the packets. Guessing at routing tables before checking the NSG verdict wastes the most time.</p>
+          <h5>Azure Service Health vs Resource Health</h5>
+          <p>Service Health reports Azure-wide issues — region outages, planned maintenance — that affect your services from the outside. Resource Health reports the health of your specific resources as Azure sees them — is this VM actually running, or has the platform flagged it?</p>
+          <p>During an incident, check both: Service Health tells you whether to wait for Microsoft, Resource Health tells you whether the problem is yours. Conflating them sends you debugging your configuration during a platform outage.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Enable diagnostics on a VM sending metrics to a Log Analytics workspace; write KQL for top CPU processes.</strong><br/>Wire the diagnostics, generate load, then write the query that ranks processes by CPU. The full loop — configure, generate, query — is the observability muscle.</li>
+            <li><strong>Create a metric alert on VM CPU &gt; 80% for 5 minutes wired to an email action group.</strong><br/>Set the threshold, the aggregation window, and the action group, then trigger it with load. Receiving the actual alert email closes the loop between configuration and reality.</li>
+            <li><strong>Query the Activity log in KQL for all write operations in the last 24 hours.</strong><br/>The Activity log answers &quot;what changed?&quot; — the first question in any configuration-drift investigation. Practice reading it before you need it.</li>
+            <li><strong>Use IP flow verify to confirm an NSG rule blocks a test flow, then fix the rule and re-verify.</strong><br/>Verify the block, edit the rule, verify the allow. The before-and-after proves both the tool and your understanding of rule evaluation.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>Write a KQL query returning failed sign-in attempts grouped by user in the last 7 days.</summary><div class="il-check-a"><strong>Answer:</strong> <code>SigninLogs | where TimeGenerated &gt; ago(7d) | where ResultType != 0 | summarize failures = count() by UserPrincipalName | sort by failures desc</code> — ResultType 0 means success; anything else is a failure.</div></details><details><summary>What three components must an alert rule define to fire reliably without noise?</summary><div class="il-check-a"><strong>Answer:</strong> A signal (metric or log query), a condition (threshold, operator, aggregation window), and an evaluation frequency. Miss any one and you get silence or noise.</div></details><details><summary>Which Network Watcher tool proves whether an NSG allowed or denied a specific packet?</summary><div class="il-check-a"><strong>Answer:</strong> IP flow verify — it evaluates the effective NSG rules against a hypothetical packet (source, destination, port, protocol) and reports allow/deny without sending traffic.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-6">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-7">
+          <p class="il-eyebrow">Module 7</p>
+          <h3 class="il-h il-h--card">Backup and Disaster Recovery</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 278" width="100%" role="img" aria-label="Backup and recovery chain" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr44018" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="135.0" y1="62.0" x2="270.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr44018)"/><text x="202.5" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">protect</text><line x1="350.0" y1="62.0" x2="485.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr44018)"/><text x="417.5" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">retention</text><line x1="289.2" y1="96.2" x2="245.8" y2="167.8" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr44018)"/><text x="267.5" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">recover</text><line x1="339.7" y1="88.8" x2="435.3" y2="175.2" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr44018)"/><text x="387.5" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">ransomware-proof</text><rect x="20" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="95.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">VM / workload</text><text x="95.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">the protected asset</text><rect x="230" y="20" width="160" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="310.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Recovery Services vault</text><text x="310.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">policies · recovery</text><text x="310.0" y="77" text-anchor="middle" font-size="11" fill="#9aa3b8">points</text><rect x="450" y="20" width="150" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="525.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">GFS policy</text><text x="525.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">daily · weekly · monthly</text><text x="525.0" y="77" text-anchor="middle" font-size="11" fill="#9aa3b8">· yearly</text><rect x="135" y="160" width="180" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="225.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Restore</text><text x="225.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">original · alternate ·</text><text x="225.0" y="217" text-anchor="middle" font-size="11" fill="#9aa3b8">file-level</text><rect x="375" y="160" width="180" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="465.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Vault hardening</text><text x="465.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">soft delete · immutability</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Backup and recovery chain — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Design backup policies in a Recovery Services vault for VMs, file shares, and SQL workloads.</li>
+            <li>Perform file-level and full-VM restores and validate recovery points.</li>
+            <li>Explain Azure Site Recovery replication, failover, and failback concepts.</li>
+            <li>Harden vaults against ransomware: soft delete, immutable vaults, and private endpoints.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>Recovery Services vault vs Backup vault; MARS agent vs VM extension approaches</h5>
+          <p>Backup configuration lives in vaults: the Recovery Services vault is the classic vault for Azure VMs, on-premises servers via the MARS agent, and file shares; the newer Backup vault serves newer workload types. The vault holds the policies, the recovery points, and the access controls.</p>
+          <p>For Azure VMs, backup runs through the VM backup extension — no agent to install. For on-premises machines, the MARS (Microsoft Azure Recovery Services) agent does the job. Know which path your workload takes, because troubleshooting starts there.</p>
+          <h5>Backup policy: frequency, retention ranges (daily/weekly/monthly/yearly), GFS rotation</h5>
+          <p>A backup policy states how often to back up and how long to keep each recovery point. The GFS (grandfather-father-son) rotation keeps daily points for days, weekly points for weeks, monthly points for months, and yearly points for years — recent granularity where you need it, long history where compliance demands it.</p>
+          <p>Design retention from requirements: RPO sets the frequency, compliance sets the long tail. The policy is a cost decision as much as a safety decision — every retained point has a storage bill.</p>
+          <h5>Recovery points: crash-consistent vs application-consistent (VSS)</h5>
+          <p>A crash-consistent recovery point captures the disks as if the power had been cut — the data is there, but in-flight application state may not be. An application-consistent point uses VSS (Volume Shadow Copy Service) to quiesce applications first, so databases and transaction logs are in a clean state.</p>
+          <p>For databases and transactional workloads, application-consistent points are what make restores trustworthy. Crash-consistent is fine for stateless tiers; never assume it is fine for a database.</p>
+          <h5>Restore options: original location, alternate location, file-level recovery</h5>
+          <p>Recovery is not one operation: full-VM restore to the original location rebuilds the machine in place; alternate-location restore builds a copy beside production for validation; file-level recovery mounts the recovery point and extracts individual files without restoring the whole VM.</p>
+          <p>Practice all three before you need them. The restore you have rehearsed is the restore that works at 3 AM; the restore you are reading about for the first time is a gamble.</p>
+          <h5>Site Recovery: replication policy, RPO thresholds, test failover vs planned failover</h5>
+          <p>Azure Site Recovery replicates VMs to a second region continuously, with a replication policy defining the recovery-point frequency and retention. When disaster strikes, failover brings the replicated VMs up in the secondary region; failback reverses the direction when the primary recovers.</p>
+          <p>A test failover spins up the replicated VMs in an isolated network to prove the plan works — without touching production. A planned failover is the real thing, with an expected brief downtime. Test failovers are how DR plans stay honest; run them on a schedule.</p>
+          <h5>Soft delete, security PIN, immutability, cross-region restore</h5>
+          <p>Backups are a ransomware target, so vaults harden themselves: soft delete retains deleted backup data for a retention period so malicious deletion is recoverable; immutability locks recovery points against any deletion or modification; cross-region restore keeps a usable copy outside the primary region's fate.</p>
+          <p>Enable all three for production vaults. A backup that an attacker can delete is not a backup — it is a false sense of security with a storage bill.</p>
+          <h5>Backup storage redundancy: LRS vs GRS vault storage</h5>
+          <p>The vault's own storage can be locally redundant (LRS — three copies in one datacenter) or geo-redundant (GRS — replicated to a paired region). GRS costs more and protects against regional disaster; LRS is cheaper and sufficient when the vault's region is not your disaster scenario.</p>
+          <p>Match the vault redundancy to the disaster you are planning for. If the plan is &quot;survive losing this region,&quot; the backups must live somewhere that survives it too.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Enable VM backup with a custom policy (daily + weekly retention); trigger an on-demand backup.</strong><br/>Configure the policy from your retention requirements, then trigger an immediate backup to prove the pipeline works before the first scheduled run.</li>
+            <li><strong>Delete a test file inside the VM, then perform a file-level restore from the recovery point.</strong><br/>The delete-then-restore loop is the smallest complete backup test. If file-level recovery works, the chain from policy to recovery point to restore is proven.</li>
+            <li><strong>Walk through a Site Recovery test failover plan for a single VM on paper, listing rollback steps.</strong><br/>Write the plan as a runbook: prerequisites, failover steps, validation checks, and the rollback path. Paper plans reveal gaps that clicking through a wizard hides.</li>
+            <li><strong>Enable soft delete on the vault and attempt to delete a backup item to observe protection.</strong><br/>Try to destroy a backup and watch the vault refuse or retain it. The protection is only real if you have tested the attack it defends against.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>What distinguishes a crash-consistent recovery point from an application-consistent one?</summary><div class="il-check-a"><strong>Answer:</strong> Crash-consistent captures disks as if power were cut — in-flight app state may be lost. Application-consistent uses VSS to quiesce applications first, so databases restore cleanly. Never trust crash-consistent for a database.</div></details><details><summary>Why run a test failover instead of a planned failover when validating a DR plan?</summary><div class="il-check-a"><strong>Answer:</strong> Test failover spins up replicated VMs in an isolated network — it proves the plan works without touching production or committing to the failover. Planned failover is the real thing, with real downtime.</div></details><details><summary>Which vault settings protect backups from malicious deletion?</summary><div class="il-check-a"><strong>Answer:</strong> Soft delete (deleted backup data retained for a period), immutability (recovery points locked against deletion/modification), and cross-region restore (a usable copy outside the primary region's fate).</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-7">Mark module complete</button>
+</article>
+        <article class="il-module" id="module-8">
+          <p class="il-eyebrow">Module 8</p>
+          <h3 class="il-h il-h--card">Administration Tooling and Exam Execution</h3><figure class="il-figure" style="margin:1.5rem 0"><svg viewBox="0 0 680 278" width="100%" role="img" aria-label="Administrator tooling loop" style="max-width:680px;height:auto;display:block;margin:1.25rem auto"><defs><marker id="arr2461" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d8a94e"/></marker></defs><line x1="130.0" y1="62.0" x2="230.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2461)"/><text x="180.0" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">automate</text><line x1="310.0" y1="62.0" x2="410.0" y2="62.0" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2461)"/><text x="360.0" y="56.0" text-anchor="middle" font-size="11" fill="#9aa3b8">review first</text><line x1="278.4" y1="101.1" x2="291.6" y2="162.9" stroke="#d8a94e" stroke-width="1.6" marker-end="url(#arr2461)"/><text x="285.0" y="126.0" text-anchor="middle" font-size="11" fill="#9aa3b8">tag + budget</text><rect x="20" y="20" width="140" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="90.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">az CLI</text><text x="90.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">scripting · --query</text><rect x="200" y="20" width="140" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="270.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Bicep / ARM</text><text x="270.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">declarative templates</text><rect x="380" y="20" width="140" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="450.0" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">what-if</text><text x="450.0" y="62" text-anchor="middle" font-size="11" fill="#9aa3b8">preview the change</text><rect x="200" y="160" width="200" height="84" rx="10" fill="#131c33" stroke="#7c8db0" stroke-width="1.5"/><text x="300.0" y="184" text-anchor="middle" font-size="13" font-weight="600" fill="#f2ede1">Cost Management</text><text x="300.0" y="202" text-anchor="middle" font-size="11" fill="#9aa3b8">budgets · alerts · chargeback</text></svg><figcaption style="text-align:center;color:#9aa3b8;font-size:.82rem;margin-top:.4rem">Administrator tooling loop — original diagram</figcaption></figure>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Work fluently in Azure CLI, Azure PowerShell, and Cloud Shell for day-to-day administration.</li>
+            <li>Read and parameterize ARM templates and Bicep files for repeatable deployments.</li>
+            <li>Manage subscriptions, quotas, cost alerts, and support requests as an administrator.</li>
+            <li>Apply an exam-day strategy: lab-first pacing, process of elimination, and flag-and-return discipline.</li>
+          </ul>
+          <h4>Key concepts, explained</h4>
+          <h5>az vs Az modules: subscription context, --query JMESPath, idempotent scripting</h5>
+          <p>The Azure CLI (az) and Azure PowerShell (Az modules) are the two scripting interfaces, and fluency in at least one is non-negotiable. Both operate in a subscription context — set it explicitly per command or per session, because running against the wrong subscription is a classic and expensive mistake.</p>
+          <p>The CLI's --query flag filters JSON output with JMESPath, turning verbose responses into scriptable values. Write scripts idempotently — create-if-missing rather than blind create — so re-runs converge instead of erroring.</p>
+          <h5>Cloud Shell: storage persistence, environment variables, editor integration</h5>
+          <p>Cloud Shell is a browser-based shell with the CLI, PowerShell, and common tools preinstalled and pre-authenticated to your tenant. It persists files in an attached storage account across sessions, so scripts and history survive.</p>
+          <p>It is the fastest path to a working Azure shell from any machine — but it is also a shared, ephemeral-feeling environment, so treat anything important as code stored in a repo, not as files in the shell.</p>
+          <h5>ARM template structure: parameters, variables, resources, outputs; deployment modes</h5>
+          <p>ARM templates declare Azure infrastructure as JSON: parameters are the inputs, variables the computed values, resources the things to create, outputs the values to return. The template is the deployment's source of truth, reviewed and versioned like code.</p>
+          <p>Deployment modes matter: complete mode makes the resource group match the template exactly (deleting anything not declared — powerful and dangerous), while incremental mode only adds or updates. Know which mode you are in before you deploy.</p>
+          <h5>Bicep: modules, symbolic names, what-if deployments, decompiling ARM</h5>
+          <p>Bicep is the modern infrastructure-as-code language for Azure: cleaner syntax than ARM JSON, compiling down to ARM templates. Modules compose deployments from reusable files, symbolic names replace fragile string references between resources, and existing ARM JSON can be decompiled into Bicep as a migration path.</p>
+          <p>The what-if operation previews exactly what a deployment would create, modify, or delete — the mandatory review step before any production deployment. Bicep plus what-if is the professional deployment workflow.</p>
+          <h5>Cost Management: budgets, alerts, cost analysis scopes, tagging for chargeback</h5>
+          <p>Cost Management turns the metered bill into actionable data: budgets set spending thresholds with alert actions at percentages of the budget, cost analysis breaks spend down by scope — subscription, resource group, tag — and tagging makes chargeback to teams possible.</p>
+          <p>Set budget alerts on every subscription on day one, including lab subscriptions. The tagging standard from the governance module is what makes cost analysis meaningful — untagged resources are unattributable spend.</p>
+          <h5>Quotas, support plans, and service limit requests</h5>
+          <p>Every subscription has quotas — caps on vCPUs per region, public IPs, storage accounts — that gate how much you can deploy. Hitting a quota looks like a deployment failure, so check quotas before diagnosing anything else when provisioning fails at scale.</p>
+          <p>Quotas can be raised through support requests, and support plans define how fast Microsoft responds. Know your plan's response times before an incident, not during one.</p>
+          <h5>Exam mechanics: case studies, labs, review screens; time budgeting per question</h5>
+          <p>The AZ-104 exam mixes multiple-choice questions with case studies — multi-question scenarios built on a shared business background — and hands-on lab tasks in a live Azure environment. The review screen lets you flag questions and return to them, which is a strategic tool, not an afterthought.</p>
+          <p>The exam-day discipline: answer confidently-known questions first, flag the uncertain ones, and return with remaining time — never leave a question blank, since there is no penalty for wrong answers. Budget your time per question up front and check the clock at the halfway mark.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li><strong>Write a 10-line bash script using az CLI that creates an RG, VNet, and VM idempotently.</strong><br/>Guard each creation step with an existence check so the script converges on re-run. Ten lines of idempotent scripting beats fifty lines of click-ops documentation.</li>
+            <li><strong>Author a Bicep file deploying a storage account and App Service plan; run what-if before deploying.</strong><br/>Write the Bicep, run what-if, read the preview carefully, then deploy. The what-if output is the change review — treat discrepancies as findings, not noise.</li>
+            <li><strong>Create a budget alert at 80% of a $50 monthly cap scoped to your lab subscription.</strong><br/>The alert is your financial circuit breaker. Scope it to the lab subscription so experiments cannot surprise you, and confirm the notification arrives.</li>
+            <li><strong>Do a timed 20-question drill: answer, flag uncertain items, return once — measure accuracy vs speed.</strong><br/>Simulate the exam rhythm on practice questions: first pass for confident answers, flagged items on return, clock awareness throughout. The drill trains pacing, which is half the exam.</li>
+          </ol>
+          <h4>Self-check</h4><div class="il-checks"><details><summary>What does a Bicep what-if run tell you that a plain deployment does not?</summary><div class="il-check-a"><strong>Answer:</strong> Exactly what the deployment would create, modify, or delete — the change preview — without touching anything. A plain deployment just executes; what-if is the mandatory review step before production changes.</div></details><details><summary>How do you scope an az command to a specific subscription without changing global context?</summary><div class="il-check-a"><strong>Answer:</strong> Pass <code>--subscription &lt;id-or-name&gt;</code> on the command, or run <code>az account set --subscription</code> for the session. Per-command scoping is safer in scripts.</div></details><details><summary>What is your personal time budget per question for a 45-question exam session?</summary><div class="il-check-a"><strong>Answer:</strong> No universal number — compute it on exam day: total minutes ÷ question count, minus a buffer for case studies and review. Write it down before starting, check the clock at the halfway mark, and never leave a question blank.</div></details></div>
+        
+<button type="button" class="il-mod-done" data-il-module-done="module-8">Mark module complete</button>
+</article>
+      </div>
+    </div>
+  </section>
+  <hr class="il-rule"/>
+  <!-- In-browser lab validation -->
+  <section class="il-section" id="lab-validation" aria-labelledby="labval-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Validate without leaving the site</p>
+        <h2 class="il-h il-h--section" id="labval-h">Prove it in your browser.</h2>
+      </div>
+      <div class="il-prose">
+        <p>These exercises validate the same skills as the hands-on labs above — checked instantly, right here. Scores are saved on this device.</p>
+<div class="il-lab-widget" data-widget="cidr"><script type="application/json" class="il-widget-cfg">{"type":"input","id":"az-cidr","title":"Lab widget · Subnet sizing drill","prompt":"Your app tier needs at least 500 usable host addresses. Enter a CIDR block (e.g. 10.0.8.0/22) that satisfies it — and remember Azure reserves a few addresses per subnet, so leave headroom.","placeholder":"10.0.8.0/22","button":"Validate my CIDR","validate":{"kind":"cidr","minUsable":500,"need":"≥500 usable hosts","why":"/23 is the smallest prefix giving 510 usable hosts (512 − network − broadcast)."}}</script></div>
+<div class="il-lab-widget" data-widget="ca-order"><script type="application/json" class="il-widget-cfg">{"type":"order","id":"az-ca-rollout","title":"Lab widget · Safe Conditional Access rollout","items":["Create the policy in report-only mode","Review sign-in logs for what would have been blocked","Exclude break-glass emergency accounts","Enforce the policy for pilot users","Expand enforcement tenant-wide"],"why":"Report-only first, break-glass always excluded, pilot before tenant-wide — this order is what prevents a policy from locking out every administrator at once."}</script></div>
+<div class="il-lab-widget" data-widget="rbac-quiz"><script type="application/json" class="il-widget-cfg">{"type":"quiz","id":"az-rbac","title":"Lab widget · RBAC scenario check","questions":[{"q":"Mara is Reader at the subscription scope and Contributor on RG-web. Inside RG-web she tries to delete a VM. What happens?","choices":[{"key":"A","text":"Delete succeeds — union of assignments gives Contributor in RG-web"},{"key":"B","text":"Delete fails — Reader at subscription overrides"},{"key":"C","text":"Delete fails — RBAC denies always win"},{"key":"D","text":"Delete succeeds only with Owner"}],"answer":"A","why":"RBAC is allow-only; effective permission is the union. There are no deny assignments in the model (locks excepted)."},{"q":"A CanNotDelete lock is placed on RG-prod. An Owner tries to delete a storage account inside it. What happens?","choices":[{"key":"A","text":"Delete succeeds — Owners bypass locks"},{"key":"B","text":"Delete is blocked — locks apply to everyone including Owners"},{"key":"C","text":"Delete succeeds after a warning"},{"key":"D","text":"Only the lock creator can delete"}],"answer":"B","why":"Locks are the last line of defense precisely because they bind even Owners. Remove the lock first, deliberately."},{"q":"A policy with effect Deny requires a cost-center tag on resource groups. A deployment omits the tag. What happens?","choices":[{"key":"A","text":"Deploys, then gets flagged in compliance"},{"key":"B","text":"Deployment is blocked at creation time"},{"key":"C","text":"Tag is auto-added with a default value"},{"key":"D","text":"Policy only applies to VMs"}],"answer":"B","why":"Deny blocks non-compliant deployments up front. Audit would only flag; deployIfNotExists would remediate. Start in audit, escalate to deny."}]}</script></div>
+        <div class="il-checklist">
+          <h3 class="il-h il-h--card" style="margin-top:1.5rem">No Azure subscription? Prove the labs dry.</h3>
+          <p>Every lab above has a learning objective that does not require a portal. Work these on paper — if you can answer all four, you have the module's core skill.</p>
+<details><summary>Draw the management-group → subscription → resource-group → resource hierarchy for a fictional company with two business units and dev/prod environments.</summary><div class="il-check-a"><strong>Answer key:</strong> Two management groups (one per business unit), subscriptions per environment under each, resource groups per application lifecycle. The point: hierarchy designed before creation.</div></details>
+<details><summary>Write the JSON skeleton of a custom role that allows VM restart but denies resize, with assignableScopes set to one resource group.</summary><div class="il-check-a"><strong>Answer key:</strong> actions: ["Microsoft.Compute/virtualMachines/restart/action"], notActions: ["Microsoft.Compute/virtualMachines/write"], assignableScopes: ["/subscriptions/.../resourceGroups/..."]. Narrow actions, bounded scope.</div></details>
+<details><summary>Given 10.0.0.0/16, carve three /24 subnets and state which addresses Azure reserves in each.</summary><div class="il-check-a"><strong>Answer key:</strong> 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24. Azure reserves the network address, the gateway, DNS, and broadcast-equivalent addresses in every subnet — plan headroom.</div></details>
+<details><summary>Write a Conditional Access policy as three sentences: signal, condition, grant control — for blocking legacy authentication.</summary><div class="il-check-a"><strong>Answer key:</strong> Signal: sign-in using legacy auth protocols. Condition: all users, all cloud apps. Grant: block access. Plus a break-glass exclusion and report-only testing first.</div></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <hr class="il-rule"/>
+
+  <!-- Resources -->
+  <section class="il-section" aria-labelledby="sources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Sources</p>
+        <h2 class="il-h il-h--section" id="sources-h">Open and free resources.</h2>
+              </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/">https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/</a></li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/entra/identity/">https://learn.microsoft.com/en-us/entra/identity/</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/overview">https://learn.microsoft.com/en-us/azure/role-based-access-control/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/governance/policy/overview">https://learn.microsoft.com/en-us/azure/governance/policy/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/governance/management-groups/overview">https://learn.microsoft.com/en-us/azure/governance/management-groups/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview">https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/overview">https://learn.microsoft.com/en-us/azure/virtual-machines/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/app-service/overview">https://learn.microsoft.com/en-us/azure/app-service/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/container-instances/container-instances-overview">https://learn.microsoft.com/en-us/azure/container-instances/container-instances-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/overview">https://learn.microsoft.com/en-us/azure/azure-monitor/overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-overview">https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104">https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/courses/az-104t00">https://learn.microsoft.com/en-us/training/courses/az-104t00</a></li>
+        </ul>
+        <h3>Further free reading</h3>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104">AZ-104 study guide (official)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/courses/az-104t00">AZ-104 instructor-led course outline</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+
+  
+  <hr class="il-rule"/>
+  <!-- Final assessment -->
+  <section class="il-section" id="final-assessment" aria-labelledby="exam-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Final assessment</p>
+        <h2 class="il-h il-h--section" id="exam-h">The scenario exam.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Twelve original scenario questions drawn from every module. Your score is saved on this device, and every miss links back to the module to remediate plus a Noah prompt to go deeper. These questions are written for this site — they are not real exam questions.</p>
+        <div data-il-exam="azure-az104"></div>
+        <script type="application/json" data-il-exam-bank>[{"id": "az-rbac-scn", "domain": "Governance", "stem": "A contractor needs to restart VMs in RG-web but must not resize them, change networking, or touch RG-db. Which approach is least privilege?", "choices": [{"key": "A", "text": "Contributor on the subscription"}, {"key": "B", "text": "A custom role with restart-only actions scoped to RG-web"}, {"key": "C", "text": "Owner on RG-web"}, {"key": "D", "text": "Reader on the subscription plus local admin on each VM"}], "answer": "B", "why": "Custom role, narrow actions, bounded scope — least privilege. Contributor/Owner grant far more than restart.", "remediate": {"adapt": "#module-2", "coach": "/coach/?prompt=Custom%20RBAC%20role%20for%20VM%20restart%20only"}}, {"id": "az-ca-scn", "domain": "Identity", "stem": "You must roll out a Conditional Access policy requiring MFA for administrators. What is the safe sequence?", "choices": [{"key": "A", "text": "Enforce tenant-wide immediately, then monitor"}, {"key": "B", "text": "Report-only mode, review sign-in logs, exclude break-glass accounts, then enforce"}, {"key": "C", "text": "Enable per-user MFA instead — simpler"}, {"key": "D", "text": "Enforce only on weekends to limit impact"}], "answer": "B", "why": "Report-only validates impact, break-glass exclusions prevent total lockout, then enforce.", "remediate": {"adapt": "#module-1", "coach": "/coach/?prompt=Safe%20Conditional%20Access%20rollout%20sequence"}}, {"id": "az-stor-scn", "domain": "Storage", "stem": "A regional application needs resilience against a single-datacenter failure, but cross-region replication is overkill for its RPO. Which replication?", "choices": [{"key": "A", "text": "LRS"}, {"key": "B", "text": "ZRS"}, {"key": "C", "text": "GRS"}, {"key": "D", "text": "RA-GRS"}], "answer": "B", "why": "ZRS spreads copies across availability zones in one region — survives datacenter loss without cross-region cost.", "remediate": {"adapt": "#module-3", "coach": "/coach/?prompt=Choose%20Azure%20storage%20replication%20ZRS%20vs%20GRS"}}, {"id": "az-sas-scn", "domain": "Storage", "stem": "A partner needs read access to one blob container for 48 hours. What do you issue?", "choices": [{"key": "A", "text": "The storage account key — simplest"}, {"key": "B", "text": "A user-delegation SAS scoped to the container, read-only, 48-hour expiry"}, {"key": "C", "text": "An account SAS with full permissions, 1-year expiry"}, {"key": "D", "text": "Contributor RBAC on the subscription"}], "answer": "B", "why": "User-delegation SAS: Entra-bound, revocable, least privilege, short expiry. Never share account keys.", "remediate": {"adapt": "#module-3", "coach": "/coach/?prompt=Least%20privilege%20SAS%20for%20a%20partner"}}, {"id": "az-avail-scn", "domain": "Compute", "stem": "Two VMs in an availability set protect against rack failure. The business now requires surviving a full datacenter outage in-region. What changes?", "choices": [{"key": "A", "text": "Add a third VM to the same set"}, {"key": "B", "text": "Move to availability zones across datacenters"}, {"key": "C", "text": "Enable VMSS with uniform orchestration in the same set"}, {"key": "D", "text": "Nothing — sets already cover datacenter loss"}], "answer": "B", "why": "Availability sets are single-datacenter constructs. Zones span physically separate datacenters.", "remediate": {"adapt": "#module-4", "coach": "/coach/?prompt=Availability%20sets%20vs%20zones"}}, {"id": "az-nsg-scn", "domain": "Networking", "stem": "An NSG has: priority 100 allow 443 from 10.0.1.0/24; priority 200 deny all inbound. A packet arrives from 10.0.1.5 to port 443. Verdict?", "choices": [{"key": "A", "text": "Denied — the deny rule wins"}, {"key": "B", "text": "Allowed — lowest-numbered matching rule wins"}, {"key": "C", "text": "Denied — default rules override custom"}, {"key": "D", "text": "Allowed only if an ASG is attached"}], "answer": "B", "why": "NSG rules evaluate by priority, lowest first; the first match decides.", "remediate": {"adapt": "#module-5", "coach": "/coach/?prompt=NSG%20rule%20priority%20evaluation"}}, {"id": "az-peer-scn", "domain": "Networking", "stem": "Hub VNet peers with spoke A and spoke B. A VM in spoke A needs to reach a VM in spoke B. What works?", "choices": [{"key": "A", "text": "It works automatically — peering is transitive"}, {"key": "B", "text": "Peer spoke A directly with spoke B, or route via the hub with gateway transit/NVA"}, {"key": "C", "text": "Enable service endpoints on both spokes"}, {"key": "D", "text": "Move both VMs into the hub VNet"}], "answer": "B", "why": "Peering is non-transitive. Direct peering or hub-routed transit are the designs.", "remediate": {"adapt": "#module-5", "coach": "/coach/?prompt=VNet%20peering%20non-transitive%20design"}}, {"id": "az-alert-scn", "domain": "Monitoring", "stem": "The on-call is paged 40 times a night for CPU spikes that self-resolve in 90 seconds. What is the most likely design flaw?", "choices": [{"key": "A", "text": "The action group has too many members"}, {"key": "B", "text": "Threshold without an aggregation window — alerting on instantaneous values"}, {"key": "C", "text": "Metrics are cheaper than logs"}, {"key": "D", "text": "The evaluation frequency is too slow"}], "answer": "B", "why": "Alert on sustained conditions (threshold over an aggregation window), not instantaneous spikes — that is what causes flapping.", "remediate": {"adapt": "#module-6", "coach": "/coach/?prompt=Fix%20flapping%20Azure%20alerts"}}, {"id": "az-backup-scn", "domain": "Recovery", "stem": "After a ransomware incident, attackers deleted VMs and then tried to delete the backups. Which vault settings save you?", "choices": [{"key": "A", "text": "RA-GRS storage on the vault"}, {"key": "B", "text": "Soft delete plus immutability on the vault"}, {"key": "C", "text": "A longer GFS retention schedule"}, {"key": "D", "text": "Private endpoints on the vault"}], "answer": "B", "why": "Soft delete retains deleted backup data; immutability locks recovery points against deletion or modification.", "remediate": {"adapt": "#module-7", "coach": "/coach/?prompt=Harden%20Recovery%20Services%20vault%20ransomware"}}, {"id": "az-bicep-scn", "domain": "Tooling", "stem": "A Bicep deployment to production is ready. What is the mandatory review step before deploy?", "choices": [{"key": "A", "text": "Run what-if and review the create/update/delete preview"}, {"key": "B", "text": "Deploy to production, then diff"}, {"key": "C", "text": "Decompile the Bicep back to ARM first"}, {"key": "D", "text": "Run in complete mode to clean drift"}], "answer": "A", "why": "what-if previews exactly what will change. Complete mode would delete undeclared resources — dangerous, not a review.", "remediate": {"adapt": "#module-8", "coach": "/coach/?prompt=Bicep%20what-if%20review%20before%20deploy"}}, {"id": "az-slot-scn", "domain": "Compute", "stem": "After a slot swap, production is using the staging database connection string. What was misconfigured?", "choices": [{"key": "A", "text": "The app setting was not marked as a slot (sticky) setting"}, {"key": "B", "text": "The swap was performed too quickly"}, {"key": "C", "text": "The staging slot had no deployment"}, {"key": "D", "text": "VMSS flexible orchestration was used"}], "answer": "A", "why": "Sticky settings stay with their slot; non-sticky settings travel with the swap. Connection strings must be sticky.", "remediate": {"adapt": "#module-4", "coach": "/coach/?prompt=App%20Service%20sticky%20slot%20settings"}}, {"id": "az-cost-scn", "domain": "Tooling", "stem": "Lab spend keeps surprising the team at month end. What is the day-one control?", "choices": [{"key": "A", "text": "A budget alert scoped to the lab subscription"}, {"key": "B", "text": "Deleting the subscription monthly"}, {"key": "C", "text": "RA-GRS on all storage"}, {"key": "D", "text": "A policy denying all VM creation"}], "answer": "A", "why": "Budget alerts at a percentage of cap, scoped to the subscription, are the financial circuit breaker. Set them on day one.", "remediate": {"adapt": "#module-8", "coach": "/coach/?prompt=Azure%20budget%20alerts%20day%20one"}}]</script>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <!-- Next steps -->
+  <section class="il-section" id="next-steps" aria-labelledby="next-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">No dead ends</p>
+        <h2 class="il-h il-h--section" id="next-h">Continue to &rarr;</h2>
+      </div>
+      <div class="il-prose">
+        <h3><a href="/learn/sequences/devsecops-pipeline/">DevSecOps Pipeline</a></h3>
+        <p>Take the Azure control plane you just learned and wrap it in a secure delivery pipeline: CI, image scanning, policy-as-code, and safe deployments.</p>
+        <h4>Prove it in your portfolio</h4>
+        <p>Publish a "lab subscription teardown + budget alert" runbook and your Bicep what-if review checklist as a portfolio repo.</p>
+        <h4>Prove it here first</h4>
+        <p>Score 90%+ on the <a href="#final-assessment">scenario exam above</a>, then         <a href="https://interstitiumlabs.dev/university/course.html?course=il-19-multicloud-devops-ai-bootcamp">export your proof</a>.</p>
+        <div class="il-center" style="margin-top:1.5rem">
+          <a class="il-btn il-btn--gold" href="/learn/sequences/devsecops-pipeline/">Continue to DevSecOps Pipeline &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- Disclaimer -->
+  <section class="il-section" aria-labelledby="note-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">A note</p>
+        <h2 class="il-h il-h--section" id="note-h">An original study guide, keyed to the public curriculum.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Independent study guide by Interstitium Labs — keyed to the public curriculum linked above, preferring free and open sources, with all teaching prose written fresh for this site. Not the vendor, not a certification body: this guide confers no certification and reproduces no exam content. Where the official curriculum changes, the source is authoritative.</p>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all sequences</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+<script src="/assets/noah-full.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="../il-widgets.js" defer></script>
+</body>
+</html>

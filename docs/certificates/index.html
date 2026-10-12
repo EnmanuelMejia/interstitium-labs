@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src 'self' https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Certificates — Interstitium Labs</title>
+<meta name="description" content="Issue and verify Interstitium Labs certificates of completion. Completion certificates, verifiable by ID — not accreditation, no vendor affiliation."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/certificates/"/>
+<meta property="og:title" content="Certificates — Interstitium Labs"/>
+<meta property="og:url" content="https://interstitiumlabs.dev/certificates/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<style>
+  .il-kicker{font-size:.68rem;text-transform:uppercase;letter-spacing:.2em;color:#c9a227}
+  .il-card{background:rgba(12,18,34,.72);border:1px solid rgba(232,238,245,.12);border-radius:1rem;padding:1.25rem}
+  .il-btn{display:inline-flex;align-items:center;justify-content:center;min-height:2.6rem;padding:.5rem 1.1rem;border-radius:.6rem;background:#f2ede1;color:#0a0f1d;font-weight:600;font-size:.85rem;border:0;cursor:pointer;text-decoration:none}
+  .il-btn:disabled{opacity:.55;cursor:wait}
+  .il-btn-ghost{background:transparent;color:#f2ede1;border:1px solid rgba(232,238,245,.25)}
+  .il-link{background:none;border:0;color:#7dd3fc;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0}
+  .il-field{display:block;margin:0 0 1rem}
+  .il-field>span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:#9aa3b2;margin-bottom:.4rem}
+  .il-field input,.il-field select{width:100%;height:2.9rem;border-radius:.6rem;border:1px solid rgba(232,238,245,.2);background:#0a0f1d;color:#f2ede1;padding:0 .9rem;font-size:1rem}
+  .il-muted{color:#9aa3b2;font-size:.85rem}
+  .il-err{color:#fca5a5;font-size:.85rem}
+  .il-ok{color:#86efac;font-size:.85rem}
+  .il-cert-doc{border:2px solid #c9a227;border-radius:1rem;padding:2rem;max-width:40rem;margin:0 auto;text-align:center;background:rgba(12,18,34,.85)}
+  .il-cert-doc h2{font-family:"Space Grotesk",sans-serif;font-size:1.6rem;margin:.75rem 0}
+  .il-cert-id{font-family:"JetBrains Mono",monospace;font-size:.75rem;color:#9aa3b2;overflow-wrap:anywhere}
+  .il-grid{display:grid;gap:1rem}
+  @media(min-width:640px){.il-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(min-width:1024px){.il-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Certificates</li></ol></nav>
+<main style="max-width:72rem;margin:0 auto;padding:2rem 1.5rem 4rem">
+  <p class="il-kicker">Certificates</p>
+  <h1>Certificates of completion</h1>
+  <p class="il-muted" style="max-width:44rem">Certificate of Completion — Interstitium Labs. This certifies completion of coursework on interstitiumlabs.dev. It is not an accreditation and is not affiliated with any vendor.</p>
+
+  <!-- Public verification view (no sign-in needed): /certificates/?id=cert-… -->
+  <section aria-label="Verify a certificate" class="il-card mt-6" data-il-cert-verify>
+    <h2 class="text-xl font-semibold">Verify a certificate</h2>
+    <p class="il-muted">Enter a certificate ID (or open its link) to check it against our records.</p>
+    <form data-il-verify-form class="mt-4" style="max-width:26rem">
+      <label class="il-field"><span>Certificate ID</span><input name="cid" placeholder="cert-…" autocomplete="off"/></label>
+      <button type="submit" class="il-btn">Verify</button>
+    </form>
+    <div class="mt-4" data-il-verify-result></div>
+  </section>
+
+  <!-- Issue view: sign-in required -->
+  <section aria-label="Issue a certificate" class="mt-8" data-il-cert-issue hidden>
+    <h2 class="text-xl font-semibold">Issue a certificate</h2>
+    <p class="il-muted" style="max-width:44rem">Finished a path? Issue yourself a verifiable certificate of completion for it. Only issue for work you actually completed — your evidence portfolio backs the claim.</p>
+    <div class="il-card mt-4" style="max-width:30rem">
+      <form data-il-issue-form>
+        <label class="il-field"><span>Path</span><select name="path" data-il-path-select><option value="">Choose…</option></select></label>
+        <label class="il-field"><span>Or type the path slug</span><input name="pathtext" placeholder="e.g. linux-sysadmin" autocomplete="off"/></label>
+        <p class="il-err" data-il-issue-error hidden></p>
+        <button type="submit" class="il-btn" data-il-issue-submit>Issue certificate</button>
+      </form>
+    </div>
+    <div class="il-grid mt-4" data-il-my-certs></div>
+  </section>
+
+  <section aria-label="Sign in" class="mt-8" data-il-cert-signin hidden>
+    <div class="il-card" style="max-width:30rem">
+      <p class="il-kicker">Sign in required</p>
+      <p>Issuing certificates needs a learner account so they stay verifiable and attached to you.</p>
+      <p class="mt-3"><a class="il-btn" href="/account/?next=%2Fcertificates%2F">Sign in</a></p>
+    </div>
+  </section>
+</main>
+<script src="https://interstitiumlabs.dev/assets/il-account.js"></script>
+<script>
+(function () {
+  "use strict";
+  var HONEST = "Certificate of Completion — Interstitium Labs. This certifies completion of coursework on interstitiumlabs.dev. It is not an accreditation and is not affiliated with any vendor.";
+
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function pretty(slug) { return String(slug).split(/[-_./]+/).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" "); }
+
+  function renderVerified(box, cert) {
+    var d = "";
+    try { d = new Date(cert.issued_at).toISOString().slice(0, 10); } catch (e) {}
+    box.innerHTML =
+      '<div class="il-cert-doc"><p class="il-kicker">Interstitium Labs</p>' +
+      "<h2>Certificate of Completion</h2>" +
+      "<p>Awarded to<br/><strong>" + esc(cert.email) + "</strong></p>" +
+      "<p>for completion of coursework in<br/><strong>" + esc(pretty(cert.path)) + "</strong></p>" +
+      '<p class="il-cert-id">' + esc(cert.id) + " · issued " + esc(d) + "</p>" +
+      '<p class="il-muted mt-4" style="max-width:32rem;margin-left:auto;margin-right:auto">' + esc(HONEST) + "</p></div>";
+  }
+
+  function verify(id) {
+    var box = document.querySelector("[data-il-verify-result]");
+    box.innerHTML = '<p class="il-muted">Checking…</p>';
+    fetch("/api/certificates/verify?id=" + encodeURIComponent(id), { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (r && r.ok && r.certificate) {
+          box.innerHTML = '<p class="il-ok">✓ Verified — this certificate is on record.</p>';
+          renderVerified(box, r.certificate);
+        } else {
+          box.innerHTML = '<p class="il-err">Not found — no certificate with that ID is on record.</p>';
+        }
+      })
+      .catch(function () { box.innerHTML = '<p class="il-err">Verification is temporarily unavailable. Try again shortly.</p>'; });
+  }
+
+  function wireVerifyForm() {
+    var form = document.querySelector("[data-il-verify-form]");
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var id = form.cid.value.trim();
+      if (!id) return;
+      var url = new URL(location.href);
+      url.searchParams.set("id", id);
+      history.replaceState(null, "", url.toString());
+      verify(id);
+    });
+    var params = new URLSearchParams(location.search);
+    var id = params.get("id");
+    if (id) { form.cid.value = id; verify(id); }
+  }
+
+  function collectScopes() {
+    var out = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (!k || k.indexOf("il.progress.") !== 0) continue;
+        var scope = k.slice("il.progress.".length).split(".")[0];
+        if (out.indexOf(scope) === -1) out.push(scope);
+      }
+    } catch (e) {}
+    return out.sort();
+  }
+
+  function paintMyCerts(list) {
+    var grid = document.querySelector("[data-il-my-certs]");
+    if (!list.length) {
+      grid.innerHTML = '<div class="il-card"><p class="il-muted">No certificates issued yet.</p></div>';
+      return;
+    }
+    grid.innerHTML = list.map(function (c) {
+      return '<div class="il-card"><p class="il-kicker">Certificate</p>' +
+        '<h3 class="font-semibold">' + esc(pretty(c.path)) + "</h3>" +
+        '<p class="il-cert-id">' + esc(c.id) + "</p>" +
+        '<p class="mt-2"><a class="il-link" href="/certificates/?id=' + encodeURIComponent(c.id) + '">View / verify</a></p></div>';
+    }).join("");
+  }
+
+  function refreshMyCerts() {
+    fetch("/api/certificates", { credentials: "same-origin" }).then(function (r) { return r.json(); }).then(function (r) {
+      paintMyCerts(r && r.ok && Array.isArray(r.certificates) ? r.certificates : []);
+    }).catch(function () { paintMyCerts([]); });
+  }
+
+  function wireIssue() {
+    var sel = document.querySelector("[data-il-path-select]");
+    collectScopes().forEach(function (s) {
+      var o = document.createElement("option");
+      o.value = s;
+      o.textContent = pretty(s);
+      sel.appendChild(o);
+    });
+    var form = document.querySelector("[data-il-issue-form]");
+    var errEl = document.querySelector("[data-il-issue-error]");
+    var submitBtn = document.querySelector("[data-il-issue-submit]");
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var pathId = (form.pathtext.value.trim() || form.path.value).trim();
+      errEl.hidden = true;
+      if (!pathId) { errEl.textContent = "Choose or type a path."; errEl.hidden = false; return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Issuing…";
+      fetch("/api/certificates/issue", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ path: pathId }),
+      }).then(function (r) { return r.json(); }).then(function (r) {
+        if (r && r.ok && r.certificate) {
+          form.reset();
+          refreshMyCerts();
+          location.hash = "";
+          location.href = "/certificates/?id=" + encodeURIComponent(r.certificate.id);
+        } else {
+          errEl.textContent = (r && r.error === "path_required") ? "That path name isn't valid." : "Issue failed. Try again.";
+          errEl.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Issue certificate";
+        }
+      }).catch(function () {
+        errEl.textContent = "Network error. Try again.";
+        errEl.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Issue certificate";
+      });
+    });
+  }
+
+  function gate() {
+    if (!window.ILAccount) return;
+    ILAccount.me().then(function (email) {
+      var issue = document.querySelector("[data-il-cert-issue]");
+      var signin = document.querySelector("[data-il-cert-signin]");
+      if (email) {
+        issue.hidden = false;
+        signin.hidden = true;
+        wireIssue();
+        refreshMyCerts();
+      } else {
+        // Public verify stays available; only issuing needs sign-in.
+        var params = new URLSearchParams(location.search);
+        if (!params.get("id")) signin.hidden = false;
+        else signin.hidden = true;
+        issue.hidden = true;
+      }
+    });
+  }
+
+  wireVerifyForm();
+  gate();
+})();
+</script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+<style>/* canonical footer (page does not load il-unified.css) */
+/* ================================================================
+ * §21 — Canonical site footer (2026-10-08).
+ * Centered layout; gold brand; crisp rendering (no blur,
+ * filter, or backdrop-filter anywhere in these rules).
+ * ================================================================ */
+.il-footer-canonical {
+  border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  padding: 3rem 1.25rem 4.5rem;
+  text-align: center;
+}
+.il-fc-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.il-fc-logo { width: 56px; height: 56px; }
+.il-fc-brand {
+  color: var(--gold, #c9a227);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  font-size: 0.95rem;
+}
+.il-fc-tagline {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  font-size: 0.72rem;
+}
+.il-fc-created {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.66rem;
+}
+.il-fc-course {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  font-size: 0.66rem;
+}
+.il-fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.6rem;
+}
+.il-fc-nav a {
+  color: var(--muted, #8b93a5);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+}
+.il-fc-nav a:hover { color: var(--gold, #c9a227); }
+.il-fc-lang {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  color: var(--muted, #8b93a5);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
+</body>
+</html>

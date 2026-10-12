@@ -1,0 +1,69 @@
+{
+ "course": "il-11-zero-trust-endpoint-defense",
+ "stories": [
+  {
+   "bridge": "The perimeter fell; the tenets are what replaced it. Now let's learn the architecture that assumes breach — starting with why the old model died.",
+   "course": "il-11-zero-trust-endpoint-defense",
+   "figures": [
+    {
+     "dates": "",
+     "name": "John Kindervag",
+     "role": "Forrester analyst; coined 'zero trust' (2010)"
+    }
+   ],
+   "hook": "In September 2010, a Forrester analyst declared the corporate firewall dead. His report was titled 'No More Chewy Centers.'",
+   "id": "il-11-zero-trust-endpoint-defense-story-1",
+   "moduleId": "il11-zero-trust-foundations--zt-perimeter-fall",
+   "narrative": "John Kindervag's metaphor was deliberately vivid: traditional security was like a candy with a hard shell and a soft, chewy center — fierce firewalls at the perimeter, blind trust inside. Once an attacker got past the shell, everything was theirs: the internal network was a trusted zone where systems talked freely and credentials were rarely challenged. Kindervag's 2010 report argued for a new model built on an old military insight: never trust, always verify. Every user, every device, every connection would be authenticated, authorized, and continuously validated — regardless of where it sat on the network. No more trusted zones; the network location would confer zero privilege. The idea had ancestors: the Jericho Forum, a group of corporate security chiefs, had been preaching 'de-perimeterization' since 2004, arguing that the perimeter was dissolving under the pressure of mobile workers, partners, and cloud. But Kindervag gave it a name, a framework, and a Forrester imprimatur — and then reality supplied the proof. In 2009, Google suffered Operation Aurora, a sophisticated intrusion traced to China, and responded with BeyondCorp: a years-long rebuild of its entire corporate network on zero-trust principles, with no privileged network at all, just authenticated users and devices. The US government followed: NIST published SP 800-207, the formal zero-trust architecture, in August 2020, and a 2021 executive order pushed federal agencies to adopt it on a deadline. The candy metaphor stuck because the breaches kept confirming it, year after year. In this module you'll learn the tenets as engineering — identity, device, least privilege, microsegmentation, continuous verification — but remember they were born as an obituary for the firewall. Every control you deploy is an answer to 2010. The federal mandate gave the obituary teeth: Executive Order 14028 (2021) ordered agencies toward zero-trust architectures on a deadline, and the CISA maturity model turned Kindervag's philosophy into a scored rubric. What began as a Forrester report became procurement policy. When you implement these controls in this course, you're building to a standard that now moves billions in federal spending.",
+   "title": "The story behind zero trust",
+   "verifiedClaims": [
+    "Kindervag's Forrester report 'No More Chewy Centers' was published September 2010",
+    "The Jericho Forum advocated de-perimeterization from 2004",
+    "Google built BeyondCorp after Operation Aurora (2009)",
+    "NIST SP 800-207 was published August 2020"
+   ]
+  },
+  {
+   "bridge": "Target is why 'assume breach' isn't paranoia — it's history. Now let's study the fall of the perimeter as engineering fact, not folklore.",
+   "course": "il-11-zero-trust-endpoint-defense",
+   "figures": [
+    {
+     "dates": "b. 1972",
+     "name": "Brian Krebs",
+     "role": "Investigative journalist; broke the Target breach story"
+    }
+   ],
+   "hook": "In December 2013, America's big-box giant learned its network had been open for weeks — and the intruders came in through the air conditioning.",
+   "id": "il-11-zero-trust-endpoint-defense-story-2",
+   "moduleId": "il11-zero-trust-foundations--zt-perimeter-fall",
+   "narrative": "The attackers didn't breach Target directly — they never had to. They breached Fazio Mechanical, a small Pennsylvania HVAC contractor with remote access to Target's network for monitoring refrigeration systems. A phishing email delivered the Citadel trojan to Fazio; from there, the attackers rode the vendor's trusted connection straight into Target's corporate network, moved laterally for days until they found the point-of-sale environment, and installed memory-scraping malware on the registers. For weeks, card data flowed out to servers in Eastern Europe while the trusted interior hummed along. Investigative journalist Brian Krebs broke the story on December 18, 2013; the final toll was around 40 million payment cards and 70 million customer records, one of the largest retail breaches in history. The breach became the canonical zero-trust case study for one reason: every step exploited trusted-inside-the-perimeter assumptions. The vendor was trusted. The internal network was trusted. The POS terminals were trusted. The flat network let attackers wander. Under zero trust, none of that trust would have been implicit — every connection verified, every lateral move challenged, every device attested, the POS environment microsegmented from the corporate LAN. Target's CEO and CIO both lost their jobs; the company paid hundreds of millions in settlements and remediation. The industry got its parable, and this module is its curriculum: the perimeter doesn't just fail — it fails by trusting exactly the things attackers borrow. Design like Fazio is already compromised, because someday it will be. The malware was a Citadel variant, and it scraped memory from the registers in real time — the industry's wake-up call to encrypt data even in RAM. Target's breach also rewrote the vendor-management playbook: third-party risk, network segmentation for vendors, and the principle that a contractor's laptop is part of your attack surface. Every vendor-access review you'll perform descends from Fazio Mechanical's phished inbox.",
+   "title": "The story behind the breach that killed the perimeter",
+   "verifiedClaims": [
+    "Attackers entered via Fazio Mechanical, Target's HVAC vendor, using phished credentials and the Citadel trojan",
+    "Krebs broke the story December 18, 2013",
+    "Approximately 40 million payment cards were compromised"
+   ]
+  },
+  {
+   "bridge": "Every domain login you'll defend in this module is a Kerberos ticket exchange. Now let's learn the protocol — and how attackers abuse it.",
+   "course": "il-11-zero-trust-endpoint-defense",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Project Athena team (MIT)",
+     "role": "Developed Kerberos in the 1980s, including Steve Miller, Clifford Neuman, Jerome Saltzer, and others"
+    }
+   ],
+   "hook": "In the 1980s, MIT faced a problem: thousands of workstations on an open network, and passwords crossing the wire in cleartext.",
+   "id": "il-11-zero-trust-endpoint-defense-story-3",
+   "moduleId": "il11-active-directory-defense--zt-ad-structure",
+   "narrative": "Project Athena was MIT's ambitious plan to put networked workstations everywhere on campus — hundreds of machines, thousands of users, all sharing files and printers over a network where anyone with a sniffer could eavesdrop. Authentication had to work without ever sending a password across that wire. The team's answer, developed through the mid-1980s and formally published in 1988, was Kerberos: named for the three-headed hound guarding the underworld, because it guarded with three parties — the client, the server, and a trusted key distribution center. The elegant trick: your password never crosses the network. Instead, you authenticate once to the KDC and receive encrypted tickets — a ticket-granting ticket, then service tickets for each resource — each proving who you are without revealing the secret, each timestamped and short-lived. It was the practical realization of zero-trust thinking before the term existed: authenticate every request, trust the ticket, never the wire. When Microsoft built Active Directory for Windows 2000, it adopted Kerberos as the default authentication protocol — with extensions — and the three-headed dog has guarded enterprise logins ever since, in every domain-joined machine on Earth. That is why this module exists: the identity plane you'll learn to attack and defend — Golden Tickets, Silver Tickets, Kerberoasting, AS-REP roasting — is the shadow side of Kerberos. Every AD attack is a ticket forgery; every defense is ticket hygiene: short lifetimes, strong passwords, protected service accounts. The protocol is sound. The implementations, and the humans, are the battlefield. Learn the tickets and you learn the domain. The protocol's age is its credential: Kerberos has been attacked by the world's best for nearly forty years and the core design stands — the breaks have all been in implementations, configurations, and the humans around them. That's why this module teaches both sides: the mathematics deserves your respect, and the ticket forgeries deserve your fluency. The three-headed dog still guards the gate.",
+   "title": "The story behind Kerberos",
+   "verifiedClaims": [
+    "Kerberos was developed under MIT's Project Athena in the 1980s and published in 1988",
+    "It was named for the three-headed hound of Greek myth",
+    "Windows 2000 adopted Kerberos as the default authentication protocol for Active Directory"
+   ]
+  }
+ ]
+}

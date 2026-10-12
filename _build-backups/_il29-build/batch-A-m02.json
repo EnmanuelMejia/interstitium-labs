@@ -1,0 +1,341 @@
+{
+ "cards": [
+  {
+   "back": "Monitor-only: blocks are logged but execution continues — for baselining. Secured: policy is enforced — blocks execute.",
+   "front": "Learning Mode vs Secured/Monitor: what does each do when an unknown binary runs?"
+  },
+  {
+   "back": "SHA-256 hash: precise per version, churns on every update. Certificate: trusts the publisher, survives updates, dies if the vendor's cert is stolen or the signer is malicious. Path: cheap and fragile — malware lands in allowed paths.",
+   "front": "Hash vs certificate vs path as file identity: strength and weakness of each?"
+  },
+  {
+   "back": "Monitor mode long enough to capture a full business cycle (including month-end jobs and quarterly tools), then review the unknown list before enforcing.",
+   "front": "What is the safe path from installing the agent to enforcement?"
+  },
+  {
+   "back": "Trusted updater rules: the vendor's own signed updater is allowed to replace files it owns, so patches flow without a ticket per version.",
+   "front": "Every Patch Tuesday changes hashes. How do you avoid re-approving every application monthly?"
+  },
+  {
+   "back": "The child's identity is checked against policy independently — allowing Word does not allow what Word spawns.",
+   "front": "Parent-child process rules: does allowing the parent allow the child?"
+  },
+  {
+   "back": "Deny and investigate: quarantine the file, verify the publisher through an independent channel, check reputation, and only approve with a ticket and scope.",
+   "front": "A user requests an unsigned installer from a vendor you have never heard of. First move?"
+  },
+  {
+   "back": "Hash pinning fails closed on tampering: any one-byte change breaks the hash, so a trojaned update cannot ride the old approval.",
+   "front": "Why is hash-based identity good at catching tampered updates?"
+  },
+  {
+   "back": "Stale rules for apps no longer used, orphaned approvals for departed users, and blanket path exceptions — review them on a schedule.",
+   "front": "What are the three classic sources of allowlist rot?"
+  },
+  {
+   "back": "Publisher + product name + version scope + group scope + justification + review date — never just the filename.",
+   "front": "What does a complete allow rule contain?"
+  },
+  {
+   "back": "An approval that expires automatically and is reviewed before renewal — the opposite of a permanent hole.",
+   "front": "What is a time-bound exception?"
+  },
+  {
+   "back": "The parent is allowed but the child is not: the launcher passes, the payload is blocked at spawn.",
+   "front": "A signed launcher drops an unsigned payload. What happens at each step?"
+  },
+  {
+   "back": "Who can approve, what evidence is required, and how fast — measured in minutes to hours, with an emergency lane.",
+   "front": "What three things does an approval workflow define?"
+  }
+ ],
+ "code": "TL-ZTA-02",
+ "crossLinks": [
+  "IL29-M01",
+  "IL29-M03",
+  "IL29-M07"
+ ],
+ "drills": [
+  {
+   "id": "il29-m02-drill1",
+   "items": [
+    {
+     "answer": "Learning Mode: blocks are logged, execution continues — for baselining. Secured: blocks execute.",
+     "explain": "Monitor first to build the inventory of a full business cycle; enforce only after the unknown list is reviewed.",
+     "prompt": "Monitor vs Secured mode behavior when an unknown binary runs?"
+    },
+    {
+     "answer": "Hash: precise, churns on updates. Certificate: survives updates, trusts the publisher. Path: cheap, fragile.",
+     "explain": "Use certificate rules for reputable vendors, hash rules for unsigned or high-risk binaries, and avoid path rules except tightly scoped.",
+     "prompt": "One-line strength/weakness for hash, certificate, and path identity."
+    },
+    {
+     "answer": "Trusted updater rules for the vendor's signed updater.",
+     "explain": "Every update changes hashes; updater rules let the vendor's own mechanism replace files it owns without a ticket per version.",
+     "prompt": "How do you handle monthly application updates without re-approving everything?"
+    },
+    {
+     "answer": "No — the child is checked against policy independently.",
+     "explain": "Allowing Word does not allow what Word spawns; child-process rules are the whole point of combining allowlisting with ringfencing.",
+     "prompt": "Does allowing the parent process allow its child processes?"
+    },
+    {
+     "answer": "Deny, quarantine, verify the publisher independently, check reputation, approve only with ticket and scope.",
+     "explain": "Unknown + unsigned + unknown vendor = investigate first. Speed matters, but evidence matters more.",
+     "prompt": "Request for an unsigned installer from an unknown vendor — first move?"
+    },
+    {
+     "answer": "Stale rules, orphaned approvals, blanket path exceptions.",
+     "explain": "Schedule the review: quarterly at minimum, tied to the change calendar.",
+     "prompt": "Name the three sources of allowlist rot."
+    }
+   ],
+   "title": "Rapid recall: allowlisting operations"
+  },
+  {
+   "id": "il29-m02-drill2",
+   "items": [
+    {
+     "answer": "Check whether the existing certificate rule covers the new version (it should if the publisher is unchanged), verify the signature is valid, and confirm no hash-pinned rule is blocking it.",
+     "explain": "Certificate rules are designed to survive updates — the first check is whether the rule shape already handles this.",
+     "prompt": "After an update, a previously working app is blocked. Your first three checks? (Scenario)"
+    },
+    {
+     "answer": "Approve the updater's certificate once with tight scope, and hash-pin or certificate-pin the updater binary itself.",
+     "explain": "You trust the mechanism, not an open door: the updater may only replace files it owns.",
+     "prompt": "The vendor's auto-updater is blocked by policy. How do you fix it permanently, not per-version? (Scenario)"
+    },
+    {
+     "answer": "Block the child and alert: an allowed parent spawning a disallowed child is the classic living-off-the-land pattern.",
+     "explain": "Parent allowed + child unknown = block the child. The parent's approval never transfers.",
+     "prompt": "Signed backup agent (allowed) spawns an unknown .exe in temp at 2 AM. Verdict? (Scenario)"
+    },
+    {
+     "answer": "Deny the exception or scope it to the migration window with automatic expiry, an owner, and a ticket.",
+     "explain": "'Allow everything in Downloads' is default-allow in costume. Time-bound, scoped exceptions expire; blanket ones become permanent.",
+     "prompt": "A manager demands 'allow everything in Downloads for the team so we stop getting tickets.' Response? (Scenario)"
+    },
+    {
+     "answer": "Look for the unknown binaries first — 40 approved is expected, the 12 unknowns are the review queue; classify each as approve, investigate, or deny before flipping to Secured.",
+     "explain": "Monitor mode's output IS the work product: the unknown list becomes the approval queue.",
+     "prompt": "Monitor mode shows 40 approved apps and 12 unknown binaries in week one. What is your next action? (Scenario)"
+    },
+    {
+     "answer": "Hash-pin the specific approved version, scope it to the machine(s) that need it, set a review date, and document the risk acceptance.",
+     "explain": "Legacy unsigned tools are real; the answer is a scoped, expiring, documented exception — not a permanent blanket rule.",
+     "prompt": "A legacy unsigned tool the plant floor needs has no publisher. How do you allow it safely? (Scenario)"
+    }
+   ],
+   "title": "Scenario: approval and enforcement decisions"
+  }
+ ],
+ "estimatedMinutes": 560,
+ "handsOnLab": {
+  "brief": "You will build a complete allowlist policy plan for a fictional 25-seat accounting office: application inventory by role, identity strategy per app (hash vs certificate vs updater rule), the approval workflow with SLAs, and the exception register. This is the exact artifact a junior operator would be asked to draft in week one.",
+  "checkpoint": "Every app in the inventory has an identity strategy and a scope; the approval workflow names approvers and SLAs; the exception register has no permanent blanket exceptions.",
+  "deliverable": "allowlist-plan.md — inventory table, rule set, approval workflow, updater strategy, and exception register for the 25-seat office.",
+  "id": "il29-m02-lab",
+  "steps": [
+   "Define the office: 25 seats across 3 roles — 15 accountants, 5 payroll/HR, 5 managers. List every application each role needs (OS, Office suite, PDF reader, browser, accounting package, payroll tool, AV/EDR agent, printer drivers, remote support tool).",
+   "For each application, record the publisher and whether it is signed. Mark unsigned or unknown-publisher items for special handling.",
+   "Choose the identity strategy per app: certificate rule for signed software from reputable publishers, hash rule for unsigned legacy tools, and flag which apps have auto-updaters.",
+   "Design the trusted-updater rules: for each auto-updating app, write the rule that allows the vendor's signed updater to replace files it owns — name the updater binary and its publisher.",
+   "Write the approval workflow: who can request (any user via ticket), who approves (IT lead for standard apps, security lead for unsigned/unknown), evidence required (publisher verification, vendor hash check), and SLAs (4 business hours standard, 1 hour emergency lane with post-hoc review).",
+   "Draft the unknown-file handling procedure: quarantine, independent publisher verification, reputation check, sandbox detonation concept for high-risk files, and the deny-by-default verdict when verification fails.",
+   "Create the exception register template with columns: exception, scope, owner, justification, expiry date, review date — and enter two realistic examples (migration-weekend installer, legacy plant-floor tool) with expiries, not permanent entries.",
+   "Write the monitor-to-secured rollout plan: 30 days of monitor mode covering a full month-end close, weekly reviews of the unknown list, then a staged flip to Secured by department with a rollback criterion.",
+   "Add the allowlist hygiene schedule: quarterly stale-rule review, leaver-process approval cleanup, and the rule against blanket path exceptions.",
+   "Read the finished plan as the approver: confirm no rule says 'allow everything in <folder>' and every unsigned app has a compensating control."
+  ],
+  "title": "Allowlist policy plan for a 25-seat accounting office"
+ },
+ "id": "IL29-M02",
+ "mockTask": {
+  "answer": 1,
+  "choices": [
+   "Block everything immediately on day one to show results, then sort out the complaints",
+   "Run monitor mode through a full business cycle, review and classify the unknown list, set up trusted-updater rules for patch churn, then flip to Secured in stages with a fast approval lane",
+   "Only allowlist the servers; workstations are too noisy to bother with",
+   "Allowlist by file path only, since hashes change too often"
+  ],
+  "explain": "This shows the full operator lifecycle: baseline before enforcing, handle update churn with updater rules (the #1 gotcha), stage the rollout, and keep the business moving with a fast approval lane. Mention the exception register and hygiene schedule for full marks.",
+  "id": "il29-m02-mock",
+  "q": "Panel question: 'We are rolling out application allowlisting to 200 endpoints. Walk me through your rollout plan.'",
+  "type": "choice"
+ },
+ "notes": [
+  {
+   "body": "Application allowlisting lives or dies on its rollout, and the rollout has two modes you must never confuse. Monitor mode (sometimes called learning mode) observes: when an unknown binary executes, the agent logs the attempt — hash, path, parent process, user — but lets it run. Secured mode enforces: the same attempt is blocked. The safe path is always monitor first, secured second, and the reason is operational, not technical. On day one you do not know what the business actually runs. There are month-end close tools, quarterly tax utilities, the plant-floor label printer driver from 2014, and the manager's favorite PDF merger. Flip straight to Secured and you will block the payroll run on the 30th and spend the next week being hated. Monitor mode buys you the inventory: a complete, real-world list of what executes, built from observation instead of interviews (users always forget half their tools). Worked example: a 60-seat rollout. Weeks 1-4 run monitor mode, covering a full month-end close so the accounting batch jobs appear. Each Friday the operator reviews the unknown list: approves the legitimate (tax software update, new hire's scanner driver), investigates the suspicious (unsigned downloader in temp), and builds rules. By week 5 the unknown list is short and classified. Then the flip: Secured mode, but staged — pilot group first, then departments, with a rollback criterion ('if legitimate blocks exceed 5 per day in the pilot, we pause and review'). The emergency lane matters here: on flip day, a same-day approval path for anything wrongly blocked. Common gotcha: running monitor mode forever. Monitor mode is a phase, not a posture — an agent that only logs is a very expensive notepad. Set the flip date before you start monitoring, and treat 'we are still learning' after 60 days as a failure to decide. Second gotcha: monitoring too short a window. Two weeks misses the monthly jobs; monitor through at least one full business cycle. When the panel asks about your rollout experience, this staged story — monitor, classify, updater rules, staged enforcement — is what operator-grade sounds like.  The rollback criterion deserves the same rigor as the flip criteria. Define it before you start: for example, 'if legitimate blocks exceed five per user per day in the pilot group for two consecutive days, we return the pilot to monitor mode and review.' A rollback plan you write during the crisis is not a plan. Also decide who can authorize the flip in each direction — the same person who owns the policy — so enforcement decisions never stall waiting for a committee. Staged rollouts with written forward and reverse criteria are what separate a controlled deployment from an outage with good intentions.",
+   "title": "Learning Mode vs Secured: the only safe rollout order"
+  },
+  {
+   "body": "An allowlist is a list of identities, so the entire control reduces to one question: how do you identify a file reliably? There are three answers, each with a failure mode you must know. Hash identity (SHA-256 of the file bytes) is precise: it identifies exactly this version of this file, and any one-byte change — including a trojaned update — breaks the match and fails closed. The cost is churn: every vendor update changes the hash, so without updater rules you re-approve the world monthly. Certificate identity trusts the publisher: any binary signed by the vendor's code-signing certificate is allowed, which survives updates beautifully. The failure modes are real: a stolen vendor certificate lets malware ride the trust (this has happened to real vendors), and a legitimate-but-risky publisher gets a free pass for everything they sign. Path identity ('allow everything in C:\\Program Files\\Vendor\\') is the weakest: it is cheap to write and trivially abused — malware simply lands in the allowed folder. Worked example: approving Google Chrome. The hash approach means re-approving every six-week release. The certificate approach — publisher Google LLC — auto-allows updates but also allows any other Google-signed binary. The path approach — allow C:\\Program Files\\Google\\Chrome\\* — lets an attacker drop evil.exe into that folder. The operator-grade answer is layered: certificate rule for the publisher plus a trusted-updater rule for the vendor's signed updater binary, with the updater constrained to replacing files the vendor owns. For unsigned legacy tools where no certificate exists, hash-pinning the specific approved version is the honest choice — precise, with documented churn cost. Common gotcha: certificate rules that are too broad. 'Allow anything signed by Microsoft' is effectively default-allow for the most-abused publisher on earth — scope certificate rules to the product or use them only for vendors with a clean, narrow signing practice. Second gotcha: forgetting that signatures can be valid but the file still malicious — a signed binary from a compromised vendor is allowed by your rule, which is why ringfencing (M03) constrains what allowed apps may do. Identity gets the app through the gate; behavior rules watch it inside.  In practice you verify signatures with the platform's own tooling: on Windows, Get-AuthenticodeSignature shows the signer and the chain status, and a Valid result means the signature is intact and chains to a trusted root — it does not mean the file is safe. Build the habit of checking the chain, not just the presence of a signature: a Valid signature from an unknown publisher is a fact to investigate, while a HashMismatch or NotSigned result on a file that claims to be vendor software is a finding. Record the signer subject and the thumbprint in your rule documentation so future-you can tell whether the vendor rotated their certificate or something changed unexpectedly.",
+   "title": "File identity: hash, certificate, and path"
+  },
+  {
+   "body": "No operator hand-writes rules for every copy of Chrome on earth, which is why allowlisting platforms ship a built-in applications library: a curated catalog of known-good applications with pre-built rules. Think of it as the shared starting inventory — common business software already identified by hash sets or publisher certificates, ready to be approved into your policy with a click instead of a forensic exercise. The value is speed: on day one you can approve the standard stack (office suites, browsers, PDF readers, common utilities) from the library instead of discovering each binary the hard way. But the library is a starting point, not a verdict, and treating it as one is the classic junior mistake. Three cautions. First, the library knows common software, not your software: the accounting package, the plant-floor tools, the custom line-of-business app — those are yours to identify and rule. Second, library entries are someone else's judgment about what is safe; your policy still needs your scoping (which groups, which machines) and your review cadence. A library rule that allows a remote-access tool globally because 'it is a known application' is a policy failure, not a library failure. Third, libraries age: vendors change publishers, products get acquired, signing certificates rotate. Your change process must catch the drift. Worked example: rolling out to the accounting office from the lab. The library covers the office suite, the browser, the PDF reader, and the OS utilities — approve those in bulk with group scoping. The accounting package and the payroll tool are not in the library: for those you collect the installer, verify the publisher certificate against the vendor's published documentation, hash the approved version, and write your own rules with a review date. The unknown list from monitor mode then tells you what you missed: the scanner driver, the label printer software, the manager's PDF tool. Each gets the same treatment: verify, rule, scope, review date. Common gotcha: approving library entries without scoping. 'Allow TeamViewer (known app)' for the whole company because the library says it is legitimate is how you authorize shadow remote access. The library tells you what the software is; you decide who may run it.  Treat the library as a supply chain: ask who curates it, how often it updates, and what happens when a listed application is found to be compromised. Your change process should include a periodic review of library-sourced rules — quarterly is the working default — where you confirm the entries you depend on are still current and still scoped correctly. If the platform ever flags a library entry as revoked or untrusted, you need a runbook entry for that day: which of your rules referenced it, what breaks if you pull it, and what the replacement rule looks like. Depending on a shared catalog without a plan for its failure modes is outsourcing judgment without retaining oversight.",
+   "title": "The built-in applications library: shared starting inventory"
+  },
+  {
+   "body": "Every block of legitimate software is a ticket, and the workflow that handles those tickets determines whether allowlisting survives contact with the business. A good approval workflow has five parts. Intake: a single channel (service desk ticket, portal request) that captures who, what, why, and the file itself or its hash — 'please allow the thing' is not an intake. Verification: the operator confirms what the software actually is — publisher certificate checked, vendor hash compared against the vendor's published value, reputation checked — through channels independent of the requester. Never verify software using the download link the user provides; fetch the vendor's published hash yourself. Decision: approve, approve-with-conditions (scoped, time-bound), or deny, made by someone with the authority and the knowledge — standard business apps by the IT lead, unsigned or unknown-publisher software by the security lead. Implementation: the rule is written with full shape — identity, scope (users/groups/machines), justification, review date — not a bare filename. Communication: the requester is told what was decided and why, because a denied user who understands the reason files better requests next time. Worked example: a designer requests a new video converter. Intake captures the vendor name and the installer hash. Verification: the operator downloads the vendor's published checksum, confirms the hash matches, checks the code signature, and finds the vendor is legitimate but the product bundles an optional adware component. Decision: approve with conditions — allow the application, ringfence it against network access it does not need, scope to the design group, 90-day review. Implementation and communication follow. The SLA is the load-bearing wall: standard requests in four business hours, emergency lane in one hour with post-hoc review. Miss the SLA repeatedly and users learn that security is the department of no — then comes shadow IT. Common gotcha: approvals without expiry on exceptions. 'Temporary' approvals that never expire are permanent rules that skipped the review. Every exception gets an owner and an expiry; the calendar, not someone's memory, enforces the review. Second gotcha: approver shopping — users re-submitting denied requests to a friendlier approver. One intake, one decision record, denials documented with reasons.  Measure the workflow or it will decay. Track three numbers weekly: median time from block to decision, the age of the oldest open request, and the approval rate by category. A median that creeps upward means the approvers are overloaded or the intake is capturing junk — either way, the business is learning that requests go nowhere. Publish the numbers to the approvers themselves; nothing fixes a slow queue like its owner seeing it in a chart. And keep an emergency lane genuinely fast: if the emergency path takes as long as the standard path, users will stop distinguishing them and every request will arrive marked urgent.",
+   "title": "Application approval workflows that the business can live with"
+  },
+  {
+   "body": "The unknown file is the moment of truth for default-deny: a binary with no rule, no library entry, and no reputation. The workflow must be fast, evidence-driven, and default to no. Step one is containment without drama: the file is blocked from executing, and a copy is preserved for analysis — you do not delete evidence you have not examined. Step two is identification: hash it, check the signature status, extract the publisher if signed, note the parent process and the delivery vector (email attachment, USB, download). Step three is independent verification: look up the hash in reputation sources, check the vendor's published hashes, and confirm the publisher through the vendor's own site — not through any link bundled with the file. Step four is the verdict, and there are only three: approve (verified legitimate, business-needed — write the full rule), approve-with-conditions (legitimate but risky — scoped, ringfenced, time-bound), or deny (unverifiable, unnecessary, or malicious — document the reason and, if malicious, escalate to incident response). Worked example: helpdesk receives 'invoice_scan.exe,' unsigned, delivered via email, hash unknown to reputation sources, and the 'vendor' has no website. Verdict: deny. The requester is told why in plain language, the file is retained per the incident process, and the ticket records the decision. Contrast: 'labelprint_driver.exe,' unsigned, needed for the warehouse printers, vendor is a real industrial company with a support line — the operator calls the vendor, confirms the published hash matches, and approves with a hash-pinned rule scoped to the warehouse machines, 90-day review, plus a note to revisit when the vendor starts signing. Common gotcha: treating 'my manager said it's fine' as verification. Authority is not evidence; the manager's approval authorizes the business need, but the file still gets the technical verification. Second gotcha: detonating unknown files on production machines 'just to see.' Unknown binaries are examined in isolated conditions or not at all — curiosity on a production endpoint is how incidents start. The discipline to internalize: every unknown file gets the same four steps, every time, because the one you skip is the one that matters.  For high-risk files, the examination happens under isolated conditions: a disposable virtual machine with no network access to production, snapshots so you can revert, and no credentials or sensitive data present. What you are looking for is behavior, not just identity — what the file tries to do when executed — and you record the observations in the ticket before deleting the VM. Never reuse the analysis VM for anything else, and never move the file to production 'because it looked fine in the sandbox.' The sandbox informs the verdict; the verdict still goes through the approval workflow with its evidence attached.",
+   "title": "Handling unknown files: the four-step verdict"
+  },
+  {
+   "body": "Allowing an application to run says nothing about what it may launch, and attackers live in that gap. Parent-child process rules close it: every process creation is evaluated independently, so the parent's approval never transfers to the child. This is where allowlisting meets ringfencing, and you need both halves of the story. The allowlisting half: when winword.exe spawns powershell.exe, the agent checks powershell.exe against policy on its own merits. If PowerShell is not approved for the accounting group, the child is blocked even though the parent is allowed. The ringfencing half (full depth in M03): even when the child is an allowed application, the parent's ringfence policy can forbid the spawn — Word is simply not permitted to create child processes, period. Worked example, the invoice macro attack from M01: the macro instructs Word to launch a payload. Layer one: the payload binary is unknown, so allowlisting blocks the child at spawn — verdict: denied, not on the allowlist. Suppose instead the macro launches powershell.exe, which is a legitimate Windows binary. Layer two: PowerShell is allowlisted for the IT group but not for accounting, so the child is blocked by group scope. Suppose the attacker targets an IT workstation where PowerShell is allowed: layer three, the ringfence — Word's policy denies child process creation regardless of the child's identity, so the spawn is blocked and logged. Three independent evaluations, any one of which stops the chain. The operator's job is designing these rules deliberately: which applications may spawn children at all, and which children may they spawn? Browsers spawn renderers and updaters — expected. Word spawning cmd.exe — never expected. Common gotcha: the 'trusted parent' shortcut. 'Allow everything launched by our management agent' feels efficient and creates a single bypass for the entire policy — compromise the agent, inherit its trust. Children are evaluated on their own identity, always. Second gotcha: forgetting script interpreters. Blocking powershell.exe while allowing wscript.exe, mshta.exe, and rundll32.exe leaves the same capability under different names — child-process policy must cover the interpreter family, which is exactly the ringfencing design work you will do in M03.  Extend the same thinking beyond direct child processes. Scheduled tasks, services, WMI event subscriptions, and startup-folder entries are all ways to get code running without an obvious parent-child relationship — the persistence layer. Your policy should treat these as execution events subject to the same identity checks: a scheduled task launching an unknown binary is the same verdict as a user double-clicking it. When you audit an endpoint, enumerate these autostart locations alongside the running processes; attackers who cannot win the parent-child game will play the persistence game instead, and the allowlist must cover both boards.",
+   "title": "Parent-child process rules: approval never transfers"
+  }
+ ],
+ "objectives": [
+  "Operate the monitor-to-secured rollout: baseline a full business cycle, classify the unknown list, and flip to enforcement in stages.",
+  "Choose the right file identity (hash, certificate, path) per application and design trusted-updater rules that survive patch churn.",
+  "Run the unknown-file verdict workflow: contain, identify, independently verify, and approve, condition, or deny with documentation.",
+  "Write complete allow rules (identity, scope, justification, review date) and keep the policy healthy with exception hygiene."
+ ],
+ "prerequisiteFor": [
+  "IL29-M03",
+  "IL29-M11"
+ ],
+ "quiz": [
+  {
+   "answer": 1,
+   "choices": [
+    "Delete it immediately",
+    "Log the attempt with full context (hash, path, parent, user) and allow execution to continue",
+    "Block it immediately to be safe",
+    "Quarantine the machine from the network"
+   ],
+   "explain": "Monitor mode's job is baselining: it records what would have been blocked so you can build accurate rules. Blocking during the learning phase corrupts the inventory and punishes legitimate use before policy exists.",
+   "q": "In monitor/learning mode, what should the agent do when an unknown binary executes?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "It is the strongest option",
+    "It identifies the exact file version and fails closed on any tampering",
+    "It never needs updating",
+    "It works for unsigned files too"
+   ],
+   "explain": "Hash identity is precise per version — a one-byte change breaks the match, which catches trojaned updates. The price is churn: every vendor update needs a new hash, which is why updater rules exist.",
+   "q": "What is the key strength of hash-based file identity?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "It is always safe because the vendor is reputable",
+    "A stolen or abused vendor certificate lets malware ride the trust — scope certificate rules narrowly",
+    "Certificates never expire",
+    "Signed malware is impossible"
+   ],
+   "explain": "Real vendors have had certificates stolen and abused. Certificate rules survive updates, which is their value — but 'allow everything signed by X' for a broad publisher is a wide-open door. Scope to the product where you can.",
+   "q": "What is the main risk of broad certificate-based allow rules?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "It is the most secure identity type",
+    "Malware can simply be placed in the allowed folder, bypassing the rule",
+    "Paths never change",
+    "It is faster than hash checking"
+   ],
+   "explain": "Path rules check location, not content. The allowed folder becomes the delivery target. Use path rules only tightly scoped (e.g., OS-protected directories) and never for user-writable locations like Downloads or Temp.",
+   "q": "Why are path-based allow rules the weakest identity?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Re-approve the application from scratch every month",
+    "Write a trusted-updater rule allowing the vendor's signed updater to replace files it owns",
+    "Switch the rule to path-based for the update folder",
+    "Disable the agent during patch windows"
+   ],
+   "explain": "Updater rules handle churn at the mechanism level: the vendor's own signed updater is trusted to do its job. Disabling the agent for patching is a recurring hole; per-version re-approval is unsustainable.",
+   "q": "Every Patch Tuesday changes application hashes. What is the sustainable fix?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Yes — trust transfers from parent to child",
+    "No — each child process is evaluated against policy independently",
+    "Only for signed children",
+    "Only during business hours"
+   ],
+   "explain": "Approval never transfers. The child's identity and the parent's ringfence are evaluated separately — this is what stops the 'allowed Word spawning PowerShell' attack even when both binaries are individually legitimate.",
+   "q": "If winword.exe is allowed, may it freely launch any child process?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Approve it — the manager authorized it",
+    "Run it on your workstation to see what it does",
+    "Verify independently: hash it, check reputation, confirm the publisher via the vendor's own channels — authority is not evidence",
+    "Ask the user to find a signed version themselves"
+   ],
+   "explain": "The manager authorizes the business need, not the file's safety. Verification is technical and independent: vendor-published hashes, reputation, signature — never the link that came with the file.",
+   "q": "A manager says 'just allow this installer, I vouch for it.' What is the correct response?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "They are permanent records of good decisions",
+    "They are security controls in themselves",
+    "They become permanent holes — every exception needs an owner, a scope, and an automatic expiry",
+    "Exceptions don't matter if the user is senior"
+   ],
+   "explain": "'Temporary' without an expiry is permanent. The exception register's expiry dates, enforced by calendar review, are what keep exceptions from quietly becoming policy.",
+   "q": "What is wrong with a 'temporary' allowlist exception that has no expiry date?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Two weeks is always enough",
+    "At least one full business cycle, including month-end/quarterly jobs",
+    "One day per department",
+    "Until the vendor releases an update"
+   ],
+   "explain": "Short monitoring windows miss periodic jobs — month-end closes, quarterly tax tools, annual processes. The unknown list is only complete when the business cycle is.",
+   "q": "How long should monitor mode run before flipping to Secured?"
+  },
+  {
+   "answer": 0,
+   "choices": [
+    "The library is the starting inventory; you still verify, scope to your groups, and write your own rules for business-specific software",
+    "Library entries are pre-approved for all users forever",
+    "The library replaces the approval workflow",
+    "Anything not in the library is malware"
+   ],
+   "explain": "The library accelerates day one for common software, but scoping, review cadence, and your line-of-business apps remain your job. 'Known application' is not the same as 'authorized for everyone here.'",
+   "q": "What is the correct relationship between the built-in applications library and your policy?"
+  }
+ ],
+ "summary": "Allowlisting is simple to describe and demanding to operate. This module covers the full operator lifecycle: monitor-to-secured rollout, file identity (hash vs certificate vs path), the built-in applications library, approval workflows with SLAs, the unknown-file verdict process, and parent-child process rules that stop trusted-app abuse.",
+ "title": "Application Control: Allowlisting Operations",
+ "videos": [
+  {
+   "blurb": "NIST's guide to application whitelisting: planning, implementation, and operational phases — the methodology behind the practice.",
+   "durationMin": 40,
+   "httpStatus": 200,
+   "order": 1,
+   "source": "NIST CSRC",
+   "title": "NIST SP 800-167 Guide to Application Whitelisting — official publication page",
+   "url": "https://csrc.nist.gov/publications/detail/sp/800-167/final",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  },
+  {
+   "blurb": "Microsoft's documentation on Windows application control technologies — concepts that transfer directly to allowlist policy design.",
+   "durationMin": 35,
+   "httpStatus": 200,
+   "order": 2,
+   "source": "Microsoft Learn",
+   "title": "Windows Defender Application Control — Microsoft Learn",
+   "url": "https://learn.microsoft.com/en-us/windows/security/application-security/application-control/windows-defender-application-control/",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  }
+ ],
+ "weight": 5
+}

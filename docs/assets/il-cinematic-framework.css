@@ -1,0 +1,67 @@
+/* ============================================================================
+   Interstitium Labs — Cinematic Framework (il-cinematic-framework.css)
+   ----------------------------------------------------------------------------
+   SINGLE global entry point for the entire cinematic system. All pages
+   reference THIS file (plus the theme/hero files it documents). No page
+   should @import or link the individual files directly — this is the
+   canonical bundle manifest.
+
+   Included modules (load order matters — cascade layers):
+     1. il-topic-themes.css    — per-topic accent layers  [data-topic-theme]
+     2. il-topic-heroes.css    — full-viewport cinematic heroes (.th-hero--)
+     3. il-cinematic-cards.css — movie-poster preview cards (.cine-card)
+     4. il-cert-hero.css       — certifications trailer hero (.cert-hero)
+
+   Shared JS (load in this order, both with `defer`):
+     1. /assets/il-ambient-synth.js  — singleton Web Audio engine (ILAmbient)
+     2. /assets/il-cinematic-init.js — singleton auto-initializer
+        (auto-loads the floating widget below)
+     3. /assets/il-audio-widget.js   — floating player (auto-injected by init)
+        /assets/il-audio-widget.css  — widget styles (auto-injected by init)
+
+   Theme declaration (pages set ONE of these on <body>):
+     data-il-theme="cybersecurity"   — explicit audio theme (highest priority)
+     data-audio-topic="cybersecurity" — topic slug → audio theme mapping
+     data-topic-theme="mr-robot"      — visual theme (audio falls back)
+
+   Audio engine is a singleton: window.ILAmbient. Pages NEVER create their
+   own AudioContext — they declare a theme; the framework handles the rest.
+
+   Namespacing: all framework classes use il-*, th-*, cine-*, or cert-hero*
+   prefixes. No bare element selectors. No !important.
+   ========================================================================== */
+
+/* Framework variables — safe defaults if theme files load late. */
+:root {
+  --il-cine-gold: #c9a227;
+  --il-cine-gold-rgb: 201, 162, 39;
+  --il-cine-void: #050508;
+  --il-cine-paper: #f2ede1;
+}
+
+/* Ambient toggle button — global style so pages don't redefine it. */
+.il-ambient-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.2rem; height: 2.2rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(242,237,225,.18);
+  color: #9aa3b2;
+  cursor: pointer;
+  transition: color .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.il-ambient-toggle:hover { color: #f2ede1; border-color: rgba(201,162,39,.5); }
+.il-ambient-toggle[aria-pressed="true"] {
+  color: #c9a227;
+  border-color: #c9a227;
+  box-shadow: 0 0 16px rgba(201,162,39,.35);
+}
+.il-ambient-toggle[aria-pressed="true"] .il-ambient-waves {
+  animation: il-ambient-pulse 1.6s ease-in-out infinite;
+}
+@keyframes il-ambient-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* Reduced motion: framework-wide kill switch for decorative animation. */
+@media (prefers-reduced-motion: reduce) {
+  .il-ambient-toggle[aria-pressed="true"] .il-ambient-waves { animation: none; }
+}

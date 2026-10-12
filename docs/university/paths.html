@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paths — Interstitium Labs</title>
+<meta name="description" content="Filterable catalog of Interstitium Labs learning paths — by role, skill, cert, and time. Adaptive gates, honest evidence.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Interstitium Labs Learning University">
+<meta property="og:url" content="https://interstitiumlabs.dev/university/paths.html">
+<meta property="og:title" content="Interstitium Labs — Learning University">
+<meta property="og:description" content="A knowledge operating system. 23 academies, 134 learning paths, 646 modules, adaptive mastery. A plant, not a video LMS.">
+<meta property="og:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Interstitium Labs — Learning University">
+<meta name="twitter:description" content="23 academies, 134 paths, 646 modules. Structured sittings, adaptive math, Socratic AI tutor.">
+<meta name="twitter:image" content="https://interstitiumlabs.dev/university/assets/sigil-hero-static.png">
+<link rel="canonical" href="https://interstitiumlabs.dev/university/paths.html">
+
+<link rel="icon" href="assets/sigil.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06080c">
+<link rel="stylesheet" href="css/il.css">
+<link rel="stylesheet" href="css/il-pillnav.css">
+</head>
+<body>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/university/">Courses</a></li><li aria-current="page">Paths</li></ol></nav>
+<noscript><div class="noscript-note"><strong>Interstitium Labs</strong> renders its curriculum from local data and needs JavaScript for the full experience. Start here: <a href="paths.html">paths</a> · <a href="assess.html">assessments</a> · <a href="honesty.html">honesty ledger</a>.</div></noscript>
+<a class="skip-link" href="#il-main">Skip to main content</a>
+<div id="il-header"></div>
+
+<main id="il-main">
+  <section class="il-hero block" aria-labelledby="paths-h">
+    <div class="wrap" data-catalog-slot>
+      <p class="eyebrow">Curriculum OS <span class="dot">·</span> Paths</p>
+      <h1 id="paths-h">Paths that beat the catalog sites on architecture</h1>
+      <p class="lede">Filter by role, skill, cert, time. Every path carries adaptive gates and routes deepens to official portals — we do not fake a fleet.</p>
+
+      <form class="filters" id="filters" aria-label="Filter paths">
+        <div class="field">
+          <label for="f-q">Skill / role / keyword</label>
+          <input type="search" id="f-q" name="q" placeholder="e.g. soc, kubernetes, cpa" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="f-type">Track type</label>
+          <select id="f-type" name="type">
+            <option value="">All tracks</option>
+            <option value="career">Career</option>
+            <option value="certification">Certification</option>
+            <option value="foundations">Foundations</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-tag">Cert / skill tag</label>
+          <select id="f-tag" name="tag"><option value="">All tags</option></select>
+        </div>
+        <div class="field">
+          <label for="f-time">Time budget</label>
+          <select id="f-time" name="time">
+            <option value="">Any length</option>
+            <option value="40">Up to 40 h</option>
+            <option value="120">Up to 120 h</option>
+            <option value="300">Up to 300 h</option>
+            <option value="99999">300 h and beyond</option>
+          </select>
+        </div>
+      </form>
+      <p class="notice cyan" id="result-count" role="status" style="display:none"></p>
+      <div class="grid grid-3" id="path-grid" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<div id="il-footer"></div>
+
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var grid = document.getElementById('path-grid');
+  var count = document.getElementById('result-count');
+  var fq = document.getElementById('f-q');
+  var ftype = document.getElementById('f-type');
+  var ftag = document.getElementById('f-tag');
+  var ftime = document.getElementById('f-time');
+
+  function currentFilters() {
+    return {
+      q: fq.value,
+      type: ftype.value || null,
+      tag: ftag.value || null,
+      maxHours: ftime.value ? Number(ftime.value) : null
+    };
+  }
+
+  function pathCard(p) {
+    var c = document.createElement('article');
+    c.className = 'card';
+    var tags = (p.tags || []).map(function (t) {
+      return '<span class="tag skill">' + IL.esc(t) + '</span>';
+    }).join('');
+    var nModules = (p.modules || []).length;
+    var nAssess = (p.assessments || []).length;
+    c.innerHTML =
+      '<div class="code">' + IL.esc(p.academy || '') + ' · ' + IL.esc(p.type || '') + '</div>' +
+      '<h3><a href="path.html?id=' + IL.esc(p.id) + '">' + IL.esc(p.title) + '</a></h3>' +
+      '<p>' + IL.esc(p.subtitle || '') + '</p>' +
+      '<div>' + tags + '</div>' +
+      '<div class="meta"><span><b>' + IL.esc(IL.fmtHours(p.hours)) + '</b></span>' +
+      '<span>' + IL.esc(p.difficulty || '') + '</span>' +
+      '<span>' + nModules + ' modules</span>' +
+      (nAssess ? '<span>' + nAssess + ' assessments</span>' : '') + '</div>';
+    return c;
+  }
+
+  function render() {
+    // populate tag options once
+    if (!ftag.dataset.filled) {
+      ftag.dataset.filled = '1';
+      IL.allTags().forEach(function (t) {
+        var o = document.createElement('option');
+        o.value = t; o.textContent = t;
+        ftag.appendChild(o);
+      });
+    }
+    var paths = IL.filterPaths(IL.paths(), currentFilters());
+    grid.innerHTML = '';
+    if (!paths.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No paths match</h3>' +
+        '<p>' + (IL.paths().length
+          ? 'Loosen a filter — or clear the search to see the full catalog.'
+          : 'The path catalog is still being published. The academy index on the <a href="index.html#academies">home page</a> is current.') + '</p></div>';
+    } else {
+      paths.forEach(function (p) { grid.appendChild(pathCard(p)); });
+    }
+    count.style.display = '';
+    count.textContent = paths.length + ' of ' + IL.paths().length + ' paths shown.';
+  }
+
+  ['input', 'change'].forEach(function (ev) {
+    document.getElementById('filters').addEventListener(ev, render);
+  });
+
+  IL.renderPage = render;
+  IL.onCatalog(render);
+})();
+</script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js"></script>
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<style>/* canonical footer (page does not load il-unified.css) */
+/* ================================================================
+ * §21 — Canonical site footer (2026-10-08).
+ * Centered layout; gold brand; crisp rendering (no blur,
+ * filter, or backdrop-filter anywhere in these rules).
+ * ================================================================ */
+.il-footer-canonical {
+  border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  padding: 3rem 1.25rem 4.5rem;
+  text-align: center;
+}
+.il-fc-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.il-fc-logo { width: 56px; height: 56px; }
+.il-fc-brand {
+  color: var(--gold, #c9a227);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  font-size: 0.95rem;
+}
+.il-fc-tagline {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  font-size: 0.72rem;
+}
+.il-fc-created {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.66rem;
+}
+.il-fc-course {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  font-size: 0.66rem;
+}
+.il-fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.6rem;
+}
+.il-fc-nav a {
+  color: var(--muted, #8b93a5);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+}
+.il-fc-nav a:hover { color: var(--gold, #c9a227); }
+.il-fc-lang {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  color: var(--muted, #8b93a5);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
+</body>
+</html>

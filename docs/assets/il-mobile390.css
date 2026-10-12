@@ -1,0 +1,50 @@
+/* IL mobile-390 pass (2026-10-04) — defensive fixes so every funnel template
+   (enroll, success, start, evidence) renders clean at 390px, the owner's Pixel.
+   Only loaded on funnel pages; no global template changes. */
+@media (max-width: 480px) {
+  /* Never let the page scroll sideways on a 390px viewport. */
+  html, body { overflow-x: clip; }
+  body { max-width: 100vw; }
+
+  /* Nav: keep the brand + menu row from overflowing; sheet stays on-screen. */
+  .il-pillnav__row { gap: .5rem; padding-left: .75rem; padding-right: .75rem; }
+  .il-brand__word { font-size: .8rem; }
+  .il-brand__word small { display: none; }
+  .il-menu__sheet { right: .5rem; left: auto; max-width: calc(100vw - 1rem); }
+
+  /* Hero: keep the display type inside the viewport. */
+  h1, .font-display { overflow-wrap: break-word; }
+  .il-hero-field { min-height: 0; }
+
+  /* Cards and grids: single column, no fixed widths that exceed the viewport. */
+  .grid { min-width: 0; }
+  article, section, .il-ux-card { min-width: 0; }
+
+  /* Tables: scroll horizontally inside their container instead of breaking layout. */
+  .prose-il table, table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Code blocks: keep the existing scroll, but cap width explicitly. */
+  pre { max-width: 100%; }
+
+  /* Forms: inputs flex within the viewport; no iOS zoom on focus. */
+  input, select, textarea { max-width: 100%; font-size: 16px; }
+  input[type="text"], input[type="email"], input[type="search"] { min-width: 0; }
+
+  /* Button rows: wrap instead of squeezing. */
+  .flex.flex-wrap { row-gap: .5rem; }
+
+  /* Breadcrumbs can be long — allow wrap. */
+  .il-breadcrumbs ol { flex-wrap: wrap; }
+
+  /* Funnel specifics: tier radio cards stack, evidence form input yields. */
+  fieldset .grid { grid-template-columns: 1fr; }
+  [data-il-evidence-form] input { min-width: 0 !important; flex: 1 1 100%; }
+
+  /* Coach chat (remediation deep links land here): keep the shell usable. */
+  .il-coach-shell { grid-template-columns: 1fr; }
+  .il-coach-log { max-height: 50vh; }
+
+  /* Proof widget actions wrap cleanly. */
+  .il-proof-actions { display: flex; flex-wrap: wrap; }
+  .il-proof-md { max-width: 100%; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+}

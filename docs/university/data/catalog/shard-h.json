@@ -1,0 +1,1807 @@
+{
+ "academies": [
+  {
+   "code": "IL-15",
+   "name": "Data Engineering & Analytics Interview Prep",
+   "tagline": "From the row to the offer.",
+   "hours": 260,
+   "blurb": "The data interview spine — data engineering, data science, analytics, and machine-learning interview prep with SQL drills and case reps — distilled from the public curriculum shape of a leading interview-prep provider's data interview-prep catalog. Original Interstitium exposition throughout. Not affiliated with or endorsed by a leading interview-prep provider; not official third-party training; confers no certificate."
+  }
+ ],
+ "paths": [
+  {
+   "id": "data-eng-interview-prep",
+   "academy": "IL-15",
+   "title": "Data Engineering Interview Prep",
+   "subtitle": "Pipelines, SQL, and scale — the data engineering interview.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 60,
+   "status": "published",
+   "tags": [
+    "data-engineering",
+    "sql",
+    "interview-prep"
+   ],
+   "suited_for": [
+    "Practicing data engineers targeting their next role",
+    "Analysts and backend engineers moving into data engineering",
+    "Bootcamp graduates whose portfolios lack pipeline work",
+    "Anyone who can write SQL but freezes at 'design a pipeline'"
+   ],
+   "tools": [
+    "PostgreSQL",
+    "Python/pandas",
+    "Apache Airflow",
+    "Apache Spark",
+    "dbt",
+    "Apache Kafka"
+   ],
+   "modules": [
+    {
+     "id": "sql-for-de",
+     "title": "Advanced SQL for Data Engineers",
+     "kind": "core",
+     "topics": [
+      "Window functions: ROW_NUMBER, RANK, LAG/LEAD",
+      "CTEs and recursive CTEs",
+      "Join patterns: semi-joins, anti-joins, and self-joins",
+      "Aggregation at the right grain: GROUP BY vs distinct counts",
+      "Set operations and conditional aggregation",
+      "Reading query plans and indexing basics",
+      "Writing SQL you can defend line by line"
+     ],
+     "sources": [
+      {
+       "name": "PostgreSQL Documentation",
+       "url": "https://www.postgresql.org/docs/",
+       "note": "The SQL reference this spine drills against: window functions, CTEs, recursion, and query planning."
+      },
+      {
+       "name": "Mode SQL Tutorial",
+       "url": "https://mode.com/sql-tutorial/",
+       "note": "Free interactive SQL tutorial, from basic selects through window functions and analytics patterns."
+      }
+     ],
+     "il_provides": "The SQL layer interviewers actually probe: not syntax trivia, but choosing the right construct for the grain of the question — and explaining why the query is fast or slow."
+    },
+    {
+     "id": "python-data-wrangling",
+     "title": "Python Data Wrangling",
+     "kind": "core",
+     "topics": [
+      "pandas: groupby, merge, pivot, and reshape",
+      "Chunked reading of files too big for memory",
+      "Datetimes, timezones, and the bugs they cause",
+      "Nulls, duplicates, and type coercion",
+      "Vectorized operations instead of row loops",
+      "Transform functions you can test"
+     ],
+     "sources": [
+      {
+       "name": "pandas Documentation",
+       "url": "https://pandas.pydata.org/docs/",
+       "note": "DataFrame reference and user guide: the wrangling half of every data interview."
+      },
+      {
+       "name": "Python Documentation",
+       "url": "https://docs.python.org/3/",
+       "note": "The language reference for the coding reps: data structures, stdlib, and idioms."
+      }
+     ],
+     "il_provides": "The coding-screen half of data engineering: turning messy extracts into clean tables, in code an interviewer can follow."
+    },
+    {
+     "id": "batch-pipelines",
+     "title": "Batch Pipeline Design",
+     "kind": "core",
+     "topics": [
+      "Full vs incremental extraction",
+      "Orchestration with Airflow: DAGs, sensors, retries",
+      "Spark: partitions, shuffles, and skew",
+      "Idempotency and safe backfills",
+      "Data-quality checks inside the pipeline",
+      "SLAs, alerting, and on-call reality"
+     ],
+     "sources": [
+      {
+       "name": "Apache Airflow Documentation",
+       "url": "https://airflow.apache.org/docs/",
+       "note": "Workflow orchestration reference: DAGs, operators, sensors, and retries."
+      },
+      {
+       "name": "Apache Spark Documentation",
+       "url": "https://spark.apache.org/docs/latest/",
+       "note": "Distributed data processing reference: partitions, shuffles, and the DataFrame API."
+      }
+     ],
+     "il_provides": "How to whiteboard a pipeline end to end: where the data lands, how it moves, what breaks, and how you know. The system-design core of the DE interview."
+    },
+    {
+     "id": "streaming-systems",
+     "title": "Streaming Systems",
+     "kind": "core",
+     "topics": [
+      "Event time vs processing time",
+      "Kafka: topics, partitions, and offsets",
+      "At-least-once vs exactly-once semantics",
+      "Watermarks and late data",
+      "Windowing and stream joins",
+      "Lambda vs kappa: when each fits"
+     ],
+     "sources": [
+      {
+       "name": "Apache Kafka Documentation",
+       "url": "https://kafka.apache.org/documentation/",
+       "note": "Event streaming reference: topics, partitions, offsets, and delivery semantics."
+      }
+     ],
+     "il_provides": "Streaming as interviewers test it: the semantics vocabulary (delivery guarantees, watermarks, windows) and the judgment call of when streaming is worth the complexity."
+    },
+    {
+     "id": "data-modeling-warehousing",
+     "title": "Data Modeling and Warehousing",
+     "kind": "core",
+     "topics": [
+      "Star vs snowflake schemas",
+      "Facts, dimensions, and choosing the grain",
+      "Slowly changing dimensions, types 1–2",
+      "Normalization vs denormalization tradeoffs",
+      "Bronze/silver/gold layering",
+      "dbt: models, tests, and documentation"
+     ],
+     "sources": [
+      {
+       "name": "Kimball Group",
+       "url": "https://www.kimballgroup.com/",
+       "note": "The dimensional-modeling home: facts, dimensions, grain, and slowly changing dimensions."
+      },
+      {
+       "name": "dbt Documentation",
+       "url": "https://docs.getdbt.com/",
+       "note": "Analytics-engineering reference: models, tests, and docs as code on top of the warehouse."
+      }
+     ],
+     "il_provides": "Modeling is where DE interviews separate memorizers from thinkers: grain decisions, SCD handling, and why the warehouse is shaped the way it is."
+    },
+    {
+     "id": "pipeline-capstone",
+     "title": "Pipeline Capstone",
+     "kind": "capstone",
+     "topics": [
+      "End-to-end batch pipeline from raw files",
+      "Modeled warehouse layer with tested transforms",
+      "Data-quality gates and reconciliation checks",
+      "A backfill and rerun runbook",
+      "Architecture diagram and README",
+      "Narrating design decisions aloud"
+     ],
+     "sources": [
+      {
+       "name": "Apache Airflow Documentation",
+       "url": "https://airflow.apache.org/docs/",
+       "note": "Workflow orchestration reference: DAGs, operators, sensors, and retries."
+      },
+      {
+       "name": "dbt Documentation",
+       "url": "https://docs.getdbt.com/",
+       "note": "Analytics-engineering reference: models, tests, and docs as code on top of the warehouse."
+      }
+     ],
+     "il_provides": "One pipeline you built, documented, and can defend: the artifact that turns 'tell me about a pipeline' from a story into evidence."
+    },
+    {
+     "id": "de-mock",
+     "title": "Data Engineering Mock Circuit",
+     "kind": "career",
+     "topics": [
+      "Timed SQL live-coding rounds",
+      "Pipeline design whiteboard rounds",
+      "Debugging a broken pipeline scenario",
+      "Arguing batch vs streaming tradeoffs",
+      "Behavioral: the data-incident story",
+      "Weak-spot review and targeted redrills"
+     ],
+     "sources": [
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      },
+      {
+       "name": "Apache Spark Documentation",
+       "url": "https://spark.apache.org/docs/latest/",
+       "note": "Distributed data processing reference: partitions, shuffles, and the DataFrame API."
+      }
+     ],
+     "il_provides": "Full interview simulations with scoring rubrics: the pressure reps that convert knowledge into performance."
+    }
+   ],
+   "phases": [
+    {
+     "name": "SQL & Wrangling",
+     "weeks": "Weeks 1–3",
+     "topics": [
+      "Advanced SQL patterns",
+      "pandas wrangling reps",
+      "Timed SQL drills",
+      "Query-plan reading basics"
+     ],
+     "outcome": "Outcome: you write interview-grade SQL and pandas under time without second-guessing the construct."
+    },
+    {
+     "name": "Pipeline Design",
+     "weeks": "Weeks 4–6",
+     "topics": [
+      "Batch pipeline whiteboards",
+      "Streaming semantics",
+      "Data modeling and SCDs",
+      "Data-quality and backfill design"
+     ],
+     "outcome": "Outcome: you can design a batch or streaming pipeline on a whiteboard and defend every choice."
+    },
+    {
+     "name": "Capstone & Mocks",
+     "weeks": "Weeks 7–8",
+     "topics": [
+      "Pipeline capstone build",
+      "Mock SQL rounds",
+      "Mock system-design rounds",
+      "Behavioral story bank"
+     ],
+     "outcome": "Outcome: one defensible pipeline artifact plus a full mock circuit completed with scored feedback."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "de-interview-diagnostic",
+     "title": "Data Engineering Interview Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) assigns…",
+       "choices": [
+        "Unique sequential numbers restarting at 1 inside each department",
+        "Ranks that skip numbers on ties",
+        "A random ordering per department",
+        "The department's total salary to every row"
+       ],
+       "answer": 0,
+       "explain": "ROW_NUMBER is unique and sequential within each partition; RANK is the one that ties and skips."
+      },
+      {
+       "q": "An append-only incremental load double-counts revenue the moment…",
+       "choices": [
+        "Source rows can be updated after they were first loaded",
+        "The load runs on a schedule",
+        "The table has an index",
+        "The extract is full, not incremental"
+       ],
+       "answer": 0,
+       "explain": "Appends assume immutability. If source rows change after loading, you need upserts or watermark logic — the classic incremental-load trap."
+      },
+      {
+       "q": "Data skew in Spark means…",
+       "choices": [
+        "One partition holds far more data than the rest, stalling the job",
+        "Data is perfectly balanced across partitions",
+        "The cluster has too many nodes",
+        "Shuffle never happens"
+       ],
+       "answer": 0,
+       "explain": "Skew: a hot key lands most rows on one partition, so one task runs long while the rest idle — the first scaling question in DE interviews."
+      },
+      {
+       "q": "Exactly-once processing in a streaming pipeline realistically requires…",
+       "choices": [
+        "Idempotent sinks combined with transactional offsets or framework support",
+        "Kafka alone",
+        "Simply retrying failed batches",
+        "A larger cluster"
+       ],
+       "answer": 0,
+       "explain": "Exactly-once is a system property: the source offsets and the sink writes must commit atomically, or sinks must tolerate replays idempotently."
+      },
+      {
+       "q": "A Type 2 slowly changing dimension…",
+       "choices": [
+        "Preserves history by inserting new rows with effective dates",
+        "Overwrites the old value in place",
+        "Deletes history nightly",
+        "Only works for numeric attributes"
+       ],
+       "answer": 0,
+       "explain": "Type 2 keeps every version as a new row (effective/expiry dates); Type 1 overwrites. Interviewers ask which you chose and why."
+      },
+      {
+       "q": "Event time matters separately from processing time because…",
+       "choices": [
+        "Late or out-of-order events land in the wrong window if you use arrival time",
+        "Clocks are always wrong",
+        "Kafka requires it",
+        "Batch pipelines use it"
+       ],
+       "answer": 0,
+       "explain": "Using arrival time assigns events to windows by when they showed up, not when they happened — watermarks exist to bound that lateness."
+      },
+      {
+       "q": "An idempotent pipeline is one where…",
+       "choices": [
+        "Rerunning it produces the same result with no duplicates",
+        "It always runs in under a minute",
+        "It never fails",
+        "It uses no storage"
+       ],
+       "answer": 0,
+       "explain": "Idempotency: reruns are safe — same output, no double-counting. It is what makes backfills and retries sane."
+      }
+     ]
+    }
+   ],
+   "topics": [
+    "Advanced SQL: window functions, CTEs, join patterns",
+    "Aggregation at the right grain",
+    "Python data wrangling with pandas",
+    "Chunked processing for data bigger than memory",
+    "Batch pipeline design: extraction, orchestration, backfills",
+    "Apache Airflow: DAGs, sensors, retries",
+    "Apache Spark: partitions, shuffles, skew",
+    "Streaming systems: event time, Kafka, delivery semantics",
+    "Data modeling: star schemas, SCDs, medallion layers",
+    "Data-quality gates and pipeline debugging",
+    "Timed mock circuits with scoring rubrics"
+   ],
+   "sources": [
+    {
+     "name": "Apache Airflow Documentation",
+     "url": "https://airflow.apache.org/docs/",
+     "note": "Workflow orchestration reference: DAGs, operators, sensors, and retries."
+    },
+    {
+     "name": "Apache Kafka Documentation",
+     "url": "https://kafka.apache.org/documentation/",
+     "note": "Event streaming reference: topics, partitions, offsets, and delivery semantics."
+    },
+    {
+     "name": "Apache Spark Documentation",
+     "url": "https://spark.apache.org/docs/latest/",
+     "note": "Distributed data processing reference: partitions, shuffles, and the DataFrame API."
+    },
+    {
+     "name": "DataLemur",
+     "url": "https://datalemur.com",
+     "note": "SQL and data interview questions in real screen style, used for timed mock reps."
+    },
+    {
+     "name": "Kimball Group",
+     "url": "https://www.kimballgroup.com/",
+     "note": "Dimensional-modeling home: facts, dimensions, grain, and slowly changing dimensions."
+    },
+    {
+     "name": "Mode SQL Tutorial",
+     "url": "https://mode.com/sql-tutorial/",
+     "note": "Free interactive SQL tutorial from basic selects through window functions and analytics patterns."
+    },
+    {
+     "name": "PostgreSQL Documentation",
+     "url": "https://www.postgresql.org/docs/",
+     "note": "Official SQL reference behind the drill spine: window functions, CTEs, recursion, and query planning."
+    },
+    {
+     "name": "Python Documentation",
+     "url": "https://docs.python.org/3/",
+     "note": "Language reference for the coding reps: data structures, stdlib, and idioms."
+    },
+    {
+     "name": "dbt Documentation",
+     "url": "https://docs.getdbt.com/",
+     "note": "Analytics-engineering reference: models, tests, and docs as code on the warehouse."
+    },
+    {
+     "name": "pandas Documentation",
+     "url": "https://pandas.pydata.org/docs/",
+     "note": "DataFrame reference and user guide: the wrangling half of every data interview."
+    }
+   ],
+   "il_provides": "I'm your instructor for this path, and I'll take you from SQL fluency through pipeline system design to full mock circuits. You'll whiteboard batch and streaming pipelines end to end, defend every modeling choice aloud, and finish with a capstone pipeline you can walk an interviewer through line by line."
+  },
+  {
+   "id": "data-science-interview-prep",
+   "academy": "IL-15",
+   "title": "Data Science Interview Prep",
+   "subtitle": "Stats, models, and cases — the data science interview.",
+   "type": "career",
+   "difficulty": "intermediate",
+   "hours": 60,
+   "status": "published",
+   "tags": [
+    "data-science",
+    "statistics",
+    "interview-prep"
+   ],
+   "suited_for": [
+    "Aspiring data scientists with a quantitative background",
+    "Analysts moving toward modeling and experimentation roles",
+    "STEM graduates who need interview-shaped stats fluency",
+    "Engineers who can code but stumble on probability questions"
+   ],
+   "tools": [
+    "Python/pandas",
+    "NumPy",
+    "scikit-learn",
+    "Jupyter",
+    "SQL"
+   ],
+   "modules": [
+    {
+     "id": "stats-prob-iv",
+     "title": "Statistics and Probability",
+     "kind": "core",
+     "topics": [
+      "Distributions: normal, binomial, Poisson",
+      "Expectation, variance, and conditioning",
+      "The central limit theorem, plainly",
+      "Confidence intervals without mysticism",
+      "Hypothesis testing and what p-values actually say",
+      "Bayes' rule for interview problems"
+     ],
+     "sources": [
+      {
+       "name": "A leading free learning platform: Statistics & Probability",
+       "url": "https://interstitiumlabs.dev/university/",
+       "note": "Free, rigorous statistics floor: distributions, inference, and hypothesis testing."
+      },
+      {
+       "name": "Seeing Theory",
+       "url": "https://seeing-theory.brown.edu",
+       "note": "A visual introduction to probability and statistics; builds the intuition the formulas assume."
+      }
+     ],
+     "il_provides": "The probability floor every DS interview stands on: distributions, inference, and the discipline of saying exactly what a p-value means."
+    },
+    {
+     "id": "pandas-analysis",
+     "title": "Analysis with pandas",
+     "kind": "core",
+     "topics": [
+      "Exploratory analysis: distributions and outliers",
+      "groupby patterns for real questions",
+      "Merges without fan-out disasters",
+      "Handling missing and messy data",
+      "Vectorized feature construction",
+      "Reproducible notebook habits"
+     ],
+     "sources": [
+      {
+       "name": "pandas Documentation",
+       "url": "https://pandas.pydata.org/docs/",
+       "note": "DataFrame reference and user guide: the wrangling half of every data interview."
+      },
+      {
+       "name": "NumPy Documentation",
+       "url": "https://numpy.org/doc/",
+       "note": "Array computing reference under pandas; vectorization is the speed answer."
+      }
+     ],
+     "il_provides": "Analysis as a live-coding skill: from a raw table to an insight, with the pandas idioms interviewers watch for."
+    },
+    {
+     "id": "ml-for-ds",
+     "title": "ML for Data Science",
+     "kind": "core",
+     "topics": [
+      "Regression and classification, interview-style",
+      "Overfitting and regularization intuition",
+      "Train/validation/test discipline",
+      "Precision, recall, and ROC-AUC",
+      "Feature engineering judgment",
+      "Explaining a model choice aloud"
+     ],
+     "sources": [
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide and API reference: the classical-ML vocabulary interviewers expect."
+      },
+      {
+       "name": "Google Machine Learning Crash Course",
+       "url": "https://developers.google.com/machine-learning/crash-course",
+       "note": "Free applied ML course: framing, training, and generalization, with exercises."
+      }
+     ],
+     "il_provides": "The modeling vocabulary DS interviews assume: which model for which problem, how you validate it, and which metric matches the cost."
+    },
+    {
+     "id": "experimentation-ab",
+     "title": "Experimentation and A/B Testing",
+     "kind": "core",
+     "topics": [
+      "Randomization: why it is the whole game",
+      "Power, sample size, and minimum detectable effect",
+      "Reading experiment results honestly",
+      "Peeking, multiple testing, and other sins",
+      "When not to A/B test",
+      "Designing an experiment on the spot"
+     ],
+     "sources": [
+      {
+       "name": "Evan Miller: A/B Testing",
+       "url": "https://www.evanmiller.org/ab-testing/",
+       "note": "The long-standing practitioner's guide to designing and reading randomized experiments."
+      },
+      {
+       "name": "A leading free learning platform: Statistics & Probability",
+       "url": "https://interstitiumlabs.dev/university/",
+       "note": "Free, rigorous statistics floor: distributions, inference, and hypothesis testing."
+      }
+     ],
+     "il_provides": "Experimentation is the most-tested DS topic at product companies: design the test, size it, read it — and name every way it can lie."
+    },
+    {
+     "id": "ds-case-rep",
+     "title": "Guided Case Study",
+     "kind": "guided-project",
+     "topics": [
+      "Framing an ambiguous business question",
+      "Choosing metrics before touching data",
+      "Analysis plan and sanity checks",
+      "Building the narrative arc",
+      "Anticipating follow-up questions",
+      "Writing the one-page summary"
+     ],
+     "sources": [
+      {
+       "name": "pandas Documentation",
+       "url": "https://pandas.pydata.org/docs/",
+       "note": "DataFrame reference and user guide: the wrangling half of every data interview."
+      },
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide and API reference: the classical-ML vocabulary interviewers expect."
+      }
+     ],
+     "il_provides": "A full case walked end to end: ambiguous prompt, metric choice, analysis, and the story — the format product DS interviews use."
+    },
+    {
+     "id": "ds-mock",
+     "title": "Data Science Mock Circuit",
+     "kind": "career",
+     "topics": [
+      "Timed stats and probability rounds",
+      "Live analysis screens",
+      "Experiment-design whiteboards",
+      "Model-choice deep dives",
+      "Behavioral: the failed-analysis story",
+      "Scored review and redrill plan"
+     ],
+     "sources": [
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      },
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide and API reference: the classical-ML vocabulary interviewers expect."
+      }
+     ],
+     "il_provides": "Full simulations across the four DS round types — stats, coding, experimentation, and case — scored against rubrics."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Stats & Analysis",
+     "weeks": "Weeks 1–3",
+     "topics": [
+      "Probability and distributions",
+      "Hypothesis testing",
+      "pandas analysis reps",
+      "Exploratory analysis habits"
+     ],
+     "outcome": "Outcome: you answer stats questions precisely and analyze a dataset live without stalling."
+    },
+    {
+     "name": "Modeling & Experimentation",
+     "weeks": "Weeks 4–6",
+     "topics": [
+      "ML model selection and validation",
+      "Metrics for imbalanced problems",
+      "A/B test design and readouts",
+      "Experiment failure modes"
+     ],
+     "outcome": "Outcome: you can defend a modeling choice and design a clean experiment on the spot."
+    },
+    {
+     "name": "Cases & Mocks",
+     "weeks": "Weeks 7–8",
+     "topics": [
+      "Guided case study",
+      "Mock stats rounds",
+      "Mock case rounds",
+      "Behavioral story bank"
+     ],
+     "outcome": "Outcome: one polished case study plus a full mock circuit with scored feedback."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "ds-interview-diagnostic",
+     "title": "Data Science Interview Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "A p-value of 0.03 means…",
+       "choices": [
+        "If the null were true, you would see a result this extreme about 3% of the time",
+        "There is a 97% chance the alternative hypothesis is true",
+        "The effect size is large",
+        "The result will replicate"
+       ],
+       "answer": 0,
+       "explain": "A p-value is a statement about the data under the null, not about the probability the hypothesis is true — the single most-tested stats distinction."
+      },
+      {
+       "q": "In pandas, a left merge keeps…",
+       "choices": [
+        "Every row from the left frame, with NaN where the right has no match",
+        "Only rows with matches on both sides",
+        "Every row from both frames",
+        "Only the right frame's rows"
+       ],
+       "answer": 0,
+       "explain": "Left join: all left rows survive; unmatched keys get NaN on the right's columns. Forgetting this silently drops data."
+      },
+      {
+       "q": "A metric improves overall but worsens within every user segment. This is…",
+       "choices": [
+        "Simpson's paradox / confounding by segment mix",
+        "Proof the metric is broken",
+        "Regression to the mean",
+        "A successful experiment"
+       ],
+       "answer": 0,
+       "explain": "Aggregates can reverse within-group trends when segment mix shifts — always slice before celebrating."
+      },
+      {
+       "q": "Randomization in an A/B test exists to…",
+       "choices": [
+        "Balance known and unknown confounders across groups",
+        "Make the test run faster",
+        "Guarantee a significant result",
+        "Satisfy compliance"
+       ],
+       "answer": 0,
+       "explain": "Random assignment is what lets you attribute the difference to the treatment rather than to who ended up in which group."
+      },
+      {
+       "q": "On a 99%-negative fraud dataset, 99% accuracy from an always-negative model tells you…",
+       "choices": [
+        "Nothing useful — switch to precision/recall or PR-AUC",
+        "The model is excellent",
+        "Fraud is solved",
+        "Accuracy is the right metric here"
+       ],
+       "answer": 0,
+       "explain": "Accuracy rewards the majority-class constant predictor. Imbalanced problems need precision/recall or PR curves."
+      },
+      {
+       "q": "Training accuracy keeps climbing while validation accuracy falls. This is…",
+       "choices": [
+        "Overfitting: the model is memorizing noise",
+        "Underfitting",
+        "A data leak in the validation set",
+        "Normal training behavior"
+       ],
+       "answer": 0,
+       "explain": "The diverging curves are the textbook overfitting signature — time for regularization, simpler models, or more data."
+      },
+      {
+       "q": "Two variables are correlated. You may conclude…",
+       "choices": [
+        "Nothing about causation without a design that isolates it",
+        "The first causes the second",
+        "A third variable is responsible",
+        "The correlation is spurious"
+       ],
+       "answer": 0,
+       "explain": "Correlation is not causation, and the interview follow-up is always: what experiment or analysis would establish the causal link?"
+      }
+     ]
+    }
+   ],
+   "topics": [
+    "Probability distributions: normal, binomial, Poisson",
+    "Expectation, variance, and the central limit theorem",
+    "Confidence intervals and honest p-value interpretation",
+    "Exploratory analysis with pandas",
+    "Merge safety and leakage prevention",
+    "Regression, classification, and metric selection",
+    "Overfitting, regularization, validation discipline",
+    "A/B testing: randomization, power, sample size",
+    "Experiment sins: peeking, multiple testing, interference",
+    "Case-study framing and narrative",
+    "Timed DS mock loops with rubrics"
+   ],
+   "sources": [
+    {
+     "name": "DataLemur",
+     "url": "https://datalemur.com",
+     "note": "SQL and data interview questions in real screen style, used for timed mock reps."
+    },
+    {
+     "name": "Evan Miller: A/B Testing",
+     "url": "https://www.evanmiller.org/ab-testing/",
+     "note": "Practitioner's guide to designing and reading randomized experiments."
+    },
+    {
+     "name": "Google Machine Learning Crash Course",
+     "url": "https://developers.google.com/machine-learning/crash-course",
+     "note": "Free applied ML course: framing, training, and generalization with exercises."
+    },
+    {
+     "name": "A leading free learning platform: Statistics & Probability",
+     "url": "https://interstitiumlabs.dev/university/",
+     "note": "Free rigorous statistics floor: distributions, inference, and hypothesis testing."
+    },
+    {
+     "name": "NumPy Documentation",
+     "url": "https://numpy.org/doc/",
+     "note": "Array computing reference under pandas; vectorization is the speed answer in coding reps."
+    },
+    {
+     "name": "Seeing Theory",
+     "url": "https://seeing-theory.brown.edu",
+     "note": "Visual introduction to probability and statistics from Brown; builds formula-level intuition."
+    },
+    {
+     "name": "pandas Documentation",
+     "url": "https://pandas.pydata.org/docs/",
+     "note": "DataFrame reference and user guide: the wrangling half of every data interview."
+    },
+    {
+     "name": "scikit-learn Documentation",
+     "url": "https://scikit-learn.org/stable/",
+     "note": "Classical-ML user guide and API reference; the modeling vocabulary interviewers expect."
+    }
+   ],
+   "il_provides": "I'm your instructor for this path, and we'll build the complete DS interview stack: the probability floor, live pandas analysis, modeling judgment, and experimentation design. You'll rehearse each round's shape — stats, analysis, experiment whiteboard, case — until the method, not just the answer, is what you bring into the room."
+  },
+  {
+   "id": "data-analyst-interview-prep",
+   "academy": "IL-15",
+   "title": "Data / Business Analyst Interview Prep",
+   "subtitle": "SQL, metrics, and business judgment — the analyst interview.",
+   "type": "career",
+   "difficulty": "beginner",
+   "hours": 50,
+   "status": "published",
+   "tags": [
+    "data-analyst",
+    "sql",
+    "interview-prep"
+   ],
+   "suited_for": [
+    "Career switchers targeting analyst roles",
+    "Recent graduates with spreadsheet skills but no SQL",
+    "Operations and marketing staff who live in dashboards",
+    "Anyone who needs business-judgment reps, not just queries"
+   ],
+   "tools": [
+    "PostgreSQL",
+    "Google Sheets",
+    "Tableau",
+    "Power BI",
+    "SQLZoo"
+   ],
+   "modules": [
+    {
+     "id": "sql-foundations-analyst",
+     "title": "SQL Foundations",
+     "kind": "core",
+     "topics": [
+      "SELECT, WHERE, and ORDER BY",
+      "Joins: inner, left, and when each lies",
+      "GROUP BY and aggregate functions",
+      "COUNT(*) vs COUNT(column)",
+      "Subqueries and the EXISTS pattern",
+      "Finding orphans with anti-joins"
+     ],
+     "sources": [
+      {
+       "name": "Mode SQL Tutorial",
+       "url": "https://mode.com/sql-tutorial/",
+       "note": "Free interactive SQL tutorial, from basic selects through window functions and analytics patterns."
+      },
+      {
+       "name": "SQLZoo",
+       "url": "https://sqlzoo.net/",
+       "note": "Interactive SQL exercises with immediate feedback; the rep work for joins, subqueries, and aggregation."
+      }
+     ],
+     "il_provides": "Analyst SQL from zero to interview-ready: the query shapes behind 'how many users did X' and the join mistakes that silently wrong-answer them."
+    },
+    {
+     "id": "sheets-modeling",
+     "title": "Spreadsheets and Modeling",
+     "kind": "core",
+     "topics": [
+      "Lookup functions without the footguns",
+      "Absolute vs relative references",
+      "Pivot tables for fast exploration",
+      "Cleaning data with formulas",
+      "What-if models and scenario tables",
+      "When a spreadsheet stops being the tool"
+     ],
+     "sources": [
+      {
+       "name": "Google Sheets Help",
+       "url": "https://support.google.com/docs",
+       "note": "Official reference for the spreadsheet half of analyst interviews."
+      }
+     ],
+     "il_provides": "The spreadsheet half of analyst screens: fast, correct lookup and pivot work — plus knowing when the data has outgrown the grid."
+    },
+    {
+     "id": "visualization-story",
+     "title": "Visualization and Storytelling",
+     "kind": "core",
+     "topics": [
+      "Choosing the right chart for the question",
+      "Honest axes: the truncated-bar trap",
+      "Dashboards that answer, not decorate",
+      "The insight-action-recommendation arc",
+      "Presenting to non-technical stakeholders",
+      "Critiquing a bad chart on the spot"
+     ],
+     "sources": [
+      {
+       "name": "Tableau Help",
+       "url": "https://help.tableau.com/current/pro/desktop/en-us/default.htm",
+       "note": "Official reference for building and reading the charts analysts present."
+      },
+      {
+       "name": "Microsoft Power BI Documentation",
+       "url": "https://learn.microsoft.com/en-us/power-bi/",
+       "note": "Official reference for data modeling, DAX basics, and report building."
+      }
+     ],
+     "il_provides": "Charts as arguments: picking the right visual, keeping it honest, and turning a dashboard into a recommendation."
+    },
+    {
+     "id": "business-metrics",
+     "title": "Metrics and Business Judgment",
+     "kind": "core",
+     "topics": [
+      "North Star metrics and input metrics",
+      "Funnels: conversion and drop-off",
+      "Cohorts and retention curves",
+      "Segmentation before conclusions",
+      "Reading an experiment result",
+      "The 'metric moved — why?' drill"
+     ],
+     "sources": [
+      {
+       "name": "Google Analytics Help",
+       "url": "https://support.google.com/analytics",
+       "note": "Official reference for funnels, cohorts, and the metrics language analysts speak."
+      },
+      {
+       "name": "Evan Miller: A/B Testing",
+       "url": "https://www.evanmiller.org/ab-testing/",
+       "note": "The long-standing practitioner's guide to designing and reading randomized experiments."
+      }
+     ],
+     "il_provides": "The judgment layer: defining the right metric, slicing it before trusting it, and diagnosing a movement like a detective."
+    },
+    {
+     "id": "analyst-guided-project",
+     "title": "Guided Analyst Project",
+     "kind": "guided-project",
+     "topics": [
+      "Picking a question worth answering",
+      "Getting and cleaning the data",
+      "Exploratory analysis with a plan",
+      "Building the dashboard or deck",
+      "Writing the recommendation memo",
+      "Anticipating stakeholder pushback"
+     ],
+     "sources": [
+      {
+       "name": "Mode SQL Tutorial",
+       "url": "https://mode.com/sql-tutorial/",
+       "note": "Free interactive SQL tutorial, from basic selects through window functions and analytics patterns."
+      },
+      {
+       "name": "Tableau Help",
+       "url": "https://help.tableau.com/current/pro/desktop/en-us/default.htm",
+       "note": "Official reference for building and reading the charts analysts present."
+      }
+     ],
+     "il_provides": "One end-to-end analysis with a recommendation at the end: the portfolio piece that answers 'walk me through an analysis.'"
+    },
+    {
+     "id": "analyst-mock",
+     "title": "Analyst Mock Circuit",
+     "kind": "career",
+     "topics": [
+      "Timed SQL screens",
+      "Take-home case walkthroughs",
+      "Metric-deep-dive whiteboards",
+      "Dashboard critique rounds",
+      "Behavioral: the stakeholder-disagreement story",
+      "Scored review and redrill plan"
+     ],
+     "sources": [
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      },
+      {
+       "name": "SQLZoo",
+       "url": "https://sqlzoo.net/",
+       "note": "Interactive SQL exercises with immediate feedback; the rep work for joins, subqueries, and aggregation."
+      }
+     ],
+     "il_provides": "Simulations of the analyst loop — SQL screen, case, metrics deep-dive — with rubrics and a targeted fix list."
+    }
+   ],
+   "phases": [
+    {
+     "name": "SQL & Data",
+     "weeks": "Weeks 1–3",
+     "topics": [
+      "SQL foundations and joins",
+      "Aggregation at the right grain",
+      "Spreadsheet modeling",
+      "Timed SQL reps"
+     ],
+     "outcome": "Outcome: you answer analyst SQL screens correctly and model confidently in spreadsheets."
+    },
+    {
+     "name": "Analysis & Story",
+     "weeks": "Weeks 4–5",
+     "topics": [
+      "Visualization and honest charts",
+      "Metrics, funnels, and cohorts",
+      "The metric-moved diagnostic drill",
+      "Stakeholder storytelling"
+     ],
+     "outcome": "Outcome: you turn a dataset into a chart-backed recommendation a stakeholder can act on."
+    },
+    {
+     "name": "Project & Mocks",
+     "weeks": "Weeks 6–7",
+     "topics": [
+      "Guided analyst project",
+      "Mock SQL rounds",
+      "Mock case rounds",
+      "Behavioral story bank"
+     ],
+     "outcome": "Outcome: one portfolio analysis plus a full mock circuit with scored feedback."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "analyst-interview-diagnostic",
+     "title": "Analyst Interview Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "COUNT(*) and COUNT(email) differ when…",
+       "choices": [
+        "Some rows have NULL emails — COUNT(column) skips NULLs",
+        "They never differ",
+        "The table is empty",
+        "There is a GROUP BY"
+       ],
+       "answer": 0,
+       "explain": "COUNT(*) counts rows; COUNT(column) counts non-NULL values. The difference is exactly the NULL count — a favorite screen question."
+      },
+      {
+       "q": "To find customers who placed no orders, you…",
+       "choices": [
+        "LEFT JOIN orders and filter WHERE orders.id IS NULL",
+        "INNER JOIN and count",
+        "Use COUNT(*) alone",
+        "Sort by customer name"
+       ],
+       "answer": 0,
+       "explain": "The anti-join pattern: left join, then keep only rows where the right side is NULL — the 'who didn't' question."
+      },
+      {
+       "q": "Grouping daily revenue by month instead of by day changes…",
+       "choices": [
+        "The grain of the analysis — and can hide or reveal trends",
+        "Nothing; totals are identical",
+        "Only the chart colors",
+        "The data source"
+       ],
+       "answer": 0,
+       "explain": "Grain is an analytical choice: coarser grain smooths noise but can hide the very pattern the question is about."
+      },
+      {
+       "q": "A North Star metric is…",
+       "choices": [
+        "The single metric that best captures the product's core value delivered",
+        "Total revenue, always",
+        "Whatever the CEO mentions most",
+        "The metric with the biggest dashboard"
+       ],
+       "answer": 0,
+       "explain": "One metric tying product value to business outcomes, with input metrics feeding it — interviewers ask you to propose one for their product."
+      },
+      {
+       "q": "Cohort analysis groups users by…",
+       "choices": [
+        "A shared characteristic or start period, then tracks them over time",
+        "Their total spend",
+        "Alphabetical order",
+        "Random assignment"
+       ],
+       "answer": 0,
+       "explain": "Cohorts (e.g., signup month) tracked over time separate real retention changes from mix shifts — the retention question's answer."
+      },
+      {
+       "q": "A bar chart with a truncated y-axis is…",
+       "choices": [
+        "A dishonest exaggeration of small differences",
+        "Best practice for precision",
+        "Required for large values",
+        "Faster to read"
+       ],
+       "answer": 0,
+       "explain": "Starting bars above zero visually magnifies tiny gaps. Analyst interviews test whether you spot — and refuse — this."
+      },
+      {
+       "q": "Copying =A1*B1 down a column breaks when…",
+       "choices": [
+        "B1 should have been an absolute reference ($B$1)",
+        "The formula is too short",
+        "A1 is text",
+        "The sheet is too wide"
+       ],
+       "answer": 0,
+       "explain": "Relative references shift on copy; lock the cell that must stay fixed with $. The classic spreadsheet-screen trap."
+      }
+     ]
+    }
+   ],
+   "topics": [
+    "SQL foundations: joins, GROUP BY, subqueries, EXISTS",
+    "COUNT(*) vs COUNT(column) and NULL semantics",
+    "Spreadsheet lookups, references, and pivot tables",
+    "Formula-based, auditable data cleaning",
+    "Chart selection and honest axes",
+    "Dashboards that drive decisions",
+    "North Star and input metrics",
+    "Funnels, cohorts, and retention curves",
+    "Segmentation and the metric-moved drill",
+    "Recommendation memos and stakeholder walkthroughs",
+    "Timed analyst mock loops with rubrics"
+   ],
+   "sources": [
+    {
+     "name": "DataLemur",
+     "url": "https://datalemur.com",
+     "note": "SQL and data interview questions in real screen style, used for timed mock reps."
+    },
+    {
+     "name": "Evan Miller: A/B Testing",
+     "url": "https://www.evanmiller.org/ab-testing/",
+     "note": "Practitioner's guide to designing and reading randomized experiments."
+    },
+    {
+     "name": "Google Analytics Help",
+     "url": "https://support.google.com/analytics",
+     "note": "Official reference for funnels, cohorts, and the metrics language analysts speak."
+    },
+    {
+     "name": "Google Sheets Help",
+     "url": "https://support.google.com/docs",
+     "note": "Official reference for the spreadsheet half of analyst interviews."
+    },
+    {
+     "name": "Microsoft Power BI Documentation",
+     "url": "https://learn.microsoft.com/en-us/power-bi/",
+     "note": "Official reference for data modeling, DAX basics, and report building."
+    },
+    {
+     "name": "Mode SQL Tutorial",
+     "url": "https://mode.com/sql-tutorial/",
+     "note": "Free interactive SQL tutorial from basic selects through window functions and analytics patterns."
+    },
+    {
+     "name": "SQLZoo",
+     "url": "https://sqlzoo.net/",
+     "note": "Interactive SQL exercises with immediate feedback for joins, subqueries, and aggregation reps."
+    },
+    {
+     "name": "Tableau Help",
+     "url": "https://help.tableau.com/current/pro/desktop/en-us/default.htm",
+     "note": "Official reference for building and reading the charts analysts present."
+    }
+   ],
+   "il_provides": "I'm your instructor for this path, and we'll turn you into the analyst who answers 'how many users did X' without breaking a sweat. SQL foundations, spreadsheet craft, honest visualization, and the metrics judgment to diagnose a moved metric like a detective — closed out with a portfolio project and full mock loops."
+  },
+  {
+   "id": "ml-interview-prep",
+   "academy": "IL-15",
+   "title": "Machine Learning Interview Prep",
+   "subtitle": "Theory, coding, and ML system design — the ML interview.",
+   "type": "career",
+   "difficulty": "advanced",
+   "hours": 60,
+   "status": "published",
+   "tags": [
+    "machine-learning",
+    "interview-prep"
+   ],
+   "suited_for": [
+    "ML engineers targeting applied-science and MLE roles",
+    "Data scientists going deeper on theory and systems",
+    "Software engineers crossing into ML",
+    "Anyone who can train a model but not derive why it works"
+   ],
+   "tools": [
+    "Python",
+    "scikit-learn",
+    "PyTorch",
+    "MLflow",
+    "Jupyter"
+   ],
+   "modules": [
+    {
+     "id": "ml-theory-iv",
+     "title": "ML Theory",
+     "kind": "core",
+     "topics": [
+      "Bias-variance tradeoff, precisely",
+      "L1 vs L2 regularization",
+      "Maximum likelihood intuition",
+      "Gradient descent: variants and failure modes",
+      "Decision boundaries of common models",
+      "Deriving the answer, not reciting it"
+     ],
+     "sources": [
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide and API reference: the classical-ML vocabulary interviewers expect."
+      },
+      {
+       "name": "Google Machine Learning Crash Course",
+       "url": "https://developers.google.com/machine-learning/crash-course",
+       "note": "Free applied ML course: framing, training, and generalization, with exercises."
+      }
+     ],
+     "il_provides": "The theory interviewers probe past the buzzwords: why regularization works, what the loss is really optimizing, and where each model class breaks."
+    },
+    {
+     "id": "deep-learning-iv",
+     "title": "Deep Learning",
+     "kind": "core",
+     "topics": [
+      "Backprop and the chain rule",
+      "Activations and initialization",
+      "CNNs: why convolutions fit images",
+      "RNNs, LSTMs, and the attention handoff",
+      "Overfitting in deep nets: dropout and friends",
+      "Reading a training curve"
+     ],
+     "sources": [
+      {
+       "name": "Google Machine Learning Crash Course",
+       "url": "https://developers.google.com/machine-learning/crash-course",
+       "note": "Free applied ML course: framing, training, and generalization, with exercises."
+      },
+      {
+       "name": "PyTorch Documentation",
+       "url": "https://pytorch.org/docs/stable/index.html",
+       "note": "Tensors, autograd, and nn references for the deep-learning reps."
+      }
+     ],
+     "il_provides": "Deep learning at interview depth: the mechanisms behind the architectures, and diagnosing training from its curves."
+    },
+    {
+     "id": "ml-system-design",
+     "title": "ML System Design",
+     "kind": "core",
+     "topics": [
+      "Framing: from business goal to ML problem",
+      "Training/serving skew and how to catch it",
+      "Feature stores and pipelines in production",
+      "Monitoring, drift, and retraining triggers",
+      "Latency, cost, and the simple-model-first rule",
+      "Walking a full design end to end"
+     ],
+     "sources": [
+      {
+       "name": "Google: Rules of Machine Learning",
+       "url": "https://developers.google.com/machine-learning/guides/rules-of-ml",
+       "note": "Battle-tested heuristics for ML systems; the system-design answer key."
+      },
+      {
+       "name": "MLflow Documentation",
+       "url": "https://mlflow.org/docs/latest/",
+       "note": "Experiment tracking and model management: how interview answers about 'MLOps' stay concrete."
+      }
+     ],
+     "il_provides": "The round that decides senior ML loops: design a real system, name its failure modes, and keep the complexity honest."
+    },
+    {
+     "id": "ml-coding",
+     "title": "ML Coding Reps",
+     "kind": "lab",
+     "topics": [
+      "Implementing k-means from scratch",
+      "Gradient descent by hand",
+      "Vectorized NumPy under time pressure",
+      "Coding a decision-tree split",
+      "Debugging shape mismatches fast",
+      "Explaining code as you write it"
+     ],
+     "sources": [
+      {
+       "name": "Python Documentation",
+       "url": "https://docs.python.org/3/",
+       "note": "The language reference for the coding reps: data structures, stdlib, and idioms."
+      },
+      {
+       "name": "NumPy Documentation",
+       "url": "https://numpy.org/doc/",
+       "note": "Array computing reference under pandas; vectorization is the speed answer."
+      }
+     ],
+     "il_provides": "Whiteboard coding for ML roles: the algorithms interviewers ask you to implement, in clean vectorized code, narrated aloud."
+    },
+    {
+     "id": "ml-capstone-project",
+     "title": "ML Capstone",
+     "kind": "capstone",
+     "topics": [
+      "Problem framing and metric choice",
+      "Baseline before complexity",
+      "Experiment tracking and ablations",
+      "Error analysis that finds the next win",
+      "Model card and limitations write-up",
+      "The five-minute interview narrative"
+     ],
+     "sources": [
+      {
+       "name": "MLflow Documentation",
+       "url": "https://mlflow.org/docs/latest/",
+       "note": "Experiment tracking and model management: how interview answers about 'MLOps' stay concrete."
+      },
+      {
+       "name": "scikit-learn Documentation",
+       "url": "https://scikit-learn.org/stable/",
+       "note": "User guide and API reference: the classical-ML vocabulary interviewers expect."
+      }
+     ],
+     "il_provides": "One model built like a professional: tracked experiments, honest evaluation, documented limits — and a story that fits the interview."
+    },
+    {
+     "id": "ml-mock",
+     "title": "ML Mock Circuit",
+     "kind": "career",
+     "topics": [
+      "Timed theory deep-dives",
+      "Live ML coding rounds",
+      "System-design whiteboards",
+      "Paper-discussion style questions",
+      "Behavioral: the failed-experiment story",
+      "Scored review and redrill plan"
+     ],
+     "sources": [
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      },
+      {
+       "name": "Google Machine Learning Crash Course",
+       "url": "https://developers.google.com/machine-learning/crash-course",
+       "note": "Free applied ML course: framing, training, and generalization, with exercises."
+      }
+     ],
+     "il_provides": "Full ML-loop simulations — theory, coding, and system design — scored the way hiring committees score them."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Theory & Models",
+     "weeks": "Weeks 1–3",
+     "topics": [
+      "ML theory derivations",
+      "Deep learning mechanisms",
+      "ML coding reps",
+      "Training-curve diagnosis"
+     ],
+     "outcome": "Outcome: you derive the core theory on demand and implement the standard algorithms from scratch."
+    },
+    {
+     "name": "ML Systems",
+     "weeks": "Weeks 4–6",
+     "topics": [
+      "ML system-design whiteboards",
+      "Feature pipelines and skew",
+      "Monitoring and retraining design",
+      "Cost/latency tradeoff arguments"
+     ],
+     "outcome": "Outcome: you can design a production ML system and name its failure modes before the interviewer does."
+    },
+    {
+     "name": "Capstone & Mocks",
+     "weeks": "Weeks 7–8",
+     "topics": [
+      "ML capstone build",
+      "Mock theory rounds",
+      "Mock system-design rounds",
+      "Behavioral story bank"
+     ],
+     "outcome": "Outcome: one interview-ready model artifact plus a full mock circuit with scored feedback."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "ml-interview-diagnostic",
+     "title": "ML Interview Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "The bias-variance tradeoff says…",
+       "choices": [
+        "Simpler models underfit (high bias); complex models overfit (high variance) — error is minimized between them",
+        "Bias and variance are unrelated",
+        "More data increases variance",
+        "Complex models always win"
+       ],
+       "answer": 0,
+       "explain": "Expected error decomposes into bias² + variance + noise. The interview follow-up is always: how do you find the sweet spot? (Validation.)"
+      },
+      {
+       "q": "L1 regularization differs from L2 in that L1…",
+       "choices": [
+        "Drives some weights exactly to zero, performing feature selection",
+        "Only works for neural networks",
+        "Is always weaker",
+        "Cannot be optimized"
+       ],
+       "answer": 0,
+       "explain": "The L1 penalty's geometry creates sparsity — zero weights, i.e., automatic feature selection — where L2 merely shrinks."
+      },
+      {
+       "q": "k-fold cross-validation is used to…",
+       "choices": [
+        "Estimate generalization while reducing the luck of a single split",
+        "Speed up training",
+        "Tune the test set",
+        "Increase model capacity"
+       ],
+       "answer": 0,
+       "explain": "Averaging over folds gives a stabler performance estimate; every row serves as validation exactly once."
+      },
+      {
+       "q": "On heavily imbalanced data, ROC-AUC can be misleading because…",
+       "choices": [
+        "It can stay high while precision on the rare class is terrible — use PR curves instead",
+        "It is undefined for binary problems",
+        "It ignores the majority class",
+        "It requires balanced data to compute"
+       ],
+       "answer": 0,
+       "explain": "ROC-AUC's false-positive rate is diluted by the huge negative pool; precision-recall exposes rare-class performance."
+      },
+      {
+       "q": "A learning rate set far too high typically causes…",
+       "choices": [
+        "Divergence or oscillation: the loss bounces or explodes instead of descending",
+        "Faster convergence always",
+        "Better generalization",
+        "No effect with Adam"
+       ],
+       "answer": 0,
+       "explain": "Overshooting the minimum each step is the signature of an excessive learning rate — the first thing to check when loss goes NaN."
+      },
+      {
+       "q": "Including 'days_until_churn_email_sent' as a feature to predict churn is…",
+       "choices": [
+        "Leakage: the feature only exists after the outcome is known",
+        "Good feature engineering",
+        "Required for accuracy",
+        "A regularization technique"
+       ],
+       "answer": 0,
+       "explain": "Leakage — information from the future masquerading as a feature — produces great validation scores and useless models."
+      },
+      {
+       "q": "You tune hyperparameters on the test set. The consequence is…",
+       "choices": [
+        "An optimistic, invalid performance estimate — the test set is now a validation set",
+        "A better model with no downside",
+        "Faster tuning",
+        "Reproducibility"
+       ],
+       "answer": 0,
+       "explain": "Any decision made with test data contaminates it. Tune on validation, evaluate once on test — the discipline interviewers check."
+      }
+     ]
+    }
+   ],
+   "topics": [
+    "Bias-variance tradeoff and regularization",
+    "Maximum likelihood and loss-function intuition",
+    "Gradient descent variants and failure modes",
+    "Backprop, activations, and initialization",
+    "CNNs, RNNs, LSTMs, and the attention handoff",
+    "Training-curve diagnosis",
+    "ML system design: framing, skew, feature stores",
+    "Monitoring: drift, retraining triggers, champion/challenger",
+    "From-scratch coding: k-means, gradient descent, tree splits",
+    "Experiment tracking, ablations, model cards",
+    "Timed ML mock loops with rubrics"
+   ],
+   "sources": [
+    {
+     "name": "DataLemur",
+     "url": "https://datalemur.com",
+     "note": "SQL and data interview questions in real screen style, used for timed mock reps."
+    },
+    {
+     "name": "Google Machine Learning Crash Course",
+     "url": "https://developers.google.com/machine-learning/crash-course",
+     "note": "Free applied ML course: framing, training, and generalization with exercises."
+    },
+    {
+     "name": "Google: Rules of Machine Learning",
+     "url": "https://developers.google.com/machine-learning/guides/rules-of-ml",
+     "note": "Battle-tested heuristics for production ML systems; the system-design answer key."
+    },
+    {
+     "name": "MLflow Documentation",
+     "url": "https://mlflow.org/docs/latest/",
+     "note": "Experiment tracking and model management; keeps 'MLOps' answers concrete."
+    },
+    {
+     "name": "NumPy Documentation",
+     "url": "https://numpy.org/doc/",
+     "note": "Array computing reference under pandas; vectorization is the speed answer in coding reps."
+    },
+    {
+     "name": "PyTorch Documentation",
+     "url": "https://pytorch.org/docs/stable/index.html",
+     "note": "Tensors, autograd, and nn references for the deep-learning reps."
+    },
+    {
+     "name": "Python Documentation",
+     "url": "https://docs.python.org/3/",
+     "note": "Language reference for the coding reps: data structures, stdlib, and idioms."
+    },
+    {
+     "name": "scikit-learn Documentation",
+     "url": "https://scikit-learn.org/stable/",
+     "note": "Classical-ML user guide and API reference; the modeling vocabulary interviewers expect."
+    }
+   ],
+   "il_provides": "I'm your instructor for this path, and we'll go from ML theory derived on the board to system design for production. You'll implement algorithms from scratch in vectorized NumPy, design monitored ML systems with honest complexity, and run full mock loops scored the way hiring committees score them."
+  },
+  {
+   "id": "sql-analytics-drills",
+   "academy": "IL-15",
+   "title": "SQL & Analytics Drill Circuit",
+   "subtitle": "High-rep SQL patterns until they're reflex.",
+   "type": "foundations",
+   "difficulty": "intermediate",
+   "hours": 30,
+   "status": "published",
+   "tags": [
+    "sql",
+    "drills"
+   ],
+   "suited_for": [
+    "Anyone with a SQL screen in the next 30 days",
+    "Analysts and engineers whose SQL is rusty",
+    "Learners from the other IL-15 paths who need reps",
+    "Self-taught queriers who never drilled the hard patterns"
+   ],
+   "tools": [
+    "PostgreSQL",
+    "SQLZoo",
+    "DataLemur",
+    "Mode SQL Tutorial"
+   ],
+   "modules": [
+    {
+     "id": "sql-joins-subqueries",
+     "title": "Joins and Subqueries",
+     "kind": "lab",
+     "topics": [
+      "Inner vs outer joins, drilled",
+      "The anti-join: finding what is missing",
+      "Self-joins: employees and managers",
+      "Correlated vs uncorrelated subqueries",
+      "EXISTS vs IN",
+      "Fan-out: when joins multiply rows"
+     ],
+     "sources": [
+      {
+       "name": "PostgreSQL Documentation",
+       "url": "https://www.postgresql.org/docs/",
+       "note": "The SQL reference this spine drills against: window functions, CTEs, recursion, and query planning."
+      },
+      {
+       "name": "SQLZoo",
+       "url": "https://sqlzoo.net/",
+       "note": "Interactive SQL exercises with immediate feedback; the rep work for joins, subqueries, and aggregation."
+      }
+     ],
+     "il_provides": "Join fluency under time: recognizing which join the question wants, and catching the fan-out before it corrupts the aggregate."
+    },
+    {
+     "id": "sql-window-functions",
+     "title": "Window Functions",
+     "kind": "lab",
+     "topics": [
+      "ROW_NUMBER, RANK, DENSE_RANK",
+      "LAG/LEAD for period-over-period",
+      "Running totals with ordered frames",
+      "NTILE and percent_rank",
+      "Windows vs GROUP BY: keeping row detail",
+      "Top-N-per-group patterns"
+     ],
+     "sources": [
+      {
+       "name": "PostgreSQL Documentation",
+       "url": "https://www.postgresql.org/docs/",
+       "note": "The SQL reference this spine drills against: window functions, CTEs, recursion, and query planning."
+      },
+      {
+       "name": "Mode SQL Tutorial",
+       "url": "https://mode.com/sql-tutorial/",
+       "note": "Free interactive SQL tutorial, from basic selects through window functions and analytics patterns."
+      }
+     ],
+     "il_provides": "The highest-leverage SQL topic in interviews: ranking, deltas, and running aggregates — drilled until the frame clause is reflex."
+    },
+    {
+     "id": "sql-ctes-recursive",
+     "title": "CTEs and Recursion",
+     "kind": "lab",
+     "topics": [
+      "CTEs for readable multi-step queries",
+      "Chaining CTEs like a pipeline",
+      "Recursive CTE anatomy: anchor + recursion",
+      "Hierarchies and org charts",
+      "Date spines from generate_series",
+      "When a CTE beats a subquery"
+     ],
+     "sources": [
+      {
+       "name": "PostgreSQL Documentation",
+       "url": "https://www.postgresql.org/docs/",
+       "note": "The SQL reference this spine drills against: window functions, CTEs, recursion, and query planning."
+      }
+     ],
+     "il_provides": "CTEs as query architecture: breaking monsters into named steps, plus recursion for the hierarchy problems that stump the unprepared."
+    },
+    {
+     "id": "analytics-patterns",
+     "title": "Analytics Query Patterns",
+     "kind": "lab",
+     "topics": [
+      "Funnel conversion in SQL",
+      "Retention and cohort queries",
+      "Sessionization with window functions",
+      "Distinct counts at the right grain",
+      "Pivoting rows to columns",
+      "The 'metric moved' diagnostic query set"
+     ],
+     "sources": [
+      {
+       "name": "Mode SQL Tutorial",
+       "url": "https://mode.com/sql-tutorial/",
+       "note": "Free interactive SQL tutorial, from basic selects through window functions and analytics patterns."
+      },
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      }
+     ],
+     "il_provides": "The greatest-hits of analytics screens — funnels, cohorts, sessions — as reusable query templates you adapt on the spot."
+    },
+    {
+     "id": "drill-circuit-final",
+     "title": "Drill Circuit Finale",
+     "kind": "lab",
+     "topics": [
+      "Timed mixed-pattern circuits",
+      "Explaining your query aloud",
+      "Recovering from a wrong first attempt",
+      "Reading the interviewer's hints",
+      "The 15-minute SQL screen playbook",
+      "Personal weak-pattern redrill list"
+     ],
+     "sources": [
+      {
+       "name": "DataLemur",
+       "url": "https://datalemur.com",
+       "note": "SQL and data interview questions in the style real screens ask them; used for timed reps, not answers."
+      },
+      {
+       "name": "SQLZoo",
+       "url": "https://sqlzoo.net/",
+       "note": "Interactive SQL exercises with immediate feedback; the rep work for joins, subqueries, and aggregation."
+      }
+     ],
+     "il_provides": "Full timed circuits mixing every pattern: speed, narration, and recovery — the closest thing to the real screen without one."
+    }
+   ],
+   "phases": [
+    {
+     "name": "Core Patterns",
+     "weeks": "Weeks 1–2",
+     "topics": [
+      "Join drills",
+      "Subquery drills",
+      "Aggregation grain drills",
+      "Timed easy/medium circuits"
+     ],
+     "outcome": "Outcome: joins, subqueries, and aggregations come out correctly on the first attempt, timed."
+    },
+    {
+     "name": "Advanced Patterns",
+     "weeks": "Weeks 3–4",
+     "topics": [
+      "Window function drills",
+      "CTE and recursion drills",
+      "Analytics pattern templates",
+      "Timed medium/hard circuits"
+     ],
+     "outcome": "Outcome: window functions, CTEs, and analytics patterns are reflex, not puzzles."
+    },
+    {
+     "name": "Timed Circuits",
+     "weeks": "Weeks 5–6",
+     "topics": [
+      "Mixed-pattern timed circuits",
+      "Aloud narration practice",
+      "Recovery drills",
+      "Weak-pattern redrills"
+     ],
+     "outcome": "Outcome: you complete full timed SQL circuits with narration, hitting the screen-ready bar."
+    }
+   ],
+   "assessments": [
+    {
+     "id": "sql-drills-diagnostic",
+     "title": "SQL Drill Readiness Diagnostic",
+     "kind": "diagnostic",
+     "questions": 7,
+     "items": [
+      {
+       "q": "WHERE and HAVING differ in that…",
+       "choices": [
+        "WHERE filters rows before aggregation; HAVING filters groups after",
+        "They are interchangeable",
+        "HAVING is faster",
+        "WHERE cannot use indexes"
+       ],
+       "answer": 0,
+       "explain": "Execution order: WHERE → GROUP BY → HAVING. Aggregate conditions belong in HAVING; row conditions in WHERE."
+      },
+      {
+       "q": "A window function differs from GROUP BY in that it…",
+       "choices": [
+        "Returns a value per row while keeping row-level detail",
+        "Always runs faster",
+        "Cannot use ORDER BY",
+        "Requires a join"
+       ],
+       "answer": 0,
+       "explain": "GROUP BY collapses rows; OVER() computes across rows but returns one value per row — ranking without losing detail."
+      },
+      {
+       "q": "A recursive CTE needs…",
+       "choices": [
+        "An anchor member, a recursive member referencing the CTE, and UNION ALL between them",
+        "Two base tables",
+        "A GROUP BY",
+        "An index on the CTE"
+       ],
+       "answer": 0,
+       "explain": "Anchor seeds the result, the recursive member builds on it, UNION ALL combines — plus a termination condition or it never ends."
+      },
+      {
+       "q": "A self-join is the natural tool for…",
+       "choices": [
+        "Comparing rows within one table, like employees to their managers",
+        "Joining two databases",
+        "Aggregating",
+        "Deleting duplicates"
+       ],
+       "answer": 0,
+       "explain": "Aliasing the same table twice lets rows relate to other rows — hierarchies, pairs, and period comparisons."
+      },
+      {
+       "q": "NTILE(4) OVER (ORDER BY revenue DESC)…",
+       "choices": [
+        "Splits the ordered rows into 4 roughly equal buckets",
+        "Returns the 4th row",
+        "Counts distinct revenues",
+        "Rounds revenue to 4 decimals"
+       ],
+       "answer": 0,
+       "explain": "NTILE divides the ordered set into N buckets — quartiles with NTILE(4), deciles with NTILE(10)."
+      },
+      {
+       "q": "COUNT(DISTINCT user_id) vs COUNT(user_id): use the first when…",
+       "choices": [
+        "Duplicate user_ids would inflate the count and you need unique users",
+        "You want it faster",
+        "There are no NULLs",
+        "The table is small"
+       ],
+       "answer": 0,
+       "explain": "Fan-out from joins is the classic cause: the same user counted once per joined row unless DISTINCT collapses them."
+      },
+      {
+       "q": "A correlated subquery…",
+       "choices": [
+        "References the outer query and re-executes per outer row — often rewritable as a join",
+        "Runs once, independently",
+        "Cannot use WHERE",
+        "Is always faster than a join"
+       ],
+       "answer": 0,
+       "explain": "Correlation means per-row re-evaluation — correct but slow on big tables; EXISTS-to-join rewrites are the standard fix."
+      }
+     ]
+    }
+   ],
+   "topics": [
+    "Join fluency: inner, outer, anti-joins, self-joins",
+    "EXISTS vs IN and NULL-safe patterns",
+    "Window functions: ranking, LAG/LEAD, frames",
+    "Top-N per group and running totals",
+    "CTEs as query architecture",
+    "Recursive CTEs: hierarchies and date spines",
+    "Funnel queries in SQL",
+    "Cohort and retention queries",
+    "Sessionization with window functions",
+    "Portable pivoting via conditional aggregation",
+    "Timed mixed-pattern circuits"
+   ],
+   "sources": [
+    {
+     "name": "DataLemur",
+     "url": "https://datalemur.com",
+     "note": "SQL and data interview questions in real screen style, used for timed mock reps."
+    },
+    {
+     "name": "Mode SQL Tutorial",
+     "url": "https://mode.com/sql-tutorial/",
+     "note": "Free interactive SQL tutorial from basic selects through window functions and analytics patterns."
+    },
+    {
+     "name": "PostgreSQL Documentation",
+     "url": "https://www.postgresql.org/docs/",
+     "note": "Official SQL reference behind the drill spine: window functions, CTEs, recursion, and query planning."
+    },
+    {
+     "name": "SQLZoo",
+     "url": "https://sqlzoo.net/",
+     "note": "Interactive SQL exercises with immediate feedback for joins, subqueries, and aggregation reps."
+    }
+   ],
+   "il_provides": "I'm your instructor for this circuit, and this is where SQL becomes reflex. Five drill modules — joins, windows, CTEs, analytics patterns — then full timed mixed circuits with narration and recovery practice. You'll leave recognizing the pattern in the question before you start writing."
+  }
+ ]
+}

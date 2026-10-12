@@ -212,16 +212,16 @@ test('remote fallback is bounded, opt-in and honest about a server-declared fall
   assert.equal(h.events.filter(e => e.type === 'noah:activity').at(-1).detail.state, 'error');
 });
 
-test('existing remote honesty guard still replaces fabricated IL-11 claims', async () => {
-  const h = browserHarness({ reply: 'IL-11 is a published track with cloud labs.' });
-  const out = await h.api.ask('Tell me about an obscure invented subject zyxwv', [{ role: 'system', content: 'Elevate this' }]);
-  assert.equal(out.remoteScreened, true);
-  assert.equal(out.remote, false);
+test('IL-11 is real: local answer names the course, remote screen retired', async () => {
+  // IL-11 · Zero Trust & Endpoint Defense is a genuine university course
+  // (2026-10-08 reconciliation). The local special-case now names it
+  // truthfully, and the old remote screen that replaced IL-11 claims
+  // is retired (screenRemote passes replies through unchanged).
+  const h = browserHarness({ reply: 'Remote response' });
+  const out = await h.api.ask('Tell me about IL-11', []);
   assert.equal(out.local, true);
-  assert.match(out.notice, /on-device.*replaced/);
-  assert.match(out.reply, /no.*IL.11|not.*published/i);
-  const request = JSON.parse(h.calls.find(c => c.url === '/api/noah').options.body);
-  assert.ok(request.messages.every(m => m.role === 'user' || m.role === 'assistant'));
+  assert.match(out.reply, /IL-11.*Zero Trust.*Endpoint Defense/);
+  assert.match(out.reply, /il-11-zero-trust-endpoint-defense/);
 });
 
 test('failed session-module load does not implicitly transmit prior history', async () => {

@@ -94,7 +94,9 @@ test('sim-* nodes are hidden by default and revealed only by a show rule', () =>
 test('all immersive .glb assets are valid glTF 2.0 binaries with in-range indices', () => {
   const dir = path.join(docs, 'assets', 'immersive');
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.glb') && !/\.(polished|kit-v2\.bak)\.glb$/.test(f));
-  assert.ok(files.length >= 19);
+  // b3ee128 retired k8s-cluster.glb as a byte-identical dupe of
+  // lecture-k8s-control-plane.glb (verified); 18 unique sims remain.
+  assert.ok(files.length >= 18);
   for (const f of files) {
     const buf = fs.readFileSync(path.join(dir, f));
     assert.equal(buf.toString('ascii', 0, 4), 'glTF', f);
@@ -313,7 +315,7 @@ test('2026-10-08 drills: keyed answers are not all the same index, and every new
   assert.equal(manifest.sims.runtime_version, S.VERSION);
   for (const id of NEW_0108) {
     const sim = S.get(id);
-    assert.match(html, new RegExp('data-il-sim="' + id + '"[^>]*\\n?\\s*data-gltf="' + sim.glb.replace(/\./g, '\\.') + '"'), id + ' host on /immersive/ uses ' + sim.glb);
+    assert.match(html, new RegExp('data-il-sim="' + id + '"[^>]*\\n?\\s*data-gltf="' + sim.glb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"'), id + ' host on /immersive/ uses ' + sim.glb);
     const lab = labs.find(l => l.immersive && l.immersive.sim === id);
     assert.ok(lab && lab.publishStatus === 'published' && lab.gltf === sim.glb, id + ' in labs.json');
     assert.ok(mirror.labs.some(l => l.id === lab.id), id + ' in mirror.json');

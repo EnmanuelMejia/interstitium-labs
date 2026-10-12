@@ -1,0 +1,19 @@
+# Batch G — write to batch-G.json — course-level assets (NOT modules)
+Write a single JSON object (not an array) to `_il29-build/batch-G.json` with these keys. Study the shapes in IL-28 (`il-28-devsecops-cloud-infrastructure-mastery.json`) and IL-27 (`il-27-it-infrastructure-specialist-threatlocker-mastery.json`) first — read the actual files.
+
+## Required keys
+- `terminalSims`: 10 objects, shape like IL-28's: {"id": "IL29-TS-01", "title", "moduleId" (one of IL29-M01..M48), "prompt", "script": [commands], "expected": [outputs], "answer"}. Security-operator scenarios: allowlist break-fix triage, ringfence block investigation, Detect alert triage, elevation request audit, storage-control exfiltration block, network-control lateral-movement block, log analysis with PowerShell, hash verification of a quarantined file, phishing-header analysis, Python anomaly-detector run.
+- `branchingScenarios`: 8 objects, IL-28 shape: {"id", "title", "moduleId", "start", "branches": [{"choice", "result", "next"}], "resolution"}. Scenarios: ransomware at 2 AM (Detect alert), legit app blocked on patch Tuesday, elevation-request social engineering, USB exfiltration attempt, C2 callback blocked by Network Control, AI triage copilot hallucinates, interview curveball question, post-interview thank-you timing decision. Each needs 4-6 decision nodes with right/wrong paths and teaching resolutions.
+- `clickSims`: 8 objects, IL-27 RICH shape: {"id", "moduleId", "tool", "title", "steps": [{"screen", "instruction", "hotspots": [...], "feedback"}]}. Sims: allowlist policy creation workflow, ringfence policy for a browser, elevation-control policy, storage-control USB rule, network-control dynamic ACL, Detect alert triage console, Configuration Manager Defender policy, portal computer onboarding. 6-10 steps each with realistic screen descriptions. Do NOT invent exact ThreatLocker portal button labels you cannot verify — describe screens generically but concretely ("the policy list view", "the new-policy dialog").
+- `certGates`: 7 objects, IL-28 shape: {"id", "cert", "trackModule", "framing" (use the standard independent-preparation sentence), "format", "minutes", "questionCount", "domainWeights": [{"domain", "weight", "questions"}], "readinessRule"}. Tracks: CompTIA Security+ SY0-701 (5 domains w/ verified weights), CompTIA CySA+ CS0-003 (4 domains w/ verified weights), ISC2 CISSP (8 domains w/ 2024 weights), GIAC GSEC (106Q/4hr/72%), MIT xPRO Professional Certificate in Cybersecurity readiness (24-week program map gate), Google/IBM Cybersecurity Certificates crosswalk gate, ThreatLocker operator readiness gate (custom: platform mastery + triage sim, framed as internal readiness, NOT a vendor cert).
+- `crosswalk`: array of {"cert", "modules": [IL29 ids], "note"} mapping each cert track to IL-29 modules.
+- `studyGuide`: {"title", "totalHours", "totalMinutes", "pacing": [...], "rules": [...]} — a 12-week pacing plan. totalHours/totalMinutes filled by the ASSEMBLER later; put 0 and note it.
+- `cheatSheets`: 6 objects {"id", "title", "moduleId", "items": ["..."]} — one-line memory aids: zero-trust principles, allowlisting ops, ringfencing rules of thumb, IR lifecycle, crypto math formulas, ATT&CK tactic order.
+- `honestyNote`: the standard independent-preparation paragraph naming ThreatLocker, MIT xPRO/MIT OCW, CompTIA, ISC2, GIAC/SANS, Google, IBM — "not affiliated with, endorsed by, or sponsored by ...; confers no certificate; exam facts reflect publicly published objectives as of October 2026."
+- `objectives`: 8-10 course-level learning objectives.
+- `arc`: 3-4 sentence course narrative arc.
+- `tagline`: one line. `blurb`: 3-4 sentences for the course page.
+
+## Rules
+- NEVER invent exam facts beyond the verified ones in BUILD-INSTRUCTIONS.md.
+- Validate JSON with json.load before finishing.

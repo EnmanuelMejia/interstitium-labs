@@ -1,7 +1,7 @@
 /**
  * IL Scene Kit — shared WebGL / curriculum 3D utilities (CSP-safe, no CDN).
  * Used by Noah 3D familiar + Immersive Player (lectures / cert labs / sims).
- * Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16. Interstitium original.
+ * Palette: cyan #5EEAD4 · gold #c9a227 · void #070B16. Interstitium original.
  * Optional Three.js/glTF path: see docs/ops/IMMERSIVE-3D.md (vendored when present).
  */
 (function (g) {
@@ -397,7 +397,7 @@
         '<p>Connect a Unreal Pixel Streaming host — set signaling when UE5 streamer is up on lab GPU host.</p>' +
         '<p class="il-scene-kit__ps-hint">Pass <code>?signaling=</code>, <code>data-ps-signaling</code>, or open ' +
         '<a class="il-scene-kit__ps-link" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. ' +
-        'See <a class="il-scene-kit__ps-link" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline</a>.</p>' +
+        'Unreal Pixel Streaming: bring up a local signaling host to mount a live stream; the client never invents UE video.</p>' +
         '</div>';
       return { mode: 'stub', signaling: null };
     }
@@ -441,7 +441,7 @@
 
   g.ILSceneKit = {
     CYAN: CYAN, GOLD: GOLD, VOID: VOID,
-    HEX: { cyan: '#5EEAD4', gold: '#D4A853', void: '#070B16' },
+    HEX: { cyan: '#5EEAD4', gold: '#c9a227', void: '#070B16' },
     prefersReducedMotion: prefersReducedMotion,
     isMobile: isMobile,
     dprCap: dprCap,

@@ -1,0 +1,168 @@
+# Part 3: IL26-M45 Streamlit+Marimo, IL26-M46 Fabric concepts, IL26-M47 AI-assisted analytics
+import json
+
+M45 = {
+  "id": "IL26-M45",
+  "code": "IL-26",
+  "title": "Streamlit and Marimo Dashboards",
+  "summary": "Static notebooks don't survive handoff — stakeholders need apps they can click. This module teaches two Python-native ways to ship interactive data apps: Streamlit (fastest path from script to shared dashboard) and Marimo (reactive notebooks that stay reproducible) — with the caching, layout, and deployment habits that keep them production-honest.",
+  "objectives": [
+    "Build a multipage Streamlit app with widgets (sliders, selectboxes), charts, and cached data loading",
+    "Explain Streamlit's rerun model and use st.cache_data / st.cache_resource to keep apps fast",
+    "Contrast Marimo's reactive execution model with traditional notebook cell-order bugs",
+    "Structure a dashboard app (data layer, controls, views) so it stays maintainable past v1",
+    "Deploy a data app and describe the security basics (secrets, no credentials in code)"
+  ],
+  "notes": [
+    {
+      "title": "Streamlit: the script that became an app",
+      "body": "- Streamlit turns a Python script into a web app: every widget interaction reruns the script top to bottom, and Streamlit diffs the output into the page.\n- The rerun model is simple but has a cost: expensive data loads rerun too — unless cached. `@st.cache_data` memoizes function results (dataframes, query results); `@st.cache_resource` holds singletons (DB connections, models).\n- Layout primitives: `st.sidebar` for controls, `st.columns` for side-by-side KPIs, `st.tabs` for views, `st.expander` for details. Keep controls in the sidebar so the main canvas stays a clean story.\n- Worked pattern: load once (cached), filter with widgets, show KPIs + chart + raw table with download button.\n\n```python\nimport streamlit as st\nimport pandas as pd\n\n@st.cache_data\ndef load_orders():\n    return pd.read_csv('orders_clean.parquet')\n\nst.title('Orders overview')\ndf = load_orders()\nregions = st.sidebar.multiselect('Region', df['region'].unique(), default=list(df['region'].unique()))\nmin_amt = st.sidebar.slider('Min amount', 0, 1000, 0)\nview = df[(df['region'].isin(regions)) & (df['amount'] >= min_amt)]\n\nc1, c2, c3 = st.columns(3)\nc1.metric('Orders', f\"{len(view):,}\")\nc2.metric('Revenue', f\"${view['amount'].sum():,.0f}\")\nc3.metric('Avg order', f\"${view['amount'].mean():,.2f}\")\nst.bar_chart(view.groupby('region')['amount'].sum())\nst.download_button('Download filtered CSV', view.to_csv(index=False), 'orders.csv')\n```"
+    },
+    {
+      "title": "Marimo: reactive notebooks without the hidden-state trap",
+      "body": "- Classic notebooks execute cells in whatever order you clicked them — the #1 source of 'works on my machine' bugs: hidden state where outputs don't match a top-to-bottom read.\n- Marimo is reactive: cells form a dependency graph; changing a cell automatically reruns its dependents, always in a consistent order. The notebook IS the app (`marimo run`) and the script (`marimo export`).\n- Every marimo notebook is stored as plain Python — git-friendly, no JSON output blobs, reproducible by construction.\n- When to choose which: Streamlit for the fastest stakeholder-facing app from a script; Marimo when the analysis itself must stay reproducible AND interactive (exploration that becomes the deliverable).\n\n```python\n# marimo notebook cells (each @app.cell is one reactive unit)\nimport marimo as mo\napp = mo.App()\n\n@app.cell\ndef _():\n    import pandas as pd\n    df = pd.read_csv('orders_clean.parquet')\n    return (df,)\n\n@app.cell\ndef _(df):\n    region = mo.ui.dropdown(df['region'].unique().tolist(), label='Region')\n    return (region,)\n\n@app.cell\ndef _(df, region):\n    view = df[df['region'] == region.value]\n    mo.md(f\"### {region.value}: {len(view)} orders, ${view['amount'].sum():,.0f} revenue\")\n    return\n```"
+    },
+    {
+      "title": "App structure that survives v1",
+      "body": "- The failure mode: one 600-line app.py with SQL strings, business logic, and layout interleaved — unmaintainable by week three.\n- Structure: `data.py` (loading/caching, the ONLY place that touches files or DBs), `metrics.py` (KPI computations as pure functions), `app.py` (widgets + layout only).\n- Pure functions for metrics = testable without Streamlit; the data layer = swappable (CSV today, warehouse tomorrow) without touching layout.\n- Validate inputs at the boundary: empty filter results should show an explicit empty state ('No orders match these filters'), never a blank page or a crash.\n\n```python\n# metrics.py — pure functions, no Streamlit imports\ndef kpis(df):\n    return {\n        'orders': len(df),\n        'revenue': float(df['amount'].sum()),\n        'avg_order': float(df['amount'].mean()) if len(df) else 0.0,\n    }\n\n# app.py\nfrom metrics import kpis\nk = kpis(view)\nif not len(view):\n    st.warning('No orders match these filters — widen the selection.')\nelse:\n    c1.metric('Orders', f\"{k['orders']:,}\")\n```"
+    },
+    {
+      "title": "Shipping and secrets: the honest deployment checklist",
+      "body": "- Never hardcode credentials: use environment variables or the platform's secrets manager (`st.secrets`), and keep a `.env.example` (keys, no values) in the repo.\n- Pin dependencies (requirements.txt with versions) — an unpinned deploy that breaks on a library update is the classic demo-day failure.\n- Add a one-paragraph README: what the app answers, the data source and refresh cadence, who owns it. An app without an owner rots.\n- Access honesty: if the data is sensitive, the app needs authentication — a public link to internal revenue data is a security incident, not a deliverable.\n\n```python\n# secrets done right: values live in the platform, never in git\nimport streamlit as st\nDB_URL = st.secrets['DB_URL']  # set in the deployment platform's secrets UI\n# .env.example (committed):\n# DB_URL=postgresql://user:password@host:5432/db   <- placeholder only\n```\n\n```bash\n# deploy checklist\npip freeze > requirements.txt   # pin everything\n# README: question answered, data source + refresh, owner, secrets needed\n```"
+    }
+  ],
+  "cards": [
+    {"front": "Streamlit rerun model", "back": "Every widget interaction reruns the script top to bottom; Streamlit diffs output into the page. Cache expensive work."},
+    {"front": "st.cache_data vs st.cache_resource", "back": "cache_data memoizes data results (dataframes, queries); cache_resource holds singletons (DB connections, models)."},
+    {"front": "Marimo reactive model", "back": "Cells form a dependency graph; editing a cell auto-reruns dependents in consistent order — no hidden-state execution bugs."},
+    {"front": "Why marimo notebooks are git-friendly", "back": "Stored as plain Python (no JSON output blobs); the notebook is the app (marimo run) and an exportable script."},
+    {"front": "Streamlit vs Marimo choice rule", "back": "Streamlit: fastest stakeholder app from a script. Marimo: analysis that must stay reproducible AND interactive."},
+    {"front": "Three-file app structure", "back": "data.py (loading/caching only), metrics.py (pure KPI functions), app.py (widgets + layout only)."},
+    {"front": "Empty-filter handling", "back": "Show an explicit empty state ('No orders match — widen filters'), never a blank page or crash."},
+    {"front": "Secrets rule", "back": "Credentials in platform secrets / env vars (st.secrets), never in code; commit .env.example with placeholders only."}
+  ],
+  "quiz": [
+    {"q": "A Streamlit app reloads a 2GB Parquet file on every slider movement and feels sluggish. The fix:", "choices": ["Wrap the loader in @st.cache_data so the file loads once and widget reruns reuse it", "Remove the slider", "Load the file twice for redundancy", "Convert the Parquet to JSON"], "answer": 0, "explain": "cache_data memoizes the load across reruns — the standard fix for rerun-model slowness. (Module 45)"},
+    {"q": "A classic notebook shows correct outputs but rerunning top-to-bottom gives different results. This is:", "choices": ["A feature", "Hidden state: cells were executed out of order, so outputs don't reflect a linear read — exactly what Marimo's reactive graph prevents", "A Python bug", "Expected behavior to ignore"], "answer": 0, "explain": "Out-of-order execution creates state no linear read reproduces; reactive graphs eliminate the class. (Module 45)"},
+    {"q": "Where should the SQL that loads dashboard data live in a maintainable app?", "choices": ["In data.py, the single module that touches files/DBs — never interleaved with layout code", "Inline in every chart call", "In the README", "In widget labels"], "answer": 0, "explain": "One data layer = one place to change sources, testable, swappable. (Module 45)"},
+    {"q": "The revenue dashboard must show data the public should not see. Before sharing the link you must:", "choices": ["Add authentication — a public link to internal revenue data is a security incident, not a deliverable", "Make the colors nicer", "Share it anyway; obscurity is enough", "Delete the data"], "answer": 0, "explain": "Access control is part of shipping; sensitive data needs auth. (Module 45)"},
+    {"q": "KPI logic is tested by importing metrics.py in a test file with no Streamlit installed. This works because:", "choices": ["Metrics are pure functions with no Streamlit imports — layout and computation are separated", "Tests don't need imports", "Streamlit is always installed", "KPIs don't need testing"], "answer": 0, "explain": "Separation of concerns makes business logic independently testable. (Module 45)"},
+    {"q": "A user picks filters that match zero rows and sees a blank page. The correct handling:", "choices": ["An explicit empty state message guiding them to widen filters", "A blank page — they'll figure it out", "Crash with a traceback", "Show last week's data silently"], "answer": 0, "explain": "Empty states are a UX requirement: say what happened and what to do next. (Module 45)"},
+    {"q": "The deployed app broke overnight with no code changes. Most likely cause and prevention:", "choices": ["Unpinned dependency updated upstream — pin versions in requirements.txt", "The server caught a virus", "Users broke it", "Python expired"], "answer": 0, "explain": "Unpinned deps are the classic demo-day failure; pinning makes deploys deterministic. (Module 45)"},
+    {"q": "A stakeholder asks for 'the notebook, but clickable by the sales team.' Best recommendation:", "choices": ["Marimo: the analysis stays a reproducible reactive notebook AND runs as an interactive app (marimo run)", "A PDF of the notebook", "Screenshots in email", "Rewrite it in Java"], "answer": 0, "explain": "Marimo's notebook-is-the-app model fits 'reproducible analysis that non-technical users can click.' (Module 45)"}
+  ],
+  "weight": 1,
+  "prerequisiteFor": ["IL26-TL-07", "IL26-TL-08", "IL26-M20"]
+}
+
+M46 = {
+  "id": "IL26-M46",
+  "code": "IL-26",
+  "title": "Microsoft Fabric Concepts: OneLake, Lakehouse, Direct Lake",
+  "summary": "CONCEPTUAL MODULE — no hands-on in this course. Microsoft Fabric is a SaaS analytics platform built around OneLake (one logical data lake), the lakehouse pattern, and Direct Lake (querying lake data without imports). This module teaches the concepts and vocabulary so you can speak fluently about them in interviews — framed as concepts, not product endorsement.",
+  "objectives": [
+    "Describe OneLake as 'one logical lake' and explain what problem a single storage namespace solves",
+    "Explain the lakehouse pattern: lake economics and openness with warehouse structure layered on",
+    "Contrast Direct Lake (no-copy query on lake files) with import mode and DirectQuery in plain terms",
+    "Map Fabric concepts to vendor-neutral equivalents (lakehouse = Delta/Iceberg-style table format on object storage)",
+    "Discuss Fabric knowledge honestly in interviews: concepts fluent, hands-on only where actually practiced"
+  ],
+  "notes": [
+    {
+      "title": "SCOPE: concepts only — read this first",
+      "body": "- This module is CONCEPTUAL. This course does not include a Fabric tenant, trial, or hands-on lab — anything here is vocabulary and architecture, not muscle memory.\n- Interview honesty rule: say 'I understand the concepts — OneLake, lakehouse, Direct Lake — and I've worked the equivalent patterns hands-on with DuckDB/Iceberg/dbt' rather than claiming Fabric experience you don't have.\n- Why learn it at all: Fabric appears in enterprise job descriptions constantly; concept fluency lets you map any Fabric question to patterns you HAVE practiced.\n- No affiliation: this course is independent and makes no claim about Microsoft products or certifications.\n\n```text\nInterview framing that is honest:\n\"I haven't worked in a Fabric tenant hands-on. Conceptually, I know it\ncenters on OneLake as the single storage namespace, lakehouses that layer\nwarehouse structure over open lake formats, and Direct Lake for querying\nlake data without copy/import. I've practiced the equivalent patterns —\nopen table formats, medallion-style modeling, and semantic models — with\nDuckDB, Iceberg concepts, and dbt in this course.\"\n```"
+    },
+    {
+      "title": "OneLake: one logical lake",
+      "body": "- The problem OneLake addresses: every team provisions its own storage accounts, data gets copied between them, and nobody knows which copy is current — 'data sprawl'.\n- The concept: a single logical data lake namespace for the organization. Physically it may span storage, but logically there is one place data lives and one copy to govern.\n- Shortcuts (the key idea): virtual references that let a lakehouse or warehouse see data stored elsewhere WITHOUT copying it — one physical copy, many logical views.\n- Analyst translation: shortcuts are the managed-service version of 'don't copy the CSV five times; point at it.' The governance win is eliminating divergent copies.\n\n```text\nSprawl (before):  team-a copies orders.csv to their storage,\n                   team-b copies it to theirs, team-c exports\n                   from the warehouse -> 3 copies, 3 truths.\nOneLake (concept): one namespace; teams create shortcuts\n                   (pointers, not copies) to the single dataset.\nAnalyst habit: always ask 'is this a copy or a reference?'\nbefore building on a dataset.\n```"
+    },
+    {
+      "title": "Lakehouse: warehouse structure on lake economics",
+      "body": "- Lakehouse = the architectural pattern (not one product): store data as open files in cheap object storage, then layer warehouse capabilities — transactions, schema enforcement, time travel — via an open table format.\n- You already know this pattern from Module 43: Iceberg/Delta-style table formats ARE the lakehouse's transaction layer. Fabric's lakehouse uses Delta Lake as its format.\n- Medallion architecture (bronze/silver/gold): bronze = raw ingested, silver = cleaned/conformed, gold = business-ready marts. This maps directly onto dbt's staging/intermediate/marts from Module 44.\n- Interview move: when asked about Fabric lakehouses, answer in medallion + table-format terms — the concepts are vendor-neutral even when the question isn't.\n\n```text\nbronze (raw)      -> land source files as-is, immutable\nsilver (cleaned)  -> typed, deduplicated, conformed  [= dbt staging/intermediate]\ngold (business)   -> aggregated, domain marts        [= dbt marts]\nTable format underneath (Delta/Iceberg-style) gives\ntransactions + time travel at every layer.\n```"
+    },
+    {
+      "title": "Direct Lake vs import vs DirectQuery",
+      "body": "- Import mode (classic BI): data is copied into the BI engine's in-memory store. Fast queries, but copies go stale and large models hit size limits.\n- DirectQuery: every visual sends SQL to the source live. Always fresh, but visuals are only as fast as the source, and heavy dashboards can hammer it.\n- Direct Lake (the concept): the BI engine queries the lake's table-format files directly — no import copy, no per-visual SQL round trips — because the files are already in an optimized columnar format the engine reads natively.\n- Tradeoff in one line: import = speed at the cost of freshness and duplication; DirectQuery = freshness at the cost of speed; Direct Lake tries to get both by making the lake itself the fast store.\n- Analyst relevance: when a stakeholder asks 'why is the dashboard stale?', the answer is always about which of these three modes feeds it.\n\n```text\nDecision guide (concepts, any platform):\n  Need sub-second visuals on <1GB, refresh daily? -> import-style copy is fine.\n  Need real-time on a fast source?                     -> live query (DirectQuery-style).\n  Need fresh + fast on lake-scale data?                -> Direct Lake-style: query\n                                                        optimized lake files directly.\nAlways document which mode each dashboard uses.\n```"
+    }
+  ],
+  "cards": [
+    {"front": "Module 46 scope", "back": "CONCEPTS ONLY — no Fabric tenant or hands-on in this course. Learn vocabulary + architecture; claim only conceptual knowledge."},
+    {"front": "OneLake in one sentence", "back": "One logical data-lake namespace for the org, eliminating divergent copies; shortcuts are pointers to data, not copies."},
+    {"front": "What a shortcut is", "back": "A virtual reference letting a lakehouse/warehouse read data stored elsewhere without copying it — one physical copy, many logical views."},
+    {"front": "Lakehouse pattern", "back": "Open files in cheap object storage + warehouse capabilities (transactions, schema, time travel) via an open table format."},
+    {"front": "Medallion: bronze/silver/gold", "back": "Bronze raw/immutable, silver cleaned/conformed, gold business-ready marts — maps to dbt staging/intermediate/marts."},
+    {"front": "Import mode tradeoff", "back": "Fast visuals, but copies go stale and large models hit size limits."},
+    {"front": "DirectQuery tradeoff", "back": "Always fresh (live SQL per visual), but speed depends on the source and dashboards can hammer it."},
+    {"front": "Direct Lake idea", "back": "BI engine reads the lake's optimized columnar table-format files directly — no import copy, no per-visual SQL round trips."}
+  ],
+  "quiz": [
+    {"q": "In an interview you're asked about hands-on Fabric experience you don't have. The honest answer:", "choices": ["Claim two years of Fabric admin work", "'Conceptual knowledge: OneLake, lakehouse, Direct Lake — with hands-on practice of the equivalent patterns in DuckDB/Iceberg/dbt'", "Say you've never heard of it", "Change the subject"], "answer": 1, "explain": "Concept fluency + honest scoping + mapping to real practiced patterns. Never claim experience you lack. (Module 46)"},
+    {"q": "Three teams each keep their own copy of orders.csv and the numbers disagree. The OneLake concept addresses this by:", "choices": ["One logical namespace with shortcuts (references, not copies) so there is a single governed dataset", "Buying more storage", "Banning CSVs", "Emailing the file around faster"], "answer": 0, "explain": "Single namespace + reference-not-copy eliminates divergent-copy sprawl. (Module 46)"},
+    {"q": "A shortcut points at data in another lakehouse. What physically happens to the data?", "choices": ["Nothing is copied — the shortcut is a virtual reference to the single physical copy", "It is duplicated nightly", "It is compressed into the shortcut", "It is deleted from the source"], "answer": 0, "explain": "Shortcuts are pointers: one physical copy, many logical views. (Module 46)"},
+    {"q": "Map medallion layers to dbt concepts from Module 44:", "choices": ["Bronze=raw landing, silver=cleaned/conformed (staging/intermediate), gold=business marts (marts)", "Bronze=gold, silver=bronze, gold=silver", "Medallion is unrelated to modeling", "Only gold matters"], "answer": 0, "explain": "Same layered thinking, different vocabulary — the mapping is the interview move. (Module 46)"},
+    {"q": "A dashboard shows yesterday's numbers at noon. The first diagnostic question is:", "choices": ["Which query mode feeds it — import (stale copy?), live query, or Direct Lake — and when did it last refresh?", "What color is the background?", "Who built it?", "Is the server plugged in?"], "answer": 0, "explain": "'Why is it stale?' is always a question about the serving mode and refresh. (Module 46)"},
+    {"q": "Why can Direct Lake-style querying be both fresh and fast, conceptually?", "choices": ["Because the lake files are already in an optimized columnar table format the engine reads natively — no copy, no per-visual SQL", "Because it uses magic", "Because the data is small", "Because it caches everything forever"], "answer": 0, "explain": "The lake itself becomes the fast store: columnar format + direct reads. (Module 46)"},
+    {"q": "A 50GB dataset refreshed hourly with sub-second dashboard visuals. Conceptually best fit:", "choices": ["Direct Lake-style: query optimized lake files directly — fresh and fast at lake scale", "Import a 50GB copy hourly", "DirectQuery against the raw OLTP", "Print it out"], "answer": 0, "explain": "Import chokes on size/freshness; live query hammers the source; direct-on-lake fits the brief. (Module 46)"},
+    {"q": "Which statement about this module's relationship to Microsoft is TRUE?", "choices": ["This course is independent; the module teaches concepts with no affiliation or certification claims", "This module confers a Fabric certification", "Microsoft endorses this course", "Completion grants a Fabric trial"], "answer": 0, "explain": "Concepts only, no affiliation, no certification — stated in the module scope. (Module 46)"}
+  ],
+  "weight": 1,
+  "prerequisiteFor": ["IL26-M02", "IL26-M15", "IL26-TL-05"]
+}
+
+M47 = {
+  "id": "IL26-M47",
+  "code": "IL-26",
+  "title": "AI-Assisted Analytics: Responsible Use",
+  "summary": "AI assistants write SQL, explain errors, and draft narratives — but they also hallucinate with total confidence. This module teaches the responsible workflow: AI as a pair programmer you verify, never an oracle you trust — with validation habits, source citation, and the lines you don't cross with sensitive data.",
+  "objectives": [
+    "Use AI to accelerate SQL/Python drafting while keeping a human verification step mandatory",
+    "Detect and handle AI hallucinations: fabricated functions, plausible-but-wrong logic, invented citations",
+    "Apply the validation ladder: run it, row-count it, spot-check it, explain it back",
+    "Cite sources for AI-assisted claims and keep an audit trail of what the AI generated vs what you verified",
+    "Define the red lines: sensitive data in prompts, unverified outputs to stakeholders, AI-written numbers without checks"
+  ],
+  "notes": [
+    {
+      "title": "The pair-programmer contract: AI drafts, you verify",
+      "body": "- The productive framing: AI is a fast junior analyst who never sleeps and sometimes lies with perfect grammar. You are the senior who reviews every line.\n- Good uses: boilerplate SQL scaffolding, translating logic between dialects, explaining cryptic error messages, generating test cases, drafting narrative around numbers YOU computed.\n- The contract: nothing AI generates reaches a stakeholder, a pipeline, or a decision without passing your validation ladder.\n- Prompting discipline: give the AI the schema (table/column names), the grain, and the business rule — vague prompts get plausible generic SQL that silently answers the wrong question.\n\n```text\nWeak prompt:  \"write SQL for monthly revenue\"\nStrong prompt: \"Tables: orders(order_id, customer_id, order_date DATE, amount NUMERIC,\n               region VARCHAR). Grain: one row per month. Business rule: exclude\n               negative amounts (refunds live in refunds table, ignore them).\n               Return month, order_count, revenue. Postgres dialect.\"\n\nThe strong prompt constrains the hallucination surface: real columns,\nreal rules, real dialect.\n```"
+    },
+    {
+      "title": "Hallucination patterns analysts must recognize",
+      "body": "- Fabricated functions: `SELECT MEDIAN_BY_REGION(...)` — sounds real, doesn't exist. Always check functions against actual docs or by running.\n- Plausible-wrong logic: the SQL runs but answers a different question (e.g. averages of averages, or joining on the wrong key that happens to match). Running it is not validating it.\n- Invented citations: fake article titles, fake doc URLs, fake 'studies show 73%...' statistics. If a claim matters, find the primary source yourself.\n- Sycophancy: the AI agrees with your wrong premise instead of correcting it ('Yes, your join is correct!' when it isn't). Ask it to challenge your logic, not confirm it.\n- Defense: the validation ladder below catches all four — no output skips it.\n\n```sql\n-- AI gave you this. It RUNS. Is it right?\nSELECT region, AVG(daily_rev) AS avg_monthly_revenue\nFROM (SELECT region, order_date, SUM(amount) AS daily_rev\n      FROM orders GROUP BY region, order_date) d\nGROUP BY region;\n-- WRONG: average of daily revenues != monthly revenue (days per month vary).\n-- Correct: SUM(amount) grouped by month. The AI's version is plausible,\n-- executable, and wrong. Only reasoning catches it — running doesn't.\n```"
+    },
+    {
+      "title": "The validation ladder: run it, count it, spot-check it, explain it",
+      "body": "- Rung 1 — Run it: does it execute without error? (Necessary, not sufficient.)\n- Rung 2 — Row-count it: do the row counts and totals reconcile with a known baseline? (The orders table has 12,400 rows; your query returns 12,400 or you know why not.)\n- Rung 3 — Spot-check it: hand-verify 3-5 rows against source data. Pick edge cases (nulls, boundaries), not just the happy path.\n- Rung 4 — Explain it back: can you explain what each clause does and why the grain is correct? If you can't explain it, you can't defend it to a stakeholder.\n- Document the assist: in code review or handoff notes, mark AI-generated sections ('drafted with AI assistance, validated per ladder') — transparency is professionalism.\n\n```text\nValidation ladder checklist (paste into PR descriptions):\n[ ] Rung 1: executes cleanly\n[ ] Rung 2: row counts + control totals reconcile (baseline: ____)\n[ ] Rung 3: 3-5 rows hand-verified incl. edge cases\n[ ] Rung 4: I can explain every clause and defend the grain\n[ ] AI assistance disclosed where used\n```"
+    },
+    {
+      "title": "Red lines: data, disclosure, and decisions",
+      "body": "- RED LINE 1 — Sensitive data in prompts: never paste PII, credentials, or proprietary data into an AI tool unless your org has an approved, contracted arrangement. Assume prompts are logged.\n- RED LINE 2 — Unverified outputs to stakeholders: an AI-drafted insight emailed without validation is your error, not the AI's. You signed it.\n- RED LINE 3 — AI-written numbers without checks: narratives are fine to draft; NUMBERS must come from queries you ran and validated. Never let the AI invent a metric.\n- Citation rule: if the AI cites a source for a factual claim, open the source yourself. If you can't find it, the claim doesn't ship.\n- Career framing: 'I use AI tooling for drafting and debugging, with a strict validation workflow' is a senior answer. 'The AI said so' is a junior one.\n\n```text\nPre-send gate for any AI-assisted deliverable:\n1. Every number traces to a query I ran (not text the AI wrote).\n2. Every factual claim has a source I opened myself.\n3. No sensitive data was pasted into any AI tool to produce it.\n4. AI assistance is disclosed to the recipient where material.\nIf any gate fails, the deliverable doesn't ship.\n```"
+    }
+  ],
+  "cards": [
+    {"front": "The pair-programmer contract", "back": "AI drafts, you verify. Nothing AI-generated reaches stakeholders, pipelines, or decisions without passing the validation ladder."},
+    {"front": "Strong vs weak AI prompt", "back": "Strong: schema + grain + business rules + dialect. Weak: 'write SQL for monthly revenue' — vague prompts get plausible wrong answers."},
+    {"front": "Hallucination pattern: fabricated functions", "back": "Confidently invented functions that don't exist — always verify against docs or by running."},
+    {"front": "Hallucination pattern: plausible-wrong logic", "back": "SQL that runs but answers the wrong question (avg of avgs, wrong join key). Running it is not validating it."},
+    {"front": "The validation ladder (4 rungs)", "back": "1 Run it. 2 Row-count/reconcile totals. 3 Spot-check 3-5 rows incl. edge cases. 4 Explain every clause and defend the grain."},
+    {"front": "Red line 1", "back": "Never paste PII, credentials, or proprietary data into AI tools without an approved org arrangement — assume prompts are logged."},
+    {"front": "Red line 2 + 3", "back": "No unverified AI outputs to stakeholders; no AI-invented numbers — metrics come only from queries you ran and validated."},
+    {"front": "Citation rule", "back": "If the AI cites a source, open it yourself. Can't find it? The claim doesn't ship."}
+  ],
+  "quiz": [
+    {"q": "AI generates a revenue query. Before it goes to the stakeholder, the FIRST required step is:", "choices": ["Run it through the validation ladder: execute, reconcile counts, spot-check rows, explain the logic", "Email it immediately — AI is usually right", "Reformat the SQL nicely", "Ask the AI if it's correct and accept yes"], "answer": 0, "explain": "The ladder is mandatory: execution alone never validates correctness. (Module 47)"},
+    {"q": "The AI's SQL runs cleanly but computes AVG of daily revenues labeled 'monthly revenue'. This is:", "choices": ["Plausible-wrong logic: executable, wrong grain — only reasoning (rung 4) catches it", "A syntax error", "Correct — averages are averages", "A database bug"], "answer": 0, "explain": "The most dangerous hallucination class: runs fine, answers the wrong question. (Module 47)"},
+    {"q": "You need the AI to write SQL against your schema. Best prompting practice:", "choices": ["Provide table/column names, grain, business rules, and dialect — constrain the hallucination surface", "Keep it mysterious so the AI is creative", "Let it guess the schema", "Ask in the vaguest terms for speed"], "answer": 0, "explain": "Concrete context (schema, grain, rules, dialect) is what makes AI output verifiable. (Module 47)"},
+    {"q": "A colleague pastes customer emails into a public AI chatbot to 'summarize complaints.' Your response:", "choices": ["Stop them: PII into an unapproved AI tool is red line 1 — assume prompts are logged", "Help them write a better prompt", "Ask for the summary", "It's fine — everyone does it"], "answer": 0, "explain": "Sensitive data in prompts without org approval is a hard red line. (Module 47)"},
+    {"q": "The AI cites 'a 2024 study showing 73% of dashboards fail.' You should:", "choices": ["Open the source yourself; if you can't find it, the claim doesn't ship", "Quote it — the AI cited it", "Round it to 75% for the slide", "Cite the AI as the source"], "answer": 0, "explain": "Invented citations are a known pattern; verification means opening the primary source. (Module 47)"},
+    {"q": "Where do NUMBERS in an AI-assisted deliverable come from?", "choices": ["Queries you ran and validated — never from text the AI wrote", "The AI's draft paragraph", "Your best guess", "Last quarter's deck"], "answer": 0, "explain": "Red line 3: metrics trace to executed, validated queries, never generated prose. (Module 47)"},
+    {"q": "The AI says 'Yes, your join logic is correct!' but you had doubts. Best move:", "choices": ["Verify independently — AI sycophancy agrees with wrong premises; ask it to challenge the logic instead", "Accept it — the AI confirmed", "Delete the query", "Ask louder"], "answer": 0, "explain": "Sycophancy is a known failure: confirmation from the AI is not validation. (Module 47)"},
+    {"q": "In a handoff note you write 'drafted with AI assistance, validated per ladder.' This is:", "choices": ["Professional transparency — disclosing AI assistance where material", "Unnecessary — nobody needs to know", "A confession of incompetence", "Against policy everywhere"], "answer": 0, "explain": "Disclosure of AI assistance is the professional standard, not a weakness. (Module 47)"}
+  ],
+  "weight": 1,
+  "prerequisiteFor": ["IL26-M18", "IL26-M51", "IL26-TL-08"]
+}
+
+with open('/home/hatch/workspace/apex-audit/docs/university/data/courses/_il26-build/part3_modules.json', 'w') as f:
+    json.dump([M45, M46, M47], f, indent=2)
+print('part3 written')

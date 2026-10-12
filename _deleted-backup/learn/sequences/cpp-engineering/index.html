@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' https://cloudflareinsights.com; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<title>Modern C++ Engineering — Study Sequence | Interstitium Labs</title>
+<meta name="description" content="An on-site study sequence for modern C++ engineering: the compilation model, RAII and smart pointers, STL containers and algorithms, move semantics, templates and concepts, concurrency, CMake, and sanitizer-driven testing — ending in a concurrent, tested C++20 capstone, with an advanced extension module on Parallel C++17/20 features and distributed programming with HPX."/>
+<meta name="theme-color" content="#0a0f1d"/>
+<meta name="color-scheme" content="dark"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/learn/sequences/cpp-engineering/"
+<meta property="og:title" content="Modern C++ Engineering — Study Sequence | Interstitium Labs"/>
+<meta property="og:description" content="An on-site study sequence for modern C++ engineering: the compilation model, RAII and smart pointers, STL containers and algorithms, move semantics, templates and concepts, concurrency, CMake, and sanitizer-driven testing — ending in a concurrent, tested C++20 capstone, with an advanced extension module on Parallel C++17/20 features and distributed programming with HPX."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/learn/sequences/cpp-engineering/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:type" content="website"/>/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+
+
+<link rel="stylesheet" href="/assets/il-unified.css"/>
+
+<style>
+
+/* IL sequence widgets — CSS-only interactive labs (no JS required) */
+.ilw{border:1px solid rgba(232,238,245,.13);border-radius:.9rem;padding:1.05rem 1.15rem;margin:1.5rem 0;background:rgba(10,15,30,.55)}
+.ilw-q{margin:0 0 .7rem;font-size:.95rem}
+.ilw-code{background:#070b16;border:1px solid rgba(232,238,245,.1);border-radius:.6rem;padding:.85rem 1rem;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;line-height:1.6;color:#e8eef5;white-space:pre}
+.ilw-code .ilw-ln{color:#5b6b85;user-select:none}
+.ilw-opts{display:grid;gap:.5rem;margin-top:.85rem}
+.ilw-in{position:absolute;opacity:0;pointer-events:none}
+.ilw-lab{display:flex;gap:.65rem;align-items:flex-start;border:1px solid rgba(232,238,245,.15);border-radius:.6rem;padding:.6rem .75rem;cursor:pointer;font-size:.9rem;line-height:1.45}
+.ilw-lab:hover{border-color:rgba(126,212,224,.5)}
+.ilw-lab code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.8rem}
+.ilw-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none;margin-top:.1rem}
+.ilw-fb{display:none;margin:0;font-size:.84rem;color:#c9d4e3;border-left:3px solid #f87171;padding:.4rem .8rem;background:rgba(248,113,113,.06);border-radius:0 .5rem .5rem 0}
+.ilw-fb strong{color:#fca5a5}
+.ilw-in:checked+.ilw-lab{border-color:#f87171;background:rgba(248,113,113,.05)}
+.ilw-in.ilw-ok:checked+.ilw-lab{border-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in:checked+.ilw-lab+.ilw-fb{display:block}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb{border-left-color:#34d399;background:rgba(52,211,153,.06)}
+.ilw-in.ilw-ok:checked+.ilw-lab+.ilw-fb strong{color:#6ee7b7}
+.ilw-note{margin:.75rem 0 0;font-size:.76rem;color:#8b96ab}
+.ilw-reveal{margin-top:.7rem;border:1px dashed rgba(232,238,245,.2);border-radius:.6rem;padding:.6rem .8rem}
+.ilw-reveal summary{cursor:pointer;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#7ed4e0}
+.ilw-reveal code{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:#e8eef5}
+/* answer keys on self-checks */
+.ilw-ans{margin:.55rem 0 0;border-left:2px solid rgba(212,175,55,.5);padding:.15rem 0 .15rem .8rem}
+.ilw-ans summary{cursor:pointer;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:#d4af37}
+.ilw-ans .ilw-ansbody{margin-top:.45rem;font-size:.88rem;color:#c9d4e3}
+.ilw-ans .ilw-ansbody code{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#e8eef5;background:rgba(232,238,245,.07);padding:.05rem .3rem;border-radius:.3rem}
+/* module figures */
+.il-fig{margin:1.4rem 0 1.6rem;border:1px solid rgba(232,238,245,.1);border-radius:.8rem;background:rgba(7,11,22,.6);padding:1rem}
+.il-fig svg{display:block;width:100%;height:auto}
+.il-fig figcaption{margin-top:.6rem;font-size:.78rem;color:#8b96ab;text-align:center}
+/* progress */
+.ilw-done{margin:.7rem 0 0;font-size:.85rem;color:#8b96ab}
+.ilw-done input{accent-color:#d4af37;width:1rem;height:1rem;vertical-align:-.15rem}
+.il-progressbox{border:1px solid rgba(212,175,55,.35);border-radius:.9rem;padding:1rem 1.2rem;margin:1.6rem 0;background:rgba(212,175,55,.05)}
+.il-progressbox p{margin:0 0 .6rem;font-size:.9rem}
+.il-bar{height:.55rem;border-radius:99px;background:rgba(232,238,245,.1);overflow:hidden}
+.il-bar>div{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#d4af37,#7ed4e0);transition:width .4s}
+/* exam mount */
+.il-exam .il-kicker{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#7ed4e0}
+.il-exam-choices{display:grid;gap:.55rem}
+.il-exam-choice{appearance:none;cursor:pointer;text-align:left;border-radius:.8rem;border:1px solid rgba(232,238,245,.13);background:rgba(7,11,22,.65);color:#e8eef5;padding:.8rem 1rem;font-size:.93rem;display:flex;gap:.7rem;align-items:flex-start}
+.il-exam-choice:hover{border-color:rgba(126,212,224,.45)}
+.il-exam-key{display:inline-flex;align-items:center;justify-content:center;min-width:1.55rem;height:1.55rem;border-radius:.4rem;background:rgba(232,238,245,.09);font-family:"JetBrains Mono",monospace;font-size:.72rem;flex:none}
+.il-exam-miss{border:1px solid rgba(232,238,245,.12);border-radius:.8rem;padding:1rem;margin-bottom:.8rem;background:rgba(10,15,30,.5);list-style:none}
+ul.il-exam-remediate{padding:0}
+@media (max-width:480px){.ilw{padding:.9rem}.ilw-code{font-size:.74rem}}
+
+</style>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/paths/">Paths</a>
+      <a href="/prep/drills/">Practice</a>
+      
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/paths/">Paths</a>
+          <a href="/prep/drills/">Practice</a>
+          
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="/assets/chrome/sigil-decor.webp" alt="" decoding="async"/ loading="lazy" width="640" height="640"></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <p class="il-eyebrow">Learning OS · Systems Programming</p>
+    <h1 class="il-h">Modern C++ Engineering</h1>
+    <p class="il-hero__sub">From C to C++20: RAII, smart pointers, the STL, move semantics, templates and concepts, threads and atomics, CMake, and sanitizer-driven testing — an original, hands-on study sequence.</p>
+    <div class="il-hero__cta">
+      <a class="il-btn il-btn--gold" href="#modules">Enter the sequence</a>
+      <a class="il-btn" href="/learn/">All tracks</a>
+    </div>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<main id="main">
+  <section class="il-section" aria-labelledby="overview-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The sequence</p>
+        <h2 class="il-h il-h--section" id="overview-h">What this sequence is, and how to work it.</h2>
+      </div>
+      <div class="il-prose">
+        <p>What this is: a complete engineering study sequence for modern C++, built from the public C++ language reference. It bridges from C to C++20 across nine modules: the compilation model and toolchain, RAII and smart pointers, STL containers and algorithms, move semantics, templates and concepts, concurrency, CMake build systems, sanitizer-driven testing and debugging, and — as an advanced extension — parallel C++17/20 features and distributed programming with HPX — ending in a capstone that demands a concurrent, tested, sanitizer-clean C++20 program.</p>
+        <p>Who it is for: programmers comfortable in C or another systems language who want idiomatic modern C++ — the RAII, move-semantics, template-metaprogramming C++ of the last decade, not the C-with-classes of the 1990s. It pairs with the companion C Programming for Systems sequence: take C first if pointers and manual memory are new to you.</p>
+        <p>Prerequisites: fluency with pointers, memory management, and compilation in C (or equivalent experience); a Linux or macOS machine (or WSL) with g++ or clang++, CMake, and gdb; comfort reading template-heavy compiler errors without panic. The sequence names which standard (C++11/14/17/20) each feature comes from, so you always know what you are using.</p>
+        <p>How to use it: work the modules in order — RAII before move semantics before concurrency is a deliberate dependency chain. Compile everything with -Wall -Wextra -Werror -std=c++20, run every test under ASan+UBSan (and TSan for the concurrency module), and keep a bug log: each sanitizer report, what it meant, and the fix. The checkpoints are designed to be answered in writing; the capstone is the proof.</p>
+      </div>
+    </div>
+  
+<div class="il-progressbox" role="status"><p><strong>Your progress:</strong> <span data-il-count-scope="cpp-engineering.v1" data-il-count-total="9">0/9</span> modules complete — saved in this browser.</p><div class="il-bar" role="progressbar" aria-label="Sequence progress" aria-valuemin="0" aria-valuemax="9"><div data-il-bar="cpp-engineering.v1"></div></div></div>
+</section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="outcomes-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Outcomes</p>
+        <h2 class="il-h il-h--section" id="outcomes-h">What you will be able to do.</h2>
+      </div>
+      <div class="il-prose">
+        <ul>
+          <li>Close the gap from C to modern C++: write idiomatic, resource-safe code using RAII, move semantics, and the STL.</li>
+          <li>Build, test, and debug a multi-file C++ project with CMake, sanitizers, and gdb on a home machine or free-tier CI.</li>
+          <li>Apply concurrency primitives (threads, mutexes, atomics) correctly and reason about data races and lifetimes.</li>
+          <li>Design generic, reusable components with templates and know which features come from C++11, 14, 17, and 20.</li>
+          <li>Parallelize standard algorithms with C++17/20 execution policies, use <code>std::jthread</code> and cooperative cancellation, and describe how HPX extends the standard concurrency model to distributed systems — and how that model differs from MPI&#x27;s message passing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" id="modules" aria-labelledby="modules-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">The curriculum</p>
+        <h2 class="il-h il-h--section" id="modules-h">9 modules, in study order.</h2>
+      </div>
+      <div class="il-modules">
+      <article class="il-module" aria-labelledby="m1-h">
+        <p class="il-eyebrow">Module 1</p>
+        <h3 class="il-h il-h--card" id="m1-h">From C to C++: the compilation model and toolchain refresher</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 205" role="img" aria-label="C++ translation pipeline with name mangling" xmlns="http://www.w3.org/2000/svg"><text x="320" y="30" text-anchor="middle" font-size="13" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">one translation unit, C++ edition</text><rect x="30" y="55" width="110" height="42" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="85" y="81" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">app.cpp</text><rect x="170" y="55" width="110" height="42" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="225" y="81" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">app.ii</text><rect x="310" y="55" width="110" height="42" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="365" y="81" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">app.s</text><rect x="450" y="55" width="110" height="42" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="505" y="81" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">app.o</text><defs><marker id="ilm1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="140" y1="76" x2="170" y2="76" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm1)"/><text x="155" y="62" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">preprocess</text><defs><marker id="ilm2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="280" y1="76" x2="310" y2="76" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm2)"/><text x="295" y="62" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">compile</text><defs><marker id="ilm3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="420" y1="76" x2="450" y2="76" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm3)"/><text x="435" y="62" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">assemble</text><defs><marker id="ilm4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="420" y1="76" x2="560" y2="76" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm4)"/><text x="490" y="62" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">link</text><rect x="560" y="55" width="60" height="42" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="590" y="81" text-anchor="middle" font-size="12" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">app</text><rect x="30" y="130" width="590" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="155" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">name mangling:  void add(int,int)  →  _Z3addii   (nm shows the truth)</text><text x="320" y="178" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">extern &quot;C&quot; disables mangling — that is how C++ calls into C libraries</text></svg><figcaption>Fig. M1 — Same four phases as C, plus name mangling and the one-definition rule.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-1"> <span>Mark module 1 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Explain how a C++ program is compiled: preprocessing, translation units, one-definition rule, and linking.</li>
+            <li>Read and fix the most common compiler and linker errors (undefined reference, multiple definition, ODR violations).</li>
+            <li>Set up a sane modern toolchain (g++/clang++) with warnings enabled and a chosen language standard.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Translation units and header/source separation</h5>
+          <p>A C++ program is built from translation units — each .cpp file plus everything it includes — compiled independently and linked together. Headers declare the interface; sources define the implementation. The separation is what lets large codebases compile incrementally and what makes the linker&#x27;s contract (one definition per program) enforceable.</p>
+          <p>Coming from C, the model is familiar; what is new is how much more the language does per translation unit — templates, inline functions, and <code>constexpr</code> all bend the old rules, and this module maps exactly where.</p>
+          <h5>The one-definition rule (ODR)</h5>
+          <p>Across the whole program, each variable, function, and class must have exactly one definition — but inline functions, templates, and classes defined identically in headers are exempt, because the linker merges the duplicates. Violating the ODR (different definitions in different units) is undefined behavior that the linker usually cannot catch.</p>
+          <p>The checkpoint&#x27;s true/false is the key case: inline in a header is ODR-safe by design — that is what inline means to the linker, not (only) a hint to the compiler.</p>
+          <h5>Name mangling basics and extern &quot;C&quot;</h5>
+          <p>C++ encodes function signatures into symbol names (mangling) so overloads can coexist — which is why a C++ function and a C function with the same name produce different symbols. extern &quot;C&quot; disables mangling for a declaration, giving the symbol C linkage so C++ code can call C libraries and vice versa.</p>
+          <p>The lab&#x27;s nm comparison makes this visible: build without the guard, watch the link fail on mismatched symbols, add extern &quot;C&quot;, watch it succeed. Mangling is invisible until it bites; now you have seen the teeth.</p>
+          <h5>Compiler flags: -Wall -Wextra -Werror, -std=c++20</h5>
+          <p>The same warning discipline as C, plus a language-standard flag that selects which C++ you are writing. -std=c++20 enables concepts, ranges, and the rest of the modern feature set this sequence teaches — without it, the compiler defaults to an older dialect and modern code simply fails.</p>
+          <p>Pin the standard explicitly in every build. &#x27;It compiled&#x27; means nothing if you do not know which language version compiled it.</p>
+          <h5>Build-time vs link-time errors</h5>
+          <p>Build-time (compile) errors are about one translation unit: syntax, types, missing declarations. Link-time errors are about the whole program: undefined references (a promise with no definition) and multiple definitions (two definitions keeping the promise).</p>
+          <p>The diagnostic habit: read which phase failed first. An &#x27;undefined reference&#x27; after a clean compile is a linker problem — check the three causes from the checkpoint (never defined, defined but not linked in, or C/C++ linkage mismatch) before touching the code.</p>
+          <h5>Static vs shared libraries at a high level</h5>
+          <p>Static libraries (.a) are archives of object files linked into your binary — self-contained, larger binaries, no runtime dependency. Shared libraries (.so) are linked at load time — smaller binaries, shared in memory, but a runtime dependency that must be present and version-compatible.</p>
+          <p>For learning and for the capstone, static linking keeps deployment simple. Know the tradeoff exists; reach for shared libraries when distribution size or in-memory sharing actually matters.</p>
+          <h5>Include guards vs <code>#pragma once</code></h5>
+          <p>Same problem as C, same solutions: include guards (portable, standard) and <code>#pragma once</code> (concise, universally supported in practice though not in the standard). The checkpoint asks why the non-standard one thrives — because it is one line, cannot collide with another header&#x27;s guard macro, and every major compiler honors it.</p>
+          <p>Many codebases use both. Pick one convention per project and move on; the important thing is that every header has protection.</p>
+          <h5>Forward declarations and reducing compile dependencies</h5>
+          <p>A forward declaration (class Widget;) lets you declare pointers and references without including the full header — which means fewer includes, faster builds, and fewer rebuild cascades when a header changes. Include what you use, forward-declare what you only name.</p>
+          <p>This is a build-performance discipline that compounds: in large codebases, include-what-you-use plus forward declarations is the difference between seconds and minutes per rebuild. Start the habit on small projects so it is automatic on large ones.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — C to C++ warnings. Take a small C program (hello world plus one helper in a separate .c file), compile it, then rename the sources to .cpp and compile with g++ -std=c++20 -Wall -Wextra -Werror. Record every new warning and explain each one in your own words.</li>
+            <li>Lab 2 — ODR violation, three fixes. Deliberately define the same non-inline function in two translation units, link them, and observe the linker error. Fix it three ways: mark one static, move the definition to a single .cpp file, and declare it inline — and explain why each fix is legal.</li>
+            <li>Lab 3 — Missing symbol. Declare a function in a header but never define it; build, read the undefined-reference error, fix it. Repeat with a variable declared extern but never defined. Learn the error message&#x27;s shape.</li>
+            <li>Lab 4 — extern &quot;C&quot; bridge. Create a tiny C library (add.c/add.h) and call it from C++. Build without the linkage guard to see mangling break the link (use nm to compare symbols), then fix with extern &quot;C&quot;.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="Two translation units both include this header, then link. W">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Two translation units both include this header, then link. What happens?</p>
+<pre class="ilw-code"><code>// util.h
+inline int add(int a, int b) { return a + b; }</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m1" id="ilw-cpp-m1-0">
+<label class="ilw-lab" for="ilw-cpp-m1-0"><span class="ilw-key">A</span><span>Linker error: multiple definition of add</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That is the rule for <em>non-inline</em> functions — but <code>inline</code> is an explicit ODR exception: identical definitions in many translation units are legal and the linker folds them into one.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m1" id="ilw-cpp-m1-1">
+<label class="ilw-lab" for="ilw-cpp-m1-1"><span class="ilw-key">B</span><span>It links cleanly</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — <code>inline</code> functions (like templates) may be defined identically in every translation unit; the linker keeps one copy. This is why short functions and templates live in headers.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m1" id="ilw-cpp-m1-2">
+<label class="ilw-lab" for="ilw-cpp-m1-2"><span class="ilw-key">C</span><span>Compile error: inline requires -O2</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> <code>inline</code> is a linkage hint, not an optimization flag — it compiles at any <code>-O</code> level. The compiler may or may not actually inline the call.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m1" id="ilw-cpp-m1-3">
+<label class="ilw-lab" for="ilw-cpp-m1-3"><span class="ilw-key">D</span><span>Each TU gets its own add and calls resolve randomly</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> No — the ODR still requires the definitions to be <em>identical</em> (same tokens), and the linker merges them into a single function. There is exactly one <code>add</code> in the final binary.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>Given a linker error message showing &#x27;undefined reference to X&#x27;, list the three most likely causes and how to check each one.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The three usual suspects: (1) the definition was never compiled or linked in — check the object files are on the link line (<code>nm</code> shows who defines what); (2) a C++ name-mangling mismatch — the caller sees <code>_Z1Xv</code> but the library exports C-style <code>X</code>, fix with <code>extern "C"</code>; (3) link order — a static library placed before the objects that need it is skipped by the single left-to-right pass.</div></details></li><li>True or false with justification: a function marked inline in a header can be defined in multiple translation units without violating the ODR.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><strong>True.</strong> <code>inline</code> (and templates, and <code>constexpr</code> functions) are explicit ODR exceptions: identical definitions may appear in many translation units and the linker folds them into one. That is precisely why function templates and inline functions can live in headers.</div></details></li><li>Explain in two sentences why <code>#pragma once</code> is common practice even though it is not part of the language standard.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>#pragma once</code> is one line instead of three, needs no invented guard macro, and lets the compiler skip the file without reopening it. It is not standard C++, but every major compiler honors it — so codebases use it for ergonomics (often alongside classic guards for maximal portability).</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m2-h">
+        <p class="il-eyebrow">Module 2</p>
+        <h3 class="il-h il-h--card" id="m2-h">RAII and resource management</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 245" role="img" aria-label="RAII: acquisition in the constructor, release in the destructor" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="40" width="180" height="130" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="130" y="65" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">constructor</text><text x="130" y="90" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">acquires:</text><text x="130" y="110" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">mutex.lock()</text><text x="130" y="130" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">fopen / socket</text><text x="130" y="152" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">new T</text><defs><marker id="ilm5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="220" y1="105" x2="300" y2="105" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm5)"/><text x="260" y="90" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">owns</text><rect x="300" y="40" width="180" height="130" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="390" y="65" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">destructor</text><text x="390" y="90" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">releases — always,</text><text x="390" y="110" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">even when an</text><text x="390" y="130" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">exception unwinds</text><text x="390" y="152" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">the stack</text><rect x="510" y="40" width="100" height="130" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="560" y="65" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">std::</text><text x="560" y="85" text-anchor="middle" font-size="12" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">unique_ptr</text><text x="560" y="108" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">lock_guard</text><text x="560" y="130" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">fstream</text><text x="560" y="152" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">jthread</text><text x="320" y="205" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">resource lifetime = object lifetime — no manual cleanup paths to forget</text><text x="320" y="228" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">Rule of Zero: if members manage themselves, you write no special members at all</text></svg><figcaption>Fig. M2 — RAII turns cleanup from a chore into a guarantee, even across exceptions.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-2"> <span>Mark module 2 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Internalize the rule of three/five/zero and know when each applies.</li>
+            <li>Implement RAII wrappers that acquire in the constructor and release in the destructor, surviving exceptions.</li>
+            <li>Use <code>std::unique_ptr</code>, <code>std::shared_ptr</code>, and <code>std::weak_ptr</code> correctly, including the cyclic-reference pitfall.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>RAII: resource acquisition is initialization</h5>
+          <p>RAII ties a resource&#x27;s lifetime to an object&#x27;s lifetime: the constructor acquires (opens the file, allocates the memory, takes the lock), the destructor releases. Because C++ guarantees destructors run when objects go out of scope — including during exception unwinding — the resource is released on every path, with no explicit cleanup code to forget.</p>
+          <p>This is the single most important idea in C++. Every smart pointer, lock guard, and container is RAII; every leak and double-free you fought in C is what RAII eliminates. Internalize it and modern C++ starts making sense.</p>
+          <h5>Rule of Three (C++98), Rule of Five (C++11), Rule of Zero</h5>
+          <p>If a class needs a custom destructor, copy constructor, or copy assignment (the Three), it almost certainly needs all three — otherwise copying does the wrong thing (the classic double-free). C++11 adds move constructor and move assignment (the Five). The Rule of Zero says: design so you need none of them — let member smart pointers and containers do the work.</p>
+          <p>The checkpoint&#x27;s logging-destructor trap: defining any destructor suppresses the implicit move operations, silently turning moves into copies. The Rule of Zero avoids the trap entirely: no custom destructor, no problem.</p>
+          <h5><code>std::unique_ptr</code>: exclusive ownership; std::make_unique (C++14)</h5>
+          <p>unique_ptr is sole ownership of a heap object: it cannot be copied, only moved, and it deletes on destruction. It is the default smart pointer — reach for it first, always. std::make_unique constructs the object and the pointer in one call, avoiding the (brief, real) window where a raw new could leak if an exception intervenes.</p>
+          <p>Use unique_ptr for every &#x27;this function/class owns that object&#x27; relationship. If you cannot name a second owner, you do not need shared_ptr.</p>
+          <h5><code>std::shared_ptr</code>: reference counting; std::make_shared</h5>
+          <p>shared_ptr implements shared ownership via reference counting: the object is deleted when the last shared_ptr dies. std::make_shared allocates the object and the control block together — one allocation instead of two, and exception-safe.</p>
+          <p>Shared ownership is genuinely needed sometimes (graphs, caches, observers with lifetime requirements), but it is also the most abused smart pointer: cycles leak (see weak_ptr), and shared mutable state is a design smell. The checkpoint&#x27;s observer question has one right answer — weak_ptr — because observation must not extend lifetime.</p>
+          <h5><code>std::weak_ptr</code> and breaking cycles</h5>
+          <p>weak_ptr observes a shared_ptr-managed object without owning it: it does not keep the object alive. lock() attempts to get a shared_ptr — returning empty if the object is already gone, which is exactly the information the observer needs.</p>
+          <p>The parent/child lab makes the cycle concrete: shared_ptr both ways, use_count never reaches zero, destructors never run — a leak with no raw pointers in sight. The fix is one word: make the back-reference weak.</p>
+          <h5>Custom deleters</h5>
+          <p>Smart pointers are not only for delete: a custom deleter lets unique_ptr manage any resource — fclose for FILE*, close for file descriptors, or a pool-release function. unique_ptr&lt;FILE, decltype(&amp;fclose)&gt; turns a C file handle into an RAII object in one declaration.</p>
+          <p>This is how RAII absorbs C APIs: the acquisition stays a C call, the release becomes a destructor. The FileHandle lab&#x27;s first exercise is the pattern in miniature.</p>
+          <h5>Exception safety of destructors: <code>noexcept</code> by default in C++11</h5>
+          <p>Since C++11, destructors are implicitly <code>noexcept</code> — if a destructor throws during stack unwinding, the program terminates. Destructors must never throw: they release resources, they do not report errors.</p>
+          <p>Design accordingly: if cleanup can fail, provide a separate close() that can report errors, and make the destructor a best-effort release. Throwing from a destructor is not an error-handling strategy; it is a termination strategy.</p>
+          <h5>Raw new/delete as a code smell</h5>
+          <p>In modern C++, a raw new or delete in application code is a smell: it means ownership is being managed by hand where a smart pointer or container should manage it. The capstone bans them outright — zero raw new/delete — and the codebase gets simpler, not harder.</p>
+          <p>new still exists for library authors and truly custom allocation. For everyone else, make_unique, make_shared, and containers cover every legitimate need. If you type &#x27;new&#x27;, stop and ask what is managing the delete.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — FileHandle RAII. Write a class FileHandle that opens a FILE* in its constructor and fclose()es in its destructor. Leak a raw handle on purpose to compare, then show the RAII version cleans up even when an exception is thrown mid-scope.</li>
+            <li>Lab 2 — Rule of Three, violated then honored. Write a class with a heap buffer that violates the rule of three (copy it twice, double-free). Observe the crash, then fix it three ways: user-defined copy operations, deleted copies plus moves, and finally <code>std::vector</code> replacing the raw pointer — the Rule of Zero.</li>
+            <li>Lab 3 — The cycle. Build a parent/child graph with shared_ptr in both directions; print use_count() to show the leak. Fix with weak_ptr on the back-reference and verify destruction order with constructor/destructor prints.</li>
+            <li>Lab 4 — No raw new. Refactor an existing lab to never call new or delete directly — replace with make_unique/make_shared — and confirm it still compiles and passes a smoke run.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="Which line leaks memory when &lt;code&gt;cond&lt;/code&gt; is true? Clic">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Which line leaks memory when <code>cond</code> is true? Click it.</p>
+<pre class="ilw-code"><code><span class="ilw-ln"> 1</span>  void f(bool cond) {
+<span class="ilw-ln"> 2</span>      auto p = new int(5);
+<span class="ilw-ln"> 3</span>      if (cond) return;
+<span class="ilw-ln"> 4</span>      delete p;
+<span class="ilw-ln"> 5</span>  }</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m2" id="ilw-cpp-m2-0">
+<label class="ilw-lab" for="ilw-cpp-m2-0"><span class="ilw-key">1</span><span>Line 1 — the signature</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The signature is fine. The leak is on the early-return path — trace what happens to <code>p</code> when <code>cond</code> is true.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m2" id="ilw-cpp-m2-1">
+<label class="ilw-lab" for="ilw-cpp-m2-1"><span class="ilw-key">2</span><span>Line 2 — the allocation</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The allocation itself is fine — the problem is that nothing guarantees the matching <code>delete</code> runs. Line 2 is where a <code>unique_ptr</code> would have fixed it, but the leak <em>happens</em> elsewhere.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m2" id="ilw-cpp-m2-2">
+<label class="ilw-lab" for="ilw-cpp-m2-2"><span class="ilw-key">3</span><span>Line 3 — the early return</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — when <code>cond</code> is true, the function returns without reaching <code>delete p</code>. Every new exit path is a new leak path: this is exactly the bug RAII eliminates (<code>auto p = std::make_unique&lt;int&gt;(5);</code> and the leak becomes impossible).</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m2" id="ilw-cpp-m2-3">
+<label class="ilw-lab" for="ilw-cpp-m2-3"><span class="ilw-key">4</span><span>Line 4 — the delete</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Line 4 is the <em>attempted</em> cleanup — correct on the path that reaches it. The defect is the path that never gets here.</p>
+</div>
+<p class="ilw-note">Click the line you believe holds the bug — feedback appears instantly.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>When is the Rule of Zero the right answer, and what two conditions must the member types satisfy for it to work?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Rule of Zero is right when every member already manages its own resource (<code>std::string</code>, <code>std::vector</code>, <code>unique_ptr</code>, …) — then the compiler-generated copy/move/destroy do the right thing and you declare none. Conditions: each member type must itself be correctly copyable/movable/destructible, and the class must own no raw resource (no bare <code>new</code>, no raw file descriptor).</div></details></li><li>Your class manages no raw resources but you define a custom destructor for logging. What happens to the implicitly generated copy operations, and why is that a hazard?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Declaring <em>any</em> destructor — even <code>~C() { log(...); }</code> — suppresses the implicit move constructor and move assignment (the class becomes copy-only, and copies may be deleted if members are move-only). Rationale: a custom destructor signals custom resource logic, so the compiler refuses to guess at moving. Fix: <code>= default</code> the moves explicitly, or better, put the logging in a member so Rule of Zero applies.</div></details></li><li>Design question: you need shared ownership with occasional observation that must not extend lifetime. Which smart pointer goes on the observer, and what does lock() tell you?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Put <code>std::weak_ptr</code> on the observer. <code>weak_ptr</code> observes without owning: it never extends the lifetime, and <code>lock()</code> gives you a temporary <code>shared_ptr</code> that is null when the object is gone — so the observer can detect expiry instead of dangling. <code>shared_ptr</code> on the observer would keep the object alive forever (and risk cycles).</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m3-h">
+        <p class="il-eyebrow">Module 3</p>
+        <h3 class="il-h il-h--card" id="m3-h">STL containers, algorithms, and iterators</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 230" role="img" aria-label="STL container shapes and the iterator abstraction" xmlns="http://www.w3.org/2000/svg"><text x="130" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">std::vector — contiguous</text><rect x="20" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="36" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">0</text><rect x="57" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="73" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">1</text><rect x="94" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="110" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">2</text><rect x="131" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="147" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">3</text><rect x="168" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="184" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">4</text><rect x="205" y="50" width="32" height="36" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="221" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">5</text><text x="130" y="110" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">cache-friendly · erase invalidates</text><text x="320" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">std::list — nodes</text><rect x="255" y="50" width="40" height="36" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="275" y="73" text-anchor="middle" font-size="14" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">•</text><rect x="305" y="50" width="40" height="36" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="325" y="73" text-anchor="middle" font-size="14" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">•</text><rect x="355" y="50" width="40" height="36" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="375" y="73" text-anchor="middle" font-size="14" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">•</text><defs><marker id="ilm6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="295" y1="68" x2="305" y2="68" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm6)"/><defs><marker id="ilm7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="345" y1="68" x2="355" y2="68" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm7)"/><text x="320" y="110" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">stable iterators · pointer chase</text><text x="500" y="30" text-anchor="middle" font-size="12" fill="#34d399" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">std::map — ordered tree</text><circle cx="500" cy="68" r="17" fill="#0d1a12" stroke="#34d399" stroke-width="1.5"/><text x="500" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">k</text><circle cx="465" cy="100" r="13" fill="#0d1a12" stroke="#34d399" stroke-width="1.5"/><line x1="500" y1="82" x2="465" y2="90" stroke="#34d399" stroke-width="1.5"/><circle cx="535" cy="100" r="13" fill="#0d1a12" stroke="#34d399" stroke-width="1.5"/><line x1="500" y1="82" x2="535" y2="90" stroke="#34d399" stroke-width="1.5"/><text x="500" y="135" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">log n · range queries</text><rect x="20" y="160" width="600" height="55" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="183" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">algorithms are decoupled: sort / find / transform take iterators, not containers</text><text x="320" y="205" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">std::remove does NOT erase — pair it with erase (the remove–erase idiom)</text></svg><figcaption>Fig. M3 — Pick the container by access pattern; algorithms work on iterators, not containers.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-3"> <span>Mark module 3 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Choose the right container for the job from vector, deque, list, set/map, and unordered set/map, with complexity reasoning.</li>
+            <li>Compose generic code with iterators and the &lt;algorithm&gt; library instead of hand-written loops.</li>
+            <li>Avoid iterator invalidation bugs by knowing which operations invalidate which iterators per container.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5><code>std::vector</code> as the default sequence container</h5>
+          <p>vector is contiguous, cache-friendly, and the right default for sequences: push_back amortized O(1), random access O(1), and iteration at memory speed. The other sequence containers exist for specific needs — deque for efficient front insertion, list for stable iterators under insertion — not as general replacements.</p>
+          <p>Default to vector; switch only with a measured reason. Most &#x27;I need a list&#x27; instincts are wrong on modern hardware, where cache locality beats pointer-chasing asymptotics for realistic sizes.</p>
+          <h5>Associative vs unordered containers and complexity guarantees</h5>
+          <p>Ordered associative containers (map, set) are tree-based: O(log n) operations with iteration in sorted order — the checkpoint&#x27;s &#x27;ordered unique keys with range queries&#x27; answer is <code>std::map</code>. Unordered containers (unordered_map) are hash-based: average O(1) lookup with no ordering — the second answer.</p>
+          <p>The tradeoff is ordering versus speed, plus hash quality: a bad hash function turns O(1) into a bad day. Choose by the access pattern you actually have, and benchmark the lab&#x27;s three word-counters to feel the difference.</p>
+          <h5>std::array (C++11) and <code>std::string</code>_view (C++17)</h5>
+          <p>array is a fixed-size sequence with vector-like interface and zero overhead — the modern replacement for C arrays when the size is known at compile time. string_view is a non-owning view over character data: pointer plus length, no allocation, no copy.</p>
+          <p>string_view is the performance answer to &#x27;I need to look at this string but not own it&#x27; — the case-insensitive search lab shows the allocation savings directly. The rule: string_view for parameters and views, <code>std::string</code> for ownership.</p>
+          <h5>Iterator categories and ranges (C++20 std::ranges)</h5>
+          <p>Iterators abstract &#x27;position in a sequence&#x27; with capability categories (input through random-access); algorithms are written against categories, not containers, which is why sort works on vector and deque alike. C++20 ranges lift this further: views compose lazily (filter | transform) without intermediate containers.</p>
+          <p>The lab&#x27;s rewrite — copy_if + transform versus ranges views — shows the readability payoff: the ranges version says what it computes, not how it iterates. Prefer algorithms and views over hand loops; the hand loop is where the off-by-one lives.</p>
+          <h5>The erase-remove idiom</h5>
+          <p><code>std::remove</code> does not remove anything — it shuffles the kept elements forward and returns the new logical end, leaving the tail in a valid-but-unspecified state. The idiom v.erase(v.remove(...), v.end()) pairs it with erase, which actually destroys the tail and shrinks the container.</p>
+          <p>The checkpoint&#x27;s true/false exists because this misnaming has burned everyone once. C++20&#x27;s std::erase / std::erase_if finally do the whole job in one call — use them in new code, know the idiom for old code.</p>
+          <h5>Lambda expressions (C++11) and generic lambdas (C++14)</h5>
+          <p>Lambdas are anonymous function objects defined inline — the predicates and comparators that algorithms take as arguments. Capture lists ([&amp;], [=], or explicit captures) control what surrounding state the lambda sees; C++14&#x27;s auto parameters make lambdas generic.</p>
+          <p>Capture discipline matters: [&amp;] captures by reference (dangling risk if the lambda outlives the scope), [=] by value (copy cost, and the classic &#x27;this&#x27; capture surprise). Capture explicitly and minimally — the default captures are for quick code, not for code that lives.</p>
+          <h5>if <code>constexpr</code> (C++17) for generic code</h5>
+          <p>if <code>constexpr</code> evaluates the condition at compile time and discards the untaken branch — including branches that would not compile for the given template arguments. It replaces tag dispatch and SFINAE tricks for the common &#x27;do X for this type, Y for that type&#x27; pattern inside templates.</p>
+          <p>The concept entry notes what it is not: it does not choose containers at runtime. It is a compile-time tool for generic code — use it to write one template that handles several type families cleanly.</p>
+          <h5>Iterator invalidation rules per container</h5>
+          <p>vector invalidates iterators at and after an insertion point on reallocation, and at erase positions; list invalidates only the erased element; associative containers invalidate only erased elements; deque invalidates on most insertions. These rules are per-container contracts you must know cold.</p>
+          <p>The lab&#x27;s dangling-iterator demonstration — store iterators, push_back past capacity, watch ASan complain — exists because this bug is silent without sanitizers and catastrophic with them. When in doubt, reserve() up front or re-acquire iterators after mutation.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Three word counters. Write a word-frequency counter three ways: <code>std::map</code>, <code>std::unordered_map</code>, and <code>std::vector</code>&lt;std::pair&gt; with linear search. Benchmark all three on a 1 MB text file with std::chrono and write up which wins and why.</li>
+            <li>Lab 2 — Algorithms vs ranges. Rewrite a filter-and-transform loop twice: once with std::copy_if + std::transform, once with C++20 ranges views. Confirm identical output on edge cases (empty input, all-filtered-out).</li>
+            <li>Lab 3 — Dangling iterator, caught. Store iterators into a vector, push_back past reallocation, and demonstrate the dangling iterator with ASan. Fix by reserving capacity up front or by re-acquiring iterators.</li>
+            <li>Lab 4 — string_view search. Implement case-insensitive word search using <code>std::string</code>_view (no copies) over a large buffer; compare against a <code>std::string</code> version for allocation count with simple instrumentation.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="What does this print?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does this print?</p>
+<pre class="ilw-code"><code>#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstdio&gt;
+int main() {
+    std::vector&lt;int&gt; v = {1, 3, 2, 3, 4};
+    std::remove(v.begin(), v.end(), 3);
+    std::printf(&quot;%zu\n&quot;, v.size());
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m3" id="ilw-cpp-m3-0">
+<label class="ilw-lab" for="ilw-cpp-m3-0"><span class="ilw-key">A</span><span>3</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That is the size you <em>wanted</em> — but <code>std::remove</code> never changes a container's size. It only reorders.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m3" id="ilw-cpp-m3-1">
+<label class="ilw-lab" for="ilw-cpp-m3-1"><span class="ilw-key">B</span><span>5</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — <code>std::remove</code> shifts the kept elements forward and returns the new logical end, but the vector still holds 5 elements. Shrinking requires the remove–erase idiom: <code>v.erase(std::remove(...), v.end());</code>.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m3" id="ilw-cpp-m3-2">
+<label class="ilw-lab" for="ilw-cpp-m3-2"><span class="ilw-key">C</span><span>4</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> There is no step here that erases one element — <code>remove</code> compacts logically, and the size stays 5 until <code>erase</code> is called.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m3" id="ilw-cpp-m3-3">
+<label class="ilw-lab" for="ilw-cpp-m3-3"><span class="ilw-key">D</span><span>It fails to compile</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The code is perfectly valid — <code>&lt;algorithm&gt;</code> provides <code>remove</code> for any forward iterators. It compiles and runs; it just does not do what the name suggests.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>You need ordered unique keys with range queries; you need average O(1) lookup with no ordering. Name the container for each and justify.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Ordered unique keys with range queries → <code>std::map</code> (ordered tree, logarithmic, iteration in key order enables ranges). Average O(1) lookup with no ordering → <code>std::unordered_map</code> (hash table). The justification is the access pattern: order + ranges vs pure lookup speed.</div></details></li><li>True or false with justification: <code>std::remove</code> actually removes elements from a vector.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><strong>False.</strong> <code>std::remove</code> only <em>reorders</em>: it shifts the kept elements forward and returns the new logical end — the vector's size is unchanged and the tail holds moved-from leftovers. Shrinking needs the remove–erase idiom: <code>v.erase(std::remove(v.begin(), v.end(), x), v.end());</code>.</div></details></li><li>After v.erase(it) on a <code>std::vector</code>, which iterators remain valid? Contrast with <code>std::list</code>.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>vector::erase</code> invalidates iterators at and after the erased element (elements shift left); only iterators before it survive. <code>list::erase</code> invalidates <em>only</em> the erased element's iterator — node-based containers never shift, so every other iterator stays valid. Rule of thumb: contiguous containers invalidate on shift, node containers do not.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m4-h">
+        <p class="il-eyebrow">Module 4</p>
+        <h3 class="il-h il-h--card" id="m4-h">Move semantics and value categories</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 225" role="img" aria-label="Copy versus move: duplicating a resource against stealing it" xmlns="http://www.w3.org/2000/svg"><text x="160" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">copy: duplicate the resource</text><rect x="40" y="50" width="120" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="100" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a → [data]</text><rect x="180" y="50" width="120" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="240" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">b → [data]</text><text x="160" y="118" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">two owners, two allocations</text><text x="480" y="30" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">move: steal the resource</text><rect x="360" y="50" width="120" height="44" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="420" y="77" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">a → [data]</text><defs><marker id="ilm8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="480" y1="72" x2="540" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm8)"/><text x="510" y="60" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">steal</text><rect x="540" y="50" width="60" height="44" rx="8" fill="#1a1408" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="570" y="77" text-anchor="middle" font-size="13" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">∅</text><text x="480" y="118" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">a: valid but unspecified · b owns it now</text><rect x="40" y="150" width="560" height="60" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="173" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">std::move is just a cast to rvalue — the move constructor does the stealing</text><text x="320" y="196" text-anchor="middle" font-size="11" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">mark move operations noexcept or vector growth falls back to copying</text></svg><figcaption>Fig. M4 — Moves transfer ownership; the source is left valid but unspecified.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-4"> <span>Mark module 4 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Classify expressions as lvalue, xvalue, or prvalue and know which can bind to which reference type.</li>
+            <li>Implement correct, <code>noexcept</code> move constructors and move assignment operators.</li>
+            <li>Apply perfect forwarding with forwarding references and std::forward without reference-collapse mistakes.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Value categories: lvalue, xvalue, prvalue</h5>
+          <p>Every expression has a value category. lvalues name persistent objects (things with addresses you can take). prvalues are temporaries — pure rvalues like 42 or a returned-by-value object. xvalues are &#x27;expiring&#x27; lvalues: objects you have marked as movable-from, typically via <code>std::move</code>.</p>
+          <p>The taxonomy exists to answer one question: is it safe to steal this object&#x27;s resources? lvalue: no (someone still uses it). prvalue/xvalue: yes (it is dying or dead). Move semantics is the machinery that acts on the answer.</p>
+          <h5>rvalue references (T&amp;&amp;) vs forwarding references</h5>
+          <p>T&amp;&amp; in a non-template context (void f(<code>std::string</code>&amp;&amp;)) binds only to rvalues — it is an rvalue reference, the move-constructor parameter. But template&lt;typename T&gt; void f(T&amp;&amp;) deduces T from the argument: lvalue arguments deduce T as an lvalue reference (T = int&amp;), rvalues as plain T — so the parameter binds to anything. This deducible form is the forwarding reference.</p>
+          <p>The checkpoint&#x27;s deduction question is the whole rule: int lvalue → T is int&amp;; int rvalue → T is int. Reference collapsing (int&amp; &amp;&amp; → int&amp;) does the rest. Get this and perfect forwarding follows.</p>
+          <h5><code>std::move</code> as a cast, not a move</h5>
+          <p><code>std::move</code> does nothing at runtime — it is a cast to an rvalue reference, a way of saying &#x27;treat this object as expiring; you may steal from it.&#x27; The actual moving is done by the move constructor or move assignment operator that receives the cast expression.</p>
+          <p>This is why &#x27;<code>std::move</code> doesn&#x27;t move anything&#x27; is the checkpoint: the cast enables the move, the move constructor performs it. Moving from a const object silently copies instead — the move constructor cannot steal from const — which is a classic performance trap worth knowing.</p>
+          <h5>std::forward and perfect forwarding</h5>
+          <p>std::forward&lt;T&gt; preserves the value category: inside f(T&amp;&amp; x), forward&lt;T&gt;(x) passes an lvalue as an lvalue and an rvalue as an rvalue to the next function. Without it, the named parameter x is an lvalue regardless of what was passed in — and everything downstream would copy.</p>
+          <p>The lab&#x27;s overload experiment shows the failure mode: forward incorrectly and the rvalue overload never fires. Perfect forwarding is how factory functions (make_unique) and wrappers pass arguments through untouched — learn it once, use it in every generic wrapper you write.</p>
+          <h5><code>noexcept</code> moves and vector reallocation</h5>
+          <p>When a vector grows, it must move elements to new storage — but if a move constructor might throw, the vector cannot risk leaving the old storage half-moved, so it falls back to copying (copies can be retried safely). A <code>noexcept</code> move constructor lets the vector move with confidence.</p>
+          <p>The checkpoint&#x27;s penalty is real and measurable: the lab counts copies versus moves with and without <code>noexcept</code>, and the difference is the price of an unmarked move. Mark move operations <code>noexcept</code> whenever they truly cannot throw — which, for resource-stealing moves, is almost always.</p>
+          <h5>Copy elision and guaranteed elision (C++17)</h5>
+          <p>Copy elision lets the compiler construct a returned object directly in its destination, skipping the copy/move entirely. Since C++17, elision is guaranteed in certain cases (returning a prvalue) — the standard mandates it, not just permits it.</p>
+          <p>The lab&#x27;s -O0 comparison across standards shows the guarantee working: identical behavior regardless of optimization. Practical upshot: return heavy objects by value without fear — the language promises the efficient path.</p>
+          <h5>Moved-from state: valid but unspecified</h5>
+          <p>After <code>std::move</code>(x), x is in a valid-but-unspecified state: you may destroy it or assign to it, but you may not assume anything about its value. For <code>std::string</code> the typical implementation leaves it empty, but that is not guaranteed.</p>
+          <p>The safe pattern from the lab: move, then either reassign or destroy — never read. Treating moved-from objects as usable is the use-after-move bug, and it is as real as use-after-free, just quieter.</p>
+          <h5><code>std::move</code>_if_<code>noexcept</code></h5>
+          <p>move_if_<code>noexcept</code> casts to an rvalue only if the move is <code>noexcept</code> (or copying is impossible) — otherwise it casts to a const lvalue, forcing a copy. It is the standard library&#x27;s way of encoding the vector-growth rule as a utility.</p>
+          <p>You will rarely call it directly, but it is the mechanism behind &#x27;vector moves when safe, copies when not.&#x27; Knowing it exists completes the picture: the language does not just hope moves are safe, it checks.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Count the moves. Write a String class with deep-copy semantics and instrumented copy/move constructors that print. Push temporaries into a vector and count copies vs moves; mark the move constructor <code>noexcept</code> and watch reallocations switch from copies to moves.</li>
+            <li>Lab 2 — Forwarding experiment. Write a function template taking a forwarding reference that forwards to two overloads (const T&amp; and T&amp;&amp;). Pass lvalues, rvalues, and const lvalues; print which overload fires; fix any case that forwards incorrectly.</li>
+            <li>Lab 3 — Use after move. Deliberately use an object after <code>std::move</code> and demonstrate the valid-but-unspecified state (e.g., moved-from <code>std::string</code>). Then write the safe pattern — move, then reassign or destroy — and document the rule.</li>
+            <li>Lab 4 — Guaranteed elision. Return a large vector by value under -O0 with C++14 vs C++17 flags; compare copy/move constructor call counts to observe guaranteed copy elision in action.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="Which statement is true after this runs?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Which statement is true after this runs?</p>
+<pre class="ilw-code"><code>#include &lt;string&gt;
+#include &lt;utility&gt;
+int main() {
+    std::string a = &quot;hello&quot;;
+    std::string b = std::move(a);
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m4" id="ilw-cpp-m4-0">
+<label class="ilw-lab" for="ilw-cpp-m4-0"><span class="ilw-key">A</span><span>a is guaranteed to be empty</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Not guaranteed — the standard promises only that a moved-from object is in a <em>valid but unspecified</em> state. In practice libstdc++ leaves it empty, but portable code may not rely on it.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m4" id="ilw-cpp-m4-1">
+<label class="ilw-lab" for="ilw-cpp-m4-1"><span class="ilw-key">B</span><span>a is in a valid but unspecified state; only b&#x27;s value is guaranteed</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — <code>std::move</code> merely casts <code>a</code> to an rvalue; the move constructor steals the buffer. Afterward <code>b == "hello"</code> is guaranteed, while <code>a</code> is only guaranteed to be safely destructible/assignable.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m4" id="ilw-cpp-m4-2">
+<label class="ilw-lab" for="ilw-cpp-m4-2"><span class="ilw-key">C</span><span>Both a and b hold &quot;hello&quot; (it copies)</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> No copy happens — the rvalue overload is selected precisely because <code>std::move</code> marked <code>a</code> as movable-from. That is the whole performance point of move semantics.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m4" id="ilw-cpp-m4-3">
+<label class="ilw-lab" for="ilw-cpp-m4-3"><span class="ilw-key">D</span><span>Using a afterwards is undefined behavior</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Too strong — moved-from objects are <em>valid</em>: you may destroy them or assign new values. What you may not do is assume anything about their current value.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>Explain why <code>std::move</code> does not move anything by itself, and what actually performs the move.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>std::move</code> performs no move — it is a cast that turns its argument into an rvalue reference, marking it <em>eligible</em> to be moved from. The actual move happens when that rvalue binds to a move constructor or move assignment operator, which then steals the resource (typically by copying the pointer and nulling the source).</div></details></li><li>A move constructor that is not <code>noexcept</code>: what penalty does <code>std::vector</code> pay during growth, and why?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The vector falls back to <strong>copying</strong> every element during reallocation. Growth must be exception-safe: if a move threw midway, the vector could be left half-moved. A <code>noexcept</code> move guarantees no throw, so the vector moves; without it, the vector copies to preserve the strong guarantee — paying the full copy cost on every growth.</div></details></li><li>Given template&lt;typename T&gt; void f(T&amp;&amp; x), what is the deduced type of T when called with an int lvalue? With an int rvalue?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">With an <code>int</code> lvalue argument, <code>T</code> deduces to <code>int&amp;</code> (reference collapsing: <code>T&amp;&amp;</code> becomes <code>int&amp;</code>). With an <code>int</code> rvalue, <code>T</code> deduces to plain <code>int</code>. That is the forwarding-reference rule — <code>T&amp;&amp;</code> in a deduced context binds to everything and remembers the value category.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m5-h">
+        <p class="il-eyebrow">Module 5</p>
+        <h3 class="il-h il-h--card" id="m5-h">Templates and generics</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 245" role="img" aria-label="Template instantiation and concept constraints" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="40" width="220" height="60" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="140" y="65" text-anchor="middle" font-size="12" fill="#e8eef5" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">template &lt;typename T&gt;</text><text x="140" y="88" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">T max(T a, T b)</text><rect x="300" y="40" width="120" height="44" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="360" y="67" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">max&lt;int&gt;</text><defs><marker id="ilm9" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="250" y1="70" x2="300" y2="62" stroke="#d4af37" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ilm9)"/><rect x="430" y="40" width="120" height="44" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="490" y="67" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">max&lt;double&gt;</text><defs><marker id="ilm10" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#34d399" stroke-width="1.6"/></marker></defs><line x1="250" y1="70" x2="430" y2="62" stroke="#34d399" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ilm10)"/><rect x="365" y="120" width="120" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="425" y="147" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">max&lt;string&gt;</text><defs><marker id="ilm11" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#7ed4e0" stroke-width="1.6"/></marker></defs><line x1="250" y1="70" x2="365" y2="142" stroke="#7ed4e0" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ilm11)"/><rect x="30" y="130" width="220" height="60" rx="8" fill="#0d1a12" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="140" y="155" text-anchor="middle" font-size="12" fill="#34d399" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">concept gate</text><text x="140" y="178" text-anchor="middle" font-size="10" fill="#34d399" font-family="'JetBrains Mono',ui-monospace,monospace">wrong type → clear error HERE</text><text x="430" y="205" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">fold expression:  (args + ...)  — no recursion, no base case</text><text x="430" y="228" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">instantiation is compile-time code generation — pay in build time, not runtime</text></svg><figcaption>Fig. M5 — One template, many generated functions; concepts reject misuse at the call site.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-5"> <span>Mark module 5 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write function and class templates with correct syntax and sensible constraints.</li>
+            <li>Use variadic templates and fold expressions (C++17) for genuinely generic utilities.</li>
+            <li>Apply C++20 concepts to constrain templates and produce readable error messages.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Function templates and class templates</h5>
+          <p>A function template generates overloads from argument types; a class template generates classes from its parameters (Matrix&lt;double, 3, 3&gt; is a different type from Matrix&lt;float, 3, 3&gt;). Deduction usually fills in the arguments — you write clamp(a, b) and the compiler figures out the types.</p>
+          <p>Templates are compile-time code generation with type checking per instantiation: the template is checked loosely at definition, strictly at each use. That two-phase checking is why template errors point deep inside library headers — and why concepts (below) were invented.</p>
+          <h5>Template argument deduction</h5>
+          <p>Deduction matches the function arguments against the template parameters to infer the types — clamp(1, 2.5) fails because int and double deduce conflicting types for one parameter. Understanding deduction is understanding template error messages: the compiler is telling you what it inferred and where the inference broke.</p>
+          <p>When deduction fails, the fixes are explicit template arguments (clamp&lt;double&gt;(1, 2.5)) or constraints that guide the user to valid calls. The lab&#x27;s mismatched-types call is the canonical first encounter.</p>
+          <h5>Non-type template parameters</h5>
+          <p>Templates can take values, not just types: Matrix&lt;T, Rows, Cols&gt; bakes dimensions into the type itself, enabling compile-time size checks (static_assert on zero dimensions) and stack-allocated fixed storage with no runtime overhead.</p>
+          <p>The lab&#x27;s Matrix is the pattern: dimensions as parameters, static_assert rejecting nonsense, <code>constexpr</code> operations on the fixed size. Non-type parameters turn runtime invariants into compile-time guarantees.</p>
+          <h5>Variadic templates (C++11) and fold expressions (C++17)</h5>
+          <p>Variadic templates accept any number of arguments via a parameter pack; the classic implementation recurses over the pack with a base case. C++17 fold expressions collapse the whole pattern into one expression: (args + ...) or (args &amp;&amp; ...) with no recursion and no base case to write.</p>
+          <p>The checkpoint&#x27;s question is the payoff: the fold version is one line where the recursive version is two functions. The type-safe printf lab shows folds at their best — mixed-type argument handling in a single expression.</p>
+          <h5>SFINAE and std::enable_if: the C++11-era technique</h5>
+          <p>SFINAE (&#x27;substitution failure is not an error&#x27;) let C++11/14 code enable or disable template overloads by making invalid substitutions silently remove candidates rather than erroring. std::enable_if was the workhorse: incomprehensible to read, but it made overload sets behave.</p>
+          <p>Know it because you will read it in older codebases — and because understanding what concepts replaced tells you why concepts are better. You should write new code with concepts, not enable_if.</p>
+          <h5>Concepts and requires clauses (C++20)</h5>
+          <p>Concepts name requirements on template arguments: template&lt;std::totally_ordered T&gt; says exactly what clamp needs. Violations fail at the call site with a readable message naming the unsatisfied concept — instead of a hundred-line error from deep inside the template body.</p>
+          <p>The lab&#x27;s before/after comparison is the whole argument for C++20: same misuse, one-line diagnostic versus template vomit. Concepts are documentation the compiler enforces and diagnostics the user can read.</p>
+          <h5><code>constexpr</code> functions across the standards</h5>
+          <p><code>constexpr</code> functions can execute at compile time; each standard revision allows more inside them (C++11: single return; C++14: loops and locals; C++17/20: ever more). The lab&#x27;s <code>constexpr</code> 2x2 determinant computes at compile time when given constant inputs.</p>
+          <p><code>constexpr</code> is how compile-time computation grows up: the same function runs at runtime when inputs are dynamic, at compile time when they are constant. Write <code>constexpr</code> by default for pure computations — it costs nothing and buys compile-time evaluation.</p>
+          <h5>Template instantiation and code bloat awareness</h5>
+          <p>Each distinct set of template arguments generates a separate instantiation — vector&lt;int&gt; and vector&lt;double&gt; are entirely separate code. Used carelessly across many types, this bloats binaries; used well, it is the price of zero-cost abstraction.</p>
+          <p>Awareness, not fear: prefer type-erased interfaces (virtuals, std::function) at module boundaries where many types flow through, and templates where performance or type safety demands it. The checkpoint&#x27;s &#x27;what still needs runtime polymorphism&#x27; question points at exactly this boundary — heterogeneous collections chosen at runtime are the virtual interface&#x27;s home turf.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Constrain the error. Write a generic clamp as a function template; call it with mismatched types (int, double) and read the deduction error. Constrain with a C++20 concept and compare the diagnostic quality before and after.</li>
+            <li>Lab 2 — Variadic logger. Implement a type-safe printf-like logger with variadic templates and a C++17 fold expression. Test with zero, one, and many mixed-type arguments.</li>
+            <li>Lab 3 — Matrix class template. Write Matrix parameterized on element type and dimensions as non-type parameters; add a static_assert rejecting zero dimensions and a <code>constexpr</code> 2x2 determinant.</li>
+            <li>Lab 4 — requires at the call site. Take a template that fails deep inside its body for the wrong type; rewrite with a requires clause so misuse fails at the call site with a one-line message. Show before/after compiler output.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="What does this print?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> What does this print?</p>
+<pre class="ilw-code"><code>#include &lt;cstdio&gt;
+template &lt;typename... Args&gt;
+int sum(Args... args) { return (args + ...); }
+int main() {
+    std::printf(&quot;%d\n&quot;, sum(1, 2, 3, 4));
+}</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m5" id="ilw-cpp-m5-0">
+<label class="ilw-lab" for="ilw-cpp-m5-0"><span class="ilw-key">A</span><span>10</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — the fold expression <code>(args + ...)</code> expands to <code>1 + 2 + 3 + 4</code> at compile time. No recursion, no base-case overload needed.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m5" id="ilw-cpp-m5-1">
+<label class="ilw-lab" for="ilw-cpp-m5-1"><span class="ilw-key">B</span><span>0 — an empty pack is required</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The pack is not empty here — four arguments are given. (An empty pack with <code>+</code> would indeed be ill-formed; only <code>&amp;&amp;</code>, <code>||</code>, and <code>,</code> folds have empty-pack identities.)</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m5" id="ilw-cpp-m5-2">
+<label class="ilw-lab" for="ilw-cpp-m5-2"><span class="ilw-key">C</span><span>Compile error: missing base case</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That is the <em>recursive</em> variadic style. Fold expressions were added precisely to eliminate the base-case overload — one function handles every arity.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m5" id="ilw-cpp-m5-3">
+<label class="ilw-lab" for="ilw-cpp-m5-3"><span class="ilw-key">D</span><span>4 — it counts the arguments</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The fold applies <code>+</code> between the arguments, it does not count them. <code>sizeof...(Args)</code> would give 4.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>What is the difference between a fold expression over &amp;&amp; and a recursive variadic base-case implementation, in terms of code you must write?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A fold expression <code>(args + ...)</code> needs no base case and no recursion — the compiler expands the pack directly, so you write one function instead of two (variadic template + zero-argument overload). Less code, fewer overloads, and the expansion is visible at the call site rather than hidden in recursion.</div></details></li><li>Why does a concept-constrained template usually give a better diagnostic than the same template with a static_assert inside the body?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">A concept is checked <em>at the call site</em>, so the error names the violated requirement where you called the function ('T does not satisfy Sortable'). A <code>static_assert</code> inside the body fires deep in the instantiation, after pages of substitution context — the diagnostic points at library internals instead of your mistake. Concepts fail fast and name the contract.</div></details></li><li>Name one thing you still cannot do with templates that requires runtime polymorphism, and when you would choose a virtual interface instead.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">You cannot do <strong>runtime dispatch on a type chosen at runtime</strong> with templates — template arguments must be compile-time constants. When the concrete type is only known at runtime (plugin loaded from a DLL, a shape picked from a file), choose a virtual interface: the vtable dispatches on the dynamic type. Templates for compile-time variation, virtuals for runtime variation.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m6-h">
+        <p class="il-eyebrow">Module 6</p>
+        <h3 class="il-h il-h--card" id="m6-h">Concurrency: threads, mutexes, and atomics</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 185" role="img" aria-label="Data race versus mutex versus atomic" xmlns="http://www.w3.org/2000/svg"><text x="150" y="30" text-anchor="middle" font-size="12" fill="#f87171" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">data race: x++ is read–modify–write</text><rect x="30" y="55" width="110" height="36" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="85" y="78" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">thread A</text><defs><marker id="ilm12" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#f87171" stroke-width="1.6"/></marker></defs><line x1="140" y1="73" x2="210" y2="73" stroke="#f87171" stroke-width="2" marker-end="url(#ilm12)"/><rect x="30" y="105" width="110" height="36" rx="8" fill="#111a2e" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="85" y="128" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">thread B</text><defs><marker id="ilm13" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#f87171" stroke-width="1.6"/></marker></defs><line x1="140" y1="123" x2="210" y2="123" stroke="#f87171" stroke-width="2" marker-end="url(#ilm13)"/><rect x="210" y="55" width="90" height="86" rx="8" fill="#1a0d0d" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="255" y="90" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">int x</text><text x="255" y="112" text-anchor="middle" font-size="10" fill="#f87171" font-family="'Space Grotesk','Inter',sans-serif">torn updates</text><text x="150" y="165" text-anchor="middle" font-size="12" fill="#34d399" font-family="'JetBrains Mono',ui-monospace,monospace">fix: std::mutex  or  std::atomic&lt;int&gt;</text><rect x="330" y="40" width="280" height="130" rx="8" fill="#111a2e" stroke="#34d399" stroke-width="1.5" opacity="1.0"/><text x="470" y="62" text-anchor="middle" font-size="11" fill="#34d399" font-family="'Space Grotesk','Inter',sans-serif">mutex: one holder at a time</text><text x="470" y="85" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'JetBrains Mono',ui-monospace,monospace">lock_guard — RAII again</text><text x="470" y="112" text-anchor="middle" font-size="11" fill="#34d399" font-family="'Space Grotesk','Inter',sans-serif">atomic: lock-free for simple types</text><text x="470" y="135" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">one-sentence test: is the shared state</text><text x="470" y="153" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">a single value? → atomic. An invariant</text><text x="470" y="168" text-anchor="middle" font-size="10" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">across values? → mutex.</text></svg><figcaption>Fig. M6 — x++ is three machine steps; without synchronization, updates get lost.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-6"> <span>Mark module 6 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Launch and join <code>std::thread</code> workers and pass data safely between threads.</li>
+            <li>Protect shared state with <code>std::mutex</code>/std::lock_guard and avoid deadlocks with consistent lock ordering or std::scoped_lock (C++17).</li>
+            <li>Use <code>std::atomic</code> for lock-free counters and flags, and explain the data-race rule in plain language.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5><code>std::thread</code> lifecycle: join vs detach</h5>
+          <p><code>std::thread</code> launches a thread running a callable; you must either join() it (wait for completion) or detach() it (let it run independently) before the thread object is destroyed — destroying a joinable thread terminates the program. Joining is the norm; detaching is for fire-and-forget background work whose lifetime you have genuinely reasoned about.</p>
+          <p>The capstone&#x27;s thread pool joins everything at shutdown: no detached threads, no orphaned work. A thread you cannot join is a thread you cannot reason about.</p>
+          <h5>Data races are undefined behavior</h5>
+          <p>A data race — two threads accessing the same memory, at least one writing, with no synchronization — is undefined behavior in C++, not merely a timing bug. The compiler may assume races never happen and optimize accordingly, which is why the checkpoint&#x27;s counter loses increments: x++ compiles to load-add-store, and two threads&#x27; load-add-store sequences interleave, each overwriting the other&#x27;s increment.</p>
+          <p>The hardware-level two sentences: each core loads x into its cache, increments its private copy, and stores it back; when both threads load before either stores, one increment is silently lost. ThreadSanitizer exists to catch exactly this — run it before you theorize.</p>
+          <h5><code>std::mutex</code>, std::lock_guard, std::unique_lock</h5>
+          <p>A mutex serializes access to shared state: lock it, touch the data, unlock it. lock_guard is RAII for the simple case — locks on construction, unlocks on destruction, exception-safe by construction. unique_lock adds flexibility (deferred locking, timed tries, manual unlock) for the cases lock_guard cannot express.</p>
+          <p>The rule is lock_guard by default: its very inflexibility prevents the forgotten-unlock bug. Reach for unique_lock only when you need its features — condition variables being the classic case.</p>
+          <h5>std::scoped_lock for multi-mutex acquisition (C++17)</h5>
+          <p>Acquiring two mutexes in opposite orders in different threads is the textbook deadlock: each thread holds one lock and waits forever for the other. std::scoped_lock acquires multiple mutexes atomically in a deadlock-safe order — the lab&#x27;s deliberate deadlock, fixed in one line.</p>
+          <p>The deeper discipline is consistent lock ordering everywhere, with scoped_lock as the enforcement mechanism. If your design needs more than two locks held simultaneously, reconsider the design; if it genuinely does, scoped_lock every acquisition site.</p>
+          <h5><code>std::atomic</code> and lock-free programming basics</h5>
+          <p><code>std::atomic</code>&lt;T&gt; makes individual operations (load, store, increment, compare-exchange) indivisible — the counter lab&#x27;s fix is <code>std::atomic</code>&lt;int&gt;, and the total comes out exact. Atomics are the right tool for simple shared state: counters, flags, and lock-free algorithms built on compare-exchange loops.</p>
+          <p>The one-sentence test from the checkpoint: if the shared state fits in one atomic operation, use an atomic; if the operation spans multiple variables that must change together, use a mutex. The lab&#x27;s second shared variable proves the boundary — one atomic plus one plain variable is still a race.</p>
+          <h5>Memory ordering at a high level</h5>
+          <p>Atomic operations default to sequential consistency — every thread observes a single global order of operations, the intuitive model. Weaker orderings (acquire/release, relaxed) permit more hardware reordering for performance, at the cost of reasoning difficulty.</p>
+          <p>For this sequence: use the default unless you can prove the weaker ordering safe and the performance matters. Memory-ordering bugs are among the hardest to diagnose in existence; the default ordering exists so most code never has to think about them.</p>
+          <h5>Condition variables</h5>
+          <p>std::condition_variable lets a thread sleep until another thread signals that some condition holds — the producer/consumer queue&#x27;s &#x27;wait until the queue is non-empty.&#x27; Always wait in a loop re-checking the predicate (spurious wakeups are real), and always hold the associated mutex while checking and waiting.</p>
+          <p>The pattern is fixed: lock, while (!ready) cv.wait(lock), consume, unlock; producer: lock, produce, unlock, notify. Deviate from the pattern and you get lost wakeups or data races — the lab&#x27;s queue is the pattern to memorize.</p>
+          <h5>ThreadSanitizer as the ground truth</h5>
+          <p><code>-fsanitize=thread</code> instruments memory accesses to detect data races at runtime, reporting the two threads, the memory location, and both stack traces. It is the ground truth for &#x27;is this actually race-free&#x27; — reasoning is not, code review is not, testing is not.</p>
+          <p>Run the full test suite under TSan as standard practice (the capstone requires it), alongside ASan/UBSan runs. Note the constraint: TSan and ASan cannot combine in one build — run them as separate configurations, which is what the CMake Debug/Sanitizer presets are for.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — The race, measured. Two threads increment a plain int 1M times each; run 5 times, record the varying wrong totals. Rebuild with <code>-fsanitize=thread</code>, capture the race report. Fix with <code>std::atomic</code> and confirm the exact expected total.</li>
+            <li>Lab 2 — Deadlock, then scoped_lock. Implement a producer/consumer queue with mutex + condition_variable. Deliberately deadlock by acquiring two mutexes in opposite orders; detect the hang, fix with std::scoped_lock and consistent ordering.</li>
+            <li>Lab 3 — Thread pool. Build a tiny thread pool: N workers, a task queue of std::function&lt;void()&gt;, shutdown flag. Submit 100 tasks, verify each runs exactly once, shut down cleanly with all threads joined — no detach.</li>
+            <li>Lab 4 — One atomic is not enough. Add a second shared variable updated alongside the atomic counter without synchronization; show with TSan that the race persists, then protect both under one mutex.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="Two threads each run &lt;code&gt;x++&lt;/code&gt; one million times on a">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Two threads each run <code>x++</code> one million times on a plain <code>int x = 0</code>. Which outcome is possible?</p>
+<pre class="ilw-code"><code>x++  × 1,000,000      x++  × 1,000,000
+thread A              thread B</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m6" id="ilw-cpp-m6-0">
+<label class="ilw-lab" for="ilw-cpp-m6-0"><span class="ilw-key">A</span><span>Exactly 2,000,000 — increments cannot be lost</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> They can: <code>x++</code> is load–modify–store, and two threads can load the same value before either stores. Lost updates are the textbook data race.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m6" id="ilw-cpp-m6-1">
+<label class="ilw-lab" for="ilw-cpp-m6-1"><span class="ilw-key">B</span><span>Less than 2,000,000</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — every interleaving where both threads load before either stores loses one increment. The result is 2,000,000 minus the number of lost updates. This is a data race: undefined behavior, silently wrong.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m6" id="ilw-cpp-m6-2">
+<label class="ilw-lab" for="ilw-cpp-m6-2"><span class="ilw-key">C</span><span>More than 2,000,000</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Increments cannot be duplicated by a race — only lost. (Overflow past INT_MAX would be UB of a different kind, not extra counts.)</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m6" id="ilw-cpp-m6-3">
+<label class="ilw-lab" for="ilw-cpp-m6-3"><span class="ilw-key">D</span><span>Compile error: x must be atomic</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The compiler accepts it without complaint — data races are a <em>runtime</em> semantic violation, not a syntax error. ThreadSanitizer (<code>-fsanitize=thread</code>) is what catches it.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>Two threads each do x++ on a plain int one million times and the result is 1,432,887. Explain precisely what went wrong at the hardware level, in two sentences.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">At the hardware level <code>x++</code> is load–modify–store: both threads can load the same value, each add one, and each store — one increment is lost. The final count equals 2,000,000 minus the number of lost updates. No crash, no warning: the operations interleave silently, which is why the result is merely <em>wrong</em> (1,432,887) instead of loudly broken.</div></details></li><li>When is <code>std::atomic</code> the right tool versus a mutex, and what is the one-sentence test?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Use <code>std::atomic</code> when the shared state is a single value with simple operations (counters, flags) — lock-free and cheap. Use a <code>mutex</code> when an <em>invariant across multiple values</em> must hold (transfer between two accounts). One-sentence test: 'is the shared state one value, or a relationship between values?'</div></details></li><li>Your program hangs intermittently. Name the two most likely concurrency causes and the tool/flag you would use to confirm each.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The two usual suspects: <strong>deadlock</strong> (two threads each holding one lock and waiting on the other) and a <strong>data race / livelock</strong> on an unprotected flag. Confirm deadlock with gdb: attach and <code>thread apply all bt</code> to see who waits on what. Confirm a race with ThreadSanitizer: rebuild with <code>-fsanitize=thread</code> and let it name the racing accesses.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m7-h">
+        <p class="il-eyebrow">Module 7</p>
+        <h3 class="il-h il-h--card" id="m7-h">Build systems with CMake</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 255" role="img" aria-label="CMake out-of-source build layout" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="40" width="200" height="120" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="130" y="65" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">source tree</text><text x="130" y="90" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">CMakeLists.txt</text><text x="130" y="112" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">main.cpp  util.cpp</text><text x="130" y="134" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">tests/</text><defs><marker id="ilm14" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="230" y1="100" x2="300" y2="100" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm14)"/><text x="265" y="88" text-anchor="middle" font-size="10" fill="#d4af37" font-family="'Space Grotesk','Inter',sans-serif">configure</text><rect x="300" y="40" width="310" height="120" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="455" y="65" text-anchor="middle" font-size="12" fill="#d4af37" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">build/  (out-of-source)</text><text x="455" y="90" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">app   ← add_executable</text><text x="455" y="112" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">libutil ← add_library</text><text x="455" y="134" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">tests ← enable_testing</text><rect x="30" y="185" width="580" height="55" rx="8" fill="#0d1626" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="320" y="208" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">target_link_libraries(app PRIVATE util) — PRIVATE: use it, do not propagate it</text><text x="320" y="230" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">in-source builds pollute the tree — cmake -B build keeps it clean</text></svg><figcaption>Fig. M7 — Configure once into build/; the source tree stays pristine.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-7"> <span>Mark module 7 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write a CMakeLists.txt for a multi-target project: library, executable, and tests.</li>
+            <li>Manage dependencies with find_package and target-based commands (<code>target_link_libraries</code>, target_include_directories).</li>
+            <li>Configure Debug vs Release builds and pass the project to a second machine or CI cleanly.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Out-of-source builds</h5>
+          <p>Building in a separate directory from the sources keeps generated files (objects, binaries, CMake cache) out of the source tree: the repo stays clean, multiple configurations (Debug, Release, sanitizer builds) coexist as sibling directories, and &#x27;clean&#x27; is rm -rf build. In-source builds pollute the tree and make configuration switches unreliable.</p>
+          <p>The lab proves reproducibility the hard way: delete the build directory, rebuild from scratch, get the same binary. If your build cannot survive that, it is not a build system — it is a hope.</p>
+          <h5>Targets, not variables: modern CMake practice</h5>
+          <p>Modern CMake describes targets (libraries, executables) and their properties; legacy CMake set global variables. The difference matters because targets carry their requirements with them: include directories, compile options, and link dependencies propagate to dependents automatically.</p>
+          <p>The checkpoint&#x27;s PUBLIC/PRIVATE question is the mechanism: PRIVATE means &#x27;needed to build this target&#x27;; PUBLIC means &#x27;needed to build this target and anyone linking it.&#x27; Get the propagation right and downstream targets just link — no manual -I flags, no ordering rituals.</p>
+          <h5>target_include_directories / <code>target_link_libraries</code> with PUBLIC/PRIVATE</h5>
+          <p>target_include_directories declares a target&#x27;s header search paths with a scope; <code>target_link_libraries</code> declares its library dependencies with a scope. PUBLIC propagates to consumers, PRIVATE does not, INTERFACE propagates without applying to the target itself.</p>
+          <p>The lab&#x27;s compile-fail test makes scope tangible: link a dependency PRIVATE to one target and prove a second target cannot see its headers. Scoping is dependency hygiene — every over-exposed include directory is a coupling you will regret.</p>
+          <h5>find_package for system libraries</h5>
+          <p>find_package(LibName) locates an installed library and exposes it as an imported target with its include paths and link requirements already configured. It replaces hand-rolled Find modules and pkg-config guesswork for well-behaved libraries.</p>
+          <p>Prefer config-mode packages shipped by the library; fall back to module mode only when the library provides none. Either way, the consuming code just <code>target_link_libraries</code> against the imported target.</p>
+          <h5>CMAKE_BUILD_TYPE and generator expressions</h5>
+          <p>Single-configuration generators (Make, Ninja) take CMAKE_BUILD_TYPE=Debug or Release to select optimization and debug-info flags. Generator expressions ($&lt;CONFIG:Debug&gt;) evaluate per-configuration inside multi-config generators (Visual Studio, Ninja Multi-Config) — the portable way to say &#x27;this flag only in Debug.&#x27;</p>
+          <p>The checkpoint&#x27;s Debug-works-Release-crashes triage starts here: optimization level, NDEBUG (which disables assert), and any config-specific flags. The lab&#x27;s dual build directories make the comparison mechanical.</p>
+          <h5>FetchContent for vendored dependencies</h5>
+          <p>FetchContent downloads a dependency at configure time and builds it as part of your project — vendoring without submodules or system installs. It is ideal for small header-only libraries and for pinning exact dependency versions in CI.</p>
+          <p>The tradeoff is configure-time cost and network dependence; for large dependencies, prefer find_package against a system install. The lab&#x27;s header-only FetchContent exercise shows the sweet spot.</p>
+          <h5>CTest integration</h5>
+          <p>CTest is CMake&#x27;s test runner: enable_testing(), add_test() registering executables, and ctest runs them all with pass/fail reporting. Tests become part of the build — &#x27;the full build fails on test failure&#x27; is not a slogan but a property of the lab&#x27;s setup.</p>
+          <p>Wire tests in from the start, not at the end: a test suite that runs with every build is a living specification; one that runs manually is a wish.</p>
+          <h5>Install rules and package basics</h5>
+          <p>install() rules declare what gets deployed — binaries, headers, libraries — and where; CPack can turn those rules into distributable packages. Even for learning projects, writing install rules forces you to decide what your project&#x27;s public surface is.</p>
+          <p>The capstone does not require packaging, but a project with install rules is a project someone else can actually use. It is the difference between code and software.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Makefile to CMake. Convert a hand-rolled Makefile (or raw g++ commands) project with lib/ and app/ split into CMake. Build out-of-source, delete the build directory, rebuild from scratch to prove reproducibility.</li>
+            <li>Lab 2 — PRIVATE scope, proven. Add a third-party dependency via FetchContent, link it PRIVATE to one target, and verify a second target cannot see its headers (compile-fail test). Document what the failure proves.</li>
+            <li>Lab 3 — Debug vs Release sanitizers. Set up two build dirs: Debug with <code>-fsanitize=address</code>,undefined and Release with -O2. Run the same test binary under both; document any behavioral difference and explain it.</li>
+            <li>Lab 4 — The missing source. Add a new .cpp file without listing it in CMakeLists, observe the stale build, fix it, and note the lesson about globbing versus explicit source lists.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="Which commands produce a proper out-of-source build?">
+<p class="ilw-q"><strong>Lab check — predict.</strong> Which commands produce a proper out-of-source build?</p>
+<pre class="ilw-code"><code>cmake -B build          # then: cmake --build build</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m7" id="ilw-cpp-m7-0">
+<label class="ilw-lab" for="ilw-cpp-m7-0"><span class="ilw-key">A</span><span>cmake . &amp;&amp; make — simplest is best</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That is an <em>in-source</em> build: generated files land in the source tree, polluting it and risking accidental commits. It works, but it is the practice this module tells you to stop using.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m7" id="ilw-cpp-m7-1">
+<label class="ilw-lab" for="ilw-cpp-m7-1"><span class="ilw-key">B</span><span>cmake -B build, then cmake --build build</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — <code>-B build</code> directs all generated files into <code>build/</code>; the source tree stays pristine and Debug/Release directories can coexist side by side.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m7" id="ilw-cpp-m7-2">
+<label class="ilw-lab" for="ilw-cpp-m7-2"><span class="ilw-key">C</span><span>mkdir build &amp;&amp; make</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Without running <code>cmake</code> in <code>build/</code> there are no generated Makefiles to run — <code>make</code> has nothing to do.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m7" id="ilw-cpp-m7-3">
+<label class="ilw-lab" for="ilw-cpp-m7-3"><span class="ilw-key">D</span><span>cmake --build . --clean-first</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> That builds in-source and only cleans first — the tree is still polluted with fresh artifacts immediately after.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>Why are out-of-source builds the standard practice, and what breaks if you build in-source?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Out-of-source builds (<code>cmake -B build</code>) keep every generated file — objects, caches, Makefiles — out of the source tree. In-source builds pollute the tree with artifacts that get committed by accident, confuse incremental rebuilds, and make <code>git clean</code> dangerous. Separate build directories also let Debug and Release configurations coexist.</div></details></li><li>PUBLIC vs PRIVATE in <code>target_link_libraries</code>: what does each propagate, and to whom?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>PRIVATE</code>: the dependency is used to build this target only — it is not propagated to consumers. <code>PUBLIC</code>: the dependency is used by this target <em>and</em> propagated to anything linking this target (include paths, compile definitions, transitive links). Use <code>PRIVATE</code> by default; <code>PUBLIC</code> only when your headers expose the dependency's headers.</div></details></li><li>Your CI builds Debug fine but Release crashes. List three build-configuration differences you would check first.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Check: (1) <code>NDEBUG</code> / assert behavior — asserts vanish in Release, masking logic that 'worked' in Debug; (2) optimization level — <code>-O2/-O3</code> exposes undefined behavior and uninitialized reads that <code>-O0</code> hid; (3) iterator debugging / <code>_GLIBCXX_DEBUG</code> — Debug builds check container preconditions that Release skips, so an out-of-bounds access crashes only in Release. Sanitizers in a RelWithDebInfo build find it fast.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m8-h">
+        <p class="il-eyebrow">Module 8</p>
+        <h3 class="il-h il-h--card" id="m8-h">Testing and debugging: sanitizers, gdb, and unit tests</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 245" role="img" aria-label="Sanitizer-instrumented build producing a runtime report" xmlns="http://www.w3.org/2000/svg"><text x="200" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">compile with instrumentation</text><rect x="60" y="50" width="280" height="44" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="200" y="77" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">g++ -fsanitize=address,undefined -g</text><defs><marker id="ilm15" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#d4af37" stroke-width="1.6"/></marker></defs><line x1="340" y1="72" x2="400" y2="72" stroke="#d4af37" stroke-width="2" marker-end="url(#ilm15)"/><rect x="400" y="50" width="180" height="44" rx="8" fill="#111a2e" stroke="#d4af37" stroke-width="1.5" opacity="1.0"/><text x="490" y="77" text-anchor="middle" font-size="12" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">instrumented app</text><rect x="60" y="125" width="520" height="105" rx="8" fill="#1a0d0d" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="148" text-anchor="middle" font-size="12" fill="#f87171" font-weight="600" font-family="'JetBrains Mono',ui-monospace,monospace">== ERROR: heap-buffer-overflow ==</text><text x="320" y="172" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">#0  in process(char*) app.cpp:42</text><text x="320" y="194" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">#1  in main app.cpp:17</text><text x="320" y="216" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">tests passing ≠ memory safe — the sanitizer sees what tests miss</text></svg><figcaption>Fig. M8 — Sanitizers turn silent corruption into a loud, line-numbered report.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-8"> <span>Mark module 8 complete</span></label></p>
+        <div class="il-prose">
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Write unit tests for C++ code with a lightweight framework and run them under CTest.</li>
+            <li>Use AddressSanitizer, UndefinedBehaviorSanitizer, and ThreadSanitizer to find bugs tests miss.</li>
+            <li>Drive gdb (or lldb) to get backtraces, inspect variables, and set conditional breakpoints.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Unit test structure: arrange/act/assert</h5>
+          <p>A unit test arranges preconditions, acts on the unit under test, and asserts the outcome — three phases, each visible. Tests that mix phases become unreadable; tests that assert multiple unrelated behaviors become undebuggable.</p>
+          <p>The capstone&#x27;s &#x27;meaningful assertions&#x27; requirement is this discipline graded: each test names one behavior and verifies it precisely. A test suite is executable documentation — write it as carefully as the code.</p>
+          <h5>CTest as the test runner</h5>
+          <p>CTest runs the test executables CMake registers and reports pass/fail per test — the &#x27;make the full build fail on test failure&#x27; property from the CMake module. CI runs ctest; developers run ctest; the suite is the gate.</p>
+          <p>Keep tests fast and hermetic: a suite that takes an hour or depends on the network does not get run. The tests you actually run are the only tests that protect you.</p>
+          <h5>AddressSanitizer: heap/stack/global overflows, use-after-free</h5>
+          <p>ASan instruments every memory access and catches spatial and temporal errors at runtime: heap, stack, and global buffer overflows, use-after-free, use-after-return, double-free, leaks (with LeakSanitizer). The checkpoint&#x27;s paradox — tests pass but ASan reports an overflow — resolves here: the test never read the corrupted memory in a way that changed the outcome, but the bug is real regardless.</p>
+          <p>Tests verify behavior; sanitizers verify correctness. You need both, because passing tests prove the code did the right thing this time, while a clean sanitizer run proves it did not cheat to get there.</p>
+          <h5>UndefinedBehaviorSanitizer: signed overflow, null deref, misalignment</h5>
+          <p>UBSan instruments the language-level UB classes: signed integer overflow, null pointer dereference, misaligned access, out-of-bounds on known sizes, and more. It catches the bugs that are &#x27;not memory errors&#x27; but are still undefined — the ones that make optimizers miscompile.</p>
+          <p>Run ASan and UBSan together routinely (they compose); add TSan as a separate configuration (it does not compose with ASan). The three-sanitizer matrix is the capstone&#x27;s bar and should become your default.</p>
+          <h5>ThreadSanitizer: data races</h5>
+          <p>TSan detects data races at runtime with precise reports — the two threads, the location, both stacks. It is the only reliable way to verify concurrent code: reasoning about interleavings does not scale, and stress-testing finds races by luck.</p>
+          <p>The plant-a-race lab teaches the report format before you need it under pressure: read one TSan report carefully now, and the 3 AM race later becomes a thirty-minute fix instead of a three-day mystery.</p>
+          <h5>gdb: backtrace, frame, print, break, watch</h5>
+          <p>The C module&#x27;s gdb curriculum transfers directly: break stops at locations, watch stops on data changes, catch stops on events (exceptions, syscalls) — the checkpoint&#x27;s three-way distinction. backtrace shows the call stack, frame selects one, print inspects.</p>
+          <p>C++ adds name-mangled symbols and template-heavy stacks to the reading, but the workflow is identical: reproduce, break near the fault, inspect, understand. The debugger does not change; only the code it reads gets more expressive.</p>
+          <h5>Core dumps and post-mortem debugging</h5>
+          <p>Same discipline as C: enable cores, load the core in gdb, read the backtrace without re-running. Production C++ crashes rarely reproduce in the lab — the core dump is often the only witness.</p>
+          <p>For the capstone, know how to get a core from your system before you need one. Post-mortem skill is what separates &#x27;it crashed in prod&#x27; from &#x27;here is the faulting line and the fix.&#x27;</p>
+          <h5>Fuzzing at a glance: libFuzzer/AFL concept</h5>
+          <p>Fuzzing feeds generated inputs to your code under sanitizers, hunting for crashes automatically — the force-multiplier beyond handwritten tests. libFuzzer (in-process, LLVM) and AFL (coverage-guided, general) are the standard tools; the concept to take from this module is the workflow: fuzz target + sanitizer + corpus = bugs found while you sleep.</p>
+          <p>You are not required to fuzz the capstone, but knowing the concept exists changes how you write parsers and input handling: every input boundary is a future fuzz target. Write code you would not fear fuzzing.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — Tests pass, sanitizers fail. Take a small string-utility module with 3 planted bugs (off-by-one heap overflow, use-after-free, signed integer overflow). Write unit tests that pass despite the bugs, run under ASan+UBSan, fix each reported bug. Write down why the tests missed each one.</li>
+            <li>Lab 2 — gdb on C++. Debug a segfaulting program with gdb: backtrace, walk frames, print the offending pointer, set a watchpoint on the corrupted variable. Record the exact command sequence you used.</li>
+            <li>Lab 3 — CTest wiring. Write a minimal test suite for the Matrix class from the templates module, wire it into CMake via CTest, and make the full build fail on test failure.</li>
+            <li>Lab 4 — Plant a race. Plant a data race in test-adjacent code, run the suite under ThreadSanitizer, read the race report (threads, location, stacks), and fix it.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="ASan aborts with &lt;code&gt;ERROR: heap-buffer-overflow&lt;/code&gt; on">
+<p class="ilw-q"><strong>Lab check — predict.</strong> ASan aborts with <code>ERROR: heap-buffer-overflow</code> on a write past a heap array. Which build flag produced this report?</p>
+<pre class="ilw-code"><code>g++ -g app.cpp -o app   # plus one sanitizer flag</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m8" id="ilw-cpp-m8-0">
+<label class="ilw-lab" for="ilw-cpp-m8-0"><span class="ilw-key">A</span><span>-fsanitize=address</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — AddressSanitizer instruments heap/stack/global accesses and reports overflows, use-after-free, and leaks with a stack trace. (It cannot run in the same build as ThreadSanitizer.)</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m8" id="ilw-cpp-m8-1">
+<label class="ilw-lab" for="ilw-cpp-m8-1"><span class="ilw-key">B</span><span>-fsanitize=thread</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> ThreadSanitizer finds <em>data races</em>, not buffer overflows. It would stay silent about this write.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m8" id="ilw-cpp-m8-2">
+<label class="ilw-lab" for="ilw-cpp-m8-2"><span class="ilw-key">C</span><span>-fsanitize=undefined</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> UBSan catches undefined behavior like signed overflow and misaligned access — but plain out-of-bounds heap writes are ASan's territory.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m8" id="ilw-cpp-m8-3">
+<label class="ilw-lab" for="ilw-cpp-m8-3"><span class="ilw-key">D</span><span>-Wall -Wextra</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> Warning flags are compile-time heuristics; this overflow is only visible at <em>runtime</em>, which is exactly why sanitizers exist.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li>Your tests pass but ASan reports a heap-buffer-overflow in code the tests cover. Explain how both can be true.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Both can be true because tests check <em>behavior</em> and ASan checks <em>memory validity</em>: the overflow wrote past the buffer but the bytes it clobbered happened to be unused padding or an adjacent allocation the test never read. The program produced the right answer <em>by luck</em> — ASan sees the invalid access the test's assertions cannot.</div></details></li><li>Name the sanitizer for each: use-after-free, signed integer overflow, data race.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">Use-after-free → <strong>AddressSanitizer</strong> (<code>-fsanitize=address</code>); signed integer overflow → <strong>UBSan</strong> (<code>-fsanitize=undefined</code>); data race → <strong>ThreadSanitizer</strong> (<code>-fsanitize=thread</code>). (ASan and TSan cannot be combined in one build — run them as separate configurations.)</div></details></li><li>In gdb, what is the difference between break, watch, and catch, and when would you use each?
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>break</code> stops at a line or function (code location); <code>watch</code> stops when a variable's <em>value changes</em> (data location — the classic use-after-free and corruption hunter); <code>catch</code> stops on events like exceptions thrown/caught or syscalls. Use break to reach code, watch to find who corrupts data, catch to intercept throws.</div></details></li></ol>
+        </div>
+      </article>
+      <article class="il-module" aria-labelledby="m9-h">
+        <p class="il-eyebrow">Module 9</p>
+        <h3 class="il-h il-h--card" id="m9-h">Parallel C++17/20 and HPX: execution policies to distributed futures</h3>
+<figure class="il-fig"><svg viewBox="0 0 640 220" role="img" aria-label="Parallel execution policies and the synchronization you still owe" xmlns="http://www.w3.org/2000/svg"><text x="150" y="30" text-anchor="middle" font-size="12" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">sequential — one lane</text><rect x="40" y="50" width="220" height="36" rx="8" fill="#111a2e" stroke="#8b96ab" stroke-width="1.5" opacity="1.0"/><text x="150" y="73" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">for each element…</text><text x="420" y="30" text-anchor="middle" font-size="12" fill="#7ed4e0" font-weight="600" font-family="'Space Grotesk','Inter',sans-serif">std::execution::par — four lanes</text><rect x="320" y="50" width="200" height="28" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="420" y="69" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">worker 0</text><rect x="320" y="84" width="200" height="28" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="420" y="103" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">worker 1</text><rect x="320" y="118" width="200" height="28" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="420" y="137" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">worker 2</text><rect x="320" y="152" width="200" height="28" rx="8" fill="#111a2e" stroke="#7ed4e0" stroke-width="1.5" opacity="1.0"/><text x="420" y="171" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'JetBrains Mono',ui-monospace,monospace">worker 3</text><rect x="40" y="120" width="560" height="60" rx="8" fill="#1a0d0d" stroke="#f87171" stroke-width="1.5" opacity="1.0"/><text x="320" y="143" text-anchor="middle" font-size="12" fill="#f87171" font-family="'JetBrains Mono',ui-monospace,monospace">shared counter++ under par → data race (the policy parallelizes, YOU synchronize)</text><text x="320" y="165" text-anchor="middle" font-size="11" fill="#e8eef5" font-family="'Space Grotesk','Inter',sans-serif">std::jthread: joins on destruction + cooperative stop_token — thread&#x27;s two sharp edges, removed</text><text x="320" y="205" text-anchor="middle" font-size="11" fill="#8b96ab" font-family="'Space Grotesk','Inter',sans-serif">HPX: futures as the unit of distributed work — MPI ranks vs HPX lightweight tasks</text></svg><figcaption>Fig. M9 — par buys you lanes, not correctness: shared mutable state still needs protection.</figcaption></figure>
+<p class="ilw-done"><label><input type="checkbox" data-il-progress="cpp-engineering.v1:module-9"> <span>Mark module 9 complete</span></label></p>
+        <div class="il-prose">
+          <p><em>This module is the advanced extension. Work it after modules 1–8 (it depends on module 6&#x27;s concurrency and module 7&#x27;s CMake), alongside or after the capstone. It follows the argument of the Parallel C++ textbook — practical parallel programming with the C++17/20 standards, extended to distributed systems with HPX — and tests that argument against the alternatives instead of taking it on faith.</em></p>
+          <h4>Learning objectives</h4>
+          <ul>
+            <li>Parallelize standard-library algorithms with C++17/20 execution policies and state precisely what a policy guarantees — and what it does not.</li>
+            <li>Replace hand-rolled <code>std::thread</code> patterns with <code>std::jthread</code> and cooperative cancellation via std::stop_token.</li>
+            <li>Explain why the standard future is a thin primitive, and what continuations, dataflow, and coroutines add to it.</li>
+            <li>Describe HPX from its own documentation: a standards-shaped runtime that extends the C++ concurrency model to the distributed case.</li>
+            <li>Contrast MPI&#x27;s message-passing model with HPX&#x27;s asynchronous task model accurately, without caricaturing either.</li>
+          </ul>
+          <h4>Key concepts</h4>
+          <h5>Execution policies: the one-argument upgrade (&lt;execution&gt;)</h5>
+          <p>Since C++17, most standard algorithms accept an execution policy as the first argument: std::sort(<code>std::execution::par</code>, v.begin(), v.end()) asks the implementation to parallelize. seq is explicitly sequential, par permits multi-threaded execution, par_unseq permits threads plus vectorization, and C++20 adds unseq — vectorization on the calling thread. The change to your code is one argument and one include.</p>
+          <p>What the policy does not do is make unsafe code safe. A data race under <code>std::execution::par</code> is still undefined behavior — the policy adds threads, not synchronization. And the vectorizing policies impose a contract on your element function: it must be vectorization-safe (no locks, no I/O, no allocation in the hot path), because the implementation may interleave and reorder invocations. The policy is a permission slip, not a proof of correctness — run parallelized code under TSan exactly as module 6 taught you.</p>
+          <h5><code>std::jthread</code> and cooperative cancellation (C++20)</h5>
+          <p><code>std::jthread</code> fixes the two sharpest edges of <code>std::thread</code>. First, it joins in its destructor — the &#x27;destroy a joinable thread and the program terminates&#x27; trap from module 6 disappears. Second, it carries a std::stop_token: the worker periodically checks token.stop_requested(), and whoever owns the thread calls request_stop() to ask it to wind down.</p>
+          <p>Cancellation is cooperative, not preemptive — nothing is killed mid-instruction; the worker chooses its own safe stopping points. That is the only sane model in C++ (there is no safe forced thread kill), and jthread makes it the default shape instead of a hand-rolled flag. Prefer jthread for every new thread; <code>std::thread</code> remains for the cases where you explicitly want the old semantics.</p>
+          <h5>The standard future is a thin primitive</h5>
+          <p>std::async launches work and returns a std::future — but .get() blocks the calling thread until the result arrives, and the standard provides no continuations: there is no .then(&#x27;when this finishes, run that&#x27;). So standard futures compose poorly: chains of dependent async work become chains of blocked threads. This is a real, acknowledged gap — continuations were explored in the Concurrency TS and never adopted into the standard.</p>
+          <p>The missing piece is exactly what the async runtimes provide: futures you can attach continuations to, dataflow constructs that fire when all inputs are ready, and coroutines (next) that suspend instead of blocking. When you read HPX&#x27;s future API, read it as the answer to this section&#x27;s complaint — hpx::future with .then, hpx::dataflow, and co_await integration.</p>
+          <h5>Coroutines (C++20): suspend, don&#x27;t block</h5>
+          <p>A C++20 coroutine is a function that can suspend its own execution — co_await pauses until some awaitable is ready, co_yield produces values lazily, co_return finishes. Unlike threads, coroutines are stackless: suspending one costs no OS thread and blocks no worker; the machinery resumes it when the awaited thing completes.</p>
+          <p>The language supplies only the hooks; the behavior is defined by library code (the promise type), which is why coroutines feel like a framework feature wearing language syntax. For this module the takeaway is architectural: coroutines are how async code waits without blocking — the mechanism that lets a few threads drive thousands of in-flight operations, which is precisely the regime HPX is built for.</p>
+          <h5>HPX: the standard library, extended to the cluster</h5>
+          <p>HPX describes itself as &#x27;a C++ Standard Library for Concurrency and Parallelism&#x27;: it implements the concurrency and parallelism facilities defined by the C++ standard, implements features proposed in the ongoing standardization process, and — the distinctive move — extends the C++ standard APIs to the distributed case. The API is deliberately modeled on the C++11/14/17/20 interfaces, so standard-shaped code (futures, parallel algorithms, executors) ports to HPX with minimal rewriting. It is developed by the STE||AR group at LSU&#x27;s Center for Computation and Technology, published under the Boost Software License 1.0, and is a member project of the High-Performance Software Foundation.</p>
+          <p>Underneath, HPX is an asynchronous many-task runtime implementing the ParalleX execution model: lightweight user-level threads (the project&#x27;s claim is hundreds of millions of them), future- and dataflow-based synchronization instead of barriers and locks, and a guiding preference for moving work to data rather than data to work. The pitch is that one programming model — standard C++ async — scales from a laptop to a cluster without switching languages or libraries.</p>
+          <h5>Distributed actions: one syntax, local and remote</h5>
+          <p>HPX&#x27;s headline feature is that local and remote operations share syntax and semantics. The unit of distributed work is the action: you name a function, invoke it on a remote locality (node), and get a future back — an hpx::async targeting a remote id reads almost exactly like the local call. Parcelports (the transport layer) move the work; futures and dataflow compose it.</p>
+          <p>The mental shift: in HPX you don&#x27;t &#x27;send a message and wait for a reply&#x27; — you invoke remote work and hold a future for its result, then chain continuations that overlap communication with computation. Whether that model outperforms explicit messaging depends on the application, but the programmability claim is concrete: distributed code written in the same vocabulary as the local async code from the earlier concepts.</p>
+          <h5>MPI, accurately: a standard, not a strawman</h5>
+          <p>MPI — the Message Passing Interface — is a specification for a library interface, not an implementation and not a language. It was defined through an open process by the MPI Forum (vendors, computer scientists, application developers) and exists as multiple independent implementations: Open MPI, MPICH, Intel MPI, MVAPICH, and others. Its model is explicit message passing between processes with separate address spaces — point-to-point sends and receives, collective operations, communicators, one-sided access, parallel I/O. It is the proven, production standard for distributed-memory HPC, and its stated goals are practicality, portability, efficiency, and flexibility.</p>
+          <p>The Parallel C++ textbook&#x27;s argument — attributed here, not adopted as this guide&#x27;s verdict — is that with C++17/20&#x27;s parallel features plus HPX&#x27;s distributed extensions, you get a higher-level C++ interface to distributed programming than explicit message passing: async tasks and futures instead of sends, receives, and ranks. Treat that as a serious design thesis worth testing, not a dismissal: MPI&#x27;s explicitness is also its strength (predictable performance, universal availability on clusters). The honest comparison is programming models with different tradeoffs, and this module&#x27;s labs give you hands-on contact with one side of it.</p>
+          <h5>The alternatives shelf: oneTBB, Kokkos, SYCL</h5>
+          <p>HPX is not the only answer to &#x27;standard C++ isn&#x27;t quite enough.&#x27; Intel&#x27;s oneTBB is a C++ template library for task-based parallelism on CPUs — computations broken into tasks that the library schedules across cores, and the task scheduler that several standard-library parallel-algorithm implementations build on. Kokkos is a C++ performance-portability programming model from the HPC world: abstractions for parallel execution and data management that retarget across backends — CUDA, HIP, SYCL, OpenMP, C++ threads, and notably HPX itself — maintained as a Linux Foundation project.</p>
+          <p>SYCL is the Khronos Group&#x27;s open standard for single-source C++ heterogeneous programming: host and device code in one translation unit targeting CPUs, GPUs, and accelerators, with SYCL 2020 based on C++17 and aligned toward the ISO C++ roadmap. The landscape&#x27;s shape: oneTBB for CPU task parallelism, Kokkos for portable performance across node architectures, SYCL for heterogeneous offload, HPX for distributed async — overlapping, composable in places, each with a real community behind it.</p>
+          <h4>Hands-on labs</h4>
+          <ol>
+            <li>Lab 1 — The policy benchmark. Take std::transform over a 10M-element vector with a genuinely expensive element function; time seq, par, and par_unseq. Then add a shared non-atomic counter to the element function and show the policy neither prevents the race nor warns you — confirm with TSan. Write the rule in your bug log.</li>
+            <li>Lab 2 — jthread shutdown. Rework the module-6 thread-pool worker (or a single worker loop) to <code>std::jthread</code> with a stop_token: the main thread calls request_stop() and the destructor joins. Demonstrate that no manual join call and no hand-rolled atomic flag were needed.</li>
+            <li>Lab 3 — Feel the blocking future. Chain two dependent stages with std::async and .get(); observe the calling thread blocked between stages. Sketch (pseudocode is fine) how .then-style continuations would restructure it into non-blocking stages — then read the HPX docs&#x27; dataflow example and compare.</li>
+            <li>Lab 4 — HPX hello, for real. Follow the HPX quick-start guide: install HPX (a package-manager build is fine), compile and run the hello-world example from the documentation, and report what the runtime prints about its OS threads versus the lightweight tasks you created. Note the build cost honestly — this is a large library; the lab is about the model, not production deployment.</li>
+          </ol>
+<div class="ilw" role="group" aria-label="You add &lt;code&gt;std::execution::par&lt;/code&gt; to a loop that does">
+<p class="ilw-q"><strong>Lab check — predict.</strong> You add <code>std::execution::par</code> to a loop that does <code>total += f(x)</code> on a shared <code>long total</code>. The total comes out wrong. Why?</p>
+<pre class="ilw-code"><code>std::for_each(std::execution::par, v.begin(), v.end(),
+                [&amp;](int x){ total += f(x); });</code></pre>
+<div class="ilw-opts">
+<input class="ilw-in" type="radio" name="ilw-cpp-m9" id="ilw-cpp-m9-0">
+<label class="ilw-lab" for="ilw-cpp-m9-0"><span class="ilw-key">A</span><span>The par policy is broken — file a bug</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> The policy did exactly what it promised: it ran your callable on multiple threads. The bug is in the callable, not the policy.</p>
+<input class="ilw-in ilw-ok" type="radio" name="ilw-cpp-m9" id="ilw-cpp-m9-1">
+<label class="ilw-lab" for="ilw-cpp-m9-1"><span class="ilw-key">B</span><span>Data race on total — the policy parallelizes, you synchronize</span></label>
+<p class="ilw-fb"><strong>Correct.</strong> Correct — <code>total +=</code> is read–modify–write across lanes with no synchronization. Fix with an atomic, a mutex, or (best) a reduction: <code>std::transform_reduce(std::execution::par, ...)</code>.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m9" id="ilw-cpp-m9-2">
+<label class="ilw-lab" for="ilw-cpp-m9-2"><span class="ilw-key">C</span><span>par requires the lambda to be noexcept</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> No such requirement — the requirement is on <em>your</em> code: no data races, no iterator invalidation during the algorithm. Exception-safety is your design concern, not a policy mandate.</p>
+<input class="ilw-in" type="radio" name="ilw-cpp-m9" id="ilw-cpp-m9-3">
+<label class="ilw-lab" for="ilw-cpp-m9-3"><span class="ilw-key">D</span><span>for_each cannot take an execution policy</span></label>
+<p class="ilw-fb"><strong>Not quite.</strong> It can — every standard parallel algorithm has an overload taking an execution policy as its first argument. That overload is precisely what you called.</p>
+</div>
+<p class="ilw-note">Select an answer — feedback appears instantly, entirely in your browser.</p>
+</div>
+          <h4>Self-check questions</h4>
+          <ol><li><code>std::execution::par</code> is added to a loop with a shared counter, and the total comes out wrong. The policy did exactly what it promised — explain why the bug is yours, not the policy&#x27;s.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">The policy did exactly what it promised: it ran your loop body on multiple threads. But <code>counter++</code> is read–modify–write, so the lanes raced on the shared counter and increments were lost. <code>par</code> parallelizes the <em>iteration</em>; synchronizing the <em>shared state</em> is still your job — use an atomic, a mutex, or better, a reduction (<code>std::reduce</code> / <code>transform_reduce</code>) instead of a shared counter.</div></details></li><li>Name the two sharp edges of <code>std::thread</code> that <code>std::jthread</code> removes, and explain why cancellation must be cooperative.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody"><code>std::jthread</code> (1) <strong>joins on destruction</strong> — <code>std::thread</code>'s destructor calls <code>terminate</code> if the thread is still joinable, the classic 'forgot to join' crash; and (2) it carries a <strong>stop_token</strong> for cooperative cancellation. Cancellation must be cooperative because forcibly killing a thread would abandon mutexes and leak resources — the thread itself must poll the token and unwind cleanly.</div></details></li><li>In one paragraph each: what is MPI&#x27;s unit of distributed work, and what is HPX&#x27;s? Then state one genuine strength of each model that the other does not share.
+<details class="ilw-ans"><summary>Answer key</summary><div class="ilw-ansbody">MPI's unit of work is the <strong>rank</strong>: a separate process (often on another machine) communicating by explicit messages. HPX's unit is the <strong>lightweight task / future</strong>: fine-grained work that migrates across cores and nodes inside one program. MPI's genuine strength: it runs across machines with no shared memory, the lingua franca of clusters. HPX's genuine strength: it overlaps communication with computation automatically through futurization, hiding latency the programmer would otherwise manage by hand.</div></details></li></ol>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="capstone-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Capstone</p>
+        <h2 class="il-h il-h--section" id="capstone-h">Prove it: the capstone project.</h2>
+      </div>
+      <div class="il-prose">
+        <p>Design and build a concurrent, tested C++20 utility of your choosing — a multithreaded file hasher, a parallel word-frequency analyzer, or a small TCP echo server are all good choices. Requirements from the curriculum: a CMake build with Debug/Release configurations; RAII resource handling with zero raw new/delete; STL algorithms over hand loops; at least one class template or concept-constrained function; a thread pool or worker threads with sanitizer-clean runs (ASan/UBSan/TSan); a CTest suite with meaningful assertions; and a README documenting the C++ standard features used per module and how each sanitizer run came back clean.</p>
+        <p>Deliverable: a git repo link or archive plus a one-page writeup of the hardest bug the sanitizers caught. That writeup is the real deliverable — it proves you can find, understand, and fix the bugs that separate C++ that compiles from C++ that is correct.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="resources-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Resources</p>
+        <h2 class="il-h il-h--section" id="resources-h">Open and free sources.</h2>
+      </div>
+      <div class="il-prose">
+        <h3>Official curriculum source (supplemental)</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/w/cpp">https://en.cppreference.com/w/cpp</a> — the official curriculum this study guide is keyed to. The guide teaches the same ground in original prose; consult the source for the authoritative material.</li>
+        </ul>
+        <h3>Module references</h3>
+        <ul>
+          <li><a href="https://en.cppreference.com/w/cpp/language">https://en.cppreference.com/w/cpp/language</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp">https://en.cppreference.com/w/cpp</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/memory">https://en.cppreference.com/w/cpp/memory</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/container">https://en.cppreference.com/w/cpp/container</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/algorithm">https://en.cppreference.com/w/cpp/algorithm</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/thread">https://en.cppreference.com/w/cpp/thread</a></li>
+          <li><a href="https://cmake.org/documentation/">https://cmake.org/documentation/</a></li>
+          <li><a href="https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug.html">https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug.html</a></li>
+          <li><a href="https://docs.hpx.dev/latest/html/index.html">https://docs.hpx.dev/latest/html/index.html</a> — HPX documentation (quick start, examples, manual)</li>
+          <li><a href="https://github.com/TheHPXProject/hpx">https://github.com/TheHPXProject/hpx</a> — the HPX source repository</li>
+          <li><a href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag">https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag</a> — C++ execution policies reference</li>
+          <li><a href="https://www.mpi-forum.org/">https://www.mpi-forum.org/</a> — the MPI Forum, home of the Message Passing Interface standard</li>
+          <li><a href="https://github.com/uxlfoundation/onetbb">https://github.com/uxlfoundation/onetbb</a> — Intel oneTBB, task-based parallelism for CPUs</li>
+          <li><a href="https://kokkos.org">https://kokkos.org</a> — Kokkos C++ performance-portability programming model</li>
+          <li><a href="https://www.khronos.org/blog/sycl-2020-what-do-you-need-to-know">https://www.khronos.org/blog/sycl-2020-what-do-you-need-to-know</a> — SYCL 2020, Khronos single-source C++ for heterogeneous programming</li>
+        </ul>
+      </div>
+      <div class="il-prose">
+        <h3>Recommended reading (external — no affiliation)</h3>
+        <ul>
+          <li><a href="https://link.springer.com/book/10.1007/978-3-031-54369-2">Parallel C++: Efficient and Scalable High-Performance Parallel Programming Using HPX</a> — Patrick Diehl, Steven R. Brandt, Hartmut Kaiser (Springer, 2024). The graduate-level textbook this module&#x27;s arc follows; recommended by the HPX project itself. Book code examples: <a href="https://github.com/ModernCPPBook/Examples">github.com/ModernCPPBook/Examples</a>.</li>
+        </ul>
+        <h3>Other free resources</h3>
+        <ul>
+          <li><a href="https://www.learncpp.com/">learncpp.com</a> — a free, comprehensive C++ tutorial widely used alongside the reference</li>
+        </ul>
+      </div>
+      <div class="il-center" style="margin-top:2.5rem">
+        <a class="il-btn il-btn--gold" href="/learn/">Back to all tracks</a>
+      </div>
+    </div>
+  </section>
+      <div class="il-prose" style="margin-top:2rem">
+        <p><em>This page is an original study guide written for the Interstitium Labs Learning OS, keyed to the public C++ language reference. It teaches the same ground in original prose with hands-on labs; it does not reproduce the official reference. Module 9 additionally points to the HPX project&#x27;s own documentation and to an external textbook as recommended reading — Interstitium Labs is not affiliated with the HPX project, Springer, or any named library, and this guide confers no certification. For the authoritative material, consult the official curriculum source above.</em></p>
+      </div>
+
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="final-exam-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Final assessment</p>
+        <h2 class="il-h il-h--section" id="final-exam-h">Scenario exam — prove the sequence.</h2>
+      </div>
+      <div class="il-prose">Fifteen original scenario questions across all nine modules — the same bug classes you met in the labs, now wearing disguises. Your score is saved in this browser and misses remediate into <a href="/adapt/">Adapt</a> and <a href="/coach/">Noah</a>. These scenarios are written for this sequence; they are not real exam questions from any certification.</div>
+      <div data-il-exam="cpp-engineering"></div>
+      <script type="application/json" data-il-exam-bank>[{"id": "ex-cpp-odr", "domain": "Compilation Model", "stem": "A non-inline function is defined in a header included by two translation units. Link result?", "choices": [{"key": "A", "text": "Multiple-definition linker error — move the definition to one .cpp, leave a declaration in the header"}, {"key": "B", "text": "Links fine — headers are exempt from the ODR"}, {"key": "C", "text": "Compile error in the second TU"}, {"key": "D", "text": "Links, and each TU gets its own copy"}], "answer": "A", "why": "Only inline, template, and constexpr functions may be defined identically in many TUs. Everything else: one definition.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20one-definition%20rule%20and%20inline%20exceptions%20(C++%20Module%201)."}}, {"id": "ex-cpp-rule0", "domain": "RAII", "stem": "A class holds only std::string, std::vector<int>, and std::unique_ptr<Config> members and declares no special member functions. What are its copy/move semantics?", "choices": [{"key": "A", "text": "Correct Rule of Zero: copy/move/destroy are compiler-generated and do the right thing"}, {"key": "B", "text": "It cannot be copied because unique_ptr is present — but also cannot be moved"}, {"key": "C", "text": "The destructor is implicitly deleted"}, {"key": "D", "text": "It leaks unless you write a destructor"}], "answer": "A", "why": "Each member manages itself, so the generated operations compose correctly. unique_ptr makes the class move-only — which is the right answer for an owning class.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20Rule%20of%20Zero%20and%20what%20member%20types%20allow%20it%20(C++%20Module%202)."}}, {"id": "ex-cpp-dtor", "domain": "RAII", "stem": "You add a logging destructor to an otherwise resource-free class. What happens to the implicit move operations?", "choices": [{"key": "A", "text": "They are suppressed — the class becomes copy-only (deprecated copy generation may apply)"}, {"key": "B", "text": "Nothing — moves are still generated"}, {"key": "C", "text": "Only the move constructor is suppressed"}, {"key": "D", "text": "The destructor becomes virtual automatically"}], "answer": "A", "why": "Any user-declared destructor suppresses implicit move generation. Prefer = default on the moves, or move the logging into a member.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20why%20a%20custom%20destructor%20suppresses%20implicit%20moves%20(C++%20Module%202)."}}, {"id": "ex-cpp-weak", "domain": "Smart Pointers", "stem": "A cache owns objects via shared_ptr; UI panels must observe them without extending their lifetime. The observer should hold…", "choices": [{"key": "A", "text": "weak_ptr — lock() yields a temporary shared_ptr, null after expiry"}, {"key": "B", "text": "shared_ptr — sharing is always safe"}, {"key": "C", "text": "A raw pointer — simplest"}, {"key": "D", "text": "unique_ptr — exclusive observation"}], "answer": "A", "why": "weak_ptr observes without owning; shared_ptr would pin the lifetime (and risk cycles); raw pointers dangle silently.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20weak_ptr%20observers%20and%20breaking%20ownership%20cycles%20(C++%20Module%202)."}}, {"id": "ex-cpp-remove", "domain": "STL", "stem": "After std::remove(v.begin(), v.end(), x) on a vector, what must you do to actually shrink the vector?", "choices": [{"key": "A", "text": "v.erase(std::remove(v.begin(), v.end(), x), v.end()); — the remove–erase idiom"}, {"key": "B", "text": "Nothing — remove shrinks it"}, {"key": "C", "text": "Call v.shrink_to_fit()"}, {"key": "D", "text": "Call std::erase(v, x) — C++26 only"}], "answer": "A", "why": "Algorithms cannot change container size; remove only reorders. erase with the returned iterator does the shrinking.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20remove–erase%20idiom%20(C++%20Module%203)."}}, {"id": "ex-cpp-inval", "domain": "STL", "stem": "After v.erase(it) on std::vector<int> v, which iterators stay valid?", "choices": [{"key": "A", "text": "Only iterators before the erased element — everything at/after is invalidated by the shift"}, {"key": "B", "text": "All iterators except it"}, {"key": "C", "text": "All iterators — erase never invalidates"}, {"key": "D", "text": "None — the vector is unusable after erase"}], "answer": "A", "why": "Contiguous containers shift elements left, invalidating positions at and after the erasure. (std::list invalidates only the erased node.)", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20iterator%20invalidation:%20vector%20vs%20list%20(C++%20Module%203)."}}, {"id": "ex-cpp-move", "domain": "Move Semantics", "stem": "What does std::move(x) itself do?", "choices": [{"key": "A", "text": "Casts x to an rvalue reference — it moves nothing by itself; the move constructor/assignment does the work"}, {"key": "B", "text": "Copies x's bytes into a temporary"}, {"key": "C", "text": "Deletes x's resources immediately"}, {"key": "D", "text": "Swaps x with a default-constructed object"}], "answer": "A", "why": "std::move is a cast enabling overload resolution to pick the move operations. No bytes move until those run.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20std::move%20as%20a%20cast%20and%20what%20performs%20the%20move%20(C++%20Module%204)."}}, {"id": "ex-cpp-noexcept", "domain": "Move Semantics", "stem": "A move constructor is not marked noexcept. What does std::vector do when it must grow?", "choices": [{"key": "A", "text": "Falls back to copying every element — moves might throw mid-growth, breaking exception safety"}, {"key": "B", "text": "Moves anyway — noexcept is documentation only"}, {"key": "C", "text": "Refuses to compile"}, {"key": "D", "text": "Aborts at runtime"}], "answer": "A", "why": "Growth needs the strong guarantee; only noexcept moves qualify. Mark move operations noexcept or pay copy costs forever.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20noexcept%20move%20constructors%20and%20vector%20growth%20(C++%20Module%204)."}}, {"id": "ex-cpp-fwd", "domain": "Templates", "stem": "template<typename T> void f(T&& x); called with an int lvalue. What is T?", "choices": [{"key": "A", "text": "int& — forwarding references deduce T as lvalue-reference for lvalues"}, {"key": "B", "text": "int"}, {"key": "C", "text": "int&&"}, {"key": "D", "text": "const int&"}], "answer": "A", "why": "Reference collapsing: T&& with T=int& becomes int&. For an rvalue argument, T deduces to plain int.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20forwarding%20references%20and%20reference%20collapsing%20(C++%20Module%204/5)."}}, {"id": "ex-cpp-concept", "domain": "Templates", "stem": "Why does a concept-constrained template usually diagnose misuse better than a static_assert inside the body?", "choices": [{"key": "A", "text": "The concept is checked at the call site, naming the violated requirement where you called it"}, {"key": "B", "text": "static_assert cannot appear in templates"}, {"key": "C", "text": "Concepts make compilation faster, which fixes diagnostics"}, {"key": "D", "text": "There is no difference"}], "answer": "A", "why": "Fail fast at the boundary: the error points at your call and the named requirement, not at library internals pages deep.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20concepts%20vs%20static_assert%20diagnostics%20(C++%20Module%205)."}}, {"id": "ex-cpp-atomic", "domain": "Concurrency", "stem": "One-sentence test: when is std::atomic the right tool instead of a mutex?", "choices": [{"key": "A", "text": "When the shared state is a single value with simple operations — counters, flags"}, {"key": "B", "text": "Always — atomics replace all mutexes"}, {"key": "C", "text": "When you need to protect an invariant across several variables"}, {"key": "D", "text": "Never — atomics are slower than mutexes"}], "answer": "A", "why": "Atomics cover single values; invariants spanning multiple values need a mutex's critical section.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20atomic-vs-mutex%20one-sentence%20test%20(C++%20Module%206)."}}, {"id": "ex-cpp-tsan", "domain": "Concurrency", "stem": "Intermittent wrong results under threads, no crash, no hang. Which tool confirms the cause fastest?", "choices": [{"key": "A", "text": "Rebuild with -fsanitize=thread — ThreadSanitizer names the racing accesses"}, {"key": "B", "text": "Add more threads until it crashes"}, {"key": "C", "text": "Run under gdb and step both threads"}, {"key": "D", "text": "Compile with -O0 and hope"}], "answer": "A", "why": "TSan instruments memory accesses and reports the exact racing pair with stack traces. Stepping threads in gdb rarely reproduces timing races.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20ThreadSanitizer%20for%20data%20races%20(C++%20Modules%206/8)."}}, {"id": "ex-cpp-cmake", "domain": "Build Systems", "stem": "In target_link_libraries(mylib PUBLIC otherlib), what does PUBLIC propagate, and to whom?", "choices": [{"key": "A", "text": "Usage requirements (includes, definitions, link) to anything linking mylib — because mylib's headers expose otherlib"}, {"key": "B", "text": "Nothing — PUBLIC is the same as PRIVATE"}, {"key": "C", "text": "Only the final link line, to the executable"}, {"key": "D", "text": "It makes otherlib header-only"}], "answer": "A", "why": "PUBLIC = use it AND propagate it. PRIVATE = use it without propagating. Default to PRIVATE.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20PUBLIC%20vs%20PRIVATE%20in%20target_link_libraries%20(C++%20Module%207)."}}, {"id": "ex-cpp-asan", "domain": "Testing", "stem": "Which sanitizer catches use-after-free, and can it run in the same build as ThreadSanitizer?", "choices": [{"key": "A", "text": "AddressSanitizer (-fsanitize=address); no — ASan and TSan need separate builds"}, {"key": "B", "text": "UBSan; yes, always combine them"}, {"key": "C", "text": "Valgrind is the only tool; sanitizers cannot do it"}, {"key": "D", "text": "AddressSanitizer; yes, combine freely"}], "answer": "A", "why": "ASan owns memory errors (UAF, overflows, leaks); TSan owns races. Their runtimes conflict, so run two configurations.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20the%20sanitizer%20roster:%20ASan,%20UBSan,%20TSan%20(C++%20Module%208)."}}, {"id": "ex-cpp-jthread", "domain": "Parallelism", "stem": "What two sharp edges of std::thread does std::jthread remove?", "choices": [{"key": "A", "text": "Destructor joins instead of terminate, and it carries a stop_token for cooperative cancellation"}, {"key": "B", "text": "It runs faster and uses less memory"}, {"key": "C", "text": "It removes the need for mutexes"}, {"key": "D", "text": "It makes threads copyable"}], "answer": "A", "why": "Forgetting join() on std::thread calls terminate; jthread joins automatically and adds a standard cancellation channel.", "remediate": {"adapt": "/adapt/#session", "coach": "/coach/?prompt=Re-teach%20me%20jthread%20vs%20thread%20(C++%20Module%209)."}}]</script>
+    </div>
+  </section>
+
+
+  <hr class="il-rule"/>
+  <section class="il-section" aria-labelledby="continue-h">
+    <div class="il-wrap">
+      <div class="il-section__head">
+        <p class="il-eyebrow">Next steps</p>
+        <h2 class="il-h il-h--section" id="continue-h">Continue the journey.</h2>
+      </div>
+      <div class="il-prose"><p>No dead ends: the sequence continues. Take your capstone proof and your exam score into the next track.</p></div>
+      <div class="il-center" style="margin-top:1.6rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <a class="il-btn il-btn--gold" href="/learn/sequences/java-core/">Continue to → Java Core</a>
+        <a class="il-btn" href="/learn/">All tracks</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">ABOUT</a>
+      <a href="/founders/">FOUNDERS</a>
+      <a href="/learn/">LEARN</a>
+      <a href="/university/">UNIVERSITY</a>
+      <a href="/prep/">PREP</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/paths/">PATHS</a>
+      <a href="/labs/">LABS</a>
+      <a href="/noah/">Noah</a>
+      <a href="/adapt/">ADAPT</a>
+      <a href="/enroll/">ENROLL</a>
+      <a href="/play/">PLAY</a>
+    </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+<script src="/assets/noah-full.js" defer></script>
+<script src="/assets/il-exam.js" defer></script>
+<script src="/assets/il-progress.js" defer></script>
+</body>
+</html>

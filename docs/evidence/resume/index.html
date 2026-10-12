@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
@@ -20,13 +21,13 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Interstitium Labs"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/><link rel="stylesheet" href="/assets/il-fx.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
 <style>
   pre { overflow-x: auto; background: #0c1222; border: 1px solid rgba(232,238,245,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.55; color: #e8eef5; margin: 1rem 0; }
   code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85em; }
@@ -41,9 +42,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   .toc a { display: block; padding: 0.35rem 0; color: #8b9bb4; }
   .toc a:hover { color: #e8eef5; }
 </style>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+</head>
 <body class="min-h-dvh bg-void text-paper">
 <a class="il-skip" href="#main">Skip to content</a>
 <div class="flex min-h-dvh flex-col bg-void text-paper">
@@ -51,35 +52,38 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
-      <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
-      <a href="/about/">About Us</a>
-      <a href="https://learn.interstitiumlabs.dev">University</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <details class="il-menu">
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
-          <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
-          <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
-          <a href="/enroll/">Admissions</a>
-          <a href="/about/">About Us</a>
-          <a href="https://learn.interstitiumlabs.dev">University</a>
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
         </div>
       </details>
       <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
     </div>
   </div>
 </nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/evidence/">Evidence</a></li><li aria-current="page">Resume Highlights</li></ol></nav>
 <main id="main" class="flex-1">
 <section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
 <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Evidence · Resume highlights</p>
@@ -89,27 +93,52 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 <article class="prose-il mx-auto max-w-3xl px-5 py-14 sm:px-8">
 <h2 class="font-display text-3xl tracking-[-0.03em]">Enmanuel D. Mejia</h2>
-<p class="mt-4 text-muted">Founder of Interstitium Labs. The work is the record. A fuller file is not published here.</p>
+<p class="mt-2 text-muted">Founder and DevSecOps/Full-Stack Developer — Interstitium Labs</p>
+<p class="mt-6">This page exists because a founder's claim is only as good as the record behind it. The record is not a narrative. It is the shipped work: the flagship site you're standing on, the bootcamp catalog behind it, the repos, the labs, the employment history. Everything listed here is verifiable. A fuller file — references, transcripts, offers — is not published here; it is produced on request, because some parts of a record are private by default.</p>
+<h3 class="font-display text-2xl tracking-[-0.02em] mt-10">Work is the record</h3>
+<p class="mt-4">The strongest line on any resume is a URL that resolves. The Interstitium Labs platform — the flagship curriculum OS at <a class="text-cyan" href="/">interstitiumlabs.dev</a>, the university at <a class="text-cyan" href="/university/">learn.interstitiumlabs.dev</a>, the interactive bootcamp catalog, the DevOps SuperLab, and the portfolio sites — is built, deployed, and live. The code is on <a class="text-cyan" href="https://github.com/EnmanuelMejia">GitHub</a>. Those projects carry the real evidence of engineering: pipelines that run, pages that render on a phone, deployments that survive production traffic. Claims about craft are easy; this page prefers pointers.</p>
+<h3 class="font-display text-2xl tracking-[-0.02em] mt-10">What the vault holds</h3>
+<p class="mt-4">The evidence vault is deliberately thin and deliberately honest. It holds this highlights file and a <a class="text-cyan" href="/evidence/withdrawn-note/">withdrawn-application note</a> — the one correction on the record, kept visible instead of edited out. The career file behind it spans IT operations, engineering support, and telecom implementation across Fidelity Investments, Intel, Comcast Business, Philips, and Data Vimenca, alongside the founder's work at Interstitium Labs. Education on file: ITT Technical Institute (A.S.), University of Phoenix (B.S., Business Management and Finance), and Boston University's post-bachelor's Computer Science certificate. CompTIA A+ CE, valid through 2027.</p>
+<h3 class="font-display text-2xl tracking-[-0.02em] mt-10">How to read this file</h3>
+<p class="mt-4">Read it the way a hiring manager would: as a set of leads, not a verdict. Every item points somewhere checkable — a live site, a repo, a credential with an expiry date. What you won't find here: inflated titles, credentials that were never earned, or a certificate claimed for any of this site's practice, prep, or demo pages — study here builds skill, not letters after a name. For the full founder narrative, see <a class="text-cyan" href="/founders/">the founders page</a>; for the radar that started all of this, the same page carries the Student Zero record.</p>
 </article>
 
 </main>
-<footer class="no-print border-t border-paper/10">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
-  <!-- lang switcher also auto-injected by ILi18n -->
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
 </div>
-<script src="/assets/il-compat.js" defer></script>
-<script src="/assets/il-fx.js?v=heal2" defer></script>
-<script src="/assets/il-i18n.js" defer></script>
-<script src="/assets/noah-ai.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-compat.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-i18n.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

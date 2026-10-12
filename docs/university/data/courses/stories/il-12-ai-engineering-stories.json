@@ -1,0 +1,117 @@
+{
+ "course": "il-12-ai-engineering",
+ "stories": [
+  {
+   "bridge": "Credit assignment solved — that is the whole miracle. Now let's learn to wield it: the chain rule at scale, and the optimizers that ride it.",
+   "course": "il-12-ai-engineering",
+   "figures": [
+    {
+     "dates": "1942–2011",
+     "name": "David Rumelhart",
+     "role": "Psychologist; co-author of the 1986 backpropagation paper"
+    },
+    {
+     "dates": "b. 1947",
+     "name": "Geoffrey Hinton",
+     "role": "Computer scientist; co-author of the 1986 paper"
+    },
+    {
+     "dates": "",
+     "name": "Ronald Williams",
+     "role": "Computer scientist; co-author of the 1986 paper"
+    },
+    {
+     "dates": "b. 1947",
+     "name": "Seppo Linnainmaa",
+     "role": "First published the reverse-mode differentiation method (1970)"
+    },
+    {
+     "dates": "b. 1946",
+     "name": "Paul Werbos",
+     "role": "Applied reverse-mode differentiation to neural networks (1974)"
+    }
+   ],
+   "hook": "In 1986, three researchers published the algorithm that taught neural networks to learn from their mistakes.",
+   "id": "il-12-ai-engineering-story-1",
+   "moduleId": "aieng-deep-learning--backprop-optimization",
+   "narrative": "David Rumelhart, Geoffrey Hinton, and Ronald Williams published 'Learning representations by back-propagating errors' in Nature in 1986. The problem it solved was credit assignment, the deepest puzzle in neural computation: when a network with millions of weights makes an error, which weights are to blame, and by how much? Their answer was the chain rule from calculus, applied backwards — propagate the error from the output layer back through the network, assigning each weight its precise share of the blame, then nudge every weight a little against the error. Networks could suddenly learn internal representations on their own: hidden layers that discovered edges, then shapes, then concepts, with no human telling them what to look for. The demonstrations were electric — a network that learned to pronounce English text, one that discovered the structure of family relationships from examples. Here's the honest footnote this course insists on: the mathematics wasn't new in 1986. Seppo Linnainmaa had published reverse-mode automatic differentiation in his 1970 master's thesis in Finland, and Paul Werbos had applied it to neural networks in his 1974 Harvard PhD thesis — both largely ignored. What Rumelhart, Hinton, and Williams did was demonstrate, clearly and compellingly, that it worked on interesting problems — and the field ignited. The 1980s connectionist revival, the long march to AlexNet, and everything since runs on their procedure. Backpropagation is still the engine: every gradient update in every model you'll train in this course, from the smallest MLP to the largest transformer, is the 1986 procedure running, differentiated in reverse. Learn it deeply — the chain rule, the backward pass, why depth helps and why gradients vanish — because everything else in deep learning is commentary on this algorithm. The 1986 paper's most quoted promise was that networks would \"learn their own representations\" — and the decades since have been the fulfillment of that promise, from edges to objects to language itself. Hinton, who kept the faith through two AI winters, shared the 2018 Turing Award for it. When your loss curve bends downward in this module, you're watching 1986 happen again, one gradient at a time.",
+   "title": "The story behind backpropagation",
+   "verifiedClaims": [
+    "Rumelhart, Hinton, and Williams published 'Learning representations by back-propagating errors' in Nature, 1986",
+    "Linnainmaa published reverse-mode differentiation in 1970; Werbos applied it to neural nets in his 1974 thesis"
+   ]
+  },
+  {
+   "bridge": "2012 is when deep learning stopped being a research curiosity and became the industry. Now let's learn the convolutional machinery that started it.",
+   "course": "il-12-ai-engineering",
+   "figures": [
+    {
+     "dates": "b. 1986",
+     "name": "Alex Krizhevsky",
+     "role": "Lead author of the AlexNet paper"
+    },
+    {
+     "dates": "b. 1986",
+     "name": "Ilya Sutskever",
+     "role": "Co-author; later co-founder of OpenAI"
+    },
+    {
+     "dates": "b. 1947",
+     "name": "Geoffrey Hinton",
+     "role": "Co-author; deep learning pioneer"
+    }
+   ],
+   "hook": "In September 2012, a neural network entered the ImageNet competition — and humiliated every other approach in the field.",
+   "id": "il-12-ai-engineering-story-2",
+   "moduleId": "aieng-deep-learning--cnns",
+   "narrative": "The ImageNet Large Scale Visual Recognition Challenge was the Olympics of computer vision: classify 1.2 million images into a thousand categories, from Siberian huskies to strawberry desserts. For years, progress came from hand-engineered features — SIFT descriptors, careful pipelines, support vector machines — each year's winner a little better than the last. Then Alex Krizhevsky, a graduate student working with Ilya Sutskever and Geoffrey Hinton at the University of Toronto, submitted a deep convolutional network trained on two consumer GPUs — GTX 580s, the kind gamers used, running hot in a dorm-room-style setup. AlexNet's top-5 error rate was 15.3%. The runner-up, built on all the traditional methods, managed 26.2%. It wasn't a win; it was a phase change — a gap so large it ended an era in a single afternoon. The ingredients had all existed for years: convolutional layers (Yann LeCun, 1989), backpropagation (1986), GPUs, and the ImageNet dataset itself (Fei-Fei Li's great labeling effort, 2009). But nobody had combined them at this scale with this much data and these engineering tricks: ReLU activations that trained faster, dropout regularization, aggressive data augmentation. Within a year, every serious vision lab had switched to deep learning; within five, the techniques had conquered speech recognition, machine translation, and game playing. The paper, presented at NIPS 2012, became one of the most cited in all of science. For the AI engineer, AlexNet is the founding myth with a moral: breakthroughs come not from a single new idea but from scaling old ideas past a threshold — with the engineering discipline to make the scale work. That discipline — the architectures, the training loops, the GPU wrangling — is what this module teaches. The dataset mattered as much as the network: Fei-Fei Li's ImageNet, built by paying thousands of workers to label millions of images, was the fuel without which the architecture couldn't have proven itself. Data, compute, algorithm — AlexNet was the first proof that the three multiply. Every training run you'll launch in this course is that same multiplication, and the discipline is in managing all three at once.",
+   "title": "The story behind AlexNet",
+   "verifiedClaims": [
+    "AlexNet won ImageNet 2012 with 15.3% top-5 error vs 26.2% for the runner-up",
+    "It was trained on two consumer GPUs by Krizhevsky, Sutskever, and Hinton",
+    "The paper was presented at NIPS 2012"
+   ]
+  },
+  {
+   "bridge": "Attention is all you need — and now it's all you'll build with. Let's learn the architecture from the inside: queries, keys, values, and why it scales.",
+   "course": "il-12-ai-engineering",
+   "figures": [
+    {
+     "dates": "",
+     "name": "Ashish Vaswani et al.",
+     "role": "Eight researchers at Google Brain/Research; authors of 'Attention Is All You Need'"
+    }
+   ],
+   "hook": "In 2017, eight researchers published a paper with a defiant title: 'Attention Is All You Need.'",
+   "id": "il-12-ai-engineering-story-3",
+   "moduleId": "aieng-generative-ai--transformers-attention",
+   "narrative": "The team — Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan Gomez, Łukasz Kaiser, and Illia Polosukhin — worked at Google Brain and Google Research on machine translation. The dominant architectures were recurrent: LSTMs and their cousins read sequences step by step, which made them slow to train and bad at long-range dependencies — by the time the network reached the end of a paragraph, the beginning had faded. The paper, presented at NIPS 2017, proposed throwing recurrence away entirely. Instead, every position in the sequence would directly attend to every other position, weighing relevance with learned attention weights — queries asking, keys answering, values delivering — all of it massively parallel, all of it startlingly effective. The Transformer beat the best translation systems while training far faster, and the architecture diagram — those stacked encoder and decoder blocks — became the most reproduced figure in AI. What followed is the history you're living through: BERT (2018) showed the encoder half could deeply understand language; GPT showed the decoder half could generate it; the scaling laws showed that bigger models, fed more data and compute, kept getting better with eerie predictability. Every large language model in existence — the ones you'll fine-tune, serve, quantize, and build agents on in this course — is a Transformer or its descendant. The paper's title was a provocation aimed at the recurrent establishment; it turned out to be a prophecy. Your job as an AI engineer starts where 2017 ended: the architecture is settled, the frontier is what you build on top of it, and this module is where you learn its machinery from the inside out. The paper's eight authors scattered to found or lead much of the industry you now inhabit — startups, labs, and the next architectures. None of them, by their own accounts, predicted the scale of what followed; they were trying to translate German better. The lesson for the AI engineer: the most consequential work often looks like a narrow engineering improvement. Build the better translation system; the era may follow.",
+   "title": "The story behind the Transformer",
+   "verifiedClaims": [
+    "'Attention Is All You Need' was presented at NIPS 2017 by eight Google researchers",
+    "It replaced recurrence with self-attention for sequence modeling"
+   ]
+  },
+  {
+   "bridge": "ELIZA is the ancestor of every prompt you'll write. Now let's learn prompt engineering properly — with the knowledge that the machine has been playing therapist since 1966.",
+   "course": "il-12-ai-engineering",
+   "figures": [
+    {
+     "dates": "1923–2008",
+     "name": "Joseph Weizenbaum",
+     "role": "MIT professor; creator of ELIZA"
+    }
+   ],
+   "hook": "In 1966, an MIT program played therapist — and people confessed their secrets to it.",
+   "id": "il-12-ai-engineering-story-4",
+   "moduleId": "aieng-generative-ai--prompt-engineering",
+   "narrative": "Joseph Weizenbaum's ELIZA, described in the Communications of the ACM in January 1966, was almost embarrassingly simple: a pattern-matching program with a script called DOCTOR that reflected the user's statements back as questions. 'I am sad' became 'How long have you been sad?' 'My mother hates me' became 'Tell me more about your family.' There was no understanding, no model of mind, no memory worthy of the name — just clever text manipulation exploiting the fact that a Rogerian therapist mostly listens. And yet people poured their hearts out to it. Weizenbaum's own secretary, who had watched him build the program line by line, asked him to leave the room so she could speak with it privately. Psychiatrists seriously proposed automated therapy. The experience horrified Weizenbaum. He had meant ELIZA as a demonstration of the superficiality of machine conversation — look how little it takes to fool us — and instead it demonstrated the depth of human credulity. He spent the rest of his career as computing's conscience, publishing 'Computer Power and Human Reason' in 1976: a warning that some human functions — therapy, judgment, love — should never be delegated to machines, no matter how fluent the output. The 'ELIZA effect,' our tendency to attribute understanding to fluent text, is the central hazard of your work as an AI engineer, and it has only grown more dangerous as the text has grown more fluent. Every prompt you engineer, every chatbot you ship, inherits both halves of 1966: the technique, and the warning. Weizenbaum built the first chatbot and immediately told us not to trust it. Remember both — especially the second — when your own system starts sounding wise. Weizenbaum's secretary has become the story's emblem — the insider, who knew exactly how the trick worked, asking for privacy with the machine. The ELIZA effect doesn't spare the knowledgeable; it exploits the human, not the ignorant. Your users will confide in your systems too. Design the prompts, the disclosures, and the boundaries with her in mind — she knew it was pattern matching, and she asked him to leave the room anyway.",
+   "title": "The story behind the first chatbot",
+   "verifiedClaims": [
+    "Weizenbaum described ELIZA in CACM, January 1966",
+    "The DOCTOR script used pattern-matching with no real understanding",
+    "Weizenbaum published 'Computer Power and Human Reason' in 1976 as a critique"
+   ]
+  }
+ ]
+}

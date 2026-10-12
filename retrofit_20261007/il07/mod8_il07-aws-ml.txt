@@ -1,0 +1,120 @@
+{
+ "id": "il07-aws-ml",
+ "code": "IL-07",
+ "title": "AWS ML Engineering",
+ "summary": "The AWS Certified Machine Learning Specialty domains: data engineering for ML (feature stores, Glue/EMR prep, labeling with Ground Truth), modeling (SageMaker training, built-in algorithms, hyperparameter tuning), deployment (endpoints, batch transform, multi-model, edge), and MLOps (Pipelines, Model Registry, Monitor, Bedrock for generative AI) — plus exam prep.",
+ "objectives": [
+  "Prepare ML data: Feature Store, Ground Truth labeling, Glue/EMR pipelines.",
+  "Train: SageMaker jobs, built-ins, automatic model tuning.",
+  "Deploy: real-time endpoints, batch, multi-model, monitoring.",
+  "Run MLOps: Pipelines, registry, drift detection, Bedrock GenAI."
+ ],
+ "notes": [
+  {
+   "title": "Data engineering for ML",
+   "body": "**Feature Store** (online/offline consistency — train/serve skew killer), **Ground Truth** (human labeling workflows, active learning), **Glue/EMR** prep at scale.\n\n- Train/serve skew: features computed differently in training vs serving — the silent model killer; Feature Store fixes it\n- Labeling: start with weak supervision/pretrained, escalate to humans for the hard cases\n- Data versioning: the dataset is part of the model artifact — version it"
+  },
+  {
+   "title": "Modeling and deployment",
+   "body": "**SageMaker training**: managed jobs, **built-in algorithms** (XGBoost, BlazingText, DeepAR — know when built-in beats custom), **automatic model tuning** (Bayesian HPO).\n\n**Deployment**: **real-time endpoints** (autoscaling variants), **batch transform** (offline inference), **multi-model endpoints** (many models, one fleet), **inference pipelines** (pre/post-processing chains).\n\n- Built-in vs custom: built-ins win on undifferentiated problems — custom for the novel\n- Multi-model endpoints: cost for many low-traffic models — shared fleet economics\n- Shadow deployments: the new model scores live traffic without serving — safe validation"
+  },
+  {
+   "title": "MLOps, Bedrock, exam",
+   "body": "**MLOps**: **SageMaker Pipelines** (CI/CD for ML), **Model Registry** (versioned, approved models), **Model Monitor** (data/quality drift alerts), lineage tracking.\n\n**Bedrock**: foundation models as API — **Guardrails**, **Knowledge Bases** (managed RAG), **Agents**.\n\n**Exam prep**: the specialty is scenario-dense — data prep → modeling → deployment → operations, with cost and 'least overhead' as tiebreakers.\n\n- Model Monitor: drift alerts are the production ML smoke detector\n- Bedrock vs SageMaker: API convenience vs training control — pick by differentiation\n- The exam's favorite trap: training where inference suffices (use a pretrained/Bedrock first)"
+  }
+ ],
+ "cards": [
+  {
+   "front": "Train/serve skew fix?",
+   "back": "Feature Store: one definition, online + offline — consistency by construction."
+  },
+  {
+   "front": "SageMaker built-ins vs custom?",
+   "back": "Built-in (XGBoost etc.) for undifferentiated problems; custom for novel architectures."
+  },
+  {
+   "front": "Multi-model endpoints?",
+   "back": "Many low-traffic models on one fleet — shared economics."
+  },
+  {
+   "front": "Model Monitor watches?",
+   "back": "Data drift + quality decay in production — the ML smoke detector."
+  },
+  {
+   "front": "Bedrock Knowledge Bases?",
+   "back": "Managed RAG: connect data sources, get retrieval-augmented generation via API."
+  },
+  {
+   "front": "Shadow deployment?",
+   "back": "New model scores live traffic without serving — safe pre-promotion validation."
+  }
+ ],
+ "quiz": [
+  {
+   "q": "Training/serving feature mismatch suspected. Fix?",
+   "choices": [
+    "more data",
+    "Feature Store — single definition",
+    "retrain",
+    "ignore"
+   ],
+   "answer": 1,
+   "explain": "One feature definition for train and serve — skew eliminated structurally."
+  },
+  {
+   "q": "200 low-traffic models, cost-sensitive?",
+   "choices": [
+    "200 endpoints",
+    "multi-model endpoint",
+    "one big model",
+    "batch only"
+   ],
+   "answer": 1,
+   "explain": "Shared fleet economics — multi-model endpoints."
+  },
+  {
+   "q": "Production accuracy decaying, no code change?",
+   "choices": [
+    "bug",
+    "data drift — Model Monitor alerts, retrain pipeline",
+    "hardware",
+    "random"
+   ],
+   "answer": 1,
+   "explain": "The world moved — drift detection + retraining is the MLOps answer."
+  },
+  {
+   "q": "Need GenAI Q&A over docs, minimal ops?",
+   "choices": [
+    "train LLM",
+    "Bedrock Knowledge Bases (managed RAG)",
+    "SageMaker custom",
+    "fine-tune 70B"
+   ],
+   "answer": 1,
+   "explain": "Least overhead: managed RAG via API — train only when differentiated."
+  },
+  {
+   "q": "Label 500k images, budget tight?",
+   "choices": [
+    "all human",
+    "Ground Truth with active learning — humans on the hard cases",
+    "no labels",
+    "random labels"
+   ],
+   "answer": 1,
+   "explain": "Active learning escalates uncertainty to humans — labels where they matter."
+  },
+  {
+   "q": "Validate new model on live traffic safely?",
+   "choices": [
+    "swap",
+    "shadow deployment",
+    "A/B 50/50",
+    "hope"
+   ],
+   "answer": 1,
+   "explain": "Shadow scores without serving — evidence before promotion."
+  }
+ ]
+}

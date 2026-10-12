@@ -4,8 +4,8 @@
     "title": "IL Adaptive Item Bank",
     "targetConcepts": 30,
     "targetItems": 150,
-    "shippedItems": 58,
-    "notes": "Author-estimated a,b (not online IRT calibration). Socratic feedback never dumps answer letter first on wrong picks. Expand toward 150 keeping concept coverage ≥5/topic."
+    "shippedItems": 153,
+    "notes": "Author-estimated a,b (not online IRT calibration). Socratic feedback never dumps answer letter first on wrong picks. Crypto (btc/evm/xrpl/consensus), math (linalg/prob/opt), and SQL (select/agg) concept tracks added 2026-10-04."
   },
   "concepts": [
     {
@@ -277,6 +277,81 @@
       "prereqs": [
         "ctr-images",
         "cicd-pipeline"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "crypto-btc",
+      "title": "Bitcoin protocol",
+      "domain": "crypto",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "crypto-evm",
+      "title": "EVM & Solidity security",
+      "domain": "crypto",
+      "prereqs": [
+        "crypto-btc"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "crypto-xrpl",
+      "title": "XRPL ledger engineering",
+      "domain": "crypto",
+      "prereqs": [
+        "crypto-btc"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "crypto-consensus",
+      "title": "Consensus mechanisms",
+      "domain": "crypto",
+      "prereqs": [
+        "crypto-btc"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "math-linalg",
+      "title": "Linear algebra for ML",
+      "domain": "math",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "math-prob",
+      "title": "Probability & statistics",
+      "domain": "math",
+      "prereqs": [
+        "math-linalg"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "math-opt",
+      "title": "Optimization & calculus",
+      "domain": "math",
+      "prereqs": [
+        "math-linalg"
+      ],
+      "threshold": 0.7
+    },
+    {
+      "id": "sql-select",
+      "title": "SQL SELECT & JOIN",
+      "domain": "sql",
+      "prereqs": [],
+      "threshold": 0.7
+    },
+    {
+      "id": "sql-agg",
+      "title": "SQL aggregation",
+      "domain": "sql",
+      "prereqs": [
+        "sql-select"
       ],
       "threshold": 0.7
     }
@@ -2657,6 +2732,3901 @@
       "tags": [
         "tf",
         "practice"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.bitcoin-has-no-accounts-at-the-protocol-level-w",
+      "type": "mcq",
+      "stem": "Bitcoin has no accounts at the protocol level. What is the unit of value a transaction spends?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "An unspent transaction output (UTXO), identified by txid + output index"
+        },
+        {
+          "key": "B",
+          "text": "An account balance entry in a global state trie"
+        },
+        {
+          "key": "C",
+          "text": "A wallet file on the sender's disk"
+        },
+        {
+          "key": "D",
+          "text": "A coinbase reward voucher"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: value exists only as UTXOs; wallets sum them into a 'balance'.",
+        "B": "That is Ethereum's account model, not Bitcoin's.",
+        "C": "Wallets are local software; the protocol knows only UTXOs.",
+        "D": "Coinbase outputs are one kind of UTXO, not the unit itself."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.a-transaction-has-inputs-totaling-0-5-btc-and-ou",
+      "type": "mcq",
+      "stem": "A transaction has inputs totaling 0.5 BTC and outputs totaling 0.499 BTC. What is the miner fee?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "0.001 BTC — the fee is implicit: inputs minus outputs"
+        },
+        {
+          "key": "B",
+          "text": "0 BTC — there is no fee field"
+        },
+        {
+          "key": "C",
+          "text": "0.5 BTC — the entire input"
+        },
+        {
+          "key": "D",
+          "text": "It is invalid without an explicit fee field"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: no fee field exists; miners claim the difference.",
+        "B": "No fee field does not mean no fee — the difference is the fee.",
+        "C": "Outputs keep their value; only the difference goes to the miner.",
+        "D": "The transaction is valid; implicit fees are the design."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.which-sighash-flag-lets-a-signer-commit-to-all-o",
+      "type": "mcq",
+      "stem": "Which sighash flag lets a signer commit to all outputs while allowing others to add inputs later?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "SIGHASH_ALL | SIGHASH_ANYONECANPAY"
+        },
+        {
+          "key": "B",
+          "text": "SIGHASH_NONE"
+        },
+        {
+          "key": "C",
+          "text": "SIGHASH_ALL alone"
+        },
+        {
+          "key": "D",
+          "text": "SIGHASH_SINGLE"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: ANYONECANPAY signs only your input; ALL locks every output.",
+        "B": "NONE commits to no outputs at all.",
+        "C": "ALL alone commits to the full input set too.",
+        "D": "SINGLE commits to the one output at your input's index."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.a-miner-wants-to-spend-a-coinbase-output-50-bloc",
+      "type": "mcq",
+      "stem": "A miner wants to spend a coinbase output 50 blocks after mining it. Consensus says:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Wait — coinbase outputs mature after 100 confirmations"
+        },
+        {
+          "key": "B",
+          "text": "Spendable immediately"
+        },
+        {
+          "key": "C",
+          "text": "Spendable after 6 confirmations like any output"
+        },
+        {
+          "key": "D",
+          "text": "Coinbase outputs can never be spent"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the 100-block maturity rule guards against reorged rewards.",
+        "B": "No grace period is skipped for the block producer.",
+        "C": "6 confirmations is a wallet convention, not the maturity rule.",
+        "D": "Coinbase outputs are spendable once mature."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.segregated-witness-changed-how-transaction-weigh",
+      "type": "mcq",
+      "stem": "Segregated witness changed how transaction weight is counted. Which statement is true?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Witness bytes count at a 1:4 discount toward the 4M weight-unit block limit"
+        },
+        {
+          "key": "B",
+          "text": "Witness data is not stored by full nodes"
+        },
+        {
+          "key": "C",
+          "text": "Segwit removed the block size limit entirely"
+        },
+        {
+          "key": "D",
+          "text": "Legacy and segwit transactions weigh the same"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: non-witness bytes count 4, witness bytes count 1.",
+        "B": "Full nodes store and validate witness data.",
+        "C": "The limit became 4M weight units, not unlimited.",
+        "D": "The discount is exactly what makes segwit cheaper per byte."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.nodes-refuse-to-relay-a-200-sat-output-why",
+      "type": "mcq",
+      "stem": "Nodes refuse to relay a 200-sat output. Why?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Dust policy: it costs more in fees to spend than it is worth, and every node stores it forever"
+        },
+        {
+          "key": "B",
+          "text": "The 21M cap forbids small outputs"
+        },
+        {
+          "key": "C",
+          "text": "Outputs must exceed 1000 sats by consensus"
+        },
+        {
+          "key": "D",
+          "text": "Segwit forbids outputs under 1k sats"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: uneconomic outputs bloat the UTXO set all full nodes keep.",
+        "B": "The supply cap is unrelated to output size.",
+        "C": "Dust is policy/standardness, not a consensus amount rule.",
+        "D": "Segwit has no minimum output rule."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.nlocktime-is-set-to-a-future-height-but-an-inpu",
+      "type": "mcq",
+      "stem": "nLockTime is set to a future height, but an input has nSequence = 0xFFFFFFFF. Effect?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Locktime is disabled — max sequence opts out of absolute and relative locktimes"
+        },
+        {
+          "key": "B",
+          "text": "The transaction is invalid"
+        },
+        {
+          "key": "C",
+          "text": "Locktime still applies; sequence only signals RBF"
+        },
+        {
+          "key": "D",
+          "text": "A relative locktime of max blocks applies"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: final sequence means 'no timelock conditions'.",
+        "B": "It is valid and confirmable immediately.",
+        "C": "Sequence governs locktime opt-out, not just RBF.",
+        "D": "No relative locktime is implied."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.400-weight-units-of-non-witness-data-plus-400-we",
+      "type": "mcq",
+      "stem": "400 weight units of non-witness data plus 400 weight units of witness data gives:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "2000 weight units total, i.e. 500 vbytes"
+        },
+        {
+          "key": "B",
+          "text": "800 vbytes"
+        },
+        {
+          "key": "C",
+          "text": "200 vbytes"
+        },
+        {
+          "key": "D",
+          "text": "Weight units equal vbytes here"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: 4*400 + 1*400 = 2000 WU; vsize = WU/4 = 500.",
+        "B": "You must weight non-witness bytes at 4x.",
+        "C": "Division by 4, not by 10.",
+        "D": "Only if there were no witness discount."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.a-transaction-input-references-a-previous-output",
+      "type": "mcq",
+      "stem": "A transaction input references a previous output by:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Outpoint: the previous txid plus the output index (vout)"
+        },
+        {
+          "key": "B",
+          "text": "The recipient's address and amount"
+        },
+        {
+          "key": "C",
+          "text": "A wallet label and timestamp"
+        },
+        {
+          "key": "D",
+          "text": "The block hash and Merkle proof"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the outpoint uniquely names one UTXO in history.",
+        "B": "Inputs never name addresses or amounts directly.",
+        "C": "Labels are wallet-local, not consensus.",
+        "D": "Merkle proofs are for SPV, not input references."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.your-low-fee-transaction-did-not-signal-rbf-and",
+      "type": "mcq",
+      "stem": "Your low-fee transaction did not signal RBF and is stuck. The legitimate fix is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Child-pays-for-parent: confirm it inside a high-fee child transaction package"
+        },
+        {
+          "key": "B",
+          "text": "Double-spend the input with a higher fee"
+        },
+        {
+          "key": "C",
+          "text": "Rebroadcast the same bytes repeatedly"
+        },
+        {
+          "key": "D",
+          "text": "Wait — nothing can ever unstick it"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: miners take the package; the child's fee pays for the parent.",
+        "B": "That is a double-spend attempt, not a fix.",
+        "C": "Rebroadcasting changes nothing about miner incentives.",
+        "D": "CPFP exists precisely for this case."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-btc.the-block-subsidy-halves-every",
+      "type": "mcq",
+      "stem": "The block subsidy halves every:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "210,000 blocks, converging issuance toward 21M BTC"
+        },
+        {
+          "key": "B",
+          "text": "21,000 blocks"
+        },
+        {
+          "key": "C",
+          "text": "4 calendar years exactly by timestamp"
+        },
+        {
+          "key": "D",
+          "text": "1,000,000 blocks"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the halving interval is block-count based, ~4 years.",
+        "B": "Too frequent by 10x.",
+        "C": "It is block height, not wall-clock, that triggers it.",
+        "D": "Far too sparse."
+      },
+      "conceptIds": [
+        "crypto-btc"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.withdraw-does-msg-sender-call-value-amt-b",
+      "type": "mcq",
+      "stem": "withdraw() does msg.sender.call{value:amt}('') BEFORE zeroing the balance. The vulnerability is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Reentrancy — the receiver can re-enter and drain funds before state updates"
+        },
+        {
+          "key": "B",
+          "text": "Integer overflow in the call value"
+        },
+        {
+          "key": "C",
+          "text": "Gas griefing — the call forwards 63/64 of gas"
+        },
+        {
+          "key": "D",
+          "text": "Front-running of the withdrawal"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: effects must precede interactions; update state first.",
+        "B": "Solidity 0.8 checks arithmetic; this is control flow.",
+        "C": "63/64 forwarding is normal call semantics.",
+        "D": "Ordering attacks target DEXs, not this pattern."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.an-admin-gate-uses-require-tx-origin-owner",
+      "type": "mcq",
+      "stem": "An admin gate uses require(tx.origin == owner). A user is phished into calling an attacker contract that calls the vault. Result?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The check passes for the attacker — tx.origin is the tricked user's EOA"
+        },
+        {
+          "key": "B",
+          "text": "It reverts — tx.origin equals the immediate caller"
+        },
+        {
+          "key": "C",
+          "text": "Contracts cannot call contracts, so nothing happens"
+        },
+        {
+          "key": "D",
+          "text": "Only a gas inefficiency"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: tx.origin is the original signer. Authorize with msg.sender.",
+        "B": "That describes msg.sender, not tx.origin.",
+        "C": "Contract-to-contract calls are routine.",
+        "D": "This is a full vault-draining primitive."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.a-proxy-delegatecalls-to-an-implementation-whose",
+      "type": "mcq",
+      "stem": "A proxy delegatecalls to an implementation whose storage variable order differs. Risk?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Storage collision — callee code runs against the proxy's layout; mismatched ordering corrupts state"
+        },
+        {
+          "key": "B",
+          "text": "None — delegatecall remaps storage automatically"
+        },
+        {
+          "key": "C",
+          "text": "Only higher gas"
+        },
+        {
+          "key": "D",
+          "text": "The proxy becomes immutable"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: keep upgrade layouts append-only with storage gaps.",
+        "B": "No remapping exists; slots are positional.",
+        "C": "Gas is not the risk here.",
+        "D": "The proxy stays upgradeable — and corruptible."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.the-checks-effects-interactions-pattern-orders-o",
+      "type": "mcq",
+      "stem": "The checks-effects-interactions pattern orders operations as:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Validate inputs, update state, then interact with external contracts"
+        },
+        {
+          "key": "B",
+          "text": "Interact first for speed, then update state"
+        },
+        {
+          "key": "C",
+          "text": "Update state only after the full transaction"
+        },
+        {
+          "key": "D",
+          "text": "Effects are optional if gas is limited"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: state is settled before untrusted code runs.",
+        "B": "External calls first is the reentrancy pattern.",
+        "C": "State updates must precede the external call.",
+        "D": "Effects are the protection."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.maxfeepergas-100-gwei-maxpriorityfeepergas",
+      "type": "mcq",
+      "stem": "maxFeePerGas = 100 gwei, maxPriorityFeePerGas = 2 gwei, gasLimit = 21000. Maximum total fee you sign for?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "21000 × 100 gwei — the gas limit times the max fee per gas"
+        },
+        {
+          "key": "B",
+          "text": "21000 × 2 gwei — only the tip matters"
+        },
+        {
+          "key": "C",
+          "text": "100 + 2 gwei flat"
+        },
+        {
+          "key": "D",
+          "text": "21000 × base fee only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: worst case is limit × maxFeePerGas.",
+        "B": "The tip is bounded by the max too.",
+        "C": "Fees scale with gas used, not flat.",
+        "D": "You pay base+tip up to your max."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.token-call-abi-encodewithsignature-transfer-add",
+      "type": "mcq",
+      "stem": "token.call(abi.encodeWithSignature('transfer(address,uint256)',to,amt)) ignores the return value. Bug?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Silent failure — low-level calls return a bool; a reverted transfer looks successful"
+        },
+        {
+          "key": "B",
+          "text": "Reentrancy through the token"
+        },
+        {
+          "key": "C",
+          "text": "Gas limit exceeded"
+        },
+        {
+          "key": "D",
+          "text": "No bug — transfer always reverts loudly"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: check the return or use a safe wrapper.",
+        "B": "The callee is trusted here; the bug is the ignored bool.",
+        "C": "Call gas is not the issue.",
+        "D": "Low-level calls do not propagate reverts."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.payout-loops-over-an-unbounded-array-pushing-f",
+      "type": "mcq",
+      "stem": "payout() loops over an unbounded array pushing funds. As it grows:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "DoS via block gas limit — eventually no block fits the loop; use pull payments"
+        },
+        {
+          "key": "B",
+          "text": "Reentrancy on each push"
+        },
+        {
+          "key": "C",
+          "text": "Storage collision"
+        },
+        {
+          "key": "D",
+          "text": "Nothing — gas scales with the array"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: unbounded loops hit the block ceiling and lock funds.",
+        "B": "Push then update is a different bug.",
+        "C": "Slots are positional, not collided here.",
+        "D": "Gas has a hard per-block cap."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.setfee-uint-has-no-access-modifier-classificat",
+      "type": "mcq",
+      "stem": "setFee(uint) has no access modifier. Classification and fix?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Missing access control — gate with onlyOwner or role-based auth"
+        },
+        {
+          "key": "B",
+          "text": "Front-running — add commit-reveal"
+        },
+        {
+          "key": "C",
+          "text": "DoS — add a timelock only"
+        },
+        {
+          "key": "D",
+          "text": "Informational — fees are public"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: anyone could rewrite protocol parameters.",
+        "B": "Ordering attacks need a DEX, not a setter.",
+        "C": "A timelock without auth still lets anyone queue.",
+        "D": "Public visibility is not authorization."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.a-large-dex-swap-sets-amountoutmin-0-in-a-publ",
+      "type": "mcq",
+      "stem": "A large DEX swap sets amountOutMin = 0 in a public mempool. The MEV risk?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Sandwich attack — frontrun the price up, backrun after, user keeps the worst fill"
+        },
+        {
+          "key": "B",
+          "text": "Reentrancy on the swap"
+        },
+        {
+          "key": "C",
+          "text": "Integer underflow in the router"
+        },
+        {
+          "key": "D",
+          "text": "No risk — swaps are atomic"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: zero slippage tolerance invites sandwiches; set a real minimum.",
+        "B": "Callbacks are a different vector.",
+        "C": "0.8+ checks math.",
+        "D": "Atomicity does not stop ordering games."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.a-lending-pool-prices-collateral-from-a-single-d",
+      "type": "mcq",
+      "stem": "A lending pool prices collateral from a single DEX spot read in the same transaction. Attack?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Flash-loan price manipulation — skew spot, borrow against it, repay; use TWAP/oracle networks"
+        },
+        {
+          "key": "B",
+          "text": "Reentrancy on the feed"
+        },
+        {
+          "key": "C",
+          "text": "Overflow in price math"
+        },
+        {
+          "key": "D",
+          "text": "No attack — spot is the true price"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: single-block spot is manipulable; time-weight or decentralize.",
+        "B": "Feeds do not take calls.",
+        "C": "Math is checked in 0.8+.",
+        "D": "Spot in one block is attacker-settable."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": 0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-evm.two-uint128-variables-declared-consecutively-in",
+      "type": "mcq",
+      "stem": "Two uint128 variables declared consecutively in a struct occupy:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "One 32-byte storage slot — sub-256-bit values pack together"
+        },
+        {
+          "key": "B",
+          "text": "Two slots — each variable gets its own"
+        },
+        {
+          "key": "C",
+          "text": "Half a slot each in transient storage"
+        },
+        {
+          "key": "D",
+          "text": "It depends on the optimizer"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: contiguous sub-word types pack into one slot.",
+        "B": "One slot holds both here.",
+        "C": "Packing is a storage-layout rule, not optimizer luck.",
+        "D": "The optimizer never changes storage layout."
+      },
+      "conceptIds": [
+        "crypto-evm"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.an-account-has-3-trust-lines-and-2-open-offers",
+      "type": "mcq",
+      "stem": "An account has 3 trust lines and 2 open offers. Base reserve 1 XRP, owner reserve 0.2 XRP. Total reserve?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "2 XRP — 1 base + 0.2 × 5 owned objects"
+        },
+        {
+          "key": "B",
+          "text": "1 XRP — only the base counts"
+        },
+        {
+          "key": "C",
+          "text": "6 XRP"
+        },
+        {
+          "key": "D",
+          "text": "0.2 XRP with no base"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: reserve = base + owner_reserve × OwnerCount.",
+        "B": "Each object adds owner reserve.",
+        "C": "That would be 1 + 0.2×25 — wrong count.",
+        "D": "Base always applies."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.account-sequence-is-7-a-transaction-with-sequen",
+      "type": "mcq",
+      "stem": "Account sequence is 7; a transaction with sequence 5 arrives. Result?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Rejected — the sequence must exactly equal the account's next sequence"
+        },
+        {
+          "key": "B",
+          "text": "Accepted — lower is fine"
+        },
+        {
+          "key": "C",
+          "text": "Queued for later"
+        },
+        {
+          "key": "D",
+          "text": "Accepted with a higher fee"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: strict sequencing prevents replays and reordering.",
+        "B": "No backdating is allowed.",
+        "C": "The ledger does not queue out-of-order.",
+        "D": "Fees do not waive sequencing."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.you-receive-issued-tokens-without-ever-creating",
+      "type": "mcq",
+      "stem": "You receive issued tokens without ever creating a trust line to the issuer. What happens?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The payment fails — receipt of issued currency requires an opt-in trust line"
+        },
+        {
+          "key": "B",
+          "text": "Tokens arrive anyway"
+        },
+        {
+          "key": "C",
+          "text": "They auto-convert to XRP"
+        },
+        {
+          "key": "D",
+          "text": "The issuer is penalized"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: trust lines are explicit opt-in; no line, no receipt.",
+        "B": "Unsolicited IOUs are blocked by design.",
+        "C": "No conversion happens.",
+        "D": "Issuers are not fined for this."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.an-exchange-deposit-omits-the-required-destinati",
+      "type": "mcq",
+      "stem": "An exchange deposit omits the required destination tag. Likely outcome?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Funds land in the pooled wallet unattributed to you — the tag is the account number"
+        },
+        {
+          "key": "B",
+          "text": "Auto-bounce to sender"
+        },
+        {
+          "key": "C",
+          "text": "The tag is decorative"
+        },
+        {
+          "key": "D",
+          "text": "The ledger assigns one"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: custodians share one address; tags route internally.",
+        "B": "XRP payments do not bounce.",
+        "C": "It is the routing metadata.",
+        "D": "No auto-assignment exists."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.xrpl-ledgers-close-roughly-every",
+      "type": "mcq",
+      "stem": "XRPL ledgers close roughly every:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "3–5 seconds via the consensus process"
+        },
+        {
+          "key": "B",
+          "text": "10 minutes like Bitcoin"
+        },
+        {
+          "key": "C",
+          "text": "12 seconds like Ethereum"
+        },
+        {
+          "key": "D",
+          "text": "Instantly with no consensus"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: XRPL's consensus closes ledgers in seconds.",
+        "B": "That is Bitcoin's block interval.",
+        "C": "That is Ethereum's slot time.",
+        "D": "Validators still agree each ledger."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.an-issuer-freezes-a-trust-line-effect-on-holder",
+      "type": "mcq",
+      "stem": "An issuer freezes a trust line. Effect on holders of that issued currency?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Those tokens cannot move until unfrozen — freezing is issuer-level control"
+        },
+        {
+          "key": "B",
+          "text": "Only new issuance stops"
+        },
+        {
+          "key": "C",
+          "text": "Nothing — freezing is advisory"
+        },
+        {
+          "key": "D",
+          "text": "XRP is frozen too"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: freeze halts transfers of that IOU on those lines.",
+        "B": "Existing holdings are immobilized, not just issuance.",
+        "C": "It is enforced by consensus.",
+        "D": "XRP is native and unfreezable."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.selling-a-thinly-traded-token-for-xrp-without-sp",
+      "type": "mcq",
+      "stem": "Selling a thinly-traded token for XRP without specifying a path typically:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Autobridges through XRP order books, walking the book at worsening prices"
+        },
+        {
+          "key": "B",
+          "text": "Fails — paths are mandatory"
+        },
+        {
+          "key": "C",
+          "text": "Gives the mid price regardless of depth"
+        },
+        {
+          "key": "D",
+          "text": "Frontruns your own offer"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: offers match in price order; thin books mean slippage.",
+        "B": "A direct offer can execute without a path.",
+        "C": "No mid-price guarantee exists.",
+        "D": "Validators do not frontrun."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.in-xls-20-nfts-the-taxon-field-is-used-to",
+      "type": "mcq",
+      "stem": "In XLS-20 NFTs, the taxon field is used to:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Group/limit minting — e.g. an issuer can cap editions per taxon"
+        },
+        {
+          "key": "B",
+          "text": "Set the transfer fee"
+        },
+        {
+          "key": "C",
+          "text": "Define the royalty recipient"
+        },
+        {
+          "key": "D",
+          "text": "Choose the ledger close time"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: taxon is the edition-grouping identifier.",
+        "B": "TransferFee is a separate field.",
+        "C": "No royalty field exists on XLS-20.",
+        "D": "Close time is consensus-level."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.xls-30-amm-liquidity-providers-receive",
+      "type": "mcq",
+      "stem": "XLS-30 AMM liquidity providers receive:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "LP tokens representing their pool share, redeemable for underlying assets"
+        },
+        {
+          "key": "B",
+          "text": "XRP directly as yield"
+        },
+        {
+          "key": "C",
+          "text": "Governance votes only"
+        },
+        {
+          "key": "D",
+          "text": "Nothing — AMM participation is altruistic"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: LP tokens track pro-rata pool ownership.",
+        "B": "Yield comes from fees on redemption, not direct XRP.",
+        "C": "No governance token is issued.",
+        "D": "LPs earn swap fees."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-xrpl.production-key-hygiene-for-a-funded-xrpl-account",
+      "type": "mcq",
+      "stem": "Production key hygiene for a funded XRPL account is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Set a regular key for daily signing and disable the master keypair"
+        },
+        {
+          "key": "B",
+          "text": "Share the master secret with the team"
+        },
+        {
+          "key": "C",
+          "text": "Regular keys are testnet-only"
+        },
+        {
+          "key": "D",
+          "text": "Disable all keys"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: regular keys limit blast radius; the master stays offline.",
+        "B": "Sharing secrets multiplies compromise risk.",
+        "C": "Regular keys are mainnet-ready.",
+        "D": "An account needs a signing key."
+      },
+      "conceptIds": [
+        "crypto-xrpl"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.in-proof-of-work-the-canonical-chain-is-the-one",
+      "type": "mcq",
+      "stem": "In proof-of-work, the canonical chain is the one with:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The most accumulated work, not simply the longest header count"
+        },
+        {
+          "key": "B",
+          "text": "The most transactions"
+        },
+        {
+          "key": "C",
+          "text": "The lowest difficulty"
+        },
+        {
+          "key": "D",
+          "text": "The newest timestamp"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: chainwork decides; headers alone can mislead.",
+        "B": "Transaction count is irrelevant to validity.",
+        "C": "Lower difficulty means less work.",
+        "D": "Timestamps are not authoritative."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.solana-s-proof-of-history-provides",
+      "type": "mcq",
+      "stem": "Solana's proof-of-history provides:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A verifiable, sequential clock embedded in the ledger via chained hashes"
+        },
+        {
+          "key": "B",
+          "text": "Faster signature verification"
+        },
+        {
+          "key": "C",
+          "text": "Sharding of validator sets"
+        },
+        {
+          "key": "D",
+          "text": "Encrypted transaction memos"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: PoH proves time passed between events without consensus.",
+        "B": "Signatures are still ed25519.",
+        "C": "PoH is not sharding.",
+        "D": "Memos are unrelated."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.tendermint-bft-needs-what-fraction-of-voting-pow",
+      "type": "mcq",
+      "stem": "Tendermint BFT needs what fraction of voting power to finalize a block?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "More than 2/3 prevoting and precommitting in each round"
+        },
+        {
+          "key": "B",
+          "text": "More than 1/2"
+        },
+        {
+          "key": "C",
+          "text": "100% agreement"
+        },
+        {
+          "key": "D",
+          "text": "Any 1/3+"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: >2/3 quorum gives both safety and liveness.",
+        "B": "1/2 is insufficient for BFT safety.",
+        "C": "Unanimity is not required.",
+        "D": "1/3+ is the fault tolerance bound, not the quorum."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.cardano-s-ouroboros-selects-slot-leaders",
+      "type": "mcq",
+      "stem": "Cardano's Ouroboros selects slot leaders:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "By stake-weighted lottery, with the schedule known ahead of the epoch"
+        },
+        {
+          "key": "B",
+          "text": "By proof-of-work racing"
+        },
+        {
+          "key": "C",
+          "text": "By fixed rotation of founders"
+        },
+        {
+          "key": "D",
+          "text": "By highest bid per slot"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: stake proportion sets leadership probability.",
+        "B": "No mining exists in Ouroboros.",
+        "C": "Leadership is not founder-assigned.",
+        "D": "No auction is involved."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.avalanche-s-snow-consensus-reaches-agreement-by",
+      "type": "mcq",
+      "stem": "Avalanche's Snow consensus reaches agreement by:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Repeated random subsampling: validators poll peers and converge on the majority color"
+        },
+        {
+          "key": "B",
+          "text": "Mining with a memory-hard function"
+        },
+        {
+          "key": "C",
+          "text": "A single leader proposing blocks"
+        },
+        {
+          "key": "D",
+          "text": "Delegated voting by token holders"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: metastable sampling converges without all-to-all voting.",
+        "B": "No mining in Snow.",
+        "C": "Leaderless by design.",
+        "D": "No delegation round exists."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.polkadot-s-relay-chain-provides-parachains-with",
+      "type": "mcq",
+      "stem": "Polkadot's relay chain provides parachains with:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Shared security and cross-chain messaging (XCM)"
+        },
+        {
+          "key": "B",
+          "text": "Faster EVM execution"
+        },
+        {
+          "key": "C",
+          "text": "Unlimited free blockspace"
+        },
+        {
+          "key": "D",
+          "text": "Built-in privacy"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: parachains lease shared validator security.",
+        "B": "Parachains run their own runtimes.",
+        "C": "Blockspace is auctioned/leased.",
+        "D": "Privacy is per-parachain."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.hedera-hashgraph-orders-transactions-using",
+      "type": "mcq",
+      "stem": "Hedera Hashgraph orders transactions using:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Gossip-about-gossip with virtual voting on a DAG of events"
+        },
+        {
+          "key": "B",
+          "text": "Proof-of-work"
+        },
+        {
+          "key": "C",
+          "text": "A central sequencer"
+        },
+        {
+          "key": "D",
+          "text": "Round-robin block proposers"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the hashgraph DAG plus virtual voting yields fair ordering.",
+        "B": "No mining.",
+        "C": "No single sequencer.",
+        "D": "Not round-robin."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.8,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.probabilistic-finality-pow-differs-from-bft-fi",
+      "type": "mcq",
+      "stem": "Probabilistic finality (PoW) differs from BFT finality in that:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "PoW finality deepens with confirmations but is never absolute; BFT finality is explicit at commit"
+        },
+        {
+          "key": "B",
+          "text": "PoW is instant and BFT is slow"
+        },
+        {
+          "key": "C",
+          "text": "BFT chains can be 51%-attacked cheaply"
+        },
+        {
+          "key": "D",
+          "text": "PoW has no reorgs"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: confirmations are statistical confidence; BFT commit is a decision.",
+        "B": "BFT finalizes in seconds.",
+        "C": "BFT needs 1/3+ malicious to break.",
+        "D": "PoW reorgs are the reason for confirmations."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.a-51-attack-on-a-pow-chain-lets-the-attacker",
+      "type": "mcq",
+      "stem": "A 51% attack on a PoW chain lets the attacker:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Reorg recent blocks to double-spend, but not mint coins out of thin air or steal others' keys"
+        },
+        {
+          "key": "B",
+          "text": "Print unlimited new coins"
+        },
+        {
+          "key": "C",
+          "text": "Reverse ancient, deeply-buried history cheaply"
+        },
+        {
+          "key": "D",
+          "text": "Take anyone's funds without their keys"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: majority hashpower reorders recent history; consensus rules still bind issuance.",
+        "B": "Subsidy rules still apply.",
+        "C": "Depth makes reorgs exponentially costly.",
+        "D": "Keys remain uncompromised."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 1.0,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "crypto-consensus.in-cosmos-ibc-enables",
+      "type": "mcq",
+      "stem": "In Cosmos, IBC enables:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Trust-minimized token and data transfer between independent sovereign chains via light-client proofs"
+        },
+        {
+          "key": "B",
+          "text": "Merging two chains into one"
+        },
+        {
+          "key": "C",
+          "text": "Free bridging with no relayers"
+        },
+        {
+          "key": "D",
+          "text": "Automatic wrapping into ERC-20"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: light clients verify counterparty state; relayers ferry packets.",
+        "B": "Chains stay sovereign.",
+        "C": "Relayers are required infrastructure.",
+        "D": "No automatic wrapping."
+      },
+      "conceptIds": [
+        "crypto-consensus"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "crypto",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.a-matrix-w-has-shape-3-4-and-x-is-a-vector-in",
+      "type": "mcq",
+      "stem": "A matrix W has shape (3, 4) and x is a vector in R^4. What is the shape of Wx?",
+      "choices": [
+        {
+          "key": "A",
+          "text": "A vector in R^3 — inner dimensions (4) agree, outer give (3,1)"
+        },
+        {
+          "key": "B",
+          "text": "A vector in R^4 — shapes are preserved"
+        },
+        {
+          "key": "C",
+          "text": "A (3,4) matrix — multiplication is elementwise"
+        },
+        {
+          "key": "D",
+          "text": "Undefined — dimensions never agree"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: (3×4)·(4×1) → (3×1).",
+        "B": "The output lives in the row space dimension.",
+        "C": "That is the Hadamard product, not matvec.",
+        "D": "Inner dimensions match here."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.the-identity-matrix-i-satisfies-for-any-compati",
+      "type": "mcq",
+      "stem": "The identity matrix I satisfies, for any compatible A:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "AI = IA = A"
+        },
+        {
+          "key": "B",
+          "text": "AI = 0"
+        },
+        {
+          "key": "C",
+          "text": "AI = A^T"
+        },
+        {
+          "key": "D",
+          "text": "AI = I always"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: I is the multiplicative identity.",
+        "B": "Only the zero matrix gives zero.",
+        "C": "Transpose is a different operation.",
+        "D": "IA = A, not I."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.for-matrices-a-m-n-and-b-n-p-ab-t-equals",
+      "type": "mcq",
+      "stem": "For matrices A (m×n) and B (n×p), (AB)^T equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "B^T A^T — transpose reverses the order"
+        },
+        {
+          "key": "B",
+          "text": "A^T B^T"
+        },
+        {
+          "key": "C",
+          "text": "(BA)^T"
+        },
+        {
+          "key": "D",
+          "text": "AB — transpose is a no-op on products"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: reversal is required; check dimensions.",
+        "B": "Order matters; this fails dimensionally.",
+        "C": "BA may not even be defined.",
+        "D": "Transpose changes the shape."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.solving-ax-b-by-elimination-fails-with-0-1-i",
+      "type": "mcq",
+      "stem": "Solving Ax = b by elimination fails with 0 = 1 in a row. This means:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "b is not in the column space of A — no solution exists"
+        },
+        {
+          "key": "B",
+          "text": "x must be the zero vector"
+        },
+        {
+          "key": "C",
+          "text": "A is always invertible"
+        },
+        {
+          "key": "D",
+          "text": "b is in the nullspace"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: inconsistency means b is outside the reachable outputs.",
+        "B": "Zero vector rarely solves anything.",
+        "C": "Singular matrices cause this.",
+        "D": "Nullspace is about Ax = 0."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.av-λv-with-v-0-defines",
+      "type": "mcq",
+      "stem": "Av = λv with v ≠ 0 defines:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "An eigenvector v with eigenvalue λ — A stretches v without rotating it"
+        },
+        {
+          "key": "B",
+          "text": "A singular matrix"
+        },
+        {
+          "key": "C",
+          "text": "The nullspace of A"
+        },
+        {
+          "key": "D",
+          "text": "A rotation matrix"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the defining equation of eigenpairs.",
+        "B": "Singularity is det = 0.",
+        "C": "Nullspace needs Av = 0.",
+        "D": "Rotations are a special case."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.the-svd-factors-an-m-n-matrix-a-as-uσv-t-σ-is",
+      "type": "mcq",
+      "stem": "The SVD factors an m×n matrix A as UΣV^T. Σ is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "m×n diagonal with nonnegatives (singular values) in descending order"
+        },
+        {
+          "key": "B",
+          "text": "Square n×n always"
+        },
+        {
+          "key": "C",
+          "text": "Orthogonal"
+        },
+        {
+          "key": "D",
+          "text": "The matrix of eigenvectors of A"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: Σ carries the singular values on its diagonal.",
+        "B": "Σ matches A's shape, not square unless A is.",
+        "C": "U and V are the orthogonal factors.",
+        "D": "Eigenvectors of A^TA / AA^T, not A."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.rank-of-a-matrix-equals",
+      "type": "mcq",
+      "stem": "Rank of a matrix equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The number of pivots — the dimension of the column (and row) space"
+        },
+        {
+          "key": "B",
+          "text": "The number of rows"
+        },
+        {
+          "key": "C",
+          "text": "The number of zero entries"
+        },
+        {
+          "key": "D",
+          "text": "The largest entry"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: rank is the dimension of the image.",
+        "B": "Rows can be dependent.",
+        "C": "Zeros do not define rank.",
+        "D": "Entries do not define rank."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.the-dot-product-u-v-0-for-nonzero-u-v-means",
+      "type": "mcq",
+      "stem": "The dot product u·v = 0 for nonzero u, v means:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "u and v are orthogonal"
+        },
+        {
+          "key": "B",
+          "text": "u and v are parallel"
+        },
+        {
+          "key": "C",
+          "text": "One of them is zero"
+        },
+        {
+          "key": "D",
+          "text": "The cross product is zero"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: zero inner product is orthogonality.",
+        "B": "Parallel gives |u||v|.",
+        "C": "Nonzero is given.",
+        "D": "Orthogonality maximizes cross magnitude."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.the-euclidean-norm-x-₂-of-x-3-4-is",
+      "type": "mcq",
+      "stem": "The Euclidean norm ||x||₂ of x = (3, 4) is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "5 — sqrt(9 + 16)"
+        },
+        {
+          "key": "B",
+          "text": "7 — the sum of components"
+        },
+        {
+          "key": "C",
+          "text": "12 — the product"
+        },
+        {
+          "key": "D",
+          "text": "25 — the sum of squares"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: sqrt(3² + 4²) = 5.",
+        "B": "That is the L1 norm.",
+        "C": "Products are not norms.",
+        "D": "Take the square root."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.a-square-matrix-is-invertible-iff",
+      "type": "mcq",
+      "stem": "A square matrix is invertible iff:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Its determinant is nonzero — equivalently, full rank with trivial nullspace"
+        },
+        {
+          "key": "B",
+          "text": "It is symmetric"
+        },
+        {
+          "key": "C",
+          "text": "All entries are nonzero"
+        },
+        {
+          "key": "D",
+          "text": "It is diagonal"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: det ≠ 0 ⟺ n pivots ⟺ only the trivial solution to Ax=0.",
+        "B": "Symmetry does not imply invertibility.",
+        "C": "Zero entries are fine.",
+        "D": "Diagonal needs nonzero diagonal."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-linalg.projecting-b-onto-the-column-space-of-a-solves",
+      "type": "mcq",
+      "stem": "Projecting b onto the column space of A solves:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The least-squares problem min ||Ax − b||² — the normal equations A^TAx = A^Tb"
+        },
+        {
+          "key": "B",
+          "text": "Ax = b exactly, always"
+        },
+        {
+          "key": "C",
+          "text": "The eigenvalue problem"
+        },
+        {
+          "key": "D",
+          "text": "A linear program"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the closest point in the column space minimizes residual norm.",
+        "B": "Exact solve needs b in the column space.",
+        "C": "Eigenvalues are a different factorization.",
+        "D": "No inequality constraints here."
+      },
+      "conceptIds": [
+        "math-linalg"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.two-independent-events-each-have-probability-0-1",
+      "type": "mcq",
+      "stem": "Two independent events each have probability 0.1. P(both occur) is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "0.01 — independence multiplies"
+        },
+        {
+          "key": "B",
+          "text": "0.2 — probabilities add"
+        },
+        {
+          "key": "C",
+          "text": "0.1 — unchanged"
+        },
+        {
+          "key": "D",
+          "text": "0.5 — normalized"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: 0.1 × 0.1 = 0.01 for independent events.",
+        "B": "Addition is for disjoint events.",
+        "C": "Independence does not preserve marginals.",
+        "D": "No normalization applies."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.bayes-rule-p-h-e-equals",
+      "type": "mcq",
+      "stem": "Bayes' rule P(H|E) equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "P(E|H)P(H) / P(E) — prior times likelihood, normalized"
+        },
+        {
+          "key": "B",
+          "text": "P(E|H) + P(H)"
+        },
+        {
+          "key": "C",
+          "text": "P(H) − P(E|H)"
+        },
+        {
+          "key": "D",
+          "text": "P(E)/P(H)"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: posterior ∝ likelihood × prior.",
+        "B": "Probabilities do not add here.",
+        "C": "Subtraction is meaningless.",
+        "D": "That inverts the ratio."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.a-fair-die-s-expected-value-is",
+      "type": "mcq",
+      "stem": "A fair die's expected value is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "3.5 — the average of 1..6"
+        },
+        {
+          "key": "B",
+          "text": "3 — the middle face"
+        },
+        {
+          "key": "C",
+          "text": "6 — the maximum"
+        },
+        {
+          "key": "D",
+          "text": "Cannot be computed for discrete outcomes"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: (1+2+3+4+5+6)/6 = 3.5.",
+        "B": "No face shows 3.5; expectation need not be attainable.",
+        "C": "Maximum is not the mean.",
+        "D": "Discrete expectations are sums."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.variance-measures",
+      "type": "mcq",
+      "stem": "Variance measures:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Spread — the expected squared deviation from the mean"
+        },
+        {
+          "key": "B",
+          "text": "The most likely value"
+        },
+        {
+          "key": "C",
+          "text": "Skew direction"
+        },
+        {
+          "key": "D",
+          "text": "The sample size"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: Var(X) = E[(X−μ)²].",
+        "B": "That is the mode.",
+        "C": "That is skewness.",
+        "D": "n is separate."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.p-a-b-0-9-while-p-a-0-01-learning-b-occur",
+      "type": "mcq",
+      "stem": "P(A|B) = 0.9 while P(A) = 0.01. Learning B occurred should:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Massively raise your belief in A — evidence updates priors, it does not replace them"
+        },
+        {
+          "key": "B",
+          "text": "Leave belief at 0.01"
+        },
+        {
+          "key": "C",
+          "text": "Set belief to 0.9 unconditionally"
+        },
+        {
+          "key": "D",
+          "text": "Prove A is certain"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: posterior blends likelihood with the base rate.",
+        "B": "Ignoring evidence is the base-rate fallacy in reverse.",
+        "C": "0.9 needs the full Bayes computation.",
+        "D": "Rarely certain."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.for-any-event-a-p-not-a-equals",
+      "type": "mcq",
+      "stem": "For any event A, P(not A) equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "1 − P(A)"
+        },
+        {
+          "key": "B",
+          "text": "P(A)²"
+        },
+        {
+          "key": "C",
+          "text": "1 + P(A)"
+        },
+        {
+          "key": "D",
+          "text": "P(A)/2"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the complement rule.",
+        "B": "Squaring is for independent conjunctions.",
+        "C": "Probabilities cap at 1.",
+        "D": "Halving is arbitrary."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -1.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.x-binomial-n-100-p-0-1-e-x-is",
+      "type": "mcq",
+      "stem": "X ~ Binomial(n=100, p=0.1). E[X] is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "10 — np"
+        },
+        {
+          "key": "B",
+          "text": "5 — n/2p"
+        },
+        {
+          "key": "C",
+          "text": "1 — p"
+        },
+        {
+          "key": "D",
+          "text": "50 — n/2"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: binomial mean is np.",
+        "B": "That mixes formulas.",
+        "C": "p alone is one trial.",
+        "D": "n/2 assumes p=0.5."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.for-a-normal-distribution-about-95-of-mass-lie",
+      "type": "mcq",
+      "stem": "For a normal distribution, about 95% of mass lies within:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "2 standard deviations of the mean"
+        },
+        {
+          "key": "B",
+          "text": "1 standard deviation"
+        },
+        {
+          "key": "C",
+          "text": "The interquartile range"
+        },
+        {
+          "key": "D",
+          "text": "3 median absolute deviations"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the 68–95–99.7 rule.",
+        "B": "1σ covers ~68%.",
+        "C": "IQR covers 50%.",
+        "D": "MAD scaling differs."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.the-law-of-large-numbers-says",
+      "type": "mcq",
+      "stem": "The law of large numbers says:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Sample averages converge to the expected value as n grows"
+        },
+        {
+          "key": "B",
+          "text": "Large samples are always normal"
+        },
+        {
+          "key": "C",
+          "text": "Variance grows with n"
+        },
+        {
+          "key": "D",
+          "text": "Outliers disappear"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: averages stabilize on the mean.",
+        "B": "Normality needs the CLT plus conditions.",
+        "C": "Variance of the mean shrinks.",
+        "D": "Outliers persist; they just average out."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.flipping-a-fair-coin-10-times-p-exactly-5-heads",
+      "type": "mcq",
+      "stem": "Flipping a fair coin 10 times, P(exactly 5 heads) is maximized at p=0.5 because:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Maximum likelihood: the observed frequency 5/10 maximizes the likelihood"
+        },
+        {
+          "key": "B",
+          "text": "Coins are always fair"
+        },
+        {
+          "key": "C",
+          "text": "Symmetry of the binomial coefficients"
+        },
+        {
+          "key": "D",
+          "text": "The prior says so"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: MLE for coin bias is the observed frequency.",
+        "B": "Fairness is the conclusion, not the premise.",
+        "C": "Symmetry helps but MLE is the principle.",
+        "D": "No prior was stated."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-prob.a-test-catches-99-of-defects-and-flags-5-of-go",
+      "type": "mcq",
+      "stem": "A test catches 99% of defects and flags 5% of good units. Defects are 1 in 1000. A flagged unit is defective with probability about:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "2% — Bayes: rare defects mean most flags are false alarms"
+        },
+        {
+          "key": "B",
+          "text": "99% — the detection rate"
+        },
+        {
+          "key": "C",
+          "text": "95% — one minus the false-flag rate"
+        },
+        {
+          "key": "D",
+          "text": "50%"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: 0.99×0.001/(0.99×0.001+0.05×0.999) ≈ 0.019.",
+        "B": "Detection rate is P(flag|defect), not P(defect|flag).",
+        "C": "False-flag rate is P(flag|good).",
+        "D": "Base rates dominate."
+      },
+      "conceptIds": [
+        "math-prob"
+      ],
+      "a": 1.3,
+      "b": 0.8,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.gradient-descent-updates-parameters-by-stepping",
+      "type": "mcq",
+      "stem": "Gradient descent updates parameters by stepping:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Opposite the gradient — the direction of steepest decrease"
+        },
+        {
+          "key": "B",
+          "text": "Along the gradient — steepest increase"
+        },
+        {
+          "key": "C",
+          "text": "Orthogonally to the gradient"
+        },
+        {
+          "key": "D",
+          "text": "Toward the origin"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: −∇L is the locally steepest descent direction.",
+        "B": "That is ascent.",
+        "C": "Orthogonal steps do not descend.",
+        "D": "The origin is arbitrary."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.training-loss-explodes-after-a-few-gradient-step",
+      "type": "mcq",
+      "stem": "Training loss explodes after a few gradient steps. First fix to try:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Reduce the learning rate — the step exceeds the stability limit"
+        },
+        {
+          "key": "B",
+          "text": "Add more layers"
+        },
+        {
+          "key": "C",
+          "text": "Increase the learning rate to escape"
+        },
+        {
+          "key": "D",
+          "text": "Switch to full-batch only"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: divergence with fixed steps almost always means η too large.",
+        "B": "Depth does not fix step size.",
+        "C": "Larger steps diverge faster.",
+        "D": "Batching is not the cause."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.backpropagation-is-an-application-of",
+      "type": "mcq",
+      "stem": "Backpropagation is an application of:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The chain rule — layer-local derivatives multiply into the full gradient"
+        },
+        {
+          "key": "B",
+          "text": "The product rule on the loss alone"
+        },
+        {
+          "key": "C",
+          "text": "L'Hôpital's rule"
+        },
+        {
+          "key": "D",
+          "text": "The fundamental theorem of calculus"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: dy/dx = (dy/du)(du/dx) applied layer by layer.",
+        "B": "Products appear via the chain rule.",
+        "C": "Limits of ratios are unrelated.",
+        "D": "Integration is not the mechanism."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.a-twice-differentiable-function-is-convex-iff-it",
+      "type": "mcq",
+      "stem": "A twice-differentiable function is convex iff its Hessian is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Positive semidefinite everywhere — curvature never turns downward"
+        },
+        {
+          "key": "B",
+          "text": "Negative definite"
+        },
+        {
+          "key": "C",
+          "text": "The identity"
+        },
+        {
+          "key": "D",
+          "text": "Diagonal"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: PSD Hessian ⟺ convex; then every stationary point is global min.",
+        "B": "That characterizes concave.",
+        "C": "Identity is one PSD case.",
+        "D": "Diagonal is not required."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.at-a-saddle-point-the-hessian-has",
+      "type": "mcq",
+      "stem": "At a saddle point, the Hessian has:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Both positive and negative eigenvalues — min in some directions, max in others"
+        },
+        {
+          "key": "B",
+          "text": "All positive eigenvalues"
+        },
+        {
+          "key": "C",
+          "text": "All zero eigenvalues"
+        },
+        {
+          "key": "D",
+          "text": "No eigenvalues"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: indefinite Hessian is the saddle signature.",
+        "B": "All positive is a minimum.",
+        "C": "All zero is degenerate flat.",
+        "D": "Square Hessians always have eigenvalues."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.lagrange-multipliers-handle",
+      "type": "mcq",
+      "stem": "Lagrange multipliers handle:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Equality-constrained optimization — ∇f parallel to ∇g at the optimum"
+        },
+        {
+          "key": "B",
+          "text": "Unconstrained problems"
+        },
+        {
+          "key": "C",
+          "text": "Integer constraints"
+        },
+        {
+          "key": "D",
+          "text": "Non-differentiable objectives"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the constrained optimum aligns the gradients.",
+        "B": "No constraints need no multipliers.",
+        "C": "Integrality needs other methods.",
+        "D": "Subgradients handle those."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.d-dx-x³-equals",
+      "type": "mcq",
+      "stem": "d/dx (x³) equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "3x²"
+        },
+        {
+          "key": "B",
+          "text": "x²"
+        },
+        {
+          "key": "C",
+          "text": "3x"
+        },
+        {
+          "key": "D",
+          "text": "x³/3"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: power rule.",
+        "B": "That is d/dx(x³/3).",
+        "C": "Missing a factor of x.",
+        "D": "That is the integral."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": -1.6,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.x-x²y-3x-equals",
+      "type": "mcq",
+      "stem": "∂/∂x (x²y + 3x) equals:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "2xy + 3 — y is held constant"
+        },
+        {
+          "key": "B",
+          "text": "2xy"
+        },
+        {
+          "key": "C",
+          "text": "x² + 3"
+        },
+        {
+          "key": "D",
+          "text": "2y + 3"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: partials treat other variables as constants.",
+        "B": "The +3x term contributes 3.",
+        "C": "Differentiating w.r.t. x, not y.",
+        "D": "x² survives as 2xy."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.adding-an-l2-penalty-λ-w-²-to-least-squares",
+      "type": "mcq",
+      "stem": "Adding an L2 penalty λ||w||² to least squares:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Shrinks weights toward zero, damping the noisy small-singular-value directions most"
+        },
+        {
+          "key": "B",
+          "text": "Increases all weights"
+        },
+        {
+          "key": "C",
+          "text": "Makes the problem non-convex"
+        },
+        {
+          "key": "D",
+          "text": "Only affects the bias term"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: ridge shrinks via σᵢ/(σᵢ²+λ) per singular direction.",
+        "B": "Shrinkage, not growth.",
+        "C": "The objective stays convex.",
+        "D": "All weights are penalized."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "math-opt.newton-s-method-uses-second-order-information-vi",
+      "type": "mcq",
+      "stem": "Newton's method uses second-order information via:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The Hessian — stepping by −H⁻¹∇f for locally quadratic convergence"
+        },
+        {
+          "key": "B",
+          "text": "The gradient only"
+        },
+        {
+          "key": "C",
+          "text": "Random restarts"
+        },
+        {
+          "key": "D",
+          "text": "The learning-rate schedule"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: curvature-corrected steps converge quadratically near minima.",
+        "B": "That is gradient descent.",
+        "C": "Restarts are a global heuristic.",
+        "D": "Schedules are first-order."
+      },
+      "conceptIds": [
+        "math-opt"
+      ],
+      "a": 1.3,
+      "b": 0.8,
+      "c": 0.25,
+      "tags": [
+        "math",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.where-filters-rows-having-filters",
+      "type": "mcq",
+      "stem": "WHERE filters rows ___; HAVING filters ___.",
+      "choices": [
+        {
+          "key": "A",
+          "text": "before grouping / groups after aggregation"
+        },
+        {
+          "key": "B",
+          "text": "after grouping / rows before aggregation"
+        },
+        {
+          "key": "C",
+          "text": "identically — they are aliases"
+        },
+        {
+          "key": "D",
+          "text": "only NULLs / only duplicates"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: WHERE → GROUP BY → HAVING → SELECT → ORDER BY.",
+        "B": "Reversed.",
+        "C": "They apply at different pipeline stages.",
+        "D": "Neither is NULL-specific."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.an-inner-join-returns",
+      "type": "mcq",
+      "stem": "An INNER JOIN returns:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Only rows with matches on both sides"
+        },
+        {
+          "key": "B",
+          "text": "All rows from the left table"
+        },
+        {
+          "key": "C",
+          "text": "All rows from both tables"
+        },
+        {
+          "key": "D",
+          "text": "Only unmatched rows"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: inner keeps the intersection.",
+        "B": "That is LEFT JOIN.",
+        "C": "That is FULL OUTER JOIN.",
+        "D": "That is an anti-join."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -1.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.in-sql-null-null-evaluates-to",
+      "type": "mcq",
+      "stem": "In SQL, NULL = NULL evaluates to:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "UNKNOWN — use IS NULL, never = NULL"
+        },
+        {
+          "key": "B",
+          "text": "TRUE"
+        },
+        {
+          "key": "C",
+          "text": "FALSE"
+        },
+        {
+          "key": "D",
+          "text": "An error"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: three-valued logic; equality with NULL is never true.",
+        "B": "= NULL matches nothing.",
+        "C": "It is not false, it is unknown.",
+        "D": "It is valid, just unknown."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.select-distinct-country-from-users-returns",
+      "type": "mcq",
+      "stem": "SELECT DISTINCT country FROM users returns:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "One row per unique country"
+        },
+        {
+          "key": "B",
+          "text": "One row per user"
+        },
+        {
+          "key": "C",
+          "text": "Countries sorted automatically"
+        },
+        {
+          "key": "D",
+          "text": "An error without GROUP BY"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: DISTINCT dedupes the projected rows.",
+        "B": "No dedup without DISTINCT.",
+        "C": "Ordering needs ORDER BY.",
+        "D": "DISTINCT is standalone."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.to-find-names-starting-with-a-the-where-claus",
+      "type": "mcq",
+      "stem": "To find names starting with 'A', the WHERE clause is:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "name LIKE 'A%'"
+        },
+        {
+          "key": "B",
+          "text": "name LIKE '%A'"
+        },
+        {
+          "key": "C",
+          "text": "name = 'A%'"
+        },
+        {
+          "key": "D",
+          "text": "name IN ('A%')"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: % wildcards the rest; _ would match one char.",
+        "B": "That finds names ending in A.",
+        "C": "= does literal comparison.",
+        "D": "IN is exact-match."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -1.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.table-aliases-primarily",
+      "type": "mcq",
+      "stem": "Table aliases primarily:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Shorten references and disambiguate same-named columns in joins"
+        },
+        {
+          "key": "B",
+          "text": "Speed up queries"
+        },
+        {
+          "key": "C",
+          "text": "Change stored data"
+        },
+        {
+          "key": "D",
+          "text": "Create indexes"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: aliases are namespace hygiene for multi-table queries.",
+        "B": "No performance effect.",
+        "C": "Data is untouched.",
+        "D": "Indexes are separate DDL."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.not-in-with-a-null-in-the-subquery-list-returns",
+      "type": "mcq",
+      "stem": "NOT IN with a NULL in the subquery list returns:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "No rows — every comparison becomes UNKNOWN; use NOT EXISTS"
+        },
+        {
+          "key": "B",
+          "text": "All rows"
+        },
+        {
+          "key": "C",
+          "text": "An error"
+        },
+        {
+          "key": "D",
+          "text": "Only the NULL rows"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: x NOT IN (…, NULL) is never TRUE.",
+        "B": "Rows vanish, not appear.",
+        "C": "It runs silently.",
+        "D": "NULLs never match."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.order-by-2-in-select-a-b-means",
+      "type": "mcq",
+      "stem": "ORDER BY 2 in SELECT a, b means:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Sort by the second select-list column"
+        },
+        {
+          "key": "B",
+          "text": "Sort by the literal value 2"
+        },
+        {
+          "key": "C",
+          "text": "Sort descending"
+        },
+        {
+          "key": "D",
+          "text": "An error in standard SQL"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: positional ordering refers to select-list position.",
+        "B": "Literals in ORDER BY are positions.",
+        "C": "Direction needs DESC.",
+        "D": "Widely supported."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.a-correlated-subquery",
+      "type": "mcq",
+      "stem": "A correlated subquery:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "References the outer query and re-executes per outer row"
+        },
+        {
+          "key": "B",
+          "text": "Runs once before the outer query"
+        },
+        {
+          "key": "C",
+          "text": "Cannot use WHERE"
+        },
+        {
+          "key": "D",
+          "text": "Is always faster than a join"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: correlation binds inner to outer per row.",
+        "B": "That is an uncorrelated subquery.",
+        "C": "WHERE is allowed inside.",
+        "D": "Often slower; depends."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.count-vs-count-email",
+      "type": "mcq",
+      "stem": "COUNT(*) vs COUNT(email):",
+      "choices": [
+        {
+          "key": "A",
+          "text": "COUNT(*) counts rows; COUNT(email) skips NULL emails"
+        },
+        {
+          "key": "B",
+          "text": "They are identical"
+        },
+        {
+          "key": "C",
+          "text": "COUNT(*) skips NULLs"
+        },
+        {
+          "key": "D",
+          "text": "COUNT(email) counts rows"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: * counts rows; column form ignores NULLs.",
+        "B": "NULL emails vanish from the column count.",
+        "C": "* never skips.",
+        "D": "Column form counts non-NULL values."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-select.limit-10-offset-20-returns",
+      "type": "mcq",
+      "stem": "LIMIT 10 OFFSET 20 returns:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Rows 21–30 of the ordered result"
+        },
+        {
+          "key": "B",
+          "text": "The first 10 rows"
+        },
+        {
+          "key": "C",
+          "text": "Rows 20–30"
+        },
+        {
+          "key": "D",
+          "text": "10 random rows"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: skip 20, take 10 — needs ORDER BY for determinism.",
+        "B": "OFFSET skips first.",
+        "C": "Off by one: offset 20 skips 20.",
+        "D": "No randomness; order matters."
+      },
+      "conceptIds": [
+        "sql-select"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.every-non-aggregated-column-in-the-select-list-m",
+      "type": "mcq",
+      "stem": "Every non-aggregated column in the SELECT list must:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Appear in the GROUP BY (or be functionally dependent on it)"
+        },
+        {
+          "key": "B",
+          "text": "Be wrapped in an aggregate"
+        },
+        {
+          "key": "C",
+          "text": "Be indexed"
+        },
+        {
+          "key": "D",
+          "text": "Come from one table"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: the grouping key defines the grain; the rule enforces it.",
+        "B": "Aggregates are the alternative, not the requirement.",
+        "C": "Indexes are unrelated.",
+        "D": "Multi-table grouping is fine."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": -0.6,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.having-count-5-keeps",
+      "type": "mcq",
+      "stem": "HAVING COUNT(*) > 5 keeps:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Groups with more than 5 rows — HAVING filters after aggregation"
+        },
+        {
+          "key": "B",
+          "text": "Rows where a column exceeds 5"
+        },
+        {
+          "key": "C",
+          "text": "The first 5 groups"
+        },
+        {
+          "key": "D",
+          "text": "Tables with 5 columns"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: HAVING predicates on group properties.",
+        "B": "That is a WHERE job.",
+        "C": "No positional semantics.",
+        "D": "Columns are unrelated."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": -1.0,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.sum-amount-after-joining-orders-to-a-3-items-pe",
+      "type": "mcq",
+      "stem": "SUM(amount) after joining orders to a 3-items-per-order table returns 3× revenue because:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Join fan-out: each order's amount repeats per item row — pre-aggregate before joining"
+        },
+        {
+          "key": "B",
+          "text": "SUM is broken on joins"
+        },
+        {
+          "key": "C",
+          "text": "NULLs inflate the sum"
+        },
+        {
+          "key": "D",
+          "text": "The join dropped orders"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: aggregate at the order grain first, then join.",
+        "B": "SUM is correct; the grain is wrong.",
+        "C": "NULLs do not inflate.",
+        "D": "Dropped rows would shrink it."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": 0.6,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.avg-score-over-rows-with-some-null-scores",
+      "type": "mcq",
+      "stem": "AVG(score) over rows with some NULL scores:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Ignores NULLs — averages only non-NULL values"
+        },
+        {
+          "key": "B",
+          "text": "Treats NULLs as zero"
+        },
+        {
+          "key": "C",
+          "text": "Returns NULL"
+        },
+        {
+          "key": "D",
+          "text": "Errors"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: aggregates skip NULLs (except COUNT(*)).",
+        "B": "Zero-substitution needs COALESCE.",
+        "C": "One NULL does not null the avg.",
+        "D": "No error."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": 0.0,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.count-distinct-user-id-gives",
+      "type": "mcq",
+      "stem": "COUNT(DISTINCT user_id) gives:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "The number of unique users"
+        },
+        {
+          "key": "B",
+          "text": "Total rows"
+        },
+        {
+          "key": "C",
+          "text": "Rows minus one"
+        },
+        {
+          "key": "D",
+          "text": "Unique users plus NULLs"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: dedupes before counting.",
+        "B": "That is COUNT(*).",
+        "C": "No off-by-one.",
+        "D": "NULLs are excluded."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": -0.8,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.a-window-function-like-row-number-differs-from",
+      "type": "mcq",
+      "stem": "A window function like ROW_NUMBER() differs from GROUP BY because it:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Returns a value per row without collapsing rows"
+        },
+        {
+          "key": "B",
+          "text": "Collapses rows like GROUP BY"
+        },
+        {
+          "key": "C",
+          "text": "Cannot use ORDER BY"
+        },
+        {
+          "key": "D",
+          "text": "Runs before WHERE"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: windows compute across rows while preserving them.",
+        "B": "No collapsing occurs.",
+        "C": "ORDER BY defines the window frame.",
+        "D": "Windows run after WHERE."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.group-by-dept-year-produces",
+      "type": "mcq",
+      "stem": "GROUP BY dept, year produces:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "One row per department-year combination"
+        },
+        {
+          "key": "B",
+          "text": "One row per department"
+        },
+        {
+          "key": "C",
+          "text": "One row per year"
+        },
+        {
+          "key": "D",
+          "text": "A syntax error"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: grouping keys compose into finer grains.",
+        "B": "That is GROUP BY dept alone.",
+        "C": "That is GROUP BY year alone.",
+        "D": "Multi-key grouping is standard."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": -0.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.in-the-logical-query-order-aggregation-happens",
+      "type": "mcq",
+      "stem": "In the logical query order, aggregation happens:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "After WHERE and GROUP BY, before HAVING/SELECT/ORDER BY"
+        },
+        {
+          "key": "B",
+          "text": "Before WHERE"
+        },
+        {
+          "key": "C",
+          "text": "After ORDER BY"
+        },
+        {
+          "key": "D",
+          "text": "First of all"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY.",
+        "B": "WHERE filters pre-aggregation rows.",
+        "C": "ORDER BY is nearly last.",
+        "D": "FROM is first."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": 0.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.sum-case-when-status-paid-then-amount-else-0-e",
+      "type": "mcq",
+      "stem": "SUM(CASE WHEN status='paid' THEN amount ELSE 0 END) computes:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Conditional aggregation — total of paid amounts in one pass"
+        },
+        {
+          "key": "B",
+          "text": "A syntax error"
+        },
+        {
+          "key": "C",
+          "text": "The count of paid rows"
+        },
+        {
+          "key": "D",
+          "text": "Paid rows only via WHERE"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: CASE inside aggregates pivots conditions into measures.",
+        "B": "Valid standard SQL.",
+        "C": "That needs COUNT/SUM of 1/0.",
+        "D": "No WHERE needed."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": 0.4,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
+      ],
+      "exposureCount": 0
+    },
+    {
+      "id": "sql-agg.min-event-time-and-max-event-time-per-user-giv",
+      "type": "mcq",
+      "stem": "MIN(event_time) and MAX(event_time) per user give:",
+      "choices": [
+        {
+          "key": "A",
+          "text": "Each user's first and last event — session boundaries from one pass"
+        },
+        {
+          "key": "B",
+          "text": "The global min and max"
+        },
+        {
+          "key": "C",
+          "text": "An error without ORDER BY"
+        },
+        {
+          "key": "D",
+          "text": "Only the count of events"
+        }
+      ],
+      "answerKey": "A",
+      "feedback": {
+        "A": "Correct: grouped extrema are the standard sessionization seed.",
+        "B": "Grouping scopes them per user.",
+        "C": "No ordering required.",
+        "D": "Counts need COUNT."
+      },
+      "conceptIds": [
+        "sql-agg"
+      ],
+      "a": 1.3,
+      "b": -0.2,
+      "c": 0.25,
+      "tags": [
+        "sql",
+        "placement"
       ],
       "exposureCount": 0
     }

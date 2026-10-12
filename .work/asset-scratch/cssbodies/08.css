@@ -1,0 +1,164 @@
+/* =====================================================================
+ * ILGuided styles — guided learning engine UI.
+ * 2026-10-08. Scoped to .ilgd-* so nothing else is touched.
+ * Dark-first via CSS vars (course-shell.css); light theme is opt-in
+ * via html[data-theme="light"] and inherits the same vars.
+ * Honors prefers-reduced-motion (no animated fills/transitions).
+ * ===================================================================== */
+
+/* ---- guided path rail ---- */
+#ilgd-rail { margin: 0 0 1.2rem; }
+.ilgd-rail {
+  border: 1px solid var(--line, rgba(255,255,255,.09));
+  border-radius: var(--radius, 14px);
+  background: var(--panel, #0b1017);
+  padding: .9rem 1rem;
+  max-height: 26rem;
+  overflow-y: auto;
+}
+.ilgd-rail__head {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--gold, #c9a227);
+  margin: 0 0 .6rem;
+}
+.ilgd-rail__item {
+  display: flex; align-items: center; gap: .7rem;
+  width: 100%; text-align: left;
+  padding: .5rem .7rem; margin: .18rem 0;
+  border: 1px solid transparent; border-radius: 9px;
+  background: transparent; color: inherit; font: inherit;
+  text-decoration: none;
+}
+button.ilgd-rail__item { cursor: pointer; }
+button.ilgd-rail__item:hover { background: var(--panel2, #0d141d); }
+.ilgd-rail__icon { width: 1.4em; text-align: center; flex: none; }
+.ilgd-rail__txt { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.ilgd-rail__title { font-size: .88rem; font-weight: 600; }
+.ilgd-rail__badge {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+}
+.ilgd-rail__item--done .ilgd-rail__icon { color: var(--green, #34d399); }
+.ilgd-rail__item--done .ilgd-rail__badge { color: var(--green, #34d399); }
+.ilgd-rail__item--current {
+  border-color: var(--gold, #c9a227);
+  background: var(--gold-soft, rgba(201,162,39,.14));
+}
+.ilgd-rail__item--current .ilgd-rail__icon { color: var(--gold, #c9a227); }
+.ilgd-rail__item--current .ilgd-rail__badge { color: var(--gold, #c9a227); }
+.ilgd-rail__item--next .ilgd-rail__icon { color: var(--cyan, #62d8e9); }
+.ilgd-rail__item--next .ilgd-rail__badge { color: var(--cyan, #62d8e9); }
+.ilgd-rail__item--locked { opacity: .55; }
+.ilgd-rail__item--locked .ilgd-rail__badge,
+.ilgd-rail__item--next .ilgd-rail__badge { color: var(--muted, #8b98ab); }
+.ilgd-rail__item--next .ilgd-rail__icon { color: var(--cyan, #62d8e9); }
+
+/* ---- module lock state ---- */
+.mod.ilgd-locked .mod-head { cursor: not-allowed; }
+.mod.ilgd-locked .mod-title { color: var(--muted, #8b98ab); }
+.ilgd-locknote {
+  font-size: .78rem; color: var(--amber, #fbbf24);
+  border: 1px solid var(--amber, #fbbf24); border-radius: 999px;
+  padding: .15rem .7rem; white-space: nowrap;
+}
+.ilgd-state {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: .64rem; letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--line2, rgba(255,255,255,.16));
+  border-radius: 999px; padding: .18rem .7rem; white-space: nowrap;
+  color: var(--muted, #8b98ab);
+}
+.ilgd-state--done { color: var(--green, #34d399); border-color: var(--green, #34d399); }
+.ilgd-state--current { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+.ilgd-state--next { color: var(--cyan, #62d8e9); border-color: var(--cyan, #62d8e9); }
+.ilgd-state--locked { color: var(--muted, #8b98ab); }
+.ilgd-state--gate { color: var(--amber, #fbbf24); border-color: var(--amber, #fbbf24); }
+
+/* ---- mastery gate messaging ---- */
+.ilgd-gate {
+  border: 1px solid var(--amber, #fbbf24); border-radius: var(--radius-s, 9px);
+  background: rgba(251,191,36,.07);
+  color: var(--ink, #e9eef5);
+  font-size: .85rem; padding: .7rem .9rem; margin: .8rem 0;
+}
+.ilgd-notice {
+  border: 1px solid var(--amber, #fbbf24); border-radius: var(--radius-s, 9px);
+  background: rgba(251,191,36,.07);
+  padding: .8rem 1rem; margin: .8rem 0; font-size: .9rem;
+}
+
+/* ---- guided practice ---- */
+.ilgd-quizbar { margin-top: .7rem; }
+.ilgd-practice-btn { margin-top: .2rem; }
+.ilgd-reattempt {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--cyan, #62d8e9); font-size: .82rem; text-decoration: underline;
+}
+.ilgd-practice {
+  border: 1px solid var(--cyan, #62d8e9); border-radius: var(--radius-s, 9px);
+  background: var(--cyan-soft, rgba(98,216,233,.06));
+  padding: .9rem 1rem; margin-top: .8rem;
+}
+.ilgd-practice__label {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: .66rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--cyan, #62d8e9); margin: 0 0 .4rem;
+}
+.ilgd-practice__q { font-weight: 600; margin: 0 0 .6rem; }
+.ilgd-practice__opts { display: flex; flex-direction: column; gap: .4rem; }
+.ilgd-practice__opt {
+  display: block; width: 100%; text-align: left;
+  padding: .55rem .8rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line2, rgba(255,255,255,.16));
+  background: var(--panel2, #0d141d); color: inherit; font: inherit;
+}
+.ilgd-practice__opt:hover:not(:disabled) { border-color: var(--cyan, #62d8e9); }
+.ilgd-practice__opt:disabled { cursor: default; opacity: .85; }
+.ilgd-practice__opt.ilgd-right { border-color: var(--green, #34d399); background: rgba(52,211,153,.08); }
+.ilgd-practice__opt.ilgd-wrong { border-color: var(--red, #f87171); background: rgba(248,113,113,.06); }
+.ilgd-practice__opt.ilgd-eliminated { opacity: .45; text-decoration: line-through; }
+.ilgd-practice__fb { font-size: .85rem; margin: .6rem 0 0; min-height: 1.2em; }
+.ilgd-practice__hintbar { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; }
+.ilgd-hintbtn {
+  border: 1px solid var(--gold, #c9a227); border-radius: 999px;
+  background: transparent; color: var(--gold, #c9a227);
+  font-size: .78rem; padding: .35rem .9rem; cursor: pointer;
+}
+.ilgd-hintbtn:disabled { opacity: .35; cursor: default; }
+.ilgd-hintbtn:not(:disabled):hover { background: var(--gold-soft, rgba(201,162,39,.14)); }
+.ilgd-practice__hintout { font-size: .85rem; color: var(--muted, #8b98ab); margin-top: .5rem; }
+.ilgd-practice__hintout b { color: var(--ink, #e9eef5); }
+
+/* ---- review loops ---- */
+.ilgd-review {
+  border: 1px solid var(--line2, rgba(255,255,255,.16));
+  border-radius: var(--radius, 14px);
+  background: var(--panel2, #0d141d);
+  padding: 1rem 1.1rem; margin: 1rem 0;
+}
+.ilgd-review__head {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--gold, #c9a227); margin: 0 0 .7rem;
+}
+.ilgd-review__item { margin-bottom: .9rem; }
+.ilgd-review__item:last-child { margin-bottom: 0; }
+.ilgd-review__src {
+  font-size: .8rem; color: var(--muted, #8b98ab); margin: 0 0 .3rem;
+}
+.ilgd-review__prompt { margin: 0 0 .5rem; }
+.ilgd-review__note { font-size: .82rem; color: var(--muted, #8b98ab); margin: .3rem 0 0; }
+.ilgd-recallout {
+  border-left: 3px solid var(--gold, #c9a227);
+  padding: .4rem .8rem; margin-top: .5rem;
+  font-size: .85rem; color: var(--muted, #8b98ab);
+}
+
+/* ---- academy mastery line ---- */
+.ilgd-masteryline { margin-top: .6rem; }
+
+/* Never animate — instant, honest, motion-safe. */
+@media (prefers-reduced-motion: reduce) {
+  .ilgd-rail__item, .ilgd-hintbtn, .ilgd-practice__opt { transition: none !important; }
+}

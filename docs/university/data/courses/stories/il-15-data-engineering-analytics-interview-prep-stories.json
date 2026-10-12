@@ -1,0 +1,91 @@
+{
+ "course": "il-15-data-engineering-analytics-interview-prep",
+ "stories": [
+  {
+   "bridge": "Codd's algebra is the grammar; the interview tests your fluency. Now let's drill SQL until the relational model thinks through you.",
+   "course": "il-15-data-engineering-analytics-interview-prep",
+   "figures": [
+    {
+     "dates": "1923–2003",
+     "name": "Edgar F. Codd",
+     "role": "Inventor of the relational model"
+    },
+    {
+     "dates": "",
+     "name": "Donald Chamberlin",
+     "role": "Co-creator of SEQUEL/SQL"
+    },
+    {
+     "dates": "1947–1974",
+     "name": "Raymond Boyce",
+     "role": "Co-creator of SEQUEL/SQL"
+    }
+   ],
+   "hook": "In June 1970, an IBM mathematician declared that data should be algebra — and gave analysts the language they'd still be speaking fifty years later.",
+   "id": "il-15-data-engineering-analytics-interview-prep-story-1",
+   "moduleId": "data-eng-interview-prep--sql-for-de",
+   "narrative": "Edgar F. Codd's paper 'A Relational Model of Data for Large Shared Data Banks' proposed that all data be represented as tables and manipulated with set theory — no pointers, no navigation, just logic. The physical storage would be the machine's problem; humans would think in relations. To make the mathematics usable, IBM's Donald Chamberlin and Raymond Boyce built System R and with it SEQUEL, the Structured English Query Language, in 1974: declarative sentences — SELECT, FROM, WHERE — that said what you wanted, not how to fetch it. The industry standardized it as SQL, and it became the most durable interface in computing history: every data engineer, analyst, and scientist learns it; every warehouse speaks it; and after half a century, no replacement — not NoSQL, not ORMs, not natural language — has displaced it for structured analytics. That durability is exactly why SQL dominates the data interview: window functions, CTEs, and query plans aren't trivia — they're the working vocabulary of the profession, the thing you'll use daily for your entire career. Codd's deeper point is worth carrying into every interview: the relational model won because it separated the logical question from the physical storage. When you write a query in this module, you're asking in logic and letting the engine worry about the machine — the optimizer, the indexes, the shuffle. Fifty years on, that separation is still the whole game, and fluency in it is still the price of admission. The language's declarative nature is why it survived every challenger: you describe the result, and fifty years of optimizer research figures out the how. That division of labor — human intent, machine execution — is the same idea as Hopper's compiler, applied to data. In this module you'll learn to think declaratively at scale: say what you want precisely, and let the engine earn its keep.",
+   "title": "The story behind SQL",
+   "verifiedClaims": [
+    "Codd's relational model paper appeared in CACM, June 1970",
+    "Chamberlin and Boyce created SEQUEL in 1974, standardized as SQL"
+   ]
+  },
+  {
+   "bridge": "Inmon and Kimball argued for decades; the modern warehouse inherited from both. Now let's learn to model data the way the industry finally agreed to.",
+   "course": "il-15-data-engineering-analytics-interview-prep",
+   "figures": [
+    {
+     "dates": "b. 1945",
+     "name": "Bill Inmon",
+     "role": "Author of 'Building the Data Warehouse' (1990); the 'father of data warehousing'"
+    },
+    {
+     "dates": "b. 1944",
+     "name": "Ralph Kimball",
+     "role": "Author of 'The Data Warehouse Toolkit' (1996); pioneer of dimensional modeling"
+    }
+   ],
+   "hook": "In 1990, Bill Inmon said: stop querying production — build a subject-oriented store. In 1996, Ralph Kimball said: build it dimensional, or analysts will never use it.",
+   "id": "il-15-data-engineering-analytics-interview-prep-story-2",
+   "moduleId": "data-eng-interview-prep--data-modeling-warehousing",
+   "narrative": "By the late 1980s, a painful pattern was clear across corporate IT: analytical queries run against operational databases slowed the business systems to a crawl, and every department's spreadsheet disagreed with every other's — there was no single version of the truth, just warring extracts. Inmon's answer, in 'Building the Data Warehouse' (1990), was architectural and top-down: extract the data, clean it, integrate it, and store it in a separate, subject-oriented, non-volatile, time-variant warehouse — engineered in normalized form, governed centrally, the enterprise's memory. Kimball's answer, in 'The Data Warehouse Toolkit' (1996), was human and bottom-up: model the data dimensionally — facts surrounded by descriptive dimensions, the star schema — because that's how businesspeople actually think, and build it one conformed data mart at a time, starting where the value is. The two camps argued for a decade in what the industry called the data-warehouse wars: Inmon's normalized enterprise warehouse versus Kimball's dimensional marts, governance versus usability, the cathedral versus the bazaar. The verdict, delivered by the cloud era, was a synthesis neither had fully predicted: modern warehouses and lakehouses use dimensional modeling for analytics — Kimball won the analyst's heart — atop centralized, governed, ELT-driven platforms — Inmon won the enterprise. When interviewers ask you to design a schema for analytics, they're replaying 1990 versus 1996 and checking whether you know why the star schema won the queries while governance won the platform. Learn both sides of the argument — in production, you'll need both, and you'll join a thirty-year debate that's still running. The lakehouse — the architecture you'll actually build on — is the synthesis made concrete: cheap object storage holding everything (Inmon's enterprise memory), with dimensional models and governed marts on top (Kimball's analyst-friendly shapes). The war ended not with a winner but with a stack. Your interview answer should show you know both ancestors, because the modern platform is their child.",
+   "title": "The story behind the data warehouse",
+   "verifiedClaims": [
+    "Inmon published 'Building the Data Warehouse' in 1990",
+    "Kimball published 'The Data Warehouse Toolkit' in 1996, popularizing dimensional modeling and the star schema"
+   ]
+  },
+  {
+   "bridge": "From Lind's sailors to your experiment dashboard: the method is the same, only the scale changed. Now let's learn to design experiments that actually answer the question.",
+   "course": "il-15-data-engineering-analytics-interview-prep",
+   "figures": [
+    {
+     "dates": "1716–1794",
+     "name": "James Lind",
+     "role": "Scottish naval surgeon; ran the first controlled clinical trial (1747)"
+    },
+    {
+     "dates": "1890–1962",
+     "name": "Ronald Fisher",
+     "role": "Statistician; invented randomized experimental design at Rothamsted"
+    },
+    {
+     "dates": "b. 1975",
+     "name": "Marissa Mayer",
+     "role": "Google executive; made large-scale A/B testing famous with the 41 shades of blue (2009)"
+    }
+   ],
+   "hook": "In 2009, Marissa Mayer's team tested 41 shades of blue on Google's links — and let the data choose.",
+   "id": "il-15-data-engineering-analytics-interview-prep-story-3",
+   "moduleId": "data-science-interview-prep--experimentation-ab",
+   "narrative": "The story, which Mayer told to a room of over a thousand designers, has become the industry's emblem of data-driven decision-making: rather than argue about which blue was prettiest, Google showed different users imperceptibly different shades and measured which earned more clicks. The winning blue — neither too green nor too red — was chosen by behavior, not opinion, and the designer whose shade lost had to accept the numbers. But the method is far older than the web. In 1747, the Scottish naval surgeon James Lind, faced with scurvy killing more of his sailors than enemy action, divided twelve sick men into six pairs, gave each pair a different treatment atop the same diet, and found within a week that citrus cured while cider, vinegar, and the rest did nothing — the first controlled clinical trial, comparison as evidence. In the 1920s, Ronald Fisher at England's Rothamsted agricultural station invented randomized experimental design itself: randomize the plots, replicate the treatments, block the confounders — the machinery that turns a comparison into a causal claim. His 'Statistical Methods for Research Workers' (1925) and 'The Design of Experiments' (1935) are the field's scriptures, and every concept in your experimentation interviews — randomization, power, significance, the danger of peeking — comes from Fisher's fields. The web industrialized him: where he randomized wheat plots, you randomize users; where he measured crop yields, you measure conversion; where he worried about soil gradients, you worry about novelty effects and network interference. When interviewers probe your A/B testing knowledge, they're checking whether you understand that you're running a 1920s agricultural experiment at internet scale. Lind's sailors would recognize the logic. Only the dashboard is new. Fisher's own career carries the field's warning label: the father of experimental design was also a committed eugenicist, and his statistical tools were forged partly in service of that ideology. The methods are sound; the history is not innocent. It's worth knowing as you wield them — the mathematics of evidence deserves practitioners who understand both its power and its provenance.",
+   "title": "The story behind the A/B test",
+   "verifiedClaims": [
+    "Lind ran the first controlled trial on scurvy in 1747 with twelve sailors in six pairs",
+    "Fisher invented randomized experimental design at Rothamsted in the 1920s",
+    "Mayer's 41-shades-of-blue experiment at Google dates to 2009"
+   ]
+  }
+ ]
+}

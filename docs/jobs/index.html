@@ -1,95 +1,285 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080d15">
-  <meta name="description" content="Browse public jobs, save postings on your device, and review your evidence with Noah AI.">
-  <title>Jobs &amp; career workspace · Interstitium Labs</title>
+  <meta name="theme-color" content="#06080c">
+  <meta name="description" content="One board for the whole market: aggregated openings from company boards, federal postings and remote boards — with AI matching, a resume studio, cover letters, company dossiers, tracking and alerts.">
+  <title>Jobs — the whole market, one board · Interstitium Labs</title>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:image" content="https://interstitiumlabs.dev/og.jpg"/>
   <link rel="canonical" href="https://interstitiumlabs.dev/jobs/">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/noah-jobs.css">
-  <script src="/assets/noah-session.js" defer></script>
-  <script src="/assets/noah-ai.js" defer></script>
-  <script src="/assets/noah-jobs.js" defer></script>
+  <link rel="icon" href="https://interstitiumlabs.dev/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-jobs.css">
+  <script src="https://interstitiumlabs.dev/assets/il-jobs.js" defer></script>
 </head>
-<body data-noah-workspace data-noah-jobs>
-  <a class="skip" href="#jobs-workspace">Skip to jobs</a>
-  <header class="masthead">
-    <a class="brand" href="/"><img src="/assets/chrome/sigil-glyph.svg" alt="" width="40" height="40"><span>INTERSTITIUM LABS<small>CAREER WORKSPACE</small></span></a>
-    <nav aria-label="Site"><a href="/learn/">Learning OS</a><a href="/noah/">Noah AI</a><a href="https://learn.interstitiumlabs.dev">University</a></nav>
-    <span class="device-label">Saved on this device</span>
-  </header>
-  <main id="jobs-workspace" tabindex="-1">
-    <section class="intro">
-      <div><p class="eyebrow">NOAH / CAREER INTELLIGENCE</p><h1>Find the role.<br><em>Build the evidence.</em></h1><p class="lede">Browse real public openings or bring a posting. Compare the requirements with what you can demonstrate, then prepare your next step with Noah.</p></div>
-      <aside class="provider-bridge"><p class="eyebrow">YOUR JOBRIGHT BRIDGE</p><h2>Use your recommendations.</h2><p>Open Jobright in its own service. Bring a chosen posting here to review it with Noah.</p><a class="button secondary" href="https://jobright.ai/jobs/recommend" target="_blank" rel="noopener noreferrer">Open Jobright recommendations <span aria-hidden="true">↗</span></a><p class="fine">This workspace uses Remotive and your imports. It has no access to your Jobright account or recommendation feed.</p></aside>
-    </section>
-    <p id="jobs-status" class="status" role="status" aria-atomic="true">Your evidence and saved jobs stay in this browser. Public jobs load when you choose.</p>
-    <div class="workspace-grid">
-      <aside class="filters">
-        <p class="eyebrow">01 / YOUR SEARCH</p><h2>Choose a direction.</h2>
-        <form id="filter-form" action="/jobs/" method="get">
-          <label for="job-search">Title, company or keyword</label><input id="job-search" name="search" type="search" maxlength="120" autocomplete="off">
-          <label for="job-lane">Role family</label><select id="job-lane" name="lane"><option value="all" selected>All roles</option><option value="cloud">Cloud / DevOps / infrastructure</option><option value="support">IT support / operations</option><option value="software">Software development</option><option value="security">Security</option><option value="data">Data / analytics</option></select>
-          <label for="job-location">Location text</label><input id="job-location" name="location" maxlength="100" placeholder="e.g. United States or Worldwide">
-          <label for="job-level">Seniority</label><select id="job-level" name="level"><option value="all">All / verify requirements</option><option value="junior">Explicit junior / entry / intern</option><option value="not-senior">Exclude senior / lead titles</option></select>
-          <label for="job-type">Work type</label><select id="job-type" name="type"><option value="all">All types</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select>
-          <label for="job-source">Source</label><select id="job-source" name="source"><option value="all">All sources</option><option value="remotive">Remotive public feed</option><option value="import">My imports</option></select>
-          <label for="job-stage">My tracking stage</label><select id="job-stage" name="stage"><option value="all">Any stage</option><option value="preparing">Preparing</option><option value="applied">Applied · I recorded it</option><option value="interview">Interview</option><option value="closed">Closed / archived</option></select>
-          <label class="check" for="saved-only"><input id="saved-only" name="saved" type="checkbox"> Saved jobs only</label>
-          <button type="submit" class="secondary">Apply filters</button><button id="save-filters" type="button" class="quiet">Save these filters on device</button>
-        </form>
-        <details class="evidence"><summary>Your confirmed evidence</summary>
-          <form id="profile-form" action="/jobs/" method="post">
-            <p id="evidence-help" class="fine">Choose only facts you can support. Lab work remains learning evidence. Nothing here establishes paid experience.</p>
-            <label for="profile-goal">Target role</label><input id="profile-goal" name="goal" value="Junior cloud / DevOps" maxlength="100">
-            <label class="check" for="profile-support"><input id="profile-support" name="support" type="checkbox"> I can evidence IT support work</label>
-            <label class="check" for="profile-aplus"><input id="profile-aplus" name="aplus" type="checkbox"> I hold CompTIA A+</label>
-            <label class="check" for="profile-portfolio"><input id="profile-portfolio" name="portfolio" type="checkbox"> I have a learning portfolio / lab</label>
-            <label for="profile-skills">Skills demonstrated in work or projects</label><textarea id="profile-skills" name="skills" rows="3" maxlength="800" aria-describedby="evidence-help" placeholder="e.g. PowerShell, Windows troubleshooting"></textarea>
-            <label for="profile-notes">Evidence details</label><textarea id="profile-notes" name="notes" rows="3" maxlength="800" placeholder="e.g. A project link and what you built. Do not enter secrets."></textarea>
-            <button type="submit" class="secondary">Save my evidence</button>
-          </form>
-        </details>
-        <div class="device-tools"><button id="export-jobs" type="button" class="quiet">Export jobs &amp; evidence</button><button id="forget-jobs" type="button" class="quiet danger">Forget jobs &amp; evidence</button><p class="fine">Job reviews also enter Noah’s conversation. <a href="/noah/">Manage that history in Noah.</a></p></div>
-      </aside>
-      <section class="results">
-        <div class="section-head"><div><p class="eyebrow">02 / REAL OPENINGS</p><h2>Explore opportunities.</h2></div><button id="load-jobs" type="button">Load public jobs <span aria-hidden="true">↗</span></button></div>
-        <p class="feed-note">Source: <a href="https://remotive.com" target="_blank" rel="noopener noreferrer">Remotive</a> · remote listings · provider data delayed 24 hours. Load the website’s shared public snapshot; your evidence stays here.</p>
-        <p id="feed-state" class="fine">No feed loaded. You can import a posting below, including from Jobright.</p>
-        <div class="result-tools"><span id="result-count">0 jobs</span><button id="compare-jobs" type="button" class="quiet" disabled>Compare selected (0/2)</button></div>
-        <ul id="job-list" class="job-list" aria-label="Job results"></ul>
-        <div class="pagination"><button id="previous-jobs" type="button" class="quiet" disabled>Previous</button><span id="page-state">Page 1</span><button id="next-jobs" type="button" class="quiet" disabled>Next</button></div>
-        <details id="import-section" class="import-section" open><summary>Bring a job posting</summary>
-          <p class="fine">Paste the title, company, public link and requirements yourself. We do not fetch the link or connect to your accounts.</p>
-          <form id="import-form" action="/jobs/" method="post">
-            <div class="two-fields"><div><label for="import-title">Job title</label><input id="import-title" name="title" required maxlength="180"></div><div><label for="import-company">Company</label><input id="import-company" name="company" required maxlength="160"></div></div>
-            <label for="import-url">Public posting link (HTTPS)</label><input id="import-url" name="url" type="url" required maxlength="2000" placeholder="https://…">
-            <div class="two-fields"><div><label for="import-location">Candidate location (optional)</label><input id="import-location" name="location" maxlength="150"></div><div><label for="import-type">Work type</label><select id="import-type" name="type"><option value="">Not supplied</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select></div></div>
-            <label for="import-requirements">Requirements and relevant posting text</label><textarea id="import-requirements" name="requirements" rows="5" maxlength="8000" required placeholder="Paste the actual requirements. Omit private notes or contact details."></textarea>
-            <button type="submit">Import &amp; review on device</button>
-          </form>
-        </details>
-      </section>
-      <aside class="review">
-        <p class="eyebrow">03 / REVIEW WITH EVIDENCE</p><h2 id="review-title" tabindex="-1">Choose a posting.</h2>
-        <div id="job-detail"><p class="muted">Open a card to see the source, requirements and evidence checks. Select two cards to compare.</p></div>
-        <section class="noah-review"><p class="eyebrow">NOAH / CAREER COPILOT</p><h3>Your next considered step.</h3><p class="fine">Noah can explain gaps and draft preparation notes. Review the exact details before sharing with the university AI service.</p>
-          <label for="noah-action">Review task</label><select id="noah-action"><option value="fit">Explain fit &amp; uncertainties</option><option value="gaps">Make an evidence-building plan</option><option value="prepare">Prepare an application draft</option><option value="compare">Compare my two selected jobs</option></select>
-          <div class="review-actions"><button id="local-prep" type="button" class="secondary" disabled>Make local preparation notes</button><button id="review-noah" type="button" disabled>Review details for Noah</button></div>
-          <p id="noah-notice" class="fine">Sharing starts only after your consent. No applications or employer contact happen here.</p>
-          <div id="noah-response" class="response" tabindex="-1" hidden></div>
-        </section>
-      </aside>
+<body data-jobs-suite>
+  <div class="jl-wrap">
+    <header class="jl-hero">
+      <p class="jl-eyebrow">Interstitium Labs · Jobs</p>
+      <h1>The whole market. <em>One board.</em></h1>
+      <p class="jl-lede">Openings aggregated live from direct company boards, federal postings, and remote boards — deduplicated to one canonical listing per role, then matched against your profile by the career agents.</p>
+      <div class="jl-acct" id="acct-bar"><span class="jl-chip" id="acct-state">Checking your session…</span><span class="jl-chip" id="tier-state" hidden></span></div>
+    </header>
+
+    <div class="jl-coach" role="region" aria-label="Career coach">
+      <p><strong>Noah &amp; Genesis — career coach, 24/7.</strong> Strategy, gap plans, and a spoken mock interview whenever you are ready.</p>
+      <div class="acts">
+        <a class="btn sm" href="/noah/">Chat with coach</a>
+        <a class="btn sm sec" href="/noah/?mode=interview">Practice interview 🎙</a>
+      </div>
     </div>
-  </main>
-  <footer><p>Interstitium Labs · Learn deliberately. Build with evidence.</p><p>Public listings and evidence checks do not establish eligibility. Verify the current posting and location requirements at the source.</p></footer>
-  <dialog id="share-dialog" aria-labelledby="share-title">
-    <h2 id="share-title">Review what Noah will receive.</h2><p>The text below includes your selected posting and stated evidence. It will be saved in your device’s shared Noah conversation and sent to the university AI service. Other history, memory and page details are excluded.</p>
-    <pre id="share-preview" class="share-preview"></pre>
-    <form id="share-form" action="/jobs/" method="post"><label class="check" for="share-consent"><input id="share-consent" name="consent" type="checkbox" required> I agree to send these details to Noah.</label><p id="share-error" class="fine" role="status"></p><div class="dialog-actions"><button id="cancel-share" type="button" class="quiet">Cancel</button><button id="send-noah" type="submit">Send these details</button></div></form>
-  </dialog>
-  <noscript><p class="noscript">Enable JavaScript for local filters, imports, saved jobs and Noah review. You can still <a href="https://jobright.ai/jobs/recommend" rel="noopener noreferrer" target="_blank">open Jobright recommendations</a> or <a href="https://remotive.com" rel="noopener noreferrer" target="_blank">browse Remotive</a>.</p></noscript>
+
+    <nav class="jl-tabs" role="tablist" aria-label="Jobs suite">
+      <button role="tab" data-tab="search" aria-selected="true">Search</button>
+      <button role="tab" data-tab="match" aria-selected="false">AI Matching</button>
+      <button role="tab" data-tab="resume" aria-selected="false">Resume Studio</button>
+      <button role="tab" data-tab="letter" aria-selected="false">Cover Letter</button>
+      <button role="tab" data-tab="company" aria-selected="false">Company 360°</button>
+      <button role="tab" data-tab="tracker" aria-selected="false">Tracker</button>
+      <button role="tab" data-tab="alerts" aria-selected="false">Alerts</button>
+      <button role="tab" data-tab="profile" aria-selected="false">Job Profile</button>
+    </nav>
+
+    <!-- SEARCH -->
+    <section class="jl-panel on" id="panel-search" role="tabpanel">
+      <div class="jl-card">
+        <h2>Search the board</h2>
+        <p class="jl-sub">Every listing carries its source. Sources marked “key pending” activate as their public API keys are added.</p>
+        <form id="search-form">
+          <div class="jl-rowline">
+            <div><label for="q">Title, skill, or keyword</label><input id="q" type="search" placeholder="e.g. IT support" autocomplete="off"></div>
+            <div><label for="loc">Location</label><input id="loc" type="text" placeholder="e.g. Orlando" autocomplete="off"></div>
+            <div class="narrow"><button class="btn" type="submit" id="search-btn">Search</button></div>
+          </div>
+          <details style="margin-top:10px">
+            <summary style="cursor:pointer;color:var(--gold2);font-size:14px">Advanced filters</summary>
+            <div class="jl-filters" style="margin-top:10px">
+              <div><label for="f-source">Source</label><select id="f-source"><option value="all">All sources</option></select></div>
+              <div><label for="f-level">Level</label><select id="f-level"><option value="all">All levels</option><option value="junior">Junior / entry</option><option value="mid">Mid</option><option value="senior">Senior+</option></select></div>
+              <div><label for="f-type">Type</label><select id="f-type"><option value="all">All types</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="freelance">Freelance</option><option value="internship">Internship</option></select></div>
+              <div><label for="f-posted">Posted within</label><select id="f-posted"><option value="">Any time</option><option value="1">24 hours</option><option value="7">7 days</option><option value="30">30 days</option></select></div>
+              <div><label for="f-salary">Salary at least ($)</label><input id="f-salary" type="number" min="0" step="5000" placeholder="60000"></div>
+              <div><label for="f-spons">Sponsorship</label><select id="f-spons"><option value="">Any</option><option value="yes">Sponsorship offered</option><option value="no">No sponsorship</option></select></div>
+              <label class="jl-check"><input id="f-remote" type="checkbox"> Remote only</label>
+              <label class="jl-check"><input id="f-clear" type="checkbox"> Clearance roles</label>
+            </div>
+          </details>
+        </form>
+        <p class="jl-status" id="search-status" role="status"></p>
+        <div id="source-status" class="jl-tags" aria-label="Source status"></div>
+      </div>
+      <div class="jl-grid" id="results"></div>
+      <div class="jl-rowline" style="margin-top:6px">
+        <div class="narrow"><button class="btn sec sm" id="more-btn" hidden>Load more</button></div>
+        <p class="jl-status" id="more-status"></p>
+      </div>
+    </section>
+
+    <!-- MATCH -->
+    <section class="jl-panel" id="panel-match" role="tabpanel">
+      <div class="jl-card">
+        <h2>AI Job Matching</h2>
+        <p class="jl-sub">A deterministic ATS score computed from the actual posting text against your Job Profile — the same number before and after any generation. Add the AI narrative for a gap plan.</p>
+        <label for="match-job">Use a job</label>
+        <select id="match-job"><option value="">— paste a posting below, or run a search first —</option></select>
+        <label for="match-posting" style="margin-top:10px">Posting text</label>
+        <textarea id="match-posting" rows="7" placeholder="Paste the full posting (title, company, requirements)…"></textarea>
+        <div class="jl-rowline" style="margin-top:10px">
+          <div class="narrow"><button class="btn" id="match-btn">Score my match</button></div>
+          <div class="narrow"><button class="btn sec" id="match-ai-btn">AI gap analysis</button></div>
+        </div>
+        <p class="jl-status" id="match-status" role="status"></p>
+        <div id="match-out"></div>
+      </div>
+    </section>
+
+    <!-- RESUME -->
+    <section class="jl-panel" id="panel-resume" role="tabpanel">
+      <div class="jl-card">
+        <h2>Resume Studio</h2>
+        <p class="jl-sub">A resume tailored to one posting, generated only from facts in your Job Profile — rephrased and reordered, never invented. Free tier: 2 per day.</p>
+        <label for="resume-job">Use a job</label>
+        <select id="resume-job"><option value="">— general resume (no specific posting), or pick a searched job —</option></select>
+        <label for="resume-posting" style="margin-top:10px">Or paste a posting</label>
+        <textarea id="resume-posting" rows="5" placeholder="Paste posting text to tailor against it…"></textarea>
+        <div class="jl-rowline" style="margin-top:10px">
+          <div class="narrow"><button class="btn" id="resume-btn">Generate tailored resume</button></div>
+          <div class="narrow"><button class="btn sec" id="resume-print" hidden>Print / save PDF</button></div>
+          <div class="narrow"><button class="btn sec" id="resume-dl" hidden>Download HTML</button></div>
+        </div>
+        <p class="jl-status" id="resume-status" role="status"></p>
+        <div id="resume-out"></div>
+      </div>
+    </section>
+
+    <!-- COVER LETTER -->
+    <section class="jl-panel" id="panel-letter" role="tabpanel">
+      <div class="jl-card">
+        <h2>Cover Letter</h2>
+        <p class="jl-sub">One letter per posting: your evidence mapped to their requirements, in the master-template structure. Free tier: 2 per day.</p>
+        <label for="letter-job">Use a job</label>
+        <select id="letter-job"><option value="">— pick a searched job, or paste below —</option></select>
+        <label for="letter-posting" style="margin-top:10px">Posting text</label>
+        <textarea id="letter-posting" rows="6" placeholder="Paste the posting…"></textarea>
+        <div class="jl-rowline" style="margin-top:10px">
+          <div class="narrow"><button class="btn" id="letter-btn">Write my letter</button></div>
+          <div class="narrow"><button class="btn sec" id="letter-print" hidden>Print / save PDF</button></div>
+        </div>
+        <p class="jl-status" id="letter-status" role="status"></p>
+        <div id="letter-out"></div>
+      </div>
+    </section>
+
+    <!-- COMPANY 360 -->
+    <section class="jl-panel" id="panel-company" role="tabpanel">
+      <div class="jl-card">
+        <h2>Company 360°</h2>
+        <p class="jl-sub">A dossier for any company on the board: what they do, what they are hiring for, the stack their postings signal, and a prep path into their interview.</p>
+        <div class="jl-rowline">
+          <div><label for="co-name">Company</label><input id="co-name" type="text" placeholder="e.g. Stripe"></div>
+          <div class="narrow"><button class="btn" id="co-btn">Build dossier</button></div>
+        </div>
+        <p class="jl-status" id="co-status" role="status"></p>
+        <div id="co-out"></div>
+        <hr class="jl-hr">
+        <h3>Recruiter outreach</h3>
+        <p class="jl-sub">Public contacts only: emails published in the posting itself, plus clearly-labeled format patterns for a domain you supply. Drafts are written for your review — nothing is ever sent automatically.</p>
+        <div class="jl-filters">
+          <div><label for="oc-company">Company</label><input id="oc-company" type="text"></div>
+          <div><label for="oc-domain">Company domain (for format patterns)</label><input id="oc-domain" type="text" placeholder="company.com"></div>
+        </div>
+        <div class="jl-rowline" style="margin-top:10px">
+          <div class="narrow"><button class="btn sec" id="oc-btn">Find public contacts</button></div>
+          <div class="narrow"><button class="btn sec" id="oc-draft-btn">Draft outreach</button></div>
+        </div>
+        <p class="jl-status" id="oc-status" role="status"></p>
+        <div id="oc-out"></div>
+      </div>
+    </section>
+
+    <!-- TRACKER -->
+    <section class="jl-panel" id="panel-tracker" role="tabpanel">
+      <div id="due-box"></div>
+      <div class="jl-card">
+        <h2>Application Tracker</h2>
+        <p class="jl-sub" id="tracker-sub">Your pipeline, synced to your account when you sign in — on this device until then.</p>
+        <div class="jl-scroll"><table class="jl-t" id="tracker-table">
+          <thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Applied</th><th>Follow up</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="tracker-body"><tr><td colspan="7" class="jl-fine">Loading…</td></tr></tbody>
+        </table></div>
+        <hr class="jl-hr">
+        <h3>Add manually</h3>
+        <form id="track-add">
+          <div class="jl-filters">
+            <div><label for="ta-company">Company</label><input id="ta-company" required></div>
+            <div><label for="ta-title">Job title</label><input id="ta-title" required></div>
+            <div><label for="ta-loc">Location</label><input id="ta-loc"></div>
+            <div><label for="ta-portal">Portal / source</label><input id="ta-portal"></div>
+          </div>
+          <div class="jl-rowline" style="margin-top:10px">
+            <div class="narrow"><button class="btn sec" type="submit">Add to tracker</button></div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ALERTS -->
+    <section class="jl-panel" id="panel-alerts" role="tabpanel">
+      <div class="jl-card">
+        <h2>Saved filters &amp; instant alerts</h2>
+        <p class="jl-sub">Save a search once; the Alert Hunter re-runs it against the board and shows only what is new. Free tier: 1 saved filter, 1 digest per day. Saved filters live in your account — sign in to sync.</p>
+        <form id="alert-form">
+          <div class="jl-filters">
+            <div><label for="al-name">Filter name</label><input id="al-name" placeholder="IT support — Orlando"></div>
+            <div><label for="al-q">Keyword</label><input id="al-q" placeholder="IT support"></div>
+            <div><label for="al-loc">Location</label><input id="al-loc" placeholder="Orlando"></div>
+            <div><label for="al-level">Level</label><select id="al-level"><option value="all">All</option><option value="junior">Junior</option><option value="mid">Mid</option><option value="senior">Senior+</option></select></div>
+          </div>
+          <div class="jl-rowline" style="margin-top:10px">
+            <label class="jl-check"><input id="al-remote" type="checkbox"> Remote only</label>
+            <div class="narrow"><button class="btn sec" type="submit">Save filter</button></div>
+            <div class="narrow"><button class="btn" type="button" id="alert-check">Check for new matches</button></div>
+          </div>
+        </form>
+        <p class="jl-status" id="alert-status" role="status"></p>
+        <div id="alert-list"></div>
+        <div id="alert-out" class="jl-grid" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="jl-panel" id="panel-profile" role="tabpanel">
+      <div class="jl-card">
+        <h2>Job Profile vault</h2>
+        <p class="jl-sub">The single source of truth for matching, generation, and 1-click autofill. Stored in your account when signed in (on-device until then). Only facts you can evidence — generation never adds anything beyond this.</p>
+        <form id="profile-form">
+          <div class="jl-filters">
+            <div><label for="pf-name">Full name</label><input id="pf-name" autocomplete="name"></div>
+            <div><label for="pf-email">Email</label><input id="pf-email" type="text" autocomplete="email"></div>
+            <div><label for="pf-phone">Phone</label><input id="pf-phone" autocomplete="tel"></div>
+            <div><label for="pf-loc">Location</label><input id="pf-loc"></div>
+            <div><label for="pf-headline">Headline</label><input id="pf-headline" placeholder="IT Support Specialist"></div>
+            <div><label for="pf-auth">Work authorization</label><input id="pf-auth" placeholder="Authorized to work in the US"></div>
+            <div><label for="pf-salary">Salary expectation</label><input id="pf-salary" placeholder="$75,000"></div>
+            <div><label for="pf-certs">Certifications (comma-separated)</label><input id="pf-certs"></div>
+          </div>
+          <label for="pf-summary" style="margin-top:10px">Summary</label>
+          <textarea id="pf-summary" rows="3"></textarea>
+          <label for="pf-skills" style="margin-top:10px">Skills (comma-separated)</label>
+          <textarea id="pf-skills" rows="2"></textarea>
+          <div class="jl-filters" style="margin-top:10px">
+            <div><label for="pf-li">LinkedIn URL</label><input id="pf-li"></div>
+            <div><label for="pf-gh">GitHub URL</label><input id="pf-gh"></div>
+            <div><label for="pf-pf">Portfolio URL</label><input id="pf-pf"></div>
+            <div><label for="pf-web">Website URL</label><input id="pf-web"></div>
+          </div>
+          <h3>Experience</h3>
+          <div id="pf-exp"></div>
+          <button class="btn sec sm" type="button" id="pf-exp-add">+ Add role</button>
+          <h3>Education</h3>
+          <div id="pf-edu"></div>
+          <button class="btn sec sm" type="button" id="pf-edu-add">+ Add education</button>
+          <h3>Voluntary self-identification (autofill defaults)</h3>
+          <div class="jl-filters">
+            <div><label for="pf-eeo-g">Gender</label><input id="pf-eeo-g" placeholder="Decline to state"></div>
+            <div><label for="pf-eeo-r">Race / ethnicity</label><input id="pf-eeo-r" placeholder="Decline to state"></div>
+            <div><label for="pf-eeo-v">Veteran status</label><input id="pf-eeo-v" placeholder="Decline to state"></div>
+            <div><label for="pf-eeo-d">Disability status</label><input id="pf-eeo-d" placeholder="Decline to state"></div>
+          </div>
+          <div class="jl-rowline" style="margin-top:14px">
+            <div class="narrow"><button class="btn" type="submit">Save profile</button></div>
+            <div class="narrow"><button class="btn sec" type="button" id="pf-autofill">Generate autofill payload</button></div>
+          </div>
+        </form>
+        <p class="jl-status" id="profile-status" role="status"></p>
+        <div id="autofill-out"></div>
+      </div>
+    </section>
+  </div>
+
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56" loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
 </body>
 </html>

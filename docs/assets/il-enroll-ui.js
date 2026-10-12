@@ -1,229 +1,169 @@
 (function () {
+  var cfg = window.IL_ENROLL || { tiers: [], disclaimer: "Config missing." };
   var status = document.getElementById("enroll-status");
   var grid = document.getElementById("tier-grid");
-  var cfg = window.IL_ENROLL || { tiers: [] };
   if (!status || !grid) return;
 
-  function esc(value) {
-    return String(value == null ? "" : value).replace(/[&<>"]/g, function (ch) {
-      return "&#" + ch.charCodeAt(0) + ";";
-    });
+  var live = !!cfg.paymentsLive;
+
+  function escAttr(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;");
   }
 
-  function say(html) {
-    status.innerHTML = html;
-  }
-
-  function units(amount, decimals) {
-    var raw = BigInt(amount).toString().padStart(decimals + 1, "0");
-    var whole = raw.slice(0, raw.length - decimals);
-    var frac = raw.slice(raw.length - decimals).replace(/0+$/, "");
-    return frac ? whole + "." + frac.slice(0, 6) : whole;
-  }
-
-  function transferData(to, amount) {
-    return (
-      "0xa9059cbb" +
-      to.slice(2).toLowerCase().padStart(64, "0") +
-      BigInt(amount).toString(16).padStart(64, "0")
-    );
-  }
-
-  async function pay(payTo, tierId, asset, amount, token, quote) {
-    try {
-    if (!window.ethereum) {
-      say("<p>No wallet was found in this browser. Install a wallet that speaks Ethereum, then pay " + esc(payTo.domain) + ".</p>");
-      return;
-    }
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x1" }],
-      });
-    } catch (err) {
-      if (!err || err.code !== 4902) {
-        say("<p>Switch the wallet to Ethereum mainnet before paying.</p>");
+  function bindWaitlistForm(root) {
+    var form = root.querySelector("#waitlist-form");
+    if (!form) return;
+    var err = root.querySelector("#wl-error");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.elements.name.value.trim();
+      var email = form.elements.email.value.trim();
+      var tier = "prep-sprint";
+      try {
+        var tierEl = form.querySelector('input[name="tier"]:checked');
+        if (tierEl && tierEl.value) tier = tierEl.value;
+      } catch (e) {}
+      err.hidden = true;
+      err.textContent = "";
+      if (!name || !email) {
+        err.textContent = "Enter your name and email so we can reach you.";
+        err.hidden = false;
         return;
       }
-    }
-    var accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    var tx;
-    if (asset === "eth") {
-      tx = await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [{ from: accounts[0], to: payTo.address, value: "0x" + BigInt(amount).toString(16) }],
-      });
-    } else {
-      tx = await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [{ from: accounts[0], to: token, data: transferData(payTo.address, amount) }],
-      });
-    }
-    var verified = await fetch("/api/pay/verify", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tier: tierId, asset: asset, txHash: tx, quote: quote || "" }),
+      var btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ name: name, email: email, tier: tier }),
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { status: res.status, data: data };
+          });
+        })
+        .then(function (r) {
+          if (r.status === 200 && r.data && r.data.ok) {
+            window.location.href = "/enroll/success.html";
+            return;
+          }
+          var msg = "Could not join the waitlist. Check your email and try again.";
+          if (r.data && r.data.error === "email_invalid") msg = "That email does not look valid — check it and try again.";
+          err.textContent = msg;
+          err.hidden = false;
+          btn.disabled = false;
+        })
+        .catch(function () {
+          err.textContent = "Network error — try again in a moment.";
+          err.hidden = false;
+          btn.disabled = false;
+        });
     });
-    var result = await verified.json();
-    say(
-      "<p>Transaction " +
-        esc(tx) +
-        " is " +
-        esc(result.status || result.error || "submitted") +
-        ". Funds go only to " +
-        esc(payTo.domain) +
-        " (" +
-        esc(payTo.address) +
-        ").</p>"
-    );
-    } catch (err) {
-      say("<p>" + esc(err && err.message ? err.message : "The wallet did not send the payment.") + "</p>");
-    }
   }
 
-  fetch("/api/pay/config")
-    .then(function (res) {
-      return res.json();
-    })
-    .then(function (payTo) {
-      var tiers = cfg.tiers || [];
-      var byId = {};
-      (payTo.tiers || []).forEach(function (tier) {
-        byId[tier.id] = tier;
-      });
-      say(
-        '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-cyan">Payments</p>' +
-          '<p class="mt-2 text-paper">Any ERC-20 can be sent to the Ethereum address below. Cards, Apple Pay, and Google Pay use Stripe. PayPal and Venmo use PayPal. Monero uses its own address.</p>' +
-          '<p class="mt-2 text-sm text-muted">' +
-          esc(payTo.fiat || "") +
-          " " +
-          esc(payTo.iso20022) +
-          (payTo.xmr ? "" : " Monero is off until the XMR_ADDRESS worker secret is a real Monero address. The domain has no crypto.XMR.address.") +
-          "</p>" +
-          '<p class="mt-2 font-mono text-xs text-gold">' +
-          esc(payTo.address) +
-          "</p>"
-      );
-      grid.innerHTML = "";
-      tiers.forEach(function (tier) {
-        var remote = byId[tier.id];
-        if (!remote) return;
-        var art = document.createElement("article");
-        art.className = "flex flex-col rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)] sm:p-7";
-        var buttons =
-          '<button type="button" data-card="1" class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-paper px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-void">Card, Apple Pay, Google Pay</button>' +
-          '<button type="button" data-paypal="1" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">PayPal or Venmo</button>' +
-          '<button type="button" data-asset="xmr" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay with XMR</button>' +
-          '<button type="button" data-asset="usdc" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay ' +
-          esc(units(remote.stable.usdc, 6)) +
-          " USDC</button>" +
-          '<button type="button" data-asset="usdt" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay ' +
-          esc(units(remote.stable.usdt, 6)) +
-          " USDT</button>" +
-          '<button type="button" data-asset="dai" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay ' +
-          esc(units(remote.stable.dai, 18)) +
-          " DAI</button>" +
-          '<button type="button" data-asset="eth" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay with ETH</button>' +
-          '<button type="button" data-asset="qnt" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper">Pay with QNT</button>';
-        art.innerHTML =
-          '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">' +
-          esc(tier.badge || "") +
-          "</p><h2 class=\"mt-3 font-display text-2xl tracking-[-0.02em]\">" +
-          esc(tier.name) +
-          '</h2><p class="mt-2 font-display text-3xl text-paper">' +
-          esc(tier.publishablePrice || "") +
-          '</p><p class="mt-4 flex-1 text-sm leading-relaxed text-muted">' +
-          esc(tier.blurb || "") +
-          '</p><div class="mt-6 flex flex-col gap-2">' +
-          buttons +
-          "</div>";
-        art.addEventListener("click", function (event) {
-          var button = event.target.closest("button");
-          if (!button) return;
-          if (button.getAttribute("data-card")) {
-            fetch("/api/checkout", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ tier: tier.id }),
+  if (!live) {
+    // Waitlist form is static HTML (works without JS); just bind + disclaimer.
+    var disc = document.getElementById("enroll-disclaimer");
+    if (disc && cfg.disclaimer) disc.textContent = cfg.disclaimer;
+    bindWaitlistForm(status);
+
+    grid.innerHTML =
+      '<article class="rounded-xl border border-paper/10 bg-panel p-6 sm:p-8 lg:col-span-3">' +
+      '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">Enrollment opens soon</p>' +
+      '<h2 class="mt-3 font-display text-2xl tracking-[-0.02em]">Seats not for sale yet</h2>' +
+      '<p class="mt-4 max-w-2xl text-sm leading-relaxed text-muted">Pricing is shown for planning — checkout opens when enrollment goes live. Join the waitlist and we will email you first.</p>' +
+      '<ul class="mt-6 grid gap-3 sm:grid-cols-3">' +
+      (cfg.tiers || [])
+        .map(function (t) {
+          var feats = (t.features || [])
+            .map(function (f) {
+              return "<li>" + f + "</li>";
             })
-              .then(function (res) {
-                return res.json().then(function (data) {
-                  return { ok: res.ok, data: data };
-                });
-              })
-              .then(function (out) {
-                if (out.ok && out.data.url) {
-                  location.href = out.data.url;
-                  return;
-                }
-                say("<p>Stripe is not connected yet. Card, Apple Pay, and Google Pay turn on together when STRIPE_SECRET_KEY is set. No card number is taken on this site.</p>");
-              });
-            return;
-          }
-          if (button.getAttribute("data-paypal")) {
-            fetch("/api/paypal/order", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ tier: tier.id }),
-            })
-              .then(function (res) {
-                return res.json().then(function (data) {
-                  return { ok: res.ok, data: data };
-                });
-              })
-              .then(function (out) {
-                if (out.ok && out.data.url) {
-                  location.href = out.data.url;
-                  return;
-                }
-                say("<p>PayPal and Venmo are not connected yet. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET. Venmo is offered inside that PayPal checkout for eligible US buyers.</p>");
-              });
-            return;
-          }
-          var asset = button.getAttribute("data-asset");
-          if (asset === "xmr" && !payTo.xmr) {
-            say("<p>XMR is not offered yet. enmanuelmejia.crypto has no Monero record, and no XMR address will be invented.</p>");
-            return;
-          }
-          var amount = remote.stable[asset];
-          var token = payTo.assets[asset] && payTo.assets[asset].token;
-          if (amount) {
-            pay(payTo, tier.id, asset, amount, token, "");
-            return;
-          }
-          fetch("/api/pay/quote?tier=" + encodeURIComponent(tier.id) + "&asset=" + asset)
-            .then(function (res) {
-              return res.json().then(function (data) {
-                return { ok: res.ok, data: data };
-              });
-            })
-            .then(function (out) {
-              if (!out.ok) {
-                say("<p>No live " + esc(asset.toUpperCase()) + " price, so that button will not invent an amount.</p>");
-                return;
-              }
-              if (asset === "xmr") {
-                var whole = units(out.data.amount, 12);
-                say(
-                  "<p>Send " +
-                    esc(whole) +
-                    " XMR to " +
-                    esc(payTo.xmr) +
-                    ".</p><p class=\"mt-2 font-mono text-xs break-all\">monero:" +
-                    esc(payTo.xmr) +
-                    "?tx_amount=" +
-                    esc(whole) +
-                    "</p><p class=\"mt-2 text-sm text-muted\">A pasted Monero tx hash is recorded as submitted. It is not marked paid, because Monero hides the recipient without a view key.</p>"
-                );
-                return;
-              }
-              pay(payTo, tier.id, asset, out.data.amount, token, out.data.quote);
-            });
-        });
-        grid.appendChild(art);
-      });
-    })
-    .catch(function () {
-      say("<p>Payment configuration could not be loaded.</p>");
-    });
+            .join("");
+          return (
+            '<li class="rounded-lg bg-void/60 p-4 shadow-[0_0_0_1px_rgba(232,238,245,0.08)]">' +
+            '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">' +
+            (t.badge || "") +
+            "</p>" +
+            '<p class="mt-2 font-display text-lg text-paper">' +
+            (t.name || "") +
+            "</p>" +
+            '<p class="mt-1 font-display text-xl text-muted">' +
+            (t.publishablePrice || "") +
+            "</p>" +
+            '<p class="mt-2 text-sm leading-relaxed text-muted">' +
+            (t.blurb || "") +
+            "</p>" +
+            '<ul class="mt-3 space-y-1 text-sm text-muted">' +
+            feats +
+            "</ul>" +
+            "</li>"
+          );
+        })
+        .join("") +
+      "</ul></article>";
+    return;
+  }
+
+  status.innerHTML =
+    '<p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-cyan">Payments</p><p class="mt-2 text-paper">Live checkout enabled for flagged tiers.</p>';
+
+  (cfg.tiers || []).forEach(function (t) {
+    var feats = (t.features || [])
+      .map(function (f) {
+        return "<li>" + f + "</li>";
+      })
+      .join("");
+    var stripeOk =
+      t.stripeEnabled &&
+      t.stripePaymentLink &&
+      t.stripePaymentLink.indexOf("PLACEHOLDER") === -1;
+    var paypalOk =
+      t.paypalEnabled &&
+      t.paypalLink &&
+      t.paypalLink.indexOf("PLACEHOLDER") === -1;
+    var stripeBtn = stripeOk
+      ? '<a href="' +
+        t.stripePaymentLink +
+        '" class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-paper px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-void hover:bg-paper/90">Pay with card / Stripe</a>'
+      : '<button type="button" disabled class="inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-lg bg-paper/20 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-muted">Stripe inactive</button>';
+    var paypalBtn = paypalOk
+      ? '<a href="' +
+        t.paypalLink +
+        '" class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-paper/15 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-paper hover:border-paper/30">PayPal</a>'
+      : '<button type="button" disabled class="inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-lg border border-paper/10 px-4 font-display text-xs font-medium uppercase tracking-[0.14em] text-muted">PayPal inactive</button>';
+    var art = document.createElement("article");
+    art.className =
+      "flex flex-col rounded-xl bg-panel p-6 shadow-[0_0_0_1px_rgba(232,238,245,0.08)] sm:p-7";
+    art.innerHTML =
+      '<p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">' +
+      (t.badge || "") +
+      "</p>" +
+      '<h2 class="mt-3 font-display text-2xl tracking-[-0.02em]">' +
+      t.name +
+      "</h2>" +
+      '<p class="mt-2 font-display text-3xl text-paper">' +
+      (t.publishablePrice || "") +
+      ' <span class="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted">' +
+      (t.period || "") +
+      "</span></p>" +
+      '<p class="mt-4 flex-1 text-sm leading-relaxed text-muted">' +
+      (t.blurb || "") +
+      "</p>" +
+      '<ul class="mt-4 space-y-1 text-sm text-muted prose-il">' +
+      feats +
+      "</ul>" +
+      '<div class="mt-6 flex flex-col gap-2">' +
+      stripeBtn +
+      paypalBtn +
+      "</div>";
+    grid.appendChild(art);
+  });
 })();

@@ -1,0 +1,330 @@
+{
+ "cards": [
+  {
+   "back": "Centralized management of Microsoft Defender configuration from one console: real-time protection, cloud protection, and exclusions, with drift detection.",
+   "front": "What does Configuration Manager do?"
+  },
+  {
+   "back": "Inconsistent settings, rogue exclusions, disabled protection on some machines — each machine becomes its own policy.",
+   "front": "What happens to Defender without centralized configuration?"
+  },
+  {
+   "back": "Scans files as they are accessed — the always-on guard that catches malware at the moment of contact.",
+   "front": "What is real-time protection?"
+  },
+  {
+   "back": "Sends file metadata to Microsoft's cloud for rapid verdicts on unknown files — the collective-intelligence layer.",
+   "front": "What is cloud-delivered protection?"
+  },
+  {
+   "back": "Prevents unauthorized changes to Defender settings — stops malware and rogue admins from disabling protection.",
+   "front": "What is tamper protection?"
+  },
+  {
+   "back": "Process, path, extension, and file-type exclusions — each narrows scanning, so each needs justification, scope, and review.",
+   "front": "Name the Defender exclusion types and the rule for each."
+  },
+  {
+   "back": "The gap between the intended baseline and the machine's actual settings — found by continuous comparison, fixed by re-pushing policy.",
+   "front": "What is configuration drift?"
+  },
+  {
+   "back": "Defender is the always-on scanning layer; allowlisting is the execution gate — different questions, layered answers.",
+   "front": "Defender vs allowlisting: do they overlap?"
+  },
+  {
+   "back": "Pilot ring, monitor the blocks and performance, expand in stages — the same staged discipline as every rollout in this course.",
+   "front": "How do you roll out a Defender baseline change?"
+  },
+  {
+   "back": "Who added it, what it excludes, why, scoped to what, expiring when — an exclusion without these is a hole.",
+   "front": "What must every exclusion record contain?"
+  },
+  {
+   "back": "A broad exclusion that lets malware hide where Defender never looks — e.g., excluding entire drives or temp folders.",
+   "front": "What is the classic exclusion mistake?"
+  },
+  {
+   "back": "The baseline document plus the drift report: intended vs actual, machine by machine.",
+   "front": "An auditor asks for proof of consistent antivirus configuration. What do you show?"
+  }
+ ],
+ "code": "TL-ZTA-08",
+ "crossLinks": [
+  "IL29-M01",
+  "IL29-M07",
+  "IL29-M04"
+ ],
+ "drills": [
+  {
+   "id": "il29-m08-drill1",
+   "items": [
+    {
+     "answer": "Centralized Defender config: real-time protection, cloud protection, exclusions — plus drift detection.",
+     "explain": "One console, one baseline, every machine compared against it continuously.",
+     "prompt": "One-sentence definition of Configuration Manager."
+    },
+    {
+     "answer": "Inconsistent settings, rogue exclusions, silently disabled protection.",
+     "explain": "Unmanaged endpoints become individual policies — the baseline exists only on paper.",
+     "prompt": "What happens to Defender without centralized management?"
+    },
+    {
+     "answer": "Always-on scanning at file access — catches malware at the moment of contact.",
+     "explain": "The first scanning layer; everything else builds on it being on.",
+     "prompt": "What is real-time protection?"
+    },
+    {
+     "answer": "Cloud verdicts on unknown files — the collective-intelligence layer.",
+     "explain": "Local signatures can't know brand-new files; the cloud can check global telemetry in seconds.",
+     "prompt": "What is cloud-delivered protection?"
+    },
+    {
+     "answer": "Blocks unauthorized changes to Defender settings — malware can't blind the guard.",
+     "explain": "Tamper protection is what keeps the other settings true.",
+     "prompt": "What is tamper protection?"
+    },
+    {
+     "answer": "Intended vs actual settings — found by continuous comparison, fixed by re-pushing policy.",
+     "explain": "Drift is entropy; the manager's job is detecting and correcting it.",
+     "prompt": "What is configuration drift?"
+    }
+   ],
+   "title": "Rapid recall: Defender configuration management"
+  },
+  {
+   "id": "il29-m08-drill2",
+   "items": [
+    {
+     "answer": "Deny the blanket exclusion; work with the vendor to scope the minimum (process exclusions for the specific binaries), documented with review date.",
+     "explain": "'Exclude everything' blinds the guard for the whole product. Exclusions are surgical, never wholesale.",
+     "prompt": "A vendor demands 'exclude our entire install folder from scanning.' Response? (Scenario)"
+    },
+    {
+     "answer": "Drift: the machine's actual config diverged from baseline — investigate how (rogue admin? policy failure?), remediate, re-push.",
+     "explain": "Drift detection's whole point: the report names the machine and the divergence; the operator finds the cause.",
+     "prompt": "Drift report: 3 machines show real-time protection off, baseline says on. Next steps? (Scenario)"
+    },
+    {
+     "answer": "No — exclusions need justification, scope, owner, and expiry. 'Temporary' without these is permanent.",
+     "explain": "Exclusion hygiene mirrors allowlist hygiene: documented, scoped, expiring.",
+     "prompt": "An admin adds a 'temporary' exclusion for a dev tool with no ticket. Handling? (Scenario)"
+    },
+    {
+     "answer": "Defender scans (may it be malicious?), the allowlist gates (may it run?) — layered, complementary, both managed.",
+     "explain": "Different questions, different layers. The control set is stronger together.",
+     "prompt": "'We have allowlisting, so Defender config doesn't matter.' Response? (Scenario)"
+    },
+    {
+     "answer": "Pilot ring first: push to IT, monitor blocks and performance for a week, then expand — with a rollback criterion.",
+     "explain": "Baseline changes are rollouts; rollouts are staged. Every module in this course, same discipline.",
+     "prompt": "New baseline enables a stricter cloud-protection level. Rollout plan? (Scenario)"
+    },
+    {
+     "answer": "The baseline document plus the per-machine drift report — intended vs actual, provable.",
+     "explain": "Centralized management makes compliance a report, not an archaeology project.",
+     "prompt": "Auditor: 'Prove consistent AV configuration across the estate.' (Scenario)"
+    }
+   ],
+   "title": "Scenario: configuration decisions"
+  }
+ ],
+ "estimatedMinutes": 480,
+ "handsOnLab": {
+  "brief": "You will audit a Windows machine's Defender configuration with PowerShell, harden it to a written baseline, export the baseline, and build a drift-check script that compares any machine against it. Baseline-as-code for the endpoint security stack.",
+  "checkpoint": "The baseline document lists every setting with its value and rationale; the drift script runs clean against the hardened machine and flags a deliberately introduced deviation.",
+  "deliverable": "defender-baseline.md plus Test-DefenderDrift.ps1 — the standard and the checker.",
+  "id": "il29-m08-lab",
+  "steps": [
+   "On a Windows test machine, run Get-MpPreference and record the current values of: DisableRealtimeMonitoring, MAPSReporting (cloud protection), DisableTamperProtection, and ExclusionPath/ExclusionProcess.",
+   "Run Get-MpComputerStatus and record: RealTimeProtectionEnabled, AntivirusEnabled, TamperProtectionSource, and the signature ages (AntivirusSignatureAge).",
+   "Write defender-baseline.md: for each setting, the required value and a one-line rationale (e.g., 'MAPSReporting=2 Advanced: unknown files get cloud verdicts').",
+   "Harden the test machine to your baseline with Set-MpPreference (e.g., Set-MpPreference -MAPSReporting Advanced -SubmitSamplesConsent SendSafeSamplesMap); record each command.",
+   "Review the exclusion lists: for every existing exclusion, write the justification or remove it — document which you removed and why.",
+   "Write Test-DefenderDrift.ps1: a script that reads Get-MpPreference, compares each value to your baseline hashtable, and outputs PASS/FAIL per setting with the actual vs expected values.",
+   "Run the drift script against the hardened machine — confirm all PASS.",
+   "Introduce a deliberate deviation (add a test exclusion path), re-run the script, and confirm it flags the deviation — then remove the test exclusion.",
+   "Add an exclusion-hygiene section to the baseline doc: the required fields for every exclusion (requester, justification, scope, expiry, reviewer).",
+   "Write the rollout note: pilot ring (IT first), one-week monitoring (blocks, performance complaints), expansion criteria, and rollback trigger.",
+   "Read the finished baseline as the auditor from the drill: confirm you can prove consistent configuration from the document plus a drift-report run."
+  ],
+  "title": "Defender baseline audit + drift checker"
+ },
+ "id": "IL29-M08",
+ "mockTask": {
+  "answer": 1,
+  "choices": [
+   "Manually check each machine once a year",
+   "Manage Defender centrally: one baseline (real-time protection, cloud protection, tamper protection, scoped exclusions) pushed from a single console, with continuous drift detection comparing intended vs actual config per machine — so 200 machines provably match the standard and any divergence is flagged and remediated",
+   "Uninstall Defender and rely on the firewall",
+   "Let each user configure their own exclusions"
+  ],
+  "explain": "Name the baseline components, the central push, and drift detection as the proof mechanism. Mention exclusion hygiene and the staged rollout to show operator maturity. The auditor-proof angle (intended vs actual report) is the closer.",
+  "id": "il29-m08-mock",
+  "q": "Panel question: 'We have 200 machines. How do you know Defender is configured correctly on all of them?'",
+  "type": "choice"
+ },
+ "notes": [
+  {
+   "body": "Microsoft Defender is on every Windows endpoint you will manage, which makes its configuration one of the highest-leverage baselines in the environment — and one of the most commonly left to rot. Without centralized management, Defender configuration decays into folklore: real-time protection disabled on 'that one machine that was slow,' exclusions added by whoever had admin that day for reasons nobody remembers, cloud protection off because someone clicked through a prompt in 2022. Each machine becomes its own policy, the 'standard' exists only in a document nobody follows, and the auditor's sample inevitably finds the worst one. Configuration Manager fixes this by treating Defender settings as code: one baseline, defined centrally, pushed to every machine, with the actual configuration continuously compared against the intended. The baseline covers the protection stack. Real-time protection: the always-on guard that scans files on access — the setting that must never be off, because everything else assumes it is on. Cloud-delivered protection: unknown files get verdicts from Microsoft's cloud telemetry in seconds — the layer that covers what local signatures have never seen. Tamper protection: locks the settings themselves so malware (or a compromised admin) cannot silently disable the guard. Automatic sample submission and signature update cadence: the freshness of the intelligence. Exclusions: the deliberate blind spots, each justified (more on those below). Worked example: the 'slow machine' incident. A user complains their workstation is slow; a well-meaning tech disables real-time protection 'temporarily.' Six months later the machine is patient zero in a malware incident — and nobody knows protection was off because no central system compared actual to intended. With centralized management, the drift report flags the machine within the check cycle: 'WORKSTATION-14: real-time protection disabled, baseline requires enabled.' The operator re-pushes the baseline, investigates the performance complaint properly (which turns out to be a failing disk), and the hole closes in hours instead of being discovered during incident response. Common gotcha: assuming defaults are the baseline. Defender's out-of-box settings are reasonable but they are not your policy — cloud protection levels, sample submission consent, exclusion lists, and tamper protection all need deliberate decisions recorded in the baseline document. Second gotcha: managing the baseline but not the drift. A pushed policy that nobody verifies is a wish; the continuous comparison — intended vs actual, machine by machine — is what makes it a control.  Deliver the baseline through the same channel as the rest of your configuration management — Group Policy for domain-joined machines, the MDM for the mobile fleet — so the baseline inherits the existing change control, targeting, and reporting. Do not manage Defender through a side channel with its own console and its own process; the side channel becomes the thing everyone forgets during incidents. One configuration pipeline, one change record, one place to check what was pushed and when.",
+   "title": "Why Defender configuration needs central management"
+  },
+  {
+   "body": "The baseline is a document before it is a deployment: every setting, its required value, and the one-line rationale. Write it like an auditor will read it, because one will. The protection core: real-time protection enabled — the always-on scanning at file access, the non-negotiable. Cloud-delivered protection set to the advanced level — unknown executables get cloud verdicts within seconds, which is the only scalable answer to never-before-seen files. Tamper protection enabled — settings locked against modification by malware or unauthorized admins; verify it is actually on, because it is the setting that protects the settings. Behavior monitoring enabled — the heuristic layer that catches malicious actions rather than just malicious files. Signature updates automatic on the fastest practical cadence — stale intelligence is a choice to be less protected. Sample submission configured per company policy — automatic submission of safe samples improves the collective verdicts; the policy decision is what may leave the building. Then the platform settings: scheduled scan cadence (the weekly full scan that catches what real-time missed), scan scope (all drives, including removable — the M05 device policy and the scan policy must agree), and threat-default-actions (what happens on detection: quarantine first, never 'allow'). Worked example: the baseline document excerpt. 'MAPSReporting = Advanced. Rationale: unknown files receive cloud verdicts in seconds; local-only verdicts miss zero-day samples. Risk accepted: file metadata leaves the machine per the data-handling policy §4.2.' Every setting gets this treatment — value plus rationale plus the risk decision. The document is versioned, change-controlled, and reviewed quarterly: baseline changes go through the same change process as firewall rules, because they are the same class of control. Common gotcha: the 'recommended' trap. Vendor 'recommended' settings are a starting point, not your baseline — your baseline reflects your threat model, your data-handling policy, and your operational capacity. If your SOC cannot handle the alert volume of the most aggressive heuristic level, the honest baseline is the level you will actually operate, documented as such. Second gotcha: baseline without exception process. Legitimate needs will conflict with the baseline (the developer tool that the heuristics hate) — the baseline document must name the exception process, or people will bypass the baseline silently. The exclusion discipline below is that process.  Watch the interplay between scan settings and exclusions: aggressive heuristic levels plus a broad exclusion list is the worst combination — maximum noise where you look, blindness where you do not. Tune them as a pair: set the protection level you can actually operate (alerts your SOC will triage, performance your users will tolerate), then keep the exclusion list as short as the narrowness ladder allows. The baseline document should record both decisions together with the reasoning, so the next operator understands the balance rather than inheriting half of it.",
+   "title": "The baseline: every setting, its value, its rationale"
+  },
+  {
+   "body": "Exclusions are deliberate blind spots: places Defender is told not to look. Every exclusion ever added was added for a reason that felt good at the time — and every major Defender bypass story involves an exclusion. The discipline is therefore strict: no exclusion without the five fields. Requester: who asked, so there is a human attached. Justification: the specific technical reason — 'the build agent's output directory triggers heuristic false positives on every compile, verified with the vendor' is a justification; 'it was slow' is not. Scope: the narrowest possible — a process exclusion for the specific binary beats a path exclusion for the folder, which beats excluding the drive. Expiry and review: exclusions rot as software changes, so each gets a review date (90 days is the working default). Approver: someone who understands what 'Defender will not look here' means. The exclusion types map to the narrowness ladder. Process exclusions: Defender skips files opened by the named process — the narrowest, preferred for build tools and backup agents. Path exclusions: Defender skips the folder — broader, acceptable for vendor-verified application directories, never for user-writable locations. Extension exclusions: Defender skips file types — the broadest per-file-type, justified only for large non-executable data (and never for executables). File-type and the classic mistake: excluding .exe or script extensions 'for performance' is functionally disabling protection for the most dangerous files. Worked example: the build-server exclusion request. The dev team reports 40-minute builds with Defender scanning the output directory. The operator verifies: the directory contains only build artifacts, the build tool is allowlisted and signed, the false positives are documented. Exclusion written: process exclusion for buildtool.exe plus path exclusion for D:\\build-output\\ — scoped to the build servers, requested by the dev lead, approved by security, 90-day review, ticket BUILD-118. The builds drop to 12 minutes; the exclusion is fenced to machines whose entire purpose is building, and the review will catch it if the tool changes. Contrast with the hole version: 'exclude D:\\ from scanning on all machines because someone's build was slow once.' Common gotcha: temp-folder exclusions. Excluding temp, downloads, or the user's profile from scanning blinds Defender exactly where malware lands — these are the last places that should ever be excluded, and any request for them is a red flag to investigate, not a ticket to approve. Second gotcha: exclusion without compensating control. A broad-but-necessary exclusion (the legacy app's folder) should trigger a question: what covers this blind spot instead? The allowlist still gates execution there; the ringfence still constrains behavior — document the compensating controls in the exclusion record.",
+   "title": "Exclusions: deliberate blind spots, strict discipline"
+  },
+  {
+   "body": "Configuration drift is entropy applied to security settings: the slow divergence between what the baseline says and what the machines actually run. It has a dozen causes — the tech who 'temporarily' changed a setting, the GPO that stopped applying after an OU move, the laptop that missed three policy cycles, the admin who added an exclusion directly on the machine and never told anyone. Drift detection is the continuous comparison of intended vs actual, machine by machine, setting by setting, and it is what separates managed from unmanaged. The mechanics are straightforward: the manager collects each machine's effective Defender configuration on a schedule, compares it to the baseline, and reports every divergence with the machine name, the setting, the expected value, and the actual value. The operator's workflow on a drift report is fixed: verify the divergence is real (not a reporting artifact), determine the cause (authorized change? rogue change? policy failure?), remediate (re-push the baseline or process the authorized change through change control), and document. Worked example: the Tuesday drift report. 197 machines clean. WORKSTATION-14: real-time protection disabled (expected: enabled). WORKSTATION-31: exclusion path C:\\tools\\ added (not in baseline). SERVER-02: cloud protection set to basic (expected: advanced). Three divergences, three investigations. WORKSTATION-14: the 'slow machine' tech from this module's first note — remediation: re-push baseline, address the actual performance cause, counsel the tech on the change process. WORKSTATION-31: an admin added it directly during an incident last week and forgot — remediation: process it as a proper exclusion request or remove it. SERVER-02: the OU move broke GPO inheritance — remediation: fix the OU linking, re-push, verify. The report turned three silent holes into three closed tickets in one morning. That is the entire value proposition. Common gotcha: drift reports nobody reads. The report must have an owner, a review cadence (daily for critical settings, weekly for the full baseline), and an SLA for remediation — an unread drift report is the same as no drift detection. Second gotcha: treating drift as purely technical. Repeated drift from the same team is a process signal: either the baseline is wrong for their workflow (fix the baseline or grant a proper exception) or the change discipline is broken (fix the discipline). The drift pattern tells you which.  Automate the drift check — a scheduled task or pipeline job that runs the comparison, files the report, and opens tickets for divergences above the threshold. Manual drift review works for twenty machines and collapses at two hundred; the automation is what makes the control scale. Keep the automation's own health monitored: a drift job that silently stopped running is worse than no job, because the dashboard still shows the last green report. Monitor the monitor.",
+   "title": "Drift detection: intended vs actual, continuously"
+  },
+  {
+   "body": "Defender and allowlisting are complementary, not competing — and the operator must be fluent in which question each answers. Defender asks 'is this file malicious?' It scans content against signatures, heuristics, and cloud verdicts, and it acts on malice found. Allowlisting asks 'may this code execute?' It checks identity against policy and acts on the absence of approval. A signed-but-malicious file can pass the allowlist and be caught by Defender's behavior monitoring; an unknown-but-benign tool can be blocked by the allowlist while Defender finds nothing wrong with it. Neither is sufficient alone; together they cover the matrix of known/unknown crossed with malicious/benign. The operational consequence is that both need management, and the management must agree. The exclusion list and the allowlist are the two documents most likely to contradict each other: an application excluded from Defender scanning but blocked by the allowlist (confused users, mysterious failures), or an application allowlisted but hammered by Defender heuristics (performance complaints, pressure for bad exclusions). The centralized console's value is making both visible in one place so the contradictions surface before the tickets do. Worked example: the backup agent. It is allowlisted (signed, approved, needed on all servers). Defender's behavior monitoring flags its volume-shadow-copy activity as ransomware-like. Without central visibility, the server team demands a broad exclusion and the security team refuses — stalemate. With both policies visible, the operator writes the precise fix: a process exclusion for the backup agent's binary (narrowest scope), documented with the vendor's confirmation that the behavior is expected, 90-day review — and notes the compensating control (the agent is allowlisted and ringfenced, so the blind spot is fenced). The rollout discipline for baseline changes mirrors every rollout in this course: pilot ring (IT and a friendly department), one-week monitoring of blocks, detections, and performance complaints, staged expansion, and a rollback trigger defined before the push ('if legitimate blocks exceed N per day, we revert and review'). Common gotcha: changing the baseline and the allowlist in the same window. When the backup breaks on Monday, you need to know which change did it — sequence the rollouts, never stack them. Second gotcha: the 'Defender found nothing, so we're fine' fallacy in reverse. Defender finding nothing means no known malice detected; the allowlist blocking an unknown means no approval exists. Both signals matter, and the M07 triage workflow treats them as the complementary evidence they are.  Keep one exceptions register, not three. The allowlist exceptions, the Defender exclusions, and the firewall exceptions all describe deliberate blind spots or openings — review them together quarterly, because a machine with an exclusion in all three is a machine with no controls left. The joint review is where the dangerous combinations surface: the unsigned tool that is allowlisted, excluded from scanning, and granted firewall exceptions is a policy decision that deserves executive visibility, not three separate tickets nobody connected.",
+   "title": "Defense in depth: Defender plus allowlisting, managed together"
+  },
+  {
+   "body": "The rollout and the audit are where this module meets the real world. Rollout first: a Defender baseline change is a change to the security posture of every machine, so it gets the staged discipline. Ring zero: the security team's own machines — if the baseline breaks the people who wrote it, better to learn at 10 AM than company-wide at 9. Ring one: IT and a pilot department, one week, with explicit monitoring — detection counts, block rates, helpdesk tickets mentioning slowness or blocks, and the drift report confirming the baseline actually applied. Ring two: the rest, in waves, with the rollback trigger armed: a defined threshold of legitimate-impact tickets pauses the rollout for review. The emergency brake is the baseline versioning: every push is versioned, so rollback is 're-push the previous version,' not archaeology. Then the audit story, because this module exists partly to make audits boring. The auditor asks: 'prove consistent antivirus configuration across the estate.' The unmanaged answer is a scramble — screenshots from three machines, a policy document of uncertain age, and hope. The managed answer is two artifacts: the versioned baseline document (every setting, value, rationale, change history) and the latest drift report (intended vs actual, machine by machine, divergences remediated with tickets). The auditor samples five machines; all five match the baseline; the two divergences from last month show remediation tickets. That is a control, demonstrated. Worked example: the quarterly review meeting. The operator brings three things: the drift trend (divergences per week, falling since the OU fix), the exclusion register (12 active exclusions, 3 due for review, 2 removed last quarter), and the proposed baseline change (stricter cloud-protection level, with pilot results from ring zero showing no legitimate impact). The meeting takes 20 minutes because the artifacts do the talking. This is what 'managed' looks like from the outside: boring, evidenced, continuous. Common gotcha: the big-bang baseline push. 'We're pushing the new baseline to all 200 machines Friday at 5' is how you spend the weekend rolling back. Staged, monitored, reversible — the discipline is the same in M02, M03, and here, because the failure mode (breaking the business at scale) is the same. Second gotcha: audit theater — a beautiful baseline document with no drift detection behind it. The document claims; the drift report proves. Bring both, always.  Run the quarterly review as a business meeting, not a technical deep dive. The operator brings the drift trend, the exclusion register with upcoming reviews, and one proposed change with pilot data — the leadership brings the risk appetite. Twenty minutes, three artifacts, decisions recorded. This cadence is what keeps the baseline a living standard instead of a document: the review is where stale exclusions die, where drift patterns get resourced, and where the next quarter's hardening is agreed. Boring, regular, effective.",
+   "title": "Rollout rings and the boring audit"
+  }
+ ],
+ "objectives": [
+  "Explain why centralized Defender management matters and what decays without it.",
+  "Write a complete Defender baseline: protection settings with values, rationales, and change control.",
+  "Apply the exclusion discipline: five required fields, narrowest scope, review dates, compensating controls.",
+  "Detect and remediate configuration drift, and prove consistent configuration to an auditor."
+ ],
+ "prerequisiteFor": [
+  "IL29-M09"
+ ],
+ "quiz": [
+  {
+   "answer": 1,
+   "choices": [
+    "It installs Defender on new machines",
+    "It centrally manages Defender configuration — one baseline pushed everywhere, with continuous drift detection",
+    "It writes antivirus signatures",
+    "It replaces the SOC"
+   ],
+   "explain": "The value is consistency plus proof: one baseline, pushed centrally, with intended-vs-actual comparison per machine. Installation and signatures are adjacent but separate concerns.",
+   "q": "What does Configuration Manager do for Microsoft Defender?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "Nothing — defaults are always optimal",
+    "Inconsistent settings, forgotten exclusions, silently disabled protection — each machine becomes its own policy",
+    "Faster scans",
+    "Better user experience"
+   ],
+   "explain": "Unmanaged configuration decays into folklore: the 'standard' exists on paper while machines diverge. Central management plus drift detection is what keeps the standard real.",
+   "q": "What happens to Defender configuration without centralized management?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "It scans on a fixed schedule only",
+    "It scans files as they are accessed — the always-on guard",
+    "It only scans email attachments",
+    "It requires manual initiation"
+   ],
+   "explain": "Real-time protection is the moment-of-contact layer: malware is caught when touched, not at the next scheduled scan. Everything else in the stack assumes it is on.",
+   "q": "What is real-time protection?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "It backs up files to the cloud",
+    "It gets rapid verdicts on unknown files from cloud telemetry — covering what local signatures have never seen",
+    "It stores user data remotely",
+    "It updates Windows itself"
+   ],
+   "explain": "Local signatures cannot know brand-new files; the cloud checks global telemetry in seconds. This is the collective-intelligence layer of the stack.",
+   "q": "What is cloud-delivered protection's role?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "It speeds up scans",
+    "It locks Defender settings against unauthorized changes — malware cannot silently blind the guard",
+    "It manages user passwords",
+    "It encrypts the disk"
+   ],
+   "explain": "Tamper protection guards the guards: the settings that everything else depends on cannot be quietly disabled by malware or a compromised admin.",
+   "q": "What does tamper protection protect?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Exclude the whole drive for simplicity",
+    "Process exclusions (narrowest) are preferred; path exclusions must avoid user-writable locations; never exclude executables or temp/download folders",
+    "Exclusions don't need documentation",
+    "More exclusions are always better"
+   ],
+   "explain": "The narrowness ladder: process beats path beats extension. Temp, downloads, and executable types are where malware lives — excluding them blinds the guard exactly where it matters most.",
+   "q": "A vendor requests an exclusion for their application. What is the correct scoping?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The total number of files scanned",
+    "The gap between the intended baseline and machines' actual settings — found by continuous comparison",
+    "The network bandwidth used",
+    "The age of the signatures"
+   ],
+   "explain": "Drift is entropy: settings diverge through rogue changes, broken policy application, and forgotten temporaries. The drift report names each divergence for remediation.",
+   "q": "What is configuration drift?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "They are the same control",
+    "Defender asks 'is this malicious?' (content); allowlisting asks 'may it run?' (identity) — layered, complementary",
+    "Allowlisting replaces Defender",
+    "Defender replaces allowlisting"
+   ],
+   "explain": "Different questions, different layers: a signed-but-malicious file can pass identity and fail scanning; an unknown-but-benign tool can fail identity while scanning finds nothing. Together they cover the matrix.",
+   "q": "How do Defender and allowlisting relate?"
+  },
+  {
+   "answer": 2,
+   "choices": [
+    "Push to all machines Friday at 5 PM",
+    "Pilot ring first, monitor blocks and performance, expand in stages with a defined rollback trigger",
+    "Email everyone the new settings",
+    "Change the baseline and the allowlist simultaneously"
+   ],
+   "explain": "Baseline changes are rollouts: staged, monitored, reversible. Stacking simultaneous changes makes failures unattributable; Friday big-bangs make weekends miserable.",
+   "q": "What is the correct way to roll out a Defender baseline change?"
+  },
+  {
+   "answer": 1,
+   "choices": [
+    "The versioned baseline document plus the per-machine drift report — intended vs actual, with remediation tickets for divergences",
+    "Screenshots from three machines",
+    "A verbal assurance",
+    "The vendor's marketing datasheet"
+   ],
+   "explain": "The document claims, the drift report proves. An auditor samples machines against the baseline; the remediation tickets show the control is operated, not just documented.",
+   "q": "An auditor asks for proof of consistent AV configuration. What do you present?"
+  }
+ ],
+ "summary": "Defender is on every Windows machine you will manage — its configuration is a high-leverage baseline that decays without central management. This module covers the full baseline (real-time, cloud, tamper protection), the strict exclusion discipline, continuous drift detection, defense-in-depth with allowlisting, and the rollout and audit practices that make compliance boring.",
+ "title": "Configuration Manager",
+ "videos": [
+  {
+   "blurb": "Microsoft's Defender Antivirus documentation — the authoritative reference for the protection settings this module baselines.",
+   "durationMin": 35,
+   "httpStatus": 200,
+   "order": 1,
+   "source": "Microsoft Learn",
+   "title": "Microsoft Defender Antivirus — official documentation",
+   "url": "https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-antivirus-windows",
+   "verifiedUtc": "2026-10-07T23:45:00Z",
+   "watchBefore": "notes"
+  }
+ ],
+ "weight": 3
+}

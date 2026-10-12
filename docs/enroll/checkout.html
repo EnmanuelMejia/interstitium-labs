@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+<script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. */(function(){try{if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}}catch(e){}})();</script>
+<style>html{background:#06080c}body{background:#06080c;color:#f2ede1;min-height:100dvh}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src 'self' https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Checkout — Interstitium Labs</title>
+<meta name="description" content="Secure checkout for Interstitium Labs learning paths — card, PayPal, or crypto."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/enroll/checkout.html"/>
+<meta property="og:title" content="Checkout — Interstitium Labs"/>
+<meta property="og:description" content="Secure checkout for Interstitium Labs learning paths — card, PayPal, or crypto."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/enroll/checkout.html"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="stylesheet" href="/enroll/checkout.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+</head>
+<body>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/enroll/">Enroll</a></li><li aria-current="page">Checkout</li></ol></nav>
+<a class="il-skip" href="#il-root" style="position:absolute;left:-9999px;top:0;background:#c9a227;color:#06080c;padding:10px 16px;z-index:100;border-radius:0 0 8px 0;font-weight:600;" onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Skip to checkout</a>
+<main class="il-checkout" id="il-checkout">
+  <header class="il-brand">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" width="44" height="44"/ loading="lazy">
+    <h1 class="il-brand__name">Interstitium Labs</h1>
+    <p class="il-brand__motto">SCIENTIA OMNIA VINCIT</p>
+  </header>
+
+  <div id="il-root" aria-live="polite"></div>
+
+  <style>/* canonical footer (page does not load il-unified.css) */
+/* ================================================================
+ * §21 — Canonical site footer (2026-10-08).
+ * Centered layout; gold brand; crisp rendering (no blur,
+ * filter, or backdrop-filter anywhere in these rules).
+ * ================================================================ */
+.il-footer-canonical {
+  border-top: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  padding: 3rem 1.25rem 4.5rem;
+  text-align: center;
+}
+.il-fc-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.il-fc-logo { width: 56px; height: 56px; }
+.il-fc-brand {
+  color: var(--gold, #c9a227);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  font-size: 0.95rem;
+}
+.il-fc-tagline {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  font-size: 0.72rem;
+}
+.il-fc-created {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.66rem;
+}
+.il-fc-course {
+  color: var(--muted, #8b93a5);
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  font-size: 0.66rem;
+}
+.il-fc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.4rem;
+  margin-top: 0.6rem;
+}
+.il-fc-nav a {
+  color: var(--muted, #8b93a5);
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  font-size: 0.72rem;
+  padding: 0.25rem 0;
+}
+.il-fc-nav a:hover { color: var(--gold, #c9a227); }
+.il-fc-lang {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(201, 162, 39, 0.22));
+  color: var(--muted, #8b93a5);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.il-fc-lang:hover { color: var(--gold, #c9a227); border-color: var(--gold, #c9a227); }
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</main>
+<noscript><div class="il-checkout"><div class="il-error"><p class="il-error__title">JavaScript required</p><p class="il-error__msg">Checkout needs JavaScript enabled. Please enable it and reload.</p></div></div></noscript>
+<script src="/enroll/vendor/qrcode.js"></script>
+<script src="/assets/il-ud-reveal.js"></script>
+<script src="/enroll/checkout.js"></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
+</body>
+</html>

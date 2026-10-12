@@ -41,15 +41,15 @@
 .il-noah-3d-card[data-noah-3d="monas"] .il-noah-3d-card__art {
   background:
     radial-gradient(circle at 50% 42%, #5EEAD4 0 8%, transparent 9%),
-    radial-gradient(ellipse 60% 34% at 50% 55%, transparent 52%, #D4A853 54% 58%, transparent 60%),
+    radial-gradient(ellipse 60% 34% at 50% 55%, transparent 52%, #c9a227 54% 58%, transparent 60%),
     radial-gradient(ellipse 84% 46% at 50% 55%, transparent 62%, #5EEAD4 64% 68%, transparent 70%),
     radial-gradient(120% 90% at 50% 10%, #12303a 0%, #070B16 70%);
 }
 .il-noah-3d-card[data-noah-3d="orrery"] .il-noah-3d-card__art {
   background:
-    radial-gradient(circle at 50% 50%, #D4A853 0 7%, transparent 8%),
+    radial-gradient(circle at 50% 50%, #c9a227 0 7%, transparent 8%),
     radial-gradient(ellipse 70% 30% at 50% 50%, transparent 55%, #5EEAD4 57% 60%, transparent 62%),
-    radial-gradient(ellipse 92% 40% at 50% 50%, transparent 66%, #D4A853 68% 71%, transparent 73%),
+    radial-gradient(ellipse 92% 40% at 50% 50%, transparent 66%, #c9a227 68% 71%, transparent 73%),
     radial-gradient(circle at 68% 38%, #5EEAD4 0 3%, transparent 4%),
     radial-gradient(120% 90% at 50% 10%, #141126 0%, #070B16 70%);
 }
@@ -59,6 +59,25 @@
     radial-gradient(circle at 50% 50%, transparent 40%, #A78BFA 42% 45%, transparent 47%),
     radial-gradient(circle at 50% 50%, transparent 58%, #5EEAD4 60% 63%, transparent 65%),
     radial-gradient(120% 90% at 50% 10%, #1a1440 0%, #070B16 70%);
+}
+.il-noah-3d-card[data-noah-3d="noah"] .il-noah-3d-card__art {
+  background: url('/assets/noah/noah-avatar-3d.webp') center 20% / cover no-repeat, #0a0f1c;
+}
+.il-noah-3d-card[data-noah-3d="genesis"] .il-noah-3d-card__art {
+  background: url('/assets/noah/genesis-avatar-3d.webp') center 20% / cover no-repeat, #14100a;
+}
+.il-noah-3d-card[data-noah-3d="genesis"] {
+  border-color: color-mix(in srgb, #E3B34C 22%, transparent);
+}
+.il-noah-3d-card[data-noah-3d="genesis"].is-on {
+  border-color: #E3B34C;
+  box-shadow: 0 0 0 1px #E3B34C, 0 0 22px color-mix(in srgb, #E3B34C 25%, transparent);
+}
+.il-noah-3d-card[data-noah-3d="operator"] .il-noah-3d-card__art {
+  background:
+    radial-gradient(circle at 50% 38%, #5EEAD4 0 10%, transparent 11%),
+    radial-gradient(ellipse 46% 16% at 50% 72%, #c9a227 0 40%, transparent 41%),
+    radial-gradient(120% 90% at 50% 10%, #101a2e 0%, #070B16 70%);
 }
 .il-noah-3d-card[data-noah-3d="wisp"] .il-noah-3d-card__art {
   background:
@@ -135,4 +154,192 @@
   .il-muse-3d[data-noah-avatar].is-webgl .il-muse-3d__fallback { display: none !important; }
   .il-noah-3d-card:hover { transform: none; }
   .il-noah-3d-card, .il-noah-accent, .il-noah-intensity button { transition: none; }
+}
+
+/* ---------------- photo avatar (Noah's likeness) ---------------- */
+.il-muse-3d--photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.il-muse-3d__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  border-radius: 50%;
+  display: block;
+  animation: il-noah-float 5s ease-in-out infinite;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.il-muse-3d--photo[data-status="listening"] .il-muse-3d__photo,
+.il-muse-3d--photo[data-status="thinking"] .il-muse-3d__photo {
+  filter: saturate(1.15) brightness(1.06);
+}
+.il-muse-3d--photo[data-status="speaking"] .il-muse-3d__photo {
+  animation: il-noah-float 5s ease-in-out infinite, il-noah-speak 0.9s ease-in-out infinite;
+}
+@keyframes il-noah-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2.5%) scale(1.015); }
+}
+@keyframes il-noah-speak {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+/* status ring */
+.il-muse-3d--photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  pointer-events: none;
+}
+.il-muse-3d--photo[data-status="listening"]::after {
+  border-color: #5EEAD4;
+  box-shadow: 0 0 18px #5EEAD488, inset 0 0 12px #5EEAD422;
+}
+.il-muse-3d--photo[data-status="thinking"]::after {
+  border-color: #c9a227;
+  box-shadow: 0 0 18px #c9a22788, inset 0 0 12px #c9a22722;
+}
+.il-muse-3d--photo[data-status="speaking"]::after {
+  border-color: #A78BFA;
+  box-shadow: 0 0 18px #A78BFA88, inset 0 0 12px #A78BFA22;
+}
+/* Genesis (warm gold family): status rings + aura follow her tones */
+.il-muse-3d--photo[data-tutor="genesis"][data-status="listening"]::after {
+  border-color: #E8A87C;
+  box-shadow: 0 0 18px #E8A87C88, inset 0 0 12px #E8A87C22;
+}
+.il-muse-3d--photo[data-tutor="genesis"][data-status="thinking"]::after {
+  border-color: #E3B34C;
+  box-shadow: 0 0 18px #E3B34C88, inset 0 0 12px #E3B34C22;
+}
+.il-muse-3d--photo[data-tutor="genesis"][data-status="speaking"]::after {
+  border-color: #D97B4F;
+  box-shadow: 0 0 18px #D97B4F88, inset 0 0 12px #D97B4F22;
+}
+.il-muse-3d--photo[data-tutor="genesis"][data-photobg="aura"] {
+  background: radial-gradient(circle at 50% 55%, #E3B34C33 0%, #170f06 55%, #0a0603 100%);
+}
+.il-muse-3d--photo[data-tutor="genesis"][data-photobg="void"] {
+  background: radial-gradient(120% 120% at 50% 20%, #1c1409 0%, #0a0603 70%);
+}
+/* backgrounds */
+.il-muse-3d--photo[data-photobg="void"] { background: radial-gradient(120% 120% at 50% 20%, #0d1526 0%, #04070f 70%); }
+.il-muse-3d--photo[data-photobg="aura"] { background: radial-gradient(circle at 50% 55%, #5EEAD433 0%, #0d1526 55%, #04070f 100%); }
+.il-muse-3d--photo[data-photobg="halo"] {
+  background: radial-gradient(circle at 50% 50%, transparent 58%, #c9a22744 60%, transparent 68%),
+              radial-gradient(120% 120% at 50% 20%, #0d1526 0%, #04070f 70%);
+}
+.il-muse-3d--photo[data-photobg="none"] { background: transparent; }
+.il-muse-3d--photo .il-muse-3d__badge {
+  position: absolute;
+  left: 50%;
+  bottom: -0.4rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* ---------------- photo personalization UI ---------------- */
+.il-noah-photo-style, .il-noah-photo-bg {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.il-noah-photo-style button, .il-noah-photo-bg button {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, #5EEAD4 25%, transparent);
+  border-radius: 0.5rem;
+  color: inherit;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  opacity: 0.65;
+}
+.il-noah-photo-style button.is-on, .il-noah-photo-bg button.is-on {
+  background: color-mix(in srgb, #5EEAD4 18%, transparent);
+  opacity: 1;
+  font-weight: 650;
+  border-color: #5EEAD4;
+}
+.il-noah-photo-style button:focus-visible, .il-noah-photo-bg button:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 2px; }
+.il-noah-photo-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.il-noah-photo-upload input[type="file"] { display: none; }
+.il-noah-photo-upload label {
+  border: 1px dashed color-mix(in srgb, #5EEAD4 45%, transparent);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  opacity: 0.9;
+}
+.il-noah-photo-upload label:hover { background: color-mix(in srgb, #5EEAD4 10%, transparent); }
+.il-noah-photo-upload .il-noah-photo-thumb {
+  width: 2.2rem; height: 2.2rem; border-radius: 50%; object-fit: cover;
+  border: 1px solid color-mix(in srgb, #5EEAD4 40%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-muse-3d__photo { animation: none; }
+}
+
+/* ---------------- tutor picker (Noah / Genesis) ---------------- */
+.il-noah-tutor-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.il-noah-tutor-card {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, #5EEAD4 22%, transparent);
+  background: linear-gradient(180deg, #0b1224 0%, #070B16 100%);
+  border-radius: 0.85rem;
+  padding: 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+.il-noah-tutor-card:hover { transform: translateY(-1px); }
+.il-noah-tutor-card:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 2px; }
+.il-noah-tutor-card img {
+  width: 3rem; height: 3rem; border-radius: 50%; object-fit: cover;
+  object-position: center 18%; flex: none;
+  border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
+}
+.il-noah-tutor-card__name { display: block; font-weight: 700; font-size: 0.92rem; letter-spacing: 0.02em; }
+.il-noah-tutor-card__hint { display: block; font-size: 0.68rem; line-height: 1.35; opacity: 0.62; margin-top: 0.15rem; }
+.il-noah-tutor-card[data-noah-tutor="noah"].is-on {
+  border-color: #5EEAD4;
+  box-shadow: 0 0 0 1px #5EEAD4, 0 0 22px color-mix(in srgb, #5EEAD4 25%, transparent);
+}
+.il-noah-tutor-card[data-noah-tutor="genesis"] {
+  border-color: color-mix(in srgb, #E3B34C 22%, transparent);
+  background: linear-gradient(180deg, #171106 0%, #0d0903 100%);
+}
+.il-noah-tutor-card[data-noah-tutor="genesis"]:focus-visible { outline-color: #E3B34C; }
+.il-noah-tutor-card[data-noah-tutor="genesis"].is-on {
+  border-color: #E3B34C;
+  box-shadow: 0 0 0 1px #E3B34C, 0 0 22px color-mix(in srgb, #E3B34C 28%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .il-noah-tutor-card { transition: none; }
+  .il-noah-tutor-card:hover { transform: none; }
 }
