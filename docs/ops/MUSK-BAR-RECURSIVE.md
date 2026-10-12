@@ -1,5 +1,50 @@
 # Musk bar — recursive scorecard
 
+_Last updated: 2026-10-12 ~morning EDT (America/New_York)._  
+_Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-12 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Thirteen interactive 3D CKA/AWS sims shipped, but peers (KodeKloud Ultimate CKA Mock, killer.sh) still own **timed exam pressure**. Free-play drills without a clock fail the hire-loop test. Lab Muse visemes and a new cert track are real gaps too — but the highest-leverage honest ship today is exam mode on the sims we already have. **No.** |
+| After this ship | **Closer / still NO** | **Timed CKA mock exam** at `/immersive/exam/`: 10 questions / 15:00 (or quick 5 / 8:00) drawn from the CKA predict pool (≥40 checkpoints across 10 domains), deterministic seed, on-device score + history, pass bar self-set at 66%. Scene remounts per item; free-play toggles hidden. Honesty banner: rules engine — not live cluster, not killer.sh, not CNCF. Still **no live UE host**, **no hosted fleet**. |
+| Fake YES risk | Rejected | No invented CNCF cut score, no fake cluster, no claimed killer.sh parity. AWS + Istio mesh excluded from the CKA paper on purpose. |
+
+## Scorecard (0–10) — 2026-10-12
+
+| Dimension | Prior (10-09) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | 9.0 | Same authored scenes under a clock |
+| Live labs density | 7.4 | **7.6** | Exam pressure without a hosted fleet |
+| Adaptive learning | 7.8 | **8.0** | Timed papers + on-device attempt history |
+| Honesty / trust | 9.9 | 9.9 | Explicit non-claims vs killer.sh / CNCF |
+| Curriculum SoT | 9.2 | **9.3** | Manifest `sims.exam` block |
+| Immersive / 3D gate | 9.5 | **9.6** | Exam remounts authored glTF per item |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest wins: spaced-repetition scheduler from `il.immersiveSims.v1` / exam history; Lab Muse viseme lip-sync; CKAD/Terraform track with new Blender-polished glbs.
+
+## Competitor delta (2026-10-12)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud Pro | Live multi-cluster timed mocks, AI Tutor in terminal | Their mocks are terminal-only; IL’s paper is predict-then-reveal against authored 3D failure modes |
+| killer.sh | Closest-to-real CKA pressure | We do not claim parity — we claim a spatial warm-up you can run offline |
+| Killercoda | Instant free scenarios | No timed multi-domain paper; no 3D mental model |
+| A Cloud Guru / Pluralsight | Catalog + cloud sandboxes | Few K8s visual drills under a clock |
+| Meta Muse | Voice-native coach UX | Exam mode is curriculum pressure, not coach chrome |
+
+## Shipped this pass (2026-10-12)
+
+1. `il-immersive-exam.js` v1.0.0 — CKA pool, seeded `buildExam`, `gradeItem`, `summarize`, on-device attempt log
+2. `/immersive/exam/` + `il-immersive-exam-boot.js` — lobby / HUD timer / per-item 3D remount / scorecard
+3. CTA on `/immersive/#cka-exam`; manifest `sims.exam`; unit + browser checks
+4. PR #24 unblocked earlier today (merge main, relative assets, CodeQL test escape)
+
+---
+
+# Musk bar — recursive scorecard
+
 _Last updated: 2026-10-09 ~09:40 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
 

@@ -263,7 +263,8 @@
     ],
     "hostedFleet": false,
     "liveUnrealHost": false,
-    "muskVerdict": "Closer/NO until live UE host + hosted fleet exist"
+    "muskVerdict": "Closer/NO until live UE host + hosted fleet exist",
+    "examMode": true
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
@@ -290,7 +291,21 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.2.0"
+    "runtime_version": "1.2.0",
+    "exam": {
+      "runtime": "/assets/il-immersive-exam.js",
+      "boot": "/assets/il-immersive-exam-boot.js",
+      "path": "/immersive/exam/",
+      "version": "1.0.0",
+      "defaults": {
+        "count": 10,
+        "minutes": 15,
+        "passPct": 66
+      },
+      "pool": "CKA predict checkpoints only (excludes AWS + Istio mesh)",
+      "honesty": "Timed mock over in-browser 3D sims. Not a live cluster, not killer.sh, not the CNCF CKA.",
+      "storage": "localStorage il.immersiveExam.v1 (device only)"
+    }
   },
   "aws_coverage": {
     "spatial": [
