@@ -55,5 +55,6 @@ Translucent pedagogy shells (e.g. the NetworkPolicy shield) use `alphaMode: BLEN
 - `*_LOD1` (Blender decimate duplicates) and `lod1-*` (kit proxies) are **never drawn** by the curriculum player — they used to overdraw/z-fight LOD0 and the kit proxy slabs cut through scenes.
 - `blender_polish_glb.py` now exports with `export_extras=True`, so kit pedagogy extras (labels, kind, `simOnly`) survive polish. Scenes polished before 2026-10-06 lost their extras; node names (the sim contract) were always preserved.
 - `node --test scripts/tests/immersive-sims.test.js` fails if a sim rule addresses a node that is missing from its .glb.
+- 2026-10-07 / 2026-10-08: sims now cover `network-policy-isolation`, `rbac-authz-graph`, `scheduling-affinity`, `hpa-autoscaling`, `storage-csi-pv`, `ingress-gateway`, `secrets-configmaps`, `cni-pod-network`, `service-mesh-sidecar` and `lecture-k8s-control-plane` (`data-il-sim` ids in `/assets/scenes/manifest.json` → `sims.list`). **No asset was regenerated or re-polished for these drills** — they re-tint, pulse, hide or reveal the existing named nodes from the 2026-10-01/02/05 Blender CLI polish.
 
 Honest scope: authored + CLI-polished open-web glTF. **No live Unreal host and no hosted lab fleet** back these scenes.
