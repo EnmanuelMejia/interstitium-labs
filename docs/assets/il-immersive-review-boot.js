@@ -1,0 +1,245 @@
+/**
+ * Boot the 3D remediation queue UI (2026-10-13). Depends on ILImmersiveReview + ILImmersiveSims
+ * + ILImmersive3D (ScenePlayer). Every card re-mounts its authored .glb and reveals the
+ * failure mode on the 3D stage after the learner commits. On-device only; never invents
+ * a live cluster, hosted fleet, cohort, or server-side analytics.
+ */
+(function () {
+  'use strict';
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function show(el, on) {
+    if (!el) return;
+    if (on) { el.hidden = false; el.classList.remove('hidden'); }
+    else { el.hidden = true; el.classList.add('hidden'); }
+  }
+  function txt(sel, v) { var el = $(sel); if (el) el.textContent = v; }
+  function td(text, cls) { var c = document.createElement('td'); if (cls) c.className = cls; c.textContent = text; return c; }
+  function track(name, props) {
+    try { if (window.ILAnalytics && window.ILAnalytics.track) window.ILAnalytics.track(name, props); } catch (e) { /* ignore */ }
+  }
+
+  function boot() {
+    var R = window.ILImmersiveReview, S = window.ILImmersiveSims;
+    if (!R || !S) return;
+    var lobby = $('[data-il-review-lobby]');
+    var run = $('[data-il-review-run]');
+    var done = $('[data-il-review-done]');
+    var stage = $('[data-il-review-stage]');
+    var items = [], idx = 0, answering = false, itemT0 = 0, session = null;
+
+    function renderLobby() {
+      var st = R.stats();
+      txt('[data-il-review-due]', String(st.dueNow));
+      txt('[data-il-review-cards]', String(st.cards));
+      txt('[data-il-review-mature]', String(st.mature));
+      txt('[data-il-review-learning]', String(st.learning));
+      txt('[data-il-review-retention]', st.retentionPct == null ? 'n/a (no graduated card reviewed yet)' : (st.retentionPct + '% of ' + st.retentionN + ' due reviews'));
+      txt('[data-il-review-streak]', st.streakDays + (st.streakDays === 1 ? ' day' : ' days'));
+      txt('[data-il-review-next]', st.dueNow ? 'now' : (st.nextDueAt ? R.humanInterval(st.nextDueAt - Date.now()) : '—'));
+      txt('[data-il-review-exams]', String(st.examsIngested));
+      document.documentElement.setAttribute('data-il-review-due-now', String(st.dueNow));
+      var tb = $('[data-il-review-mastery] tbody');
+      if (tb) {
+        tb.textContent = '';
+        R.mastery(S).forEach(function (d) {
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-il-review-domain', d.domain);
+          tr.appendChild(td(d.domain, 'py-1 pr-4'));
+          var cell = document.createElement('td');
+          cell.className = 'py-1 pr-4';
+          var bar = document.createElement('span');
+          bar.className = 'il-review-bar';
+          var fill = document.createElement('span');
+          fill.className = 'il-review-bar__fill';
+          fill.style.width = Math.max(2, d.pct) + '%';
+          bar.appendChild(fill);
+          cell.appendChild(bar);
+          cell.appendChild(document.createTextNode(' ' + d.pct + '%'));
+          tr.appendChild(cell);
+          tr.appendChild(td(d.seen + '/' + d.checkpoints));
+          tr.appendChild(td(String(d.lapses)));
+          tr.appendChild(td(String(d.due)));
+          tb.appendChild(tr);
+        });
+      }
+      var q = R.queue(S, { limit: 10 });
+      var startBtn = $('[data-il-review-start]');
+      if (startBtn) startBtn.textContent = q.length ? ('Start session · ' + q.length + ' card' + (q.length === 1 ? '' : 's')) : 'Nothing to review';
+      if (startBtn) startBtn.disabled = !q.length;
+      var why = $('[data-il-review-plan]');
+      if (why) {
+        var counts = {};
+        q.forEach(function (x) { counts[x.reason] = (counts[x.reason] || 0) + 1; });
+        var parts = [];
+        if (counts.relearn) parts.push(counts.relearn + ' relearn (missed)');
+        if (counts.due) parts.push(counts.due + ' due for spaced review');
+        if (counts['weak-domain']) parts.push(counts['weak-domain'] + ' new from weak domains');
+        if (counts['untested-domain']) parts.push(counts['untested-domain'] + ' new from untested domains');
+        if (counts['cold-start']) parts.push(counts['cold-start'] + ' cold-start (no evidence yet)');
+        why.textContent = parts.length ? ('Next session: ' + parts.join(' · ') + '.') : 'Queue empty.';
+      }
+    }
+    renderLobby();
+
+    function mountScene(item) {
+      var API = window.ILImmersive3D;
+      if (!stage || !API || !API.mount) return Promise.resolve();
+      return new Promise(function (resolve) {
+        try { if (stage._ilImmersive && stage._ilImmersive.destroy) stage._ilImmersive.destroy(); } catch (e) { /* ignore */ }
+        try { delete stage._ilImmersive; } catch (e2) { stage._ilImmersive = null; }
+        stage.textContent = '';
+        stage.removeAttribute('data-il-sim-ready');
+        stage.removeAttribute('data-il-sim-verdict');
+        stage.removeAttribute('data-il-immersive-ready');
+        stage.setAttribute('data-il-sim', item.simId);
+        stage.setAttribute('data-gltf', item.glb);
+        stage.setAttribute('data-immersive', JSON.stringify({
+          mode: '3d-first', engine: 'three', asset: item.glb, webgpu: true, sim: item.simId, review: true
+        }));
+        try { API.mount(stage); } catch (e3) { /* ignore */ }
+        var t0 = Date.now();
+        (function poll() {
+          if (stage.getAttribute('data-il-sim-ready') === item.simId) return resolve();
+          if (Date.now() - t0 > 20000) return resolve();
+          setTimeout(poll, 100);
+        })();
+      });
+    }
+
+    function scenarioOf(item) {
+      var sim = S.get(item.simId);
+      if (!sim) return null;
+      for (var i = 0; i < sim.scenarios.length; i++) if (sim.scenarios[i].id === item.scenarioId) return sim.scenarios[i];
+      return null;
+    }
+
+    function openScenario(item) {
+      var player = stage && stage._ilImmersive;
+      if (!player || !player._sim) return;
+      var sc = scenarioOf(item);
+      if (!sc) return;
+      player._simState = S.merge(player._sim.initial, {});
+      player._simApply('review-reset');
+      player._simScenario(sc);
+      if (player._simPredict) player._simPredict.hidden = true;
+    }
+
+    function renderCard() {
+      var item = items[idx];
+      answering = false;
+      itemT0 = (window.performance && performance.now()) || Date.now();
+      txt('[data-il-review-progress]', 'Card ' + (idx + 1) + '/' + items.length);
+      txt('[data-il-review-domain]', item.domain);
+      var chip = $('[data-il-review-reason]');
+      if (chip) { chip.textContent = item.reasonText; chip.setAttribute('data-reason', item.reason); }
+      txt('[data-il-review-label]', item.title + ' · ' + item.label);
+      txt('[data-il-review-q]', item.q);
+      txt('[data-il-review-feedback]', '');
+      var box = $('[data-il-review-options]');
+      box.textContent = '';
+      var next = $('[data-il-review-next-card]');
+      show(next, false);
+      S.shuffleOrder(item.options.length).forEach(function (optIdx) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'il-exam-opt';
+        b.textContent = item.options[optIdx];
+        b.setAttribute('data-il-review-option', String(optIdx));
+        b.addEventListener('click', function () { commit(optIdx); });
+        box.appendChild(b);
+      });
+      mountScene(item).then(function () { openScenario(item); });
+    }
+
+    function commit(choice) {
+      if (answering) return;
+      answering = true;
+      var item = items[idx];
+      var ms = ((window.performance && performance.now()) || Date.now()) - itemT0;
+      var correct = choice === item.answer;
+      var r = R.record({ simId: item.simId, scenarioId: item.scenarioId, domain: item.domain, correct: correct, ms: ms, src: 'review' });
+      session.done += 1;
+      if (correct) session.correct += 1;
+      if (r.from != null && r.to > r.from) session.promoted += 1;
+      if (r.grade === 'again') session.lapsed += 1;
+      if (r.grade === 'hard') session.hard += 1;
+      var opts = document.querySelectorAll('[data-il-review-option]');
+      for (var i = 0; i < opts.length; i++) {
+        opts[i].disabled = true;
+        var oi = Number(opts[i].getAttribute('data-il-review-option'));
+        if (oi === choice) opts[i].setAttribute('data-picked', '1');
+        if (oi === item.answer) opts[i].setAttribute('data-correct', '1');
+        else if (oi === choice) opts[i].setAttribute('data-correct', '0');
+      }
+      var gradeText = r.grade === 'again' ? 'Relearn: back to box 0 — it leads your next session.'
+        : (r.grade === 'hard' ? 'Correct but slow (>' + Math.round(R.SLOW_MS / 1000) + 's): box held at ' + r.to + '.'
+          : 'Box ' + (r.from == null ? 'new' : r.from) + ' → ' + r.to + '.');
+      txt('[data-il-review-feedback]', (correct ? 'Correct. ' : 'Not quite. ') + item.why + ' ' + gradeText + (r.dueIn > 0 ? ' Next review in ' + R.humanInterval(r.dueIn) + '.' : ' Due again now.'));
+      $('[data-il-review-feedback]').setAttribute('data-grade', r.grade);
+      /* Reveal the consequence on the authored 3D stage. */
+      var player = stage && stage._ilImmersive;
+      if (player && player._simPending) {
+        try { player._simCommit(choice); } catch (e) { /* ignore */ }
+      } else if (player && player._sim) {
+        var sc = scenarioOf(item);
+        if (sc) { player._simState = S.merge(player._simState, sc.set); player._simApply('review:' + sc.id); }
+      }
+      track('immersive_review_answer', { sim: item.simId, scenario: item.scenarioId, grade: r.grade, reason: item.reason });
+      var next = $('[data-il-review-next-card]');
+      if (next) { next.textContent = idx + 1 >= items.length ? 'Finish session' : 'Next card'; show(next, true); try { next.focus(); } catch (e2) { /* ignore */ } }
+    }
+
+    function advance() {
+      if (idx + 1 >= items.length) return finish();
+      idx += 1;
+      renderCard();
+    }
+
+    function finish() {
+      show(run, false); show(done, true); show(lobby, false);
+      var st = R.stats();
+      txt('[data-il-review-summary]', session.correct + ' / ' + session.done + ' recalled · ' + session.promoted + ' promoted · '
+        + session.hard + ' hard (slow) · ' + session.lapsed + ' back to relearn. '
+        + (st.dueNow ? st.dueNow + ' still due now.' : (st.nextDueAt ? 'Next card due in ' + R.humanInterval(st.nextDueAt - Date.now()) + '.' : '')));
+      document.documentElement.setAttribute('data-il-review-finished', String(session.correct) + '/' + String(session.done));
+      track('immersive_review_session', { done: session.done, correct: session.correct });
+    }
+
+    function start() {
+      items = R.queue(S, { limit: 10 });
+      if (!items.length) { renderLobby(); return; }
+      idx = 0;
+      session = { done: 0, correct: 0, promoted: 0, hard: 0, lapsed: 0, n: R.noteSession() };
+      document.documentElement.removeAttribute('data-il-review-finished');
+      show(lobby, false); show(done, false); show(run, true);
+      renderCard();
+    }
+
+    var startBtn = $('[data-il-review-start]');
+    if (startBtn) startBtn.addEventListener('click', start);
+    var nextBtn = $('[data-il-review-next-card]');
+    if (nextBtn) nextBtn.addEventListener('click', advance);
+    var again = $('[data-il-review-again]');
+    if (again) again.addEventListener('click', function () { show(done, false); show(lobby, true); renderLobby(); });
+    var exp = $('[data-il-review-export]');
+    if (exp) exp.addEventListener('click', function () {
+      try {
+        var blob = new Blob([R.exportJson()], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'interstitium-review-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      } catch (e) { /* ignore */ }
+    });
+    var rst = $('[data-il-review-reset]');
+    if (rst) rst.addEventListener('click', function () {
+      if (window.confirm && !window.confirm('Erase the review queue on this device? Exam history stays.')) return;
+      R.reset();
+      renderLobby();
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
