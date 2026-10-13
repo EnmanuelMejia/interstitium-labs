@@ -285,6 +285,8 @@
     if (el.getAttribute('data-il-webgpu') === '1') cfg.webgpu = true;
     cfg.gltf = el.getAttribute('data-gltf') || el.getAttribute('data-gltf-pending') || '';
     cfg.sim = el.getAttribute('data-il-sim') || (j && j.sim) || '';
+    /* 2026-10-13: exam/review stages grade answers themselves; free-play drills feed ILImmersiveReview. */
+    cfg.owned = !!(j && (j.exam || j.review));
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
@@ -910,6 +912,10 @@
     this._simResult.textContent = (res && res.correct ? 'Correct. ' : 'Not quite — answer: “' + p.sc.predict.options[res ? res.answer : 0] + '”. ') + (res ? res.why : '');
     this._simResult.setAttribute('data-correct', res && res.correct ? '1' : '0');
     simTrack('immersive_sim_predict', { sim: sim.id, scenario: p.sc.id, correct: !!(res && res.correct), ms: ms });
+    /* Adaptive remediation loop (2026-10-13): free-play predictions become spaced-repetition cards. */
+    if (!this.cfg.owned && g.ILImmersiveReview && g.ILImmersiveReview.CKA_DOMAIN[sim.id]) {
+      try { g.ILImmersiveReview.record({ simId: sim.id, scenarioId: p.sc.id, correct: !!(res && res.correct), ms: ms, src: 'drill' }); } catch (e) { /* ignore */ }
+    }
     this._simRenderScore();
   };
 

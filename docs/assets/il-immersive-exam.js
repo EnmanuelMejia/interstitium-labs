@@ -1,5 +1,5 @@
 /**
- * IL Immersive Exam v1.0.0 (2026-10-12) — timed CKA mock exam over authored 3D sims.
+ * IL Immersive Exam v1.1.0 (2026-10-12; adaptive focus 2026-10-13) — timed CKA mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
  * countdown. Rules engine only — not a live cluster, not killer.sh, not a CNCF exam.
@@ -16,7 +16,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -47,6 +47,8 @@
   };
 
   var DEFAULTS = { count: 10, minutes: 15, passPct: 66 };
+  /** Share of an adaptive paper drawn from weak-domain sims (rest keeps coverage honest). */
+  var FOCUS_SHARE = 0.6;
 
   function mulberry32(a) {
     return function () {
@@ -97,6 +99,9 @@
   /**
    * Build a timed exam. Prefer one question per CKA sim first, then fill from the
    * remaining pool so a 10-question paper covers every domain when possible.
+   * opts.focus (2026-10-13): sim ids from ILImmersiveReview.focusSims. Those sims fill
+   * FOCUS_SHARE of the paper (round-robin), then one per other sim, so an adaptive paper
+   * over-samples the learner's weakest on-device domains. Empty/absent focus = identical to v1.0.0.
    */
   function buildExam(S, opts) {
     opts = opts || {};
@@ -114,17 +119,37 @@
     }
     var simIds = Object.keys(bySim);
     shuffleInPlace(simIds, rnd);
+    var focus = {};
+    (opts.focus || []).forEach(function (id) { if (bySim[id]) focus[id] = 1; });
+    var hasFocus = Object.keys(focus).length > 0;
     var picked = [];
     var used = {};
+    function take(x) { picked.push(x); used[x.simId + '::' + x.scenarioId] = 1; }
+    if (hasFocus) {
+      /* Phase A: FOCUS_SHARE of the paper round-robins the weak-domain sims. */
+      var quota = Math.min(count, Math.ceil(count * FOCUS_SHARE));
+      var fIds = simIds.filter(function (id) { return focus[id]; });
+      var fBuckets = fIds.map(function (id) { return shuffleInPlace(bySim[id].slice(), rnd); });
+      var more = true;
+      while (picked.length < quota && more) {
+        more = false;
+        for (var fb = 0; fb < fBuckets.length && picked.length < quota; fb++) {
+          if (fBuckets[fb].length) { take(fBuckets[fb].shift()); more = true; }
+        }
+      }
+      simIds = simIds.filter(function (id) { return !focus[id]; });
+    }
+    /* One per (remaining) sim for domain coverage. */
     for (var s = 0; s < simIds.length && picked.length < count; s++) {
       var bucket = bySim[simIds[s]].slice();
       shuffleInPlace(bucket, rnd);
-      var first = bucket[0];
-      picked.push(first);
-      used[first.simId + '::' + first.scenarioId] = 1;
+      take(bucket[0]);
     }
     var rest = all.filter(function (x) { return !used[x.simId + '::' + x.scenarioId]; });
     shuffleInPlace(rest, rnd);
+    if (hasFocus) {
+      rest = rest.filter(function (x) { return focus[x.simId]; }).concat(rest.filter(function (x) { return !focus[x.simId]; }));
+    }
     for (var r = 0; r < rest.length && picked.length < count; r++) picked.push(rest[r]);
     shuffleInPlace(picked, rnd);
 
@@ -135,6 +160,7 @@
       count: picked.length,
       minutes: minutes,
       passPct: opts.passPct != null ? opts.passPct : DEFAULTS.passPct,
+      focus: hasFocus ? Object.keys(focus) : [],
       startedAt: startedAt,
       endsAt: startedAt + minutes * 60 * 1000,
       items: picked.map(function (x, idx) {
@@ -228,6 +254,7 @@
     CKA_SIMS: CKA_SIMS.slice(),
     DOMAIN: DOMAIN,
     DEFAULTS: DEFAULTS,
+    FOCUS_SHARE: FOCUS_SHARE,
     pool: pool,
     buildExam: buildExam,
     gradeItem: gradeItem,
