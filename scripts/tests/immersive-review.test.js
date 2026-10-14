@@ -192,3 +192,17 @@ test('review page + wiring: relative assets, honest copy, drills feed the loop b
   assert.equal(manifest.sims.review.path, '/immersive/review/');
   assert.match(manifest.sims.review.storage, /device only/);
 });
+
+test('speakLine (2026-10-14 Lab Muse queue briefing): counts by reason, weakest seen domain, honest empty state', () => {
+  const { S, R } = sandbox();
+  assert.match(R.VERSION, /^1\.1\./);
+  assert.match(R.speakLine({ dueNow: 0 }, [], []), /^Lab Muse: nothing is due on this device\./);
+  const q = [{ reason: 'relearn' }, { reason: 'relearn' }, { reason: 'due' }, { reason: 'weak-domain' }];
+  const mast = [{ domain: 'Untouched', pct: 0, seen: 0 }, { domain: 'Troubleshooting', pct: 17, seen: 3 }];
+  const line = R.speakLine({ dueNow: 3 }, q, mast);
+  assert.equal(line, 'Lab Muse: 3 checkpoints due now on this device. Next session is 4 cards: 2 to relearn from misses, 1 due for spaced review, 1 new from your weakest domains. Weakest domain: Troubleshooting, 17 percent mastery. Start the session to re-serve them on the authored 3D scenes.');
+  assert.match(R.speakLine({ dueNow: 1 }, [{ reason: 'relearn' }], []), /1 checkpoint due now.*1 card: 1 to relearn/);
+  /* Real data path: a cold device still yields a sentence (cold-start top-ups), never a fake count. */
+  const cold = R.speakLine(R.stats(), R.queue(S, { limit: 10 }), R.mastery(S));
+  assert.match(cold, /^Lab Muse: 0 checkpoints due now on this device\. Next session is \d+ cards?: \d+ cold-start\./);
+});

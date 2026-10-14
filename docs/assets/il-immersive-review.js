@@ -14,6 +14,8 @@
  *
  * Would Elon be impressed by a mock exam whose misses evaporate when the tab closes
  * (KodeKloud staff, 2026-04: "each session ... you start fresh")? No — this is the fix.
+ * v1.1.0 (2026-10-14): speakLine() — the one-line Lab Muse briefing the review lobby reads
+ * aloud through the browser's own Web Speech synthesis (no cloud TTS, no API key).
  */
 (function (root, factory) {
   var api = factory(root);
@@ -22,7 +24,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -291,6 +293,27 @@
   }
 
   /** Honest on-device analytics: counts derived only from this device's log + cards. */
+  /** One spoken sentence block for the lobby (Lab Muse voice). Pure: built from stats/queue/mastery. */
+  function speakLine(st, q, mast) {
+    st = st || {}; q = q || []; mast = mast || [];
+    var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
+    if (!q.length) return 'Lab Muse: nothing is due on this device. Sit a timed paper or a free-play drill to seed the queue.';
+    var c = {};
+    q.forEach(function (x) { c[x.reason] = (c[x.reason] || 0) + 1; });
+    var parts = [];
+    if (c.relearn) parts.push(c.relearn + ' to relearn from misses');
+    if (c.due) parts.push(c.due + ' due for spaced review');
+    if (c['weak-domain']) parts.push(c['weak-domain'] + ' new from your weakest domains');
+    if (c['untested-domain']) parts.push(c['untested-domain'] + ' new from untested domains');
+    if (c['cold-start']) parts.push(c['cold-start'] + ' cold-start');
+    var out = 'Lab Muse: ' + plural(st.dueNow || 0, 'checkpoint') + ' due now on this device. Next session is ' +
+      plural(q.length, 'card') + ': ' + parts.join(', ') + '.';
+    var weak = null;
+    for (var i = 0; i < mast.length; i++) if (mast[i].seen > 0) { weak = mast[i]; break; }
+    if (weak) out += ' Weakest domain: ' + weak.domain + ', ' + weak.pct + ' percent mastery.';
+    return out + ' Start the session to re-serve them on the authored 3D scenes.';
+  }
+
   function stats(opts) {
     opts = opts || {};
     var db = opts.db || load();
@@ -387,6 +410,7 @@
     focusSims: focusSims,
     queue: queue,
     stats: stats,
+    speakLine: speakLine,
     exportJson: exportJson,
     humanInterval: humanInterval,
     noteSession: noteSession,
