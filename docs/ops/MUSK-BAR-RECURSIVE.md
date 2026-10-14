@@ -1,5 +1,48 @@
 # Musk bar — recursive scorecard
 
+_Last updated: 2026-10-14 ~morning EDT (America/New_York)._  
+_Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-14 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Thirteen authored-glTF CKA/AWS sims, a timed paper and a spaced remediation queue — all trapped behind a flat browser rectangle. A spatial-first product that cannot be stepped into with a headset or a phone in AR is a 3D *picture*, not 3D-first. KodeKloud (browser labs + timed mocks + AI Tutor), killer.sh (timed RDP sims), Killercoda (free scenarios) offer no WebXR / headset path at all. **No.** |
+| After this ship | **Closer / still NO** | **WebXR entry** on every ScenePlayer stage: `Enter VR` / `Enter AR` appear only when `navigator.xr.isSessionSupported()` says yes (hidden without WebXR and under `prefers-reduced-motion`). The **same WebGL context** is made XR-compatible and drawn per `XRView` into an `XRWebGLLayer` — stereo, `local-floor` → `local` fallback, page orbit RAF paused and restored on exit. The **same authored `.glb` drills** and the same sim rules engine mount in the headset; controller *select* flips the next free-play toggle so failure modes re-tint in 3D. Exam and review remounts inherit it for free (graded stages: select is a no-op; next card ends the session). Fallback #3 shipped too: **Lab Muse reads the relearn queue aloud** on `/immersive/review/` via the browser's own speech synthesis. Still **no live UE host**, **no hosted fleet**. |
+| Fake YES risk | Rejected | Labelled everywhere as *WebXR over authored glTF, rendered locally — not Unreal Pixel Streaming, not a hosted cluster*. No headset-vendor exclusivity claim. CI drives a **scripted `navigator.xr` fake** (headless Chromium has no XR device): it proves the wiring, the stereo draw (non-clear pixels in both eye viewports) and the restore path — **nobody watched a physical headset demo** and the doc does not claim one. |
+
+## Scorecard (0–10) — 2026-10-14
+
+| Dimension | Prior (10-13) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | **9.3** | "Enter VR / Enter AR" on the same authored drills when a headset or AR phone is present |
+| Live labs density | 7.6 | 7.6 | Unchanged — still no hosted fleet (blocker C) |
+| Adaptive learning | 8.6 | **8.7** | Lab Muse spoken queue briefing (due count, reasons, weakest domain) |
+| Honesty / trust | 9.9 | 9.9 | WebXR ≠ Pixel Streaming ≠ hosted cluster, stated on button, caption, badge, manifest |
+| Curriculum SoT | 9.4 | **9.5** | Manifest `sims.webxr` block (modes, features, ref spaces, input, honesty) |
+| Immersive / 3D gate | 9.7 | **9.9** | Headset / AR entry over the authored glTF; stereo per-view render; exam + review inherit |
+
+**Musk YES? NO — Closer.** WebXR moves the **Immersive / 3D gate** and **First-glance wow**; it does **not** clear the blockers: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest wins: extend predict/exam/review to the AWS track; in-headset text panel (predict options as world-space quads, so the whole predict→reveal loop runs without the page); Lab Muse viseme lip-sync on the spoken briefing.
+
+## Competitor delta (2026-10-14)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud | Browser labs on real clusters, timed mocks, AI Tutor | Mocks "start fresh" and nothing is spatial; IL mounts the same authored `.glb` drills in a WebXR headset / AR session when the device supports it |
+| killer.sh | Hardest timed RDP CKA sims | No adaptive follow-up, no 3D, no WebXR; IL is the spatial warm-up + remediation loop between sessions |
+| Killercoda | Free scenarios, instant | No headset path, no 3D mental model |
+| Meta Muse-style voice coach | Voice-native UX | No exam → 3D remediation → headset loop; IL's Lab Muse now reads the relearn queue aloud and the same drills open in XR |
+
+## Shipped this pass (2026-10-14)
+
+1. `il-immersive-3d.js` v1.7.0 — WebXR probe (`immersive-vr` / `immersive-ar`, cached per page, `devicechange` re-probe), `Enter VR` / `Enter AR` toolbar (hidden when unsupported or reduced-motion), session state machine (idle → requesting → active → ending → idle), `makeXRCompatible` + `XRWebGLLayer` on the existing context, `local-floor` → `local` fallback, per-`XRView` stereo render via shared `_renderScene`, AR passthrough clear + optional `dom-overlay` Exit, controller select / squeeze, one session per page, `destroy()` ends sessions and releases the context. Pure helpers exported on `ILImmersive3D.xr`.
+2. `il-immersive-3d.css` — XR toolbar, honesty note, live-session outline, AR overlay.
+3. `il-immersive-review.js` v1.1.0 `speakLine()` + `/immersive/review/` "Lab Muse · read my queue aloud" (browser `speechSynthesis` / `ILMuse.speakText`, hidden when unavailable).
+4. Manifest `sims.webxr`; player string → v1.7.0.
+5. Tests: `scripts/tests/immersive-xr.test.js` (12 unit), +1 review unit; browser +6 (XR absent → no buttons; reduced-motion → no buttons; mocked VR → stereo frames + select + restore; AR dom-overlay + denial; review stage inherits XR; Lab Muse speaks queue).
+
+---
+
 _Last updated: 2026-10-13 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
 

@@ -3,6 +3,8 @@
  * + ILImmersive3D (ScenePlayer). Every card re-mounts its authored .glb and reveals the
  * failure mode on the 3D stage after the learner commits. On-device only; never invents
  * a live cluster, hosted fleet, cohort, or server-side analytics.
+ * 2026-10-14: "Lab Muse · read my queue aloud" speaks R.speakLine() via the browser's own
+ * speechSynthesis (hidden when unavailable). Review stages also inherit WebXR entry from ScenePlayer v1.7.0.
  */
 (function () {
   'use strict';
@@ -80,6 +82,31 @@
       }
     }
     renderLobby();
+
+    /* 2026-10-14: Lab Muse reads the relearn queue aloud — browser Web Speech only (ILMuse.speakText when
+     * the coach is on the page, else the same speechSynthesis path directly). No cloud TTS, no key. */
+    var speakBtn = $('[data-il-review-speak]');
+    var canSpeak = !!(window.speechSynthesis && window.SpeechSynthesisUtterance) && typeof R.speakLine === 'function';
+    if (speakBtn && canSpeak) {
+      show(speakBtn, true);
+      speakBtn.addEventListener('click', function () {
+        var line = R.speakLine(R.stats(), R.queue(S, { limit: 10 }), R.mastery(S));
+        var out = $('[data-il-review-spoken]');
+        if (out) { out.textContent = '\u201c' + line + '\u201d \u2014 spoken by this browser\u2019s speech synthesis.'; show(out, true); }
+        try {
+          if (window.ILMuse && typeof window.ILMuse.speakText === 'function') {
+            window.ILMuse.speakText(line, { speak: true });
+          } else {
+            window.speechSynthesis.cancel();
+            var u = new window.SpeechSynthesisUtterance(line);
+            u.rate = 1.02;
+            window.speechSynthesis.speak(u);
+          }
+        } catch (e) { /* ignore */ }
+        document.documentElement.setAttribute('data-il-review-spoke', '1');
+        track('immersive_review_speak', { due: R.stats().dueNow });
+      });
+    }
 
     function mountScene(item) {
       var API = window.ILImmersive3D;

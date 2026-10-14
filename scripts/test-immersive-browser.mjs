@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -358,6 +358,239 @@ await check('exam → remediation → 3D review: missed paper items are re-serve
   } catch (e) { e.message = '[' + step + '] ' + e.message; throw e; }
   await page.close();
   return 'paper 0/5 → 5 relearn → review ' + (total - 1) + '/' + total + ' → exam-card boxes ' + boxes.join(',') + ' · adaptive paper focused';
+});
+
+/* 2026-10-14 WebXR entry. Headless Chromium has no XR device, so the session is a scripted fake
+ * (navigator.xr + XRWebGLLayer with framebuffer = null → frames draw into the real canvas via the
+ * real WebGL context). This proves wiring + stereo render path + restore; it is NOT a headset demo. */
+const XR_FAKE = () => {
+  const frames = [];
+  const persp = (aspect) => { const f = 1 / Math.tan(Math.PI / 4), n = 0.05, fa = 40, nf = 1 / (n - fa);
+    return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (fa + n) * nf, -1, 0, 0, 2 * fa * n * nf, 0]); };
+  const eye = (x) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -x, 0, 0, 1]);
+  class FakeSession extends EventTarget {
+    constructor(mode) { super(); this.mode = mode; this.environmentBlendMode = mode === 'immersive-ar' ? 'alpha-blend' : 'opaque'; this._t = new Set(); this.refAsked = []; }
+    updateRenderState(s) { this.renderState = s; }
+    requestReferenceSpace(t) { this.refAsked.push(t); return t === 'local-floor' ? Promise.reject(new DOMException('no floor', 'NotSupportedError')) : Promise.resolve({ type: t }); }
+    requestAnimationFrame(cb) {
+      const id = setTimeout(() => { this._t.delete(id); if (this.ended) return;
+        const views = [{ eye: 'left', projectionMatrix: persp(1), transform: { inverse: { matrix: eye(-0.032) } } },
+          { eye: 'right', projectionMatrix: persp(1), transform: { inverse: { matrix: eye(0.032) } } }];
+        frames.push(views.length);
+        cb(performance.now(), { session: this, getViewerPose: () => ({ views }) });
+        /* Same task as the draw → drawing buffer not yet presented: count non-clear pixels per eye half. */
+        const gl = window.__xr.gl;
+        if (gl && this.mode === 'immersive-vr') {
+          const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, row = new Uint8Array(w * h * 4), lit = [0, 0];
+          gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, row);
+          for (let i = 0; i < w * h; i++) { const r = row[i * 4], g2 = row[i * 4 + 1], b = row[i * 4 + 2];
+            if (Math.abs(r - 7) + Math.abs(g2 - 11) + Math.abs(b - 22) > 24) lit[(i % w) < w / 2 ? 0 : 1]++; }
+          window.__xr.lit = lit;
+        } }, 16);
+      this._t.add(id); return id;
+    }
+    cancelAnimationFrame(id) { clearTimeout(id); }
+    end() { if (this.ended) return Promise.resolve(); this.ended = true; this._t.forEach(clearTimeout);
+      setTimeout(() => this.dispatchEvent(new Event('end')), 0); return Promise.resolve(); }
+  }
+  window.__xr = { frames, requests: [], compat: 0, layers: 0 };
+  WebGLRenderingContext.prototype.makeXRCompatible = function () { window.__xr.compat++; return Promise.resolve(); };
+  window.XRWebGLLayer = class { constructor(session, gl, opts) { window.__xr.layers++; window.__xr.gl = gl; this.opts = opts; this.framebuffer = null; this.w = gl.drawingBufferWidth; this.h = gl.drawingBufferHeight; }
+    getViewport(v) { return { x: v.eye === 'left' ? 0 : Math.floor(this.w / 2), y: 0, width: Math.floor(this.w / 2), height: this.h }; } };
+  Object.defineProperty(navigator, 'xr', { configurable: true, value: Object.assign(new EventTarget(), {
+    isSessionSupported: (m) => Promise.resolve(m === 'immersive-vr' || m === 'immersive-ar'),
+    requestSession: (mode, init) => { const s = new FakeSession(mode); if (init.domOverlay) s.domOverlayState = { type: 'screen' }; window.__xr.requests.push({ mode, req: [...(init.requiredFeatures || [])], opt: [...(init.optionalFeatures || [])], overlay: !!(init.domOverlay && init.domOverlay.root) }); window.__xr.session = s; return Promise.resolve(s); }
+  }) });
+};
+
+async function xrContext(opts = {}, init) {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...opts });
+  await c.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  if (init) await c.addInitScript(init);
+  return c;
+}
+
+await check('WebXR absent (no navigator.xr): no Enter VR/AR buttons on any stage', async () => {
+  const c = await xrContext({}, () => { Object.defineProperty(Navigator.prototype, 'xr', { configurable: true, get: () => undefined }); });
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.waitForFunction(() => { const r = [...document.querySelectorAll('.il-immersive[data-il-xr]')]; return r.length > 0 && r.every(x => x.getAttribute('data-il-xr') !== 'probing'); }, null, { timeout: 15000 });
+  const info = await page.evaluate(() => ({
+    stages: document.querySelectorAll('.il-immersive[data-il-xr]').length,
+    unsupported: document.querySelectorAll('.il-immersive[data-il-xr="unsupported"][data-il-xr-support="no-webxr"]').length,
+    visibleBtns: [...document.querySelectorAll('[data-il-xr-enter]')].filter(b => b.offsetParent !== null).length
+  }));
+  assert.ok(info.stages >= 13, 'stages probed ' + info.stages);
+  assert.equal(info.unsupported, info.stages);
+  assert.equal(info.visibleBtns, 0);
+  assert.deepEqual(errors, []);
+  await c.close();
+  return `${info.stages} stages · all unsupported · 0 buttons`;
+});
+
+await check('WebXR supported but prefers-reduced-motion: no XR buttons (static fallback only)', async () => {
+  const c = await xrContext({ reducedMotion: 'reduce' }, XR_FAKE);
+  const page = await c.newPage();
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.waitForTimeout(500);
+  const n = await page.evaluate(() => ({ btns: document.querySelectorAll('[data-il-xr-enter]').length, reduced: document.querySelectorAll('.il-immersive.is-reduced').length }));
+  assert.ok(n.reduced > 0, 'reduced stages');
+  assert.equal(n.btns, 0);
+  assert.equal(await page.evaluate(() => window.__xr.requests.length), 0);
+  await c.close();
+  return n.reduced + ' reduced stages · 0 buttons';
+});
+
+await check('WebXR mocked supported: Enter VR on an authored CKA sim → stereo XR frames → select re-tints → Exit restores 2D orbit', async () => {
+  const c = await xrContext({}, XR_FAKE);
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.locator('[data-il-sim="etcd-quorum"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  assert.equal(await host.getAttribute('data-il-xr'), 'available');
+  assert.equal(await host.getAttribute('data-il-xr-support'), 'vr ar');
+  const vr = host.locator('[data-il-xr-enter="vr"]'), ar = host.locator('[data-il-xr-enter="ar"]');
+  assert.ok(await vr.isVisible() && await ar.isVisible(), 'both buttons visible');
+  assert.equal(await vr.textContent(), 'Enter VR');
+  assert.equal(await ar.textContent(), 'Enter AR');
+  assert.match(await host.locator('.il-immersive__xr-note').textContent(), /authored glTF.*not Unreal Pixel Streaming.*no hosted cluster/);
+  const visibleOnPage = await page.evaluate(() => document.querySelectorAll('.il-immersive[data-il-xr="available"]').length);
+  assert.ok(visibleOnPage >= 13, 'every stage got the entry: ' + visibleOnPage);
+  const verdict0 = await host.getAttribute('data-il-sim-verdict');
+  await vr.click();
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
+  await host.evaluate(el => new Promise((ok, no) => { const t0 = Date.now(); (function p() { if (el._ilImmersive._xrFrames >= 6) return ok(); if (Date.now() - t0 > 10000) return no(new Error('xr frames ' + el._ilImmersive._xrFrames)); setTimeout(p, 50); })(); }));
+  const live = await host.evaluate(el => { const P = el._ilImmersive; return {
+    raf: P.raf, frames: P._xrFrames, views: el.getAttribute('data-il-xr-views'), ref: el.getAttribute('data-il-xr-ref'),
+    glErr: P.gl.getError(), cap: el.querySelector('.il-immersive__captions').textContent, badge: el.querySelector('.il-immersive__badge').textContent,
+    exit: el.querySelector('[data-il-xr-enter="vr"]').textContent, arDisabled: el.querySelector('[data-il-xr-enter="ar"]').disabled }; });
+  const req = await page.evaluate(() => window.__xr.requests[0]);
+  assert.deepEqual(req, { mode: 'immersive-vr', req: [], opt: ['local-floor'], overlay: false });
+  assert.equal(await page.evaluate(() => window.__xr.compat), 1, 'makeXRCompatible on the existing context');
+  assert.equal(await page.evaluate(() => window.__xr.session.refAsked.join('>')), 'local-floor>local');
+  assert.equal(live.ref, 'local', 'graceful fallback when local-floor is refused');
+  assert.equal(live.views, '2', 'stereo views');
+  assert.equal(live.raf, 0, 'page orbit RAF paused');
+  assert.equal(live.glErr, 0, 'no GL error from per-view draws');
+  const lit = await page.evaluate(() => window.__xr.lit);
+  assert.ok(lit && lit[0] > 500 && lit[1] > 500, 'authored geometry drawn in BOTH eye viewports: ' + JSON.stringify(lit));
+  assert.match(live.cap, /in WebXR VR \(local render, not Pixel Streaming\)/);
+  assert.match(live.cap, /authored \.glb \(\d+ nodes/);
+  assert.match(live.badge, /authored \.glb · WebXR VR/);
+  assert.equal(live.exit, 'Exit VR');
+  assert.equal(live.arDisabled, true);
+  const otherDisabled = await page.evaluate(() => [...document.querySelectorAll('.il-immersive[data-il-xr="available"]:not([data-il-sim-ready="etcd-quorum"]) [data-il-xr-enter="vr"]')].every(b => b.disabled));
+  assert.ok(otherDisabled, 'one session per page');
+  /* Controller select flips the next free-play toggle → authored nodes re-tint in the headset. */
+  await page.evaluate(() => window.__xr.session.dispatchEvent(new Event('select')));
+  const st = await host.evaluate(el => ({ v: el.getAttribute('data-il-sim-verdict'), s: JSON.stringify(el._ilImmersive._simState) }));
+  const st0 = await page.evaluate(() => JSON.stringify(window.ILImmersiveSims.get('etcd-quorum').initial));
+  assert.notEqual(st.s, st0, 'select changed sim state');
+  await host.screenshot({ path: path.join(shots, 'immersive-webxr-vr-stereo.png') });
+  await vr.click();
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'idle', null, { timeout: 10000 });
+  await page.waitForTimeout(100);
+  const after = await host.evaluate(el => ({ raf: el._ilImmersive.raf, cap: el.querySelector('.il-immersive__captions').textContent, badge: el.querySelector('.il-immersive__badge').textContent, label: el.querySelector('[data-il-xr-enter="vr"]').textContent, mode: el.getAttribute('data-il-xr-mode') }));
+  assert.ok(after.raf > 0, '2D orbit RAF resumed');
+  assert.doesNotMatch(after.cap, /in WebXR/);
+  assert.doesNotMatch(after.badge, /WebXR/);
+  assert.equal(after.label, 'Enter VR');
+  assert.equal(after.mode, null);
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.xr.active()), null);
+  assert.deepEqual(errors, []);
+  await c.close();
+  return `${live.frames}+ stereo frames (lit px L/R ${lit.join('/')}) · ref ${live.ref} · ${verdict0} → select → ${st.v} · exit → 2D RAF resumed`;
+});
+
+await check('WebXR AR: requests dom-overlay optionally, shows Exit overlay only when granted, denial is reported honestly', async () => {
+  const c = await xrContext({}, XR_FAKE);
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.locator('[data-il-sim="rbac-authz"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="rbac-authz"]');
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('[data-il-xr-enter="ar"]:not([hidden])').click();
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="rbac-authz"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
+  const req = await page.evaluate(() => window.__xr.requests[0]);
+  assert.deepEqual(req, { mode: 'immersive-ar', req: [], opt: ['local-floor', 'dom-overlay'], overlay: true });
+  assert.ok(await host.locator('.il-immersive__xr-overlay').isVisible(), 'AR overlay shown');
+  assert.match(await host.locator('.il-immersive__xr-overlay-cap').textContent(), /not Unreal Pixel Streaming, not a hosted cluster/);
+  /* A granted dom-overlay sits in the top layer; headless has none, so dispatch instead of hit-testing past page chrome. */
+  await host.locator('[data-il-xr-exit]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="rbac-authz"]').getAttribute('data-il-xr-state') === 'idle', null, { timeout: 10000 });
+  /* User / UA refuses the session → back to idle, no fake "in headset" caption. */
+  await page.evaluate(() => { navigator.xr.requestSession = () => Promise.reject(new DOMException('denied', 'NotAllowedError')); });
+  await host.locator('[data-il-xr-enter="vr"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="rbac-authz"]').getAttribute('data-il-xr-error') === 'NotAllowedError', null, { timeout: 5000 });
+  assert.equal(await host.getAttribute('data-il-xr-state'), 'idle');
+  assert.match(await host.locator('.il-immersive__captions').first().textContent(), /WebXR VR not started \(NotAllowedError\)/);
+  assert.ok(await host.evaluate(el => el._ilImmersive.raf > 0), '2D loop never stopped');
+  assert.deepEqual(errors, []);
+  await c.close();
+  return 'AR dom-overlay optional · exit via overlay · NotAllowedError → idle';
+});
+
+await check('WebXR on /immersive/review/: the remounted review stage inherits Enter VR; next card ends the session', async () => {
+  const c = await xrContext({}, XR_FAKE);
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/review/', { waitUntil: 'load' });
+  await page.locator('[data-il-review-start]').click();
+  await page.locator('[data-il-review-run]:not([hidden])').waitFor({ timeout: 15000 });
+  const stage = page.locator('[data-il-review-stage]');
+  await stage.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr') === 'available', null, { timeout: 10000 });
+  await stage.locator('[data-il-xr-enter="vr"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
+  /* select is a no-op on graded stages (review owns grading). */
+  const s0 = await stage.evaluate(el => JSON.stringify(el._ilImmersive._simState));
+  await page.evaluate(() => window.__xr.session.dispatchEvent(new Event('select')));
+  assert.equal(await stage.evaluate(el => JSON.stringify(el._ilImmersive._simState)), s0);
+  await page.locator('[data-il-review-option]').first().click();
+  await page.locator('[data-il-review-next-card]:not([hidden])').click();
+  await page.waitForFunction(() => window.__xr.session.ended === true, null, { timeout: 10000 });
+  await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr') === 'available', null, { timeout: 30000 });
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.xr.active()), null);
+  assert.equal(await stage.getAttribute('data-il-xr-state'), 'idle');
+  assert.deepEqual(errors, []);
+  await c.close();
+  return 'review stage XR available · select no-op on graded stage · remount ended session';
+});
+
+await check('/immersive/review/: Lab Muse reads the relearn queue aloud via browser speechSynthesis (hidden when unavailable)', async () => {
+  const c = await xrContext({}, () => {
+    window.__spoken = [];
+    window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { cancel() {}, speak(u) { window.__spoken.push(u.text); }, getVoices: () => [] } });
+  });
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  /* Seed one real miss through a free-play drill so the line has a relearn card. */
+  await page.locator('[data-il-sim="etcd-quorum"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('[data-il-sim-scenario="lose-two"]').click();
+  const key = await page.evaluate(() => window.ILImmersiveSims.get('etcd-quorum').scenarios.find(x => x.id === 'lose-two').predict.answer);
+  await host.locator(`[data-il-sim-option="${(key + 1) % 2}"]`).click();
+  await page.goto(base + '/immersive/review/', { waitUntil: 'load' });
+  const btn = page.locator('[data-il-review-speak]');
+  assert.ok(await btn.isVisible(), 'CTA visible when speech synthesis exists');
+  await btn.click();
+  const spoken = await page.evaluate(() => window.__spoken);
+  assert.equal(spoken.length, 1);
+  assert.match(spoken[0], /^Lab Muse: 1 checkpoint due now on this device\. Next session is \d+ cards: 1 to relearn from misses/);
+  assert.match(spoken[0], /Weakest domain: [^,]+, \d+ percent mastery\./);
+  assert.match(await page.locator('[data-il-review-spoken]').textContent(), /spoken by this browser’s speech synthesis/);
+  await c.close();
+  const c2 = await xrContext({}, () => { Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: undefined }); });
+  const p2 = await c2.newPage();
+  await p2.goto(base + '/immersive/review/', { waitUntil: 'load' });
+  await p2.locator('[data-il-review-due]').waitFor();
+  assert.equal(await p2.locator('[data-il-review-speak]').isVisible(), false, 'hidden without speechSynthesis');
+  await c2.close();
+  assert.deepEqual(errors, []);
+  return spoken[0].slice(0, 96) + '…';
 });
 
 await browser.close();
