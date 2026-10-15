@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -401,11 +401,13 @@ const XR_FAKE = () => {
     isSessionSupported: (m) => Promise.resolve(m === 'immersive-vr' || m === 'immersive-ar'),
     requestSession: (mode, init) => { const s = new FakeSession(mode); if (init.domOverlay) s.domOverlayState = { type: 'screen' }; window.__xr.requests.push({ mode, req: [...(init.requiredFeatures || [])], opt: [...(init.optionalFeatures || [])], overlay: !!(init.domOverlay && init.domOverlay.root) }); window.__xr.session = s; return Promise.resolve(s); }
   }) });
+  try { localStorage.setItem('noah-onboarded', '1'); } catch (e) {}
 };
 
 async function xrContext(opts = {}, init) {
   const c = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...opts });
   await c.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+  await c.addInitScript(() => { try { localStorage.setItem('noah-onboarded', '1'); } catch (e) {} });
   if (init) await c.addInitScript(init);
   return c;
 }
@@ -532,7 +534,7 @@ await check('WebXR AR: requests dom-overlay optionally, shows Exit overlay only 
   return 'AR dom-overlay optional · exit via overlay · NotAllowedError → idle';
 });
 
-await check('WebXR on /immersive/review/: the remounted review stage inherits Enter VR; next card ends the session', async () => {
+await check('WebXR on /immersive/review/: inherits Enter VR; in-headset select commits via review chrome; next card ends session', async () => {
   const c = await xrContext({}, XR_FAKE);
   const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
   await page.goto(base + '/immersive/review/', { waitUntil: 'load' });
@@ -543,11 +545,13 @@ await check('WebXR on /immersive/review/: the remounted review stage inherits En
   await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr') === 'available', null, { timeout: 10000 });
   await stage.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
-  /* select is a no-op on graded stages (review owns grading). */
-  const s0 = await stage.evaluate(el => JSON.stringify(el._ilImmersive._simState));
+  await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr-hud') === 'predict', null, { timeout: 5000 });
+  /* In-headset select commits the highlighted option through review chrome (same path as clicking a DOM option). */
+  const beforeFb = await page.locator('[data-il-review-feedback]').textContent();
   await page.evaluate(() => window.__xr.session.dispatchEvent(new Event('select')));
-  assert.equal(await stage.evaluate(el => JSON.stringify(el._ilImmersive._simState)), s0);
-  await page.locator('[data-il-review-option]').first().click();
+  await page.waitForFunction(() => document.querySelector('[data-il-review-next-card]:not([hidden])'), null, { timeout: 10000 });
+  assert.notEqual(await page.locator('[data-il-review-feedback]').textContent(), beforeFb);
+  assert.ok(await stage.evaluate(el => /reveal/.test(el.getAttribute('data-il-xr-hud') || '') || !el._ilImmersive._simPending));
   await page.locator('[data-il-review-next-card]:not([hidden])').click();
   await page.waitForFunction(() => window.__xr.session.ended === true, null, { timeout: 10000 });
   await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-xr') === 'available', null, { timeout: 30000 });
@@ -555,7 +559,72 @@ await check('WebXR on /immersive/review/: the remounted review stage inherits En
   assert.equal(await stage.getAttribute('data-il-xr-state'), 'idle');
   assert.deepEqual(errors, []);
   await c.close();
-  return 'review stage XR available · select no-op on graded stage · remount ended session';
+  return 'review stage XR · in-headset select commits via chrome · remount ended session';
+});
+
+
+await check('WebXR in-headset world HUD: open predict → select commits option without DOM click → reveal → next chip', async () => {
+  const c = await xrContext({}, XR_FAKE);
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.locator('[data-il-sim="etcd-quorum"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.8.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
+  await host.locator('[data-il-xr-enter="vr"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
+  /* Open a predict scenario from the player API (no DOM option click) while XR is live. */
+  const opened = await host.evaluate(el => {
+    const sc = window.ILImmersiveSims.get('etcd-quorum').scenarios.find(x => x.id === 'lose-two');
+    el._ilImmersive._simScenario(sc);
+    const P = el._ilImmersive;
+    return {
+      phase: P._xrHudModel && P._xrHudModel.phase,
+      pending: !!(P._simPending && P._simPending.sc && P._simPending.sc.id),
+      attr: el.getAttribute('data-il-xr-hud'),
+      nOpt: P._xrHudLayout ? P._xrHudLayout.filter(q => q.kind === 'option').length : 0
+    };
+  });
+  assert.equal(opened.phase, 'predict', 'hud model after _simScenario: ' + JSON.stringify(opened));
+  assert.equal(opened.attr, 'predict');
+  assert.ok(opened.nOpt >= 2, 'option quads laid out');
+  const hud = await host.evaluate(el => {
+    const P = el._ilImmersive;
+    return {
+      honesty: P._xrHudLayout && P._xrHudLayout.some(q => q.kind === 'honesty'),
+      badge: el.querySelector('.il-immersive__badge').textContent
+    };
+  });
+  assert.ok(hud.honesty, 'honesty chip in layout');
+  assert.match(hud.badge, /world HUD/);
+  const key = await page.evaluate(() => window.ILImmersiveSims.get('etcd-quorum').scenarios.find(x => x.id === 'lose-two').predict.answer);
+  /* Point the cursor at the keyed answer (shuffled display order) then select — no DOM option click. */
+  const picked = await host.evaluate((el, answer) => {
+    const P = el._ilImmersive;
+    const i = P._xrHudModel.options.findIndex(o => o.origIdx === answer);
+    P._xrHudSetCursor(i < 0 ? 0 : i);
+    return { i, cursor: P._xrHudModel.cursor, orig: P._xrHudModel.options[P._xrHudModel.cursor].origIdx };
+  }, key);
+  assert.equal(picked.orig, key, 'cursor on keyed answer: ' + JSON.stringify(picked));
+  const sel = await page.evaluate(() => {
+    const el = document.querySelector('[data-il-sim-ready="etcd-quorum"]');
+    const r = el._ilImmersive._xrSelect(new Event('select'));
+    return { r, hud: el.getAttribute('data-il-xr-hud'), result: el.querySelector('.il-immersive__sim-result').textContent, pending: !!el._ilImmersive._simPending };
+  });
+  assert.match(String(sel.r), /^opt:/, 'select committed option: ' + JSON.stringify(sel));
+  assert.match(sel.hud || '', /reveal/, 'reveal attr: ' + JSON.stringify(sel));
+  assert.match(sel.result, /Correct/);
+  const after = { hud: sel.hud, result: sel.result, verdict: await host.getAttribute('data-il-sim-verdict') };
+  /* After reveal settles (~2.8s), the Next drill chip appears so the loop continues without the page. */
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-hud') === 'next', null, { timeout: 10000 });
+  await page.evaluate(() => window.__xr.session.dispatchEvent(new Event('select')));
+  await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-hud') === 'predict', null, { timeout: 10000 });
+  assert.deepEqual(errors, []);
+  await host.screenshot({ path: path.join(shots, 'immersive-webxr-world-hud.png') });
+  await c.close();
+  return `world HUD predict→select→${after.hud}→next→predict · verdict ${after.verdict} · no DOM option required`;
 });
 
 await check('/immersive/review/: Lab Muse reads the relearn queue aloud via browser speechSynthesis (hidden when unavailable)', async () => {
