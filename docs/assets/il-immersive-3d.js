@@ -22,6 +22,12 @@
  * ray-hit picks an option; free-play and graded exam/review stages that open predict via _simScenario share
  * the same commit path. Honesty: local WebGL/WebXR UI over authored glTF — not Unreal UMG, not Pixel Streaming HUD.
  * World panels hide when XR is inactive; prefers-reduced-motion already hides XR entry.
+ * v1.9.0 (2026-10-16): in-scene CLI lab — free-play stages whose sim has an il-immersive-cli.js pack get a
+ * "CLI lab" terminal: type real kubectl / etcdctl / crictl / aws syntax, the command is parsed in the browser,
+ * mapped onto the SAME sim state, and the authored glTF re-tints. Killercoda-style tasks (goal → ordered steps →
+ * verify) with hint/history/Tab completion; completions stored on-device (il.immersiveCli.v1).
+ * Honesty: simulated shell over the in-browser rules engine — not a real shell, container, cluster or AWS account.
+ * Exam / review stages (cfg.owned) do not get the terminal (no answer leakage into graded papers).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -1242,6 +1248,7 @@
     this._simPanel = panel;
     this._simApply('init');
     this._simRenderScore();
+    this._cliInit();
   };
 
   ScenePlayer.prototype._simApply = function (reason){
@@ -1267,6 +1274,7 @@
       (this._xrSession ? ' · in WebXR ' + String(this._xrKind || '').toUpperCase() + ' (local render, not Pixel Streaming)' : '');
     this.root.setAttribute('data-il-sim-verdict', d.verdict);
     if (reason && reason !== 'init') simTrack('immersive_sim_state', { sim: sim.id, reason: reason, verdict: d.verdict });
+    if (this._cli) this._cliOnState();
   };
 
   ScenePlayer.prototype._simPredictClose = function (){
@@ -1348,6 +1356,222 @@
     var btns = this._simPanel.querySelectorAll('[data-il-sim-scenario]');
     for (var j = 0; j < btns.length; j++) {
       btns[j].setAttribute('data-next', next && btns[j].getAttribute('data-il-sim-scenario') === next.id ? '1' : '0');
+    }
+  };
+
+  /* ── In-scene CLI lab (v1.9.0 · 2026-10-16) — typed commands drive the same sim state ──────────── */
+  function cliStore(){
+    try { return JSON.parse(g.localStorage.getItem('il.immersiveCli.v1') || '{}') || {}; } catch (e) { return {}; }
+  }
+  function cliSave(db){
+    try { g.localStorage.setItem('il.immersiveCli.v1', JSON.stringify(db)); } catch (e) { /* private mode */ }
+  }
+  var CLI_MAX_LINES = 400;
+
+  ScenePlayer.prototype._cliInit = function (){
+    var C = g.ILImmersiveCLI, sim = this._sim;
+    if (!C || !C.has || !sim || !C.has(sim.id) || this.cfg.owned || this._cli) return;
+    var self = this, pack = C.pack(sim.id);
+    var box = el('details', 'il-immersive__cli');
+    box.setAttribute('data-il-cli', sim.id);
+    var sum = el('summary', 'il-immersive__cli-summary', '');
+    sum.appendChild(el('span', 'il-immersive__sim-kicker', 'CLI lab · simulated shell'));
+    sum.appendChild(el('span', 'il-immersive__cli-sumtext', ' Type real kubectl / etcdctl / aws syntax — the 3D scene reacts'));
+    box.appendChild(sum);
+
+    var tasks = el('div', 'il-immersive__sim-row il-immersive__cli-tasks');
+    tasks.setAttribute('role', 'group');
+    tasks.setAttribute('aria-label', 'CLI lab tasks');
+    this._cliTaskBtns = {};
+    pack.tasks.forEach(function (tk){
+      var b = el('button', 'il-immersive__sim-btn il-immersive__cli-task', tk.title);
+      b.type = 'button';
+      b.setAttribute('data-il-cli-task', tk.id);
+      b.addEventListener('click', function (){ self._cliStartTask(tk.id); });
+      self._cliTaskBtns[tk.id] = b;
+      tasks.appendChild(b);
+    });
+    box.appendChild(tasks);
+
+    this._cliGoal = el('div', 'il-immersive__cli-goal');
+    this._cliGoal.hidden = true;
+    box.appendChild(this._cliGoal);
+
+    var log = el('div', 'il-immersive__cli-log');
+    log.setAttribute('role', 'log');
+    log.setAttribute('aria-live', 'polite');
+    log.setAttribute('aria-label', 'Simulated shell output');
+    log.setAttribute('tabindex', '0');
+    box.appendChild(log);
+    this._cliLog = log;
+
+    var form = el('form', 'il-immersive__cli-form');
+    form.setAttribute('autocomplete', 'off');
+    var lab = el('label', 'il-immersive__cli-prompt', pack.prompt);
+    var inp = el('input', 'il-immersive__cli-input');
+    var inpId = 'il-cli-' + sim.id + '-' + Math.random().toString(36).slice(2, 8);
+    inp.id = inpId;
+    lab.setAttribute('for', inpId);
+    inp.type = 'text';
+    inp.setAttribute('data-il-cli-input', '');
+    inp.setAttribute('spellcheck', 'false');
+    inp.setAttribute('autocapitalize', 'off');
+    inp.setAttribute('autocomplete', 'off');
+    inp.setAttribute('enterkeyhint', 'send');
+    inp.setAttribute('aria-label', 'Simulated shell command (' + pack.prompt + ')');
+    inp.placeholder = 'type help — e.g. ' + pack.examples[0];
+    form.appendChild(lab);
+    form.appendChild(inp);
+    var run = el('button', 'il-immersive__sim-btn il-immersive__cli-run', 'Run');
+    run.type = 'submit';
+    form.appendChild(run);
+    form.addEventListener('submit', function (ev){
+      ev.preventDefault();
+      var line = inp.value;
+      inp.value = '';
+      self._cliHistIdx = null;
+      self.cliExec(line);
+    });
+    inp.addEventListener('keydown', function (ev){
+      ev.stopPropagation(); /* never orbit the camera while typing */
+      var hist = self._cliCtx.history;
+      if (ev.key === 'ArrowUp' && hist.length) {
+        ev.preventDefault();
+        self._cliHistIdx = self._cliHistIdx == null ? hist.length - 1 : Math.max(0, self._cliHistIdx - 1);
+        inp.value = hist[self._cliHistIdx];
+      } else if (ev.key === 'ArrowDown' && self._cliHistIdx != null) {
+        ev.preventDefault();
+        self._cliHistIdx += 1;
+        if (self._cliHistIdx >= hist.length) { self._cliHistIdx = null; inp.value = ''; }
+        else inp.value = hist[self._cliHistIdx];
+      } else if (ev.key === 'Tab' && inp.value) {
+        var m = C.complete(sim.id, inp.value);
+        if (m.length) { ev.preventDefault(); inp.value = m[0]; }
+      } else if (ev.key === 'l' && ev.ctrlKey) {
+        ev.preventDefault(); self._cliLog.textContent = '';
+      }
+    });
+    box.appendChild(form);
+    box.appendChild(el('p', 'il-immersive__sim-honesty il-immersive__cli-honesty', C.honesty + ' Keyboard terminal on the page (not inside the headset).'));
+
+    this._cliInput = inp;
+    this._cliCtx = C.newCtx();
+    this._cliTask = null;
+    this._cli = box;
+    var honesty = this._simPanel.querySelector('.il-immersive__sim-honesty');
+    this._simPanel.insertBefore(box, honesty || null);
+    this._cliPrint(['IL sim shell · ' + sim.title, 'Simulated: commands are parsed in this browser and drive the rules engine — no real shell or cluster. Type `help`, or pick a task above.'], 'sys');
+    this._cliPaintTasks();
+    this.root.setAttribute('data-il-cli-ready', sim.id);
+  };
+
+  ScenePlayer.prototype._cliPrint = function (lines, kind){
+    var log = this._cliLog; if (!log) return;
+    [].concat(lines).forEach(function (ln){
+      var row = el('div', 'il-immersive__cli-line', String(ln));
+      if (kind) row.setAttribute('data-kind', kind);
+      log.appendChild(row);
+    });
+    while (log.childNodes.length > CLI_MAX_LINES) log.removeChild(log.firstChild);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  /** Public: run one command line as if typed (used by the input, tests and future voice entry). */
+  ScenePlayer.prototype.cliExec = function (line){
+    var C = g.ILImmersiveCLI, sim = this._sim;
+    if (!C || !this._cli || !sim) return null;
+    var raw = String(line == null ? '' : line);
+    var pack = C.pack(sim.id);
+    this._cliPrint(pack.prompt + ' ' + raw, 'cmd');
+    var r = C.run(sim.id, this._simState, raw, this._cliCtx);
+    if (r.action === 'clear') { this._cliLog.textContent = ''; }
+    else if (r.action === 'reset') {
+      var tk = this._cliTask ? C.task(sim.id, this._cliTask) : null;
+      this._cliCtx = C.newCtx(this._cliTask);
+      this._cliCompleted = false;
+      this._simPredictClose();
+      this._simState = g.ILImmersiveSims.merge(sim.initial, tk ? tk.setup : {});
+      this._simApply('cli:reset');
+      this._cliPrint(r.out, 'sys');
+    } else if (r.action === 'hint') {
+      var st = this._cliTask ? C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx) : null;
+      this._cliPrint(st ? (st.next ? ['hint → ' + st.next.label, '  $ ' + st.next.hint] : ['Task already complete — pick another task.'])
+        : ['No task selected — pick one above, or try: ' + pack.examples[0]], 'sys');
+    } else if (r.action === 'task') {
+      var st2 = this._cliTask ? C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx) : null;
+      this._cliPrint(st2 ? [st2.title + ' — ' + st2.completed + '/' + st2.total].concat(st2.steps.map(function (x, i){ return (x.done ? '  [x] ' : '  [ ] ') + (i + 1) + '. ' + x.label; }))
+        : ['No task selected.'], 'sys');
+    } else {
+      if (r.out.length) this._cliPrint(r.out, r.exit === 0 ? 'out' : 'err');
+      if (r.set) {
+        this._simPredictClose();
+        this._simResult.textContent = '';
+        this._simState = g.ILImmersiveSims.merge(this._simState, r.set);
+        this._simApply('cli:' + r.verb);
+      } else {
+        this._cliOnState();
+      }
+    }
+    this.root.setAttribute('data-il-cli-exit', String(r.exit));
+    simTrack('immersive_cli_cmd', { sim: sim.id, verb: r.verb, exit: r.exit, task: this._cliTask || null });
+    return r;
+  };
+
+  ScenePlayer.prototype._cliStartTask = function (taskId){
+    var C = g.ILImmersiveCLI, sim = this._sim, tk = C && C.task(sim.id, taskId);
+    if (!tk) return;
+    this._cliTask = taskId;
+    this._cliCtx = C.newCtx(taskId);
+    this._cliCompleted = false;
+    this._simPredictClose();
+    this._simResult.textContent = '';
+    this._simState = g.ILImmersiveSims.merge(sim.initial, tk.setup || {});
+    if (this._cli) this._cli.open = true;
+    this._cliPrint(['── Task: ' + tk.title, tk.goal, 'Type `hint` for the next command, `task` for progress, `reset` to restart.'], 'sys');
+    this._simApply('cli-task:' + taskId);
+    simTrack('immersive_cli_task_start', { sim: sim.id, task: taskId });
+    try { this._cliInput.focus(); } catch (e) { /* ignore */ }
+  };
+
+  /** Called after every sim state change (CLI, toggle, scenario, XR select): reconcile CLI vars + verify task. */
+  ScenePlayer.prototype._cliOnState = function (){
+    var C = g.ILImmersiveCLI, sim = this._sim;
+    if (!C || !this._cli || !sim) return;
+    C.reconcile(sim.id, this._simState, this._cliCtx);
+    var goal = this._cliGoal;
+    goal.textContent = '';
+    if (!this._cliTask) { goal.hidden = true; this._cliPaintTasks(); return; }
+    var st = C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx);
+    goal.hidden = false;
+    goal.appendChild(el('p', 'il-immersive__cli-goal-text', st.title + ' — ' + st.goal));
+    var ol = el('ol', 'il-immersive__cli-steps');
+    st.steps.forEach(function (x){
+      var li = el('li', 'il-immersive__cli-step', x.label);
+      li.setAttribute('data-done', x.done ? '1' : '0');
+      ol.appendChild(li);
+    });
+    goal.appendChild(ol);
+    goal.setAttribute('data-done', st.done ? '1' : '0');
+    this.root.setAttribute('data-il-cli-task', st.id + ':' + st.completed + '/' + st.total);
+    if (st.done && !this._cliCompleted) {
+      this._cliCompleted = true;
+      var db = cliStore(), rec = db[sim.id] || (db[sim.id] = {});
+      var cmds = this._cliCtx.history.length;
+      var prev = rec[st.id];
+      rec[st.id] = { done: Date.now(), cmds: prev && prev.cmds ? Math.min(prev.cmds, cmds) : cmds, runs: ((prev && prev.runs) || 0) + 1 };
+      cliSave(db);
+      this._cliPrint(['✓ Task complete: ' + st.title + ' (' + cmds + ' commands · best ' + rec[st.id].cmds + ' · stored on this device)'], 'ok');
+      simTrack('immersive_cli_task', { sim: sim.id, task: st.id, cmds: cmds });
+    }
+    this._cliPaintTasks();
+  };
+
+  ScenePlayer.prototype._cliPaintTasks = function (){
+    var rec = cliStore()[this._sim.id] || {};
+    for (var id in this._cliTaskBtns) {
+      var b = this._cliTaskBtns[id];
+      b.setAttribute('data-done', rec[id] ? '1' : '0');
+      b.setAttribute('aria-pressed', this._cliTask === id ? 'true' : 'false');
     }
   };
 
@@ -2092,7 +2316,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.8.0',
+    version: '1.9.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -2103,6 +2327,7 @@
     sims: true,
     webxr: true,
     xrHud: true,
+    cliLab: true,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,
