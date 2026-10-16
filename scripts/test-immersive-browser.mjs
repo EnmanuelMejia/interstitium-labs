@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -571,7 +571,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.8.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.9.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -660,6 +660,149 @@ await check('/immersive/review/: Lab Muse reads the relearn queue aloud via brow
   await c2.close();
   assert.deepEqual(errors, []);
   return spoken[0].slice(0, 96) + '…';
+});
+
+/* 2026-10-16 in-scene CLI lab: typed kubectl/etcdctl/aws syntax drives the same sim state + authored glTF. */
+async function openCli() {
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  /* First-visit Noah onboarding dialog would sit over the terminal; mark it seen for these checks only. */
+  await page.addInitScript(() => { try { localStorage.setItem('noah-onboarded', '1'); } catch (e) { /* ignore */ } });
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  return { page, errors };
+}
+async function cliHost(page, sim, openIt = true) {
+  await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
+  const host = page.locator(`[data-il-cli-ready="${sim}"]`);
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  if (openIt) await host.locator('.il-immersive__cli-summary').click();
+  return host;
+}
+async function type(host, line) {
+  const inp = host.locator('[data-il-cli-input]');
+  await inp.fill(line);
+  await inp.press('Enter');
+}
+const logText = (host) => host.locator('.il-immersive__cli-log').innerText();
+
+await check('CLI lab: control-plane task — mv scheduler manifest → scale → Pending pods → restore → Running; scene re-tints; task verified + stored', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const host = await cliHost(page, 'control-plane-failure', false);
+  const summary = host.locator('.il-immersive__cli-summary');
+  assert.match(await summary.textContent(), /simulated shell/);
+  assert.equal(await host.locator('details.il-immersive__cli').getAttribute('open'), null, 'terminal collapsed by default');
+  await summary.click();
+  await host.locator('[data-il-cli-task="pending-scale"]').click();
+  assert.equal(await host.locator('details.il-immersive__cli').getAttribute('open'), '', 'terminal open');
+  assert.equal(await host.getAttribute('data-il-cli-task'), 'pending-scale:0/5');
+  await type(host, 'sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/');
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'degraded', 'scheduler down → degraded');
+  const schedStyle = await host.evaluate(el => { const v = el._ilImmersive._authored.find(x => x.name === 'scheduler'); return v && v.simStyle && v.simStyle.tint; });
+  assert.equal(schedStyle, 'down', 'authored scheduler node re-tinted by a typed command');
+  assert.equal(await host.locator('[data-il-sim-toggle="schedUp"]').getAttribute('aria-pressed'), 'false', 'toggle chrome mirrors CLI state');
+  await type(host, 'k scale deployment web --replicas=5');
+  await type(host, 'kubectl get pods');
+  const mid = await logText(host);
+  assert.match(mid, /deployment\.apps\/web scaled/);
+  assert.equal((mid.match(/web-7c5d8-\w+\s+0\/1\s+Pending\s+0\s+8s\s+<none>/g) || []).length, 2, 'two new pods Pending with no node');
+  assert.equal(await host.getAttribute('data-il-cli-task'), 'pending-scale:3/5');
+  await type(host, 'hint');
+  assert.match(await logText(host), /\$ sudo mv \/tmp\/kube-scheduler\.yaml \/etc\/kubernetes\/manifests\//);
+  await type(host, 'sudo mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/');
+  await type(host, 'kubectl get pods');
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.equal(await host.getAttribute('data-il-cli-task'), 'pending-scale:5/5');
+  const done = await logText(host);
+  assert.match(done, /✓ Task complete: Diagnose a scale-up stuck in Pending/);
+  assert.equal(await host.locator('[data-il-cli-task="pending-scale"]').getAttribute('data-done'), '1');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('il.immersiveCli.v1') || '{}'));
+  assert.ok(stored['control-plane-failure']['pending-scale'].done > 0, 'completion stored on device');
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => /^immersive_cli/.test(d.name)));
+  assert.ok(ev.some(d => d.name === 'immersive_cli_task' && d.detail.task === 'pending-scale'), 'task analytics event');
+  const cmdEv = ev.filter(d => d.name === 'immersive_cli_cmd');
+  assert.ok(cmdEv.length >= 6, 'command events');
+  assert.ok(cmdEv.every(d => !/\/etc\/kubernetes|--replicas|tmp/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only, never raw command text');
+  await host.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await host.screenshot({ path: path.join(shots, 'immersive-cli-control-plane.png') });
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'degraded → healthy · 5/5 steps · ' + cmdEv.length + ' cmd events (verb-only)';
+});
+
+await check('CLI lab: etcd quorum via fault + etcdctl; toggles and CLI share state; history ↑ + Tab completion; unmodelled commands are honest', async () => {
+  const { page, errors } = await openCli();
+  const host = await cliHost(page, 'etcd-quorum');
+  await host.locator('[data-il-cli-task="lose-quorum"]').click();
+  await type(host, 'fault stop etcd-1');
+  await host.locator('[data-il-sim-toggle="m2"]').click(); /* second failure via the 3D toggle chrome, not the CLI */
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'down');
+  await type(host, 'ETCDCTL_API=3 etcdctl endpoint health --cluster');
+  let log = await logText(host);
+  assert.match(log, /10\.0\.0\.11:2379 is unhealthy: failed to commit proposal: context deadline exceeded/, 'survivor cannot commit without quorum');
+  assert.match(log, /Error: unhealthy cluster/);
+  assert.equal(await host.getAttribute('data-il-cli-exit'), '1');
+  await type(host, 'kubectl create deployment api --image=nginx');
+  assert.match(await logText(host), /Error from server: etcdserver: request timed out/);
+  const inp = host.locator('[data-il-cli-input]');
+  await inp.press('ArrowUp');
+  assert.equal(await inp.inputValue(), 'kubectl create deployment api --image=nginx', 'history recall');
+  await inp.fill('fault start etcd');
+  await inp.press('Tab');
+  assert.equal(await inp.inputValue(), 'fault start etcd', 'Tab completes only modelled examples (none for start)');
+  await inp.fill('etcdctl mem');
+  await inp.press('Tab');
+  assert.equal(await inp.inputValue(), 'etcdctl member list');
+  await type(host, 'fault start etcd-1');
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'degraded');
+  await type(host, 'kubectl create deployment api --image=nginx');
+  assert.equal(await host.getAttribute('data-il-cli-task'), 'lose-quorum:4/4');
+  await type(host, 'kubectl get secrets');
+  await type(host, 'rm -rf /');
+  log = await logText(host);
+  assert.match(log, /`kubectl get secrets` is not modelled in this drill \(simulated shell — no output is invented\)/);
+  assert.match(log, /bash: rm: command not found {2}\(simulated shell — type help\)/);
+  assert.match(await host.locator('.il-immersive__cli-honesty').textContent(), /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'down → degraded · lose-quorum 4/4 · honest unmodelled + 127';
+});
+
+await check('CLI lab: AWS Multi-AZ via aws rds modify-db-instance → AZ fault → curl 200; only free-play stages with a pack get a terminal', async () => {
+  const { page, errors } = await openCli();
+  const host = await cliHost(page, 'aws-az-failure');
+  await host.locator('[data-il-cli-task="survive-az"]').click();
+  await type(host, 'aws rds describe-db-instances --db-instance-identifier shop-db');
+  assert.match(await logText(host), /"MultiAZ": false/);
+  await type(host, 'aws rds modify-db-instance --db-instance-identifier shop-db --multi-az --apply-immediately');
+  assert.equal(await host.locator('[data-il-sim-toggle="multiAz"]').getAttribute('aria-pressed'), 'true');
+  await type(host, 'fault az us-east-1a down');
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'degraded');
+  await type(host, 'curl -sI https://shop.example.com');
+  assert.match(await logText(host), /HTTP\/2 200/);
+  assert.equal(await host.getAttribute('data-il-cli-task'), 'survive-az:4/4');
+  /* Stages mount lazily near the viewport: visit every sim stage, then compare terminals with packs. */
+  const sims = await page.evaluate(() => window.ILImmersiveSims.list());
+  for (const id of sims) {
+    await page.locator(`[data-il-sim="${id}"]`).scrollIntoViewIfNeeded();
+    await page.locator(`[data-il-sim-ready="${id}"]`).waitFor({ timeout: 30000 });
+  }
+  const counts = await page.evaluate(() => {
+    const C = window.ILImmersiveCLI;
+    const hosts = [...document.querySelectorAll('[data-il-sim-ready]')];
+    return {
+      terminals: document.querySelectorAll('details[data-il-cli]').length,
+      packs: C.list().length,
+      mismatched: hosts.filter(h => !!h.querySelector('[data-il-cli]') !== C.has(h.getAttribute('data-il-sim-ready'))).map(h => h.getAttribute('data-il-sim-ready'))
+    };
+  });
+  assert.deepEqual(counts.mismatched, [], 'terminal iff the sim has a CLI pack');
+  assert.equal(counts.terminals, counts.packs, 'one terminal per pack');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'survive-az 4/4 · ' + counts.terminals + ' terminals';
 });
 
 await browser.close();

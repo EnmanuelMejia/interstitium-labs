@@ -268,7 +268,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.8.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD)",
+    "player": "/assets/il-immersive-3d.js (v1.9.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -354,6 +354,74 @@
         "input": "Controller select / ray-hit chooses an option in-headset; no-ray fallback commits the highlighted cursor option. Free-play also offers a Next drill chip so the loop can start without the page. Graded exam/review: select clicks the matching page option button when present (same commit path).",
         "honesty": "Local WebGL/WebXR UI over authored glTF \u2014 not Unreal UMG, not a Pixel Streaming HUD, not a hosted cluster."
       }
+    },
+    "cli": {
+      "since": "2026-10-16",
+      "runtime": "/assets/il-immersive-cli.js",
+      "version": "1.0.0",
+      "player": "il-immersive-3d.js v1.9.0 (free-play stages only; not on graded /immersive/exam/ or /immersive/review/)",
+      "packs": [
+        {
+          "sim": "etcd-quorum",
+          "tasks": [
+            "tolerate-one",
+            "lose-quorum"
+          ]
+        },
+        {
+          "sim": "control-plane-failure",
+          "tasks": [
+            "pending-scale",
+            "api-blind",
+            "notready"
+          ]
+        },
+        {
+          "sim": "sched-taints",
+          "tasks": [
+            "schedule-db",
+            "cordon"
+          ]
+        },
+        {
+          "sim": "hpa-scale",
+          "tasks": [
+            "unknown-target",
+            "ceiling"
+          ]
+        },
+        {
+          "sim": "aws-az-failure",
+          "tasks": [
+            "survive-az",
+            "spof"
+          ]
+        }
+      ],
+      "syntax": [
+        "kubectl",
+        "etcdctl",
+        "crictl",
+        "systemctl (kubelet on worker-2)",
+        "mv of static-pod manifests in /etc/kubernetes/manifests",
+        "ssh HOST <cmd>",
+        "aws rds / aws elbv2",
+        "curl",
+        "fault \u2026 (lab-only fault injection verb)"
+      ],
+      "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
+      "ux": [
+        "history (ArrowUp/ArrowDown)",
+        "Tab completion over modelled examples",
+        "hint \u00b7 task \u00b7 reset \u00b7 clear \u00b7 help"
+      ],
+      "analytics": [
+        "immersive_cli_cmd (verb + exit code only, never the raw command text)",
+        "immersive_cli_task_start",
+        "immersive_cli_task"
+      ],
+      "storage": "localStorage il.immersiveCli.v1 (task completions + best command count, device only)",
+      "honesty": "Simulated shell over the in-browser rules engine \u2014 real CLI syntax, computed output (kubectl/etcdctl/aws-shaped, not byte-identical). Not a real shell, container, cluster, AWS account or hosted lab fleet. Unmodelled commands say so instead of inventing output."
     }
   },
   "aws_coverage": {
