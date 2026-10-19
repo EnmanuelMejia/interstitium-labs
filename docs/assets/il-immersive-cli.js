@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.0.0 (2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.1.0 (2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -7,6 +7,14 @@
  * is computed from that state (kubectl-/etcdctl-/aws-shaped, not byte-identical to the real tools). There is no
  * real shell, no container, no cluster, no AWS account and no hosted lab fleet. Unmodelled commands say so
  * instead of inventing output. `fault …` is a lab-only fault-injection verb and is labelled as such.
+ *
+ * v1.1.0 (2026-10-19) — Lab Muse task coach (answer to Killercoda Brain): `check` verifies the active task like a
+ * CHECK button and explains WHY the next step is not verified (out-of-order, right command / wrong cluster state,
+ * live state not true, last command failed); a second failed check on the same step auto-offers a hint (tip only,
+ * never the command); `solution` prints the exact command. Every step names the authored glTF nodes to look at
+ * (focus regex, unit-tested against the .glb files), so the player can light up WHERE in the 3D scene to look.
+ * Honest scope: the coach is deterministic rules over the same in-browser sim state — not an LLM, not reading a
+ * real terminal; it knows only what the drill models.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -599,8 +607,93 @@
   var PACKS = {};
   [etcdPack, cpPack, schedPack, hpaPack, awsPack].forEach(function (p) { PACKS[p.sim] = p; });
 
+  /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
+  var COACH = {
+    'etcd-quorum': {
+      'tolerate-one': [
+        ['Take exactly one member offline. The lab has a fault verb, or do it the CKA way: a static pod disappears when its manifest leaves /etc/kubernetes/manifests on that node.', '^etcd-(member|heart)-1$'],
+        ['Ask etcd itself, across the whole cluster, which endpoints are healthy.', '^etcd-heart-[0-2]$'],
+        ['Any kubectl write goes through the API server into etcd. With 2 of 3 up, does Raft still commit it?', '^(apiserver-front|raft-link-.*)$'],
+        ['Undo the failure you injected and confirm all three members are back.', '^etcd-(member|heart)-1$']
+      ],
+      'lose-quorum': [
+        ['Quorum for 3 members is 2. Take members down until fewer than 2 are left.', '^etcd-(member|heart)-[12]$'],
+        ['Try any kubectl write now and read the error carefully.', '^apiserver-front$'],
+        ['One member back is enough: 2 of 3 is a majority again.', '^etcd-(member|heart)-1$'],
+        ['Repeat the write that failed.', '^(apiserver-front|raft-link-.*)$']
+      ]
+    },
+    'control-plane-failure': {
+      'pending-scale': [
+        ['The scheduler is a static pod on controlplane: the kubelet stops it when its manifest leaves /etc/kubernetes/manifests.', '^scheduler$'],
+        ['Ask for more replicas of the web Deployment than it has now (more than 3).', '^(controller-manager|api-server)$'],
+        ['List the pods and look at the NODE and STATUS columns of the new ones.', '^worker-[0-4]$'],
+        ['Put the scheduler manifest back where the kubelet watches.', '^scheduler$'],
+        ['List the pods again — every replica should now have a node.', '^(worker|kubelet-led)-[0-4]$']
+      ],
+      'api-blind': [
+        ['kube-apiserver is also a static pod on controlplane — same manifest trick.', '^api-server$'],
+        ['Run any kubectl read and watch what happens without an API server.', '^(api-server|cp-halo)$'],
+        ['The container runtime still knows what is running; use its CLI on controlplane (it needs root).', '^control-plane$'],
+        ['Restore the manifest, then prove kubectl can talk to the API again.', '^api-server$']
+      ],
+      'notready': [
+        ['The kubelet is a systemd unit on each node — you have to be ON worker-2 to stop it.', '^(worker-2|kubelet-led-2)$'],
+        ['List nodes; the node controller marks a node NotReady when its kubelet stops posting status.', '^(worker-2|kubelet-led-2)$'],
+        ['Start the unit again on worker-2, then list nodes.', '^kubelet-led-[0-4]$']
+      ]
+    },
+    'sched-taints': {
+      'schedule-db': [
+        ['The scheduler writes its reasons into the pod’s Events — describe the db pod.', '^(pod-pending|event-failed-scheduling)$'],
+        ['db needs disktype=nvme. node-c already has a disktype label, so changing it needs one extra flag.', '^node-c(-label-badge)?$'],
+        ['A taint is removed with the same key/effect plus a trailing minus.', '^node-c-taint(-mark)?$'],
+        ['List pods wide and check which node db landed on.', '^(node-c|pod-pending|edge-reject-node-c)$']
+      ],
+      'cordon': [
+        ['Cordon marks a node unschedulable without evicting anything.', '^node-a$'],
+        ['List pods wide: the old web pod and the new replica tell different stories.', '^(node-a|pod-pending)$'],
+        ['Make node-a schedulable again — the opposite verb of the one you used first.', '^node-a$']
+      ]
+    },
+    'hpa-scale': {
+      'unknown-target': [
+        ['Look at the HPA’s TARGETS column first.', '^(hpa-controller|hpa-halo)$'],
+        ['Describe the HPA and read its Conditions — ScalingActive tells you why it cannot compute.', '^(hpa-controller|metric-hop-[0-5])$'],
+        ['Utilization is a percentage OF the CPU request. No request → nothing to divide by. Set one on the Deployment.', '^(deployment|cpu-bar-[0-2])$'],
+        ['Check the HPA again — REPLICAS should reach the ceiling.', '^(desired-replicas|replica-[0-4])$']
+      ],
+      'ceiling': [
+        ['Create load: a busybox pod looping wget against the web Service is the classic CKA way.', '^cpu-bar-[0-2]$'],
+        ['Describe the HPA and look for ScalingLimited.', '^hpa-controller$'],
+        ['maxReplicas lives in the HPA spec — patch it with a JSON merge patch.', '^(hpa-controller|desired-replicas)$'],
+        ['Check the HPA one more time.', '^replica-[0-4]$']
+      ]
+    },
+    'aws-az-failure': {
+      'survive-az': [
+        ['Describe the RDS instance and read the MultiAZ field.', '^az-a-rds$'],
+        ['Modify the DB instance to Multi-AZ — and do not wait for the maintenance window.', '^(az-b-rds|edge-rds-sync-replication)$'],
+        ['Use the lab’s fault verb to take us-east-1a down.', '^az-a-pad$'],
+        ['Hit the site’s public URL and read the status line.', '^(alb|internet-users)$']
+      ],
+      'spof': [
+        ['Use the lab’s fault verb to take us-east-1a down.', '^az-a-pad$'],
+        ['Hit the site’s public URL and read the status line.', '^alb$'],
+        ['Ask the load balancer which targets are healthy — is the web tier really the problem?', '^(az-a-rds|az-b-ec2-[01])$']
+      ]
+    }
+  };
+  Object.keys(COACH).forEach(function (simId) {
+    var p = PACKS[simId];
+    p.tasks.forEach(function (tk) {
+      var rows = COACH[simId][tk.id] || [];
+      tk.steps.forEach(function (st, i) { if (rows[i]) { st.nudge = rows[i][0]; st.focus = rows[i][1]; } });
+    });
+  });
+
   /** taskId (optional) = the active task; state steps of that task are latched as they become true, in order. */
-  function newCtx(taskId) { return { seq: 0, events: {}, vars: {}, history: [], task: taskId || null, latched: {} }; }
+  function newCtx(taskId) { return { seq: 0, events: {}, vars: {}, history: [], task: taskId || null, latched: {}, coach: { fails: {}, checks: 0 }, last: null }; }
   function has(simId) { return !!PACKS[simId]; }
   function pack(simId) { return PACKS[simId] || null; }
   function list() { return Object.keys(PACKS); }
@@ -628,11 +721,12 @@
     var head = t[0] || '';
     if (head === 'help' || head === '?') {
       return res(['IL sim shell — ' + HONESTY, 'Commands modelled in this drill:'].concat(p.examples.map(function (e) { return '  ' + e; }))
-        .concat(['Lab verbs: help · hint · task · history · clear · reset' + (/fault/.test(p.examples.join(' ')) || p.sim === 'hpa-scale' ? ' · fault … (lab-only fault injection)' : '')]), 0, null, ['help'], { verb: 'help' });
+        .concat(['Lab verbs: help · check · hint · solution · task · history · clear · reset' + (/fault/.test(p.examples.join(' ')) || p.sim === 'hpa-scale' ? ' · fault … (lab-only fault injection)' : '')]), 0, null, ['help'], { verb: 'help' });
     }
     if (head === 'clear') return res([], 0, null, [], { action: 'clear', verb: 'clear' });
     if (head === 'reset') return res(['sim reset to the drill’s initial state'], 0, null, ['reset'], { action: 'reset', verb: 'reset' });
-    if (head === 'hint' || head === 'task') return res([], 0, null, [], { action: head, verb: head });
+    if (head === 'hint' || head === 'task' || head === 'solution') return res([], 0, null, [], { action: head, verb: head });
+    if (head === 'check' || head === 'verify') return res([], 0, null, [], { action: 'check', verb: 'check' });
     if (head === 'history') return res(ctx.history.map(function (h, i) { return pad(i + 1, 5) + h; }), 0, null, [], { verb: 'history' });
     if (head === 'alias' && /^k=/.test(t[1] || '')) return res([], 0, null, [], { verb: 'alias' });
     var d = derive(simId, state);
@@ -651,6 +745,8 @@
     }
     if (p.reconcile) p.reconcile(merged, r.set ? derive(simId, merged) : d, ctx);
     record(ctx, r.events);
+    ctx.seq += 1; /* every command gets a sequence slot, so "your last command" is always after the previous step */
+    ctx.last = { exit: r.exit, first: r.out[0] || '', verb: r.verb, seq: ctx.seq };
     observe(simId, merged, ctx);
     return r;
   }
@@ -684,7 +780,7 @@
         }
       }
       if (!ok) blocked = true;
-      steps.push({ label: st.label, done: ok, hint: st.hint });
+      steps.push({ label: st.label, done: ok, hint: st.hint, nudge: st.nudge || null, focus: st.focus || null, at: ok ? last : 0 });
     });
     return steps;
   }
@@ -705,16 +801,103 @@
     return { id: tk.id, title: tk.title, goal: tk.goal, done: !next, next: next, steps: steps, total: steps.length, completed: steps.filter(function (x) { return x.done; }).length };
   }
 
+  /* ── Lab Muse coach (v1.1.0) ─────────────────────────────────────────── */
+  /** Event names seen after `after` that share a prefix family with `want` (e.g. get-pods for get-pods-pending). */
+  function relatedEvents(ctx, want, after) {
+    var parts = String(want).split('-'), seen = [];
+    for (var n = parts.length - 1; n >= 1 && !seen.length; n--) {
+      var pre = parts.slice(0, n).join('-');
+      Object.keys(ctx.events).forEach(function (name) {
+        if (name === want || (name !== pre && name.indexOf(pre + '-') !== 0)) return;
+        var seqs = ctx.events[name];
+        if (seqs.length && seqs[seqs.length - 1] > after && seen.indexOf(name) < 0) seen.push(name);
+      });
+    }
+    return seen;
+  }
+
+  /** Why is step `idx` not verified? Deterministic: reads only ctx (events / latches / last result) and live sim state. */
+  function diagnose(simId, tk, state, ctx, st, idx) {
+    var step = tk.steps[idx], after = idx > 0 ? st.steps[idx - 1].at : 0, lines = [], short = '';
+    var d = derive(simId, state);
+    if (step.event) {
+      var seqs = ctx.events[step.event] || [];
+      var rel = relatedEvents(ctx, step.event, after), relEver = rel.length ? rel : relatedEvents(ctx, step.event, 0);
+      if (seqs.length && seqs[seqs.length - 1] <= after) {
+        short = 'you did this before the previous step was verified — steps count in order, so do it again now.';
+        lines.push('Seen earlier, but before step ' + idx + ' was verified — steps count in order. Run it again now.');
+      } else if (rel.length) {
+        short = 'right kind of command, but the cluster was not in the state this step needs yet.';
+        lines.push('You ran the right kind of command, but the lab saw `' + rel.join('`, `') + '` — not `' + step.event + '`. The cluster was not in the state this step needs yet.');
+      } else if (relEver.length && idx > 0) {
+        short = 'you ran a related command before step ' + idx + ' was verified — order matters, run it again now.';
+        lines.push('You ran a related command (`' + relEver.join('`, `') + '`) before step ' + idx + ' was verified — steps count in order. Run it again now.');
+      } else {
+        short = 'the lab has not seen this command yet.';
+        lines.push('The lab has not seen this yet (it verifies what you run, in order, ' + (idx ? 'after step ' + idx : 'since the task started') + ').');
+      }
+    } else {
+      short = 'the live state is not true right now.';
+      lines.push('This step checks live state, and it is not true right now.');
+    }
+    if (d && d.caption) lines.push('Scene now: ' + d.caption + ' [' + d.verdict + ']');
+    var last = ctx.last;
+    if (last && last.exit !== 0 && last.seq > after) {
+      lines.push('Your last command exited ' + last.exit + (last.exit === 2 ? ' (not modelled in this drill — nothing was invented)' : (last.exit === 127 ? ' (command not found)' : '')) + ': ' + last.first);
+    }
+    return { lines: lines, short: short };
+  }
+
+  /** Human label for a focus regex, for stages without a 3D render: '^(worker|kubelet-led)-[0-4]$' → 'worker / kubelet-led-*'. */
+  function focusLabel(src) {
+    if (!src) return '';
+    return String(src).replace(/^\^|\$$/g, '').replace(/\([^()]*\)\?/g, '').replace(/\[[^\]]+\]/g, '*')
+      .replace(/\.\*/g, '*').replace(/[()]/g, '').replace(/\|/g, ' / ');
+  }
+
+  /** Killercoda-style CHECK with an escalation ladder: 1st failed check on a step → diagnosis; 2nd+ → diagnosis +
+   *  auto-offered hint (tip, never the command); level 'solution' (the `solution` verb) → the exact command.
+   *  opts.count=false inspects without counting a failed attempt (used by `hint` / `solution`). */
+  function coach(simId, taskId, state, ctx, opts) {
+    opts = opts || {};
+    var tk = task(simId, taskId);
+    if (!tk) return { ok: false, done: false, level: 'none', lines: ['No task selected — pick one above, then type `check`.'], speak: 'Pick a task first, then ask me to check it.', focus: null, step: -1 };
+    if (!ctx.coach) ctx.coach = { fails: {}, checks: 0 };
+    var st = taskStatus(simId, taskId, state, ctx);
+    if (st.done) {
+      return { ok: true, done: true, level: 'done', step: -1, focus: null, fails: 0,
+        lines: ['✓ check: all ' + st.total + ' steps verified — ' + st.title + ' complete.'],
+        speak: 'Lab Muse: every step of ' + st.title + ' is verified. Nice work.' };
+    }
+    var idx = st.steps.indexOf(st.next), step = tk.steps[idx];
+    var counted = opts.count !== false;
+    if (counted) { ctx.coach.checks += 1; ctx.coach.fails[idx] = (ctx.coach.fails[idx] || 0) + 1; }
+    var fails = ctx.coach.fails[idx] || 0;
+    var level = opts.level || (fails >= 2 ? 'hint' : 'diagnose');
+    var dg = diagnose(simId, tk, state, ctx, st, idx);
+    var lines = ['✗ check: step ' + (idx + 1) + '/' + st.total + ' not verified — ' + step.label];
+    dg.lines.forEach(function (l) { lines.push('  · ' + l); });
+    if (level === 'hint' || level === 'solution') lines.push('  hint → ' + (step.nudge || step.label));
+    if (level === 'solution') lines.push('  solution → $ ' + step.hint);
+    else if (level === 'hint') lines.push('  Still stuck? `solution` prints the exact command.');
+    else lines.push('  Check again after another try and I will offer a hint (or type `hint` now).');
+    if (step.focus) lines.push('  Look in the scene: the pulsing gold nodes.');
+    var speak = 'Lab Muse: step ' + (idx + 1) + ' of ' + st.total + ' is not verified yet — ' + dg.short +
+      (level === 'hint' || level === 'solution' ? ' Hint: ' + (step.nudge || step.label) : '');
+    return { ok: true, done: false, level: level, step: idx, label: step.label, fails: fails, focus: step.focus || null, focusLabel: focusLabel(step.focus),
+      lines: lines, speak: speak, diagnosis: dg.lines, nudge: step.nudge || null, solution: level === 'solution' ? step.hint : null };
+  }
+
   /** Tab completion over the pack's example commands + lab verbs. */
   function complete(simId, prefix) {
     var p = PACKS[simId]; if (!p) return [];
-    var pool = p.examples.concat(['help', 'hint', 'task', 'history', 'clear', 'reset']);
+    var pool = p.examples.concat(['help', 'check', 'hint', 'solution', 'task', 'history', 'clear', 'reset']);
     var pre = String(prefix || '');
     return pool.filter(function (c) { return c.indexOf(pre) === 0 && c !== pre; });
   }
 
   return {
-    VERSION: '1.0.0',
+    VERSION: '1.1.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,
@@ -728,6 +911,9 @@
     reconcile: reconcile,
     observe: observe,
     taskStatus: taskStatus,
+    coach: coach,
+    focusLabel: focusLabel,
+    relatedEvents: relatedEvents,
     complete: complete
   };
 });

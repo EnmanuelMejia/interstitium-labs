@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -147,6 +147,11 @@ await check('Storage toggle: delete a PVC still mounted → Terminating (pvc-pro
   await host.locator('[data-il-sim-toggle="podDeleted"]').click();
   assert.equal(await host.getAttribute('data-il-sim-verdict'), 'data-deleted', 'pod gone → reclaim Delete runs');
   assert.equal(await host.evaluate(el => el._ilImmersive._authored.find(v => v.name === 'pv-1').simStyle.hide), true);
+  /* 2026-10-19 (#24 Codex review): the deleted disk vanishes, and the badge is styled as unsafe, not healthy cyan. */
+  assert.deepEqual(await host.evaluate(el => ['backend-disk-1', 'platter-1'].map(n => el._ilImmersive._authored.find(v => v.name === n).simStyle.hide)), [true, true]);
+  const badge = host.locator('.il-immersive__sim-verdict');
+  assert.equal(await badge.getAttribute('data-tone'), 'bad');
+  assert.notEqual(await badge.evaluate(b => getComputedStyle(b).color), 'rgb(94, 234, 212)', 'data-deleted is not healthy cyan');
   assert.deepEqual(errors, []);
   await page.close();
   return 'healthy → terminating → data-deleted';
@@ -571,7 +576,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.9.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.10.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -710,7 +715,9 @@ await check('CLI lab: control-plane task — mv scheduler manifest → scale →
   assert.equal((mid.match(/web-7c5d8-\w+\s+0\/1\s+Pending\s+0\s+8s\s+<none>/g) || []).length, 2, 'two new pods Pending with no node');
   assert.equal(await host.getAttribute('data-il-cli-task'), 'pending-scale:3/5');
   await type(host, 'hint');
-  assert.match(await logText(host), /\$ sudo mv \/tmp\/kube-scheduler\.yaml \/etc\/kubernetes\/manifests\//);
+  assert.doesNotMatch(await logText(host), /\$ sudo mv \/tmp\/kube-scheduler\.yaml/, 'hint is a tip, not the command (Killercoda hint mode)');
+  await type(host, 'solution');
+  assert.match(await logText(host), /solution → \$ sudo mv \/tmp\/kube-scheduler\.yaml \/etc\/kubernetes\/manifests\//);
   await type(host, 'sudo mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/');
   await type(host, 'kubectl get pods');
   assert.equal(await host.getAttribute('data-il-sim-verdict'), 'healthy');
@@ -803,6 +810,108 @@ await check('CLI lab: AWS Multi-AZ via aws rds modify-db-instance → AZ fault �
   assert.deepEqual(errors, []);
   await page.close();
   return 'survive-az 4/4 · ' + counts.terminals + ' terminals';
+});
+
+/* 2026-10-19 Lab Muse task coach (answer to Killercoda Brain): Check button → diagnosis → tip → solution; scene focus; voice. */
+await check('CLI coach: Check explains why a step is not verified, 2nd check offers a tip (no command), lights the authored node, speaks via speechSynthesis', async () => {
+  const c = await xrContext({}, () => {
+    window.__spoken = [];
+    window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { cancel() {}, speak(u) { window.__spoken.push(u.text); }, getVoices: () => [] } });
+  });
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.evaluate(() => { window.__coachEv = []; addEventListener('il-immersive-sim', e => { if (e.detail.name === 'immersive_cli_coach') window.__coachEv.push(e.detail.detail); }); });
+  const host = await cliHost(page, 'control-plane-failure');
+  await host.locator('[data-il-cli-task="pending-scale"]').click();
+  const voice = host.locator('[data-il-cli-voice]');
+  assert.ok(await voice.isVisible(), 'voice toggle visible when speechSynthesis exists');
+  await voice.click();
+  assert.equal(await voice.getAttribute('aria-pressed'), 'true');
+  await type(host, 'kubectl scale deployment web --replicas=5'); /* out of order on purpose */
+  await host.locator('[data-il-cli-check]').click();
+  assert.equal(await host.getAttribute('data-il-cli-coach'), 'diagnose:1');
+  let log = await logText(host);
+  assert.match(log, /✗ check: step 1\/5 not verified — Stop kube-scheduler/);
+  assert.match(log, /Scene now: .*\[healthy\]/);
+  assert.equal(await host.getAttribute('data-il-cli-focus'), 'scheduler', 'coach names the authored glTF node');
+  const beacon = await host.evaluate(el => { const p = el._ilImmersive; return !!p._cliFocusRe && p._cliFocusRe.test('scheduler') && p._cliFocusUntil > performance.now(); });
+  assert.ok(beacon, 'gold focus beacon armed on the authored scheduler node');
+  await host.locator('[data-il-cli-check]').click();
+  assert.equal(await host.getAttribute('data-il-cli-coach'), 'hint:1', '2nd failed check auto-offers a hint');
+  log = await logText(host);
+  assert.match(log, /hint → The scheduler is a static pod on controlplane/);
+  assert.doesNotMatch(log, /\$ sudo mv \/etc\/kubernetes\/manifests\/kube-scheduler\.yaml/, 'tip never prints the command');
+  await type(host, 'sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/');
+  await type(host, 'check');
+  log = await logText(host);
+  assert.match(log, /related command \(`scale`, `scale-scheduled`\) before step 1 was verified — steps count in order/);
+  /* web already has 5 bound replicas from the out-of-order scale, so (like a real cluster) nothing would go Pending: reset. */
+  await type(host, 'reset');
+  for (const l of ['sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/', 'kubectl scale deployment web --replicas=5', 'kubectl get pods', 'sudo mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/', 'kubectl get pods']) await type(host, l);
+  await host.locator('[data-il-cli-check]').click();
+  assert.equal(await host.getAttribute('data-il-cli-coach'), 'done:0');
+  assert.match(await logText(host), /✓ check: all 5 steps verified/);
+  const spoken = await page.evaluate(() => window.__spoken);
+  assert.equal(spoken.length, 4, 'one spoken line per check');
+  assert.match(spoken[0], /^Lab Muse: step 1 of 5 is not verified yet/);
+  assert.match(spoken[3], /^Lab Muse: every step of Diagnose a scale-up stuck in Pending is verified/);
+  const ev = await page.evaluate(() => window.__coachEv);
+  assert.deepEqual(ev.map(e => e.level), ['diagnose', 'hint', 'diagnose', 'done']);
+  assert.ok(ev.every(e => Object.keys(e).sort().join() === 'action,done,level,sim,step,task' && !/\/|--|kubectl|sudo/.test(JSON.stringify(e))), 'coach analytics carry action/level/step only, never command text');
+  await host.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await host.screenshot({ path: path.join(shots, 'immersive-cli-coach.png') });
+  assert.deepEqual(errors, []);
+  await c.close();
+  const c2 = await xrContext({}, () => { Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: undefined }); });
+  const p2 = await c2.newPage();
+  await p2.goto(base + '/immersive/', { waitUntil: 'load' });
+  const h2 = await cliHost(p2, 'etcd-quorum');
+  assert.equal(await h2.locator('[data-il-cli-voice]').isVisible(), false, 'voice toggle hidden without speechSynthesis');
+  await c2.close();
+  return 'diagnose → hint → order → done · focus scheduler · ' + spoken.length + ' spoken';
+});
+
+await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, predictions, toggles, scoring and the CLI coach with the static fallback', async () => {
+  const c = await xrContext({ reducedMotion: 'reduce' });
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.waitForFunction(() => document.querySelectorAll('[data-il-sim-ready]').length >= 13, null, { timeout: 15000 });
+  const info = await page.evaluate(() => ({
+    simHosts: document.querySelectorAll('[data-il-sim]').length,
+    ready: document.querySelectorAll('.il-immersive.is-reduced[data-il-sim-ready][data-il-sim-render="static:reduced-motion"]').length,
+    gl: document.querySelectorAll('canvas').length,
+    terminals: document.querySelectorAll('details[data-il-cli]').length
+  }));
+  assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
+  assert.equal(info.terminals, 5, 'CLI terminals still mount');
+  const host = page.locator('[data-il-sim-ready="storage-csi"]');
+  await host.scrollIntoViewIfNeeded();
+  assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
+  assert.ok(await host.locator('.il-immersive__fallback').isVisible(), 'static fallback art visible');
+  assert.ok(await host.locator('.il-immersive__captions').isVisible(), 'scene-state caption visible outside the hidden stage');
+  assert.match(await host.locator('.il-immersive__sim-static').textContent(), /Motion reduced — the drill runs without the 3D render/);
+  await host.locator('[data-il-sim-scenario="reclaim-delete"]').click();
+  const key = await page.evaluate(() => window.ILImmersiveSims.get('storage-csi').scenarios.find(x => x.id === 'reclaim-delete').predict.answer);
+  await host.locator(`[data-il-sim-option="${key}"]`).click();
+  assert.equal(await host.getAttribute('data-il-sim-verdict'), 'data-deleted');
+  assert.equal(await host.locator('.il-immersive__sim-verdict').getAttribute('data-tone'), 'bad');
+  assert.match(await host.locator('.il-immersive__sim-result').textContent(), /^Correct\./);
+  assert.match(await host.locator('.il-immersive__captions').textContent(), /pv-1 \+ disk deleted \(reclaim Delete\)/);
+  assert.match(await host.locator('.il-immersive__sim-score').textContent(), /Predictions 1\/1 correct/);
+  const cp = page.locator('[data-il-cli-ready="etcd-quorum"]');
+  await cp.scrollIntoViewIfNeeded();
+  await cp.locator('.il-immersive__cli-summary').click();
+  await cp.locator('[data-il-cli-task="tolerate-one"]').click();
+  await type(cp, 'fault stop etcd-1');
+  assert.equal(await cp.getAttribute('data-il-sim-verdict'), 'degraded');
+  assert.equal(await cp.locator('.il-immersive__sim-verdict').getAttribute('data-tone'), 'warn');
+  await type(cp, 'check');
+  assert.match(await logText(cp), /Look at \(scene nodes, no 3D render here\): etcd-heart-\*/);
+  assert.equal(info.gl, 0, 'no WebGL canvas under reduced motion');
+  assert.deepEqual(errors, []);
+  await c.close();
+  return `${info.ready}/${info.simHosts} drills static · ${info.terminals} terminals · 0 canvases`;
 });
 
 await browser.close();

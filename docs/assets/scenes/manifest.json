@@ -268,7 +268,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.9.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab)",
+    "player": "/assets/il-immersive-3d.js (v1.10.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab + Lab Muse task coach; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -291,7 +291,7 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.2.0",
+    "runtime_version": "1.3.0",
     "exam": {
       "runtime": "/assets/il-immersive-exam.js",
       "boot": "/assets/il-immersive-exam-boot.js",
@@ -358,8 +358,8 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.0.0",
-      "player": "il-immersive-3d.js v1.9.0 (free-play stages only; not on graded /immersive/exam/ or /immersive/review/)",
+      "version": "1.1.0",
+      "player": "il-immersive-3d.js v1.10.0 (free-play stages only; not on graded /immersive/exam/ or /immersive/review/)",
       "packs": [
         {
           "sim": "etcd-quorum",
@@ -413,15 +413,30 @@
       "ux": [
         "history (ArrowUp/ArrowDown)",
         "Tab completion over modelled examples",
-        "hint \u00b7 task \u00b7 reset \u00b7 clear \u00b7 help"
+        "check (and a Check button) \u00b7 hint \u00b7 solution \u00b7 task \u00b7 reset \u00b7 clear \u00b7 help"
       ],
       "analytics": [
         "immersive_cli_cmd (verb + exit code only, never the raw command text)",
         "immersive_cli_task_start",
-        "immersive_cli_task"
+        "immersive_cli_task",
+        "immersive_cli_coach (action + level + step index only, never command text)"
       ],
       "storage": "localStorage il.immersiveCli.v1 (task completions + best command count, device only)",
-      "honesty": "Simulated shell over the in-browser rules engine \u2014 real CLI syntax, computed output (kubectl/etcdctl/aws-shaped, not byte-identical). Not a real shell, container, cluster, AWS account or hosted lab fleet. Unmodelled commands say so instead of inventing output."
+      "honesty": "Simulated shell over the in-browser rules engine \u2014 real CLI syntax, computed output (kubectl/etcdctl/aws-shaped, not byte-identical). Not a real shell, container, cluster, AWS account or hosted lab fleet. Unmodelled commands say so instead of inventing output.",
+      "coach": {
+        "since": "2026-10-19",
+        "benchmark": "Killercoda Brain (2026): hint vs solution mode, hint offered after the 2nd failed verification, explains why a solution is not accepted",
+        "ladder": "check #1 on a step \u2192 diagnosis \u00b7 check #2+ \u2192 diagnosis + tip (never the command) \u00b7 solution \u2192 exact command",
+        "diagnosis": [
+          "out of order (seen before the previous step verified)",
+          "right command family, wrong cluster state",
+          "live state not true now",
+          "last command failed / not modelled"
+        ],
+        "spatial": "each step names authored glTF nodes (focus regex, unit-tested against the .glb); the player pulses them gold for ~9 s \u2014 also in WebXR; static stages list them",
+        "voice": "optional 'Lab Muse voice' toggle \u2014 browser speechSynthesis only (no cloud TTS, no key); hidden when unavailable",
+        "honesty": "Deterministic rules over the same in-browser sim state \u2014 not an LLM, not reading a real terminal, knows only what the drill models."
+      }
     }
   },
   "aws_coverage": {

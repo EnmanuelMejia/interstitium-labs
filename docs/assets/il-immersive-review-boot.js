@@ -141,6 +141,9 @@
     }
 
     function openScenario(item) {
+      /* 2026-10-19: the scene can finish mounting after a fast answer (mount polls every 100 ms); never reset the
+       * stage over a reveal that already happened, or for a card the learner has moved past. */
+      if (answering || items[idx] !== item) return;
       var player = stage && stage._ilImmersive;
       if (!player || !player._sim) return;
       var sc = scenarioOf(item);

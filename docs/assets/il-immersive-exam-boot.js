@@ -89,6 +89,8 @@
     }
 
     function openScenario(item) {
+      /* 2026-10-19: mount can resolve after a fast answer — never reset the stage over a committed reveal or a past item. */
+      if (!exam || answering || exam.items[idx] !== item) return;
       var player = stage && stage._ilImmersive;
       if (!player || !player._sim) return;
       var sim = S.get(item.simId);
