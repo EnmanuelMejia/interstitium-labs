@@ -37,6 +37,15 @@
  * (scenarios, predictions, toggles, scoring, CLI) with the static fallback instead of dropping it; the verdict
  * badge carries data-tone (ok / warn / bad / info) from ILImmersiveSims.verdictTone so unsafe verdicts never
  * render in healthy cyan.
+ * v1.11.0 (2026-10-20): CLI lab on nine drills (+ netpol-isolation, rbac-authz, storage-csi, ingress-routing via
+ * il-immersive-cli.js v1.2.0). Coach-driven review cards: when the learner needs `solution` on a step, or fails
+ * `check` twice on it, that step becomes a card in the existing ILImmersiveReview queue (on-device). A review
+ * stage mounted with { review:true, cliReview:{ task, step } } gets the terminal, replays the earlier steps from
+ * their own solutions, and reports 'pass' / 'solution' for the target step via the il-immersive-cli-review DOM
+ * event. Optional voice-to-command: a Speak button (only when the browser exposes SpeechRecognition) turns a
+ * spoken lab verb into that verb and a spoken command into text in the input for the learner to confirm with
+ * Enter — never auto-runs a spoken command. Browser speech service, not an Interstitium service; no audio or
+ * transcript leaves the page to Interstitium; analytics carry kind + ok only.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -437,6 +446,8 @@
     cfg.sim = el.getAttribute('data-il-sim') || (j && j.sim) || '';
     /* 2026-10-13: exam/review stages grade answers themselves; free-play drills feed ILImmersiveReview. */
     cfg.owned = !!(j && (j.exam || j.review));
+    /* 2026-10-20: a review card for one CLI step re-opens that task on a graded stage (terminal allowed there only). */
+    cfg.cliReview = j && j.review && j.cliReview && j.cliReview.task && j.cliReview.step >= 0 ? { task: String(j.cliReview.task), step: +j.cliReview.step } : null;
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
@@ -1410,7 +1421,7 @@
 
   ScenePlayer.prototype._cliInit = function (){
     var C = g.ILImmersiveCLI, sim = this._sim;
-    if (!C || !C.has || !sim || !C.has(sim.id) || this.cfg.owned || this._cli) return;
+    if (!C || !C.has || !sim || !C.has(sim.id) || (this.cfg.owned && !this.cfg.cliReview) || this._cli) return;
     var self = this, pack = C.pack(sim.id);
     var box = el('details', 'il-immersive__cli');
     box.setAttribute('data-il-cli', sim.id);
@@ -1484,6 +1495,16 @@
     });
     form.appendChild(voice);
     this._cliVoiceBtn = voice;
+    /* v1.11.0 voice-to-command: feature-checked; hidden when the browser has no SpeechRecognition. */
+    var mic = el('button', 'il-immersive__sim-btn il-immersive__cli-mic', 'Speak');
+    mic.type = 'button';
+    mic.setAttribute('data-il-cli-mic', '');
+    mic.setAttribute('aria-pressed', 'false');
+    mic.setAttribute('aria-label', 'Speak a lab verb or command (browser speech recognition)');
+    mic.hidden = !speechRecognitionCtor();
+    mic.addEventListener('click', function (){ self._cliListen(); });
+    form.appendChild(mic);
+    this._cliMicBtn = mic;
     form.addEventListener('submit', function (ev){
       ev.preventDefault();
       var line = inp.value;
@@ -1512,6 +1533,7 @@
     });
     box.appendChild(form);
     box.appendChild(el('p', 'il-immersive__sim-honesty il-immersive__cli-honesty', C.honesty + ' Keyboard terminal on the page (not inside the headset).'));
+    if (!mic.hidden) box.appendChild(el('p', 'il-immersive__sim-honesty il-immersive__cli-voice-note', 'Speak uses your browser’s own speech recognition (some browsers send the audio to their vendor’s speech service). Interstitium receives no audio or transcript; spoken commands land in the input for you to check and press Enter — only lab verbs (check, hint, solution, task, reset) run directly.'));
 
     this._cliInput = inp;
     this._cliCtx = C.newCtx();
@@ -1522,6 +1544,95 @@
     this._cliPrint(['IL sim shell · ' + sim.title, 'Simulated: commands are parsed in this browser and drive the rules engine — no real shell or cluster. Type `help`, or pick a task above.'], 'sys');
     this._cliPaintTasks();
     this.root.setAttribute('data-il-cli-ready', sim.id);
+    if (this.cfg.cliReview) this._cliReviewStart();
+  };
+
+  /** Review card for one CLI step: start its task, replay the earlier steps from their own solutions, hand over. */
+  ScenePlayer.prototype._cliReviewStart = function (){
+    var C = g.ILImmersiveCLI, sim = this._sim, rv = this.cfg.cliReview, tk = C && C.task(sim.id, rv.task);
+    if (!tk || rv.step >= tk.steps.length) { this._cliPrint(['This review card points at a CLI step that no longer exists — nothing to replay.'], 'sys'); return; }
+    if (this._cli) this._cli.open = true;
+    this._cliStartTask(rv.task);
+    this._cliReplaying = true;
+    for (var i = 0; i < rv.step; i++) {
+      var cmds = String(tk.steps[i].hint).split(/\s{2}then\s{2}/);
+      for (var k = 0; k < cmds.length; k++) this.cliExec(cmds[k]);
+    }
+    this._cliReplaying = false;
+    var st = C.taskStatus(sim.id, rv.task, this._simState, this._cliCtx);
+    this._cliReviewOk = st.completed >= rv.step;
+    this._cliPrint([(rv.step ? '── Review: steps 1–' + rv.step + ' were replayed for you. ' : '── Review: ') + 'Your turn — step ' + (rv.step + 1) + '/' + tk.steps.length + ': ' + tk.steps[rv.step].label,
+      'Type the command yourself. `check` and `hint` are fine; `solution` counts as a miss.'], 'sys');
+    this.root.setAttribute('data-il-cli-review', rv.task + ':' + (rv.step + 1));
+  };
+
+  ScenePlayer.prototype._cliReviewEmit = function (result){
+    if (!this.cfg.cliReview || this._cliReviewDone || this._cliReplaying) return;
+    this._cliReviewDone = result;
+    this.root.setAttribute('data-il-cli-review-result', result);
+    var ev;
+    try { ev = new g.CustomEvent('il-immersive-cli-review', { detail: { result: result, sim: this._sim.id, task: this.cfg.cliReview.task, step: this.cfg.cliReview.step } }); } catch (e) { ev = null; }
+    if (ev) this.root.dispatchEvent(ev);
+  };
+
+  /** Coach-driven review card (free play only): needed `solution`, or failed `check` twice on the same step. */
+  ScenePlayer.prototype._cliCard = function (step, how){
+    var R = g.ILImmersiveReview, sim = this._sim;
+    if (this.cfg.owned || !R || !R.recordCli || !this._cliTask || step < 0) return;
+    var cc = this._cliCtx.coach || (this._cliCtx.coach = { fails: {}, checks: 0 });
+    cc.carded = cc.carded || {};
+    if (cc.carded[step]) return;
+    cc.carded[step] = how;
+    var r = null;
+    try { r = R.recordCli({ simId: sim.id, taskId: this._cliTask, step: step, how: how }); } catch (e) { r = null; }
+    if (!r) return;
+    this._cliPrint(['  ↻ Lab Muse queued this step for spaced review (on this device): it comes back in /immersive/review/ on this drill, with the earlier steps replayed.'], 'coach');
+    this.root.setAttribute('data-il-cli-carded', this._cliTask + ':' + (step + 1));
+    simTrack('immersive_cli_review_card', { sim: sim.id, task: this._cliTask, step: step, how: how });
+  };
+
+  function speechRecognitionCtor(){ return g.SpeechRecognition || g.webkitSpeechRecognition || null; }
+
+  /** Voice-to-command: one utterance → lab verb (runs) or command text (lands in the input; Enter runs it). */
+  ScenePlayer.prototype._cliListen = function (){
+    var SR = speechRecognitionCtor(), C = g.ILImmersiveCLI, self = this, sim = this._sim;
+    if (!SR || !C || !C.fromSpeech) return;
+    if (this._cliRec) { try { this._cliRec.stop(); } catch (e) { /* ignore */ } return; }
+    var rec;
+    try { rec = new SR(); } catch (e2) { this._cliPrint(['Speech recognition could not start in this browser.'], 'err'); return; }
+    this._cliRec = rec;
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+    this._cliMicBtn.setAttribute('aria-pressed', 'true');
+    this.root.setAttribute('data-il-cli-listening', '1');
+    var done = function (){ self._cliRec = null; self._cliMicBtn.setAttribute('aria-pressed', 'false'); self.root.removeAttribute('data-il-cli-listening'); };
+    rec.onresult = function (ev){
+      var alts = [];
+      try { var res0 = ev.results[0]; for (var i = 0; i < res0.length; i++) alts.push(res0[i].transcript); } catch (e3) { /* ignore */ }
+      var best = null;
+      for (var a = 0; a < alts.length && !best; a++) { var m = C.fromSpeech(alts[a], sim.id); if (m && m.line) best = m; }
+      if (!best) { self._cliPrint(['🎙 heard nothing I can map to a command — try again, or type it.'], 'sys'); simTrack('immersive_cli_voice', { sim: sim.id, kind: 'none', ok: false }); return; }
+      if (best.verb) {
+        self._cliPrint(['🎙 heard “' + alts[0] + '” → ' + best.line], 'sys');
+        simTrack('immersive_cli_voice', { sim: sim.id, kind: 'verb', ok: true });
+        self.cliExec(best.line);
+      } else {
+        self._cliInput.value = best.line;
+        try { self._cliInput.focus(); } catch (e4) { /* ignore */ }
+        self._cliPrint(['🎙 heard “' + alts[0] + '” → typed into the prompt: check it, then press Enter'], 'sys');
+        self.root.setAttribute('data-il-cli-voice-line', '1');
+        simTrack('immersive_cli_voice', { sim: sim.id, kind: 'command', ok: true });
+      }
+    };
+    rec.onerror = function (ev){
+      var code = ev && ev.error || 'error';
+      self._cliPrint([code === 'not-allowed' || code === 'service-not-allowed' ? '🎙 microphone permission was denied — the keyboard still works.' : '🎙 speech recognition stopped (' + code + ').'], 'sys');
+      simTrack('immersive_cli_voice', { sim: sim.id, kind: 'error', ok: false });
+      done();
+    };
+    rec.onend = done;
+    try { rec.start(); } catch (e5) { done(); }
   };
 
   ScenePlayer.prototype._cliPrint = function (lines, kind){
@@ -1570,7 +1681,7 @@
       }
     }
     this.root.setAttribute('data-il-cli-exit', String(r.exit));
-    simTrack('immersive_cli_cmd', { sim: sim.id, verb: r.verb, exit: r.exit, task: this._cliTask || null });
+    if (!this._cliReplaying) simTrack('immersive_cli_cmd', { sim: sim.id, verb: r.verb, exit: r.exit, task: this._cliTask || null });
     return r;
   };
 
@@ -1587,6 +1698,12 @@
     var opts = action === 'check' ? {} : { count: false, level: action === 'solution' ? 'solution' : 'hint' };
     var c = C.coach(sim.id, this._cliTask, this._simState, this._cliCtx, opts);
     this._cliPrint(c.lines, c.done ? 'ok' : 'coach');
+    /* v1.11.0: coach-driven review cards (free play) · review stage: `solution` on the target step is a miss. */
+    if (!c.done && c.step >= 0) {
+      if (action === 'solution') this._cliCard(c.step, 'solution');
+      else if (action === 'check' && c.fails >= 2) this._cliCard(c.step, 'check-fail');
+      if (action === 'solution' && this.cfg.cliReview && c.step === this.cfg.cliReview.step) this._cliReviewEmit('solution');
+    }
     this._cliSetFocus(c.focus, c.focusLabel);
     this.root.setAttribute('data-il-cli-coach', c.level + ':' + (c.step + 1));
     if (this._cliVoice && canSpeak() && c.speak) {
@@ -1655,6 +1772,7 @@
     goal.appendChild(ol);
     goal.setAttribute('data-done', st.done ? '1' : '0');
     this.root.setAttribute('data-il-cli-task', st.id + ':' + st.completed + '/' + st.total);
+    if (this.cfg.cliReview && st.id === this.cfg.cliReview.task && st.steps[this.cfg.cliReview.step] && st.steps[this.cfg.cliReview.step].done) this._cliReviewEmit('pass');
     if (st.done && !this._cliCompleted) {
       this._cliCompleted = true;
       var db = cliStore(), rec = db[sim.id] || (db[sim.id] = {});
@@ -2418,7 +2536,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.10.0',
+    version: '1.11.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -2430,6 +2548,8 @@
     webxr: true,
     xrHud: true,
     cliLab: true,
+    cliReviewCards: true,
+    cliVoiceInput: true,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,

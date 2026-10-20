@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.1.0 (2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.2.0 (2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -15,6 +15,13 @@
  * (focus regex, unit-tested against the .glb files), so the player can light up WHERE in the 3D scene to look.
  * Honest scope: the coach is deterministic rules over the same in-browser sim state — not an LLM, not reading a
  * real terminal; it knows only what the drill models.
+ *
+ * v1.2.0 (2026-10-20) — four more packs (9 total): NetworkPolicy (lab YAML files + `kubectl apply -f`, in-pod curl /
+ * nslookup probes, `fault cni flannel|calico`), RBAC (`kubectl auth can-i --as`, role / rolebinding /
+ * clusterrolebinding), storage (reclaim Retain, pvc-protection, default StorageClass) and the Ingress API (curl status
+ * from ingressMatch, pathType, EndpointSlices, TLS secret; ingress-nginx retired 2026-03-24 — said in help). Lab files
+ * (`ls` / `cat`) stand in for editing YAML. `fromSpeech(transcript, simId)` normalises a spoken utterance into a lab
+ * verb or a command line (snapped to the drill's own vocabulary) — the player never auto-runs spoken commands.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -274,8 +281,8 @@
       var ns = flag(t, ['-n', '--namespace']) || 'default';
       var want = ctx.vars.webReplicas || 3;
       if (verb === 'get' && /^(nodes?|no)$/.test(args[0] || '')) {
-        var rows2 = [['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'], ['controlplane', 'Ready', 'control-plane', '41d', 'v1.36.1']];
-        for (var w = 0; w < 5; w++) rows2.push(['worker-' + w, w === 2 && m.worker2NotReady ? 'NotReady' : 'Ready', '<none>', '41d', 'v1.36.1']);
+        var rows2 = [['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'], ['controlplane', 'Ready', 'control-plane', '41d', 'v1.37.1']];
+        for (var w = 0; w < 5; w++) rows2.push(['worker-' + w, w === 2 && m.worker2NotReady ? 'NotReady' : 'Ready', '<none>', '41d', 'v1.37.1']);
         return res(table(rows2), 0, null, ['get-nodes', m.worker2NotReady ? 'get-nodes-notready' : 'get-nodes-ready']);
       }
       if (verb === 'get' && /^(pods?|po)$/.test(args[0] || '')) {
@@ -399,9 +406,9 @@
       if (verb === 'get' && /^(nodes?|no)$/.test(args[0] || '')) {
         var showLabels = hasFlag(t, '--show-labels');
         var rows = [['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'].concat(showLabels ? ['LABELS'] : [])];
-        rows.push(['node-a', s.aCordoned ? 'Ready,SchedulingDisabled' : 'Ready', '<none>', '9d', 'v1.36.1'].concat(showLabels ? ['disktype=ssd'] : []));
-        rows.push(['node-b', 'Ready', '<none>', '9d', 'v1.36.1'].concat(showLabels ? ['zone=us-east-1b'] : []));
-        rows.push(['node-c', 'Ready', '<none>', '9d', 'v1.36.1'].concat(showLabels ? ['disktype=' + (s.cNvme ? 'nvme' : 'hdd')] : []));
+        rows.push(['node-a', s.aCordoned ? 'Ready,SchedulingDisabled' : 'Ready', '<none>', '9d', 'v1.37.1'].concat(showLabels ? ['disktype=ssd'] : []));
+        rows.push(['node-b', 'Ready', '<none>', '9d', 'v1.37.1'].concat(showLabels ? ['zone=us-east-1b'] : []));
+        rows.push(['node-c', 'Ready', '<none>', '9d', 'v1.37.1'].concat(showLabels ? ['disktype=' + (s.cNvme ? 'nvme' : 'hdd')] : []));
         return res(table(rows), 0, null, ['get-nodes']);
       }
       if (verb === 'get' && /^(pods?|po)$/.test(args[0] || '')) {
@@ -604,8 +611,687 @@
     ]
   };
 
+  /* ── v1.2.0 (2026-10-20) shared helpers for the networking / security / storage packs ─────────── */
+  /** `kubectl exec [-n NS] TARGET -- CMD…` → { ns, target, cmd:[…] } or null. */
+  function execArgs(t) {
+    if (t[0] !== 'kubectl' || t[1] !== 'exec') return null;
+    var dd = t.indexOf('--');
+    var head = dd < 0 ? t.slice(2) : t.slice(2, dd);
+    var tgt = positional(head, KUBECTL_VALUED.concat(['-c', '--container']));
+    return { ns: flag(head, ['-n', '--namespace']) || 'default', target: (tgt[0] || '').replace(/^(deploy|deployment|deployments)(\.apps)?\//, '').replace(/^pods?\//, ''), cmd: dd < 0 ? [] : t.slice(dd + 1), hasDd: dd >= 0 };
+  }
+  /** Lab files the learner can `ls` / `cat` / `kubectl apply -f`. */
+  function fileRun(p, t) {
+    if (!p.files) return null;
+    if (t[0] === 'ls' && (t.length === 1 || /^(\.|~|\.\/|~\/|-l|-la|-al)$/.test(t[1] || ''))) return res([Object.keys(p.files).join('  ')], 0, null, ['ls']);
+    if (t[0] === 'cat' && t[1]) {
+      var f = p.files[t[1].replace(/^(\.\/|~\/)/, '')];
+      return f ? res(f.yaml, 0, null, ['cat', 'cat-' + t[1].replace(/^(\.\/|~\/)/, '').replace(/\.ya?ml$/, '')]) : res(['cat: ' + t[1] + ': No such file or directory'], 1);
+    }
+    return null;
+  }
+  function applyFile(p, t) {
+    var fname = String(flag(t, ['-f', '--filename']) || '').replace(/^(\.\/|~\/)/, '');
+    if (!fname || fname === 'true') return { err: res(['error: must specify one of -f and -k'], 1) };
+    var f = p.files && p.files[fname];
+    if (!f) return { err: res(['error: the path "' + fname + '" does not exist'], 1) };
+    return { f: f, name: fname };
+  }
+  function nsOf(t) { return flag(t, ['-n', '--namespace']) || (hasFlag(t, ['-A', '--all-namespaces']) ? '*' : 'default'); }
+  function notFound(kind, name) { return res(['Error from server (NotFound): ' + kind + ' "' + name + '" not found'], 1, null, ['not-found']); }
+
+  /* ── pack: NetworkPolicy isolation (CKA services & networking) ─────────── */
+  var NP_BASE = ['apiVersion: networking.k8s.io/v1', 'kind: NetworkPolicy', 'metadata:', '  name: api-netpol', '  namespace: backend', 'spec:', '  podSelector:', '    matchLabels:', '      app: api'];
+  var NP_FROM_FRONTEND = ['  ingress:', '  - from:', '    - namespaceSelector:', '        matchLabels:', '          kubernetes.io/metadata.name: frontend', '    ports:', '    - protocol: TCP', '      port: 8080'];
+  var NP_EGRESS_DB = ['  egress:', '  - to:', '    - podSelector:', '        matchLabels:', '          app: db', '    ports:', '    - protocol: TCP', '      port: 5432'];
+  var NP_EGRESS_DNS = ['  - to:', '    - namespaceSelector:', '        matchLabels:', '          kubernetes.io/metadata.name: kube-system', '      podSelector:', '        matchLabels:', '          k8s-app: kube-dns', '    ports:', '    - protocol: UDP', '      port: 53', '    - protocol: TCP', '      port: 53'];
+  var netpolPack = {
+    sim: 'netpol-isolation',
+    prompt: 'student@controlplane:~$',
+    files: {
+      'api-deny-all.yaml': { set: { policy: true, ruleFrontend: false, ruleUntrusted: false, egressIsolated: false }, yaml: NP_BASE.concat(['  policyTypes:', '  - Ingress', '  # no ingress rules: every pod selected by podSelector is isolated for ingress']) },
+      'api-allow-frontend.yaml': { set: { policy: true, ruleFrontend: true, ruleUntrusted: false, egressIsolated: false }, yaml: NP_BASE.concat(['  policyTypes:', '  - Ingress']).concat(NP_FROM_FRONTEND) },
+      'api-egress-lockdown.yaml': { set: { policy: true, ruleFrontend: true, ruleUntrusted: false, egressIsolated: true, ruleDns: false }, yaml: NP_BASE.concat(['  policyTypes:', '  - Ingress', '  - Egress']).concat(NP_FROM_FRONTEND).concat(NP_EGRESS_DB) },
+      'api-egress-dns.yaml': { set: { policy: true, ruleFrontend: true, ruleUntrusted: false, egressIsolated: true, ruleDns: true }, yaml: NP_BASE.concat(['  policyTypes:', '  - Ingress', '  - Egress']).concat(NP_FROM_FRONTEND).concat(NP_EGRESS_DB).concat(NP_EGRESS_DNS) }
+    },
+    examples: ['kubectl get networkpolicy -n backend', 'kubectl describe networkpolicy api-netpol -n backend', 'cat api-allow-frontend.yaml', 'kubectl apply -f api-deny-all.yaml',
+      'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://api.backend:8080', 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080',
+      'kubectl exec -n backend deploy/api -- nslookup db.backend.svc.cluster.local', 'kubectl get daemonsets -A', 'fault cni flannel'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      var f = faultArgs(t);
+      if (f) {
+        if (f[0] === 'cni' && (f[1] === 'flannel' || f[1] === 'calico' || f[1] === 'cilium')) {
+          var on = f[1] !== 'flannel';
+          return res(['[lab fault injection] pod network → ' + f[1] + (on ? ' (enforces NetworkPolicy)' : ' (no NetworkPolicy support)') + ' — stands in for a CNI migration (simulated)'], 0, { cniEnforces: on }, [on ? 'cni-enforcing' : 'cni-flannel']);
+        }
+        return res(['usage: fault cni calico|cilium|flannel   (lab-only: stands in for a CNI migration)'], 2);
+      }
+      var fr = fileRun(netpolPack, t); if (fr) return fr;
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t);
+      var isNp = /^(netpol|networkpolic(y|ies)(\.networking\.k8s\.io)?)$/;
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var a = applyFile(netpolPack, t); if (a.err) return a.err;
+        var same = true;
+        for (var k in a.f.set) if (!!s[k] !== a.f.set[k]) same = false;
+        var word = !s.policy ? 'created' : (same ? 'unchanged' : 'configured');
+        if (verb === 'create' && s.policy) return res(['Error from server (AlreadyExists): error when creating "' + a.name + '": networkpolicies.networking.k8s.io "api-netpol" already exists'], 1);
+        return res(['networkpolicy.networking.k8s.io/api-netpol ' + word], 0, a.f.set, ['apply-netpol', 'apply-' + a.name.replace(/\.yaml$/, '')]);
+      }
+      if (verb === 'delete' && (isNp.test(args[0] || '') || /^networkpolic(y|ies)\//.test(args[0] || '') || hasFlag(t, ['-f', '--filename']))) {
+        var nm = hasFlag(t, ['-f', '--filename']) ? 'api-netpol' : (args[1] || String(args[0]).split('/')[1] || '');
+        if (!hasFlag(t, ['-f', '--filename']) && ns !== 'backend') return notFound('networkpolicies.networking.k8s.io', nm);
+        if (nm !== 'api-netpol' || !s.policy) return notFound('networkpolicies.networking.k8s.io', nm);
+        return res(['networkpolicy.networking.k8s.io "api-netpol" deleted'], 0, { policy: false }, ['delete-netpol']);
+      }
+      if (verb === 'get' && isNp.test(args[0] || '')) {
+        if (ns !== 'backend' && ns !== '*' || !s.policy) return res(['No resources found in ' + (ns === '*' ? 'any' : ns) + ' namespace.'], 0, null, ['get-netpol-none']);
+        var hdr = (ns === '*' ? ['NAMESPACE'] : []).concat(['NAME', 'POD-SELECTOR', 'AGE']);
+        return res(table([hdr, (ns === '*' ? ['backend'] : []).concat(['api-netpol', 'app=api', '6m'])]), 0, null, ['get-netpol']);
+      }
+      if (verb === 'describe' && (isNp.test(args[0] || '') || /^networkpolic(y|ies)\//.test(args[0] || ''))) {
+        if (ns !== 'backend' || !s.policy) return notFound('networkpolicies.networking.k8s.io', args[1] || 'api-netpol');
+        var L = ['Name:         api-netpol', 'Namespace:    backend', 'Labels:       <none>', 'Annotations:  <none>', 'Spec:', '  PodSelector:     app=api', '  Allowing ingress traffic:'];
+        var from = [];
+        if (s.ruleFrontend) from.push('      NamespaceSelector: kubernetes.io/metadata.name=frontend');
+        if (s.ruleUntrusted) from.push('      NamespaceSelector: kubernetes.io/metadata.name=untrusted');
+        if (from.length) L = L.concat(['    To Port: 8080/TCP', '    From:']).concat(from);
+        else L.push('    <none> (Selected pods are isolated for ingress connectivity)');
+        if (s.egressIsolated) {
+          L = L.concat(['  Allowing egress traffic:', '    To Port: 5432/TCP', '    To:', '      PodSelector: app=db']);
+          if (s.ruleDns) L = L.concat(['    ----------', '    To Port: 53/UDP', '    To Port: 53/TCP', '    To:', '      NamespaceSelector: kubernetes.io/metadata.name=kube-system', '      PodSelector: k8s-app=kube-dns']);
+          L.push('  Policy Types: Ingress, Egress');
+        } else L = L.concat(['  Not affecting egress traffic', '  Policy Types: Ingress']);
+        var ev = ['describe-netpol', s.egressIsolated ? (s.ruleDns ? 'describe-netpol-egress-dns' : 'describe-netpol-egress') : 'describe-netpol-ingress'];
+        return res(L, 0, null, ev);
+      }
+      if (verb === 'get' && /^(ds|daemonsets?(\.apps)?)$/.test(args[0] || '')) {
+        if (ns !== '*' && ns !== 'kube-system' && ns !== 'kube-flannel') return res(['No resources found in ' + ns + ' namespace.'], 0, null, ['get-ds-none']);
+        var rows = [['NAMESPACE', 'NAME', 'DESIRED', 'CURRENT', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'NODE SELECTOR', 'AGE']];
+        if (s.cniEnforces) rows.push(['kube-system', 'calico-node', '4', '4', '4', '4', '4', 'kubernetes.io/os=linux', '30d']);
+        else rows.push(['kube-flannel', 'kube-flannel-ds', '4', '4', '4', '4', '4', '<none>', '30d']);
+        rows.push(['kube-system', 'kube-proxy', '4', '4', '4', '4', '4', 'kubernetes.io/os=linux', '30d']);
+        if (ns !== '*') rows = rows.filter(function (r, i) { return i === 0 || r[0] === ns; }).map(function (r) { return r.slice(1); });
+        return res(table(rows), 0, null, ['get-ds', s.cniEnforces ? 'get-ds-enforcing' : 'get-ds-flannel']);
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        var SRC = { frontend: 'web', untrusted: 'scanner', backend: 'api' };
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        if (!SRC[ex.ns] || ex.target.indexOf(SRC[ex.ns]) !== 0) return res(['Error from server (NotFound): deployments.apps "' + ex.target + '" not found' + (SRC[ex.ns] ? '' : ' (this lab has frontend/web, untrusted/scanner, backend/api)')], 1, null, ['not-found']);
+        var bin = ex.cmd[0], url = ex.cmd.filter(function (x) { return /api|db|:\/\//.test(x) && x.charAt(0) !== '-'; })[0] || '';
+        if ((bin === 'nslookup' || bin === 'dig' || bin === 'host' || (bin === 'getent' && ex.cmd[1] === 'hosts'))) {
+          var name = ex.cmd[ex.cmd.length - 1];
+          var dnsOk = ex.ns === 'backend' ? m.dns : true;
+          if (!dnsOk) return res([';; connection timed out; no servers could be reached', '', 'command terminated with exit code 1'], 1, null, ['dns', 'dns-fail']);
+          return res(['Server:\t\t10.96.0.10', 'Address:\t10.96.0.10:53', '', 'Name:\t' + (/\./.test(name) ? name : name + '.backend.svc.cluster.local'), 'Address: 10.96.142.7'], 0, null, ['dns', ex.ns === 'backend' ? 'dns-ok' : 'dns-ok-other']);
+        }
+        if (bin === 'curl' || bin === 'wget') {
+          if (!/(^|\/\/)api(\.backend)?(\.svc(\.cluster\.local)?)?(:8080)?(\/|$)/.test(url)) return res(['sim: this drill models probes to the api Service (http://api.backend:8080) and DNS lookups from backend/api'], 2);
+          if (ex.ns === 'backend') {
+            if (!m.dns) return res(['curl: (6) Could not resolve host: api.backend', 'command terminated with exit code 6'], 6, null, ['probe', 'dns-fail']);
+            return res(['{"service":"api","ok":true}'], 0, null, ['probe', 'probe-self']);
+          }
+          var ok = ex.ns === 'frontend' ? m.frontend : m.untrusted, who = ex.ns === 'frontend' ? 'frontend' : 'untrusted';
+          var timeoutNote = (bin === 'curl' && !hasFlag(ex.cmd, ['-m', '--max-time', '--connect-timeout'])) || (bin === 'wget' && !hasFlag(ex.cmd, ['-T', '--timeout']));
+          if (ok) return res(['{"service":"api","pod":"api-7f9c-x2k4q","ok":true}'], 0, null, ['probe', 'probe-' + who + '-ok', who === 'untrusted' ? 'probe-untrusted-open' : 'probe-frontend-ok']);
+          var lines = bin === 'curl' ? ['curl: (28) Connection timed out after 3002 milliseconds', 'command terminated with exit code 28'] : ['wget: download timed out', 'command terminated with exit code 1'];
+          if (timeoutNote) lines.unshift('# sim: without a timeout flag a real probe hangs until the TCP connect gives up (~2 min); the sim stops at 3 s');
+          return res(lines, bin === 'curl' ? 28 : 1, null, ['probe', 'probe-' + who + '-blocked']);
+        }
+        return res(['sim: inside the pods this drill models curl / wget (to api.backend:8080) and nslookup / dig'], 2);
+      }
+      return unmodelled(t.join(' '), netpolPack.examples);
+    },
+    tasks: [
+      { id: 'lock-api', title: 'Lock api down, then let only frontend in',
+        goal: 'No policy selects app=api, so every namespace reaches it. Prove it, apply a default-deny, then allow ns frontend only.',
+        setup: { cniEnforces: true, policy: false, ruleFrontend: false, ruleUntrusted: false, egressIsolated: false, ruleDns: true },
+        steps: [
+          { label: 'Prove the problem: ns untrusted reaches api:8080', event: 'probe-untrusted-open', hint: 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080' },
+          { label: 'Apply a default-deny ingress policy to app=api', state: function (s) { return s.policy && !s.ruleFrontend && !s.ruleUntrusted; }, hint: 'kubectl apply -f api-deny-all.yaml' },
+          { label: 'See that frontend is dropped too (default deny)', event: 'probe-frontend-blocked', hint: 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://api.backend:8080' },
+          { label: 'Allow ingress from ns frontend on 8080 only', state: function (s) { return s.policy && s.ruleFrontend && !s.ruleUntrusted; }, hint: 'kubectl apply -f api-allow-frontend.yaml' },
+          { label: 'frontend gets in again', event: 'probe-frontend-ok', hint: 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://api.backend:8080' },
+          { label: 'untrusted is still dropped', event: 'probe-untrusted-blocked', hint: 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080' }
+        ] },
+      { id: 'egress-dns', title: 'Egress lock-down breaks DNS — fix it',
+        goal: 'Restrict api egress to db:5432, watch name resolution die, read the policy, then allow kube-dns on 53.',
+        setup: { cniEnforces: true, policy: true, ruleFrontend: true, ruleUntrusted: false, egressIsolated: false, ruleDns: true },
+        steps: [
+          { label: 'Lock api egress down to db:5432 only', state: function (s) { return s.policy && s.egressIsolated && !s.ruleDns; }, hint: 'kubectl apply -f api-egress-lockdown.yaml' },
+          { label: 'Watch api fail to resolve db.backend', event: 'dns-fail', hint: 'kubectl exec -n backend deploy/api -- nslookup db.backend.svc.cluster.local' },
+          { label: 'Read which egress the policy allows', event: 'describe-netpol-egress', hint: 'kubectl describe networkpolicy api-netpol -n backend' },
+          { label: 'Allow egress to kube-dns on 53 (UDP and TCP)', state: function (s) { return s.policy && s.egressIsolated && s.ruleDns; }, hint: 'kubectl apply -f api-egress-dns.yaml' },
+          { label: 'Resolve db.backend again', event: 'dns-ok', hint: 'kubectl exec -n backend deploy/api -- nslookup db.backend.svc.cluster.local' }
+        ] },
+      { id: 'flannel', title: 'Policy applied, nothing enforced',
+        goal: 'The policy exists, yet untrusted still gets in. Find out which CNI runs the pod network and fix the root cause.',
+        setup: { cniEnforces: false, policy: true, ruleFrontend: true, ruleUntrusted: false, egressIsolated: false, ruleDns: true },
+        steps: [
+          { label: 'Confirm the policy exists in ns backend', event: 'get-netpol', hint: 'kubectl get networkpolicy -n backend' },
+          { label: 'Yet untrusted still reaches api', event: 'probe-untrusted-open', hint: 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080' },
+          { label: 'Find which CNI DaemonSet runs the pod network', event: 'get-ds-flannel', hint: 'kubectl get daemonsets -A' },
+          { label: 'Move to a NetworkPolicy-enforcing CNI (lab verb stands in for the migration)', state: function (s) { return !!s.cniEnforces; }, hint: 'fault cni calico' },
+          { label: 'untrusted is dropped now', event: 'probe-untrusted-blocked', hint: 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080' }
+        ] }
+    ]
+  };
+
+  /* ── pack: RBAC (CKA cluster architecture) ─────────────────────────────── */
+  var RB_DEFAULT = { b0: 'alice-pod-reader', b1: 'bob-secret-reader', b2: 'ci-bot-deployer' };
+  var CI_SA = 'system:serviceaccount:dev:ci-bot';
+  function rbacRes(r) {
+    r = String(r || '').toLowerCase().replace(/\.(apps|rbac\.authorization\.k8s\.io)$/, '');
+    if (/^(pods?|po)$/.test(r)) return 'pods';
+    if (/^secrets?$/.test(r)) return 'secrets';
+    if (/^(deploy|deployments?)$/.test(r)) return 'deployments';
+    if (/^(nodes?|no)$/.test(r)) return 'nodes';
+    return null;
+  }
+  /** Can WHO do VERB on RES in NS, given binding state? (alice/bob are Users; ci-bot is a ServiceAccount in dev.) */
+  function rbacCan(s, who, verb, rsc, ns) {
+    if (!who) return true; /* kubernetes-admin */
+    var read = /^(get|list|watch)$/.test(verb);
+    if (who === 'alice') return rsc === 'pods' && read && !!s.b0 && ns === 'dev';
+    if (who === 'bob') return rsc === 'secrets' && (verb === 'get' || verb === 'list') && !!s.b1 && ns === 'dev';
+    if (who === CI_SA) {
+      if (!s.b2) return false;
+      if (rsc === 'deployments') return /^(get|list|watch|create|update|patch)$/.test(verb) && (!!s.b2Cluster || ns === 'dev');
+      if (rsc === 'nodes') return read && !!s.b2Cluster;
+      return false;
+    }
+    return false;
+  }
+  function whoKey(who) { return !who ? 'admin' : (who === CI_SA ? 'ci-bot' : (who === 'ci-bot' ? 'ci-bot-user' : (who === 'alice' || who === 'bob' ? who : 'other'))); }
+  var RB_ROWS = { pods: [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], ['web-6f7d9-k2x8q', '1/1', 'Running', '0', '4d']],
+    secrets: [['NAME', 'TYPE', 'DATA', 'AGE'], ['db-creds', 'Opaque', '2', '4d']],
+    deployments: [['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE'], ['web', '1/1', '1', '1', '4d']],
+    nodes: [['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'], ['controlplane', 'Ready', 'control-plane', '30d', 'v1.37.1'], ['node01', 'Ready', '<none>', '30d', 'v1.37.1']] };
+  var rbacPack = {
+    sim: 'rbac-authz',
+    prompt: 'student@controlplane:~$',
+    examples: ['kubectl auth can-i list pods -n dev --as alice', 'kubectl auth can-i get nodes --as system:serviceaccount:dev:ci-bot', 'kubectl get rolebindings -n dev -o wide',
+      'kubectl create rolebinding alice-pod-reader --role=pod-reader --user=alice -n dev', 'kubectl delete rolebinding bob-secret-reader -n dev',
+      'kubectl create clusterrolebinding ci-bot-deployer --clusterrole=deployer --serviceaccount=dev:ci-bot', 'kubectl get secrets -n dev --as bob', 'kubectl describe rolebinding alice-pod-reader -n dev'],
+    run: function (u, s, d, ctx) {
+      var t = u.t;
+      if (t[0] !== 'kubectl') return null;
+      var names = ctx.vars.rbNames || (ctx.vars.rbNames = { b0: RB_DEFAULT.b0, b1: RB_DEFAULT.b1, b2: RB_DEFAULT.b2 });
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['--as', '--as-group', '--role', '--clusterrole', '--user', '--serviceaccount', '--group'])), ns = nsOf(t);
+      var as = flag(t, '--as'); if (as === true) as = null;
+      var nsPatch = function (n) { return (n === 'dev' || n === 'prod') && !!s.sameNs !== (n === 'dev') ? { sameNs: n === 'dev' } : null; };
+      if (verb === 'auth' && t[2] === 'can-i') {
+        var cargs = positional(t.slice(3), KUBECTL_VALUED.concat(['--as', '--as-group']));
+        if (hasFlag(t, '--list')) return res(['sim: `can-i --list` is not modelled — ask one verb + resource at a time (kubectl auth can-i list pods -n dev --as alice)'], 2);
+        var v = cargs[0], rsc = rbacRes(cargs[1]);
+        if (!v || !rsc) return res(['sim: this drill models can-i on pods, secrets, deployments and nodes (e.g. kubectl auth can-i list pods -n dev --as alice)'], 2);
+        var clusterScoped = rsc === 'nodes';
+        var nsk = clusterScoped ? 'cluster' : (ns === '*' ? 'all' : ns);
+        var ok = rbacCan(s, as, v, rsc, clusterScoped ? null : (ns === '*' ? '*' : ns));
+        var yn = ok ? 'yes' : 'no', wk = whoKey(as);
+        var out = [];
+        if (clusterScoped && flag(t, ['-n', '--namespace'])) out.push("Warning: resource 'nodes' is not namespace scoped");
+        out.push(yn);
+        if (as === 'ci-bot') out.push('# sim: "ci-bot" here is a User with no bindings — the ServiceAccount is impersonated as ' + CI_SA);
+        return res(out, ok ? 0 : 1, clusterScoped ? null : nsPatch(ns), ['cani', 'cani-' + yn, 'cani-' + wk + '-' + rsc + '-' + yn, 'cani-' + wk + '-' + rsc + '-' + nsk + '-' + yn]);
+      }
+      if (verb === 'get' && rbacRes(args[0]) && !/^(rolebindings?|clusterrolebindings?)$/.test(args[0])) {
+        var r2 = rbacRes(args[0]), cs = r2 === 'nodes';
+        if (!rbacCan(s, as, 'list', r2, cs ? null : ns)) {
+          var grp = r2 === 'deployments' ? 'apps' : '';
+          var subj = 'User "' + as + '"';
+          return res(['Error from server (Forbidden): ' + r2 + ' is forbidden: ' + subj + ' cannot list resource "' + r2 + '" in API group "' + grp + '" ' + (cs ? 'at the cluster scope' : 'in the namespace "' + ns + '"')], 1, cs ? null : nsPatch(ns), ['forbidden', 'get-' + r2 + '-forbidden']);
+        }
+        return res(table(RB_ROWS[r2]), 0, cs ? null : nsPatch(ns), ['get-' + r2 + '-ok']);
+      }
+      if (verb === 'get' && /^(rolebindings?|rb)$/.test(args[0] || '')) {
+        if (ns !== 'dev') return res(['No resources found in ' + ns + ' namespace.'], 0, null, ['get-rolebindings-none']);
+        var wide = flag(t, ['-o', '--output']) === 'wide';
+        var rows = [['NAME', 'ROLE', 'AGE'].concat(wide ? ['USERS', 'GROUPS', 'SERVICEACCOUNTS'] : [])];
+        if (s.b0) rows.push([names.b0, 'Role/pod-reader', '4d'].concat(wide ? ['alice', '', ''] : []));
+        if (s.b1) rows.push([names.b1, 'Role/secret-reader', '4d'].concat(wide ? ['bob', '', ''] : []));
+        if (s.b2 && !s.b2Cluster) rows.push([names.b2, 'ClusterRole/deployer', '4d'].concat(wide ? ['', '', 'dev/ci-bot'] : []));
+        if (rows.length === 1) return res(['No resources found in dev namespace.'], 0, null, ['get-rolebindings', 'get-rolebindings-none']);
+        return res(table(rows), 0, null, ['get-rolebindings']);
+      }
+      if (verb === 'get' && /^(clusterrolebindings?|crb)$/.test(args[0] || '')) {
+        if (!(s.b2 && s.b2Cluster)) return res(['sim: only the drill’s own bindings are modelled — no ClusterRoleBinding for ci-bot exists (system:* bindings omitted)'], 0, null, ['get-crb-none']);
+        return res(table([['NAME', 'ROLE', 'AGE'], [names.b2, 'ClusterRole/deployer', '1m']]).concat(['# sim: system:* ClusterRoleBindings omitted']), 0, null, ['get-crb']);
+      }
+      if (verb === 'describe' && /^(rolebindings?|rb)$/.test(args[0] || '')) {
+        var nm = args[1], which = nm === names.b0 && s.b0 ? 0 : (nm === names.b1 && s.b1 ? 1 : (nm === names.b2 && s.b2 && !s.b2Cluster ? 2 : -1));
+        if (ns !== 'dev' || which < 0) return notFound('rolebindings.rbac.authorization.k8s.io', nm || '');
+        var role = ['Role pod-reader', 'Role secret-reader', 'ClusterRole deployer'][which].split(' ');
+        var sub = [['User', 'alice', ''], ['User', 'bob', ''], ['ServiceAccount', 'ci-bot', 'dev']][which];
+        return res(['Name:         ' + nm, 'Labels:       <none>', 'Annotations:  <none>', 'Role:', '  Kind:  ' + role[0], '  Name:  ' + role[1], 'Subjects:'].concat(table([['  Kind', 'Name', 'Namespace'], ['  ----', '----', '---------'], ['  ' + sub[0], sub[1], sub[2]]])), 0, null, ['describe-rolebinding']);
+      }
+      if (verb === 'create' && (args[0] === 'role' || args[0] === 'clusterrole')) {
+        var rn = args[1] || '';
+        if (/^(pod-reader|secret-reader|deployer)$/.test(rn)) return res(['error: failed to create ' + args[0] + ': ' + args[0] + 's.rbac.authorization.k8s.io "' + rn + '" already exists'], 1);
+        return res(['sim: Roles in this drill are pre-created (Role pod-reader, Role secret-reader in dev; ClusterRole deployer) — bind them with create rolebinding / clusterrolebinding'], 2);
+      }
+      if (verb === 'create' && args[0] === 'rolebinding') {
+        var bn = args[1], role2 = flag(t, '--role'), cr = flag(t, '--clusterrole'), usr = flag(t, '--user'), sa = flag(t, '--serviceaccount');
+        if (!bn || (!role2 && !cr)) return res(['error: exactly one NAME is required, and one of --role or --clusterrole'], 1);
+        if (ns !== 'dev') return res(['rolebinding.rbac.authorization.k8s.io/' + bn + ' created', '# sim: created in namespace ' + ns + ' — it grants nothing in dev (add -n dev). Not reflected in the scene.'], 0, null, ['rolebinding-wrong-ns']);
+        var slot = role2 === 'pod-reader' && usr === 'alice' ? 'b0' : (role2 === 'secret-reader' && usr === 'bob' ? 'b1' : (cr === 'deployer' && sa === 'dev:ci-bot' ? 'b2' : null));
+        if (!slot) {
+          if (cr === 'deployer' && usr === 'ci-bot') return res(['sim: ci-bot is a ServiceAccount in dev — bind it with --serviceaccount=dev:ci-bot (a --user=ci-bot binding grants the ServiceAccount nothing)'], 2);
+          return res(['sim: this drill models pod-reader→alice, secret-reader→bob (--role, --user) and ClusterRole deployer→dev:ci-bot (--clusterrole, --serviceaccount)'], 2);
+        }
+        if (s[slot] && !(slot === 'b2' && s.b2Cluster)) return res(['error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io "' + (names[slot] === bn ? bn : names[slot]) + '" already exists' + (names[slot] === bn ? '' : ' (sim: one binding per subject in this drill)')], 1);
+        if (slot === 'b2' && s.b2Cluster) return res(['sim: ci-bot already has a ClusterRoleBinding (a superset). Delete it first to model the namespaced RoleBinding.'], 2);
+        names[slot] = bn;
+        var p = {}; p[slot] = true; if (slot === 'b2') p.b2Cluster = false;
+        return res(['rolebinding.rbac.authorization.k8s.io/' + bn + ' created'], 0, p, ['create-rolebinding', 'bind-' + slot]);
+      }
+      if (verb === 'create' && args[0] === 'clusterrolebinding') {
+        var cn = args[1];
+        if (flag(t, '--clusterrole') !== 'deployer' || flag(t, '--serviceaccount') !== 'dev:ci-bot' || !cn) return res(['sim: this drill models `kubectl create clusterrolebinding NAME --clusterrole=deployer --serviceaccount=dev:ci-bot`'], 2);
+        if (s.b2 && s.b2Cluster) return res(['error: failed to create clusterrolebinding: clusterrolebindings.rbac.authorization.k8s.io "' + names.b2 + '" already exists'], 1);
+        var note = s.b2 ? ['# sim: the dev RoleBinding is now redundant — this drill shows ci-bot’s effective (cluster-wide) grant'] : [];
+        names.b2 = cn;
+        return res(['clusterrolebinding.rbac.authorization.k8s.io/' + cn + ' created'].concat(note), 0, { b2: true, b2Cluster: true }, ['create-crb', 'bind-b2-cluster']);
+      }
+      if (verb === 'delete' && /^(rolebindings?|rb)$/.test(args[0] || '')) {
+        var dn = args[1];
+        if (ns !== 'dev') return notFound('rolebindings.rbac.authorization.k8s.io', dn || '');
+        var dslot = dn === names.b0 && s.b0 ? 'b0' : (dn === names.b1 && s.b1 ? 'b1' : (dn === names.b2 && s.b2 && !s.b2Cluster ? 'b2' : null));
+        if (!dslot) return notFound('rolebindings.rbac.authorization.k8s.io', dn || '');
+        var dp = {}; dp[dslot] = false;
+        return res(['rolebinding.rbac.authorization.k8s.io "' + dn + '" deleted'], 0, dp, ['delete-rolebinding', 'unbind-' + dslot]);
+      }
+      if (verb === 'delete' && /^(clusterrolebindings?|crb)$/.test(args[0] || '')) {
+        if (args[1] !== names.b2 || !(s.b2 && s.b2Cluster)) return notFound('clusterrolebindings.rbac.authorization.k8s.io', args[1] || '');
+        return res(['clusterrolebinding.rbac.authorization.k8s.io "' + args[1] + '" deleted'], 0, { b2: false, b2Cluster: false }, ['delete-crb']);
+      }
+      return unmodelled(t.join(' '), rbacPack.examples);
+    },
+    tasks: [
+      { id: 'least-privilege', title: 'Grant alice read on pods in dev — and nothing more',
+        goal: 'alice has no binding. Prove she is denied, bind her to the existing pod-reader Role in dev, then prove the grant stops at the namespace.',
+        setup: { b0: false, b1: true, b2: true, b2Cluster: false, sameNs: true },
+        steps: [
+          { label: 'Prove alice cannot list pods in dev today', event: 'cani-alice-pods-dev-no', hint: 'kubectl auth can-i list pods -n dev --as alice' },
+          { label: 'Bind alice to Role pod-reader in ns dev', state: function (s) { return !!s.b0; }, hint: 'kubectl create rolebinding alice-pod-reader --role=pod-reader --user=alice -n dev' },
+          { label: 'alice can list pods in dev', event: 'cani-alice-pods-dev-yes', hint: 'kubectl auth can-i list pods -n dev --as alice' },
+          { label: '…but not in prod (a RoleBinding is namespaced)', event: 'cani-alice-pods-prod-no', hint: 'kubectl auth can-i list pods -n prod --as alice' }
+        ] },
+      { id: 'cluster-scope', title: 'ClusterRole via RoleBinding vs ClusterRoleBinding',
+        goal: 'ci-bot’s ClusterRole deployer is bound with a RoleBinding in dev. Show what that grants, then make it cluster-wide.',
+        setup: { b0: true, b1: true, b2: true, b2Cluster: false, sameNs: true },
+        steps: [
+          { label: 'ci-bot can create deployments in dev', event: 'cani-ci-bot-deployments-dev-yes', hint: 'kubectl auth can-i create deployments -n dev --as system:serviceaccount:dev:ci-bot' },
+          { label: '…but cannot get nodes (the RoleBinding scopes it)', event: 'cani-ci-bot-nodes-no', hint: 'kubectl auth can-i get nodes --as system:serviceaccount:dev:ci-bot' },
+          { label: 'Bind deployer to ci-bot with a ClusterRoleBinding', state: function (s) { return s.b2 && s.b2Cluster; }, hint: 'kubectl create clusterrolebinding ci-bot-deployer --clusterrole=deployer --serviceaccount=dev:ci-bot' },
+          { label: 'ci-bot can get nodes now', event: 'cani-ci-bot-nodes-yes', hint: 'kubectl auth can-i get nodes --as system:serviceaccount:dev:ci-bot' },
+          { label: '…and create deployments in prod', event: 'cani-ci-bot-deployments-prod-yes', hint: 'kubectl auth can-i create deployments -n prod --as system:serviceaccount:dev:ci-bot' }
+        ] },
+      { id: 'revoke', title: 'Revoke bob’s secret access',
+        goal: 'bob can read Secrets in dev. Find the binding that grants it, remove it, and prove the API now answers Forbidden.',
+        setup: { b0: true, b1: true, b2: true, b2Cluster: false, sameNs: true },
+        steps: [
+          { label: 'Confirm bob can get secrets in dev', event: 'cani-bob-secrets-dev-yes', hint: 'kubectl auth can-i get secrets -n dev --as bob' },
+          { label: 'Find the RoleBinding that grants it', event: 'get-rolebindings', hint: 'kubectl get rolebindings -n dev -o wide' },
+          { label: 'Delete that RoleBinding', state: function (s) { return !s.b1; }, hint: 'kubectl delete rolebinding bob-secret-reader -n dev' },
+          { label: 'bob is Forbidden now', event: 'get-secrets-forbidden', hint: 'kubectl get secrets -n dev --as bob' }
+        ] }
+    ]
+  };
+
+  /* ── pack: storage — StorageClass · PV/PVC · reclaim (CKA storage) ─────── */
+  function jsonArg(t) {
+    var raw = flag(t, ['-p', '--patch']);
+    if (raw == null || raw === true) return { err: res(['error: must specify -p (--patch)'], 1) };
+    try { return { v: JSON.parse(raw) }; } catch (e) { return { err: res(['error: unable to parse "' + raw + '": invalid JSON patch'], 1) }; }
+  }
+  var storagePack = {
+    sim: 'storage-csi',
+    prompt: 'student@controlplane:~$',
+    files: {
+      'consumer-pod.yaml': { yaml: ['apiVersion: v1', 'kind: Pod', 'metadata:', '  name: consumer', 'spec:', '  containers:', '  - name: app', '    image: busybox:1.37', '    command: ["sh", "-c", "while true; do date >> /data/log; sleep 5; done"]', '    volumeMounts:', '    - name: data', '      mountPath: /data', '  volumes:', '  - name: data', '    persistentVolumeClaim:', '      claimName: pvc-1'] },
+      'pvc-1.yaml': { yaml: ['apiVersion: v1', 'kind: PersistentVolumeClaim', 'metadata:', '  name: pvc-1', 'spec:', '  # no storageClassName → the default StorageClass (if one is marked)', '  accessModes: ["ReadWriteOnce"]', '  resources:', '    requests:', '      storage: 10Gi'] }
+    },
+    examples: ['kubectl get pvc', 'kubectl get pv', 'kubectl get storageclass', 'kubectl describe pvc pvc-1',
+      "kubectl patch pv pv-1 -p '{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}'",
+      "kubectl patch storageclass csi-gp3 -p '{\"metadata\":{\"annotations\":{\"storageclass.kubernetes.io/is-default-class\":\"true\"}}}'",
+      'kubectl delete pod consumer', 'kubectl delete pvc pvc-1', 'kubectl get pods', 'cat consumer-pod.yaml'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      var fr = fileRun(storagePack, t); if (fr) return fr;
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      var isPvc = /^(pvc|persistentvolumeclaims?)$/.test(kind), isPv = /^(pv|persistentvolumes?)$/.test(kind), isSc = /^(sc|storageclass(es)?(\.storage\.k8s\.io)?)$/.test(kind), isPod = /^(pods?|po)$/.test(kind);
+      if ((isPvc || isPod) && ns !== 'default' && ns !== '*') return res(['No resources found in ' + ns + ' namespace.'], 0);
+      var pvc1Class = s.scDefault ? 'csi-gp3' : '<unset>';
+      if (verb === 'get' && isPvc) {
+        var rows = [['NAME', 'STATUS', 'VOLUME', 'CAPACITY', 'ACCESS MODES', 'STORAGECLASS', 'VOLUMEATTRIBUTESCLASS', 'AGE']];
+        var b0 = m.pvc0 === 'Bound';
+        rows.push(['pvc-0', m.pvc0, b0 ? 'pv-0' : '', b0 ? m.pv0Capacity : '', b0 ? 'RWO' : '', 'manual', '<unset>', '9d']);
+        if (m.pvc1 !== 'deleted') rows.push(['pvc-1', m.pvc1, m.pvc1 === 'Pending' ? '' : 'pv-1', m.pvc1 === 'Pending' ? '' : '10Gi', m.pvc1 === 'Pending' ? '' : 'RWO', pvc1Class, '<unset>', '3d']);
+        var ev = ['get-pvc', 'get-pvc-' + (m.pvc1 === 'deleted' ? 'gone' : m.pvc1.toLowerCase())];
+        return res(table(rows), 0, null, ev);
+      }
+      if (verb === 'get' && isPv) {
+        var r2 = [['NAME', 'CAPACITY', 'ACCESS MODES', 'RECLAIM POLICY', 'STATUS', 'CLAIM', 'STORAGECLASS', 'VOLUMEATTRIBUTESCLASS', 'REASON', 'AGE']];
+        r2.push(['pv-0', m.pv0Capacity, 'RWO', 'Retain', m.pvc0 === 'Bound' ? 'Bound' : 'Available', m.pvc0 === 'Bound' ? 'default/pvc-0' : '', 'manual', '<unset>', '', '9d']);
+        if (m.pv1 === 'Bound' || m.pv1 === 'Released') r2.push(['pv-1', '10Gi', 'RWO', s.retain ? 'Retain' : 'Delete', m.pv1, 'default/pvc-1', 'csi-gp3', '<unset>', '', '3d']);
+        r2.push(['pv-2', '100Gi', 'RWO', 'Retain', 'Available', '', 'fast-ssd', '<unset>', '', '9d']);
+        var e2 = ['get-pv', m.pv1 === 'Bound' ? (s.retain ? 'get-pv-retain' : 'get-pv-delete') : (m.pv1 === 'Released' ? 'get-pv-released' : (m.pv1 === 'deleted' ? 'get-pv-deleted' : 'get-pv-none'))];
+        return res(table(r2), 0, null, e2);
+      }
+      if (verb === 'get' && isSc) {
+        return res(table([['NAME', 'PROVISIONER', 'RECLAIMPOLICY', 'VOLUMEBINDINGMODE', 'ALLOWVOLUMEEXPANSION', 'AGE'],
+          ['csi-gp3' + (s.scDefault ? ' (default)' : ''), 'ebs.csi.aws.com', 'Delete', s.wffc ? 'WaitForFirstConsumer' : 'Immediate', 'true', '30d'],
+          ['fast-ssd', 'ebs.csi.aws.com', 'Retain', 'Immediate', 'true', '30d']]), 0, null, ['get-sc', s.scDefault ? 'get-sc-default' : 'get-sc-nodefault']);
+      }
+      if (verb === 'get' && isPod) {
+        var r3 = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE']];
+        if (m.pod === 'Running' || m.pod === 'multi-attach') r3.push(['consumer', '1/1', 'Running', '0', '3d']);
+        if (m.pod === 'Pending') r3.push(['consumer', '0/1', 'Pending', '0', '3d']);
+        if (m.pod === 'multi-attach') r3.push(['consumer-2', '0/1', 'ContainerCreating', '0', '2m']);
+        if (r3.length === 1) return res(['No resources found in default namespace.'], 0, null, ['get-pods-none']);
+        return res(table(r3), 0, null, ['get-pods', 'get-pods-' + m.pod.toLowerCase()]);
+      }
+      if (verb === 'describe' && isPvc) {
+        if (name === 'pvc-0') return res(['Name:          pvc-0', 'StorageClass:  manual', 'Status:        ' + m.pvc0, 'Access Modes:  ' + (s.pvc0Rwx ? 'RWX' : 'RWO'), 'Events:        ' + (m.pvc0 === 'Bound' ? '<none>' : 'Normal  FailedBinding  persistentvolume-controller  no persistent volumes available for this claim and no storage class is set')], 0, null, ['describe-pvc0']);
+        if (name !== 'pvc-1' || m.pvc1 === 'deleted') return notFound('persistentvolumeclaims', name);
+        var L = ['Name:          pvc-1', 'Namespace:     default', 'StorageClass:  ' + (s.scDefault ? 'csi-gp3' : ''), 'Status:        ' + m.pvc1, 'Volume:        ' + (m.pvc1 === 'Pending' ? '' : 'pv-1'),
+          'Finalizers:    [kubernetes.io/pvc-protection]', 'Capacity:      ' + (m.pvc1 === 'Pending' ? '' : '10Gi'), 'Access Modes:  ' + (m.pvc1 === 'Pending' ? '' : 'RWO'), 'VolumeMode:    Filesystem',
+          'Used By:       ' + (m.pod === 'none' || m.pod === 'deleted' ? '<none>' : 'consumer'), 'Events:'];
+        var e3 = ['describe-pvc'];
+        if (m.pvc1 === 'Pending' && m.pendingWhy === 'no-default-class') { L.push('  Normal  FailedBinding  12s (x14 over 3m)  persistentvolume-controller  no persistent volumes available for this claim and no storage class is set'); e3.push('describe-pvc-nodefault'); }
+        else if (m.pvc1 === 'Pending') { L.push('  Normal  WaitForFirstConsumer  9s (x6 over 1m)  persistentvolume-controller  waiting for first consumer to be created before binding'); e3.push('describe-pvc-wffc'); }
+        else if (m.pvc1 === 'Terminating') { L.push('  (sim) deletionTimestamp set; the pvc-protection finalizer waits until no pod uses the claim'); e3.push('describe-pvc-terminating'); }
+        else { L.push('  Normal  ProvisioningSucceeded  3d  ebs.csi.aws.com  Successfully provisioned volume pv-1'); e3.push('describe-pvc-bound'); }
+        return res(L, 0, null, e3);
+      }
+      if (verb === 'patch' && isPv) {
+        if (name !== 'pv-1' || !(m.pv1 === 'Bound' || m.pv1 === 'Released')) return notFound('persistentvolumes', name);
+        var j = jsonArg(t); if (j.err) return j.err;
+        var pol = j.v && j.v.spec && j.v.spec.persistentVolumeReclaimPolicy;
+        if (pol !== 'Retain' && pol !== 'Delete') return res(['sim: this drill models spec.persistentVolumeReclaimPolicy Retain | Delete'], 2);
+        return res(['persistentvolume/pv-1 patched' + ((pol === 'Retain') === !!s.retain ? ' (no change)' : '')], 0, { retain: pol === 'Retain' }, ['patch-pv', 'reclaim-' + pol.toLowerCase()]);
+      }
+      if ((verb === 'patch' || verb === 'annotate') && isSc) {
+        if (name !== 'csi-gp3') return res([name === 'fast-ssd' ? 'sim: this drill models the default-class annotation on csi-gp3 (fast-ssd is a static class)' : 'Error from server (NotFound): storageclasses.storage.k8s.io "' + name + '" not found'], name === 'fast-ssd' ? 2 : 1);
+        var val;
+        if (verb === 'annotate') {
+          var kv = /^storageclass\.kubernetes\.io\/is-default-class=(true|false)$/.exec(args[2] || '');
+          if (!kv) return res(['sim: this drill models storageclass.kubernetes.io/is-default-class=true|false'], 2);
+          if (s.scDefault && !hasFlag(t, '--overwrite') && kv[1] === 'true') return res(["error: --overwrite is false but found the following declared annotation(s): 'storageclass.kubernetes.io/is-default-class' already has a value (true)"], 1);
+          val = kv[1] === 'true';
+        } else {
+          var jp = jsonArg(t); if (jp.err) return jp.err;
+          var an = jp.v && jp.v.metadata && jp.v.metadata.annotations && jp.v.metadata.annotations['storageclass.kubernetes.io/is-default-class'];
+          if (an !== 'true' && an !== 'false') return res(['sim: this drill models metadata.annotations["storageclass.kubernetes.io/is-default-class"] = "true" | "false" (a string)'], 2);
+          val = an === 'true';
+        }
+        return res(['storageclass.storage.k8s.io/csi-gp3 ' + (verb === 'patch' ? 'patched' : 'annotated')], 0, { scDefault: val }, [val ? 'sc-default-on' : 'sc-default-off']);
+      }
+      if (verb === 'delete' && isPod) {
+        if (name !== 'consumer' || m.pod === 'none' || m.pod === 'deleted') return notFound('pods', name);
+        return res(['pod "consumer" deleted'], 0, { podDeleted: true }, ['delete-pod', s.pvcDeleted ? 'pod-released-claim' : 'delete-pod-only']);
+      }
+      if (verb === 'delete' && isPvc) {
+        if (name !== 'pvc-1' || m.pvc1 === 'deleted' || m.pvc1 === 'Terminating') return name === 'pvc-1' && m.pvc1 === 'Terminating'
+          ? res(['persistentvolumeclaim "pvc-1" deleted', '# sim: already Terminating — still held by the pvc-protection finalizer'], 0, null, ['delete-pvc'])
+          : notFound('persistentvolumeclaims', name);
+        var inUse = m.pod === 'Running' || m.pod === 'Pending' || m.pod === 'multi-attach';
+        var lines = ['persistentvolumeclaim "pvc-1" deleted'];
+        if (inUse) lines.push('# sim: a real kubectl now waits (--wait=true): kubernetes.io/pvc-protection holds the claim while pod consumer mounts it — Ctrl-C leaves it Terminating');
+        return res(lines, 0, { pvcDeleted: true }, ['delete-pvc', inUse ? 'pvc-terminating' : 'pvc-deleted']);
+      }
+      if ((verb === 'apply' || verb === 'create') && hasFlag(t, ['-f', '--filename'])) {
+        var a = applyFile(storagePack, t); if (a.err) return a.err;
+        if (a.name === 'pvc-1.yaml') return res([m.pvc1 === 'deleted' ? 'sim: re-creating pvc-1 after deletion is not modelled — type `reset`' : 'persistentvolumeclaim/pvc-1 unchanged'], m.pvc1 === 'deleted' ? 2 : 0);
+        if (m.pvc1 === 'deleted') return res(['sim: pvc-1 is gone — a new consumer would sit Pending; not modelled, type `reset`'], 2);
+        if (m.pod === 'Running' || m.pod === 'Pending' || m.pod === 'multi-attach') return res(['pod/consumer unchanged'], 0);
+        return res(['pod/consumer created'], 0, { podCreated: true, podDeleted: false }, ['create-pod']);
+      }
+      return unmodelled(t.join(' '), storagePack.examples);
+    },
+    tasks: [
+      { id: 'retain-data', title: 'Keep the data when the claim is deleted',
+        goal: 'pv-1 was dynamically provisioned with reclaimPolicy Delete. Make it Retain, remove the consumer and the claim, and prove the volume survived as Released.',
+        setup: { scDefault: true, wffc: true, podCreated: true, podDeleted: false, secondNode: false, retain: false, pvcDeleted: false, pv0Big: true, pvc0Rwx: false },
+        steps: [
+          { label: 'Read pv-1’s current reclaim policy', event: 'get-pv-delete', hint: 'kubectl get pv' },
+          { label: 'Patch pv-1 to reclaimPolicy Retain', state: function (s) { return !!s.retain; }, hint: "kubectl patch pv pv-1 -p '{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}'" },
+          { label: 'Delete the pod that mounts pvc-1', state: function (s) { return !!s.podDeleted; }, hint: 'kubectl delete pod consumer' },
+          { label: 'Delete pvc-1', state: function (s) { return !!s.pvcDeleted; }, hint: 'kubectl delete pvc pvc-1' },
+          { label: 'Confirm pv-1 is Released and its disk is kept', event: 'get-pv-released', hint: 'kubectl get pv' }
+        ] },
+      { id: 'pvc-protection', title: 'Delete a PVC that is still in use',
+        goal: 'Delete pvc-1 while consumer still mounts it, see why it hangs in Terminating, then let it go and watch the Delete policy run.',
+        setup: { scDefault: true, wffc: true, podCreated: true, podDeleted: false, secondNode: false, retain: false, pvcDeleted: false, pv0Big: true, pvc0Rwx: false },
+        steps: [
+          { label: 'Delete pvc-1 while the pod still uses it', event: 'pvc-terminating', hint: 'kubectl delete pvc pvc-1' },
+          { label: 'See it stuck in Terminating', event: 'get-pvc-terminating', hint: 'kubectl get pvc' },
+          { label: 'Find what holds it (Used By + finalizer)', event: 'describe-pvc-terminating', hint: 'kubectl describe pvc pvc-1' },
+          { label: 'Delete the pod — the claim is released', event: 'pod-released-claim', hint: 'kubectl delete pod consumer' },
+          { label: 'pv-1 and its disk followed reclaimPolicy Delete', event: 'get-pv-deleted', hint: 'kubectl get pv' }
+        ] },
+      { id: 'no-default-sc', title: 'Pending PVC: no default StorageClass',
+        goal: 'pvc-1 omits storageClassName and nothing provisions it. Find out why and fix the class, not the claim.',
+        setup: { scDefault: false, wffc: false, podCreated: true, podDeleted: false, secondNode: false, retain: false, pvcDeleted: false, pv0Big: true, pvc0Rwx: false },
+        steps: [
+          { label: 'See pvc-1 Pending', event: 'get-pvc-pending', hint: 'kubectl get pvc' },
+          { label: 'Read the claim’s events', event: 'describe-pvc-nodefault', hint: 'kubectl describe pvc pvc-1' },
+          { label: 'List StorageClasses — none is marked (default)', event: 'get-sc-nodefault', hint: 'kubectl get storageclass' },
+          { label: 'Mark csi-gp3 as the default class', state: function (s) { return !!s.scDefault; }, hint: "kubectl patch storageclass csi-gp3 -p '{\"metadata\":{\"annotations\":{\"storageclass.kubernetes.io/is-default-class\":\"true\"}}}'" },
+          { label: 'pvc-1 is Bound (the default class is applied retroactively)', event: 'get-pvc-bound', hint: 'kubectl get pvc' }
+        ] }
+    ]
+  };
+
+  /* ── pack: Ingress — controller · pathType · endpoints · TLS (CKA services & networking) ─────── */
+  var INGRESS_NOTE = 'Note: the Kubernetes project retired ingress-nginx on 2026-03-24 (no further releases or security fixes). The Ingress API itself stays GA; Gateway API is the recommended successor; this drill covers the Ingress API only.';
+  function curlArgs(t) {
+    var url = null, o = { insecure: false, head: false, include: false, fail: false, w: null };
+    for (var i = 1; i < t.length; i++) {
+      var a = t[i];
+      if (a === '-w' || a === '--write-out') { o.w = t[++i] || ''; continue; }
+      if (a === '-o' || a === '--output' || a === '-H' || a === '-m' || a === '--max-time' || a === '--resolve' || a === '-X') { i++; continue; }
+      if (a === '--insecure') { o.insecure = true; continue; }
+      if (a === '--head') { o.head = true; continue; }
+      if (a === '--include') { o.include = true; continue; }
+      if (a === '--fail') { o.fail = true; continue; }
+      if (/^-[a-zA-Z]+$/.test(a)) { if (/k/.test(a)) o.insecure = true; if (/I/.test(a)) o.head = true; if (/i/.test(a)) o.include = true; if (/f/.test(a)) o.fail = true; continue; }
+      if (a.charAt(0) !== '-') url = a;
+    }
+    var m = /^(https?):\/\/([^\/:]+)(?::\d+)?(\/[^?#]*)?/.exec(url || '');
+    o.url = url; o.scheme = m ? m[1] : null; o.host = m ? m[2] : null; o.path = m ? (m[3] || '/') : null;
+    return o;
+  }
+  var ingressPack = {
+    sim: 'ingress-routing',
+    prompt: 'student@controlplane:~$',
+    note: INGRESS_NOTE,
+    files: {
+      'ingress-controller.yaml': { yaml: ['# Ingress controller for class "nginx" (Deployment + Service type LoadBalancer + IngressClass).', '# sim: applying this file stands in for installing a controller. ' + INGRESS_NOTE] },
+      'shop-ingress.yaml': { yaml: ['apiVersion: networking.k8s.io/v1', 'kind: Ingress', 'metadata:', '  name: shop', 'spec:', '  ingressClassName: nginx', '  tls:', '  - hosts: [shop.example.com]', '    secretName: shop-tls', '  rules:', '  - host: shop.example.com', '    http:', '      paths:', '      - path: /api', '        pathType: Prefix', '        backend: { service: { name: service-0, port: { number: 80 } } }', '      - path: /web', '        pathType: Prefix', '        backend: { service: { name: service-1, port: { number: 80 } } }'] }
+    },
+    examples: ['kubectl get ingress', 'kubectl describe ingress shop', 'kubectl get ingress shop -o yaml', 'curl -sI https://shop.example.com/api/v1/orders',
+      'kubectl get endpointslices -l kubernetes.io/service-name=service-0', 'kubectl get svc service-0 -o wide', 'kubectl get pods --show-labels',
+      "kubectl patch service service-0 -p '{\"spec\":{\"selector\":{\"app\":\"api\"}}}'",
+      'kubectl patch ingress shop --type=json -p \'[{"op":"replace","path":"/spec/rules/0/http/paths/0/pathType","value":"Prefix"}]\'',
+      'kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key', 'kubectl get secret shop-tls', 'kubectl get ingressclass',
+      'kubectl get pods -A -l app.kubernetes.io/name=ingress-nginx'],
+    run: function (u, s, d, ctx) {
+      var t = u.t;
+      var fr = fileRun(ingressPack, t); if (fr) return fr;
+      if (t[0] === 'curl') {
+        var c = curlArgs(t);
+        if (!c.host) return res(['curl: (3) URL rejected: No host part in the URL'], 3);
+        if (c.host !== 'shop.example.com') return res(['curl: (6) Could not resolve host: ' + c.host], 6);
+        if (!s.controller) return res(['curl: (7) Failed to connect to shop.example.com port ' + (c.scheme === 'https' ? 443 : 80) + ' after 2 ms: Couldn\'t connect to server'], 7, null, ['curl', 'curl-noconnect']);
+        if (c.scheme === 'http') return res(['HTTP/1.1 308 Permanent Redirect', 'Location: https://shop.example.com' + c.path], 0, null, ['curl', 'curl-308']);
+        if (!s.tlsSecret && !c.insecure) return res(['curl: (60) SSL certificate problem: self-signed certificate', 'More details here: https://curl.se/docs/sslcerts.html'], 60, null, ['curl', 'curl-cert-error']);
+        var r = S_ingressMatch(c.path, [{ path: '/api', type: s.apiExact ? 'Exact' : 'Prefix', svc: 0 }, { path: '/web', type: 'Prefix', svc: 1 }]);
+        var code = !r ? 404 : (r.svc === 0 && !s.apiReady ? 503 : 200);
+        var reason = { 200: 'OK', 404: 'Not Found', 503: 'Service Temporarily Unavailable' }[code];
+        var ev = ['curl', 'curl-' + code];
+        if (code === 200) ev.push(s.tlsSecret && !c.insecure ? 'curl-200-verified' : 'curl-200-insecure');
+        var out;
+        if (c.w && /http_code/.test(c.w)) out = [String(code)];
+        else if (c.head || c.include) {
+          out = ['HTTP/2 ' + code, 'content-type: ' + (code === 200 ? 'application/json' : 'text/html'), 'x-sim-note: computed by the rules engine' + (r ? ' (rule ' + r.path + ' ' + r.type + ' → service-' + r.svc + ')' : ' (no rule matched → default backend)')];
+          if (c.include && !c.head) out.push('', code === 200 ? '{"service":"service-' + r.svc + '","path":"' + c.path + '"}' : '<html><head><title>' + code + ' ' + reason + '</title></head></html>');
+        } else out = [code === 200 ? '{"service":"service-' + r.svc + '","path":"' + c.path + '"}' : '<html><head><title>' + code + ' ' + reason + '</title></head></html>'];
+        return res(out, c.fail && code >= 400 ? 22 : 0, null, ev);
+      }
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t), out2 = flag(t, ['-o', '--output']);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      var isIng = /^(ing|ingress(es)?(\.networking\.k8s\.io)?)$/.test(kind);
+      var addr = s.controller ? '203.0.113.10' : '';
+      var ep0 = s.apiReady ? '10.244.1.5:8080,10.244.2.7:8080' : '';
+      if (verb === 'get' && isIng && ns !== '*' && ns !== 'default') return res(['No resources found in ' + ns + ' namespace.'], 0);
+      if (verb === 'get' && isIng && out2 && /yaml|jsonpath/.test(out2)) {
+        var pt = s.apiExact ? 'Exact' : 'Prefix';
+        if (/jsonpath/.test(out2)) {
+          if (!/pathType/.test(out2)) return res(['sim: this drill models jsonpath on .spec.rules[0].http.paths[*].pathType'], 2);
+          return res([/\[\*\]/.test(out2) ? pt + ' Prefix' : pt], 0, null, ['ingress-pathtype', 'ingress-pathtype-' + pt.toLowerCase()]);
+        }
+        var y = ingressPack.files['shop-ingress.yaml'].yaml.slice();
+        y[14] = '        pathType: ' + pt;
+        y = y.concat(['status:', '  loadBalancer:', s.controller ? '    ingress:\n    - ip: 203.0.113.10' : '    {}']);
+        return res(y.join('\n').split('\n'), 0, null, ['ingress-yaml', 'ingress-pathtype-' + pt.toLowerCase()]);
+      }
+      if (verb === 'get' && isIng) {
+        return res(table([['NAME', 'CLASS', 'HOSTS', 'ADDRESS', 'PORTS', 'AGE'], ['shop', 'nginx', 'shop.example.com', addr || ' ', '80, 443', '5d']]), 0, null, ['get-ingress', s.controller ? 'get-ingress-address' : 'get-ingress-noaddress']);
+      }
+      if (verb === 'describe' && isIng) {
+        if (name !== 'shop') return notFound('ingresses.networking.k8s.io', name);
+        var L = ['Name:             shop', 'Labels:           <none>', 'Namespace:        default', 'Address:          ' + addr, 'Ingress Class:    nginx', 'Default backend:  <default>',
+          'TLS:', '  shop-tls terminates shop.example.com', 'Rules:', '  Host              Path  Backends', '  ----              ----  --------', '  shop.example.com',
+          '                    /api   service-0:80 (' + ep0 + ')', '                    /web   service-1:80 (10.244.1.9:8080,10.244.3.4:8080)', 'Annotations:        <none>', 'Events:             <none>'];
+        return res(L, 0, null, ['describe-ingress', s.apiReady ? 'describe-ingress-endpoints' : 'describe-ingress-noendpoints']);
+      }
+      if (verb === 'get' && /^(endpointslices?(\.discovery\.k8s\.io)?|eps)$/.test(kind)) {
+        var sel = flag(t, ['-l', '--selector']) || '';
+        var rows = [['NAME', 'ADDRESSTYPE', 'PORTS', 'ENDPOINTS', 'AGE']];
+        if (!sel || /service-0/.test(sel)) rows.push(['service-0-x7k2p', 'IPv4', s.apiReady ? '8080' : '<unset>', s.apiReady ? '10.244.1.5,10.244.2.7' : '<unset>', '5d']);
+        if (!sel || /service-1/.test(sel)) rows.push(['service-1-m3q9d', 'IPv4', '8080', '10.244.1.9,10.244.3.4', '5d']);
+        return res(table(rows), 0, null, ['endpoints', s.apiReady || (sel && !/service-0/.test(sel)) ? 'endpoints-ok' : 'endpoints-empty']);
+      }
+      if (verb === 'get' && /^(ep|endpoints)$/.test(kind)) {
+        return res(['Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice'].concat(table([['NAME', 'ENDPOINTS', 'AGE'], ['service-0', s.apiReady ? '10.244.1.5:8080,10.244.2.7:8080' : '<none>', '5d'], ['service-1', '10.244.1.9:8080,10.244.3.4:8080', '5d']])), 0, null, ['endpoints', s.apiReady ? 'endpoints-ok' : 'endpoints-empty']);
+      }
+      if (verb === 'get' && /^(svc|services?)$/.test(kind)) {
+        var wide = out2 === 'wide';
+        var rr = [['NAME', 'TYPE', 'CLUSTER-IP', 'EXTERNAL-IP', 'PORT(S)', 'AGE'].concat(wide ? ['SELECTOR'] : [])];
+        if (!name || name === 'service-0') rr.push(['service-0', 'ClusterIP', '10.96.20.11', '<none>', '80/TCP', '5d'].concat(wide ? [s.apiReady ? 'app=api' : 'app=api-v2'] : []));
+        if (!name || name === 'service-1') rr.push(['service-1', 'ClusterIP', '10.96.20.12', '<none>', '80/TCP', '5d'].concat(wide ? ['app=web'] : []));
+        if (rr.length === 1) return notFound('services', name);
+        return res(table(rr), 0, null, ['get-svc', wide ? 'get-svc-selector' : 'get-svc-plain']);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(kind)) {
+        var lsel = flag(t, ['-l', '--selector']) || '';
+        if (/ingress-nginx/.test(lsel)) {
+          if (!s.controller) return res(['No resources found'], 0, null, ['get-controller', 'get-controller-none']);
+          return res(table([['NAMESPACE', 'NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], ['ingress-nginx', 'ingress-nginx-controller-5f8c9-qk2wd', '1/1', 'Running', '0', '30d']]).concat(['# sim: ' + INGRESS_NOTE]), 0, null, ['get-controller', 'get-controller-running']);
+        }
+        var labels = hasFlag(t, '--show-labels');
+        var pr = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'].concat(labels ? ['LABELS'] : [])];
+        [['api-6d4b8-2kq9x', 'app=api,pod-template-hash=6d4b8'], ['api-6d4b8-7zv4m', 'app=api,pod-template-hash=6d4b8'], ['web-58c7f-h2n8p', 'app=web,pod-template-hash=58c7f'], ['web-58c7f-t9w3c', 'app=web,pod-template-hash=58c7f']].forEach(function (p) {
+          pr.push([p[0], '1/1', 'Running', '0', '5d'].concat(labels ? [p[1]] : []));
+        });
+        return res(table(pr), 0, null, ['get-pods', labels ? 'pods-labels' : 'get-pods-plain']);
+      }
+      if (verb === 'get' && /^(ingressclass(es)?)$/.test(kind)) {
+        if (!s.controller) return res(['No resources found'], 0, null, ['get-ingressclass-none']);
+        return res(table([['NAME', 'CONTROLLER', 'PARAMETERS', 'AGE'], ['nginx', 'k8s.io/ingress-nginx', '<none>', '30d']]), 0, null, ['get-ingressclass']);
+      }
+      if (verb === 'get' && /^secrets?$/.test(kind)) {
+        if (name && name !== 'shop-tls') return notFound('secrets', name);
+        if (!s.tlsSecret) return name ? res(['Error from server (NotFound): secrets "shop-tls" not found'], 1, null, ['get-secret-missing']) : res(['No resources found in default namespace.'], 0, null, ['get-secret-missing']);
+        return res(table([['NAME', 'TYPE', 'DATA', 'AGE'], ['shop-tls', 'kubernetes.io/tls', '2', '5d']]), 0, null, ['get-secret', 'get-secret-ok']);
+      }
+      if (verb === 'create' && args[0] === 'secret' && args[1] === 'tls') {
+        if (args[2] !== 'shop-tls' || !flag(t, '--cert') || !flag(t, '--key')) return res(['sim: this drill models `kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key`'], 2);
+        if (s.tlsSecret) return res(['error: failed to create secret secrets "shop-tls" already exists'], 1);
+        return res(['secret/shop-tls created'], 0, { tlsSecret: true }, ['create-secret-tls']);
+      }
+      if (verb === 'delete' && /^secrets?$/.test(kind)) {
+        if (name !== 'shop-tls' || !s.tlsSecret) return notFound('secrets', name);
+        return res(['secret "shop-tls" deleted'], 0, { tlsSecret: false }, ['delete-secret-tls']);
+      }
+      if (verb === 'patch' && /^(svc|services?)$/.test(kind)) {
+        if (name !== 'service-0') return res(['sim: this drill models the selector of service-0'], 2);
+        var j = jsonArg(t); if (j.err) return j.err;
+        var app = j.v && j.v.spec && j.v.spec.selector && j.v.spec.selector.app;
+        if (!app) return res(['sim: this drill models spec.selector.app on service-0'], 2);
+        return res(['service/service-0 patched'], 0, { apiReady: app === 'api' }, ['patch-svc', app === 'api' ? 'selector-fixed' : 'selector-broken']);
+      }
+      if (verb === 'set' && args[0] === 'selector') {
+        var sv = (args[1] || '').replace(/^(svc|service)\//, ''), kvs = args[args[1] && /^(svc|service|services)$/.test(args[1]) ? 3 : 2] || '';
+        if (args[1] && /^(svc|service|services)$/.test(args[1])) sv = args[2];
+        var mm = /^app=([a-z0-9-]+)$/.exec(kvs);
+        if (sv !== 'service-0' || !mm) return res(['sim: this drill models `kubectl set selector service service-0 app=api`'], 2);
+        return res(['service/service-0 selector updated'], 0, { apiReady: mm[1] === 'api' }, ['patch-svc', mm[1] === 'api' ? 'selector-fixed' : 'selector-broken']);
+      }
+      if (verb === 'patch' && isIng) {
+        if (name !== 'shop') return notFound('ingresses.networking.k8s.io', name);
+        var jj = jsonArg(t); if (jj.err) return jj.err;
+        var ops = Array.isArray(jj.v) ? jj.v : null;
+        var op = ops && ops.filter(function (o) { return /^\/spec\/rules\/0\/http\/paths\/0\/pathType$/.test(o.path || ''); })[0];
+        if (flag(t, '--type') !== 'json' || !op || (op.value !== 'Exact' && op.value !== 'Prefix')) return res(['sim: this drill models a JSON patch: --type=json -p \'[{"op":"replace","path":"/spec/rules/0/http/paths/0/pathType","value":"Prefix"}]\''], 2);
+        return res(['ingress.networking.k8s.io/shop patched'], 0, { apiExact: op.value === 'Exact' }, ['patch-ingress', 'pathtype-' + op.value.toLowerCase()]);
+      }
+      if ((verb === 'apply' || verb === 'delete') && hasFlag(t, ['-f', '--filename'])) {
+        var a = applyFile(ingressPack, t); if (a.err) return a.err;
+        if (a.name === 'ingress-controller.yaml') {
+          if (verb === 'delete') return s.controller ? res(['(sim) ingress controller removed'], 0, { controller: false }, ['controller-removed']) : res(['Error from server (NotFound): deployments.apps "ingress-nginx-controller" not found'], 1);
+          return res(s.controller ? ['ingressclass.networking.k8s.io/nginx unchanged', 'deployment.apps/ingress-nginx-controller unchanged'] : ['ingressclass.networking.k8s.io/nginx created', 'deployment.apps/ingress-nginx-controller created', 'service/ingress-nginx-controller created'], 0, s.controller ? null : { controller: true }, ['controller-installed']);
+        }
+        if (verb === 'delete') return res(['sim: deleting the shop Ingress is not modelled in this drill'], 2);
+        return res(['ingress.networking.k8s.io/shop ' + (s.apiExact ? 'configured' : 'unchanged')], 0, { apiExact: false }, ['apply-ingress']);
+      }
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl patch (see `help`)'], 2);
+      return unmodelled(t.join(' '), ingressPack.examples);
+    },
+    tasks: [
+      { id: 'exact-404', title: 'Fix a 404 on /api/v1/orders',
+        goal: 'Orders started returning 404 after a change to the shop Ingress. Reproduce it, find the rule’s pathType, and fix the rule.',
+        setup: { controller: true, apiExact: true, apiReady: true, tlsSecret: true },
+        steps: [
+          { label: 'Reproduce the 404', event: 'curl-404', hint: 'curl -sI https://shop.example.com/api/v1/orders' },
+          { label: 'Read the /api rule’s pathType', event: 'ingress-pathtype-exact', hint: 'kubectl get ingress shop -o yaml' },
+          { label: 'Switch /api to pathType Prefix', state: function (s) { return !s.apiExact; }, hint: 'kubectl patch ingress shop --type=json -p \'[{"op":"replace","path":"/spec/rules/0/http/paths/0/pathType","value":"Prefix"}]\'' },
+          { label: 'GET /api/v1/orders reaches service-0', event: 'curl-200', hint: 'curl -sI https://shop.example.com/api/v1/orders' }
+        ] },
+      { id: 'no-endpoints', title: '503: a Service with no endpoints',
+        goal: 'The route exists but /api answers 503. Follow Ingress → Service → EndpointSlice → pod labels to the cause.',
+        setup: { controller: true, apiExact: false, apiReady: false, tlsSecret: true },
+        steps: [
+          { label: 'Reproduce the 503', event: 'curl-503', hint: 'curl -sI https://shop.example.com/api/v1/orders' },
+          { label: 'Find that service-0 has no endpoints', event: 'endpoints-empty', hint: 'kubectl get endpointslices -l kubernetes.io/service-name=service-0' },
+          { label: 'Compare the Service selector with the pod labels', event: 'pods-labels', hint: 'kubectl get svc service-0 -o wide  then  kubectl get pods --show-labels' },
+          { label: 'Fix service-0’s selector', state: function (s) { return !!s.apiReady; }, hint: "kubectl patch service service-0 -p '{\"spec\":{\"selector\":{\"app\":\"api\"}}}'" },
+          { label: 'Get a 200 from /api/v1/orders', event: 'curl-200', hint: 'curl -sI https://shop.example.com/api/v1/orders' }
+        ] },
+      { id: 'tls', title: 'Certificate warning: the TLS Secret is missing',
+        goal: 'Browsers warn on shop.example.com. Prove curl rejects the certificate, find the missing Secret, create it, and verify HTTPS without -k.',
+        setup: { controller: true, apiExact: false, apiReady: true, tlsSecret: false },
+        steps: [
+          { label: 'See curl reject the certificate', event: 'curl-cert-error', hint: 'curl -sI https://shop.example.com/api' },
+          { label: 'Find that Secret shop-tls does not exist', event: 'get-secret-missing', hint: 'kubectl get secret shop-tls' },
+          { label: 'Create the kubernetes.io/tls Secret', state: function (s) { return !!s.tlsSecret; }, hint: 'kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key' },
+          { label: 'HTTPS verifies (no -k) and answers 200', event: 'curl-200-verified', hint: 'curl -sI https://shop.example.com/api' }
+        ] }
+    ]
+  };
+  function S_ingressMatch(path, rules) { var S = Sims(); return S && S.ingressMatch ? S.ingressMatch(path, rules) : null; }
+
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -682,6 +1368,96 @@
         ['Hit the site’s public URL and read the status line.', '^alb$'],
         ['Ask the load balancer which targets are healthy — is the web tier really the problem?', '^(az-a-rds|az-b-ec2-[01])$']
       ]
+    },
+    /* v1.2.0 (2026-10-20) */
+    'netpol-isolation': {
+      'lock-api': [
+        ['Probe api from inside a pod in the untrusted namespace — exec into its Deployment and hit the Service on 8080.', '^(pod-untrusted-[01]|edge-deny-[01])$'],
+        ['There is a ready-made manifest in your home directory that selects app=api for Ingress with no rules. Read it, then apply it.', '^(netpol-manifest|netpol-shield-ring)$'],
+        ['Now probe from the frontend namespace. Isolation is not selective until you add a rule.', '^(pod-frontend-[01]|edge-allow-[01])$'],
+        ['Apply the manifest whose ingress rule uses a namespaceSelector for frontend.', '^(netpol-manifest|edge-allow-[01])$'],
+        ['Probe from frontend again.', '^edge-allow-[01]$'],
+        ['And from untrusted: no rule admits it, so the allow-list drops it.', '^deny-block-[01]$']
+      ],
+      'egress-dns': [
+        ['The lock-down manifest adds policyTypes Egress with a single rule to the db pods on 5432. Apply it.', '^(netpol-manifest|netpol-shield-ring)$'],
+        ['Exec into the api Deployment in backend and resolve the db Service name.', '^(kube-dns|edge-egress-dns)$'],
+        ['Describe the policy and read the “Allowing egress traffic” block.', '^netpol-manifest$'],
+        ['Egress isolation blocks port 53 too. Apply the manifest that adds kube-dns in kube-system on UDP and TCP 53.', '^edge-egress-dns$'],
+        ['Run the same lookup again.', '^(kube-dns|pod-backend-[01])$']
+      ],
+      'flannel': [
+        ['List NetworkPolicies in the namespace where api lives.', '^netpol-manifest$'],
+        ['Probe api from the untrusted namespace anyway.', '^(pod-untrusted-[01]|edge-deny-[01])$'],
+        ['The pod network is a DaemonSet. List DaemonSets across all namespaces and read the names.', '^cni-enforcer$'],
+        ['flannel does not implement NetworkPolicy. Use the lab’s CNI verb to stand in for migrating to Calico or Cilium.', '^cni-enforcer$'],
+        ['Probe from untrusted one more time.', '^deny-block-[01]$']
+      ]
+    },
+    'rbac-authz': {
+      'least-privilege': [
+        ['Ask the API server on alice’s behalf: auth can-i with impersonation, in namespace dev.', '^(user-0|api-pods)$'],
+        ['The Role already exists in dev. Create the namespaced binding that ties user alice to it.', '^(rolebinding-0|edge-u0-b0|edge-b0-r0)$'],
+        ['Ask the same can-i question again.', '^(edge-r0-pods|verbs-pods)$'],
+        ['Ask the same question for another namespace — prod.', '^(user-0|rolebinding-0)$']
+      ],
+      'cluster-scope': [
+        ['ci-bot is a ServiceAccount: impersonate it as system:serviceaccount:<namespace>:<name> and ask about creating deployments in dev.', '^(user-2|edge-r2-deploys)$'],
+        ['Nodes are cluster-scoped. Ask whether ci-bot can get them (no namespace flag needed).', '^(edge-r2-nodes|api-nodes)$'],
+        ['Only a cluster-wide binding grants a ClusterRole on cluster-scoped resources. Create one for the same ServiceAccount.', '^(rolebinding-2|edge-u2-b2)$'],
+        ['Ask about nodes again.', '^(edge-r2-nodes|verbs-nodes)$'],
+        ['Ask about creating deployments in prod.', '^(edge-r2-deploys|api-deployments)$']
+      ],
+      'revoke': [
+        ['Impersonate bob and ask about getting secrets in dev.', '^(user-1|api-secrets)$'],
+        ['List the RoleBindings in dev with the wide output — it shows the subjects.', '^(rolebinding-1|edge-u1-b1)$'],
+        ['RBAC has no deny rules: remove the grant by deleting bob’s binding.', '^(rolebinding-1|edge-b1-r1)$'],
+        ['Try to read the secrets as bob and read the API’s answer.', '^(edge-r1-secrets|verbs-secrets)$']
+      ]
+    },
+    'storage-csi': {
+      'retain-data': [
+        ['List the PersistentVolumes and read the RECLAIM POLICY column for pv-1.', '^(pv-1|backend-disk-1)$'],
+        ['The reclaim policy lives on the PV spec (persistentVolumeReclaimPolicy). Patch the volume, not the claim.', '^pv-1$'],
+        ['A claim in use cannot go away. Remove the pod that mounts it first.', '^(consumer-pod|volume-mount)$'],
+        ['Now delete the claim itself.', '^(pvc-1|edge-pv1-pvc1)$'],
+        ['List the volumes again: STATUS and whether pv-1 is still there tell the story.', '^(pv-1|backend-disk-1|platter-1)$']
+      ],
+      'pvc-protection': [
+        ['Delete the claim while the pod is still running.', '^(pvc-1|consumer-pod)$'],
+        ['List the claims and read pvc-1’s STATUS.', '^pvc-1$'],
+        ['Describe the claim: look at Finalizers and Used By.', '^(pvc-1|edge-pvc-pod)$'],
+        ['The finalizer lets go once no pod uses the claim. Remove that pod.', '^(consumer-pod|volume-mount)$'],
+        ['List the volumes: what did the StorageClass’s default reclaim policy do to pv-1?', '^(pv-1|edge-csi-pv1)$']
+      ],
+      'no-default-sc': [
+        ['List the claims in the default namespace.', '^pvc-1$'],
+        ['Describe pvc-1 and read the persistentvolume-controller event.', '^(pvc-1|csi-controller)$'],
+        ['List the StorageClasses and look for the (default) marker.', '^(storage-class|sc-provisioner)$'],
+        ['A class becomes the default through the storageclass.kubernetes.io/is-default-class annotation, set to the string "true".', '^(storage-class|edge-sc-csi)$'],
+        ['List the claims again — a claim with no class gets the new default retroactively.', '^(pvc-1|pv-1)$']
+      ]
+    },
+    'ingress-routing': {
+      'exact-404': [
+        ['Request the orders URL over HTTPS and read only the status line.', '^(client-0|req-0-[0-3])$'],
+        ['describe does not print pathType — read the Ingress back as YAML.', '^rule-0$'],
+        ['pathType sits inside a list, so use a JSON patch that replaces paths/0/pathType.', '^rule-0$'],
+        ['Request the orders URL again.', '^(client-0|route-0-[0-4]|service-0)$']
+      ],
+      'no-endpoints': [
+        ['Request the orders URL and read the status line.', '^(client-0|service-0)$'],
+        ['A Service’s backends are EndpointSlices labelled with kubernetes.io/service-name.', '^(service-0|endpoint-pod-[01])$'],
+        ['Show the Service’s selector (wide output), then the pods’ labels, and compare.', '^(service-0|endpoint-pod-[01])$'],
+        ['Point the Service selector at the label the api pods actually carry.', '^service-0$'],
+        ['Request the orders URL once more.', '^(ep-[01]-[0-2]|endpoint-pod-[01])$']
+      ],
+      'tls': [
+        ['Request the /api URL over HTTPS without skipping certificate checks.', '^(tls-terminate|client-1)$'],
+        ['spec.tls names a Secret. Ask for that Secret by name.', '^(rule-2|tls-terminate)$'],
+        ['kubectl has a dedicated generator for kubernetes.io/tls Secrets; the cert and key files are in your home directory.', '^(rule-2|tls-terminate)$'],
+        ['Repeat the HTTPS request — still without the insecure flag.', '^(tls-terminate|client-1|req-1-[0-3])$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -721,7 +1497,8 @@
     var head = t[0] || '';
     if (head === 'help' || head === '?') {
       return res(['IL sim shell — ' + HONESTY, 'Commands modelled in this drill:'].concat(p.examples.map(function (e) { return '  ' + e; }))
-        .concat(['Lab verbs: help · check · hint · solution · task · history · clear · reset' + (/fault/.test(p.examples.join(' ')) || p.sim === 'hpa-scale' ? ' · fault … (lab-only fault injection)' : '')]), 0, null, ['help'], { verb: 'help' });
+        .concat(['Lab verbs: help · check · hint · solution · task · history · clear · reset' + (/fault/.test(p.examples.join(' ')) || p.sim === 'hpa-scale' ? ' · fault … (lab-only fault injection)' : '')])
+        .concat(p.files ? ['Lab files (ls / cat / kubectl apply -f): ' + Object.keys(p.files).join('  ')] : []).concat(p.note ? [p.note] : []), 0, null, ['help'], { verb: 'help' });
     }
     if (head === 'clear') return res([], 0, null, [], { action: 'clear', verb: 'clear' });
     if (head === 'reset') return res(['sim reset to the drill’s initial state'], 0, null, ['reset'], { action: 'reset', verb: 'reset' });
@@ -733,7 +1510,7 @@
     if (!d) return res(['sim: rules engine (il-immersive-sims.js) not loaded'], 2);
     var r = p.run(u, state, d, ctx);
     if (!r) {
-      if (/^(kubectl|etcdctl|crictl|aws|curl|systemctl|mv|ls|fault)$/.test(head)) r = unmodelled(raw, p.examples);
+      if (/^(kubectl|etcdctl|crictl|aws|curl|systemctl|mv|ls|cat|fault|helm)$/.test(head)) r = unmodelled(raw, p.examples);
       else r = res(['bash: ' + head + ': command not found  (simulated shell — type help)'], 127);
     }
     r.verb = r.verb || (head === 'kubectl' || head === 'aws' || head === 'etcdctl' ? head + ' ' + (t[1] || '') : head).trim();
@@ -888,6 +1665,86 @@
       lines: lines, speak: speak, diagnosis: dg.lines, nudge: step.nudge || null, solution: level === 'solution' ? step.hint : null };
   }
 
+
+  /* ── v1.2.0 voice-to-command (pure): one spoken utterance → a lab verb, or command text for the input ──
+   * Deterministic word rules + snapping to this drill's own vocabulary (example + solution tokens). The player
+   * runs lab verbs directly but only TYPES a spoken command into the prompt — the learner confirms with Enter. */
+  var SPOKEN_VERBS = [
+    [/^(lab muse,? )?(check|verify|check (it|this|again|my (work|task|step|solution|answer)))$/, 'check'],
+    [/^(lab muse,? )?(hint|a hint|give me a hint|(i need|show me) a hint|help me)$/, 'hint'],
+    [/^(lab muse,? )?(solution|show (me )?(the )?solution|give me the (answer|solution|command))$/, 'solution'],
+    [/^(task|progress|show (my )?progress|status)$/, 'task'],
+    [/^(reset|start over|restart( the task)?)$/, 'reset'],
+    [/^(clear|clear (the )?screen)$/, 'clear'],
+    [/^(help|what can i (type|say))$/, 'help']
+  ];
+  var NUMBER_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  var SPOKEN_RULES = [
+    [/\b(cube|kube|queue|cue|coupe) ?(control|ctl|cuttle|cuddle|cattle|c t l)\b/g, 'kubectl'],
+    [/\bk u b e c t l\b/g, 'kubectl'],
+    [/\b(etcd|et cd|e t c d) ?(control|ctl|c t l)\b/g, 'etcdctl'],
+    [/\b(cri|cry|c r i) ?(control|ctl|c t l)\b/g, 'crictl'],
+    [/\bm v\b/g, 'mv'], [/\bl s\b/g, 'ls'], [/\bp v c\b/g, 'pvc'], [/\bp v\b/g, 'pv'], [/\bh p a\b/g, 'hpa'], [/\bt l s\b/g, 'tls'], [/\br d s\b/g, 'rds'], [/\bd n s\b/g, 'dns'],
+    [/\bnet pol\b|\bnetwork ?polic(y|ies)\b/g, 'networkpolicy'],
+    [/\bname ?space\b/g, 'namespace'], [/\brole ?binding(s?)\b/g, 'rolebinding$1'], [/\bcluster ?role ?binding(s?)\b/g, 'clusterrolebinding$1'], [/\bcluster ?role\b/g, 'clusterrole'], [/\bservice ?account\b/g, 'serviceaccount'],
+    [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
+    [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
+    [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
+    [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
+    [/\s*\b(equals|equal|equal sign)\b\s*/g, '='], [/\s*\bcolon\b\s*/g, ':']
+  ];
+  function vocab(p) {
+    var v = {};
+    p.examples.concat(p.tasks.reduce(function (a, tk) { return a.concat(tk.steps.map(function (st) { return st.hint; })); }, []))
+      .forEach(function (line) { String(line).split(/\s{2}then\s{2}/).forEach(function (l) { tokenize(l).forEach(function (w) {
+        v[w] = 1;
+        if (/=/.test(w)) v[w.slice(w.indexOf('=') + 1)] = 1;
+        w.split('/').forEach(function (seg) { if (seg) v[seg] = 1; });
+      }); }); });
+    Object.keys(p.files || {}).forEach(function (f) { v[f] = 1; });
+    return Object.keys(v);
+  }
+  function inVocab(words, w) {
+    for (var i = 0; i < words.length; i++) {
+      var x = words[i];
+      if (x === w || x.indexOf(w + '-') === 0 || x.indexOf(w + '.') === 0 || x.indexOf(w + '/') === 0) return true;
+    }
+    return false;
+  }
+  function fromSpeech(transcript, simId) {
+    var txt = String(transcript == null ? '' : transcript).toLowerCase().replace(/[“”"]/g, '').replace(/[.!?,]+$/, '').replace(/\s+/g, ' ').trim();
+    if (!txt) return null;
+    var vt = txt.replace(/^(hey |ok |okay )?(lab )?muse[,.]? /, '').replace(/^please /, '').replace(/[,.]? please$/, '');
+    for (var i = 0; i < SPOKEN_VERBS.length; i++) if (SPOKEN_VERBS[i][0].test(vt)) return { line: SPOKEN_VERBS[i][1], verb: true };
+    var line = ' ' + txt + ' ';
+    SPOKEN_RULES.forEach(function (r) { line = line.replace(r[0], r[1]); });
+    line = line.replace(/\b(zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/g, function (w) { return String(NUMBER_WORDS[w]); }).replace(/(\.ya?ml)\//g, '$1 /').trim();
+    var p = PACKS[simId], toks = line.split(/\s+/).filter(Boolean);
+    if (p) {
+      var words = vocab(p), changed = true;
+      /* "mv/etc/…" → "mv /etc/…" when the part before the first slash is a whole command word of this drill. */
+      toks = toks.join(' ').split(' ').reduce(function (acc, w) {
+        var i2 = w.indexOf('/'), head = w.slice(0, i2);
+        if (i2 > 0 && /^[a-z]+$/.test(head) && /^(mv|cp|ls|cat|sudo)$/.test(head)) return acc.concat([head, w.slice(i2)]);
+        return acc.concat([w]);
+      }, []);
+      while (changed) {
+        changed = false;
+        for (var k = 0; k + 1 < toks.length; k++) {
+          var a = toks[k], b = toks[k + 1];
+          var cand = b.charAt(0) === '-' && b.charAt(1) !== '-' ? a + b : (/^[0-9a-z]/.test(b) ? a + '-' + b : null);
+          var tail = cand ? (/=/.test(a) ? cand.slice(cand.indexOf('=') + 1) : cand.split('/').pop()) : '';
+          if (cand && (a.charAt(0) !== '-' || /=/.test(a)) && tail.length > 1 && inVocab(words, tail) && !(words.indexOf(a) >= 0 && words.indexOf(b) >= 0 && b.charAt(0) !== '-')) {
+            toks.splice(k, 2, cand); changed = true; break;
+          }
+        }
+      }
+    }
+    line = toks.join(' ');
+    return line ? { line: line, verb: false } : null;
+  }
+
   /** Tab completion over the pack's example commands + lab verbs. */
   function complete(simId, prefix) {
     var p = PACKS[simId]; if (!p) return [];
@@ -897,7 +1754,7 @@
   }
 
   return {
-    VERSION: '1.1.0',
+    VERSION: '1.2.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,
@@ -914,6 +1771,7 @@
     coach: coach,
     focusLabel: focusLabel,
     relatedEvents: relatedEvents,
-    complete: complete
+    complete: complete,
+    fromSpeech: fromSpeech
   };
 });

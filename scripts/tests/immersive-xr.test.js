@@ -27,10 +27,12 @@ function load(navigator = {}) {
 }
 const plain = (o) => JSON.parse(JSON.stringify(o));
 
-test('exports v1.10.0 (v1.8.0 HUD + v1.9.0 CLI lab + v1.10.0 coach) with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
+test('exports v1.11.0 (v1.8.0 HUD + v1.9.0 CLI lab + v1.10.0 coach + v1.11.0 CLI review cards / voice input) with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
   const API = load();
-  assert.equal(API.version, '1.10.0');
+  assert.equal(API.version, '1.11.0');
   assert.equal(API.cliLab, true);
+  assert.equal(API.cliReviewCards, true);
+  assert.equal(API.cliVoiceInput, true);
   assert.equal(API.webxr, true);
   assert.deepEqual(plain(API.xr.modes), { vr: 'immersive-vr', ar: 'immersive-ar' });
   assert.match(API.xr.honesty, /WebXR over the authored glTF/);
@@ -162,7 +164,7 @@ test('curriculum manifest declares the WebXR entry honestly (no hosted cluster /
   assert.deepEqual(x.referenceSpaces, ['local-floor', 'local']);
   assert.match(x.honesty, /not Unreal Pixel Streaming, not a hosted cluster/);
   assert.match(x.honesty, /not a physical headset/);
-  assert.match(m.sims.player, /v1\.10\.0/);
+  assert.match(m.sims.player, /v1\.11\.0/);
 });
 
 

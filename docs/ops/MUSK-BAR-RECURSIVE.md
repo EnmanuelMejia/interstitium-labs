@@ -1,7 +1,54 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-19 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-20 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-20 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Stack hygiene first | Checked | #41 and #42 have no review comments or requested changes; nothing to fix. Pre-existing CodeQL alerts on #24 test files are untouched and listed for Enmanuel. |
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? The CLI lab covers 5 of 13 drills — and **none** of these core CKA hands-on topics (Services & Networking, Storage, Cluster Architecture): NetworkPolicy, RBAC (`kubectl auth can-i --as`), storage reclaim and Ingress. The LF exam moved to **Kubernetes v1.37**; Killercoda's kubeadm environments move to 1.37 on 2026-10-25; killer.sh ships 17+17 questions on 1.37 with "Brain score analysis". Meanwhile a step the coach had to rescue is simply forgotten. The coach diagnoses but does not remember. **No.** |
+| After this ship | **Closer / still NO** | **Four new CLI packs** (`il-immersive-cli.js` v1.2.0, now 9 packs / 23 tasks / 99 steps): NetworkPolicy (lab YAML files + `kubectl apply -f`, in-pod `curl` / `nslookup` probes, `describe networkpolicy`, a non-enforcing flannel CNI), RBAC (`auth can-i … --as alice` / `--as system:serviceaccount:dev:ci-bot` with kubectl's exit codes, real Forbidden messages, role / rolebinding / clusterrolebinding), storage (`patch pv` → Retain → Released, `pvc-protection` Terminating, default-class annotation) and the Ingress API (curl 7 / 404 / 503 / 200 / 60 from the rules engine, `pathType` JSON patch, EndpointSlices + selector, TLS secret). Every step has a tip that never contains its command and a focus regex on real `.glb` nodes (tested). **Coach-driven review cards** (review v1.2.0 + player v1.11.0): a step you needed `solution` for, or failed `check` on twice, becomes a Leitner card in the existing on-device queue; `/immersive/review/` re-mounts the authored scene, replays the earlier steps, and makes you **type** the step again. **Voice-to-command** (Web Speech recognition, feature-checked, hidden when unsupported): say "check" / "hint", or speak a command and it lands normalised in the prompt. |
+| Fake YES risk | Rejected | Still a **simulated shell** over the in-browser rules engine; the Ingress pack says ingress-nginx was retired (2026-03-24) and that it covers the Ingress API only, not Gateway API. Review cards are Leitner boxes on this device, not FSRS and not a model. Voice uses the browser's own recogniser (some vendors process audio server-side — the page says so); Interstitium receives no audio or transcript, and spoken commands are **never auto-run**. Analytics: `immersive_cli_review_card` (sim/task/step/how) and `immersive_cli_voice` (sim/kind/ok) — never command text or transcripts. No hosted fleet, no live UE host. |
+
+## Scorecard (0–10) — 2026-10-20
+
+| Dimension | Prior (10-19) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.7 | **9.75** | Type a NetworkPolicy and watch the untrusted path go dark in the authored scene; say "check" and Lab Muse answers |
+| Live labs density | 8.2 | **8.6** | 23 verified CLI tasks over 9 drills (was 11 over 5), now incl. NetworkPolicy / RBAC / storage / Ingress — still simulated, capped by blocker C |
+| Adaptive learning | 9.2 | **9.5** | Coach rescues become spaced cards; review re-serves the exact step in 3D with replayed context and grades the typed answer |
+| Honesty / trust | 10.0 | 10.0 | Retired-controller note, never-auto-run voice, no transcript/command analytics (all tested) |
+| Accessibility | 9.0 | **9.2** | Optional speech input for the terminal (hidden when unsupported); keyboard path unchanged; reduced-motion keeps all 9 terminals |
+| Curriculum SoT | 9.7 | 9.7 | Manifest `sims.cli` (9 packs, `reviewCards`, `voice`, analytics) checked against the runtime by tests |
+| Immersive / 3D gate | 10.0 | 10.0 | Review cards re-open the authored `.glb`, not a flat flashcard |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins: a Gateway API pack (HTTPRoute / GatewayClass on the ingress scene — the successor the exam and KodeKloud now teach); CLI packs for the remaining drills (CNI, ConfigMap/Secret propagation, mesh mTLS); a killer.sh-style per-domain score breakdown fed by CLI cards; spoken commands inside WebXR sessions.
+
+## Competitor delta (2026-10-20, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| Linux Foundation CKA ([cert page](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/), [FAQ](https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks)) | The real performance exam — now on **Kubernetes v1.37** ([v1.37 release, 2026-08-26](https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/)) | IL's simulated shell reports v1.37.1 and drills the exam's hands-on verbs (`auth can-i --as`, NetworkPolicy, PV reclaim, Ingress) in 3D |
+| killer.sh ([FAQ](https://killer.sh/faq), [CKA](https://killer.sh/cka)) | Official simulator on 1.37, 17+17 questions, real remote desktop, per-question "Brain score analysis" | Two timed sessions; no 3D, no spaced re-serve of the exact step you missed |
+| Killercoda ([creators](https://killercoda.com/creators)) | Free real kubeadm terminals; kubeadm envs move 1.36 → 1.37 on 2026-10-25 (rapid images already 1.37); Brain LLM coach | Terminal-only; IL coach is deterministic, points at the 3D node, and now turns rescues into spaced cards and accepts voice |
+| KodeKloud ([CKA course](https://kodekloud.com/courses/cka-certification-course-certified-kubernetes-administrator)) | Real labs at scale; Gateway API course; KodeKey AI playground | CKA course labs were last upgraded to 1.35 (2026-04-10 per the course page); no spatial model, no voice into the lab terminal |
+| Ingress landscape ([ingress-nginx statement](https://kubernetes.io/blog/2026/01/29/ingress-nginx-statement/), [retirement notice](https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/), [Ingress2Gateway 1.0](https://kubernetes.io/blog/2026/03/20/ingress2gateway-1-0-release/)) | — | IL's Ingress pack states the 2026-03-24 retirement and covers the Ingress API only; a Gateway API pack is the next honest step |
+
+Not re-checked this pass: Pluralsight Cloud+ / ACG, ngrok webernetes (see 10-19 rows below).
+
+## Shipped this pass (2026-10-20)
+
+1. **CLI packs** — `il-immersive-cli.js` v1.2.0: `netpol-isolation` (lock-api · egress-dns · flannel), `rbac-authz` (least-privilege · cluster-scope · revoke), `storage-csi` (retain-data · pvc-protection · no-default-sc), `ingress-routing` (exact-404 · no-endpoints · tls); lab files (`ls`, `cat`, `kubectl apply|delete -f`); COACH tips + focus regexes for all 57 new steps; help lists lab files and pack notes; reported version → v1.37.1.
+2. **Coach-driven review cards** — `il-immersive-review.js` v1.2.0: `cliCheckpoints()`, `recordCli()`, `cliScenarioId()` / `parseCli()`; due CLI cards join `queue()` (never as top-ups; mastery unchanged); player v1.11.0 `_cliCard()` (once per step per session, free play only) + `cfg.cliReview` stage mode (replay, "your turn", `il-immersive-cli-review` event); `/immersive/review/` renders CLI cards (type the step · "Show the solution (counts as a miss)") and loads the CLI runtime.
+3. **Voice-to-command** — `ILImmersiveCLI.fromSpeech()` (verb phrases, "dash n" → `-n`, "dot", "slash", "colon", "equals", number words, kubectl mishearings, vocabulary snapping per drill) + player **Speak** button (`SpeechRecognition` / `webkitSpeechRecognition`, hidden when absent, honesty note, permission-denied message).
+4. Manifest `sims.cli` v1.2.0 (9 packs, `reviewCards`, `voice`, `ingressNote`, analytics), `sims.review.feeds`, player v1.11.0; `/immersive/` and `/immersive/review/` copy; `IMMERSIVE-3D.md`.
+5. Tests: unit 121 → 137 (new `immersive-cli-packs.test.js`: pack semantics, lab files, `fromSpeech`, CLI cards / queue / mastery, review replay never pre-solves the target step (all 99), analytics shape; the existing tip/focus/solvable loops now cover all 9 packs); browser +3 (new packs typed end-to-end with re-tint; coach card → review re-serve → typed pass + give-up; mocked voice path + hidden when unsupported).
+
+---
+
+_Prior pass archived below (2026-10-19)._
 
 ## Verdict — 2026-10-19 Musk-bar pass
 
