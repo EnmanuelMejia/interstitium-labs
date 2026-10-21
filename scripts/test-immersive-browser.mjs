@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -29,6 +29,7 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 await ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
 let failed = 0;
 async function check(name, fn) {
+  if (process.env.IL_ONLY && !name.includes(process.env.IL_ONLY)) return; /* IL_ONLY=<substring> runs a subset locally */
   try { const d = await fn(); console.log('PASS ' + name + (d ? ' — ' + d : '')); }
   catch (e) { failed++; console.error('FAIL ' + name + ': ' + e.message); }
 }
@@ -77,7 +78,7 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
   ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
-  ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['config-propagation', 'missing-key', 'down'],
+  ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['gateway-api', 'no-refgrant', 'degraded'], ['config-propagation', 'missing-key', 'down'],
   ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
@@ -884,7 +885,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 9, 'CLI terminals still mount (9 packs since 2026-10-20)');
+  assert.equal(info.terminals, 11, 'CLI terminals still mount (11 packs since 2026-10-21)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1082,6 +1083,100 @@ await check('Voice-to-command: Speak (SpeechRecognition, mocked) runs lab verbs,
   assert.equal(await h2.locator('.il-immersive__cli-voice-note').count(), 0, 'no voice note when unsupported');
   await c2.close();
   return 'verb ran · command typed (not run) · denial honest · hidden when unsupported';
+});
+
+/* 2026-10-21: Gateway API drill + CLI pack, ConfigMap/Secret CLI pack, official CKA blueprint on exam + review. */
+await check('CLI packs 2026-10-21: Gateway API RefNotPermitted 500 → ReferenceGrant → 200 and ConfigMap volume-vs-env typed end-to-end re-tint authored nodes', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const gw = await cliHost(page, 'gateway-api');
+  assert.match(await gw.locator('.il-immersive__cli-summary').textContent(), /simulated shell/);
+  await gw.locator('[data-il-cli-task="gw-refgrant"]').click();
+  assert.equal(await gw.getAttribute('data-il-cli-task'), 'gw-refgrant:0/5');
+  assert.equal(await gw.getAttribute('data-il-sim-verdict'), 'degraded');
+  const svc0 = () => gw.evaluate(el => { const v = el._ilImmersive._authored.find(x => x.name === 'service-0'); return v && v.simStyle && v.simStyle.tint; });
+  assert.equal(await svc0(), 'deny', 'authored service-0 node shows the unresolved backendRef');
+  const t0 = await tints(gw);
+  await type(gw, 'curl -sI https://shop.example.com/api/v1/orders');
+  assert.match(await logText(gw), /HTTP\/2 500[\s\S]*RefNotPermitted/);
+  await type(gw, 'kubectl describe httproute shop-route');
+  assert.match(await logText(gw), /Reason:\s+RefNotPermitted/);
+  await type(gw, 'hint');
+  assert.doesNotMatch(await logText(gw), /hint →[^\n]*kubectl get referencegrant/, 'tip never prints the command');
+  await type(gw, 'kubectl get referencegrant -n shop-api');
+  await type(gw, 'kubectl apply -f shop-api-refgrant.yaml');
+  assert.equal(await gw.locator('[data-il-sim-toggle="refGrant"]').getAttribute('aria-pressed'), 'true', 'toggle chrome mirrors CLI state');
+  await type(gw, 'curl -sI https://shop.example.com/api/v1/orders');
+  assert.match(await logText(gw), /HTTP\/2 200/);
+  assert.equal(await gw.getAttribute('data-il-cli-task'), 'gw-refgrant:5/5');
+  assert.equal(await gw.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.equal(await svc0(), 'gold');
+  assert.notEqual(await tints(gw), t0, 'typed Gateway API changes re-tint authored glTF nodes');
+  await type(gw, 'help');
+  assert.match(await logText(gw), /lab implementation computed by the rules engine/);
+  await gw.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await gw.screenshot({ path: path.join(shots, 'immersive-cli-gateway-api.png') });
+
+  const cf = await cliHost(page, 'config-propagation');
+  await cf.locator('[data-il-cli-task="volume-vs-env"]').click();
+  assert.equal(await cf.getAttribute('data-il-cli-task'), 'volume-vs-env:0/7');
+  const file = 'kubectl exec deploy/api -- cat /etc/config/LOG_LEVEL', env = 'kubectl exec deploy/api -- printenv LOG_LEVEL';
+  for (const l of [`kubectl patch configmap app-config -p '{"data":{"LOG_LEVEL":"debug"}}'`, file, 'sleep 90', file, env]) await type(cf, l);
+  assert.equal(await cf.getAttribute('data-il-cli-task'), 'volume-vs-env:5/7');
+  assert.equal(await cf.getAttribute('data-il-sim-verdict'), 'stale', 'env still stale → scene says so');
+  const envChip = () => cf.evaluate(el => { const v = el._ilImmersive._authored.find(x => x.name === 'env-chip-1'); return v && v.simStyle && v.simStyle.tint; });
+  assert.equal(await envChip(), 'warn');
+  for (const l of ['kubectl rollout restart deployment/api', env]) await type(cf, l);
+  assert.equal(await cf.getAttribute('data-il-cli-task'), 'volume-vs-env:7/7');
+  assert.equal(await envChip(), 'ok');
+  assert.match(await logText(cf), /simulated, nothing waited/);
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 12 && ev.every(d => !/shop\.example|referencegrant|LOG_LEVEL|app-config|s3cr3t/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'gw-refgrant 5/5 · volume-vs-env 7/7 · ' + ev.length + ' verb-only events';
+});
+
+await check('CKA blueprint: finished paper scores the 5 official domains by weight, names the weakest by points at stake with a 3D drill link; review lobby shows readiness', async () => {
+  const { page, errors } = await open('/immersive/exam/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  assert.match(await page.locator('[data-il-exam-lobby]').textContent(), /11 drills[\s\S]*5 official CNCF CKA domains/);
+  await page.locator('[data-il-exam-start][data-count="5"]').click();
+  await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
+  for (let i = 0; i < 5; i++) {
+    await page.waitForFunction(n => document.querySelector('[data-il-exam-progress]').textContent === 'Q ' + n + '/5', i + 1, { timeout: 30000 });
+    await page.locator('[data-il-exam-option]').first().waitFor({ timeout: 30000 });
+    const k = await keyFor(page, await page.locator('[data-il-exam-q]').textContent());
+    /* Miss the first two, answer the rest correctly. */
+    await page.locator(`[data-il-exam-option="${i < 2 ? (k.answer + 1) % k.n : k.answer}"]`).click();
+  }
+  await page.locator('[data-il-exam-done]:not([hidden])').waitFor({ timeout: 15000 });
+  const rows = page.locator('[data-il-exam-blueprint] tbody tr');
+  assert.equal(await rows.count(), 5, 'one row per official CKA domain');
+  const cells = await rows.evaluateAll(trs => trs.map(tr => [...tr.children].map(td => td.textContent)));
+  assert.deepEqual(cells.map(c => c[1]), ['30%', '25%', '20%', '15%', '10%']);
+  const weakest = await page.locator('html').getAttribute('data-il-exam-weakest-domain');
+  assert.ok(weakest, 'two misses → a weakest domain is named');
+  assert.equal(await page.locator('[data-il-exam-blueprint] tr[data-weakest="1"]').getAttribute('data-il-exam-bp-domain'), weakest);
+  assert.match(await page.locator('[data-il-exam-weakest]').textContent(), new RegExp('Weakest domain by points at stake: ' + weakest.replace(/[&()]/g, '.')));
+  const href = await page.locator('[data-il-exam-weakest-link]').getAttribute('href');
+  assert.match(href, /^\/immersive\/#cka-[a-z-]+$/);
+  assert.match(await page.locator('[data-il-exam-weighted]').textContent(), /Blueprint-weighted score: \d+% over the domains this paper covered \(\d+% of the CKA weight\)/);
+  assert.match(await page.locator('[data-il-exam-blueprint-honesty]').textContent(), /not a predicted CNCF exam score/);
+  await page.locator('[data-il-exam-done]').screenshot({ path: path.join(shots, 'immersive-exam-blueprint.png') });
+  await page.goto(base + '/immersive/review/', { waitUntil: 'load' });
+  await page.locator('[data-il-review-due]').waitFor();
+  assert.equal(await page.locator('[data-il-review-blueprint] tbody tr').count(), 5);
+  const rWeak = await page.locator('html').getAttribute('data-il-review-weakest-domain');
+  assert.ok(rWeak, 'review names a weakest official domain once there is evidence');
+  assert.match(await page.locator('[data-il-review-weakest]').textContent(), /Blueprint-weighted readiness: \d+%\. Biggest gap: /);
+  assert.match(await page.locator('[data-il-review-weakest-link]').getAttribute('href'), /^\/immersive\/#cka-/);
+  const anchorOk = await page.evaluate(async (h) => { const r = await fetch('/immersive/'); const t = await r.text(); return t.includes('id="' + h.split('#')[1] + '"'); }, href);
+  assert.ok(anchorOk, 'weakest-domain link lands on a real 3D drill section');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'exam weakest: ' + weakest + ' · review weakest: ' + rWeak;
 });
 
 await browser.close();

@@ -1,7 +1,29 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-20 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-21 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-21 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? The Ingress pack told learners Gateway API is the successor — and then had **no Gateway API drill**. ConfigMap/Secret propagation had a 3D drill but no terminal. And the exam/review only scored our own fine-grained labels, not the **five official CNCF CKA domains and weights** killer.sh-style score analysis is judged against. **No.** |
+| After this ship | **Closer / still NO** | **Gateway API drill + CLI pack** (new `gateway-api` sim on the authored ingress-gateway `.glb`, 5 predict checkpoints: no controller → Pending, hostname mismatch → 404, Exact path, cross-namespace backendRef without ReferenceGrant → RefNotPermitted 500, missing certificateRefs Secret → TLS failure). **ConfigMap/Secret CLI pack** on the config-propagation drill (volume vs env refresh, `immutable: true` Forbidden, missing key → CreateContainerConfigError, etcd plaintext vs aescbc). CLI now **11 packs / 30 tasks / 136 steps** (was 9 / 23 / 99). **CKA blueprint score** on the exam result and review lobby: the 5 official domains with weights (Troubleshooting 30 · Cluster Architecture 25 · Services & Networking 20 · Workloads & Scheduling 15 · Storage 10), blueprint-weighted %, and the weakest domain by **points at stake** (weight × share missed) with a link into the 3D drill; Lab Muse speaks the biggest gap. |
+| Fake YES risk | Rejected | Still a **simulated shell**; `GatewayClass lab-gw` is a lab implementation, not a live Gateway. The blueprint is "a study signal, not a predicted CNCF exam score" (on-page). Troubleshooting is covered by one drill only — stated in the manifest. No hosted fleet, no live UE host. |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins: a Troubleshooting-weighted CLI pack (kubelet / logs / events — 30% of the CKA, thinnest coverage); CNI/CoreDNS + mesh mTLS packs; HTTPRoute traffic splitting / GRPCRoute.
+
+## Shipped this pass (2026-10-21)
+
+1. `il-immersive-sims.js` v1.4.0 — `gateway-api` sim + exported `gatewayDecide()`; `/immersive/#cka-gateway-api` section.
+2. `il-immersive-cli.js` v1.3.0 — `gateway-api` pack (gw-pending · gw-hostname · gw-refgrant · gw-cert) and `config-propagation` pack (volume-vs-env · immutable · missing-key) with COACH tips (never the command) + glTF focus regexes for all 37 new steps.
+3. `il-immersive-exam.js` v1.2.0 — `BLUEPRINT`, `blueprintScore()`, `examBlueprint()`, `summarize().blueprint`; `il-immersive-review.js` v1.3.0 — `blueprint()` over mastery (unseen = 0) and spoken biggest gap; exam + review boot render the table, weighted score and weakest-domain link.
+4. Manifest (`cert-gateway-api` scene, runtime 1.4.0, cli 1.3.0, exam 1.2.0 + blueprint, review 1.3.0 + blueprint); curriculum-os `lab-sim-gateway-api` (file mirror — Notion row still to sync).
+5. Tests: unit 137 → 150 (new `immersive-gateway-config.test.js`); browser 38 → 41 (gateway sim predict, both new packs typed end-to-end, CKA blueprint on exam + review).
+
+---
+
+_Prior pass archived below (2026-10-20)._
 
 ## Verdict — 2026-10-20 Musk-bar pass
 

@@ -2,6 +2,8 @@
  * Boot the timed CKA mock exam UI (2026-10-12). Depends on ILImmersiveExam + ILImmersiveSims + ScenePlayer.
  * 2026-10-13: optional ILImmersiveReview — finished papers feed the on-device remediation queue,
  * and the "Adaptive" paper focuses the weakest on-device domains.
+ * 2026-10-21: official CNCF CKA blueprint table (5 domains, published weights), blueprint-weighted score over the
+ * covered domains, and a weakest-domain-by-points-at-stake callout that links to that domain's 3D drill.
  * Relative-asset page only; never invents a live cluster or hosted fleet.
  */
 (function () {
@@ -214,12 +216,55 @@
           tb.appendChild(tr);
         });
       }
+      renderBlueprint(summary.blueprint);
       var hon = $('[data-il-exam-honesty]');
       if (hon) hon.textContent = exam.honesty;
       document.documentElement.setAttribute('data-il-exam-finished', summary.passed ? 'pass' : 'fail');
       document.documentElement.setAttribute('data-il-exam-score', String(summary.correct) + '/' + String(summary.total));
       renderHistory();
       renderAdaptiveNote();
+    }
+
+    /* 2026-10-21: official CNCF CKA blueprint — weight per domain, score, points at stake, weakest-domain callout. */
+    function renderBlueprint(bp) {
+      var tb = $('[data-il-exam-blueprint] tbody');
+      if (!tb || !bp) return;
+      tb.textContent = '';
+      bp.rows.forEach(function (r) {
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-il-exam-bp-domain', r.domain);
+        if (bp.weakest && bp.weakest.domain === r.domain) tr.setAttribute('data-weakest', '1');
+        [[r.domain, 'py-1 pr-4'], [r.weight + '%', 'pr-4'], [r.total ? (r.correct + '/' + r.total + ' (' + r.pct + '%)') : 'not on this paper', 'pr-4'],
+          [r.atStake == null ? '—' : String(r.atStake), '']].forEach(function (c) {
+          var td = document.createElement('td'); td.className = c[1]; td.textContent = c[0]; tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+      var w = $('[data-il-exam-weighted]');
+      if (w) {
+        w.textContent = bp.weightedPct == null ? '' : ('Blueprint-weighted score: ' + bp.weightedPct + '% over the domains this paper covered (' + bp.coveragePct + '% of the CKA weight).'
+          + (bp.untested.length ? ' Not on this paper: ' + bp.untested.join(' · ') + '.' : ''));
+        document.documentElement.setAttribute('data-il-exam-weighted-pct', bp.weightedPct == null ? '' : String(bp.weightedPct));
+      }
+      var wk = $('[data-il-exam-weakest]');
+      if (wk) {
+        wk.textContent = '';
+        if (bp.weakest) {
+          wk.appendChild(document.createTextNode('Weakest domain by points at stake: ' + bp.weakest.domain + ' (' + bp.weakest.weight + '% of the CKA, ' + bp.weakest.pct + '% here). '));
+          var a = document.createElement('a');
+          a.className = 'text-cyan';
+          a.href = bp.drill.href;
+          a.setAttribute('data-il-exam-weakest-link', bp.drill.sim);
+          a.textContent = 'Drill it in 3D →';
+          wk.appendChild(a);
+          document.documentElement.setAttribute('data-il-exam-weakest-domain', bp.weakest.domain);
+        } else {
+          wk.textContent = 'No weighted gap on this paper — every covered domain was answered correctly.';
+          document.documentElement.setAttribute('data-il-exam-weakest-domain', '');
+        }
+      }
+      var hn = $('[data-il-exam-blueprint-honesty]');
+      if (hn) hn.textContent = bp.honesty;
     }
 
     function start(opts) {

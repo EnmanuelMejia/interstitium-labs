@@ -1,9 +1,12 @@
 /**
- * IL Immersive Exam v1.1.0 (2026-10-12; adaptive focus 2026-10-13) — timed CKA mock exam over authored 3D sims.
+ * IL Immersive Exam v1.2.0 (2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
  * countdown. Rules engine only — not a live cluster, not killer.sh, not a CNCF exam.
  * Scores + attempt history stay on-device (localStorage il.immersiveExam.v1).
+ *
+ * v1.2.0 (2026-10-21): + gateway-api drill; official CNCF CKA blueprint — every result is also scored per official
+ * domain, weighted by the published exam weights, with the weakest domain chosen by points at stake (weight × miss).
  *
  * Would Elon be impressed by thirteen free-play drills with no exam pressure while
  * KodeKloud ships timed mock exams? No — this is the honest pressure layer on top
@@ -16,7 +19,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -30,7 +33,8 @@
     'rbac-authz',
     'netpol-isolation',
     'cni-network',
-    'ingress-routing'
+    'ingress-routing',
+    'gateway-api'
   ];
 
   var DOMAIN = {
@@ -43,8 +47,71 @@
     'rbac-authz': 'Security',
     'netpol-isolation': 'Networking',
     'cni-network': 'Networking',
-    'ingress-routing': 'Networking'
+    'ingress-routing': 'Networking',
+    'gateway-api': 'Networking'
   };
+
+  /**
+   * v1.2.0 (2026-10-21): the official CNCF CKA blueprint (curriculum domains + exam weights, as published by the Linux
+   * Foundation / CNCF for the current CKA). Every CKA drill maps to exactly ONE official domain — the one its predict
+   * checkpoints exercise most. The fine-grained DOMAIN labels above stay (on-device review cards are keyed by them).
+   */
+  var BLUEPRINT = [
+    { domain: 'Troubleshooting', weight: 30, sims: ['control-plane-failure'] },
+    { domain: 'Cluster Architecture, Installation & Configuration', weight: 25, sims: ['etcd-quorum', 'rbac-authz'] },
+    { domain: 'Services & Networking', weight: 20, sims: ['netpol-isolation', 'cni-network', 'ingress-routing', 'gateway-api'] },
+    { domain: 'Workloads & Scheduling', weight: 15, sims: ['sched-taints', 'hpa-scale', 'config-propagation'] },
+    { domain: 'Storage', weight: 10, sims: ['storage-csi'] }
+  ];
+  var OFFICIAL = {};
+  BLUEPRINT.forEach(function (b) { b.sims.forEach(function (id) { OFFICIAL[id] = b.domain; }); });
+  /** Drill anchors on /immersive/ so a weakest-domain callout can send the learner straight to the 3D scene. */
+  var ANCHOR = {
+    'etcd-quorum': 'cka-etcd', 'control-plane-failure': 'cka-control-plane', 'sched-taints': 'cka-scheduling', 'hpa-scale': 'cka-hpa',
+    'storage-csi': 'cka-storage', 'config-propagation': 'cka-secrets-configmaps', 'rbac-authz': 'cka-rbac', 'netpol-isolation': 'cka-network-policy',
+    'cni-network': 'cka-cni', 'ingress-routing': 'cka-ingress', 'gateway-api': 'cka-gateway-api'
+  };
+
+  /**
+   * Weight per-domain evidence by the official blueprint. scores: { officialDomain: { correct, total } } with
+   * total = number of graded items (exam) or checkpoints (mastery) and correct possibly fractional (mastery share).
+   * Returns rows in blueprint order, weightedPct over EVIDENCED domains only (renormalised — never pretends an
+   * untested domain was passed), coveragePct (blueprint weight that had any evidence), untested domains, and the
+   * weakest domain by points at stake = weight × (1 − pct): a 30% domain at 50% outranks a 10% domain at 0%.
+   */
+  function blueprintScore(scores) {
+    scores = scores || {};
+    var rows = [], wSum = 0, wPct = 0, cover = 0, untested = [], weakest = null;
+    BLUEPRINT.forEach(function (b) {
+      var sc = scores[b.domain] || { correct: 0, total: 0 };
+      var pct = sc.total ? Math.round((sc.correct / sc.total) * 100) : null;
+      var row = { domain: b.domain, weight: b.weight, correct: sc.correct, total: sc.total, pct: pct, sims: b.sims.slice(),
+        atStake: pct == null ? null : Math.round(b.weight * (100 - pct)) / 100 };
+      rows.push(row);
+      if (pct == null) { untested.push(b.domain); return; }
+      wSum += b.weight; wPct += b.weight * pct; cover += b.weight;
+      if (row.atStake > 0 && (!weakest || row.atStake > weakest.atStake || (row.atStake === weakest.atStake && b.weight > weakest.weight))) weakest = row;
+    });
+    return {
+      rows: rows,
+      weightedPct: wSum ? Math.round(wPct / wSum) : null,
+      coveragePct: cover,
+      untested: untested,
+      weakest: weakest,
+      drill: weakest ? { sim: weakest.sims[0], href: '/immersive/#' + (ANCHOR[weakest.sims[0]] || '') } : null,
+      honesty: 'Weights are the published CNCF CKA domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
+    };
+  }
+  /** Official-blueprint view of one graded paper (unanswered items count as incorrect, like the exam). */
+  function examBlueprint(exam) {
+    var sc = {};
+    (exam.items || []).forEach(function (it) {
+      var dom = OFFICIAL[it.simId]; if (!dom) return;
+      var d = sc[dom] || (sc[dom] = { correct: 0, total: 0 });
+      d.total += 1; if (it.correct) d.correct += 1;
+    });
+    return blueprintScore(sc);
+  }
 
   var DEFAULTS = { count: 10, minutes: 15, passPct: 66 };
   /** Share of an adaptive paper drawn from weak-domain sims (rest keeps coverage honest). */
@@ -220,6 +287,7 @@
       passed: pct >= passPct,
       passPct: passPct,
       byDomain: byDomain,
+      blueprint: examBlueprint(exam),
       remainingMs: Math.max(0, (exam.endsAt || 0) - Date.now())
     };
   }
@@ -253,6 +321,11 @@
     STORE_KEY: STORE_KEY,
     CKA_SIMS: CKA_SIMS.slice(),
     DOMAIN: DOMAIN,
+    BLUEPRINT: BLUEPRINT,
+    OFFICIAL: OFFICIAL,
+    ANCHOR: ANCHOR,
+    blueprintScore: blueprintScore,
+    examBlueprint: examBlueprint,
     DEFAULTS: DEFAULTS,
     FOCUS_SHARE: FOCUS_SHARE,
     pool: pool,

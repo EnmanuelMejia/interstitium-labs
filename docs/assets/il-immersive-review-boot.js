@@ -7,6 +7,7 @@
  * speechSynthesis (hidden when unavailable). Review stages also inherit WebXR entry from ScenePlayer v1.7.0.
  * 2026-10-20: coach-driven CLI cards (kind 'cli') re-open their CLI-lab task on the authored stage with the earlier
  * steps replayed; the learner types the step; verified without `solution` = recalled, `solution` / give-up = miss.
+ * 2026-10-21: CKA blueprint readiness table (official CNCF domains + weights) with a weakest-domain callout and 3D drill link.
  */
 (function () {
   'use strict';
@@ -68,6 +69,7 @@
           tb.appendChild(tr);
         });
       }
+      renderBlueprint();
       var q = R.queue(S, { limit: 10 });
       var startBtn = $('[data-il-review-start]');
       if (startBtn) startBtn.textContent = q.length ? ('Start session · ' + q.length + ' card' + (q.length === 1 ? '' : 's')) : 'Nothing to review';
@@ -85,6 +87,40 @@
         why.textContent = parts.length ? ('Next session: ' + parts.join(' · ') + '.') : 'Queue empty.';
       }
     }
+    /* 2026-10-21: CKA blueprint readiness — mastery per official CNCF domain, weighted, weakest by points at stake. */
+    function renderBlueprint() {
+      var tb = $('[data-il-review-blueprint] tbody');
+      var bp = R.blueprint ? R.blueprint(S) : null;
+      if (!tb || !bp) return;
+      tb.textContent = '';
+      bp.rows.forEach(function (r) {
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-il-review-bp-domain', r.domain);
+        if (bp.evidence && bp.weakest && bp.weakest.domain === r.domain) tr.setAttribute('data-weakest', '1');
+        tr.appendChild(td(r.domain, 'py-1 pr-4'));
+        tr.appendChild(td(r.weight + '%', 'pr-4'));
+        tr.appendChild(td(r.pct + '%', 'pr-4'));
+        tr.appendChild(td(r.seen + '/' + r.total, 'pr-4'));
+        tr.appendChild(td(String(r.atStake)));
+        tb.appendChild(tr);
+      });
+      var wk = $('[data-il-review-weakest]');
+      if (wk) {
+        wk.textContent = '';
+        if (!bp.evidence) wk.textContent = 'No evidence on this device yet — every CKA domain counts as 0%. Sit a paper or run a drill. Blueprint-weighted readiness: 0%.';
+        else {
+          wk.appendChild(document.createTextNode('Blueprint-weighted readiness: ' + bp.weightedPct + '%. Biggest gap: ' + bp.weakest.domain + ' (' + bp.weakest.weight + '% of the CKA, ' + bp.weakest.pct + '% mastery). '));
+          var a = document.createElement('a');
+          a.className = 'text-cyan';
+          a.href = bp.drill.href;
+          a.setAttribute('data-il-review-weakest-link', bp.drill.sim);
+          a.textContent = 'Drill it in 3D →';
+          wk.appendChild(a);
+        }
+        document.documentElement.setAttribute('data-il-review-weighted-pct', String(bp.weightedPct == null ? 0 : bp.weightedPct));
+        document.documentElement.setAttribute('data-il-review-weakest-domain', bp.evidence && bp.weakest ? bp.weakest.domain : '');
+      }
+    }
     renderLobby();
 
     /* 2026-10-14: Lab Muse reads the relearn queue aloud — browser Web Speech only (ILMuse.speakText when
@@ -94,7 +130,7 @@
     if (speakBtn && canSpeak) {
       show(speakBtn, true);
       speakBtn.addEventListener('click', function () {
-        var line = R.speakLine(R.stats(), R.queue(S, { limit: 10 }), R.mastery(S));
+        var line = R.speakLine(R.stats(), R.queue(S, { limit: 10 }), R.mastery(S), R.blueprint ? R.blueprint(S) : null);
         var out = $('[data-il-review-spoken]');
         if (out) { out.textContent = '\u201c' + line + '\u201d \u2014 spoken by this browser\u2019s speech synthesis.'; show(out, true); }
         try {

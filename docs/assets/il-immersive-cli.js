@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.2.0 (2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.3.0 (2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -22,6 +22,12 @@
  * from ingressMatch, pathType, EndpointSlices, TLS secret; ingress-nginx retired 2026-03-24 — said in help). Lab files
  * (`ls` / `cat`) stand in for editing YAML. `fromSpeech(transcript, simId)` normalises a spoken utterance into a lab
  * verb or a command line (snapped to the drill's own vocabulary) — the player never auto-runs spoken commands.
+ *
+ * v1.3.0 (2026-10-21) — two more packs (11 total): Gateway API (`gateway-api` on the same authored ingress-gateway.glb:
+ * GatewayClass / Gateway / HTTPRoute / ReferenceGrant get · describe · patch, api-resources, listener conditions,
+ * RefNotPermitted → HTTP 500, InvalidCertificateRef → TLS handshake failure; GatewayClass lab-gw is a lab
+ * implementation, not a vendor) and ConfigMaps & Secrets (`config-propagation`: data patch vs immutable, kubelet sync
+ * via a simulated `sleep`, env vs volume freshness, rollout restart, secretKeyRef missing key, etcdctl get at rest).
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -1290,8 +1296,422 @@
   };
   function S_ingressMatch(path, rules) { var S = Sims(); return S && S.ingressMatch ? S.ingressMatch(path, rules) : null; }
 
+  /* ── v1.3.0 (2026-10-21) pack: Gateway API — GatewayClass · Gateway · HTTPRoute · ReferenceGrant (CKA services & networking) ──
+   * Drives the gateway-api sim on the SAME authored ingress-gateway.glb. Resource names: GatewayClass lab-gw
+   * (controllerName example.net/lab-gateway-controller — a lab implementation, not a vendor), Gateway shop-gw and
+   * HTTPRoute shop-route in default, service-0 in namespace shop-api (cross-namespace backendRef), service-1 in default. */
+  var GW_API = 'gateway.networking.k8s.io';
+  var GW_NOTE = 'Gateway API (' + GW_API + '/v1; ReferenceGrant v1beta1) is the Kubernetes successor to Ingress and a CKA Services & Networking competency. sim: GatewayClass lab-gw is a lab implementation computed by the rules engine — not Envoy Gateway, Istio, Cilium or NGINX Gateway Fabric.';
+  var GW_ROUTE_YAML = ['apiVersion: ' + GW_API + '/v1', 'kind: HTTPRoute', 'metadata:', '  name: shop-route', '  namespace: default', 'spec:', '  parentRefs:', '  - name: shop-gw', '    sectionName: https',
+    '  hostnames:', '  - shop.example.com', '  rules:', '  - matches:', '    - path:', '        type: PathPrefix', '        value: /api', '    backendRefs:', '    - name: service-0', '      namespace: shop-api', '      port: 80',
+    '  - matches:', '    - path:', '        type: PathPrefix', '        value: /web', '    backendRefs:', '    - name: service-1', '      port: 80'];
+  function gwKind(k) {
+    k = String(k || '').toLowerCase().replace(/\.gateway\.networking\.k8s\.io$/, '');
+    if (/^(gc|gatewayclass(es)?)$/.test(k)) return 'gatewayclass';
+    if (/^(gtw|gateways?)$/.test(k)) return 'gateway';
+    if (/^httproutes?$/.test(k)) return 'httproute';
+    if (/^(refgrant|referencegrants?)$/.test(k)) return 'referencegrant';
+    return null;
+  }
+  function S_gatewayDecide(s) { var S = Sims(); return S && S.gatewayDecide ? S.gatewayDecide(s) : null; }
+  var gatewayPack = {
+    sim: 'gateway-api',
+    prompt: 'student@controlplane:~$',
+    note: GW_NOTE,
+    files: {
+      'gateway-controller.yaml': { yaml: ['# Lab stand-in for installing a Gateway API implementation that watches GatewayClass lab-gw', '# (controllerName: example.net/lab-gateway-controller). Real clusters install one first: CRDs + controller + data plane.', '# sim: applying this file flips the class to Accepted in the rules engine. ' + GW_NOTE] },
+      'shop-route.yaml': { yaml: GW_ROUTE_YAML },
+      'shop-api-refgrant.yaml': { yaml: ['apiVersion: ' + GW_API + '/v1beta1', 'kind: ReferenceGrant', 'metadata:', '  name: allow-default-routes', '  namespace: shop-api   # lives in the namespace that owns the TARGET', 'spec:', '  from:', '  - group: ' + GW_API, '    kind: HTTPRoute', '    namespace: default', '  to:', '  - group: ""', '    kind: Service'] }
+    },
+    examples: ['kubectl get gatewayclass', 'kubectl get gateway', 'kubectl describe gateway shop-gw', 'kubectl get httproute', 'kubectl describe httproute shop-route',
+      'kubectl get httproute shop-route -o yaml', 'kubectl get referencegrant -n shop-api', 'curl -sI https://shop.example.com/api/v1/orders',
+      'kubectl api-resources --api-group=gateway.networking.k8s.io', 'cat shop-api-refgrant.yaml', 'kubectl apply -f gateway-controller.yaml',
+      'kubectl patch httproute shop-route --type=json -p \'[{"op":"replace","path":"/spec/rules/0/matches/0/path/type","value":"PathPrefix"}]\'',
+      'kubectl patch httproute shop-route --type=json -p \'[{"op":"replace","path":"/spec/hostnames/0","value":"shop.example.com"}]\'',
+      'kubectl get secret shop-tls', 'kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, g = d.metrics;
+      var fr = fileRun(gatewayPack, t); if (fr) return fr;
+      if (t[0] === 'curl') {
+        var c = curlArgs(t);
+        if (!c.host) return res(['curl: (3) URL rejected: No host part in the URL'], 3);
+        if (c.host !== 'shop.example.com') return res(['curl: (6) Could not resolve host: ' + c.host], 6);
+        if (!s.gwcAccepted) return res(['curl: (7) Failed to connect to shop.example.com port ' + (c.scheme === 'https' ? 443 : 80) + ' after 2 ms: Couldn\'t connect to server', '# sim: shop-gw has no ADDRESS yet — nothing has programmed a data plane for it'], 7, null, ['curl', 'curl-noconnect']);
+        if (c.scheme === 'http') return res(['curl: (7) Failed to connect to shop.example.com port 80 after 1 ms: Couldn\'t connect to server', '# sim: shop-gw has a single HTTPS listener (port 443)'], 7, null, ['curl', 'curl-http-nolistener']);
+        if (!s.certRef) return res(['curl: (35) OpenSSL/3.0.13: error:0A000410:SSL routines::ssl/tls alert handshake failure', '# sim: listener https is not programmed (certificateRefs unresolved) — -k does not help; there is no fallback certificate'], 35, null, ['curl', 'curl-tls-fail']);
+        var r = s.routeAttached ? S_ingressMatch(c.path, [{ path: '/api', type: s.routeExact ? 'Exact' : 'Prefix', svc: 0 }, { path: '/web', type: 'Prefix', svc: 1 }]) : null;
+        var code = !r ? 404 : (r.svc === 0 && !s.refGrant ? 500 : 200);
+        var ev = ['curl', 'curl-' + code];
+        if (code === 200) ev.push(c.insecure ? 'curl-200-insecure' : 'curl-200-verified');
+        var why = !s.routeAttached ? 'no HTTPRoute is attached for this host (NoMatchingListenerHostname)' : (!r ? 'no rule matched → 404' : (code === 500 ? 'backendRef ' + 'shop-api/service-0 not permitted (RefNotPermitted) → 500' : 'rule ' + r.path + ' → service-' + r.svc));
+        var body = code === 200 ? '{"service":"service-' + r.svc + '","path":"' + c.path + '"}' : (code === 404 ? 'fault filter abort' : 'no healthy upstream');
+        var out;
+        if (c.w && /http_code/.test(c.w)) out = [String(code)];
+        else if (c.head || c.include) {
+          out = ['HTTP/2 ' + code, 'content-type: ' + (code === 200 ? 'application/json' : 'text/plain'), 'x-sim-note: computed by the rules engine (' + why + ')'];
+          if (c.include && !c.head) out.push('', body);
+        } else out = [body];
+        return res(out, c.fail && code >= 400 ? 22 : 0, null, ev);
+      }
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t), out2 = flag(t, ['-o', '--output']);
+      var rawKind = args[0] || '', name = args[1] || '';
+      if (/\//.test(rawKind)) { name = rawKind.split('/')[1]; rawKind = rawKind.split('/')[0]; }
+      var kind = gwKind(rawKind);
+      if (verb === 'api-resources') {
+        var grp = flag(t, '--api-group');
+        if (grp && grp !== GW_API) return res(['sim: this drill models `kubectl api-resources --api-group=' + GW_API + '`'], 2);
+        return res(table([['NAME', 'SHORTNAMES', 'APIVERSION', 'NAMESPACED', 'KIND'], ['gatewayclasses', 'gc', GW_API + '/v1', 'false', 'GatewayClass'], ['gateways', 'gtw', GW_API + '/v1', 'true', 'Gateway'],
+          ['grpcroutes', '', GW_API + '/v1', 'true', 'GRPCRoute'], ['httproutes', '', GW_API + '/v1', 'true', 'HTTPRoute'], ['referencegrants', 'refgrant', GW_API + '/v1beta1', 'true', 'ReferenceGrant']]), 0, null, ['api-resources']);
+      }
+      if (kind === 'gatewayclass' && (verb === 'get' || verb === 'describe')) {
+        if (name && name !== 'lab-gw') return notFound('gatewayclasses.' + GW_API, name);
+        var acc = s.gwcAccepted ? 'True' : 'Unknown';
+        if (verb === 'get') return res(table([['NAME', 'CONTROLLER', 'ACCEPTED', 'AGE'], ['lab-gw', 'example.net/lab-gateway-controller', acc, '12d']]), 0, null, ['get-gc', s.gwcAccepted ? 'get-gc-accepted' : 'get-gc-unknown']);
+        return res(['Name:         lab-gw', 'API Version:  ' + GW_API + '/v1', 'Kind:         GatewayClass', 'Spec:', '  Controller Name:  example.net/lab-gateway-controller', 'Status:', '  Conditions:',
+          '    Type:     Accepted', '    Status:   ' + acc, '    Reason:   ' + (s.gwcAccepted ? 'Accepted' : 'Pending'), '    Message:  ' + (s.gwcAccepted ? 'Handled by example.net/lab-gateway-controller' : 'Waiting for controller')], 0, null, ['describe-gc', s.gwcAccepted ? 'get-gc-accepted' : 'get-gc-unknown']);
+      }
+      if (kind && verb === 'get' && ns !== 'default' && ns !== '*' && !(kind === 'referencegrant' && ns === 'shop-api')) {
+        return res(['No resources found in ' + ns + ' namespace.'], 0, null, kind === 'referencegrant' ? ['get-refgrant-wrongns'] : []);
+      }
+      if (kind === 'gateway' && verb === 'get') {
+        if (name && name !== 'shop-gw') return notFound('gateways.' + GW_API, name);
+        if (out2 && /yaml/.test(out2)) {
+          return res(['apiVersion: ' + GW_API + '/v1', 'kind: Gateway', 'metadata:', '  name: shop-gw', '  namespace: default', 'spec:', '  gatewayClassName: lab-gw', '  listeners:', '  - name: https', '    protocol: HTTPS', '    port: 443', '    hostname: shop.example.com',
+            '    tls:', '      mode: Terminate', '      certificateRefs:', '      - name: shop-tls', '    allowedRoutes:', '      namespaces:', '        from: Same', 'status:', '  # read conditions with: kubectl describe gateway shop-gw'], 0, null, ['gw-yaml']);
+        }
+        var row = ['shop-gw', 'lab-gw', g.address || '', g.gatewayProgrammed, '12d'];
+        return res(table([(ns === '*' ? ['NAMESPACE'] : []).concat(['NAME', 'CLASS', 'ADDRESS', 'PROGRAMMED', 'AGE']), (ns === '*' ? ['default'] : []).concat(row)]), 0, null,
+          ['get-gw', g.gatewayProgrammed === 'Unknown' ? 'get-gw-pending' : (g.gatewayProgrammed === 'True' ? 'get-gw-programmed' : 'get-gw-notprogrammed')]);
+      }
+      if (kind === 'gateway' && verb === 'describe') {
+        if (name !== 'shop-gw') return notFound('gateways.' + GW_API, name || '');
+        var pend = !s.gwcAccepted;
+        var L = ['Name:         shop-gw', 'Namespace:    default', 'API Version:  ' + GW_API + '/v1', 'Kind:         Gateway', 'Spec:', '  Gateway Class Name:  lab-gw', '  Listeners:', '    Name:      https', '    Hostname:  shop.example.com', '    Port:      443', '    Protocol:  HTTPS',
+          '    Tls:', '      Mode:  Terminate', '      Certificate Refs:', '        Kind:  Secret', '        Name:  shop-tls', 'Status:', '  Addresses:' + (g.address ? '' : '  <none>')];
+        if (g.address) L.push('    Type:   IPAddress', '    Value:  ' + g.address);
+        L.push('  Conditions:', '    Type:    Accepted', '    Status:  ' + (pend ? 'Unknown' : 'True'), '    Reason:  ' + (pend ? 'Pending' : 'Accepted'),
+          '    Type:    Programmed', '    Status:  ' + g.gatewayProgrammed, '    Reason:  ' + (pend ? 'Pending' : (s.certRef ? 'Programmed' : 'Invalid')));
+        if (pend) L.push('  Listeners:  <none — no controller has reconciled this Gateway>');
+        else {
+          L.push('  Listeners:', '    Name:             https', '    Attached Routes:  ' + (s.routeAttached ? 1 : 0), '    Conditions:',
+            '      Type:     ResolvedRefs', '      Status:   ' + (s.certRef ? 'True' : 'False'), '      Reason:   ' + (s.certRef ? 'ResolvedRefs' : 'InvalidCertificateRef'));
+          if (!s.certRef) L.push('      Message:  Secret default/shop-tls does not exist');
+          L.push('      Type:     Programmed', '      Status:   ' + (s.certRef ? 'True' : 'False'), '      Reason:   ' + (s.certRef ? 'Programmed' : 'Invalid'));
+        }
+        L.push('Events:       <none>');
+        return res(L, 0, null, ['describe-gw', pend ? 'describe-gw-pending' : (s.certRef ? 'describe-gw-ok' : 'describe-gw-certref')]);
+      }
+      if (kind === 'httproute' && verb === 'get') {
+        if (name && name !== 'shop-route') return notFound('httproutes.' + GW_API, name);
+        var host = s.routeAttached ? 'shop.example.com' : 'shop.example.org';
+        if (out2 && /yaml|jsonpath/.test(out2)) {
+          var mt = s.routeExact ? 'Exact' : 'PathPrefix';
+          if (/jsonpath/.test(out2)) {
+            if (/hostnames/.test(out2)) return res([host], 0, null, ['route-hostnames']);
+            if (!/path\.type/.test(out2)) return res(['sim: this drill models jsonpath on .spec.hostnames and .spec.rules[*].matches[*].path.type'], 2);
+            return res([/\[\*\]/.test(out2) ? mt + ' PathPrefix' : mt], 0, null, ['route-yaml', 'route-match-' + mt.toLowerCase()]);
+          }
+          var y = GW_ROUTE_YAML.slice();
+          y[10] = '  - ' + host;
+          y[14] = '        type: ' + mt;
+          y = y.concat(['status:', '  parents:', '  - parentRef: { name: shop-gw, sectionName: https }', '    controllerName: example.net/lab-gateway-controller', '    # conditions: kubectl describe httproute shop-route']);
+          return res(y, 0, null, ['route-yaml', 'route-match-' + mt.toLowerCase(), s.routeAttached ? 'route-hostnames' : 'route-hostnames-mismatch']);
+        }
+        return res(table([(ns === '*' ? ['NAMESPACE'] : []).concat(['NAME', 'HOSTNAMES', 'AGE']), (ns === '*' ? ['default'] : []).concat(['shop-route', '["' + host + '"]', '12d'])]), 0, null, ['get-route']);
+      }
+      if (kind === 'httproute' && verb === 'describe') {
+        if (name !== 'shop-route') return notFound('httproutes.' + GW_API, name || '');
+        var R = ['Name:         shop-route', 'Namespace:    default', 'API Version:  ' + GW_API + '/v1', 'Kind:         HTTPRoute', 'Spec:', '  Hostnames:', '    ' + (s.routeAttached ? 'shop.example.com' : 'shop.example.org'),
+          '  Parent Refs:', '    Name:          shop-gw', '    Section Name:  https', '  Rules:', '    Matches:  Path ' + (s.routeExact ? 'Exact' : 'PathPrefix') + ' /api   Backend Refs:  shop-api/service-0:80',
+          '    Matches:  Path PathPrefix /web   Backend Refs:  service-1:80', 'Status:', '  Parents:'];
+        var evs = ['describe-route'];
+        if (!s.gwcAccepted) { R.push('    <none — no controller has processed this route yet>'); evs.push('describe-route-pending'); }
+        else {
+          R.push('    Controller Name:  example.net/lab-gateway-controller', '    Parent Ref:       shop-gw (sectionName https)', '    Conditions:',
+            '      Type:     Accepted', '      Status:   ' + (s.routeAttached ? 'True' : 'False'), '      Reason:   ' + (s.routeAttached ? 'Accepted' : 'NoMatchingListenerHostname'));
+          if (!s.routeAttached) R.push('      Message:  no listener hostname intersects the route hostnames (listener https: shop.example.com)');
+          R.push('      Type:     ResolvedRefs', '      Status:   ' + (s.refGrant ? 'True' : 'False'), '      Reason:   ' + (s.refGrant ? 'ResolvedRefs' : 'RefNotPermitted'));
+          if (!s.refGrant) R.push('      Message:  backendRef shop-api/service-0 is in another namespace and no ReferenceGrant allows it');
+          if (!s.routeAttached) evs.push('describe-route-hostname');
+          if (!s.refGrant) evs.push('describe-route-refnotpermitted');
+          if (s.routeAttached && s.refGrant) evs.push('describe-route-ok');
+        }
+        R.push('Events:       <none>');
+        return res(R, 0, null, evs);
+      }
+      if (kind === 'referencegrant' && verb === 'get') {
+        if (ns !== 'shop-api' && ns !== '*') return res(['No resources found in ' + ns + ' namespace.', '# sim: a ReferenceGrant lives in the namespace that owns the target'], 0, null, ['get-refgrant-wrongns']);
+        if (!s.refGrant) return res(['No resources found in ' + (ns === '*' ? 'any' : 'shop-api') + ' namespace.'], 0, null, ['get-refgrant', 'get-refgrant-none']);
+        return res(table([(ns === '*' ? ['NAMESPACE'] : []).concat(['NAME', 'AGE']), (ns === '*' ? ['shop-api'] : []).concat(['allow-default-routes', '3m'])]), 0, null, ['get-refgrant', 'get-refgrant-ok']);
+      }
+      if (kind === 'referencegrant' && verb === 'delete') {
+        if (ns !== 'shop-api' || name !== 'allow-default-routes' || !s.refGrant) return notFound('referencegrants.' + GW_API, name);
+        return res(['referencegrant.' + GW_API + ' "allow-default-routes" deleted'], 0, { refGrant: false }, ['delete-refgrant']);
+      }
+      if (kind === 'httproute' && verb === 'patch') {
+        if (name !== 'shop-route') return notFound('httproutes.' + GW_API, name);
+        var jj = jsonArg(t); if (jj.err) return jj.err;
+        var type = flag(t, '--type');
+        if (type === 'merge' && jj.v && jj.v.spec && Array.isArray(jj.v.spec.hostnames)) {
+          var okm = jj.v.spec.hostnames.indexOf('shop.example.com') >= 0;
+          return res(['httproute.' + GW_API + '/shop-route patched'], 0, { routeAttached: okm }, ['patch-route', okm ? 'route-hostname-fixed' : 'route-hostname-broken']);
+        }
+        var ops = Array.isArray(jj.v) ? jj.v : null;
+        if (type !== 'json' || !ops) return res(['sim: this drill models JSON patches on /spec/hostnames/0 and /spec/rules/0/matches/0/path/type (or --type=merge on spec.hostnames)'], 2);
+        var set = {}, evp = ['patch-route'];
+        ops.forEach(function (o) {
+          if (o.op !== 'replace' && o.op !== 'add') return;
+          if (o.path === '/spec/hostnames/0' || o.path === '/spec/hostnames') { var hv = Array.isArray(o.value) ? o.value : [o.value]; set.routeAttached = hv.indexOf('shop.example.com') >= 0; evp.push(set.routeAttached ? 'route-hostname-fixed' : 'route-hostname-broken'); }
+          if (o.path === '/spec/rules/0/matches/0/path/type' && (o.value === 'Exact' || o.value === 'PathPrefix')) { set.routeExact = o.value === 'Exact'; evp.push('route-match-set-' + o.value.toLowerCase()); }
+        });
+        if (evp.length === 1) {
+          if (ops.some(function (o) { return o.path === '/spec/rules/0/matches/0/path/type'; })) return res(['The HTTPRoute "shop-route" is invalid: spec.rules[0].matches[0].path.type: Unsupported value: ' + JSON.stringify(ops[0].value) + ': supported values: "Exact", "PathPrefix", "RegularExpression"'], 1);
+          return res(['sim: this drill models JSON patches on /spec/hostnames/0 and /spec/rules/0/matches/0/path/type'], 2);
+        }
+        return res(['httproute.' + GW_API + '/shop-route patched'], 0, set, evp);
+      }
+      if ((verb === 'apply' || verb === 'delete' || verb === 'create') && hasFlag(t, ['-f', '--filename'])) {
+        var a = applyFile(gatewayPack, t); if (a.err) return a.err;
+        if (a.name === 'gateway-controller.yaml') {
+          if (verb === 'delete') return s.gwcAccepted ? res(['(sim) lab gateway controller removed — lab-gw goes back to Pending'], 0, { gwcAccepted: false }, ['controller-removed']) : res(['Error from server (NotFound): deployments.apps "lab-gateway-controller" not found'], 1);
+          return res(s.gwcAccepted ? ['deployment.apps/lab-gateway-controller unchanged'] : ['namespace/lab-gateway-system created', 'deployment.apps/lab-gateway-controller created', '(sim) lab-gw Accepted · shop-gw Programmed at 203.0.113.20'], 0, s.gwcAccepted ? null : { gwcAccepted: true }, ['controller-installed']);
+        }
+        if (a.name === 'shop-api-refgrant.yaml') {
+          if (verb === 'delete') return s.refGrant ? res(['referencegrant.' + GW_API + ' "allow-default-routes" deleted'], 0, { refGrant: false }, ['delete-refgrant']) : notFound('referencegrants.' + GW_API, 'allow-default-routes');
+          return res(['referencegrant.' + GW_API + '/allow-default-routes ' + (s.refGrant ? 'unchanged' : 'created')], 0, { refGrant: true }, ['apply-refgrant']);
+        }
+        if (verb === 'delete') return res(['sim: deleting shop-route is not modelled in this drill'], 2);
+        var same = s.routeAttached && !s.routeExact;
+        return res(['httproute.' + GW_API + '/shop-route ' + (same ? 'unchanged' : 'configured')], 0, { routeAttached: true, routeExact: false }, ['apply-route']);
+      }
+      if (verb === 'get' && /^secrets?$/.test(rawKind)) {
+        if (name && name !== 'shop-tls') return notFound('secrets', name);
+        if (!s.certRef) return name ? res(['Error from server (NotFound): secrets "shop-tls" not found'], 1, null, ['get-secret-missing']) : res(['No resources found in default namespace.'], 0, null, ['get-secret-missing']);
+        return res(table([['NAME', 'TYPE', 'DATA', 'AGE'], ['shop-tls', 'kubernetes.io/tls', '2', '5d']]), 0, null, ['get-secret', 'get-secret-ok']);
+      }
+      if (verb === 'create' && args[0] === 'secret' && args[1] === 'tls') {
+        if (args[2] !== 'shop-tls' || !flag(t, '--cert') || !flag(t, '--key')) return res(['sim: this drill models `kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key`'], 2);
+        if (s.certRef) return res(['error: failed to create secret secrets "shop-tls" already exists'], 1);
+        return res(['secret/shop-tls created'], 0, { certRef: true }, ['create-secret-tls']);
+      }
+      if (verb === 'delete' && /^secrets?$/.test(rawKind)) {
+        if (name !== 'shop-tls' || !s.certRef) return notFound('secrets', name);
+        return res(['secret "shop-tls" deleted'], 0, { certRef: false }, ['delete-secret-tls']);
+      }
+      if (verb === 'get' && /^(ing|ingress(es)?)$/.test(rawKind)) return res(['No resources found in default namespace.', '# sim: this drill routes with Gateway API (Gateway + HTTPRoute), not an Ingress — see the Ingress drill for the Ingress API'], 0);
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl patch (see `help`)'], 2);
+      return unmodelled(t.join(' '), gatewayPack.examples);
+    },
+    tasks: [
+      { id: 'gw-pending', title: 'Gateway with no ADDRESS',
+        goal: 'shop.example.com does not answer. Follow Gateway → GatewayClass to the missing controller, install it, and get a 200.',
+        setup: { gwcAccepted: false, routeAttached: true, routeExact: false, refGrant: true, certRef: true },
+        steps: [
+          { label: 'Reproduce: nothing answers on shop.example.com', event: 'curl-noconnect', hint: 'curl -sI https://shop.example.com/api/v1/orders' },
+          { label: 'See shop-gw with no ADDRESS and PROGRAMMED Unknown', event: 'get-gw-pending', hint: 'kubectl get gateway' },
+          { label: 'Find that GatewayClass lab-gw was never Accepted', event: 'get-gc-unknown', hint: 'kubectl get gatewayclass' },
+          { label: 'Install the implementation for lab-gw (lab file stands in for the install)', state: function (s) { return !!s.gwcAccepted; }, hint: 'kubectl apply -f gateway-controller.yaml' },
+          { label: 'GET /api/v1/orders answers 200', event: 'curl-200', hint: 'curl -sI https://shop.example.com/api/v1/orders' }
+        ] },
+      { id: 'gw-hostname', title: '404: the route never attached',
+        goal: 'The Gateway is Programmed, yet every path 404s. Read the HTTPRoute’s parent status and fix its hostname.',
+        setup: { gwcAccepted: true, routeAttached: false, routeExact: false, refGrant: true, certRef: true },
+        steps: [
+          { label: 'Reproduce the 404', event: 'curl-404', hint: 'curl -sI https://shop.example.com/api/v1/orders' },
+          { label: 'Read the parent status: Accepted False, NoMatchingListenerHostname', event: 'describe-route-hostname', hint: 'kubectl describe httproute shop-route' },
+          { label: 'Make the route hostname match the listener (shop.example.com)', state: function (s) { return !!s.routeAttached; }, hint: 'kubectl patch httproute shop-route --type=json -p \'[{"op":"replace","path":"/spec/hostnames/0","value":"shop.example.com"}]\'' },
+          { label: 'GET /api/v1/orders answers 200', event: 'curl-200', hint: 'curl -sI https://shop.example.com/api/v1/orders' }
+        ] },
+      { id: 'gw-refgrant', title: '500: cross-namespace backendRef not permitted',
+        goal: '/api answers 500 while /web works. Find the ResolvedRefs reason, find what is missing in shop-api, and grant it.',
+        setup: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: false, certRef: true },
+        steps: [
+          { label: 'Reproduce the 500', event: 'curl-500', hint: 'curl -sI https://shop.example.com/api/v1/orders' },
+          { label: 'Read ResolvedRefs False, RefNotPermitted', event: 'describe-route-refnotpermitted', hint: 'kubectl describe httproute shop-route' },
+          { label: 'Find that ns shop-api has no ReferenceGrant', event: 'get-refgrant-none', hint: 'kubectl get referencegrant -n shop-api' },
+          { label: 'Grant HTTPRoutes in default access to Services in shop-api', state: function (s) { return !!s.refGrant; }, hint: 'kubectl apply -f shop-api-refgrant.yaml' },
+          { label: 'GET /api/v1/orders answers 200', event: 'curl-200', hint: 'curl -sI https://shop.example.com/api/v1/orders' }
+        ] },
+      { id: 'gw-cert', title: 'TLS handshake fails: listener certificateRefs',
+        goal: 'HTTPS to shop.example.com fails before any HTTP. Read the listener conditions, find the missing Secret, create it, verify without -k.',
+        setup: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: true, certRef: false },
+        steps: [
+          { label: 'See the TLS handshake fail', event: 'curl-tls-fail', hint: 'curl -sI https://shop.example.com/api' },
+          { label: 'Read listener https: ResolvedRefs False, InvalidCertificateRef', event: 'describe-gw-certref', hint: 'kubectl describe gateway shop-gw' },
+          { label: 'Find that Secret shop-tls does not exist', event: 'get-secret-missing', hint: 'kubectl get secret shop-tls' },
+          { label: 'Create the kubernetes.io/tls Secret', state: function (s) { return !!s.certRef; }, hint: 'kubectl create secret tls shop-tls --cert=shop.crt --key=shop.key' },
+          { label: 'HTTPS verifies (no -k) and answers 200', event: 'curl-200-verified', hint: 'curl -sI https://shop.example.com/api' }
+        ] }
+    ]
+  };
+
+  /* ── v1.3.0 (2026-10-21) pack: ConfigMaps & Secrets — propagation · immutable · missing key (CKA workloads & scheduling) ──
+   * Drives config-propagation on secrets-configmaps.glb. Deployment api (pod api-7c9d8-x2k4q) mounts ConfigMap app-config
+   * as a volume at /etc/config AND reads LOG_LEVEL via configMapKeyRef; DB_PASS comes from secretKeyRef db-creds/password.
+   * `sleep N` (N ≥ 60) stands in for waiting out the kubelet sync period — the sim skips time, it does not wait. */
+  var CFG_POD = ['api-7c9d8-x2k4q', 'api-5f6b7-q8w2n'];
+  function cfgPodName(s) { return s.restarted ? CFG_POD[1] : CFG_POD[0]; }
+  function cfgVal(on) { return on ? 'debug' : 'info'; }
+  var configPack = {
+    sim: 'config-propagation',
+    prompt: 'student@controlplane:~$',
+    examples: ['kubectl get configmap', 'kubectl get configmap app-config -o yaml', 'kubectl exec deploy/api -- cat /etc/config/LOG_LEVEL', 'kubectl exec deploy/api -- printenv LOG_LEVEL',
+      'kubectl patch configmap app-config -p \'{"data":{"LOG_LEVEL":"debug"}}\'', 'sleep 90', 'kubectl rollout restart deployment/api', 'kubectl rollout status deployment/api',
+      'kubectl get pods', 'kubectl describe pods -l app=api', 'kubectl get secret db-creds', 'kubectl describe secret db-creds',
+      'kubectl patch secret db-creds -p \'{"stringData":{"password":"s3cr3t-lab"}}\'', 'ETCDCTL_API=3 etcdctl get /registry/secrets/default/db-creds'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      if (t[0] === 'sleep') {
+        var n = parseInt(t[1], 10);
+        if (!(n >= 0)) return res(['sleep: missing operand'], 1);
+        if (n < 60) return res(['# sim: ' + n + ' s passed — the kubelet has probably not re-synced projected volumes yet (sync period + cache TTL, often 60–90 s)'], 0, null, ['sleep', 'sleep-short']);
+        return res(['# sim: skipped ' + n + ' s — kubelet sync period + ConfigMap cache TTL elapsed (time is simulated, nothing waited)'], 0, { synced: true }, ['sleep', 'sleep-synced']);
+      }
+      if (t[0] === 'etcdctl') {
+        var keyArg = positional(t.slice(1), ['--endpoints', '-w', '--write-out', '--cacert', '--cert', '--key']);
+        if (keyArg[0] !== 'get' || !/^\/registry\/secrets\/default\/db-creds$/.test(keyArg[1] || '')) return res(['sim: this drill models `etcdctl get /registry/secrets/default/db-creds`'], 2);
+        if (s.encryptAtRest) return res(['/registry/secrets/default/db-creds', 'k8s:enc:aescbc:v1:key1:\u00b7\u00b7\u00b7(ciphertext)\u00b7\u00b7\u00b7'], 0, null, ['etcd-get', 'etcd-encrypted']);
+        return res(['/registry/secrets/default/db-creds', 'k8s\u0000\n\u0010\n\u0002v1\u0012\u0006Secret\u0012\u2026 db-creds \u2026 username\u0012\u0005admin' + (s.keyMissing ? '' : ' \u2026 password\u0012\ns3cr3t-lab') + ' \u2026 Opaque',
+          '# sim: no EncryptionConfiguration — Secret data sits in etcd unencrypted (base64 in the API is encoding, not encryption)'], 0, null, ['etcd-get', 'etcd-plaintext']);
+      }
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['--from-literal'])), out2 = flag(t, ['-o', '--output']);
+      var rawKind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(rawKind)) { name = rawKind.split('/')[1]; rawKind = rawKind.split('/')[0]; }
+      var isCm = /^(cm|configmaps?)$/.test(rawKind), isSecret = /^secrets?$/.test(rawKind);
+      var deleted = !!ctx.vars.cmDeleted;
+      if (isCm && verb === 'get') {
+        if (name && name !== 'app-config') return notFound('configmaps', name);
+        if (deleted) return name ? notFound('configmaps', 'app-config') : res(table([['NAME', 'DATA', 'AGE'], ['kube-root-ca.crt', '1', '41d']]), 0, null, ['get-cm-list']);
+        if (out2 && /yaml/.test(out2)) {
+          var y = ['apiVersion: v1', 'data:', '  LOG_LEVEL: ' + cfgVal(m.editApplied)];
+          if (s.immutable) y.push('immutable: true');
+          y = y.concat(['kind: ConfigMap', 'metadata:', '  name: app-config', '  namespace: default']);
+          return res(y, 0, null, ['get-cm', s.immutable ? 'get-cm-immutable' : 'get-cm-mutable']);
+        }
+        if (out2 && /jsonpath/.test(out2)) return res([/immutable/.test(out2) ? String(!!s.immutable) : cfgVal(m.editApplied)], 0, null, ['get-cm', s.immutable ? 'get-cm-immutable' : 'get-cm-mutable']);
+        return res(table([['NAME', 'DATA', 'AGE'], ['app-config', '1', '4d'], ['kube-root-ca.crt', '1', '41d']].filter(function (r) { return !name || r[0] === 'NAME' || r[0] === name; })), 0, null, ['get-cm-list']);
+      }
+      if (isCm && verb === 'patch') {
+        if (name !== 'app-config') return notFound('configmaps', name);
+        if (deleted) return notFound('configmaps', 'app-config');
+        var j = jsonArg(t); if (j.err) return j.err;
+        var lv = j.v && j.v.data && j.v.data.LOG_LEVEL;
+        if (lv !== 'debug' && lv !== 'info') return res(['sim: this drill models data.LOG_LEVEL = "debug" | "info" on app-config'], 2);
+        if (s.immutable) return res(['The ConfigMap "app-config" is invalid: data: Forbidden: field is immutable when `immutable` is set'], 1, { cmEdited: true }, ['cm-patch-rejected']);
+        return res(['configmap/app-config patched'], 0, { cmEdited: lv === 'debug', synced: false, restarted: false }, ['cm-patched']);
+      }
+      if (isCm && verb === 'delete') {
+        if (name !== 'app-config' || deleted) return notFound('configmaps', name);
+        ctx.vars.cmDeleted = true;
+        return res(['configmap "app-config" deleted', '# sim: running pods keep the last projected copy; new pods would fail to start until it exists again'], 0, null, ['cm-deleted']);
+      }
+      if (verb === 'create' && (rawKind === 'configmap' || rawKind === 'cm')) {
+        if (name !== 'app-config') return res(['sim: this drill models `kubectl create configmap app-config --from-literal=LOG_LEVEL=debug`'], 2);
+        if (!deleted) return res(['error: failed to create configmap: configmaps "app-config" already exists'], 1);
+        var lit = /^LOG_LEVEL=(debug|info)$/.exec(String(flag(t, '--from-literal') || ''));
+        if (!lit) return res(['sim: this drill models --from-literal=LOG_LEVEL=debug'], 2);
+        ctx.vars.cmDeleted = false;
+        return res(['configmap/app-config created'], 0, { immutable: false, cmEdited: lit[1] === 'debug', synced: false, restarted: false }, ['cm-created']);
+      }
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl patch (see `help`)'], 2);
+      if (verb === 'rollout') {
+        var target = (args[1] || '').replace(/^(deploy|deployments?)(\.apps)?\//, ''), sub = args[0];
+        if (/^(deploy|deployments?)(\.apps)?$/.test(args[1] || '')) target = args[2] || '';
+        if (target !== 'api') return res(['sim: this drill models `kubectl rollout restart|status deployment/api`'], 2);
+        if (sub === 'restart') return res(['deployment.apps/api restarted'], 0, { restarted: true }, ['rollout-restart']);
+        if (sub === 'status') return s.keyMissing ? res(['Waiting for deployment "api" rollout to finish: 0 of 1 updated replicas are available...', '# sim: the new pod cannot start (CreateContainerConfigError)'], 1, null, ['rollout-status', 'rollout-stuck'])
+          : res(['deployment "api" successfully rolled out'], 0, null, ['rollout-status', 'rollout-ok']);
+        return res(['sim: this drill models `kubectl rollout restart|status deployment/api`'], 2);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(rawKind)) {
+        var st = s.keyMissing ? ['0/1', 'CreateContainerConfigError'] : ['1/1', 'Running'];
+        return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [cfgPodName(s), st[0], st[1], '0', s.restarted ? '20s' : '2m']]), 0, null, ['get-pods', s.keyMissing ? 'get-pods-configerror' : 'get-pods-running']);
+      }
+      if (verb === 'describe' && /^(pods?|po)$/.test(rawKind)) {
+        var sel = flag(t, ['-l', '--selector']);
+        if (!(sel === 'app=api' || (name && name.indexOf('api') === 0))) return notFound('pods', name || String(sel || ''));
+        var L = ['Name:         ' + cfgPodName(s), 'Namespace:    default', 'Labels:       app=api', 'Status:       ' + (s.keyMissing ? 'Pending' : 'Running'), 'Containers:', '  api:',
+          '    State:      ' + (s.keyMissing ? 'Waiting' : 'Running'), s.keyMissing ? '      Reason:   CreateContainerConfigError' : '      Started:  ' + (s.restarted ? '20s ago' : '2m ago'),
+          '    Environment:', '      LOG_LEVEL:  <set to the key \'LOG_LEVEL\' of config map \'app-config\'>', '      DB_PASS:    <set to the key \'password\' in secret \'db-creds\'>',
+          '    Mounts:', '      /etc/config from config (ro)', 'Volumes:', '  config:', '    Type:  ConfigMap (a volume populated by a ConfigMap)', '    Name:  app-config', 'Events:'];
+        if (s.keyMissing) L.push('  Warning  Failed  12s (x6 over 1m)  kubelet  Error: couldn\'t find key password in Secret default/db-creds');
+        else L.push('  Normal   Started  ' + (s.restarted ? '20s' : '2m') + '  kubelet  Started container api');
+        return res(L, 0, null, ['describe-pod', s.keyMissing ? 'describe-pod-missingkey' : 'describe-pod-ok']);
+      }
+      if (isSecret && (verb === 'get' || verb === 'describe')) {
+        if (name && name !== 'db-creds') return notFound('secrets', name);
+        if (verb === 'get') return res(table([['NAME', 'TYPE', 'DATA', 'AGE'], ['db-creds', 'Opaque', s.keyMissing ? '1' : '2', '4d']]), 0, null, ['get-secret', s.keyMissing ? 'get-secret-nokey' : 'get-secret-ok']);
+        var D = ['Name:         db-creds', 'Namespace:    default', 'Type:  Opaque', '', 'Data', '====', 'username:  5 bytes'];
+        if (!s.keyMissing) D.push('password:  10 bytes');
+        return res(D, 0, null, ['describe-secret', s.keyMissing ? 'describe-secret-nokey' : 'describe-secret-ok']);
+      }
+      if (isSecret && verb === 'patch') {
+        if (name !== 'db-creds') return notFound('secrets', name);
+        var js = jsonArg(t); if (js.err) return js.err;
+        var pw = js.v && ((js.v.stringData && js.v.stringData.password) || (js.v.data && js.v.data.password));
+        if (!pw) return res(['sim: this drill models adding stringData.password (or base64 data.password) to db-creds'], 2);
+        return res(['secret/db-creds patched'], 0, { keyMissing: false }, ['secret-patched']);
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        if (ex.ns !== 'default' || ex.target.indexOf('api') !== 0) return res(['Error from server (NotFound): deployments.apps "' + ex.target + '" not found (this lab has deployment api in default)'], 1, null, ['not-found']);
+        if (s.keyMissing) return res(['error: unable to upgrade connection: container not found ("api")'], 1, null, ['exec-nocontainer']);
+        var bin = ex.cmd[0];
+        if (bin === 'cat' && /^\/etc\/config\/LOG_LEVEL$/.test(ex.cmd[1] || '')) {
+          var fresh = m.editApplied && m.volumeFresh;
+          return res([cfgVal(fresh)], 0, null, ['exec-file', m.editApplied ? (fresh ? 'file-debug' : 'file-stale') : 'file-info']);
+        }
+        if ((bin === 'printenv' && ex.cmd[1] === 'LOG_LEVEL') || (bin === 'sh' && /\$LOG_LEVEL/.test(ex.cmd.join(' ')))) {
+          var efresh = m.editApplied && m.envFresh;
+          return res([cfgVal(efresh)], 0, null, ['exec-env', m.editApplied ? (efresh ? 'env-debug' : 'env-stale') : 'env-info']);
+        }
+        if (bin === 'ls' && /^\/etc\/config\/?$/.test(ex.cmd[1] || '')) return res(['LOG_LEVEL'], 0, null, ['exec-ls']);
+        return res(['sim: inside the api container this drill models cat /etc/config/LOG_LEVEL, ls /etc/config and printenv LOG_LEVEL'], 2);
+      }
+      return unmodelled(t.join(' '), configPack.examples);
+    },
+    tasks: [
+      { id: 'volume-vs-env', title: 'Edit a ConfigMap: the file updates, the env var does not',
+        goal: 'Set LOG_LEVEL=debug in app-config, watch the mounted file pick it up after the kubelet sync while the env var stays stale, then roll the pods.',
+        setup: { cmEdited: false, synced: false, subPath: false, immutable: false, restarted: false, keyMissing: false },
+        steps: [
+          { label: 'Set LOG_LEVEL=debug in ConfigMap app-config', state: function (s, d) { return d.metrics.editApplied; }, hint: 'kubectl patch configmap app-config -p \'{"data":{"LOG_LEVEL":"debug"}}\'' },
+          { label: 'Read the mounted file at once — still info', event: 'file-stale', hint: 'kubectl exec deploy/api -- cat /etc/config/LOG_LEVEL' },
+          { label: 'Let the kubelet sync period pass (simulated)', state: function (s) { return !!s.synced; }, hint: 'sleep 90' },
+          { label: 'The mounted file now says debug', event: 'file-debug', hint: 'kubectl exec deploy/api -- cat /etc/config/LOG_LEVEL' },
+          { label: 'The env var still says info', event: 'env-stale', hint: 'kubectl exec deploy/api -- printenv LOG_LEVEL' },
+          { label: 'Roll the Deployment so new pods start', state: function (s, d) { return !!s.restarted && d.metrics.editApplied; }, hint: 'kubectl rollout restart deployment/api' },
+          { label: 'The new pod’s env says debug', event: 'env-debug', hint: 'kubectl exec deploy/api -- printenv LOG_LEVEL' }
+        ] },
+      { id: 'immutable', title: 'Immutable ConfigMap: delete, recreate, roll',
+        goal: 'app-config is immutable. See the API reject the edit, confirm why, then replace it and roll the pods so they read debug.',
+        setup: { cmEdited: false, synced: false, subPath: false, immutable: true, restarted: false, keyMissing: false },
+        steps: [
+          { label: 'Try to set LOG_LEVEL=debug and see it rejected', event: 'cm-patch-rejected', hint: 'kubectl patch configmap app-config -p \'{"data":{"LOG_LEVEL":"debug"}}\'' },
+          { label: 'Confirm immutable: true on the object', event: 'get-cm-immutable', hint: 'kubectl get configmap app-config -o yaml' },
+          { label: 'Delete the immutable ConfigMap', event: 'cm-deleted', hint: 'kubectl delete configmap app-config' },
+          { label: 'Recreate it with LOG_LEVEL=debug', state: function (s, d) { return d.metrics.editApplied; }, hint: 'kubectl create configmap app-config --from-literal=LOG_LEVEL=debug' },
+          { label: 'Roll the Deployment', state: function (s, d) { return !!s.restarted && d.metrics.editApplied; }, hint: 'kubectl rollout restart deployment/api' },
+          { label: 'The new pod’s env says debug', event: 'env-debug', hint: 'kubectl exec deploy/api -- printenv LOG_LEVEL' }
+        ] },
+      { id: 'missing-key', title: 'CreateContainerConfigError: a Secret key is missing',
+        goal: 'The api pod never starts. Read the kubelet’s reason, find the missing key in db-creds, add it, and watch the pod start.',
+        setup: { cmEdited: false, synced: false, subPath: false, immutable: false, restarted: false, keyMissing: true },
+        steps: [
+          { label: 'See the pod stuck in CreateContainerConfigError', event: 'get-pods-configerror', hint: 'kubectl get pods' },
+          { label: 'Read the kubelet event: couldn’t find key password', event: 'describe-pod-missingkey', hint: 'kubectl describe pods -l app=api' },
+          { label: 'Confirm db-creds has no password key', event: 'describe-secret-nokey', hint: 'kubectl describe secret db-creds' },
+          { label: 'Add the password key to db-creds', state: function (s) { return !s.keyMissing; }, hint: 'kubectl patch secret db-creds -p \'{"stringData":{"password":"s3cr3t-lab"}}\'' },
+          { label: 'The pod is Running (the kubelet retried on its own)', event: 'get-pods-running', hint: 'kubectl get pods' }
+        ] }
+    ]
+  };
+
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -1457,6 +1877,62 @@
         ['spec.tls names a Secret. Ask for that Secret by name.', '^(rule-2|tls-terminate)$'],
         ['kubectl has a dedicated generator for kubernetes.io/tls Secrets; the cert and key files are in your home directory.', '^(rule-2|tls-terminate)$'],
         ['Repeat the HTTPS request — still without the insecure flag.', '^(tls-terminate|client-1|req-1-[0-3])$']
+      ]
+    },
+    /* v1.3.0 (2026-10-21) */
+    'gateway-api': {
+      'gw-pending': [
+        ['Request the orders URL over HTTPS and read what curl reports.', '^(client-0|req-0-[0-3])$'],
+        ['List the Gateways in the default namespace and read the ADDRESS and PROGRAMMED columns.', '^ingress-controller$'],
+        ['A Gateway names a class, and the class names a controller. Is that class Accepted?', '^ingress-controller$'],
+        ['Nothing reconciles lab-gw yet. A ready-made manifest in your home directory stands in for installing an implementation — read it, then apply it.', '^ingress-controller$'],
+        ['Request the orders URL again.', '^(client-0|route-0-[0-4]|service-0)$']
+      ],
+      'gw-hostname': [
+        ['Request the orders URL and read only the status line.', '^(client-0|req-0-[0-3])$'],
+        ['Attachment is reported per parent in the route’s own status — describe the HTTPRoute.', '^rule-2$'],
+        ['A route attaches only where its hostnames intersect the listener’s (shop.example.com). A JSON patch can replace the first hostname.', '^rule-2$'],
+        ['Request the orders URL once more.', '^(client-0|route-0-[0-4])$']
+      ],
+      'gw-refgrant': [
+        ['Request the orders URL and read the status code — it is neither 404 nor 503.', '^(client-0|req-0-[0-3])$'],
+        ['Describe the route and read the ResolvedRefs condition and its reason.', '^(rule-0|service-0)$'],
+        ['A cross-namespace reference is allowed by an object in the namespace that owns the target. Look there.', '^service-0$'],
+        ['Apply the ready-made grant from your home directory (read it first: from HTTPRoute in default, to Service).', '^(service-0|rule-0)$'],
+        ['Request the orders URL again.', '^(ep-[01]-[0-2]|endpoint-pod-[01])$']
+      ],
+      'gw-cert': [
+        ['Request the /api URL over HTTPS and read curl’s error number.', '^(tls-terminate|client-1)$'],
+        ['Listener health lives in the Gateway’s status — describe it and read the https listener’s conditions.', '^tls-terminate$'],
+        ['certificateRefs names a Secret. Ask for that Secret by name.', '^(tls-terminate|rule-2)$'],
+        ['kubectl has a dedicated generator for kubernetes.io/tls Secrets; the cert and key files are in your home directory.', '^tls-terminate$'],
+        ['Repeat the HTTPS request without the insecure flag.', '^(tls-terminate|client-1|req-1-[0-3])$']
+      ]
+    },
+    'config-propagation': {
+      'volume-vs-env': [
+        ['Change the LOG_LEVEL key of app-config to debug with a merge patch on its data.', '^(configmap-app-config|configmap-sheet-0)$'],
+        ['Read the file the volume projects into the container, right away.', '^(volume-configmap|edge-configmap-mount)$'],
+        ['The kubelet refreshes projected ConfigMap volumes on its sync loop — let about a minute and a half pass.', '^kubelet-led$'],
+        ['Read the mounted file again.', '^volume-configmap$'],
+        ['Now print the environment variable inside the container.', '^env-chip-1$'],
+        ['Env vars are resolved at container start. Make the Deployment replace its pods.', '^(container-app|pod-boundary)$'],
+        ['Print the environment variable once more.', '^env-chip-1$']
+      ],
+      'immutable': [
+        ['Try the same data patch you would use on any ConfigMap and read the API server’s answer.', '^configmap-app-config$'],
+        ['Read the ConfigMap back as YAML and look below data.', '^configmap-app-config$'],
+        ['An immutable ConfigMap can only be deleted and recreated. Remove it (running pods keep their copy).', '^configmap-app-config$'],
+        ['Create it again from a literal, with the new value.', '^(configmap-app-config|configmap-sheet-0)$'],
+        ['Existing containers never re-read env vars. Replace the pods.', '^(container-app|pod-boundary)$'],
+        ['Print the environment variable inside the container.', '^env-chip-1$']
+      ],
+      'missing-key': [
+        ['List the pods and read the STATUS column.', '^(pod-boundary|container-app)$'],
+        ['The kubelet writes its reason into the pod’s Events — describe the api pod by its label.', '^(env-chip-0|container-app)$'],
+        ['Describe the Secret the env var references; describe lists key names and sizes, never values.', '^(secret-db-creds|secret-key-[0-2])$'],
+        ['Add the missing key with a patch on stringData (the API server base64-encodes it into data).', '^(secret-db-creds|secret-key-1)$'],
+        ['List the pods again — the kubelet retries container creation on its own.', '^(pod-boundary|container-app|env-chip-0)$']
       ]
     }
   };
@@ -1754,7 +2230,7 @@
   }
 
   return {
-    VERSION: '1.2.0',
+    VERSION: '1.3.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

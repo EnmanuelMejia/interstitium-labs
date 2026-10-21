@@ -118,7 +118,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/lecture-k8s-control-plane.glb","webgpu":true}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-gold/30 bg-ink/40 p-6">
+  <section class="mt-12 rounded-xl border border-gold/30 bg-ink/40 p-6" id="cka-etcd">
     <h2 class="font-display text-xl text-gold">CKA etcd quorum (immersive exceed)</h2>
     <p class="mt-2 text-sm text-muted">Honest KodeKloud delta: authored <code translate="no" class="text-cyan">cka-etcd-quorum.glb</code> — 3-member raft + API front + exam prompt. Not a hosted exam fleet. Pair with <a class="text-cyan" href="/labs/#noah-live-assist">Noah Live Assist</a> on labs.</p>
     <p class="mt-2 text-sm text-muted"><strong class="text-paper">Interactive (2026-10-06):</strong> kill members or the leader, predict whether writes survive, then watch the scene re-tint — quorum math is the real Raft rule (floor(n/2)+1), computed in-browser.</p>
@@ -165,6 +165,14 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="Ingress gateway" data-il-scene="k8s" data-il-sim="ingress-routing"
       data-gltf="/assets/immersive/ingress-gateway.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-ingress","sim":"ingress-routing"}'></div>
+  </section>
+
+  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6" id="cka-gateway-api">
+    <h2 class="font-display text-xl text-cyan">CKA Gateway API (3D exceed, 2026-10-21)</h2>
+    <p class="mt-2 text-sm text-muted">Same authored <code translate="no" class="text-cyan">ingress-gateway.glb</code>, read as Gateway API: the proxy is the Gateway&rsquo;s data plane, the TLS node is the HTTPS listener, the rules are an HTTPRoute with a cross-namespace backendRef. <strong class="text-paper">Interactive:</strong> take the GatewayClass controller away (Pending, no ADDRESS), point the route at a hostname no listener serves (NoMatchingListenerHostname &rarr; 404), drop the ReferenceGrant (RefNotPermitted &rarr; 500), delete the listener&rsquo;s certificate Secret (InvalidCertificateRef &rarr; TLS handshake fails), flip PathPrefix &harr; Exact. Open the <strong class="text-paper">CLI lab</strong> for four typed tasks over <code translate="no">gatewayclass</code> / <code translate="no">gateway</code> / <code translate="no">httproute</code> / <code translate="no">referencegrant</code>. Rules engine and simulated shell &mdash; GatewayClass <code translate="no">lab-gw</code> is a lab implementation, not a live Gateway or a vendor controller. No new asset.</p>
+    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Gateway API" data-il-scene="k8s" data-il-sim="gateway-api"
+      data-gltf="/assets/immersive/ingress-gateway.glb"
+      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-gateway-api","sim":"gateway-api"}'></div>
   </section>
 
   <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6" id="cka-hpa">
