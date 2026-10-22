@@ -29,11 +29,11 @@ function session(sim, taskId) {
   };
 }
 
-test('exports v1.3.0 with an honest simulated-shell label and packs only for sims that exist', () => {
-  assert.equal(C.VERSION, '1.3.0');
+test('exports v1.4.0 with an honest simulated-shell label and packs only for sims that exist', () => {
+  assert.equal(C.VERSION, '1.4.0');
   assert.match(C.honesty, /Simulated shell/);
   assert.match(C.honesty, /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
-  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'config-propagation', 'control-plane-failure', 'etcd-quorum', 'gateway-api', 'hpa-scale', 'ingress-routing', 'netpol-isolation', 'rbac-authz', 'sched-taints', 'storage-csi']);
+  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'config-propagation', 'control-plane-failure', 'etcd-quorum', 'gateway-api', 'hpa-scale', 'ingress-routing', 'netpol-isolation', 'node-troubleshoot', 'rbac-authz', 'sched-taints', 'storage-csi']);
   for (const id of C.list()) {
     assert.ok(S.get(id), id + ' has a rules-engine sim');
     const p = C.pack(id);
@@ -241,7 +241,7 @@ test('manifest declares the CLI lab honestly and matches the runtime packs', () 
   for (const p of c.packs) assert.deepEqual(p.tasks, C.pack(p.sim).tasks.map(t => t.id));
   assert.match(c.honesty, /Not a real shell, container, cluster, AWS account or hosted lab fleet/);
   assert.match(c.analytics[0], /never the raw command text/);
-  assert.match(m.sims.player, /v1\.11\.0/);
+  assert.match(m.sims.player, /v1\.12\.0/);
   assert.ok(c.analytics.every(a => !/raw command text/.test(a) || /never/.test(a)));
   assert.match(c.analytics.find(a => /immersive_cli_review_card/.test(a)), /never command text/);
   assert.match(c.analytics.find(a => /immersive_cli_voice/.test(a)), /never the transcript/);

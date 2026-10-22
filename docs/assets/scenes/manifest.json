@@ -1,7 +1,7 @@
 {
   "v": 5,
-  "updated": "2026-10-20T09:30:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions.",
+  "updated": "2026-10-22T09:30:00-04:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions. 2026-10-22: NEW authored asset node-troubleshoot.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the worker-node troubleshooting drill \u2014 the first new .glb since 2026-10-06.",
   "engines": [
     "webgl",
     "webgpu",
@@ -239,6 +239,20 @@
       "gallery": "/immersive/#cka-control-plane",
       "sim": "control-plane-failure",
       "note": "Reuses the lecture control-plane glTF; no new asset."
+    },
+    {
+      "id": "cert-node-troubleshoot",
+      "kind": "cert",
+      "gltf": "/assets/immersive/node-troubleshoot.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-node-troubleshoot",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-22",
+      "gallery": "/immersive/#cka-node-troubleshoot",
+      "sim": "node-troubleshoot",
+      "note": "NEW asset 2026-10-22: worker-node cutaway (systemd \u2192 kubelet \u2192 CRI socket \u2192 containerd \u2192 CNI conf, node Lease, eviction-ranked pods, nodefs gauge, journald). Kit-v2 meshes + Blender CLI polish \u2014 not hand-sculpted."
     }
   ],
   "scaffolds": {
@@ -261,7 +275,8 @@
       "network-policy",
       "secrets-configmaps",
       "scheduling",
-      "control-plane"
+      "control-plane",
+      "node-troubleshoot"
     ],
     "interactive": [
       "etcd-quorum",
@@ -275,7 +290,8 @@
       "config-propagation",
       "cni-network",
       "mesh-mtls",
-      "control-plane-failure"
+      "control-plane-failure",
+      "node-troubleshoot"
     ],
     "hostedFleet": false,
     "liveUnrealHost": false,
@@ -284,7 +300,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.11.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (11 packs) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
+    "player": "/assets/il-immersive-3d.js (v1.12.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (12 packs; host-aware prompt for ssh sessions) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -299,7 +315,8 @@
       "config-propagation",
       "cni-network",
       "mesh-mtls",
-      "control-plane-failure"
+      "control-plane-failure",
+      "node-troubleshoot"
     ],
     "predictThenReveal": true,
     "analytics": [
@@ -308,7 +325,7 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.4.0",
+    "runtime_version": "1.5.0",
     "exam": {
       "runtime": "/assets/il-immersive-exam.js",
       "boot": "/assets/il-immersive-exam-boot.js",
@@ -332,7 +349,7 @@
         "mapping": "each CKA drill \u2192 one official domain (ILImmersiveExam.BLUEPRINT / OFFICIAL)",
         "score": "per official domain on the finished paper; blueprint-weighted % renormalised over the domains the paper covered (coverage % shown; untested domains listed, never counted as passed)",
         "weakest": "domain with the most points at stake = weight \u00d7 (1 \u2212 score); links to that domain's 3D drill",
-        "honesty": "Published CKA weights over this device's answers on in-browser 3D drills \u2014 a study signal, not a predicted CNCF exam score. Troubleshooting is covered by one drill today (control-plane-failure)."
+        "honesty": "Published CKA weights over this device's answers on in-browser 3D drills \u2014 a study signal, not a predicted CNCF exam score. Troubleshooting is covered by two drills since 2026-10-22 (control-plane-failure, node-troubleshoot)."
       }
     },
     "review": {
@@ -386,8 +403,8 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.3.0",
-      "player": "il-immersive-3d.js v1.11.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
+      "version": "1.4.0",
+      "player": "il-immersive-3d.js v1.12.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
       "packs": [
         {
           "sim": "etcd-quorum",
@@ -479,6 +496,16 @@
             "missing-key"
           ],
           "since": "2026-10-21"
+        },
+        {
+          "sim": "node-troubleshoot",
+          "tasks": [
+            "kubelet-203",
+            "runtime-down",
+            "cni-missing",
+            "disk-pressure"
+          ],
+          "since": "2026-10-22"
         }
       ],
       "syntax": [
@@ -498,7 +525,8 @@
         "fault \u2026 (lab-only fault injection verb, e.g. fault cni flannel)",
         "kubectl get / describe gatewayclass \u00b7 gateway \u00b7 httproute \u00b7 referencegrant; kubectl api-resources --api-group=gateway.networking.k8s.io; kubectl patch httproute (hostnames, path match type)",
         "kubectl get / patch / delete / create configmap; kubectl get / describe / patch secret (stringData); kubectl rollout restart|status; kubectl exec \u2026 -- cat / printenv; etcdctl get /registry/secrets/\u2026",
-        "sleep N (N \u2265 60 skips the kubelet sync period \u2014 simulated time, nothing waits)"
+        "sleep N (N \u2265 60 skips the kubelet sync period \u2014 simulated time, nothing waits)",
+        "ssh node-01 (session; `exit` returns) or ssh node-01 CMD; systemctl status|start|stop|restart|enable --now|daemon-reload kubelet|containerd; journalctl -u kubelet; cat / sed -i 's|old|new|' on the kubeadm kubelet drop-in; which kubelet; crictl ps|images|rmi --prune; df -h; ls /etc/cni/net.d; kubectl describe node; kubectl rollout restart daemonset calico-node -n kube-system"
       ],
       "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
       "ux": [
@@ -544,7 +572,8 @@
         "behaviour": "lab verbs (check, hint, solution, task, reset, clear, help) run directly; spoken commands are normalised (\"dash n\" \u2192 -n, \"dot\" \u2192 ., snapped to this drill's vocabulary) into the input for you to check and press Enter \u2014 never auto-run",
         "honesty": "Uses the browser's own speech recognition (some browsers send audio to their vendor's speech service). Interstitium receives no audio or transcript. Not an LLM."
       },
-      "gatewayNote": "Gateway API pack (2026-10-21) drives the gateway-api sim on the same authored ingress-gateway.glb. GatewayClass lab-gw (controllerName example.net/lab-gateway-controller) is a lab implementation computed by the rules engine \u2014 not Envoy Gateway, Istio, Cilium or NGINX Gateway Fabric, and not a live Gateway."
+      "gatewayNote": "Gateway API pack (2026-10-21) drives the gateway-api sim on the same authored ingress-gateway.glb. GatewayClass lab-gw (controllerName example.net/lab-gateway-controller) is a lab implementation computed by the rules engine \u2014 not Envoy Gateway, Istio, Cilium or NGINX Gateway Fabric, and not a live Gateway.",
+      "nodeNote": "Worker-node pack (2026-10-22) drives node-troubleshoot on the NEW authored node-troubleshoot.glb. systemd, journald, crictl, df and sed output is computed from sim state (shaped like the real tools, not byte-identical; journal lines are labelled representative). No VM, no real kubelet, no clock: durations such as node-monitor-grace-period and the 300s eviction toleration are explained, not simulated."
     }
   },
   "aws_coverage": {

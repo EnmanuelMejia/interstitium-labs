@@ -324,7 +324,7 @@ test('2026-10-08 drills: keyed answers are not all the same index, and every new
 });
 
 test('2026-10-19 (#24 Codex review): every verdict any sim can derive has a tone, and unsafe verdicts are never "ok"', () => {
-  assert.ok(['1.3.0', '1.4.0'].includes(S.VERSION), 'v1.3.0 verdict tones carried into v1.4.0');
+  assert.ok(['1.3.0', '1.4.0', '1.5.0'].includes(S.VERSION), 'v1.3.0 verdict tones carried into v1.4.0 / v1.5.0');
   const seen = new Set();
   for (const id of S.list()) {
     const sim = S.get(id);

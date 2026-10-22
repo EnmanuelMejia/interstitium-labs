@@ -79,7 +79,7 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
   ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
   ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['gateway-api', 'no-refgrant', 'degraded'], ['config-propagation', 'missing-key', 'down'],
-  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down']]) {
+  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -180,7 +180,7 @@ await check('Ingress + CNI + control-plane toggles re-derive the authored scene'
   const { page, errors } = await open('/immersive/');
   const out = [];
   for (const [sim, toggle, want] of [['ingress-routing', 'controller', 'down'], ['ingress-routing', 'controller', 'healthy'], ['ingress-routing', 'apiExact', 'degraded'],
-    ['cni-network', 'kubeProxy', 'degraded'], ['config-propagation', 'encryptAtRest', 'healthy'], ['control-plane-failure', 'cmUp', 'degraded']]) {
+    ['cni-network', 'kubeProxy', 'degraded'], ['config-propagation', 'encryptAtRest', 'healthy'], ['control-plane-failure', 'cmUp', 'degraded'], ['node-troubleshoot', 'cniOk', 'down'], ['node-troubleshoot', 'cniOk', 'healthy']]) {
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
     const host = page.locator(`[data-il-sim-ready="${sim}"]`);
     await host.waitFor({ timeout: 30000 });
@@ -577,7 +577,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.11.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.12.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -885,7 +885,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 11, 'CLI terminals still mount (11 packs since 2026-10-21)');
+  assert.equal(info.terminals, 12, 'CLI terminals still mount (12 packs since 2026-10-22)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1137,11 +1137,57 @@ await check('CLI packs 2026-10-21: Gateway API RefNotPermitted 500 → Reference
   return 'gw-refgrant 5/5 · volume-vs-env 7/7 · ' + ev.length + ' verb-only events';
 });
 
+/* 2026-10-22: worker-node troubleshooting on the NEW authored node-troubleshoot.glb. */
+await check('CLI pack 2026-10-22: kubelet 203/EXEC typed end-to-end over ssh — prompt follows the host, daemon-reload gate, authored node re-tints', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const nt = await cliHost(page, 'node-troubleshoot');
+  assert.match(await nt.locator('.il-immersive__badge[data-il-mesh="authored"]').textContent(), /./);
+  await nt.locator('[data-il-cli-task="kubelet-203"]').click();
+  assert.equal(await nt.getAttribute('data-il-cli-task'), 'kubelet-203:0/8');
+  assert.equal(await nt.getAttribute('data-il-sim-verdict'), 'down');
+  const kub = () => nt.evaluate(el => { const v = el._ilImmersive._authored.find(x => x.name === 'kubelet'); return v && v.simStyle && v.simStyle.tint; });
+  assert.equal(await kub(), 'deny', 'authored kubelet node shows the 203 crash loop');
+  const t0 = await tints(nt);
+  const prompt = () => nt.locator('.il-immersive__cli-prompt').textContent();
+  await type(nt, 'kubectl get nodes');
+  await type(nt, 'kubectl describe node node-01');
+  await type(nt, 'ssh node-01');
+  assert.equal(await prompt(), 'student@node-01:~$', 'prompt follows the ssh session');
+  await type(nt, 'systemctl status kubelet');
+  assert.match(await logText(nt), /status=203\/EXEC/);
+  await type(nt, 'cat /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf');
+  await type(nt, "sudo sed -i 's|/usr/local/bin/kubelet|/usr/bin/kubelet|' /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf");
+  await type(nt, 'sudo systemctl restart kubelet');
+  assert.match(await logText(nt), /Run 'systemctl daemon-reload' to reload units\./);
+  assert.equal(await kub(), 'deny', 'still crash-looping before daemon-reload');
+  assert.equal(await nt.getAttribute('data-il-cli-task'), 'kubelet-203:5/8');
+  await type(nt, 'sudo systemctl daemon-reload');
+  await type(nt, 'sudo systemctl restart kubelet');
+  await type(nt, 'systemctl status kubelet');
+  assert.equal(await kub(), 'ok');
+  await type(nt, 'kubectl get nodes');
+  assert.match(await logText(nt), /localhost:8080 was refused/, 'no admin kubeconfig on the worker');
+  await type(nt, 'exit');
+  assert.equal(await prompt(), 'student@controlplane:~$');
+  await type(nt, 'kubectl get nodes');
+  assert.equal(await nt.getAttribute('data-il-cli-task'), 'kubelet-203:8/8');
+  assert.equal(await nt.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.notEqual(await tints(nt), t0, 'typed systemd fixes re-tint authored glTF nodes');
+  await nt.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await nt.screenshot({ path: path.join(shots, 'immersive-cli-node-troubleshoot.png') });
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 12 && ev.every(d => !/10-kubeadm|usr\/bin|node-01/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'kubelet-203 8/8 · prompt node-01 ↔ controlplane · ' + ev.length + ' verb-only events';
+});
+
 await check('CKA blueprint: finished paper scores the 5 official domains by weight, names the weakest by points at stake with a 3D drill link; review lobby shows readiness', async () => {
   const { page, errors } = await open('/immersive/exam/');
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
-  assert.match(await page.locator('[data-il-exam-lobby]').textContent(), /11 drills[\s\S]*5 official CNCF CKA domains/);
+  assert.match(await page.locator('[data-il-exam-lobby]').textContent(), /12 drills[\s\S]*5 official CNCF CKA domains/);
   await page.locator('[data-il-exam-start][data-count="5"]').click();
   await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
   for (let i = 0; i < 5; i++) {
