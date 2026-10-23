@@ -6,6 +6,12 @@
  */
 (function (g) {
   'use strict';
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   var PROFILES = {
     founders: [
       { label: 'Math', value: 60 },
@@ -181,7 +187,7 @@
         return;
       }
       fringe.innerHTML = '<strong>Ready-to-learn:</strong> ' +
-        ready.map(function (r) { return r.label + ' (' + Math.round(r.value) + '%)'; }).join(' · ') +
+        ready.map(function (r) { return esc(r.label) + ' (' + Math.round(r.value) + '%)'; }).join(' · ') +
         ' — practice these next. Not an employer claim; self-rated readiness.';
     }
     paintFringe();

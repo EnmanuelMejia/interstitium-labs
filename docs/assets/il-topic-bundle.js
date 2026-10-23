@@ -347,6 +347,7 @@
     if (!s || typeof s !== "object") s = defaultState();
     if (s.v !== 1) s.v = 1;
     s.xp = Math.max(0, Number(s.xp) || 0);
+    s.streak = Math.max(0, Number(s.streak) || 0);
     s.level = levelFromXp(s.xp);
     s.events = s.events || {};
     s.badges = s.badges || {};
@@ -5390,12 +5391,14 @@ window.IL_ANALYTICS = {
     } catch (e) { return false; }
   }
 
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
   function fallbackHTML(name, label) {
     return '<div class="il-muse-3d__fallback" aria-hidden="true">' +
       '<div class="il-muse-3d__monas"><span class="il-muse-3d__core"></span><span class="il-muse-3d__glyph"></span></div>' +
       '</div>' +
       '<span class="il-muse-3d__badge" data-noah-badge title="Renders on-device in your browser · no cloud">' +
-      name + ' · ' + label + ' 3D</span>';
+      esc(name + ' · ' + label) + ' 3D</span>';
   }
 
   function accentPair(key) {
@@ -7244,7 +7247,7 @@ window.IL_ANALYTICS = {
           pushActivity(state, 'Nudge · ' + (btn.textContent || '').trim());
           persist();
           if (ask) sendMessage(ask);
-          else if (href) g.location.href = href;
+          else if (href) openHrefApproved(href);
         });
       });
       app.querySelectorAll('[data-muse-approve]').forEach(function (btn) {
@@ -7280,6 +7283,10 @@ window.IL_ANALYTICS = {
 
       function openHrefApproved(href) {
         if (!href) return;
+        /* Script-capable schemes are never navigable — not even after
+           the external-link confirmation, where assigning one to
+           location would execute it in this page's context. */
+        if (/^\s*(javascript|data|vbscript)\s*:/i.test(href)) return;
         if (isFirstPartyHref(href)) {
           g.location.href = href;
           return;
