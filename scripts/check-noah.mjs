@@ -58,7 +58,7 @@ const primaryHome = readFileSync('docs/index.html', 'utf8');
    merely contains the expected origin). */
 const cspMatch = primaryHome.match(/http-equiv="Content-Security-Policy" content="([^"]*)"/i);
 const cspTokens = cspMatch ? cspMatch[1].split(/\s+/).filter(Boolean) : [];
-assert.ok(cspTokens.includes('https://learn.interstitiumlabs.dev'), 'University cross-domain link must remain available');
+assert.ok(cspTokens.some(function (t) { return t === 'https://learn.interstitiumlabs.dev'; }), 'University cross-domain link must remain available');
 assert.equal(readFileSync('docs/CNAME', 'utf8').trim(), 'interstitiumlabs.dev', 'Canonical apex CNAME changed');
 assert.ok(existsSync('docs/ops/DOMAIN-ROUTING.md'), 'Canonical domain mapping must be documented');
 console.log(`Source, workspace references, original GLB, curriculum index, and ${ledger.capabilities.length} capability rows verified.`);
