@@ -36,7 +36,7 @@ const status = r => (/^HTTP\/2 (\d+)/.exec(r.out[0]) || [])[1];
 /* ── Gateway API rules engine ─────────────────────────────────────────────── */
 test('gateway-api sim: Gateway API spec semantics over the SAME authored ingress-gateway.glb', () => {
   const sim = S.get('gateway-api');
-  assert.ok(['1.4.0', '1.5.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) keeps it');
+  assert.ok(['1.4.0', '1.5.0', '1.6.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) and v1.6.0 (2026-10-23) keep it');
   assert.equal(sim.glb, S.get('ingress-routing').glb, 'no new asset — the Blender-polished ingress-gateway.glb read as Gateway API');
   const at = set => S.gatewayDecide(S.merge(sim.initial, set));
   const codes = set => at(set).clients.map(c => c.status);
@@ -193,15 +193,15 @@ test('Secret pack: missing secretKeyRef key → CreateContainerConfigError with 
   assert.doesNotMatch(out, /s3cr3t/);
 });
 
-test('pack totals: 12 packs · 34 tasks · 160 steps (11 · 30 · 136 on 2026-10-21); every new step focuses real nodes in its own authored .glb', () => {
+test('pack totals: 13 packs · 38 tasks · 184 steps (11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22); every new step focuses real nodes in its own authored .glb', () => {
   const tasks = C.list().reduce((n, id) => n + C.pack(id).tasks.length, 0);
   const steps = C.list().reduce((n, id) => n + C.pack(id).tasks.reduce((m, t) => m + t.steps.length, 0), 0);
-  assert.deepEqual([C.list().length, tasks, steps], [12, 34, 160]);
+  assert.deepEqual([C.list().length, tasks, steps], [13, 38, 184]);
   assert.equal(C.pack('gateway-api').tasks.length, 4);
   assert.equal(C.pack('config-propagation').tasks.length, 3);
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
   assert.match(m.sims.cli.gatewayNote, /not a live Gateway/);
-  assert.match(m.sims.player, /12 packs/);
+  assert.match(m.sims.player, /13 packs/);
 });
 
 /* ── Official CKA blueprint ───────────────────────────────────────────────── */
@@ -263,8 +263,8 @@ test('review blueprint: unseen = 0% (never strong); evidence moves the weighted 
   assert.ok(bp.rows.every(r => r.pct === 0 && r.total > 0), 'every official domain has checkpoints');
   assert.ok(R.checkpoints(S2).some(c => c.simId === 'gateway-api'));
   const T0 = Date.UTC(2026, 9, 21, 13, 0, 0);
-  /* Troubleshooting has two drills since 2026-10-22 (control-plane-failure + node-troubleshoot): answer both. */
-  for (const sim of ['control-plane-failure', 'node-troubleshoot']) for (const sc of S2.get(sim).scenarios.filter(x => x.predict)) R.record({ simId: sim, scenarioId: sc.id, correct: true, ms: 5000, src: 'exam', now: T0 });
+  /* Troubleshooting has two drills since 2026-10-22 and three since 2026-10-23 (+ service-dns): answer them all. */
+  for (const sim of ['control-plane-failure', 'node-troubleshoot', 'service-dns']) for (const sc of S2.get(sim).scenarios.filter(x => x.predict)) R.record({ simId: sim, scenarioId: sc.id, correct: true, ms: 5000, src: 'exam', now: T0 });
   R.record({ simId: 'storage-csi', scenarioId: S2.get('storage-csi').scenarios[0].id, correct: false, ms: 5000, src: 'exam', now: T0 });
   bp = R.blueprint(S2);
   assert.equal(bp.evidence, true);

@@ -1555,6 +1555,106 @@ def scene_node_troubleshoot() -> list:
     return parts
 
 
+def scene_service_dns() -> list:
+    """Service → EndpointSlice → Pod + CoreDNS cutaway (CKA Troubleshooting 30% / Services & Networking).
+    Namespace plates shop · kube-system · data; client pod with resolv.conf search path; Service api (VIP, port →
+    targetPort tag, selector beads, EndpointSlice tablet, two api pods with containerPort 8080); kube-dns Service →
+    CoreDNS replicas + Corefile ConfigMap; namespace egress NetworkPolicy wall; Service db in ns data.
+    sim-* parts are revealed only by the rules engine. Added 2026-10-23."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "service-dns", "cert": "CKA", "domain": "troubleshooting"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.2, 0.08, 3.8)
+    parts.append((floor, MAT_VOID, "dns-floor", {**ped, "label": "cluster (Service + DNS cutaway)"}))
+    # Namespace plates
+    for name, cx, cz, sx, sz, label in (("ns-shop", -1.55, 0.55, 2.7, 2.2, "Namespace shop"),
+                                        ("ns-kube-system", 1.45, -0.85, 2.6, 1.6, "Namespace kube-system"),
+                                        ("ns-data", 1.45, 1.0, 2.6, 1.1, "Namespace data")):
+        plate = MeshBuilder()
+        plate.add_chamfer_box(cx, -0.8, cz, sx, 0.08, sz, 0.03)
+        parts.append((plate, MAT_INK, name, {**ped, "label": label, "kind": "Namespace"}))
+    # Client pod (web) + its /etc/resolv.conf
+    client = MeshBuilder()
+    client.add_sphere(-2.45, -0.4, 1.15, 0.24, 12, 14)
+    parts.append((client, MAT_CYAN, "client-pod", {**ped, "label": "Pod web (ns shop) — the client", "kind": "Pod"}))
+    resolv = MeshBuilder()
+    resolv.add_chamfer_box(-2.45, 0.12, 1.45, 0.9, 0.42, 0.05, 0.02)
+    parts.append((resolv, MAT_PAPER, "resolv-conf", {
+        **ped, "label": "/etc/resolv.conf · nameserver 10.96.0.10 · search shop.svc.cluster.local svc.cluster.local cluster.local · options ndots:5"
+    }))
+    # Service api: VIP ring, port tag, selector, EndpointSlice tablet, pods
+    vip = MeshBuilder()
+    vip.add_cylinder(-1.45, -0.55, 0.55, 0.36, 0.14, 28)
+    parts.append((vip, MAT_GOLD, "svc-api", {**ped, "label": "Service api · ClusterIP 10.96.88.20:80", "kind": "Service"}))
+    port = MeshBuilder()
+    port.add_chamfer_box(-1.45, -0.2, 0.55, 0.5, 0.18, 0.18, 0.02)
+    parts.append((port, MAT_PAPER, "svc-api-port", {**ped, "label": "port 80 → targetPort (must equal containerPort 8080)"}))
+    sel = MeshBuilder()
+    sel.add_chamfer_box(-1.45, 0.05, 0.55, 0.42, 0.12, 0.12, 0.02)
+    parts.append((sel, MAT_CRYSTAL, "svc-api-selector", {**ped, "label": "selector app=api"}))
+    eps = MeshBuilder()
+    eps.add_chamfer_box(-1.45, -0.1, -0.15, 0.8, 0.5, 0.06, 0.02)
+    parts.append((eps, MAT_PAPER, "endpointslice-api", {
+        **ped, "label": "EndpointSlice api-xxxxx (kubernetes.io/service-name=api)", "kind": "EndpointSlice"
+    }))
+    _edge(parts, (-2.25, -0.4, 1.05), (-1.75, -0.5, 0.65), "edge-client-api", MAT_CYAN, ped, "web → api:80 (via the ClusterIP)", 0.03, 0.08)
+    for i, x in enumerate((-0.95, -0.35)):
+        pod = MeshBuilder()
+        pod.add_sphere(x, -0.45, 1.25, 0.2, 12, 14)
+        parts.append((pod, MAT_CYAN, f"api-pod-{i}", {**ped, "label": f"Pod api-{i} (labels app=api)", "kind": "Pod"}))
+        cp = MeshBuilder()
+        cp.add_box(x, -0.18, 1.25, 0.16, 0.1, 0.16)
+        parts.append((cp, MAT_LED, f"container-port-{i}", {**ped, "label": "containerPort 8080 (listening)"}))
+        _edge(parts, (-1.2, -0.5, 0.7), (x, -0.45, 1.08), f"edge-svc-pod-{i}", MAT_CYAN, ped, "kube-proxy DNAT → endpoint", 0.03, 0.06)
+    kp = MeshBuilder()
+    kp.add_chamfer_box(-0.6, -0.68, 0.2, 0.9, 0.08, 0.36, 0.02)
+    parts.append((kp, MAT_SHIELD, "kube-proxy-rules", {**ped, "label": "kube-proxy rules (ClusterIP → endpoints; REJECT when none)"}))
+    # kube-system: kube-dns Service → CoreDNS replicas, Corefile ConfigMap
+    kdns = MeshBuilder()
+    kdns.add_cylinder(0.6, -0.55, -0.85, 0.3, 0.14, 24)
+    parts.append((kdns, MAT_GOLD, "svc-kube-dns", {**ped, "label": "Service kube-dns · 10.96.0.10:53 UDP/TCP", "kind": "Service"}))
+    for i, x in enumerate((1.4, 2.1)):
+        cd = MeshBuilder()
+        cd.add_cylinder(x, -0.42, -0.95, 0.2, 0.46, 18)
+        parts.append((cd, MAT_CYAN, f"coredns-{i}", {**ped, "label": f"Pod coredns-{i} (k8s-app=kube-dns)", "kind": "Pod"}))
+        ring = MeshBuilder()
+        ring.add_cylinder(x, -0.42, -0.95, 0.3, 0.05, 24, capped=False)
+        parts.append((ring, MAT_TAINT, f"sim-crash-ring-{i}", {**ped, "label": "CrashLoopBackOff", "simOnly": True}))
+    corefile = MeshBuilder()
+    corefile.add_chamfer_box(1.75, 0.15, -1.5, 1.0, 0.5, 0.06, 0.02)
+    parts.append((corefile, MAT_PAPER, "corefile", {
+        **ped, "label": "ConfigMap coredns · Corefile (.:53 { errors health kubernetes cluster.local … forward . /etc/resolv.conf cache })",
+        "kind": "ConfigMap"
+    }))
+    _edge(parts, (-2.3, -0.2, 1.0), (0.45, -0.5, -0.8), "edge-client-dns", MAT_LED, ped, "DNS query UDP/TCP 53 → kube-dns", 0.03, 0.35)
+    # Namespace egress NetworkPolicy wall (between shop and kube-system); sim-only when DNS egress is blocked
+    wall = MeshBuilder()
+    wall.add_chamfer_box(-0.15, -0.35, -0.45, 0.08, 0.8, 1.2, 0.02)
+    parts.append((wall, MAT_DENY, "sim-netpol-wall", {
+        **ped, "label": "NetworkPolicy default-deny-egress (ns shop) — no rule to kube-dns:53", "simOnly": True
+    }))
+    np = MeshBuilder()
+    np.add_chamfer_box(-2.55, -0.55, -0.2, 0.55, 0.3, 0.06, 0.02)
+    parts.append((np, MAT_SHIELD, "netpol-tablet", {**ped, "label": "NetworkPolicies in ns shop", "kind": "NetworkPolicy"}))
+    # ns data: Service db + pod
+    db = MeshBuilder()
+    db.add_cylinder(1.0, -0.55, 1.0, 0.28, 0.14, 24)
+    parts.append((db, MAT_GOLD, "svc-db", {**ped, "label": "Service db (ns data) · db.data.svc.cluster.local:5432", "kind": "Service"}))
+    dbp = MeshBuilder()
+    dbp.add_cylinder(1.9, -0.45, 1.0, 0.22, 0.42, 18)
+    parts.append((dbp, MAT_CYAN, "db-pod", {**ped, "label": "Pod db-0 (ns data)", "kind": "Pod"}))
+    _edge(parts, (1.25, -0.5, 1.0), (1.7, -0.45, 1.0), "edge-db-pod", MAT_CYAN, ped, "db → db-0", 0.03, 0.05)
+    _edge(parts, (-2.2, -0.45, 1.3), (0.75, -0.5, 1.1), "edge-client-db", MAT_CYAN, ped, "web → db (needs the right name: db.data)", 0.03, 0.3)
+    nx = MeshBuilder()
+    nx.add_cylinder(-2.95, 0.2, 1.15, 0.02, 0.8, 8)
+    nx.add_box(-2.78, 0.48, 1.15, 0.32, 0.2, 0.03)
+    parts.append((nx, MAT_DENY, "sim-nxdomain-flag", {**ped, "label": "NXDOMAIN: db.shop.svc.cluster.local", "simOnly": True}))
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 5.6, 0.12, 3.2)
+    parts.append((lod, MAT_VOID, "lod1-dns-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1576,6 +1676,7 @@ SCENES = {
     "aws-vpc-multi-az.glb": scene_aws_vpc_multi_az,
     "aws-iam-policy-eval.glb": scene_aws_iam_policy_eval,
     "node-troubleshoot.glb": scene_node_troubleshoot,
+    "service-dns.glb": scene_service_dns,
 }
 
 

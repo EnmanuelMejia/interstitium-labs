@@ -62,7 +62,7 @@ test('NEW asset: node-troubleshoot.glb is authored + Blender-polished, keeps nam
 test('rules engine: kubelet / runtime / CNI / disk pressure follow documented node behaviour', () => {
   const sim = S.get(SIM);
   const at = set => S.nodeDecide(S.merge(sim.initial, set));
-  assert.equal(S.VERSION, '1.5.0');
+  assert.ok(['1.5.0', '1.6.0'].includes(S.VERSION), 'node-troubleshoot arrived in v1.5.0; v1.6.0 (2026-10-23) keeps it');
   assert.equal(at({}).ready, 'True');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   const k203 = at({ execLoaded: false, execOnDisk: false });
@@ -219,7 +219,7 @@ test('voice + coach: spoken systemctl/journalctl normalise into the prompt; coac
 
 test('blueprint: Troubleshooting (30%) now has two drills; node-troubleshoot is graded CKA scope with its own 3D anchor', () => {
   const tr = E.BLUEPRINT.find(b => b.domain === 'Troubleshooting');
-  assert.deepEqual(tr.sims, ['control-plane-failure', 'node-troubleshoot']);
+  assert.deepEqual(tr.sims.slice(0, 2), ['control-plane-failure', 'node-troubleshoot'], 'service-dns joins as the third drill on 2026-10-23');
   assert.equal(E.OFFICIAL[SIM], 'Troubleshooting');
   const all = E.BLUEPRINT.reduce((a, b) => a.concat(b.sims), []);
   assert.equal(new Set(all).size, all.length, 'every drill maps to exactly one domain');
@@ -241,7 +241,7 @@ test('wiring: /immersive/ host, curriculum mirror, manifest (new scene, pack, ho
   assert.ok(m.sims.list.includes(SIM) && m.cka_coverage.interactive.includes(SIM));
   assert.equal(m.sims.cli.version, C.VERSION);
   assert.match(m.sims.cli.nodeNote, /No VM, no real kubelet, no clock/);
-  assert.match(m.sims.exam.blueprint.honesty, /two drills/);
+  assert.match(m.sims.exam.blueprint.honesty, /three drills/, 'two drills on 2026-10-22, three since 2026-10-23');
   assert.equal(m.cka_coverage.liveUnrealHost, false);
   assert.equal(m.cka_coverage.hostedFleet, false);
 });
