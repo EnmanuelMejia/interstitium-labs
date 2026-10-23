@@ -28,6 +28,14 @@
 (function (g) {
   'use strict';
 
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   var PROFILE_KEY = 'il-noah-profile';
 
   var ACCENTS = {
@@ -946,7 +954,7 @@
       '<div class="il-muse-3d__monas"><span class="il-muse-3d__core"></span><span class="il-muse-3d__glyph"></span></div>' +
       '</div>' +
       '<span class="il-muse-3d__badge" data-noah-badge title="Renders on-device in your browser · no cloud">' +
-      name + ' · ' + label + ' 3D</span>';
+      esc(name + ' · ' + label) + ' 3D</span>';
   }
 
   function accentPair(key) {

@@ -42,6 +42,11 @@
 (function (g) {
   'use strict';
 
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   var CYAN = [0.369, 0.918, 0.831];
   var GOLD = [0.831, 0.659, 0.325];
   var VOID = [0.027, 0.043, 0.086];
@@ -747,7 +752,7 @@
     chrome.innerHTML =
       '<div><p class="il-immersive__kicker" data-i18n="immersive.kicker">3D-first · Blender / Unreal / Three</p>' +
       '<p class="il-immersive__title" data-i18n="' + titleKey + '">' + titleFb + '</p></div>' +
-      '<span class="il-immersive__badge">' + (cfg.engine || 'three') + ' · ' + cfg.scene + '</span>';
+      '<span class="il-immersive__badge">' + esc(cfg.engine || 'three') + ' · ' + esc(cfg.scene) + '</span>';
     root.appendChild(chrome);
 
     var stage = document.createElement('div');

@@ -31,6 +31,14 @@
     return Array.prototype.slice.call((root || doc).querySelectorAll(sel));
   }
 
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   /* ---------- Optional UI blip (gesture-gated, OFF by default) ---------- */
   function ensureAudio() {
     if (!soundOn) return null;
@@ -438,11 +446,11 @@
           '<li class="il-cmd-item" role="option" aria-selected="' +
           (i === cmdIndex ? "true" : "false") +
           '" data-href="' +
-          c.href +
+          esc(c.href) +
           '"><span>' +
-          c.label +
+          esc(c.label) +
           "</span><kbd>" +
-          c.href +
+          esc(c.href) +
           "</kbd></li>"
         );
       })
@@ -450,7 +458,9 @@
     qsa(".il-cmd-item", list).forEach(function (li) {
       li.addEventListener("click", function () {
         var href = li.getAttribute("data-href");
-        if (href) global.location.href = href;
+        /* Commands only ever point at this site's own pages — refuse
+           any scheme or cross-origin target at navigation time. */
+        if (href && /^\//.test(href) && !/^\/\//.test(href)) global.location.href = href;
       });
     });
     return items;
