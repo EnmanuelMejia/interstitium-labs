@@ -55,7 +55,8 @@
     'netpol-isolation': 'Networking',
     'cni-network': 'Networking',
     'ingress-routing': 'Networking',
-    'gateway-api': 'Networking'
+    'gateway-api': 'Networking',
+    'node-troubleshoot': 'Troubleshooting'
   };
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }

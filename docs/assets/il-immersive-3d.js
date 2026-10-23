@@ -37,6 +37,8 @@
  * (scenarios, predictions, toggles, scoring, CLI) with the static fallback instead of dropping it; the verdict
  * badge carries data-tone (ok / warn / bad / info) from ILImmersiveSims.verdictTone so unsafe verdicts never
  * render in healthy cyan.
+ * v1.12.0 (2026-10-22): the CLI prompt follows the session host (`ssh node-01` → student@node-01:~$, `exit` → back),
+ * via ILImmersiveCLI.promptFor — needed by the worker-node troubleshooting pack on node-troubleshoot.glb.
  * v1.11.0 (2026-10-20): CLI lab on nine drills (+ netpol-isolation, rbac-authz, storage-csi, ingress-routing via
  * il-immersive-cli.js v1.2.0). Coach-driven review cards: when the learner needs `solution` on a step, or fails
  * `check` twice on it, that step becomes a card in the existing ILImmersiveReview queue (on-device). A review
@@ -1464,6 +1466,7 @@
     var form = el('form', 'il-immersive__cli-form');
     form.setAttribute('autocomplete', 'off');
     var lab = el('label', 'il-immersive__cli-prompt', pack.prompt);
+    this._cliPromptEl = lab;
     var inp = el('input', 'il-immersive__cli-input');
     var inpId = 'il-cli-' + sim.id + '-' + Math.random().toString(36).slice(2, 8);
     inp.id = inpId;
@@ -1657,8 +1660,11 @@
     if (!C || !this._cli || !sim) return null;
     var raw = String(line == null ? '' : line);
     var pack = C.pack(sim.id);
-    this._cliPrint(pack.prompt + ' ' + raw, 'cmd');
+    var curPrompt = C.promptFor ? C.promptFor(sim.id, this._cliCtx) : pack.prompt;
+    this._cliPrint(curPrompt + ' ' + raw, 'cmd');
     var r = C.run(sim.id, this._simState, raw, this._cliCtx);
+    /* v1.12.0: `ssh node-01` / `exit` move the session between hosts — keep the visible prompt honest. */
+    if (C.promptFor && this._cliPromptEl) this._cliPromptEl.textContent = r.action === 'reset' ? pack.prompt : C.promptFor(sim.id, this._cliCtx);
     if (r.action === 'clear') { this._cliLog.textContent = ''; }
     else if (r.action === 'reset') {
       var tk = this._cliTask ? C.task(sim.id, this._cliTask) : null;
@@ -2541,7 +2547,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.11.0',
+    version: '1.12.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',

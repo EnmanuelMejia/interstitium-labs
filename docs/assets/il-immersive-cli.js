@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.3.0 (2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.4.0 (2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -28,6 +28,14 @@
  * RefNotPermitted → HTTP 500, InvalidCertificateRef → TLS handshake failure; GatewayClass lab-gw is a lab
  * implementation, not a vendor) and ConfigMaps & Secrets (`config-propagation`: data patch vs immutable, kubelet sync
  * via a simulated `sleep`, env vs volume freshness, rollout restart, secretKeyRef missing key, etcdctl get at rest).
+ *
+ * v1.4.0 (2026-10-22) — worker-node troubleshooting pack (12 total) on the NEW authored node-troubleshoot.glb:
+ * `ssh node-01` sessions (host-aware prompt via promptFor; kubectl on the worker has no kubeconfig → localhost:8080
+ * refused), systemctl status / restart / daemon-reload / enable --now for kubelet + containerd (203/EXEC from a bad
+ * ExecStart, the real "changed on disk" warning until daemon-reload), journalctl -u kubelet (labelled representative
+ * lines), sed -i on the kubeadm drop-in, crictl socket failure / rmi --prune, df, /etc/cni/net.d, describe node
+ * conditions + taints, kubelet eviction of BestEffort pods. Tasks: kubelet-203 · runtime-down · cni-missing ·
+ * disk-pressure. Voice: "system control" → systemctl, "journal control" → journalctl.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -1710,8 +1718,297 @@
     ]
   };
 
+  /* ── pack: worker-node troubleshooting (v1.4.0, 2026-10-22 — CKA Troubleshooting, 30%) ──────────────────
+   * Drives node-troubleshoot on the NEW authored node-troubleshoot.glb. Cluster: controlplane, node-01 (the patient),
+   * node-02. `ssh node-01` opens a session on the node (prompt changes; `exit` returns); `ssh node-01 CMD` runs one
+   * command there. kubectl has no kubeconfig on node-01 (localhost:8080 refused), as on a kubeadm worker.
+   * systemd / journald / crictl / df / sed are modelled only for the fields this drill teaches. */
+  var DROPIN = '/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf';
+  var DROPIN_RE = /^\/(usr\/lib|etc)\/systemd\/system\/kubelet\.service\.d\/10-kubeadm\.conf$/;
+  var GOOD_KUBELET = '/usr/bin/kubelet';
+  var SOCK_ERR = 'E1022 09:14:07.512301    5120 remote_runtime.go] "Status from runtime service failed" err="rpc error: code = Unavailable desc = connection error: desc = \\"transport: Error while dialing: dial unix /run/containerd/containerd.sock: connect: no such file or directory\\""';
+  var RELOAD_WARN = "Warning: The unit file, source configuration file or drop-ins of kubelet.service changed on disk. Run 'systemctl daemon-reload' to reload units.";
+  function nodeExecPath(s, ctx) { return s.execOnDisk ? GOOD_KUBELET : (ctx.vars.execPath || '/usr/local/bin/kubelet'); }
+  function nodeHost(u, ctx) { return u.host || ctx.vars.host || 'controlplane'; }
+  /** Split a sed s-command on its (unescaped) delimiter: s|a|b|g → { a, b }. */
+  function sedSubst(expr) {
+    if (!expr || expr.charAt(0) !== 's' || expr.length < 4) return null;
+    var dl = expr.charAt(1), parts = [], cur = '';
+    for (var i = 2; i < expr.length; i++) {
+      var c = expr.charAt(i);
+      if (c === '\\' && i + 1 < expr.length && expr.charAt(i + 1) === dl) { cur += dl; i++; continue; }
+      if (c === dl) { parts.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    parts.push(cur);
+    return parts.length >= 3 ? { a: parts[0], b: parts[1] } : null;
+  }
+  var NODE_PODS = [['web-6f7d9-gq2xk', 'Guaranteed'], ['api-58b4c-brs4n', 'Burstable'], ['batch-7c5d8-k9w2t', 'BestEffort'], ['batch-7c5d8-p4m6z', 'BestEffort']];
+  var nodePack = {
+    sim: 'node-troubleshoot',
+    prompt: 'student@controlplane:~$',
+    examples: ['kubectl get nodes', 'kubectl describe node node-01', 'ssh node-01', 'systemctl status kubelet', 'journalctl -u kubelet -n 20 --no-pager',
+      'cat ' + DROPIN, 'which kubelet', 'systemctl daemon-reload', 'systemctl restart kubelet', 'systemctl status containerd', 'crictl ps',
+      'crictl rmi --prune', 'df -h /', 'ls /etc/cni/net.d', 'kubectl get pods -o wide', 'kubectl rollout restart daemonset calico-node -n kube-system', 'exit'],
+    note: 'Hosts: controlplane (kubectl) · node-01 (the patient: systemd, journald, crictl, df) · node-02. `ssh node-01` opens a session, `exit` leaves it. Editing is done with sed -i (no editor in a simulated shell). Lab-only: fault kubelet|containerd stop|start · fault cni delete · fault disk fill.',
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, host = nodeHost(u, ctx), onNode = host === 'node-01';
+      if (u.host && !/^(node-0[12]|controlplane)$/.test(u.host)) return res(['ssh: Could not resolve hostname ' + u.host + ': Name or service not known (this lab has controlplane, node-01, node-02)'], 255);
+      if (u.host && !t.length) {
+        ctx.vars.host = u.host;
+        return res(['(sim) logged in to ' + u.host + ' — `exit` returns to controlplane'], 0, null, ['ssh-' + u.host], { prompt: 'student@' + u.host + ':~$' });
+      }
+      if ((t[0] === 'exit' || t[0] === 'logout') && ctx.vars.host) {
+        var was = ctx.vars.host; ctx.vars.host = null;
+        return res(['logout', 'Connection to ' + was + ' closed.'], 0, null, ['ssh-exit'], { prompt: 'student@controlplane:~$' });
+      }
+      if (t[0] === 'exit' || t[0] === 'logout') return res(['sim: already on controlplane (the lab keeps this terminal open)'], 0);
+      var f = faultArgs(t);
+      if (f) {
+        var fm = { 'kubelet stop': { kubeletOn: false }, 'kubelet start': { kubeletOn: true }, 'containerd stop': { runtimeUp: false }, 'containerd start': { runtimeUp: true },
+          'cni delete': { cniOk: false }, 'cni restore': { cniOk: true }, 'disk fill': { diskPressure: true }, 'disk free': { diskPressure: false } }[f.join(' ')];
+        if (!fm) return res(['usage: fault kubelet|containerd stop|start · fault cni delete|restore · fault disk fill|free   (lab-only fault injection)'], 2);
+        return res(['[lab fault injection] ' + f.join(' ') + ' on node-01 (simulated)'], 0, fm, ['fault']);
+      }
+      var nodeOnly = /^(systemctl|journalctl|crictl|df|which|sed|vi|vim|nano)$/.test(t[0] || '') || (/^(cat|ls)$/.test(t[0] || '') && /^\/(etc|usr|var|run)\//.test(t[t.length - 1] || ''));
+      if (nodeOnly && !onNode) {
+        if (host === 'node-02') return res(['sim: node-02 is healthy and not modelled in depth — the patient is node-01'], 2);
+        return res(['sim: you are on controlplane — node-01’s units, logs and files live on node-01 (ssh node-01 first, or ssh node-01 CMD)'], 2, null, ['wrong-host']);
+      }
+      if (t[0] === 'which' && t[1] === 'kubelet') return res([GOOD_KUBELET], 0, null, ['which-kubelet']);
+      if (t[0] === 'vi' || t[0] === 'vim' || t[0] === 'nano') return res(['sim: no interactive editor in a simulated shell — edit with sed -i \'s|OLD|NEW|\' FILE (and read it back with cat)'], 2);
+      if (t[0] === 'ls' && /^\/etc\/cni\/net\.d\/?$/.test(t[t.length - 1])) {
+        return res(s.cniOk ? ['10-calico.conflist  calico-kubeconfig'] : [], 0, null, ['ls-cni', s.cniOk ? 'ls-cni-present' : 'ls-cni-empty']);
+      }
+      if (t[0] === 'ls' && /kubelet$/.test(t[t.length - 1])) {
+        var lp = t[t.length - 1];
+        if (lp === GOOD_KUBELET) return res(['-rwxr-xr-x 1 root root 77819992 Oct  1 12:00 /usr/bin/kubelet'], 0, null, ['ls-kubelet']);
+        return res(["ls: cannot access '" + lp + "': No such file or directory"], 2, null, ['ls-kubelet-missing']);
+      }
+      if (t[0] === 'cat' && DROPIN_RE.test(t[1] || '')) {
+        var ep = nodeExecPath(s, ctx);
+        return res(['# Note: This dropin only works with kubeadm and kubelet v1.11+', '[Service]',
+          'Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"',
+          'Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"', 'EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env', 'EnvironmentFile=-/etc/default/kubelet',
+          'ExecStart=', 'ExecStart=' + ep + ' $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS'], 0, null, ['cat-dropin', ep === GOOD_KUBELET ? 'cat-dropin-ok' : 'cat-dropin-bad']);
+      }
+      if (t[0] === 'cat') return unmodelled(t.join(' '), nodePack.examples);
+      if (t[0] === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var file = t[t.length - 1], expr = t.filter(function (a) { return a.charAt(0) === 's' && a.length > 3 && !/[a-z]/i.test(a.charAt(1)); })[0];
+        if (!DROPIN_RE.test(file || '')) return res(['sim: this drill models sed on ' + DROPIN + ' only'], 2);
+        var sub = sedSubst(expr);
+        if (!sub) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var cur = nodeExecPath(s, ctx);
+        var line = 'ExecStart=' + cur;
+        var next = line.indexOf(sub.a) >= 0 ? line.replace(sub.a, sub.b) : line;
+        var np = next.replace(/^ExecStart=/, '');
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written', 'ExecStart=' + np + ' …'], 0);
+        if (np === cur) return res([], 0, null, ['sed-nochange']);
+        ctx.vars.execPath = np === GOOD_KUBELET ? null : np;
+        return res([], 0, { execOnDisk: np === GOOD_KUBELET }, ['dropin-edited', np === GOOD_KUBELET ? 'dropin-fixed' : 'dropin-still-bad']);
+      }
+      if (t[0] === 'systemctl') {
+        var act = t[1], unit = (t.filter(function (a, i) { return i > 1 && a.charAt(0) !== '-'; })[0] || '').replace(/\.service$/, '');
+        if (act === 'daemon-reload') return res([], 0, { execLoaded: !!s.execOnDisk }, ['daemon-reload']);
+        if (unit !== 'kubelet' && unit !== 'containerd') return unmodelled(t.join(' '), nodePack.examples);
+        var now = hasFlag(t, '--now');
+        if (unit === 'kubelet') {
+          if (act === 'status') {
+            var lines = ['● kubelet.service - kubelet: The Kubernetes Node Agent',
+              '     Loaded: loaded (/usr/lib/systemd/system/kubelet.service; enabled; preset: enabled)',
+              '    Drop-In: /usr/lib/systemd/system/kubelet.service.d', '             └─10-kubeadm.conf'];
+            if (m.daemonReloadNeeded) lines.unshift(RELOAD_WARN);
+            var loadedPath = s.execLoaded ? GOOD_KUBELET : (s.execOnDisk ? '/usr/local/bin/kubelet' : nodeExecPath(s, ctx));
+            if (m.kubeletUnit === 'active') lines.push('     Active: active (running) since Thu 2026-10-22 09:20:11 EDT; 3s ago', '   Main PID: 6411 (kubelet)');
+            else if (m.kubeletUnit === 'inactive') lines.push('     Active: inactive (dead) since Thu 2026-10-22 09:02:40 EDT');
+            else lines.push('     Active: activating (auto-restart) (Result: exit-code) since Thu 2026-10-22 09:14:31 EDT; 4s ago',
+              '    Process: 5873 ExecStart=' + loadedPath + ' $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS (code=exited, status=203/EXEC)',
+              '   Main PID: 5873 (code=exited, status=203/EXEC)');
+            return res(lines, m.kubeletUnit === 'active' ? 0 : 3, null, ['kubelet-status', 'kubelet-status-' + (m.kubeletUnit === 'auto-restart-203' ? '203' : m.kubeletUnit)]);
+          }
+          if (act === 'stop' || act === 'disable' && now) return res([], 0, { kubeletOn: false }, ['kubelet-stopped']);
+          if (act === 'start' || act === 'restart' || (act === 'enable' && now)) {
+            var w = m.daemonReloadNeeded ? [RELOAD_WARN] : [];
+            if (!s.execLoaded) w.push('(sim) the unit starts, then exits 203/EXEC — read it with systemctl status kubelet');
+            return res(w, 0, { kubeletOn: true }, ['kubelet-restarted', s.execLoaded ? 'kubelet-restarted-ok' : 'kubelet-restarted-203']);
+          }
+          if (act === 'enable') return res([], 0, null, ['kubelet-enabled']);
+          return unmodelled(t.join(' '), nodePack.examples);
+        }
+        if (act === 'status') {
+          var up = !!s.runtimeUp;
+          return res(['● containerd.service - containerd container runtime', '     Loaded: loaded (/usr/lib/systemd/system/containerd.service; enabled; preset: enabled)',
+            up ? '     Active: active (running) since Thu 2026-10-22 08:01:12 EDT; 1h 19min ago' : '     Active: inactive (dead) since Thu 2026-10-22 09:11:58 EDT; 3min ago',
+            up ? '   Main PID: 812 (containerd)' : '(sim) running containers are still held by their containerd-shim processes'], up ? 0 : 3, null, ['containerd-status', up ? 'containerd-active' : 'containerd-inactive']);
+        }
+        if (act === 'stop') return res([], 0, { runtimeUp: false }, ['containerd-stopped']);
+        if (act === 'start' || act === 'restart' || (act === 'enable' && now)) return res([], 0, { runtimeUp: true }, ['containerd-started']);
+        if (act === 'enable') return res([], 0, null, ['containerd-enabled']);
+        return unmodelled(t.join(' '), nodePack.examples);
+      }
+      if (t[0] === 'journalctl') {
+        var ju = flag(t, ['-u', '--unit']);
+        if (String(ju).replace(/\.service$/, '') !== 'kubelet') return res(['sim: this drill models journalctl -u kubelet'], 2);
+        var jl = ['-- (sim) representative kubelet / systemd journal lines for node-01 --'], ev = ['journal-kubelet'];
+        if (m.kubeletUnit === 'auto-restart-203') {
+          var bad = s.execLoaded ? GOOD_KUBELET : (s.execOnDisk ? '/usr/local/bin/kubelet' : nodeExecPath(s, ctx));
+          jl.push('Oct 22 09:14:31 node-01 systemd[1]: kubelet.service: Failed to locate executable ' + bad + ': No such file or directory',
+            'Oct 22 09:14:31 node-01 systemd[1]: kubelet.service: Failed at step EXEC spawning ' + bad + ': No such file or directory',
+            'Oct 22 09:14:31 node-01 systemd[1]: kubelet.service: Main process exited, code=exited, status=203/EXEC',
+            'Oct 22 09:14:31 node-01 systemd[1]: kubelet.service: Failed with result \'exit-code\'.');
+          ev.push('journal-203');
+        } else if (m.kubeletUnit === 'inactive') {
+          jl.push('Oct 22 09:02:40 node-01 systemd[1]: Stopped kubelet.service - kubelet: The Kubernetes Node Agent.');
+          ev.push('journal-stopped');
+        } else {
+          if (!s.runtimeUp) { jl.push('Oct 22 09:14:07 node-01 kubelet[6411]: ' + SOCK_ERR, 'Oct 22 09:14:07 node-01 kubelet[6411]: E1022 09:14:07.512388    6411 kubelet.go] "Skipping pod synchronization" err="container runtime is down"'); ev.push('journal-runtime'); }
+          if (!s.cniOk) { jl.push('Oct 22 09:14:12 node-01 kubelet[6411]: E1022 09:14:12.104227    6411 kubelet.go] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"'); ev.push('journal-cni'); }
+          if (m.diskPressure === true) { jl.push('Oct 22 09:14:20 node-01 kubelet[6411]: W1022 09:14:20.330918    6411 eviction_manager.go] "Eviction manager: attempting to reclaim" resourceName="ephemeral-storage"',
+            'Oct 22 09:14:20 node-01 kubelet[6411]: I1022 09:14:20.331120    6411 eviction_manager.go] "Eviction manager: pods ranked for eviction" pods=["default/' + NODE_PODS[2][0] + '","default/' + NODE_PODS[3][0] + '","default/' + NODE_PODS[1][0] + '","default/' + NODE_PODS[0][0] + '"]');
+            ev.push('journal-eviction'); }
+          if (ev.length === 1) jl.push('(sim) no errors in the modelled window — kubelet is posting Ready');
+        }
+        return res(jl, 0, null, ev);
+      }
+      if (t[0] === 'crictl') {
+        if (!s.runtimeUp) return res(['E1022 09:14:40.118034    7020 remote_runtime.go] validate service connection: validate CRI v1 runtime API for endpoint "unix:///run/containerd/containerd.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /run/containerd/containerd.sock: connect: no such file or directory"'], 1, null, ['crictl-sock-refused']);
+        if (t[1] === 'rmi' && hasFlag(t, '--prune')) {
+          if (!s.diskPressure) return res(['(sim) no unused images to prune'], 0, null, ['images-pruned-none']);
+          return res(['Deleted: registry.example.com/batch/report-builder:2024.11', 'Deleted: registry.example.com/batch/report-builder:2025.03', 'Deleted: docker.io/library/golang:1.22', '(sim) nodefs.available back above the 10% threshold'], 0, { diskPressure: false }, ['images-pruned']);
+        }
+        if (t[1] === 'ps') {
+          var rows = [['CONTAINER', 'IMAGE', 'STATE', 'NAME', 'POD']];
+          rows.push(['4c1a9e2f0b77', 'calico/node:v3.30.3', 'Running', 'calico-node', 'calico-node-4tq8z']);
+          rows.push(['9b3d70c1e5a2', 'registry.k8s.io/kube-proxy:v1.37.1', 'Running', 'kube-proxy', 'kube-proxy-7m2kd']);
+          NODE_PODS.forEach(function (p, i) { if (!(i >= 2 && (m.evictBestEffort || ctx.vars.evicted))) rows.push([(i + 1) + 'e7f0d2a91c' + i, p[0].split('-')[0], 'Running', p[0].split('-')[0], p[0]]); });
+          return res(table(rows), 0, null, ['crictl', 'crictl-ps']);
+        }
+        if (t[1] === 'images') return res(table([['IMAGE', 'TAG', 'SIZE'], ['registry.example.com/batch/report-builder', '2024.11', '3.1GB'], ['registry.example.com/batch/report-builder', '2025.03', '3.3GB'], ['docker.io/library/golang', '1.22', '842MB']].slice(0, s.diskPressure ? 4 : 1).concat(s.diskPressure ? [] : [['(sim) unused images already pruned', '', '']])), 0, null, ['crictl-images']);
+        return unmodelled(t.join(' '), nodePack.examples);
+      }
+      if (t[0] === 'df') {
+        var full = !!s.diskPressure;
+        return res(['Filesystem      Size  Used Avail Use% Mounted on', '/dev/sda1        50G  ' + (full ? '46G  2.6G  95%' : '29G   19G  61%') + ' /'], 0, null, ['df', full ? 'df-full' : 'df-ok']);
+      }
+      if (t[0] !== 'kubectl') return null;
+      if (onNode) return res(['The connection to the server localhost:8080 was refused - did you specify the right host or port?', '(sim) node-01 has no admin kubeconfig — run kubectl from controlplane (`exit`)'], 1, null, ['kubectl-on-node']);
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = flag(t, ['-n', '--namespace']) || 'default';
+      var kind = (args[0] || '').toLowerCase(), nm = args[1] || '';
+      if (/\//.test(kind)) { nm = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      var node1 = m.ready === 'True' ? 'Ready' : 'NotReady';
+      if (verb === 'get' && /^(nodes?|no)$/.test(kind)) {
+        var wide = /wide/.test(String(flag(t, ['-o', '--output']) || ''));
+        var nrows = [['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'].concat(wide ? ['INTERNAL-IP', 'CONTAINER-RUNTIME'] : [])];
+        nrows.push(['controlplane', 'Ready', 'control-plane', '41d', 'v1.37.1'].concat(wide ? ['10.0.0.10', 'containerd://2.1.4'] : []));
+        nrows.push(['node-01', node1, '<none>', '41d', 'v1.37.1'].concat(wide ? ['10.0.0.21', 'containerd://2.1.4'] : []));
+        nrows.push(['node-02', 'Ready', '<none>', '41d', 'v1.37.1'].concat(wide ? ['10.0.0.22', 'containerd://2.1.4'] : []));
+        return res(table(nrows), 0, null, ['get-nodes', node1 === 'Ready' ? 'get-nodes-ready' : 'get-nodes-notready']);
+      }
+      if (verb === 'describe' && /^(nodes?|no)$/.test(kind)) {
+        if (nm && nm !== 'node-01') return res(['(sim) ' + nm + ' is healthy: Ready=True, no pressure conditions — the patient is node-01'], 0, null, ['describe-node-other']);
+        var unk = m.ready === 'Unknown', cond = function (type, st, reason, msg) { return '  ' + pad(type, 16) + pad(st, 9) + pad(reason, 30) + msg; };
+        var tl = m.taint ? m.taintEffects.map(function (e, i) { return (i ? '                    ' : 'Taints:             ') + m.taint + ':' + e; }) : ['Taints:             <none>'];
+        var dl = ['Name:               node-01', 'Roles:              <none>'].concat(tl).concat(['Unschedulable:      false', 'Conditions:', '  Type            Status   Reason                        Message', '  ----            ------   ------                        -------']);
+        if (unk) {
+          ['MemoryPressure', 'DiskPressure', 'PIDPressure', 'Ready'].forEach(function (c) { dl.push(cond(c, 'Unknown', 'NodeStatusUnknown', 'Kubelet stopped posting node status.')); });
+        } else {
+          dl.push(cond('MemoryPressure', 'False', 'KubeletHasSufficientMemory', 'kubelet has sufficient memory available'));
+          dl.push(m.diskPressure === true ? cond('DiskPressure', 'True', 'KubeletHasDiskPressure', 'kubelet has disk pressure') : cond('DiskPressure', 'False', 'KubeletHasNoDiskPressure', 'kubelet has no disk pressure'));
+          dl.push(cond('PIDPressure', 'False', 'KubeletHasSufficientPID', 'kubelet has sufficient PID available'));
+          dl.push(m.ready === 'True' ? cond('Ready', 'True', 'KubeletReady', 'kubelet is posting ready status') : cond('Ready', 'False', 'KubeletNotReady', m.reason.replace(/^KubeletNotReady: /, '')));
+        }
+        dl.push('System Info:', '  Container Runtime Version:  containerd://2.1.4', '  Kubelet Version:            v1.37.1');
+        if (m.diskPressure === true) dl.push('Events:', '  Warning  EvictionThresholdMet  kubelet  Attempting to reclaim ephemeral-storage');
+        var tag = unk ? 'unknown' : (m.ready === 'False-runtime' ? 'runtime-down' : (m.ready === 'False-cni' ? 'cni' : (m.diskPressure === true ? 'diskpressure' : 'ok')));
+        return res(dl, 0, null, ['describe-node', 'describe-node-' + tag]);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(kind)) {
+        var sys = ns === 'kube-system';
+        var wide2 = /wide/.test(String(flag(t, ['-o', '--output']) || ''));
+        var prow = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'].concat(wide2 ? ['NODE'] : [])];
+        if (sys) {
+          prow.push(['calico-node-4tq8z', s.cniOk ? '1/1' : '0/1', 'Running', '0', '41d'].concat(wide2 ? ['node-01'] : []));
+          prow.push(['calico-node-m2c7d', '1/1', 'Running', '0', '41d'].concat(wide2 ? ['node-02'] : []));
+          prow.push(['coredns-7c65d6cfc9-x8rwd', '1/1', 'Running', '0', '41d'].concat(wide2 ? ['node-02'] : []));
+          return res(table(prow), 0, null, ['get-pods-system']);
+        }
+        if (m.evictBestEffort) ctx.vars.evicted = true;
+        var ev2 = !!ctx.vars.evicted;
+        NODE_PODS.forEach(function (p, i) {
+          var gone = i >= 2 && ev2;
+          prow.push([p[0], gone ? '0/1' : '1/1', gone ? 'Evicted' : 'Running', '0', '6d'].concat(wide2 ? ['node-01'] : []));
+        });
+        if (ev2) { prow.push(['batch-7c5d8-r7v1c', '1/1', 'Running', '0', '40s'].concat(wide2 ? ['node-02'] : [])); prow.push(['batch-7c5d8-z3h8q', '1/1', 'Running', '0', '40s'].concat(wide2 ? ['node-02'] : [])); }
+        return res(table(prow), 0, null, ['get-pods', ev2 ? 'get-pods-evicted' : 'get-pods-running']);
+      }
+      if (verb === 'rollout' && args[0] === 'restart' && /^(daemonsets?|ds)(\/calico-node)?$/.test(String(args[1] || '')) && (args[2] === 'calico-node' || /\/calico-node$/.test(args[1]))) {
+        if (ns !== 'kube-system') return notFound('daemonsets.apps', 'calico-node');
+        var canRun = m.kubeletActive && s.runtimeUp;
+        return res(['daemonset.apps/calico-node restarted'].concat(canRun ? [] : ['(sim) the new calico-node pod cannot start on node-01 until its kubelet and runtime are up']), 0, canRun ? { cniOk: true } : null, ['cni-ds-restarted']);
+      }
+      if (verb === 'delete' && /^(pods?|po)$/.test(kind) && /^calico-node-4tq8z$/.test(nm) && ns === 'kube-system') {
+        var canRun2 = m.kubeletActive && s.runtimeUp;
+        return res(['pod "calico-node-4tq8z" deleted'], 0, canRun2 ? { cniOk: true } : null, ['cni-ds-restarted']);
+      }
+      return unmodelled(t.join(' '), nodePack.examples);
+    },
+    tasks: [
+      { id: 'kubelet-203', title: 'NotReady after an upgrade: kubelet exits 203/EXEC',
+        goal: 'node-01 went NotReady after an in-place upgrade. Find why its kubelet will not stay up, fix the unit, and bring the node back to Ready.',
+        setup: { kubeletOn: true, execLoaded: false, execOnDisk: false, runtimeUp: true, cniOk: true, diskPressure: false },
+        steps: [
+          { label: 'See node-01 NotReady', event: 'get-nodes-notready', hint: 'kubectl get nodes' },
+          { label: 'Read node-01’s conditions: Kubelet stopped posting node status', event: 'describe-node-unknown', hint: 'kubectl describe node node-01' },
+          { label: 'On node-01, read the kubelet unit status (203/EXEC)', event: 'kubelet-status-203', hint: 'ssh node-01 systemctl status kubelet' },
+          { label: 'Find the bad ExecStart in the kubeadm drop-in', event: 'cat-dropin-bad', hint: 'ssh node-01 cat ' + DROPIN },
+          { label: 'Point ExecStart at the real kubelet binary', state: function (s) { return !!s.execOnDisk; }, hint: "ssh node-01 sudo sed -i 's|/usr/local/bin/kubelet|/usr/bin/kubelet|' " + DROPIN },
+          { label: 'Make systemd load the edited unit', state: function (s) { return !!s.execLoaded; }, hint: 'ssh node-01 sudo systemctl daemon-reload' },
+          { label: 'Restart the kubelet and see it active (running)', event: 'kubelet-status-active', hint: 'ssh node-01 sudo systemctl restart kubelet  then  ssh node-01 systemctl status kubelet' },
+          { label: 'node-01 is Ready again', event: 'get-nodes-ready', hint: 'kubectl get nodes' }
+        ] },
+      { id: 'runtime-down', title: 'Container runtime is down',
+        goal: 'node-01 reports “container runtime is down”. Prove it from the node, start the runtime, and confirm Ready.',
+        setup: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: false, cniOk: true, diskPressure: false },
+        steps: [
+          { label: 'Read the Ready condition: container runtime is down', event: 'describe-node-runtime-down', hint: 'kubectl describe node node-01' },
+          { label: 'On node-01, watch crictl fail at the containerd socket', event: 'crictl-sock-refused', hint: 'ssh node-01 sudo crictl ps' },
+          { label: 'See containerd inactive (dead)', event: 'containerd-inactive', hint: 'ssh node-01 systemctl status containerd' },
+          { label: 'Start containerd (and keep it enabled)', state: function (s) { return !!s.runtimeUp; }, hint: 'ssh node-01 sudo systemctl enable --now containerd' },
+          { label: 'node-01 is Ready again', event: 'get-nodes-ready', hint: 'kubectl get nodes' }
+        ] },
+      { id: 'cni-missing', title: 'NotReady: cni plugin not initialized',
+        goal: 'node-01 is NotReady and new pods will not land there. Trace it to the CNI config, get the CNI DaemonSet to rewrite it, and confirm Ready.',
+        setup: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: false, diskPressure: false },
+        steps: [
+          { label: 'See node-01 NotReady', event: 'get-nodes-notready', hint: 'kubectl get nodes' },
+          { label: 'Read the Ready message: NetworkPluginNotReady', event: 'describe-node-cni', hint: 'kubectl describe node node-01' },
+          { label: 'Find the same error in the kubelet journal on node-01', event: 'journal-cni', hint: 'ssh node-01 sudo journalctl -u kubelet -n 20 --no-pager' },
+          { label: 'Confirm /etc/cni/net.d is empty', event: 'ls-cni-empty', hint: 'ssh node-01 ls /etc/cni/net.d' },
+          { label: 'Restart the CNI DaemonSet so its install step rewrites the conflist', state: function (s) { return !!s.cniOk; }, hint: 'kubectl rollout restart daemonset calico-node -n kube-system' },
+          { label: 'node-01 is Ready again', event: 'get-nodes-ready', hint: 'kubectl get nodes' }
+        ] },
+      { id: 'disk-pressure', title: 'DiskPressure: who gets evicted first?',
+        goal: 'node-01’s root disk crossed the kubelet’s hard eviction threshold. Read the condition and the evictions, find the space, reclaim it, and confirm the pressure clears.',
+        setup: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: true, diskPressure: true },
+        steps: [
+          { label: 'Read DiskPressure=True and the disk-pressure taint', event: 'describe-node-diskpressure', hint: 'kubectl describe node node-01' },
+          { label: 'See which pods were evicted (and where their replacements went)', event: 'get-pods-evicted', hint: 'kubectl get pods -o wide' },
+          { label: 'On node-01, see the root filesystem at 95%', event: 'df-full', hint: 'ssh node-01 df -h /' },
+          { label: 'Reclaim space by pruning unused images', state: function (s) { return !s.diskPressure; }, hint: 'ssh node-01 sudo crictl rmi --prune' },
+          { label: 'DiskPressure is False again', event: 'describe-node-ok', hint: 'kubectl describe node node-01' }
+        ] }
+    ]
+  };
+
+  /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
+  function promptFor(simId, ctx) {
+    var p = PACKS[simId]; if (!p) return '';
+    return ctx && ctx.vars && ctx.vars.host ? 'student@' + ctx.vars.host + ':~$' : p.prompt;
+  }
+
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -1933,6 +2230,41 @@
         ['Describe the Secret the env var references; describe lists key names and sizes, never values.', '^(secret-db-creds|secret-key-[0-2])$'],
         ['Add the missing key with a patch on stringData (the API server base64-encodes it into data).', '^(secret-db-creds|secret-key-1)$'],
         ['List the pods again — the kubelet retries container creation on its own.', '^(pod-boundary|container-app|env-chip-0)$']
+      ]
+    },
+    /* v1.4.0 (2026-10-22) — worker-node troubleshooting on node-troubleshoot.glb */
+    'node-troubleshoot': {
+      'kubelet-203': [
+        ['Start from the control plane: list the nodes and read the STATUS column.', '^(node-ready-lamp|node-chassis)$'],
+        ['Describe the sick node and read every row under Conditions — who last wrote them?', '^(node-ready-lamp|edge-node-lease|node-lifecycle-controller)$'],
+        ['The kubelet is a systemd unit on the node itself. Get onto node-01 and ask systemd how the unit is doing.', '^(kubelet|systemd-ring|kubelet-led)$'],
+        ['203/EXEC means systemd could not execute ExecStart. kubeadm keeps that line in a drop-in next to the unit — read it.', '^kubelet-unit$'],
+        ['Compare the ExecStart path with where the binary really is (which kubelet), then substitute it in place with sed.', '^(kubelet-unit|kubelet)$'],
+        ['systemd still runs the definition it loaded before your edit. Tell it to re-read unit files.', '^(systemd-ring|kubelet-unit)$'],
+        ['Restart the unit, then read its status again: Active should say running.', '^(kubelet|kubelet-led)$'],
+        ['Back on the control plane, list the nodes once more.', '^(node-ready-lamp|edge-node-lease)$']
+      ],
+      'runtime-down': [
+        ['Describe node-01 and read the Ready row’s message.', '^(node-ready-lamp|edge-kubelet-cri)$'],
+        ['On node-01, ask the CRI CLI for running containers and read where it fails.', '^(cri-socket|edge-cri-containerd)$'],
+        ['The runtime is its own systemd unit. Ask systemd about it on node-01.', '^containerd$'],
+        ['Start the runtime and make sure it comes back after a reboot too (one systemctl verb with a flag does both).', '^(containerd|cri-socket)$'],
+        ['List the nodes from the control plane.', '^node-ready-lamp$']
+      ],
+      'cni-missing': [
+        ['List the nodes and read the STATUS column.', '^(node-ready-lamp|node-chassis)$'],
+        ['Describe node-01: the Ready message names the subsystem that is not ready.', '^(node-ready-lamp|cni-conf)$'],
+        ['On node-01, read the kubelet’s own journal for the same reason.', '^journal-page-[0-2]$'],
+        ['The runtime looks for CNI config in one well-known directory. List it.', '^cni-conf$'],
+        ['Calico’s DaemonSet pod writes that config when it starts. Make the DaemonSet roll its pods.', '^(cni-conf|cni-plugin)$'],
+        ['List the nodes once more.', '^node-ready-lamp$']
+      ],
+      'disk-pressure': [
+        ['Describe node-01: look at the pressure conditions, the taints and the events.', '^(disk-gauge|sim-disk-fill-[34]|sim-taint-flag)$'],
+        ['List pods wide. Which QoS class went first, and where did their replacements land?', '^pod-besteffort-[01]$'],
+        ['On node-01, check how full the root filesystem is.', '^(disk-gauge|disk-fill-[0-2]|sim-disk-fill-[34])$'],
+        ['Unused container images are the usual culprit. The CRI CLI can remove every image no container uses.', '^(containerd|sim-disk-fill-[34])$'],
+        ['Describe node-01 again and read DiskPressure.', '^(disk-gauge|kubelet-config)$']
       ]
     }
   };
@@ -2160,6 +2492,7 @@
     [/\bk u b e c t l\b/g, 'kubectl'],
     [/\b(etcd|et cd|e t c d) ?(control|ctl|c t l)\b/g, 'etcdctl'],
     [/\b(cri|cry|c r i) ?(control|ctl|c t l)\b/g, 'crictl'],
+    [/\b(system|systemd) ?(control|ctl|cuttle|c t l)\b/g, 'systemctl'], [/\bjournal ?(control|ctl|c t l)\b/g, 'journalctl'], [/\bdaemon reload\b/g, 'daemon-reload'],
     [/\bm v\b/g, 'mv'], [/\bl s\b/g, 'ls'], [/\bp v c\b/g, 'pvc'], [/\bp v\b/g, 'pv'], [/\bh p a\b/g, 'hpa'], [/\bt l s\b/g, 'tls'], [/\br d s\b/g, 'rds'], [/\bd n s\b/g, 'dns'],
     [/\bnet pol\b|\bnetwork ?polic(y|ies)\b/g, 'networkpolicy'],
     [/\bname ?space\b/g, 'namespace'], [/\brole ?binding(s?)\b/g, 'rolebinding$1'], [/\bcluster ?role ?binding(s?)\b/g, 'clusterrolebinding$1'], [/\bcluster ?role\b/g, 'clusterrole'], [/\bservice ?account\b/g, 'serviceaccount'],
@@ -2230,7 +2563,7 @@
   }
 
   return {
-    VERSION: '1.3.0',
+    VERSION: '1.4.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,
@@ -2248,6 +2581,7 @@
     focusLabel: focusLabel,
     relatedEvents: relatedEvents,
     complete: complete,
+    promptFor: promptFor,
     fromSpeech: fromSpeech
   };
 });

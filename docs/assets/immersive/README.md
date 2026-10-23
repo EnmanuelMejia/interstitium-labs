@@ -4,9 +4,9 @@ Authored via **Interstitium glTF kit v2** (`scripts/author_immersive_glb.py`) �
 
 Kit-v2: higher-density meshes, chamfer boxes, spheres, pedagogical `extras` on nodes, LOD1 proxy meshes, Interstitium PBR (cyan `#5EEAD4` · gold `#D4A853` · void `#070B16`).
 
-## Blender polish provenance (2026-10-01 · 2026-10-02 · 2026-10-05 · 2026-10-06)
+## Blender polish provenance (2026-10-01 · 2026-10-02 · 2026-10-05 · 2026-10-06 · 2026-10-22)
 
-**Polished via Blender CLI 4.2.3 LTS on 2026-10-01, 2026-10-02, 2026-10-05, and 2026-10-06 (America/New_York)** using `scripts/blender_polish_glb.py --all --promote`:
+**Polished via Blender CLI 4.2.3 LTS on 2026-10-01, 2026-10-02, 2026-10-05, 2026-10-06 and 2026-10-22 (America/New_York)** using `scripts/blender_polish_glb.py --all --promote`:
 
 - shade smooth + weighted normals
 - LOD1 decimate duplicates
@@ -40,6 +40,7 @@ Pixel Streaming client: `/immersive/pixel-stream/` · Runbook: `/ops/PIXEL-STREA
 | `scheduling-affinity.glb` | **NEW** kube-scheduler filter/score/bind, node labels + taints, affinity/toleration-bound pods vs Pending pod (Blender-polished 2026-10-05) |
 | `aws-vpc-multi-az.glb` | **NEW 2026-10-06** AWS SAA/CCP: VPC across us-east-1a/1b — IGW, ALB nodes, zonal NAT, ASG EC2 (+ hidden `sim-*` surge capacity), RDS primary + synchronous standby, endpoint CNAME. Drives the `aws-az-failure` sim (Blender-polished 2026-10-06) |
 | `aws-iam-policy-eval.glb` | **NEW 2026-10-06** AWS IAM evaluation gates: explicit Deny → SCP/RCP → resource policy → identity → permissions boundary → session → ALLOW / implicit / explicit deny. Drives the `iam-eval` sim (Blender-polished 2026-10-06) |
+| `node-troubleshoot.glb` | **NEW 2026-10-22** worker node-01 cutaway: systemd ring → kubelet (+ kubeadm drop-in, config.yaml) → CRI socket → containerd → CNI conf/plugin; node Lease to kube-apiserver + node lifecycle controller; Guaranteed/Burstable/BestEffort pods; nodefs gauge with `sim-disk-fill-3/4`; journal pages; `sim-taint-flag`. Drives the `node-troubleshoot` sim (Blender CLI 4.2.3 polished 2026-10-22 on the box) |
 | `rack-19u.glb` | Three rack frames with bay LEDs (Blender-polished 2026-10-02) |
 | `hermetic-monas.glb` | Hermetica / Monas lecture (Blender-polished 2026-10-02) |
 | `sim-superlab.glb` | SuperLab sim (rack + cluster combo) (Blender-polished 2026-10-02) |

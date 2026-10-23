@@ -1460,6 +1460,101 @@ def scene_aws_iam_policy_eval() -> list:
     return parts
 
 
+def scene_node_troubleshoot() -> list:
+    """Worker node cutaway (CKA Troubleshooting 30%) — systemd → kubelet → CRI socket → containerd → CNI conf,
+    node lease to the API server, eviction-ranked pods, nodefs gauge, journald pages. Added 2026-10-22."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "node-troubleshoot", "cert": "CKA", "domain": "troubleshooting"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 5.6, 0.08, 3.6)
+    parts.append((floor, MAT_VOID, "node-floor", {**ped, "label": "worker node-01 (cutaway)"}))
+    chassis = MeshBuilder()
+    chassis.add_chamfer_box(-0.35, -0.62, 0.0, 3.9, 0.42, 2.7, 0.05)
+    parts.append((chassis, MAT_INK, "node-chassis", {**ped, "label": "Node/node-01", "kind": "Node"}))
+    lamp = MeshBuilder()
+    lamp.add_sphere(-2.05, 0.05, 1.05, 0.15, 12, 14)
+    parts.append((lamp, MAT_LED, "node-ready-lamp", {**ped, "label": "condition Ready", "kind": "NodeCondition"}))
+    # systemd supervises the kubelet unit (ring) — the unit drop-in and kubelet config are paper tablets
+    ring = MeshBuilder()
+    ring.add_cylinder(-1.35, -0.28, -0.35, 0.52, 0.05, 32, capped=False)
+    parts.append((ring, MAT_SHIELD, "systemd-ring", {**ped, "label": "systemd (PID 1) supervises kubelet.service"}))
+    kubelet = MeshBuilder()
+    kubelet.add_cylinder(-1.35, 0.05, -0.35, 0.34, 0.62, 24)
+    parts.append((kubelet, MAT_GOLD, "kubelet", {**ped, "label": "kubelet", "kind": "systemd unit", "path": "/usr/bin/kubelet"}))
+    kled = MeshBuilder()
+    kled.add_sphere(-1.35, 0.46, -0.35, 0.09, 8, 10)
+    parts.append((kled, MAT_LED, "kubelet-led", {**ped, "label": "kubelet active (running)"}))
+    unit = MeshBuilder()
+    unit.add_chamfer_box(-1.35, 0.42, -1.12, 1.05, 0.46, 0.06, 0.02)
+    parts.append((unit, MAT_PAPER, "kubelet-unit", {
+        **ped, "label": "kubelet.service.d/10-kubeadm.conf · ExecStart=/usr/bin/kubelet …"
+    }))
+    cfg = MeshBuilder()
+    cfg.add_chamfer_box(-2.2, 0.32, -1.12, 0.55, 0.36, 0.06, 0.02)
+    parts.append((cfg, MAT_PAPER, "kubelet-config", {**ped, "label": "/var/lib/kubelet/config.yaml (evictionHard)"}))
+    # CRI: kubelet → unix socket → containerd → CNI conf
+    sock = MeshBuilder()
+    sock.add_sphere(-0.25, -0.05, -0.35, 0.11, 10, 12)
+    parts.append((sock, MAT_CRYSTAL, "cri-socket", {**ped, "label": "unix:///run/containerd/containerd.sock"}))
+    _edge(parts, (-1.0, -0.05, -0.35), (-0.36, -0.05, -0.35), "edge-kubelet-cri", MAT_CYAN, ped, "CRI gRPC", 0.035, 0.05)
+    ctr = MeshBuilder()
+    ctr.add_cylinder(0.55, -0.02, -0.35, 0.3, 0.5, 20)
+    parts.append((ctr, MAT_CYAN, "containerd", {**ped, "label": "containerd (CRI runtime)", "kind": "systemd unit"}))
+    _edge(parts, (-0.14, -0.05, -0.35), (0.25, -0.05, -0.35), "edge-cri-containerd", MAT_CYAN, ped, "CRI socket", 0.035, 0.05)
+    cni = MeshBuilder()
+    cni.add_chamfer_box(1.25, 0.32, -1.05, 0.62, 0.4, 0.06, 0.02)
+    parts.append((cni, MAT_PAPER, "cni-conf", {**ped, "label": "/etc/cni/net.d/10-calico.conflist"}))
+    plug = MeshBuilder()
+    plug.add_cylinder(1.25, -0.2, -0.75, 0.12, 0.3, 12)
+    parts.append((plug, MAT_LED, "cni-plugin", {**ped, "label": "/opt/cni/bin (pod sandbox networking)"}))
+    _edge(parts, (0.85, -0.05, -0.45), (1.2, -0.12, -0.72), "edge-containerd-cni", MAT_CYAN, ped, "sandbox → CNI ADD", 0.03, 0.08)
+    # Pods on the node, left→right in eviction order (BestEffort first)
+    pods = [("pod-guaranteed", -0.9, "Guaranteed"), ("pod-burstable", -0.2, "Burstable"),
+            ("pod-besteffort-0", 0.5, "BestEffort"), ("pod-besteffort-1", 1.2, "BestEffort")]
+    for name, x, qos in pods:
+        pod = MeshBuilder()
+        pod.add_sphere(x, -0.18, 0.75, 0.19, 12, 14)
+        m = MAT_GOLD if qos == "Guaranteed" else (MAT_CYAN if qos == "Burstable" else MAT_MUTED)
+        parts.append((pod, m, name, {**ped, "label": f"Pod ({qos})", "kind": "Pod", "qosClass": qos}))
+    # nodefs gauge: 3 fill segments always, 2 sim-only segments revealed under DiskPressure
+    frame = MeshBuilder()
+    frame.add_chamfer_box(1.25, 0.2, 0.35, 0.36, 1.1, 0.3, 0.02)
+    parts.append((frame, MAT_SHIELD, "disk-gauge", {**ped, "label": "nodefs (/var/lib) — evictionHard nodefs.available<10%"}))
+    for i in range(5):
+        seg = MeshBuilder()
+        seg.add_box(1.25, -0.24 + i * 0.2, 0.35, 0.26, 0.15, 0.22)
+        nm = f"disk-fill-{i}" if i < 3 else f"sim-disk-fill-{i}"
+        parts.append((seg, MAT_TAINT if i >= 3 else MAT_CYAN, nm, {
+            **ped, "label": f"nodefs used {20 * (i + 1)}%", **({"simOnly": True} if i >= 3 else {})
+        }))
+    # journald: the evidence stack
+    for i in range(3):
+        page = MeshBuilder()
+        page.add_chamfer_box(-2.2, -0.25 + i * 0.09, 0.2, 0.62, 0.04, 0.45, 0.01)
+        parts.append((page, MAT_PAPER, f"journal-page-{i}", {**ped, "label": "journalctl -u kubelet"}))
+    # Control plane (remote): API server + node lifecycle controller; kubelet renews its Lease
+    api = MeshBuilder()
+    api.add_chamfer_box(0.15, 0.95, -1.45, 0.85, 0.5, 0.4, 0.03)
+    parts.append((api, MAT_CYAN, "control-plane-api", {**ped, "label": "kube-apiserver (controlplane)"}))
+    nlc = MeshBuilder()
+    nlc.add_cylinder(1.05, 0.95, -1.45, 0.17, 0.4, 16)
+    parts.append((nlc, MAT_GOLD, "node-lifecycle-controller", {
+        **ped, "label": "node lifecycle controller (kube-controller-manager)"
+    }))
+    _edge(parts, (-1.35, 0.5, -0.5), (-0.2, 0.92, -1.4), "edge-node-lease", MAT_LED, ped,
+          "Lease kube-node-lease/node-01 renew (~10s) + NodeStatus", 0.035, 0.18)
+    flag = MeshBuilder()
+    flag.add_cylinder(-2.05, 0.45, 1.05, 0.02, 0.7, 8)
+    flag.add_box(-1.88, 0.68, 1.05, 0.32, 0.2, 0.03)
+    parts.append((flag, MAT_TAINT, "sim-taint-flag", {
+        **ped, "label": "taint node.kubernetes.io/{unreachable|not-ready|disk-pressure}", "simOnly": True
+    }))
+    lod = MeshBuilder()
+    lod.add_box(-0.3, -0.5, 0, 4.6, 0.12, 3.0)
+    parts.append((lod, MAT_VOID, "lod1-node-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1480,6 +1575,7 @@ SCENES = {
     "scheduling-affinity.glb": scene_scheduling_affinity,
     "aws-vpc-multi-az.glb": scene_aws_vpc_multi_az,
     "aws-iam-policy-eval.glb": scene_aws_iam_policy_eval,
+    "node-troubleshoot.glb": scene_node_troubleshoot,
 }
 
 

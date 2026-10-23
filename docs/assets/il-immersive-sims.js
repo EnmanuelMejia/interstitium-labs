@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.4.0 (2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.5.0 (2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -20,6 +20,11 @@
  * (Pending, no ADDRESS), route hostnames vs listener (NoMatchingListenerHostname → 404), cross-namespace backendRef
  * without ReferenceGrant (RefNotPermitted → 500, as the spec requires), listener certificateRefs missing
  * (InvalidCertificateRef → listener not programmed), PathPrefix vs Exact. No new asset; rules address existing nodes.
+ *
+ * v1.5.0 (2026-10-22): node-troubleshoot drill on a NEW authored asset, node-troubleshoot.glb (kit-v2 + Blender CLI
+ * polish): kubelet 203/EXEC from a bad ExecStart, daemon-reload after a unit edit, containerd down (containers survive
+ * via shims, Ready=False), CNI config missing (NetworkPluginNotReady), nodefs DiskPressure (BestEffort evicted first).
+ * Troubleshooting is 30% of the CKA; it previously had one drill.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1193,10 +1198,118 @@
     }
   };
 
+  /* ── Worker-node troubleshooting (CKA Troubleshooting, 30% of the exam) — v1.5.0 (2026-10-22) ──
+   * Scene contract (node-troubleshoot.glb, authored 2026-10-22): systemd-ring → kubelet (+ kubelet-led, kubelet-unit
+   * drop-in, kubelet-config) → edge-kubelet-cri → cri-socket → containerd → cni-conf / cni-plugin; edge-node-lease to
+   * control-plane-api + node-lifecycle-controller; pods ranked for eviction (Guaranteed → BestEffort); nodefs gauge with
+   * sim-disk-fill-3/4; journal pages; sim-taint-flag. Ready/taint/eviction follow documented kubelet + node lifecycle
+   * controller behaviour; durations are not simulated (no clock). */
+  function nodeDecide(s) {
+    var active = !!s.kubeletOn && !!s.execLoaded;
+    var unit = !s.kubeletOn ? 'inactive' : (!s.execLoaded ? 'auto-restart-203' : 'active');
+    var ready = !active ? 'Unknown' : (!s.runtimeUp ? 'False-runtime' : (!s.cniOk ? 'False-cni' : 'True'));
+    var reason = { Unknown: 'NodeStatusUnknown: Kubelet stopped posting node status.',
+      'False-runtime': 'KubeletNotReady: container runtime is down',
+      'False-cni': 'KubeletNotReady: container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized',
+      True: 'KubeletReady: kubelet is posting ready status' }[ready];
+    var pressure = active && !!s.diskPressure;
+    var taint = ready === 'Unknown' ? 'node.kubernetes.io/unreachable' : (ready !== 'True' ? 'node.kubernetes.io/not-ready' : (pressure ? 'node.kubernetes.io/disk-pressure' : null));
+    return {
+      kubeletActive: active,
+      kubeletUnit: unit,
+      ready: ready,
+      readyStatus: ready === 'True' ? 'True' : (ready === 'Unknown' ? 'Unknown' : 'False'),
+      reason: reason,
+      diskPressure: active ? !!s.diskPressure : 'Unknown',
+      taint: taint,
+      taintEffects: !taint ? [] : (taint === 'node.kubernetes.io/disk-pressure' ? ['NoSchedule'] : ['NoSchedule', 'NoExecute']),
+      /* containers survive a kubelet stop and a containerd stop (containerd-shim keeps them; containerd.service KillMode=process) */
+      runningContainersKeepRunning: true,
+      evictBestEffort: pressure && !!s.runtimeUp,
+      newPodsLand: ready === 'True' && !pressure,
+      crictl: !!s.runtimeUp,
+      daemonReloadNeeded: !!s.execOnDisk && !s.execLoaded
+    };
+  }
+
+  var nodeTrouble = {
+    id: 'node-troubleshoot',
+    title: 'Worker-node troubleshooting drill — kubelet, runtime, CNI, disk pressure',
+    cert: 'CKA',
+    glb: '/assets/immersive/node-troubleshoot.glb',
+    initial: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: true, diskPressure: false },
+    toggles: [
+      { id: 'kubeletOn', label: 'kubelet.service', on: 'started', off: 'stopped' },
+      { id: 'execLoaded', label: 'kubelet ExecStart (as loaded by systemd)', on: '/usr/bin/kubelet', off: '/usr/local/bin/kubelet (missing)' },
+      { id: 'runtimeUp', label: 'containerd', on: 'running', off: 'stopped' },
+      { id: 'cniOk', label: '/etc/cni/net.d', on: '10-calico.conflist', off: 'empty' },
+      { id: 'diskPressure', label: 'nodefs.available', on: '< 10% (evictionHard)', off: 'healthy', risk: 'on' }
+    ],
+    scenarios: [
+      { id: 'exec-203', label: 'kubelet 203/EXEC', set: { kubeletOn: true, execLoaded: false, execOnDisk: false, runtimeUp: true, cniOk: true, diskPressure: false },
+        predict: { q: 'After an in-place upgrade node-01 is NotReady. On node-01, systemctl status kubelet shows “activating (auto-restart) … status=203/EXEC”. Where is the fault?',
+          options: ['The kubelet client certificate expired, so the API server rejects the node', 'containerd is down, so the kubelet cannot start', 'systemd cannot exec the unit’s ExecStart — the kubeadm drop-in points at a kubelet binary path that does not exist'],
+          answer: 2, why: '203/EXEC is systemd failing to execute ExecStart, before the kubelet runs a single line. Compare ExecStart in 10-kubeadm.conf with `which kubelet`, fix the path, then systemctl daemon-reload and restart. A certificate or runtime fault would show the kubelet running and logging errors instead.' } },
+      { id: 'reload', label: 'Fixed on disk, not reloaded', set: { kubeletOn: true, execLoaded: false, execOnDisk: true, runtimeUp: true, cniOk: true, diskPressure: false },
+        predict: { q: 'You fixed ExecStart in the drop-in and ran systemctl restart kubelet. It still fails with 203/EXEC. Why?',
+          options: ['systemd still has the old unit definition loaded — run systemctl daemon-reload, then restart', 'The kubelet caches its binary path in /var/lib/kubelet/config.yaml', 'The node has to be drained and re-joined with kubeadm'],
+          answer: 0, why: 'systemd reads unit files and drop-ins when it loads them. After an edit, systemctl warns that the unit changed on disk; daemon-reload picks up the change. /var/lib/kubelet/config.yaml holds kubelet settings, not the binary path.' } },
+      { id: 'runtime-down', label: 'containerd stopped', set: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: false, cniOk: true, diskPressure: false },
+        predict: { q: 'containerd stops on node-01 but the kubelet keeps running. What happens to the containers already running there?',
+          options: ['They die with the runtime', 'They keep running (each is held by its containerd-shim), but node-01 goes NotReady — “container runtime is down” — and nothing new can start there', 'Nothing visible: node-01 stays Ready because the kubelet still posts status'],
+          answer: 1, why: 'containerd-shim processes keep containers alive when containerd itself stops (the upstream containerd.service uses KillMode=process). The kubelet’s runtime check fails, so it reports Ready=False and the node gets the not-ready taint; crictl fails at the socket. As on any NotReady node, pods are evicted once the default 300s not-ready toleration runs out. systemctl start containerd recovers it.' } },
+      { id: 'cni-missing', label: 'CNI config deleted', set: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: false, diskPressure: false },
+        predict: { q: 'Someone emptied /etc/cni/net.d on node-01. What does kubectl get nodes show?',
+          options: ['node-01 NotReady — the kubelet reports NetworkReady=false: cni plugin not initialized', 'node-01 Ready — pod networking is only the CNI DaemonSet’s concern', 'node-01 disappears from the list until the CNI is reinstalled'],
+          answer: 0, why: 'With no CNI config the runtime reports NetworkReady=false and the kubelet turns that into Ready=False (“container runtime network not ready … cni plugin not initialized”) — the same reason a fresh kubeadm cluster stays NotReady until a CNI is installed. Restarting the CNI DaemonSet pod lets its install step write the conflist back.' } },
+      { id: 'disk-pressure', label: 'nodefs below 10%', set: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: true, diskPressure: true },
+        predict: { q: 'nodefs.available on node-01 drops below the kubelet’s hard eviction threshold (default 10%). What does the kubelet do?',
+          options: ['Evicts pods at random until usage is below the threshold', 'Marks node-01 NotReady and stops every pod', 'Sets DiskPressure=True (the node gets the disk-pressure:NoSchedule taint), reclaims dead containers and unused images, then evicts pods — BestEffort first, Guaranteed last'],
+          answer: 2, why: 'Node-pressure eviction: the kubelet first reclaims node-level resources, then ranks pods — usage above requests first, then priority, then usage relative to requests. BestEffort pods request nothing, so they go first. Ready stays True; the taint keeps new pods off. crictl rmi --prune frees image space by hand.' } },
+      { id: 'heal', label: 'Reset', set: { kubeletOn: true, execLoaded: true, execOnDisk: true, runtimeUp: true, cniOk: true, diskPressure: false } }
+    ],
+    derive: function (s) {
+      var d = nodeDecide(s), rules = [];
+      var kStyle = d.kubeletActive ? { tint: 'ok', glow: 0.45 } : (d.kubeletUnit === 'auto-restart-203' ? { tint: 'deny', glow: 0.85, pulse: true } : { tint: 'down', glow: 0 });
+      rules.push(rule('^kubelet$', kStyle));
+      rules.push(rule('^kubelet-led$', d.kubeletActive ? { tint: 'ok', glow: 0.6 } : { tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^systemd-ring$', d.kubeletUnit === 'auto-restart-203' ? { tint: 'warn', glow: 0.55, pulse: true } : { tint: 'ok', glow: 0.25 }));
+      rules.push(rule('^kubelet-unit$', s.execLoaded ? { tint: 'ok', glow: 0.15 } : { tint: s.execOnDisk ? 'warn' : 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^kubelet-config$', d.diskPressure === true ? { tint: 'gold', glow: 0.45 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^edge-kubelet-cri$', d.kubeletActive && s.runtimeUp ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^(cri-socket|containerd|edge-cri-containerd)$', s.runtimeUp ? { tint: 'ok', glow: 0.4 } : { tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^cni-conf$', s.cniOk ? { tint: 'ok', glow: 0.2 } : { tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^(cni-plugin|edge-containerd-cni)$', s.cniOk && s.runtimeUp ? { tint: 'ok', glow: 0.35 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^node-ready-lamp$', d.ready === 'True' ? { tint: 'ok', glow: 0.7 } : (d.ready === 'Unknown' ? { tint: 'warn', glow: 0.8, pulse: true } : { tint: 'deny', glow: 0.8, pulse: true })));
+      rules.push(rule('^edge-node-lease$', d.kubeletActive ? { tint: 'ok', glow: 0.45 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^control-plane-api$', { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^node-lifecycle-controller$', d.taint ? { tint: 'gold', glow: 0.7, pulse: true } : { tint: 'ok', glow: 0.25 }));
+      rules.push(rule('^sim-taint-flag$', d.taint ? { show: true, tint: 'warn', glow: 0.6 } : { hide: true }));
+      var podOk = d.ready === 'Unknown' ? { tint: 'warn', glow: 0.3, pulse: true } : { tint: 'ok', glow: 0.35 };
+      rules.push(rule('^pod-(guaranteed|burstable)$', podOk));
+      rules.push(rule('^pod-besteffort-[01]$', d.evictBestEffort ? { tint: 'deny', glow: 0.2, pulse: true } : (d.ready === 'Unknown' ? podOk : { tint: 'muted', glow: 0.2 })));
+      rules.push(rule('^disk-fill-[0-2]$', d.diskPressure === true ? { tint: 'warn', glow: 0.45 } : { tint: 'ok', glow: 0.25 }));
+      rules.push(rule('^sim-disk-fill-[34]$', d.diskPressure === true ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^disk-gauge$', d.diskPressure === true ? { tint: 'warn', glow: 0.4 } : { tint: 'ok', glow: 0.15 }));
+      var evidence = !d.kubeletActive || !s.runtimeUp || !s.cniOk || d.diskPressure === true;
+      rules.push(rule('^journal-page-[0-2]$', evidence ? { tint: 'gold', glow: 0.55, pulse: true } : { tint: 'muted', glow: 0.1 }));
+      var verdict = d.ready !== 'True' ? 'down' : (d.diskPressure === true ? 'degraded' : 'healthy');
+      rules.push(rule('^node-chassis$', verdict === 'healthy' ? { tint: 'muted', glow: 0.1 } : { tint: verdict === 'down' ? 'deny' : 'warn', glow: 0.25 }));
+      var cap = ['node-01 Ready=' + d.readyStatus + (d.ready !== 'True' ? ' (' + d.reason.split(': ').slice(1).join(': ') + ')' : '')];
+      cap.push('kubelet ' + ({ active: 'active (running)', inactive: 'inactive (dead)', 'auto-restart-203': 'activating (auto-restart) status=203/EXEC' })[d.kubeletUnit]);
+      if (d.daemonReloadNeeded) cap.push('unit file fixed on disk but systemd still runs the old definition');
+      if (!s.runtimeUp) cap.push('containerd down (running containers kept by shims)');
+      if (d.taint) cap.push('taint ' + d.taint + ':' + d.taintEffects.join('+'));
+      if (d.evictBestEffort) cap.push('DiskPressure → BestEffort pods evicted first');
+      if (d.ready !== 'True') cap.push('running containers keep running; evicted after the 300s toleration');
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
-    'mesh-mtls': mesh, 'control-plane-failure': controlPlane };
+    'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1251,7 +1364,7 @@
   }
 
   return {
-    VERSION: '1.4.0',
+    VERSION: '1.5.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1276,6 +1389,7 @@
     cniDecide: cniDecide,
     meshDecide: meshDecide,
     controlPlaneDecide: controlPlaneDecide,
+    nodeDecide: nodeDecide,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };
