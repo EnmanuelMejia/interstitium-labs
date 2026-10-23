@@ -79,8 +79,16 @@
       btn.setAttribute('aria-current','true');
       video.pause();
       var src = video.querySelector('source');
-      src.setAttribute('src', btn.getAttribute('data-src'));
-      video.setAttribute('poster', btn.getAttribute('data-poster'));
+      /* Media URLs come from this page's own data-* attributes; still,
+         refuse any scheme other than http(s) so a stray javascript: or
+         data: value can never reach a URL-bearing attribute. */
+      var mediaUrl = function (v) {
+        var s = String(v == null ? '' : v);
+        var m = /^([a-z][a-z0-9+.-]*):/i.exec(s);
+        return (m && !/^https?$/i.test(m[1])) ? '' : s;
+      };
+      src.setAttribute('src', mediaUrl(btn.getAttribute('data-src')));
+      video.setAttribute('poster', mediaUrl(btn.getAttribute('data-poster')));
       if(titleEl) titleEl.textContent = btn.getAttribute('data-title');
       if(descEl) descEl.innerHTML = btn.getAttribute('data-desc');
       if(!reduced){ video.muted = true; video.removeAttribute('controls'); }

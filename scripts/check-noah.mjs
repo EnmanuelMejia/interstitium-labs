@@ -53,7 +53,12 @@ const primaryHome = readFileSync('docs/index.html', 'utf8');
 // never built (docs/portfolio/ does not exist); dropped as a dead link in
 // the nav simplification. The engineering portfolio lives at
 // enmanueldmejia.com (separate site).
-assert.ok(primaryHome.includes('https://learn.interstitiumlabs.dev'), 'University cross-domain link must remain available');
+/* Token-exact membership in the parsed CSP source list — not a
+   substring test (a substring can be spoofed by a longer host that
+   merely contains the expected origin). */
+const cspMatch = primaryHome.match(/http-equiv="Content-Security-Policy" content="([^"]*)"/i);
+const cspTokens = cspMatch ? cspMatch[1].split(/\s+/).filter(Boolean) : [];
+assert.ok(cspTokens.some(function (t) { return t === 'https://learn.interstitiumlabs.dev'; }), 'University cross-domain link must remain available');
 assert.equal(readFileSync('docs/CNAME', 'utf8').trim(), 'interstitiumlabs.dev', 'Canonical apex CNAME changed');
 assert.ok(existsSync('docs/ops/DOMAIN-ROUTING.md'), 'Canonical domain mapping must be documented');
 console.log(`Source, workspace references, original GLB, curriculum index, and ${ledger.capabilities.length} capability rows verified.`);

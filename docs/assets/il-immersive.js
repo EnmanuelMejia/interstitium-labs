@@ -8,6 +8,11 @@
 
   function K() { return g.ILSceneKit || null; }
 
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   var VERT = [
     'attribute vec3 aPos;',
     'attribute vec3 aNrm;',
@@ -158,7 +163,7 @@
     host.innerHTML =
       '<div class="il-immersive__stage" data-imm-stage></div>' +
       '<div class="il-immersive__hud">' +
-      '<span class="il-immersive__badge">' + title + '</span>' +
+      '<span class="il-immersive__badge">' + esc(title) + '</span>' +
       '<span class="il-immersive__engine" data-imm-engine>WebGL</span>' +
       '</div>';
 

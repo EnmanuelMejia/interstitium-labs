@@ -134,12 +134,26 @@
     if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest' });
   }
 
+  /* Palette destinations are first-party pages. Recents round-trip
+     through localStorage, so never trust a stored href at navigation
+     time: resolve it against the current origin and only navigate
+     when it stays on this origin (blocks javascript:/external URLs). */
+  function safeNavHref(h) {
+    var s = String(h == null ? '' : h);
+    if (!s) return 'index.html';
+    try {
+      var u = new URL(s, window.location.href);
+      if (u.origin !== window.location.origin) return 'index.html';
+      return u.pathname + u.search + u.hash;
+    } catch (e) { return 'index.html'; }
+  }
+
   function go(it) {
     recordRecent(it);
     close();
-    if (motionReducedNow()) { window.location.href = it.href; return; }
+    if (motionReducedNow()) { window.location.href = safeNavHref(it.href); return; }
     document.body.classList.add('il-leaving');
-    setTimeout(function () { window.location.href = it.href; }, 170);
+    setTimeout(function () { window.location.href = safeNavHref(it.href); }, 170);
   }
 
   function openPal() {

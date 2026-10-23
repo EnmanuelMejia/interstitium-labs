@@ -1445,7 +1445,7 @@
           pushActivity(state, 'Nudge · ' + (btn.textContent || '').trim());
           persist();
           if (ask) sendMessage(ask);
-          else if (href) g.location.href = href;
+          else if (href) openHrefApproved(href);
         });
       });
       app.querySelectorAll('[data-muse-approve]').forEach(function (btn) {
@@ -1481,6 +1481,10 @@
 
       function openHrefApproved(href) {
         if (!href) return;
+        /* Script-capable schemes are never navigable — not even after
+           the external-link confirmation, where assigning one to
+           location would execute it in this page's context. */
+        if (/^\s*(javascript|data|vbscript)\s*:/i.test(href)) return;
         if (isFirstPartyHref(href)) {
           g.location.href = href;
           return;
