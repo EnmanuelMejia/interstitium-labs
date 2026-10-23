@@ -1394,8 +1394,8 @@ export {
   ENTITLEMENT_COOKIE,
   ENTITLEMENT_TTL,
 };
-
 // _worker.js
+
 
 var NOINDEX_PREFIXES = ["/admin/", "/ops/", "/analytics/", "/measure/", "/brand/"];
 
@@ -5689,9 +5689,13 @@ async function srcCached(key, ttlSec, producer) {
        Exchange and arXiv rate-limit shared egress IPs hard) must not
        be hammered by every lesson panel and chat grounding call. */
     var msg = String((err && err.message) || err).slice(0, 200);
-    srcMemCache.set(key, { at: now, error: msg });
+    /* The upstream error text stays in worker logs only — the negative
+       caches below are re-thrown to callers whose handlers serialize the
+       message into HTTP responses, so they store a generic marker. */
+    console.log('srcCached producer error [' + key + ']: ' + msg);
+    srcMemCache.set(key, { at: now, error: 'upstream_error' });
     try {
-      await caches.default.put(cacheReq, new Response(JSON.stringify({ __srcError: msg }), {
+      await caches.default.put(cacheReq, new Response(JSON.stringify({ __srcError: 'upstream_error' }), {
         headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=300' }
       }));
     } catch (e) { /* best-effort */ }
@@ -6045,8 +6049,8 @@ async function handleSourceSearch(request, env, name) {
     return srcJson({ ok: true, source: name, label: reg.label, query: q || title, results: results,
       attribution: 'Content from ' + reg.label + ' (' + reg.home + ') — ' + reg.license + '. Excerpts are for learning; verify at the source.' }, 200, origin);
   } catch (e) {
-    return srcJson({ ok: false, error: 'Source lookup failed.', source: name, fallback: true,
-      detail: String((e && e.message) || e).slice(0, 140) }, 502, origin);
+    console.log('source search failed [' + name + ']: ' + String((e && e.message) || e).slice(0, 200));
+    return srcJson({ ok: false, error: 'Source lookup failed.', source: name, fallback: true }, 502, origin);
   }
 }
 
@@ -7722,7 +7726,7 @@ async function googleConnectorAction(env, request, sess, connId, action, params)
       { timeMin: t0, timeMax: t1, items: [{ id: 'primary' }] });
   }
   if (connId === 'gdrive' && (action === 'search' || action === 'list')) {
-    var qq = params.q ? "name contains '" + String(params.q).replace(/'/g, "\\'") + "'" : 'trashed=false';
+    var qq = params.q ? "name contains '" + String(params.q).replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : 'trashed=false';
     return await googleApi(env, request, sess, 'GET',
       'www.googleapis.com/drive/v3/files',
       'q=' + q(qq) + '&pageSize=20&fields=files(id,name,mimeType,modifiedTime,size)&orderBy=modifiedTime%20desc');
