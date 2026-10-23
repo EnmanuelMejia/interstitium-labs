@@ -114,7 +114,7 @@
   }
   function profile(value) {
     value = value || {};
-    return { goal: clean(value.goal || 'Junior cloud / DevOps', 100), support: value.support === true,
+    return { goal: clean(value.goal || 'IT Infrastructure Engineer', 100), support: value.support === true,
       aplus: value.aplus === true, portfolio: value.portfolio === true, skills: clean(value.skills, 800), notes: clean(value.notes, 800) };
   }
   function filters(value) {

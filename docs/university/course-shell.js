@@ -447,7 +447,7 @@ function showTab(id) {
   });
   $all('.shell-tab').forEach(function (s) { s.classList.toggle('active', s.id === 'tab-' + id); });
   var pane = $('#tab-' + id);
-  if (pane && !pane.dataset.built) { pane.dataset.built = '1'; BUILDERS[id](pane); }
+  if (pane && !pane.dataset.built) { pane.dataset.built = '1'; if (typeof BUILDERS[id] === 'function') BUILDERS[id](pane); }
   /* 2026-10-08: scroll-reveal + progress-bar animation pass (il-animate.js). */
   if (pane && window.ILAnimate) window.ILAnimate.observe(pane);
   if (id === 'brief') {
@@ -4504,7 +4504,16 @@ function il27AdaptiveLab(host, lab) {
   function mapGet() { var m = {}; try { m = JSON.parse(Progress.get(PK + 'map', '{}')); } catch (e) {} return m; }
   function mapSet(m) { Progress.set(PK + 'map', JSON.stringify(m)); }
   function tState(m, tid) {
-    return m[tid] || { level: 0, streak: 0, attempts: 0, correct: 0, lastRecheck: null };
+    var s = m[tid] || { level: 0, streak: 0, attempts: 0, correct: 0, lastRecheck: null };
+    /* Stored progress is device-local JSON; coerce the numeric fields
+       at this single choke point so renderers can interpolate them
+       into HTML (including a class-name suffix) without a stored
+       string ever reaching the markup. */
+    s.level = Number(s.level) || 0;
+    s.streak = Number(s.streak) || 0;
+    s.attempts = Number(s.attempts) || 0;
+    s.correct = Number(s.correct) || 0;
+    return s;
   }
   function kcGet() { var m = {}; try { m = JSON.parse(Progress.get(PK + 'kc', '{}')); } catch (e) {} return m; }
   function kcSet(m) { Progress.set(PK + 'kc', JSON.stringify(m)); }

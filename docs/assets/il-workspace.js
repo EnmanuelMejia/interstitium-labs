@@ -102,7 +102,10 @@
 
     var bms = g.ILNotes.bookmarks();
     $('ilw-bookmarks').innerHTML = bms.map(function (b) {
-      return '<li><a href="' + esc(b.url) + '">' + esc(b.label) + '</a>' +
+      /* esc() alone cannot neutralize a javascript: URL in an href —
+         only http(s) and same-origin relative bookmark targets render. */
+      var safeUrl = /^(https?:\/\/|\/)/i.test(String(b.url || '')) ? b.url : '#';
+      return '<li><a href="' + esc(safeUrl) + '">' + esc(b.label) + '</a>' +
         ' <button type="button" class="ilw-x" data-ilw-unbookmark="' + esc(b.url) + '" aria-label="Remove bookmark">✕</button></li>';
     }).join('') || '<li class="ilw-dim">No bookmarks yet.</li>';
 
@@ -115,7 +118,7 @@
 
   function noteItem(n) {
     var tags = (n.tags || []).map(function (t) { return '<span class="ilw-tag">' + esc(t) + '</span>'; }).join(' ');
-    return '<li><button type="button" class="ilw-noteitem" data-ilw-open="' + n.id + '">' +
+    return '<li><button type="button" class="ilw-noteitem" data-ilw-open="' + esc(n.id) + '">' +
       '<span class="ilw-notetitle">' + esc(n.title) + (n.kind === 'map' ? ' 🧠' : '') + '</span>' +
       '<span class="ilw-notemeta">' + new Date(n.updatedAt).toLocaleDateString() + ' ' + tags + '</span>' +
       '</button></li>';
@@ -127,7 +130,7 @@
     var q = $('ilw-search').value || '';
     var hits = g.ILNotes.search(q);
     $('ilw-notes-list').innerHTML = hits.map(function (h) {
-      return '<li><button type="button" class="ilw-noteitem" data-ilw-open="' + h.note.id + '">' +
+      return '<li><button type="button" class="ilw-noteitem" data-ilw-open="' + esc(h.note.id) + '">' +
         '<span class="ilw-notetitle">' + esc(h.note.title) + (h.note.kind === 'map' ? ' 🧠' : '') + '</span>' +
         '<span class="ilw-notemeta">' + esc(h.excerpt) + '</span></button></li>';
     }).join('');
@@ -190,7 +193,7 @@
   function fillMapSelects() {
     var mine = g.ILMindmap ? g.ILMindmap.listMaps() : [];
     $('ilw-map-mine').innerHTML = '<option value="">Choose a custom map…</option>' + mine.map(function (n) {
-      return '<option value="' + n.id + '">' + esc(n.title) + '</option>';
+      return '<option value="' + esc(n.id) + '">' + esc(n.title) + '</option>';
     }).join('');
     fetch('/assets/search-index.json').then(function (r) { return r.json(); }).then(function (data) {
       var items = ((data && data.items) || []).filter(function (it) { return /^\/bootcamps\/[^/]+\/?$/.test(it.u || ''); });
