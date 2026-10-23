@@ -2,7 +2,7 @@
  * 2026-10-20 Musk-bar pass: four new CLI packs (NetworkPolicy, RBAC, storage reclaim, Ingress API),
  * coach-driven CLI review cards in the existing on-device Leitner queue, and the spoken-command normaliser.
  * Pure UMD — the browser runs exactly this code. Tip/focus coverage for every task is asserted by the
- * generic loops in immersive-cli.test.js, which iterate C.list() (now 9 packs).
+ * generic loops in immersive-cli.test.js, which iterate C.list() (9 packs on 2026-10-20; 11 since 2026-10-21).
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -198,7 +198,7 @@ function sandbox() {
 const T0 = Date.UTC(2026, 9, 20, 13, 0, 0);
 const MIN = 60e3, DAY = 864e5;
 
-test('cliCheckpoints: one per task step across all 9 packs, keyed sim::cli:task:step, with the solution only in `why`', () => {
+test('cliCheckpoints: one per task step across every pack, keyed sim::cli:task:step, with the solution only in `why`', () => {
   const { R, C: Cx } = sandbox();
   const cps = R.cliCheckpoints();
   const total = Cx.list().reduce((n, id) => n + Cx.pack(id).tasks.reduce((m, t) => m + t.steps.length, 0), 0);
@@ -259,7 +259,7 @@ test('analytics stay verb-level: the player never puts command text in CLI card 
   for (const v of voice) assert.doesNotMatch(v, /line|cmd|hint|transcript|text/);
 });
 
-test('review replay never gives a free pass: replaying steps 1..i-1 lands exactly on step i (not done) for all 99 steps', () => {
+test('review replay never gives a free pass: replaying steps 1..i-1 lands exactly on step i (not done) for every step (99 on 2026-10-20, 136 since 2026-10-21)', () => {
   let n = 0;
   for (const id of C.list()) for (const tk of C.pack(id).tasks) for (let i = 0; i < tk.steps.length; i++) {
     const s = session(id, tk.id);
@@ -269,5 +269,5 @@ test('review replay never gives a free pass: replaying steps 1..i-1 lands exactl
     assert.equal(st.steps[i].done, false, `${id}/${tk.id} step ${i + 1} still for the learner`);
     n++;
   }
-  assert.equal(n, 99);
+  assert.equal(n, 136);
 });

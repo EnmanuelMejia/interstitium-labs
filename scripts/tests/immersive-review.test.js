@@ -157,7 +157,7 @@ test('adaptive exam: focus sims fill ≥60% of the paper; no focus = unchanged v
   /* Seed evidence: miss everything in Networking. */
   for (const c of R.checkpoints(S).filter(x => x.domain === 'Networking')) R.record({ simId: c.simId, scenarioId: c.scenarioId, correct: false, ms: 5000, src: 'exam', now: T0 });
   const focus = R.focusSims(S, 1, { now: T0 });
-  assert.deepEqual([...focus].sort(), ['cni-network', 'ingress-routing', 'netpol-isolation']);
+  assert.deepEqual([...focus].sort(), ['cni-network', 'gateway-api', 'ingress-routing', 'netpol-isolation']);
   const ad = E.buildExam(S, { count: 10, seed: 42, now: T0, focus });
   assert.equal(ad.items.length, 10);
   const inFocus = ad.items.filter(i => focus.includes(i.simId)).length;
@@ -165,7 +165,7 @@ test('adaptive exam: focus sims fill ≥60% of the paper; no focus = unchanged v
   assert.ok(new Set(ad.items.map(i => i.simId)).size >= 6, 'still keeps cross-domain coverage');
   assert.equal(new Set(ad.items.map(i => i.simId + '::' + i.scenarioId)).size, 10, 'no duplicate checkpoints');
   assert.deepEqual([...ad.focus].sort(), [...focus].sort());
-  assert.equal(E.VERSION, '1.1.0');
+  assert.match(E.VERSION, /^1\.[12]\./);
 });
 
 test('review page + wiring: relative assets, honest copy, drills feed the loop but exam/review stages do not double-count', () => {
@@ -195,7 +195,7 @@ test('review page + wiring: relative assets, honest copy, drills feed the loop b
 
 test('speakLine (2026-10-14 Lab Muse queue briefing): counts by reason, weakest seen domain, honest empty state', () => {
   const { S, R } = sandbox();
-  assert.match(R.VERSION, /^1\.2\./);
+  assert.match(R.VERSION, /^1\.3\./);
   assert.match(R.speakLine({ dueNow: 0 }, [], []), /^Lab Muse: nothing is due on this device\./);
   const q = [{ reason: 'relearn' }, { reason: 'relearn' }, { reason: 'due' }, { reason: 'weak-domain' }];
   const mast = [{ domain: 'Untouched', pct: 0, seen: 0 }, { domain: 'Troubleshooting', pct: 17, seen: 3 }];

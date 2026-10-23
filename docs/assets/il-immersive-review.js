@@ -1,5 +1,5 @@
 /**
- * IL Immersive Review v1.0.0 (2026-10-13) — adaptive remediation loop for the CKA 3D sims.
+ * IL Immersive Review v1.3.0 (2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
  *
  * Closes the loop the 2026-10-12 exam left open: every exam miss, timeout, and free-play
  * drill result becomes a spaced-repetition card keyed to the exact predict checkpoint,
@@ -21,6 +21,8 @@
  * simId::cli:<taskId>:<step>. The review stage re-opens that drill's task with the earlier steps replayed, and
  * the card is graded by whether the learner gets the step verified without `solution`. Mastery % stays computed
  * from predict checkpoints (CLI cards are scheduled and counted, never invented as top-ups).
+ * v1.3.0 (2026-10-21): + gateway-api checkpoints; blueprint() — on-device mastery weighted by the official CNCF CKA
+ * domain weights, with the weakest domain by points at stake. speakLine() names it when there is evidence.
  */
 (function (root, factory) {
   var api = factory(root);
@@ -29,7 +31,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -52,7 +54,8 @@
     'rbac-authz': 'Security',
     'netpol-isolation': 'Networking',
     'cni-network': 'Networking',
-    'ingress-routing': 'Networking'
+    'ingress-routing': 'Networking',
+    'gateway-api': 'Networking'
   };
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
@@ -269,6 +272,32 @@
     return list;
   }
 
+  /**
+   * v1.3.0 (2026-10-21): readiness against the official CNCF CKA blueprint (ILImmersiveExam.BLUEPRINT weights).
+   * Per official domain: mastery share = Σ box / (checkpoints × MAX_BOX), unseen checkpoints count 0. Returns
+   * ILImmersiveExam.blueprintScore() over every domain (all have checkpoints, so nothing is "untested" — an unseen
+   * domain is 0%, never strong), plus seen/checkpoints per row. Null when the exam module is not loaded.
+   */
+  function blueprint(S, opts) {
+    opts = opts || {};
+    var E = opts.E || (g && g.ILImmersiveExam);
+    if (!E && typeof require === 'function') { try { E = require('./il-immersive-exam.js'); } catch (e) { E = null; } }
+    if (!E || !E.blueprintScore) return null;
+    var db = opts.db || load();
+    var cps = checkpoints(S), sc = {}, seen = {};
+    for (var i = 0; i < cps.length; i++) {
+      var dom = E.OFFICIAL[cps[i].simId]; if (!dom) continue;
+      var d = sc[dom] || (sc[dom] = { correct: 0, total: 0 });
+      var c = db.cards[cps[i].k];
+      d.total += 1;
+      if (c) { d.correct += c.box / MAX_BOX; seen[dom] = (seen[dom] || 0) + 1; }
+    }
+    var out = E.blueprintScore(sc);
+    out.rows.forEach(function (r) { r.seen = seen[r.domain] || 0; r.correct = Math.round(r.correct * 100) / 100; });
+    out.evidence = Object.keys(seen).length > 0;
+    return out;
+  }
+
   /** Domains to drill first: weakest mastery among domains with any evidence; else []. */
   function weakDomains(S, n, opts) {
     var m = mastery(S, opts).filter(function (d) { return d.seen > 0 && d.pct < 100; });
@@ -354,7 +383,7 @@
 
   /** Honest on-device analytics: counts derived only from this device's log + cards. */
   /** One spoken sentence block for the lobby (Lab Muse voice). Pure: built from stats/queue/mastery. */
-  function speakLine(st, q, mast) {
+  function speakLine(st, q, mast, bp) {
     st = st || {}; q = q || []; mast = mast || [];
     var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
     if (!q.length) return 'Lab Muse: nothing is due on this device. Sit a timed paper or a free-play drill to seed the queue.';
@@ -371,6 +400,7 @@
     var weak = null;
     for (var i = 0; i < mast.length; i++) if (mast[i].seen > 0) { weak = mast[i]; break; }
     if (weak) out += ' Weakest domain: ' + weak.domain + ', ' + weak.pct + ' percent mastery.';
+    if (bp && bp.evidence && bp.weakest) out += ' Biggest gap on the official CKA blueprint: ' + bp.weakest.domain + ', weighted ' + bp.weakest.weight + ' percent of the exam, at ' + bp.weakest.pct + ' percent.';
     return out + ' Start the session to re-serve them on the authored 3D scenes.';
   }
 
@@ -471,6 +501,7 @@
     ingestExam: ingestExam,
     mastery: mastery,
     weakDomains: weakDomains,
+    blueprint: blueprint,
     focusSims: focusSims,
     queue: queue,
     stats: stats,

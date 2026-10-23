@@ -135,6 +135,20 @@
       "sim": "ingress-routing"
     },
     {
+      "id": "cert-gateway-api",
+      "kind": "cert",
+      "gltf": "/assets/immersive/ingress-gateway.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cka-gateway-api",
+      "cert": "CKA",
+      "polish": "blender-cli",
+      "polishedOn": "2026-10-02",
+      "gallery": "/immersive/#cka-gateway-api",
+      "sim": "gateway-api",
+      "note": "Reuses the Blender-polished ingress-gateway glTF read as Gateway API (2026-10-21); no new asset."
+    },
+    {
       "id": "cert-hpa-autoscaling",
       "kind": "cert",
       "gltf": "/assets/immersive/hpa-autoscaling.glb",
@@ -242,6 +256,7 @@
       "mesh",
       "storage-csi",
       "ingress",
+      "gateway-api",
       "hpa",
       "network-policy",
       "secrets-configmaps",
@@ -256,6 +271,7 @@
       "hpa-scale",
       "storage-csi",
       "ingress-routing",
+      "gateway-api",
       "config-propagation",
       "cni-network",
       "mesh-mtls",
@@ -268,7 +284,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.11.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (9 packs) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
+    "player": "/assets/il-immersive-3d.js (v1.11.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (11 packs) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -279,6 +295,7 @@
       "hpa-scale",
       "storage-csi",
       "ingress-routing",
+      "gateway-api",
       "config-propagation",
       "cni-network",
       "mesh-mtls",
@@ -291,12 +308,12 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.3.0",
+    "runtime_version": "1.4.0",
     "exam": {
       "runtime": "/assets/il-immersive-exam.js",
       "boot": "/assets/il-immersive-exam-boot.js",
       "path": "/immersive/exam/",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "defaults": {
         "count": 10,
         "minutes": 15,
@@ -308,13 +325,21 @@
       "adaptive": {
         "focus": "ILImmersiveReview.focusSims (3 weakest evidenced domains)",
         "share": 0.6
+      },
+      "blueprint": {
+        "since": "2026-10-21",
+        "source": "CNCF / Linux Foundation CKA curriculum: Troubleshooting 30% \u00b7 Cluster Architecture, Installation & Configuration 25% \u00b7 Services & Networking 20% \u00b7 Workloads & Scheduling 15% \u00b7 Storage 10%",
+        "mapping": "each CKA drill \u2192 one official domain (ILImmersiveExam.BLUEPRINT / OFFICIAL)",
+        "score": "per official domain on the finished paper; blueprint-weighted % renormalised over the domains the paper covered (coverage % shown; untested domains listed, never counted as passed)",
+        "weakest": "domain with the most points at stake = weight \u00d7 (1 \u2212 score); links to that domain's 3D drill",
+        "honesty": "Published CKA weights over this device's answers on in-browser 3D drills \u2014 a study signal, not a predicted CNCF exam score. Troubleshooting is covered by one drill today (control-plane-failure)."
       }
     },
     "review": {
       "runtime": "/assets/il-immersive-review.js",
       "boot": "/assets/il-immersive-review-boot.js",
       "path": "/immersive/review/",
-      "version": "1.0.0",
+      "version": "1.3.0",
       "scheduler": "Leitner boxes 0-6 (0, 10m, 1d, 3d, 7d, 16d, 35d); miss -> box 0; correct slower than 45s holds box; correct first sighting on exam -> box 2",
       "feeds": [
         "exam papers (/immersive/exam/, incl. timeouts as misses)",
@@ -325,7 +350,8 @@
       "mastery": "avg box / 6 over every CKA checkpoint in domain; unseen = 0",
       "honesty": "On-device spaced repetition over the in-browser 3D rules engine. Not FSRS, not a trained model, no server or cohort data, not a live cluster.",
       "storage": "localStorage il.immersiveReview.v1 (device only)",
-      "cliCards": "kind 'cli' cards re-open the CLI task step on the authored stage (review runtime v1.2.0)"
+      "cliCards": "kind 'cli' cards re-open the CLI task step on the authored stage (review runtime v1.2.0)",
+      "blueprint": "since 2026-10-21: /immersive/review/ shows mastery per official CKA domain, weighted by the published exam weights (unseen checkpoints = 0), with the weakest domain by points at stake; Lab Muse names it when read aloud"
     },
     "webxr": {
       "since": "2026-10-14",
@@ -360,7 +386,7 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "player": "il-immersive-3d.js v1.11.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
       "packs": [
         {
@@ -434,6 +460,25 @@
             "tls"
           ],
           "since": "2026-10-20"
+        },
+        {
+          "sim": "gateway-api",
+          "tasks": [
+            "gw-pending",
+            "gw-hostname",
+            "gw-refgrant",
+            "gw-cert"
+          ],
+          "since": "2026-10-21"
+        },
+        {
+          "sim": "config-propagation",
+          "tasks": [
+            "volume-vs-env",
+            "immutable",
+            "missing-key"
+          ],
+          "since": "2026-10-21"
         }
       ],
       "syntax": [
@@ -450,7 +495,10 @@
         "kubectl create role / rolebinding / clusterrolebinding",
         "kubectl patch pv / pvc / storageclass / svc / ingress (the modelled fields only)",
         "kubectl exec \u2026 -- curl / wget / nslookup (in-cluster probes)",
-        "fault \u2026 (lab-only fault injection verb, e.g. fault cni flannel)"
+        "fault \u2026 (lab-only fault injection verb, e.g. fault cni flannel)",
+        "kubectl get / describe gatewayclass \u00b7 gateway \u00b7 httproute \u00b7 referencegrant; kubectl api-resources --api-group=gateway.networking.k8s.io; kubectl patch httproute (hostnames, path match type)",
+        "kubectl get / patch / delete / create configmap; kubectl get / describe / patch secret (stringData); kubectl rollout restart|status; kubectl exec \u2026 -- cat / printenv; etcdctl get /registry/secrets/\u2026",
+        "sleep N (N \u2265 60 skips the kubelet sync period \u2014 simulated time, nothing waits)"
       ],
       "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
       "ux": [
@@ -495,7 +543,8 @@
         "api": "Web Speech SpeechRecognition / webkitSpeechRecognition (feature-checked; the Speak button is hidden when unsupported)",
         "behaviour": "lab verbs (check, hint, solution, task, reset, clear, help) run directly; spoken commands are normalised (\"dash n\" \u2192 -n, \"dot\" \u2192 ., snapped to this drill's vocabulary) into the input for you to check and press Enter \u2014 never auto-run",
         "honesty": "Uses the browser's own speech recognition (some browsers send audio to their vendor's speech service). Interstitium receives no audio or transcript. Not an LLM."
-      }
+      },
+      "gatewayNote": "Gateway API pack (2026-10-21) drives the gateway-api sim on the same authored ingress-gateway.glb. GatewayClass lab-gw (controllerName example.net/lab-gateway-controller) is a lab implementation computed by the rules engine \u2014 not Envoy Gateway, Istio, Cilium or NGINX Gateway Fabric, and not a live Gateway."
     }
   },
   "aws_coverage": {

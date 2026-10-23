@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.3.0 (2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.4.0 (2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -15,6 +15,11 @@
  *
  * v1.3.0 (2026-10-19): verdictTone() maps the whole verdict vocabulary to ok / warn / bad so unsafe states
  * (data-deleted, exposed-at-rest, …) never render in the healthy cyan; reclaim Delete hides the backing disk.
+ *
+ * v1.4.0 (2026-10-21): gateway-api drill on the same authored ingress-gateway.glb — GatewayClass with no controller
+ * (Pending, no ADDRESS), route hostnames vs listener (NoMatchingListenerHostname → 404), cross-namespace backendRef
+ * without ReferenceGrant (RefNotPermitted → 500, as the spec requires), listener certificateRefs missing
+ * (InvalidCertificateRef → listener not programmed), PathPrefix vs Exact. No new asset; rules address existing nodes.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -789,6 +794,111 @@
     }
   };
 
+  /* ── v1.4.0 (2026-10-21) Gateway API: GatewayClass · listener hostname · ReferenceGrant · certificateRefs ──
+   * Same authored scene as the Ingress drill (ingress-gateway.glb), read as Gateway API (gateway.networking.k8s.io/v1):
+   * ingress-controller = the Gateway's data plane (implementation of GatewayClass lab-gw), tls-terminate = the HTTPS
+   * listener (certificateRefs shop-tls), rule-2 = listener/route hostname shop.example.com, rule-0 = HTTPRoute rule
+   * /api → backendRef service-0 in namespace shop-api (cross-namespace, needs a ReferenceGrant), rule-1 = /web →
+   * service-1. Semantics follow the Gateway API spec: no controller → Accepted/Programmed stay Unknown (Pending, no
+   * ADDRESS); a route whose hostnames intersect no listener is not Accepted (NoMatchingListenerHostname → 404); an
+   * invalid backendRef (RefNotPermitted) MUST get HTTP 500; an unresolved certificateRef leaves the HTTPS listener
+   * unprogrammed (InvalidCertificateRef) — no fallback certificate is promised. Rules engine; no live Gateway. */
+  function gatewayDecide(s) {
+    var rules = [{ path: '/api', type: s.routeExact ? 'Exact' : 'Prefix', svc: 0 }, { path: '/web', type: 'Prefix', svc: 1 }];
+    var programmed = !!s.gwcAccepted && !!s.certRef;
+    var clients = INGRESS_CLIENTS.map(function (path) {
+      if (!s.gwcAccepted) return { path: path, status: 'no-route', svc: null };
+      if (!s.certRef) return { path: path, status: 'tls-fail', svc: null };
+      if (!s.routeAttached) return { path: path, status: 404, svc: null };
+      var r = ingressMatch(path, rules);
+      if (!r) return { path: path, status: 404, svc: null };
+      if (r.svc === 0 && !s.refGrant) return { path: path, status: 500, svc: 0 };
+      return { path: path, status: 200, svc: r.svc };
+    });
+    return {
+      clients: clients,
+      gatewayClass: s.gwcAccepted ? 'Accepted' : 'Unknown',
+      gatewayProgrammed: !s.gwcAccepted ? 'Unknown' : (programmed ? 'True' : 'False'),
+      address: s.gwcAccepted ? '203.0.113.20' : null,
+      listener: !s.gwcAccepted ? 'Pending' : (s.certRef ? 'Programmed' : 'InvalidCertificateRef'),
+      routeAccepted: !s.gwcAccepted ? 'Pending' : (s.routeAttached ? 'Accepted' : 'NoMatchingListenerHostname'),
+      routeResolvedRefs: s.refGrant ? 'ResolvedRefs' : 'RefNotPermitted',
+      matchType: s.routeExact ? 'Exact' : 'PathPrefix'
+    };
+  }
+
+  var gateway = {
+    id: 'gateway-api',
+    title: 'Gateway API drill — GatewayClass · hostnames · ReferenceGrant · certificateRefs',
+    cert: 'CKA',
+    glb: '/assets/immersive/ingress-gateway.glb',
+    initial: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: true, certRef: true },
+    toggles: [
+      { id: 'gwcAccepted', label: 'GatewayClass lab-gw controller', on: 'running (Accepted)', off: 'none (Pending)' },
+      { id: 'routeAttached', label: 'HTTPRoute hostnames', on: 'shop.example.com', off: 'shop.example.org (no listener)' },
+      { id: 'routeExact', label: 'rule /api match type', on: 'Exact', off: 'PathPrefix', risk: 'none' },
+      { id: 'refGrant', label: 'ReferenceGrant in ns shop-api', on: 'present', off: 'missing' },
+      { id: 'certRef', label: 'listener certificateRefs shop-tls', on: 'Secret present', off: 'Secret missing' }
+    ],
+    scenarios: [
+      { id: 'no-controller', label: 'GatewayClass without a controller', set: { gwcAccepted: false, routeAttached: true, routeExact: false, refGrant: true, certRef: true },
+        predict: { q: 'Gateway shop-gw uses gatewayClassName lab-gw, but no controller watches that GatewayClass’s controllerName. What does `kubectl get gateway` show?',
+          options: ['PROGRAMMED True — the API server programs Gateways itself', 'The API server rejects the Gateway', 'No ADDRESS and PROGRAMMED Unknown — status stays at the default Pending (“Waiting for controller”) because nothing reconciles it'],
+          answer: 2, why: 'Gateway API is only an API: an implementation (the controller named by GatewayClass spec.controllerName) must accept the class and program a data plane. Until one does, GatewayClass ACCEPTED and Gateway PROGRAMMED stay Unknown with reason Pending and no address is assigned.' } },
+      { id: 'hostname-mismatch', label: 'Route hostname matches no listener', set: { gwcAccepted: true, routeAttached: false, routeExact: false, refGrant: true, certRef: true },
+        predict: { q: 'The HTTPS listener has hostname shop.example.com. HTTPRoute shop-route has hostnames: [shop.example.org] and parentRefs shop-gw. What does GET https://shop.example.com/api/v1/orders return?',
+          options: ['404 — the route is not Accepted by that parent (reason NoMatchingListenerHostname), so the Gateway has no route for the request', '200 — parentRefs alone attach the route', '503 — the backend has no endpoints'],
+          answer: 0, why: 'A route attaches to a listener only if their hostnames intersect. With no intersection the parent status says Accepted=False, reason NoMatchingListenerHostname, and the Gateway answers 404 for the host. `kubectl describe httproute` shows it under Status → Parents.' } },
+      { id: 'exact', label: 'Path match Exact', set: { gwcAccepted: true, routeAttached: true, routeExact: true, refGrant: true, certRef: true },
+        predict: { q: 'Rule 0 of shop-route changes from path type PathPrefix to Exact with value /api. Which request still reaches service-0?',
+          options: ['/api/v1/orders and /api', 'Only /api — Exact is a whole-path match; /api/v1/orders now matches no rule and gets 404', 'Neither — Exact needs a trailing slash'],
+          answer: 1, why: 'HTTPRoute PathPrefix matches by path element (like Ingress Prefix); Exact matches the whole path only. /web/cart is unaffected. Read it back with `kubectl get httproute shop-route -o yaml`.' } },
+      { id: 'no-refgrant', label: 'Cross-namespace backendRef, no ReferenceGrant', set: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: false, certRef: true },
+        predict: { q: 'Rule /api has backendRefs: [{name: service-0, namespace: shop-api}] while the HTTPRoute lives in default. shop-api has no ReferenceGrant. What does GET /api/v1/orders return?',
+          options: ['200 — any route may reference any Service', '404 — the whole route is rejected', '500 — ResolvedRefs=False (RefNotPermitted); the spec requires requests for an invalid backendRef to get a 500'],
+          answer: 2, why: 'Cross-namespace references need a ReferenceGrant in the TARGET namespace (shop-api) allowing HTTPRoute from default to Service. Without it the route is still Accepted, but ResolvedRefs=False/RefNotPermitted and that rule’s traffic gets HTTP 500. /web (same namespace) keeps working.' } },
+      { id: 'cert-missing', label: 'certificateRefs Secret missing', set: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: true, certRef: false },
+        predict: { q: 'The HTTPS listener’s tls.certificateRefs names Secret shop-tls, which does not exist. What do HTTPS clients get?',
+          options: ['A failed TLS handshake — the listener reports ResolvedRefs=False (InvalidCertificateRef) and is not programmed; Gateway API does not promise a fallback certificate', 'A self-signed default certificate, like ingress-nginx', 'Plain HTTP on 443'],
+          answer: 0, why: 'Listener status is the place to look: `kubectl describe gateway shop-gw` → Listeners → https → ResolvedRefs False, InvalidCertificateRef; Programmed False. Create the kubernetes.io/tls Secret in the Gateway’s namespace (or a ReferenceGrant for a Secret elsewhere).' } },
+      { id: 'heal', label: 'Reset', set: { gwcAccepted: true, routeAttached: true, routeExact: false, refGrant: true, certRef: true } }
+    ],
+    derive: function (s) {
+      var d = gatewayDecide(s);
+      var rules = [];
+      rules.push(rule('^ingress-controller$', !s.gwcAccepted ? { tint: 'down', glow: 0 } : (s.certRef ? { tint: 'ok', glow: 0.4 } : { tint: 'warn', glow: 0.5 })));
+      rules.push(rule('^tls-terminate$', !s.gwcAccepted ? { tint: 'down', glow: 0 } : (s.certRef ? { tint: 'ok', glow: 0.5 } : { tint: 'deny', glow: 0.85, pulse: true })));
+      rules.push(rule('^rule-2$', !s.gwcAccepted ? { tint: 'down', glow: 0 } : (s.routeAttached ? { tint: 'gold', glow: 0.35 } : { tint: 'warn', glow: 0.7, pulse: true })));
+      var routeOff = !s.gwcAccepted || !s.routeAttached;
+      rules.push(rule('^rule-0$', routeOff ? { tint: 'down', glow: 0 } : (!s.refGrant ? { tint: 'deny', glow: 0.6, pulse: true } : (s.routeExact ? { tint: 'warn', glow: 0.45 } : { tint: 'gold', glow: 0.35 }))));
+      rules.push(rule('^rule-1$', routeOff ? { tint: 'down', glow: 0 } : { tint: 'gold', glow: 0.35 }));
+      var STYLE = { 200: { tint: 'ok', glow: 0.55, pulse: true }, 404: { tint: 'warn', glow: 0.55, pulse: true }, 500: { tint: 'deny', glow: 0.75, pulse: true },
+        'tls-fail': { tint: 'deny', glow: 0.4 }, 'no-route': { tint: 'down', glow: 0 } };
+      var toSvc = [false, false], svcErr = [false, false];
+      d.clients.forEach(function (c, i) {
+        rules.push(rule('^req-' + i + '-\\d$', STYLE[c.status]));
+        rules.push(rule('^client-' + i + '$', c.status === 200 ? { tint: 'gold', glow: 0.4 } : (c.status === 'no-route' ? { tint: 'muted', glow: 0.1 } : { tint: c.status === 404 ? 'warn' : 'deny', glow: 0.4 })));
+        if (c.svc !== null) { toSvc[c.svc] = true; if (c.status === 500) svcErr[c.svc] = true; }
+      });
+      [0, 1].forEach(function (k) {
+        rules.push(rule('^route-' + k + '-\\d$', toSvc[k] ? (svcErr[k] ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.5, pulse: true }) : { hide: true }));
+      });
+      rules.push(rule('^service-0$', s.refGrant ? { tint: 'gold', glow: 0.35 } : { tint: 'deny', glow: 0.7, pulse: true }));
+      rules.push(rule('^service-1$', { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^endpoint-pod-[0-3]$', { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^ep-[01]-\\d$', toSvc[0] && !svcErr[0] ? { tint: 'ok', glow: 0.5, pulse: true } : { hide: true }));
+      rules.push(rule('^ep-[23]-\\d$', toSvc[1] ? { tint: 'ok', glow: 0.5, pulse: true } : { hide: true }));
+      var LBL = { 'no-route': 'no address (Gateway Pending)', 'tls-fail': 'TLS handshake fails (listener not programmed)' };
+      var codes = d.clients.map(function (c) { return 'GET ' + c.path + ' → ' + (LBL[c.status] || (c.status + (c.svc !== null ? ' service-' + c.svc : ' no matching route'))); });
+      var bad = d.clients.filter(function (c) { return c.status !== 200; }).length;
+      var verdict = (!s.gwcAccepted || !s.certRef) ? 'down' : (bad ? 'degraded' : 'healthy');
+      var st = ' · Gateway ' + (d.gatewayProgrammed === 'True' ? 'Programmed' : (d.gatewayProgrammed === 'Unknown' ? 'Pending' : 'not Programmed (' + d.listener + ')')) +
+        (s.gwcAccepted && !s.routeAttached ? ' · HTTPRoute not Accepted (NoMatchingListenerHostname)' : '') +
+        (!s.refGrant ? ' · backendRef RefNotPermitted' : '') + ' · /api ' + d.matchType;
+      return { verdict: verdict, metrics: d, caption: codes.join(' · ') + st, rules: rules };
+    }
+  };
+
   /* ── ConfigMaps & Secrets: update propagation · immutable · missing keys · etcd at rest (CKA workloads) ──
    * Scene contract (secrets-configmaps.glb): env-chip-0 = DB_PASS ← secretKeyRef db-creds/password (secret-key-1),
    * env-chip-1 = LOG_LEVEL ← configMapKeyRef, volume-configmap = app-config at /etc/config. */
@@ -1085,7 +1195,7 @@
 
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
-    'storage-csi': storage, 'ingress-routing': ingress, 'config-propagation': config, 'cni-network': cni,
+    'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane };
 
   function get(id) { return SIMS[id] || null; }
@@ -1141,7 +1251,7 @@
   }
 
   return {
-    VERSION: '1.3.0',
+    VERSION: '1.4.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1161,6 +1271,7 @@
     storageDecide: storageDecide,
     ingressMatch: ingressMatch,
     ingressDecide: ingressDecide,
+    gatewayDecide: gatewayDecide,
     configDecide: configDecide,
     cniDecide: cniDecide,
     meshDecide: meshDecide,
