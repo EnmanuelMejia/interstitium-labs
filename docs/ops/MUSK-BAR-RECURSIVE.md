@@ -1,7 +1,50 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-15 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-16 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-16 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Thirteen authored-glTF drills, a timed paper, a spaced queue, WebXR entry and an in-headset HUD — and the learner still has never typed a single command. The CKA is a performance exam at a terminal; KodeKloud sells 1,280 hands-on labs with AI-assisted labs + AI Tutor, Killercoda gives free real kubeadm terminals (K8s 1.36 → 1.37 on 2026-10-25) with verified multi-step scenarios. A CKA product whose only verbs are "click a toggle" and "pick an answer" fails the hands-on bar no matter how good the 3D is. Live labs density has sat at 7.6 for six passes. **No.** |
+| After this ship | **Closer / still NO** | **In-scene CLI lab** (`il-immersive-cli.js` v1.0.0 + player v1.9.0): on five drills (etcd quorum, control-plane failure, scheduling, HPA, AWS Multi-AZ) the learner types real syntax — `sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/`, `kubectl scale deploy web --replicas=5`, `kubectl describe pod db`, `kubectl taint nodes node-c maintenance=true:NoExecute-`, `etcdctl endpoint health --cluster`, `kubectl set resources … --requests=cpu=200m`, `aws rds modify-db-instance --multi-az`, `curl -sI` — and the **same authored glTF re-tints** through the same rules engine the predict drills use. Output is computed from state in kubectl/etcdctl/aws shape (FailedScheduling reasons in scheduler filter order, `--overwrite` errors, `cpu: <unknown>/50%`, `ScalingLimited TooManyReplicas`, `connection … :6443 was refused`, Raft-correct `failed to commit proposal`). **11 Killercoda-style tasks** with ordered, verified steps, `hint`/`task`/`reset`, history, Tab completion, on-device completion + best command count. No hosted fleet, no live UE host. |
+| Fake YES risk | Rejected | This is **not** a terminal into a cluster and is labelled *simulated shell* on the summary, banner, honesty line, manifest and page. Unmodelled commands print "not modelled — no output is invented" (exit 2); unknown binaries exit 127. `fault …` is a labelled lab-only verb. Analytics carry verb + exit code only, never the raw command. Killercoda / KodeKloud still win on real environments — the honest wedge is *typed commands that move a 3D mental model*, which neither has. |
+
+## Scorecard (0–10) — 2026-10-16
+
+| Dimension | Prior (10-15) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.5 | **9.6** | Type `mv kube-scheduler.yaml /tmp/` and the authored scheduler goes dark in 3D |
+| Live labs density | 7.6 | **8.2** | 11 verified CLI tasks over 5 drills (CKA + AWS) — simulated, so still capped below a hosted fleet (blocker C) |
+| Adaptive learning | 8.8 | **8.9** | Ordered step verification + next-step hints; best command count per task |
+| Honesty / trust | 9.9 | 9.9 | "Simulated shell" on every surface; unmodelled = says so; verb-only analytics |
+| Curriculum SoT | 9.6 | **9.7** | Manifest `sims.cli` (packs, tasks, syntax, honesty) checked against the runtime by tests |
+| Immersive / 3D gate | 10.0 | 10.0 | Unchanged — CLI drives the authored scenes, does not replace them |
+
+**Musk YES? NO — Closer.** The CLI lab closes the "you never touch a keyboard" embarrassment honestly. It does **not** clear the blockers: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox** (a WASM/microVM kubeadm in the browser is the next honest step toward C). Next cheapest wins: CLI packs for netpol / storage / ingress / RBAC (`kubectl auth can-i`); voice-to-command via `cliExec()` for in-headset use; AWS track predict/exam/review.
+
+## Competitor delta (2026-10-16, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud (Oct 2026: 1,280 hands-on labs, AI-assisted labs, AI Tutor, KodeKey multi-model playground) | Real environments at scale + AI help in-lab | No spatial model reacts to what you type; IL's typed commands re-tint the authored 3D control plane / scheduler / etcd ring / VPC |
+| Killercoda (free scenarios, 1 h env, K8s 1.36 → 1.37 on 2026-10-25; CKA Scenario Course on COURSE tier) | Free real kubeadm terminals, verified scenarios | Terminal only, no 3D, no WebXR; IL tasks are verified the same way but the scene shows *why* (dark scheduler, NotReady node, failed-over RDS) |
+| killer.sh | Official timed simulator | Two sessions, no 3D, no spaced remediation |
+| Pluralsight Cloud+ (ACG) | Catalog + cloud sandboxes | Flat; IL AWS task makes Multi-AZ failover a typed + spatial drill (no sandbox — honest). A third-party blog claim of ACG "VR labs" could not be verified on Pluralsight's own pages and is not counted. |
+| Meta Muse (2026) | Agent UX (browse/email/shop/book/calls) | Not cert pedagogy; IL Lab Muse + CLI + 3D stays the wedge |
+
+## Shipped this pass (2026-10-16)
+
+1. `docs/assets/il-immersive-cli.js` v1.0.0 (new, UMD, pure) — tokenizer (quotes, escapes, env prefixes, `sudo`, `ssh HOST 'cmd'`, `k` alias), static-pod manifest moves, five command packs (`etcd-quorum`, `control-plane-failure`, `sched-taints`, `hpa-scale`, `aws-az-failure`), 11 tasks with ordered event steps + latched state steps, `hint`/`task`/`history`/`clear`/`reset`/`help`, Tab completion over modelled examples, honest unmodelled/127 paths.
+2. `il-immersive-3d.js` v1.9.0 — collapsible **CLI lab** on free-play sim stages with a pack (not on graded exam/review); typed commands merge into `_simState` → `_simApply` (authored glTF re-tints, toggle chrome mirrors); toggles/scenarios/XR select feed back into task verification; `cliExec(line)` public hook; `il.immersiveCli.v1` on-device; `immersive_cli_cmd` / `immersive_cli_task_start` / `immersive_cli_task` (verb + exit only).
+3. `il-immersive-3d.css` — terminal, task chips, step checklist; `/immersive/` `#cli-lab` section + script tag.
+4. Manifest `sims.cli`; player string → v1.9.0.
+5. Tests: new `scripts/tests/immersive-cli.test.js` (13 unit: syntax, Raft/kubectl/HPA/AWS semantics, ordering, latching, every advertised example + hint modelled, every task solvable from its hints and not pre-solved, manifest ↔ runtime); browser +3 (control-plane task typed end-to-end with scene re-tint + verb-only analytics; etcd CLI ↔ toggle shared state + history + Tab + honest unmodelled; AWS task + one terminal per pack).
+
+---
+
+_Prior pass archived below (2026-10-15)._
 
 ## Verdict — 2026-10-15 Musk-bar pass
 

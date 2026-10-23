@@ -277,6 +277,53 @@
 .il-immersive .il-immersive__sim .il-immersive__sim-honesty { margin: 0.35rem 0 0; font-size: 0.66rem; line-height: 1.4; max-width: none; color: color-mix(in srgb, #e8eef5 62%, transparent); }
 html[data-theme="light"] .il-immersive__sim { color: #e8eef5; }
 
+/* ── In-scene CLI lab (v1.9.0 · 2026-10-16) — simulated shell drives the same sim state ── */
+.il-immersive__cli {
+  margin-top: 0.65rem; border-radius: 0.6rem;
+  border: 1px solid color-mix(in srgb, #5EEAD4 26%, transparent);
+  background: color-mix(in srgb, #03060d 82%, transparent);
+}
+.il-immersive__cli-summary {
+  cursor: pointer; padding: 0.5rem 0.65rem; list-style: none;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem; font-size: 0.72rem;
+}
+.il-immersive__cli-summary::-webkit-details-marker { display: none; }
+.il-immersive__cli-summary::before { content: "▸"; color: #5EEAD4; font-size: 0.7rem; }
+.il-immersive__cli[open] > .il-immersive__cli-summary::before { content: "▾"; }
+.il-immersive__cli-summary:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 2px; }
+.il-immersive__cli-sumtext { color: color-mix(in srgb, #e8eef5 78%, transparent); }
+.il-immersive__cli-tasks { margin: 0 0.65rem; }
+.il-immersive__cli-task[aria-pressed="true"] { border-color: #D4A853; box-shadow: 0 0 0 1px color-mix(in srgb, #D4A853 45%, transparent); }
+.il-immersive__cli-task[data-done="1"]::after { content: " ✓"; color: #5EEAD4; }
+.il-immersive__cli-goal { margin: 0.55rem 0.65rem 0; padding: 0.5rem 0.6rem; border-radius: 0.5rem; border: 1px dashed color-mix(in srgb, #D4A853 45%, transparent); }
+.il-immersive__cli-goal[hidden] { display: none; }
+.il-immersive__cli-goal[data-done="1"] { border-color: color-mix(in srgb, #5EEAD4 60%, transparent); }
+.il-immersive .il-immersive__sim .il-immersive__cli-goal-text { margin: 0 0 0.3rem; font-size: 0.74rem; line-height: 1.4; font-weight: 600; max-width: none; }
+.il-immersive__cli-steps { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.15rem; font-size: 0.7rem; line-height: 1.4; }
+.il-immersive__cli-step[data-done="1"] { color: #5EEAD4; }
+.il-immersive__cli-step[data-done="1"]::marker { content: "✓ "; }
+.il-immersive__cli-log {
+  margin: 0.55rem 0.65rem 0; padding: 0.5rem 0.6rem; max-height: 15rem; min-height: 5rem; overflow: auto;
+  border-radius: 0.45rem; background: #02040a; border: 1px solid color-mix(in srgb, #e8eef5 10%, transparent);
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.68rem; line-height: 1.45;
+}
+.il-immersive__cli-log:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 2px; }
+.il-immersive__cli-line { white-space: pre-wrap; word-break: break-word; color: #cfd8e3; }
+.il-immersive__cli-line[data-kind="cmd"] { color: #e8eef5; font-weight: 600; }
+.il-immersive__cli-line[data-kind="err"] { color: #ff9b90; }
+.il-immersive__cli-line[data-kind="sys"] { color: #D4A853; }
+.il-immersive__cli-line[data-kind="ok"] { color: #5EEAD4; font-weight: 600; }
+.il-immersive__cli-form { display: flex; align-items: center; gap: 0.4rem; margin: 0.45rem 0.65rem 0; }
+.il-immersive__cli-prompt { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.66rem; color: #5EEAD4; white-space: nowrap; }
+.il-immersive__cli-input {
+  flex: 1 1 auto; min-width: 0; min-height: 2.25rem; padding: 0.35rem 0.55rem; border-radius: 0.45rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.72rem; color: #e8eef5;
+  background: #02040a; border: 1px solid color-mix(in srgb, #5EEAD4 30%, transparent);
+}
+.il-immersive__cli-input:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 1px; }
+.il-immersive .il-immersive__sim .il-immersive__cli-honesty { margin: 0.4rem 0.65rem 0.55rem; }
+@media (max-width: 520px) { .il-immersive__cli-prompt { display: none; } }
+
 /* ── WebXR entry (v1.7.0 · 2026-10-14) — shown only when navigator.xr reports support ── */
 .il-immersive__xr {
   display: flex;
