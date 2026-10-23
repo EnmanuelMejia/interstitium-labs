@@ -79,7 +79,7 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
   ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
   ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['gateway-api', 'no-refgrant', 'degraded'], ['config-propagation', 'missing-key', 'down'],
-  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded']]) {
+  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded'], ['service-dns', 'corefile', 'down']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -180,7 +180,7 @@ await check('Ingress + CNI + control-plane toggles re-derive the authored scene'
   const { page, errors } = await open('/immersive/');
   const out = [];
   for (const [sim, toggle, want] of [['ingress-routing', 'controller', 'down'], ['ingress-routing', 'controller', 'healthy'], ['ingress-routing', 'apiExact', 'degraded'],
-    ['cni-network', 'kubeProxy', 'degraded'], ['config-propagation', 'encryptAtRest', 'healthy'], ['control-plane-failure', 'cmUp', 'degraded'], ['node-troubleshoot', 'cniOk', 'down'], ['node-troubleshoot', 'cniOk', 'healthy']]) {
+    ['cni-network', 'kubeProxy', 'degraded'], ['config-propagation', 'encryptAtRest', 'healthy'], ['control-plane-failure', 'cmUp', 'degraded'], ['node-troubleshoot', 'cniOk', 'down'], ['node-troubleshoot', 'cniOk', 'healthy'], ['service-dns', 'targetPortOk', 'degraded'], ['service-dns', 'targetPortOk', 'healthy']]) {
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
     const host = page.locator(`[data-il-sim-ready="${sim}"]`);
     await host.waitFor({ timeout: 30000 });
@@ -885,7 +885,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 12, 'CLI terminals still mount (12 packs since 2026-10-22)');
+  assert.equal(info.terminals, 13, 'CLI terminals still mount (13 packs since 2026-10-23)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1183,11 +1183,49 @@ await check('CLI pack 2026-10-22: kubelet 203/EXEC typed end-to-end over ssh —
   return 'kubelet-203 8/8 · prompt node-01 ↔ controlplane · ' + ev.length + ' verb-only events';
 });
 
+/* 2026-10-23: Service + DNS troubleshooting on the NEW authored service-dns.glb. */
+await check('CLI pack 2026-10-23: CoreDNS Corefile crash typed end-to-end — refused lookups, logs, get -o yaml > file, sed -i, apply -f; authored CoreDNS nodes re-tint', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const sd = await cliHost(page, 'service-dns');
+  assert.match(await sd.locator('.il-immersive__badge[data-il-mesh="authored"]').textContent(), /./);
+  await sd.locator('[data-il-cli-task="coredns-corefile"]').click();
+  assert.equal(await sd.getAttribute('data-il-cli-task'), 'coredns-corefile:0/7');
+  assert.equal(await sd.getAttribute('data-il-sim-verdict'), 'down');
+  const node = (n) => sd.evaluate((el, nm) => { const v = el._ilImmersive._authored.find(x => x.name === nm); return v && v.simStyle && { tint: v.simStyle.tint, hide: !!v.simStyle.hide }; }, n);
+  assert.equal((await node('coredns-0')).tint, 'deny', 'authored CoreDNS pod shows the crash loop');
+  assert.equal((await node('sim-crash-ring-0')).hide, false, 'sim-only crash ring revealed');
+  const t0 = await tints(sd);
+  await type(sd, 'kubectl exec -n shop dnsutils -- nslookup api');
+  assert.match(await logText(sd), /connection refused/);
+  await type(sd, 'kubectl get pods -n kube-system -l k8s-app=kube-dns');
+  await type(sd, 'kubectl logs -n kube-system -l k8s-app=kube-dns');
+  assert.match(await logText(sd), /Unknown directive 'forwrd'/);
+  await type(sd, 'kubectl get configmap coredns -n kube-system -o yaml > coredns.yaml');
+  await type(sd, "sed -i 's/forwrd/forward/' coredns.yaml");
+  assert.equal(await sd.getAttribute('data-il-cli-task'), 'coredns-corefile:5/7');
+  await type(sd, 'kubectl apply -f coredns.yaml');
+  assert.equal((await node('coredns-0')).tint, 'ok');
+  assert.equal((await node('sim-crash-ring-0')).hide, true);
+  await type(sd, 'kubectl exec -n shop dnsutils -- nslookup api');
+  assert.match(await logText(sd), /Name:\s+api\.shop\.svc\.cluster\.local/);
+  assert.equal(await sd.getAttribute('data-il-cli-task'), 'coredns-corefile:7/7');
+  assert.equal(await sd.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.notEqual(await tints(sd), t0, 'typed ConfigMap fix re-tints authored glTF nodes');
+  await sd.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await sd.screenshot({ path: path.join(shots, 'immersive-cli-service-dns.png') });
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 7 && ev.every(d => !/coredns\.yaml|forwrd|dnsutils|nslookup api|kube-dns/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'coredns-corefile 7/7 · crash ring hidden after fix · ' + ev.length + ' verb-only events';
+});
+
 await check('CKA blueprint: finished paper scores the 5 official domains by weight, names the weakest by points at stake with a 3D drill link; review lobby shows readiness', async () => {
   const { page, errors } = await open('/immersive/exam/');
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'load' });
-  assert.match(await page.locator('[data-il-exam-lobby]').textContent(), /12 drills[\s\S]*5 official CNCF CKA domains/);
+  assert.match(await page.locator('[data-il-exam-lobby]').textContent(), /13 drills[\s\S]*5 official CNCF CKA domains/);
   await page.locator('[data-il-exam-start][data-count="5"]').click();
   await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
   for (let i = 0; i < 5; i++) {

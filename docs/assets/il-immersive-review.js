@@ -56,7 +56,8 @@
     'cni-network': 'Networking',
     'ingress-routing': 'Networking',
     'gateway-api': 'Networking',
-    'node-troubleshoot': 'Troubleshooting'
+    'node-troubleshoot': 'Troubleshooting',
+    'service-dns': 'Troubleshooting'
   };
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
