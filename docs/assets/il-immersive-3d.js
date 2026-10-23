@@ -8,6 +8,8 @@
  * and mounts interactive sims (il-immersive-sims.js, data-il-sim) whose state re-tints / reveals authored nodes.
  * v1.5.0 (2026-10-07): predict-then-reveal options shuffle per attempt (keyed answer no longer positional);
  * hosts four more CKA sims (netpol-isolation, rbac-authz, sched-taints, hpa-scale).
+ * v1.6.0 (2026-10-08): sim captions keep the authored-glTF provenance (node count, LOD1 skipped) instead of replacing it;
+ * hosts six more CKA drills (storage-csi, ingress-routing, config-propagation, cni-network, mesh-mtls, control-plane-failure).
  * Boot waits for ILSceneKit when a page loads it after this file (fixes silent procedural fallback).
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
@@ -396,6 +398,13 @@
     if (prefersReduced()) {
       root.classList.add('is-reduced');
       this.cap.textContent = capText(this.cfg.scene, 'idle', (CAPTIONS[this.cfg.scene] || CAPTIONS.k8s).idle);
+      /* Reduced motion disables animation/rendering only — the drill UI
+       * (clip buttons, sim scenarios, toggles, questions, scoring) must
+       * still initialize. _simApply derives state into the DOM panel and
+       * no-ops the 3D node styling when no scene is loaded, and the sim
+       * panel is plain DOM, so both are safe without GL. */
+      this._buildButtons();
+      this._initSim();
       return;
     }
 
@@ -718,8 +727,9 @@
     this._authoredOk = true;
     if (!reupload) {
       var lod0 = uploaded.filter(function (v) { return !v.lod; }).length;
-      this._baseCaption = (this.cap.textContent || '') + ' · authored .glb (' + lod0 + ' nodes' +
-        (uploaded.length > lod0 ? ', ' + (uploaded.length - lod0) + ' LOD1 skipped' : '') + ').';
+      this._glbNote = 'authored .glb (' + lod0 + ' nodes' +
+        (uploaded.length > lod0 ? ', ' + (uploaded.length - lod0) + ' LOD1 skipped' : '') + ')';
+      this._baseCaption = (this.cap.textContent || '') + ' · ' + this._glbNote + '.';
       this.cap.textContent = this._baseCaption;
       this._initSim();
     } else if (this._sim) {
@@ -855,7 +865,8 @@
     }
     this._simVerdict.textContent = d.verdict;
     this._simVerdict.setAttribute('data-verdict', d.verdict);
-    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)';
+    /* Keep the asset provenance on sim stages too (the sim caption used to replace it). */
+    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '');
     this.root.setAttribute('data-il-sim-verdict', d.verdict);
     if (reason && reason !== 'init') simTrack('immersive_sim_state', { sim: sim.id, reason: reason, verdict: d.verdict });
   };
@@ -1103,7 +1114,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.5.0',
+    version: '1.6.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
