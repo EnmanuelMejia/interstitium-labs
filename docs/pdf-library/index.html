@@ -399,11 +399,16 @@ var CYCLE_PAGES=4, CYCLE_MS=2500;
    document icon). Serve pre-rendered page thumbnails instead. */
 var IS_MOBILE_PDF=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent||"");
 function thumbFor(pdf,n){var b=pdf.split("/").pop().replace(/\.pdf$/i,"");return "/assets/pdfs/thumbs/"+b+"-p"+n+".png";}
+/* Every value this script places in a src/href comes from data-pdf /
+   data-src attributes. The library only ever serves its own guides,
+   so validate at the choke points: a same-origin /assets/pdfs/*.pdf
+   path or nothing. */
+function pdfPath(u){u=String(u||"");return /^\/assets\/pdfs\/[A-Za-z0-9._-]+\.pdf$/.test(u)?u:"";}
 var previews=Array.prototype.slice.call(document.querySelectorAll(".pdf-preview"));
 if(IS_MOBILE_PDF){
 previews.forEach(function(p){
 var f=p.querySelector("iframe.pdf-frame");if(!f){return;}
-var pdf=p.getAttribute("data-pdf");
+var pdf=pdfPath(p.getAttribute("data-pdf"));if(!pdf){return;}
 var img=document.createElement("img");
 img.className="pdf-thumb";img.alt="Guide preview, page 1";
 img.setAttribute("loading","lazy");
@@ -414,7 +419,7 @@ f.parentNode.replaceChild(img,f);
 }
 function frameEl(p){return p.querySelector("iframe.pdf-frame")||p.querySelector("img.pdf-thumb");}
 var frames=previews.map(frameEl);
-function loadFrame(f){if(!f||f.tagName==="IMG"){return;}var u=f.getAttribute("data-src");if(u){f.setAttribute("src",u);f.removeAttribute("data-src");}}
+function loadFrame(f){if(!f||f.tagName==="IMG"){return;}var u=f.getAttribute("data-src");if(u&&pdfPath(u.split("#")[0])){f.setAttribute("src",u);f.removeAttribute("data-src");}}
 /* 1. lazy first-page load: src only set near the viewport */
 if("IntersectionObserver" in window){
 var lazyIO=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){loadFrame(e.target);lazyIO.unobserve(e.target);}});},{rootMargin:"400px 0px"});
@@ -423,7 +428,7 @@ frames.forEach(function(f){lazyIO.observe(f);});
 /* 2. animated page-cycling: only the most-visible card animates */
 var pageIdx={}, active=null, timer=null, ratios=new Map();
 function swapTo(p,n){
-var key=p.getAttribute("data-pdf");
+var key=pdfPath(p.getAttribute("data-pdf"));if(!key){return;}
 var f=frameEl(p);
 var dots=p.querySelectorAll(".pdf-pager span");
 pageIdx[key]=n;
@@ -473,6 +478,7 @@ mframe=document.getElementById("pdf-modal-frame"),
 mtitle=document.getElementById("pdf-modal-title"),
 mdl=document.getElementById("pdf-modal-dl");
 function openModal(url,name){
+url=pdfPath(url);if(!url){return;}
 /* mobile: no inline PDF rendering — open natively instead of a broken iframe */
 if(IS_MOBILE_PDF){window.open(url,"_blank");return;}
 mtitle.textContent=name;mdl.href=url;mframe.setAttribute("src",url+"#page=1");modal.hidden=false;document.body.style.overflow="hidden";}

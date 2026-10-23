@@ -236,6 +236,7 @@
     if (!s || typeof s !== "object") s = defaultState();
     if (s.v !== 1) s.v = 1;
     s.xp = Math.max(0, Number(s.xp) || 0);
+    s.streak = Math.max(0, Number(s.streak) || 0);
     s.level = levelFromXp(s.xp);
     s.events = s.events || {};
     s.badges = s.badges || {};

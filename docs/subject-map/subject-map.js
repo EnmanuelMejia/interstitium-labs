@@ -68,8 +68,12 @@
       '<button class="sm-close" id="sm-close" aria-label="Close">✕ Close</button></div>' +
       '<h3 style="font-size:.95rem;color:#c7d3e4;margin:.4rem 0">Topics in this subject</h3>' +
       '<div class="sm-topicrow">' + topics.map(function (t) {
-        var ours = t.ourCourses.length ? ' → <b>' + esc(t.ourCourses.join(', ')) + '</b>' : '';
-        return '<span class="sm-chip' + (t.ourCourses.length ? ' hot' : '') + '" title="' + t.mitCourseCount + ' MIT courses' + esc(ours.replace(/<[^>]+>/g, '')) + '">' +
+        /* Keep the plain-text form separate from the markup form: the
+           title attribute takes text (escaped once), the chip body
+           takes the <b>-wrapped form. Never derive text by stripping
+           tags out of built HTML with a regex. */
+        var oursText = t.ourCourses.length ? ' → ' + t.ourCourses.join(', ') : '';
+        return '<span class="sm-chip' + (t.ourCourses.length ? ' hot' : '') + '" title="' + t.mitCourseCount + ' MIT courses' + esc(oursText) + '">' +
           esc(t.name) + ' <span style="opacity:.6">×' + t.mitCourseCount + '</span></span>';
       }).join('') + '</div>' +
       '<h3 style="font-size:.95rem;color:#c7d3e4;margin:.6rem 0">MIT OpenCourseWare courses <span style="font-weight:400;color:#64748b">(external links)</span></h3>' +

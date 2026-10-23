@@ -52,21 +52,22 @@ function urlOf(file) {
   return '/' + rel;
 }
 
-function textOf(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+/* Single-pass entity decoding: one alternation regex with a lookup
+   map, so replacement text is never rescanned. A chain of per-entity
+   .replace() calls double-decodes — "&amp;lt;" (the literal text
+   "&lt;") would first become "&lt;" and then "<". */
+const ENTITY_MAP = { amp: '&', lt: '<', gt: '>', quot: '"', nbsp: ' ', '#x27': "'", '#39': "'" };
+function unesc(s) {
+  return String(s).replace(/&(amp|lt|gt|quot|nbsp|#x27|#39);/g, function (m, k) { return ENTITY_MAP[k]; });
 }
 
-function unesc(s) {
-  return s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, ' ');
+function textOf(html) {
+  return unesc(html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, ' ')
+    .replace(/<[^>]+>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function metaDesc(html) {
