@@ -398,6 +398,13 @@
     if (prefersReduced()) {
       root.classList.add('is-reduced');
       this.cap.textContent = capText(this.cfg.scene, 'idle', (CAPTIONS[this.cfg.scene] || CAPTIONS.k8s).idle);
+      /* Reduced motion disables animation/rendering only — the drill UI
+       * (clip buttons, sim scenarios, toggles, questions, scoring) must
+       * still initialize. _simApply derives state into the DOM panel and
+       * no-ops the 3D node styling when no scene is loaded, and the sim
+       * panel is plain DOM, so both are safe without GL. */
+      this._buildButtons();
+      this._initSim();
       return;
     }
 
