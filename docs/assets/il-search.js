@@ -156,9 +156,23 @@
   }
 
   /* ---------- rendering ---------- */
+  /* Result URLs come from the first-party search index, the static
+     QUICK list, or localStorage recents. Never let a stored/indexed
+     value navigate off-origin or carry a script scheme: resolve it
+     against the current origin and keep only same-origin targets. */
+  function safeUrl(u) {
+    var s = String(u == null ? "" : u);
+    if (!s) return "#";
+    try {
+      var url = new URL(s, window.location.href);
+      if (url.origin !== window.location.origin) return "#";
+      return url.pathname + url.search + url.hash;
+    } catch (e) { return "#"; }
+  }
+
   function rowNode(r, q) {
     var a = el("a", "il-search__item", "");
-    a.href = r.u;
+    a.href = safeUrl(r.u);
     a.setAttribute("role", "option");
     var label = TYPE_LABEL[r.type] || "Page";
     a.innerHTML =
@@ -223,8 +237,8 @@
   function go(r, newTab) {
     if (!r) return;
     addRecent(r);
-    if (newTab) { window.open(r.u, "_blank", "noopener"); }
-    else { location.href = r.u; }
+    if (newTab) { window.open(safeUrl(r.u), "_blank", "noopener"); }
+    else { location.href = safeUrl(r.u); }
   }
 
   /* ---------- open / close ---------- */
