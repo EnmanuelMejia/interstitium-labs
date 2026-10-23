@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>CKA 3D remediation queue — Interstitium Labs</title>
+<meta name="description" content="Adaptive remediation for the CKA 3D sims: exam misses and drill results become on-device spaced-repetition cards that re-serve the authored 3D scene. Rules engine only — not a live cluster."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/immersive/review/"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-immersive.css"/>
+<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<style>
+  [data-il-review-shell] .il-immersive__sim-row--toggles { display: none !important; }
+  [data-il-review-shell] .il-immersive__sim-row[aria-label="Scenarios"] { display: none !important; }
+  [data-il-review-shell] .il-immersive__sim-score { display: none !important; }
+  .il-exam-hud { display:flex; flex-wrap:wrap; gap:0.75rem 1.25rem; align-items:center; justify-content:space-between;
+    border:1px solid rgba(34,211,238,0.25); background:rgba(7,11,22,0.7); border-radius:0.75rem; padding:0.85rem 1rem; }
+  .il-exam-opt { display:block; width:100%; text-align:left; margin:0.4rem 0; padding:0.7rem 0.9rem; border-radius:0.5rem;
+    border:1px solid rgba(232,238,245,0.18); background:transparent; color:inherit; cursor:pointer; min-height:44px; }
+  .il-exam-opt:hover, .il-exam-opt:focus { border-color:rgba(34,211,238,0.55); outline:none; }
+  .il-exam-opt[disabled] { opacity:0.55; cursor:default; }
+  .il-exam-opt[data-picked="1"] { border-color:#22d3ee; }
+  .il-exam-opt[data-correct="1"] { border-color:#34d399; }
+  .il-exam-opt[data-correct="0"][data-picked="1"] { border-color:#f87171; }
+  .il-exam-panel { border:1px solid rgba(201,162,39,0.28); background:rgba(7,11,22,0.55); border-radius:0.75rem; padding:1rem 1.1rem; }
+  .il-review-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr)); gap:0.75rem; }
+  .il-review-stat { border:1px solid rgba(232,238,245,0.12); border-radius:0.6rem; padding:0.7rem 0.85rem; }
+  .il-review-stat b { display:block; font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:600; }
+  .il-review-bar { display:inline-block; vertical-align:middle; width:7rem; height:0.5rem; border-radius:999px; background:rgba(232,238,245,0.12); overflow:hidden; }
+  .il-review-bar__fill { display:block; height:100%; background:linear-gradient(90deg,#c9a227,#22d3ee); }
+  [data-il-review-reason] { display:inline-block; border:1px solid rgba(201,162,39,0.45); border-radius:999px; padding:0.15rem 0.6rem; }
+  [data-il-review-reason][data-reason="relearn"] { border-color:rgba(248,113,113,0.6); color:#fca5a5; }
+</style>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+<header class="border-b border-paper/10">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+    <a href="/" class="font-display text-sm tracking-[0.14em] uppercase text-paper">Interstitium Labs</a>
+    <nav class="flex flex-wrap gap-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted" aria-label="Review nav">
+      <a class="hover:text-cyan" href="/immersive/">Immersive</a>
+      <a class="hover:text-cyan" href="/immersive/exam/">CKA exam</a>
+      <a class="text-cyan" href="/immersive/review/" aria-current="page">Review</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-il-review-page>
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Musk-bar · adaptive remediation</p>
+  <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Your misses, re-served in 3D.</h1>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Mock exams elsewhere end with a score and a fresh session next time. Here every <a class="text-cyan" href="/immersive/exam/">timed-paper</a> miss, timeout, and <a class="text-cyan" href="/immersive/">free-play drill</a> becomes a <strong class="text-paper">spaced-repetition card</strong> keyed to that exact checkpoint, and the queue re-mounts its <strong class="text-paper">authored .glb</strong> so you predict the failure again and watch it play out. Weakest domains (then untested ones) steer new cards; the weakest steer the <em>Adaptive</em> exam paper. Leitner boxes with latency-aware grading, stored <strong class="text-paper">only on this device</strong> — not FSRS, not a trained model, no cohort data, not a live cluster.</p>
+
+  <section class="mt-8 rounded-xl border border-cyan/25 bg-ink/40 p-6" data-il-review-lobby>
+    <h2 class="font-display text-xl text-cyan">Queue on this device</h2>
+    <div class="il-review-stats mt-4" role="list">
+      <div class="il-review-stat" role="listitem"><b data-il-review-due>0</b><span class="text-xs text-muted">due now</span></div>
+      <div class="il-review-stat" role="listitem"><b data-il-review-cards>0</b><span class="text-xs text-muted">cards tracked</span></div>
+      <div class="il-review-stat" role="listitem"><b data-il-review-learning>0</b><span class="text-xs text-muted">learning (box 0–1)</span></div>
+      <div class="il-review-stat" role="listitem"><b data-il-review-mature>0</b><span class="text-xs text-muted">mature (box ≥ 4, ≥ 7-day interval)</span></div>
+      <div class="il-review-stat" role="listitem"><b data-il-review-streak>0 days</b><span class="text-xs text-muted">practice streak</span></div>
+      <div class="il-review-stat" role="listitem"><b data-il-review-exams>0</b><span class="text-xs text-muted">exam papers ingested</span></div>
+    </div>
+    <p class="mt-3 text-xs text-muted">Retention (recall on graduated cards when due): <span data-il-review-retention>n/a</span> · next due: <span data-il-review-next>—</span></p>
+    <p class="mt-4 text-sm" data-il-review-plan></p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <button type="button" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-void" data-il-review-start>Start session</button>
+      <a class="inline-flex h-11 items-center rounded-lg border border-gold/40 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-gold" href="/immersive/exam/">Sit an adaptive paper</a>
+      <button type="button" class="inline-flex h-11 items-center rounded-lg border border-paper/25 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-paper" data-il-review-export>Export JSON</button>
+      <button type="button" class="inline-flex h-11 items-center rounded-lg border border-paper/15 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-muted" data-il-review-reset>Reset queue</button>
+    </div>
+
+    <h3 class="mt-8 font-display text-lg text-gold">Domain mastery (this device)</h3>
+    <p class="mt-1 text-xs text-muted">Mastery = average Leitner box ÷ 6 across every CKA checkpoint in the domain; unseen checkpoints count as 0, so an untouched domain is never shown as strong. Weakest first.</p>
+    <div class="mt-3 overflow-x-auto">
+      <table class="w-full text-left text-sm" data-il-review-mastery>
+        <thead><tr class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-muted"><th class="py-2">Domain</th><th>Mastery</th><th>Seen</th><th>Lapses</th><th>Due</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="mt-4 text-xs text-muted">Schedule: miss → box 0 (due now) · box 1 → 10 min · 2 → 1 day · 3 → 3 days · 4 → 7 days · 5 → 16 days · 6 → 35 days. Correct but slower than 45 s holds the box. A correct first sighting on a timed paper starts at box 2.</p>
+  </section>
+
+  <section class="mt-8 hidden" data-il-review-run hidden>
+    <div class="il-exam-hud" role="status" aria-live="polite">
+      <div class="font-mono text-[0.68rem] uppercase tracking-[0.16em]">
+        <span data-il-review-progress>Card 0/0</span>
+        <span class="text-muted"> · </span>
+        <span data-il-review-domain></span>
+      </div>
+      <div class="font-mono text-[0.62rem] uppercase tracking-[0.14em]"><span data-il-review-reason></span></div>
+    </div>
+    <div class="il-exam-panel mt-5">
+      <p class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold" data-il-review-label></p>
+      <h2 class="mt-2 font-display text-xl" data-il-review-q></h2>
+      <div class="mt-4" data-il-review-options></div>
+      <p class="mt-3 text-sm" data-il-review-feedback aria-live="polite"></p>
+      <button type="button" class="mt-3 hidden inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-void" data-il-review-next-card hidden>Next card</button>
+    </div>
+    <div class="mt-6" data-il-review-shell>
+      <div class="rounded-xl border border-paper/15 bg-ink/40 p-4">
+        <p class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-cyan">Authored scene — commit a prediction to see it play out</p>
+        <div class="mt-3 min-h-[18rem]" data-il-review-stage
+          data-il-immersive data-kind="cert" data-title="CKA review stage" data-il-scene="k8s"
+          data-gltf="/assets/immersive/cka-etcd-quorum.glb"
+          data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cka-etcd-quorum.glb","webgpu":true,"review":true}'></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-8 hidden rounded-xl border border-gold/30 bg-ink/40 p-6" data-il-review-done hidden>
+    <h2 class="font-display text-2xl text-gold">Session complete</h2>
+    <p class="mt-3 text-sm" data-il-review-summary></p>
+    <p class="mt-4 text-xs text-muted">On-device spaced repetition over the in-browser 3D rules engine. Not FSRS, not a trained model, no server or cohort data, not a live cluster.</p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <button type="button" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-void" data-il-review-again>Back to queue</button>
+      <a class="inline-flex h-11 items-center rounded-lg border border-gold/40 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-gold" href="/immersive/exam/">Sit a paper</a>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/il-scene-kit.js" defer></script>
+<script src="/assets/il-immersive-sims.js" defer></script>
+<script src="/assets/il-immersive-review.js" defer></script>
+<script src="/assets/il-immersive-3d.js" defer></script>
+<script src="/assets/il-immersive-boot.js" defer></script>
+<script src="/assets/il-immersive-review-boot.js" defer></script>
+</body>
+</html>

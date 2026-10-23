@@ -58,3 +58,4 @@ Translucent pedagogy shells (e.g. the NetworkPolicy shield) use `alphaMode: BLEN
 - 2026-10-07 / 2026-10-08: sims now cover `network-policy-isolation`, `rbac-authz-graph`, `scheduling-affinity`, `hpa-autoscaling`, `storage-csi-pv`, `ingress-gateway`, `secrets-configmaps`, `cni-pod-network`, `service-mesh-sidecar` and `lecture-k8s-control-plane` (`data-il-sim` ids in `/assets/scenes/manifest.json` → `sims.list`). **No asset was regenerated or re-polished for these drills** — they re-tint, pulse, hide or reveal the existing named nodes from the 2026-10-01/02/05 Blender CLI polish.
 
 Honest scope: authored + CLI-polished open-web glTF. **No live Unreal host and no hosted lab fleet** back these scenes.
+- 2026-10-13: `/immersive/review/` (adaptive remediation queue) re-mounts the same authored CKA `.glb` files per spaced-repetition card. **No asset was regenerated** — the queue reuses the sim rules and node names; see `sims.review` in `/assets/scenes/manifest.json`.

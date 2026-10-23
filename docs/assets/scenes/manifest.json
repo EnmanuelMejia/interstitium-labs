@@ -1,7 +1,7 @@
 {
   "v": 5,
   "updated": "2026-10-08T09:40:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions.",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) — not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) — every CKA spatial scene is now stateful; keyed answers spread across option positions.",
   "engines": [
     "webgl",
     "webgpu",
@@ -296,7 +296,7 @@
       "runtime": "/assets/il-immersive-exam.js",
       "boot": "/assets/il-immersive-exam-boot.js",
       "path": "/immersive/exam/",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "defaults": {
         "count": 10,
         "minutes": 15,
@@ -304,7 +304,26 @@
       },
       "pool": "CKA predict checkpoints only (excludes AWS + Istio mesh)",
       "honesty": "Timed mock over in-browser 3D sims. Not a live cluster, not killer.sh, not the CNCF CKA.",
-      "storage": "localStorage il.immersiveExam.v1 (device only)"
+      "storage": "localStorage il.immersiveExam.v1 (device only)",
+      "adaptive": {
+        "focus": "ILImmersiveReview.focusSims (3 weakest evidenced domains)",
+        "share": 0.6
+      }
+    },
+    "review": {
+      "runtime": "/assets/il-immersive-review.js",
+      "boot": "/assets/il-immersive-review-boot.js",
+      "path": "/immersive/review/",
+      "version": "1.0.0",
+      "scheduler": "Leitner boxes 0-6 (0, 10m, 1d, 3d, 7d, 16d, 35d); miss -> box 0; correct slower than 45s holds box; correct first sighting on exam -> box 2",
+      "feeds": [
+        "exam papers (/immersive/exam/, incl. timeouts as misses)",
+        "CKA free-play drills (/immersive/)",
+        "review sessions"
+      ],
+      "mastery": "avg box / 6 over every CKA checkpoint in domain; unseen = 0",
+      "honesty": "On-device spaced repetition over the in-browser 3D rules engine. Not FSRS, not a trained model, no server or cohort data, not a live cluster.",
+      "storage": "localStorage il.immersiveReview.v1 (device only)"
     }
   },
   "aws_coverage": {

@@ -1,5 +1,7 @@
 /**
  * Boot the timed CKA mock exam UI (2026-10-12). Depends on ILImmersiveExam + ILImmersiveSims + ScenePlayer.
+ * 2026-10-13: optional ILImmersiveReview — finished papers feed the on-device remediation queue,
+ * and the "Adaptive" paper focuses the weakest on-device domains.
  * Relative-asset page only; never invents a live cluster or hosted fleet.
  */
 (function () {
@@ -17,8 +19,17 @@
   }
 
   function boot() {
-    var E = window.ILImmersiveExam, S = window.ILImmersiveSims;
+    var E = window.ILImmersiveExam, S = window.ILImmersiveSims, R = window.ILImmersiveReview || null;
     if (!E || !S) return;
+    var adaptiveNote = $('[data-il-exam-adaptive-note]');
+    function renderAdaptiveNote() {
+      if (!adaptiveNote) return;
+      var doms = R ? R.weakDomains(S, 3) : [];
+      adaptiveNote.textContent = doms.length
+        ? ('Adaptive paper focuses your weakest on-device domains: ' + doms.join(' · ') + '.')
+        : 'Adaptive paper needs on-device evidence first — sit a paper or run drills; until then it is a standard paper.';
+    }
+    renderAdaptiveNote();
     var lobby = $('[data-il-exam-lobby]');
     var run = $('[data-il-exam-run]');
     var done = $('[data-il-exam-done]');
@@ -158,6 +169,32 @@
       if (!exam) return;
       var summary = E.summarize(exam);
       E.recordAttempt(exam, summary);
+      var rem = $('[data-il-exam-remediate]');
+      if (R && R.ingestExam) {
+        var fed = R.ingestExam(exam);
+        if (rem) {
+          rem.textContent = '';
+          var p1 = document.createElement('span');
+          p1.textContent = 'Remediation loop: ' + fed.queued + ' checkpoints scheduled on this device · '
+            + fed.lapses + ' to relearn now' + (fed.timeouts ? ' (' + fed.timeouts + ' unanswered)' : '') + ' · '
+            + fed.correct + ' correct → re-check in 1 day. ';
+          rem.appendChild(p1);
+          var a = document.createElement('a');
+          a.className = 'text-cyan';
+          a.href = '/immersive/review/';
+          a.setAttribute('data-il-exam-remediate-link', '');
+          a.textContent = fed.lapses ? 'Remediate ' + fed.lapses + ' in 3D now →' : 'Open review queue →';
+          rem.appendChild(a);
+          rem.setAttribute('data-lapses', String(fed.lapses));
+        }
+      } else if (rem) {
+        rem.textContent = '';
+      }
+      if (exam.focus && exam.focus.length && rem) {
+        var fNote = document.createElement('span');
+        fNote.textContent = ' Adaptive paper focused on: ' + exam.focus.join(', ') + '.';
+        rem.appendChild(fNote);
+      }
       show(lobby, false); show(run, false); show(done, true);
       var sum = $('[data-il-exam-summary]');
       if (sum) {
@@ -180,6 +217,7 @@
       document.documentElement.setAttribute('data-il-exam-finished', summary.passed ? 'pass' : 'fail');
       document.documentElement.setAttribute('data-il-exam-score', String(summary.correct) + '/' + String(summary.total));
       renderHistory();
+      renderAdaptiveNote();
     }
 
     function start(opts) {
@@ -198,7 +236,9 @@
       btn.addEventListener('click', function () {
         var count = Number(btn.getAttribute('data-count')) || E.DEFAULTS.count;
         var minutes = Number(btn.getAttribute('data-minutes')) || E.DEFAULTS.minutes;
-        start({ count: count, minutes: minutes });
+        var focus = (btn.getAttribute('data-adaptive') === '1' && R) ? R.focusSims(S, 3) : [];
+        document.documentElement.setAttribute('data-il-exam-adaptive', focus.length ? '1' : '0');
+        start({ count: count, minutes: minutes, focus: focus });
       });
     });
     var retry = $('[data-il-exam-retry]');

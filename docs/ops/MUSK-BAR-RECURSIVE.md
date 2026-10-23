@@ -1,5 +1,49 @@
 # Musk bar — recursive scorecard
 
+_Last updated: 2026-10-13 ~morning EDT (America/New_York)._  
+_Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-13 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? The 10-12 timed paper scored you and then forgot you: misses evaporated, the next paper was random, drills and exam never talked. KodeKloud staff confirm their mock sessions "start fresh each time" with no review of a past attempt (community thread, 2026-04-19); Pluralsight Skill IQ Prep hides missed questions and routes you to 2D courses. Nobody re-serves the exact missed concept as a spatial scene on a schedule. **No.** |
+| After this ship | **Closer / still NO** | **Adaptive remediation loop**: every exam miss/timeout and every CKA free-play drill becomes a Leitner card (latency-aware) at `/immersive/review/`, which re-mounts the authored `.glb` and replays the failure mode after you commit. Weakest evidenced domains (then untested ones) top up the queue; the exam lobby's **Adaptive** paper puts 60% of items on your 3 weakest domains. On-device mastery per domain (unseen = 0), honest retention (due reviews of graduated cards only), streak, JSON export, reset. Still **no live UE host**, **no hosted fleet**. |
+| Fake YES risk | Rejected | Not FSRS, not a trained model, no cohort percentile, no server analytics, no "pass probability". Every number is computed from this device's own answers and the doc says so. |
+
+## Scorecard (0–10) — 2026-10-13
+
+| Dimension | Prior (10-12) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | 9.0 | Same authored scenes, now re-served |
+| Live labs density | 7.6 | 7.6 | Unchanged — still no hosted fleet |
+| Adaptive learning | 8.0 | **8.6** | Exam ↔ drills ↔ SR queue closed loop; adaptive paper |
+| Honesty / trust | 9.9 | 9.9 | Explicit non-claims (FSRS, cohort, cluster) |
+| Curriculum SoT | 9.3 | **9.4** | Manifest `sims.review` + `sims.exam.adaptive` |
+| Immersive / 3D gate | 9.6 | **9.7** | Remediation happens on the authored glTF, not a flashcard |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest wins: WebXR `immersive-vr`/`immersive-ar` entry for the sim stages; extend predict/exam/review to the AWS track; Lab Muse reads the relearn queue aloud.
+
+## Competitor delta (2026-10-13)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud Pro / Ultimate CKA Mock | Live multi-cluster tasks, AI Tutor | Their mock sessions start fresh; IL schedules every miss back onto its 3D scene |
+| killer.sh | Hardest realistic pressure | Two sessions, no adaptive follow-up; IL is the daily spaced warm-up between them |
+| Pluralsight Skill IQ Prep | Norm-referenced scoring, big bank | Hides misses, 14-day retake gate, 2D recommendations; IL shows every miss and re-serves it in minutes |
+| Udemy / Coursera practice tests | Volume, price | Static banks, no scheduler, no spatial replay |
+| Meta Muse-style voice tutors | Voice-native UX | No exam-to-remediation curriculum loop |
+
+## Shipped this pass (2026-10-13)
+
+1. `il-immersive-review.js` v1.0.0 — Leitner scheduler (`record`, `ingestExam`, `queue`, `mastery`, `weakDomains`, `focusSims`, `stats`, `exportJson`, `reset`), on-device `il.immersiveReview.v1`
+2. `/immersive/review/` + `il-immersive-review-boot.js` — queue lobby (due/tracked/learning/mature/streak/retention), domain mastery bars, 3D card session with reason chips and box transitions
+3. `il-immersive-exam.js` v1.1.0 — `opts.focus` adaptive paper (FOCUS_SHARE 0.6; empty focus = unchanged selection); exam done-screen feeds the queue and links to remediation
+4. Player: CKA free-play predictions feed the queue; exam/review stages marked `cfg.owned` (no double count); `/immersive/#cka-review` live due badge
+5. Tests: 9 new unit tests, 2 new browser checks (drill → queue; exam → review → reschedule → adaptive paper)
+
+---
+
 _Last updated: 2026-10-12 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
 

@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -242,6 +242,122 @@ await check('/immersive/exam/: lobby lists pool and a paper can be started', asy
   assert.deepEqual(errors, []);
   await page.close();
   return 'pool ' + pool + ' · ' + before + ' → ' + (after || finished);
+});
+
+/* 2026-10-13 adaptive remediation loop: drills + exam papers feed an on-device SR queue that re-serves the 3D checkpoint. */
+const keyFor = (page, qText) => page.evaluate((q) => {
+  const S = window.ILImmersiveSims;
+  for (const id of S.list()) for (const sc of S.get(id).scenarios) if (sc.predict && sc.predict.q === q) return { sim: id, sc: sc.id, answer: sc.predict.answer, n: sc.predict.options.length };
+  return null;
+}, qText);
+
+await check('/immersive/: a free-play CKA drill miss lands in the review queue (box 0, due now) and the badge updates', async () => {
+  const { page, errors } = await open('/immersive/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-sim="etcd-quorum"]').scrollIntoViewIfNeeded();
+  const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
+  await host.waitFor({ timeout: 30000 });
+  await host.locator('[data-il-sim-scenario="lose-two"]').click();
+  const key = await page.evaluate(() => window.ILImmersiveSims.get('etcd-quorum').scenarios.find(x => x.id === 'lose-two').predict.answer);
+  const wrong = (key + 1) % 2;
+  await host.locator(`[data-il-sim-option="${wrong}"]`).click();
+  const card = await page.evaluate(() => JSON.parse(localStorage.getItem('il.immersiveReview.v1')).cards['etcd-quorum::lose-two']);
+  assert.equal(card.box, 0);
+  assert.equal(card.lapses, 1);
+  assert.equal(card.src.drill, 1);
+  await page.waitForFunction(() => /1 due now/.test(document.querySelector('[data-il-review-due-badge]').textContent), null, { timeout: 5000 });
+  /* AWS / mesh drills stay out of the CKA queue. */
+  await page.locator('[data-il-sim="iam-eval"]').scrollIntoViewIfNeeded();
+  const iam = page.locator('[data-il-sim-ready="iam-eval"]');
+  await iam.waitFor({ timeout: 30000 });
+  await iam.locator('[data-il-sim-scenario="deny-wins"]').click();
+  await iam.locator('[data-il-sim-option="0"]').click();
+  const n = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('il.immersiveReview.v1')).cards).length);
+  assert.equal(n, 1, 'IAM drill not in CKA queue');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'etcd-quorum::lose-two box 0 · badge "1 due now" · AWS excluded';
+});
+
+await check('exam → remediation → 3D review: missed paper items are re-served on the authored scene, then rescheduled', async () => {
+  const { page, errors } = await open('/immersive/exam/');
+  let step = 'exam', total = 0, boxes = [];
+  try {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-exam-start][data-count="5"]').click();
+  await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
+  for (let i = 0; i < 5; i++) {
+    await page.waitForFunction(n => document.querySelector('[data-il-exam-progress]').textContent === 'Q ' + n + '/5', i + 1, { timeout: 30000 });
+    await page.locator('[data-il-exam-option]').first().waitFor({ timeout: 30000 });
+    const k = await keyFor(page, await page.locator('[data-il-exam-q]').textContent());
+    assert.ok(k, 'question maps to a sim scenario');
+    /* Answer wrong on purpose: every item should come back as a relearn card. */
+    step = 'exam Q' + (i + 1);
+    await page.locator(`[data-il-exam-option="${(k.answer + 1) % k.n}"]`).click();
+  }
+  await page.locator('[data-il-exam-done]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.equal(await page.locator('[data-il-exam-remediate]').getAttribute('data-lapses'), '5');
+  assert.match(await page.locator('[data-il-exam-remediate]').textContent(), /5 checkpoints scheduled on this device · 5 to relearn now/);
+  assert.match(await page.locator('[data-il-exam-adaptive-note]').textContent(), /weakest on-device domains: /);
+  await page.locator('[data-il-exam-remediate-link]').click();
+  await page.waitForURL(/\/immersive\/review\/$/);
+  await page.locator('[data-il-review-due]').waitFor();
+  assert.equal(await page.locator('[data-il-review-due]').textContent(), '5');
+  assert.equal(await page.locator('[data-il-review-exams]').textContent(), '1');
+  assert.match(await page.locator('[data-il-review-plan]').textContent(), /5 relearn \(missed\)/);
+  assert.ok(await page.locator('[data-il-review-mastery] tbody tr').count() >= 7, 'mastery rows');
+  step = 'review start';
+  await page.locator('[data-il-review-start]').click();
+  await page.locator('[data-il-review-run]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.match(await page.locator('[data-il-review-reason]').textContent(), /Relearn — missed 1× \(incl\. timed exam\)/);
+  const stage = page.locator('[data-il-review-stage]');
+  const k0 = await keyFor(page, await page.locator('[data-il-review-q]').textContent());
+  await page.waitForFunction(id => document.querySelector('[data-il-review-stage]').getAttribute('data-il-sim-ready') === id, k0.sim, { timeout: 30000 });
+  await stage.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  const before = await stage.getAttribute('data-il-sim-verdict');
+  await page.locator(`[data-il-review-option="${k0.answer}"]`).click();
+  const fb = await page.locator('[data-il-review-feedback]').textContent();
+  assert.match(fb, /^Correct\. .* Box 0 → 1\. Next review in 10 min\.$/);
+  const after = await stage.getAttribute('data-il-sim-verdict');
+  const expected = await page.evaluate(([id, sc]) => { const S = window.ILImmersiveSims, sim = S.get(id); return sim.derive(S.merge(sim.initial, sim.scenarios.find(x => x.id === sc).set)).verdict; }, [k0.sim, k0.sc]);
+  assert.equal(after, expected, 'reveal re-derived the authored scene');
+  await page.waitForTimeout(700);
+  await stage.screenshot({ path: path.join(shots, 'immersive-review-card.png') });
+  /* Queue = 5 relearn cards first, then weak-domain top-ups up to the 10-card session. */
+  total = Number((await page.locator('[data-il-review-progress]').textContent()).split('/')[1]);
+  assert.ok(total >= 5 && total <= 10, 'session size ' + total);
+  for (let i = 1; i < total; i++) {
+    step = 'review card ' + (i + 1);
+    if (i === 5) assert.match(await page.locator('[data-il-review-reason]').textContent(), /Relearn/);
+    await page.locator('[data-il-review-next-card]:not([hidden])').click();
+    await page.waitForFunction(([n, t]) => document.querySelector('[data-il-review-progress]').textContent === 'Card ' + n + '/' + t, [i + 1, total], { timeout: 30000 });
+    if (i >= 5) assert.match(await page.locator('[data-il-review-reason]').textContent(), /^New · (weak|untested) domain: /);
+    await page.locator('[data-il-review-option]').first().waitFor({ timeout: 30000 });
+    const k = await keyFor(page, await page.locator('[data-il-review-q]').textContent());
+    await page.locator(`[data-il-review-option="${i === 4 ? (k.answer + 1) % k.n : k.answer}"]`).click();
+  }
+  await page.locator('[data-il-review-next-card]:not([hidden])').click();
+  await page.locator('[data-il-review-done]:not([hidden])').waitFor({ timeout: 10000 });
+  assert.equal(await page.locator('html').getAttribute('data-il-review-finished'), (total - 1) + '/' + total);
+  const db = await page.evaluate(() => JSON.parse(localStorage.getItem('il.immersiveReview.v1')));
+  const fromExam = Object.values(db.cards).filter(c => c.src.exam);
+  boxes = fromExam.map(c => c.box).sort();
+  assert.deepEqual(boxes, [0, 1, 1, 1, 1], 'four exam misses promoted to the 10-min step, one back to relearn');
+  assert.ok(Object.values(db.cards).filter(c => !c.src.exam).every(c => c.box === 1 && c.src.review === 1), 'new top-up cards start at the 10-min step');
+  assert.ok(Object.values(db.cards).every(c => !c.src.drill), 'exam/review stages never double-count as free-play drills');
+  await page.locator('[data-il-review-again]').click();
+  assert.equal(await page.locator('[data-il-review-due]').textContent(), '1');
+  step = 'adaptive paper';
+  await page.goto(base + '/immersive/exam/', { waitUntil: 'load' });
+  await page.locator('[data-il-exam-start][data-adaptive="1"]').click();
+  await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.equal(await page.locator('html').getAttribute('data-il-exam-adaptive'), '1', 'adaptive paper used on-device focus');
+  assert.deepEqual(errors, []);
+  } catch (e) { e.message = '[' + step + '] ' + e.message; throw e; }
+  await page.close();
+  return 'paper 0/5 → 5 relearn → review ' + (total - 1) + '/' + total + ' → exam-card boxes ' + boxes.join(',') + ' · adaptive paper focused';
 });
 
 await browser.close();
