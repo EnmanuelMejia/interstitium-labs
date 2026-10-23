@@ -1,5 +1,5 @@
 /**
- * WebXR entry tests (2026-10-14): pure helpers exported on ILImmersive3D.xr.
+ * WebXR entry + world-space predict HUD tests (2026-10-14 / 2026-10-15): pure helpers on ILImmersive3D.xr.
  * Loads docs/assets/il-immersive-3d.js in a vm sandbox with a stub document that never fires
  * DOMContentLoaded, so nothing mounts; only the exported helpers are exercised.
  */
@@ -27,9 +27,9 @@ function load(navigator = {}) {
 }
 const plain = (o) => JSON.parse(JSON.stringify(o));
 
-test('exports v1.7.0 with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
+test('exports v1.8.0 with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
   const API = load();
-  assert.equal(API.version, '1.7.0');
+  assert.equal(API.version, '1.8.0');
   assert.equal(API.webxr, true);
   assert.deepEqual(plain(API.xr.modes), { vr: 'immersive-vr', ar: 'immersive-ar' });
   assert.match(API.xr.honesty, /WebXR over the authored glTF/);
@@ -161,5 +161,80 @@ test('curriculum manifest declares the WebXR entry honestly (no hosted cluster /
   assert.deepEqual(x.referenceSpaces, ['local-floor', 'local']);
   assert.match(x.honesty, /not Unreal Pixel Streaming, not a hosted cluster/);
   assert.match(x.honesty, /not a physical headset/);
-  assert.match(m.sims.player, /v1\.7\.0/);
+  assert.match(m.sims.player, /v1\.8\.0/);
+});
+
+
+test('exports xr.hud helpers with honest (non-UMG, non-Pixel-Streaming) label', () => {
+  const API = load();
+  assert.equal(API.xrHud, true);
+  assert.match(API.xr.hud.honesty, /not Unreal UMG/);
+  assert.match(API.xr.hud.honesty, /not a Pixel Streaming HUD/);
+  assert.match(API.xr.hud.honesty, /not a hosted cluster/);
+});
+
+test('hud model: predict options keep origIdx through shuffle order; cursor clamps', () => {
+  const { xr } = load();
+  const m = xr.hud.model({
+    phase: 'predict',
+    prompt: 'Predict first: quorum?',
+    options: [{ origIdx: 2, label: 'C' }, { origIdx: 0, label: 'A' }, { origIdx: 1, label: 'B' }],
+    cursor: 99
+  });
+  assert.equal(m.phase, 'predict');
+  assert.equal(m.cursor, 2);
+  assert.deepEqual(plain(m.options.map(o => o.origIdx)), [2, 0, 1]);
+  assert.deepEqual(plain(m.options.map(o => o.letter)), ['A', 'B', 'C']);
+  assert.equal(xr.hud.model({ phase: 'idle' }).options.length, 0);
+});
+
+test('hud layout: prompt + selectable option quads + honesty chip; reveal swaps options for result', () => {
+  const { xr } = load();
+  const predict = xr.hud.model({
+    phase: 'predict', prompt: 'Q?', options: [{ origIdx: 1, label: 'yes' }, { origIdx: 0, label: 'no' }], cursor: 1
+  });
+  const layout = xr.hud.layout(predict);
+  assert.ok(layout.some(q => q.kind === 'prompt'));
+  const opts = layout.filter(q => q.kind === 'option');
+  assert.equal(opts.length, 2);
+  assert.equal(opts[1].origIdx, 0);
+  assert.ok(opts[1].glow > opts[0].glow, 'cursor option glows more');
+  assert.ok(layout.some(q => q.kind === 'honesty'));
+  assert.ok(opts.every(q => q.fg === '#F5E6A8' || q.fg === '#E8EEF5'));
+  const reveal = xr.hud.layout(xr.hud.model({ phase: 'reveal', prompt: 'Q?', reveal: { correct: true, text: 'Correct. because' } }));
+  assert.ok(reveal.some(q => q.kind === 'reveal' && /Correct/.test(q.text)));
+  assert.equal(reveal.filter(q => q.kind === 'option').length, 0);
+  const next = xr.hud.layout(xr.hud.model({ phase: 'next', nextLabel: 'Lose majority' }));
+  assert.ok(next.some(q => q.kind === 'next' && q.selectable));
+});
+
+test('hud hitTest: ray through an option AABB returns its layout index; misses return -1', () => {
+  const { xr } = load();
+  const layout = xr.hud.layout(xr.hud.model({
+    phase: 'predict', prompt: 'Q?', options: [{ origIdx: 0, label: 'a' }, { origIdx: 1, label: 'b' }], cursor: 0
+  }));
+  const opt0 = layout.find(q => q.kind === 'option' && q.origIdx === 0);
+  const hit = xr.hud.hitTest([opt0.x, opt0.y, opt0.z + 2], [0, 0, -1], layout);
+  assert.ok(hit >= 0);
+  assert.equal(layout[hit].origIdx, 0);
+  assert.equal(xr.hud.hitTest([0, 10, 2], [0, 0, -1], layout), -1);
+  assert.equal(xr.hud.hitTest([0, 0, 2], [0, 0, -1], []), -1);
+});
+
+test('hud advanceCursor wraps and rebuilds highlight target', () => {
+  const { xr } = load();
+  let m = xr.hud.model({ phase: 'predict', prompt: 'Q?', options: [{ origIdx: 0, label: 'a' }, { origIdx: 1, label: 'b' }], cursor: 0 });
+  m = xr.hud.advanceCursor(m, 1);
+  assert.equal(m.cursor, 1);
+  m = xr.hud.advanceCursor(m, 1);
+  assert.equal(m.cursor, 0);
+});
+
+test('curriculum manifest declares world HUD honesty (not UMG / Pixel Streaming HUD)', () => {
+  const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
+  const h = m.sims.webxr.hud;
+  assert.equal(h.version, '1.8.0');
+  assert.match(h.honesty, /not Unreal UMG/);
+  assert.match(h.honesty, /not a Pixel Streaming HUD/);
+  assert.match(m.sims.webxr.honesty, /In-headset predict HUD/);
 });

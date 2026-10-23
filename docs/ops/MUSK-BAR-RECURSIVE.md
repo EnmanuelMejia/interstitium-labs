@@ -1,7 +1,50 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-14 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-15 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-15 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? You can finally *enter* the authored drills in a headset (10-14 WebXR), but once inside the predict→reveal loop still lived on the flat HTML page — options you cannot see or press in-world. A spatial CKA warm-up that forces you to take the headset off (or peer at a browser rectangle) to answer is still a 3D *picture* with a 2D quiz taped on. KodeKloud / killer.sh / Killercoda still have no WebXR path; Meta Muse (2026) is an agent that browses, emails, shops, books, and now places US merchant phone calls — agent UX, not 3D cert pedagogy. IL's wedge stays spatial CKA warm-up + remediation in headset. **No.** |
+| After this ship | **Closer / still NO** | **In-headset world-space predict/reveal HUD** (`il-immersive-3d.js` v1.8.0): question prompt + shuffled answer options as local WebGL quads (canvas textures) inside the same XR scene; controller `select` / ray-hit (cursor fallback) commits without DOM clicks; free-play also offers a **Next drill** chip so the loop can start without the page; graded exam/review stages that already open predict inherit the same commit path via their option chrome. Honesty badge/caption/manifest: *local WebGL/WebXR UI over authored glTF — not Unreal UMG, not a Pixel Streaming HUD*. Still **no live UE host**, **no hosted fleet**. |
+| Fake YES risk | Rejected | Not Unreal UMG. Not Pixel Streaming HUD. Not a hosted cluster. CI still drives a **scripted `navigator.xr` fake** — proves wiring + HUD model/hit-test/commit + stereo draw; **nobody watched a physical headset demo**. |
+
+## Scorecard (0–10) — 2026-10-15
+
+| Dimension | Prior (10-14) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.3 | **9.5** | Predict options float as world-space panels in VR/AR — the quiz is in the room |
+| Live labs density | 7.6 | 7.6 | Unchanged — still no hosted fleet (blocker C) |
+| Adaptive learning | 8.7 | **8.8** | Headset can run predict→reveal→next without leaving XR; review chrome accepts in-headset select |
+| Honesty / trust | 9.9 | 9.9 | World HUD labelled not-UMG / not-Pixel-Streaming-HUD on layout chip, CSS mirror, manifest |
+| Curriculum SoT | 9.5 | **9.6** | Manifest `sims.webxr.hud` (v1.8.0 surface, input, honesty) |
+| Immersive / 3D gate | 9.9 | **10.0** | Full predict→reveal loop is spatial; gate scoreboard maxed until live UE / fleet exist |
+
+**Musk YES? NO — Closer.** World HUD clears the "quiz still on the page" embarrassment after WebXR entry. It does **not** clear the blockers: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest wins: extend predict/exam/review to the AWS track (aws-vpc / aws-iam); Lab Muse viseme lip-sync on the spoken review briefing.
+
+## Competitor delta (2026-10-15)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| Meta Muse (2026) | Personal AI agent: browse, email, shop, book, US merchant phone calls | Agent UX, not 3D cert pedagogy; IL Lab Muse + authored glTF + WebXR HUD is spatial CKA warm-up / remediation in headset |
+| KodeKloud | Browser labs on real clusters, timed mocks, AI Tutor | No WebXR / headset path; mocks often "start fresh"; IL mounts the same drills in-headset and answers in-world |
+| killer.sh | Hardest timed RDP CKA sims | No adaptive follow-up, no 3D, no WebXR; IL is the spatial warm-up + remediation between sessions |
+| Killercoda | Free scenarios, instant | No headset path, no 3D mental model, no in-world predict HUD |
+| X trend (visual K8s explainers + Muse agent hype) | Short-form reach | IL wedge stays spatial CKA predict→reveal in headset, not another 2D explainer or general agent |
+
+## Shipped this pass (2026-10-15)
+
+1. `il-immersive-3d.js` v1.8.0 — world-space predict/reveal HUD: `xr.hud.model` / `layout` / `hitTest` / `advanceCursor` pure helpers; canvas-textured WebGL quads rendered only while XR is active; `select` prefers HUD commit (ray or cursor); free-play **Next drill** chip; exam/review inherit via option-chrome click; panels hide when XR ends; reduced-motion still hides XR entry entirely.
+2. `il-immersive-3d.css` — active-HUD stage outline + DOM honesty mirror under the XR toolbar.
+3. Manifest `sims.webxr.hud` + player string → v1.8.0.
+4. `docs/ops/MUSK-BAR-RECURSIVE.md` — this 2026-10-15 section.
+5. Tests: extended `immersive-xr.test.js` (HUD model/layout/hit-test/cursor/manifest); browser suite + in-headset predict select (no CDN Three, CSP-clean) and review in-headset commit.
+
+---
+
+_Prior pass archived below (2026-10-14)._
 
 ## Verdict — 2026-10-14 Musk-bar pass
 

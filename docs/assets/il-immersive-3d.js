@@ -17,6 +17,11 @@
  * and the 2D orbit render resumes when the session ends. Same authored .glb + same sim rules engine — this is
  * WebXR over authored glTF rendered locally, NOT Unreal Pixel Streaming and NOT a hosted cluster.
  * Exam / review remounts reuse ScenePlayer, so they inherit the entry; destroy() ends any live session.
+ * v1.8.0 (2026-10-15): in-headset world-space predict/reveal HUD — question + shuffled options as local WebGL
+ * quads (canvas textures) so the predict→reveal loop runs inside XR without DOM clicks. Controller select /
+ * ray-hit picks an option; free-play and graded exam/review stages that open predict via _simScenario share
+ * the same commit path. Honesty: local WebGL/WebXR UI over authored glTF — not Unreal UMG, not Pixel Streaming HUD.
+ * World panels hide when XR is inactive; prefers-reduced-motion already hides XR entry.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -220,6 +225,130 @@
     gl.drawElements(gl.TRIANGLES, vao.count, gl.UNSIGNED_SHORT, 0);
   }
 
+
+  var VERT_TEX = [
+    'attribute vec3 aPos;',
+    'attribute vec2 aUv;',
+    'uniform mat4 uMVP;',
+    'varying vec2 vUv;',
+    'void main(){',
+    '  vUv = aUv;',
+    '  gl_Position = uMVP * vec4(aPos,1.0);',
+    '}'
+  ].join('\n');
+
+  var FRAG_TEX = [
+    'precision mediump float;',
+    'varying vec2 vUv;',
+    'uniform sampler2D uTex;',
+    'uniform float uGlow;',
+    'void main(){',
+    '  vec4 c = texture2D(uTex, vUv);',
+    '  if (c.a < 0.05) discard;',
+    '  vec3 lit = c.rgb + vec3(0.831,0.659,0.325) * uGlow * 0.35;',
+    '  gl_FragColor = vec4(lit, c.a);',
+    '}'
+  ].join('\n');
+
+  function programTex(gl){
+    function sh(type, src){
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+      return s;
+    }
+    var vs = sh(gl.VERTEX_SHADER, VERT_TEX);
+    var fs = sh(gl.FRAGMENT_SHADER, FRAG_TEX);
+    if (!vs || !fs) return null;
+    var p = gl.createProgram();
+    gl.attachShader(p, vs); gl.attachShader(p, fs); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return null;
+    return {
+      p: p,
+      aPos: gl.getAttribLocation(p, 'aPos'),
+      aUv: gl.getAttribLocation(p, 'aUv'),
+      uMVP: gl.getUniformLocation(p, 'uMVP'),
+      uTex: gl.getUniformLocation(p, 'uTex'),
+      uGlow: gl.getUniformLocation(p, 'uGlow')
+    };
+  }
+
+  function quadMesh(){
+    /* Unit quad in XY, facing +Z, UVs. */
+    return {
+      pos: new Float32Array([
+        -0.5,-0.5,0,  0.5,-0.5,0,  0.5,0.5,0,  -0.5,0.5,0
+      ]),
+      uv: new Float32Array([0,1, 1,1, 1,0, 0,0]),
+      idx: new Uint16Array([0,1,2, 0,2,3])
+    };
+  }
+
+  function uploadQuad(gl, mesh){
+    var vao = { mesh: mesh };
+    vao.pb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vao.pb);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.pos, gl.STATIC_DRAW);
+    vao.ub = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vao.ub);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.uv, gl.STATIC_DRAW);
+    vao.ib = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vao.ib);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.idx, gl.STATIC_DRAW);
+    vao.count = mesh.idx.length;
+    return vao;
+  }
+
+  function wrapHudText(ctx, text, maxWidth, maxLines){
+    var words = String(text || '').split(/\s+/).filter(function (w){ return !!w; });
+    var lines = [];
+    var line = '';
+    var truncated = false;
+    for (var i = 0; i < words.length; i++) {
+      var trial = line ? (line + ' ' + words[i]) : words[i];
+      if (ctx.measureText(trial).width > maxWidth && line) {
+        lines.push(line);
+        line = words[i];
+        if (lines.length >= maxLines) { truncated = true; line = ''; break; }
+      } else {
+        line = trial;
+      }
+    }
+    if (lines.length < maxLines && line) lines.push(line);
+    else if (truncated && lines.length) {
+      var last = lines[lines.length - 1];
+      if (last.length > 3) lines[lines.length - 1] = last.replace(/.{0,3}$/, '…');
+    }
+    return lines;
+  }
+
+  function paintHudCanvas(quad){
+    var w = quad.kind === 'honesty' ? 512 : 640;
+    var h = quad.kind === 'prompt' || quad.kind === 'reveal' ? 160 : (quad.kind === 'honesty' ? 64 : 128);
+    var c = (typeof document !== 'undefined' && document.createElement) ? document.createElement('canvas') : null;
+    if (!c) return null;
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = quad.bg || '#0B1220';
+    ctx.fillRect(0, 0, w, h);
+    /* High-contrast border */
+    ctx.strokeStyle = quad.kind === 'option' ? '#5EEAD4' : (quad.kind === 'reveal' ? quad.fg : '#334155');
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, w - 4, h - 4);
+    ctx.fillStyle = quad.fg || '#E8EEF5';
+    var fontSize = quad.kind === 'honesty' ? 18 : (quad.kind === 'prompt' ? 26 : 24);
+    ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, Segoe UI, sans-serif';
+    ctx.textBaseline = 'top';
+    var lines = wrapHudText(ctx, quad.text, w - 36, quad.kind === 'honesty' ? 2 : 3);
+    var y = Math.max(12, (h - lines.length * (fontSize + 6)) / 2);
+    for (var i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], 18, y + i * (fontSize + 6));
+    }
+    return c;
+  }
+
   var CLIPS = {
     hermetic: [
       { id: 'idle', label: 'Idle orrery' },
@@ -410,6 +539,158 @@
       };
     });
     return out;
+  }
+
+
+  /* ── In-headset world-space predict HUD (v1.8.0 · 2026-10-15) ───────────────────────
+   * Pure helpers on ILImmersive3D.xr.hud — unit-tested; ScenePlayer draws them only while XR is active. */
+  var XR_HUD_HONESTY = 'Local WebGL/WebXR UI over authored glTF — not Unreal UMG, not a Pixel Streaming HUD, not a hosted cluster.';
+
+  /** Build a panel model from predict / reveal / next-drill state (no DOM, no GL). */
+  function xrHudModel(input){
+    input = input || {};
+    var phase = input.phase || 'idle'; /* idle | predict | reveal | next */
+    var options = [];
+    var raw = input.options || [];
+    for (var i = 0; i < raw.length; i++) {
+      var o = raw[i];
+      options.push({
+        origIdx: o.origIdx != null ? o.origIdx : i,
+        label: String(o.label != null ? o.label : o),
+        letter: String.fromCharCode(65 + i)
+      });
+    }
+    var cursor = input.cursor == null ? 0 : (input.cursor | 0);
+    if (options.length) {
+      if (cursor < 0) cursor = 0;
+      if (cursor >= options.length) cursor = options.length - 1;
+    } else {
+      cursor = -1;
+    }
+    return {
+      phase: phase,
+      prompt: String(input.prompt || ''),
+      options: options,
+      cursor: cursor,
+      reveal: input.reveal ? {
+        correct: !!input.reveal.correct,
+        text: String(input.reveal.text || '')
+      } : null,
+      nextLabel: input.nextLabel ? String(input.nextLabel) : '',
+      honesty: XR_HUD_HONESTY
+    };
+  }
+
+  /** Layout quads in diorama/scene space (metres before XR placement scale). High contrast colors. */
+  function xrHudLayout(model){
+    model = model || xrHudModel({});
+    var quads = [];
+    var y0 = 2.55;
+    if (model.phase === 'predict' || model.phase === 'reveal') {
+      quads.push({
+        id: 'prompt', kind: 'prompt',
+        x: 0, y: y0, z: 0.15,
+        w: 4.6, h: 0.72, d: 0.04,
+        bg: '#0B1220', fg: '#E8EEF5',
+        text: model.prompt || 'Predict',
+        glow: 0.08, selectable: false, origIdx: -1
+      });
+    }
+    if (model.phase === 'predict') {
+      for (var i = 0; i < model.options.length; i++) {
+        var opt = model.options[i];
+        var hi = i === model.cursor;
+        quads.push({
+          id: 'opt-' + i, kind: 'option',
+          x: 0, y: y0 - 0.95 - i * 0.62, z: 0.2,
+          w: 4.2, h: 0.52, d: 0.05,
+          bg: hi ? '#1A3A36' : '#142033',
+          fg: hi ? '#F5E6A8' : '#E8EEF5',
+          text: opt.letter + '. ' + opt.label,
+          glow: hi ? 0.45 : 0.12,
+          selectable: true, origIdx: opt.origIdx, order: i
+        });
+      }
+    }
+    if (model.phase === 'reveal' && model.reveal) {
+      quads.push({
+        id: 'reveal', kind: 'reveal',
+        x: 0, y: y0 - 1.05, z: 0.2,
+        w: 4.4, h: 0.9, d: 0.05,
+        bg: model.reveal.correct ? '#0F2A1C' : '#2A1A0F',
+        fg: model.reveal.correct ? '#A7F3D0' : '#FDE68A',
+        text: model.reveal.text || (model.reveal.correct ? 'Correct' : 'Not quite'),
+        glow: 0.35, selectable: false, origIdx: -1
+      });
+    }
+    if (model.phase === 'next' && model.nextLabel) {
+      quads.push({
+        id: 'next', kind: 'next',
+        x: 0, y: y0 - 0.2, z: 0.15,
+        w: 3.6, h: 0.55, d: 0.05,
+        bg: '#142033', fg: '#5EEAD4',
+        text: 'Next drill: ' + model.nextLabel,
+        glow: 0.25, selectable: true, origIdx: -2, order: 0
+      });
+    }
+    /* Tiny honesty chip under the stack (always when HUD shows something). */
+    if (quads.length) {
+      quads.push({
+        id: 'honesty', kind: 'honesty',
+        x: 0, y: quads[quads.length - 1].y - 0.55, z: 0.1,
+        w: 4.0, h: 0.32, d: 0.03,
+        bg: '#0B1220', fg: '#94A3B8',
+        text: 'WebGL/WebXR UI · not Unreal UMG · not Pixel Streaming HUD',
+        glow: 0.02, selectable: false, origIdx: -1
+      });
+    }
+    return quads;
+  }
+
+  /** Ray vs AABB hit-test in scene space. Returns layout index of the nearest selectable hit, or -1. */
+  function xrHudHitTest(origin, dir, layout){
+    if (!origin || !dir || !layout || !layout.length) return -1;
+    var ox = origin[0], oy = origin[1], oz = origin[2];
+    var dx = dir[0], dy = dir[1], dz = dir[2];
+    var len = Math.hypot(dx, dy, dz) || 1;
+    dx /= len; dy /= len; dz /= len;
+    var best = -1, bestT = Infinity;
+    for (var i = 0; i < layout.length; i++) {
+      var q = layout[i];
+      if (!q.selectable) continue;
+      var hx = q.w * 0.5, hy = q.h * 0.5, hz = Math.max(q.d, 0.08) * 0.5;
+      var tmin = 0, tmax = Infinity;
+      var axes = [[ox, dx, q.x - hx, q.x + hx], [oy, dy, q.y - hy, q.y + hy], [oz, dz, q.z - hz, q.z + hz]];
+      var miss = false;
+      for (var a = 0; a < 3; a++) {
+        var o = axes[a][0], d = axes[a][1], mn = axes[a][2], mx = axes[a][3];
+        if (Math.abs(d) < 1e-8) {
+          if (o < mn || o > mx) { miss = true; break; }
+          continue;
+        }
+        var inv = 1 / d;
+        var t1 = (mn - o) * inv, t2 = (mx - o) * inv;
+        if (t1 > t2) { var tmp = t1; t1 = t2; t2 = tmp; }
+        if (t1 > tmin) tmin = t1;
+        if (t2 < tmax) tmax = t2;
+        if (tmin > tmax) { miss = true; break; }
+      }
+      if (miss || tmax < 0) continue;
+      var tHit = tmin >= 0 ? tmin : tmax;
+      if (tHit >= 0 && tHit < bestT) { bestT = tHit; best = i; }
+    }
+    return best;
+  }
+
+  function xrHudAdvanceCursor(model, delta){
+    model = xrHudModel(model);
+    if (!model.options.length) return model;
+    var n = model.options.length;
+    var c = ((model.cursor + (delta || 1)) % n + n) % n;
+    return xrHudModel({
+      phase: model.phase, prompt: model.prompt, options: model.options,
+      cursor: c, reveal: model.reveal, nextLabel: model.nextLabel
+    });
   }
 
   var xrSupportP = null;
@@ -681,6 +962,9 @@
     if (!this.prog) { this.root.classList.add('is-reduced'); return; }
     this.box = upload(gl, boxMesh());
     this.cyl = upload(gl, cylMesh(14));
+    this.quad = uploadQuad(gl, quadMesh());
+    this.progTex = programTex(gl);
+    this._xrHudTexCache = {};
     this.particles = this._makeParticles(48);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -713,7 +997,12 @@
     if (this._authoredOk) mode = ' · authored .glb';
     else if (this.cfg.gltf && String(this.cfg.gltf).indexOf('.pending.') >= 0) mode = ' · glTF scaffold';
     else if (this._authoredTried) mode = ' · procedural fallback';
-    if (this._xrSession) mode += ' · WebXR ' + String(this._xrKind || '').toUpperCase();
+    if (this._xrSession) {
+      mode += ' · WebXR ' + String(this._xrKind || '').toUpperCase();
+      if (this._xrHudModel && this._xrHudModel.phase && this._xrHudModel.phase !== 'idle') {
+        mode += ' · world HUD';
+      }
+    }
     badge.textContent = eng + ' · ' + this.cfg.scene + mode;
     badge.setAttribute('data-il-gfx', this._gfxApi || 'webgl');
     badge.setAttribute('data-il-mesh', this._authoredOk ? 'authored' : 'procedural');
@@ -995,6 +1284,10 @@
   ScenePlayer.prototype._simPredictClose = function (){
     if (this._simPredict) { this._simPredict.hidden = true; this._simPredict.innerHTML = ''; }
     this._simPending = null;
+    /* If XR is live, rebuild next-drill chip (or idle). Skip when reveal timer owns the panel. */
+    if (this._xrSession && !(this._xrHudModel && this._xrHudModel.phase === 'reveal')) {
+      this._xrHudSync();
+    }
   };
 
   ScenePlayer.prototype._simScenario = function (sc){
@@ -1024,6 +1317,7 @@
     box.hidden = false;
     this._simResult.textContent = '';
     try { box.querySelector('button').focus(); } catch (e) { /* ignore */ }
+    this._xrHudFromPredict(order);
   };
 
   ScenePlayer.prototype._simCommit = function (choice){
@@ -1048,6 +1342,7 @@
       try { g.ILImmersiveReview.record({ simId: sim.id, scenarioId: p.sc.id, correct: !!(res && res.correct), ms: ms, src: 'drill' }); } catch (e) { /* ignore */ }
     }
     this._simRenderScore();
+    this._xrHudShowReveal(this._simResult.textContent, !!(res && res.correct));
   };
 
   ScenePlayer.prototype._simRenderScore = function (){
@@ -1170,6 +1465,297 @@
       this._renderK8s(P, V, time, amp);
     }
     this._renderParticles(P, V, time, amp);
+    /* World-space predict HUD only while an XR session is live (hidden on the flat page). */
+    if (this._xrSession) this._renderXrHud(P, V, time);
+  };
+
+
+  /* ── World-space predict HUD methods (v1.8.0) ─────────────────────────────────────── */
+  ScenePlayer.prototype._xrHudClear = function (keepRevealTimer){
+    if (!keepRevealTimer && this._xrHudRevealT) {
+      try { clearTimeout(this._xrHudRevealT); } catch (e) { /* ignore */ }
+      this._xrHudRevealT = 0;
+    }
+    this._xrHudModel = xrHudModel({ phase: 'idle' });
+    this._xrHudLayout = [];
+    this._xrHudOrder = null;
+    if (this._xrHudTexCache) {
+      var gl = this.gl;
+      if (gl) {
+        for (var k in this._xrHudTexCache) {
+          try { gl.deleteTexture(this._xrHudTexCache[k].tex); } catch (e2) { /* ignore */ }
+        }
+      }
+      this._xrHudTexCache = {};
+    }
+    this.root && this.root.removeAttribute('data-il-xr-hud');
+  };
+
+  ScenePlayer.prototype._xrHudFromPredict = function (order){
+    var p = this._simPending;
+    if (!p || !p.sc || !p.sc.predict) return;
+    var opts = [];
+    var ord = order || (p.order) || p.sc.predict.options.map(function (_, i){ return i; });
+    this._xrHudOrder = ord.slice();
+    for (var i = 0; i < ord.length; i++) {
+      var idx = ord[i];
+      opts.push({ origIdx: idx, label: p.sc.predict.options[idx] });
+    }
+    p.order = ord.slice();
+    this._xrHudModel = xrHudModel({
+      phase: 'predict',
+      prompt: 'Predict first: ' + p.sc.predict.q,
+      options: opts,
+      cursor: 0
+    });
+    this._xrHudLayout = xrHudLayout(this._xrHudModel);
+    this._xrHudInvalidateTex();
+    if (this.root) this.root.setAttribute('data-il-xr-hud', 'predict');
+    this._paintHud();
+  };
+
+  ScenePlayer.prototype._xrHudShowReveal = function (text, correct){
+    var self = this;
+    if (this._xrHudRevealT) { try { clearTimeout(this._xrHudRevealT); } catch (e) { /* ignore */ } }
+    this._xrHudModel = xrHudModel({
+      phase: 'reveal',
+      prompt: (this._xrHudModel && this._xrHudModel.prompt) || 'Reveal',
+      reveal: { correct: !!correct, text: text || (correct ? 'Correct.' : 'Not quite.') }
+    });
+    this._xrHudLayout = xrHudLayout(this._xrHudModel);
+    this._xrHudInvalidateTex();
+    if (this.root) this.root.setAttribute('data-il-xr-hud', correct ? 'reveal-ok' : 'reveal-miss');
+    this._paintHud();
+    this._xrHudRevealT = setTimeout(function (){
+      self._xrHudRevealT = 0;
+      if (!self.alive) return;
+      self._xrHudSync(true);
+    }, 2800);
+  };
+
+  /** Rebuild HUD for the live XR session: pending predict, optional next-drill chip, else idle.
+   *  offerNext (default false): only after a reveal — keeps controller select free for toggle flips on entry. */
+  ScenePlayer.prototype._xrHudSync = function (offerNext){
+    if (!this._xrSession) {
+      this._xrHudClear(true);
+      return;
+    }
+    if (this._simPending && this._simPending.sc && this._simPending.sc.predict) {
+      var ord = this._simPending.order;
+      if (!ord) {
+        var S = g.ILImmersiveSims;
+        var n = this._simPending.sc.predict.options.length;
+        ord = (S && S.shuffleOrder) ? S.shuffleOrder(n) : this._simPending.sc.predict.options.map(function (_, i){ return i; });
+      }
+      this._xrHudFromPredict(ord);
+      return;
+    }
+    /* Keep an in-flight reveal visible unless this sync is the post-reveal offerNext handoff. */
+    if (!offerNext && this._xrHudModel && this._xrHudModel.phase === 'reveal') return;
+    /* Free-play: after a reveal, offer the next unscored drill as a world-space chip (loop without the page). */
+    if (offerNext && !this.cfg.owned && this._sim) {
+      var next = this._xrHudNextScenario();
+      if (next) {
+        this._xrHudModel = xrHudModel({ phase: 'next', nextLabel: next.label, cursor: 0 });
+        this._xrHudLayout = xrHudLayout(this._xrHudModel);
+        this._xrHudInvalidateTex();
+        this._xrHudNext = next;
+        if (this.root) this.root.setAttribute('data-il-xr-hud', 'next');
+        this._paintHud();
+        return;
+      }
+    }
+    this._xrHudNext = null;
+    this._xrHudModel = xrHudModel({ phase: 'idle' });
+    this._xrHudLayout = [];
+    if (this.root) this.root.removeAttribute('data-il-xr-hud');
+    this._paintHud();
+  };
+
+  ScenePlayer.prototype._xrHudNextScenario = function (){
+    var sim = this._sim;
+    if (!sim) return null;
+    var rec = simStore()[sim.id] || { scenarios: {} };
+    for (var i = 0; i < sim.scenarios.length; i++) {
+      var sc = sim.scenarios[i];
+      if (!sc.predict) continue;
+      var r = rec.scenarios[sc.id];
+      if (!r || r.c === 0) return sc;
+    }
+    return sim.scenarios.filter(function (s){ return !!s.predict; })[0] || null;
+  };
+
+  ScenePlayer.prototype._xrHudInvalidateTex = function (){
+    var gl = this.gl;
+    if (gl && this._xrHudTexCache) {
+      for (var k in this._xrHudTexCache) {
+        try { gl.deleteTexture(this._xrHudTexCache[k].tex); } catch (e) { /* ignore */ }
+      }
+    }
+    this._xrHudTexCache = {};
+  };
+
+  ScenePlayer.prototype._xrHudTexFor = function (quad){
+    if (!this.gl || !quad) return null;
+    var key = quad.id + '|' + quad.bg + '|' + quad.fg + '|' + quad.text;
+    var cache = this._xrHudTexCache || (this._xrHudTexCache = {});
+    if (cache[key]) return cache[key];
+    var canvas = paintHudCanvas(quad);
+    if (!canvas) return null;
+    var gl = this.gl;
+    var tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+    cache[key] = { tex: tex, w: canvas.width, h: canvas.height };
+    return cache[key];
+  };
+
+  ScenePlayer.prototype._renderXrHud = function (P, V, time){
+    if (!this.gl || !this.progTex || !this.quad || !this._xrHudLayout || !this._xrHudLayout.length) return;
+    var gl = this.gl;
+    var prog = this.progTex;
+    var prevCull = gl.isEnabled(gl.CULL_FACE);
+    if (prevCull) gl.disable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    for (var i = 0; i < this._xrHudLayout.length; i++) {
+      var q = this._xrHudLayout[i];
+      var slot = this._xrHudTexFor(q);
+      if (!slot) continue;
+      var M = ident(mat4());
+      translate(M, q.x, q.y, q.z);
+      /* Face the default orbit (+Z toward camera-ish); slight billboard yaw from orbit. */
+      rotateY(M, (this.orbit && this.orbit.theta) ? -this.orbit.theta : 0);
+      scale(M, q.w, q.h, 1);
+      var MV = mul(mat4(), V, M);
+      var MVP = mul(mat4(), P, MV);
+      gl.useProgram(prog.p);
+      gl.uniformMatrix4fv(prog.uMVP, false, MVP);
+      gl.uniform1f(prog.uGlow, q.glow || 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, slot.tex);
+      gl.uniform1i(prog.uTex, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.quad.pb);
+      gl.enableVertexAttribArray(prog.aPos);
+      gl.vertexAttribPointer(prog.aPos, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.quad.ub);
+      gl.enableVertexAttribArray(prog.aUv);
+      gl.vertexAttribPointer(prog.aUv, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.quad.ib);
+      gl.drawElements(gl.TRIANGLES, this.quad.count, gl.UNSIGNED_SHORT, 0);
+    }
+    gl.disable(gl.BLEND);
+    if (prevCull) gl.enable(gl.CULL_FACE);
+  };
+
+  /** Try ray-hit from the select event's input source; else use cursor / next-chip. */
+  ScenePlayer.prototype._xrHudSelect = function (evt){
+    if (!this._xrSession || !this._xrHudModel) return null;
+    var phase = this._xrHudModel.phase;
+    if (phase === 'reveal') return 'reveal';
+    if (phase === 'idle') return null;
+
+    var hitIdx = -1;
+    var hadRay = false;
+    var layout = this._xrHudLayout || [];
+    /* Optional controller ray (when the UA exposes inputSources + pose on the frame). */
+    try {
+      var src = evt && evt.inputSource;
+      var frame = this._xrLastFrame;
+      if (src && frame && this._xrRef && typeof frame.getPose === 'function') {
+        var grip = null;
+        if (src.targetRaySpace) grip = frame.getPose(src.targetRaySpace, this._xrRef);
+        if (grip && grip.transform && grip.transform.matrix) {
+          hadRay = true;
+          var m = grip.transform.matrix;
+          /* XR rigid transform: columns; ray origin = translation, direction = -Z axis. */
+          var origin = [m[12], m[13], m[14]];
+          var dir = [-m[8], -m[9], -m[10]];
+          /* Transform ray into diorama/scene space (inverse of placement W). */
+          var pl = this._xrPlace || xrPlacement(this._xrKind, this._xrRefType);
+          var s = pl.s || 1;
+          var ox = (origin[0] - pl.x) / s;
+          var oy = (origin[1] - pl.y) / s;
+          var oz = (origin[2] - pl.z) / s;
+          var dx = dir[0] / s, dy = dir[1] / s, dz = dir[2] / s;
+          /* Undo the orbit yaw carried into W. */
+          var th = (this.orbit && this.orbit.theta) || 0;
+          var c = Math.cos(-th), sn = Math.sin(-th);
+          var rx = c * ox + sn * oz, rz = -sn * ox + c * oz;
+          var rdx = c * dx + sn * dz, rdz = -sn * dx + c * dz;
+          hitIdx = xrHudHitTest([rx, oy, rz], [rdx, dy, rdz], layout);
+        }
+      }
+    } catch (e) { hitIdx = -1; hadRay = false; }
+
+    if (phase === 'next') {
+      var activateNext = !hadRay || (hitIdx >= 0 && layout[hitIdx] && layout[hitIdx].kind === 'next');
+      if (activateNext) {
+        var sc = this._xrHudNext || this._xrHudNextScenario();
+        if (sc) {
+          this._simScenario(sc);
+          return 'next:' + sc.id;
+        }
+      }
+      return null;
+    }
+
+    if (phase !== 'predict' || !this._simPending) return null;
+
+    var origIdx = null;
+    if (hitIdx >= 0 && layout[hitIdx] && layout[hitIdx].kind === 'option') {
+      origIdx = layout[hitIdx].origIdx;
+    } else if (!hadRay) {
+      /* No ray: commit the highlighted cursor option (defaults to first). */
+      var cur = this._xrHudModel.cursor;
+      if (cur >= 0 && this._xrHudModel.options[cur]) origIdx = this._xrHudModel.options[cur].origIdx;
+    }
+    if (origIdx == null || origIdx < 0) return null;
+    return this._xrHudCommit(origIdx);
+  };
+
+  ScenePlayer.prototype._xrHudCommit = function (origIdx){
+    if (!this._simPending) return null;
+    /* Graded exam/review: let page chrome own scoring (it calls _simCommit). Prefer that path. */
+    if (this.cfg.owned) {
+      try {
+        var sel = '[data-il-exam-option="' + origIdx + '"], [data-il-review-option="' + origIdx + '"]';
+        var btn = g.document && g.document.querySelector(sel);
+        if (btn && !btn.disabled) {
+          btn.click();
+          return 'opt:' + origIdx;
+        }
+      } catch (e) { /* ignore */ }
+      /* Honest limit: if remount left no option buttons, fall through to stage commit for 3D reveal only. */
+    }
+    this._simCommit(origIdx);
+    return 'opt:' + origIdx;
+  };
+
+  ScenePlayer.prototype._xrHudSetCursor = function (i){
+    if (!this._xrHudModel || this._xrHudModel.phase !== 'predict') return this._xrHudModel;
+    this._xrHudModel = xrHudModel({
+      phase: 'predict',
+      prompt: this._xrHudModel.prompt,
+      options: this._xrHudModel.options,
+      cursor: i
+    });
+    this._xrHudLayout = xrHudLayout(this._xrHudModel);
+    this._xrHudInvalidateTex();
+    return this._xrHudModel;
+  };
+
+  ScenePlayer.prototype._xrHudAdvance = function (delta){
+    if (!this._xrHudModel || this._xrHudModel.phase !== 'predict') return this._xrHudModel;
+    this._xrHudModel = xrHudAdvanceCursor(this._xrHudModel, delta || 1);
+    this._xrHudLayout = xrHudLayout(this._xrHudModel);
+    this._xrHudInvalidateTex();
+    return this._xrHudModel;
   };
 
   /* ── WebXR session (v1.7.0) ───────────────────────────────────────────────────────── */
@@ -1290,7 +1876,7 @@
           self._xrPlace = xrPlacement(kind, ref.type);
           self._xrFrames = 0;
           self._xrOnEnd = function (){ self._xrEnded(); };
-          self._xrOnSelect = function (){ self._xrSelect(); };
+          self._xrOnSelect = function (ev){ self._xrSelect(ev); };
           self._xrOnSqueeze = function (){ self._xrEnd(); };
           session.addEventListener('end', self._xrOnEnd);
           session.addEventListener('select', self._xrOnSelect);
@@ -1308,6 +1894,7 @@
             self._xrOverlay.hidden = false;
             self._xrOverlayCap.textContent = XR_HONESTY;
           }
+          self._xrHudSync();
           self._paintHud();
           simTrack('immersive_xr_session', { phase: 'start', mode: kind, ref: ref.type, sim: self.cfg.sim || '', scene: self.cfg.scene });
           self._xrRaf = session.requestAnimationFrame(function (ts, frame){ self._xrFrame(ts, frame); });
@@ -1332,6 +1919,7 @@
     if (!session || !this.alive) return;
     var self = this;
     this._xrRaf = session.requestAnimationFrame(function (t2, f2){ self._xrFrame(t2, f2); });
+    this._xrLastFrame = frame || null;
     var pose = frame && frame.getViewerPose ? frame.getViewerPose(this._xrRef) : null;
     var gl = this.gl, layer = this._xrLayer;
     if (!pose || !gl || !layer) return;
@@ -1362,9 +1950,12 @@
     }
   };
 
-  /* Controller / hand select: free-play sims flip the next toggle (re-tints authored nodes in the headset);
-   * procedural stages step clips. Exam / review stages own grading, so select is a no-op there. */
-  ScenePlayer.prototype._xrSelect = function (){
+  /* Controller / hand select (v1.8.0): prefer in-headset predict HUD hit / cursor commit;
+   * else free-play toggles; procedural stages step clips. Graded stages: select commits a pending
+   * predict via the same _simCommit path the page uses; otherwise still a no-op (no toggle flips). */
+  ScenePlayer.prototype._xrSelect = function (evt){
+    var hud = this._xrHudSelect(evt);
+    if (hud != null) return hud;
     if (this.cfg.owned) return null;
     if (this._sim && this._sim.toggles && this._sim.toggles.length) {
       var ts = this._sim.toggles;
@@ -1412,6 +2003,7 @@
     this._xrLayer = null;
     this._xrRef = null;
     this._xrRaf = 0;
+    this._xrHudClear(true);
     if (xrOwner === this) xrOwner = null;
     this._xrSet('ended');
     this.root.removeAttribute('data-il-xr-mode');
@@ -1512,7 +2104,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.7.0',
+    version: '1.8.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -1522,6 +2114,7 @@
     lodSkip: true,
     sims: true,
     webxr: true,
+    xrHud: true,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,
@@ -1533,7 +2126,14 @@
       placement: xrPlacement,
       buttons: xrButtons,
       support: function (){ return xrSupportOnce(); },
-      active: function (){ return xrOwner ? xrOwner.root : null; }
+      active: function (){ return xrOwner ? xrOwner.root : null; },
+      hud: {
+        honesty: XR_HUD_HONESTY,
+        model: xrHudModel,
+        layout: xrHudLayout,
+        hitTest: xrHudHitTest,
+        advanceCursor: xrHudAdvanceCursor
+      }
     }
   };
 })(typeof window !== 'undefined' ? window : this);

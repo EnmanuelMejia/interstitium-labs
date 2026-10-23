@@ -1,7 +1,7 @@
 {
   "v": 5,
   "updated": "2026-10-14T09:30:00-04:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) — not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) — every CKA spatial scene is now stateful; keyed answers spread across option positions.",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions.",
   "engines": [
     "webgl",
     "webgpu",
@@ -268,7 +268,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.7.0, data-il-sim; options shuffled per attempt; WebXR entry)",
+    "player": "/assets/il-immersive-3d.js (v1.8.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -331,7 +331,7 @@
         "immersive-vr",
         "immersive-ar"
       ],
-      "entry": "Enter VR / Enter AR on every ScenePlayer stage (free-play, /immersive/exam/, /immersive/review/) — shown only when navigator.xr.isSessionSupported() is true; hidden without WebXR and under prefers-reduced-motion",
+      "entry": "Enter VR / Enter AR on every ScenePlayer stage (free-play, /immersive/exam/, /immersive/review/) \u2014 shown only when navigator.xr.isSessionSupported() is true; hidden without WebXR and under prefers-reduced-motion",
       "requiredFeatures": [],
       "optionalFeatures": [
         "local-floor",
@@ -341,12 +341,19 @@
         "local-floor",
         "local"
       ],
-      "render": "Same WebGL context made XR-compatible → XRWebGLLayer; per-XRView stereo draw of the same authored .glb; page orbit RAF paused, restored on session end",
-      "input": "select flips the next free-play sim toggle (no-op on graded exam/review stages); squeeze or Exit ends the session",
+      "render": "Same WebGL context made XR-compatible \u2192 XRWebGLLayer; per-XRView stereo draw of the same authored .glb; page orbit RAF paused, restored on session end",
+      "input": "select prefers in-headset predict HUD (ray-hit or cursor commit); else flips the next free-play sim toggle (no toggle flips on graded exam/review); squeeze or Exit ends the session",
       "analytics": [
         "immersive_xr_session"
       ],
-      "honesty": "WebXR over the authored glTF, rendered locally in this browser — not Unreal Pixel Streaming, not a hosted cluster. Verified in CI against a scripted navigator.xr fake (headless Chromium has no XR device), not a physical headset."
+      "honesty": "WebXR over the authored glTF, rendered locally in this browser \u2014 not Unreal Pixel Streaming, not a hosted cluster. In-headset predict HUD is local WebGL UI (not Unreal UMG / Pixel Streaming HUD). Verified in CI against a scripted navigator.xr fake (headless Chromium has no XR device), not a physical headset.",
+      "hud": {
+        "since": "2026-10-15",
+        "version": "1.8.0",
+        "surface": "World-space WebGL quads (canvas textures) for predict prompt + shuffled options + reveal; shown only while an XR session is active",
+        "input": "Controller select / ray-hit chooses an option in-headset; no-ray fallback commits the highlighted cursor option. Free-play also offers a Next drill chip so the loop can start without the page. Graded exam/review: select clicks the matching page option button when present (same commit path).",
+        "honesty": "Local WebGL/WebXR UI over authored glTF \u2014 not Unreal UMG, not a Pixel Streaming HUD, not a hosted cluster."
+      }
     }
   },
   "aws_coverage": {
