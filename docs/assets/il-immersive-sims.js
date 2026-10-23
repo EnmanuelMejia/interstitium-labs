@@ -652,7 +652,7 @@
       var pv1Live = d.pv1 === 'Bound' || d.pv1 === 'Released';
       rules.push(rule('^edge-csi-pv1$', pv1Live ? { tint: 'ok', glow: 0.35 } : { tint: 'down', glow: 0 }));
       rules.push(rule('^pv-1$', d.pv1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pv1 === 'Released' ? { tint: 'warn', glow: 0.55, pulse: true } : { hide: true })));
-      rules.push(rule('^(backend-disk|platter)-1$', d.disk1 === 'kept' ? { tint: 'gold', glow: 0.3 } : (d.disk1 === 'deleted' ? { tint: 'deny', glow: 0.5, pulse: true } : { hide: true })));
+      rules.push(rule('^(backend-disk|platter)-1$', d.disk1 === 'kept' ? { tint: 'gold', glow: 0.3 } : { hide: true }));
       rules.push(rule('^edge-disk-pv1$', pv1Live ? { tint: 'gold', glow: 0.3 } : { tint: 'down', glow: 0 }));
       rules.push(rule('^pvc-1$', d.pvc1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pvc1 === 'deleted' ? { hide: true } : { tint: 'warn', glow: 0.6, pulse: true })));
       rules.push(rule('^edge-pv1-pvc1$', d.pvc1 === 'Bound' || d.pvc1 === 'Terminating' ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
