@@ -375,7 +375,7 @@
       var h = '';
       if (msg.attachments && msg.attachments.length) {
         msg.attachments.forEach(function (a) {
-          if (a.kind === 'image') h += '<img class="attach-img" src="' + a.dataUrl + '" alt="' + esc(a.name) + '">';
+          if (a.kind === 'image' && /^data:image\/[a-z0-9.+-]+;base64,/i.test(String(a.dataUrl || ''))) h += '<img class="attach-img" src="' + a.dataUrl + '" alt="' + esc(a.name) + '">';
           else h += '<span class="attach-chip">📎 ' + esc(a.name) + '</span>';
         });
       }

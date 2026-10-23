@@ -27,6 +27,11 @@
 
   function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
 
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function emptyState() {
     return {
       v: 1,
@@ -589,15 +594,15 @@
       readyBox.innerHTML = '<strong>' + t('adapt.ready', 'Ready-to-learn (A leading adaptive-learning platform fringe):') + '</strong> ' +
         (ready.length
           ? ready.slice(0, 5).map(function (r) {
-              return r.title + ' (' + Math.round(r.mastery * 100) + '%)';
+              return esc(r.title) + ' (' + Math.round(r.mastery * 100) + '%)';
             }).join(' · ')
           : t('adapt.ready_empty', 'Complete Placement to unlock the fringe.'));
       var gates = evaluateGates(state);
       var pathLabel = state.pathId || (recommendPath(state) || {}).id || '—';
-      gatesBox.innerHTML = '<p class="il-kicker">' + t('adapt.path', 'Path') + ' · ' + pathLabel + '</p>' +
+      gatesBox.innerHTML = '<p class="il-kicker">' + t('adapt.path', 'Path') + ' · ' + esc(pathLabel) + '</p>' +
         gates.map(function (g) {
           return '<div class="il-adapt-gate' + (g.unlocked ? ' is-open' : '') + '">' +
-            (g.unlocked ? '🔓 ' : '🔒 ') + g.title + '</div>';
+            (g.unlocked ? '🔓 ' : '🔒 ') + esc(g.title) + '</div>';
         }).join('') || '<p class="text-sm text-muted">' + t('adapt.gates_pending', 'Gates appear after bank load.') + '</p>';
     }
 
