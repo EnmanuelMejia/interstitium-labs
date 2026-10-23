@@ -5,6 +5,8 @@
  * a live cluster, hosted fleet, cohort, or server-side analytics.
  * 2026-10-14: "Lab Muse · read my queue aloud" speaks R.speakLine() via the browser's own
  * speechSynthesis (hidden when unavailable). Review stages also inherit WebXR entry from ScenePlayer v1.7.0.
+ * 2026-10-20: coach-driven CLI cards (kind 'cli') re-open their CLI-lab task on the authored stage with the earlier
+ * steps replayed; the learner types the step; verified without `solution` = recalled, `solution` / give-up = miss.
  */
 (function () {
   'use strict';
@@ -28,6 +30,8 @@
     var done = $('[data-il-review-done]');
     var stage = $('[data-il-review-stage]');
     var items = [], idx = 0, answering = false, itemT0 = 0, session = null;
+    var cliShell = $('[data-il-review-shell] p');
+    var cliShellText = cliShell ? cliShell.textContent : '';
 
     function renderLobby() {
       var st = R.stats();
@@ -120,9 +124,10 @@
         stage.removeAttribute('data-il-immersive-ready');
         stage.setAttribute('data-il-sim', item.simId);
         stage.setAttribute('data-gltf', item.glb);
-        stage.setAttribute('data-immersive', JSON.stringify({
-          mode: '3d-first', engine: 'three', asset: item.glb, webgpu: true, sim: item.simId, review: true
-        }));
+        var conf = { mode: '3d-first', engine: 'three', asset: item.glb, webgpu: true, sim: item.simId, review: true };
+        if (item.kind === 'cli') conf.cliReview = { task: item.taskId, step: item.step };
+        stage.setAttribute('data-immersive', JSON.stringify(conf));
+        ['data-il-cli-review', 'data-il-cli-review-result', 'data-il-cli-ready', 'data-il-cli-task'].forEach(function (a) { stage.removeAttribute(a); });
         try { API.mount(stage); } catch (e3) { /* ignore */ }
         var t0 = Date.now();
         (function poll() {
@@ -154,6 +159,62 @@
       if (player._simPredict) player._simPredict.hidden = true;
     }
 
+    /* CLI card: the stage's terminal reports the target step as 'pass' (verified without `solution`) or 'solution'. */
+    if (stage) stage.addEventListener('il-immersive-cli-review', function (ev) {
+      var item = items[idx], d = ev && ev.detail;
+      if (!item || item.kind !== 'cli' || !d || d.task !== item.taskId || d.step !== item.step) return;
+      commitCli(d.result === 'pass');
+    });
+
+    function renderCliCard(item) {
+      txt('[data-il-review-q]', 'Type it: ' + item.q);
+      var box = $('[data-il-review-options]');
+      var p = document.createElement('p');
+      p.className = 'text-sm text-muted';
+      p.textContent = 'Lab Muse queued this step because the coach had to help last time. The simulated shell below re-opens the task with the earlier steps replayed — type the command for this step yourself (check and hint are fine; solution counts as a miss).';
+      box.appendChild(p);
+      var give = document.createElement('button');
+      give.type = 'button';
+      give.className = 'il-exam-opt';
+      give.setAttribute('data-il-review-cli-giveup', '');
+      give.textContent = 'Show the solution (counts as a miss)';
+      give.addEventListener('click', function () {
+        var player = stage && stage._ilImmersive;
+        if (player && player.cliExec && player._cli) player.cliExec('solution');
+        else commitCli(false);
+      });
+      box.appendChild(give);
+      if (cliShell) cliShell.textContent = 'Authored scene + simulated shell — type the step; the 3D scene reacts';
+      mountScene(item).then(function () {
+        if (answering || items[idx] !== item) return;
+        var player = stage && stage._ilImmersive;
+        if (player && player._cliInput) { try { player._cliInput.focus(); } catch (e) { /* ignore */ } }
+      });
+    }
+
+    function commitCli(passed) {
+      if (answering) return;
+      answering = true;
+      var item = items[idx];
+      var ms = ((window.performance && performance.now()) || Date.now()) - itemT0;
+      var r = R.recordCli({ simId: item.simId, taskId: item.taskId, step: item.step, how: passed ? 'pass' : 'review-solution', ms: ms });
+      session.done += 1;
+      if (passed) session.correct += 1;
+      if (r && r.from != null && r.to > r.from) session.promoted += 1;
+      if (r && r.grade === 'again') session.lapsed += 1;
+      if (r && r.grade === 'hard') session.hard += 1;
+      var give = $('[data-il-review-cli-giveup]');
+      if (give) give.disabled = true;
+      var gradeText = !r ? '' : (r.grade === 'again' ? 'Relearn: back to box 0 — it leads your next session.'
+        : (r.grade === 'hard' ? 'Verified but slow (>' + Math.round(R.SLOW_MS / 1000) + 's): box held at ' + r.to + '.' : 'Box ' + (r.from == null ? 'new' : r.from) + ' → ' + r.to + '.'));
+      txt('[data-il-review-feedback]', (passed ? 'Verified without the solution. ' : 'Needed the solution. ' + item.why + ' ') + gradeText + (r && r.dueIn > 0 ? ' Next review in ' + R.humanInterval(r.dueIn) + '.' : ' Due again now.'));
+      var fb = $('[data-il-review-feedback]');
+      if (fb && r) fb.setAttribute('data-grade', r.grade);
+      track('immersive_review_answer', { sim: item.simId, scenario: 'cli', grade: r ? r.grade : 'again', reason: item.reason, kind: 'cli' });
+      var next = $('[data-il-review-next-card]');
+      if (next) { next.textContent = idx + 1 >= items.length ? 'Finish session' : 'Next card'; show(next, true); }
+    }
+
     function renderCard() {
       var item = items[idx];
       answering = false;
@@ -169,6 +230,8 @@
       box.textContent = '';
       var next = $('[data-il-review-next-card]');
       show(next, false);
+      if (item.kind === 'cli') return renderCliCard(item);
+      if (cliShell) cliShell.textContent = cliShellText;
       S.shuffleOrder(item.options.length).forEach(function (optIdx) {
         var b = document.createElement('button');
         b.type = 'button';

@@ -29,11 +29,11 @@ function session(sim, taskId) {
   };
 }
 
-test('exports v1.0.0 with an honest simulated-shell label and packs only for sims that exist', () => {
-  assert.equal(C.VERSION, '1.1.0');
+test('exports v1.2.0 with an honest simulated-shell label and packs only for sims that exist', () => {
+  assert.equal(C.VERSION, '1.2.0');
   assert.match(C.honesty, /Simulated shell/);
   assert.match(C.honesty, /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
-  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'control-plane-failure', 'etcd-quorum', 'hpa-scale', 'sched-taints']);
+  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'control-plane-failure', 'etcd-quorum', 'hpa-scale', 'ingress-routing', 'netpol-isolation', 'rbac-authz', 'sched-taints', 'storage-csi']);
   for (const id of C.list()) {
     assert.ok(S.get(id), id + ' has a rules-engine sim');
     const p = C.pack(id);
@@ -241,7 +241,15 @@ test('manifest declares the CLI lab honestly and matches the runtime packs', () 
   for (const p of c.packs) assert.deepEqual(p.tasks, C.pack(p.sim).tasks.map(t => t.id));
   assert.match(c.honesty, /Not a real shell, container, cluster, AWS account or hosted lab fleet/);
   assert.match(c.analytics[0], /never the raw command text/);
-  assert.match(m.sims.player, /v1\.10\.0/);
+  assert.match(m.sims.player, /v1\.11\.0/);
+  assert.ok(c.analytics.every(a => !/raw command text/.test(a) || /never/.test(a)));
+  assert.match(c.analytics.find(a => /immersive_cli_review_card/.test(a)), /never command text/);
+  assert.match(c.analytics.find(a => /immersive_cli_voice/.test(a)), /never the transcript/);
+  assert.match(c.voice.honesty, /receives no audio or transcript/);
+  assert.match(c.voice.behaviour, /never auto-run/);
+  assert.match(c.reviewCards.store, /il\.immersiveReview\.v1/);
+  const rhtml = readFileSync(path.join(root, 'docs/immersive/review/index.html'), 'utf8');
+  assert.ok(rhtml.indexOf('il-immersive-cli.js') > rhtml.indexOf('il-immersive-sims.js') && rhtml.indexOf('il-immersive-cli.js') < rhtml.indexOf('il-immersive-3d.js'), 'review page loads the CLI between the rules engine and the player');
   const html = readFileSync(path.join(root, 'docs/immersive/index.html'), 'utf8');
   assert.ok(html.indexOf('il-immersive-cli.js') > html.indexOf('il-immersive-sims.js'), 'CLI loads after the rules engine');
   assert.ok(html.indexOf('il-immersive-cli.js') < html.indexOf('il-immersive-3d.js'), 'CLI loads before the player');

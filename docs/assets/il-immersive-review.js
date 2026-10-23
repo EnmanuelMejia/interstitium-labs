@@ -16,6 +16,11 @@
  * (KodeKloud staff, 2026-04: "each session ... you start fresh")? No — this is the fix.
  * v1.1.0 (2026-10-14): speakLine() — the one-line Lab Muse briefing the review lobby reads
  * aloud through the browser's own Web Speech synthesis (no cloud TTS, no API key).
+ * v1.2.0 (2026-10-20): coach-driven CLI cards — a CLI-lab step the learner needed `solution` for (or failed
+ * `check` on twice) becomes a card in THIS queue (same store, same Leitner boxes), keyed
+ * simId::cli:<taskId>:<step>. The review stage re-opens that drill's task with the earlier steps replayed, and
+ * the card is graded by whether the learner gets the step verified without `solution`. Mastery % stays computed
+ * from predict checkpoints (CLI cards are scheduled and counted, never invented as top-ups).
  */
 (function (root, factory) {
   var api = factory(root);
@@ -24,7 +29,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -51,6 +56,13 @@
   };
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
+  /** CLI-lab drills outside the CKA scope still get coach cards, under an honest domain label. */
+  var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience' };
+  function cliScenarioId(taskId, step) { return 'cli:' + taskId + ':' + step; }
+  function parseCli(scenarioId) {
+    var m = /^cli:([a-z0-9-]+):(\d+)$/.exec(String(scenarioId || ''));
+    return m ? { taskId: m[1], step: +m[2] } : null;
+  }
   function now0(n) { return n != null ? n : Date.now(); }
 
   var mem = null; /* fallback when localStorage is unavailable (private mode / node) */
@@ -103,6 +115,30 @@
     return out;
   }
 
+  /** One checkpoint per CLI-lab task step (ILImmersiveCLI packs). Only used to re-serve coach-driven cards. */
+  function cliCheckpoints(C, S) {
+    C = C || (g && g.ILImmersiveCLI);
+    S = S || (g && g.ILImmersiveSims);
+    var out = [];
+    if (!C || !C.list || !C.pack) return out;
+    C.list().forEach(function (simId) {
+      var p = C.pack(simId), sim = S && S.get ? S.get(simId) : null;
+      var domain = CKA_DOMAIN[simId] || CLI_DOMAIN_EXTRA[simId] || 'Other';
+      p.tasks.forEach(function (tk) {
+        tk.steps.forEach(function (st, i) {
+          var sid = cliScenarioId(tk.id, i);
+          out.push({
+            k: key(simId, sid), kind: 'cli', simId: simId, scenarioId: sid, taskId: tk.id, step: i, domain: domain,
+            title: sim ? sim.title : simId, label: tk.title + ' · step ' + (i + 1) + '/' + tk.steps.length, glb: sim ? sim.glb : null,
+            q: st.label, nudge: st.nudge || null, options: [], answer: null,
+            why: 'Solution: $ ' + String(st.hint).split(/\s{2}then\s{2}/).join('  then  $ ')
+          });
+        });
+      });
+    });
+    return out;
+  }
+
   /**
    * Grade one answer into the schedule. grade: 'again' (wrong / timeout), 'hard' (correct but slow),
    * 'good' (correct). Pure transition, exported for tests.
@@ -151,6 +187,26 @@
     db.log.push({ at: t, k: k, ok: !!opts.correct, g: grade, ms: c.lastMs, src: opts.src || 'drill', from: isNew ? null : from, to: to, due: wasDue ? 1 : 0, timeout: opts.timeout ? 1 : 0 });
     if (!dbIn) save(db);
     return { card: c, grade: grade, from: isNew ? null : from, to: to, dueIn: INTERVALS[to] };
+  }
+
+  /**
+   * Coach-driven CLI card. how: 'solution' | 'check-fail' (free-play coach: the learner needed help → 'again'),
+   * 'pass' (re-served step verified without `solution` → graded by latency), 'review-solution' (needed it again).
+   */
+  function recordCli(opts) {
+    var pc = { taskId: opts.taskId, step: opts.step };
+    if (!pc.taskId || !(pc.step >= 0)) return null;
+    var db = load();
+    var coachSrc = opts.how === 'solution' || opts.how === 'check-fail';
+    var r = record({ simId: opts.simId, scenarioId: cliScenarioId(pc.taskId, pc.step), correct: opts.how === 'pass', ms: opts.ms,
+      src: opts.src || (coachSrc ? 'cli-coach' : 'review'), now: opts.now,
+      domain: CKA_DOMAIN[opts.simId] || CLI_DOMAIN_EXTRA[opts.simId] || 'Other' }, db);
+    r.card.kind = 'cli'; r.card.taskId = pc.taskId; r.card.step = pc.step;
+    r.card.why = r.card.why || {};
+    if (coachSrc) r.card.why[opts.how] = (r.card.why[opts.how] || 0) + 1;
+    db.log[db.log.length - 1].kind = 'cli';
+    save(db);
+    return r;
   }
 
   /**
@@ -239,16 +295,20 @@
     var cps = checkpoints(S);
     var byKey = {};
     for (var i = 0; i < cps.length; i++) byKey[cps[i].k] = cps[i];
+    /* v1.2.0: coach-driven CLI cards are re-served when the CLI lab is on the page; never used for top-ups. */
+    var clis = cliCheckpoints(opts.C, S);
+    for (var ci = 0; ci < clis.length; ci++) byKey[clis[ci].k] = clis[ci];
     var items = [];
     var due = dueCards(db, t);
     for (var j = 0; j < due.length && items.length < limit; j++) {
       var c = due[j], cp = byKey[c.k];
-      if (!cp) continue; /* checkpoint retired from the sims — skip, never invent */
+      if (!cp) continue; /* checkpoint retired from the sims (or CLI lab not loaded) — skip, never invent */
+      var isCli = cp.kind === 'cli';
       items.push(Object.assign({}, cp, {
         reason: c.box === 0 ? 'relearn' : 'due',
         reasonText: c.box === 0
-          ? ('Relearn — missed ' + c.lapses + '×' + (c.src.exam ? ' (incl. timed exam)' : ''))
-          : ('Due · box ' + c.box + ' of ' + MAX_BOX),
+          ? (isCli ? ('Relearn CLI step — Lab Muse had to help ' + c.lapses + '×') : ('Relearn — missed ' + c.lapses + '×' + (c.src.exam ? ' (incl. timed exam)' : '')))
+          : ((isCli ? 'CLI step due' : 'Due') + ' · box ' + c.box + ' of ' + MAX_BOX),
         box: c.box, lapses: c.lapses
       }));
     }
@@ -298,8 +358,8 @@
     st = st || {}; q = q || []; mast = mast || [];
     var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
     if (!q.length) return 'Lab Muse: nothing is due on this device. Sit a timed paper or a free-play drill to seed the queue.';
-    var c = {};
-    q.forEach(function (x) { c[x.reason] = (c[x.reason] || 0) + 1; });
+    var c = {}, cli = 0;
+    q.forEach(function (x) { c[x.reason] = (c[x.reason] || 0) + 1; if (x.kind === 'cli') cli += 1; });
     var parts = [];
     if (c.relearn) parts.push(c.relearn + ' to relearn from misses');
     if (c.due) parts.push(c.due + ' due for spaced review');
@@ -307,7 +367,7 @@
     if (c['untested-domain']) parts.push(c['untested-domain'] + ' new from untested domains');
     if (c['cold-start']) parts.push(c['cold-start'] + ' cold-start');
     var out = 'Lab Muse: ' + plural(st.dueNow || 0, 'checkpoint') + ' due now on this device. Next session is ' +
-      plural(q.length, 'card') + ': ' + parts.join(', ') + '.';
+      plural(q.length, 'card') + ': ' + parts.join(', ') + (cli ? ' (' + plural(cli, 'typed CLI step') + ')' : '') + '.';
     var weak = null;
     for (var i = 0; i < mast.length; i++) if (mast[i].seen > 0) { weak = mast[i]; break; }
     if (weak) out += ' Weakest domain: ' + weak.domain + ', ' + weak.pct + ' percent mastery.';
@@ -401,6 +461,10 @@
     load: load,
     reset: reset,
     checkpoints: checkpoints,
+    cliCheckpoints: cliCheckpoints,
+    cliScenarioId: cliScenarioId,
+    parseCli: parseCli,
+    recordCli: recordCli,
     gradeOf: gradeOf,
     nextBox: nextBox,
     record: record,

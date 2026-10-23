@@ -576,7 +576,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.10.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.11.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -884,7 +884,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 5, 'CLI terminals still mount');
+  assert.equal(info.terminals, 9, 'CLI terminals still mount (9 packs since 2026-10-20)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -912,6 +912,176 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
   assert.deepEqual(errors, []);
   await c.close();
   return `${info.ready}/${info.simHosts} drills static · ${info.terminals} terminals · 0 canvases`;
+});
+
+/* 2026-10-20 Musk-bar: four new CLI packs, coach-driven CLI review cards, optional voice-to-command. */
+const tints = (host) => host.evaluate(el => (el._ilImmersive._authored || []).filter(v => !v.lod).map(v => v.name + '=' + ((v.simStyle && v.simStyle.tint) || '-')).join('|'));
+
+await check('CLI packs: NetworkPolicy lock-api typed end-to-end re-tints authored nodes; RBAC can-i --as; Ingress Exact 404 → Prefix 200', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const np = await cliHost(page, 'netpol-isolation');
+  await np.locator('[data-il-cli-task="lock-api"]').click();
+  assert.equal(await np.getAttribute('data-il-cli-task'), 'lock-api:0/6');
+  const t0 = await tints(np);
+  const scan = 'kubectl exec -n untrusted deploy/scanner -- curl -s -m 3 http://api.backend:8080';
+  const web = 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://api.backend:8080';
+  await type(np, scan);
+  assert.match(await logText(np), /"service":"api"/);
+  await type(np, 'cat api-allow-frontend.yaml');
+  assert.match(await logText(np), /kind: NetworkPolicy/);
+  for (const l of ['kubectl apply -f api-deny-all.yaml', web, 'kubectl apply -f api-allow-frontend.yaml', web, scan]) await type(np, l);
+  assert.match(await logText(np), /curl: \(28\) Connection timed out after 3002 milliseconds/);
+  assert.equal(await np.getAttribute('data-il-cli-task'), 'lock-api:6/6');
+  assert.equal(await np.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.notEqual(await tints(np), t0, 'typed policy changes re-tint authored glTF nodes');
+
+  const rb = await cliHost(page, 'rbac-authz');
+  await rb.locator('[data-il-cli-task="least-privilege"]').click();
+  await type(rb, 'kubectl auth can-i list pods -n dev --as alice');
+  assert.equal(await rb.getAttribute('data-il-cli-exit'), '1', 'can-i "no" exits 1 like kubectl');
+  await type(rb, 'kubectl create rolebinding alice-pod-reader --role=pod-reader --user=alice -n dev');
+  await type(rb, 'kubectl auth can-i list pods -n dev --as alice');
+  assert.equal(await rb.getAttribute('data-il-cli-exit'), '0');
+  assert.equal(await rb.getAttribute('data-il-cli-task'), 'least-privilege:3/4');
+
+  const ig = await cliHost(page, 'ingress-routing');
+  await ig.locator('[data-il-cli-task="exact-404"]').click();
+  for (const l of ['curl -sI https://shop.example.com/api/v1/orders', 'kubectl get ingress shop -o yaml']) await type(ig, l);
+  assert.match(await logText(ig), /HTTP\/2 404[\s\S]*pathType: Exact/);
+  await type(ig, 'hint');
+  assert.doesNotMatch(await logText(ig), /hint →[^\n]*kubectl patch/, 'tip never prints the command');
+  await type(ig, `kubectl patch ingress shop --type=json -p '[{"op":"replace","path":"/spec/rules/0/http/paths/0/pathType","value":"Prefix"}]'`);
+  await type(ig, 'curl -sI https://shop.example.com/api/v1/orders');
+  assert.equal(await ig.getAttribute('data-il-cli-task'), 'exact-404:4/4');
+  await type(ig, 'help');
+  assert.match(await logText(ig), /retired ingress-nginx on 2026-03-24[\s\S]*Ingress API only/);
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 14 && ev.every(d => !/api\.backend|rolebinding|alice|shop\.example|pathType/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  await np.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await np.screenshot({ path: path.join(shots, 'immersive-cli-netpol.png') });
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'lock-api 6/6 · least-privilege 3/4 · exact-404 4/4 · ' + ev.length + ' verb-only events';
+});
+
+await check('CLI review cards: solution / 2 failed checks queue the step on device → /immersive/review/ re-opens it on the authored stage (replayed) → typed pass and give-up graded', async () => {
+  const c = await xrContext({});
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.evaluate(() => { window.__cardEv = []; addEventListener('il-immersive-sim', e => { if (e.detail.name === 'immersive_cli_review_card') window.__cardEv.push(e.detail.detail); }); });
+  const rb = await cliHost(page, 'rbac-authz');
+  await rb.locator('[data-il-cli-task="least-privilege"]').click();
+  await type(rb, 'kubectl auth can-i list pods -n dev --as alice');
+  await type(rb, 'solution');
+  assert.equal(await rb.getAttribute('data-il-cli-carded'), 'least-privilege:2');
+  assert.match(await logText(rb), /Lab Muse queued this step for spaced review/);
+  const np = await cliHost(page, 'netpol-isolation');
+  await np.locator('[data-il-cli-task="lock-api"]').click();
+  await type(np, 'check');
+  assert.equal(await np.getAttribute('data-il-cli-carded'), null, 'one failed check is not a card');
+  await type(np, 'check');
+  assert.equal(await np.getAttribute('data-il-cli-carded'), 'lock-api:1', '2nd failed check queues the step');
+  await type(np, 'check');
+  const cards = await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem('il.immersiveReview.v1')).cards).filter(x => x.kind === 'cli').map(x => x.k + ':' + x.box));
+  assert.deepEqual(cards.sort(), ['netpol-isolation::cli:lock-api:0:0', 'rbac-authz::cli:least-privilege:1:0'], 'once per step, box 0');
+  const cev = await page.evaluate(() => window.__cardEv);
+  assert.deepEqual(cev.map(e => e.how), ['solution', 'check-fail']);
+  assert.ok(cev.every(e => Object.keys(e).sort().join() === 'how,sim,step,task'), 'card analytics: sim/task/step/how only');
+
+  await page.goto(base + '/immersive/review/', { waitUntil: 'load' });
+  await page.locator('[data-il-review-due]').waitFor();
+  assert.ok(+(await page.locator('[data-il-review-due]').textContent()) >= 2);
+  await page.locator('[data-il-review-start]').click();
+  const stage = page.locator('[data-il-review-stage]');
+  const seen = {};
+  for (let i = 0; i < 2; i++) {
+    const label = await page.locator('[data-il-review-label]').textContent();
+    assert.match(await page.locator('[data-il-review-reason]').textContent(), /Relearn CLI step — Lab Muse had to help/);
+    if (/least-privilege|Least privilege|step 2\/4/i.test(label) && !seen.rb) {
+      seen.rb = true;
+      await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-cli-review') === 'least-privilege:2', null, { timeout: 30000 });
+      const log = await stage.locator('.il-immersive__cli-log').innerText();
+      assert.match(log, /steps 1–1 were replayed for you\. Your turn — step 2\/4/);
+      assert.equal(await stage.getAttribute('data-il-cli-task'), 'least-privilege:1/4', 'step 1 replayed from its own solution');
+      await type(stage, 'kubectl create rolebinding alice-pod-reader --role=pod-reader --user=alice -n dev');
+      await page.waitForFunction(() => /Verified without the solution/.test(document.querySelector('[data-il-review-feedback]').textContent));
+      assert.equal(await stage.getAttribute('data-il-cli-review-result'), 'pass');
+    } else {
+      seen.np = true;
+      await page.waitForFunction(() => document.querySelector('[data-il-review-stage]').getAttribute('data-il-cli-review') === 'lock-api:1', null, { timeout: 30000 });
+      assert.match(await stage.locator('.il-immersive__cli-log').innerText(), /── Review: Your turn — step 1\/6/);
+      await page.locator('[data-il-review-cli-giveup]').click();
+      await page.waitForFunction(() => /Needed the solution/.test(document.querySelector('[data-il-review-feedback]').textContent));
+      assert.equal(await page.locator('[data-il-review-feedback]').getAttribute('data-grade'), 'again');
+      assert.match(await stage.locator('.il-immersive__cli-log').innerText(), /solution → \$ kubectl exec -n untrusted deploy\/scanner/);
+    }
+    if (i === 0) await page.locator('[data-il-review-next-card]:not([hidden])').click();
+  }
+  assert.ok(seen.rb && seen.np, 'both CLI cards served first (relearn)');
+  const after = await page.evaluate(() => { const d = JSON.parse(localStorage.getItem('il.immersiveReview.v1')).cards; return [d['rbac-authz::cli:least-privilege:1'].box, d['netpol-isolation::cli:lock-api:0'].box]; });
+  assert.deepEqual(after, [1, 0], 'typed pass promotes; give-up stays in relearn');
+  await stage.screenshot({ path: path.join(shots, 'immersive-review-cli-card.png') });
+  assert.deepEqual(errors, []);
+  await c.close();
+  return 'cards ' + cards.length + ' · review pass → box 1 · give-up → box 0';
+});
+
+await check('Voice-to-command: Speak (SpeechRecognition, mocked) runs lab verbs, types commands into the prompt (never auto-runs), honest denial; hidden when unsupported', async () => {
+  const c = await xrContext({}, () => {
+    window.__srQueue = [
+      ['give me a hint please'],
+      ['cube control auth can i list pods dash n dev dash dash as alice', 'kubectl auth can-i list pods -n dev --as alice'],
+      'deny'
+    ];
+    window.webkitSpeechRecognition = class {
+      start() {
+        const alts = window.__srQueue.shift();
+        setTimeout(() => {
+          if (alts === 'deny') { if (this.onerror) this.onerror({ error: 'not-allowed' }); if (this.onend) this.onend(); return; }
+          const res0 = alts.map(t => ({ transcript: t }));
+          if (this.onresult) this.onresult({ results: [res0] });
+          if (this.onend) this.onend();
+        }, 20);
+      }
+      stop() { if (this.onend) this.onend(); }
+    };
+    window.SpeechRecognition = window.webkitSpeechRecognition; /* Chromium also ships the unprefixed name */
+  });
+  const page = await c.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(base + '/immersive/', { waitUntil: 'load' });
+  await page.evaluate(() => { window.__voiceEv = []; addEventListener('il-immersive-sim', e => { if (e.detail.name === 'immersive_cli_voice') window.__voiceEv.push(e.detail.detail); }); });
+  const rb = await cliHost(page, 'rbac-authz');
+  await rb.locator('[data-il-cli-task="least-privilege"]').click();
+  const mic = rb.locator('[data-il-cli-mic]');
+  assert.ok(await mic.isVisible(), 'Speak visible when SpeechRecognition exists');
+  assert.match(await rb.locator('.il-immersive__cli-voice-note').textContent(), /Interstitium receives no audio or transcript/);
+  await mic.click();
+  await page.waitForFunction(() => /heard “give me a hint please” → hint/.test(document.querySelector('[data-il-cli-ready="rbac-authz"] .il-immersive__cli-log').innerText));
+  assert.equal(await rb.getAttribute('data-il-cli-coach'), 'hint:1', 'spoken lab verb runs');
+  await mic.click();
+  await page.locator('[data-il-cli-ready="rbac-authz"][data-il-cli-voice-line]').waitFor();
+  const inp = rb.locator('[data-il-cli-input]');
+  assert.equal(await inp.inputValue(), 'kubectl auth can-i list pods -n dev --as alice', 'spoken command normalised into the prompt');
+  assert.equal(await rb.getAttribute('data-il-cli-task'), 'least-privilege:0/4', 'not auto-run');
+  await inp.press('Enter');
+  assert.equal(await rb.getAttribute('data-il-cli-task'), 'least-privilege:1/4');
+  await mic.click();
+  await page.waitForFunction(() => /microphone permission was denied/.test(document.querySelector('[data-il-cli-ready="rbac-authz"] .il-immersive__cli-log').innerText));
+  assert.equal(await mic.getAttribute('aria-pressed'), 'false');
+  const vev = await page.evaluate(() => window.__voiceEv);
+  assert.deepEqual(vev.map(e => e.kind), ['verb', 'command', 'error']);
+  assert.ok(vev.every(e => Object.keys(e).sort().join() === 'kind,ok,sim'), 'voice analytics: sim/kind/ok only, never the transcript');
+  assert.deepEqual(errors, []);
+  await c.close();
+  const c2 = await xrContext({}, () => { window.SpeechRecognition = undefined; window.webkitSpeechRecognition = undefined; });
+  const p2 = await c2.newPage();
+  await p2.goto(base + '/immersive/', { waitUntil: 'load' });
+  const h2 = await cliHost(p2, 'etcd-quorum');
+  assert.equal(await h2.locator('[data-il-cli-mic]').isVisible(), false, 'Speak hidden without SpeechRecognition');
+  assert.equal(await h2.locator('.il-immersive__cli-voice-note').count(), 0, 'no voice note when unsupported');
+  await c2.close();
+  return 'verb ran · command typed (not run) · denial honest · hidden when unsupported';
 });
 
 await browser.close();

@@ -1,6 +1,6 @@
 {
   "v": 5,
-  "updated": "2026-10-14T09:30:00-04:00",
+  "updated": "2026-10-20T09:30:00-04:00",
   "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions.",
   "engines": [
     "webgl",
@@ -268,7 +268,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.10.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab + Lab Muse task coach; drills mount without a 3D render under reduced motion / no WebGL)",
+    "player": "/assets/il-immersive-3d.js (v1.11.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (9 packs) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -319,11 +319,13 @@
       "feeds": [
         "exam papers (/immersive/exam/, incl. timeouts as misses)",
         "CKA free-play drills (/immersive/)",
-        "review sessions"
+        "review sessions",
+        "CLI-lab steps the Lab Muse coach had to rescue (`solution` or 2 failed checks) \u2014 since 2026-10-20"
       ],
       "mastery": "avg box / 6 over every CKA checkpoint in domain; unseen = 0",
       "honesty": "On-device spaced repetition over the in-browser 3D rules engine. Not FSRS, not a trained model, no server or cohort data, not a live cluster.",
-      "storage": "localStorage il.immersiveReview.v1 (device only)"
+      "storage": "localStorage il.immersiveReview.v1 (device only)",
+      "cliCards": "kind 'cli' cards re-open the CLI task step on the authored stage (review runtime v1.2.0)"
     },
     "webxr": {
       "since": "2026-10-14",
@@ -358,8 +360,8 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.1.0",
-      "player": "il-immersive-3d.js v1.10.0 (free-play stages only; not on graded /immersive/exam/ or /immersive/review/)",
+      "version": "1.2.0",
+      "player": "il-immersive-3d.js v1.11.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
       "packs": [
         {
           "sim": "etcd-quorum",
@@ -396,6 +398,42 @@
             "survive-az",
             "spof"
           ]
+        },
+        {
+          "sim": "netpol-isolation",
+          "tasks": [
+            "lock-api",
+            "egress-dns",
+            "flannel"
+          ],
+          "since": "2026-10-20"
+        },
+        {
+          "sim": "rbac-authz",
+          "tasks": [
+            "least-privilege",
+            "cluster-scope",
+            "revoke"
+          ],
+          "since": "2026-10-20"
+        },
+        {
+          "sim": "storage-csi",
+          "tasks": [
+            "retain-data",
+            "pvc-protection",
+            "no-default-sc"
+          ],
+          "since": "2026-10-20"
+        },
+        {
+          "sim": "ingress-routing",
+          "tasks": [
+            "exact-404",
+            "no-endpoints",
+            "tls"
+          ],
+          "since": "2026-10-20"
         }
       ],
       "syntax": [
@@ -407,7 +445,12 @@
         "ssh HOST <cmd>",
         "aws rds / aws elbv2",
         "curl",
-        "fault \u2026 (lab-only fault injection verb)"
+        "kubectl apply/delete -f <lab file> (ls / cat the lab's YAML \u2014 stands in for editing manifests)",
+        "kubectl auth can-i \u2026 --as USER / --as system:serviceaccount:NS:SA",
+        "kubectl create role / rolebinding / clusterrolebinding",
+        "kubectl patch pv / pvc / storageclass / svc / ingress (the modelled fields only)",
+        "kubectl exec \u2026 -- curl / wget / nslookup (in-cluster probes)",
+        "fault \u2026 (lab-only fault injection verb, e.g. fault cni flannel)"
       ],
       "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
       "ux": [
@@ -419,9 +462,11 @@
         "immersive_cli_cmd (verb + exit code only, never the raw command text)",
         "immersive_cli_task_start",
         "immersive_cli_task",
-        "immersive_cli_coach (action + level + step index only, never command text)"
+        "immersive_cli_coach (action + level + step index only, never command text)",
+        "immersive_cli_review_card (sim + task + step index + why: solution | check-fail \u2014 never command text)",
+        "immersive_cli_voice (sim + kind: verb | command | none | error + ok \u2014 never the transcript)"
       ],
-      "storage": "localStorage il.immersiveCli.v1 (task completions + best command count, device only)",
+      "storage": "localStorage il.immersiveCli.v1 (task completions + best command count, device only); CLI review cards in il.immersiveReview.v1 (device only)",
       "honesty": "Simulated shell over the in-browser rules engine \u2014 real CLI syntax, computed output (kubectl/etcdctl/aws-shaped, not byte-identical). Not a real shell, container, cluster, AWS account or hosted lab fleet. Unmodelled commands say so instead of inventing output.",
       "coach": {
         "since": "2026-10-19",
@@ -436,6 +481,20 @@
         "spatial": "each step names authored glTF nodes (focus regex, unit-tested against the .glb); the player pulses them gold for ~9 s \u2014 also in WebXR; static stages list them",
         "voice": "optional 'Lab Muse voice' toggle \u2014 browser speechSynthesis only (no cloud TTS, no key); hidden when unavailable",
         "honesty": "Deterministic rules over the same in-browser sim state \u2014 not an LLM, not reading a real terminal, knows only what the drill models."
+      },
+      "ingressNote": "ingress-nginx was retired 2026-03-24; the Ingress API stays GA and Gateway API is the successor. The ingress pack covers the Ingress API only.",
+      "reviewCards": {
+        "since": "2026-10-20",
+        "trigger": "a free-play step where you typed `solution`, or failed `check` on it twice, becomes one spaced-repetition card (once per step per session)",
+        "store": "the existing il.immersiveReview.v1 Leitner queue (key sim::cli:task:step); due CLI cards are served, never used as top-ups; domain mastery stays on predict checkpoints",
+        "review": "/immersive/review/ re-mounts the drill's authored .glb with the simulated shell, replays the earlier steps from their own solutions, and grades the target step: verified without `solution` = recalled; `solution` / give-up = miss (box 0)",
+        "honesty": "On-device Leitner scheduling \u2014 not FSRS, not a trained model, no server."
+      },
+      "voice": {
+        "since": "2026-10-20",
+        "api": "Web Speech SpeechRecognition / webkitSpeechRecognition (feature-checked; the Speak button is hidden when unsupported)",
+        "behaviour": "lab verbs (check, hint, solution, task, reset, clear, help) run directly; spoken commands are normalised (\"dash n\" \u2192 -n, \"dot\" \u2192 ., snapped to this drill's vocabulary) into the input for you to check and press Enter \u2014 never auto-run",
+        "honesty": "Uses the browser's own speech recognition (some browsers send audio to their vendor's speech service). Interstitium receives no audio or transcript. Not an LLM."
       }
     }
   },

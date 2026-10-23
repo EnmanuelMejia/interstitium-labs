@@ -195,7 +195,7 @@ test('review page + wiring: relative assets, honest copy, drills feed the loop b
 
 test('speakLine (2026-10-14 Lab Muse queue briefing): counts by reason, weakest seen domain, honest empty state', () => {
   const { S, R } = sandbox();
-  assert.match(R.VERSION, /^1\.1\./);
+  assert.match(R.VERSION, /^1\.2\./);
   assert.match(R.speakLine({ dueNow: 0 }, [], []), /^Lab Muse: nothing is due on this device\./);
   const q = [{ reason: 'relearn' }, { reason: 'relearn' }, { reason: 'due' }, { reason: 'weak-domain' }];
   const mast = [{ domain: 'Untouched', pct: 0, seen: 0 }, { domain: 'Troubleshooting', pct: 17, seen: 3 }];
