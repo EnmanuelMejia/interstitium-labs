@@ -1,7 +1,7 @@
 /**
  * IL Scene Kit — shared WebGL / curriculum 3D utilities (CSP-safe, no CDN).
  * Used by Noah 3D familiar + Immersive Player (lectures / cert labs / sims).
- * Palette: cyan #5EEAD4 · gold #D4A853 · void #070B16. Interstitium original.
+ * Palette: cyan #5EEAD4 · gold #c9a227 · void #070B16. Interstitium original.
  * Optional Three.js/glTF path: see docs/ops/IMMERSIVE-3D.md (vendored when present).
  */
 (function (g) {
@@ -267,6 +267,14 @@
 
       var meshes = [];
       var meshDefs = json.meshes || [];
+      /* 2026-10-06: map mesh index → owning node (name + extras) so players can address
+       * pedagogy nodes (sims) and skip Blender *_LOD1 duplicates. Kit/Blender bake world space. */
+      var nodeOf = {};
+      var nodeDefs = json.nodes || [];
+      for (var ni = 0; ni < nodeDefs.length; ni++) {
+        var nd = nodeDefs[ni];
+        if (nd && nd.mesh != null && nodeOf[nd.mesh] == null) nodeOf[nd.mesh] = nd;
+      }
       for (var mi = 0; mi < meshDefs.length; mi++) {
         var prims = meshDefs[mi].primitives || [];
         for (var pi = 0; pi < prims.length; pi++) {
@@ -305,7 +313,10 @@
             positions: positions,
             normals: normals,
             indices: indices,
-            material: mc
+            material: mc,
+            node: (nodeOf[mi] && nodeOf[mi].name) || meshDefs[mi].name || ('mesh-' + mi),
+            extras: (nodeOf[mi] && nodeOf[mi].extras) || null,
+            lod: /(_LOD1$|^lod1-)/i.test((nodeOf[mi] && nodeOf[mi].name) || '') ? 1 : 0
           });
         }
       }
@@ -386,7 +397,7 @@
         '<p>Connect a Unreal Pixel Streaming host — set signaling when UE5 streamer is up on lab GPU host.</p>' +
         '<p class="il-scene-kit__ps-hint">Pass <code>?signaling=</code>, <code>data-ps-signaling</code>, or open ' +
         '<a class="il-scene-kit__ps-link" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. ' +
-        'See <a class="il-scene-kit__ps-link" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="il-scene-kit__ps-link" href="/ops/UNREAL-AND-BLENDER-PIPELINE.md">pipeline</a>.</p>' +
+        'Unreal Pixel Streaming: bring up a local signaling host to mount a live stream; the client never invents UE video.</p>' +
         '</div>';
       return { mode: 'stub', signaling: null };
     }
@@ -430,7 +441,7 @@
 
   g.ILSceneKit = {
     CYAN: CYAN, GOLD: GOLD, VOID: VOID,
-    HEX: { cyan: '#5EEAD4', gold: '#D4A853', void: '#070B16' },
+    HEX: { cyan: '#5EEAD4', gold: '#c9a227', void: '#070B16' },
     prefersReducedMotion: prefersReducedMotion,
     isMobile: isMobile,
     dprCap: dprCap,
@@ -453,7 +464,7 @@
     pixelStreamEmbed: pixelStreamEmbed,
     onSpeakAmp: onSpeakAmp,
     emitSceneEvent: emitSceneEvent,
-    VERSION: '1.3.0'
+    VERSION: '1.4.0'
   };
 
   /* Muse 3D may re-export kit when both present */

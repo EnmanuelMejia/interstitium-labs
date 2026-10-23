@@ -8,13 +8,16 @@ for (const file of files) {
   assert.equal(run.status, 0, run.stderr);
 }
 const html = readFileSync('docs/noah/index.html', 'utf8');
-for (const file of files.filter(file => file !== 'noah-jobs.js')) assert.ok(html.includes(`/assets/${file}`), `${file} must be loaded`);
+// Page-loaded core modules only. noah-workflows.js / noah-skills.js /
+// noah-workspace.js / noah-neural.js were deliberately removed from the
+// page in 642bb22 (Noah Everywhere consolidation); they stay node --check
+// validated above but are no longer page script tags.
+for (const file of ['noah-session.js', 'noah-ai.js']) assert.ok(html.includes(`/assets/${file}`), `${file} must be loaded`);
 const jobsHtml = readFileSync('docs/jobs/index.html', 'utf8');
-for (const file of ['noah-session.js', 'noah-ai.js', 'noah-jobs.js']) assert.ok(jobsHtml.includes(`/assets/${file}`));
-const jobLinks = Array.from(jobsHtml.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])([^"']+)\1/gi), match => new URL(match[2], 'https://interstitiumlabs.dev'));
-assert.ok(jobLinks.some(url => url.protocol === 'https:' && url.hostname === 'jobright.ai' && url.port === '' &&
-  url.pathname === '/jobs/recommend' && url.search === '' && url.hash === '' && url.username === '' && url.password === ''), 'Expected the exact Jobright recommendation link');
-assert.ok(jobsHtml.includes('id="share-consent"'));
+// Jobs Suite rebuild (16e166b): the jobs page is driven by il-jobs.js; the
+// legacy noah-*.js tags, Jobright bridge link, and share-consent form were
+// deliberately removed in the rebuild.
+assert.ok(jobsHtml.includes('/assets/il-jobs.js'), 'il-jobs.js must be loaded');
 assert.ok(existsSync('docs/assets/noah-jobs.css'));
 assert.ok(html.indexOf('/assets/noah-session.js') < html.indexOf('/assets/noah-ai.js'));
 for (const path of ['/assets/noah-workspace.css', '/assets/chrome/sigil-glyph.svg', '/assets/noah/noah-neural.glb']) assert.ok(existsSync(`docs${path}`), path);
@@ -46,7 +49,10 @@ assert.equal(manifest.theme_color, '#0a0f1d', 'PWA shell must match primary bran
 assert.ok(manifest.shortcuts.some(entry => entry.name === 'Noah AI' && entry.url.startsWith('/noah/')), 'PWA must direct users to Noah AI workspace');
 assert.ok(!manifest.shortcuts.some(entry => /Lab Muse/i.test(entry.name)), 'Do not present separate Lab Muse product');
 const primaryHome = readFileSync('docs/index.html', 'utf8');
-assert.ok(primaryHome.includes('href="/portfolio/"'), 'Primary navigation must expose the engineering portfolio');
+// Portfolio nav link removed: href="/portfolio/" pointed to a page that was
+// never built (docs/portfolio/ does not exist); dropped as a dead link in
+// the nav simplification. The engineering portfolio lives at
+// enmanueldmejia.com (separate site).
 assert.ok(primaryHome.includes('https://learn.interstitiumlabs.dev'), 'University cross-domain link must remain available');
 assert.equal(readFileSync('docs/CNAME', 'utf8').trim(), 'interstitiumlabs.dev', 'Canonical apex CNAME changed');
 assert.ok(existsSync('docs/ops/DOMAIN-ROUTING.md'), 'Canonical domain mapping must be documented');

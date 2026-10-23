@@ -185,8 +185,27 @@
   var START_RE = /what should i learn first|where (do|should) i start|how do i (get started|begin)|learning path/;
   var IL11_RE = /\bil-?11\b/;
 
-  var A_GREET = 'Hey — I\u2019m **Noah**, answering on-device from this site\u2019s curriculum. ' +
-    'Ask me about any track — blockchain, quantum, DevOps, Kubernetes, deep work — or tap a suggestion below.';
+  /* Twin tutors: Noah (default) and Genesis, his twin sister. The choice
+     lives in the avatar profile (il-noah-profile); capabilities are
+     identical — only the presence differs. */
+  function tutorId() {
+    try {
+      if (g.ILNoahAvatar && g.ILNoahAvatar.getProfile) {
+        return g.ILNoahAvatar.getProfile().avatar === 'genesis' ? 'genesis' : 'noah';
+      }
+    } catch (e) {}
+    try {
+      var p = JSON.parse(g.localStorage.getItem('il-noah-profile') || '{}');
+      if (p && p.avatar === 'genesis') return 'genesis';
+    } catch (e2) {}
+    return 'noah';
+  }
+  function tutorLabel() { return tutorId() === 'genesis' ? 'Genesis' : 'Noah'; }
+
+  function greetReply() {
+    return 'Hey — I\u2019m **' + tutorLabel() + '**, answering on-device from this site\u2019s curriculum. ' +
+      'Ask me about any track — blockchain, quantum, DevOps, Kubernetes, deep work — or tap a suggestion below.';
+  }
   var A_BUILDER = 'Interstitium Labs was built by **Enmanuel Mejia** — Founder and DevSecOps/Full Stack Developer. ' +
     'This site is his knowledge operating system: curriculum tracks, labs, and study guides distilled from his work ' +
     'across IT operations, DevOps, security, and systems engineering. Everything I tell you comes from these on-site ' +
@@ -196,17 +215,117 @@
     '- **Security:** [CISSP](/learn/sequences/cissp/) and [Security+ / CySA+](/learn/sequences/security-plus-cysa/) study guides.\n' +
     '- **Study method itself:** [Deep Work](/learn/deep-work/) and the [Study Protocol](/learn/study-protocol/).\n\n' +
     'Tell me the role or the topic and I\u2019ll narrow it to one next step.';
-  var A_IL11 = 'Honest answer: **there is no IL-11 Zero Trust track on this site** — the name doesn\u2019t match ' +
-    'a published academy or path. The site\u2019s real Zero Trust material lives inside two labs:\n\n' +
-    '- **[K8s CKA](/learn/sequences/k8s-cka/)** — zero-trust network policies: default-deny-all, then explicit allow rules.\n' +
-    '- **[Security+ / CySA+](/learn/sequences/security-plus-cysa/)** — microsegmentation plus a half-page zero-trust plan for a flat home LAN.\n\n' +
-    'Want the network-policy lab or the segmentation plan first?';
+  var A_IL11 = '**IL-11 \u00b7 Zero Trust & Endpoint Defense** is a real university course here: ' +
+    'zero-trust architecture and endpoint defense, taught hands-on. ' +
+    '[Open IL-11](/university/course?course=il-11-zero-trust-endpoint-defense)\n\n' +
+    'For zero-trust practice labs also see **[K8s CKA](/learn/sequences/k8s-cka/)** ' +
+    '(zero-trust network policies) and **[Security+ / CySA+](/learn/sequences/security-plus-cysa/)** (microsegmentation). ' +
+    'Want the course or a lab first?';
   var A_ZT = 'Zero Trust on this site is taught as practice rather than a dedicated track: ' +
     '**[K8s CKA](/learn/sequences/k8s-cka/)** covers zero-trust network policies (default-deny-all with explicit allow rules), ' +
     'and **[Security+ / CySA+](/learn/sequences/security-plus-cysa/)** covers microsegmentation with a hands-on zero-trust plan lab. ' +
     'Which one do you want?';
   var A_UNKNOWN = 'I don\u2019t have on-site material on that yet — I answer from this site\u2019s curriculum, and it doesn\u2019t cover it. ' +
     'Try rephrasing, or start from [DevOps Zero to Hire](/paths/devops-zero-to-hire/), [Deep Work](/learn/deep-work/), or the [Study Protocol](/learn/study-protocol/).';
+
+  /* ============ Course-aware tutoring =================================
+     The knowledge bundle carries all 29 university courses (built from the
+     course JSON catalog). These helpers give direct, cited answers about
+     the catalog: listing, lookup by IL code, and keyword recommendation.
+     Nothing is invented — every course comes from the bundle. */
+  function courseEntries() {
+    if (!KB || !KB.entries) return [];
+    return KB.entries.filter(function (e) { return /\/university\/course\?course=il-/i.test(e.u || ''); });
+  }
+  function courseCodeOf(entry) {
+    var m = /course=il-(\d+)/i.exec(entry.u || '');
+    return m ? 'IL-' + m[1] : '';
+  }
+  function answerCourseList() {
+    var courses = courseEntries();
+    if (!courses.length) return null;
+    var free = [], paid = [], i, code;
+    for (i = 0; i < courses.length; i++) {
+      code = courseCodeOf(courses[i]);
+      if (/IL-(27|28|29)/.test(code)) free.push(courses[i]); else paid.push(courses[i]);
+    }
+    var reply = '**The university catalog** — ' + courses.length + ' interactive bootcamps:\n\n**Free right now:**\n';
+    for (i = 0; i < free.length; i++) reply += '- [' + free[i].t + '](' + free[i].u + ')\n';
+    reply += '\n**Full catalog** (26 more, from $249):\n';
+    var shown = 0;
+    for (i = 0; i < paid.length && shown < 8; i++, shown++) reply += '- [' + paid[i].t + '](' + paid[i].u + ')\n';
+    if (paid.length > shown) reply += '- …and ' + (paid.length - shown) + ' more in the [full catalog](/university/).\n';
+    reply += '\nTell me your goal — a cert, an interview, a role — and I\u2019ll point you at the right one.';
+    return { reply: reply, nudges: [] };
+  }
+  function answerCourseCode(code) {
+    var courses = courseEntries(), i;
+    var want = 'il' + String(code).replace(/^0+/, '');
+    for (i = 0; i < courses.length; i++) {
+      if (courseCodeOf(courses[i]).toLowerCase().replace('-', '') === want) {
+        var e = courses[i];
+        return { reply: '**' + e.t + '**\n\n' + e.d + '\n\n[Open the course](' + e.u + ')', nudges: [] };
+      }
+    }
+    return null;
+  }
+  function answerRecommend(lower) {
+    var courses = courseEntries();
+    if (!courses.length) return null;
+    var tokens = kbTokens(lower);
+    if (!tokens.length) return null;
+    var scored = [], i, s;
+    for (i = 0; i < courses.length; i++) {
+      s = kbScore(courses[i], tokens);
+      if (s >= 4) scored.push({ e: courses[i], s: s });
+    }
+    if (!scored.length) return null;
+    scored.sort(function (a, b) { return b.s - a.s; });
+    var reply = 'Based on what you described, start here:\n\n';
+    for (i = 0; i < scored.length && i < 3; i++) {
+      reply += (i + 1) + '. **[' + scored[i].e.t + '](' + scored[i].e.u + ')** — ' + scored[i].e.d.split('.')[0] + '.\n';
+    }
+    reply += '\nWant me to break down what the first week inside the top pick looks like?';
+    return { reply: reply, nudges: [] };
+  }
+  var COURSES_RE = /\b(what|which|list|show|all)\b.{0,40}\bcourses?\b|\bcourse catalog\b|\ball (the )?courses\b/;
+  var RECOMMEND_RE = /\b(recommend|suggest|which).{0,50}(course|bootcamp|should i (learn|study|take))/;
+  var ILCODE_RE = /\bil-?(\d{1,2})\b/;
+  var CERT_RE = /\b(security\+|cysa\+|cissp|network\+|ceh|az-?900|aws|cka|terraform|pmp|cism)\b/;
+
+  /* ============ Name memory ==========================================
+     "My name is X" / "call me X" is saved as a device memory note so Noah
+     can greet the learner personally. Explicit, user-controlled, local. */
+  var NAME_RE = /\b(?:my name is|call me)\s+([A-Za-z][A-Za-z'.\- ]{1,40}?)(?:[.!?,]|$)/i;
+  function captureName(text) {
+    var m = NAME_RE.exec(String(text || ''));
+    if (!m) return null;
+    var name = m[1].trim().replace(/\s+/g, ' ');
+    if (!name || /^(noah|ai|assistant|bot)$/i.test(name)) return null;
+    try {
+      var store = sessionStore();
+      if (!store) return null;
+      var snap = store.snapshot();
+      var existing = (snap.memories || []).filter(function (v) { return v.kind === 'note' && /^name:/i.test(v.text || ''); });
+      var note = 'name: ' + name;
+      if (!existing.length) store.addMemory({ kind: 'note', text: note });
+      else if (existing[0].text !== note) { try { store.updateMemory(existing[0].id, { text: note }); } catch (e) {} }
+      return name.split(' ')[0];
+    } catch (e) { return null; }
+  }
+  function knownName() {
+    try {
+      var store = sessionStore();
+      if (!store) return null;
+      var snap = store.snapshot();
+      for (var i = 0; i < (snap.memories || []).length; i++) {
+        var t = snap.memories[i].text || '';
+        var m = /^name:\s*(.+)$/i.exec(t);
+        if (m) return m[1].trim().split(' ')[0];
+      }
+    } catch (e) {}
+    return null;
+  }
 
   function detectTopic(lower) {
     for (var i = 0; i < TOPICS.length; i++) {
@@ -218,25 +337,95 @@
     return 'general';
   }
 
+  /* Personal-notes intents over the ILNotes vault (il-notes.js).
+     Returns a local answer object or null when not a notes intent. */
+  function notesIntent(input, lower) {
+    var N = (typeof g !== 'undefined' && g.ILNotes) || (typeof window !== 'undefined' && window.ILNotes);
+    if (!N) return null;
+    var clean = function (s) { return String(s || '').replace(/[?.!\s]+$/, '').trim(); };
+
+    /* "save that / save this explanation" — capture the last tutor reply. */
+    if (/^(please\s+)?save (that|this)( explanation| answer| reply| one)?( to my notes)?[.!]?$/.test(lower)) {
+      var last = null;
+      try {
+        var store = sessionStore();
+        var conv = store ? store.snapshot().conversation : [];
+        for (var i = conv.length - 1; i >= 0; i--) {
+          if (conv[i].role === 'assistant' && conv[i].content) { last = conv[i].content; break; }
+        }
+      } catch (e) {}
+      if (!last) return { reply: 'There is no explanation above to save yet — ask me something first, then say “save that”.', nudges: [] };
+      var firstLine = last.split('\n')[0].replace(/^[#*\s]+/, '').slice(0, 60) || 'Saved explanation';
+      var saved = N.saveTextAsNote('Noah — ' + firstLine, last, { type: 'chat' });
+      return { reply: 'Saved to your notes as **“' + saved.title + '”**. Find it any time in [My Notes](/my-notes/) — and link it to other ideas with [[' + 'wikilinks]].', nudges: [] };
+    }
+
+    /* "note: …" / "save a note: …" — quick capture. */
+    var cap = /^note[:\s]+(.{3,})$/i.exec(input) || /^save (?:a )?note[:\s]+(.{3,})$/i.exec(input);
+    if (cap) {
+      var text = cap[1].trim();
+      var title = text.split(/\s+/).slice(0, 6).join(' ').slice(0, 60);
+      var made = N.create({ title: title, body: text, tags: ['quick'], source: { type: 'chat' } });
+      return { reply: 'Noted — **“' + made.title + '”** is in [My Notes](/my-notes/).', nudges: [] };
+    }
+
+    /* "what did I note about X" / "search my notes for X" / "show my notes". */
+    var m = /(?:what did i (?:note|write|save) about|my notes? (?:on|about|for)|search my notes?(?: for)?|find in my notes?(?: for)?|notes? (?:on|about))\s+(.+)$/i.exec(input);
+    if (m || /^(show|list|open) my notes[.!]?$/.test(lower)) {
+      var q = m ? clean(m[1]) : '';
+      var hits = N.search(q);
+      if (!hits.length) {
+        return { reply: q
+          ? 'You have no notes matching **' + q + '** yet. Say “note: …” to capture one, or press **Add note** inside a lesson.'
+          : 'Your vault is empty so far. Say “note: …” to capture your first note.', nudges: [] };
+      }
+      var lines = hits.slice(0, 3).map(function (h) {
+        return '**' + h.note.title + '** — ' + h.excerpt;
+      });
+      return { reply: (q ? 'From your notes on **' + q + '**:\n\n' : 'Your most recent notes:\n\n') +
+        lines.join('\n\n') + '\n\nFull vault: [My Notes](/my-notes/)', nudges: [] };
+    }
+    return null;
+  }
+
   function ask(text, ctx) {
     var input = String(text == null ? '' : text);
     var lower = input.toLowerCase();
     /* 1 · direct special cases (verified facts only) */
-    if (GREET_RE.test(lower) && input.trim().length < 32) return { reply: A_GREET, nudges: [] };
+    if (GREET_RE.test(lower) && input.trim().length < 32) return { reply: greetReply(), nudges: [] };
     if (BUILDER_RE.test(lower)) return { reply: A_BUILDER, nudges: [] };
     if (START_RE.test(lower)) return { reply: A_START, nudges: [] };
     if (IL11_RE.test(lower)) return { reply: A_IL11, nudges: [] };
     if (/zero.?trust/.test(lower)) return { reply: A_ZT, nudges: [] };
+    /* 1a · personal notes intents (ILNotes vault, on-device only).
+       Guarded: when il-notes.js has not loaded, these fall through to the
+       normal router untouched. Notes never leave the device from here. */
+    var noteHit = notesIntent(input, lower);
+    if (noteHit) return noteHit;
+    /* 1b · course catalog intents (verified bundle data only) */
+    var ilm = ILCODE_RE.exec(lower);
+    if (ilm && !/il-?11\b/.test(lower)) {
+      var byCode = answerCourseCode(ilm[1]);
+      if (byCode) return byCode;
+    }
+    if (COURSES_RE.test(lower)) {
+      var list = answerCourseList();
+      if (list) return list;
+    }
+    if (RECOMMEND_RE.test(lower) || CERT_RE.test(lower)) {
+      var rec = answerRecommend(lower);
+      if (rec) return rec;
+    }
     /* 2 · the knowledge bundle: direct answers with cited on-site links */
     var hit = answerFromKB(input);
     if (hit) {
-      var topic = detectTopic(lower);
+      var topic = topicWithPageBias(lower);
       var guide = GUIDE[topic];
       var nudges = (guide && topic && topic !== 'general') ? [guide.question] : [];
       return { reply: hit.reply, nudges: nudges };
     }
     /* 3 · Socratic topic guides (bundle unreachable or genuinely uncovered) */
-    var topic2 = detectTopic(lower);
+    var topic2 = topicWithPageBias(lower);
     if (topic2 && topic2 !== 'general' && GUIDE[topic2]) {
       var g2 = GUIDE[topic2];
       return { reply: g2.question + ' ' + g2.nudge1, nudges: [g2.nudge2] };
@@ -253,20 +442,20 @@
      local answer and says why it was replaced. Returns { reply, replaced }. */
   var REMOTE_NOTICE = 'Answered by the remote Noah endpoint — verify factual claims against the cited sources.';
   function screenRemote(reply, text) {
-    var r = String(reply == null ? '' : reply);
-    if (/\bil-?11\b/i.test(r) && !/no\s+(such|il-?11)|doesn[’']t exist|not\s+a\s+(real|published)/i.test(r)) {
-      return { reply: A_IL11, replaced: true };
-    }
-    return { reply: r, replaced: false };
+    // IL-11 was once screened because the remote fabricated a nonexistent
+    // track by that name. IL-11 · Zero Trust & Endpoint Defense is now a
+    // real university course (and in the remote's knowledge), so the
+    // special-case is retired. Keep the hook for future honesty guards.
+    return { reply: String(reply == null ? '' : reply), replaced: false };
   }
 
   /* ================= Remote endpoint =============================== */
 
   var DEFAULT_ENDPOINT = (function () {
+    // 2026-10-06: Noah backend merged into the flagship worker — same-origin
+    // /api/noah serves every host (apex, university path, mobile webviews).
     try {
-      var h = window.location.host || '';
-      if (h === 'learn.interstitiumlabs.dev') return '/api/noah';
-      if (/interstitiumlabs\.dev$/.test(h)) return 'https://learn.interstitiumlabs.dev/api/noah';
+      if (window.IL_NOAH_ENDPOINT) return String(window.IL_NOAH_ENDPOINT);
     } catch (e) {}
     return '/api/noah';
   })();
@@ -305,13 +494,23 @@
     return fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: msgs.slice(-12), context: store ? store.remoteContext(options) : undefined }),
+      body: JSON.stringify({ messages: msgs.slice(-12), tutor: tutorId(), citations: true, context: store ? store.remoteContext(options) : undefined }),
       signal: controller ? controller.signal : undefined
     }).then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {
         if (out.res.ok && out.data && typeof out.data.reply === 'string' && out.data.reply.trim() && !out.data.fallback) {
           var screened = screenRemote(out.data.reply.slice(0, 18000), text);
-          return { reply: screened.reply, remote: !screened.replaced, local: screened.replaced, remoteScreened: screened.replaced,
+          /* 2026-10-11: live-source citations from the Knowledge Source
+             Layer — render the returned citations as a Sources list so
+             every grounded claim is one tap from its source. */
+          var replyText = screened.reply;
+          var cites = Array.isArray(out.data.citations) ? out.data.citations : [];
+          if (cites.length && !screened.replaced) {
+            replyText += '\n\n**Sources**\n' + cites.map(function (c) {
+              return '- [' + c.n + '] [' + c.title + '](' + c.url + ') — ' + c.source;
+            }).join('\n');
+          }
+          return { reply: replyText, citations: cites, remote: !screened.replaced, local: screened.replaced, remoteScreened: screened.replaced,
             notice: screened.replaced ? LOCAL_NOTICE + ' A remote response was replaced because it described IL-11 as a published track.' : REMOTE_NOTICE };
         }
         return fallback();
@@ -355,7 +554,12 @@
       var previous = store ? store.snapshot().conversation : history.slice();
       if (store) store.record('user', text, context, token);
       else history.push({ role: 'user', content: text });
+      /* Name capture: "my name is X" becomes a device memory note (once). */
+      var newName = captureName(text);
       return answer(text, previous, options).then(function (out) {
+        if (newName && out.reply && out.reply.indexOf(newName) === -1) {
+          out.reply = 'Got it, ' + newName + ' — I\u2019ll remember that on this device.\n\n' + out.reply;
+        }
         if (store && token !== store.generation()) {
           loadHistory();
           return { reply: '', discarded: true, remote: false, local: true,
@@ -468,6 +672,9 @@
     '@keyframes noah-blink{0%,100%{opacity:1;}50%{opacity:.45;}}',
     '#noah-close{background:none;border:none;color:#7d8ea3;font-size:20px;cursor:pointer;line-height:1;padding:4px;}',
     '#noah-close:hover{color:#f2e8c9;}',
+    '#noah-settings-btn{background:none;border:none;color:#7d8ea3;font-size:16px;cursor:pointer;line-height:1;padding:4px;margin-right:2px;}',
+    '#noah-settings-btn:hover{color:#c9a227;}',
+    '.noah-settings-wrap{background:rgba(255,255,255,0.03);border:1px solid rgba(201,162,39,0.2);border-radius:12px;padding:16px;margin:8px 0;}',
     '#noah-msgs{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;}',
     '.noah-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.55;',
     'animation:noah-in .3s ease;word-wrap:break-word;}',
@@ -582,6 +789,44 @@
     if (t) t.remove();
   }
 
+  /* Streaming-feel reveal: words appear progressively, like a live reply.
+     Respects prefers-reduced-motion (renders instantly). Markdown is
+     re-rendered per chunk; partial states resolve as the stream completes. */
+  var reducedMotion = false;
+  try { reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+  function streamInto(host, reply, notice) {
+    var text = String(reply == null ? '' : reply);
+    if (reducedMotion || !text) {
+      host.innerHTML = '';
+      var tmp0 = el('div', '', mdLite(text));
+      while (tmp0.firstChild) host.appendChild(tmp0.firstChild);
+      if (notice) host.appendChild(el('span', 'noah-notice', esc(notice)));
+      els.msgs.scrollTop = els.msgs.scrollHeight;
+      return;
+    }
+    var words = text.split(/(\s+)/), i = 0;
+    host.innerHTML = '';
+    (function tick() {
+      i = Math.min(words.length, i + 7);
+      var tmp = el('div', '', mdLite(words.slice(0, i).join('')));
+      host.innerHTML = '';
+      while (tmp.firstChild) host.appendChild(tmp.firstChild);
+      els.msgs.scrollTop = els.msgs.scrollHeight;
+      if (i < words.length) {
+        if (!document.hidden) setTimeout(tick, 30);
+        else { /* tab hidden: finish instantly to avoid a stuck partial */ 
+          var full = el('div', '', mdLite(text));
+          host.innerHTML = '';
+          while (full.firstChild) host.appendChild(full.firstChild);
+          i = words.length;
+        }
+      } else if (notice) {
+        host.appendChild(el('span', 'noah-notice', esc(notice)));
+        els.msgs.scrollTop = els.msgs.scrollHeight;
+      }
+    })();
+  }
+
   function renderNudges(nudges) {
     if (!nudges || !nudges.length) return;
     var box = el('div', 'noah-nudges');
@@ -634,11 +879,21 @@
     }
     if (sessionStore()) {
       refreshWidgetHistory();
-      if (notice !== out.notice) {
-        var newest = els.msgs.querySelector('.noah-msg:last-child .noah-notice');
-        if (newest) newest.textContent = notice;
+      /* Streaming-feel: replay the newest assistant message progressively. */
+      var allNoah = els.msgs.querySelectorAll('.noah-msg.noah');
+      var newestMsg = allNoah[allNoah.length - 1];
+      if (newestMsg && out.reply) {
+        var newestNotice = newestMsg.querySelector('.noah-notice');
+        if (newestNotice) newestNotice.remove();
+        streamInto(newestMsg, out.reply, notice);
+      } else if (notice !== out.notice) {
+        var newest2 = els.msgs.querySelector('.noah-msg:last-child .noah-notice');
+        if (newest2) newest2.textContent = notice;
       }
-    } else addMsg('noah', mdLite(out.reply), notice);
+    } else {
+      var m2 = addMsg('noah', '', null);
+      streamInto(m2, out.reply, notice);
+    }
     if (out.nudges) renderNudges(out.nudges);
     if (!els.panel.hidden) els.input.focus();
   }
@@ -749,12 +1004,36 @@
     study: 'study method', career: 'career prep'
   };
   var fallbackNoted = false;
+
+  /* ---- Page-context awareness (noah-everywhere Phase 1) ----
+     il-noah-context.js publishes page metadata via setPageContext().
+     Used for: topic bias when the question text is ambiguous, and
+     context-aware suggestion chips. Page context never overrides an
+     explicit topic detected in the question text. */
+  var pageContext = null;
+  var pageChips = [];
+  function setPageContext(ctx, chips) {
+    pageContext = (ctx && typeof ctx === 'object') ? ctx : null;
+    pageChips = Array.isArray(chips) ? chips.filter(function (c) { return typeof c === 'string' && c; }).slice(0, 4) : [];
+  }
+  function topicWithPageBias(lower) {
+    var t = detectTopic(lower);
+    if (t !== 'general') return t;
+    if (pageContext && pageContext.topic && pageContext.topic !== 'general' && TOPIC_LABEL[pageContext.topic]) {
+      return pageContext.topic;
+    }
+    return 'general';
+  }
   function adaptiveChips() {
     var chips = CHIPS.slice();
     var top = NoahStats.topTopic();
     if (top && TOPIC_LABEL[top.topic]) {
       var label = 'Keep going with ' + TOPIC_LABEL[top.topic];
       chips = [label].concat(chips.filter(function (c) { return c !== label; }));
+    }
+    // Page-context chips first (deduped against the rest).
+    for (var i = pageChips.length - 1; i >= 0; i--) {
+      (function (c) { chips = [c].concat(chips.filter(function (x) { return x !== c; })); })(pageChips[i]);
     }
     return chips;
   }
@@ -983,6 +1262,59 @@
     } catch (e) {}
   }
 
+  /* Avatar adapter (unified shell): prefer the avatar engine's
+     profile-driven instance — by default the selected tutor's PHOTO
+     likeness (Noah, or Genesis when chosen in settings). The procedural
+     'operator' avatar is never forced here: its scene clears to a
+     near-black void, so at orb sizes it reads as an empty dark circle.
+     If the engine has not loaded yet (the loader chains race), start
+     with the built-in 2D canvas portrait and upgrade in place when the
+     engine arrives. Matches the { setState(s), parallax(x,y) } shape. */
+  function engineAvatar(slot) {
+    try {
+      if (window.ILNoahAvatar && window.ILNoahAvatar.mount) {
+        var inst = window.ILNoahAvatar.mount(slot, {});
+        if (inst) {
+          return {
+            setState: function (s) { try { inst.setStatus(s); } catch (e) {} },
+            parallax: function () {}
+          };
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function mountAvatar(slot, size) {
+    var ctl = engineAvatar(slot);
+    if (ctl) return ctl;
+    var inner = NoahAvatar.mount(slot, size);
+    var proxy = {
+      setState: function (s) { try { inner.setState(s); } catch (e) {} },
+      parallax: function (x, y) { try { if (inner.parallax) inner.parallax(x, y); } catch (e) {} }
+    };
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (!document.contains(slot) || tries > 15) { clearInterval(iv); return; }
+      var up = engineAvatar(slot);
+      if (up) {
+        clearInterval(iv);
+        /* The engine root mounts alongside the 2D fallback art — drop
+           every slot child that is not the engine root. */
+        try {
+          var kids = slot.childNodes;
+          for (var i = kids.length - 1; i >= 0; i--) {
+            var n = kids[i];
+            if (!n.hasAttribute || !n.hasAttribute('data-noah-avatar')) slot.removeChild(n);
+          }
+        } catch (e) {}
+        inner = up;
+      }
+    }, 400);
+    return proxy;
+  }
+
   function buildWidget() {
     if (document.getElementById('noah-launcher')) return;
     /* One canonical Noah per page: the full coach chat owns pages that mount it
@@ -998,7 +1330,6 @@
     launcher.setAttribute('aria-controls', 'noah-panel');
     launcher.setAttribute('aria-expanded', 'false');
     launcher.addEventListener('click', toggle);
-    avatarCtl.launcher = NoahAvatar.mount(launcher.querySelector('.noah-orb'), 52);
     launcher.addEventListener('pointermove', function (e) {
       var r = launcher.getBoundingClientRect();
       avatarCtl.launcher.parallax(((e.clientX - r.left) / r.width - 0.5) * 2, ((e.clientY - r.top) / r.height - 0.5) * 2);
@@ -1014,16 +1345,39 @@
       '<div id="noah-head"><span class="noah-avatar" aria-hidden="true"></span>' +
       '<span class="noah-title"><span class="noah-name">Noah AI</span><br>' +
       '<span class="noah-status"><span class="noah-dot"></span><span id="noah-status-text">On-device · site curriculum</span></span></span>' +
+      '<button id="noah-settings-btn" aria-label="Noah settings" title="Settings & connected services">⚙</button>' +
       '<button id="noah-close" aria-label="Close chat">×</button></div>' +
       '<div id="noah-msgs" role="log" aria-label="Noah conversation" aria-live="polite"></div>' +
       '<div id="noah-chips"></div>' +
       '<form id="noah-form" method="post"><label for="noah-input">Message Noah</label><textarea id="noah-input" name="message" rows="1" maxlength="4000" placeholder="Ask Noah AI anything…" required></textarea>' +
       '<button id="noah-send" type="submit">Send</button></form>' +
-      '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Memory stays in this browser. No cross-device sync.</div>';
-    avatarCtl.head = NoahAvatar.mount(panel.querySelector('.noah-avatar'), 40);
+      '<div id="noah-foot"><a href="/noah/">Open workspace · manage device memory</a><br>Noah is an AI assistant — answers are AI-generated and can be wrong. Verify important facts. <a href="/privacy/">Privacy</a><br>Memory stays in this browser. No cross-device sync.</div>';
 
     document.body.appendChild(launcher);
     document.body.appendChild(panel);
+
+    /* Mount avatars ONLY after the widget is in the document: the avatar
+       engine's mount() reuses "orphaned" instances whose slot is not in
+       the document, so mounting into a detached tree let the panel-head
+       mount steal the launcher orb's instance — leaving the orb empty. */
+    avatarCtl.launcher = mountAvatar(launcher.querySelector('.noah-orb'), 52);
+    avatarCtl.head = mountAvatar(panel.querySelector('.noah-avatar'), 40);
+
+    /* Tutor identity: the header name, launcher label, and input
+       placeholder follow the selected tutor (Noah default / Genesis),
+       including live switches from the settings panel. */
+    function applyTutorName() {
+      try {
+        var label = tutorLabel() + ' AI';
+        var nameEl = panel.querySelector('.noah-name');
+        if (nameEl) nameEl.textContent = label;
+        launcher.setAttribute('aria-label', 'Chat with ' + label);
+        var inputEl = panel.querySelector('#noah-input');
+        if (inputEl) inputEl.setAttribute('placeholder', 'Ask ' + label + ' anything…');
+      } catch (e) {}
+    }
+    applyTutorName();
+    try { window.addEventListener('il-noah-profile', applyTutorName); } catch (e) {}
 
     els = {
       launcher: launcher, panel: panel,
@@ -1035,6 +1389,59 @@
     };
 
     panel.querySelector('#noah-close').addEventListener('click', close);
+    /* 2026-10-11: settings panel — connected services, API keys, preferences */
+    var settingsBtn = panel.querySelector('#noah-settings-btn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function () {
+        try {
+          if (!window.NoahOnboarding) return;
+          var msgs = panel.querySelector('#noah-msgs');
+          var wrap = document.createElement('div');
+          wrap.className = 'noah-settings-wrap';
+          wrap.innerHTML = window.NoahOnboarding.renderSettings();
+          msgs.appendChild(wrap);
+          msgs.scrollTop = msgs.scrollHeight;
+          /* wire save/close/connect buttons */
+          var saveBtn = wrap.querySelector('.noah-settings-save');
+          if (saveBtn) saveBtn.addEventListener('click', function () {
+            var keys = window.NoahOnboarding.getApiKeys();
+            wrap.querySelectorAll('input[data-key]').forEach(function (inp) {
+              var v = inp.value.trim();
+              /* skip masked placeholder values */
+              if (v && v.indexOf('•') === -1) window.NoahOnboarding.setApiKey(inp.dataset.key, v);
+            });
+            var p = window.NoahOnboarding.getProfile();
+            var goalsInp = wrap.querySelector('input[data-pref="goals-text"]');
+            if (goalsInp) p.goals = goalsInp.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            window.NoahOnboarding.saveProfile(p);
+            wrap.innerHTML = '<p style="color:#34d399;font-size:14px">✓ Settings saved.</p>';
+            setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 1200);
+          });
+          var closeBtn = wrap.querySelector('.noah-settings-close');
+          if (closeBtn) closeBtn.addEventListener('click', function () {
+            if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+          });
+          wrap.querySelectorAll('button[data-svc]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var svc = btn.dataset.svc, act = btn.dataset.act;
+              if (act === 'connect') {
+                var url = (window.NoahConnectors && window.NoahConnectors.getSetupUrl)
+                  ? window.NoahConnectors.getSetupUrl(svc) : '/noah/#settings';
+                if (url) window.open(url, '_blank', 'noopener');
+              } else {
+                var p2 = window.NoahOnboarding.getProfile();
+                if (p2.connections) delete p2.connections[svc];
+                window.NoahOnboarding.saveProfile(p2);
+                window.NoahOnboarding.setApiKey(svc, null);
+                btn.textContent = 'Connect'; btn.dataset.act = 'connect';
+                var st = btn.parentNode.querySelector('.noah-settings-status');
+                if (st) { st.textContent = 'Not connected'; st.className = 'noah-settings-status off'; }
+              }
+            });
+          });
+        } catch (e) {}
+      });
+    }
     els.form.addEventListener('submit', function (e) { e.preventDefault(); sendText(els.input.value); els.input.value = ''; });
     els.input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); els.form.requestSubmit(); }
@@ -1058,8 +1465,11 @@
     });
     if (!history.length && !greeted) {
       var rg = returningGreeting();
-      addMsg('noah', rg || ('I am <b>Noah AI</b> — the resident intelligence of Interstitium Labs. ' +
-        'Ask me about the curriculum, the projects, the code — or bring me a hypothesis and we will reason it through, Socratic-style.'));
+      var nm = knownName();
+      var greetHtml = rg || ('I am <b>Noah AI</b> — the resident intelligence of Interstitium Labs. ' +
+        (nm ? 'Good to see you, <b>' + esc(nm) + '</b>. ' : '') +
+        'Ask me about the curriculum, the projects, the code — or bring me a hypothesis and we will reason it through, Socratic-style.');
+      addMsg('noah', greetHtml);
       try { sessionStorage.setItem('noah-ai-greeted', '1'); } catch (e) {}
     }
     if (!greeted) {
@@ -1112,6 +1522,9 @@
     ask: answer,
     converse: converse,
     renderReply: renderReply,
+    /* Noah-everywhere Phase 1: page-context awareness. */
+    setPageContext: setPageContext,
+    pageContext: function () { return pageContext; },
     session: sessionStore(),
     ready: ensureSession,
     activity: function () { var store = sessionStore(); return store ? store.activity() : 'idle'; },
@@ -1123,4 +1536,45 @@
     get: function () { return KB; },
     answer: answerFromKB
   };
+
+  /* 2026-10-09: auto-load the voice + model-selector module.
+     Skipped when noah-full.js is the loader (window.__noahFullLoader) —
+     it injects the modules itself in order; the attribute guards below
+     cannot catch it because they run at noah-ai.js parse time. */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-voice]')) {
+      var vs = document.createElement('script');
+      vs.src = '/assets/noah-voice.js';
+      vs.defer = true;
+      vs.setAttribute('data-noah-voice', '1');
+      document.head.appendChild(vs);
+    }
+  } catch (e) {}
+
+  /* 2026-10-09: auto-load the persona & voice expansion module (after voice).
+     Skipped under noah-full.js (see above). */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-personas]')) {
+      var ps = document.createElement('script');
+      ps.src = '/assets/noah-personas.js';
+      ps.defer = true;
+      ps.setAttribute('data-noah-personas', '1');
+      // Load after voice module — delay slightly to ensure ordering
+      setTimeout(function () { document.head.appendChild(ps); }, 500);
+    }
+  } catch (e) {}
+
+  /* 2026-10-09: auto-load the adaptive learning engine (after personas).
+     Skipped under noah-full.js (see above). */
+  try {
+    if (!window.__noahFullLoader && typeof document !== 'undefined' && !document.querySelector('script[data-noah-adaptive]')) {
+      var as = document.createElement('script');
+      as.src = '/assets/noah-adaptive.js';
+      as.defer = true;
+      as.setAttribute('data-noah-adaptive', '1');
+      // Load after personas module — longer delay to ensure ordering
+      setTimeout(function () { document.head.appendChild(as); }, 1200);
+    }
+  } catch (e) {}
 })(typeof window !== 'undefined' ? window : this);
+

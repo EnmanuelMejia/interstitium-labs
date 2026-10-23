@@ -1,5 +1,5 @@
 /**
- * Khan-grade Learn → Practice → Checkpoint next-action queue.
+ * A leading free learning platform-grade Learn → Practice → Checkpoint next-action queue.
  * Mount: <div data-il-mastery data-il-mastery-track="prep"></div>
  * Optional data-il-mastery-learn / -practice / -checkpoint href overrides.
  */

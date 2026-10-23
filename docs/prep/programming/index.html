@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
@@ -31,18 +32,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Interstitium Labs"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-responsive.css"/>
-<link rel="stylesheet" href="/assets/il-motion.css"/>
-<link rel="stylesheet" href="/assets/il-fx.css"/>
-<link rel="stylesheet" href="/assets/il-compat.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/>
-<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-immersive-3d.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
 <style>
   pre { overflow-x: auto; background: #0c1222; border: 1px solid rgba(232,238,245,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.55; color: #e8eef5; margin: 1rem 0; }
   code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85em; }
@@ -58,9 +57,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   .toc a { display: block; padding: 0.35rem 0; color: #8b9bb4; }
   .toc a:hover { color: #e8eef5; }
 </style>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+</head>
 <body class="min-h-dvh bg-void text-paper">
 <a class="il-skip" href="#main">Skip to content</a>
 <div class="flex min-h-dvh flex-col bg-void text-paper">
@@ -68,42 +67,44 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
-      <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
-      <a href="/about/">About Us</a>
-      <a href="https://learn.interstitiumlabs.dev">University</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <details class="il-menu">
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
-          <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
-          <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
-          <a href="/enroll/">Admissions</a>
-          <a href="/about/">About Us</a>
-          <a href="https://learn.interstitiumlabs.dev">University</a>
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
         </div>
       </details>
       <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
     </div>
   </div>
 </nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/prep/">Practice</a></li><li aria-current="page">Programming</li></ol></nav>
 <main id="main" class="il-fluid-type flex-1" data-il-auto-reveal>
 
 <!-- IL immersive 3D-first scaffold (procedural v1; real .glb optional) -->
 <section class="il-immersive il-immersive--compact mx-auto max-w-6xl px-5 sm:px-8" data-il-immersive data-il-scene="rack" data-il-engine="three" data-il-compact="1" data-immersive='{"mode":"3d-first","engine":"three","asset":"procedural:rack"}' aria-label="3D lecture">
   <noscript><p class="p-4 text-sm text-muted">3D stage requires JavaScript. Asset: procedural:rack</p></noscript>
 </section>
-
 
 <section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8">
 <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Prep · Phase 2 · Track B</p>
@@ -118,15 +119,15 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <div class="rounded-xl border border-cyan/25 bg-panel p-6 mb-12">
 <p class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-gold">Phase 2 focus</p>
 <ul class="mt-3 text-sm text-muted">
-<li><strong class="text-paper">Python</strong> — vars, loops, functions, file I/O; <code>os</code>, <code>subprocess</code>, <code>requests</code>.</li>
+<li><strong class="text-paper">Python</strong> — vars, loops, functions, file I/O; <code translate="no">os</code>, <code translate="no">subprocess</code>, <code translate="no">requests</code>.</li>
 <li><strong class="text-paper">Bash</strong> — pipes, redirects, grep/awk/sed; tar + cron backups.</li>
 <li><strong class="text-paper">Groovy / Jenkins</strong> — declarative pipelines, stages, agents; Git/Ansible integration.</li>
-<li>Books/labs: <a class="text-cyan" href="https://automatetheboringstuff.com/" target="_blank" rel="noopener noreferrer">Automate the Boring Stuff</a>, <a class="text-cyan" href="https://www.bash.academy/" target="_blank" rel="noopener noreferrer">Bash Academy</a>, <a class="text-cyan" href="https://www.jenkins.io/doc/book/pipeline/syntax/" target="_blank" rel="noopener noreferrer">Jenkins Pipeline syntax</a></li>
+<li>Books/labs: <a class="text-cyan" href="https://automatetheboringstuff.com/" target="_blank" rel="noopener noreferrer">Automate the Boring Stuff</a>, <a class="text-cyan" href="https://www.gnu.org/software/bash/manual/" target="_blank" rel="noopener noreferrer">Bash Academy</a>, <a class="text-cyan" href="https://www.jenkins.io/doc/book/pipeline/syntax/" target="_blank" rel="noopener noreferrer">Jenkins Pipeline syntax</a></li>
 </ul>
 </div>
 
 <h2 id="python" class="font-display text-3xl">1. Python essentials</h2>
-<pre><code># variables &amp; types
+<pre translate="no"><code translate="no"># variables &amp; types
 count = 3
 ratio = 0.95
 name = "vault"
@@ -145,10 +146,10 @@ import os, subprocess, requests
 Path("out.txt").write_text("ok")
 subprocess.run(["df", "-h"], check=True)
 # requests.get("https://httpbin.org/get", timeout=10)</code></pre>
-<p class="mt-4 text-muted"><strong class="text-paper">Project — disk usage email alert:</strong> poll filesystem (or <code>df</code>), if used% &gt; threshold, send email (SMTP or API). Log every run. Cron it. Put on GitHub with README + sample log (no secrets).</p>
+<p class="mt-4 text-muted"><strong class="text-paper">Project — disk usage email alert:</strong> poll filesystem (or <code translate="no">df</code>), if used% &gt; threshold, send email (SMTP or API). Log every run. Cron it. Put on GitHub with README + sample log (no secrets).</p>
 
 <h2 id="bash" class="mt-16 font-display text-3xl">2. Bash essentials</h2>
-<pre><code>#!/usr/bin/env bash
+<pre translate="no"><code translate="no">#!/usr/bin/env bash
 set -euo pipefail
 
 ps aux | grep nginx | awk '{print $2}'
@@ -159,21 +160,21 @@ grep -E 'ERROR|FATAL' app.log | sed 's/^/ALERT /'
 tar -czf "/backup/home-$(date +%F).tar.gz" /home/app
 # cron: 0 2 * * * /usr/local/bin/backup-home.sh</code></pre>
 <ul class="mt-4 text-muted">
-<li>Pipes <code>|</code>, redirects <code>&gt; &gt;&gt; 2&gt;</code>, exit codes (<code>$?</code>)</li>
-<li><code>grep</code> / <code>awk</code> / <code>sed</code> for log surgery</li>
+<li>Pipes <code translate="no">|</code>, redirects <code translate="no">&gt; &gt;&gt; 2&gt;</code>, exit codes (<code translate="no">$?</code>)</li>
+<li><code translate="no">grep</code> / <code translate="no">awk</code> / <code translate="no">sed</code> for log surgery</li>
 <li>Never commit secrets; use env files outside git</li>
 </ul>
 <p class="mt-4 text-muted"><strong class="text-paper">Project — tar + cron backup:</strong> script that archives a directory, rotates last N backups, logs success/fail.</p>
 
 <h2 id="json" class="mt-16 font-display text-3xl">3. JSON &amp; HTTP APIs</h2>
-<pre><code>import json
+<pre translate="no"><code translate="no">import json
 from pathlib import Path
 payload = {"service": "payments", "replicas": 3}
 print(json.dumps(payload, indent=2))
 data = json.loads(Path("config.json").read_text())</code></pre>
 
 <h2 id="groovy" class="mt-16 font-display text-3xl">4. Groovy awareness (Jenkins)</h2>
-<pre><code>pipeline {
+<pre translate="no"><code translate="no">pipeline {
   agent any
   stages {
     stage('Test') { steps { sh 'pytest -q' } }
@@ -188,7 +189,7 @@ data = json.loads(Path("config.json").read_text())</code></pre>
   post { failure { echo 'Notify on-call' } }
 }</code></pre>
 <ul class="mt-4 text-muted">
-<li>Declarative stages + agents; <code>sh</code> reuses your Bash</li>
+<li>Declarative stages + agents; <code translate="no">sh</code> reuses your Bash</li>
 <li>Wire Git checkout → test → Ansible/Terraform/Docker</li>
 <li>Credentials IDs only — never hardcode</li>
 </ul>
@@ -203,9 +204,9 @@ data = json.loads(Path("config.json").read_text())</code></pre>
 
 <h2 id="kata" class="mt-16 font-display text-3xl">Script katas</h2>
 <ol class="mt-4 text-muted">
-<li>Bash: count lines in <code>*.log</code> older than 7 days.</li>
-<li>Bash: <code>curl -f</code> health check; exit 1 on non-200.</li>
-<li>Python: JSON inventory → print <code>env=prod</code> hosts.</li>
+<li>Bash: count lines in <code translate="no">*.log</code> older than 7 days.</li>
+<li>Bash: <code translate="no">curl -f</code> health check; exit 1 on non-200.</li>
+<li>Python: JSON inventory → print <code translate="no">env=prod</code> hosts.</li>
 <li>Python: CIDR host counts for prefixes 16–30.</li>
 <li>Jenkinsfile: failing test blocks Docker build.</li>
 </ol>
@@ -214,28 +215,46 @@ data = json.loads(Path("config.json").read_text())</code></pre>
 </article>
 
 </main>
-<footer class="no-print border-t border-paper/10">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
-  <!-- lang switcher also auto-injected by ILi18n -->
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
 </div>
 
 <script src="/analytics/config.js" defer></script>
-<script src="/assets/il-compat.js" defer></script>
-<script src="/assets/il-analytics.js" defer></script>
-<script src="/assets/il-fx.js?v=heal2" defer></script>
-<script src="/assets/il-motion.js" defer></script>
-<script src="/assets/il-i18n.js" defer></script>
-<script src="/assets/il-immersive-3d.js" defer></script>
-<script src="/assets/noah-ai.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-compat.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-analytics.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-motion.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-i18n.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-immersive-3d.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
@@ -31,18 +32,16 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Interstitium Labs"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-responsive.css"/>
-<link rel="stylesheet" href="/assets/il-motion.css"/>
-<link rel="stylesheet" href="/assets/il-fx.css"/>
-<link rel="stylesheet" href="/assets/il-compat.css"/><link rel="stylesheet" href="/assets/il-hdr.css"/><link rel="stylesheet" href="/assets/il-ultrawide.css"/><link rel="stylesheet" href="/assets/il-chrome.css"/>
-<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-immersive-3d.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/assets/chrome/apple-touch.png"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
 <style>
   pre { overflow-x: auto; background: #0c1222; border: 1px solid rgba(232,238,245,0.1); border-radius: 0.75rem; padding: 1rem 1.25rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; line-height: 1.55; color: #e8eef5; margin: 1rem 0; }
   code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85em; }
@@ -58,9 +57,9 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   .toc a { display: block; padding: 0.35rem 0; color: #8b9bb4; }
   .toc a:hover { color: #e8eef5; }
 </style>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+</head>
 <body class="min-h-dvh bg-void text-paper">
 <a class="il-skip" href="#main">Skip to content</a>
 <div class="flex min-h-dvh flex-col bg-void text-paper">
@@ -68,35 +67,38 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
-      <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
-      <a href="/about/">About Us</a>
-      <a href="https://learn.interstitiumlabs.dev">University</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <details class="il-menu">
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
-          <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
-          <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
-          <a href="/enroll/">Admissions</a>
-          <a href="/about/">About Us</a>
-          <a href="https://learn.interstitiumlabs.dev">University</a>
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
         </div>
       </details>
       <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
     </div>
   </div>
 </nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb" data-il-breadcrumbs><ol><li><a href="/">Home</a></li><li><a href="/prep/">Practice</a></li><li aria-current="page">DevOps JD Map</li></ol></nav>
 <main id="main" class="il-fluid-type flex-1" data-il-auto-reveal>
 
 <!-- IL immersive 3D-first scaffold (procedural v1; real .glb optional) -->
@@ -104,13 +106,12 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   <noscript><p class="p-4 text-sm text-muted">3D stage requires JavaScript. Asset: procedural:k8s</p></noscript>
 </section>
 
-
 <section class="border-b border-paper/10"><div class="mx-auto max-w-6xl px-5 py-14 sm:px-8">
 <p class="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-cyan">Prep · Phase 3 · Track C</p>
 <h1 class="mt-4 font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">DevOps ↔ JD map</h1>
 <p class="mt-5 max-w-2xl text-muted">Phase 3 of the zero→interview plan. Each module maps to bullets typical of a <strong class="text-paper">Sr. Associate DevOps Engineer</strong> JD (a bank–style). Prep only — not employment. Pair with <a class="text-cyan" href="/prep/math/">Math</a>, <a class="text-cyan" href="/prep/programming/">Programming</a>, and <a class="text-cyan" href="/prep/drills/desk-interview/">a desk interview drills</a>.</p>
 <nav class="toc mt-8" aria-label="Modules">
-<a href="#phase3">Phase 3 lab path</a>
+<a href="#main">Phase 3 lab path</a>
 <a href="#git">Git</a><a href="#linux">Linux</a><a href="#net">Networking</a><a href="#azure">Azure</a>
 <a href="#ansible">Ansible</a><a href="#terraform">Terraform</a><a href="#docker">Docker</a>
 <a href="#packer">Packer</a><a href="#vault">Vault &amp; Consul</a><a href="#jenkins">Jenkins</a>
@@ -144,7 +145,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
 <h2 id="git" class="mt-12 font-display text-2xl">1. Git &amp; collaboration</h2>
 <p class="text-muted"><strong class="text-gold">JD:</strong> branching, PRs, code review culture.</p>
-<pre><code>git switch -c feat/healthcheck
+<pre translate="no"><code translate="no">git switch -c feat/healthcheck
 git add . && git commit -m "add healthcheck script"
 git push -u origin HEAD
 # open PR; request review; squash merge</code></pre>
@@ -152,7 +153,7 @@ git push -u origin HEAD
 <p class="text-muted"><strong class="text-paper">Lab:</strong> publish Phase 2 Python project with README, LICENSE, and a sample PR.</p>
 
 <h2 id="linux" class="mt-12 font-display text-2xl">2. Linux administration</h2>
-<pre><code>systemctl status nginx
+<pre translate="no"><code translate="no">systemctl status nginx
 journalctl -u nginx -n 100 --no-pager
 ss -tulpn | head
 chmod 640 /etc/app/app.env
@@ -160,7 +161,7 @@ useradd -r -s /usr/sbin/nologin appuser</code></pre>
 <p class="text-muted">Follow Linux Journey: permissions, processes, packages, networking.</p>
 
 <h2 id="net" class="mt-12 font-display text-2xl">3. Networking &amp; firewalls</h2>
-<pre><code># allow 443 from internet → load balancer
+<pre translate="no"><code translate="no"># allow 443 from internet → load balancer
 # allow 8080 only from LB subnet → app subnet
 # deny all else
 curl -v https://example.com</code></pre>
@@ -170,7 +171,7 @@ curl -v https://example.com</code></pre>
 <p class="text-muted"><strong class="text-paper">Lab min:</strong> VM + NSG + diagnostics in portal once, then recreate intent in Terraform. Touch Blob, LB, skim AKS concepts.</p>
 
 <h2 id="ansible" class="mt-12 font-display text-2xl">5. Ansible</h2>
-<pre><code>- hosts: web
+<pre translate="no"><code translate="no">- hosts: web
   become: true
   tasks:
     - name: Ensure apache2 present
@@ -180,7 +181,7 @@ curl -v https://example.com</code></pre>
 <p class="text-muted">Idempotence, inventories, Vault for secrets.</p>
 
 <h2 id="terraform" class="mt-12 font-display text-2xl">6. Terraform (IaC)</h2>
-<pre><code>resource "azurerm_resource_group" "rg" {
+<pre translate="no"><code translate="no">resource "azurerm_resource_group" "rg" {
   name     = "rg-prep-demo"
   location = "eastus"
 }
@@ -189,7 +190,7 @@ curl -v https://example.com</code></pre>
 <p class="text-muted"><strong class="text-paper">Project:</strong> HA web — VNet, LB, 2+ VMs or scale set, NSGs, remote state.</p>
 
 <h2 id="docker" class="mt-12 font-display text-2xl">7. Docker</h2>
-<pre><code>FROM python:3.12-slim
+<pre translate="no"><code translate="no">FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -218,7 +219,7 @@ CMD ["gunicorn", "app:app"]</code></pre>
 <p class="text-muted">Everything reviewable. Drift detection. No clickops as source of truth.</p>
 
 <h2 id="rca" class="mt-12 font-display text-2xl">13. RCA cycles</h2>
-<pre><code>Timeline → blast radius → contributing factors → corrective actions → prevention</code></pre>
+<pre translate="no"><code translate="no">Timeline → blast radius → contributing factors → corrective actions → prevention</code></pre>
 
 <h2 id="monitor" class="mt-12 font-display text-2xl">14. Monitoring, alerting, metrics</h2>
 <p class="text-muted">USE/RED, SLIs/SLOs, runbooks on alerts. Math track nines apply.</p>
@@ -237,28 +238,46 @@ CMD ["gunicorn", "app:app"]</code></pre>
 </article>
 
 </main>
-<footer class="no-print border-t border-paper/10">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
+<style>
+/* Interstitium Labs 3D footer treatment — scoped to .il-footer-3d, self-contained */
+.il-footer-3d{position:relative;border-top:0!important;overflow:hidden}
+.il-footer-3d::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 28%,rgba(64,224,208,.35) 72%,transparent);pointer-events:none;z-index:2}
+.il-footer-3d::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 90px at 52px 62px,rgba(212,175,55,.16),transparent 70%),radial-gradient(170px 130px at 110px 96px,rgba(64,224,208,.10),transparent 70%);pointer-events:none;filter:blur(4px)}
+.il-footer-3d>div{position:relative;z-index:1}
+.il-footer-3d .il-sigil-3d{filter:drop-shadow(0 6px 14px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(212,175,55,.28));transform:perspective(600px) rotateX(4deg);transform-origin:center bottom}
+.il-footer-3d .il-emboss{text-shadow:0 1px 0 rgba(255,255,255,.06),0 -1px 1px rgba(0,0,0,.6)}
+</style>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
-  <!-- lang switcher also auto-injected by ILi18n -->
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
 </div>
 
 <script src="/analytics/config.js" defer></script>
-<script src="/assets/il-compat.js" defer></script>
-<script src="/assets/il-analytics.js" defer></script>
-<script src="/assets/il-fx.js?v=heal2" defer></script>
-<script src="/assets/il-motion.js" defer></script>
-<script src="/assets/il-i18n.js" defer></script>
-<script src="/assets/il-immersive-3d.js" defer></script>
-<script src="/assets/noah-ai.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-compat.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-analytics.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-motion.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-i18n.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-immersive-3d.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

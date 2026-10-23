@@ -1,0 +1,239 @@
+/* ============================================================================
+   Interstitium Labs — Certifications Cinematic Hero (il-cert-hero.css)
+   Movie-trailer hero for certification paths. Dark, dramatic, high-production.
+   Animated badge orbit, glowing credential seals, cinematic typography.
+   All original CSS work — no external assets.
+   ========================================================================== */
+
+.cert-hero {
+  position: relative;
+  min-height: 92svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #050508;
+  color: #f2ede1;
+}
+
+/* ---------- Layered animated background ---------- */
+.cert-hero__bg { position: absolute; inset: 0; z-index: 0; }
+
+.cert-hero__bg::before {
+  /* Deep space gradient */
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 20% 15%, rgba(201,162,39,.12), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 85% 80%, rgba(125,211,252,.1), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 60% 50%, rgba(167,139,250,.07), transparent 65%),
+    #050508;
+}
+
+.cert-hero__stars {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 34% 68%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 58% 12%, rgba(201,162,39,.8), transparent),
+    radial-gradient(1px 1px at 76% 44%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 88% 78%, rgba(125,211,252,.7), transparent),
+    radial-gradient(1.5px 1.5px at 45% 88%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 8% 82%, rgba(201,162,39,.6), transparent),
+    radial-gradient(1px 1px at 68% 32%, rgba(255,255,255,.5), transparent);
+  background-size: 400px 400px;
+  animation: cert-twinkle 6s ease-in-out infinite alternate;
+  opacity: .8;
+}
+@keyframes cert-twinkle {
+  0% { opacity: .5; }
+  100% { opacity: .95; }
+}
+
+/* Orbiting credential seals */
+.cert-hero__orbit {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: min(80vmin, 640px);
+  height: min(80vmin, 640px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: .5;
+}
+.cert-hero__orbit::before,
+.cert-hero__orbit::after {
+  content: "";
+  position: absolute; inset: 0;
+  border: 1px solid rgba(201,162,39,.18);
+  border-radius: 50%;
+}
+.cert-hero__orbit::after {
+  inset: 12%;
+  border-color: rgba(125,211,252,.12);
+  animation: cert-orbit-spin 40s linear infinite reverse;
+}
+.cert-hero__orbit::before { animation: cert-orbit-spin 60s linear infinite; }
+@keyframes cert-orbit-spin { to { transform: rotate(360deg); } }
+
+.cert-hero__seal {
+  position: absolute;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(201,162,39,.5);
+  background: radial-gradient(circle at 35% 35%, rgba(201,162,39,.25), rgba(5,5,8,.9));
+  display: flex; align-items: center; justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: .58rem; font-weight: 700; letter-spacing: .08em;
+  color: #c9a227;
+  box-shadow: 0 0 24px rgba(201,162,39,.3);
+  animation: cert-seal-float 7s ease-in-out infinite;
+}
+.cert-hero__seal:nth-child(1) { top: 2%; left: 44%; animation-delay: 0s; }
+.cert-hero__seal:nth-child(2) { top: 38%; right: 0%; animation-delay: 1.4s; border-color: rgba(125,211,252,.5); color: #7dd3fc; box-shadow: 0 0 24px rgba(125,211,252,.3); }
+.cert-hero__seal:nth-child(3) { bottom: 4%; left: 38%; animation-delay: 2.8s; }
+.cert-hero__seal:nth-child(4) { top: 42%; left: -2%; animation-delay: 4.2s; border-color: rgba(167,139,250,.5); color: #a78bfa; box-shadow: 0 0 24px rgba(167,139,250,.3); }
+@keyframes cert-seal-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+/* Cinematic vignette + bottom fade */
+.cert-hero__vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 45%, transparent 55%, rgba(3,3,6,.75) 100%),
+    linear-gradient(180deg, rgba(5,5,8,.7) 0%, transparent 25%, transparent 70%, rgba(5,5,8,.92) 100%);
+  pointer-events: none;
+}
+
+/* ---------- Content ---------- */
+.cert-hero__content {
+  position: relative; z-index: 2;
+  width: min(1120px, 92vw);
+  margin: 0 auto;
+  padding: 14svh 0 10svh;
+  text-align: center;
+}
+.cert-hero__eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: .7rem;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: #c9a227;
+  margin: 0 0 1.4rem;
+  animation: cert-enter 1s cubic-bezier(.22,1,.36,1) both;
+}
+.cert-hero__title {
+  margin: 0 0 1.4rem;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(2.8rem, 8vw, 6.5rem);
+  font-weight: 800;
+  line-height: .98;
+  letter-spacing: -0.025em;
+  background: linear-gradient(175deg, #fffdf5 20%, #c9a227 55%, #8a6d1a 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 34px rgba(201,162,39,.35));
+  animation: cert-enter 1s cubic-bezier(.22,1,.36,1) .12s both;
+}
+.cert-hero__title .thin {
+  font-weight: 300;
+  background: linear-gradient(175deg, #e8f4ff 20%, #7dd3fc 60%, #38bdf8 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cert-hero__tag {
+  margin: 0 auto 2.4rem;
+  max-width: 46rem;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  line-height: 1.6;
+  color: rgba(242,237,225,.88);
+  animation: cert-enter 1s cubic-bezier(.22,1,.36,1) .24s both;
+}
+.cert-hero__stats {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin: 0 0 2.6rem;
+  animation: cert-enter 1s cubic-bezier(.22,1,.36,1) .36s both;
+}
+.cert-hero__stat { text-align: center; }
+.cert-hero__stat b {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #c9a227;
+  text-shadow: 0 0 20px rgba(201,162,39,.4);
+}
+.cert-hero__stat span {
+  font-size: .68rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(242,237,225,.6);
+}
+.cert-hero__cta {
+  display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+  animation: cert-enter 1s cubic-bezier(.22,1,.36,1) .48s both;
+}
+.cert-hero__btn {
+  display: inline-flex; align-items: center; gap: .6rem;
+  min-height: 3rem; padding: .7rem 1.8rem;
+  border-radius: .7rem;
+  font-weight: 700; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase;
+  text-decoration: none;
+  transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+}
+.cert-hero__btn--gold {
+  background: linear-gradient(180deg, #e8c547, #c9a227);
+  color: #0a0f1d;
+  box-shadow: 0 8px 32px rgba(201,162,39,.4);
+}
+.cert-hero__btn--gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 44px rgba(201,162,39,.55);
+}
+.cert-hero__btn--ghost {
+  background: transparent;
+  color: #f2ede1;
+  border: 1px solid rgba(242,237,225,.3);
+}
+.cert-hero__btn--ghost:hover {
+  transform: translateY(-3px);
+  border-color: #c9a227;
+  box-shadow: 0 8px 28px rgba(201,162,39,.25);
+}
+
+@keyframes cert-enter {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scroll cue */
+.cert-hero__scroll {
+  position: absolute; bottom: 2rem; left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  color: rgba(242,237,225,.5);
+  font-size: .62rem; letter-spacing: .3em; text-transform: uppercase;
+  animation: cert-enter 1s ease 1s both;
+}
+.cert-hero__scroll::after {
+  content: "";
+  width: 1px; height: 44px;
+  background: linear-gradient(180deg, #c9a227, transparent);
+  animation: cert-scrollcue 2s ease-in-out infinite;
+}
+@keyframes cert-scrollcue {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(.5); opacity: .4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cert-hero__stars, .cert-hero__orbit::before, .cert-hero__orbit::after,
+  .cert-hero__seal, .cert-hero__scroll::after { animation: none !important; }
+  .cert-hero__eyebrow, .cert-hero__title, .cert-hero__tag,
+  .cert-hero__stats, .cert-hero__cta, .cert-hero__scroll { animation: none; }
+}

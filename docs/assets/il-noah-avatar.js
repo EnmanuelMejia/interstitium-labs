@@ -1,16 +1,26 @@
 /**
- * IL Noah Avatar — full-featured 3D avatar system (Interstitium original).
+ * IL Noah Avatar — full-featured avatar system (Interstitium original).
  *
  * Self-contained WebGL (CSP-safe; no CDN, no Three.js, no external assets).
- * Four procedural avatars, all voice-reactive, driven by Noah status:
+ * Five procedural avatars plus the twin tutors' own likenesses, all
+ * voice-reactive, driven by tutor status:
  *   idle | listening | thinking | speaking
- *   - monas : crystalline Monas / orrery (default — the classic Dee stage)
- *   - orrery: ringed worlds · orbital mechanics
- *   - sigil : radiant sigil core · counter-rotating glyph rings
- *   - wisp  : nebula ghost · drifting star-wisp
+ *   - noah   : Noah — the face of Noah AI (photo; DEFAULT)
+ *   - genesis: Genesis — Noah's twin, the face of Genesis AI (photo)
+ *   - monas  : crystalline Monas / orrery
+ *   - orrery : ringed worlds · orbital mechanics
+ *   - sigil  : radiant sigil core · counter-rotating glyph rings
+ *   - wisp   : nebula ghost · drifting star-wisp
+ *   - operator: Noah at the keyboard · headphones on · typing tutor
+ *
+ * The photo avatars swap to their headphones variant while the tutor is
+ * actively listening, thinking, or speaking. Noah and Genesis are twin
+ * tutors with identical capabilities — the choice is presence only
+ * (Noah: blue/cyan tones; Genesis: warm gold tones).
  *
  * Personalization persisted in localStorage 'il-noah-profile':
- *   { avatar, name, accent, intensity } — applied on every mount, everywhere Noah appears.
+ *   { avatar, name, accent, intensity, photoStyle, photoBg, customAvatar } —
+ *   applied on every mount, everywhere Noah appears.
  *
  * Honesty standard: everything renders on-device in the visitor's browser.
  * No cloud rendering, no uploads, no fake "AI cloud". NOT Meta assets/code.
@@ -22,7 +32,7 @@
 
   var ACCENTS = {
     cyan:    { label: 'Cyan',    rgb: [0.369, 0.918, 0.831], css: '#5EEAD4' },
-    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#D4A853' },
+    gold:    { label: 'Gold',    rgb: [0.831, 0.659, 0.325], css: '#c9a227' },
     violet:  { label: 'Violet',  rgb: [0.654, 0.545, 0.980], css: '#A78BFA' },
     emerald: { label: 'Emerald', rgb: [0.204, 0.831, 0.600], css: '#34D399' }
   };
@@ -33,10 +43,81 @@
   };
   var VOID = [0.027, 0.043, 0.086];
 
+  /* ---------------- Twin tutor likeness assets ---------------- */
+
+  /* Image assets for the photo avatars (Noah + Genesis). Base is derived
+     from this script's own URL so it works when hotlinked from another
+     origin; falls back to the site-rooted assets path. */
+  var NOAH_IMG_BASE = (function () {
+    try {
+      var src = null;
+      if (document && document.currentScript && document.currentScript.src) src = document.currentScript.src;
+      if (!src) {
+        var scripts = document.getElementsByTagName('script');
+        for (var i = scripts.length - 1; i >= 0; i--) {
+          if (scripts[i].src && scripts[i].src.indexOf('il-noah-avatar') !== -1) { src = scripts[i].src; break; }
+        }
+      }
+      if (src) {
+        var m = src.match(/^(https?:\/\/[^\/]+)/);
+        if (m) return m[1] + '/assets/noah/';
+      }
+    } catch (e) {}
+    return '/assets/noah/';
+  })();
+  var NOAH_IMG_DEFAULT = NOAH_IMG_BASE + 'noah-avatar-3d.webp';
+  var NOAH_IMG_ACTIVE = NOAH_IMG_BASE + 'noah-avatar-headphones.webp';
+  var NOAH_IMG_VIDEO = NOAH_IMG_BASE + 'noah-avatar-animated.mp4';
+  var GENESIS_IMG_DEFAULT = NOAH_IMG_BASE + 'genesis-avatar-3d.webp';
+  var GENESIS_IMG_ACTIVE = NOAH_IMG_BASE + 'genesis-avatar-headphones.webp';
+  var GENESIS_IMG_VIDEO = NOAH_IMG_BASE + 'genesis-avatar-animated.mp4';
+
+  /* The twin tutors. Identical capabilities, knowledge, and voice — the
+     learner picks a presence. Noah is the default; Genesis is one tap
+     away in Noah settings ("Choose your tutor"). */
+  var TUTORS = {
+    noah:    { id: 'noah',    label: 'Noah',    imgDefault: NOAH_IMG_DEFAULT,    imgActive: NOAH_IMG_ACTIVE,
+               imgVideo: NOAH_IMG_VIDEO,    accent: 'cyan',
+               hint: 'Noah — the face of Noah AI' },
+    genesis: { id: 'genesis', label: 'Genesis', imgDefault: GENESIS_IMG_DEFAULT, imgActive: GENESIS_IMG_ACTIVE,
+               imgVideo: GENESIS_IMG_VIDEO, accent: 'gold',
+               hint: "Genesis — Noah's twin · the face of Genesis AI" }
+  };
+  function tutorById(id) { return TUTORS[id] || TUTORS.noah; }
+
+  var PHOTO_STYLES = {
+    'default':    { label: 'Default',    hint: 'Tutor portrait (headphones while active)' },
+    headphones:   { label: 'Headphones', hint: 'Tutor · headphones, always' },
+    custom:       { label: 'Custom',     hint: 'Your own uploaded photo' }
+  };
+  var PHOTO_BGS = {
+    'void': { label: 'Void', css: '' },
+    aura:   { label: 'Aura', css: '' },
+    halo:   { label: 'Halo', css: '' },
+    none:   { label: 'None', css: '' }
+  };
+
+  /** Resolve which image the photo avatar should show for a status.
+      avatarId selects the tutor (noah | genesis); defaults to Noah. */
+  function photoSrcFor(p, status, avatarId) {
+    var t = tutorById(avatarId);
+    if (p.photoStyle === 'custom' && p.customAvatar) return p.customAvatar;
+    if (p.photoStyle === 'headphones') return t.imgActive;
+    return (status === 'listening' || status === 'thinking' || status === 'speaking')
+      ? t.imgActive : t.imgDefault;
+  }
+
   /* ---------------- profile store ---------------- */
 
   function defaultProfile() {
-    return { v: 1, avatar: 'monas', name: 'Noah', accent: 'cyan', intensity: 'balanced' };
+    return { v: 1, avatar: 'noah', name: 'Noah', accent: 'cyan', intensity: 'balanced',
+             photoStyle: 'default', photoBg: 'void', customAvatar: '' };
+  }
+
+  function cleanPhotoStyle(v) { return PHOTO_STYLES[v] ? v : 'default'; }
+  function cleanPhotoBg(v) { return PHOTO_BGS[v] ? v : 'void'; }
+  function cleanCustomAvatar(v) {
+    return (typeof v === 'string' && v.indexOf('data:image/') === 0 && v.length < 200000) ? v : '';
   }
 
   function getProfile() {
@@ -50,7 +131,10 @@
           avatar: AVATARS_BY_ID[p.avatar] ? p.avatar : d.avatar,
           name: (typeof p.name === 'string' && p.name.trim()) ? p.name.trim().slice(0, 40) : d.name,
           accent: ACCENTS[p.accent] ? p.accent : d.accent,
-          intensity: INTENSITY[p.intensity] ? p.intensity : d.intensity
+          intensity: INTENSITY[p.intensity] ? p.intensity : d.intensity,
+          photoStyle: cleanPhotoStyle(p.photoStyle),
+          photoBg: cleanPhotoBg(p.photoBg),
+          customAvatar: cleanCustomAvatar(p.customAvatar)
         };
       }
     } catch (e) { /* corrupted or unavailable storage -> defaults */ }
@@ -64,7 +148,10 @@
       avatar: AVATARS_BY_ID[p.avatar] ? p.avatar : d.avatar,
       name: (typeof p.name === 'string' && p.name.trim()) ? p.name.trim().slice(0, 40) : d.name,
       accent: ACCENTS[p.accent] ? p.accent : d.accent,
-      intensity: INTENSITY[p.intensity] ? p.intensity : d.intensity
+      intensity: INTENSITY[p.intensity] ? p.intensity : d.intensity,
+      photoStyle: cleanPhotoStyle(p.photoStyle),
+      photoBg: cleanPhotoBg(p.photoBg),
+      customAvatar: cleanCustomAvatar(p.customAvatar)
     };
     try { if (g.localStorage) g.localStorage.setItem(PROFILE_KEY, JSON.stringify(clean)); } catch (e) {}
     return clean;
@@ -665,13 +752,179 @@
     return 3.8;
   }
 
+  /* ---- 5 · Operator — Noah at the keyboard, headphones on ----
+     Stylized 3D tutor character built from the same procedural primitives:
+     desk + keyboard (typing hands), torso, head, glowing eyes (blink),
+     headphone band + ear cups (signature look), jaw bar (speaking),
+     halo ring. Typing rhythm drives hands + keys; status drives posture. */
+
+  /* local box helper (scoped — does not touch shared geometry fns) */
+  function boxGeo(sx, sy, sz) {
+    var x = sx / 2, y = sy / 2, z = sz / 2;
+    var pos = [], nrm = [];
+    function quad(a, b, c, d, n) {
+      pushTriN(pos, nrm, a, n, b, n, c, n);
+      pushTriN(pos, nrm, a, n, c, n, d, n);
+    }
+    quad([-x,-y,-z],[x,-y,-z],[x,y,-z],[-x,y,-z],[0,0,-1]);
+    quad([-x,-y,z],[x,-y,z],[x,y,z],[-x,y,z],[0,0,1]);
+    quad([-x,-y,-z],[-x,-y,z],[-x,y,z],[-x,y,-z],[-1,0,0]);
+    quad([x,-y,-z],[x,-y,z],[x,y,z],[x,y,-z],[1,0,0]);
+    quad([-x,-y,-z],[x,-y,-z],[x,-y,z],[-x,-y,z],[0,-1,0]);
+    quad([-x,y,-z],[x,y,-z],[x,y,z],[-x,y,z],[0,1,0]);
+    return pack(pos, nrm);
+  }
+
+  function buildOperator(gl, q) {
+    var mob = !!q.mobile;
+    var keys = [];
+    var rows = mob ? 2 : 3, cols = mob ? 6 : 8;
+    var r, c;
+    for (r = 0; r < rows; r++) {
+      for (c = 0; c < cols; c++) {
+        keys.push({
+          mesh: makeMesh(gl, cylinder(0.035, 0.03, 6)),
+          row: r, col: c,
+          phase: (r * 0.7 + c * 1.1)
+        });
+      }
+    }
+    return {
+      desk:   makeMesh(gl, cylinder(1.15, 0.08, mob ? 24 : 36)),
+      kbBase: makeMesh(gl, boxGeo(0.95, 0.05, 0.34)),
+      keys:   keys,
+      torso:  makeMesh(gl, cylinder(0.30, 0.62, mob ? 12 : 18)),
+      collar: makeMesh(gl, torus(0.30, 0.035, mob ? 24 : 40, 8)),
+      head:   makeMesh(gl, icosahedron(0.30)),
+      band:   makeMesh(gl, torus(0.34, 0.045, mob ? 24 : 40, 8)),
+      cupL:   makeMesh(gl, cylinder(0.11, 0.14, mob ? 10 : 14)),
+      cupR:   makeMesh(gl, cylinder(0.11, 0.14, mob ? 10 : 14)),
+      eyeL:   makeMesh(gl, icosahedron(0.045)),
+      eyeR:   makeMesh(gl, icosahedron(0.045)),
+      jaw:    makeMesh(gl, boxGeo(0.16, 0.035, 0.06)),
+      armL:   makeMesh(gl, cylinder(0.075, 0.55, 8)),
+      armR:   makeMesh(gl, cylinder(0.075, 0.55, 8)),
+      handL:  makeMesh(gl, icosahedron(0.09)),
+      handR:  makeMesh(gl, icosahedron(0.09)),
+      halo:   makeMesh(gl, torus(0.85, 0.018, mob ? 40 : 64, 8)),
+      parts:  makeParticles(gl, mob ? 80 : 150, { rMin: 1.6, rMax: 2.8 })
+    };
+  }
+
+  function drawOperator(sc, rc) {
+    var t = rc.t, k = rc.k, st = rc.status;
+    var amp = rc.amp, beat = rc.beat;
+    var glow = 0.5, bob = Math.sin(t * 1.4) * 0.03;
+    var typeSpeed = 1, leanF = 0, tiltZ = Math.sin(t * 0.9) * 0.04;
+    var eyeGlow = 0.9, jawOpen = 0, nodA = 0;
+    if (st === 'listening') {
+      glow = 0.8 + amp * 1.2; typeSpeed = 0.15; leanF = 0.10;
+      bob = Math.sin(t * 5) * (0.02 + amp * 0.05); eyeGlow = 1.3 + amp;
+    } else if (st === 'thinking') {
+      glow = 0.7 + 0.25 * Math.sin(t * 4); typeSpeed = 0; tiltZ = 0.22;
+      leanF = -0.06; eyeGlow = 0.7;
+    } else if (st === 'speaking') {
+      var b = Math.max(beat, amp, 0.3 + 0.3 * Math.sin(t * 13));
+      amp = b; glow = 1.0 + b * 1.3; typeSpeed = 0.6;
+      jawOpen = 0.5 + 0.5 * Math.sin(t * 13); nodA = Math.sin(t * 3.2) * 0.05;
+      bob = Math.sin(t * 2) * 0.035; eyeGlow = 1.1 + b * 0.5;
+    } else {
+      glow = 0.5 + 0.08 * Math.sin(t * 1.6);
+    }
+    var M = mat4Identity();
+    var em = st === 'speaking' ? rc.accent : (st === 'listening' ? rc.accent2 : rc.accent);
+
+    /* desk + halo */
+    mat4FromRTS(M, 0, 0, 0, 0, -0.62, -0.1, 1, 1, 1);
+    rc.mesh(sc.desk, rc.accent2, rc.accent2, glow * 0.35, M);
+    mat4FromRTS(M, Math.PI / 2.3, t * 0.15 * k, 0, 0, 0.1, -0.6, 1, 1, 1);
+    rc.mesh(sc.halo, rc.accent, rc.accent2, glow * 0.4, M);
+
+    /* keyboard base */
+    mat4FromRTS(M, 0, 0, 0, 0, -0.52, 0.42, 1, 1, 1);
+    rc.mesh(sc.kbBase, rc.accent2, rc.accent2, glow * 0.5, M);
+
+    /* keys — ripple in typing rhythm */
+    var i, ky, press;
+    for (i = 0; i < sc.keys.length; i++) {
+      ky = sc.keys[i];
+      press = typeSpeed > 0
+        ? Math.max(0, Math.sin(t * (6 + typeSpeed * 6) + ky.phase)) * 0.5 * typeSpeed
+        : 0;
+      mat4FromRTS(M, 0, 0, 0,
+        (ky.col - 3.5) * 0.105, -0.49 - press * 0.02, 0.42 + (ky.row - 1) * 0.10,
+        1, 1 - press * 0.5, 1);
+      rc.mesh(ky.mesh, rc.accent, em, glow * (0.5 + press * 0.9), M);
+    }
+
+    /* torso + collar */
+    mat4FromRTS(M, 0, 0, leanF * 0.4, 0, -0.18 + bob, -0.18, 1, 1, 1);
+    rc.mesh(sc.torso, rc.accent, em, glow * 0.75, M);
+    mat4FromRTS(M, 0, 0, leanF * 0.4, 0, 0.10 + bob, -0.18, 1, 1, 1);
+    rc.mesh(sc.collar, rc.accent2, rc.accent2, glow * 0.6, M);
+
+    /* head group */
+    var hx = 0, hy = 0.52 + bob * 1.4, hz = -0.10 + leanF;
+    mat4FromRTS(M, tiltZ * 0.4, Math.sin(t * 0.7) * 0.08, tiltZ + nodA, hx, hy, hz, 1.05, 0.95, 1.0);
+    rc.mesh(sc.head, rc.accent, em, glow * 0.9, M);
+
+    /* headphone band (over the head) + ear cups */
+    mat4FromRTS(M, 0.12, 0, tiltZ + nodA * 0.5, hx, hy + 0.10, hz - 0.02, 1, 1, 1);
+    rc.mesh(sc.band, rc.accent2, rc.accent2, glow * 0.85, M);
+    mat4FromRTS(M, 0, 0, Math.PI / 2, hx - 0.31, hy, hz, 1, 1, 1);
+    rc.mesh(sc.cupL, em, em, glow * (st === 'listening' ? 1.3 : 0.8), M);
+    mat4FromRTS(M, 0, 0, Math.PI / 2, hx + 0.31, hy, hz, 1, 1, 1);
+    rc.mesh(sc.cupR, em, em, glow * (st === 'listening' ? 1.3 : 0.8), M);
+
+    /* eyes — blink via Y squash */
+    var blink = (Math.sin(t * 0.9) > 0.985) ? 0.08 : 1;
+    mat4FromRTS(M, 0, 0, 0, hx - 0.11, hy + 0.03, hz + 0.26, 1, blink, 1);
+    rc.mesh(sc.eyeL, em, em, eyeGlow, M);
+    mat4FromRTS(M, 0, 0, 0, hx + 0.11, hy + 0.03, hz + 0.26, 1, blink, 1);
+    rc.mesh(sc.eyeR, em, em, eyeGlow, M);
+
+    /* jaw — opens with speech */
+    mat4FromRTS(M, 0, 0, 0, hx, hy - 0.20 - jawOpen * 0.05, hz + 0.24, 1, 1, 1);
+    rc.mesh(sc.jaw, rc.accent2, em, glow * (0.6 + jawOpen * 0.8), M);
+
+    /* arms angled to keyboard; hands type alternately */
+    var handY = -0.44, handZ = 0.40;
+    var swingL = Math.sin(t * (6 + typeSpeed * 6)) * 0.05 * typeSpeed;
+    var swingR = Math.sin(t * (6 + typeSpeed * 6) + Math.PI) * 0.05 * typeSpeed;
+    mat4FromRTS(M, 0.5, 0, -0.35, -0.34, -0.28 + bob * 0.5, 0.05, 1, 1, 1);
+    rc.mesh(sc.armL, rc.accent, rc.accent, glow * 0.7, M);
+    mat4FromRTS(M, 0.5, 0, 0.35, 0.34, -0.28 + bob * 0.5, 0.05, 1, 1, 1);
+    rc.mesh(sc.armR, rc.accent, rc.accent, glow * 0.7, M);
+    if (st === 'thinking') {
+      /* right hand rises to chin — the thinker pose */
+      mat4FromRTS(M, 0, 0, 0, 0.24, hy - 0.12, hz + 0.28, 1.1, 1.1, 1.1);
+      rc.mesh(sc.handR, em, em, glow, M);
+      mat4FromRTS(M, 0, 0, 0, -0.20, handY + swingL, handZ, 1, 1, 1);
+      rc.mesh(sc.handL, em, em, glow * 0.9, M);
+    } else {
+      mat4FromRTS(M, 0, 0, 0, -0.20, handY + swingL, handZ, 1, 1, 1);
+      rc.mesh(sc.handL, em, em, glow * 0.9, M);
+      mat4FromRTS(M, 0, 0, 0, 0.20, handY + swingR, handZ, 1, 1, 1);
+      rc.mesh(sc.handR, em, em, glow * 0.9, M);
+    }
+
+    /* ambient particles */
+    mat4FromRTS(M, 0, t * 0.08 * k, 0, 0, 0, 0, 1, 1, 1);
+    rc.points(sc.parts, rc.accent,
+      { amp: 0.25 + amp * 0.6, gather: 0, swirl: 0.3 * k, drift: 0.2 * k }, M);
+    return 3.55;
+  }
+
   /* ---------------- catalog ---------------- */
 
   var AVATARS = [
+    { id: 'noah', label: 'Noah', hint: 'Noah — the face of Noah AI', kind: 'photo' },
+    { id: 'genesis', label: 'Genesis', hint: "Genesis — Noah's twin · the face of Genesis AI", kind: 'photo' },
     { id: 'monas',  label: 'Monas',      hint: 'Crystalline Monas · orrery rings',   build: buildMonas,  draw: drawMonas },
     { id: 'orrery', label: 'Orrery',      hint: 'Ringed worlds · orbital mechanics',  build: buildOrrery, draw: drawOrrery },
     { id: 'sigil',  label: 'Sigil Core',  hint: 'Radiant sigil · counter-rotating glyph rings', build: buildSigil, draw: drawSigil },
-    { id: 'wisp',   label: 'Wisp',        hint: 'Nebula ghost · drifting star-wisp',  build: buildWisp,  draw: drawWisp }
+    { id: 'wisp',   label: 'Wisp',        hint: 'Nebula ghost · drifting star-wisp',  build: buildWisp,  draw: drawWisp },
+    { id: 'operator', label: 'Operator',  hint: 'Noah at the keyboard · headphones on', build: buildOperator, draw: drawOperator }
   ];
   var AVATARS_BY_ID = {};
   AVATARS.forEach(function (a) { AVATARS_BY_ID[a.id] = a; });
@@ -700,6 +953,149 @@
     var a = ACCENTS[key] || ACCENTS.cyan;
     var second = (key === 'gold') ? ACCENTS.cyan.rgb : [0.831, 0.659, 0.325];
     return { primary: a.rgb, secondary: second, css: a.css, label: a.label };
+  }
+
+  /* ---------------- photo avatars (the twin tutors' likenesses) ---------------- */
+
+  /* Photo-based avatar instance. Same API shape as the WebGL instance, so
+     widget code can treat them interchangeably. Swaps to the tutor's
+     headphones variant while actively listening, thinking, or speaking.
+     opts.avatar selects the tutor ('noah' | 'genesis'); the instance can
+     switch between the twins in place via setAvatar. */
+  function createPhotoInstance(slot, opts) {
+    opts = opts || {};
+    var prof = getProfile();
+    var personaId = (opts.avatar && TUTORS[opts.avatar]) ? opts.avatar : 'noah';
+    var root = document.createElement('div');
+    root.className = 'il-muse-3d il-muse-3d--photo';
+    root.setAttribute('data-noah-avatar', '1');
+    root.setAttribute('data-tutor', personaId);
+    root.setAttribute('role', 'img');
+    root.setAttribute('aria-label', tutorById(personaId).label + ' avatar');
+    slot.appendChild(root);
+    if (opts.cinema) slot.classList.add('il-muse-3d-slot--cinema');
+
+    var state = {
+      status: 'idle',
+      avatar: personaId,
+      photoStyle: PHOTO_STYLES[opts.photoStyle] ? opts.photoStyle : prof.photoStyle,
+      photoBg: PHOTO_BGS[opts.photoBg] ? opts.photoBg : prof.photoBg,
+      customAvatar: (typeof opts.customAvatar === 'string') ? opts.customAvatar : prof.customAvatar,
+      name: (typeof opts.name === 'string' && opts.name.trim()) ? opts.name.trim().slice(0, 40) : prof.name,
+      amp: 0, speakBeat: 0,
+      alive: true, reduced: prefersReduced(),
+      mobile: (typeof opts.mobile === 'boolean')
+        ? opts.mobile
+        : (g.matchMedia && g.matchMedia('(max-width: 768px)').matches)
+    };
+
+    var img = document.createElement('img');
+    img.className = 'il-muse-3d__photo';
+    img.setAttribute('alt', '');
+    img.setAttribute('decoding', 'async');
+    img.setAttribute('draggable', 'false');
+    root.appendChild(img);
+
+    var badge = document.createElement('span');
+    badge.className = 'il-muse-3d__badge';
+    badge.setAttribute('data-noah-badge', '');
+    root.appendChild(badge);
+
+    function curProfile() {
+      return { photoStyle: state.photoStyle, photoBg: state.photoBg, customAvatar: state.customAvatar };
+    }
+    function render() {
+      if (!state.alive) return;
+      var src = photoSrcFor(curProfile(), state.status, state.avatar);
+      if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+      root.setAttribute('data-status', state.status);
+      root.setAttribute('data-photobg', state.photoBg);
+      root.setAttribute('data-tutor', state.avatar);
+      var tl = tutorById(state.avatar).label;
+      badge.textContent = state.name + ' · ' + tl;
+      badge.title = state.name + ' · the face of ' + tl + ' AI';
+    }
+
+    var api = {
+      root: root, slot: slot,
+      setStatus: function (s) {
+        state.status = (s === 'listening' || s === 'thinking' || s === 'speaking') ? s : 'idle';
+        render();
+      },
+      setAvatar: function (id) {
+        if (!AVATARS_BY_ID[id] || id === state.avatar) return;
+        if (AVATARS_BY_ID[id].kind === 'photo') {
+          /* twin-tutor switch (Noah <-> Genesis): same instance, new likeness */
+          state.avatar = id;
+          render();
+          return;
+        }
+        state.avatar = id;
+        swapToGl(id);
+      },
+      setPhotoStyle: function (s) {
+        if (!PHOTO_STYLES[s]) return;
+        state.photoStyle = s;
+        render();
+      },
+      setPhotoBg: function (b) {
+        if (!PHOTO_BGS[b]) return;
+        state.photoBg = b;
+        render();
+      },
+      setCustomAvatar: function (url) {
+        state.customAvatar = cleanCustomAvatar(url);
+        if (state.customAvatar) state.photoStyle = 'custom';
+        render();
+      },
+      setAccent: function () { /* accent ring follows page theme for photo avatar */ },
+      setIntensity: function () { /* float animation is fixed-gentle */ },
+      setName: function (n) {
+        if (typeof n === 'string' && n.trim()) { state.name = n.trim().slice(0, 40); render(); }
+      },
+      setAmplitude: function (a) { state.amp = Math.max(0, Math.min(1, a || 0)); },
+      pulseSpeak: function (v) { state.speakBeat = Math.max(state.speakBeat, v == null ? 1 : v); },
+      getStatus: function () { return state.status; },
+      getAvatar: function () { return state.avatar; },
+      applyProfile: function () {
+        var p = getProfile();
+        api.setName(p.name);
+        state.photoStyle = p.photoStyle;
+        state.photoBg = p.photoBg;
+        state.customAvatar = p.customAvatar;
+        if (p.avatar !== state.avatar) api.setAvatar(p.avatar);
+        else render();
+      },
+      destroy: function () {
+        state.alive = false;
+        var ix = registry.indexOf(api);
+        if (ix >= 0) registry.splice(ix, 1);
+        if (root.parentNode) root.parentNode.removeChild(root);
+      }
+    };
+
+    function swapToGl(id) {
+      var ix = registry.indexOf(api);
+      api.destroy();
+      var inst = createInstance(slot, { avatar: id, cinema: !!opts.cinema, mobile: state.mobile, name: state.name });
+      if (ix >= 0 && registry.indexOf(inst) === -1) { registry.splice(ix, 0, inst); }
+      else if (registry.indexOf(inst) === -1) { registry.push(inst); }
+    }
+
+    render();
+    return api;
+  }
+
+  /* Photo-mode helper for the GL instance: when its setAvatar is called with
+     a photo-kind id ('noah' | 'genesis'), swap this GL instance for a photo
+     instance of that tutor. */
+  function swapGlToPhoto(inst, slot, opts) {
+    var ix = registry.indexOf(inst);
+    try { inst.destroy(); } catch (e) {}
+    var photo = createPhotoInstance(slot, opts || {});
+    if (ix >= 0 && registry.indexOf(photo) === -1) { registry.splice(ix, 0, photo); }
+    else if (registry.indexOf(photo) === -1) { registry.push(photo); }
+    return photo;
   }
 
   function createInstance(slot, opts) {
@@ -740,6 +1136,7 @@
       },
       setAvatar: function (id) {
         if (!AVATARS_BY_ID[id] || id === state.avatar) return;
+        if (AVATARS_BY_ID[id].kind === 'photo') { swapGlToPhoto(api, slot, Object.assign({}, opts, { avatar: id })); return; }
         state.avatar = id;
         rebuildScene();
         updateBadge();
@@ -955,7 +1352,7 @@
       mat4Perspective(uProj, Math.PI / 3.4, canvas.width / canvas.height, 0.1, 40);
     }
 
-    var EYES = { monas: 3.35, orrery: 3.6, sigil: 3.4, wisp: 3.8 };
+    var EYES = { monas: 3.35, orrery: 3.6, sigil: 3.4, wisp: 3.8, operator: 3.55 };
 
     function renderFrame() {
       var st = state.status, t = state.time;
@@ -1119,9 +1516,19 @@
         try { registry[k].destroy(); } catch (eD) {}
       }
     }
-    var inst = createInstance(slot, opts || {});
+    var inst = createInstanceForKind(slot, opts || {});
     registry.push(inst);
     return inst;
+  }
+
+  /** Build the right instance for the resolved avatar id (photo vs WebGL). */
+  function createInstanceForKind(slot, opts) {
+    var p = getProfile();
+    var id = (opts && AVATARS_BY_ID[opts.avatar]) ? opts.avatar : p.avatar;
+    if (AVATARS_BY_ID[id] && AVATARS_BY_ID[id].kind === 'photo') {
+      return createPhotoInstance(slot, Object.assign({}, opts, { avatar: id }));
+    }
+    return createInstance(slot, Object.assign({}, opts, { avatar: id }));
   }
 
   function syncFromApp(app, opts) {
@@ -1155,10 +1562,21 @@
     saveProfile: saveProfile,
     setProfilePatch: setProfilePatch,
     AVATARS: AVATARS,
+    TUTORS: TUTORS,
+    tutorById: tutorById,
     ACCENTS: ACCENTS,
     INTENSITY: INTENSITY,
+    PHOTO_STYLES: PHOTO_STYLES,
+    PHOTO_BGS: PHOTO_BGS,
+    NOAH_IMG_DEFAULT: NOAH_IMG_DEFAULT,
+    NOAH_IMG_ACTIVE: NOAH_IMG_ACTIVE,
+    NOAH_IMG_VIDEO: NOAH_IMG_VIDEO,
+    GENESIS_IMG_DEFAULT: GENESIS_IMG_DEFAULT,
+    GENESIS_IMG_ACTIVE: GENESIS_IMG_ACTIVE,
+    GENESIS_IMG_VIDEO: GENESIS_IMG_VIDEO,
+    NOAH_IMG_BASE: NOAH_IMG_BASE,
     PROFILE_KEY: PROFILE_KEY,
-    VERSION: '2.0.0',
+    VERSION: '3.1.0',
     get instances() { return registry.slice(); }
   };
 

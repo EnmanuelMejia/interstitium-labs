@@ -1,0 +1,189 @@
+/* ============================================================================
+   Interstitium Labs — RHEL-Reel Cinematic Card Standard (il-rhel-cards.css)
+   The bar: dark cinematic background, neon circuit accents (red/blue),
+   large metallic text, floating holographic labels. Sleek sci-fi corporate.
+   Enhancement layer on top of il-cinematic-cards.css (.cine-card).
+   All original CSS work. No copyrighted assets.
+   ========================================================================== */
+
+/* ---------- Circuit texture overlay (CSS-generated, zero images) ---------- */
+.cine-card__poster::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    /* horizontal traces */
+    repeating-linear-gradient(0deg, transparent 0 26px, rgba(88,166,255,.07) 26px 27px),
+    /* vertical traces */
+    repeating-linear-gradient(90deg, transparent 0 34px, rgba(255,80,80,.06) 34px 35px),
+    /* node dots */
+    radial-gradient(circle 2px at 20% 30%, rgba(88,166,255,.5), transparent 3px),
+    radial-gradient(circle 2px at 70% 60%, rgba(255,80,80,.45), transparent 3px),
+    radial-gradient(circle 2px at 45% 80%, rgba(88,166,255,.4), transparent 3px),
+    radial-gradient(circle 2px at 85% 20%, rgba(88,166,255,.35), transparent 3px);
+  opacity: .8;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Animated pulse traveling along the circuit */
+.cine-card__poster .rhel-pulse {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(88,166,255,.18) 45%, rgba(255,80,80,.18) 55%, transparent 100%);
+  background-size: 200% 100%;
+  background-position: 130% 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.cine-card:hover .cine-card__poster .rhel-pulse,
+.cine-card:focus-visible .cine-card__poster .rhel-pulse {
+  opacity: 1;
+  animation: rhel-pulse-sweep 2.2s linear infinite;
+}
+@keyframes rhel-pulse-sweep {
+  0% { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cine-card:hover .cine-card__poster .rhel-pulse { animation: none; opacity: .5; }
+}
+
+/* ---------- Metallic title text ---------- */
+.cine-card__title--metallic,
+.cine-card.rhel .cine-card__title {
+  background: linear-gradient(180deg, #ffffff 0%, #d7dde8 35%, #8b93a5 50%, #e8ecf4 65%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  font-weight: 800;
+  letter-spacing: .01em;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.7));
+}
+/* Keep readable on non-webkit fallback */
+@supports not (-webkit-background-clip: text) {
+  .cine-card.rhel .cine-card__title { color: #f2ede1; }
+}
+
+/* ---------- Holographic floating labels ---------- */
+.cine-card__holo {
+  position: absolute;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .62rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(140,200,255,.9);
+  text-shadow: 0 0 12px rgba(88,166,255,.8), 0 0 3px rgba(88,166,255,.9);
+  border: 1px solid rgba(88,166,255,.35);
+  background: rgba(10,20,40,.45);
+  padding: .28rem .7rem;
+  border-radius: 3px;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+  pointer-events: none;
+  animation: holo-float 5s ease-in-out infinite;
+}
+.cine-card__holo--red {
+  color: rgba(255,150,150,.92);
+  text-shadow: 0 0 12px rgba(255,80,80,.8), 0 0 3px rgba(255,80,80,.9);
+  border-color: rgba(255,80,80,.35);
+}
+.cine-card__holo--1 { top: 18%; left: 8%; animation-delay: 0s; }
+.cine-card__holo--2 { top: 52%; right: 10%; animation-delay: -1.7s; }
+.cine-card__holo--3 { bottom: 14%; left: 14%; animation-delay: -3.3s; }
+@keyframes holo-float {
+  0%, 100% { transform: translateY(0); opacity: .85; }
+  50% { transform: translateY(-7px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cine-card__holo { animation: none; }
+}
+
+/* ---------- Neon edge glow: red/blue dual accent ---------- */
+.cine-card.rhel {
+  border: 1px solid rgba(88,166,255,.18);
+  box-shadow:
+    inset 0 0 60px rgba(10,20,40,.5),
+    0 0 0 1px rgba(0,0,0,.6);
+}
+.cine-card.rhel:hover,
+.cine-card.rhel:focus-visible {
+  border-color: rgba(88,166,255,.55);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.65),
+    0 0 32px rgba(88,166,255,.28),
+    0 0 64px rgba(255,80,80,.12),
+    inset 0 0 40px rgba(88,166,255,.06);
+  transform: translateY(-8px) scale(1.015);
+}
+/* Bottom neon strip: red-to-blue gradient line */
+.cine-card.rhel::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff5050, #58a6ff, #ff5050);
+  background-size: 200% 100%;
+  opacity: .7;
+  z-index: 4;
+  transition: opacity .4s ease;
+}
+.cine-card.rhel:hover::after {
+  opacity: 1;
+  animation: rhel-strip-flow 3s linear infinite;
+}
+@keyframes rhel-strip-flow {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cine-card.rhel:hover::after { animation: none; }
+}
+
+/* ---------- Scanline texture (subtle CRT depth) ---------- */
+.cine-card.rhel .cine-card__poster {
+  position: relative;
+}
+.cine-card.rhel .cine-card__poster .rhel-scan {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.12) 3px 4px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- Glyph: neon outline instead of faint stroke ---------- */
+.cine-card.rhel .cine-card__glyph {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(88,166,255,.5);
+  text-shadow: 0 0 24px rgba(88,166,255,.35);
+}
+
+/* ---------- Code badge: metallic stamp ---------- */
+.cine-card.rhel .cine-card__code {
+  background: linear-gradient(180deg, #e8ecf4, #9aa3b5 60%, #d7dde8);
+  color: #0a0f1d;
+  box-shadow: 0 0 18px rgba(88,166,255,.45), inset 0 1px 0 rgba(255,255,255,.6);
+  border: 1px solid rgba(88,166,255,.4);
+}
+
+/* ---------- CTA: neon arrow ---------- */
+.cine-card.rhel .cine-card__cta {
+  color: #8cc8ff;
+  text-shadow: 0 0 10px rgba(88,166,255,.5);
+}
+
+/* ---------- Mobile: reduce motion cost ---------- */
+@media (max-width: 640px) {
+  .cine-card__holo--3 { display: none; }
+  .cine-card__poster::before { opacity: .5; }
+}
+
+/* Cine-card video embeds (added 2026-10-10) */
+.cine-card__poster--video { position: relative; overflow: hidden; }
+.cine-card__poster--video .cine-card__video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0;
+}
+.cine-card__poster--video .cine-card__code,
+.cine-card__poster--video .cine-card__ribbon,
+.cine-card__poster--video .cine-card__glyph {
+  position: relative; z-index: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,.9);
+}

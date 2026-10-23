@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-22 ~00:41 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev · _Static root:_ `docs/`  
-_Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat Learning · Oracle U · AWS Skill Builder · Cloud/DevOps.com
+_Peers:_ Leading lab platforms · a leading adaptive-learning platform · A leading STEM learning platform · A leading free learning platform · interactive coding platforms · LF · Red Hat Learning · Oracle U · AWS Skill Builder · Cloud/DevOps.com
 
 **Rule:** Would Elon Musk be impressed? If NO → ship real asymmetric value until closer to yes.  
 **Rule:** Brutal > flattering. Never wallpaper catalog size. Never invent lab fleets or API keys.
@@ -24,16 +24,16 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 
 | Dimension | Before | After | Peer bar | Notes |
 |-----------|-------:|------:|----------|-------|
-| First-glance wow | **6** | **8** | Brilliant 9 · KodeKloud 8 | Hire OS + cinema + kill-card on home. Demo path remains real, not only FX. |
-| Motion / graphics | **6** | **7** | Brilliant 9 | 3D-first law + `il-immersive-3d` scaffold. **Not using Blender/Unreal = fail Elon test.** CSS cards ≠ 3D. |
-| Adaptive learning | **7** | **7** | ALEKS 9 · GMAT-CAT 9 | Unchanged engine; exam remediates into `/adapt`. |
-| Live labs density | **4** | **5** | KodeKloud 10 | CotD + SuperLab + honest LOSE on fleet. Still one deep lab. |
-| Noah | **6** | **7** | KodeKloud in-lab 8 | Muse wired; `promptFrom` + `?prompt=` + path `data-il-muse-prompt`. Router untouched. |
+| First-glance wow | **6** | **8** | A leading STEM learning platform 9 · leading lab platforms 8 | Hire OS + cinema + kill-card on home. Demo path remains real, not only FX. |
+| Motion / graphics | **6** | **7** | A leading STEM learning platform 9 | 3D-first law + `il-immersive-3d` scaffold. **Not using Blender/Unreal = fail Elon test.** CSS cards ≠ 3D. |
+| Adaptive learning | **7** | **7** | A leading adaptive-learning platform 9 · GMAT-CAT 9 | Unchanged engine; exam remediates into `/adapt`. |
+| Live labs density | **4** | **5** | Leading lab platforms 10 | CotD + SuperLab + honest LOSE on fleet. Still one deep lab. |
+| Noah | **6** | **7** | Leading lab-platform in-lab 8 | Muse wired; `promptFrom` + `?prompt=` + path `data-il-muse-prompt`. Router untouched. |
 | Model router | **6** | **6** | n/a (ours) | Demand-tier lean defaults preserved. No fake keys. |
-| Career / time-to-hire | **6** | **8** | KodeKloud 8 · cert vendors 9 | `/os/` is the asymmetric loop competitors lack as one URL. |
+| Career / time-to-hire | **6** | **8** | Leading lab platforms 8 · cert vendors 9 | `/os/` is the asymmetric loop competitors lack as one URL. |
 | Proof / portfolio | **5** | **8** | peers ~4–6 | localStorage → markdown / print. Honesty labels mandatory. |
-| Honesty / trust | **9** | **9** | Khan/IL lead | Kill-card lists LOSE on fleet, live AI, commerce, community. |
-| Mobile / ultrawide | **6** | **8** | Khan 9 · Brilliant 8 | `/cinema/` 32:9 Learn\|Lab\|Muse panes for 499P9. |
+| Honesty / trust | **9** | **9** | A leading free learning platform/IL lead | Kill-card lists LOSE on fleet, live AI, commerce, community. |
+| Mobile / ultrawide | **6** | **8** | A leading free learning platform 9 · A leading STEM learning platform 8 | `/cinema/` 32:9 Learn\|Lab\|Muse panes for 499P9. |
 
 **Composite before:** ~6.1 / 10 · **After this ship:** ~7.2 / 10 · **Musk YES threshold:** ≥8 with live Muse + ≥3 labs + proven UW + phone loop.
 
@@ -61,7 +61,7 @@ _Peers:_ KodeKloud · ALEKS · Brilliant · Khan · Codecademy · LF · Red Hat 
 
 ## Remaining NO (brutal)
 
-1. **Hosted lab fleet** — still one SuperLab + CotD, not KodeKloud density.  
+1. **Hosted lab fleet** — still one SuperLab + CotD, not leading-lab-platform density.  
 2. **Live in-lab LLM** — local rules default; Ollama/lab-control optional; no committed secrets.  
 3. **Item bank thin** — adaptive engine leads UX, content volume does not.  
 4. **Commerce / community** — intentional placeholders; do not fake.  

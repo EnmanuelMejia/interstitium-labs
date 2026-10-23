@@ -130,7 +130,7 @@
         '<div class="il-ps-empty" role="status">' +
         '<p class="il-ps-empty__kicker">Connect a Unreal Pixel Streaming host</p>' +
         '<p>No signaling URL. Set env on the lab GPU host, then paste <code>ws://</code> / <code>wss://</code> below. ' +
-        'See <a href="/ops/PIXEL-STREAMING-DEV.md">PIXEL-STREAMING-DEV</a>.</p>' +
+        'Bring up a local signaling host to mount a live stream.</p>' +
         '</div>';
     }
   }

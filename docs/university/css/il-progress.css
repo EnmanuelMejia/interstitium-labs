@@ -1,0 +1,105 @@
+/* =====================================================================
+ * ILProgress styles — unified course progress UI.
+ * 2026-10-08. Scoped to .ilprog-* so nothing else is touched.
+ * Dark-first; honors prefers-reduced-motion (no animated fills).
+ * ===================================================================== */
+
+.ilprog-bar { margin: .5rem 0 0; }
+.ilprog-bar__meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .35rem; }
+.ilprog-bar__label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(242, 237, 225, .62);
+}
+.ilprog-bar__track {
+  height: 8px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .07);
+}
+.ilprog-bar__fill {
+  height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(90deg, #c9a227, #62d8e9);
+}
+
+/* Compact nav strip inside the course shell nav */
+.ilprog-nav {
+  padding: .7rem .9rem; margin: .8rem 0;
+  border: 1px solid rgba(201, 162, 39, .28); border-radius: 10px;
+  background: rgba(201, 162, 39, .05);
+}
+.ilprog-nav .ilprog-bar__label { color: rgba(242, 237, 225, .8); }
+
+/* Continue banner — prominent resume affordance (user order 2026-10-08:
+   explicit "Continue where you left off" button). */
+.ilprog-continue {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1.1rem 1.35rem; margin: 0 0 1.4rem; border-radius: 14px;
+  border: 1px solid rgba(98, 216, 233, .35);
+  background: linear-gradient(120deg, rgba(98, 216, 233, .09), rgba(201, 162, 39, .07));
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, .12), 0 8px 28px rgba(0, 0, 0, .35);
+}
+.ilprog-continue__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
+  color: #62d8e9; margin: 0 0 .3rem;
+}
+.ilprog-continue__desc { margin: 0; font-size: .95rem; color: rgba(242, 237, 225, .92); }
+.ilprog-continue__btn {
+  display: inline-block; padding: .7rem 1.6rem; border-radius: 999px;
+  background: linear-gradient(135deg, #d4af2f, #c9a227); color: #10131a !important; font-weight: 800; font-size: .95rem; text-decoration: none;
+  border: 0; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 4px 18px rgba(201, 162, 39, .35);
+}
+.ilprog-continue__btn:hover { filter: brightness(1.1); box-shadow: 0 6px 22px rgba(201, 162, 39, .45); }
+/* "Start your guided path" variant — same banner, green accent. */
+.ilprog-continue--start { border-color: rgba(61, 220, 151, .4); }
+.ilprog-continue--start .ilprog-continue__eyebrow { color: #3ddc97; }
+.ilprog-continue--start .ilprog-continue__btn {
+  background: linear-gradient(135deg, #4be3a4, #3ddc97);
+  box-shadow: 0 4px 18px rgba(61, 220, 151, .35);
+}
+.ilprog-continue--start .ilprog-continue__btn:hover { box-shadow: 0 6px 22px rgba(61, 220, 151, .45); }
+
+/* Next-up banner inside the course shell */
+.ilprog-nextup {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1.1rem 1.25rem; margin: 1.2rem 0; border-radius: 12px;
+  border: 1px solid rgba(61, 220, 151, .45);
+  background: rgba(61, 220, 151, .07);
+}
+.ilprog-nextup__eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
+  color: #3ddc97; margin: 0 0 .3rem;
+}
+.ilprog-nextup__desc { margin: 0; color: rgba(242, 237, 225, .92); }
+.ilprog-nextup__links { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+.ilprog-nextup__btn {
+  display: inline-block; padding: .6rem 1.4rem; border-radius: 999px;
+  background: #3ddc97; color: #10131a !important; font-weight: 700; text-decoration: none;
+  white-space: nowrap;
+}
+.ilprog-nextup__btn:hover { filter: brightness(1.08); }
+
+/* Track-grouped guided path (academy) — related courses in one track */
+.ilprog-track-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .7rem; margin-top: 1rem; }
+.ilprog-track-card {
+  display: flex; flex-direction: column; gap: .25rem; padding: .9rem 1rem;
+  border: 1px solid rgba(255,255,255,.1); border-radius: 10px; text-decoration: none;
+  background: rgba(255,255,255,.03);
+}
+.ilprog-track-card:hover { border-color: rgba(201,162,39,.5); }
+.ilprog-track-card__code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem; color: #c9a227; letter-spacing: .08em; }
+.ilprog-track-card__title { color: rgba(242,237,225,.94); font-weight: 600; }
+.ilprog-track-card__meta { font-size: .75rem; color: rgba(242,237,225,.6); }
+
+/* Small course-card progress bar (academy listings) */
+.ilprog-cardbar { margin-top: .7rem; }
+.ilprog-cardbar .ilprog-bar__track { height: 6px; }
+.ilprog-cardbar .ilprog-bar__label { font-size: .66rem; }
+
+/* Never animate fills — instant, honest, motion-safe. */
+@media (prefers-reduced-motion: reduce) {
+  .ilprog-bar__fill { transition: none !important; }
+  .ilprog-continue__btn, .ilprog-nextup__btn { transition: none !important; }
+}

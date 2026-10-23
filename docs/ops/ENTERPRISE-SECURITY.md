@@ -156,7 +156,7 @@ Alignment target: **MASVS-L1** + selected L2 network/storage controls for Capaci
 ### 5.5 PWA
 
 - `docs/manifest.webmanifest` — Interstitium Labs (not Grok)
-- `docs/sw.js` — first-party; never durable-cache enroll config as secrets
+- `docs/sw.js` — kill switch only (delete caches, reload, unregister). It must not durable-cache enroll config or HTML.
 
 ---
 

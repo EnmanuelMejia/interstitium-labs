@@ -1,0 +1,71 @@
+{
+ "course": "il-28-devsecops-cloud-infrastructure-mastery",
+ "stories": [
+  {
+   "bridge": "1995's fix is still the admin's lifeline. Now let's learn Linux networking properly — ports, sockets, and the encrypted tunnels you'll live in.",
+   "course": "il-28-devsecops-cloud-infrastructure-mastery",
+   "figures": [
+    {
+     "dates": "b. 1968",
+     "name": "Tatu Ylönen",
+     "role": "Finnish researcher; created SSH (1995)"
+    }
+   ],
+   "hook": "In 1995, a researcher in Helsinki watched passwords cross his university network in cleartext — and wrote the fix.",
+   "id": "il-28-devsecops-cloud-infrastructure-mastery-story-1",
+   "moduleId": "IL28-M10",
+   "narrative": "Tatu Ylönen was a researcher at Helsinki University of Technology when a password-sniffing attack hit the university network: someone was harvesting credentials straight off the wire, because telnet, rlogin, and FTP all sent everything — including passwords — unencrypted. Ylönen's response, in July 1995, was SSH-1: a protocol that encrypted the entire session, authenticated both ends, and tunneled everything through cryptography. He released it as free software, and it spread like fire — within months it was the obvious answer to a problem everyone had been ignoring. The protocol had flaws (SSH-1's CRC compensation attack, found in 1998), so the IETF standardized SSH-2, and in 1999 the OpenBSD team — led by Theo de Raadt — released OpenSSH, a clean free implementation that became the default everywhere: every Linux server, every cloud instance, every Git push over SSH. The deeper story is the pattern: the internet's early protocols assumed a trustworthy network, and one by one they've been retrofitted or replaced — telnet by SSH, FTP by SFTP, HTTP by HTTPS. Ylönen's 1995 fix is the template: encrypt the transport, authenticate the endpoints, assume the wire is hostile. In this module you'll live inside SSH — keys, agents, tunneling, hardening — and every session is a small act of 1995: refusing to send secrets in cleartext. The sniffer is still out there. The fix still works. The IETF standardization (SSH-2) and OpenBSD's clean-room OpenSSH (1999) completed the takeover: one free, audited implementation everywhere, replacing telnet in every datacenter within years. In this module you'll manage keys, agents, and tunnels daily — and every time you refuse a password login for key-only auth, you're enforcing 1995's lesson: the wire is hostile, the endpoints must prove themselves. The wire is hostile; prove the endpoints, every session.  Key-only auth, everywhere, as reflex.  No exceptions.",
+   "title": "The story behind SSH",
+   "verifiedClaims": [
+    "Ylönen released SSH-1 in July 1995 after a password-sniffing attack in Helsinki",
+    "OpenSSH was released by the OpenBSD team in 1999",
+    "SSH replaced cleartext protocols (telnet, rlogin, FTP)"
+   ]
+  },
+  {
+   "bridge": "The container is forty years of OS research with a 2013 user interface. Now let's learn Docker deeply — images, layers, and the security that makes them safe.",
+   "course": "il-28-devsecops-cloud-infrastructure-mastery",
+   "figures": [],
+   "hook": "In 1979, Unix got chroot — a way to lie to a process about where the filesystem ends. Everything since is refinement.",
+   "id": "il-28-devsecops-cloud-infrastructure-mastery-story-2",
+   "moduleId": "IL28-M22",
+   "narrative": "The container's lineage is one of computing's longest. It starts with chroot, added to Unix in 1979 (and BSD in 1982): a system call that changes a process's root directory, jailing it in a subtree. Bill Joy used it to build test environments; the idea — processes with a restricted view of the machine — proved durable. In 2000, FreeBSD got jails, extending the concept to full virtualized userlands with their own network identities. In 2004, Solaris 10 shipped Zones, bringing resource controls. In 2008, Linux got LXC, built on two kernel features — cgroups (resource limits) and namespaces (isolated views of processes, networks, mounts) — that finally made containers a first-class primitive. All the machinery existed. What didn't exist was the experience — until Docker's 2013 release wrapped it in the Dockerfile, the image, and the registry, and the industry converged in months. For DevSecOps, the container is both the deployment unit and the security boundary you'll harden in this module: image scanning, least-privilege runtimes, signed images, read-only filesystems. The 1979 insight still holds — lie to the process about the machine — but the threat model grew up: the container is not a security boundary by itself, it's a packaging format that needs the hardening this module teaches. Learn the lineage and the layers; the Dockerfile is the easy part. The kernel primitives — namespaces for isolation, cgroups for limits — were built over a decade by engineers solving hyperscale problems before Docker packaged them for everyone. The 2013 breakthrough was distribution, not invention: the Dockerfile made the primitive legible, the registry made it shippable. In this module you'll harden what Docker popularized: scan the image, drop the privileges, sign the artifact. The container is the package; the hardening is the product. The package is easy; the hardening is the product.",
+   "title": "The story behind the container",
+   "verifiedClaims": [
+    "chroot dates to 1979 (BSD 1982); FreeBSD jails to 2000; Solaris Zones to 2004; LXC to 2008",
+    "Docker's 2013 release made containers mainstream",
+    "Containers build on cgroups and namespaces"
+   ]
+  },
+  {
+   "bridge": "Log4Shell is why this module exists: shift left, scan everything, know your dependencies. Now let's learn supply-chain security like the next one is already in your tree.",
+   "course": "il-28-devsecops-cloud-infrastructure-mastery",
+   "figures": [],
+   "hook": "On December 9, 2021, the internet discovered that a logging library could run anyone's code.",
+   "id": "il-28-devsecops-cloud-infrastructure-mastery-story-3",
+   "moduleId": "IL28-M47",
+   "narrative": "Log4j is a Java logging library — the kind of invisible infrastructure every enterprise runs without thinking about. Researcher Chen Zhaojun of Alibaba's cloud security team found that a crafted log message could trigger a JNDI lookup to an attacker-controlled server, which would return a malicious Java class that the application would obligingly execute. Log a string, get remote code execution: CVE-2021-44228, disclosed December 9, 2021, CVSS 10.0 — the maximum. The blast radius was planetary: the library was embedded in countless applications, from Minecraft servers to enterprise software to cloud services. Security teams spent the holidays hunting it in their dependency trees, and many discovered they didn't know what they were running — the vulnerability exposed not just a bug but an inventory failure. CISA called it one of the most serious they'd seen; the response became the template for modern vulnerability management: SBOMs (software bills of materials) so you know your dependencies, automated scanning in CI/CD so you catch them early, and the 'shift-left' discipline this module teaches — security as part of the pipeline, not an audit after the fact. Log4Shell's deeper lesson: your application is its dependencies, and your dependencies are strangers' code running with your privileges. Scan like it. The next Log4j is already in someone's tree. The remediation became a case study in dependency blindness: organizations found Log4j nested five layers deep in vendor products, with no inventory to find it — the SBOM mandate that followed (EO 14028) was the policy response. In this module you'll build the shift-left pipeline that would have caught it: scan on commit, inventory always, patch fast. The next one's already in someone's tree. Scan on commit, inventory always, patch fast — the shift-left liturgy that would have caught it.  Build the pipeline that would have caught it.",
+   "title": "The story behind Log4Shell",
+   "verifiedClaims": [
+    "CVE-2021-44228 was disclosed December 9, 2021, with CVSS 10.0",
+    "The JNDI-lookup flaw allowed remote code execution via log messages",
+    "It drove SBOM and shift-left security adoption"
+   ]
+  },
+  {
+   "bridge": "SolarWinds proved the update channel is the attack surface. Now let's learn secrets and supply-chain defense — the module where trust gets verified.",
+   "course": "il-28-devsecops-cloud-infrastructure-mastery",
+   "figures": [],
+   "hook": "On December 13, 2020, FireEye — a cybersecurity company — announced it had been breached. The real story was bigger.",
+   "id": "il-28-devsecops-cloud-infrastructure-mastery-story-4",
+   "moduleId": "IL28-M48",
+   "narrative": "FireEye's disclosure was alarming on its own — attackers had stolen its red-team tools — but the investigation uncovered something far worse: the attackers had compromised SolarWinds' Orion network-management software at the source, trojanizing its updates. The backdoor, dubbed SUNBURST, shipped inside legitimate signed updates to some 18,000 customers, including US federal agencies and Fortune 500 companies. The attackers were patient and selective, using the foothold to move only into high-value targets — a supply-chain compromise executed with nation-state discipline, widely attributed to Russia's SVR. The industry's response rewrote the playbook: Executive Order 14028 (2021) mandated SBOMs and secure development practices for federal software; 'assume breach' extended to the vendor channel; and every CISO learned the new nightmare — you can do everything right and still be compromised through the tools you trust. For this module, SolarWinds is the founding case study of supply-chain security: verify your artifacts (signing, provenance, SLSA), minimize your dependencies, segment your build systems, and treat the update channel as what it is — the most privileged code path in your infrastructure. The attackers didn't break in; they were invited in, signed and delivered. Your pipeline is the perimeter now. Defend it like one. What made SolarWinds historic wasn't just the technique but the patience: the operators chose targets carefully, moved slowly, and stayed quiet for months — the opposite of smash-and-grab crime. The industry's answer has been to treat the software supply chain as critical infrastructure: attestations, provenance, reproducible builds. In this module you'll implement the defenses as daily practice, not theory — because the next trojanized update is already being planned somewhere, and your pipeline is someone's target.  Signed artifacts, verified provenance, minimal trust — the new liturgy of the build.  Guard the signing keys like the kingdom depends on it — because it does.",
+   "title": "The story behind the SolarWinds hack",
+   "verifiedClaims": [
+    "FireEye disclosed the breach December 13, 2020",
+    "The SUNBURST backdoor shipped in trojanized Orion updates to ~18,000 customers",
+    "EO 14028 (2021) responded with SBOM and secure-development mandates"
+   ]
+  }
+ ]
+}

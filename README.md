@@ -1,3 +1,9 @@
+<div align="center">
+
+![Banner](assets/banner.png)
+
+</div>
+
 # Interstitium Labs
 
 **Live:** https://interstitiumlabs.dev  
@@ -41,10 +47,10 @@ See `apps/mobile/README.md`.
 
 ## PWA
 
-`docs/manifest.webmanifest` + `docs/sw.js` — Interstitium Labs / Learning OS (not legacy “Grok App”).
+`docs/manifest.webmanifest` is the install manifest. `docs/sw.js` is a one-shot kill switch: it clears the retired September precache and unregisters. It does not serve an offline shell.
 
 Independent product work by Enmanuel D. Mejia. Pair with [devops-superlab](https://github.com/EnmanuelMejia/devops-superlab).
 
 ## Selected architecture work
 
-- [Sovereign Hybrid AI for Print & Packaging Manufacturing](case-studies/sundance-hybrid-ai/README.md): independent SunDance USA candidate case study (September–October 2026); 37-page architecture proposal, 17-slide executive presentation, data-residency-first model routing, four proposed human-governed agents, and phased roadmap. These are authored deliverables, **not** a paid consulting engagement or production deployment. [Public project page](https://interstitiumlabs.dev/projects/sundance-ai-architecture/).
+- [Sovereign Hybrid AI for Print & Packaging Manufacturing](case-studies/sundance-hybrid-ai/README.md): independent SunDance USA candidate case study (September–October 2026); 37-page architecture proposal, 17-slide executive presentation, data-residency-first model routing, four proposed human-governed agents, and phased roadmap. These are authored deliverables, **not** a paid consulting engagement or production deployment..

@@ -1,0 +1,122 @@
+/**
+ * Interstitium Labs — command palette (il-command-palette.css)
+ * Dark cinematic quick-jump: ⌘K / Ctrl+K / "/" / tap.
+ * Loads after il-unified.css; upgrades the .il-search__* shell with
+ * palette chrome (hints footer, section headers, active-row styling).
+ * Mobile-first: bottom sheet ≤640px, ≥48px touch rows, safe-area aware.
+ */
+
+/* ---------- shell (overrides il-unified.css base) ---------- */
+.il-search__overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(4, 6, 10, 0.72);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 12vh 1rem 1rem;
+  opacity: 1; transition: opacity 0.16s ease;
+}
+.il-search__overlay[hidden] { display: none; }
+.il-search__panel {
+  width: min(640px, 100%);
+  background: linear-gradient(180deg, #0e1428 0%, #0a0e1d 100%);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0,0,0,0.4),
+    0 0 48px rgba(201, 162, 39, 0.08);
+  transform: translateY(0) scale(1); transition: transform 0.18s ease;
+  display: flex; flex-direction: column; max-height: min(78vh, 44rem);
+}
+.il-search__bar {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.9rem 1.1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  color: #c9a227;
+}
+.il-search__input {
+  flex: 1; background: none; border: 0; color: #f2ede1;
+  font-size: 1.05rem; outline: none; min-width: 0;
+  font-family: var(--font-body, Inter, system-ui, sans-serif);
+}
+.il-search__input::placeholder { color: #5b6376; }
+.il-search__close {
+  background: none; border: 0; color: #8b93a8; font-size: 1.6rem;
+  cursor: pointer; line-height: 1; padding: 0.2rem 0.4rem; border-radius: 8px;
+  min-width: 44px; min-height: 44px;
+}
+.il-search__close:hover { color: #fff; }
+
+/* ---------- results ---------- */
+.il-search__results { overflow-y: auto; padding: 0.45rem; -webkit-overflow-scrolling: touch; }
+.il-search__section {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: #98917e; padding: 0.75rem 0.85rem 0.3rem;
+}
+.il-search__item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0.85rem; border-radius: 11px;
+  text-decoration: none; color: inherit; cursor: pointer;
+  border: 1px solid transparent; min-height: 48px;
+}
+.il-search__item:hover,
+.il-search__item--active {
+  background: rgba(201, 162, 39, 0.1);
+  border-color: rgba(201, 162, 39, 0.35);
+}
+.il-search__type {
+  flex: none; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #c9a227;
+  background: rgba(201, 162, 39, 0.1); border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 6px; padding: 0.28rem 0.55rem; min-width: 70px; text-align: center;
+}
+.il-search__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.il-search__title { font-weight: 600; color: #f2ede1; font-size: 0.95rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.il-search__desc { font-size: 0.8rem; color: #8b93a8;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.il-search__theme { flex: none; font-size: 0.72rem; color: #6b7398; }
+.il-search__hint { padding: 1.4rem 1.2rem; text-align: center; color: #8b93a8; font-size: 0.9rem; }
+.il-search__hint kbd {
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 5px; padding: 0.15rem 0.45rem; font-size: 0.78rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+/* fuzzy-match highlight */
+.il-search__title mark {
+  background: transparent; color: #ffd76a; font-weight: 700;
+}
+
+/* ---------- footer hints ---------- */
+.il-search__foot {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.6rem 1.1rem; border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.72rem; color: #6b7398;
+}
+.il-search__foot kbd {
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px; padding: 0.1rem 0.4rem; margin-right: 0.3rem;
+  font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.68rem; color: #aab2cc;
+}
+
+/* ---------- mobile: bottom sheet ---------- */
+@media (max-width: 640px) {
+  .il-search__overlay {
+    align-items: flex-end; padding: 0;
+  }
+  .il-search__panel {
+    width: 100%; max-height: 82dvh; border-radius: 20px 20px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .il-search__panel::before {
+    content: ""; display: block; width: 40px; height: 4px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22); margin: 0.6rem auto 0;
+  }
+  .il-search__input { font-size: 16px; } /* no iOS zoom */
+  .il-search__foot { display: none; }
+  .il-search__item { padding: 0.85rem; }
+  .il-search__title { font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-search__overlay, .il-search__panel { transition: none; }
+}

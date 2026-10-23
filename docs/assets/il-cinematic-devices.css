@@ -1,0 +1,173 @@
+/* ============================================================================
+   Interstitium Labs — Cinematic Device Optimization (il-cinematic-devices.css)
+   ----------------------------------------------------------------------------
+   Tailored for the user's three devices:
+     1. Philips 499P9 ultrawide  (5120x1440, 32:9) — fill the canvas
+     2. Pixel 9 Pro XL           (1344x2992, ~20:9) — performance-first
+     3. Lenovo Legion            (2560x1600 / 1920x1080) — full effects
+
+   Principles:
+   - Ultrawide: spread content, anchor decor to edges, no dead-center islands
+   - Mobile: GPU transforms only, minimal blur, reduced motion by default
+   - All: prefers-reduced-motion respected everywhere
+   ========================================================================== */
+
+/* ==========================================================================
+   1. ULTRAWIDE — 32:9 (Philips 499P9 @ 5120x1440)
+   Trigger: very wide aspect ratio OR extreme width.
+   ========================================================================== */
+@media (min-aspect-ratio: 29/10), (min-width: 3440px) {
+
+  /* --- Topic heroes: spread content, use the width --- */
+  .th-hero__content {
+    width: min(1600px, 94vw);
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 4rem;
+    align-items: center;
+    text-align: left;
+  }
+  .th-hero__title { font-size: clamp(3.5rem, 6vw, 8rem); }
+  .th-hero__tag { max-width: 36rem; }
+  /* Decor elements anchor to the right column */
+  .th-hero__decor {
+    position: relative;
+    inset: auto;
+    min-height: 40vh;
+  }
+
+  /* --- Cert hero: cinematic spread --- */
+  .cert-hero__content { width: min(1500px, 94vw); }
+  .cert-hero__title { font-size: clamp(3.5rem, 6.5vw, 8rem); }
+  .cert-hero__stats { gap: 4rem; }
+  .cert-hero__stat b { font-size: 2.6rem; }
+  /* Orbit seals spread wider on ultrawide */
+  .cert-hero__orbit {
+    width: min(95vmin, 900px);
+    height: min(95vmin, 900px);
+    left: 68%;
+  }
+
+  /* --- Cinematic cards: 4-5 columns --- */
+  .cine-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.8rem;
+  }
+
+  /* --- Floating widget: keep clear of ultrawide content --- */
+  .il-aw {
+    bottom: 2rem;
+    right: 2.5rem;
+  }
+}
+
+/* Even wider: 5120px native */
+@media (min-width: 4800px) {
+  .cine-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .th-hero__content { width: min(2000px, 96vw); }
+  .cert-hero__content { width: min(1900px, 96vw); }
+}
+
+/* ==========================================================================
+   2. MOBILE — Pixel 9 Pro XL (and all small screens)
+   Performance-first: GPU transforms, no heavy blur, simplified effects.
+   ========================================================================== */
+@media (max-width: 640px) {
+
+  /* --- Heroes: stack, shrink, simplify --- */
+  .th-hero { min-height: 92svh; }
+  .th-hero__content {
+    padding: 12svh 0 8svh;
+    text-align: center;
+  }
+  .th-hero__title { font-size: clamp(2.4rem, 11vw, 3.8rem); }
+  .th-hero__tag { font-size: 0.98rem; }
+  /* Kill expensive layered FX on mobile — keep one tint only */
+  .th-hero__fx { display: none; }
+  .th-hero__video { display: none; }
+  .th-hero__poster { display: block; }
+
+  /* --- Cert hero mobile --- */
+  .cert-hero { min-height: 88svh; }
+  .cert-hero__stars { display: none; } /* static gradient is enough */
+  .cert-hero__orbit { opacity: 0.3; width: 78vmin; height: 78vmin; }
+  .cert-hero__seal { width: 44px; height: 44px; font-size: 0.5rem; }
+  .cert-hero__title { font-size: clamp(2.2rem, 10vw, 3.4rem); }
+  .cert-hero__stats { gap: 1.4rem; }
+  .cert-hero__stat b { font-size: 1.5rem; }
+
+  /* --- Cards: single column, smaller --- */
+  .cine-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .cine-card { min-height: 280px; }
+  .cine-card__poster { height: 140px; }
+  .cine-card__glyph { font-size: 4.5rem; }
+  /* Disable hover lift on touch (no hover) — use active instead */
+  .cine-card:hover { transform: none; }
+  .cine-card:active { transform: scale(0.98); }
+
+  /* --- Floating widget: thumb-reachable bottom sheet --- */
+  .il-aw {
+    width: calc(100vw - 1.5rem);
+    right: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    border-radius: 18px;
+    /* Lighter blur on mobile (GPU cost) */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .il-aw.il-aw--min {
+    width: 60px; height: 60px;
+    left: auto; /* keep bottom-right for thumb */
+  }
+  .il-aw__art { height: 96px; }
+  .il-aw__eq { height: 36px; }
+  /* Larger touch targets */
+  .il-aw__btn { width: 2.8rem; height: 2.8rem; }
+  .il-aw__btn--play { width: 3.4rem; height: 3.4rem; }
+  .il-aw__iconbtn { width: 2rem; height: 2rem; }
+}
+
+/* Small height (landscape phones): compress heroes */
+@media (max-height: 500px) and (max-width: 900px) {
+  .th-hero, .cert-hero { min-height: 130svh; }
+  .th-hero__content, .cert-hero__content { padding: 8svh 0 6svh; }
+}
+
+/* ==========================================================================
+   3. REDUCED MOTION — global cinematic kill switch
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .th-hero__fx,
+  .cert-hero__stars,
+  .cert-hero__orbit::before,
+  .cert-hero__orbit::after,
+  .cert-hero__seal,
+  .cert-hero__scroll::after,
+  .cine-card,
+  .cine-card__poster::after,
+  .il-aw { animation: none !important; transition: none !important; }
+  .cine-card:hover { transform: none; }
+  .th-hero__video, .cert-hero__video { display: none; }
+}
+
+/* ==========================================================================
+   4. PERFORMANCE HINTS — GPU layer promotion for animated elements
+   ========================================================================== */
+.th-hero__fx,
+.cert-hero__orbit,
+.cert-hero__seal,
+.cine-card,
+.il-aw__art::before {
+  will-change: transform;
+  transform: translateZ(0); /* force GPU layer */
+}
+/* But NOT on mobile — too many layers hurts */
+@media (max-width: 640px) {
+  .th-hero__fx,
+  .cert-hero__orbit,
+  .cine-card {
+    will-change: auto;
+    transform: none;
+  }
+}

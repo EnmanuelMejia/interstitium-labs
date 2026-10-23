@@ -136,6 +136,42 @@ for (const f of files.sort()) {
   entries.push({ u, t, d, k: keywords(u, t, d) });
 }
 
+/* University courses: extracted from the course JSON catalog (schema v4).
+   Each entry carries code, title, blurb, hours, and cert tracks so Noah
+   can tutor, recommend, and deep-link into the course player. */
+try {
+  const courseFiles = readdirSync(join(DOCS, 'university/data/courses'))
+    .filter(f => /^il-.*\.json$/i.test(f) && !f.startsWith('_'));
+  for (const f of courseFiles.sort()) {
+    const slug = f.replace(/\.json$/i, '');
+    const u = '/university/course?course=' + slug;
+    if (seen.has(u)) continue;
+    let course;
+    try { course = JSON.parse(readFileSync(join(DOCS, 'university/data/courses', f), 'utf8')); }
+    catch { continue; }
+    const code = String(course.code || '').trim();
+    const t = String(course.title || '').trim();
+    if (!code || !t) continue;
+    seen.add(u);
+    let d = String(course.blurb || course.tagline || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    const hours = Number(course.hours);
+    if (Number.isFinite(hours) && hours > 0) d += ` ${hours} hours.`;
+    const certs = [];
+    for (const g of (course.certGates || [])) {
+      const c = String((g && g.cert) || '').trim();
+      if (c) certs.push(c);
+    }
+    if (certs.length) d += ' Cert prep: ' + certs.slice(0, 6).join(', ') + '.';
+    const modBits = [];
+    for (const m of (course.modules || []).slice(0, 12)) {
+      const mt = String((m && m.title) || '').trim();
+      if (mt) modBits.push(mt);
+    }
+    const k = keywords(u + ' ' + code, t + ' ' + certs.join(' ') + ' ' + modBits.slice(0, 6).join(' '), d);
+    entries.push({ u, t, d: d.slice(0, 460), k });
+  }
+} catch (e) { /* courses dir missing — page entries still stand */ }
+
 const bundle = {
   v: 1,
   built: new Date().toISOString().slice(0, 10),

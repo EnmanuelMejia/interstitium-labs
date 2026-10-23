@@ -1,7 +1,85 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-05 ~09:15 EDT (America/New_York)._  
+_Last updated: 2026-10-07 ~09:50 EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-07 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Yesterday made 1 of 10 CKA scenes interactive — the other nine (NetworkPolicy, RBAC, scheduling, HPA …) were still **dioramas you could only orbit**. Audit also found every predict-then-reveal question keyed to **option 0** (a learner could “master” every drill by always clicking the first button) and safe toggle states painted red. **No.** |
+| After this ship | **Closer / still NO** | **5 of 10 CKA domains now interactive**: NetworkPolicy (default-deny, additive allow, egress-DNS trap, non-enforcing CNI), RBAC (RoleBinding vs ClusterRoleBinding scope, namespace, additive-only), scheduler (taint filters affinity, tolerations don't attract, cordon vs drain), HPA (`ceil(current × util / target)`, tolerance, clamp, `<unknown>` without requests). 16 new predict-then-reveal checkpoints. Options shuffle per attempt. Still **no live UE host**, **no hosted fleet / live cluster**. |
+| Fake YES risk | Rejected | Rules engine over authored glTF; every caption says "sim (rules engine, not a live system)". Kubernetes semantics pinned by unit tests. |
+
+## Scorecard (0–10) — 2026-10-07
+
+| Dimension | Prior (10-06) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.0 | 9.0 | Same scenes — now they react |
+| Live labs density | 6.5 | **7.0** | 7 interactive sims (was 3); still no hosted fleet |
+| Adaptive learning | 7.3 | **7.6** | Predict data is now meaningful (no positional answer); next-drill per sim |
+| Honesty / trust | 9.9 | 9.9 | Unchanged rules-engine disclosure |
+| Curriculum SoT | 8.8 | **9.0** | 4 new published `lab-sim-*` in labs + mirror; manifest `cka_coverage.interactive` |
+| Immersive / 3D gate | 9.1 | **9.3** | Half of CKA spatial domains are now stateful 3D, not static |
+
+**Composite ~8.5/10. Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cluster sandbox**. Next cheapest win: make CNI / Ingress / Storage CSI / Secrets / mesh interactive (5 left), then an exam-mode that chains drills under a timer.
+
+## Competitor delta (2026-10-07, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| KodeKloud Pro ($252/yr) | 3 CKA mock exams, 60+ playgrounds, AI-assisted labs | Their RBAC/NetworkPolicy/scheduling theory is video + slides; IL makes each one a stateful 3D object you break and predict |
+| Killercoda (free) | 100+ instant browser K8s scenarios | Terminals without a mental model; IL shows *why* the pod is Pending / Forbidden / dropped |
+| A Cloud Guru / Pluralsight | 1,800+ labs, cloud sandboxes | Catalog breadth; few K8s-specific visual drills |
+
+## Shipped this pass (2026-10-07)
+
+1. `il-immersive-sims.js` v1.1.0: `netpol-isolation`, `rbac-authz`, `sched-taints`, `hpa-scale` (pure helpers `netpolDecide` / `rbacDecide` / `schedDecide` / `hpaDesired` exported for tests)
+2. Player v1.5.0: per-attempt option shuffle (`shuffleOrder`), toggle `risk` colouring
+3. Wired on `/immersive/` (new `#cka-rbac`, `#cka-hpa` anchors), curriculum OS labs + mirror, manifest `cka_coverage.interactive`
+4. Tests: 5 new unit tests (K8s semantics + shuffle permutation); browser suite runs all 7 sims + RBAC toggle
+
+---
+
+## Verdict — 2026-10-06 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Ten CKA scenes were **static dioramas** (clips only nudged glow), AWS track was `procedural:rack` in “review”, and an audit found the /immersive/ grid drawing a procedural pedestal under a “Three/glTF” badge, `/learn/` falling back to procedural (scene-kit load order), every /immersive/ host re-stamped with one `.glb`, LOD1 duplicates double-drawn, and 18 WebGL contexts on one page (Chromium cap 16) — **no**. |
+| After this ship | **Closer / still NO** | **State now changes the scene**: etcd quorum, AWS Multi-AZ failure, IAM evaluation sims with predict-then-reveal + analytics + next-drill. **AWS SAA/CCP goes 3D-first** (two new Blender-polished glTFs wired into both AWS paths + curriculum OS). Render honesty bugs fixed and covered by tests. Still **no live UE host**, **no hosted lab fleet / live AWS sandbox**. |
+| Fake YES risk | Rejected | Sims are an in-browser rules engine over authored glTF and every caption says so. No AWS account, no cluster, no GPU host. |
+
+## Scorecard (0–10) — 2026-10-06
+
+| Dimension | Prior (10-05) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 8.8 | **9.0** | Failure re-tints the architecture live; ASG surge instances appear |
+| Motion / graphics | 8.6 | **8.8** | LOD1 overdraw/z-fight + proxy slabs gone; eased per-node tint |
+| Live labs density | 6.0 | **6.5** | 3 interactive sims (rules engine) — still no hosted fleet |
+| Adaptive learning | 7 | **7.3** | Predict accuracy + latency → next drill; analytics events |
+| Honesty / trust | 9.8 | **9.9** | Removed a false “Three/glTF” badge + silent procedural fallbacks |
+| Curriculum SoT | 8.5 | **8.8** | AWS certs/labs/assets3d + manifest v5 `sims` block |
+| Immersive / 3D gate | 8.8 | **9.1** | 3D-first now spans CKA **and** AWS SAA/CCP; scenes are interactive |
+
+**Composite ~8.3/10. Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / live cloud sandbox**.
+
+## Competitor delta (2026-10-06, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| AWS Cloud Quest v2.0 (Aug 11 2026) | 3D city, AI customer dialogs, 130+ live AWS builds, badges | Cloud Quest's 3D is the city; the architecture is a flat solution diagram. IL's architecture **is** the 3D object and reacts to AZ failure / IAM statements, with predict-then-reveal |
+| KodeKloud SAA design challenge + AWS playground | Real AWS sandbox | Their design challenge is drag-and-drop 2D; IL ships spatial failure drills (no sandbox — honest) |
+| A Cloud Guru / Pluralsight | 1,800+ labs, sandboxes | IL interactive 3D cert stages for CKA + AWS (catalog far smaller) |
+| KodeKloud CKA | Hosted labs + AI Tutor | etcd quorum loss drill in 3D with Raft-correct outcomes |
+
+## Shipped this pass (2026-10-06)
+
+1. **AWS SAA/CCP 3D-first**: `aws-vpc-multi-az.glb`, `aws-iam-policy-eval.glb` (kit-v2 → Blender 4.2.3 CLI polish, extras now preserved) on `/immersive/`, `/paths/aws-cloud-practitioner-plus/`, `/paths/aws-cloud-ops/`; `cert-aws-cp-plus` review → published with glTF
+2. **Interactive sims** (`il-immersive-sims.js` + player v1.4.0): `etcd-quorum`, `aws-az-failure`, `iam-eval` — also on `/paths/k8s-cka-exceed/` hero
+3. **Render honesty fixes**: LOD1 skip, lazy WebGL contexts, scene-kit boot order, data-kind delegation, curriculum-sync stamping
+4. **Tests**: `scripts/tests/immersive-sims.test.js` in `npm test` (CI); `npm run test:immersive:browser`
+
+---
 
 ## Verdict — 2026-10-05 Musk-bar pass
 
@@ -63,7 +141,7 @@ _Live:_ https://interstitiumlabs.dev
 ## Shipped this pass (2026-10-02)
 
 1. **New pedagogical glTF** (kit-v2 → Blender CLI polish → promote): `storage-csi-pv.glb`, `ingress-gateway.glb`, `hpa-autoscaling.glb`
-2. **Promoted polish** on previously kit-only: `rack-19u.glb`, `hermetic-monas.glb`, `sim-superlab.glb` (`k8s-cluster.glb` already polished alias — skipped)
+2. **Promoted polish** on previously kit-only: `rack-19u.glb`, `hermetic-monas.glb`, `sim-superlab.glb` (`lecture-k8s-control-plane.glb`; the `k8s-cluster.glb` alias was retired as a byte-identical duplicate 2026-10-07 — skipped)
 3. **Wired** `/immersive/` sections + `curriculum-os/assets3d.json` + `mirror.json` certs
 4. **Lab Muse 3D v1.5.0** — per-node ampRole (core/accent/body/lod) → emissive boost, differential breathe, LOD hide when amp high
 5. **Pixel Streaming honesty** — P920 UE host checklist in `PIXEL-STREAMING-DEV.md` + fail-closed `docker-compose.ue-host.skeleton.yml`
@@ -73,8 +151,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Still wins | IL exceed today |
 |------|------------|-----------------|
-| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Spatial **storage / Ingress / HPA** pedagogy peers keep as flat 2D; Muse amp→material/LOD |
-| A Cloud Guru / Skillsoft / LF training | Catalog breadth + some hosted sandboxes | IL 3D-first CKA graph scenes + honest UE bring-up path |
+| Leading lab platform | Hosted labs fleet + AI Tutor in-lab | Spatial **storage / Ingress / HPA** pedagogy peers keep as flat 2D; Muse amp→material/LOD |
+| Cloud training / corporate learning platforms / LF training | Catalog breadth + some hosted sandboxes | IL 3D-first CKA graph scenes + honest UE bring-up path |
 | Killercoda | Instant browser terminals | IL spatial cert stage (no fake fleet) |
 | Meta Muse | Voice UX polish / product chrome | IL authored Dee/Monas glTF with amp→emissive/scale/LOD — local/OSS, no fake cloud |
 
@@ -118,8 +196,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Still wins | IL exceed today |
 |------|------------|-----------------|
-| KodeKloud | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
-| Brilliant / Codecademy / ALEKS | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
+| Leading lab platform | Hosted labs fleet + AI Tutor in-lab | Authored **spatial** CNI/RBAC/mesh pedagogy + Blender-polished glTF; Noah Live Assist — **no fake fleet** |
+| A leading STEM learning platform / interactive coding platforms / a leading adaptive-learning platform | Adaptive polish / path UX | IL 3D-first curriculum stages peers mostly keep flat |
 | Peer LMS 3D | Mostly video / 2D diagrams | IL ships polished glTF binaries + honest UE PS bring-up path |
 
 ---
@@ -164,8 +242,8 @@ _Live:_ https://interstitiumlabs.dev
 
 | Peer | Delta | IL response |
 |------|-------|-------------|
-| KodeKloud **AI Tutor Live Assist** | Real-time in-lab help + hosted labs | Noah Live Assist remains; **still no hosted fleet** (honest) |
-| Brilliant **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
+| Hosted AI-tutor live assist (peer) | Real-time in-lab help + hosted labs | Noah Live Assist remains; **still no hosted fleet** (honest) |
+| A leading STEM learning platform **Koji** | Adaptive tutor UI | Adapt + Noah remain CAT/fringe + Socratic; not a Koji clone |
 | Peer LMS 3D | Most still flat video / 2D diagrams | IL ships **real glTF meshes** + **Pixel Streaming client path** to stay generations ahead of flat LMS |
 
 ## Immersive 3D gate (product law)

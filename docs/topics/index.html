@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; media-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self' https://buy.stripe.com https://www.paypal.com; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Topics — Interstitium Labs</title>
+<meta name="description" content="Sixteen themed topic hubs: cybersecurity, system design, networking, cloud, AI, data, programming, databases, Linux, math, web, blockchain."/>
+<meta name="theme-color" content="#06080c"/>
+<link rel="manifest" href="https://interstitiumlabs.dev/manifest.webmanifest"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/topics/"/>
+<meta property="og:title" content="Topics — Interstitium Labs"/>
+<meta property="og:description" content="Sixteen themed topic hubs: cybersecurity, system design, networking, cloud, AI, data, programming, databases, Linux, math, web, blockchain."/>
+<meta property="og:url" content="https://interstitiumlabs.dev/topics/"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Interstitium Labs"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ux.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-hdr.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-ultrawide.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-genahead.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse-mobile.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse-3d.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-noah-avatar.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-model-panel.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+<link rel="icon" type="image/svg+xml" href="https://interstitiumlabs.dev/favicon.svg"/>
+<link rel="apple-touch-icon" href="https://interstitiumlabs.dev/assets/chrome/apple-touch.png"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-topic-themes.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-topic-heroes.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-wow.css"/>
+</head>
+<body class="min-h-dvh bg-void text-paper">
+<a class="il-skip" href="#main">Skip to content</a>
+<!-- Floating pill nav -->
+<nav class="il-pillnav" aria-label="Primary">
+  <div class="il-pillnav__row">
+    <a class="il-brand" href="/" aria-label="Interstitium Labs home">
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38" loading="lazy">
+      <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
+    </a>
+    <div class="il-pillnav__links">
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <details class="il-menu">
+        <summary aria-label="Open menu">MENU</summary>
+        <div class="il-menu__sheet">
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
+        </div>
+      </details>
+      <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
+    </div>
+  </div>
+</nav>
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Topics</li></ol></nav>
+<header class="il-hero">
+  <div class="il-hero__bg" aria-hidden="true">
+    <video class="il-hero__video" autoplay muted loop playsinline preload="auto" poster="https://interstitiumlabs.dev/assets/chrome/hero-cinematic-poster.jpg" disablepictureinpicture aria-hidden="true" tabindex="-1"><source src="/assets/chrome/hero-cinematic-loop.mp4" type="video/mp4"/><img src="https://interstitiumlabs.dev/assets/chrome/sigil-decor.webp" alt="" decoding="async" loading="lazy" width="640" height="640"></video>
+  </div>
+  <div class="il-hero__scrim" aria-hidden="true"></div>
+  <div class="il-wrap">
+    <h1 class="il-h">Sixteen worlds. One OS.</h1>
+    <p class="il-hero__sub">Every topic gets its own cinematic hub — themed courses, bootcamps, videos, and visual guides.</p>
+    <p class="il-hero__sub" style="margin-top:.6rem"><a href="/subject-map/" style="color:#38bdf8">Explore the Subject Map →</a> <span style="opacity:.7">browse all knowledge the MIT way, mapped to our courses</span></p>
+    <p class="il-hero__motto">SCIENTIA OMNIA VINCIT</p>
+  </div>
+</header>
+
+<style>
+@media(max-width:640px){
+}
+
+
+</style>
+
+
+<main id="main" class="il-main-pad-mobile">
+<section class="il-section"><div class="il-wrap">
+<div class="il-grid">
+<article class="th-card" data-topic-theme="mr-robot">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/cybersecurity-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/cybersecurity-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/cybersecurity-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/cybersecurity/" style="color:inherit">Cybersecurity</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Think like an attacker. Defend like an engineer.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">6 courses · 22 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="cyberpunk">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/system-design-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/system-design-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/system-design-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/system-design/" style="color:inherit">System Design</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Design systems that survive scale.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">2 courses · 5 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="tron">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/networking-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/networking-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/networking-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/networking/" style="color:inherit">Networking</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Packets in, understanding out.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">1 course · 4 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="steampunk">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/cloud-devops-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/cloud-devops-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/cloud-devops-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/cloud-devops/" style="color:inherit">Cloud &amp; DevOps</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Ship it. Scale it. Sleep at night.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">4 courses · 28 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="exmachina">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/ai-ml-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/ai-ml-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/ai-ml-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/ai-ml/" style="color:inherit">AI &amp; Machine Learning</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Machines that learn. Engineers who understand.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">4 courses · 12 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="oceandeep">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/data-eng-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/data-eng-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/data-eng-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/data-eng/" style="color:inherit">Data Engineering</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Data is the current. Ride it.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">3 courses · 11 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="hackers95">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/programming-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/programming-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/programming-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/programming/" style="color:inherit">Programming</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Write code that matters.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">3 courses · 17 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="alexandria">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/databases-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/databases-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/databases-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/databases/" style="color:inherit">Databases</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">The library of all knowledge, queryable.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">1 course · 4 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="industrial">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/linux-systems-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/linux-systems-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/linux-systems-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/linux-systems/" style="color:inherit">Linux &amp; Systems</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Own the machine.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">1 course · 11 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="turing">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/math-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/math-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/math-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/math/" style="color:inherit">Alan Turing</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">The father of computing — Enigma, morphogenesis, the universal machine.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">2 courses · 5 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="vaporwave">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/web-dev-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/web-dev-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/web-dev-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/web-dev/" style="color:inherit">Web Development</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Build for the open web.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">1 course · 3 bootcamps</p>
+</article>
+<article class="th-card" data-topic-theme="goldrush">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/blockchain-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/blockchain-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/blockchain-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/blockchain/" style="color:inherit">Blockchain</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Trust, engineered.</p>
+  <p style="margin:0;font-size:.78rem;opacity:.65">1 course · 1 bootcamp</p>
+</article>
+<article class="th-card" data-topic-theme="ledger">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/crypto-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/crypto-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/crypto-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/crypto/" style="color:inherit">Cryptocurrency</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Digital assets, demystified — XRP Ledger, ISO-20022 rails.</p>
+</article>
+<article class="th-card" data-topic-theme="feedback">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/cybernetics-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/cybernetics-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/cybernetics-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/cybernetics/" style="color:inherit">Cybernetics</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Feedback, control, communication — systems that steer themselves.</p>
+</article>
+<article class="th-card" data-topic-theme="dee">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/esoteric-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/esoteric-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/esoteric-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/esoteric/" style="color:inherit">Esoteric</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">John Dee, Enochian magic, alchemy — hidden knowledge, systematized.</p>
+</article>
+<article class="th-card" data-topic-theme="resonance">
+  <div style="height:120px;border-radius:8px;margin:-0.25rem -0.5rem 0.9rem;overflow:hidden;position:relative">
+    <video autoplay muted loop playsinline preload="metadata" poster="https://interstitiumlabs.dev/assets/topics/om-hero.jpg" style="width:100%;height:100%;object-fit:cover;display:block">
+      <source src="/assets/topics/om-hero.mp4" type="video/mp4">
+      <img src="https://interstitiumlabs.dev/assets/topics/om-hero.jpg" alt="" style="width:100%;height:100%;object-fit:cover" loading="lazy" width="854" height="480">
+    </video>
+  </div>
+  <h3 style="margin:0 0 .4rem;font-size:1.15rem"><a href="/topics/om/" style="color:inherit">Om</a></h3>
+  <p style="margin:0 0 .6rem;font-size:.9rem;opacity:.85">Consciousness, investigated — the inner technology of attention.</p>
+</article>
+</div>
+</div></section>
+</main>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
+  </div>
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
+</footer>
+</div>
+<script src="https://interstitiumlabs.dev/assets/il-topic-bundle.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+
+<script>
+(function(){
+"use strict";
+document.querySelectorAll(");
+  inner.appendChild(btn);
+});
+})();
+</script>
+
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
+</body>
+</html>

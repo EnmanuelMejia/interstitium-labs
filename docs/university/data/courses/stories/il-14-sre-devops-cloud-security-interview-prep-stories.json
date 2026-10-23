@@ -1,0 +1,56 @@
+{
+ "course": "il-14-sre-devops-cloud-security-interview-prep",
+ "stories": [
+  {
+   "bridge": "The typo heard round the world is why incident command exists. Now let's learn to run the room when it's your turn.",
+   "course": "il-14-sre-devops-cloud-security-interview-prep",
+   "figures": [],
+   "hook": "On February 28, 2017, an authorized AWS engineer typed a command with a typo — and half the internet went dark.",
+   "id": "il-14-sre-devops-cloud-security-interview-prep-story-1",
+   "moduleId": "sre-interview-prep--sre-incident-command",
+   "narrative": "The engineer was debugging the S3 billing system in us-east-1, Amazon's oldest and largest region, following an established playbook: take a small number of servers offline to investigate. The command, mistyped, removed far more servers than intended — including servers that other S3 subsystems depended on. Within minutes, S3 — the storage backbone that half the internet rented — began failing. And because so many AWS services themselves depended on S3, the failure cascaded with terrible elegance: websites, mobile apps, IoT devices went dark or degraded, and even the AWS service health dashboard itself failed, because it was hosted on S3. The outage lasted about four hours, an eternity at that scale, and the postmortem revealed the kind of detail that makes the story a permanent teaching text: the tooling had allowed too many servers to be removed too quickly, with too little confirmation, and the blast radius of a routine debugging action was effectively the whole region. Amazon's published postmortem was a model of the genre: no blame on the engineer — who had done nothing wrong by the standards of the system as designed — full technical detail, and concrete fixes, including requiring more deliberate confirmation for mass server removal and breaking the dashboard's dependency on the system it monitored. For your interview, this incident is the canonical case study in three things: blast radius (design so that one command, one human, one typo cannot take everything), cascading dependencies (know what depends on you, including your own observability), and blameless culture (fix the system that allowed the mistake, not the person who made it). When they ask you to walk through an incident, they're asking whether you think like that postmortem: calm, structural, and fixated on the system — never the person. The dashboard failure became its own lesson, quoted ever since: the status page depended on the system whose status it reported, so during the outage it showed everything as healthy. Amazon fixed the dependency and the industry adopted the principle — your observability must survive the failure it's meant to observe. When you design monitoring in this course, ask the dashboard question first: what does this show when the thing it watches is gone?",
+   "title": "The story behind the outage that broke the cloud",
+   "verifiedClaims": [
+    "The S3 us-east-1 outage occurred February 28, 2017, caused by a mistyped command during billing-system debugging",
+    "It lasted approximately four hours and cascaded to dependent services",
+    "AWS published a full blameless postmortem"
+   ]
+  },
+  {
+   "bridge": "Knight Capital is the ghost story DevOps tells its children. Now let's make sure your troubleshooting instincts are the kind that would have caught it.",
+   "course": "il-14-sre-devops-cloud-security-interview-prep",
+   "figures": [],
+   "hook": "On August 1, 2012, Knight Capital turned on new trading code — and lost $440 million in 45 minutes.",
+   "id": "il-14-sre-devops-cloud-security-interview-prep-story-2",
+   "moduleId": "devops-interview-prep--devops-troubleshoot",
+   "narrative": "Knight was one of America's largest market makers, handling roughly a tenth of all US equity volume — a titan of the trading world. That morning it deployed new software to handle a New York Stock Exchange program, and on one of eight servers, an engineer installed the new code but failed to remove the old. Worse, the deployment reactivated dead code: a test program called Power Peg, unused for years but never removed, which bought high and sold low in a frenzy — the exact opposite of a market maker's job. For 45 minutes, Knight's systems executed over four million erroneous trades across 148 stocks before anyone managed to pull the plug. The loss — $440 million — exceeded the firm's entire annual profit; Knight, a titan at the opening bell, was effectively dead by afternoon, its independence sold off within months. The postmortem read like a DevOps checklist written in blood: no consistent deployment automation across servers (one was done by hand), dead code left in the codebase for years, no kill switch, no real-time monitoring that anyone was watching, no canary, no rollback plan. Every practice this course drills — immutable artifacts, automated consistent deploys, feature flags, canary releases, the big red button, code hygiene — exists because of mornings like August 1, 2012. In interviews, when they ask about deployment safety, they're asking: have you internalized Knight? The correct answer is never 'we'll be careful.' It's a system in which this is structurally impossible — where dead code can't ship, where one server can't diverge, where the plug can be pulled in seconds. Build that system and you'll never be the ghost story. The final ignominy was operational: Knight's engineers couldn't simply turn the system off, because the runaway code was spread across servers and the kill procedure wasn't clear — 45 minutes of helpless watching. The postmortem's quietest recommendation was the most important: know how to stop your own system. Every runbook you write in this course should begin there — the big red button, tested, before the feature ships.",
+   "title": "The story behind the $440 million deployment",
+   "verifiedClaims": [
+    "Knight Capital lost approximately $440 million on August 1, 2012",
+    "Dead test code ('Power Peg') was reactivated by a faulty deployment on one server",
+    "The firm was effectively destroyed and sold within months"
+   ]
+  },
+  {
+   "bridge": "Denning taught machines to notice the unusual. Now let's learn detection engineering — the craft of turning her 1987 idea into rules that catch intruders.",
+   "course": "il-14-sre-devops-cloud-security-interview-prep",
+   "figures": [
+    {
+     "dates": "b. 1945",
+     "name": "Dorothy Denning",
+     "role": "Computer scientist; author of the intrusion-detection model (1987)"
+    }
+   ],
+   "hook": "In 1987, Dorothy Denning proposed watching for the enemy within — statistically.",
+   "id": "il-14-sre-devops-cloud-security-interview-prep-story-3",
+   "moduleId": "security-eng-interview-prep--sec-detection",
+   "narrative": "Denning worked at SRI International, and her insight was elegant in the way the best security ideas are: instead of trying to recognize every possible attack — a losing game, since attackers invent faster than defenders catalog — build statistical profiles of normal behavior for users and systems, and flag significant deviations. A login at 3 AM from a new country. A user suddenly reading files they've never touched. A process spawning children it never spawns. A server talking to the internet at midnight when it never has. The anomaly is the signal; the attacker's novelty becomes the very thing that betrays them. She published 'An Intrusion-Detection Model' at the IEEE Symposium on Security and Privacy in 1987, formalizing the mathematics, and SRI built IDES — the Intrusion Detection Expert System — to prove it worked in practice. The paper founded an industry: every SIEM correlation rule, every UEBA baseline, every 'impossible travel' alert in your future SOC descends from Denning's model. The tension she identified is also permanent and is the daily work of detection engineering: anomaly detection finds the unknown but cries wolf (false positives erode trust), while signature detection is precise but blind to novelty (it only catches yesterday's attack). The craft is in the tuning — baselines, thresholds, context, the human analyst in the loop. When interviewers ask how you'd detect an insider threat or a novel attack, they're asking whether you think like 1987: don't chase the attacker's infinite creativity; model the normal, and listen for the deviation. The enemy within always looks unusual. You just have to be watching. Denning later became a prominent voice in the crypto wars of the 1990s, testifying on key escrow and civil liberties — the detection pioneer turned privacy advocate, a reminder that the security field's founders often understood the stakes better than its vendors. Her 1987 model assumed what the industry keeps relearning: the attacker innovates, so the defense must model the normal. The signatures catch yesterday; the baselines catch tomorrow.",
+   "title": "The story behind intrusion detection",
+   "verifiedClaims": [
+    "Denning published 'An Intrusion-Detection Model' in 1987",
+    "SRI built the IDES system to implement it",
+    "The model underlies modern SIEM and UEBA detection"
+   ]
+  }
+ ]
+}

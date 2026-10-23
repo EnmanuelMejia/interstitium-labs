@@ -1,60 +1,66 @@
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
-<head><script src="/assets/il-theme.js"></script>
+<head><script src="https://interstitiumlabs.dev/assets/il-theme.js"></script>
+<script src="https://interstitiumlabs.dev/assets/il-cinematic-init.js" defer></script>
 <script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
 (function(){try{
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
 if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
 }catch(e){}})();</script>
 <style>/* IL critical: paint the first frame in the saved theme; stylesheets always override (no !important) */html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://interstitiumlabs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://interstitiumlabs.dev; font-src 'self' https://fonts.gstatic.com https://interstitiumlabs.dev; img-src 'self' data: blob: https://interstitiumlabs.dev; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com https://interstitiumlabs.dev; worker-src 'self'; media-src 'self'; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Immersive 3D — Interstitium Labs</title>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta property="og:image" content="https://interstitiumlabs.dev/og.jpg"/>
+<meta name="twitter:image" content="https://interstitiumlabs.dev/og.jpg"/>
 <meta name="description" content="3D-first curriculum stages: lectures, cert labs, simulations, non-cert. WebGL now; Blender glTF + Unreal Pixel Streaming pipeline documented."/>
-<meta name="theme-color" content="#070B16"/>
+<meta name="theme-color" content="#06080c"/>
 <link rel="canonical" href="https://interstitiumlabs.dev/immersive/"/>
-<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
-<link rel="stylesheet" href="/assets/il-chrome.css"/>
-<link rel="stylesheet" href="/assets/il-immersive.css"/>
-<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
-<link rel="stylesheet" href="/assets/il-muse-3d.css"/><link rel="stylesheet" href="/assets/il-noah-avatar.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/styles-DSCbqSS9.css"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-immersive.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-immersive-3d.css"/>
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-muse-3d.css"/><link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-noah-avatar.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
-<link rel="icon" type="image/png" href="/favicon.png"/>
-<link rel="stylesheet" href="/assets/il-editorial.css"/>
-<link rel="stylesheet" href="/assets/il-editorial-theme.css"/>
-<link rel="stylesheet" href="/assets/il-theme.css"/></head>
+<link rel="icon" type="image/png" href="https://interstitiumlabs.dev/favicon.png"/>
+
+<link rel="stylesheet" href="https://interstitiumlabs.dev/assets/il-unified.css"/>
+</head>
 <body class="min-h-dvh bg-void text-paper">
 <a class="il-skip" href="#main">Skip to content</a>
 <!-- Floating pill nav -->
 <nav class="il-pillnav" aria-label="Primary">
   <div class="il-pillnav__row">
     <a class="il-brand" href="/" aria-label="Interstitium Labs home">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/>
+      <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="" width="38" height="38"/ loading="lazy">
       <span class="il-brand__word">Interstitium Labs<small>SCIENTIA OMNIA VINCIT</small></span>
     </a>
     <div class="il-pillnav__links">
-      <a href="/learn/">Learn</a>
-      <a href="/#academies">Academies</a>
-      <a href="/paths/">Paths</a>
-      <a href="/coach/">Noah AI</a>
-      <a href="/enroll/">Admissions</a>
-      <a href="/about/">About Us</a>
-      <a href="https://learn.interstitiumlabs.dev">University</a>
+      <a href="/university/">Courses</a>
+      <a href="/topics/">Topics</a>
+      <a href="/prep/drills/">Practice</a>
+      <a href="/noah/">Noah AI</a>
+      <a href="/jobs/">Jobs</a>
+      <a href="/about/">About</a>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
+            <button type="button" class="il-search__btn" data-il-search-open aria-label="Search the site (press /)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <details class="il-menu">
         <summary aria-label="Open menu">MENU</summary>
         <div class="il-menu__sheet">
-          <a href="/learn/">Learn</a>
-          <a href="/#academies">Academies</a>
-          <a href="/paths/">Paths</a>
-          <a href="/coach/">Noah AI</a>
-          <a href="/enroll/">Admissions</a>
-          <a href="/about/">About Us</a>
-          <a href="https://learn.interstitiumlabs.dev">University</a>
+          <a href="/university/">Courses</a>
+          <a href="/topics/">Topics</a>
+          <a href="/prep/drills/">Practice</a>
+          <a href="/noah/">Noah AI</a>
+          <a href="/jobs/">Jobs</a>
+          <a href="/about/">About</a>
+          <a href="/enroll/">Enroll</a>
         </div>
       </details>
       <a class="il-btn il-btn--gold il-btn--small" href="/enroll/">Enroll</a>
@@ -62,9 +68,10 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
   </div>
 </nav>
 <main id="main" class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-il-curriculum-surface="learn">
+<nav class="il-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Immersive</li></ol></nav>
   <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-cyan">3D-first · WebGL · Blender · Unreal</p>
   <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Curriculum immersive stages.</h1>
-  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender CLI polish landed 2026-10-01 / 2026-10-02 / 2026-10-05 via <code class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). <a class="text-cyan" href="/ops/IMMERSIVE-3D.md">Pipeline</a> · <a class="text-cyan" href="/ops/PIXEL-STREAMING-DEV.md">PS runbook</a> · <a class="text-cyan" href="/coach/">Noah</a>.</p>
+  <p class="mt-4 max-w-2xl text-sm text-muted">Lectures, cert labs, simulations, and open labs mount a shared WebGL stage with <strong class="text-paper">kit-v2 authored .glb</strong> (normals, PBR, pedagogical node names, LOD proxies — Blender CLI polish landed 2026-10-01 / 2026-10-02 via <code translate="no" class="text-cyan">scripts/blender_polish_glb.py --all --promote</code>). Stream <strong class="text-paper">Unreal</strong> via the <a class="text-cyan" href="/immersive/pixel-stream/">Pixel Streaming client</a> (reconnect + config UI; never fakes a fleet). · <a class="text-cyan" href="/noah/">Noah</a>.</p>
 
   <div class="mt-10 grid gap-6 lg:grid-cols-2">
     <div>
@@ -87,7 +94,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-cyan/20 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Authored glTF stage (kit .glb)</h2>
-    <p class="mt-2 text-sm text-muted">Native GLB → WebGL via <code class="text-cyan">ILSceneKit.parseGlb</code> (no Three CDN). Caption reports <strong class="text-paper">authored .glb</strong> or <strong class="text-paper">procedural fallback</strong>. Provenance: kit-authored glTF — polish in Blender on P920.</p>
+    <p class="mt-2 text-sm text-muted">Native GLB → WebGL via <code translate="no" class="text-cyan">ILSceneKit.parseGlb</code> (no Three CDN). Caption reports <strong class="text-paper">authored .glb</strong> or <strong class="text-paper">procedural fallback</strong>. Provenance: kit-authored glTF — polish in Blender on P920.</p>
     <div class="mt-4" data-il-immersive data-il-scene="k8s" data-il-engine="three"
       data-gltf="/assets/immersive/lecture-k8s-control-plane.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/lecture-k8s-control-plane.glb","webgpu":true}'></div>
@@ -95,7 +102,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-gold/30 bg-ink/40 p-6">
     <h2 class="font-display text-xl text-gold">CKA etcd quorum (immersive exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Honest KodeKloud delta: authored <code class="text-cyan">cka-etcd-quorum.glb</code> — 3-member raft + API front + exam prompt. Not a hosted exam fleet. Pair with <a class="text-cyan" href="/labs/#noah-live-assist">Noah Live Assist</a> on labs.</p>
+    <p class="mt-2 text-sm text-muted">Honest platform delta: authored <code translate="no" class="text-cyan">cka-etcd-quorum.glb</code> — 3-member raft + API front + exam prompt. Not a hosted exam fleet. Pair with <a class="text-cyan" href="/prep/drills/">Noah Live Assist</a> on labs.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="CKA etcd quorum" data-il-scene="k8s"
       data-gltf="/assets/immersive/cka-etcd-quorum.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cka-etcd-quorum.glb","webgpu":true,"frontier":"cka-etcd"}'></div>
@@ -103,7 +110,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6">
     <h2 class="font-display text-xl text-cyan">CKA CNI / pod networking (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Competitors mostly show flat CNI diagrams. Authored <code class="text-cyan">cni-pod-network.glb</code> — nodes, pods, veth, CNI bridge, overlay arcs, ClusterIP, CoreDNS. Blender CLI polished 2026-10-01. Not a hosted networking fleet.</p>
+    <p class="mt-2 text-sm text-muted">Competitors mostly show flat CNI diagrams. Authored <code translate="no" class="text-cyan">cni-pod-network.glb</code> — nodes, pods, veth, CNI bridge, overlay arcs, ClusterIP, CoreDNS. Blender CLI polished 2026-10-01. Not a hosted networking fleet.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="CNI pod network" data-il-scene="k8s"
       data-gltf="/assets/immersive/cni-pod-network.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/cni-pod-network.glb","webgpu":true,"frontier":"cka-cni"}'></div>
@@ -111,7 +118,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6">
     <h2 class="font-display text-xl text-gold">CKA RBAC authz graph (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Spatial <code class="text-cyan">rbac-authz-graph.glb</code> — User → RoleBinding → Role/ClusterRole → API resources + verbs. Blender CLI polished 2026-10-01. Flat RBAC tables stay on peers.</p>
+    <p class="mt-2 text-sm text-muted">Spatial <code translate="no" class="text-cyan">rbac-authz-graph.glb</code> — User → RoleBinding → Role/ClusterRole → API resources + verbs. Blender CLI polished 2026-10-01. Flat RBAC tables stay on peers.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="RBAC authz graph" data-il-scene="k8s"
       data-gltf="/assets/immersive/rbac-authz-graph.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/rbac-authz-graph.glb","webgpu":true,"frontier":"cka-rbac"}'></div>
@@ -119,7 +126,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Service mesh sidecar (optional exceed)</h2>
-    <p class="mt-2 text-sm text-muted"><code class="text-cyan">service-mesh-sidecar.glb</code> — control-plane vs sidecar data-plane, mTLS hops, xDS config arcs. Blender CLI polished 2026-10-01.</p>
+    <p class="mt-2 text-sm text-muted"><code translate="no" class="text-cyan">service-mesh-sidecar.glb</code> — control-plane vs sidecar data-plane, mTLS hops, xDS config arcs. Blender CLI polished 2026-10-01.</p>
     <div class="mt-4" data-il-immersive data-kind="lecture" data-title="Service mesh sidecar" data-il-scene="k8s"
       data-gltf="/assets/immersive/service-mesh-sidecar.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/service-mesh-sidecar.glb","webgpu":true,"frontier":"mesh"}'></div>
@@ -127,7 +134,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6">
     <h2 class="font-display text-xl text-cyan">CKA storage CSI / PV (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Competitors mostly show flat PV/PVC tables. Authored <code class="text-cyan">storage-csi-pv.glb</code> — StorageClass → CSI driver → PV → PVC → Pod volumeMount + backend disks. Blender CLI polished 2026-10-02. Not a hosted storage fleet.</p>
+    <p class="mt-2 text-sm text-muted">Competitors mostly show flat PV/PVC tables. Authored <code translate="no" class="text-cyan">storage-csi-pv.glb</code> — StorageClass → CSI driver → PV → PVC → Pod volumeMount + backend disks. Blender CLI polished 2026-10-02. Not a hosted storage fleet.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="Storage CSI PV" data-il-scene="k8s"
       data-gltf="/assets/immersive/storage-csi-pv.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/storage-csi-pv.glb","webgpu":true,"frontier":"cka-storage"}'></div>
@@ -135,7 +142,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6">
     <h2 class="font-display text-xl text-gold">CKA Ingress / Gateway path (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Spatial <code class="text-cyan">ingress-gateway.glb</code> — Client → Ingress/Gateway (TLS + host/path rules) → Service → Endpoints/Pods. Blender CLI polished 2026-10-02. Flat Ingress YAML diagrams stay on peers.</p>
+    <p class="mt-2 text-sm text-muted">Spatial <code translate="no" class="text-cyan">ingress-gateway.glb</code> — Client → Ingress/Gateway (TLS + host/path rules) → Service → Endpoints/Pods. Blender CLI polished 2026-10-02. Flat Ingress YAML diagrams stay on peers.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="Ingress gateway" data-il-scene="k8s"
       data-gltf="/assets/immersive/ingress-gateway.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/ingress-gateway.glb","webgpu":true,"frontier":"cka-ingress"}'></div>
@@ -143,53 +150,29 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
   <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6">
     <h2 class="font-display text-xl">CKA HPA autoscaling (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted"><code class="text-cyan">hpa-autoscaling.glb</code> — metrics-server → HorizontalPodAutoscaler → Deployment/ReplicaSet replica stretch (current vs desired). Blender CLI polished 2026-10-02.</p>
+    <p class="mt-2 text-sm text-muted"><code translate="no" class="text-cyan">hpa-autoscaling.glb</code> — metrics-server → HorizontalPodAutoscaler → Deployment/ReplicaSet replica stretch (current vs desired). Blender CLI polished 2026-10-02.</p>
     <div class="mt-4" data-il-immersive data-kind="cert" data-title="HPA autoscaling" data-il-scene="k8s"
       data-gltf="/assets/immersive/hpa-autoscaling.glb"
       data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/hpa-autoscaling.glb","webgpu":true,"frontier":"cka-hpa"}'></div>
   </section>
 
-  <section class="mt-12 rounded-xl border border-cyan/25 bg-ink/40 p-6" id="cka-network-policy">
-    <h2 class="font-display text-xl text-cyan">CKA NetworkPolicy isolation (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Peers explain NetworkPolicy with flat YAML + arrows. Authored <code class="text-cyan">network-policy-isolation.glb</code> — frontend / backend / untrusted namespaces, translucent policy shield on <code class="text-cyan">app=api</code>, <strong class="text-paper">ALLOW</strong> edges (cyan) vs <strong class="text-paper">DENY</strong> edges (red, dropped at the shield), DNS egress allow, CNI enforcer. Blender CLI polished 2026-10-05. Not a hosted networking fleet.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="NetworkPolicy isolation" data-il-scene="k8s"
-      data-gltf="/assets/immersive/network-policy-isolation.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/network-policy-isolation.glb","webgpu":true,"frontier":"cka-netpol"}'></div>
-  </section>
-
-  <section class="mt-12 rounded-xl border border-gold/25 bg-ink/40 p-6" id="cka-secrets-configmaps">
-    <h2 class="font-display text-xl text-gold">CKA Secrets vs ConfigMaps (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Authored <code class="text-cyan">secrets-configmaps.glb</code> — Pod with a <strong class="text-paper">Secret</strong> volume (emissive gold, tmpfs, RBAC-gated) beside a <strong class="text-paper">ConfigMap</strong> volume (paper sheets), env <code class="text-cyan">secretKeyRef</code> / <code class="text-cyan">configMapKeyRef</code> chips, volumeMount edges, etcd store. Blender CLI polished 2026-10-05.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Secrets vs ConfigMaps" data-il-scene="k8s"
-      data-gltf="/assets/immersive/secrets-configmaps.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/secrets-configmaps.glb","webgpu":true,"frontier":"cka-config"}'></div>
-  </section>
-
-  <section class="mt-12 rounded-xl border border-paper/15 bg-ink/40 p-6" id="cka-scheduling">
-    <h2 class="font-display text-xl">CKA scheduling: affinity · taints · tolerations (3D exceed)</h2>
-    <p class="mt-2 text-sm text-muted">Authored <code class="text-cyan">scheduling-affinity.glb</code> — kube-scheduler (filter → score → bind), three nodes with label badges + taint hexes, a pod bound by <code class="text-cyan">nodeAffinity</code>, a pod bound by <code class="text-cyan">tolerations</code>, and a <strong class="text-paper">Pending</strong> pod with its FailedScheduling event. Blender CLI polished 2026-10-05.</p>
-    <div class="mt-4" data-il-immersive data-kind="cert" data-title="Scheduling affinity / taints" data-il-scene="k8s"
-      data-gltf="/assets/immersive/scheduling-affinity.glb"
-      data-immersive='{"mode":"3d-first","engine":"three","asset":"/assets/immersive/scheduling-affinity.glb","webgpu":true,"frontier":"cka-scheduling"}'></div>
-  </section>
-
   <section class="mt-12 rounded-xl border border-paper/10 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Unreal Pixel Streaming</h2>
-    <p class="mt-2 text-sm text-muted">Honest client path — <a class="text-cyan" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. No signaling URL configured here → stub only. Set <code class="text-cyan">data-ps-signaling</code> or <code class="text-cyan">?signaling=</code> when UE5 streamer is up on a lab GPU host. Do not widen live CSP until that host exists.</p>
+    <p class="mt-2 text-sm text-muted">Honest client path — <a class="text-cyan" href="/immersive/pixel-stream/">/immersive/pixel-stream/</a>. No signaling URL configured here → stub only. Set <code translate="no" class="text-cyan">data-ps-signaling</code> or <code translate="no" class="text-cyan">?signaling=</code> when UE5 streamer is up on a lab GPU host. Do not widen live CSP until that host exists.</p>
     <div class="mt-4" data-il-immersive data-kind="sim" data-engine="unreal" data-title="UE5 stream (awaiting signaling)"></div>
   </section>
 
   <section class="mt-12 rounded-xl border border-cyan/20 bg-ink/40 p-6">
     <h2 class="font-display text-xl">Noah / Lab Muse 3D (authored glTF)</h2>
-    <p class="mt-2 text-sm text-muted">Voice-reactive Dee/Monas — loads <code class="text-cyan">muse-dee-monas.glb</code> when present (v1.5 amp → per-node emissive/scale/LOD); procedural WebGL fallback. Exceeds flat Meta Muse–class chrome; local/OSS — no fake cloud. Full coach on <a class="text-cyan" href="/coach/">/coach/</a>.</p>
+    <p class="mt-2 text-sm text-muted">Voice-reactive Dee/Monas — loads <code translate="no" class="text-cyan">muse-dee-monas.glb</code> when present (v1.5 amp → per-node emissive/scale/LOD); procedural WebGL fallback. Exceeds flat Meta Muse–class chrome; local/OSS — no fake cloud. Full coach on <a class="text-cyan" href="/noah/">/coach/</a>.</p>
     <div class="il-muse-3d-slot mt-4 min-h-[14rem]" data-muse-3d-slot data-imm-muse></div>
   </section>
 </main>
-<script src="/assets/il-scene-kit.js" defer></script>
-<script src="/assets/il-immersive-3d.js" defer></script>
-<script src="/assets/il-noah-avatar.js" defer></script>
-<script src="/assets/il-immersive.js" defer></script>
-<script src="/assets/il-curriculum-sync.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-scene-kit.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-immersive-3d.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-noah-avatar.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-immersive.js" defer></script>
+<script src="https://interstitiumlabs.dev/assets/il-curriculum-sync.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var slot = document.querySelector('[data-imm-muse]');
@@ -204,19 +187,29 @@ document.addEventListener('DOMContentLoaded', function () {
   } catch (eMuse) {}
 });
 </script>
-<script src="/assets/noah-ai.js" defer></script>
-<footer class="no-print border-t border-paper/10">
-  <div class="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-end md:justify-between">
-    <div class="flex items-start gap-4">
-      <img src="/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs — Scientia Omnia Vincit" width="44" height="44" loading="lazy" decoding="async"/>
-    </div>
-    <div class="flex flex-col gap-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-      <span>interstitiumlabs.dev</span>
-      <span>Scientia Omnia Vincit</span>
-      <div class="flex flex-wrap gap-4 pt-2"><a href="/about/" class="hover:text-paper" data-i18n="nav.about">About</a><a href="/founders/" class="hover:text-paper" data-i18n="nav.founders">Founders</a><a href="/learn/" class="hover:text-paper" data-i18n="nav.learn">Learn</a><a href="https://learn.interstitiumlabs.dev" class="hover:text-paper">University</a><a href="/prep/" class="hover:text-paper" data-i18n="nav.prep">Prep</a><a href="/paths/" class="hover:text-paper" data-i18n="nav.paths">Paths</a><a href="/labs/" class="hover:text-paper" data-i18n="nav.labs">Labs</a><a href="/coach/" class="hover:text-paper" data-i18n="nav.coach">Coach</a><a href="/adapt/" class="hover:text-paper" data-i18n="nav.adapt">Adapt</a><a href="/enroll/" class="hover:text-paper" data-i18n="nav.enroll">Enroll</a><a href="/play/" class="hover:text-paper" data-i18n="nav.play">Play</a></div>
-    </div>
+<script src="https://interstitiumlabs.dev/assets/noah-full.js" defer></script>
+<footer class="il-footer-canonical">
+  <div class="il-fc-inner">
+    <img src="https://interstitiumlabs.dev/assets/chrome/sigil-glyph.svg" alt="Interstitium Labs" class="il-fc-logo" width="56" height="56"/ loading="lazy">
+    <div class="il-fc-brand">INTERSTITIUMLABS.DEV</div>
+    <div class="il-fc-tagline">SCIENTIA OMNIA VINCIT</div>
+    <div class="il-fc-created">CREATED BY INTERSTITIUM LABS</div>
+    <nav class="il-fc-nav" aria-label="Footer">
+      <a href="/about/">About</a>
+      <a href="/founders/">Founders</a>
+      <a href="/privacy/">Privacy</a>
+      <a href="/topics/">Topics</a>
+      <a href="/university/">Courses</a>
+      <a href="/prep/">Prep</a>
+    </nav>
+    <nav class="il-fc-nav" aria-label="Footer secondary">
+      <a href="/noah/">Noah</a>
+      <a href="/enroll/">Enroll</a>
+      </nav>
   </div>
-  <!-- lang switcher also auto-injected by ILi18n -->
+  <button class="il-fc-lang" aria-label="Language">🌐 EN</button>
 </footer>
+  <script src="https://interstitiumlabs.dev/assets/il-search.js" defer></script>
+  <script src="https://interstitiumlabs.dev/assets/il-translate.js" defer></script>
 </body>
 </html>

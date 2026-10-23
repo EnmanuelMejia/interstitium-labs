@@ -1,0 +1,73 @@
+{
+ "course": "il-08-algorithms-compilers-distributed-formal",
+ "stories": [
+  {
+   "bridge": "Partition, recurse, conquer — that is the whole trick, and it sorts the world daily. Now let's master it, analyze it, and earn the intuition.",
+   "course": "il-08-algorithms-compilers-distributed-formal",
+   "figures": [
+    {
+     "dates": "b. 1934",
+     "name": "Tony Hoare",
+     "role": "Computer scientist; inventor of quicksort"
+    }
+   ],
+   "hook": "In 1959, a young Englishman studying in Moscow needed to sort Russian words on a tiny computer — and invented the most-used sorting algorithm on Earth.",
+   "id": "il-08-algorithms-compilers-distributed-formal-story-1",
+   "moduleId": "il08-mit-63",
+   "narrative": "Tony Hoare was at Moscow State University working on machine translation, with access to an Elliott 803 — a machine with so little memory that sorting a dictionary of Russian words was a genuine research problem, not an exercise. The standard sorting methods needed too much auxiliary space; the machine simply didn't have it. Hoare's insight was to sort in place: pick a pivot element, partition the array so everything smaller goes left and everything larger goes right, then recursively sort each side. No extra memory, elegant recursion, and — on average — blindingly fast, because each partitioning step does linear work and the recursion depth is logarithmic. He published it in 1961 in the Computer Journal, and the industry never looked back. Quicksort's worst case is quadratic — a sorted array with a naive pivot choice is the classic trap — which is exactly why the analysis matters and why you'll study randomized pivots and introsort in this module. But its average case, its tiny constant factors, and its cache-friendly memory access made it the default sort in library after library, from C's qsort to the hybrid introsort in modern standard libraries. Hoare went on to invent the null reference — which he later called his 'billion-dollar mistake' — and to pioneer formal verification and communicating sequential processes. But quicksort remains the perfect first algorithm for this course: a beautiful idea, born of a real constraint, whose analysis teaches you everything about why average-case thinking, not worst-case fear, runs the world. Hoare published the algorithm when he was 27, and he has spent the decades since trying to make software correct — his \"billion-dollar mistake\" was the null reference, invented because it was easy and regretted ever since. The pairing is instructive: the same mind that gave us the fastest sort gave us the costliest bug. Speed without proof is a loan; this module teaches you to check the interest rate.",
+   "title": "The story behind quicksort",
+   "verifiedClaims": [
+    "Hoare developed quicksort in 1959–1960 while at Moscow State University",
+    "He published it in the Computer Journal in 1961",
+    "It sorts in place via recursive partitioning around a pivot"
+   ]
+  },
+  {
+   "bridge": "Dijkstra did it in his head; you get a whiteboard. Now let's learn the algorithm that routes the internet — and prove why it works.",
+   "course": "il-08-algorithms-compilers-distributed-formal",
+   "figures": [
+    {
+     "dates": "1930–2002",
+     "name": "Edsger Dijkstra",
+     "role": "Dutch computer scientist; designer of the shortest-path algorithm"
+    }
+   ],
+   "hook": "In 1956, Edsger Dijkstra worked out his famous shortest-path algorithm in about twenty minutes — over coffee, without pencil and paper.",
+   "id": "il-08-algorithms-compilers-distributed-formal-story-2",
+   "moduleId": "il08-mit-63",
+   "narrative": "That is Dijkstra's own account, written years later in one of his famous EWD manuscripts: he was in Amsterdam with his fiancée, relaxing on a café terrace, and he designed the algorithm entirely in his head — no notes, no scribbling — in roughly twenty minutes. He worked at the Mathematisch Centrum, where one of the early Dutch computers needed a public demonstration; finding the shortest route between two cities was a natural showcase, and the algorithm was first used to compute a tour through 64 Dutch cities. He published it in 1959 as 'A note on two problems in connexion with graphs.' The algorithm is almost insultingly simple: maintain the set of nodes whose shortest distance is known, always expand the closest unexplored node, and when you reach your destination, the path is optimal. The proof — the greedy choice is safe because any alternative path would have to pass through a node at least as far — is the real lesson, and it's why this algorithm appears in every serious course: it teaches you that a simple invariant, maintained ruthlessly, beats cleverness. Dijkstra's algorithm now runs inside OSPF, the protocol that routes traffic between networks; inside every mapping application; inside game pathfinding, network design tools, and countless interview questions. Twenty minutes in 1956; still computing the world's routes. When your implementation passes its tests in this module, you'll share something with that café terrace: the quiet confidence of an invariant that cannot be wrong. Dijkstra became famous as much for his discipline as his algorithms — his handwritten EWD manuscripts, over 1,300 of them, argued that programming should be a mathematical activity, done carefully or not at all. The café story survives because it captures the truth he preached: the best algorithms feel discovered, not constructed. Carry that feeling into the proof exercises: the invariant is the algorithm.",
+   "title": "The story behind the shortest path",
+   "verifiedClaims": [
+    "Dijkstra designed the algorithm in 1956; by his own account it took about twenty minutes, without pencil and paper",
+    "He published it in 1959",
+    "It underlies OSPF routing and modern mapping/pathfinding"
+   ]
+  },
+  {
+   "bridge": "P vs NP is the question that makes cryptography possible and optimization hard. Now let's learn to recognize which side of the line your problem is on.",
+   "course": "il-08-algorithms-compilers-distributed-formal",
+   "figures": [
+    {
+     "dates": "b. 1939",
+     "name": "Stephen Cook",
+     "role": "Computer scientist; proved the first NP-complete problem (1971)"
+    },
+    {
+     "dates": "b. 1935",
+     "name": "Richard Karp",
+     "role": "Showed 21 fundamental problems are NP-complete (1972)"
+    }
+   ],
+   "hook": "In 1971, Stephen Cook stood up at a computing conference and asked which problems are hard — not in practice, but forever.",
+   "id": "il-08-algorithms-compilers-distributed-formal-story-3",
+   "moduleId": "il08-cmu-cs",
+   "narrative": "The setting was the ACM Symposium on Theory of Computing. Cook's paper, 'The complexity of theorem-proving procedures,' did something audacious: it defined a class of problems — NP — whose solutions can be checked quickly but may be enormously hard to find, and then proved that one problem, Boolean satisfiability, was the hardest of them all. If you could solve SAT efficiently, you could solve everything in NP efficiently, because every NP problem reduces to it. A year later, Richard Karp at Berkeley showed that 21 famous combinatorial problems — the traveling salesman, graph coloring, knapsack, clique, and more — were all equally hard: all NP-complete, all standing or falling together, a web of equivalent difficulty spanning the field. The question Cook implicitly posed — does P equal NP? — became the deepest open problem in computer science, one of the seven Millennium Prize problems announced by the Clay Mathematics Institute in 2000, a million dollars still unclaimed. The stakes are not academic. Modern cryptography bets everything on P ≠ NP: RSA, Diffie-Hellman, and every system you'll study assume that certain problems are hard forever, and a proof of P = NP would unravel the world's secrets overnight. Conversely, a proof of P ≠ NP would settle a fifty-year bet and tell us the hardness is real. Every time you choose an approximation algorithm over an exact one in this course, every time you reach for a heuristic instead of a proof, you are navigating the border Cook drew in 1971. Learn where it lies. Cook's paper was nearly rejected — the program committee didn't see the point, and only its persistence in the proceedings let Karp build on it a year later. The deepest question in the field survived by accident. And the million dollars is still on the table: the Clay Institute's prize has sat unclaimed for over two decades, while every cryptosystem you use bets its life on the answer.",
+   "title": "The story behind P vs NP",
+   "verifiedClaims": [
+    "Cook's paper was presented at STOC in 1971",
+    "Karp identified 21 NP-complete problems in 1972",
+    "P vs NP is a Millennium Prize problem (Clay, 2000)"
+   ]
+  }
+ ]
+}

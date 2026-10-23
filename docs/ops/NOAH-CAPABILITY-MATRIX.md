@@ -1,5 +1,60 @@
 # Project Noah capability and implementation matrix
 
+Version **2026-10-08.1** · checked **2026-10-08 (America/New_York)** · schema **1.0.0**
+
+## 2026-10-08 implementation increment (executed)
+
+The following were implemented, deployed, and live-verified on 2026-10-08. This supersedes the 2026-10-01 baseline where noted.
+
+### Remote backend restored (was dead in production)
+- **Finding:** `POST /api/noah` returned HTTP 405 and `GET /api/noah-stats` returned 404 in production. The worker routes existed in `docs/_worker.js` but `/api/noah` and `/api/noah-stats` were missing from `run_worker_first` in the deploy config, so requests never reached the worker (static-asset 405/404 instead).
+- **Fix:** Added both paths to `run_worker_first`; added the missing `AI` (Workers AI) and `NOAH_STATS` (KV `6c7b016f095d439b83d8231ee2ad4af5`) bindings to the deploy config.
+- **Verified live:** `POST /api/noah` returns a real Llama 3.3 70B reply; `GET /api/noah-stats` returns aggregates (647 historical opens).
+- **Template note:** This was a deployment-config gap, not a code defect. The worker code was correct; the deploy config was incomplete.
+
+### Knowledge bundle: all 29 university courses (was 0)
+- **Finding:** `noah-knowledge.json` (66 entries, built 2026-10-02) contained zero course entries. Noah could not name, describe, or link any of the 29 university courses.
+- **Fix:** Extended `scripts/build-noah-knowledge.mjs` with a course-catalog extractor (reads `docs/university/data/courses/il-*.json`: code, title, blurb, hours, cert tracks, module topics). Rebuilt bundle: 106 entries, 29 courses, built 2026-10-08.
+- **Template note:** Course data comes from the schema-v4 course JSONs (verified facts). No invented content.
+
+### Course-aware tutoring intents (new)
+- `noah-ai.js` now handles: course catalog listing ("what courses do you have"), IL-code lookup ("IL-29"), keyword recommendation ("recommend a course for Security+"), cert-track questions. All answers cite bundle data with deep-links to `/university/course?course=<slug>`.
+- **Template note:** Intents only fire when the bundle has matching data; otherwise falls through to the honest "I don't cover that" path.
+
+### Name memory (new)
+- "My name is X" / "call me X" saves a `name:` note to the device memory store (bounded, redacted, user-deletable). The greeting personalizes with the saved name.
+- **Template note:** Explicit user statement only; never inferred. Stored device-local, never sent to remote.
+
+### Streaming-feel replies (new)
+- Replies now reveal word-by-word (7 words / 30ms) via `streamInto()`. Respects `prefers-reduced-motion` (instant render). Tab-hidden streams finish instantly to avoid stuck partials.
+- **Template note:** Presentation only; no behavior change. Markdown re-rendered per chunk.
+
+### IL-11 honesty correction (was false)
+- **Finding:** The on-device `A_IL11` answer claimed "there is no IL-11 Zero Trust track on this site" — false since the 2026-10-06 reconciliation (IL-11 · Zero Trust & Endpoint Defense is a real university course).
+- **Fix:** `A_IL11` now names the real course with a deep-link. The `screenRemote` IL-11 special-case is retired (pass-through) with the reason documented in code.
+- **Test updated:** `scripts/tests/noah-session.test.js` — the old "replaces fabricated IL-11 claims" test replaced with "IL-11 is real" test. All 40 Noah tests pass.
+
+### Per-commit verdicts (gating rule applied)
+| Commit | Verdict | Reasoning |
+| --- | --- | --- |
+| `9e229cb` noah-recovery | keep-as-improvement | Renderer-hang fix, on-device engine, honesty guards exceed template (verified facts, no invention). |
+| `1df6c08` noah-recovery-2 | keep-as-improvement | Ping-pong hang root-cause fix; local-first answers. |
+| `ab4b1a2` avatar system | keep-as-improvement | 4 WebGL avatars + personalization; accessibility (reduced-motion, DPR caps) meets template. |
+| `84875a2` analytics | keep-as-improvement | Privacy-respecting (counters only, no PII); template-aligned. |
+| `efac7d2` Codex PR #12 | keep-as-improvement | Bounded session memory with redaction; workflows with approvals; honest capability matrix. |
+| `16e2024` Codex follow-up | keep-as-improvement | Text-zoom fix (accessibility); markupText hardening (security). |
+| `a574a21` living avatar | keep-as-improvement | Canvas avatar states; honest meta description. |
+| IL-11 "does not exist" content | conformed-to-template | Was false; reshaped to verified facts. |
+| `screenRemote` IL-11 guard | removed | Superseded by reality; documented in code. |
+| `il-muse-3d.js` | keep | Referenced fallback engine, not dead code. |
+
+### Remaining gaps (aspirational vs working)
+- **Working:** On-device answers, course-aware intents, name memory, streaming feel, remote backend (Workers AI), analytics, 4-avatar system on coach/cinema/immersive pages.
+- **Aspirational:** Full 4-avatar WebGL integration into the 153-page widget (widget uses canvas avatar); true streaming (server-sent events) instead of simulated; cross-device memory sync (by design device-local); autonomous self-improvement beyond adaptive chips (the analytics hook exists; the iteration loop is manual).
+
+---
+
+
 Version **2026-10-01.1** · checked **2026-10-01 (America/New_York)** · schema **1.0.0**
 
 **Complete parity: unverified. Production readiness: unverified.** This is a versioned requirement and evidence ledger. Public Muse documentation was read; no signed-in Muse feature, remote Noah tool or production deployment was executed by this matrix audit.

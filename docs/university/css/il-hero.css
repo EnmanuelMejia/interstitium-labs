@@ -1,0 +1,74 @@
+/* Interstitium Labs — canonical hero treatment (Phase 4a unification)
+   Extracted from the multicloud course shell (course-shell.css): one shared
+   hero background sitewide. Brand: bg #06080c, gold nucleus #c9a227 (sparse),
+   cyan signal #62d8e9 (affordances only).
+   Usage: add class="il-hero" to any page's hero section. */
+
+.il-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(60rem 30rem at 12% -10%, rgba(201, 162, 39, 0.07), transparent 60%),
+    radial-gradient(40rem 24rem at 96% 8%, rgba(98, 216, 233, 0.05), transparent 60%),
+    #06080c;
+  border-bottom: 1px solid rgba(232, 238, 245, 0.08);
+}
+
+/* fine top rule — the shell's hairline, shared */
+.il-hero::before {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.45), transparent);
+  pointer-events: none;
+}
+
+/* course-shell hero typography: dateline / h1 / tagline */
+.il-hero .dateline {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  color: rgba(214, 224, 236, 0.55);
+  letter-spacing: 0.06em;
+}
+.il-hero h1 {
+  font-size: clamp(26px, 4.5vw, 40px);
+  line-height: 1.15;
+  margin: 0.35em 0 0.3em;
+  letter-spacing: -0.01em;
+  color: #eef3f9;
+}
+.il-hero .tagline,
+.il-hero .lede {
+  color: rgba(196, 208, 224, 0.82);
+  font-size: 17px;
+  max-width: 62ch;
+  margin: 0 0 8px;
+}
+
+/* sigil / motto chrome — matches the course shell header lockup */
+.il-hero .motto {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: #c9a227;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.il-hero .wordmark {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #eef3f9;
+}
+
+/* eyebrow kicker shared across heroes */
+.il-hero .eyebrow {
+  color: #62d8e9;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-hero::before { background: none; }
+}
