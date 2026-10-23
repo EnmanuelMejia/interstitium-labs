@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.2.0 (2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.3.0 (2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -12,6 +12,9 @@
  * Pure + UMD so `node --test` exercises the same logic the browser runs.
  *
  * Toggle `risk`: which state is the risky one for colouring — 'off' (default), 'on', or 'none'.
+ *
+ * v1.3.0 (2026-10-19): verdictTone() maps the whole verdict vocabulary to ok / warn / bad so unsafe states
+ * (data-deleted, exposed-at-rest, …) never render in the healthy cyan; reclaim Delete hides the backing disk.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -652,7 +655,8 @@
       var pv1Live = d.pv1 === 'Bound' || d.pv1 === 'Released';
       rules.push(rule('^edge-csi-pv1$', pv1Live ? { tint: 'ok', glow: 0.35 } : { tint: 'down', glow: 0 }));
       rules.push(rule('^pv-1$', d.pv1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pv1 === 'Released' ? { tint: 'warn', glow: 0.55, pulse: true } : { hide: true })));
-      rules.push(rule('^(backend-disk|platter)-1$', d.disk1 === 'kept' ? { tint: 'gold', glow: 0.3 } : { hide: true }));
+      /* reclaim Delete: the CSI driver deleted the backing disk, so it vanishes (Codex review on #24); only a kept disk renders. */
+      rules.push(rule('^(backend-disk|platter)-1$', d.disk1 === 'kept' ? (d.pv1 === 'Released' ? { tint: 'warn', glow: 0.45 } : { tint: 'gold', glow: 0.3 }) : { hide: true }));
       rules.push(rule('^edge-disk-pv1$', pv1Live ? { tint: 'gold', glow: 0.3 } : { tint: 'down', glow: 0 }));
       rules.push(rule('^pvc-1$', d.pvc1 === 'Bound' ? { tint: 'ok', glow: 0.4 } : (d.pvc1 === 'deleted' ? { hide: true } : { tint: 'warn', glow: 0.6, pulse: true })));
       rules.push(rule('^edge-pv1-pvc1$', d.pvc1 === 'Bound' || d.pvc1 === 'Terminating' ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
@@ -1117,6 +1121,16 @@
     return o;
   }
 
+  /** Verdict vocabulary → tone. Every verdict any sim derives must be listed (unit-tested), so a new unsafe
+   *  state can never fall through to the healthy styling. Unknown → 'info' (neutral, never 'ok'). */
+  var VERDICT_TONE = {
+    healthy: 'ok', allow: 'ok',
+    degraded: 'warn', 'implicit-deny': 'warn', pending: 'warn', terminating: 'warn', released: 'warn',
+    stale: 'warn', 'cert-warning': 'warn', rejected: 'warn',
+    down: 'bad', 'explicit-deny': 'bad', 'data-deleted': 'bad', 'exposed-at-rest': 'bad'
+  };
+  function verdictTone(v) { return Object.prototype.hasOwnProperty.call(VERDICT_TONE, v) ? VERDICT_TONE[v] : 'info'; }
+
   /** Score a prediction; returns { correct, answer, why }. */
   function scorePredict(simId, scenarioId, choice) {
     var sim = get(simId); if (!sim) return null;
@@ -1127,8 +1141,10 @@
   }
 
   return {
-    VERSION: '1.2.0',
+    VERSION: '1.3.0',
     TINTS: TINTS,
+    VERDICT_TONE: VERDICT_TONE,
+    verdictTone: verdictTone,
     get: get,
     list: list,
     merge: merge,

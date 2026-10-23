@@ -322,3 +322,37 @@ test('2026-10-08 drills: keyed answers are not all the same index, and every new
     assert.ok(manifest.sims.list.includes(id) && manifest.cka_coverage.interactive.includes(id), id + ' in manifest');
   }
 });
+
+test('2026-10-19 (#24 Codex review): every verdict any sim can derive has a tone, and unsafe verdicts are never "ok"', () => {
+  assert.equal(S.VERSION, '1.3.0');
+  const seen = new Set();
+  for (const id of S.list()) {
+    const sim = S.get(id);
+    const states = [sim.initial, ...sim.scenarios.map(sc => S.merge(sim.initial, sc.set))];
+    const tg = sim.toggles.map(t => t.id).slice(0, 12);
+    for (let mask = 0; mask < (1 << tg.length); mask++) {
+      const st = S.merge(sim.initial, {});
+      tg.forEach((t, i) => { st[t] = !!((mask >> i) & 1); });
+      states.push(st);
+    }
+    for (const st of states) seen.add(sim.derive(st).verdict);
+  }
+  for (const v of seen) assert.notEqual(S.verdictTone(v), 'info', `verdict "${v}" has no tone mapping`);
+  for (const v of ['data-deleted', 'exposed-at-rest', 'down', 'explicit-deny']) assert.equal(S.verdictTone(v), 'bad', v);
+  for (const v of ['cert-warning', 'stale', 'terminating', 'released', 'pending', 'degraded', 'implicit-deny']) assert.equal(S.verdictTone(v), 'warn', v);
+  for (const v of ['healthy', 'allow']) assert.equal(S.verdictTone(v), 'ok', v);
+  assert.equal(S.verdictTone('something-new'), 'info', 'unknown verdicts are neutral, never healthy');
+  const css = fs.readFileSync(path.join(docs, 'assets', 'il-immersive-3d.css'), 'utf8');
+  for (const t of ['warn', 'bad', 'info']) assert.match(css, new RegExp('sim-verdict\\[data-tone="' + t + '"\\]'), 'CSS styles tone ' + t);
+});
+
+test('2026-10-19 (#24 Codex review): reclaim Delete hides the backing disk; Retain keeps it with a warning tint', () => {
+  const sim = S.get('storage-csi');
+  const out = (o) => sim.derive(S.merge(sim.initial, o));
+  const del = out({ pvcDeleted: true, podDeleted: true, retain: false });
+  for (const n of ['backend-disk-1', 'platter-1', 'pv-1']) assert.equal(S.styleFor(n, del.rules).hide, true, n + ' gone after reclaim Delete');
+  const ret = out({ pvcDeleted: true, podDeleted: true, retain: true });
+  assert.equal(S.styleFor('backend-disk-1', ret.rules).hide, false, 'Retain keeps the disk');
+  assert.equal(S.styleFor('backend-disk-1', ret.rules).tint, 'warn');
+  assert.equal(S.styleFor('backend-disk-1', out({}).rules).tint, 'gold', 'bound disk unchanged');
+});

@@ -1,7 +1,52 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-16 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-19 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-19 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Stack hygiene first | Fixed | The base of the stack (#24) still carried three unaddressed Codex review findings: (1) under `prefers-reduced-motion` every drill silently dropped to a static picture with **no scenarios, predictions, toggles, scoring or CLI** (and graded exam/review stages waited 20 s for a sim that never mounted); (2) `data-deleted`, `exposed-at-rest`, `cert-warning`, `stale`, `terminating`, `released`, `pending` verdicts fell through to **healthy cyan**; (3) after reclaim Delete the "deleted" disk stayed on screen with a red pulse. All three fixed here, plus a real race in exam/review where a fast answer's reveal could be wiped by a late mount. |
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? The CLI lab verifies steps, but when a step does not pass it just sits there unticked; `hint` dumps the answer. Killercoda shipped **Brain** in every scenario (Apr 2026): check your solution, explain why it is not accepted, hint mode vs solution mode, a hint offered after the 2nd failed verification. A learner stuck at step 3 with no "why" is mediocre. **No.** |
+| After this ship | **Closer / still NO** | **Lab Muse task coach** (`il-immersive-cli.js` v1.1.0 + player v1.10.0): **Check** button / `check` verb verifies the task and says *why* the next step is not verified — out of order ("you scaled before the scheduler was down — steps count in order"), right command in the wrong cluster state ("the lab saw `scale-scheduled`, not `scale-pending`"), live state not true, last command failed / not modelled — grounded in the live sim caption. 2nd failed check on a step auto-offers a **tip that never contains the command** (unit-tested for all 42 steps); `solution` prints the command. Every step names the **authored glTF nodes** to look at (regex unit-tested against the `.glb` files) and the player pulses them gold — also in WebXR, which Brain cannot do. Optional **Lab Muse voice** speaks the verdict through the browser's own `speechSynthesis`. |
+| Fake YES risk | Rejected | The coach is **deterministic rules over the same in-browser sim state — not an LLM, not reading a real terminal**; it says so in the manifest and on the page. It cannot hallucinate (Brain's own page: "can make mistakes"), but it only knows what the drill models. Still a simulated shell; no hosted fleet; no live UE host. Analytics carry action + level + step index only. |
+| Sandbox idea (from 10-16) | Deferred, honestly | Checked: a kubectl-to-WASM KEP was closed *not planned* (Feb 2026), and the best in-browser "Kubernetes" (ngrok **webernetes**, Jun 2026) is a partial TypeScript port that runs no real images. Shipping one would still be a simulator wearing a "real" label — blocker C needs a real hosted fleet / microVM host, not more JS. |
+
+## Scorecard (0–10) — 2026-10-19
+
+| Dimension | Prior (10-16) | Now | Notes |
+|---|---:|---:|---|
+| First-glance wow | 9.6 | **9.7** | Press Check → Lab Muse says why, and the authored scheduler / etcd member / RDS node lights up gold |
+| Live labs density | 8.2 | 8.2 | Same 11 tasks (simulated) — capped by blocker C |
+| Adaptive learning | 8.9 | **9.2** | Diagnose → tip → solution ladder per step; order / state / failed-command diagnosis |
+| Honesty / trust | 9.9 | **10.0** | Coach labelled deterministic, tips never leak commands (tested), unsafe verdicts never look healthy |
+| Accessibility | — | **9.0** | Reduced-motion and no-WebGL learners get the whole drill + CLI + coach (was: a static picture) |
+| Curriculum SoT | 9.7 | 9.7 | Manifest `sims.cli.coach` checked by tests |
+| Immersive / 3D gate | 10.0 | 10.0 | Coach points *into* the authored scenes; flat path only for reduced motion / no WebGL |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins: CLI packs + coach for netpol / storage / RBAC (`kubectl auth can-i`) / ingress; voice-to-command (Web Speech recognition → `cliExec`) for in-headset tasks; coach-driven review cards (a step you needed `solution` for becomes a spaced-repetition card).
+
+## Competitor delta (2026-10-19, fresh check)
+
+| Peer | Still wins | IL exceed today |
+|------|------------|-----------------|
+| Killercoda Brain (in every scenario since Apr 2026; free tier daily-limited, PLUS unlimited; K8s 1.37 from 2026-10-25) | LLM that can run diagnostics in a **real** environment and explain a failing solution | Text-only and probabilistic ("can make mistakes"); IL's coach is deterministic, runs in the browser, voice-capable, and points at the 3D node that is wrong — in WebXR too |
+| KodeKloud (AI Tutor, AI-assisted labs, playgrounds incl. K8s / AWS) | Real environments at scale | No spatial model, no in-headset coach |
+| ngrok webernetes (Jun 2026) | Far deeper in-browser k8s simulation (kubelet/controllers/CNI ported to TS) | Not a course — no tasks, coach, exam, spaced review or 3D; a candidate engine to evaluate (licence permitting) rather than rebuild |
+| killer.sh / Pluralsight Cloud+ | Official timed simulator / cloud sandboxes | Flat, no 3D, no spaced remediation |
+
+## Shipped this pass (2026-10-19)
+
+1. **#24 Codex review fixes** — `il-immersive-3d.js` `_initSimStatic()` mounts the drill on reduced-motion / no-WebGL / failed-`.glb` stages (captions lifted out of the hidden stage, honest "no 3D render" note, `data-il-sim-render`); `ILImmersiveSims.verdictTone()` + badge `data-tone` (CSS by tone; every derivable verdict mapped, unit-tested by brute-forcing toggles); reclaim Delete hides `backend-disk-1` / `platter-1`, Retain keeps it with a warning tint.
+2. **Exam/review mount race** — `openScenario` no longer resets the stage over an already-committed answer or a past item.
+3. **Lab Muse task coach** — `il-immersive-cli.js` v1.1.0: `coach()`, `check`/`verify`/`hint`/`solution` verbs, per-step tip + focus for all 42 steps, `focusLabel()`; player v1.10.0: Check button, Lab Muse voice toggle (hidden without `speechSynthesis`), gold focus beacon on authored nodes (WebXR too), `immersive_cli_coach` analytics (level/step only).
+4. Manifest `sims.cli.coach`, versions (sims 1.3.0, CLI 1.1.0, player 1.10.0); `/immersive/` copy; `IMMERSIVE-3D.md`.
+5. Tests: unit +6 (verdict-tone coverage, disk hide, tip/focus vs real `.glb` nodes, ladder, four diagnosis classes, verbs/manifest); browser +2 (coach end-to-end with focus + speech + analytics; reduced-motion drills/CLI/coach) and the storage check now asserts the disk vanishes and the badge is not cyan.
+
+---
+
+_Prior pass archived below (2026-10-16)._
 
 ## Verdict — 2026-10-16 Musk-bar pass
 

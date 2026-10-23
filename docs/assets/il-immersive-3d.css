@@ -234,19 +234,11 @@
   text-transform: uppercase; letter-spacing: 0.14em; padding: 0.2rem 0.55rem; border-radius: 999px;
   border: 1px solid color-mix(in srgb, #5EEAD4 40%, transparent); color: #5EEAD4;
 }
-.il-immersive__sim-verdict[data-verdict="degraded"],
-.il-immersive__sim-verdict[data-verdict="implicit-deny"],
-.il-immersive__sim-verdict[data-verdict="terminating"],
-.il-immersive__sim-verdict[data-verdict="stale"],
-.il-immersive__sim-verdict[data-verdict="released"],
-.il-immersive__sim-verdict[data-verdict="rejected"],
-.il-immersive__sim-verdict[data-verdict="cert-warning"] { color: #F28C2E; border-color: color-mix(in srgb, #F28C2E 50%, transparent); }
-.il-immersive__sim-verdict[data-verdict="down"],
-.il-immersive__sim-verdict[data-verdict="explicit-deny"],
-.il-immersive__sim-verdict[data-verdict="data-deleted"],
-.il-immersive__sim-verdict[data-verdict="exposed-at-rest"],
-.il-immersive__sim-verdict[data-verdict="plaintext"],
-.il-immersive__sim-verdict[data-verdict="multi-attach"] { color: #ff6b5e; border-color: color-mix(in srgb, #ff6b5e 55%, transparent); }
+/* 2026-10-19: tone comes from ILImmersiveSims.verdictTone (every verdict is mapped + unit-tested), so new unsafe
+ * verdicts (data-deleted, exposed-at-rest, cert-warning, stale, terminating …) never fall through to healthy cyan. */
+.il-immersive__sim-verdict[data-tone="warn"] { color: #F28C2E; border-color: color-mix(in srgb, #F28C2E 50%, transparent); }
+.il-immersive__sim-verdict[data-tone="bad"] { color: #ff6b5e; border-color: color-mix(in srgb, #ff6b5e 55%, transparent); }
+.il-immersive__sim-verdict[data-tone="info"] { color: #cfd8e3; border-color: color-mix(in srgb, #cfd8e3 35%, transparent); }
 .il-immersive__sim-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
 .il-immersive__sim-btn,
 .il-immersive__sim-toggle,
@@ -313,6 +305,11 @@ html[data-theme="light"] .il-immersive__sim { color: #e8eef5; }
 .il-immersive__cli-line[data-kind="err"] { color: #ff9b90; }
 .il-immersive__cli-line[data-kind="sys"] { color: #D4A853; }
 .il-immersive__cli-line[data-kind="ok"] { color: #5EEAD4; font-weight: 600; }
+.il-immersive__cli-line[data-kind="coach"] { color: #f1d9a0; }
+.il-immersive__cli-check { border-color: color-mix(in srgb, #D4A853 55%, transparent); }
+.il-immersive__cli-voice[aria-pressed="true"] { border-color: #5EEAD4; box-shadow: 0 0 0 1px color-mix(in srgb, #5EEAD4 45%, transparent); }
+.il-immersive__cli-voice[hidden] { display: none; }
+.il-immersive.is-reduced .il-immersive__sim-static { color: #D4A853; }
 .il-immersive__cli-form { display: flex; align-items: center; gap: 0.4rem; margin: 0.45rem 0.65rem 0; }
 .il-immersive__cli-prompt { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.66rem; color: #5EEAD4; white-space: nowrap; }
 .il-immersive__cli-input {
@@ -322,7 +319,7 @@ html[data-theme="light"] .il-immersive__sim { color: #e8eef5; }
 }
 .il-immersive__cli-input:focus-visible { outline: 2px solid #5EEAD4; outline-offset: 1px; }
 .il-immersive .il-immersive__sim .il-immersive__cli-honesty { margin: 0.4rem 0.65rem 0.55rem; }
-@media (max-width: 520px) { .il-immersive__cli-prompt { display: none; } }
+@media (max-width: 520px) { .il-immersive__cli-prompt { display: none; } .il-immersive__cli-form { flex-wrap: wrap; } }
 
 /* ── WebXR entry (v1.7.0 · 2026-10-14) — shown only when navigator.xr reports support ── */
 .il-immersive__xr {

@@ -30,7 +30,7 @@ function session(sim, taskId) {
 }
 
 test('exports v1.0.0 with an honest simulated-shell label and packs only for sims that exist', () => {
-  assert.equal(C.VERSION, '1.0.0');
+  assert.equal(C.VERSION, '1.1.0');
   assert.match(C.honesty, /Simulated shell/);
   assert.match(C.honesty, /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
   assert.deepEqual(C.list().sort(), ['aws-az-failure', 'control-plane-failure', 'etcd-quorum', 'hpa-scale', 'sched-taints']);
@@ -241,7 +241,7 @@ test('manifest declares the CLI lab honestly and matches the runtime packs', () 
   for (const p of c.packs) assert.deepEqual(p.tasks, C.pack(p.sim).tasks.map(t => t.id));
   assert.match(c.honesty, /Not a real shell, container, cluster, AWS account or hosted lab fleet/);
   assert.match(c.analytics[0], /never the raw command text/);
-  assert.match(m.sims.player, /v1\.9\.0/);
+  assert.match(m.sims.player, /v1\.10\.0/);
   const html = readFileSync(path.join(root, 'docs/immersive/index.html'), 'utf8');
   assert.ok(html.indexOf('il-immersive-cli.js') > html.indexOf('il-immersive-sims.js'), 'CLI loads after the rules engine');
   assert.ok(html.indexOf('il-immersive-cli.js') < html.indexOf('il-immersive-3d.js'), 'CLI loads before the player');
@@ -267,3 +267,104 @@ test('state steps latch in order: toggles (non-CLI changes) count via reconcile,
   const st = C.taskStatus('etcd-quorum', 'lose-quorum', state, s.ctx);
   assert.equal(st.completed, 3, 'below-quorum step stays latched after quorum returns');
 });
+
+/* ── 2026-10-19: Lab Muse task coach (answer to Killercoda Brain) ─────────────────────────────── */
+function glbNodes(rel) {
+  const b = readFileSync(path.join(root, 'docs', rel));
+  const len = b.readUInt32LE(12);
+  const j = JSON.parse(b.subarray(20, 20 + len).toString('utf8'));
+  return j.nodes.filter(n => 'mesh' in n && !/(_LOD1$|^lod1-)/i.test(n.name || '')).map(n => n.name);
+}
+
+test('coach: every step has a tip that never leaks its command, and a focus regex that hits real authored glTF nodes', () => {
+  for (const id of C.list()) {
+    const nodes = glbNodes(S.get(id).glb);
+    for (const tk of C.pack(id).tasks) tk.steps.forEach((st, i) => {
+      const where = `${id}/${tk.id}#${i + 1}`;
+      assert.ok(st.nudge && st.nudge.length > 20, where + ' has a tip');
+      for (const cmd of st.hint.split(/\s{2}then\s{2}/)) assert.ok(!st.nudge.includes(cmd), where + ' tip does not contain the solution command');
+      assert.ok(st.focus, where + ' has a focus');
+      const re = new RegExp(st.focus);
+      const hit = nodes.filter(n => re.test(n));
+      assert.ok(hit.length >= 1, `${where} focus ${st.focus} matches no node in ${S.get(id).glb}`);
+    });
+  }
+});
+
+test('coach ladder: 1st failed check diagnoses, 2nd offers a tip (no command), solution prints the command; done says so', () => {
+  const s = session('control-plane-failure', 'pending-scale');
+  const c1 = C.coach('control-plane-failure', 'pending-scale', s.state, s.ctx);
+  assert.equal(c1.level, 'diagnose');
+  assert.equal(c1.step, 0);
+  assert.match(c1.lines[0], /^✗ check: step 1\/5 not verified — Stop kube-scheduler/);
+  assert.ok(!c1.lines.some(l => /hint →|solution →/.test(l)), 'no tip on the first failed check');
+  assert.match(c1.lines.join('\n'), /Scene now: .*\[healthy\]/, 'diagnosis is grounded in live sim state');
+  assert.equal(c1.focus, '^scheduler$');
+  const c2 = C.coach('control-plane-failure', 'pending-scale', s.state, s.ctx);
+  assert.equal(c2.level, 'hint', 'second failed check on the same step auto-offers a hint (Killercoda parity)');
+  assert.ok(c2.lines.some(l => /^ {2}hint → The scheduler is a static pod/.test(l)));
+  assert.ok(!c2.lines.join('\n').includes('kube-scheduler.yaml /tmp/'), 'tip never prints the command');
+  const sol = C.coach('control-plane-failure', 'pending-scale', s.state, s.ctx, { count: false, level: 'solution' });
+  assert.ok(sol.lines.includes('  solution → $ sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/'));
+  assert.equal(s.ctx.coach.fails[0], 2, 'solution/hint lookups do not count as failed checks');
+  s.run('sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/');
+  const c3 = C.coach('control-plane-failure', 'pending-scale', s.state, s.ctx);
+  assert.equal(c3.step, 1);
+  assert.equal(c3.level, 'diagnose', 'ladder restarts per step');
+  for (const line of ['kubectl scale deployment web --replicas=5', 'kubectl get pods', 'sudo mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/', 'kubectl get pods']) s.run(line);
+  const done = C.coach('control-plane-failure', 'pending-scale', s.state, s.ctx);
+  assert.equal(done.done, true);
+  assert.match(done.lines[0], /✓ check: all 5 steps verified/);
+  assert.match(done.speak, /^Lab Muse: every step/);
+});
+
+test('coach diagnosis: out of order · right command in the wrong state · live state false · last command failed', () => {
+  /* Out of order: scaled before stopping the scheduler. */
+  const a = session('control-plane-failure', 'pending-scale');
+  a.run('kubectl scale deployment web --replicas=5');
+  a.run('sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/');
+  assert.match(C.coach('control-plane-failure', 'pending-scale', a.state, a.ctx).lines[1], /related command \(`scale`, `scale-scheduled`\) before step 1 was verified — steps count in order/);
+  /* Right command, wrong state: scheduler back before scaling → pods schedule, step wants Pending. */
+  const b = session('control-plane-failure', 'pending-scale');
+  b.run('sudo mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/');
+  b.run('sudo mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/');
+  b.run('kubectl scale deployment web --replicas=5');
+  assert.match(C.coach('control-plane-failure', 'pending-scale', b.state, b.ctx).lines[1], /right kind of command, but the lab saw `scale`, `scale-scheduled` — not `scale-pending`/);
+  /* Exact event seen, but before the previous step verified. */
+  const e = session('etcd-quorum', 'tolerate-one');
+  e.run('etcdctl endpoint health --cluster');
+  e.run('kubectl create deployment web --image=nginx');
+  e.run('fault stop etcd-1');
+  e.run('etcdctl endpoint health --cluster');
+  const ce = C.coach('etcd-quorum', 'tolerate-one', e.state, e.ctx);
+  assert.equal(ce.step, 2);
+  assert.match(ce.lines[1], /related command \(`write-ok`, `write-ok-healthy`\) before step 2 was verified/);
+  /* State step false now + last command failed / not modelled. */
+  const h = session('hpa-scale', 'unknown-target');
+  h.run('kubectl get hpa'); h.run('kubectl describe hpa web');
+  h.run('kubectl edit deployment web');
+  const ch = C.coach('hpa-scale', 'unknown-target', h.state, h.ctx);
+  assert.equal(ch.step, 2);
+  assert.match(ch.lines[1], /checks live state, and it is not true right now/);
+  assert.match(ch.lines.join('\n'), /Your last command exited 2 \(not modelled in this drill — nothing was invented\)/);
+  /* No task. */
+  const n = C.coach('hpa-scale', null, h.state, C.newCtx());
+  assert.equal(n.ok, false);
+  assert.equal(C.focusLabel('^(worker|kubelet-led)-[0-4]$'), 'worker / kubelet-led-*');
+});
+
+test('coach verbs are lab verbs (no state change), are listed in help and Tab completion, and the manifest documents the coach honestly', () => {
+  const s = session('aws-az-failure', 'spof');
+  for (const v of ['check', 'verify', 'hint', 'solution']) {
+    const r = C.run('aws-az-failure', s.state, v, s.ctx);
+    assert.equal(r.set, null); assert.equal(r.exit, 0);
+    assert.equal(r.action, v === 'verify' ? 'check' : v);
+  }
+  assert.match(C.run('aws-az-failure', s.state, 'help', s.ctx).out.join('\n'), /check · hint · solution/);
+  assert.deepEqual(C.complete('aws-az-failure', 'che'), ['check']);
+  const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
+  assert.match(m.sims.cli.coach.honesty, /not an LLM, not reading a real terminal/);
+  assert.match(m.sims.cli.coach.voice, /no cloud TTS, no key/);
+  assert.ok(m.sims.cli.analytics.some(a => /immersive_cli_coach .*never command text/.test(a)));
+});
+

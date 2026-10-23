@@ -28,6 +28,15 @@
  * verify) with hint/history/Tab completion; completions stored on-device (il.immersiveCli.v1).
  * Honesty: simulated shell over the in-browser rules engine — not a real shell, container, cluster or AWS account.
  * Exam / review stages (cfg.owned) do not get the terminal (no answer leakage into graded papers).
+ * v1.10.0 (2026-10-19): Lab Muse task coach in the CLI lab — `check` (and a Check button) verifies the task and
+ * explains WHY a step is not verified; the 2nd failed check on a step auto-offers a hint (tip only), `solution`
+ * prints the command. The coach lights up the authored glTF nodes to look at (gold focus beacon, also in WebXR)
+ * and, when "Lab Muse voice" is on, speaks the verdict via the browser's own speechSynthesis (no cloud TTS, no key).
+ * Deterministic rules over the same sim state — not an LLM, not a real terminal.
+ * Fixes from the #24 Codex review: prefers-reduced-motion / no-WebGL / failed .glb stages still mount the drill
+ * (scenarios, predictions, toggles, scoring, CLI) with the static fallback instead of dropping it; the verdict
+ * badge carries data-tone (ok / warn / bad / info) from ILImmersiveSims.verdictTone so unsafe verdicts never
+ * render in healthy cyan.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -803,13 +812,7 @@
     if (prefersReduced()) {
       root.classList.add('is-reduced');
       this.cap.textContent = capText(this.cfg.scene, 'idle', (CAPTIONS[this.cfg.scene] || CAPTIONS.k8s).idle);
-      /* Reduced motion disables animation/rendering only — the drill UI
-       * (clip buttons, sim scenarios, toggles, questions, scoring) must
-       * still initialize. _simApply derives state into the DOM panel and
-       * no-ops the 3D node styling when no scene is loaded, and the sim
-       * panel is plain DOM, so both are safe without GL. */
-      this._buildButtons();
-      this._initSim();
+      this._initSimStatic('reduced-motion');
       return;
     }
 
@@ -959,13 +962,14 @@
     }
     if (!gl) {
       this.root.classList.add('is-reduced');
+      this._initSimStatic('no-webgl');
       return;
     }
     this.gl = gl;
     this.canvas = canvas;
     this.root.setAttribute('data-il-gl', 'awake');
     this.prog = program(gl);
-    if (!this.prog) { this.root.classList.add('is-reduced'); return; }
+    if (!this.prog) { this.root.classList.add('is-reduced'); this._initSimStatic('no-webgl'); return; }
     this.box = upload(gl, boxMesh());
     this.cyl = upload(gl, cylMesh(14));
     this.quad = uploadQuad(gl, quadMesh());
@@ -1076,6 +1080,7 @@
         self._authoredOk = false;
         self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (authored .glb unavailable).';
         self._paintHud();
+        self._initSimStatic('glb-unavailable');
         return;
       }
       self._parsed = parsed;
@@ -1092,6 +1097,7 @@
           self._authoredOk = false;
           self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (fetch/parse fail).';
           self._paintHud();
+          self._initSimStatic('glb-unavailable');
         });
       } else if (parse) {
         g.fetch(asset).then(function (res){
@@ -1102,6 +1108,7 @@
             self._authoredOk = false;
             self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (fetch/parse fail).';
             self._paintHud();
+            self._initSimStatic('glb-unavailable');
           });
       } else {
         self.cap.textContent = (self.cap.textContent || '') + ' · procedural fallback (no native GLB parser).';
@@ -1146,6 +1153,7 @@
         (uploaded.length > lod0 ? ', ' + (uploaded.length - lod0) + ' LOD1 skipped' : '') + ')';
       this._baseCaption = (this.cap.textContent || '') + ' · ' + this._glbNote + '.';
       this.cap.textContent = this._baseCaption;
+      if (!this._sim) this.root.setAttribute('data-il-sim-render', 'authored');
       this._initSim();
     } else if (this._sim) {
       this._simApply('init');
@@ -1157,6 +1165,7 @@
     if (!this._authored || !this._authored.length) return;
     var glowBase = 0.12 + amp * 0.35;
     var k = 0.12; /* per-frame ease toward sim target */
+    var focusRe = this._cliFocusRe && (this._cliFocusUntil || 0) > ((g.performance && performance.now()) || Date.now()) ? this._cliFocusRe : null;
     for (var i = 0; i < this._authored.length; i++) {
       var vao = this._authored[i];
       if (vao.lod) continue; /* Blender LOD1 duplicate / kit proxy — never overdraw LOD0 */
@@ -1169,6 +1178,7 @@
       if (base[0] > 0.7 && base[1] > 0.5 && base[1] < 0.8) glow = 0.2 + amp * 0.45;
       var target = (st && st.color) ? st.color : base;
       if (st && st.glow != null) glow = st.glow * (st.pulse ? (0.55 + 0.45 * Math.abs(Math.sin(time * 3.4))) : 1);
+      if (focusRe && focusRe.test(vao.name)) { target = GOLD; glow = 0.6 + 0.4 * Math.abs(Math.sin(time * 5.2)); } /* Lab Muse coach: look here */
       var c = vao.cur || (vao.cur = base.slice(0, 3));
       c[0] += (target[0] - c[0]) * k; c[1] += (target[1] - c[1]) * k; c[2] += (target[2] - c[2]) * k;
       vao.curGlow = vao.curGlow == null ? glow : vao.curGlow + (glow - vao.curGlow) * 0.2;
@@ -1263,6 +1273,26 @@
     this._cliInit();
   };
 
+  /** Mount the drill without an authored render (reduced motion, no WebGL, .glb unavailable). Same rules engine,
+   *  same scenarios / predictions / toggles / scoring / CLI; the scene state is reported in the caption instead. */
+  ScenePlayer.prototype._initSimStatic = function (why){
+    if (!this.cfg.sim || this._sim) return;
+    this._simRender = 'static';
+    this.root.setAttribute('data-il-sim-render', 'static:' + why);
+    /* Captions live inside the (hidden) stage; lift them out so the derived scene state stays readable. */
+    if (this.root.classList.contains('is-reduced') && this.cap && this.cap.parentNode === this.stage) {
+      var fbn = this.root.querySelector('.il-immersive__fallback');
+      this.root.insertBefore(this.cap, fbn ? fbn.nextSibling : null);
+    }
+    this._initSim();
+    if (this._simPanel) {
+      var note = el('p', 'il-immersive__sim-honesty il-immersive__sim-static', why === 'reduced-motion'
+        ? 'Motion reduced — the drill runs without the 3D render; scene state is described in the caption.'
+        : 'No 3D render on this device (' + why + ') — the drill still runs; scene state is described in the caption.');
+      this._simPanel.insertBefore(note, this._simPanel.firstChild.nextSibling);
+    }
+  };
+
   ScenePlayer.prototype._simApply = function (reason){
     var S = g.ILImmersiveSims, sim = this._sim;
     if (!S || !sim) return;
@@ -1281,6 +1311,9 @@
     }
     this._simVerdict.textContent = d.verdict;
     this._simVerdict.setAttribute('data-verdict', d.verdict);
+    var tone = S.verdictTone ? S.verdictTone(d.verdict) : 'info';
+    this._simVerdict.setAttribute('data-tone', tone);
+    this.root.setAttribute('data-il-sim-tone', tone);
     /* Keep the asset provenance on sim stages too (the sim caption used to replace it). */
     this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '') +
       (this._xrSession ? ' · in WebXR ' + String(this._xrKind || '').toUpperCase() + ' (local render, not Pixel Streaming)' : '');
@@ -1437,6 +1470,25 @@
     var run = el('button', 'il-immersive__sim-btn il-immersive__cli-run', 'Run');
     run.type = 'submit';
     form.appendChild(run);
+    /* v1.10.0 Lab Muse coach: Killercoda-style CHECK button + optional voice (browser speechSynthesis only). */
+    var chk = el('button', 'il-immersive__sim-btn il-immersive__cli-check', 'Check');
+    chk.type = 'button';
+    chk.setAttribute('data-il-cli-check', '');
+    chk.setAttribute('aria-label', 'Lab Muse: check my task');
+    chk.addEventListener('click', function (){ self.cliExec('check'); });
+    form.appendChild(chk);
+    var voice = el('button', 'il-immersive__sim-btn il-immersive__cli-voice', 'Lab Muse voice');
+    voice.type = 'button';
+    voice.setAttribute('data-il-cli-voice', '');
+    voice.setAttribute('aria-pressed', 'false');
+    voice.hidden = !canSpeak();
+    voice.addEventListener('click', function (){
+      self._cliVoice = !self._cliVoice;
+      voice.setAttribute('aria-pressed', self._cliVoice ? 'true' : 'false');
+      if (!self._cliVoice) { try { g.speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+    });
+    form.appendChild(voice);
+    this._cliVoiceBtn = voice;
     form.addEventListener('submit', function (ev){
       ev.preventDefault();
       var line = inp.value;
@@ -1505,10 +1557,8 @@
       this._simState = g.ILImmersiveSims.merge(sim.initial, tk ? tk.setup : {});
       this._simApply('cli:reset');
       this._cliPrint(r.out, 'sys');
-    } else if (r.action === 'hint') {
-      var st = this._cliTask ? C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx) : null;
-      this._cliPrint(st ? (st.next ? ['hint → ' + st.next.label, '  $ ' + st.next.hint] : ['Task already complete — pick another task.'])
-        : ['No task selected — pick one above, or try: ' + pack.examples[0]], 'sys');
+    } else if (r.action === 'check' || r.action === 'hint' || r.action === 'solution') {
+      this._cliCoach(r.action);
     } else if (r.action === 'task') {
       var st2 = this._cliTask ? C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx) : null;
       this._cliPrint(st2 ? [st2.title + ' — ' + st2.completed + '/' + st2.total].concat(st2.steps.map(function (x, i){ return (x.done ? '  [x] ' : '  [ ] ') + (i + 1) + '. ' + x.label; }))
@@ -1529,6 +1579,50 @@
     return r;
   };
 
+  function canSpeak(){ return !!(g.speechSynthesis && g.SpeechSynthesisUtterance); }
+
+  /** Lab Muse coach: check (counts an attempt, escalates) · hint (tip, no count) · solution (exact command). */
+  ScenePlayer.prototype._cliCoach = function (action){
+    var C = g.ILImmersiveCLI, sim = this._sim;
+    if (!C || !C.coach) return null;
+    if (!this._cliTask) {
+      this._cliPrint(['No task selected — pick one above, then type `check`. Free play: try ' + C.pack(sim.id).examples[0]], 'sys');
+      return null;
+    }
+    var opts = action === 'check' ? {} : { count: false, level: action === 'solution' ? 'solution' : 'hint' };
+    var c = C.coach(sim.id, this._cliTask, this._simState, this._cliCtx, opts);
+    this._cliPrint(c.lines, c.done ? 'ok' : 'coach');
+    this._cliSetFocus(c.focus, c.focusLabel);
+    this.root.setAttribute('data-il-cli-coach', c.level + ':' + (c.step + 1));
+    if (this._cliVoice && canSpeak() && c.speak) {
+      try {
+        if (g.ILMuse && typeof g.ILMuse.speakText === 'function') g.ILMuse.speakText(c.speak, { speak: true });
+        else { g.speechSynthesis.cancel(); var u = new g.SpeechSynthesisUtterance(c.speak); u.rate = 1.02; g.speechSynthesis.speak(u); }
+        this.root.setAttribute('data-il-cli-spoke', String((+(this.root.getAttribute('data-il-cli-spoke') || 0)) + 1));
+      } catch (e) { /* ignore */ }
+    }
+    simTrack('immersive_cli_coach', { sim: sim.id, task: this._cliTask, action: action, level: c.level, step: c.step, done: !!c.done });
+    return c;
+  };
+
+  /** Light the authored nodes a coach step points at (gold beacon ~9 s; also drawn in WebXR). Static stages list them. */
+  ScenePlayer.prototype._cliSetFocus = function (src, label){
+    var re = null;
+    try { re = src ? new RegExp(src) : null; } catch (e) { re = null; }
+    this._cliFocusRe = re;
+    this._cliFocusUntil = re ? ((g.performance && performance.now()) || Date.now()) + 9000 : 0;
+    var names = [];
+    if (re) {
+      var pool = (this._authored || []).filter(function (v){ return !v.lod; }).map(function (v){ return v.name; });
+      if (!pool.length && this._parsed && this._parsed.meshes) pool = this._parsed.meshes.map(function (m){ return m.node || m.name; });
+      names = pool.filter(function (n){ return n && re.test(n) && !/(_LOD1$|^lod1-)/i.test(n); });
+    }
+    if (names.length) this.root.setAttribute('data-il-cli-focus', names.join(' '));
+    else this.root.removeAttribute('data-il-cli-focus');
+    if (re && this._simRender === 'static') this._cliPrint(['  Look at (scene nodes, no 3D render here): ' + (label || src)], 'coach');
+    else if (names.length) this._cliPrint(['  Lighting up: ' + names.join(', ')], 'coach');
+  };
+
   ScenePlayer.prototype._cliStartTask = function (taskId){
     var C = g.ILImmersiveCLI, sim = this._sim, tk = C && C.task(sim.id, taskId);
     if (!tk) return;
@@ -1539,7 +1633,8 @@
     this._simResult.textContent = '';
     this._simState = g.ILImmersiveSims.merge(sim.initial, tk.setup || {});
     if (this._cli) this._cli.open = true;
-    this._cliPrint(['── Task: ' + tk.title, tk.goal, 'Type `hint` for the next command, `task` for progress, `reset` to restart.'], 'sys');
+    this._cliPrint(['── Task: ' + tk.title, tk.goal, 'Type `check` (or press Check) to verify, `hint` for a tip, `solution` for the command, `task` for progress, `reset` to restart.'], 'sys');
+    this._cliSetFocus(null);
     this._simApply('cli-task:' + taskId);
     simTrack('immersive_cli_task_start', { sim: sim.id, task: taskId });
     try { this._cliInput.focus(); } catch (e) { /* ignore */ }
@@ -2328,7 +2423,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.9.0',
+    version: '1.10.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
