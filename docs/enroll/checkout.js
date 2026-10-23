@@ -110,14 +110,20 @@
   var itemId = params.get("course") || params.get("tier") || "prep-sprint";
   var tier = null;
   var isCourseItem = false;
-  if (COURSES[itemId]) {
-    tier = COURSES[itemId];
+  /* Own-property lookups only, and copy the catalog entry before use:
+     a query value such as "__proto__" or "constructor" must never
+     resolve through the prototype chain — COURSES["__proto__"] IS
+     Object.prototype, and the tier.blurb assignment below would then
+     write onto every object on the page (prototype pollution). The
+     copy also keeps display edits off the shared catalog objects. */
+  if (Object.prototype.hasOwnProperty.call(COURSES, itemId)) {
+    tier = Object.assign({}, COURSES[itemId]);
     isCourseItem = true;
-  } else if (TIERS[itemId]) {
-    tier = TIERS[itemId];
+  } else if (Object.prototype.hasOwnProperty.call(TIERS, itemId)) {
+    tier = Object.assign({}, TIERS[itemId]);
   } else {
     itemId = "prep-sprint";
-    tier = TIERS[itemId];
+    tier = Object.assign({}, TIERS[itemId]);
   }
   if (isCourseItem) tier.blurb = "A full Interstitium Labs course: the complete interactive CBT with all modules, labs, and the Noah AI tutor.";
 
