@@ -11,6 +11,12 @@
  * v1.6.0 (2026-10-08): sim captions keep the authored-glTF provenance (node count, LOD1 skipped) instead of replacing it;
  * hosts six more CKA drills (storage-csi, ingress-routing, config-propagation, cni-network, mesh-mtls, control-plane-failure).
  * Boot waits for ILSceneKit when a page loads it after this file (fixes silent procedural fallback).
+ * v1.7.0 (2026-10-14): WebXR entry — "Enter VR" / "Enter AR" appear only when navigator.xr reports
+ * immersive-vr / immersive-ar support (hidden otherwise and under prefers-reduced-motion). The SAME WebGL
+ * context is made XR-compatible and drawn per XRView into an XRWebGLLayer (stereo), the page orbit RAF pauses,
+ * and the 2D orbit render resumes when the session ends. Same authored .glb + same sim rules engine — this is
+ * WebXR over authored glTF rendered locally, NOT Unreal Pixel Streaming and NOT a hosted cluster.
+ * Exam / review remounts reuse ScenePlayer, so they inherit the entry; destroy() ends any live session.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -319,6 +325,116 @@
     catch (e) { return false; }
   }
 
+  /* ── WebXR entry (v1.7.0 · 2026-10-14) ──────────────────────────────────────────────
+   * Pure helpers are exported on ILImmersive3D.xr (unit-tested in scripts/tests/immersive-xr.test.js). */
+  var XR_MODES = { vr: 'immersive-vr', ar: 'immersive-ar' };
+  var XR_HONESTY = 'WebXR over the authored glTF, rendered locally in this browser — not Unreal Pixel Streaming, not a hosted cluster.';
+
+  /** Resolve { vr, ar, reason }. Never throws; a rejecting / throwing isSessionSupported counts as unsupported. */
+  function xrProbe(nav, reduced){
+    function none(reason){ return Promise.resolve({ vr: false, ar: false, reason: reason }); }
+    if (reduced) return none('reduced-motion');
+    var xr = nav && nav.xr;
+    if (!xr || typeof xr.isSessionSupported !== 'function') return none('no-webxr');
+    function ask(mode){
+      try {
+        return Promise.resolve(xr.isSessionSupported(mode)).then(function (ok){ return ok === true; }, function (){ return false; });
+      } catch (e) { return Promise.resolve(false); }
+    }
+    return Promise.all([ask(XR_MODES.vr), ask(XR_MODES.ar)]).then(function (r){
+      return { vr: r[0], ar: r[1], reason: (r[0] || r[1]) ? 'supported' : 'no-xr-device' };
+    });
+  }
+
+  /** Minimal session init: nothing required; floor-relative space + (AR only) a DOM overlay are optional. */
+  function xrSessionInit(kind, overlayRoot){
+    var init = { requiredFeatures: [], optionalFeatures: ['local-floor'] };
+    if (kind === 'ar' && overlayRoot) {
+      init.optionalFeatures.push('dom-overlay');
+      init.domOverlay = { root: overlayRoot };
+    }
+    return init;
+  }
+
+  function xrRefSpaceOrder(){ return ['local-floor', 'local']; }
+
+  /** Try reference spaces in order; resolve { space, type } for the first one the UA grants. */
+  function xrRequestRefSpace(session, order){
+    order = order || xrRefSpaceOrder();
+    var i = 0;
+    function next(){
+      if (i >= order.length) return Promise.reject(new Error('no-reference-space'));
+      var type = order[i++];
+      var pr;
+      try { pr = Promise.resolve(session.requestReferenceSpace(type)); } catch (e) { return next(); }
+      return pr.then(function (space){ return space ? { space: space, type: type } : next(); }, next);
+    }
+    return next();
+  }
+
+  /* Session state machine: idle → requesting → active → ending → idle. Denied / failed setup → idle.
+   * Unknown events leave the state unchanged (double clicks, late 'end' events are harmless). */
+  var XR_FLOW = {
+    idle: { request: 'requesting' },
+    requesting: { granted: 'active', denied: 'idle', ended: 'idle' },
+    active: { end: 'ending', ended: 'idle' },
+    ending: { ended: 'idle' }
+  };
+  function xrTransition(state, evt){
+    var row = XR_FLOW[state] || XR_FLOW.idle;
+    return Object.prototype.hasOwnProperty.call(row, evt) ? row[evt] : (XR_FLOW[state] ? state : 'idle');
+  }
+
+  /** Where the diorama sits, in metres. local-floor: origin on the floor; local: origin ≈ the head at start. */
+  function xrPlacement(kind, refType){
+    var ar = kind === 'ar';
+    var floor = refType === 'local-floor';
+    return {
+      s: ar ? 0.2 : 0.3,
+      x: 0,
+      y: floor ? (ar ? 0.75 : 0.95) : (ar ? -0.45 : -0.35),
+      z: ar ? -1.1 : -1.5
+    };
+  }
+
+  /** Button model for a support result + state (pure; drives labels / hidden / disabled). */
+  function xrButtons(sup, state, kindActive, busyElsewhere){
+    var out = {};
+    ['vr', 'ar'].forEach(function (k){
+      var on = state === 'active' && kindActive === k;
+      out[k] = {
+        hidden: !(sup && sup[k]),
+        label: (on ? 'Exit ' : 'Enter ') + k.toUpperCase(),
+        pressed: on,
+        disabled: !!busyElsewhere || state === 'requesting' || state === 'ending' || (state === 'active' && !on)
+      };
+    });
+    return out;
+  }
+
+  var xrSupportP = null;
+  var xrOwner = null; /* one immersive session per page */
+  function xrSupportOnce(){
+    if (!xrSupportP) {
+      xrSupportP = xrProbe(g.navigator, prefersReduced());
+      try {
+        if (g.navigator && g.navigator.xr && g.navigator.xr.addEventListener && !xrSupportOnce._dc) {
+          xrSupportOnce._dc = true;
+          g.navigator.xr.addEventListener('devicechange', function (){
+            xrSupportP = null;
+            xrSupportOnce().then(function (sup){
+              registry.forEach(function (p){ if (p && p.alive && p._xrBar) p._xrApplySupport(sup); });
+            });
+          });
+        }
+      } catch (e) { /* ignore */ }
+    }
+    return xrSupportP;
+  }
+  function xrRepaintAll(){
+    registry.forEach(function (p){ if (p && p.alive && p._xrBar) p._xrPaint(); });
+  }
+
   function t(key, fallback){
     try {
       if (g.ILi18n && typeof g.ILi18n.t === 'function') return g.ILi18n.t(key, fallback);
@@ -411,6 +527,7 @@
     }
 
     this._buildButtons();
+    this._buildXR();
     this._bindOrbit();
     this._lazyGL();
   }
@@ -438,7 +555,7 @@
   };
 
   ScenePlayer.prototype._sleep = function (){
-    if (!this.gl) return;
+    if (!this.gl || this._xrSession) return; /* never drop the context under a live XR session */
     if (this.raf) g.cancelAnimationFrame(this.raf);
     this.raf = 0;
     try {
@@ -596,6 +713,7 @@
     if (this._authoredOk) mode = ' · authored .glb';
     else if (this.cfg.gltf && String(this.cfg.gltf).indexOf('.pending.') >= 0) mode = ' · glTF scaffold';
     else if (this._authoredTried) mode = ' · procedural fallback';
+    if (this._xrSession) mode += ' · WebXR ' + String(this._xrKind || '').toUpperCase();
     badge.textContent = eng + ' · ' + this.cfg.scene + mode;
     badge.setAttribute('data-il-gfx', this._gfxApi || 'webgl');
     badge.setAttribute('data-il-mesh', this._authoredOk ? 'authored' : 'procedural');
@@ -868,7 +986,8 @@
     this._simVerdict.textContent = d.verdict;
     this._simVerdict.setAttribute('data-verdict', d.verdict);
     /* Keep the asset provenance on sim stages too (the sim caption used to replace it). */
-    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '');
+    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '') +
+      (this._xrSession ? ' · in WebXR ' + String(this._xrKind || '').toUpperCase() + ' (local render, not Pixel Streaming)' : '');
     this.root.setAttribute('data-il-sim-verdict', d.verdict);
     if (reason && reason !== 'init') simTrack('immersive_sim_state', { sim: sim.id, reason: reason, verdict: d.verdict });
   };
@@ -1034,6 +1153,13 @@
     var ez = Math.cos(ph) * Math.cos(th) * dist;
     var V = lookAt(mat4(), ex, ey, ez, 0, 0.4, 0, 0, 1, 0);
 
+    this._renderScene(P, V, time, amp);
+
+    this.raf = g.requestAnimationFrame(function (){ self._loop(); });
+  };
+
+  /** One eye / one viewport worth of scene. Shared by the 2D orbit loop and every XRView. */
+  ScenePlayer.prototype._renderScene = function (P, V, time, amp){
     if (this._authoredOk && this._authored && this._authored.length) {
       this._renderAuthored(P, V, time, amp);
     } else if (this.cfg.scene === 'hermetic' || this.cfg.scene === 'math') {
@@ -1044,13 +1170,279 @@
       this._renderK8s(P, V, time, amp);
     }
     this._renderParticles(P, V, time, amp);
+  };
 
-    this.raf = g.requestAnimationFrame(function (){ self._loop(); });
+  /* ── WebXR session (v1.7.0) ───────────────────────────────────────────────────────── */
+  ScenePlayer.prototype._buildXR = function (){
+    var self = this;
+    var bar = el('div', 'il-immersive__xr');
+    bar.setAttribute('data-il-no-body', '');
+    bar.setAttribute('role', 'toolbar');
+    bar.setAttribute('aria-label', t('immersive.xr.toolbar', 'Headset / AR entry'));
+    bar.hidden = true;
+    this._xrBtns = {};
+    ['vr', 'ar'].forEach(function (kind){
+      var b = el('button', 'il-immersive__xr-btn', 'Enter ' + kind.toUpperCase());
+      b.type = 'button';
+      b.hidden = true;
+      b.title = XR_HONESTY;
+      b.setAttribute('data-il-xr-enter', kind);
+      b.addEventListener('click', function (){ self._xrToggle(kind); });
+      self._xrBtns[kind] = b;
+      bar.appendChild(b);
+    });
+    bar.appendChild(el('span', 'il-immersive__xr-note',
+      t('immersive.xr.note', 'WebXR · authored glTF rendered locally · not Unreal Pixel Streaming · no hosted cluster')));
+    this._xrBar = bar;
+    this._xrState = 'idle';
+    this._xrFrames = 0;
+    this.root.insertBefore(bar, this.root.querySelector('.il-immersive__fallback'));
+    this.root.setAttribute('data-il-xr', 'probing');
+    xrSupportOnce().then(function (sup){ self._xrApplySupport(sup); }, function (){
+      self._xrApplySupport({ vr: false, ar: false, reason: 'probe-error' });
+    });
+  };
+
+  ScenePlayer.prototype._xrApplySupport = function (sup){
+    if (!this.alive || !this._xrBar) return;
+    this._xrSupport = sup || { vr: false, ar: false, reason: 'none' };
+    var kinds = ['vr', 'ar'].filter(function (k){ return !!sup[k]; });
+    this._xrBar.hidden = !kinds.length;
+    this.root.setAttribute('data-il-xr', kinds.length ? 'available' : 'unsupported');
+    this.root.setAttribute('data-il-xr-support', kinds.length ? kinds.join(' ') : (sup.reason || 'none'));
+    this._xrPaint();
+  };
+
+  ScenePlayer.prototype._xrPaint = function (){
+    if (!this._xrBtns) return;
+    var model = xrButtons(this._xrSupport, this._xrState, this._xrKind, !!(xrOwner && xrOwner !== this));
+    for (var k in this._xrBtns) {
+      var b = this._xrBtns[k], m = model[k];
+      b.hidden = m.hidden;
+      b.textContent = t('immersive.xr.' + (m.pressed ? 'exit' : 'enter') + k.toUpperCase(), m.label);
+      b.setAttribute('aria-pressed', m.pressed ? 'true' : 'false');
+      b.disabled = m.disabled;
+    }
+    this.root.setAttribute('data-il-xr-state', this._xrState);
+  };
+
+  ScenePlayer.prototype._xrSet = function (evt){
+    this._xrState = xrTransition(this._xrState, evt);
+    this._xrPaint();
+    return this._xrState;
+  };
+
+  ScenePlayer.prototype._xrToggle = function (kind){
+    if (this._xrState === 'active') return this._xrEnd();
+    if (this._xrState === 'idle') return this._xrEnter(kind);
+    return Promise.resolve(false);
+  };
+
+  /* AR on phones: an optional DOM overlay keeps an Exit button + the live caption on screen. */
+  ScenePlayer.prototype._xrOverlayEl = function (){
+    if (this._xrOverlay) return this._xrOverlay;
+    var self = this;
+    var o = el('div', 'il-immersive__xr-overlay');
+    o.setAttribute('data-il-no-body', '');
+    o.hidden = true;
+    var b = el('button', 'il-immersive__xr-btn', 'Exit AR');
+    b.type = 'button';
+    b.setAttribute('data-il-xr-exit', '');
+    b.addEventListener('click', function (){ self._xrEnd(); });
+    o.appendChild(b);
+    this._xrOverlayCap = el('p', 'il-immersive__xr-overlay-cap', '');
+    o.appendChild(this._xrOverlayCap);
+    this.root.appendChild(o);
+    this._xrOverlay = o;
+    return o;
+  };
+
+  ScenePlayer.prototype._xrEnter = function (kind){
+    var self = this;
+    var xr = g.navigator && g.navigator.xr;
+    if (!xr || typeof xr.requestSession !== 'function' || xrOwner || !XR_MODES[kind]) return Promise.resolve(false);
+    if (!this.gl) this._wake();
+    this._xrKind = kind;
+    xrOwner = this;
+    this._xrSet('request');
+    xrRepaintAll();
+    var overlay = kind === 'ar' ? this._xrOverlayEl() : null;
+    var session = null;
+    var pr;
+    try { pr = Promise.resolve(xr.requestSession(XR_MODES[kind], xrSessionInit(kind, overlay))); }
+    catch (e) { pr = Promise.reject(e); }
+    return pr.then(function (s){
+      session = s;
+      if (!self.alive) throw new Error('stage-destroyed');
+      if (!self.gl) throw new Error('no-webgl');
+      var gl = self.gl;
+      return Promise.resolve(typeof gl.makeXRCompatible === 'function' ? gl.makeXRCompatible() : null).then(function (){
+        var Layer = g.XRWebGLLayer;
+        if (typeof Layer !== 'function') throw new Error('no-XRWebGLLayer');
+        var layer = new Layer(session, gl, { antialias: true, alpha: kind === 'ar' });
+        session.updateRenderState({ baseLayer: layer, depthNear: 0.05, depthFar: 40 });
+        return xrRequestRefSpace(session).then(function (ref){
+          if (!self.alive) throw new Error('stage-destroyed');
+          self._xrSession = session;
+          self._xrLayer = layer;
+          self._xrRef = ref.space;
+          self._xrRefType = ref.type;
+          self._xrPlace = xrPlacement(kind, ref.type);
+          self._xrFrames = 0;
+          self._xrOnEnd = function (){ self._xrEnded(); };
+          self._xrOnSelect = function (){ self._xrSelect(); };
+          self._xrOnSqueeze = function (){ self._xrEnd(); };
+          session.addEventListener('end', self._xrOnEnd);
+          session.addEventListener('select', self._xrOnSelect);
+          session.addEventListener('squeeze', self._xrOnSqueeze);
+          if (self.raf) g.cancelAnimationFrame(self.raf); /* pause the page orbit loop */
+          self.raf = 0;
+          self._xrSet('granted');
+          self.root.setAttribute('data-il-xr-mode', kind);
+          self.root.setAttribute('data-il-xr-ref', ref.type);
+          self._xrPrevCap = self.cap.textContent;
+          if (self._sim) self._simApply();
+          else self.cap.textContent = (self._xrPrevCap || '') + ' · in WebXR ' + kind.toUpperCase() + ' (' + ref.type + ').';
+          /* Only when the UA actually granted dom-overlay (it then lives in the top layer over passthrough). */
+          if (self._xrOverlay && kind === 'ar' && session.domOverlayState) {
+            self._xrOverlay.hidden = false;
+            self._xrOverlayCap.textContent = XR_HONESTY;
+          }
+          self._paintHud();
+          simTrack('immersive_xr_session', { phase: 'start', mode: kind, ref: ref.type, sim: self.cfg.sim || '', scene: self.cfg.scene });
+          self._xrRaf = session.requestAnimationFrame(function (ts, frame){ self._xrFrame(ts, frame); });
+          return true;
+        });
+      });
+    }).catch(function (err){
+      var name = (err && (err.name && err.name !== 'Error' ? err.name : err.message)) || 'error';
+      if (session) { try { Promise.resolve(session.end()).catch(function (){}); } catch (e2) { /* ignore */ } }
+      if (xrOwner === self) xrOwner = null;
+      self._xrSet('denied');
+      self.root.setAttribute('data-il-xr-error', name);
+      if (self.alive && self.cap) self.cap.textContent = (self.cap.textContent || '') + ' · WebXR ' + kind.toUpperCase() + ' not started (' + name + ').';
+      simTrack('immersive_xr_session', { phase: 'denied', mode: kind, error: name });
+      xrRepaintAll();
+      return false;
+    });
+  };
+
+  ScenePlayer.prototype._xrFrame = function (ts, frame){
+    var session = this._xrSession;
+    if (!session || !this.alive) return;
+    var self = this;
+    this._xrRaf = session.requestAnimationFrame(function (t2, f2){ self._xrFrame(t2, f2); });
+    var pose = frame && frame.getViewerPose ? frame.getViewerPose(this._xrRef) : null;
+    var gl = this.gl, layer = this._xrLayer;
+    if (!pose || !gl || !layer) return;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
+    var see = session.environmentBlendMode && session.environmentBlendMode !== 'opaque'; /* AR passthrough */
+    if (see) gl.clearColor(0, 0, 0, 0); else gl.clearColor(VOID[0], VOID[1], VOID[2], 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    var time = (performance.now() - this.t0) / 1000;
+    var amp = this._clipAmp(time);
+    var pl = this._xrPlace || xrPlacement(this._xrKind, this._xrRefType);
+    var W = ident(mat4());
+    translate(W, pl.x, pl.y, pl.z);
+    rotateY(W, this.orbit.theta); /* carry the learner's 2D orbit angle into the headset; no auto-spin */
+    scale(W, pl.s, pl.s, pl.s);
+    var views = pose.views || [];
+    for (var i = 0; i < views.length; i++) {
+      var view = views[i];
+      var vp = layer.getViewport(view);
+      if (!vp) continue;
+      gl.viewport(vp.x, vp.y, vp.width, vp.height);
+      var V = mul(mat4(), view.transform.inverse.matrix, W);
+      this._renderScene(view.projectionMatrix, V, time, amp);
+    }
+    this._xrFrames++;
+    if (this._xrViews !== views.length) {
+      this._xrViews = views.length;
+      this.root.setAttribute('data-il-xr-views', String(views.length));
+    }
+  };
+
+  /* Controller / hand select: free-play sims flip the next toggle (re-tints authored nodes in the headset);
+   * procedural stages step clips. Exam / review stages own grading, so select is a no-op there. */
+  ScenePlayer.prototype._xrSelect = function (){
+    if (this.cfg.owned) return null;
+    if (this._sim && this._sim.toggles && this._sim.toggles.length) {
+      var ts = this._sim.toggles;
+      var i = (this._xrSelN || 0) % ts.length;
+      this._xrSelN = i + 1;
+      var id = ts[i].id;
+      this._simState[id] = !this._simState[id];
+      this._simPredictClose();
+      this._simApply('xr-select:' + id);
+      return id;
+    }
+    var clips = CLIPS[this.cfg.scene] || CLIPS.k8s;
+    var cur = 0;
+    for (var j = 0; j < clips.length; j++) if (clips[j].id === this.clip) cur = j;
+    var nx = clips[(cur + 1) % clips.length].id;
+    this.clip = nx;
+    this.t0 = performance.now();
+    this.setCaption(nx);
+    Array.prototype.forEach.call(this.controls.querySelectorAll('button[data-il-clip]'), function (x){
+      x.setAttribute('aria-pressed', x.getAttribute('data-il-clip') === nx ? 'true' : 'false');
+    });
+    return nx;
+  };
+
+  ScenePlayer.prototype._xrEnd = function (){
+    var s = this._xrSession;
+    if (!s) return Promise.resolve(false);
+    var self = this;
+    this._xrSet('end');
+    var pr;
+    try { pr = Promise.resolve(s.end()); } catch (e) { pr = Promise.reject(e); }
+    return pr.then(function (){ return true; }, function (){ self._xrEnded(); return true; });
+  };
+
+  ScenePlayer.prototype._xrEnded = function (){
+    var s = this._xrSession;
+    if (!s) return;
+    try {
+      s.removeEventListener('end', this._xrOnEnd);
+      s.removeEventListener('select', this._xrOnSelect);
+      s.removeEventListener('squeeze', this._xrOnSqueeze);
+    } catch (e) { /* ignore */ }
+    var frames = this._xrFrames;
+    this._xrSession = null;
+    this._xrLayer = null;
+    this._xrRef = null;
+    this._xrRaf = 0;
+    if (xrOwner === this) xrOwner = null;
+    this._xrSet('ended');
+    this.root.removeAttribute('data-il-xr-mode');
+    if (this._xrOverlay) this._xrOverlay.hidden = true;
+    simTrack('immersive_xr_session', { phase: 'end', mode: this._xrKind, frames: frames });
+    if (this.alive) {
+      if (this._sim) this._simApply();
+      else if (this._xrPrevCap != null) this.cap.textContent = this._xrPrevCap;
+      this._paintHud();
+      if (this.gl) {
+        try { this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null); } catch (e2) { /* ignore */ }
+        this._resize();
+        if (!this.raf) this._loop(); /* resume the 2D orbit render */
+      }
+    }
+    xrRepaintAll();
   };
 
   ScenePlayer.prototype.destroy = function (){
+    /* Exam / review remount the same host per item: end any headset session and release the context. */
+    if (this._xrSession) {
+      var s = this._xrSession;
+      this.alive = false;
+      this._xrEnded();
+      try { Promise.resolve(s.end()).catch(function (){}); } catch (e) { /* ignore */ }
+    }
     this.alive = false;
     if (this.raf) g.cancelAnimationFrame(this.raf);
+    this.raf = 0;
+    if (this._io) { try { this._io.disconnect(); } catch (e2) { /* ignore */ } this._io = null; }
+    this._sleep();
   };
 
   var registry = [];
@@ -1120,7 +1512,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.6.0',
+    version: '1.7.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -1128,6 +1520,20 @@
     gltfLectureHook: true,
     nativeGlb: true,
     lodSkip: true,
-    sims: true
+    sims: true,
+    webxr: true,
+    xr: {
+      modes: XR_MODES,
+      honesty: XR_HONESTY,
+      probe: xrProbe,
+      sessionInit: xrSessionInit,
+      refSpaceOrder: xrRefSpaceOrder,
+      requestRefSpace: xrRequestRefSpace,
+      transition: xrTransition,
+      placement: xrPlacement,
+      buttons: xrButtons,
+      support: function (){ return xrSupportOnce(); },
+      active: function (){ return xrOwner ? xrOwner.root : null; }
+    }
   };
 })(typeof window !== 'undefined' ? window : this);
