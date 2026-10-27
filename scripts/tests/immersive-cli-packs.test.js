@@ -259,7 +259,7 @@ test('analytics stay verb-level: the player never puts command text in CLI card 
   for (const v of voice) assert.doesNotMatch(v, /line|cmd|hint|transcript|text/);
 });
 
-test('review replay never gives a free pass: replaying steps 1..i-1 lands exactly on step i (not done) for every step (99 on 2026-10-20, 136 on 2026-10-21, 160 on 2026-10-22, 184 since 2026-10-23)', () => {
+test('review replay never gives a free pass: replaying steps 1..i-1 lands exactly on step i (not done) for every step (99 on 2026-10-20, 136 on 2026-10-21, 160 on 2026-10-22, 184 on 2026-10-23, 226 since 2026-10-27)', () => {
   let n = 0;
   for (const id of C.list()) for (const tk of C.pack(id).tasks) for (let i = 0; i < tk.steps.length; i++) {
     const s = session(id, tk.id);
@@ -269,5 +269,5 @@ test('review replay never gives a free pass: replaying steps 1..i-1 lands exactl
     assert.equal(st.steps[i].done, false, `${id}/${tk.id} step ${i + 1} still for the learner`);
     n++;
   }
-  assert.equal(n, 184);
+  assert.equal(n, 226);
 });

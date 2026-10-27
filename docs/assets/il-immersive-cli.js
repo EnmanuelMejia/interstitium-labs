@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.5.0 (2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.6.0 (2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -44,6 +44,17 @@
  * parse error (logs by label, `get cm -o yaml > FILE`, sed -i, apply -f), namespace default-deny egress without a
  * kube-dns:53 rule, `kubectl set env` for a cross-namespace FQDN. Tasks: target-port · coredns-corefile · dns-egress ·
  * cross-ns-fqdn. Voice: "n s lookup" → nslookup, "core dns" → coredns, "config map" → configmap.
+ *
+ * v1.6.0 (2026-10-27) — the last two drills without a typed task get packs (15 total). CNI on the authored
+ * cni-pod-network.glb: NotReady nodes + Pending CoreDNS before any CNI (describe node NetworkPluginNotReady, empty
+ * /etc/cni/net.d, apply a trimmed calico.yaml stand-in), a pod CIDR that overlaps the VPC (same-node ping answers,
+ * cross-node does not; Calico's documented pool migration: new IPPool, disable the old one, recreate pods), and no
+ * kube-proxy (pod IPs answer, ClusterIP times out, names fail because DNS rides the kube-dns VIP; `kubeadm init phase
+ * addon kube-proxy`). Service mesh mTLS on service-mesh-sidecar.glb: STRICT resets a sidecar-less client, injection
+ * needs the namespace label AND new pods, X-Forwarded-Client-Cert proves the hop was mTLS, PERMISSIVE → STRICT
+ * migration in a safe order, istiod at zero keeps traffic flowing but the injection webhook (failurePolicy Fail) blocks
+ * new pods; `istioctl proxy-status`. Tasks: no-cni · cidr-overlap · no-kube-proxy · strict-reset ·
+ * permissive-to-strict · istiod-down. Voice: "istio control" → istioctl, "peer authentication", "ip pool", "kube adm".
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -2348,6 +2359,472 @@
     ]
   };
 
+  /* ── pack: CNI / pod networking (v1.6.0, 2026-10-27 — CKA Services & Networking 20% · Cluster Architecture 25%) ──
+   * Drives cni-network on the authored cni-pod-network.glb: node-0 (control plane) and node-1 (worker); in ns default
+   * deploy/client and web pod 0 on node-0, web pod 1 and both CoreDNS replicas on node-1; Service web = 10.96.45.12:80.
+   * The CNI is Calico. ping / curl / nslookup run from deploy/client and are computed from ILImmersiveSims cniDecide.
+   * Lab files stand in for the (much longer) real manifests and say so. kubectl get/patch ippool stands in for calicoctl
+   * or the Calico API server (projectcalico.org/v3). */
+  var CN_NOTE = 'Nodes: node-0 (control plane, 10.0.1.10) and node-1 (worker, 10.0.2.11) in VPC 10.0.0.0/16. ns default: deploy/client + one web pod on node-0, the other web pod + both CoreDNS pods on node-1; Service web = 10.96.45.12:80. Probe from the client: kubectl exec deploy/client -- ping|curl|nslookup. CNI = Calico; kubectl get/patch ippool stands in for calicoctl or the Calico API server (projectcalico.org/v3) — Calico\'s docs say not to edit crd.projectcalico.org objects directly. Lab files are trimmed stand-ins for the real manifests. Lab-only: fault cni none|calico · fault cidr overlap|distinct · fault kube-proxy off|on · fault coredns 0|2.';
+  var CN_POD = { client: 'client-6b7f9d8c4-x2lq7', web0: 'web-5c8d7f6b9-k4m2p', web1: 'web-5c8d7f6b9-r7t9w', dns0: 'coredns-7c65d6cfc9-5qz8n', dns1: 'coredns-7c65d6cfc9-x8rwd' };
+  var CN_CLUSTER_IP = '10.96.45.12';
+  function cnIps(s) {
+    var o = !!s.cidrOverlap, p = o ? '10.0.' : '192.168.';
+    return { client: p + '10.4', web0: p + '10.5', web1: p + '77.3', dns0: p + '77.2', dns1: p + '77.4' };
+  }
+  function cnVars(ctx) { return ctx.vars.cn || (ctx.vars.cn = { newPool: false, oldDisabled: false, re: {} }); }
+  var CN_CALICO = ['# lab excerpt (sim) — the real calico.yaml is several thousand lines; applying it here sets the drill\'s CNI state',
+    'apiVersion: apps/v1', 'kind: DaemonSet', 'metadata:', '  name: calico-node', '  namespace: kube-system', 'spec:', '  template:', '    spec:', '      hostNetwork: true',
+    '      initContainers:', '      - name: install-cni        # writes /etc/cni/net.d/10-calico.conflist on every node', '      containers:', '      - name: calico-node',
+    '        env:', '        - name: CALICO_IPV4POOL_CIDR', '          value: "192.168.0.0/16"', '---', 'apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: calico-kube-controllers', '  namespace: kube-system'];
+  var CN_NEW_POOL = ['apiVersion: projectcalico.org/v3', 'kind: IPPool', 'metadata:', '  name: new-pool', 'spec:', '  cidr: 192.168.0.0/16', '  ipipMode: Always', '  natOutgoing: true'];
+  function cnPoolYaml(name, s, v) {
+    var isNew = name === 'new-pool';
+    return ['apiVersion: projectcalico.org/v3', 'kind: IPPool', 'metadata:', '  name: ' + name, 'spec:', '  blockSize: 26', '  cidr: ' + (isNew ? '192.168.0.0/16' : (s.cidrOverlap || v.oldDisabled ? '10.0.0.0/16' : '192.168.0.0/16')),
+      '  disabled: ' + (!isNew && v.oldDisabled ? 'true' : 'false'), '  ipipMode: Always', '  natOutgoing: true', '  nodeSelector: all()'];
+  }
+  function cnPing(s, d, ip) {
+    var I = cnIps(s), m = d.metrics, same = [I.client, I.web0].indexOf(ip) >= 0, cross = [I.web1, I.dns0, I.dns1].indexOf(ip) >= 0;
+    var head = 'PING ' + ip + ' (' + ip + '): 56 data bytes', stat = '--- ' + ip + ' ping statistics ---';
+    var lost = function (note, ev) { return res([head].concat(note ? [note] : []).concat(['', stat, '2 packets transmitted, 0 packets received, 100% packet loss', 'command terminated with exit code 1']), 1, null, ['ping'].concat(ev)); };
+    if (ip === CN_CLUSTER_IP) return lost('(sim) a ClusterIP is a virtual IP: kube-proxy in iptables/nftables mode forwards only the Service\'s ports, so ICMP gets no reply — test a Service with curl', ['ping-clusterip']);
+    if (!same && !cross) return lost('(sim) no pod in this lab has that IP — read them with kubectl get pods -o wide', ['ping-unknown']);
+    var ok = same ? m.sameNode : m.crossNode;
+    if (!ok) return lost(null, [same ? 'ping-same-fail' : 'ping-cross-fail']);
+    var ttl = same ? 63 : 62;
+    return res([head, '64 bytes from ' + ip + ': seq=0 ttl=' + ttl + ' time=' + (same ? '0.081' : '0.512') + ' ms', '64 bytes from ' + ip + ': seq=1 ttl=' + ttl + ' time=' + (same ? '0.074' : '0.468') + ' ms', '', stat,
+      '2 packets transmitted, 2 packets received, 0% packet loss'], 0, null, ['ping', same ? 'ping-same-ok' : 'ping-cross-ok']);
+  }
+  function cnCurl(s, d, cmd) {
+    var url = '';
+    for (var ci = 1; ci < cmd.length; ci++) {
+      if (/^(-m|--max-time|--connect-timeout|-o|--output|-H|--header|-w|--write-out|-X|-T|--timeout|-O)$/.test(cmd[ci])) { ci++; continue; }
+      if (cmd[ci].charAt(0) !== '-') { url = cmd[ci]; break; }
+    }
+    var mm = /^(?:https?:\/\/)?([^\/:]+)(?::(\d+))?/.exec(url);
+    if (!mm) return res(['curl: (3) URL rejected: No host part in the URL'], 3);
+    var host = mm[1].toLowerCase(), port = mm[2] || '80', I = cnIps(s), m = d.metrics;
+    var T = function (ev) { return res(['curl: (28) Connection timed out after 3002 milliseconds', 'command terminated with exit code 28'], 28, null, ['probe'].concat(ev)); };
+    var ok = function (pod, ev) { return res(['{"service":"web","pod":"' + pod + '","ok":true}'], 0, null, ['probe'].concat(ev)); };
+    if (port !== '80') return res(['sim: web listens on port 80 (Service web → targetPort 80)'], 2);
+    if (/^web(\.default(\.svc(\.cluster\.local)?)?)?\.?$/.test(host)) {
+      if (!m.dns) return res(['curl: (6) Could not resolve host: ' + host, 'command terminated with exit code 6'], 6, null, ['probe', 'curl-web-dns-fail']);
+      return ok(CN_POD.web1, ['curl-web-name-ok']);
+    }
+    if (host === CN_CLUSTER_IP) {
+      if (!m.clusterIp) return T(['curl-clusterip-fail']);
+      if (!m.crossNode) return res(['curl: (28) Connection timed out after 3002 milliseconds', '(sim) kube-proxy picked the web pod on node-1 and cross-node traffic is broken; real requests succeed only when the node-0 pod is chosen', 'command terminated with exit code 28'], 28, null, ['probe', 'curl-clusterip-flaky']);
+      return ok(CN_POD.web1, ['curl-clusterip-ok']);
+    }
+    if (host === I.web0 || host === I.web1) {
+      var same = host === I.web0;
+      if (!(same ? m.sameNode : m.crossNode)) return T(['curl-pod-fail']);
+      return ok(same ? CN_POD.web0 : CN_POD.web1, ['curl-pod-ok']);
+    }
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return res(['curl: (28) Connection timed out after 3002 milliseconds', '(sim) nothing in this lab serves HTTP on ' + host + ' — read IPs with kubectl get pods -o wide / kubectl get svc', 'command terminated with exit code 28'], 28, null, ['probe', 'curl-unknown']);
+    return res(['sim: this drill probes Service web (http://web, http://' + CN_CLUSTER_IP + ') and the web pods by IP on port 80'], 2);
+  }
+  var cniPack = {
+    sim: 'cni-network',
+    prompt: 'student@node-0:~$',
+    note: CN_NOTE,
+    files: { 'calico.yaml': { yaml: CN_CALICO }, 'new-pool.yaml': { yaml: CN_NEW_POOL } },
+    examples: ['kubectl get nodes', 'kubectl get nodes -o wide', 'kubectl describe node node-1', 'kubectl get pods -o wide', 'kubectl get pods -n kube-system -o wide', 'kubectl get daemonsets -n kube-system',
+      'kubectl get deployments -n kube-system', 'ls /etc/cni/net.d', 'cat calico.yaml', 'kubectl get svc web', 'kubectl get endpointslices -l kubernetes.io/service-name=web',
+      'kubectl exec deploy/client -- ping -c 2 ' + '192.168.77.3', 'kubectl exec deploy/client -- curl -s -m 3 http://web', 'kubectl exec deploy/client -- curl -s -m 3 http://' + CN_CLUSTER_IP,
+      'kubectl exec deploy/client -- nslookup web', 'kubectl get ippools', 'kubectl get ippool default-ipv4-ippool -o yaml', 'fault kube-proxy off'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, I = cnIps(s), v = cnVars(ctx);
+      var f = faultArgs(t);
+      if (f) {
+        var FK = { 'cni': ['cniInstalled', 'calico', 'none'], 'cidr': ['cidrOverlap', 'overlap', 'distinct'], 'kube-proxy': ['kubeProxy', 'on', 'off'], 'coredns': ['corednsUp', '2', '0'] }[f[0]];
+        if (!FK || (f[1] !== FK[1] && f[1] !== FK[2])) return res(['usage: fault cni none|calico · fault cidr overlap|distinct · fault kube-proxy off|on · fault coredns 0|2   (lab-only fault injection)'], 2);
+        var fs = {}; fs[FK[0]] = f[1] === FK[1];
+        if (FK[0] === 'cidrOverlap') ctx.vars.cn = null;
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      if (t[0] === 'ls' && /^\/etc\/cni\/net\.d\/?$/.test(t[t.length - 1] || '')) {
+        return s.cniInstalled ? res(['10-calico.conflist  calico-kubeconfig'], 0, null, ['ls-cni', 'cni-conf-ok']) : res([], 0, null, ['ls-cni', 'cni-conf-empty']);
+      }
+      if (t[0] === 'cat' && /^\/etc\/cni\/net\.d\/10-calico\.conflist$/.test(t[1] || '')) {
+        if (!s.cniInstalled) return res(['cat: ' + t[1] + ': No such file or directory'], 1);
+        return res(['{', '  "name": "k8s-pod-network",', '  "cniVersion": "0.3.1",', '  "plugins": [', '    { "type": "calico", "ipam": { "type": "calico-ipam" }, "kubernetes": { "kubeconfig": "/etc/cni/net.d/calico-kubeconfig" } },',
+          '    { "type": "portmap", "capabilities": { "portMappings": true } }', '  ]', '}'], 0, null, ['cat-cni-conf']);
+      }
+      var fr = fileRun(cniPack, t); if (fr) return fr;
+      if (t[0] === 'kubeadm') {
+        if (t[1] === 'init' && t[2] === 'phase' && t[3] === 'addon' && (t[4] === 'kube-proxy' || t[4] === 'coredns')) {
+          var kp = t[4] === 'kube-proxy';
+          return res(['[addons] Applied essential addon: ' + (kp ? 'kube-proxy' : 'CoreDNS')], 0, kp ? { kubeProxy: true } : { corednsUp: true }, ['kubeadm-addon', kp ? 'kubeadm-addon-kube-proxy' : 'kubeadm-addon-coredns']);
+        }
+        return res(['sim: this drill models `sudo kubeadm init phase addon kube-proxy|coredns` only (re-install an essential addon on a running cluster)'], 2);
+      }
+      if (t[0] === 'ping' || t[0] === 'curl' || t[0] === 'nslookup') return res(['sim: node-0 is not inside the pod network — run probes from a pod: kubectl exec deploy/client -- ' + t[0] + ' …'], 2, null, ['probe-wrong-place']);
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['-c', '--container'])), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      var ready = !!s.cniInstalled;
+      if (verb === 'get' && /^(nodes?|no)$/.test(kind)) {
+        var wide = out === 'wide';
+        var hdr = ['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'].concat(wide ? ['INTERNAL-IP', 'EXTERNAL-IP', 'OS-IMAGE', 'CONTAINER-RUNTIME'] : []);
+        var rows = [hdr].concat([['node-0', 'control-plane', '10.0.1.10'], ['node-1', '<none>', '10.0.2.11']].filter(function (n) { return !name || n[0] === name; }).map(function (n) {
+          return [n[0], ready ? 'Ready' : 'NotReady', n[1], '9d', 'v1.37.1'].concat(wide ? [n[2], '<none>', 'Ubuntu 24.04.1 LTS', 'containerd://1.7.22'] : []);
+        }));
+        return res(table(rows), 0, null, ['get-nodes', ready ? 'nodes-ready' : 'nodes-notready'].concat(wide ? ['nodes-wide'] : []));
+      }
+      if (verb === 'describe' && /^(nodes?|no)$/.test(kind)) {
+        var nn = name || 'node-1';
+        if (nn !== 'node-0' && nn !== 'node-1') return notFound('nodes', nn);
+        var rd = ready ? ['  Ready            True    KubeletReady                 kubelet is posting ready status']
+          : ['  Ready            False   KubeletNotReady              container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized'];
+        return res(['Name:               ' + nn, 'Roles:              ' + (nn === 'node-0' ? 'control-plane' : '<none>'),
+          'Taints:             ' + (ready ? (nn === 'node-0' ? 'node-role.kubernetes.io/control-plane:NoSchedule' : '<none>') : 'node.kubernetes.io/not-ready:NoSchedule'),
+          'Conditions:', '  Type             Status  Reason                       Message', '  ----             ------  ------                       -------',
+          '  MemoryPressure   False   KubeletHasSufficientMemory   kubelet has sufficient memory available', '  DiskPressure     False   KubeletHasNoDiskPressure     kubelet has no disk pressure'].concat(rd)
+          .concat(['Addresses:', '  InternalIP:  ' + (nn === 'node-0' ? '10.0.1.10' : '10.0.2.11'), '  Hostname:    ' + nn]), 0, null, ['describe-node', ready ? 'describe-node-ready' : 'describe-node-cni']);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(kind)) {
+        var w = out === 'wide', all = ns === '*';
+        var P = [];
+        var podRow = function (pns, nm, ok, ip, node, pendingIfNoCni) {
+          var pend = pendingIfNoCni && !ready;
+          P.push([pns, nm, pend ? '0/1' : (ok ? '1/1' : '0/1'), pend ? 'Pending' : (ok ? 'Running' : 'Running'), '0', '9d', pend ? '<none>' : ip, pend ? '<none>' : node]);
+        };
+        if (all || ns === 'default') {
+          podRow('default', CN_POD.client, true, I.client, 'node-0', true);
+          podRow('default', CN_POD.web0, true, I.web0, 'node-0', true);
+          podRow('default', CN_POD.web1, true, I.web1, 'node-1', true);
+        }
+        if (all || ns === 'kube-system') {
+          if (s.corednsUp) { podRow('kube-system', CN_POD.dns0, true, I.dns0, 'node-1', true); podRow('kube-system', CN_POD.dns1, true, I.dns1, 'node-1', true); }
+          if (ready) { P.push(['kube-system', 'calico-node-4tq8z', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0'], ['kube-system', 'calico-node-9wv2c', '1/1', 'Running', '0', '9d', '10.0.2.11', 'node-1'], ['kube-system', 'calico-kube-controllers-6d8f7c-pq4lz', '1/1', 'Running', '0', '9d', I.dns0.replace(/\.2$/, '.6'), 'node-1']); }
+          P.push(['kube-system', 'etcd-node-0', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0'], ['kube-system', 'kube-apiserver-node-0', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0'],
+            ['kube-system', 'kube-controller-manager-node-0', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0'], ['kube-system', 'kube-scheduler-node-0', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0']);
+          if (s.kubeProxy) P.push(['kube-system', 'kube-proxy-7m2kd', '1/1', 'Running', '0', '9d', '10.0.1.10', 'node-0'], ['kube-system', 'kube-proxy-q8z4n', '1/1', 'Running', '0', '9d', '10.0.2.11', 'node-1']);
+        }
+        if (!P.length) return res(['No resources found in ' + ns + ' namespace.'], 0);
+        var H = (all ? ['NAMESPACE'] : []).concat(['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE']).concat(w ? ['IP', 'NODE'] : []);
+        var tb = [H].concat(P.map(function (r) { return (all ? [r[0]] : []).concat(r.slice(1, 6)).concat(w ? r.slice(6) : []); }));
+        var ev = ['get-pods'];
+        if (all || ns === 'kube-system') ev.push(!s.corednsUp ? 'coredns-absent' : (ready ? 'coredns-running' : 'coredns-pending'));
+        if (w) ev.push('pods-wide');
+        return res(table(tb), 0, null, ev);
+      }
+      if (verb === 'get' && /^(ds|daemonsets?(\.apps)?)$/.test(kind)) {
+        var D = [];
+        if (ready) D.push(['kube-system', 'calico-node', '2', '2', '2', '2', '2', 'kubernetes.io/os=linux', '9d']);
+        if (s.kubeProxy) D.push(['kube-system', 'kube-proxy', '2', '2', '2', '2', '2', 'kubernetes.io/os=linux', '9d']);
+        if (ns !== '*' && ns !== 'kube-system') return res(['No resources found in ' + ns + ' namespace.'], 0, null, ['get-ds-none']);
+        var dall = ns === '*';
+        if (!D.length) return res(['No resources found in kube-system namespace.'], 0, null, ['get-ds', 'ds-no-cni', 'ds-no-kube-proxy']);
+        var DH = (dall ? ['NAMESPACE'] : []).concat(['NAME', 'DESIRED', 'CURRENT', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'NODE SELECTOR', 'AGE']);
+        return res(table([DH].concat(D.map(function (r) { return dall ? r : r.slice(1); }))), 0, null, ['get-ds'].concat(ready ? [] : ['ds-no-cni']).concat(s.kubeProxy ? [] : ['ds-no-kube-proxy']));
+      }
+      if (verb === 'get' && /^(deploy|deployments?(\.apps)?)$/.test(kind)) {
+        if (ns === 'default') return res(table([['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE'], ['client', ready ? '1/1' : '0/1', '1', ready ? '1' : '0', '9d'], ['web', ready ? '2/2' : '0/2', '2', ready ? '2' : '0', '9d']]), 0, null, ['get-deploy']);
+        if (ns !== 'kube-system') return res(['No resources found in ' + ns + ' namespace.'], 0);
+        var dr = [['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE'], ['coredns', s.corednsUp ? (ready ? '2/2' : '0/2') : '0/0', s.corednsUp ? '2' : '0', s.corednsUp && ready ? '2' : '0', '9d']];
+        if (ready) dr.push(['calico-kube-controllers', '1/1', '1', '1', '9d']);
+        return res(table(dr), 0, null, ['get-deploy', s.corednsUp ? 'coredns-deploy' : 'coredns-scaled-zero']);
+      }
+      if (verb === 'scale') {
+        var rep = flag(t, ['--replicas']), tg = name || '';
+        if (!/^(deploy|deployments?(\.apps)?)$/.test(kind) || tg !== 'coredns' || ns !== 'kube-system' || rep === null || !/^\d+$/.test(String(rep))) return res(['sim: this drill models `kubectl scale deployment coredns -n kube-system --replicas=N`'], 2);
+        return res(['deployment.apps/coredns scaled'], 0, { corednsUp: +rep > 0 }, ['scale-coredns']);
+      }
+      if (verb === 'get' && /^(svc|services?)$/.test(kind)) {
+        if (ns !== 'default' || (name && name !== 'web')) return name ? notFound('services', name) : res(['sim: this drill models Service web in ns default'], 2);
+        return res(table([['NAME', 'TYPE', 'CLUSTER-IP', 'EXTERNAL-IP', 'PORT(S)', 'AGE'], ['web', 'ClusterIP', CN_CLUSTER_IP, '<none>', '80/TCP', '9d']]), 0, null, ['get-svc']);
+      }
+      if (verb === 'get' && /^(endpointslices?(\.discovery\.k8s\.io)?)$/.test(kind)) {
+        return res(table([['NAME', 'ADDRESSTYPE', 'PORTS', 'ENDPOINTS', 'AGE'], ['web-9x7kq', 'IPv4', ready ? '80' : '<unset>', ready ? I.web0 + ',' + I.web1 : '<unset>', '9d']]), 0, null, ['eps-web']);
+      }
+      if (/^(ippools?(\.projectcalico\.org|\.crd\.projectcalico\.org)?)$/.test(kind)) {
+        if (!ready) return res(['error: the server doesn\'t have a resource type "' + kind + '"'], 1);
+        var pools = ['default-ipv4-ippool'].concat(v.newPool ? ['new-pool'] : []);
+        if (verb === 'get') {
+          if (name && pools.indexOf(name) < 0) return notFound('ippools.projectcalico.org', name);
+          if (out === 'yaml') {
+            var nm = name || pools[0];
+            var py = cnPoolYaml(nm, s, v);
+            return res(py, 0, null, ['ippool-yaml', nm === 'default-ipv4-ippool' && /10\.0\.0\.0\/16/.test(py.join('\n')) ? 'ippool-overlap' : 'ippool-ok']);
+          }
+          return res(table([['NAME', 'CREATED AT']].concat(pools.filter(function (p) { return !name || p === name; }).map(function (p) { return [p, p === 'new-pool' ? '2026-10-27T13:05:12Z' : '2026-10-18T09:12:40Z']; }))), 0, null, ['get-ippools']);
+        }
+        if (verb === 'patch') {
+          if (name !== 'default-ipv4-ippool') return name && pools.indexOf(name) >= 0 ? res(['sim: this drill models disabling default-ipv4-ippool'], 2) : notFound('ippools.projectcalico.org', name);
+          var j = jsonArg(t); if (j.err) return j.err;
+          var dis = j.v && j.v.spec && j.v.spec.disabled;
+          if (dis !== true) return res(['sim: this drill models {"spec":{"disabled":true}} on default-ipv4-ippool (stop allocating from it; existing pods keep their IPs)'], 2);
+          if (!v.newPool) return res(['ippool.projectcalico.org/default-ipv4-ippool patched', '(sim) with no other enabled pool, new pods cannot get an IP — create the replacement pool first'], 0, null, ['ippool-disabled-early']);
+          v.oldDisabled = true;
+          return res(['ippool.projectcalico.org/default-ipv4-ippool patched'], 0, null, ['ippool-old-disabled']);
+        }
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var a = applyFile(cniPack, t); if (a.err) return a.err;
+        if (a.name === 'calico.yaml') {
+          return res(['serviceaccount/calico-node ' + (ready ? 'unchanged' : 'created'), 'customresourcedefinition.apiextensions.k8s.io/ippools.crd.projectcalico.org ' + (ready ? 'unchanged' : 'created'),
+            'daemonset.apps/calico-node ' + (ready ? 'unchanged' : 'created'), 'deployment.apps/calico-kube-controllers ' + (ready ? 'unchanged' : 'created'),
+            '(sim) output trimmed — the lab excerpt stands in for the full manifest; calico-node writes /etc/cni/net.d/10-calico.conflist on each node'], 0, ready ? null : { cniInstalled: true }, ['apply-calico']);
+        }
+        if (!ready) return res(['error: resource mapping not found for name: "new-pool" namespace: "" from "new-pool.yaml": no matches for kind "IPPool" in version "projectcalico.org/v3"', 'ensure CRDs are installed first'], 1);
+        var was = v.newPool; v.newPool = true;
+        return res(['ippool.projectcalico.org/new-pool ' + (was ? 'unchanged' : 'created')], 0, null, ['ippool-new-created']);
+      }
+      if (verb === 'rollout' && args[0] === 'restart') {
+        var rk = (args[1] || '').toLowerCase(), rn = args[2] || '';
+        if (/\//.test(rk)) { rn = rk.split('/')[1]; rk = rk.split('/')[0]; }
+        if (!/^(deploy|deployments?(\.apps)?)$/.test(rk)) return res(['sim: this drill models `kubectl rollout restart deployment [NAME]`'], 2);
+        var targets = ns === 'kube-system' ? (rn ? (rn === 'coredns' ? ['coredns'] : []) : ['coredns', 'calico-kube-controllers']) : (ns === 'default' ? (rn ? ([ 'client', 'web'].indexOf(rn) >= 0 ? [rn] : []) : ['client', 'web']) : []);
+        if (!targets.length) return notFound('deployments.apps', rn || '(none in ' + ns + ')');
+        var fixed = v.newPool && v.oldDisabled;
+        targets.forEach(function (x) { if (fixed) v.re[x] = true; });
+        var L = targets.map(function (x) { return 'deployment.apps/' + x + ' restarted'; });
+        var patch = null, evr = ['rollout-restart'];
+        if (s.cidrOverlap) {
+          if (!fixed) L.push('(sim) the new pods still get addresses from default-ipv4-ippool (10.0.0.0/16) — nothing changed');
+          else if (v.re.client && v.re.web && v.re.coredns) { patch = { cidrOverlap: false }; L.push('(sim) every pod in the drill now has an address from new-pool (192.168.0.0/16)'); evr.push('pods-reip'); }
+          else L.push('(sim) these pods now use new-pool; still on the old range: ' + ['client', 'web', 'coredns'].filter(function (x) { return !v.re[x]; }).join(', '));
+        }
+        return res(L, 0, patch, evr);
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        if (ex.ns !== 'default' || !(ex.target === 'client' || ex.target === CN_POD.client)) return res(['Error from server (NotFound): pods "' + ex.target + '" not found (sim: probe from deploy/client in ns default)'], 1, null, ['not-found']);
+        if (!ready) return res(['Error from server (BadRequest): pod ' + CN_POD.client + ' does not have a host assigned'], 1, null, ['exec-pending']);
+        var bin = ex.cmd[0];
+        if (bin === 'ping') { var ip = ex.cmd.filter(function (a, i) { return a.charAt(0) !== '-' && i > 0 && !/^-[cwW]$/.test(ex.cmd[i - 1]); })[0]; return ip ? cnPing(s, d, ip) : res(['ping: usage error: Destination address required'], 1); }
+        if (bin === 'curl' || bin === 'wget') return cnCurl(s, d, ex.cmd);
+        if (bin === 'nslookup') {
+          var q = ex.cmd[ex.cmd.length - 1];
+          if (!/^(web|kubernetes)(\.default(\.svc(\.cluster\.local)?)?)?\.?$/.test(q)) return res(['sim: this lab resolves web and kubernetes.default only'], 2);
+          if (!m.dns) return res([';; connection timed out; no servers could be reached', '', 'command terminated with exit code 1'], 1, null, ['dns', 'dns-fail']);
+          var web = /^web/.test(q);
+          return res(['Server:\t\t10.96.0.10', 'Address:\t10.96.0.10:53', '', 'Name:\t' + (web ? 'web' : 'kubernetes') + '.default.svc.cluster.local', 'Address: ' + (web ? CN_CLUSTER_IP : '10.96.0.1')], 0, null, ['dns', 'dns-ok']);
+        }
+        return res(['sim: inside deploy/client this drill models ping, curl / wget and nslookup'], 2);
+      }
+      return unmodelled(t.join(' '), cniPack.examples);
+    },
+    tasks: [
+      { id: 'no-cni', title: 'Fresh cluster, every node NotReady',
+        goal: 'kubeadm init and join finished, but both nodes are NotReady and CoreDNS will not start. Find the missing piece, install it, and get the nodes and CoreDNS up.',
+        setup: { cniInstalled: false, cidrOverlap: false, kubeProxy: true, corednsUp: true },
+        steps: [
+          { label: 'See both nodes NotReady', event: 'nodes-notready', hint: 'kubectl get nodes' },
+          { label: 'See CoreDNS stuck in Pending', event: 'coredns-pending', hint: 'kubectl get pods -n kube-system' },
+          { label: 'Read the Ready condition: the network plugin is not ready', event: 'describe-node-cni', hint: 'kubectl describe node node-1' },
+          { label: 'Confirm the CNI config directory is empty', event: 'cni-conf-empty', hint: 'ls /etc/cni/net.d' },
+          { label: 'Install a CNI plugin (Calico)', state: function (s) { return !!s.cniInstalled; }, hint: 'kubectl apply -f calico.yaml' },
+          { label: 'Both nodes are Ready', event: 'nodes-ready', hint: 'kubectl get nodes' },
+          { label: 'CoreDNS is Running', event: 'coredns-running', hint: 'kubectl get pods -n kube-system' }
+        ] },
+      { id: 'cidr-overlap', title: 'Same node works, cross-node does not',
+        goal: 'Pods on the same node reach each other, but nothing crosses to node-1. Find out why the pod addresses are the problem and move the pods to a pool that does not overlap the VPC, the way Calico documents it.',
+        setup: { cniInstalled: true, cidrOverlap: true, kubeProxy: true, corednsUp: true },
+        steps: [
+          { label: 'Ping the web pod on node-1 from the client: no reply', event: 'ping-cross-fail', hint: 'kubectl exec deploy/client -- ping -c 2 10.0.77.3' },
+          { label: 'Ping the web pod on the same node: it answers', event: 'ping-same-ok', hint: 'kubectl exec deploy/client -- ping -c 2 10.0.10.5' },
+          { label: 'Compare the node addresses with the pod addresses', event: 'nodes-wide', hint: 'kubectl get nodes -o wide' },
+          { label: 'Read the IP pool: 10.0.0.0/16, the same range as the VPC', event: 'ippool-overlap', hint: 'kubectl get ippool default-ipv4-ippool -o yaml' },
+          { label: 'Create a replacement pool that does not overlap', event: 'ippool-new-created', hint: 'kubectl apply -f new-pool.yaml' },
+          { label: 'Stop allocating from the old pool', event: 'ippool-old-disabled', hint: 'kubectl patch ippool default-ipv4-ippool --type merge -p \'{"spec":{"disabled":true}}\'' },
+          { label: 'Recreate the pods so they get new addresses', state: function (s) { return !s.cidrOverlap; }, hint: 'kubectl rollout restart deployment  then  kubectl rollout restart deployment coredns -n kube-system' },
+          { label: 'Cross-node ping works', event: 'ping-cross-ok', hint: 'kubectl exec deploy/client -- ping -c 2 192.168.77.3' }
+        ] },
+      { id: 'no-kube-proxy', title: 'Pod IPs work, Services do not',
+        goal: 'The client cannot reach Service web by name or by ClusterIP, yet the pods answer on their own IPs. Find which component should program the Service and restore it.',
+        setup: { cniInstalled: true, cidrOverlap: false, kubeProxy: false, corednsUp: true },
+        steps: [
+          { label: 'curl web by name: the name does not resolve', event: 'curl-web-dns-fail', hint: 'kubectl exec deploy/client -- curl -s -m 3 http://web' },
+          { label: 'curl a web pod by its own IP: it answers', event: 'curl-pod-ok', hint: 'kubectl exec deploy/client -- curl -s -m 3 http://192.168.77.3' },
+          { label: 'curl the ClusterIP: it times out', event: 'curl-clusterip-fail', hint: 'kubectl exec deploy/client -- curl -s -m 3 http://10.96.45.12' },
+          { label: 'Find what is missing among the node DaemonSets', event: 'ds-no-kube-proxy', hint: 'kubectl get daemonsets -n kube-system' },
+          { label: 'Re-install the kube-proxy addon', state: function (s) { return !!s.kubeProxy; }, hint: 'sudo kubeadm init phase addon kube-proxy' },
+          { label: 'The ClusterIP answers', event: 'curl-clusterip-ok', hint: 'kubectl exec deploy/client -- curl -s -m 3 http://10.96.45.12' },
+          { label: 'web answers by name again', event: 'curl-web-name-ok', hint: 'kubectl exec deploy/client -- curl -s -m 3 http://web' }
+        ] }
+    ]
+  };
+
+  /* ── pack: service mesh mTLS (v1.6.0, 2026-10-27 — Istio semantics; optional CKA+ / ICA, not graded on the CKA paper) ──
+   * Drives mesh-mtls on the authored service-mesh-sidecar.glb: app-0 = deploy/frontend in ns shop (the client), app-1 =
+   * deploy/payments in ns payments (already meshed; PeerAuthentication "default" in its namespace), istiod in ns
+   * istio-system. payments echoes request headers like httpbin /headers, so X-Forwarded-Client-Cert (set by the server
+   * sidecar only for mTLS peers) shows whether the hop was mTLS. Outcomes come from ILImmersiveSims meshDecide. */
+  var MS_NOTE = 'Namespaces: shop (deploy/frontend, the client) · payments (deploy/payments, already meshed, PeerAuthentication default) · istio-system (istiod). payments echoes request headers like httpbin /headers: X-Forwarded-Client-Cert is present only when the hop was mTLS. Sidecar injection is the istio-sidecar-injector mutating webhook (namespace label istio-injection=enabled). istioctl output is computed and trimmed, not byte-identical. Istio semantics, not CKA core. No live mesh, no real Envoy or istiod.';
+  var MS_CURL = 'kubectl exec -n shop deploy/frontend -- curl -s -m 3 http://payments.payments:8080/headers';
+  var MS_PODS = { old: ['frontend-7d9c8b6f5-kq2xz', 'frontend-7d9c8b6f5-m8wpl'], neu: ['frontend-6f4b9c7d8-2vnrt', 'frontend-6f4b9c7d8-h5xjq'], pay: ['payments-58c7d9f6b-4tlwq', 'payments-58c7d9f6b-zr6kp'], istiod: 'istiod-5d8f8b6c9-x7k2p' };
+  function msPa(mode) { return ['apiVersion: security.istio.io/v1', 'kind: PeerAuthentication', 'metadata:', '  name: default', '  namespace: payments', 'spec:', '  mtls:', '    mode: ' + mode]; }
+  var MS_WEBHOOK = 'Error creating: Internal error occurred: failed calling webhook "namespace.sidecar-injector.istio.io": failed to call webhook: Post "https://istiod.istio-system.svc:443/inject?timeout=10s": no endpoints available for service "istiod"';
+  var meshPack = {
+    sim: 'mesh-mtls',
+    prompt: 'student@controlplane:~$',
+    note: MS_NOTE,
+    files: { 'pa-strict.yaml': { yaml: msPa('STRICT'), set: { strict: true } }, 'pa-permissive.yaml': { yaml: msPa('PERMISSIVE'), set: { strict: false } } },
+    examples: ['kubectl get namespace shop --show-labels', 'kubectl get namespaces -L istio-injection', 'kubectl get pods -n shop', 'kubectl get pods -n payments', 'kubectl get peerauthentication -n payments',
+      'kubectl get peerauthentication default -n payments -o yaml', 'cat pa-strict.yaml', MS_CURL, 'kubectl get events -n shop', 'kubectl rollout status deployment/frontend -n shop',
+      'kubectl get deployments -n istio-system', 'istioctl proxy-status'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      var fr = fileRun(meshPack, t); if (fr) return fr;
+      if (t[0] === 'istioctl') {
+        if (t[1] === 'proxy-status' || t[1] === 'ps') {
+          if (!s.cpUp) return res(['Error: unable to find any Istiod instances'], 1, null, ['proxy-status', 'proxy-status-no-istiod']);
+          var rows = [['NAME', 'CLUSTER', 'CDS', 'LDS', 'EDS', 'RDS', 'ISTIOD']];
+          if (m.clientSidecar) MS_PODS.neu.forEach(function (p) { rows.push([p + '.shop', 'Kubernetes', 'SYNCED', 'SYNCED', 'SYNCED', 'SYNCED', MS_PODS.istiod]); });
+          MS_PODS.pay.forEach(function (p) { rows.push([p + '.payments', 'Kubernetes', 'SYNCED', 'SYNCED', 'SYNCED', 'SYNCED', MS_PODS.istiod]); });
+          return res(table(rows).concat(['(sim) computed from the drill state; columns trimmed']), 0, null, ['proxy-status', 'proxy-status-synced'].concat(m.clientSidecar ? ['proxy-status-frontend'] : []));
+        }
+        return res(['sim: this drill models `istioctl proxy-status` only'], 2);
+      }
+      if (t[0] === 'curl') return res(['sim: controlplane is outside the mesh — probe from the client: ' + MS_CURL], 2, null, ['probe-wrong-place']);
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['-L', '--label-columns', '-c', '--container'])), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      var pending = !!ctx.vars.msPending;
+      if (verb === 'get' && /^(ns|namespaces?)$/.test(kind)) {
+        var showL = hasFlag(t, '--show-labels'), lc = flag(t, ['-L', '--label-columns']);
+        var NS = [['default', ''], ['istio-system', ''], ['payments', 'istio-injection=enabled'], ['shop', s.nsLabeled ? 'istio-injection=enabled' : '']].filter(function (r) { return !name || r[0] === name; });
+        if (!NS.length) return notFound('namespaces', name);
+        var hdr = ['NAME', 'STATUS', 'AGE'].concat(showL ? ['LABELS'] : []).concat(lc === 'istio-injection' ? ['ISTIO-INJECTION'] : []);
+        var tb = [hdr].concat(NS.map(function (r) {
+          var labels = ['kubernetes.io/metadata.name=' + r[0]].concat(r[1] ? [r[1]] : []).join(',');
+          return [r[0], 'Active', '21d'].concat(showL ? [labels] : []).concat(lc === 'istio-injection' ? [r[1] ? 'enabled' : ''] : []);
+        }));
+        var ev = ['get-ns'];
+        if ((showL || lc === 'istio-injection') && NS.some(function (r) { return r[0] === 'shop'; })) ev.push(s.nsLabeled ? 'ns-shop-inject' : 'ns-shop-noinject');
+        return res(table(tb), 0, null, ev);
+      }
+      if (verb === 'label' && /^(ns|namespaces?)$/.test(kind)) {
+        var kv = args.slice(1).filter(function (a) { return /^istio-injection/.test(a); })[0] || '';
+        if (name !== 'shop') return name === 'payments' ? res(['namespace/payments not labeled'], 0) : (name ? notFound('namespaces', name) : res(['error: one or more resources must be specified as <resource> <name>'], 1));
+        if (kv === 'istio-injection=enabled') {
+          if (s.nsLabeled) return res(['namespace/shop not labeled'], 0, null, ['label-ns']);
+          return res(['namespace/shop labeled'], 0, { nsLabeled: true, restarted: false }, ['label-ns', 'label-ns-inject']);
+        }
+        if (kv === 'istio-injection-' || /^istio-injection=/.test(kv)) return res(['sim: only enabling injection is modelled — removing or changing the label never strips sidecars from running pods (they keep them until recreated)'], 2);
+        return res(['sim: this drill models `kubectl label namespace shop istio-injection=enabled`'], 2);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(kind)) {
+        var P = [], all = ns === '*';
+        if (all || ns === 'shop') {
+          var fp = s.restarted ? MS_PODS.neu : MS_PODS.old, sc = m.clientSidecar;
+          fp.forEach(function (p) { P.push(['shop', p, sc ? '2/2' : '1/1', 'Running', '0', s.restarted ? '4m' : '3d']); });
+        }
+        if (all || ns === 'payments') MS_PODS.pay.forEach(function (p) { P.push(['payments', p, '2/2', 'Running', '0', '3d']); });
+        if ((all || ns === 'istio-system') && s.cpUp) P.push(['istio-system', MS_PODS.istiod, '1/1', 'Running', '0', '21d']);
+        if (!P.length) return res(['No resources found in ' + ns + ' namespace.'], 0, null, ['get-pods']);
+        var H = (all ? ['NAMESPACE'] : []).concat(['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE']);
+        var ev2 = ['get-pods'];
+        if (all || ns === 'shop') ev2.push(m.clientSidecar ? 'pods-frontend-sidecar' : 'pods-frontend-nosidecar');
+        return res(table([H].concat(P.map(function (r) { return all ? r : r.slice(1); }))), 0, null, ev2);
+      }
+      if (verb === 'rollout' && (args[0] === 'restart' || args[0] === 'status')) {
+        var rk = (args[1] || '').toLowerCase(), rn = args[2] || '';
+        if (/\//.test(rk)) { rn = rk.split('/')[1]; rk = rk.split('/')[0]; }
+        if (!/^(deploy|deployments?(\.apps)?)$/.test(rk) || rn !== 'frontend' || ns !== 'shop') return (rn && rn !== 'frontend') || (rn === 'frontend' && ns !== 'shop') ? notFound('deployments.apps', rn) : res(['sim: this drill models `kubectl rollout restart|status deployment/frontend -n shop`'], 2);
+        if (args[0] === 'status') {
+          if (pending) return res(['Waiting for deployment "frontend" rollout to finish: 0 out of 2 new replicas have been updated...', '(sim) a real rollout status keeps waiting here; the sim stops'], 0, null, ['rollout-status', 'rollout-waiting']);
+          return res(['deployment "frontend" successfully rolled out'], 0, null, ['rollout-status', 'rollout-done']);
+        }
+        if (s.nsLabeled && !s.cpUp) {
+          ctx.vars.msPending = true;
+          return res(['deployment.apps/frontend restarted'], 0, null, ['rollout-restart', 'rollout-blocked']);
+        }
+        ctx.vars.msPending = false;
+        return res(['deployment.apps/frontend restarted'], 0, { restarted: !!s.nsLabeled }, ['rollout-restart', s.nsLabeled ? 'rollout-injected' : 'rollout-plain']);
+      }
+      if (verb === 'get' && /^(events?|ev)$/.test(kind)) {
+        if (ns !== 'shop' || !pending) return res(['No events found in ' + (ns === '*' ? 'any' : ns) + ' namespace.'], 0, null, ['get-events']);
+        return res(table([['LAST SEEN', 'TYPE', 'REASON', 'OBJECT', 'MESSAGE'], ['12s', 'Warning', 'FailedCreate', 'replicaset/frontend-6f4b9c7d8', MS_WEBHOOK]]), 0, null, ['get-events', 'inject-webhook-fail']);
+      }
+      if (/^(peerauthentications?(\.security\.istio\.io)?|pa)$/.test(kind)) {
+        var mode = s.strict ? 'STRICT' : 'PERMISSIVE';
+        if (verb === 'get' || verb === 'describe') {
+          if (ns !== 'payments' && ns !== '*') return res(['No resources found in ' + ns + ' namespace.'], 0, null, ['get-pa-none']);
+          if (name && name !== 'default') return notFound('peerauthentications.security.istio.io', name);
+          if (out === 'yaml' || verb === 'describe') return res(msPa(mode), 0, null, ['get-pa', 'pa-' + mode.toLowerCase()]);
+          var ph = (ns === '*' ? ['NAMESPACE'] : []).concat(['NAME', 'MODE', 'AGE']);
+          return res(table([ph, (ns === '*' ? ['payments'] : []).concat(['default', mode, '21d'])]), 0, null, ['get-pa', 'pa-' + mode.toLowerCase()]);
+        }
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var a = applyFile(meshPack, t); if (a.err) return a.err;
+        var same = !!s.strict === a.f.set.strict;
+        if (verb === 'create') return res(['Error from server (AlreadyExists): error when creating "' + a.name + '": peerauthentications.security.istio.io "default" already exists'], 1);
+        return res(['peerauthentication.security.istio.io/default ' + (same ? 'unchanged' : 'configured')], 0, same ? null : a.f.set, ['apply-pa', a.f.set.strict ? 'apply-pa-strict' : 'apply-pa-permissive']);
+      }
+      if (verb === 'get' && /^(deploy|deployments?(\.apps)?)$/.test(kind)) {
+        var rowsD = { shop: [['frontend', '2/2', pending ? '0' : '2', '2', '21d']], payments: [['payments', '2/2', '2', '2', '21d']], 'istio-system': [['istiod', s.cpUp ? '1/1' : '0/0', s.cpUp ? '1' : '0', s.cpUp ? '1' : '0', '21d']] }[ns];
+        if (!rowsD) return res(['No resources found in ' + ns + ' namespace.'], 0);
+        return res(table([['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE']].concat(rowsD)), 0, null, ['get-deploy'].concat(ns === 'istio-system' ? [s.cpUp ? 'istiod-up' : 'istiod-scaled-zero'] : []));
+      }
+      if (verb === 'scale') {
+        var rep = flag(t, ['--replicas']);
+        if (!/^(deploy|deployments?(\.apps)?)$/.test(kind) || name !== 'istiod' || ns !== 'istio-system' || rep === null || !/^\d+$/.test(String(rep))) return res(['sim: this drill models `kubectl scale deployment istiod -n istio-system --replicas=N`'], 2);
+        var up = +rep > 0, L = ['deployment.apps/istiod scaled'], patch = { cpUp: up };
+        if (up && pending) { ctx.vars.msPending = false; patch.restarted = true; L.push('(sim) the injection webhook has endpoints again; the ReplicaSet controller retries and the new frontend pods are created with sidecars'); }
+        return res(L, 0, patch, ['scale-istiod', up ? 'istiod-scaled-up' : 'istiod-scaled-down']);
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        if (ex.ns !== 'shop' || ex.target.indexOf('frontend') !== 0) return res(['Error from server (NotFound): pods "' + ex.target + '" not found (sim: probe from deploy/frontend in ns shop)'], 1, null, ['not-found']);
+        if (ex.cmd[0] !== 'curl') return res(['sim: inside deploy/frontend this drill models curl to http://payments.payments:8080/headers'], 2);
+        var url = ex.cmd.filter(function (x) { return /payments/.test(x) && x.charAt(0) !== '-'; })[0] || '';
+        if (!/^(https?:\/\/)?payments(\.payments(\.svc(\.cluster\.local)?)?)?:8080(\/headers)?\/?$/.test(url)) return res(['sim: this drill probes http://payments.payments:8080/headers (payments echoes request headers)'], 2);
+        if (!m.accepted) return res(['curl: (56) Recv failure: Connection reset by peer', 'command terminated with exit code 56'], 56, null, ['probe', 'curl-payments-reset']);
+        var H2 = ['{', '  "headers": {', '    "Accept": "*/*",', '    "Host": "payments.payments:8080",', '    "User-Agent": "curl/8.10.1"'];
+        if (m.transport === 'mTLS') { H2[4] += ','; H2.push('    "X-Forwarded-Client-Cert": "By=spiffe://cluster.local/ns/payments/sa/payments;Hash=<sha256 of the client cert>;Subject=\\"\\";URI=spiffe://cluster.local/ns/shop/sa/frontend"'); }
+        H2.push('  }', '}');
+        return res(H2, 0, null, ['probe', m.transport === 'mTLS' ? 'curl-payments-mtls' : 'curl-payments-plain']);
+      }
+      return unmodelled(t.join(' '), meshPack.examples);
+    },
+    tasks: [
+      { id: 'strict-reset', title: 'Connection reset by peer under STRICT',
+        goal: 'frontend → payments fails with a reset. payments is meshed and requires mTLS; frontend is not. Prove why, mesh frontend the way injection really works, and get an mTLS call through.',
+        setup: { nsLabeled: false, restarted: false, strict: true, cpUp: true },
+        steps: [
+          { label: 'Reproduce it: the call is reset', event: 'curl-payments-reset', hint: MS_CURL },
+          { label: 'Read payments’ PeerAuthentication: STRICT', event: 'pa-strict', hint: 'kubectl get peerauthentication -n payments' },
+          { label: 'See the frontend pods have one container (no sidecar)', event: 'pods-frontend-nosidecar', hint: 'kubectl get pods -n shop' },
+          { label: 'See ns shop has no injection label', event: 'ns-shop-noinject', hint: 'kubectl get namespace shop --show-labels' },
+          { label: 'Enable sidecar injection for ns shop', state: function (s) { return !!s.nsLabeled; }, hint: 'kubectl label namespace shop istio-injection=enabled' },
+          { label: 'Recreate the frontend pods so the webhook injects them', state: function (s) { return !!s.nsLabeled && !!s.restarted; }, hint: 'kubectl rollout restart deployment/frontend -n shop' },
+          { label: 'The call goes through over mTLS (client cert header present)', event: 'curl-payments-mtls', hint: MS_CURL }
+        ] },
+      { id: 'permissive-to-strict', title: 'Migrate payments from PERMISSIVE to STRICT without an outage',
+        goal: 'payments accepts plaintext today. Show that frontend’s calls are plaintext, mesh frontend first, prove the hop is mTLS, and only then lock payments to STRICT.',
+        setup: { nsLabeled: false, restarted: false, strict: false, cpUp: true },
+        steps: [
+          { label: 'The call works, but with no client certificate header (plaintext)', event: 'curl-payments-plain', hint: MS_CURL },
+          { label: 'Read payments’ PeerAuthentication: PERMISSIVE', event: 'pa-permissive', hint: 'kubectl get peerauthentication -n payments' },
+          { label: 'Mesh frontend: enable injection, then recreate its pods', state: function (s) { return !!s.nsLabeled && !!s.restarted; }, hint: 'kubectl label namespace shop istio-injection=enabled  then  kubectl rollout restart deployment/frontend -n shop' },
+          { label: 'The frontend pods now run 2/2 containers', event: 'pods-frontend-sidecar', hint: 'kubectl get pods -n shop' },
+          { label: 'The same call now carries the client certificate (mTLS)', event: 'curl-payments-mtls', hint: MS_CURL },
+          { label: 'Switch payments to STRICT', state: function (s) { return !!s.strict; }, hint: 'kubectl apply -f pa-strict.yaml' },
+          { label: 'Under STRICT the call still works', event: 'curl-payments-mtls', hint: MS_CURL }
+        ] },
+      { id: 'istiod-down', title: 'Traffic flows, but nothing new can join the mesh',
+        goal: 'Someone scaled istiod to zero. Show that meshed traffic still flows, see what breaks when frontend is redeployed, find the cause and restore the control plane.',
+        setup: { nsLabeled: true, restarted: true, strict: true, cpUp: false },
+        steps: [
+          { label: 'Existing meshed traffic still flows over mTLS', event: 'curl-payments-mtls', hint: MS_CURL },
+          { label: 'Redeploy frontend', event: 'rollout-blocked', hint: 'kubectl rollout restart deployment/frontend -n shop' },
+          { label: 'Read why the new pods are not created: the injection webhook fails', event: 'inject-webhook-fail', hint: 'kubectl get events -n shop' },
+          { label: 'Find istiod at zero replicas', event: 'istiod-scaled-zero', hint: 'kubectl get deployments -n istio-system' },
+          { label: 'Bring istiod back', state: function (s) { return !!s.cpUp; }, hint: 'kubectl scale deployment istiod -n istio-system --replicas=1' },
+          { label: 'Every sidecar is SYNCED with istiod again', event: 'proxy-status-synced', hint: 'istioctl proxy-status' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -2355,7 +2832,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -2648,6 +3125,66 @@
         ['Set the web Deployment’s DB_HOST to a name that includes the database’s namespace.', '^(client-pod|svc-db)$'],
         ['Read web’s log again.', '^(edge-client-db|db-pod)$']
       ]
+    },
+    /* v1.6.0 (2026-10-27) — CNI on cni-pod-network.glb */
+    'cni-network': {
+      'no-cni': [
+        ['Start with the cluster’s view of its nodes and read the STATUS column.', '^(node|kubelet)-[01]$'],
+        ['Cluster DNS runs as pods in kube-system. Are they scheduled at all?', '^coredns$'],
+        ['Describe a node and read the message on its Ready condition — it names the subsystem.', '^kubelet-[01]$'],
+        ['The container runtime looks for network plugin config in one well-known directory on each node. List it.', '^(cni-bridge|kubelet-[01])$'],
+        ['A ready-made Calico manifest sits in your home directory. Read it, then send it to the API server.', '^(cni-bridge|veth-\\d-\\d)$'],
+        ['Look at the nodes again.', '^(node|kubelet)-[01]$'],
+        ['Check the DNS pods in kube-system again.', '^(coredns|pod-1-\\d)$']
+      ],
+      'cidr-overlap': [
+        ['From the client Deployment, ping the web pod that runs on node-1 (wide pod output lists IPs and nodes).', '^overlay-arc-\\d-\\d$'],
+        ['Now ping the web pod that shares node-0 with the client.', '^(cni-bridge|veth-0-\\d)$'],
+        ['Wide node output shows each node’s internal address. Do the node and pod ranges overlap?', '^node-[01]$'],
+        ['Calico hands out pod addresses from IP pools. Read the default pool as YAML and find its cidr.', '^(cni-bridge|overlay-arc-\\d-\\d)$'],
+        ['There is a replacement pool manifest in your home directory with a range outside the VPC. Apply it.', '^cni-bridge$'],
+        ['Mark the old pool disabled with a merge patch on its spec, so no new pod gets an address from it.', '^cni-bridge$'],
+        ['Pods keep their address for life. Restart every Deployment in default, and CoreDNS in kube-system.', '^pod-\\d-\\d$'],
+        ['Ping the node-1 web pod again — at its new address.', '^overlay-arc-\\d-\\d$']
+      ],
+      'no-kube-proxy': [
+        ['From the client Deployment, curl the web Service by its name and read curl’s exit reason.', '^(coredns|cluster-ip)$'],
+        ['Skip the Service: curl one web pod directly by its pod IP.', '^(overlay-arc-\\d-\\d|pod-1-\\d)$'],
+        ['Now curl the Service’s ClusterIP. Something has to turn that virtual IP into a pod address.', '^cluster-ip$'],
+        ['That something runs as a DaemonSet on every node. List the DaemonSets in kube-system.', '^(node|kubelet)-[01]$'],
+        ['kubeadm can re-install one of its essential addons on a running cluster, phase by phase.', '^cluster-ip$'],
+        ['curl the ClusterIP again.', '^cluster-ip$'],
+        ['curl web by name again — DNS also travels through a ClusterIP.', '^(coredns|cluster-ip)$']
+      ]
+    },
+    /* v1.6.0 (2026-10-27) — Istio mTLS on service-mesh-sidecar.glb */
+    'mesh-mtls': {
+      'strict-reset': [
+        ['From the frontend Deployment in shop, call the payments headers endpoint and read curl’s error number.', '^(app-0|dataplane-hop-\\d)$'],
+        ['Peer authentication policy lives in the server’s namespace. List it there and read the MODE.', '^(mtls-1|sidecar-1)$'],
+        ['Count the containers in the frontend pods (READY column). A meshed pod has one more.', '^(app-0|sidecar-0)$'],
+        ['Injection is switched on per namespace by a label. Show shop’s labels.', '^app-0$'],
+        ['Add the injection label to the shop namespace.', '^(mesh-control-plane|cp-halo)$'],
+        ['The webhook only runs when a pod is created. Make the frontend Deployment replace its pods.', '^(sidecar-0|xds-0-\\d)$'],
+        ['Call payments again and look for the client certificate header.', '^(mtls-0|mtls-1|dataplane-hop-\\d)$']
+      ],
+      'permissive-to-strict': [
+        ['Call the payments headers endpoint from frontend. Which header would prove a client certificate was used?', '^(app-0|dataplane-hop-\\d)$'],
+        ['List the peer authentication policy in the payments namespace and read the MODE.', '^(mtls-1|sidecar-1)$'],
+        ['Mesh the client first: label its namespace for injection, then recreate its pods.', '^(sidecar-0|mesh-control-plane)$'],
+        ['List the shop pods and read the READY column.', '^(app-0|sidecar-0)$'],
+        ['Call payments again: the hop should now carry the client’s SPIFFE identity.', '^(mtls-0|dataplane-hop-\\d)$'],
+        ['Every client is meshed now. Apply the STRICT policy manifest from your home directory.', '^mtls-1$'],
+        ['Call payments one more time.', '^(mtls-0|mtls-1|dataplane-hop-\\d)$']
+      ],
+      'istiod-down': [
+        ['Call payments from frontend. The control plane is not in the request path.', '^(dataplane-hop-\\d|mtls-[01])$'],
+        ['Redeploy the frontend Deployment the usual way.', '^(app-0|sidecar-0)$'],
+        ['When a ReplicaSet cannot create pods it records why. List the events in shop.', '^(mesh-control-plane|cp-halo)$'],
+        ['The webhook is served by the control plane. List the Deployments in istio-system.', '^(mesh-control-plane|cp-halo)$'],
+        ['Scale the control plane back to one replica.', '^(mesh-control-plane|cp-halo)$'],
+        ['Ask istioctl whether every proxy is in sync with the control plane.', '^xds-[01]-\\d$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -2879,6 +3416,7 @@
     [/\bnet pol\b|\bnetwork ?polic(y|ies)\b/g, 'networkpolicy'],
     [/\bname ?space\b/g, 'namespace'], [/\brole ?binding(s?)\b/g, 'rolebinding$1'], [/\bcluster ?role ?binding(s?)\b/g, 'clusterrolebinding$1'], [/\bcluster ?role\b/g, 'clusterrole'], [/\bservice ?account\b/g, 'serviceaccount'],
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
+    [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
     [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
@@ -2946,7 +3484,7 @@
   }
 
   return {
-    VERSION: '1.5.0',
+    VERSION: '1.6.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

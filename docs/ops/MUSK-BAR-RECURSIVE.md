@@ -1,7 +1,32 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-23 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-27 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-27 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Two authored 3D drills, **CNI** (`cni-network`) and **service-mesh mTLS** (`mesh-mtls`), were the only stateful drills where you could predict but not type. Bootstrapping a CNI, pod-CIDR overlap and a missing kube-proxy are core CKA networking and troubleshooting work. Killercoda, iximiuz and KodeKloud all have real-shell labs for them. **No.** |
+| After this ship | **Closer / still NO** | **Two new CLI packs** (no new asset; they drive the existing Blender-polished `cni-pod-network.glb` and `service-mesh-sidecar.glb`). **CNI**: no-cni (NotReady + Pending CoreDNS → `describe node` NetworkPluginNotReady → empty `/etc/cni/net.d` → apply a trimmed `calico.yaml` stand-in), cidr-overlap (same-node ping answers, cross-node does not → IPPool cidr 10.0.0.0/16 = VPC → Calico's documented migration: new pool, disable old, recreate pods, CoreDNS included), no-kube-proxy (pod IP answers, ClusterIP times out, names fail because DNS rides the kube-dns VIP → `kubeadm init phase addon kube-proxy`). **Mesh**: strict-reset (curl 56 reset by peer under STRICT; the label alone does not inject running pods), permissive-to-strict (`X-Forwarded-Client-Cert` proves the hop is mTLS before you lock STRICT), istiod-down (traffic keeps flowing; a redeploy is blocked by the sidecar-injector webhook, failurePolicy Fail; `istioctl proxy-status`). Every step has a coach tip that never contains its command, a focus regex on real authored nodes, and a spaced-review card. Analytics carry only the verb and the exit code. CLI: **15 packs / 44 tasks / 226 steps** (was 13 / 38 / 184). Every stateful CKA drill now has a typed task. |
+| Fake YES risk | Rejected | Still a **simulated shell**: no live cluster, no real Calico, no VPC routing, no live mesh, no real Envoy or istiod, no clock. Manifests are trimmed stand-ins and say so; `kubectl get/patch ippool` stands in for calicoctl or the Calico API server; istioctl output is computed and trimmed. Istio stays off the graded CKA paper (not CKA core). No hosted fleet, no live UE host. |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- a Troubleshooting "mixed incident" paper that chains node + Service/DNS (+ CNI) faults under the exam clock
+- syncing the Notion Labs rows (lab-sim-service-dns to published once #53 merges; CNI / mesh summaries)
+- scoping a WASM / micro-VM sandbox so one task runs a real CoreDNS / kubelet / CNI
+- a Blender pass on `cni-pod-network.glb` adding an IP-pool / VPC-range overlay node for the cidr-overlap task
+
+## Shipped this pass (2026-10-27)
+
+1. `il-immersive-cli.js` v1.6.0 adds the `cni-network` pack (3 tasks, 22 steps) and the `mesh-mtls` pack (3 tasks, 20 steps), COACH tips and glTF focus for all 42 new steps, and spoken istioctl / peer authentication / ip pool / kubeadm / proxy status.
+2. Manifest: cli 1.6.0, 15 packs, two new syntax lines, `cniNote` + `meshNote`. `/immersive/` copy for both sections; curriculum-os summaries for `lab-sim-cni-network` / `lab-sim-mesh-mtls`.
+3. Tests: unit 172 → 184 (new `immersive-cni-mesh.test.js`; generic loops now cover 15 packs / 226 steps); browser 45 → 47 (+ CNI cidr-overlap and mesh strict-reset typed end-to-end; reduced-motion terminals 13 → 15).
+
+---
+
+_Prior pass archived below (2026-10-23)._
+
 
 ## Verdict — 2026-10-23 Musk-bar pass
 
