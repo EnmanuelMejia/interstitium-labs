@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -577,7 +577,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.12.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.13.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -1331,6 +1331,121 @@ await check('CKA blueprint: finished paper scores the 5 official domains by weig
   assert.deepEqual(errors, []);
   await page.close();
   return 'exam weakest: ' + weakest + ' · review weakest: ' + rWeak;
+});
+
+/* 2026-10-28: hands-on mixed-incident Troubleshooting paper on graded CLI stages over the authored glTF. */
+async function tsIncident(page) {
+  const id = await page.waitForFunction(() => document.documentElement.getAttribute('data-il-ts-incident')).then(h => h.jsonValue());
+  const inc = await page.evaluate(() => { const p = window.ILTroubleshootExamUI.paper(); return p.incidents.find(i => i.id === document.documentElement.getAttribute('data-il-ts-incident')); });
+  const host = page.locator(`[data-il-ts-stage][data-il-cli-exam="${inc.taskId}"]`);
+  await host.waitFor({ timeout: 30000 });
+  const steps = await page.evaluate(([sim, task]) => window.ILImmersiveCLI.task(sim, task).steps.map(s => s.hint), [inc.simId, inc.taskId]);
+  return { id, inc, host, cmds: steps.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)) };
+}
+await check('Troubleshooting paper: 3 mixed incidents on authored .glb stages, ticket-only graded shell (no step list, solution off), typed fix / hint / stall → per-incident feedback, weakest area, CKA 30% blueprint, review cards', async () => {
+  const { page, errors } = await open('/immersive/troubleshoot/?seed=4242');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  assert.equal(await page.locator('[data-il-ts-bank]').textContent(), '14');
+  assert.equal(await page.locator('[data-il-ts-mesh-count]').textContent(), '2');
+  await page.locator('[data-il-ts-start][data-count="3"]').click();
+  await page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  const seen = [];
+  /* 1: type the whole fix. */
+  let t = await tsIncident(page);
+  seen.push(t);
+  await t.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  assert.equal(await t.host.getAttribute('data-gltf'), await page.evaluate(sim => window.ILImmersiveSims.get(sim).glb, t.inc.simId));
+  assert.equal(await t.host.locator('.il-immersive__cli-tasks').isHidden(), true, 'no task picker');
+  assert.equal(await t.host.locator('.il-immersive__cli-step').count(), 0, 'no step list — the ticket is the brief');
+  assert.equal(await page.locator('[data-il-ts-ticket]').textContent(), t.inc.ticket);
+  assert.match(await t.host.locator('.il-immersive__captions').textContent(), /^Graded incident: the diagnosis caption is hidden[\s\S]*authored \.glb/, 'caption keeps provenance, not the diagnosis');
+  await type(t.host, 'solution');
+  assert.match(await logText(t.host), /solution is off during the paper/);
+  await type(t.host, 'task');
+  assert.match(await logText(t.host), /progress: 0\/\d+ checkpoints verified/);
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  assert.equal(await page.locator('[data-il-ts-next]').getAttribute('data-resolved'), '1');
+  await t.host.screenshot({ path: path.join(shots, 'immersive-troubleshoot-incident.png') });
+  await page.locator('[data-il-ts-next]').click();
+  /* 2: one hint, then the fix. */
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  t = await tsIncident(page);
+  seen.push(t);
+  await type(t.host, 'hint');
+  assert.match(await logText(t.host), /hint \(checkpoint 1\/\d+, half credit\) → /);
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /1 hinted — resolved ✓/);
+  await page.locator('[data-il-ts-next]').click();
+  /* 3: one diagnostic command, then submit (partial). */
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  t = await tsIncident(page);
+  seen.push(t);
+  if (t.inc.pre) assert.doesNotMatch(await logText(t.host), /mv |systemctl stop|--replicas=5/, 'the replayed break is not shown');
+  await type(t.host, 'history');
+  assert.doesNotMatch(await logText(t.host), /\/tmp\/|systemctl stop/, '`history` does not reveal the replayed break');
+  for (const c of t.cmds[0]) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-next]').textContent(), /finish paper/);
+  await page.locator('[data-il-ts-next]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.equal(new Set(seen.map(x => x.inc.area)).size, 3, 'quick paper mixes 3 areas');
+  const items = page.locator('[data-il-ts-inc]');
+  assert.equal(await items.count(), 3);
+  const pcts = await items.evaluateAll(li => li.map(x => +x.getAttribute('data-pct')));
+  assert.equal(pcts[0], 100);
+  assert.ok(pcts[1] < 100 && pcts[1] >= 50, 'hinted checkpoint is half credit: ' + pcts[1]);
+  assert.ok(pcts[2] > 0 && pcts[2] < 50, 'one checkpoint of several: ' + pcts[2]);
+  assert.match(await items.nth(1).locator('[data-il-ts-feedback]').textContent(), /Resolved with 1 hint/);
+  assert.match(await items.nth(2).locator('[data-il-ts-feedback]').textContent(), /^Stalled after 1\/\d+ checkpoints\. Next checkpoint: /);
+  assert.ok(await items.nth(2).locator('[data-il-ts-note="missed"] code').count() >= 1, 'missed checkpoints show the command after the paper');
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-weakest'), seen[2].inc.area);
+  assert.equal(await page.locator(`[data-il-ts-areas] tr[data-weakest="1"]`).getAttribute('data-il-ts-area-row'), seen[2].inc.area);
+  const href = await page.locator('[data-il-ts-weakest-link]').getAttribute('href');
+  assert.match(href, /^\/immersive\/#cka-/);
+  const anchorOk = await page.evaluate(async (h) => (await (await fetch('/immersive/')).text()).includes('id="' + h.split('#')[1] + '"'), href);
+  assert.ok(anchorOk, 'weakest-area link lands on a real 3D drill');
+  const pct = +(await page.locator('html').getAttribute('data-il-ts-pct'));
+  assert.ok(Math.abs(pct - pcts.reduce((a, b) => a + b, 0) / 3) <= 1, 'CKA % = mean incident credit');
+  assert.match(await page.locator('[data-il-ts-blueprint]').textContent(), /Troubleshooting is 30% of the CKA\. At \d+% here it leaves [\d.]+ of those 30 points at stake/);
+  assert.match(await page.locator('[data-il-ts-honesty]').textContent(), /SIMULATED shell[\s\S]*not a live cluster/i);
+  assert.equal(await page.locator('[data-il-ts-remediate]').getAttribute('data-queued'), '2', 'hinted + stalled incidents queue review cards');
+  const cards = await page.evaluate(() => Object.values((JSON.parse(localStorage.getItem('il.immersiveReview.v1') || '{}').cards) || {}).filter(c => c.kind === 'cli').length);
+  assert.ok(cards >= 2, 'CLI review cards on device: ' + cards);
+  assert.match(await page.locator('[data-il-ts-history]').textContent(), /Last paper on this device: \d+%/);
+  await page.locator('[data-il-ts-done]').screenshot({ path: path.join(shots, 'immersive-troubleshoot-results.png') });
+  assert.deepEqual(errors, []);
+  await page.close();
+  return seen.map(x => x.id).join(' · ') + ' → ' + pcts.join('/') + '% · weakest ' + seen[2].inc.area;
+});
+
+await check('Troubleshooting paper: opt-in mesh incident is scored separately; clock expiry grades the open incident and zeroes the rest; reset re-stages', async () => {
+  const { page, errors } = await open('/immersive/troubleshoot/?seed=99');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-ts-mesh]').check();
+  await page.locator('[data-il-ts-start][data-count="3"]').click();
+  const paper = await page.evaluate(() => window.ILTroubleshootExamUI.paper().incidents.map(i => ({ id: i.id, area: i.area, cka: i.cka })));
+  assert.equal(paper.length, 4);
+  assert.equal(paper[3].area, 'mesh'); assert.equal(paper[3].cka, false);
+  const t = await tsIncident(page);
+  await type(t.host, t.cmds[0][0]);
+  assert.match(await t.host.getAttribute('data-il-cli-exam-progress'), /^1\/\d+$/);
+  await type(t.host, 'reset');
+  assert.match(await logText(t.host), /incident re-staged/);
+  assert.match(await t.host.getAttribute('data-il-cli-exam-progress'), /^0\/\d+$/);
+  await type(t.host, t.cmds[0][0]);
+  await page.evaluate(() => { window.ILTroubleshootExamUI.paper().endsAt = Date.now() - 1; });
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 10000 });
+  assert.match(await page.locator('[data-il-ts-summary]').textContent(), /Time expired/);
+  const pcts = await page.locator('[data-il-ts-inc]').evaluateAll(li => li.map(x => +x.getAttribute('data-pct')));
+  assert.ok(pcts[0] > 0 && pcts.slice(1).every(p => p === 0), 'open incident keeps its verified checkpoint: ' + pcts.join('/'));
+  assert.match(await page.locator('[data-il-ts-mesh-result]').textContent(), /beyond CKA, not in the score above\): 0%/);
+  assert.match(await page.locator('[data-il-ts-areas] tr[data-il-ts-area-row="mesh"]').textContent(), /not in CKA score/);
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-finished'), 'fail');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'mesh separate · expiry ' + pcts.join('/') + '%';
 });
 
 await browser.close();
