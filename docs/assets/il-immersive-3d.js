@@ -48,6 +48,13 @@
  * spoken lab verb into that verb and a spoken command into text in the input for the learner to confirm with
  * Enter — never auto-runs a spoken command. Browser speech service, not an Interstitium service; no audio or
  * transcript leaves the page to Interstitium; analytics carry kind + ok only.
+ * v1.13.0 (2026-10-28): graded hands-on incidents for the Troubleshooting exam paper (/immersive/troubleshoot/). A stage
+ * mounted with { exam:true, cliExam:{ task, pre } } gets the terminal on a graded stage: the task's setup state, the
+ * first `pre` steps replayed silently (log + history wiped so the fix is not shown), no task picker and no step list
+ * (the ticket is the only brief), `check` / `task` report only how many checkpoints are verified, `hint` gives the tip
+ * for the next checkpoint and is recorded (half credit), `solution` is off until the paper ends, `reset` re-stages the
+ * incident, and the sim caption hides its diagnosis text (tints + provenance stay). Progress is emitted as il-immersive-cli-exam { task, completed, total, pre, done, hinted, cmds }.
+ * Same simulated shell + rules engine + authored glTF — not a live cluster.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -455,6 +462,8 @@
     cfg.owned = !!(j && (j.exam || j.review));
     /* 2026-10-20: a review card for one CLI step re-opens that task on a graded stage (terminal allowed there only). */
     cfg.cliReview = j && j.review && j.cliReview && j.cliReview.task && j.cliReview.step >= 0 ? { task: String(j.cliReview.task), step: +j.cliReview.step } : null;
+    /* 2026-10-28: a Troubleshooting-paper incident = one CLI task on a graded stage (exam), optionally pre-broken by replaying `pre` steps. */
+    cfg.cliExam = j && j.exam && j.cliExam && j.cliExam.task ? { task: String(j.cliExam.task), pre: Math.max(0, +j.cliExam.pre || 0) } : null;
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
@@ -1328,7 +1337,8 @@
     this._simVerdict.setAttribute('data-tone', tone);
     this.root.setAttribute('data-il-sim-tone', tone);
     /* Keep the asset provenance on sim stages too (the sim caption used to replace it). */
-    this.cap.textContent = d.caption + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '') +
+    /* 2026-10-28: a graded incident must not print its own diagnosis — the scene tints stay, the caption text does not. */
+    this.cap.textContent = (this.cfg.cliExam ? 'Graded incident: the diagnosis caption is hidden — read the scene tints and the shell' : d.caption) + ' · sim (rules engine, not a live system)' + (this._glbNote ? ' · ' + this._glbNote : '') +
       (this._xrSession ? ' · in WebXR ' + String(this._xrKind || '').toUpperCase() + ' (local render, not Pixel Streaming)' : '');
     this.root.setAttribute('data-il-sim-verdict', d.verdict);
     if (reason && reason !== 'init') simTrack('immersive_sim_state', { sim: sim.id, reason: reason, verdict: d.verdict });
@@ -1428,7 +1438,7 @@
 
   ScenePlayer.prototype._cliInit = function (){
     var C = g.ILImmersiveCLI, sim = this._sim;
-    if (!C || !C.has || !sim || !C.has(sim.id) || (this.cfg.owned && !this.cfg.cliReview) || this._cli) return;
+    if (!C || !C.has || !sim || !C.has(sim.id) || (this.cfg.owned && !this.cfg.cliReview && !this.cfg.cliExam) || this._cli) return;
     var self = this, pack = C.pack(sim.id);
     var box = el('details', 'il-immersive__cli');
     box.setAttribute('data-il-cli', sim.id);
@@ -1449,6 +1459,7 @@
       self._cliTaskBtns[tk.id] = b;
       tasks.appendChild(b);
     });
+    if (this.cfg.cliExam) tasks.hidden = true; /* the ticket is the brief — no task picker in a graded incident */
     box.appendChild(tasks);
 
     this._cliGoal = el('div', 'il-immersive__cli-goal');
@@ -1553,6 +1564,78 @@
     this._cliPaintTasks();
     this.root.setAttribute('data-il-cli-ready', sim.id);
     if (this.cfg.cliReview) this._cliReviewStart();
+    else if (this.cfg.cliExam) this._cliExamStart();
+  };
+
+  /** Troubleshooting paper: stage the incident (setup + silent replay of `pre` steps), then hand over a clean shell. */
+  ScenePlayer.prototype._cliExamStage = function (){
+    var C = g.ILImmersiveCLI, sim = this._sim, ex = this.cfg.cliExam, tk = C && C.task(sim.id, ex.task);
+    if (!tk) { this._cliPrint(['This incident points at a CLI task that no longer exists.'], 'sys'); return false; }
+    this._cliTask = ex.task;
+    this._cliCtx = C.newCtx(ex.task);
+    this._cliCompleted = false;
+    this._simPredictClose();
+    this._simState = g.ILImmersiveSims.merge(sim.initial, tk.setup || {});
+    this._simApply('cli-exam:' + ex.task);
+    this._cliReplaying = true;
+    for (var i = 0; i < Math.min(ex.pre, tk.steps.length); i++) {
+      var cmds = String(tk.steps[i].hint).split(/\s{2}then\s{2}/);
+      for (var k = 0; k < cmds.length; k++) this.cliExec(cmds[k]);
+    }
+    this._cliReplaying = false;
+    this._cliCtx.history = [];
+    this._cliLog.textContent = '';
+    if (this._cliPromptEl && C.promptFor) this._cliPromptEl.textContent = C.promptFor(sim.id, this._cliCtx);
+    return true;
+  };
+  ScenePlayer.prototype._cliExamStart = function (){
+    if (this._cli) this._cli.open = true;
+    this._cliExamHints = this._cliExamHints || {};
+    this._cliExamCmds = 0;
+    if (!this._cliExamStage()) return;
+    this._cliPrint(['── Incident shell · ' + this._sim.title + ' (simulated: commands drive the rules engine, no real cluster)',
+      'Work the ticket above. `check` shows how many checkpoints are verified · `hint` = tip for the next one (half credit) · `solution` is off until the paper ends · `reset` re-stages the incident.'], 'sys');
+    this.root.setAttribute('data-il-cli-exam', this.cfg.cliExam.task);
+    this._cliOnState();
+    try { this._cliInput.focus(); } catch (e) { /* ignore */ }
+  };
+  /** Verified learner checkpoints (after the replayed `pre` steps). */
+  ScenePlayer.prototype._cliExamStatus = function (){
+    var C = g.ILImmersiveCLI, ex = this.cfg.cliExam;
+    var st = C.taskStatus(this._sim.id, ex.task, this._simState, this._cliCtx);
+    var pre = Math.min(ex.pre, st.total);
+    var hinted = Object.keys(this._cliExamHints || {}).map(Number).sort(function (a, b){ return a - b; });
+    return { task: ex.task, pre: pre, completed: Math.max(0, st.completed - pre), total: st.total - pre, done: st.done, hinted: hinted,
+      cmds: this._cliExamCmds || 0, status: st };
+  };
+  ScenePlayer.prototype._cliExamEmit = function (){
+    var x = this._cliExamStatus();
+    this.root.setAttribute('data-il-cli-exam-progress', x.completed + '/' + x.total);
+    var ev;
+    try { ev = new g.CustomEvent('il-immersive-cli-exam', { detail: x }); } catch (e) { ev = null; }
+    if (ev) this.root.dispatchEvent(ev);
+    return x;
+  };
+  /** Exam-mode lab verbs: no step labels leak; hints are recorded; solution is refused. */
+  ScenePlayer.prototype._cliExamVerb = function (action){
+    var C = g.ILImmersiveCLI, x = this._cliExamStatus();
+    if (action === 'solution') {
+      this._cliPrint(['solution is off during the paper — every command is shown on the results screen.'], 'sys');
+      this.root.setAttribute('data-il-cli-coach', 'exam-solution-off');
+      return;
+    }
+    if (x.done) { this._cliPrint(['✓ check: every checkpoint of this incident is verified.'], 'ok'); this.root.setAttribute('data-il-cli-coach', 'exam-done'); return; }
+    if (action === 'hint') {
+      var c = C.coach(this._sim.id, this.cfg.cliExam.task, this._simState, this._cliCtx, { count: false, level: 'hint' });
+      if (c.step >= 0) this._cliExamHints[c.step] = 1;
+      this._cliPrint(['hint (checkpoint ' + (c.step - x.pre + 1) + '/' + x.total + ', half credit) → ' + (c.nudge || c.label)], 'coach');
+      this._cliSetFocus(c.focus, c.focusLabel);
+      this.root.setAttribute('data-il-cli-coach', 'exam-hint:' + (c.step + 1));
+      this._cliExamEmit();
+      return;
+    }
+    this._cliPrint([(action === 'check' ? 'check: ' : 'progress: ') + x.completed + '/' + x.total + ' checkpoints verified' + (x.hinted.length ? ' · ' + x.hinted.length + ' hinted' : '') + '.'], 'coach');
+    this.root.setAttribute('data-il-cli-coach', 'exam-' + action + ':' + x.completed + '/' + x.total);
   };
 
   /** Review card for one CLI step: start its task, replay the earlier steps from their own solutions, hand over. */
@@ -1666,7 +1749,13 @@
     /* v1.12.0: `ssh node-01` / `exit` move the session between hosts — keep the visible prompt honest. */
     if (C.promptFor && this._cliPromptEl) this._cliPromptEl.textContent = r.action === 'reset' ? pack.prompt : C.promptFor(sim.id, this._cliCtx);
     if (r.action === 'clear') { this._cliLog.textContent = ''; }
-    else if (r.action === 'reset') {
+    else if (r.action === 'reset' && this.cfg.cliExam) {
+      this._cliExamStage();
+      this._cliPrint(['incident re-staged (hints already used still count)'], 'sys');
+      this._cliOnState();
+    } else if (this.cfg.cliExam && (r.action === 'check' || r.action === 'hint' || r.action === 'solution' || r.action === 'task')) {
+      this._cliExamVerb(r.action);
+    } else if (r.action === 'reset') {
       var tk = this._cliTask ? C.task(sim.id, this._cliTask) : null;
       this._cliCtx = C.newCtx(this._cliTask);
       this._cliCompleted = false;
@@ -1692,6 +1781,7 @@
       }
     }
     this.root.setAttribute('data-il-cli-exit', String(r.exit));
+    if (this.cfg.cliExam && !this._cliReplaying && !r.action && raw.trim()) { this._cliExamCmds = (this._cliExamCmds || 0) + 1; this._cliExamEmit(); }
     if (!this._cliReplaying) simTrack('immersive_cli_cmd', { sim: sim.id, verb: r.verb, exit: r.exit, task: this._cliTask || null });
     return r;
   };
@@ -1771,6 +1861,16 @@
     var goal = this._cliGoal;
     goal.textContent = '';
     if (!this._cliTask) { goal.hidden = true; this._cliPaintTasks(); return; }
+    if (this.cfg.cliExam) {
+      /* Graded incident: no step list (the ticket is the brief); just the verified count. */
+      var xs = this._cliExamStatus();
+      goal.hidden = false;
+      goal.appendChild(el('p', 'il-immersive__cli-goal-text', 'Incident checkpoints verified: ' + xs.completed + '/' + xs.total + (xs.done ? ' — resolved ✓' : '')));
+      goal.setAttribute('data-done', xs.done ? '1' : '0');
+      this.root.setAttribute('data-il-cli-task', xs.task + ':' + xs.status.completed + '/' + xs.status.total);
+      if (!this._cliReplaying) this._cliExamEmit();
+      return;
+    }
     var st = C.taskStatus(sim.id, this._cliTask, this._simState, this._cliCtx);
     goal.hidden = false;
     goal.appendChild(el('p', 'il-immersive__cli-goal-text', st.title + ' — ' + st.goal));
@@ -2547,7 +2647,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.12.0',
+    version: '1.13.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -2561,6 +2661,7 @@
     cliLab: true,
     cliReviewCards: true,
     cliVoiceInput: true,
+    cliExam: true,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,

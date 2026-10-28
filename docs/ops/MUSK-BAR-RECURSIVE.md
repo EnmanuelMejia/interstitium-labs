@@ -1,7 +1,32 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-27 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-28 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-28 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? The CKA is performance-based and Troubleshooting is its biggest domain (30%), yet our only timed paper was multiple choice. Fifteen typed CLI packs existed, but never under an exam clock, never pre-broken, never mixed. |
+| After this ship | **Closer / still NO** | **Hands-on Troubleshooting paper** (`/immersive/troubleshoot/`): 14 already-broken CKA incidents across control plane, nodes, Services/DNS and CNI (+2 opt-in Istio incidents scored separately), each a symptom-only ticket on its authored `.glb` with a graded simulated shell — no step list, diagnosis caption hidden, `hint` at half credit, `solution` off. Partial credit per checkpoint, per-incident feedback with the missed command and 3D nodes, weakest area → drill, CKA Troubleshooting 30% blueprint line, gaps → CLI review cards. |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no live cluster, no real kubelet/CoreDNS/Calico, no hosted fleet; score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- free-form incidents: accept any command sequence that reaches the fixed state (state-only grading) instead of the pack's ordered checkpoints, so alternative valid fixes score
+- an Adaptive Troubleshooting paper that oversamples the weakest area from `il.troubleshootExam.v1`
+- syncing the Notion Labs rows (service-dns → published once #53 merges; CNI / mesh; troubleshoot paper)
+- scoping a WASM / micro-VM sandbox so one incident runs a real CoreDNS / kubelet
+
+## Shipped this pass (2026-10-28)
+
+1. `il-immersive-troubleshoot.js` v1.0.0 (pure, UMD): incident bank (16), `buildPaper` (seeded round-robin across areas), `stage` (setup + silent `pre` replay), `gradeIncident` (partial credit, hint = ½), `summarize` (areas, weakest, blueprint), `recordAttempt`, `remediate`.
+2. `il-immersive-3d.js` v1.13.0: graded CLI stages (`{ exam:true, cliExam:{ task, pre } }`) with exam-mode verbs and the `il-immersive-cli-exam` progress event. New page `/immersive/troubleshoot/` + boot; linked from `/immersive/`, the CKA exam lobby + nav, the review nav and the sitemap.
+3. Tests: unit 184 → 194 (`immersive-troubleshoot.test.js`); browser 47 → 49 (typed mixed paper end-to-end; mesh opt-in + clock expiry + reset).
+
+---
+
+_Prior pass archived below (2026-10-27)._
+
 
 ## Verdict — 2026-10-27 Musk-bar pass
 
