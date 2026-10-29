@@ -165,7 +165,7 @@ test('adaptive exam: focus sims fill ≥60% of the paper; no focus = unchanged v
   assert.ok(new Set(ad.items.map(i => i.simId)).size >= 6, 'still keeps cross-domain coverage');
   assert.equal(new Set(ad.items.map(i => i.simId + '::' + i.scenarioId)).size, 10, 'no duplicate checkpoints');
   assert.deepEqual([...ad.focus].sort(), [...focus].sort());
-  assert.match(E.VERSION, /^1\.[12]\./);
+  assert.match(E.VERSION, /^1\.[123]\./);
 });
 
 test('review page + wiring: relative assets, honest copy, drills feed the loop but exam/review stages do not double-count', () => {

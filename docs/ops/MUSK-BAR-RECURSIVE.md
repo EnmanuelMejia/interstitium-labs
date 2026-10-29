@@ -1,7 +1,41 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-28 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-29 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-29 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? We say "CKA, exceeded", but the obvious next certification on that path, the **CKS**, had nothing: no scene, no drill, no typed task and no paper. KodeKloud sells a full CKS course with labs, killer.sh ships two CKS simulator sessions with every exam purchase, and Killercoda has free CKS scenarios. A Cloud Guru / Pluralsight and Coursera have CKS video paths. Our gap was the largest one on the board. |
+| After this ship | **Closer / still NO** | **CKS track, part 1 (workload security).** A new Blender-polished `cks-pod-security.glb`. A 7-checkpoint predict/reveal drill covering Pod Security Admission, seccomp, default-deny NetworkPolicy, ServiceAccount least privilege and the audit log. A 5-task / 29-step typed CLI pack. A timed **CKS paper** (8 · 12:00, pass 67%) scored by the 6 official CKS domains. |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no live cluster, admission controller, kernel or audit backend, and no hosted fleet. **Supply Chain Security (20% of the CKS) is not covered** and the paper says so. Falco / AppArmor / kube-bench are not modelled. The score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- a CKS **Supply Chain** drill + pack (allowed registries via ValidatingAdmissionPolicy, image digest pinning, SBOM / Trivy scan, cosign verify), so the CKS paper covers 100% of the weight
+- **runtime security**: a Falco-style rule/alert drill and an AppArmor profile task on the same scene
+- re-serving CKS checkpoints in `/immersive/review/` (a CKS queue next to the CKA one) and syncing the Notion Labs row `lab-sim-cks-pod-security`
+
+## Competitor benchmark (2026-10-29)
+
+| Competitor | CKS offer | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | CKS course + hands-on labs + mock exams | 1 authored 3D drill + 5 typed tasks + timed CKS paper; no supply-chain or runtime labs yet |
+| killer.sh / Killercoda | 2 CKS simulator sessions with the exam; free Killercoda CKS scenarios on real VMs | simulated shell only (no VM), but a 3D state view and a coach they don't have |
+| A Cloud Guru / Pluralsight | CKS video path + some hands-on labs | predict-before-reveal on an authored scene, not video |
+| Coursera | CKS prep specialisations (mostly video + quizzes) | typed tasks + domain-weighted paper |
+
+## Shipped this pass (2026-10-29)
+
+1. `cks-pod-security.glb` (kit-v2 authoring, Blender CLI 4.2.3 polish) + `il-immersive-sims.js` v1.7.0: `cksPodSecurity` sim (7 scenarios + heal; new `exposed` verdict, tone bad), `cksRestrictedViolations` (restricted-profile checks in the controller's message order), `cksDecide`.
+2. `il-immersive-cli.js` v1.7.0: CKS pack (psa-enforce 4 · harden-pod 6 · default-deny 6 · sa-least-privilege 7 · audit-log 6), COACH tips with glTF focus for all 29 steps, spoken "sec comp" / "dry run".
+3. `il-immersive-exam.js` v1.3.0: tracks (CKA 10q/15m/66%, CKS 8q/12m/67%), `CKS_BLUEPRINT` / `CKS_OFFICIAL`, a track-aware `blueprintScore`, `pool(S, 'CKS')`; the lobby gets a CKS button and pool count. CKS drills stay out of the CKA pool and CKA mastery. `il-immersive-review.js` v1.3.1 labels CKS CLI cards.
+4. Tests: unit 194 → 207 (`immersive-cks-pod-security.test.js`); browser 49 → 53 (CKS predict, CKS toggles, sa-least-privilege typed end-to-end, CKS paper 8/8 with the Supply Chain gap; reduced-motion terminals 15 → 16).
+
+---
+
+_Prior pass archived below (2026-10-28)._
+
 
 ## Verdict — 2026-10-28 Musk-bar pass
 

@@ -1655,6 +1655,110 @@ def scene_service_dns() -> list:
     return parts
 
 
+def scene_cks_pod_security() -> list:
+    """CKS security cutaway (Pod Security Admission · securityContext/seccomp · NetworkPolicy default-deny ·
+    ServiceAccount least privilege · API audit log). kube-apiserver with its PSA admission gate and audit backend;
+    namespace payments (PSA label tablet, payments-api pod in a securityContext shell above a seccomp filter over
+    the node kernel, its ServiceAccount token, Secret db-creds, default-deny wall); namespace frontend (allowed
+    client) and namespace default (attacker pod); RBAC binding tablet + the cluster-wide Secrets vault.
+    sim-* parts are revealed only by the rules engine. Added 2026-10-29 (first CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-pod-security", "cert": "CKS", "domain": "security"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.4, 0.08, 4.0)
+    parts.append((floor, MAT_VOID, "cks-floor", {**ped, "label": "cluster (CKS security cutaway)"}))
+    # Control plane: kube-apiserver, PSA admission gate, audit policy + audit log backend
+    cp = MeshBuilder()
+    cp.add_chamfer_box(-2.35, -0.8, -1.05, 1.4, 0.08, 1.5, 0.03)
+    parts.append((cp, MAT_INK, "control-plane", {**ped, "label": "Control plane (controlplane node)"}))
+    api = MeshBuilder()
+    api.add_cylinder(-2.55, -0.45, -1.2, 0.34, 0.62, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (authn → authz/RBAC → admission → etcd)", "kind": "Component"}))
+    gate = MeshBuilder()
+    gate.add_cylinder(-1.85, -0.45, -0.75, 0.3, 0.06, 28, capped=False)
+    gate.add_box(-1.85, -0.2, -0.75, 0.62, 0.05, 0.05)
+    parts.append((gate, MAT_SHIELD, "psa-gate", {**ped, "label": "PodSecurity admission (built-in) — checks Pods against the namespace's level", "kind": "Admission"}))
+    rej = MeshBuilder()
+    rej.add_chamfer_box(-1.85, -0.45, -0.75, 0.08, 0.6, 0.6, 0.02)
+    parts.append((rej, MAT_DENY, "sim-psa-reject", {**ped, "label": "Forbidden: violates PodSecurity \"restricted:latest\"", "simOnly": True}))
+    pol = MeshBuilder()
+    pol.add_chamfer_box(-2.95, -0.05, -1.65, 0.7, 0.42, 0.05, 0.02)
+    parts.append((pol, MAT_PAPER, "audit-policy", {**ped, "label": "/etc/kubernetes/audit/policy.yaml · Secrets at Metadata (never RequestResponse)", "kind": "AuditPolicy"}))
+    log = MeshBuilder()
+    for i in range(4):
+        log.add_chamfer_box(-2.0, -0.7 + i * 0.09, -1.55, 0.5, 0.07, 0.34, 0.015)
+    parts.append((log, MAT_PAPER, "audit-log", {**ped, "label": "--audit-log-path=/var/log/kubernetes/audit/audit.log (log backend)", "kind": "AuditLog"}))
+    gap = MeshBuilder()
+    gap.add_chamfer_box(-2.0, -0.35, -1.55, 0.62, 0.06, 0.46, 0.02)
+    parts.append((gap, MAT_DENY, "sim-audit-gap", {**ped, "label": "No audit backend: --audit-log-path missing → no events written", "simOnly": True}))
+    _edge(parts, (-2.3, -0.45, -1.3), (-2.05, -0.5, -1.45), "edge-api-audit", MAT_LED, ped, "audit events → log backend", 0.03, 0.08)
+    # Namespace payments
+    pay = MeshBuilder()
+    pay.add_chamfer_box(0.15, -0.8, 0.35, 2.7, 0.08, 2.3, 0.03)
+    parts.append((pay, MAT_INK, "ns-payments", {**ped, "label": "Namespace payments", "kind": "Namespace"}))
+    lbl = MeshBuilder()
+    lbl.add_chamfer_box(-0.95, -0.45, 1.35, 0.62, 0.36, 0.05, 0.02)
+    parts.append((lbl, MAT_PAPER, "psa-label", {**ped, "label": "labels: pod-security.kubernetes.io/enforce=restricted", "kind": "Label"}))
+    kern = MeshBuilder()
+    kern.add_chamfer_box(0.15, -0.68, 0.35, 1.0, 0.08, 1.0, 0.02)
+    parts.append((kern, MAT_MUTED, "node-kernel", {**ped, "label": "node-01 host kernel (shared by every container on the node)", "kind": "Node"}))
+    sec = MeshBuilder()
+    sec.add_chamfer_box(0.15, -0.58, 0.35, 0.84, 0.03, 0.84, 0.01)
+    parts.append((sec, MAT_CRYSTAL, "seccomp-filter", {**ped, "label": "seccompProfile RuntimeDefault (syscall filter, Seccomp: 2)", "kind": "Seccomp"}))
+    pod = MeshBuilder()
+    pod.add_sphere(0.15, -0.22, 0.35, 0.26, 14, 16)
+    parts.append((pod, MAT_CYAN, "payments-pod", {**ped, "label": "Pod payments-api (Deployment, ServiceAccount api-sa)", "kind": "Pod"}))
+    shell = MeshBuilder()
+    shell.add_cylinder(0.15, -0.22, 0.35, 0.38, 0.5, 28, capped=False)
+    parts.append((shell, MAT_SHIELD, "sec-context", {**ped, "label": "securityContext: runAsNonRoot · allowPrivilegeEscalation=false · drop ALL", "kind": "SecurityContext"}))
+    flare = MeshBuilder()
+    flare.add_cylinder(0.15, -0.45, 0.35, 0.07, 0.62, 12)
+    parts.append((flare, MAT_DENY, "sim-privileged-flare", {**ped, "label": "privileged: true — all capabilities + host devices (container ≈ root on the node)", "simOnly": True}))
+    tok = MeshBuilder()
+    tok.add_chamfer_box(0.75, -0.25, 0.75, 0.22, 0.12, 0.08, 0.02)
+    parts.append((tok, MAT_SECRET, "sa-token", {**ped, "label": "projected ServiceAccount token (payments:api-sa)", "kind": "Token"}))
+    sec_cm = MeshBuilder()
+    sec_cm.add_chamfer_box(0.85, -0.55, -0.35, 0.36, 0.3, 0.2, 0.02)
+    parts.append((sec_cm, MAT_SECRET, "secret-db-creds", {**ped, "label": "Secret db-creds (ns payments)", "kind": "Secret"}))
+    wall = MeshBuilder()
+    wall.add_chamfer_box(1.48, -0.42, 0.35, 0.08, 0.75, 2.1, 0.02)
+    parts.append((wall, MAT_SHIELD, "sim-netpol-wall", {**ped, "label": "NetworkPolicy default-deny-ingress (podSelector {} · policyTypes [Ingress])", "simOnly": True}))
+    npt = MeshBuilder()
+    npt.add_chamfer_box(-0.45, -0.45, 1.35, 0.5, 0.36, 0.05, 0.02)
+    parts.append((npt, MAT_SHIELD, "netpol-tablet", {**ped, "label": "NetworkPolicies in ns payments", "kind": "NetworkPolicy"}))
+    # frontend + attacker namespaces
+    fe = MeshBuilder()
+    fe.add_chamfer_box(2.4, -0.8, -0.65, 1.3, 0.08, 1.2, 0.03)
+    parts.append((fe, MAT_INK, "ns-frontend", {**ped, "label": "Namespace frontend", "kind": "Namespace"}))
+    fpod = MeshBuilder()
+    fpod.add_sphere(2.4, -0.45, -0.65, 0.22, 12, 14)
+    parts.append((fpod, MAT_CYAN, "frontend-pod", {**ped, "label": "Pod web (ns frontend) — the legitimate client", "kind": "Pod"}))
+    df = MeshBuilder()
+    df.add_chamfer_box(2.4, -0.8, 1.2, 1.3, 0.08, 1.1, 0.03)
+    parts.append((df, MAT_INK, "ns-default", {**ped, "label": "Namespace default", "kind": "Namespace"}))
+    apod = MeshBuilder()
+    apod.add_sphere(2.4, -0.45, 1.2, 0.22, 12, 14)
+    parts.append((apod, MAT_DENY, "attacker-pod", {**ped, "label": "Pod attacker (ns default) — a compromised workload", "kind": "Pod"}))
+    _edge(parts, (2.2, -0.45, -0.55), (0.42, -0.25, 0.25), "edge-frontend-api", MAT_CYAN, ped, "web → payments-api:8080", 0.03, 0.12)
+    _edge(parts, (2.2, -0.45, 1.1), (0.42, -0.25, 0.45), "edge-attacker-api", MAT_DENY, ped, "attacker → payments-api:8080", 0.03, 0.12)
+    # RBAC: binding tablet, cluster-admin crown (sim-only), cluster-wide Secrets vault
+    rb = MeshBuilder()
+    rb.add_chamfer_box(-0.95, -0.05, -0.7, 0.7, 0.42, 0.05, 0.02)
+    parts.append((rb, MAT_PAPER, "rbac-binding", {**ped, "label": "RBAC: what api-sa is bound to (Role in payments vs ClusterRoleBinding)", "kind": "RoleBinding"}))
+    crown = MeshBuilder()
+    crown.add_cylinder(0.75, -0.05, 0.75, 0.2, 0.08, 18, capped=False)
+    parts.append((crown, MAT_DENY, "sim-cluster-admin-crown", {**ped, "label": "ClusterRoleBinding api-sa-admin → cluster-admin", "simOnly": True}))
+    vault = MeshBuilder()
+    vault.add_chamfer_box(0.6, -0.5, -1.55, 1.3, 0.5, 0.4, 0.03)
+    parts.append((vault, MAT_SECRET, "secrets-vault", {**ped, "label": "Secrets in every namespace (kube-system, payments, …)", "kind": "Secret"}))
+    _edge(parts, (0.75, -0.2, 0.68), (0.6, -0.35, -1.35), "edge-token-secrets", MAT_DENY, ped, "stolen token → list secrets -A", 0.03, 0.25)
+    _edge(parts, (0.0, -0.3, 0.1), (-1.6, -0.45, -0.7), "edge-pod-apiserver", MAT_LED, ped, "Pod create (ReplicaSet controller) → admission", 0.03, 0.15)
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 5.8, 0.12, 3.4)
+    parts.append((lod, MAT_VOID, "lod1-cks-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1677,6 +1781,7 @@ SCENES = {
     "aws-iam-policy-eval.glb": scene_aws_iam_policy_eval,
     "node-troubleshoot.glb": scene_node_troubleshoot,
     "service-dns.glb": scene_service_dns,
+    "cks-pod-security.glb": scene_cks_pod_security,
 }
 
 
