@@ -4,9 +4,9 @@ Authored via **Interstitium glTF kit v2** (`scripts/author_immersive_glb.py`) �
 
 Kit-v2: higher-density meshes, chamfer boxes, spheres, pedagogical `extras` on nodes, LOD1 proxy meshes, Interstitium PBR (cyan `#5EEAD4` · gold `#D4A853` · void `#070B16`).
 
-## Blender polish provenance (2026-10-01 · 2026-10-02 · 2026-10-05 · 2026-10-06 · 2026-10-22 · 2026-10-23)
+## Blender polish provenance (2026-10-01 · 2026-10-02 · 2026-10-05 · 2026-10-06 · 2026-10-22 · 2026-10-23 · 2026-10-29)
 
-**Polished via Blender CLI 4.2.3 LTS on 2026-10-01, 2026-10-02, 2026-10-05, 2026-10-06, 2026-10-22 and 2026-10-23 (America/New_York)** using `scripts/blender_polish_glb.py --all --promote`:
+**Polished via Blender CLI 4.2.3 LTS on 2026-10-01, 2026-10-02, 2026-10-05, 2026-10-06, 2026-10-22, 2026-10-23 and 2026-10-29 (America/New_York)** using `scripts/blender_polish_glb.py --all --promote`:
 
 - shade smooth + weighted normals
 - LOD1 decimate duplicates
@@ -42,6 +42,7 @@ Pixel Streaming client: `/immersive/pixel-stream/` · Runbook: `/ops/PIXEL-STREA
 | `aws-iam-policy-eval.glb` | **NEW 2026-10-06** AWS IAM evaluation gates: explicit Deny → SCP/RCP → resource policy → identity → permissions boundary → session → ALLOW / implicit / explicit deny. Drives the `iam-eval` sim (Blender-polished 2026-10-06) |
 | `node-troubleshoot.glb` | **NEW 2026-10-22** worker node-01 cutaway: systemd ring → kubelet (+ kubeadm drop-in, config.yaml) → CRI socket → containerd → CNI conf/plugin; node Lease to kube-apiserver + node lifecycle controller; Guaranteed/Burstable/BestEffort pods; nodefs gauge with `sim-disk-fill-3/4`; journal pages; `sim-taint-flag`. Drives the `node-troubleshoot` sim (Blender CLI 4.2.3 polished 2026-10-22 on the box) |
 | `service-dns.glb` | **NEW 2026-10-23** Service + DNS cutaway across namespaces shop / kube-system / data: client pod + `resolv-conf` (search list, ndots:5), Service `svc-api` with port/targetPort tag and selector, `endpointslice-api`, api pods with `container-port-0/1`, `kube-proxy-rules`, `svc-kube-dns` → `coredns-0/1` + `corefile` ConfigMap, `netpol-tablet`, `svc-db` + `db-pod`; sim-only `sim-crash-ring-0/1`, `sim-netpol-wall`, `sim-nxdomain-flag`. Drives the `service-dns` sim (Blender CLI 4.2.3 polished 2026-10-23 on the box) |
+| `cks-pod-security.glb` | **NEW 2026-10-29** first CKS scene — workload security cutaway: control plane with `kube-apiserver`, the `psa-gate` (Pod Security Admission) and `audit-policy` → `audit-log`; namespace `payments` with its `psa-label`, `payments-pod` + `sec-context` shield on a `node-kernel` slab with a `seccomp-filter`, `sa-token` → `rbac-binding` → `secrets-vault` / `secret-db-creds`, `netpol-tablet`; namespaces `frontend` (frontend pod) and `default` (attacker pod) with their API edges. Sim-only `sim-psa-reject`, `sim-privileged-flare`, `sim-netpol-wall`, `sim-cluster-admin-crown`, `sim-audit-gap`. Drives the `cks-pod-security` sim (Blender CLI 4.2.3 polished 2026-10-29 on the box) |
 | `rack-19u.glb` | Three rack frames with bay LEDs (Blender-polished 2026-10-02) |
 | `hermetic-monas.glb` | Hermetica / Monas lecture (Blender-polished 2026-10-02) |
 | `sim-superlab.glb` | SuperLab sim (rack + cluster combo) (Blender-polished 2026-10-02) |

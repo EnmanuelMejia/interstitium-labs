@@ -4,6 +4,8 @@
  * and the "Adaptive" paper focuses the weakest on-device domains.
  * 2026-10-21: official CNCF CKA blueprint table (5 domains, published weights), blueprint-weighted score over the
  * covered domains, and a weakest-domain-by-points-at-stake callout that links to that domain's 3D drill.
+ * 2026-10-29: CKS paper (data-track="CKS" on a start button): ILImmersiveExam track option, 6-domain CKS blueprint
+ * table (Supply Chain Security listed as not covered), history line names the track.
  * Relative-asset page only; never invents a live cluster or hosted fleet.
  */
 (function () {
@@ -41,12 +43,14 @@
     var exam = null, idx = 0, timerId = null, answering = false, itemT0 = 0;
 
     if (poolEl) poolEl.textContent = String(E.pool(S).length);
+    var poolCks = $('[data-il-exam-pool-cks]');
+    if (poolCks) poolCks.textContent = String(E.pool(S, 'CKS').length);
     function renderHistory() {
       if (!historyEl) return;
       var db = E.loadStore();
       var last = db.last;
       historyEl.textContent = last
-        ? ('Last paper on this device: ' + last.correct + '/' + last.total + ' (' + last.pct + '%) · ' + (last.passed ? 'pass bar cleared' : 'under pass bar') + '.')
+        ? ('Last paper on this device' + (last.track ? ' (' + last.track + ')' : '') + ': ' + last.correct + '/' + last.total + ' (' + last.pct + '%) · ' + (last.passed ? 'pass bar cleared' : 'under pass bar') + '.')
         : 'No papers on this device yet.';
     }
     renderHistory();
@@ -242,7 +246,7 @@
       });
       var w = $('[data-il-exam-weighted]');
       if (w) {
-        w.textContent = bp.weightedPct == null ? '' : ('Blueprint-weighted score: ' + bp.weightedPct + '% over the domains this paper covered (' + bp.coveragePct + '% of the CKA weight).'
+        w.textContent = bp.weightedPct == null ? '' : ('Blueprint-weighted score: ' + bp.weightedPct + '% over the domains this paper covered (' + bp.coveragePct + '% of the ' + (bp.track || 'CKA') + ' weight).'
           + (bp.untested.length ? ' Not on this paper: ' + bp.untested.join(' · ') + '.' : ''));
         document.documentElement.setAttribute('data-il-exam-weighted-pct', bp.weightedPct == null ? '' : String(bp.weightedPct));
       }
@@ -250,7 +254,7 @@
       if (wk) {
         wk.textContent = '';
         if (bp.weakest) {
-          wk.appendChild(document.createTextNode('Weakest domain by points at stake: ' + bp.weakest.domain + ' (' + bp.weakest.weight + '% of the CKA, ' + bp.weakest.pct + '% here). '));
+          wk.appendChild(document.createTextNode('Weakest domain by points at stake: ' + bp.weakest.domain + ' (' + bp.weakest.weight + '% of the ' + (bp.track || 'CKA') + ', ' + bp.weakest.pct + '% here). '));
           var a = document.createElement('a');
           a.className = 'text-cyan';
           a.href = bp.drill.href;
@@ -270,6 +274,9 @@
     function start(opts) {
       stopTimer();
       exam = E.buildExam(S, opts || {});
+      document.documentElement.setAttribute('data-il-exam-track', exam.track || 'CKA');
+      var bpTitle = $('[data-il-exam-blueprint-title]');
+      if (bpTitle) bpTitle.textContent = 'Official CNCF ' + (exam.track || 'CKA') + ' blueprint';
       idx = 0;
       document.documentElement.removeAttribute('data-il-exam-finished');
       document.documentElement.removeAttribute('data-il-exam-score');
@@ -281,11 +288,13 @@
 
     document.querySelectorAll('[data-il-exam-start]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var count = Number(btn.getAttribute('data-count')) || E.DEFAULTS.count;
-        var minutes = Number(btn.getAttribute('data-minutes')) || E.DEFAULTS.minutes;
-        var focus = (btn.getAttribute('data-adaptive') === '1' && R) ? R.focusSims(S, 3) : [];
+        var track = btn.getAttribute('data-track') || 'CKA';
+        var T = (E.TRACKS && E.TRACKS[track]) || E.DEFAULTS;
+        var count = Number(btn.getAttribute('data-count')) || T.count;
+        var minutes = Number(btn.getAttribute('data-minutes')) || T.minutes;
+        var focus = (track === 'CKA' && btn.getAttribute('data-adaptive') === '1' && R) ? R.focusSims(S, 3) : [];
         document.documentElement.setAttribute('data-il-exam-adaptive', focus.length ? '1' : '0');
-        start({ count: count, minutes: minutes, focus: focus });
+        start({ count: count, minutes: minutes, focus: focus, track: track });
       });
     });
     var retry = $('[data-il-exam-retry]');
