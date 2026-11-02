@@ -1,5 +1,5 @@
 /**
- * IL Immersive Exam v1.3.0 (2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
+ * IL Immersive Exam v1.4.0 (2026-11-02; v1.3.0 2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
  * v1.3.0, CKS) mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
@@ -15,6 +15,11 @@
  * several domains), the paper takes one item per covered domain first, and Supply Chain Security (20%) is listed as
  * untested because no drill covers it yet. The default paper is unchanged (track 'CKA').
  *
+ * v1.4.0 (2026-11-02): Supply Chain Security (20%) gets its drill (cks-supply-chain). The CKS pool adds its 7
+ * checkpoints, every one of the 6 official CKS domains now has evidence, and the paper takes one item per domain first
+ * (6 of 8), so a clean CKS paper reports 100% coverage. Runtime threat detection (Falco), AppArmor and kube-bench are
+ * still not modelled and stay listed in the manifest's cks_coverage.notCovered.
+ *
  * Would Elon be impressed by thirteen free-play drills with no exam pressure while
  * KodeKloud ships timed mock exams? No — this is the honest pressure layer on top
  * of the 3D mental model peers still teach as video + terminal.
@@ -26,7 +31,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.3.0';
+  var VERSION = '1.4.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -95,20 +100,21 @@
     { domain: 'Cluster Hardening', weight: 15, sims: ['cks-pod-security', 'rbac-authz'], items: ['cks-pod-security::rbac-admin', 'rbac-authz'] },
     { domain: 'System Hardening', weight: 10, sims: ['cks-pod-security'], items: ['cks-pod-security::seccomp'] },
     { domain: 'Minimize Microservice Vulnerabilities', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::psa-reject', 'cks-pod-security::no-psa'] },
-    { domain: 'Supply Chain Security', weight: 20, sims: [], items: [] },
+    { domain: 'Supply Chain Security', weight: 20, sims: ['cks-supply-chain'], items: ['cks-supply-chain'] },
     { domain: 'Monitoring, Logging & Runtime Security', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::audit-off'] }
   ];
-  var CKS_SIMS = ['cks-pod-security', 'netpol-isolation', 'rbac-authz'];
+  var CKS_SIMS = ['cks-pod-security', 'cks-supply-chain', 'netpol-isolation', 'rbac-authz'];
   var CKS_OFFICIAL = {};
   CKS_BLUEPRINT.forEach(function (b) { b.items.forEach(function (k) { CKS_OFFICIAL[k] = b.domain; }); });
   ANCHOR['cks-pod-security'] = 'cks-pod-security';
+  ANCHOR['cks-supply-chain'] = 'cks-supply-chain';
   /** Official CKS domain of one checkpoint, or null when the CKS blueprint does not cover it. */
   function cksDomain(simId, scenarioId) { return CKS_OFFICIAL[simId + '::' + scenarioId] || CKS_OFFICIAL[simId] || null; }
   var TRACKS = {
     CKA: { label: 'CKA', sims: CKA_SIMS, blueprint: BLUEPRINT, passPct: 66, count: 10, minutes: 15,
       honesty: 'Timed mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKA.' },
     CKS: { label: 'CKS', sims: CKS_SIMS, blueprint: CKS_BLUEPRINT, passPct: 67, count: 8, minutes: 12,
-      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Supply Chain Security has no drill yet.' }
+      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Runtime threat detection (Falco), AppArmor and kube-bench are not modelled yet.' }
   };
   function trackOf(t) { return TRACKS[String(t || 'CKA').toUpperCase()] ? String(t || 'CKA').toUpperCase() : 'CKA'; }
 
@@ -142,7 +148,7 @@
       drill: weakest ? { sim: weakest.sims[0], href: '/immersive/#' + (ANCHOR[weakest.sims[0]] || '') } : null,
       track: tk,
       honesty: 'Weights are the published CNCF ' + tk + ' domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
-        + (tk === 'CKS' ? ' Supply Chain Security has no drill yet, so it is always listed as not covered.' : '')
+        + (tk === 'CKS' ? ' Every CKS domain has at least one drill since 2026-11-02; runtime threat detection (Falco), AppArmor and kube-bench are not modelled yet.' : '')
     };
   }
   /** Official-blueprint view of one graded paper (unanswered items count as incorrect, like the exam). */

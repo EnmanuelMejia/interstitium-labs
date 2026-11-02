@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.7.0 (2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.8.0 (2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -37,6 +37,12 @@
  * ReplicaSet FailedCreate), unlabelled namespace = privileged by default, no seccompProfile = Unconfined (Seccomp: 0),
  * no NetworkPolicy = allow-all, default-deny ingress without an allow rule (egress untouched), ServiceAccount bound
  * to cluster-admin, audit policy without --audit-log-path (no backend). New verdict 'exposed' (tone bad).
+ *
+ * v1.8.0 (2026-11-02): the second CKS drill, cks-supply-chain (Supply Chain Security, 20% of the CKS), on a NEW
+ * authored asset cks-supply-chain.glb (kit-v2 + Blender CLI polish): no built-in registry allow-list, a
+ * ValidatingAdmissionPolicy that matches Deployments denies the apply itself, mutable tags vs @sha256 digests, a signed
+ * image with CRITICAL CVEs is still admitted (signature ≠ safety), a Trivy --exit-code 1 gate stops push + sign, a
+ * registry allow-list does not prove provenance, signature verification at admission denies an unsigned digest.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1604,11 +1610,160 @@
     }
   };
 
+  /* ── CKS: Supply Chain Security (20% of the CKS) — v1.8.0 (2026-11-02) ─────────────────────────────────────────────
+   * Scene contract (cks-supply-chain.glb, authored 2026-11-02 — the second CKS asset): CI lane ci-pipeline / ci-build →
+   * trivy-scanner (+ sim-cve-flare, sim-ci-block) → sbom-doc → cosign-key → signature-seal, edge-build-scan,
+   * edge-scan-sign, edge-push; registry-trusted with image-artifact, digest-pin (+ sim-tag-drift, sim-unsigned-mark);
+   * registry-untrusted / untrusted-image; control-plane with kube-apiserver → vap-gate (+ sim-vap-deny) → sig-webhook
+   * (+ sim-sig-deny); ns-payments / payments-pod (+ sim-vuln-halo); edge-registry-api, edge-untrusted-api, edge-api-pod.
+   * Rules follow documented behaviour: Kubernetes has no built-in registry allow-list (a ValidatingAdmissionPolicy or a
+   * webhook adds one); a VAP that matches Deployments rejects the apply itself; `trivy image --exit-code 1 --severity
+   * CRITICAL` fails the CI job so nothing is pushed or signed; a cosign signature proves who signed a digest, not that it
+   * is safe; a registry allow-list checks the name, not provenance; signature verification at admission denies a digest
+   * with no matching signature; tags are mutable, digests are not. */
+  var SC_DIGEST = { good: 'sha256:4f1c9b7e2a6d8c03e5b1f7a9d2c4e6f8a0b3c5d7e9f1a2b4c6d8e0f2a4b6e9a2', prev: 'sha256:2b8e4d6f0a1c3e5b7d9f2a4c6e8b0d1f3a5c7e9b2d4f6a8c0e1b3d5f7a9c0d44',
+    vuln: 'sha256:c3a1e5f7b9d2c4e6a8f0b2d4c6e8a0f1b3d5e7c9a2b4d6f8e0c1a3b5d7f9e1b0', laptop: 'sha256:e6f8a0b2c4d6e8f0a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d2e4f6a8b0c1d3e5f1' };
+  function scDigest(s) { return !s.scanClean ? SC_DIGEST.vuln : (!s.signed ? SC_DIGEST.laptop : SC_DIGEST.good); }
+  function cksSupplyDecide(s) {
+    var ciBlocked = !!s.scanGate && !s.scanClean;
+    var sigValid = !!s.signed && !!s.fromTrusted; /* a docker.io image is never signed by our CI key */
+    var registryOk = !s.vapRegistry || !!s.fromTrusted;
+    var sigOk = !s.verifySig || sigValid;
+    var release = ciBlocked ? 'blocked-in-ci' : (!registryOk ? 'denied-registry' : (!sigOk ? 'denied-signature' : 'admitted'));
+    var admitted = release === 'admitted';
+    var exposures = [];
+    if (admitted && !s.fromTrusted) exposures.push('untrusted-registry');
+    if (admitted && s.fromTrusted && !s.signed) exposures.push('unsigned-image');
+    if (admitted && !s.scanClean) exposures.push('critical-cve');
+    var gaps = [];
+    if (!s.vapRegistry) gaps.push('no registry allow-list');
+    if (!s.verifySig) gaps.push('no signature verification');
+    if (!s.scanGate) gaps.push('no scan gate in CI');
+    if (!s.pinnedDigest) gaps.push('mutable tag');
+    return {
+      release: release,
+      admitted: admitted,
+      ciBlocked: ciBlocked,
+      pushed: !ciBlocked,
+      registryOk: registryOk,
+      sigValid: sigValid,
+      sigOk: sigOk,
+      criticalCves: s.scanClean ? 0 : 1,
+      image: s.fromTrusted ? 'registry.example.com/payments/api' + (s.pinnedDigest ? '@' + scDigest(s) : ':2.4.1') : 'docker.io/payments-tools/api:latest',
+      /* when the new release is refused, the previous (clean, signed) ReplicaSet keeps serving */
+      runningDigest: admitted ? (s.fromTrusted ? scDigest(s) : 'sha256:(unknown publisher)') : SC_DIGEST.prev,
+      digest: scDigest(s),
+      driftRisk: !s.pinnedDigest,
+      gaps: gaps,
+      exposures: exposures
+    };
+  }
+
+  var cksSupplyChain = {
+    id: 'cks-supply-chain',
+    title: 'CKS supply chain drill: allowed registries (ValidatingAdmissionPolicy), Trivy scan gate, SBOM, cosign signing + admission verification, digest pinning',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-supply-chain.glb',
+    initial: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: true, scanClean: true, signed: true, verifySig: true },
+    toggles: [
+      { id: 'vapRegistry', label: 'ValidatingAdmissionPolicy allowed-registries', on: 'bound (Deny)', off: 'none' },
+      { id: 'fromTrusted', label: 'payments-api image source', on: 'registry.example.com', off: 'docker.io (public)' },
+      { id: 'pinnedDigest', label: 'image reference', on: '@sha256 digest', off: ':2.4.1 tag (mutable)' },
+      { id: 'scanGate', label: 'CI Trivy gate', on: '--severity CRITICAL --exit-code 1', off: 'report only' },
+      { id: 'scanClean', label: 'new build base image', on: 'patched / minimal (0 CRITICAL)', off: 'debian base · 1 CRITICAL CVE (zlib1g)' },
+      { id: 'signed', label: 'cosign signature', on: 'signed by CI key', off: 'unsigned (pushed outside CI)' },
+      { id: 'verifySig', label: 'admission signature check', on: 'verify against cosign.pub', off: 'none' }
+    ],
+    scenarios: [
+      { id: 'untrusted-registry', label: 'No registry allow-list', set: { vapRegistry: false, fromTrusted: false, pinnedDigest: true, scanGate: true, scanClean: true, signed: true, verifySig: false },
+        predict: { q: 'The cluster has no admission policy about images. A teammate changes payments-api to image docker.io/payments-tools/api:latest, from a publisher nobody has vetted, and applies it. What happens?',
+          options: ['The API server rejects it, because kubeadm clusters only pull from registry.k8s.io unless you add an allow-list',
+            'The kubelet refuses to pull it, because images without a signature are blocked by containerd by default',
+            'It is admitted and runs. Kubernetes has no built-in registry allow-list: you add one with a ValidatingAdmissionPolicy (or a policy webhook) that checks every container image'],
+          answer: 2, why: 'Nothing in core Kubernetes restricts where images come from. The API server only validates the object schema, and containerd pulls whatever the kubelet asks for (registry.k8s.io is only where kubeadm gets the control-plane images). The CKS answer is admission control: a ValidatingAdmissionPolicy with a CEL rule such as object.spec.containers.all(c, c.image.startsWith(\'registry.example.com/\')), plus a binding with validationActions [Deny]. Keep the trailing slash, or registry.example.com.evil.io/… would also pass. The old ImagePolicyWebhook admission plugin is another route.' } },
+      { id: 'vap-deny', label: 'Allow-list on, public image', set: { vapRegistry: true, fromTrusted: false, pinnedDigest: true, scanGate: true, scanClean: true, signed: true, verifySig: false },
+        predict: { q: 'ValidatingAdmissionPolicy allowed-registries matches apps/v1 Deployments and v1 Pods, and its binding in namespace payments has validationActions: [Deny]. You kubectl apply the Deployment with image docker.io/payments-tools/api:latest. What happens?',
+          options: ['The apply itself fails: the Deployment is denied with "ValidatingAdmissionPolicy \'allowed-registries\' with binding \'allowed-registries-binding\' denied request …". The running pods are untouched',
+            'The Deployment is accepted and its ReplicaSet reports FailedCreate, because admission policies only ever evaluate Pods',
+            'It is accepted with a warning, because a VAP only warns until the cluster has been restarted with --enable-admission-plugins'],
+          answer: 0, why: 'A VAP evaluates whatever its matchConstraints list. Because this one matches Deployments, the update is refused before it is stored, so the old ReplicaSet keeps serving. (Pod Security Admission is the one that checks only Pods in enforce mode.) ValidatingAdmissionPolicy is GA since Kubernetes 1.30 and needs no flag. validationActions can also be [Warn] or [Audit], which let the object through with a warning or an audit annotation, which is handy for a dry run before you deny.' } },
+      { id: 'tag-drift', label: 'Mutable tag', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: false, scanGate: true, scanClean: true, signed: true, verifySig: true },
+        predict: { q: 'Everything is green: CI scanned and signed digest sha256:4f1c…e9a2, admission verifies signatures, and the Deployment references registry.example.com/payments/api:2.4.1 by tag. Is the code that runs guaranteed to be the code that was scanned?',
+          options: ['Yes. A signature check at admission pins the tag forever',
+            'No. Tags are mutable: anyone with push rights can point :2.4.1 at a new digest, and nodes can run different digests (IfNotPresent keeps a cached copy, new nodes pull the new one). Reference the image by @sha256 digest, which never changes',
+            'Yes. Kubernetes rewrites tags to digests in the stored pod spec'],
+          answer: 1, why: 'A tag is a movable pointer, and a digest is the content hash. The kubelet pulls by whatever string is in the pod spec, so a re-pushed tag can change what runs on the next pull, and replicas on different nodes can disagree (status.containerStatuses[].imageID shows what each one really runs). Signature-verification webhooks check the digest a tag resolves to at admission time; some also rewrite the spec to that digest (Kyverno verifyImages mutateDigest). The simplest fix is image: registry.example.com/payments/api@sha256:…, which is also what you signed.' } },
+      { id: 'critical-cve', label: 'Signed, but vulnerable', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: false, scanClean: false, signed: true, verifySig: true },
+        predict: { q: 'CI signs every image it builds with cosign, and admission verifies those signatures. The new build sits on a full debian:bookworm base whose zlib1g carries a CRITICAL CVE (CVE-2023-45853), and the Trivy step only prints a report (no --exit-code). Does signature verification stop the rollout?',
+          options: ['No. The image is signed by the right key, so it is admitted and runs. A signature proves who built a digest and that it was not changed, not that it is safe. Gate on the scan: trivy image --severity CRITICAL --exit-code 1 before signing',
+            'Yes. cosign refuses to sign an image with CRITICAL CVEs',
+            'Yes. The admission webhook re-scans every image and denies CRITICAL findings'],
+          answer: 0, why: 'Signing and scanning answer different questions. cosign signs whatever digest it is given, and the verifier only checks that the signature matches a trusted key (or keyless identity). Trivy exits 0 by default even when it finds CVEs; --exit-code 1 with --severity CRITICAL (optionally --ignore-unfixed) makes the pipeline fail. Put the gate before the push and the sign step, so a vulnerable build never gets a signature. Then rebuild on a minimal base (distroless, alpine): fewer packages means fewer CVEs. Watch --ignore-unfixed: CVE-2023-45853 is will_not_fix in Debian, so that flag would hide it and let the gate pass.' } },
+      { id: 'scan-gate', label: 'Scan gate blocks the release', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: true, scanClean: false, signed: true, verifySig: true },
+        predict: { q: 'Now the CI job runs trivy image --severity CRITICAL --exit-code 1 before push and sign, and the new build still carries that CRITICAL zlib1g CVE. What happens in production?',
+          options: ['Production gets the new image, because the scan only runs after the rollout',
+            'Nothing changes in production. Trivy exits 1, the job stops before push and sign, and payments-api keeps running the previous signed digest. Fix the image (a minimal base such as distroless static has no zlib1g at all) and rebuild',
+            'Production pods are evicted, because Trivy marks the image as vulnerable in the registry'],
+          answer: 1, why: 'A failing step stops the pipeline, so there is no new tag, no signature and no Deployment change. The cluster never sees the vulnerable build, and the running ReplicaSet keeps serving the last good digest. That is the point of shifting left. It is still worth scanning the running images too (trivy image on what is deployed, or trivy k8s), because new CVEs are published for images you already shipped.' } },
+      { id: 'unsigned-push', label: 'Pushed outside CI', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: true, scanClean: true, signed: false, verifySig: false },
+        predict: { q: 'Someone with registry credentials builds on a laptop and pushes straight to registry.example.com/payments/api, skipping CI, so the image has no cosign signature. The allowed-registries VAP is bound, and there is no signature check. Is the image admitted?',
+          options: ['No. The registry allow-list also checks that the image was built by CI',
+            'No. containerd verifies cosign signatures for private registries',
+            'Yes. The allow-list matches the name registry.example.com/, which this image has. It says nothing about who built it. Add signature verification at admission (cosign.pub), so an unsigned digest is denied'],
+          answer: 2, why: 'A registry allow-list is a string check on the image reference, so anyone who can push to the trusted registry can get code into the cluster. Provenance needs signatures: CI signs the digest with cosign (a key pair or keyless Sigstore), and an admission verifier (Sigstore policy-controller, Kyverno verifyImages, or Connaisseur) denies digests without a matching signature. Locally, cosign verify --key cosign.pub IMAGE shows the same answer.' } },
+      { id: 'sig-verify', label: 'Signature check on, unsigned image', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: true, scanClean: true, signed: false, verifySig: true },
+        predict: { q: 'Signature verification is now on in admission, using cosign.pub. The laptop-built, unsigned digest is applied again. What do cosign verify --key cosign.pub and the cluster say?',
+          options: ['cosign prints "Error: no matching signatures" and exits 1. Admission denies the pod, and the previous signed ReplicaSet keeps serving. Re-run the image through CI so it is scanned, signed and pushed by digest',
+            'cosign verifies it, because the registry is trusted, and the pod runs',
+            'cosign warns, and admission lets the pod run with a "signature missing" annotation'],
+          answer: 0, why: 'cosign looks up the signature artifact stored next to the digest in the registry (the sha256-….sig tag) and checks it against the public key. No artifact means no matching signatures and exit code 1. Admission verifiers apply the same rule. Webhooks that match Pods make the ReplicaSet report FailedCreate while the old pods keep running. The cure is process, not a bypass: build through the pipeline, which scans, generates the SBOM, signs and pushes.' } },
+      { id: 'heal', label: 'Reset', set: { vapRegistry: true, fromTrusted: true, pinnedDigest: true, scanGate: true, scanClean: true, signed: true, verifySig: true } }
+    ],
+    derive: function (s) {
+      var d = cksSupplyDecide(s), rules = [];
+      rules.push(rule('^ci-build$', { tint: 'muted', glow: 0.15 }));
+      rules.push(rule('^trivy-scanner$', !s.scanGate ? { tint: 'warn', glow: 0.4 } : (d.ciBlocked ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'ok', glow: 0.5 })));
+      rules.push(rule('^sim-cve-flare$', s.scanClean ? { hide: true } : { show: true, tint: 'deny', glow: 0.9, pulse: true }));
+      rules.push(rule('^sim-ci-block$', d.ciBlocked ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^(edge-scan-sign|edge-push)$', d.ciBlocked ? { tint: 'down', glow: 0 } : { tint: 'ok', glow: 0.4 }));
+      rules.push(rule('^edge-build-scan$', { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^sbom-doc$', d.ciBlocked ? { tint: 'muted', glow: 0.1 } : { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^cosign-key$', { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^signature-seal$', s.signed && !d.ciBlocked ? { tint: 'gold', glow: 0.6 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^sim-unsigned-mark$', s.fromTrusted && !s.signed ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^image-artifact$', !s.fromTrusted ? { tint: 'muted', glow: 0.1 } : (!s.scanClean && !d.ciBlocked ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^digest-pin$', s.pinnedDigest ? { tint: 'ok', glow: 0.4 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^sim-tag-drift$', s.pinnedDigest || !s.fromTrusted ? { hide: true } : { show: true, tint: 'warn', glow: 0.7, pulse: true }));
+      rules.push(rule('^untrusted-image$', !s.fromTrusted ? (d.admitted ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'deny', glow: 0.4 }) : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^edge-untrusted-api$', !s.fromTrusted ? (d.admitted ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'warn', glow: 0.4 }) : { tint: 'down', glow: 0 }));
+      rules.push(rule('^edge-registry-api$', s.fromTrusted && !d.ciBlocked ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^vap-gate$', !s.vapRegistry ? { tint: 'muted', glow: 0.1 } : (d.release === 'denied-registry' ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^sim-vap-deny$', d.release === 'denied-registry' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sig-webhook$', !s.verifySig ? { tint: 'muted', glow: 0.1 } : (d.release === 'denied-signature' ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^sim-sig-deny$', d.release === 'denied-signature' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^edge-api-pod$', d.admitted ? (d.exposures.length ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.4 }) : { tint: 'warn', glow: 0.3 }));
+      rules.push(rule('^payments-pod$', d.exposures.length ? { tint: 'deny', glow: 0.7, pulse: true } : (d.admitted && d.driftRisk ? { tint: 'warn', glow: 0.5 } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^sim-vuln-halo$', d.exposures.length ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^kube-apiserver$', { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^(ci-pipeline|registry-trusted|registry-untrusted|control-plane|ns-payments)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = d.exposures.length ? 'exposed' : (!d.admitted ? 'rejected' : (d.gaps.length ? 'degraded' : 'healthy'));
+      var cap = [];
+      if (!s.fromTrusted) cap.push('not built by our CI (public image, unscanned, unsigned)');
+      else cap.push(d.ciBlocked ? 'CI: trivy found ' + d.criticalCves + ' CRITICAL → exit 1, nothing pushed or signed' : ('CI: ' + (s.scanGate ? 'scan gate passed' : 'scan report only (' + d.criticalCves + ' CRITICAL)') + ' · ' + (s.signed ? 'cosign-signed' : 'unsigned (pushed outside CI)')));
+      cap.push('image ' + d.image);
+      cap.push(d.release === 'admitted' ? 'admitted' : (d.release === 'denied-registry' ? 'VAP allowed-registries denied the Deployment' : (d.release === 'denied-signature' ? 'signature check: no matching signatures → denied' : 'release blocked in CI')));
+      if (!d.admitted) cap.push('previous signed ReplicaSet keeps serving');
+      if (d.exposures.length) cap.push('running: ' + d.exposures.join(' + '));
+      else if (d.admitted && d.gaps.length) cap.push('gaps: ' + d.gaps.join(' · '));
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
-    'cks-pod-security': cksPodSecurity };
+    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1663,7 +1818,7 @@
   }
 
   return {
-    VERSION: '1.7.0',
+    VERSION: '1.8.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1693,6 +1848,8 @@
     svcDnsResolve: svcDnsResolve,
     cksDecide: cksDecide,
     cksRestrictedViolations: cksRestrictedViolations,
+    cksSupplyDecide: cksSupplyDecide,
+    SC_DIGEST: SC_DIGEST,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

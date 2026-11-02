@@ -3,7 +3,8 @@
  * cks-pod-security.glb (kit-v2 + Blender CLI polish), its rules-engine drill (7 predict checkpoints), a 5-task CLI pack,
  * and a timed CKS paper scored on the 6 official CKS domains. Pure UMD, so the browser runs exactly this code. Generic
  * tip/focus/replay/example coverage for the new pack comes from the loops in immersive-cli.test.js /
- * immersive-cli-packs.test.js, which iterate C.list() (16 packs).
+ * immersive-cli-packs.test.js, which iterate C.list() (16 packs; 17 since the 2026-11-02 supply-chain pack, tested in
+ * immersive-cks-supply-chain.test.js).
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -47,7 +48,7 @@ test('NEW asset: cks-pod-security.glb is authored + Blender-polished, the first 
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-pod-security.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), [SIM], 'first and only CKS drill');
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), [SIM, 'cks-supply-chain'], 'first CKS drill (cks-supply-chain followed on 2026-11-02)');
   const j = glbJson('assets/immersive/cks-pod-security.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['kube-apiserver', 'psa-gate', 'sim-psa-reject', 'audit-policy', 'audit-log', 'sim-audit-gap', 'ns-payments', 'psa-label', 'node-kernel', 'seccomp-filter',
@@ -71,7 +72,7 @@ test('NEW asset: cks-pod-security.glb is authored + Blender-polished, the first 
 test('rules engine: Pod Security Admission, seccomp default, NetworkPolicy isolation, RBAC scope and audit backend semantics', () => {
   const sim = S.get(SIM);
   const at = set => S.cksDecide(S.merge(sim.initial, set));
-  assert.equal(S.VERSION, '1.7.0');
+  assert.ok(['1.7.0', '1.8.0'].includes(S.VERSION), 'cks-pod-security arrived in v1.7.0; v1.8.0 (2026-11-02) keeps it');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   assert.equal(S.verdictTone('exposed'), 'bad', 'the new unsafe verdict never renders healthy');
   /* restricted vs a privileged template: every restricted check is listed, in the controller's order */
@@ -244,8 +245,8 @@ test('audit-log: commented --audit-log-path → no log file; sed -i un-comments 
   assert.equal(s.status().done, true);
 });
 
-test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per covered domain, Supply Chain honestly untested', () => {
-  assert.equal(E.VERSION, '1.3.0');
+test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per covered domain (Supply Chain covered since 2026-11-02)', () => {
+  assert.ok(['1.3.0', '1.4.0'].includes(E.VERSION), 'CKS track since v1.3.0; v1.4.0 (2026-11-02) adds the supply-chain drill');
   assert.deepEqual(E.CKS_BLUEPRINT.map(b => [b.domain, b.weight]), [['Cluster Setup', 15], ['Cluster Hardening', 15], ['System Hardening', 10],
     ['Minimize Microservice Vulnerabilities', 20], ['Supply Chain Security', 20], ['Monitoring, Logging & Runtime Security', 20]]);
   assert.equal(E.CKS_BLUEPRINT.reduce((n, b) => n + b.weight, 0), 100);
@@ -258,15 +259,15 @@ test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per co
   assert.ok(!E.pool(S).some(it => it.simId === SIM), 'the CKA paper never draws a CKS checkpoint');
   const ex = E.buildExam(S, { track: 'CKS', seed: 7 });
   assert.deepEqual([ex.track, ex.count, ex.minutes, ex.passPct], ['CKS', 8, 12, 67]);
-  assert.equal(new Set(ex.items.map(i => i.domain)).size, 5, 'one item per covered domain first (5 of 6 have drills)');
+  assert.equal(new Set(ex.items.map(i => i.domain)).size, 6, 'one item per covered domain first (all 6 have drills since 2026-11-02)');
   assert.match(ex.honesty, /not the CNCF CKS/);
   ex.items.forEach(it => { it.choice = it.answer; it.correct = true; });
   const sum = E.summarize(ex);
   assert.equal(sum.blueprint.track, 'CKS');
-  assert.deepEqual(sum.blueprint.untested, ['Supply Chain Security']);
-  assert.equal(sum.blueprint.coveragePct, 80);
+  assert.deepEqual(sum.blueprint.untested, []);
+  assert.equal(sum.blueprint.coveragePct, 100);
   assert.equal(sum.blueprint.weightedPct, 100);
-  assert.match(sum.blueprint.honesty, /Supply Chain Security has no drill yet/);
+  assert.match(sum.blueprint.honesty, /Every CKS domain has at least one drill since 2026-11-02/);
   /* a missed seccomp item makes System Hardening the gap and links to the CKS drill */
   const ex2 = E.buildExam(S, { track: 'CKS', seed: 7 });
   ex2.items.forEach(it => { const miss = it.domain === 'Minimize Microservice Vulnerabilities'; it.choice = miss ? (it.answer + 1) % 3 : it.answer; it.correct = !miss; });
@@ -280,7 +281,7 @@ test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per co
 });
 
 test('review: CKS coach cards get an honest domain label; CKA mastery stays CKA-only', () => {
-  assert.equal(R.VERSION, '1.3.1');
+  assert.match(R.VERSION, /^1\.3\.[12]$/, 'CKS labels since v1.3.1');
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 29);
   assert.ok(cards.every(c => c.domain === 'CKS · Workload security'));
@@ -292,7 +293,7 @@ test('wiring: /immersive/ host, exam lobby CKS button, curriculum rows, manifest
   assert.match(html, /id="cks-pod-security"/);
   assert.match(html, /data-il-sim="cks-pod-security"\s*\n\s*data-gltf="\/assets\/immersive\/cks-pod-security\.glb"/);
   assert.match(html, /The shell is simulated and runs on a rules engine: there is no live cluster, no real kubelet or kernel, and no clock/);
-  assert.match(html, /Supply Chain Security \(20%\) has no drill yet/);
+  assert.match(html, /Supply Chain Security \(20%\) has its own drill below \(since 2026-11-02\)/);
   const exam = readFileSync(path.join(root, 'docs/immersive/exam/index.html'), 'utf8');
   assert.match(exam, /data-il-exam-start data-track="CKS">CKS 8 · 12:00</);
   assert.match(exam, /data-il-exam-pool-cks/);
@@ -313,10 +314,10 @@ test('wiring: /immersive/ host, exam lobby CKS button, curriculum rows, manifest
   assert.equal(sc.polish, 'blender-cli');
   assert.ok(m.sims.list.includes(SIM));
   assert.ok(!m.cka_coverage.interactive.includes(SIM), 'not counted as CKA coverage');
-  assert.deepEqual(m.cks_coverage.interactive, [SIM]);
+  assert.ok(m.cks_coverage.interactive.includes(SIM));
   assert.equal(m.cks_coverage.hostedFleet, false);
   assert.equal(m.cks_coverage.liveUnrealHost, false);
-  assert.ok(m.cks_coverage.notCovered.some(x => /^Supply Chain Security/.test(x)));
+  assert.ok(!m.cks_coverage.notCovered.some(x => /^Supply Chain Security/.test(x)), 'covered by cks-supply-chain since 2026-11-02');
   assert.equal(m.sims.runtime_version, S.VERSION);
   assert.equal(m.sims.exam.version, E.VERSION);
   assert.equal(m.sims.exam.cks.defaults.passPct, 67);
