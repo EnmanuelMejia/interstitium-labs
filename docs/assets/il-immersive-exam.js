@@ -35,7 +35,8 @@
     'cni-network',
     'ingress-routing',
     'gateway-api',
-    'node-troubleshoot'
+    'node-troubleshoot',
+    'service-dns'
   ];
 
   var DOMAIN = {
@@ -50,7 +51,8 @@
     'cni-network': 'Networking',
     'ingress-routing': 'Networking',
     'gateway-api': 'Networking',
-    'node-troubleshoot': 'Troubleshooting'
+    'node-troubleshoot': 'Troubleshooting',
+    'service-dns': 'Troubleshooting'
   };
 
   /**
@@ -59,7 +61,7 @@
    * checkpoints exercise most. The fine-grained DOMAIN labels above stay (on-device review cards are keyed by them).
    */
   var BLUEPRINT = [
-    { domain: 'Troubleshooting', weight: 30, sims: ['control-plane-failure', 'node-troubleshoot'] },
+    { domain: 'Troubleshooting', weight: 30, sims: ['control-plane-failure', 'node-troubleshoot', 'service-dns'] },
     { domain: 'Cluster Architecture, Installation & Configuration', weight: 25, sims: ['etcd-quorum', 'rbac-authz'] },
     { domain: 'Services & Networking', weight: 20, sims: ['netpol-isolation', 'cni-network', 'ingress-routing', 'gateway-api'] },
     { domain: 'Workloads & Scheduling', weight: 15, sims: ['sched-taints', 'hpa-scale', 'config-propagation'] },
@@ -71,7 +73,8 @@
   var ANCHOR = {
     'etcd-quorum': 'cka-etcd', 'control-plane-failure': 'cka-control-plane', 'sched-taints': 'cka-scheduling', 'hpa-scale': 'cka-hpa',
     'storage-csi': 'cka-storage', 'config-propagation': 'cka-secrets-configmaps', 'rbac-authz': 'cka-rbac', 'netpol-isolation': 'cka-network-policy',
-    'cni-network': 'cka-cni', 'ingress-routing': 'cka-ingress', 'gateway-api': 'cka-gateway-api', 'node-troubleshoot': 'cka-node-troubleshoot'
+    'cni-network': 'cka-cni', 'ingress-routing': 'cka-ingress', 'gateway-api': 'cka-gateway-api', 'node-troubleshoot': 'cka-node-troubleshoot',
+    'service-dns': 'cka-service-dns'
   };
 
   /**

@@ -29,11 +29,11 @@ function session(sim, taskId) {
   };
 }
 
-test('exports v1.4.0 with an honest simulated-shell label and packs only for sims that exist', () => {
-  assert.equal(C.VERSION, '1.4.0');
+test('exports v1.5.0 with an honest simulated-shell label and packs only for sims that exist', () => {
+  assert.equal(C.VERSION, '1.5.0');
   assert.match(C.honesty, /Simulated shell/);
   assert.match(C.honesty, /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
-  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'config-propagation', 'control-plane-failure', 'etcd-quorum', 'gateway-api', 'hpa-scale', 'ingress-routing', 'netpol-isolation', 'node-troubleshoot', 'rbac-authz', 'sched-taints', 'storage-csi']);
+  assert.deepEqual(C.list().sort(), ['aws-az-failure', 'config-propagation', 'control-plane-failure', 'etcd-quorum', 'gateway-api', 'hpa-scale', 'ingress-routing', 'netpol-isolation', 'node-troubleshoot', 'rbac-authz', 'sched-taints', 'service-dns', 'storage-csi']);
   for (const id of C.list()) {
     assert.ok(S.get(id), id + ' has a rules-engine sim');
     const p = C.pack(id);

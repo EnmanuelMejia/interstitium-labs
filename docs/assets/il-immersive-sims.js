@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.5.0 (2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.6.0 (2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -25,6 +25,12 @@
  * polish): kubelet 203/EXEC from a bad ExecStart, daemon-reload after a unit edit, containerd down (containers survive
  * via shims, Ready=False), CNI config missing (NetworkPluginNotReady), nodefs DiskPressure (BestEffort evicted first).
  * Troubleshooting is 30% of the CKA; it previously had one drill.
+ *
+ * v1.6.0 (2026-10-23): service-dns drill on a NEW authored asset, service-dns.glb (kit-v2 + Blender CLI polish):
+ * Service selector matches nothing (empty EndpointSlice → kube-proxy reject), targetPort ≠ containerPort, CoreDNS
+ * Corefile parse error (CrashLoopBackOff → lookups refused, ClusterIPs still work), namespace default-deny egress without
+ * a kube-dns:53 rule (lookups time out), short name across namespaces (search list → NXDOMAIN). svcDnsResolve() models
+ * the pod resolv.conf search list with ndots:5. The other half of CKA Troubleshooting (30%).
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1306,10 +1312,140 @@
     }
   };
 
+  /* ── Service + DNS troubleshooting (CKA Troubleshooting 30% · Services & Networking 20%) — v1.6.0 (2026-10-23) ──
+   * Scene contract (service-dns.glb, authored 2026-10-23): ns-shop / ns-kube-system / ns-data plates; client-pod +
+   * resolv-conf; Service svc-api (+ svc-api-port, svc-api-selector), endpointslice-api, api-pod-0/1 with
+   * container-port-0/1, edge-svc-pod-0/1, kube-proxy-rules; svc-kube-dns → coredns-0/1 (+ sim-crash-ring-0/1) and the
+   * corefile ConfigMap; edge-client-dns; sim-netpol-wall + netpol-tablet; svc-db + db-pod in ns data; edge-client-db;
+   * sim-nxdomain-flag. Rules follow documented Service / EndpointSlice / kube-proxy / CoreDNS / NetworkPolicy behaviour
+   * and the pod resolv.conf search path (ndots:5). No clock: CrashLoopBackOff back-off and resolver retries are explained. */
+  var SVC_DNS_RECORDS = {
+    'api.shop.svc.cluster.local': '10.96.88.20',
+    'db.data.svc.cluster.local': '10.96.140.5',
+    'kube-dns.kube-system.svc.cluster.local': '10.96.0.10',
+    'kubernetes.default.svc.cluster.local': '10.96.0.1'
+  };
+  var SVC_DNS_SEARCH = ['shop.svc.cluster.local', 'svc.cluster.local', 'cluster.local'];
+  /** Resolve a name from a pod in ns shop the way glibc / bind nslookup do with ndots:5 and the search list.
+   *  opts.noSearch (dig without +search) treats the name as absolute. Returns { status, fqdn, ip, tried }. */
+  function svcDnsResolve(s, name, opts) {
+    opts = opts || {};
+    if (!s.dnsEgress) return { status: 'timeout', fqdn: null, ip: null, tried: [] };
+    if (!s.corefileOk) return { status: 'refused', fqdn: null, ip: null, tried: [] };
+    var n = String(name || '').toLowerCase(), abs = /\.$/.test(n);
+    n = n.replace(/\.$/, '');
+    var dots = (n.match(/\./g) || []).length, tried = [];
+    var cands = abs || opts.noSearch ? [n] : (dots >= 5 ? [n].concat(SVC_DNS_SEARCH.map(function (d) { return n + '.' + d; }))
+      : SVC_DNS_SEARCH.map(function (d) { return n + '.' + d; }).concat([n]));
+    for (var i = 0; i < cands.length; i++) {
+      tried.push(cands[i]);
+      if (SVC_DNS_RECORDS[cands[i]]) return { status: 'ok', fqdn: cands[i], ip: SVC_DNS_RECORDS[cands[i]], tried: tried };
+    }
+    return { status: 'nxdomain', fqdn: null, ip: null, tried: tried };
+  }
+  function serviceDnsDecide(s) {
+    var endpoints = s.selectorOk ? 2 : 0;
+    var dns = !!s.dnsEgress && !!s.corefileOk;
+    var apiByIp = endpoints === 0 ? 'refused-no-endpoints' : (s.targetPortOk ? 'ok' : 'refused-target-port');
+    var dbName = s.fqdnOk ? 'db.data.svc.cluster.local' : 'db';
+    var db = svcDnsResolve(s, dbName);
+    return {
+      endpoints: endpoints,
+      endpointPort: s.targetPortOk ? 8080 : 80,
+      targetPort: s.targetPortOk ? 8080 : 80,
+      selector: s.selectorOk ? 'app=api' : 'app=api-v2',
+      apiByIp: apiByIp,
+      /* A ClusterIP Service gets its A record whether or not it has endpoints. */
+      apiResolves: svcDnsResolve(s, 'api').status === 'ok',
+      apiByName: dns ? apiByIp : 'dns-' + (!s.dnsEgress ? 'timeout' : 'refused'),
+      corednsPods: s.corefileOk ? 'Running' : 'CrashLoopBackOff',
+      kubeDnsReadyEndpoints: s.corefileOk ? 2 : 0,
+      dns: dns,
+      dnsFailure: !s.dnsEgress ? 'timeout' : (!s.corefileOk ? 'refused' : null),
+      dbName: dbName,
+      dbLookup: db.status,
+      dbReach: db.status === 'ok'
+    };
+  }
+
+  var serviceDns = {
+    id: 'service-dns',
+    title: 'Service + DNS troubleshooting drill — endpoints, targetPort, CoreDNS, DNS egress, FQDNs',
+    cert: 'CKA',
+    glb: '/assets/immersive/service-dns.glb',
+    initial: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: true, fqdnOk: true },
+    toggles: [
+      { id: 'selectorOk', label: 'Service api selector', on: 'app=api (matches pods)', off: 'app=api-v2 (matches nothing)' },
+      { id: 'targetPortOk', label: 'Service api targetPort', on: '8080 (= containerPort)', off: '80 (nothing listens)' },
+      { id: 'corefileOk', label: 'CoreDNS Corefile', on: 'valid', off: 'typo: forwrd' },
+      { id: 'dnsEgress', label: 'ns shop egress to kube-dns:53', on: 'allowed', off: 'default-deny (no DNS rule)' },
+      { id: 'fqdnOk', label: 'web DB_HOST', on: 'db.data.svc.cluster.local', off: 'db (short name)' }
+    ],
+    scenarios: [
+      { id: 'selector', label: 'Selector matches nothing', set: { selectorOk: false, targetPortOk: true, corefileOk: true, dnsEgress: true, fqdnOk: true },
+        predict: { q: 'A deploy changed Service api’s selector to app=api-v2, but the pods are still labelled app=api. From pod web in the same namespace, what does curl http://api do?',
+          options: ['curl cannot resolve the host — a Service with no endpoints has no DNS record', 'The name still resolves to the ClusterIP, but the connection is refused at once — the EndpointSlice is empty, so kube-proxy rejects traffic to that ClusterIP', 'It hangs, then times out after the TCP connect timeout'],
+          answer: 1, why: 'A ClusterIP Service gets its DNS A record whether or not anything backs it. The EndpointSlice controller only lists Ready pods whose labels match spec.selector, so the slice is empty. kube-proxy installs a REJECT rule for a Service with no endpoints, so the connection is refused instead of timing out. Compare `kubectl get svc api -o wide` (SELECTOR) with `kubectl get pods --show-labels`.' } },
+      { id: 'target-port', label: 'targetPort ≠ containerPort', set: { selectorOk: true, targetPortOk: false, corefileOk: true, dnsEgress: true, fqdnOk: true },
+        predict: { q: 'Service api is port 80 → targetPort 80, but the api container listens on 8080. What does kubectl get endpointslices -l kubernetes.io/service-name=api show, and what does curl http://api get?',
+          options: ['Both pod IPs with port 80 — the selector is fine; the connection is refused because nothing listens on :80 in the pods. Set targetPort to 8080', 'An empty slice — the controller drops pods whose containerPort does not match targetPort', 'Both pod IPs with port 8080 — kube-proxy rewrites the port to the containerPort'],
+          answer: 0, why: 'EndpointSlices copy the Service’s targetPort; they do not check what the container actually listens on (containerPort is informational). kube-proxy DNATs to podIP:80, and the pod answers with a TCP reset. `kubectl describe svc api` shows TargetPort 80/TCP; `kubectl describe deployment api` shows Port 8080/TCP.' } },
+      { id: 'corefile', label: 'Corefile typo', set: { selectorOk: true, targetPortOk: true, corefileOk: false, dnsEgress: true, fqdnOk: true },
+        predict: { q: 'Someone edited ConfigMap coredns and typed “forwrd” for “forward”. The CoreDNS pods restart. What do pods across the cluster see?',
+          options: ['Only external names fail; cluster names still resolve from the kubernetes plugin', 'Nothing changes until the next node reboot', 'CoreDNS exits on the Corefile parse error (CrashLoopBackOff), so kube-dns has no ready endpoints and every lookup fails — but curl to a ClusterIP by IP still works'],
+          answer: 2, why: 'CoreDNS parses the whole Corefile at start-up; an unknown directive is fatal (`/etc/coredns/Corefile:… - Error during parsing: Unknown directive \'forwrd\'`), so the pods crash-loop and the kube-dns Service loses its ready endpoints. Service routing is kube-proxy’s job and keeps working by IP. Read `kubectl -n kube-system logs -l k8s-app=kube-dns`, fix the ConfigMap, and the pods recover on their next restart.' } },
+      { id: 'dns-egress', label: 'Default-deny egress', set: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: false, fqdnOk: true },
+        predict: { q: 'Namespace shop gets a default-deny egress NetworkPolicy that only allows egress to pods in shop. From pod web, what happens?',
+          options: ['Everything still works — DNS traffic is exempt from NetworkPolicy', 'nslookup api times out (no servers could be reached), yet curl http://10.96.88.20 (api’s ClusterIP) still works — CoreDNS lives in kube-system and the policy has no rule for port 53', 'curl http://api works because the name is cached in the pod'],
+          answer: 1, why: 'NetworkPolicy matches the pod IP after kube-proxy’s DNAT, so web → api (same namespace) is allowed even through the ClusterIP. The DNS query goes to kube-dns pods in kube-system, which the policy does not allow, so it is dropped silently: a timeout, not a refusal. Add an egress rule to namespace kube-system, pods k8s-app=kube-dns, on UDP and TCP 53. Pods do not cache DNS by default.' } },
+      { id: 'fqdn', label: 'Short name across namespaces', set: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: true, fqdnOk: false },
+        predict: { q: 'web (ns shop) connects to DB_HOST=db, but Service db lives in namespace data. What does the lookup return?',
+          options: ['NXDOMAIN — the search list only expands db to db.shop.svc.cluster.local, db.svc.cluster.local and db.cluster.local; use db.data (or db.data.svc.cluster.local)', 'db.data.svc.cluster.local — CoreDNS searches every namespace for a unique match', 'A timeout — CoreDNS refuses cross-namespace queries by default'],
+          answer: 0, why: 'A pod’s /etc/resolv.conf lists search shop.svc.cluster.local svc.cluster.local cluster.local with ndots:5, so a short name only resolves inside its own namespace. Another namespace’s Service needs <service>.<namespace> at least. CoreDNS answers cross-namespace queries normally; NetworkPolicy, not DNS, is how namespaces are isolated.' } },
+      { id: 'heal', label: 'Reset', set: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: true, fqdnOk: true } }
+    ],
+    derive: function (s) {
+      var d = serviceDnsDecide(s), rules = [];
+      var apiOk = d.apiByIp === 'ok';
+      rules.push(rule('^svc-api$', apiOk ? { tint: 'ok', glow: 0.45 } : { tint: 'deny', glow: 0.75, pulse: true }));
+      rules.push(rule('^svc-api-selector$', s.selectorOk ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.85, pulse: true }));
+      rules.push(rule('^svc-api-port$', s.targetPortOk ? { tint: 'ok', glow: 0.25 } : { tint: 'deny', glow: 0.85, pulse: true }));
+      rules.push(rule('^endpointslice-api$', !d.endpoints ? { tint: 'down', glow: 0.1, pulse: true } : (s.targetPortOk ? { tint: 'ok', glow: 0.3 } : { tint: 'warn', glow: 0.6, pulse: true })));
+      rules.push(rule('^api-pod-[01]$', s.selectorOk ? { tint: 'ok', glow: 0.35 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^container-port-[01]$', s.targetPortOk ? { tint: 'ok', glow: 0.5 } : { tint: 'gold', glow: 0.7, pulse: true }));
+      rules.push(rule('^edge-svc-pod-[01]$', apiOk ? { tint: 'ok', glow: 0.4 } : (d.endpoints ? { tint: 'warn', glow: 0.5, pulse: true } : { tint: 'down', glow: 0 })));
+      rules.push(rule('^kube-proxy-rules$', d.endpoints ? { tint: 'ok', glow: 0.2 } : { tint: 'warn', glow: 0.6, pulse: true }));
+      rules.push(rule('^edge-client-api$', d.apiByName === 'ok' ? { tint: 'ok', glow: 0.45 } : { tint: 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^(svc-kube-dns|coredns-[01])$', s.corefileOk ? { tint: 'ok', glow: 0.4 } : { tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^sim-crash-ring-[01]$', s.corefileOk ? { hide: true } : { show: true, tint: 'warn', glow: 0.8, pulse: true }));
+      rules.push(rule('^corefile$', s.corefileOk ? { tint: 'muted', glow: 0.15 } : { tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^edge-client-dns$', d.dns ? { tint: 'ok', glow: 0.5 } : (s.dnsEgress ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'down', glow: 0 })));
+      rules.push(rule('^sim-netpol-wall$', s.dnsEgress ? { hide: true } : { show: true, tint: 'deny', glow: 0.6 }));
+      rules.push(rule('^netpol-tablet$', s.dnsEgress ? { tint: 'muted', glow: 0.15 } : { tint: 'gold', glow: 0.7, pulse: true }));
+      rules.push(rule('^resolv-conf$', s.fqdnOk ? { tint: 'muted', glow: 0.15 } : { tint: 'gold', glow: 0.7, pulse: true }));
+      rules.push(rule('^sim-nxdomain-flag$', d.dbLookup === 'nxdomain' ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^edge-client-db$', d.dbReach ? { tint: 'ok', glow: 0.45 } : { tint: 'deny', glow: 0.55, pulse: true }));
+      rules.push(rule('^(svc-db|db-pod|edge-db-pod)$', { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^ns-kube-system$', s.corefileOk ? { tint: 'muted', glow: 0.05 } : { tint: 'warn', glow: 0.25 }));
+      rules.push(rule('^(ns-shop|ns-data)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = !d.dns ? 'down' : (!apiOk || !d.dbReach ? 'degraded' : 'healthy');
+      rules.push(rule('^client-pod$', verdict === 'healthy' ? { tint: 'ok', glow: 0.4 } : { tint: verdict === 'down' ? 'deny' : 'warn', glow: 0.55, pulse: true }));
+      var cap = [];
+      cap.push('Service api ' + d.selector + ' → ' + (d.endpoints ? d.endpoints + ' endpoints on :' + d.endpointPort : 'EndpointSlice empty'));
+      if (d.apiByIp === 'refused-no-endpoints') cap.push('ClusterIP has no endpoints → kube-proxy rejects (connection refused)');
+      if (d.apiByIp === 'refused-target-port') cap.push('targetPort 80 but the container listens on 8080 → connection refused');
+      if (!s.corefileOk) cap.push('CoreDNS CrashLoopBackOff (Corefile parse error) → lookups refused; ClusterIPs still work by IP');
+      if (!s.dnsEgress) cap.push('ns shop default-deny egress has no rule to kube-dns:53 → lookups time out');
+      if (d.dns && d.dbLookup === 'nxdomain') cap.push('DB_HOST=db → NXDOMAIN (search list stays in ns shop)');
+      if (verdict === 'healthy') cap.push('web → api:80 → :8080 OK · DNS OK · web → db.data OK');
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
-    'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble };
+    'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1364,7 +1500,7 @@
   }
 
   return {
-    VERSION: '1.5.0',
+    VERSION: '1.6.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1390,6 +1526,8 @@
     meshDecide: meshDecide,
     controlPlaneDecide: controlPlaneDecide,
     nodeDecide: nodeDecide,
+    serviceDnsDecide: serviceDnsDecide,
+    svcDnsResolve: svcDnsResolve,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

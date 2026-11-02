@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.4.0 (2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.5.0 (2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -36,6 +36,14 @@
  * lines), sed -i on the kubeadm drop-in, crictl socket failure / rmi --prune, df, /etc/cni/net.d, describe node
  * conditions + taints, kubelet eviction of BestEffort pods. Tasks: kubelet-203 · runtime-down · cni-missing ·
  * disk-pressure. Voice: "system control" → systemctl, "journal control" → journalctl.
+ *
+ * v1.5.0 (2026-10-23) — Service + DNS troubleshooting pack (13 total) on the NEW authored service-dns.glb: Service →
+ * EndpointSlice → containerPort (describe svc TargetPort vs describe deployment Port, strategic-merge patch on
+ * ports[].targetPort), a dnsutils debug pod (nslookup / dig [+short] [+search] / cat /etc/resolv.conf through the rules
+ * engine's search-list + ndots:5 resolver; refused vs timed out vs NXDOMAIN), CoreDNS CrashLoopBackOff from a Corefile
+ * parse error (logs by label, `get cm -o yaml > FILE`, sed -i, apply -f), namespace default-deny egress without a
+ * kube-dns:53 rule, `kubectl set env` for a cross-namespace FQDN. Tasks: target-port · coredns-corefile · dns-egress ·
+ * cross-ns-fqdn. Voice: "n s lookup" → nslookup, "core dns" → coredns, "config map" → configmap.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -2001,6 +2009,345 @@
     ]
   };
 
+  /* ── pack: Service + DNS troubleshooting (v1.5.0, 2026-10-23 — CKA Troubleshooting 30% / Services & Networking 20%) ──
+   * Drives service-dns on the NEW authored service-dns.glb. Namespaces: shop (deploy/web = the client, pod dnsutils =
+   * the debug pod from the Kubernetes DNS-debugging docs, deploy/api behind Service api), kube-system (CoreDNS behind
+   * Service kube-dns), data (Service db). Lookups go through ILImmersiveSims.svcDnsResolve (resolv.conf search list,
+   * ndots:5). `kubectl get … -o yaml > FILE`, `sed -i` and `kubectl apply -f FILE` are modelled for the CoreDNS
+   * ConfigMap only; files live in this terminal session. nslookup output is shaped like bind's (dnsutils image). */
+  var SD_NOTE = 'Namespaces: shop (deploy/web is the client, pod dnsutils is a debug pod, deploy/api sits behind Service api) · kube-system (CoreDNS behind Service kube-dns) · data (Service db). Edit with `kubectl get … -o yaml > FILE`, `sed -i`, `kubectl apply -f FILE` (no interactive editor in a simulated shell). Lookups and probes are computed by the rules engine. Lab-only: fault selector|targetport|corefile|netpol|fqdn break|fix.';
+  var SD_PODS = { web: 'web-5d8f7c9b4-q2x9m', dnsutils: 'dnsutils', api0: 'api-6c9f8d7b5-4kx2p', api1: 'api-6c9f8d7b5-r8m3t' };
+  var SD_COREFILE = function (ok) {
+    return ['.:53 {', '    errors', '    health {', '       lameduck 5s', '    }', '    ready', '    kubernetes cluster.local in-addr.arpa ip6.arpa {', '       pods insecure', '       fallthrough in-addr.arpa ip6.arpa', '       ttl 30', '    }', '    prometheus :9153',
+      '    ' + (ok ? 'forward' : 'forwrd') + ' . /etc/resolv.conf {', '       max_concurrent 1000', '    }', '    cache 30', '    loop', '    reload', '    loadbalance', '}'];
+  };
+  function sdCorefileYaml(ok) {
+    return ['apiVersion: v1', 'kind: ConfigMap', 'metadata:', '  name: coredns', '  namespace: kube-system', 'data:', '  Corefile: |'].concat(SD_COREFILE(ok).map(function (l) { return '    ' + l; }));
+  }
+  var SD_ALLOW_DNS = ['apiVersion: networking.k8s.io/v1', 'kind: NetworkPolicy', 'metadata:', '  name: allow-dns-egress', '  namespace: shop', 'spec:', '  podSelector: {}', '  policyTypes:', '  - Egress', '  egress:', '  - to:', '    - namespaceSelector:', '        matchLabels:', '          kubernetes.io/metadata.name: kube-system', '      podSelector:', '        matchLabels:', '          k8s-app: kube-dns', '    ports:', '    - protocol: UDP', '      port: 53', '    - protocol: TCP', '      port: 53'];
+  function sdFiles(ctx) { return ctx.vars.sdFiles || (ctx.vars.sdFiles = {}); }
+  function sdFqdnOk(h) { return /^db\.data(\.svc(\.cluster\.local)?)?\.?$/.test(String(h || '')); }
+  function sdDbHost(s, ctx) { var h = ctx.vars.dbHost; return h && sdFqdnOk(h) === !!s.fqdnOk ? h : (s.fqdnOk ? 'db.data.svc.cluster.local' : 'db'); }
+  function sdResolve(s, name, opts) { var S = Sims(); return S && S.svcDnsResolve ? S.svcDnsResolve(s, name, opts) : { status: 'refused', tried: [] }; }
+  /** nslookup / dig / curl / cat inside a shop pod. */
+  function sdInPod(s, d, ctx, cmd) {
+    var bin = cmd[0], args = cmd.slice(1).filter(function (a) { return a.charAt(0) !== '-' && a.charAt(0) !== '+'; });
+    if (bin === 'cat' && cmd[1] === '/etc/resolv.conf') {
+      return res(['search shop.svc.cluster.local svc.cluster.local cluster.local', 'nameserver 10.96.0.10', 'options ndots:5'], 0, null, ['resolv-conf']);
+    }
+    if (bin === 'nslookup' || bin === 'dig' || bin === 'host') {
+      var name = args[0] || '';
+      if (!name) return res(['sim: give a name, e.g. nslookup api'], 2);
+      var isIp = /^\d+\.\d+\.\d+\.\d+$/.test(name);
+      if (isIp || !/^[a-z0-9.-]+$/i.test(name)) return res(['sim: this lab models forward lookups of cluster names (api, db.data, kubernetes.default, …)'], 2);
+      var dig = bin === 'dig', short = dig && cmd.indexOf('+short') >= 0, search = !dig || cmd.indexOf('+search') >= 0;
+      var r = sdResolve(s, name, { noSearch: !search });
+      if (r.status !== 'ok' && r.status !== 'nxdomain') {
+        var lines = r.status === 'timeout' ? [';; connection timed out; no servers could be reached'] : [';; communications error to 10.96.0.10#53: connection refused', ';; no servers could be reached'];
+        if (r.status === 'timeout') lines.push('(sim) the resolver retried and gave up — no clock is simulated');
+        return res(lines.concat(['', 'command terminated with exit code ' + (dig ? 9 : 1)]), dig ? 9 : 1, null, ['dns', 'dns-' + r.status]);
+      }
+      var outName = r.fqdn || name;
+      if (!/(^|\.)(cluster\.local|svc)\.?$/.test(r.fqdn || '') && r.status === 'nxdomain' && !/^(api|db|kubernetes|kube-dns)(\.|$)/.test(name.toLowerCase())) {
+        return res(['sim: this lab models cluster names only (api, db.data, kubernetes.default, kube-dns.kube-system); there is no internet upstream'], 2);
+      }
+      if (dig) {
+        if (short) return res(r.status === 'ok' ? [r.ip] : [], 0, null, ['dns', 'dns-' + r.status]);
+        return res(['; <<>> DiG 9.18 <<>> ' + cmd.slice(1).join(' '), ';; ->>HEADER<<- opcode: QUERY, status: ' + (r.status === 'ok' ? 'NOERROR' : 'NXDOMAIN')].concat(
+          r.status === 'ok' ? [';; ANSWER SECTION:', outName + '.\t30\tIN\tA\t' + r.ip] : (search ? [] : ['(sim) dig does not use the search list unless you pass +search'])).concat([';; SERVER: 10.96.0.10#53(10.96.0.10) (UDP)']), 0, null, ['dns', 'dns-' + r.status]);
+      }
+      if (r.status === 'nxdomain') return res(['Server:\t\t10.96.0.10', 'Address:\t10.96.0.10#53', '', '** server can\'t find ' + name + ': NXDOMAIN', '', 'command terminated with exit code 1'], 1, null, ['dns', 'dns-nxdomain']);
+      return res(['Server:\t\t10.96.0.10', 'Address:\t10.96.0.10#53', '', 'Name:\t' + outName, 'Address: ' + r.ip], 0, null, ['dns', 'dns-ok']);
+    }
+    if (bin === 'curl' || bin === 'wget') {
+      var url = '';
+      for (var ci = 1; ci < cmd.length; ci++) {
+        if (/^(-m|--max-time|--connect-timeout|-o|--output|-H|--header|-w|--write-out|-X|-T|--timeout|-O)$/.test(cmd[ci])) { ci++; continue; }
+        if (cmd[ci].charAt(0) !== '-') { url = cmd[ci]; break; }
+      }
+      var m = /^(?:https?:\/\/)?([^\/:]+)(?::(\d+))?/.exec(url);
+      if (!m) return res(['curl: (3) URL rejected: No host part in the URL'], 3);
+      var host = m[1].toLowerCase(), port = m[2] || '80', ip = host;
+      if (!/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+        var rr = sdResolve(s, host);
+        if (rr.status !== 'ok') return res(['curl: (6) Could not resolve host: ' + host, 'command terminated with exit code 6'], 6, null, ['probe', 'curl-api-dns-fail']);
+        ip = rr.ip;
+      }
+      if (ip !== '10.96.88.20' || port !== '80') return res(['sim: this drill probes Service api (http://api, http://api.shop.svc.cluster.local or http://10.96.88.20 on port 80)'], 2);
+      var viaIp = host === ip;
+      if (d.metrics.apiByIp !== 'ok') return res(['curl: (7) Failed to connect to ' + host + ' port 80 after 1 ms: Couldn\'t connect to server', 'command terminated with exit code 7'], 7, null, ['probe', 'curl-api-refused']);
+      return res(['{"service":"api","pod":"' + SD_PODS.api0 + '","port":8080,"ok":true}'], 0, null, ['probe', 'curl-api-ok'].concat(viaIp ? ['curl-api-ip-ok'] : ['curl-api-name-ok']));
+    }
+    return res(['sim: inside the shop pods this drill models nslookup / dig (dnsutils), curl (web) and cat /etc/resolv.conf'], 2);
+  }
+  var svcDnsPack = {
+    sim: 'service-dns',
+    prompt: 'student@controlplane:~$',
+    note: SD_NOTE,
+    files: { 'allow-dns-egress.yaml': { yaml: SD_ALLOW_DNS } },
+    examples: ['kubectl get svc -A', 'kubectl get svc api -n shop -o wide', 'kubectl describe svc api -n shop', 'kubectl get endpointslices -n shop -l kubernetes.io/service-name=api',
+      'kubectl get pods -n shop --show-labels', 'kubectl describe deployment api -n shop', 'kubectl exec -n shop deploy/web -- curl -s -m 3 http://api',
+      'kubectl exec -n shop dnsutils -- nslookup api', 'kubectl exec -n shop dnsutils -- nslookup db.data', 'kubectl exec -n shop dnsutils -- cat /etc/resolv.conf',
+      'kubectl get pods -n kube-system -l k8s-app=kube-dns', 'kubectl logs -n kube-system -l k8s-app=kube-dns', 'kubectl get configmap coredns -n kube-system -o yaml',
+      'kubectl get networkpolicy -n shop', 'kubectl describe networkpolicy default-deny-egress -n shop', 'cat allow-dns-egress.yaml', 'kubectl logs -n shop deploy/web',
+      'kubectl set env deployment/web -n shop --list'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, files = sdFiles(ctx);
+      var f = faultArgs(t);
+      if (f) {
+        var key = { selector: 'selectorOk', targetport: 'targetPortOk', corefile: 'corefileOk', netpol: 'dnsEgress', fqdn: 'fqdnOk' }[f[0]];
+        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault selector|targetport|corefile|netpol|fqdn break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = f[1] === 'fix';
+        if (key === 'fqdnOk') ctx.vars.dbHost = null;
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      /* output redirection: modelled for saving the CoreDNS ConfigMap only */
+      var ri = -1;
+      for (var i = 0; i < t.length; i++) if (t[i] === '>' || /^>[^>]/.test(t[i])) { ri = i; break; }
+      var redirect = null;
+      if (ri >= 0) {
+        redirect = t[ri] === '>' ? t[ri + 1] : t[ri].slice(1);
+        t = t.slice(0, ri).concat(t[ri] === '>' ? t.slice(ri + 2) : t.slice(ri + 1));
+        if (!redirect) return res(['bash: syntax error near unexpected token `newline\''], 2);
+        redirect = redirect.replace(/^(\.\/|~\/)/, '');
+      }
+      if (t[0] === 'ls' && (t.length === 1 || /^(\.|~|\.\/|~\/|-l|-la|-al)$/.test(t[1] || ''))) return res([['allow-dns-egress.yaml'].concat(Object.keys(files)).join('  ')], 0, null, ['ls']);
+      if (t[0] === 'cat' && t[1] && files[t[1].replace(/^(\.\/|~\/)/, '')]) {
+        return res(sdCorefileYaml(files[t[1].replace(/^(\.\/|~\/)/, '')].ok), 0, null, ['cat', 'cat-corefile-file']);
+      }
+      var fr = fileRun(svcDnsPack, t); if (fr) return fr;
+      if (t[0] === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var file = (t[t.length - 1] || '').replace(/^(\.\/|~\/)/, ''), expr = t.filter(function (a) { return a.charAt(0) === 's' && a.length > 3 && !/[a-z]/i.test(a.charAt(1)); })[0];
+        if (!files[file]) return res(['sed: can\'t read ' + file + ': No such file or directory'], 2);
+        var sub = sedSubst(expr);
+        if (!sub) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var fixes = sub.a.length >= 4 && 'forwrd'.indexOf(sub.a) >= 0 && /^forward\b/.test(sub.b) && !files[file].ok;
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written'].concat(sdCorefileYaml(files[file].ok || fixes).slice(-10)), 0);
+        if (!fixes) return res([], 0, null, ['sed-nochange']);
+        files[file].ok = true;
+        return res([], 0, null, ['corefile-file-fixed']);
+      }
+      if (t[0] === 'vi' || t[0] === 'vim' || t[0] === 'nano') return res(['sim: no interactive editor in a simulated shell — save with `kubectl get … -o yaml > FILE`, edit with sed -i, then kubectl apply -f FILE'], 2);
+      if (t[0] === 'nslookup' || t[0] === 'dig') return res(['sim: controlplane does not use cluster DNS — run the lookup from a pod: kubectl exec -n shop dnsutils -- ' + t[0] + ' …'], 2, null, ['dns-wrong-place']);
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['-c', '--container', '--tail'])), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      if (redirect && !(verb === 'get' && /^(cm|configmaps?)$/.test(kind) && out === 'yaml')) return res(['sim: output redirection is modelled only for saving the CoreDNS ConfigMap (kubectl get configmap coredns -n kube-system -o yaml > coredns.yaml)'], 2);
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl patch, kubectl set, or get -o yaml > FILE + sed -i + apply -f (see `help`)'], 2);
+      if (verb === 'get' && /^(svc|services?)$/.test(kind)) {
+        var wide = out === 'wide', all = ns === '*';
+        var SV = [['shop', 'api', 'ClusterIP', '10.96.88.20', '80/TCP', m.selector], ['data', 'db', 'ClusterIP', '10.96.140.5', '5432/TCP', 'app=db'],
+          ['kube-system', 'kube-dns', 'ClusterIP', '10.96.0.10', '53/UDP,53/TCP,9153/TCP', 'k8s-app=kube-dns'], ['default', 'kubernetes', 'ClusterIP', '10.96.0.1', '443/TCP', '<none>']];
+        var rows = SV.filter(function (r) { return (all || r[0] === ns) && (!name || r[1] === name); });
+        if (!rows.length) return name ? notFound('services', name) : res(['No resources found in ' + ns + ' namespace.'], 0);
+        var hdr = (all ? ['NAMESPACE'] : []).concat(['NAME', 'TYPE', 'CLUSTER-IP', 'EXTERNAL-IP', 'PORT(S)', 'AGE']).concat(wide ? ['SELECTOR'] : []);
+        var tb = [hdr].concat(rows.map(function (r) { return (all ? [r[0]] : []).concat([r[1], r[2], r[3], '<none>', r[4], '12d']).concat(wide ? [r[5]] : []); }));
+        var evs = ['get-svc'];
+        if (rows.some(function (r) { return r[1] === 'db'; })) evs.push('svc-db-found');
+        if (wide && rows.some(function (r) { return r[1] === 'api'; })) evs.push(s.selectorOk ? 'svc-api-selector-ok' : 'svc-api-selector-bad');
+        return res(table(tb), 0, null, evs);
+      }
+      if (verb === 'describe' && /^(svc|services?)$/.test(kind)) {
+        if (name === 'api' && ns === 'shop') {
+          var ep = m.endpoints ? '10.244.1.21:' + m.endpointPort + ',10.244.2.17:' + m.endpointPort : '<none>';
+          return res(['Name:                     api', 'Namespace:                shop', 'Labels:                   app=api', 'Selector:                 ' + m.selector, 'Type:                     ClusterIP',
+            'IP Family Policy:         SingleStack', 'IP:                       10.96.88.20', 'Port:                     http  80/TCP', 'TargetPort:               ' + m.targetPort + '/TCP',
+            'Endpoints:                ' + ep, 'Session Affinity:         None', 'Internal Traffic Policy:  Cluster', 'Events:                   <none>'], 0, null,
+            ['describe-svc-api', m.endpoints ? 'describe-svc-api-tp' + m.targetPort : 'describe-svc-api-noendpoints']);
+        }
+        if (name === 'kube-dns' && ns === 'kube-system') {
+          return res(['Name:              kube-dns', 'Namespace:         kube-system', 'Selector:          k8s-app=kube-dns', 'IP:                10.96.0.10', 'Port:              dns  53/UDP', 'TargetPort:        53/UDP',
+            'Endpoints:         ' + (s.corefileOk ? '10.244.0.5:53,10.244.0.6:53' : '<none>  (sim: the CoreDNS pods are not Ready)'), 'Port:              dns-tcp  53/TCP', 'Port:              metrics  9153/TCP'], 0, null, ['describe-svc-kube-dns']);
+        }
+        return notFound('services', name || '');
+      }
+      if (verb === 'get' && /^(endpointslices?(\.discovery\.k8s\.io)?|eps|ep|endpoints)$/.test(kind)) {
+        var legacy = /^(ep|endpoints)$/.test(kind), sel = flag(t, ['-l', '--selector']) || '';
+        if (ns !== 'shop' || (sel && !/service-name=api$/.test(sel)) || (name && !/^api/.test(name))) return res(['sim: this drill models the EndpointSlice of Service api in ns shop (-l kubernetes.io/service-name=api)'], 2);
+        if (legacy) return res(['Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice'].concat(table([['NAME', 'ENDPOINTS', 'AGE'], ['api', m.endpoints ? '10.244.1.21:' + m.endpointPort + ',10.244.2.17:' + m.endpointPort : '<none>', '12d']])), 0, null,
+          ['eps-api', m.endpoints ? 'eps-api-port' + m.endpointPort : 'eps-api-empty']);
+        return res(table([['NAME', 'ADDRESSTYPE', 'PORTS', 'ENDPOINTS', 'AGE'], ['api-7xk2q', 'IPv4', m.endpoints ? String(m.endpointPort) : '<unset>', m.endpoints ? '10.244.1.21,10.244.2.17' : '<unset>', '12d']]), 0, null,
+          ['eps-api', m.endpoints ? 'eps-api-port' + m.endpointPort : 'eps-api-empty']);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(kind)) {
+        var lsel = flag(t, ['-l', '--selector']) || '', labels = hasFlag(t, '--show-labels');
+        if (ns === 'kube-system') {
+          var crash = !s.corefileOk;
+          var cp = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], ['coredns-7c65d6cfc9-5qz8n', crash ? '0/1' : '1/1', crash ? 'CrashLoopBackOff' : 'Running', crash ? '6 (41s ago)' : '0', '12d'], ['coredns-7c65d6cfc9-x8rwd', crash ? '0/1' : '1/1', crash ? 'CrashLoopBackOff' : 'Running', crash ? '6 (38s ago)' : '0', '12d']];
+          if (!/kube-dns/.test(lsel)) cp.push(['kube-proxy-7m2kd', '1/1', 'Running', '0', '12d'], ['calico-node-4tq8z', '1/1', 'Running', '0', '12d']);
+          return res(table(cp), 0, null, ['get-pods-dns', crash ? 'coredns-pods-crash' : 'coredns-pods-running']);
+        }
+        if (ns !== 'shop') return res(['No resources found in ' + (ns === '*' ? 'the cluster (sim: pass -n shop or -n kube-system)' : ns + ' namespace.')], 0);
+        var pr = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'].concat(labels ? ['LABELS'] : [])];
+        [[SD_PODS.api0, 'app=api,pod-template-hash=6c9f8d7b5'], [SD_PODS.api1, 'app=api,pod-template-hash=6c9f8d7b5'], [SD_PODS.web, 'app=web,pod-template-hash=5d8f7c9b4'], [SD_PODS.dnsutils, 'run=dnsutils']]
+          .filter(function (p) { return !lsel || p[1].split(',').indexOf(lsel) >= 0; })
+          .forEach(function (p) { pr.push([p[0], '1/1', 'Running', '0', '12d'].concat(labels ? [p[1]] : [])); });
+        return res(table(pr), 0, null, ['get-pods', labels ? 'pods-labels' : 'get-pods-plain']);
+      }
+      if (verb === 'describe' && /^(deploy|deployments?(\.apps)?)$/.test(kind)) {
+        if (ns !== 'shop' || name !== 'api') return name === 'web' && ns === 'shop' ? res(['Name: web', 'Namespace: shop', 'Containers:', '  web:', '    Image: registry.example.com/shop/web:3.4.0', '    Environment:', '      DB_HOST:  ' + sdDbHost(s, ctx)], 0, null, ['describe-deploy-web']) : notFound('deployments.apps', name);
+        return res(['Name:                   api', 'Namespace:              shop', 'Selector:               app=api', 'Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable',
+          'Pod Template:', '  Labels:  app=api', '  Containers:', '   api:', '    Image:         registry.example.com/shop/api:1.8.2', '    Port:          8080/TCP', '    Host Port:     0/TCP',
+          '    Readiness:     http-get http://:8080/healthz delay=0s timeout=1s period=10s', 'Conditions:', '  Available      True    MinimumReplicasAvailable'], 0, null, ['describe-deploy-api']);
+      }
+      if (verb === 'patch' && /^(svc|services?)$/.test(kind)) {
+        if (name !== 'api' || ns !== 'shop') return name === 'api' ? notFound('services', 'api') : res(['sim: this drill models patches to Service api in ns shop'], 2);
+        var j = jsonArg(t); if (j.err) return j.err;
+        var spec = j.v && j.v.spec || {}, patch = {}, ev = ['patch-svc'];
+        if (spec.selector && spec.selector.app) { patch.selectorOk = spec.selector.app === 'api'; ev.push(patch.selectorOk ? 'selector-fixed' : 'selector-broken'); }
+        if (Array.isArray(spec.ports)) {
+          var p80 = spec.ports.filter(function (p) { return p && Number(p.port) === 80; })[0];
+          if (!p80 || p80.targetPort == null) return res(['sim: ports is a list merged on its `port` key — send {"spec":{"ports":[{"port":80,"targetPort":8080}]}}'], 2);
+          patch.targetPortOk = String(p80.targetPort) === '8080';
+          ev.push(patch.targetPortOk ? 'targetport-fixed' : 'targetport-broken');
+        }
+        if (!Object.keys(patch).length) return res(['sim: this drill models spec.selector.app and spec.ports[].targetPort on Service api'], 2);
+        return res(['service/api patched'], 0, patch, ev);
+      }
+      if (verb === 'logs') {
+        var lns = flag(t, ['-l', '--selector']) || '';
+        if (ns === 'kube-system' && (/kube-dns/.test(lns) || /^(deploy|deployment)$/.test(kind) && name === 'coredns' || /^coredns-/.test(kind))) {
+          if (!s.corefileOk) return res(['-- (sim) representative CoreDNS output --', '/etc/coredns/Corefile:13 - Error during parsing: Unknown directive \'forwrd\''], 0, null, ['coredns-logs', 'coredns-logs-parse-error']);
+          return res(['-- (sim) representative CoreDNS output --', '.:53', '[INFO] plugin/reload: Running configuration SHA512 = 1b226df79860026c6a52e67daa10d7f0d57ec5b023288ec00c5e05f93523c894564e15b91770d3a07ae1cfbe861d15b37d4a0027e69c546ab112970993a3b03b', 'CoreDNS-1.12.1', 'linux/amd64, go1.24.1, 707c7c1'], 0, null, ['coredns-logs', 'coredns-logs-ok']);
+        }
+        if (ns === 'shop' && ((/^(deploy|deployment)$/.test(kind) && name === 'web') || kind === SD_PODS.web || /app=web/.test(lns))) {
+          var host = sdDbHost(s, ctx), r = sdResolve(s, host);
+          var tag = r.status === 'ok' ? 'ok' : (r.status === 'nxdomain' ? 'nxdomain' : 'timeout');
+          var L = ['-- (sim) representative application log --'];
+          if (tag === 'ok') L.push('2026/10/23 09:14:02 db: connected to ' + host + ':5432');
+          else if (tag === 'nxdomain') L.push('2026/10/23 09:14:02 db: dial tcp: lookup ' + host + ' on 10.96.0.10:53: no such host', '2026/10/23 09:14:07 db: dial tcp: lookup ' + host + ' on 10.96.0.10:53: no such host');
+          else L.push('2026/10/23 09:14:02 db: dial tcp: lookup ' + host + ' on 10.96.0.10:53: ' + (r.status === 'refused' ? 'read udp 10.244.1.30:41622->10.96.0.10:53: read: connection refused' : 'read udp 10.244.1.30:41622->10.96.0.10:53: i/o timeout'));
+          return res(L, 0, null, ['web-logs', 'web-logs-' + tag]);
+        }
+        return res(['sim: this drill models logs for CoreDNS (-n kube-system -l k8s-app=kube-dns) and deploy/web in ns shop'], 2);
+      }
+      if (verb === 'get' && /^(cm|configmaps?)$/.test(kind)) {
+        if (ns !== 'kube-system' || name !== 'coredns') return name ? notFound('configmaps', name) : res(['sim: this drill models ConfigMap coredns in ns kube-system'], 2);
+        if (out !== 'yaml') return res(table([['NAME', 'DATA', 'AGE'], ['coredns', '1', '12d']]), 0, null, ['get-cm-coredns']);
+        if (redirect) {
+          files[redirect] = { ok: !!s.corefileOk };
+          return res([], 0, null, ['corefile-exported']);
+        }
+        return res(sdCorefileYaml(!!s.corefileOk), 0, null, ['corefile-yaml', s.corefileOk ? 'corefile-ok' : 'corefile-bad']);
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var fname = String(flag(t, ['-f', '--filename']) || '').replace(/^(\.\/|~\/)/, '');
+        if (files[fname]) {
+          if (!files[fname].ok) return res(['configmap/coredns unchanged'], 0, null, ['apply-corefile-unchanged']);
+          if (s.corefileOk) return res(['configmap/coredns unchanged'], 0, null, ['apply-corefile']);
+          return res(['configmap/coredns configured', '(sim) the crash-looping CoreDNS pods load the fixed Corefile on their next restart (after the kubelet syncs the ConfigMap volume); the sim skips the back-off wait'], 0, { corefileOk: true }, ['apply-corefile', 'corefile-applied']);
+        }
+        var a = applyFile(svcDnsPack, t); if (a.err) return a.err;
+        if (!s.dnsEgress) ctx.vars.sdAllowApplied = true;
+        return res(['networkpolicy.networking.k8s.io/allow-dns-egress ' + (s.dnsEgress ? 'unchanged' : 'created')], 0, s.dnsEgress ? null : { dnsEgress: true }, ['apply-allow-dns']);
+      }
+      if (verb === 'rollout' && args[0] === 'restart' && ns === 'kube-system' && (/coredns$/.test(args[1] || '') || args[2] === 'coredns')) {
+        return res(['deployment.apps/coredns restarted'].concat(s.corefileOk ? [] : ['(sim) the new pods parse the same Corefile and crash too — fix the ConfigMap first']), 0, null, ['coredns-restarted']);
+      }
+      if (/^(netpol|networkpolic(y|ies)(\.networking\.k8s\.io)?)$/.test(kind)) {
+        if (verb === 'get') {
+          if (ns !== 'shop') return res(['No resources found in ' + ns + ' namespace.'], 0);
+          var np = [['NAME', 'POD-SELECTOR', 'AGE'], ['default-deny-egress', '<none>', '2h']];
+          if (s.dnsEgress) np.push(['allow-dns-egress', '<none>', ctx.vars.sdAllowApplied ? '5s' : '2h']);
+          return res(table(np), 0, null, ['get-netpol', s.dnsEgress ? 'get-netpol-dns' : 'get-netpol-nodns']);
+        }
+        if (verb === 'describe') {
+          if (ns !== 'shop' || (name && !/^(default-deny-egress|allow-dns-egress)$/.test(name))) return notFound('networkpolicies.networking.k8s.io', name);
+          var D = ['Name:         default-deny-egress', 'Namespace:    shop', 'Spec:', '  PodSelector:     <none> (Allowing the specific traffic to all pods in this namespace)', '  Not affecting ingress traffic',
+            '  Allowing egress traffic:', '    To Port: <any> (traffic allowed to all ports)', '    To:', '      PodSelector: <none>', '  Policy Types: Egress'];
+          if (name === 'allow-dns-egress') {
+            if (!s.dnsEgress) return notFound('networkpolicies.networking.k8s.io', name);
+            return res(['Name:         allow-dns-egress', 'Namespace:    shop', 'Spec:', '  PodSelector:     <none> (Allowing the specific traffic to all pods in this namespace)', '  Allowing egress traffic:', '    To Port: 53/UDP', '    To Port: 53/TCP', '    To:', '      NamespaceSelector: kubernetes.io/metadata.name=kube-system', '      PodSelector: k8s-app=kube-dns', '  Policy Types: Egress'], 0, null, ['describe-netpol-allow-dns']);
+          }
+          return res(D.concat(['(sim) egress is allowed only to pods in ns shop — nothing reaches kube-system']), 0, null, ['describe-netpol', 'describe-netpol-deny-egress']);
+        }
+      }
+      if (verb === 'set' && args[0] === 'env') {
+        var tgt = (args[1] || '').replace(/^(deploy|deployment|deployments)(\.apps)?\//, '');
+        if (args[1] && /^(deploy|deployment|deployments)$/.test(args[1])) tgt = args[2];
+        if (tgt !== 'web' || ns !== 'shop') return tgt === 'web' ? notFound('deployments.apps', 'web') : res(['sim: this drill models env on deployment/web in ns shop'], 2);
+        if (hasFlag(t, '--list')) return res(['# Deployment web, container web', 'DB_HOST=' + sdDbHost(s, ctx)], 0, null, ['env-list']);
+        var kv = args.filter(function (a) { return /^DB_HOST=/.test(a); })[0];
+        if (!kv) return res(['sim: this drill models DB_HOST on deployment/web (kubectl set env deployment/web -n shop DB_HOST=…)'], 2);
+        var val = kv.slice(8);
+        ctx.vars.dbHost = val;
+        return res(['deployment.apps/web env updated', '(sim) the Deployment rolls out new web pods with DB_HOST=' + val], 0, { fqdnOk: sdFqdnOk(val) }, ['set-env', sdFqdnOk(val) ? 'fqdn-fixed' : 'fqdn-still-bad']);
+      }
+      if (verb === 'set' && args[0] === 'selector') {
+        var sv = (args[1] || '').replace(/^(svc|service)\//, ''), kvs = args[args[1] && /^(svc|service|services)$/.test(args[1]) ? 3 : 2] || '';
+        if (args[1] && /^(svc|service|services)$/.test(args[1])) sv = args[2];
+        var mm = /^app=([a-z0-9-]+)$/.exec(kvs);
+        if (sv !== 'api' || ns !== 'shop' || !mm) return res(['sim: this drill models `kubectl set selector service api app=api -n shop`'], 2);
+        return res(['service/api selector updated'], 0, { selectorOk: mm[1] === 'api' }, ['patch-svc', mm[1] === 'api' ? 'selector-fixed' : 'selector-broken']);
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        var okTarget = ex.ns === 'shop' && (ex.target === 'dnsutils' || ex.target === 'web' || ex.target === SD_PODS.web);
+        if (!okTarget) return res(['Error from server (NotFound): pods "' + ex.target + '" not found' + (ex.ns === 'shop' ? '' : ' (this lab’s client pods are in ns shop: dnsutils, deploy/web)')], 1, null, ['not-found']);
+        if (ex.target !== 'dnsutils' && /^(nslookup|dig|host)$/.test(ex.cmd[0])) return res(['OCI runtime exec failed: exec failed: unable to start container process: exec: "' + ex.cmd[0] + '": executable file not found in $PATH: unknown', '(sim) the web image has no DNS tools — use the dnsutils debug pod', 'command terminated with exit code 126'], 126);
+        if (ex.target === 'dnsutils' && /^(curl|wget)$/.test(ex.cmd[0])) return res(['OCI runtime exec failed: exec failed: unable to start container process: exec: "' + ex.cmd[0] + '": executable file not found in $PATH: unknown', '(sim) probe from deploy/web instead', 'command terminated with exit code 126'], 126);
+        return sdInPod(s, d, ctx, ex.cmd);
+      }
+      if (verb === 'run') {
+        var dd = t.indexOf('--');
+        if (dd < 0 || ns !== 'shop') return res(['sim: this drill models a one-shot debug pod in ns shop: kubectl run tmp -n shop --rm -it --restart=Never --image=registry.k8s.io/e2e-test-images/agnhost:2.39 -- nslookup api'], 2);
+        var rr2 = sdInPod(s, d, ctx, t.slice(dd + 1));
+        rr2.out = rr2.out.concat(rr2.exit === 0 || rr2.exit === 1 ? ['pod "' + (args[0] || 'tmp') + '" deleted'] : []);
+        return rr2;
+      }
+      return unmodelled(t.join(' '), svcDnsPack.examples);
+    },
+    tasks: [
+      { id: 'target-port', title: 'Endpoints are there, connections are refused',
+        goal: 'web cannot reach api, yet both api pods are Running and Ready. Follow Service → EndpointSlice → container to the port that does not line up, fix it, and get a 200.',
+        setup: { selectorOk: true, targetPortOk: false, corefileOk: true, dnsEgress: true, fqdnOk: true },
+        steps: [
+          { label: 'Reproduce it: web → api is refused', event: 'curl-api-refused', hint: 'kubectl exec -n shop deploy/web -- curl -s -m 3 http://api' },
+          { label: 'The EndpointSlice lists both pods — on port 80', event: 'eps-api-port80', hint: 'kubectl get endpointslices -n shop -l kubernetes.io/service-name=api' },
+          { label: 'Read the Service: TargetPort 80/TCP', event: 'describe-svc-api-tp80', hint: 'kubectl describe svc api -n shop' },
+          { label: 'Find the port the api container really listens on', event: 'describe-deploy-api', hint: 'kubectl describe deployment api -n shop' },
+          { label: 'Point targetPort at the container port', state: function (s) { return !!s.targetPortOk; }, hint: 'kubectl patch svc api -n shop -p \'{"spec":{"ports":[{"port":80,"targetPort":8080}]}}\'' },
+          { label: 'web → api answers', event: 'curl-api-ok', hint: 'kubectl exec -n shop deploy/web -- curl -s -m 3 http://api' }
+        ] },
+      { id: 'coredns-corefile', title: 'Every lookup fails: CoreDNS is crash-looping',
+        goal: 'Name resolution fails in every namespace. Find out why CoreDNS will not stay up, fix its ConfigMap, and resolve api again.',
+        setup: { selectorOk: true, targetPortOk: true, corefileOk: false, dnsEgress: true, fqdnOk: true },
+        steps: [
+          { label: 'From the debug pod, see lookups refused', event: 'dns-refused', hint: 'kubectl exec -n shop dnsutils -- nslookup api' },
+          { label: 'See the CoreDNS pods in CrashLoopBackOff', event: 'coredns-pods-crash', hint: 'kubectl get pods -n kube-system -l k8s-app=kube-dns' },
+          { label: 'Read why CoreDNS exits: a Corefile parse error', event: 'coredns-logs-parse-error', hint: 'kubectl logs -n kube-system -l k8s-app=kube-dns' },
+          { label: 'Save the coredns ConfigMap to a file', event: 'corefile-exported', hint: 'kubectl get configmap coredns -n kube-system -o yaml > coredns.yaml' },
+          { label: 'Fix the misspelt directive in the file', event: 'corefile-file-fixed', hint: "sed -i 's/forwrd/forward/' coredns.yaml" },
+          { label: 'Apply the fixed ConfigMap', state: function (s) { return !!s.corefileOk; }, hint: 'kubectl apply -f coredns.yaml' },
+          { label: 'api resolves again', event: 'dns-ok', hint: 'kubectl exec -n shop dnsutils -- nslookup api' }
+        ] },
+      { id: 'dns-egress', title: 'Lookups time out in one namespace only',
+        goal: 'Pods in ns shop cannot resolve anything, while other namespaces can. Show that the network path works by IP, find the policy, and allow DNS.',
+        setup: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: false, fqdnOk: true },
+        steps: [
+          { label: 'From the debug pod, see the lookup time out', event: 'dns-timeout', hint: 'kubectl exec -n shop dnsutils -- nslookup api' },
+          { label: 'Prove api answers by its ClusterIP (routing is fine)', event: 'curl-api-ip-ok', hint: 'kubectl exec -n shop deploy/web -- curl -s -m 3 http://10.96.88.20' },
+          { label: 'Find the egress policy in ns shop and read what it allows', event: 'describe-netpol-deny-egress', hint: 'kubectl get networkpolicy -n shop  then  kubectl describe networkpolicy default-deny-egress -n shop' },
+          { label: 'Allow egress to kube-dns on 53 (UDP and TCP)', state: function (s) { return !!s.dnsEgress; }, hint: 'kubectl apply -f allow-dns-egress.yaml' },
+          { label: 'api resolves again', event: 'dns-ok', hint: 'kubectl exec -n shop dnsutils -- nslookup api' }
+        ] },
+      { id: 'cross-ns-fqdn', title: 'no such host: a short name across namespaces',
+        goal: 'web logs “no such host” for its database, but CoreDNS is healthy. Work out what name the pod really asks for, find where db lives, and fix web’s DB_HOST.',
+        setup: { selectorOk: true, targetPortOk: true, corefileOk: true, dnsEgress: true, fqdnOk: false },
+        steps: [
+          { label: 'Read web’s log: lookup db … no such host', event: 'web-logs-nxdomain', hint: 'kubectl logs -n shop deploy/web' },
+          { label: 'Reproduce the NXDOMAIN from the debug pod', event: 'dns-nxdomain', hint: 'kubectl exec -n shop dnsutils -- nslookup db' },
+          { label: 'Read the pod’s search list', event: 'resolv-conf', hint: 'kubectl exec -n shop dnsutils -- cat /etc/resolv.conf' },
+          { label: 'Find which namespace Service db lives in', event: 'svc-db-found', hint: 'kubectl get svc -A' },
+          { label: 'Give web a name that leaves its namespace', state: function (s) { return !!s.fqdnOk; }, hint: 'kubectl set env deployment/web -n shop DB_HOST=db.data.svc.cluster.local' },
+          { label: 'web connects to the database', event: 'web-logs-ok', hint: 'kubectl logs -n shop deploy/web' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -2008,7 +2355,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -2266,6 +2613,41 @@
         ['Unused container images are the usual culprit. The CRI CLI can remove every image no container uses.', '^(containerd|sim-disk-fill-[34])$'],
         ['Describe node-01 again and read DiskPressure.', '^(disk-gauge|kubelet-config)$']
       ]
+    },
+    /* v1.5.0 (2026-10-23) — Service + DNS troubleshooting on service-dns.glb */
+    'service-dns': {
+      'target-port': [
+        ['Start from the client: probe the api Service by name from the web Deployment and read curl’s exit reason.', '^(client-pod|edge-client-api|svc-api)$'],
+        ['A Service’s backends are recorded in EndpointSlices labelled with its name. Are there addresses, and on which port?', '^(endpointslice-api|edge-svc-pod-[01])$'],
+        ['Describe the Service and compare Port with TargetPort.', '^(svc-api|svc-api-port)$'],
+        ['The Deployment’s pod template says which port the container exposes. Describe it.', '^(container-port-[01]|api-pod-[01])$'],
+        ['Ports are a list merged on the `port` key: patch the entry for port 80 with the container’s port as its target.', '^(svc-api-port|container-port-[01])$'],
+        ['Probe api from web once more.', '^(edge-client-api|svc-api)$']
+      ],
+      'coredns-corefile': [
+        ['Use the dnsutils debug pod in ns shop and look up the api Service. Is the answer a timeout or a refusal?', '^(client-pod|edge-client-dns|svc-kube-dns)$'],
+        ['CoreDNS runs as pods labelled k8s-app=kube-dns in kube-system. List them and read STATUS and RESTARTS.', '^(coredns-[01]|sim-crash-ring-[01])$'],
+        ['A crash-looping pod tells you why in its log. Read the CoreDNS logs by label.', '^(coredns-[01]|corefile)$'],
+        ['Its configuration is a ConfigMap. Save it as YAML into a file you can edit (redirect the output).', '^corefile$'],
+        ['The log named a directive CoreDNS does not know. Substitute the correct plugin name in place.', '^corefile$'],
+        ['Send the edited file back to the API server.', '^(corefile|ns-kube-system)$'],
+        ['Look up api again from the debug pod.', '^(edge-client-dns|svc-kube-dns)$']
+      ],
+      'dns-egress': [
+        ['From the debug pod in ns shop, look up api and note how it fails (timed out, not refused).', '^(edge-client-dns|client-pod)$'],
+        ['Skip DNS: probe the api Service by its ClusterIP from web. If that works, routing is fine.', '^(svc-api|edge-client-api)$'],
+        ['Something filters egress in this namespace only. List the policies there and describe the deny one.', '^(netpol-tablet|sim-netpol-wall)$'],
+        ['Policies are additive allow-lists: add one that lets every shop pod reach the kube-dns pods on port 53, both protocols. There is a lab file for it.', '^(sim-netpol-wall|svc-kube-dns)$'],
+        ['Look up api again from the debug pod.', '^(edge-client-dns|coredns-[01])$']
+      ],
+      'cross-ns-fqdn': [
+        ['Read the web Deployment’s log: which name does it fail to look up?', '^(client-pod|edge-client-db)$'],
+        ['Ask the same short name from the debug pod and read the status.', '^(sim-nxdomain-flag|resolv-conf)$'],
+        ['Every pod gets its DNS settings from a file. Read its search list and ndots.', '^resolv-conf$'],
+        ['List Services across all namespaces and find the database.', '^(svc-db|ns-data)$'],
+        ['Set the web Deployment’s DB_HOST to a name that includes the database’s namespace.', '^(client-pod|svc-db)$'],
+        ['Read web’s log again.', '^(edge-client-db|db-pod)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -2497,6 +2879,7 @@
     [/\bnet pol\b|\bnetwork ?polic(y|ies)\b/g, 'networkpolicy'],
     [/\bname ?space\b/g, 'namespace'], [/\brole ?binding(s?)\b/g, 'rolebinding$1'], [/\bcluster ?role ?binding(s?)\b/g, 'clusterrolebinding$1'], [/\bcluster ?role\b/g, 'clusterrole'], [/\bservice ?account\b/g, 'serviceaccount'],
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
+    [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
     [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
@@ -2563,7 +2946,7 @@
   }
 
   return {
-    VERSION: '1.4.0',
+    VERSION: '1.5.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

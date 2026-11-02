@@ -1,7 +1,35 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-22 ~morning EDT (America/New_York)._  
+_Last updated: 2026-10-23 ~morning EDT (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-10-23 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Troubleshooting is **30% of the CKA**. Yesterday's pass covered the node half; the **Service / DNS half** (empty endpoints, wrong targetPort, CoreDNS down, DNS blocked by policy, wrong FQDN) had no drill and no typed task. These are among the most common CKA troubleshooting faults, and Killercoda / KodeKloud / iximiuz all have real-cluster DNS labs. **No.** |
+| After this ship | **Closer / still NO** | There is a **new authored asset**, `service-dns.glb` (kit-v2 author + Blender CLI 4.2.3 polish on the box; 33 kit meshes → 64 nodes with LOD1 duplicates): Service → EndpointSlice → Pod across namespaces shop / kube-system / data, with kube-dns → CoreDNS + Corefile, the client's `resolv.conf`, and sim-only crash rings, a NetworkPolicy wall and an NXDOMAIN flag. The **`service-dns` drill** has 5 predict checkpoints (selector → empty slice → refused while DNS still answers; targetPort ≠ containerPort with endpoints present; Corefile parse error → CrashLoopBackOff, lookups refused, ClusterIPs still work; default-deny egress → lookups time out; short name across namespaces → NXDOMAIN). The **CLI pack** has 4 tasks (target-port · coredns-corefile · dns-egress · cross-ns-fqdn) with a `dnsutils` debug pod, a search-list resolver (ndots:5), `dig +search`, CoreDNS logs and a `get -o yaml > file` / `sed -i` / `apply -f` ConfigMap fix. CLI: **13 packs / 38 tasks / 184 steps** (was 12 / 34 / 160). The CKA blueprint maps Troubleshooting to **three drills**. Voice handles "n s lookup", "core dns", "config map". |
+| Fake YES risk | Rejected | Still a **simulated shell**: no live cluster, no real CoreDNS, no internet upstream, no clock (back-off and resolver timeouts are explained, not counted down). nslookup / dig / CoreDNS log output is shaped like the real tools, not byte-identical, and logs are labelled representative. Killercoda / iximiuz / KodeKloud beat us on realism. Our edge is spatial (the path lights up where it breaks), predict-first, coach + review cards, and the blueprint score. The asset is kit meshes with CLI polish, not hand-sculpted. No hosted fleet, no live UE host. |
+
+**Musk YES? NO — Closer.** Blockers unchanged: **(B) live UE Pixel Streaming host**, **(C) hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- CNI and mesh mTLS CLI packs (the last two drills without a typed task)
+- a Troubleshooting "mixed incident" paper that chains node + Service/DNS faults under the exam clock
+- syncing the Notion Labs rows when the database is confirmed
+- scoping a WASM / micro-VM sandbox so one task runs a real CoreDNS / kubelet
+
+## Shipped this pass (2026-10-23)
+
+1. `scripts/author_immersive_glb.py` gets `scene_service_dns()`, which produces `docs/assets/immersive/service-dns.glb` (33 kit meshes → 64 nodes after the Blender CLI polish) plus a `service-dns.blender_polish.py` sidecar.
+2. `il-immersive-sims.js` v1.6.0 adds the `service-dns` sim and exports `serviceDnsDecide()` and `svcDnsResolve()`. The drill lives in the `/immersive/#cka-service-dns` section.
+3. `il-immersive-cli.js` v1.5.0 adds the `service-dns` pack (dnsutils debug pod, resolver, CoreDNS logs, ConfigMap round trip, NetworkPolicy, `set env`), COACH tips (never the command) and glTF focus for all 24 new steps, and spoken nslookup / coredns / configmap.
+4. `il-immersive-exam.js` / `il-immersive-review.js`: `service-dns` is mapped to Troubleshooting (BLUEPRINT, DOMAIN, ANCHOR, CKA_SIMS); exam lobby copy says 13 drills.
+5. Manifest: the `cert-service-dns` scene, runtime 1.6.0, cli 1.5.0 + `serviceDnsNote`, 13 packs, and the blueprint honesty now says three drills. Curriculum-os gets `lab-sim-service-dns`.
+6. Tests: unit 160 → 172 (new `immersive-service-dns.test.js`); browser: + service-dns predict, + targetPort toggles, + coredns-corefile typed end-to-end.
+
+---
+
+_Prior pass archived below (2026-10-22)._
+
 
 ## Verdict — 2026-10-22 Musk-bar pass
 
