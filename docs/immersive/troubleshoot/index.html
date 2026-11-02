@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head><script src="/assets/il-theme.js"></script>
+<script>/* IL 2026-10-01: remove poisoned offline state unconditionally. The service worker is retired; this clears any registered worker and every cache, then the page loads 100% fresh from network. */
+(function(){try{
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(var i=0;i<rs.length;i++){try{rs[i].unregister()}catch(e){}}}).catch(function(){})}
+if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i++){try{caches.delete(ks[i])}catch(e){}}}).catch(function(){})}
+}catch(e){}})();</script>
+<style>html{background:#0a0f1d}html[data-theme="light"]{background:#f7f4ee}body{background:#0a0f1d;color:#f2ede1;min-height:100dvh}html[data-theme="light"] body{background:#f7f4ee;color:#16130e}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://learn.interstitiumlabs.dev 'self' http://127.0.0.1:* http://localhost:* https://cloudflareinsights.com; worker-src 'self'; media-src 'self'; frame-src 'self' https:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>CKA Troubleshooting exam — hands-on incidents (3D) — Interstitium Labs</title>
+<meta name="description" content="Timed, hands-on CKA Troubleshooting paper: mixed incidents across control plane, nodes, Services/DNS and CNI on authored 3D scenes, fixed by typing in a simulated shell. Not a live cluster, not killer.sh."/>
+<meta name="theme-color" content="#070B16"/>
+<link rel="canonical" href="https://interstitiumlabs.dev/immersive/troubleshoot/"/>
+<link rel="stylesheet" href="/assets/styles-DSCbqSS9.css"/>
+<link rel="stylesheet" href="/assets/il-chrome.css"/>
+<link rel="stylesheet" href="/assets/il-immersive.css"/>
+<link rel="stylesheet" href="/assets/il-immersive-3d.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"/>
+<link rel="icon" type="image/png" href="/favicon.png"/>
+<style>
+  [data-il-exam-shell] .il-immersive__sim-row--toggles { display: none !important; }
+  [data-il-exam-shell] .il-immersive__sim-row[aria-label="Scenarios"] { display: none !important; }
+  [data-il-exam-shell] .il-immersive__sim-score { display: none !important; }
+  .il-exam-hud { display:flex; flex-wrap:wrap; gap:0.75rem 1.25rem; align-items:center; justify-content:space-between;
+    border:1px solid rgba(34,211,238,0.25); background:rgba(7,11,22,0.7); border-radius:0.75rem; padding:0.85rem 1rem; }
+  .il-exam-hud [data-il-exam-timer][data-urgent="1"] { color:#f87171; }
+  .il-exam-opt { display:block; width:100%; text-align:left; margin:0.4rem 0; padding:0.7rem 0.9rem; border-radius:0.5rem;
+    border:1px solid rgba(232,238,245,0.18); background:transparent; color:inherit; cursor:pointer; min-height:44px; }
+  .il-exam-opt:hover, .il-exam-opt:focus { border-color:rgba(34,211,238,0.55); outline:none; }
+  .il-exam-opt[disabled] { opacity:0.55; cursor:default; }
+  .il-exam-opt[data-picked="1"] { border-color:#22d3ee; }
+  .il-exam-opt[data-correct="1"] { border-color:#34d399; }
+  .il-exam-opt[data-correct="0"][data-picked="1"] { border-color:#f87171; }
+  .il-exam-panel { border:1px solid rgba(201,162,39,0.28); background:rgba(7,11,22,0.55); border-radius:0.75rem; padding:1rem 1.1rem; }
+  [data-il-exam-shell] .il-immersive__cli { margin-top:0.75rem; }
+  .il-ts-ticket { border-left:3px solid #c9a227; padding-left:0.9rem; }
+  .il-ts-inc { border:1px solid rgba(232,238,245,0.14); border-radius:0.6rem; padding:0.75rem 0.9rem; }
+  .il-ts-inc[data-resolved="1"] { border-color:rgba(52,211,153,0.45); }
+  [data-il-ts-next][data-resolved="1"] { border-color:#34d399; color:#34d399; }
+</style>
+</head>
+<body>
+<a class="il-skip" href="#main">Skip to content</a>
+<header class="border-b border-paper/10">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+    <a href="/" class="font-display text-sm tracking-[0.14em] uppercase text-paper">Interstitium Labs</a>
+    <nav class="flex flex-wrap gap-4 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-muted" aria-label="Exam nav">
+      <a class="hover:text-cyan" href="/immersive/">Immersive</a>
+      <a class="hover:text-cyan" href="/prep/drills/">Drills</a>
+      <a class="hover:text-cyan" href="/immersive/exam/">CKA exam</a>
+      <a class="text-cyan" href="/immersive/troubleshoot/" aria-current="page">Troubleshooting</a>
+      <a class="hover:text-cyan" href="/immersive/review/">Review</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="mx-auto max-w-6xl px-5 py-10 sm:px-8" data-il-ts-page>
+  <p class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-gold">Musk-bar · hands-on pressure · CKA Troubleshooting 30%</p>
+  <h1 class="mt-3 font-display text-4xl tracking-[-0.03em]">Troubleshooting paper — fix it, don’t pick it.</h1>
+  <p class="mt-4 max-w-2xl text-sm text-muted">The real CKA is performance-based and Troubleshooting is its biggest domain. This paper is too: <strong class="text-paper">mixed incidents</strong> across the control plane, worker nodes, Services &amp; DNS and pod networking, each one a ticket, its <strong class="text-paper">authored 3D scene</strong>, and a cluster that is already broken. You diagnose and fix it by typing real kubectl / systemctl / crictl / journalctl syntax under one clock. Partial credit per verified checkpoint. It is a <strong class="text-paper">simulated shell</strong> over an in-browser rules engine — <strong class="text-paper">not</strong> a live cluster, not killer.sh, not the CNCF exam.</p>
+
+  <section id="il-ts-lobby" class="mt-8 rounded-xl border border-cyan/25 bg-ink/40 p-6" data-il-ts-lobby>
+    <h2 class="font-display text-xl text-cyan">Start a paper</h2>
+    <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+      <li>Bank: <span data-il-ts-bank>?</span> CKA incidents in 4 areas (cluster components · nodes &amp; kubelet · Services &amp; DNS · CNI &amp; kube-proxy), drawn round-robin so a paper of 4+ touches every area.</li>
+      <li>Each incident: the ticket only — no step list. <code>check</code> shows how many checkpoints are verified, <code>hint</code> gives a tip for the next one at half credit, <code>solution</code> is off until the results screen.</li>
+      <li>Scored into the CKA Troubleshooting domain (30% weight), with per-incident feedback, the weakest area and the commands you missed. Pass bar 66% is self-set, not CNCF’s cut score.</li>
+    </ul>
+    <label class="mt-4 flex items-center gap-2 text-sm text-muted"><input type="checkbox" data-il-ts-mesh/> Add one service-mesh incident (<span data-il-ts-mesh-count>?</span> in the bank; Istio, beyond the CKA — scored separately, never in the CKA score)</label>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <button type="button" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-void" data-il-ts-start data-count="5" data-minutes="30">Paper 5 · 30:00</button>
+      <button type="button" class="inline-flex h-11 items-center rounded-lg border border-paper/25 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-paper" data-il-ts-start data-count="3" data-minutes="18">Quick 3 · 18:00</button>
+    </div>
+    <p class="mt-3 text-xs text-muted" data-il-ts-history></p>
+    <p class="mt-2 text-xs text-muted">Prefer predict-then-reveal across all domains? <a class="text-cyan" href="/immersive/exam/">CKA timed mock exam →</a> · Missed checkpoints feed the <a class="text-cyan" href="/immersive/review/">review queue</a> on this device.</p>
+  </section>
+
+  <section id="il-ts-run" class="mt-8 hidden" data-il-ts-run hidden>
+    <div class="il-exam-hud" role="status" aria-live="polite">
+      <div class="font-mono text-[0.68rem] uppercase tracking-[0.16em]">
+        <span data-il-ts-progress>Incident 0/0</span>
+        <span class="text-muted"> · </span>
+        <span data-il-ts-area></span>
+      </div>
+      <div class="font-mono text-[0.85rem] tracking-[0.08em]" data-il-ts-timer>30:00</div>
+    </div>
+
+    <div class="il-exam-panel mt-5">
+      <p class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Ticket</p>
+      <p class="il-ts-ticket mt-2 text-base" data-il-ts-ticket></p>
+      <p class="mt-3 font-mono text-[0.7rem] text-cyan" data-il-ts-live aria-live="polite"></p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button type="button" class="inline-flex h-11 items-center rounded-lg border border-paper/25 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-paper" data-il-ts-next>Submit &amp; next incident →</button>
+        <button type="button" class="inline-flex h-11 items-center rounded-lg border border-gold/40 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-gold" data-il-ts-end>End paper now</button>
+      </div>
+    </div>
+
+    <div class="mt-6" data-il-exam-shell>
+      <div class="rounded-xl border border-paper/15 bg-ink/40 p-4">
+        <p class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-cyan">Authored scene + simulated shell</p>
+        <div class="mt-3 min-h-[18rem]" data-il-ts-stage
+          data-il-immersive data-kind="cert" data-title="Troubleshooting incident stage" data-il-scene="k8s"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="il-ts-done" class="mt-8 hidden rounded-xl border border-gold/30 bg-ink/40 p-6" data-il-ts-done hidden>
+    <h2 class="font-display text-2xl text-gold">Paper complete</h2>
+    <p class="mt-3 text-sm" data-il-ts-summary></p>
+    <p class="mt-2 text-sm" data-il-ts-weakest aria-live="polite"></p>
+    <p class="mt-2 text-xs text-muted" data-il-ts-blueprint></p>
+    <p class="mt-2 text-xs text-muted" data-il-ts-mesh-result></p>
+    <h3 class="mt-6 font-display text-lg text-gold">Per incident</h3>
+    <ol class="mt-3 space-y-3" data-il-ts-incidents></ol>
+    <h3 class="mt-6 font-display text-lg text-gold">By troubleshooting area</h3>
+    <div class="mt-3 overflow-x-auto">
+      <table class="w-full text-left text-sm" data-il-ts-areas>
+        <thead><tr class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-muted"><th class="py-2">Area</th><th>Incidents</th><th>Credit</th><th>Checkpoints lost</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="mt-4 text-sm" data-il-ts-remediate aria-live="polite"></p>
+    <p class="mt-4 text-xs text-muted" data-il-ts-honesty></p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <button type="button" class="inline-flex h-11 items-center rounded-lg bg-paper px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-void" data-il-ts-retry>Sit another paper</button>
+      <a class="inline-flex h-11 items-center rounded-lg border border-gold/40 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-gold" href="/immersive/review/">Review queue</a>
+      <a class="inline-flex h-11 items-center rounded-lg border border-paper/25 px-5 font-display text-[0.7rem] uppercase tracking-[0.14em] text-paper" href="/immersive/">Back to free-play drills</a>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/il-scene-kit.js" defer></script>
+<script src="/assets/il-immersive-sims.js" defer></script>
+<script src="/assets/il-immersive-cli.js" defer></script>
+<script src="/assets/il-immersive-exam.js" defer></script>
+<script src="/assets/il-immersive-review.js" defer></script>
+<script src="/assets/il-immersive-troubleshoot.js" defer></script>
+<script src="/assets/il-immersive-3d.js" defer></script>
+<script src="/assets/il-immersive-boot.js" defer></script>
+<script src="/assets/il-immersive-troubleshoot-boot.js" defer></script>
+</body>
+</html>
