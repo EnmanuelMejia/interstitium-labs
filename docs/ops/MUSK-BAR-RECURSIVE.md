@@ -1,7 +1,41 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-10-29 ~morning EDT (America/New_York)._  
+_Last updated: 2026-11-02 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-02 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? Our CKS paper said, honestly, that **Supply Chain Security (20% of the CKS) was not covered**. A fifth of the exam had no scene, no drill and no typed task. CKS prep from KodeKloud, killer.sh / Killercoda and the popular Udemy CKS courses covers supply chain (image scanning, allowed registries / image policy, static analysis) in hands-on labs. |
+| After this ship | **Closer / still NO** | **CKS track, part 2 (supply chain).** A new Blender-polished `cks-supply-chain.glb`. A 7-checkpoint predict/reveal drill: no built-in registry allow-list, a VAP that denies the Deployment itself, tag vs digest, signature ≠ safety, the Trivy `--exit-code 1` gate, allow-list ≠ provenance, and signature verification at admission. A 4-task / 22-step typed CLI pack (VAP allow-list, Trivy gate + distroless, CycloneDX SBOM + `cosign attest`, `cosign verify` + Kyverno-style verifyImages). The **CKS paper now evidences all 6 official domains**. |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no registry, CI runner, real Trivy, cosign, Rekor or Kyverno, no live cluster and no hosted fleet. Static analysis (kubesec / KubeLinter), keyless Sigstore signing, Falco, AppArmor and kube-bench are not modelled. The score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- **runtime security**: a Falco-style rule/alert drill + AppArmor profile task (the last thin CKS domain: Monitoring, Logging & Runtime Security currently rests on the audit log alone)
+- a kubesec / KubeLinter static-analysis task, added to the supply-chain pack
+- a CKS queue in `/immersive/review/`, and syncing the Notion Labs rows `lab-sim-cks-pod-security` and `lab-sim-cks-supply-chain`
+
+## Competitor benchmark (2026-11-02)
+
+| Competitor | CKS supply-chain offer | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | CKS course with supply-chain lectures + labs on real environments | 1 authored 3D drill + 4 typed tasks + domain-weighted paper; simulated shell, not a real VM |
+| killer.sh / Killercoda | CKS simulator sessions + free scenarios on real VMs (real binaries) | no real binaries, but a 3D view of the admission chain / CI lane and a coach they don't have |
+| A Cloud Guru / Pluralsight | CKS video path + some hands-on labs | predict-before-reveal on an authored scene instead of video |
+| Udemy CKS courses | video + browser scenarios (often Killercoda-backed) | free, on-device, spaced-repetition review cards from every typed step |
+
+## Shipped this pass (2026-11-02)
+
+1. `cks-supply-chain.glb` (kit-v2 authoring, Blender CLI 4.2.3 polish) + `il-immersive-sims.js` v1.8.0: the `cksSupplyChain` sim (7 scenarios + heal), `cksSupplyDecide`, `SC_DIGEST`.
+2. `il-immersive-cli.js` v1.8.0: the supply-chain pack (allowed-registries 5 · scan-gate 6 · sbom 5 · sign-verify 6), COACH tips with glTF focus for all 22 steps, spoken "co sign" / "s bom".
+3. `il-immersive-exam.js` v1.4.0: Supply Chain Security → `cks-supply-chain`, the CKS pool grows from 15 to 22, and every domain is covered. `il-immersive-review.js` v1.3.2 labels the supply-chain CLI cards.
+4. Tests: unit 207 → 219 (`immersive-cks-supply-chain.test.js`); browser 53 → 56 (supply-chain predict, scan-gate typed end-to-end, supply-chain toggles; the CKS paper is now 6/6 domains; reduced-motion terminals 16 → 17).
+
+---
+
+_Prior pass archived below (2026-10-29)._
+
 
 ## Verdict — 2026-10-29 Musk-bar pass
 

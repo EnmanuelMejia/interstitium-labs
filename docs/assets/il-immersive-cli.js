@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.7.0 (2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.8.0 (2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -64,6 +64,15 @@
  * removal, `create role` / `create rolebinding --serviceaccount`), and the API audit log backend (`sed -i` on the
  * kube-apiserver static-pod manifest, a Metadata-level audit.k8s.io/v1 event without the secret value). Tasks:
  * psa-enforce · harden-pod · default-deny · sa-least-privilege · audit-log. Voice: "sec comp" → seccomp, "dry run" → dry-run.
+ *
+ * v1.8.0 (2026-11-02) — the second CKS pack (17 total), Supply Chain Security, on the NEW authored cks-supply-chain.glb:
+ * a ValidatingAdmissionPolicy registry allow-list (CEL startsWith 'registry.example.com/', binding with Deny; the
+ * documented "… with binding … denied request" message), Trivy as a CI gate (`--severity CRITICAL --exit-code 1` added
+ * with `sed -i` to ci/build.sh; `./ci/build.sh` runs build → trivy → SBOM → push → cosign sign/attest under set -e),
+ * a minimal runtime base (distroless static) via `sed -i` on the Dockerfile, a CycloneDX SBOM (`trivy image --format
+ * cyclonedx`, `grep`, `trivy sbom`), cosign sign / verify / attest / verify-attestation with a key pair, and a
+ * Kyverno-style verifyImages policy that denies an unsigned digest. Tasks: allowed-registries · scan-gate · sbom ·
+ * sign-verify. Voice: "co sign" → cosign, "s bom" → sbom.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -3236,6 +3245,323 @@
     seccomp: 'seccompProfile (pod or container "debug" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")'
   };
 
+  /* ── pack: CKS Supply Chain Security (v1.8.0, 2026-11-02 — the second CKS pack) ─────────────────────────────────
+   * Drives cks-supply-chain on the NEW authored cks-supply-chain.glb. The lab box doubles as the release workstation:
+   * Dockerfile + ci/build.sh (the CI job, run as ./ci/build.sh), cosign.key / cosign.pub, admission policy files and
+   * Deployment variants. trivy / cosign / ValidatingAdmissionPolicy / Kyverno output is computed from sim state and
+   * shaped like the real tools (labelled representative), not byte-identical. No registry, no CI runner, no Kyverno. */
+  var SC_IMG = 'registry.example.com/payments/api';
+  var SC_TAG = SC_IMG + ':2.4.1';
+  var SC_PUB = 'docker.io/payments-tools/api:latest';
+  var SC_BASE_VULN = 'debian:bookworm-20230904';
+  var SC_BASE_CLEAN = 'gcr.io/distroless/static-debian12:nonroot';
+  var SC_TRIVY_LINE = 'trivy image --severity CRITICAL "$IMAGE"';
+  var SC_GATE_LINE = 'trivy image --severity CRITICAL --exit-code 1 "$IMAGE"';
+  var SC_NOTE = 'Release workstation: Dockerfile · ci/build.sh (the CI job: build → trivy → SBOM → push → cosign sign/attest; run ./ci/build.sh) · cosign.key / cosign.pub · allowed-registries.yaml (ValidatingAdmissionPolicy + binding) · verify-images.yaml (Kyverno-style verifyImages) · payments-api-digest.yaml / payments-api-dockerio.yaml. trivy, cosign and admission answers are computed by the rules engine — no registry, no CI runner, no Kyverno. Lab-only: fault vap|registry|digest|gate|base|sign|verify break|fix.';
+  var SC_PODS = ['payments-api-5c8d7f9b6-h2k7q', 'payments-api-5c8d7f9b6-w9r4m'];
+  var SC_VAP = ['apiVersion: admissionregistration.k8s.io/v1', 'kind: ValidatingAdmissionPolicy', 'metadata:', '  name: allowed-registries', 'spec:', '  failurePolicy: Fail', '  matchConstraints:', '    resourceRules:',
+    '    - apiGroups: [""]', '      apiVersions: ["v1"]', '      operations: ["CREATE", "UPDATE"]', '      resources: ["pods"]', '    - apiGroups: ["apps"]', '      apiVersions: ["v1"]', '      operations: ["CREATE", "UPDATE"]', '      resources: ["deployments"]',
+    '  variables:', '  - name: containers', '    expression: "object.kind == \'Pod\' ? object.spec.containers : object.spec.template.spec.containers"', '  validations:',
+    '  # keep the trailing slash: without it registry.example.com.evil.io/… would also match', '  - expression: "variables.containers.all(c, c.image.startsWith(\'registry.example.com/\'))"', '    message: "images must come from registry.example.com/"',
+    '---', 'apiVersion: admissionregistration.k8s.io/v1', 'kind: ValidatingAdmissionPolicyBinding', 'metadata:', '  name: allowed-registries-binding', 'spec:', '  policyName: allowed-registries', '  validationActions: [Deny]', '  matchResources:', '    namespaceSelector:', '      matchLabels:', '        kubernetes.io/metadata.name: payments'];
+  var SC_KYV = ['apiVersion: kyverno.io/v1', 'kind: ClusterPolicy', 'metadata:', '  name: verify-payments-images', 'spec:', '  validationFailureAction: Enforce', '  webhookTimeoutSeconds: 30', '  rules:', '  - name: verify-signature', '    match:', '      any:', '      - resources:', '          kinds: ["Pod"]', '          namespaces: ["payments"]',
+    '    verifyImages:', '    - imageReferences: ["registry.example.com/payments/*", "docker.io/*"]', '      mutateDigest: true', '      verifyDigest: true', '      attestors:', '      - entries:', '        - keys:', '            secret:', '              name: cosign-pub', '              namespace: kyverno', '# (sim) Kyverno auto-generates the same rule for Deployments (autogen-verify-signature)'];
+  function scDeployYaml(image) {
+    return ['apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: payments-api', '  namespace: payments', 'spec:', '  replicas: 2', '  selector:', '    matchLabels:', '      app: payments-api', '  template:', '    metadata:', '      labels:', '        app: payments-api', '    spec:', '      containers:', '      - name: api', '        image: ' + image, '        ports:', '        - containerPort: 8080'];
+  }
+  function scDigestNow(s, d) { var D = Sims().SC_DIGEST; return d.metrics.ciBlocked ? D.prev : d.metrics.digest; }
+  function scDockerfile(s) {
+    return ['# syntax=docker/dockerfile:1', 'FROM golang:1.23 AS build', 'WORKDIR /src', 'COPY . .', 'RUN CGO_ENABLED=0 go build -o /payments-api ./cmd/api', '', 'FROM ' + (s.scanClean ? SC_BASE_CLEAN : SC_BASE_VULN), 'COPY --from=build /payments-api /payments-api', 'USER 65532:65532', 'ENTRYPOINT ["/payments-api"]'];
+  }
+  function scBuildSh(s) {
+    return ['#!/usr/bin/env bash', '# (sim) CI job for payments-api — runs on the CI runner, not in the cluster', 'set -euo pipefail', 'IMAGE=' + SC_TAG, 'docker build -t "$IMAGE" .', s.scanGate ? SC_GATE_LINE : SC_TRIVY_LINE,
+      'trivy image --format cyclonedx --output sbom.cdx.json "$IMAGE"', 'docker push "$IMAGE"', 'DIGEST=$(docker inspect --format \'{{index .RepoDigests 0}}\' "$IMAGE")', 'cosign sign --yes --key cosign.key "$DIGEST"', 'cosign attest --yes --key cosign.key --type cyclonedx --predicate sbom.cdx.json "$DIGEST"', 'echo "released $DIGEST"'];
+  }
+  function scSbom(s, ref) {
+    var comps = s.scanClean
+      ? [['base-files', '12.4+deb12u7', 'deb'], ['netbase', '6.4', 'deb'], ['tzdata', '2024a-0+deb12u1', 'deb'], ['payments-api', '(devel)', 'golang'], ['stdlib', 'v1.23.2', 'golang']]
+      : [['base-files', '12.4', 'deb'], ['bash', '5.2.15-2+b2', 'deb'], ['libc6', '2.36-9+deb12u1', 'deb'], ['perl-base', '5.36.0-7', 'deb'], ['zlib1g', '1:1.2.13.dfsg-1', 'deb'], ['payments-api', '(devel)', 'golang'], ['stdlib', 'v1.23.2', 'golang']];
+    var out = ['{', '  "bomFormat": "CycloneDX",', '  "specVersion": "1.6",', '  "metadata": { "component": { "type": "container", "name": "' + ref + '" }, "tools": { "components": [{ "name": "trivy" }] } },', '  "components": ['];
+    comps.forEach(function (c, i) { out.push('    { "type": "' + (c[2] === 'deb' ? 'library' : 'application') + '", "name": "' + c[0] + '", "version": "' + c[1] + '", "purl": "pkg:' + c[2] + '/' + (c[2] === 'deb' ? 'debian/' : '') + c[0] + '@' + c[1] + '" }' + (i < comps.length - 1 ? ',' : '')); });
+    out.push('  ]', '}');
+    return out;
+  }
+  /** Trivy-style table for the current build (only CRITICAL findings are modelled). */
+  function scTrivyRows(s, ignoreUnfixed) {
+    if (s.scanClean) return [];
+    var rows = [['zlib1g', 'CVE-2023-45853', 'CRITICAL', 'will_not_fix', '1:1.2.13.dfsg-1', '', 'zlib: integer overflow and resultant heap-based buffer overflow in zipOpenNewFileInZip4_6']];
+    return ignoreUnfixed ? [] : rows;
+  }
+  function scTrivyOut(s, ref, ignoreUnfixed, osLabel) {
+    var rows = scTrivyRows(s, ignoreUnfixed);
+    var lines = ['-- (sim) representative trivy output; only CRITICAL findings are modelled --', ref + ' (' + (osLabel || (s.scanClean ? 'debian 12.7 · distroless static' : 'debian 12.1')) + ')', '', 'Total: ' + rows.length + ' (CRITICAL: ' + rows.length + ')'];
+    if (rows.length) lines = lines.concat([''], table([['Library', 'Vulnerability', 'Severity', 'Status', 'Installed Version', 'Fixed Version', 'Title']].concat(rows)));
+    if (ignoreUnfixed && !s.scanClean) lines.push('(sim) --ignore-unfixed hid CVE-2023-45853: Debian marks it will_not_fix, so the risk is still in the image');
+    return lines;
+  }
+  /** Admission for a new payments-api image reference. Returns null when admitted. */
+  function scAdmit(s, image, as) {
+    var trusted = image.indexOf('registry.example.com/') === 0;
+    if (s.vapRegistry && !trusted) return res(['The deployments "payments-api" is invalid: : ValidatingAdmissionPolicy \'allowed-registries\' with binding \'allowed-registries-binding\' denied request: images must come from registry.example.com/'], 1, null, ['vap-denied', 'denied']);
+    var signedOk = trusted && !!s.signed;
+    if (s.verifySig && !signedOk) return res(['Error from server: error when ' + (as || 'applying patch') + ': admission webhook "mutate.kyverno.svc-fail" denied the request:', '', 'resource Deployment/payments/payments-api was blocked due to the following policies', '', 'verify-payments-images:',
+      '  autogen-verify-signature: \'failed to verify image ' + image + ': .attestors[0].entries[0].keys: no matching signatures\'', '(sim) representative Kyverno message — Kyverno itself is not running; the rules engine applies its verifyImages semantics'], 1, null, ['sig-denied', 'denied']);
+    return null;
+  }
+  function scImageRef(s, d) {
+    var m = d.metrics;
+    if (m.admitted || m.release === 'denied-signature') return m.image; /* verifyImages does not evict: the spec still names it */
+    return SC_IMG + '@' + Sims().SC_DIGEST.prev;
+  }
+  function scRefOk(ref) { return ref === SC_TAG || ref.indexOf(SC_IMG + '@sha256:') === 0; }
+  var scPack = {
+    sim: 'cks-supply-chain',
+    prompt: 'student@controlplane:~$',
+    note: SC_NOTE,
+    /* names only (ls, help, voice vocabulary) — contents are computed from sim state in run() */
+    files: { 'Dockerfile': {}, 'ci/build.sh': {}, 'cosign.key': {}, 'cosign.pub': {}, 'allowed-registries.yaml': {}, 'verify-images.yaml': {}, 'payments-api-digest.yaml': {}, 'payments-api-dockerio.yaml': {}, 'sbom.cdx.json': {} },
+    examples: ['ls', 'cat Dockerfile', 'cat ci/build.sh', './ci/build.sh', 'trivy image --severity CRITICAL ' + SC_TAG, 'trivy image --format cyclonedx --output sbom.cdx.json ' + SC_TAG, 'trivy sbom sbom.cdx.json',
+      'cosign verify --key cosign.pub ' + SC_TAG, 'kubectl get deployment payments-api -n payments -o wide', 'kubectl get pods -n payments', 'cat allowed-registries.yaml', 'kubectl apply -f allowed-registries.yaml',
+      'kubectl get validatingadmissionpolicies', 'kubectl get validatingadmissionpolicybindings', 'kubectl apply -f verify-images.yaml', 'kubectl get clusterpolicies', 'kubectl apply -f payments-api-digest.yaml', 'kubectl rollout restart deployment payments-api -n payments'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, D = Sims().SC_DIGEST;
+      var f = faultArgs(t);
+      if (f) {
+        var key = { vap: 'vapRegistry', registry: 'fromTrusted', digest: 'pinnedDigest', gate: 'scanGate', base: 'scanClean', sign: 'signed', verify: 'verifySig' }[f[0]];
+        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault vap|registry|digest|gate|base|sign|verify break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = f[1] === 'fix';
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      var head = t[0] || '', file = String(t[t.length - 1] || '').replace(/^(\.\/|~\/)/, '');
+      var files = ['Dockerfile', 'ci/', 'cosign.key', 'cosign.pub', 'allowed-registries.yaml', 'verify-images.yaml', 'payments-api-digest.yaml', 'payments-api-dockerio.yaml'].concat(ctx.vars.scSbom ? ['sbom.cdx.json'] : []);
+      if (head === 'ls') {
+        if (/^ci\/?$/.test(t[1] || '')) return res(['build.sh'], 0, null, ['ls']);
+        return res([files.join('  ')], 0, null, ['ls']);
+      }
+      var DOCS = { 'Dockerfile': function () { return scDockerfile(s); }, 'ci/build.sh': function () { return scBuildSh(s); }, 'allowed-registries.yaml': function () { return SC_VAP; }, 'verify-images.yaml': function () { return SC_KYV; },
+        'payments-api-digest.yaml': function () { return scDeployYaml(SC_IMG + '@' + scDigestNow(s, d)); }, 'payments-api-dockerio.yaml': function () { return scDeployYaml(SC_PUB); },
+        'cosign.pub': function () { return ['(sim) cosign public key (PEM body omitted) — admission trusts signatures made with the matching cosign.key']; },
+        'cosign.key': function () { return ['(sim) encrypted cosign private key — not displayed; in a real pipeline it lives in the CI secret store or a KMS'], 1; } };
+      if (head === 'cat' || head === 'less' || head === 'head') {
+        if (file === 'sbom.cdx.json') return ctx.vars.scSbom ? res(scSbom(ctx.vars.scSbom.clean ? { scanClean: true } : { scanClean: false }, ctx.vars.scSbom.ref), 0, null, ['cat', 'sbom-read']) : res(['cat: sbom.cdx.json: No such file or directory'], 1);
+        if (!DOCS[file]) return res([head + ': ' + t[t.length - 1] + ': No such file or directory'], 1);
+        var ev = { 'Dockerfile': 'cat-dockerfile', 'ci/build.sh': 'cat-ci', 'allowed-registries.yaml': 'cat-vap', 'verify-images.yaml': 'cat-kyverno' }[file];
+        return res(DOCS[file](), 0, null, ['cat'].concat(ev ? [ev] : []));
+      }
+      if (head === 'grep') {
+        var pat = t.filter(function (a, i) { return i > 0 && a.charAt(0) !== '-' && i < t.length - 1; })[0];
+        if (file !== 'sbom.cdx.json') return res(['sim: this drill models grep PATTERN sbom.cdx.json'], 2);
+        if (!ctx.vars.scSbom) return res(['grep: sbom.cdx.json: No such file or directory'], 2);
+        if (!pat) return res(['Usage: grep [OPTION]... PATTERNS [FILE]...'], 2);
+        var ci = t.indexOf('-i') > 0, re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), ci ? 'i' : '');
+        var hits = scSbom({ scanClean: ctx.vars.scSbom.clean }, ctx.vars.scSbom.ref).filter(function (l) { return re.test(l); });
+        return res(hits, hits.length ? 0 : 1, null, ['sbom-queried', hits.length ? 'sbom-hit' : 'sbom-miss']);
+      }
+      if (head === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var expr = t.filter(function (a) { return a.charAt(0) === 's' && a.length > 3 && !/[a-z]/i.test(a.charAt(1)); })[0];
+        if (file !== 'Dockerfile' && file !== 'ci/build.sh') return res(['sim: this drill models sed on Dockerfile and ci/build.sh only'], 2);
+        var sub = sedSubst(expr);
+        if (!sub) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var cur = file === 'Dockerfile' ? 'FROM ' + (s.scanClean ? SC_BASE_CLEAN : SC_BASE_VULN) : (s.scanGate ? SC_GATE_LINE : SC_TRIVY_LINE);
+        var next = cur.indexOf(sub.a) >= 0 ? cur.replace(sub.a, sub.b) : cur;
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written', next], 0);
+        if (next === cur) return res([], 0, null, ['sed-nochange']);
+        if (file === 'Dockerfile') {
+          if (!/^FROM \S+$/.test(next)) return res(['(sim) that edit leaves an invalid FROM line — this drill models swapping the runtime base image'], 1, null, ['sed-bad-edit']);
+          var minimal = /distroless|alpine|chainguard|scratch/.test(next);
+          if (!minimal) return res(['(sim) the runtime stage still uses a full distro base — this drill expects a minimal base (e.g. ' + SC_BASE_CLEAN + ')'], 1, null, ['sed-bad-edit']);
+          return res(['(sim) Dockerfile runtime stage: ' + next + ' — the Go binary is static, so it needs no libc, shell or zlib1g'], 0, s.scanClean ? null : { scanClean: true }, ['dockerfile-edited']);
+        }
+        if (/--ignore-unfixed/.test(next)) return res(['(sim) --ignore-unfixed would let CVE-2023-45853 (will_not_fix) through the gate — not modelled as a fix'], 1, null, ['sed-bad-edit']);
+        if (!/--exit-code 1\b/.test(next) || !/--severity CRITICAL/.test(next) || !/^trivy image /.test(next)) return res(['(sim) that edit does not make trivy fail the job on CRITICAL findings — this drill models adding --exit-code 1'], 1, null, ['sed-bad-edit']);
+        return res(['(sim) ci/build.sh: ' + next], 0, s.scanGate ? null : { scanGate: true }, ['ci-edited']);
+      }
+      if (/^(\.\/ci\/build\.sh|ci\/build\.sh)$/.test(head) || ((head === 'bash' || head === 'sh') && /^(\.\/)?ci\/build\.sh$/.test(t[1] || ''))) {
+        var digest = s.scanClean ? D.good : D.vuln;
+        var o = ['+ docker build -t ' + SC_TAG + ' .', '(sim) built ' + SC_TAG + ' FROM ' + (s.scanClean ? SC_BASE_CLEAN : SC_BASE_VULN), '+ ' + (s.scanGate ? SC_GATE_LINE : SC_TRIVY_LINE).replace('"$IMAGE"', SC_TAG)].concat(scTrivyOut(s, SC_TAG).slice(1));
+        if (s.scanGate && !s.scanClean) return res(o.concat(['(sim) trivy exited 1 — set -e stops the job here: nothing pushed, no SBOM published, nothing signed', 'exit status 1']), 1, null, ['pipeline-blocked']);
+        o = o.concat(['+ trivy image --format cyclonedx --output sbom.cdx.json ' + SC_TAG, '+ docker push ' + SC_TAG, '2.4.1: digest: ' + digest + ' size: 1366', '+ cosign sign --yes --key cosign.key ' + SC_IMG + '@' + digest, 'Pushing signature to: ' + SC_IMG,
+          '+ cosign attest --yes --key cosign.key --type cyclonedx --predicate sbom.cdx.json ' + SC_IMG + '@' + digest, 'released ' + SC_IMG + '@' + digest]);
+        if (!s.scanClean) o.push('(sim) the job passed although trivy reported a CRITICAL CVE — a report is not a gate; the vulnerable digest is now signed');
+        ctx.vars.scAttested = digest;
+        return res(o, 0, s.signed ? null : { signed: true }, ['pipeline-pushed', s.scanClean ? 'pipeline-ok' : 'pipeline-vuln']);
+      }
+      if (head === 'trivy') {
+        var sub2 = t[1];
+        var valued = ['--severity', '-s', '--exit-code', '--format', '-f', '--output', '-o', '--scanners', '--timeout'];
+        var pos = positional(t.slice(2), valued);
+        var exitCode = Number(flag(t, '--exit-code')) || 0, sev = String(flag(t, ['--severity', '-s']) || ''), fmt = String(flag(t, ['--format', '-f']) || 'table'), outF = flag(t, ['--output', '-o']);
+        var ignore = hasFlag(t, '--ignore-unfixed');
+        if (sub2 === 'sbom') {
+          if (pos[0] !== 'sbom.cdx.json') return res(['sim: this drill models trivy sbom sbom.cdx.json'], 2);
+          if (!ctx.vars.scSbom) return res(['FATAL\tFatal error\tscan error: unable to open sbom.cdx.json: no such file or directory'], 1);
+          var sb = { scanClean: ctx.vars.scSbom.clean };
+          var rows2 = scTrivyRows(sb, ignore);
+          return res(['(sim) scanning the SBOM — no image pull, no layer extraction'].concat(scTrivyOut(sb, 'sbom.cdx.json', ignore, 'cyclonedx').slice(1)), rows2.length && exitCode ? exitCode : 0, null, ['sbom-scanned', rows2.length ? 'trivy-critical' : 'trivy-clean']);
+        }
+        if (sub2 !== 'image' && sub2 !== 'i') return res(['sim: this drill models trivy image … and trivy sbom sbom.cdx.json'], 2);
+        var ref = pos[0] || '';
+        if (ref === SC_PUB || /^docker\.io\//.test(ref)) return res(['(sim) this drill scans ' + SC_IMG + ' builds; the docker.io image is from an unknown publisher — the point is that it never gets admitted'], 2);
+        if (!scRefOk(ref)) return res(['sim: this drill scans ' + SC_TAG + ' (or ' + SC_IMG + '@sha256:…)'], 2);
+        if (fmt === 'cyclonedx' || fmt === 'spdx-json') {
+          if (fmt !== 'cyclonedx') return res(['sim: this drill models --format cyclonedx (SPDX works the same way in real trivy)'], 2);
+          if (outF !== 'sbom.cdx.json') return res(['sim: write the SBOM with --output sbom.cdx.json'], 2);
+          ctx.vars.scSbom = { clean: !!s.scanClean, ref: ref };
+          return res(['(sim) wrote sbom.cdx.json — CycloneDX 1.6, ' + scSbom(s, ref).filter(function (l) { return /"purl"/.test(l); }).length + ' components'], 0, null, ['sbom-generated']);
+        }
+        if (sev && !/CRITICAL/.test(sev)) return res(['(sim) only CRITICAL findings are modelled in this drill — include CRITICAL in --severity'], 2);
+        var rows3 = scTrivyRows(s, ignore);
+        var out3 = scTrivyOut(s, ref, ignore);
+        if (!sev) out3.splice(1, 0, '(sim) no --severity: HIGH / MEDIUM / LOW findings are omitted here, not absent');
+        var ex3 = rows3.length && exitCode ? exitCode : 0;
+        return res(out3, ex3, null, ['trivy-scan', rows3.length ? 'trivy-critical' : 'trivy-clean'].concat(ex3 ? ['trivy-gate-fail'] : []));
+      }
+      if (head === 'cosign') {
+        var cv = t[1], ckey = flag(t, '--key'), cref = positional(t.slice(2), ['--key', '--type', '--predicate', '-a', '--certificate-identity', '--certificate-oidc-issuer', '--output'])[0] || '';
+        if (!/^(verify|sign|attest|verify-attestation)$/.test(cv)) return res(['sim: this drill models cosign verify · sign · attest · verify-attestation'], 2);
+        if (!scRefOk(cref)) return res(['sim: this drill signs and verifies ' + SC_TAG + ' (or ' + SC_IMG + '@sha256:…)'], 2);
+        var dig = d.metrics.ciBlocked ? D.prev : m.digest;
+        var tagWarn = cref === SC_TAG ? ['WARNING: Image reference ' + SC_TAG + ' uses a tag, not a digest, to identify the image to sign.', '    This can lead you to sign a different image than the intended one. Please use a', '    digest (example.com/ubuntu@sha256:abc123...) rather than tag', '    (example.com/ubuntu:latest) for the input to cosign. The ability to refer to', '    images by tag will be removed in a future release.'] : [];
+        if (cv === 'verify' || cv === 'verify-attestation') {
+          if (ckey !== 'cosign.pub') return res([ckey && ckey !== true ? 'Error: ' + ckey + ': the verifier needs the public key (cosign.pub)' : 'Error: --certificate-identity or --certificate-identity-regexp is required for verification in keyless mode'], 1);
+          if (cv === 'verify-attestation') {
+            if (String(flag(t, '--type') || '') !== 'cyclonedx') return res(['sim: this drill models --type cyclonedx'], 2);
+            if (ctx.vars.scAttested !== dig) return res(['Error: no matching attestations: none of the attestations matched the predicate type: cyclonedx', 'command terminated with exit code 1'], 1, null, ['attestation-missing']);
+            return res(['Verification for ' + cref + ' --', 'The following checks were performed on each of these signatures:', '  - The cosign claims were validated', '  - Existence of the claims in the transparency log was verified offline', '  - The signatures were verified against the specified public key',
+              '{"payloadType":"application/vnd.in-toto+json","payload":"(sim) base64 in-toto statement · predicateType https://cyclonedx.org/bom · subject ' + dig + '","signatures":[{"keyid":"","sig":"(sim)"}]}'], 0, null, ['attestation-verified']);
+          }
+          if (!s.signed) return res(['Error: no matching signatures', '(sim) no signature artifact (' + dig.replace(':', '-') + '.sig) for this digest in ' + SC_IMG, 'error during command execution: no matching signatures'], 1, null, ['cosign-no-sig']);
+          return res(['Verification for ' + cref + ' --', 'The following checks were performed on each of these signatures:', '  - The cosign claims were validated', '  - Existence of the claims in the transparency log was verified offline', '  - The signatures were verified against the specified public key', '',
+            '[{"critical":{"identity":{"docker-reference":"' + SC_IMG + '"},"image":{"docker-manifest-digest":"' + dig + '"},"type":"cosign container image signature"},"optional":null}]'], 0, null, ['cosign-verified']);
+        }
+        if (ckey !== 'cosign.key') return res(['sim: this drill signs with the key pair: --key cosign.key (keyless OIDC signing is not modelled)'], 2);
+        if (cv === 'sign') {
+          var warnV = s.scanClean ? [] : ['(sim) you just signed a digest with a CRITICAL CVE — a signature proves who signed it, not that it is safe'];
+          return res(tagWarn.concat(['Pushing signature to: ' + SC_IMG]).concat(warnV), 0, s.signed ? null : { signed: true }, ['cosign-signed']);
+        }
+        if (String(flag(t, '--type') || '') !== 'cyclonedx' || String(flag(t, '--predicate') || '') !== 'sbom.cdx.json') return res(['sim: this drill models cosign attest --key cosign.key --type cyclonedx --predicate sbom.cdx.json IMAGE'], 2);
+        if (!ctx.vars.scSbom) return res(['Error: open sbom.cdx.json: no such file or directory'], 1);
+        ctx.vars.scAttested = dig;
+        return res(tagWarn.concat(['Using payload from: sbom.cdx.json', '(sim) in-toto attestation (predicate CycloneDX) signed and pushed next to ' + SC_IMG + '@' + dig.slice(0, 19) + '…']), 0, null, ['sbom-attested']);
+      }
+      if (head !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl apply -f with the lab files, kubectl set image, or sed on Dockerfile / ci/build.sh'], 2);
+      if (verb === 'get' && /^(deploy|deployments?(\.apps)?)$/.test(kind)) {
+        if (ns !== 'payments' || (name && name !== 'payments-api')) return name ? notFound('deployments.apps', name) : res(['No resources found in ' + ns + ' namespace.'], 0);
+        var img = scImageRef(s, d), wide = out === 'wide';
+        var tag = img.indexOf(SC_IMG + '@') === 0 ? 'image-digest' : (img === SC_TAG ? 'image-tag' : 'image-untrusted');
+        return res(table([['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE'].concat(wide ? ['CONTAINERS', 'IMAGES', 'SELECTOR'] : []), ['payments-api', '2/2', '2', '2', '9d'].concat(wide ? ['api', img, 'app=payments-api'] : [])]), 0, null, ['get-deploy'].concat(wide ? [tag] : []));
+      }
+      if (verb === 'get' && /^(po|pods?)$/.test(kind)) {
+        if (ns !== 'payments') return res(['No resources found in ' + ns + ' namespace.'], 0);
+        return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [SC_PODS[0], '1/1', 'Running', '0', '2d'], [SC_PODS[1], '1/1', 'Running', '0', '2d']]), 0, null, ['get-pods']);
+      }
+      if (verb === 'get' && /^(validatingadmissionpolic(y|ies)(\.admissionregistration\.k8s\.io)?)$/.test(kind)) {
+        if (!s.vapRegistry) return res(['No resources found'], 0, null, ['get-vap']);
+        return res(table([['NAME', 'VALIDATIONS', 'PARAMKIND', 'AGE'], ['allowed-registries', '1', '<unset>', '2m']]), 0, null, ['get-vap']);
+      }
+      if (verb === 'get' && /^(validatingadmissionpolicybindings?(\.admissionregistration\.k8s\.io)?)$/.test(kind)) {
+        if (!s.vapRegistry) return res(['No resources found'], 0, null, ['get-vapb']);
+        return res(table([['NAME', 'POLICYNAME', 'PARAMREF', 'AGE'], ['allowed-registries-binding', 'allowed-registries', '<unset>', '2m']]), 0, null, ['get-vapb']);
+      }
+      if (verb === 'get' && /^(cpol|clusterpolic(y|ies)(\.kyverno\.io)?)$/.test(kind)) {
+        if (!s.verifySig) return res(['No resources found'], 0, null, ['get-cpol']);
+        return res(table([['NAME', 'ADMISSION', 'BACKGROUND', 'READY', 'AGE', 'MESSAGE'], ['verify-payments-images', 'true', 'false', 'True', '1m', 'Ready']]).concat(['# (sim) Kyverno is not running here — the rules engine applies its verifyImages semantics']), 0, null, ['get-cpol']);
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var fname = String(flag(t, ['-f', '--filename']) || '').replace(/^(\.\/|~\/)/, '');
+        if (!fname || fname === 'true') return res(['error: must specify one of -f and -k'], 1);
+        if (fname === 'allowed-registries.yaml') {
+          var vl = ['validatingadmissionpolicy.admissionregistration.k8s.io/allowed-registries ' + (s.vapRegistry ? 'unchanged' : 'created'), 'validatingadmissionpolicybinding.admissionregistration.k8s.io/allowed-registries-binding ' + (s.vapRegistry ? 'unchanged' : 'created')];
+          if (!s.vapRegistry && !s.fromTrusted) vl.push('(sim) admission only checks new writes: the running docker.io pods keep running until the Deployment is next changed');
+          return res(vl, 0, s.vapRegistry ? null : { vapRegistry: true }, ['apply-vap']);
+        }
+        if (fname === 'verify-images.yaml') {
+          var kl = ['clusterpolicy.kyverno.io/verify-payments-images ' + (s.verifySig ? 'unchanged' : 'created'), '(sim) Kyverno is not running here — the rules engine applies its verifyImages semantics (Enforce, cosign.pub from Secret kyverno/cosign-pub)'];
+          if (!s.verifySig && !m.sigValid) kl.push('(sim) running pods are not evicted: the next rollout of an unsigned digest is what gets denied');
+          return res(kl, 0, s.verifySig ? null : { verifySig: true }, ['apply-kyverno']);
+        }
+        if (fname === 'payments-api-dockerio.yaml' || fname === 'payments-api-digest.yaml') {
+          var target = fname === 'payments-api-dockerio.yaml' ? SC_PUB : SC_IMG + '@' + scDigestNow(s, d);
+          return scSetImage(s, target, 'applying patch from "' + fname + '"');
+        }
+        return res(['error: the path "' + fname + '" does not exist'], 1);
+      }
+      if (verb === 'set' && t[2] === 'image') {
+        var tgt = positional(t.slice(3), KUBECTL_VALUED), dep = (tgt[0] || '').replace(/^(deploy|deployment|deployments)(\.apps)?\//, '');
+        var kv = tgt.filter(function (a) { return /^api=/.test(a); })[0];
+        if (ns !== 'payments' || dep !== 'payments-api' || !kv) return res(['sim: this drill models kubectl set image deployment/payments-api api=IMAGE -n payments'], 2);
+        return scSetImage(s, kv.slice(4), 'patching deployment');
+      }
+      if (verb === 'rollout' && args[0] === 'restart') {
+        if (ns !== 'payments' || !/payments-api$/.test(args[1] || '') && args[2] !== 'payments-api') return res(['sim: this drill models kubectl rollout restart deployment payments-api -n payments'], 2);
+        var cur2 = s.fromTrusted ? m.image : SC_PUB; /* the spec the Deployment already carries is re-admitted */
+        var den = scAdmit(s, cur2, 'patching deployment'); if (den) return den;
+        return res(['deployment.apps/payments-api restarted'], 0, null, ['rollout-restart']);
+      }
+      return unmodelled(t.join(' '), scPack.examples);
+    },
+    tasks: [
+      { id: 'allowed-registries', title: 'payments-api runs a docker.io image: allow only registry.example.com',
+        goal: 'Someone switched payments-api to an image from a public publisher nobody vetted. Prove it, add a ValidatingAdmissionPolicy that only admits registry.example.com/ images, roll back to the CI-built digest, and prove docker.io is now refused.',
+        setup: { vapRegistry: false, fromTrusted: false, pinnedDigest: false, verifySig: false },
+        steps: [
+          { label: 'See which image the Deployment runs (docker.io, by a mutable tag)', event: 'image-untrusted', hint: 'kubectl get deployment payments-api -n payments -o wide' },
+          { label: 'Read the policy: a CEL rule over every container image, bound to payments with Deny', event: 'cat-vap', hint: 'cat allowed-registries.yaml' },
+          { label: 'Apply the policy and its binding', state: function (s) { return !!s.vapRegistry; }, hint: 'kubectl apply -f allowed-registries.yaml' },
+          { label: 'Roll back to the CI-built image, pinned by digest', state: function (s) { return !!s.fromTrusted && !!s.pinnedDigest; }, hint: 'kubectl apply -f payments-api-digest.yaml' },
+          { label: 'Prove it: the docker.io Deployment is now denied by the policy', event: 'vap-denied', hint: 'kubectl apply -f payments-api-dockerio.yaml' }
+        ] },
+      { id: 'scan-gate', title: 'A CRITICAL CVE shipped: make Trivy a gate, then fix the base image',
+        goal: 'The last release carried a CRITICAL CVE because the CI job only prints the Trivy report. Find the CVE, make the scan fail the job, watch it stop a release, then move the runtime stage to a minimal base and release cleanly.',
+        setup: { scanGate: false, scanClean: false },
+        steps: [
+          { label: 'Scan the release: a CRITICAL CVE in zlib1g', event: 'trivy-critical', hint: 'trivy image --severity CRITICAL ' + SC_TAG },
+          { label: 'Read the CI job: trivy runs, but only reports', event: 'cat-ci', hint: 'cat ci/build.sh' },
+          { label: 'Make trivy fail the job on CRITICAL findings', state: function (s) { return !!s.scanGate; }, hint: "sed -i 's|--severity CRITICAL|--severity CRITICAL --exit-code 1|' ci/build.sh" },
+          { label: 'Run the job: it stops at the scan, nothing pushed or signed', event: 'pipeline-blocked', hint: './ci/build.sh' },
+          { label: 'Move the runtime stage to a minimal base image', state: function (s) { return !!s.scanClean; }, hint: "sed -i 's|" + SC_BASE_VULN + "|" + SC_BASE_CLEAN + "|' Dockerfile" },
+          { label: 'Run the job again: clean scan, pushed, signed, attested', event: 'pipeline-ok', hint: './ci/build.sh' }
+        ] },
+      { id: 'sbom', title: 'Are we affected by the zlib CVE? Answer from an SBOM',
+        goal: 'A zlib CVE (CVE-2023-45853) is in the news. Answer from an SBOM instead of guessing: generate a CycloneDX SBOM for the release, query it, scan the SBOM itself, and publish it as a signed attestation next to the image.',
+        setup: {},
+        steps: [
+          { label: 'Generate a CycloneDX SBOM for the release', event: 'sbom-generated', hint: 'trivy image --format cyclonedx --output sbom.cdx.json ' + SC_TAG },
+          { label: 'Query it for zlib (no match = not in the image)', event: 'sbom-queried', hint: 'grep -i zlib sbom.cdx.json' },
+          { label: 'Scan the SBOM itself — no image pull needed', event: 'sbom-scanned', hint: 'trivy sbom sbom.cdx.json' },
+          { label: 'Attach the SBOM to the image as a signed attestation', event: 'sbom-attested', hint: 'cosign attest --key cosign.key --type cyclonedx --predicate sbom.cdx.json ' + SC_TAG },
+          { label: 'Verify the attestation with the public key', event: 'attestation-verified', hint: 'cosign verify-attestation --key cosign.pub --type cyclonedx ' + SC_TAG }
+        ] },
+      { id: 'sign-verify', title: 'An unsigned image is running: verify signatures at admission',
+        goal: 'Someone pushed :2.4.1 from a laptop, skipping CI. The registry allow-list let it through. Prove there is no signature, enforce signature verification at admission, release through CI, verify the signature and pin the signed digest.',
+        setup: { signed: false, verifySig: false, pinnedDigest: false },
+        steps: [
+          { label: 'Prove the running tag has no signature from cosign.pub', event: 'cosign-no-sig', hint: 'cosign verify --key cosign.pub ' + SC_TAG },
+          { label: 'Enforce signature verification for payments images', state: function (s) { return !!s.verifySig; }, hint: 'kubectl apply -f verify-images.yaml' },
+          { label: 'Prove it: rolling the unsigned image again is denied', event: 'sig-denied', hint: 'kubectl rollout restart deployment payments-api -n payments' },
+          { label: 'Release through CI (scan → SBOM → push → sign)', state: function (s) { return !!s.signed; }, hint: './ci/build.sh' },
+          { label: 'Verify the new signature', event: 'cosign-verified', hint: 'cosign verify --key cosign.pub ' + SC_TAG },
+          { label: 'Deploy the signed release pinned by digest', state: function (s) { return !!s.pinnedDigest && !!s.signed; }, hint: 'kubectl apply -f payments-api-digest.yaml' }
+        ] }
+    ]
+  };
+  /** kubectl apply / set image of a new payments-api image through the admission chain. */
+  function scSetImage(s, image, as) {
+    var den = scAdmit(s, image, as); if (den) return den;
+    var trusted = image.indexOf('registry.example.com/') === 0, pinned = /@sha256:[0-9a-f]{64}$/.test(image);
+    if (trusted && image.indexOf(SC_IMG) !== 0) return res(['sim: this drill deploys ' + SC_IMG + ' images (or the docker.io one, to see it refused)'], 2);
+    var patch = { fromTrusted: trusted, pinnedDigest: trusted && pinned };
+    var lines = ['deployment.apps/payments-api configured'];
+    if (!trusted) lines.push('(sim) admitted: nothing restricts registries, so the kubelet pulls ' + image + ' from a publisher nobody vetted');
+    else if (!pinned) lines.push('(sim) a tag can be re-pushed to a different digest — pin @sha256 so what runs is what was scanned and signed');
+    return res(lines, 0, patch, ['apply-deploy', trusted ? (pinned ? 'apply-digest' : 'apply-tag') : 'apply-dockerio']);
+  }
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -3243,7 +3569,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -3638,6 +3964,39 @@
         ['Generate the event you want to find: read that Secret once as admin.', '^(secret-db-creds|kube-apiserver)$'],
         ['Read the last line of the audit log file and check what it does and does not contain.', '^(audit-log|edge-api-audit)$']
       ]
+    },
+    /* v1.8.0 (2026-11-02) — CKS supply chain on cks-supply-chain.glb */
+    'cks-supply-chain': {
+      'allowed-registries': [
+        ['Start from the workload: list the payments-api Deployment wide enough to see its image column.', '^(payments-pod|untrusted-image|edge-untrusted-api)$'],
+        ['The lab ships a policy file for registries. Read it: what does the CEL expression check, and where is it bound?', '^(vap-gate|kube-apiserver)$'],
+        ['Create the policy and its binding from that file.', '^(vap-gate|sim-vap-deny)$'],
+        ['Admission checks writes, not running pods. Apply the Deployment variant that references the CI-built image by digest.', '^(image-artifact|digest-pin|edge-registry-api)$'],
+        ['Now try the docker.io variant of the Deployment again and read who refuses it.', '^(sim-vap-deny|vap-gate|untrusted-image)$']
+      ],
+      'scan-gate': [
+        ['Scan the release tag with the vulnerability scanner, CRITICAL severity only.', '^(trivy-scanner|sim-cve-flare)$'],
+        ['The CI job is a shell script in the ci folder. Read the scanner line.', '^(ci-pipeline|trivy-scanner)$'],
+        ['A scanner only fails a job when told to: add a non-zero exit code to that line, in place.', '^(trivy-scanner|sim-ci-block)$'],
+        ['Run the CI job script and see where it stops.', '^(sim-ci-block|edge-scan-sign)$'],
+        ['The Go binary is static: swap the runtime stage FROM line in the Dockerfile for the distroless static nonroot image.', '^(ci-build|sim-cve-flare)$'],
+        ['Run the CI job script once more.', '^(signature-seal|edge-push|image-artifact)$']
+      ],
+      'sbom': [
+        ['Ask the scanner for a CycloneDX document instead of a vulnerability table, written to sbom.cdx.json.', '^(sbom-doc|trivy-scanner)$'],
+        ['Search that JSON file for the library name, case-insensitively.', '^sbom-doc$'],
+        ['The scanner can read an SBOM directly, without pulling the image. Point it at the file.', '^(sbom-doc|trivy-scanner)$'],
+        ['Sign the SBOM as an in-toto attestation of type cyclonedx with the private key, attached to the release image.', '^(cosign-key|signature-seal|sbom-doc)$'],
+        ['Check the attestation with the public key and the same predicate type.', '^(signature-seal|image-artifact)$']
+      ],
+      'sign-verify': [
+        ['Ask cosign to verify the release tag against the public key.', '^(sim-unsigned-mark|image-artifact)$'],
+        ['Apply the lab policy that verifies image signatures in payments.', '^(sig-webhook|sim-sig-deny)$'],
+        ['Restart the Deployment rollout so admission re-checks the unsigned image.', '^(sim-sig-deny|sig-webhook)$'],
+        ['Releases come from the pipeline, not laptops: run the CI job script.', '^(ci-pipeline|cosign-key|signature-seal)$'],
+        ['Verify the release tag against the public key again.', '^(signature-seal|image-artifact)$'],
+        ['Apply the Deployment variant that pins the released digest.', '^(digest-pin|payments-pod|edge-api-pod)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -3871,7 +4230,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bco ?sign\b/g, 'cosign'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -3937,7 +4296,7 @@
   }
 
   return {
-    VERSION: '1.7.0',
+    VERSION: '1.8.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

@@ -1759,6 +1759,110 @@ def scene_cks_pod_security() -> list:
     return parts
 
 
+def scene_cks_supply_chain() -> list:
+    """CKS Supply Chain Security cutaway (20% of the CKS). CI lane: build (Dockerfile on a minimal base) → Trivy
+    scanner with its CRITICAL gate → CycloneDX SBOM → cosign key + signature seal → push to the trusted registry
+    (registry.example.com, image by tag vs pinned @sha256 digest). An untrusted public registry (docker.io) on the
+    side. Admission: kube-apiserver → ValidatingAdmissionPolicy allowed-registries → image-signature verification
+    webhook (policy-controller / Kyverno verifyImages style) → namespace payments, payments-api pod.
+    sim-* parts are revealed only by the rules engine. Added 2026-11-02 (second CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-supply-chain", "cert": "CKS", "domain": "supply-chain"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.6, 0.08, 4.0)
+    parts.append((floor, MAT_VOID, "sc-floor", {**ped, "label": "software supply chain (CKS cutaway)"}))
+    # CI lane (back row)
+    ci = MeshBuilder()
+    ci.add_chamfer_box(-1.1, -0.8, -1.35, 3.9, 0.08, 1.0, 0.03)
+    parts.append((ci, MAT_INK, "ci-pipeline", {**ped, "label": "CI pipeline (build → scan → SBOM → sign → push)", "kind": "Pipeline"}))
+    build = MeshBuilder()
+    build.add_chamfer_box(-2.7, -0.55, -1.35, 0.5, 0.42, 0.5, 0.03)
+    parts.append((build, MAT_MUTED, "ci-build", {**ped, "label": "docker build — Dockerfile FROM a minimal base (distroless / alpine)", "kind": "Build"}))
+    scan = MeshBuilder()
+    scan.add_cylinder(-1.85, -0.5, -1.35, 0.26, 0.5, 28)
+    parts.append((scan, MAT_CRYSTAL, "trivy-scanner", {**ped, "label": "trivy image --severity CRITICAL --exit-code 1 (CI gate)", "kind": "Scanner"}))
+    cve = MeshBuilder()
+    cve.add_sphere(-1.85, -0.05, -1.35, 0.14, 10, 12)
+    parts.append((cve, MAT_DENY, "sim-cve-flare", {**ped, "label": "CRITICAL CVEs in the image (vulnerable base-image packages)", "simOnly": True}))
+    block = MeshBuilder()
+    block.add_chamfer_box(-1.45, -0.45, -1.35, 0.06, 0.62, 0.7, 0.02)
+    parts.append((block, MAT_DENY, "sim-ci-block", {**ped, "label": "pipeline failed: trivy exit code 1 — nothing pushed, nothing signed", "simOnly": True}))
+    sbom = MeshBuilder()
+    sbom.add_chamfer_box(-1.0, -0.42, -1.6, 0.42, 0.52, 0.04, 0.02)
+    parts.append((sbom, MAT_PAPER, "sbom-doc", {**ped, "label": "SBOM (CycloneDX, trivy --format cyclonedx) — every package + version in the image", "kind": "SBOM"}))
+    key = MeshBuilder()
+    key.add_cylinder(-0.35, -0.55, -1.35, 0.12, 0.08, 18)
+    key.add_box(-0.18, -0.55, -1.35, 0.28, 0.05, 0.06)
+    parts.append((key, MAT_SECRET, "cosign-key", {**ped, "label": "cosign.key (CI signing key; cosign.pub is what admission trusts)", "kind": "Key"}))
+    seal = MeshBuilder()
+    seal.add_cylinder(0.35, -0.5, -1.35, 0.18, 0.05, 24)
+    parts.append((seal, MAT_GOLD, "signature-seal", {**ped, "label": "cosign signature over the image digest (stored in the registry as .sig)", "kind": "Signature"}))
+    _edge(parts, (-2.45, -0.55, -1.35), (-2.1, -0.5, -1.35), "edge-build-scan", MAT_LED, ped, "image → scanner", 0.03, 0.06)
+    _edge(parts, (-1.6, -0.5, -1.35), (0.15, -0.5, -1.35), "edge-scan-sign", MAT_LED, ped, "passed scan → SBOM → sign", 0.03, 0.08)
+    # Trusted registry (center right)
+    reg = MeshBuilder()
+    reg.add_chamfer_box(1.75, -0.8, -1.2, 1.5, 0.08, 1.3, 0.03)
+    parts.append((reg, MAT_INK, "registry-trusted", {**ped, "label": "registry.example.com (private, trusted)", "kind": "Registry"}))
+    img = MeshBuilder()
+    img.add_chamfer_box(1.55, -0.55, -1.2, 0.5, 0.4, 0.5, 0.03)
+    parts.append((img, MAT_CYAN, "image-artifact", {**ped, "label": "registry.example.com/payments/api:2.4.1", "kind": "Image"}))
+    dig = MeshBuilder()
+    dig.add_chamfer_box(2.15, -0.45, -1.2, 0.46, 0.3, 0.04, 0.02)
+    parts.append((dig, MAT_PAPER, "digest-pin", {**ped, "label": "@sha256:4f1c…e9a2 — the digest that was scanned and signed", "kind": "Digest"}))
+    drift = MeshBuilder()
+    drift.add_cylinder(2.15, -0.1, -1.2, 0.16, 0.06, 18, capped=False)
+    parts.append((drift, MAT_TAINT, "sim-tag-drift", {**ped, "label": ":2.4.1 is a mutable tag — it can be re-pushed to a different digest", "simOnly": True}))
+    unsig = MeshBuilder()
+    unsig.add_chamfer_box(1.55, -0.25, -1.2, 0.56, 0.06, 0.56, 0.02)
+    parts.append((unsig, MAT_DENY, "sim-unsigned-mark", {**ped, "label": "no cosign signature for this digest (pushed outside CI)", "simOnly": True}))
+    _edge(parts, (0.55, -0.5, -1.3), (1.3, -0.55, -1.2), "edge-push", MAT_LED, ped, "push image + signature", 0.03, 0.08)
+    # Untrusted public registry (front right)
+    pub = MeshBuilder()
+    pub.add_chamfer_box(2.55, -0.8, 1.15, 1.2, 0.08, 1.1, 0.03)
+    parts.append((pub, MAT_INK, "registry-untrusted", {**ped, "label": "docker.io (public, not on the allow-list)", "kind": "Registry"}))
+    uimg = MeshBuilder()
+    uimg.add_chamfer_box(2.55, -0.55, 1.15, 0.46, 0.4, 0.46, 0.03)
+    parts.append((uimg, MAT_DENY, "untrusted-image", {**ped, "label": "docker.io/payments-tools/api:latest — unknown publisher, unscanned", "kind": "Image"}))
+    # Control plane: kube-apiserver + admission chain
+    cp = MeshBuilder()
+    cp.add_chamfer_box(-1.6, -0.8, 0.55, 2.4, 0.08, 1.2, 0.03)
+    parts.append((cp, MAT_INK, "control-plane", {**ped, "label": "Control plane (admission chain)", "kind": "ControlPlane"}))
+    api = MeshBuilder()
+    api.add_cylinder(-2.4, -0.45, 0.55, 0.3, 0.62, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (authn → authz → mutating → validating admission → etcd)", "kind": "Component"}))
+    vap = MeshBuilder()
+    vap.add_cylinder(-1.6, -0.45, 0.55, 0.28, 0.06, 28, capped=False)
+    vap.add_box(-1.6, -0.2, 0.55, 0.58, 0.05, 0.05)
+    parts.append((vap, MAT_SHIELD, "vap-gate", {**ped, "label": "ValidatingAdmissionPolicy allowed-registries (CEL: every image startsWith 'registry.example.com/')", "kind": "Admission"}))
+    vdeny = MeshBuilder()
+    vdeny.add_chamfer_box(-1.6, -0.45, 0.55, 0.08, 0.56, 0.56, 0.02)
+    parts.append((vdeny, MAT_DENY, "sim-vap-deny", {**ped, "label": "denied request: images must come from registry.example.com/", "simOnly": True}))
+    sig = MeshBuilder()
+    sig.add_cylinder(-0.8, -0.45, 0.55, 0.28, 0.06, 28, capped=False)
+    sig.add_box(-0.8, -0.2, 0.55, 0.58, 0.05, 0.05)
+    parts.append((sig, MAT_SHIELD, "sig-webhook", {**ped, "label": "image signature verification webhook (cosign.pub; policy-controller / Kyverno verifyImages style)", "kind": "Admission"}))
+    sdeny = MeshBuilder()
+    sdeny.add_chamfer_box(-0.8, -0.45, 0.55, 0.08, 0.56, 0.56, 0.02)
+    parts.append((sdeny, MAT_DENY, "sim-sig-deny", {**ped, "label": "denied: no matching signatures for the image digest", "simOnly": True}))
+    # Namespace payments + workload
+    ns = MeshBuilder()
+    ns.add_chamfer_box(0.75, -0.8, 1.05, 1.7, 0.08, 1.5, 0.03)
+    parts.append((ns, MAT_INK, "ns-payments", {**ped, "label": "Namespace payments", "kind": "Namespace"}))
+    pod = MeshBuilder()
+    pod.add_sphere(0.75, -0.42, 1.05, 0.26, 14, 16)
+    parts.append((pod, MAT_CYAN, "payments-pod", {**ped, "label": "Pod payments-api (Deployment)", "kind": "Pod"}))
+    vuln = MeshBuilder()
+    vuln.add_cylinder(0.75, -0.42, 1.05, 0.36, 0.5, 24, capped=False)
+    parts.append((vuln, MAT_DENY, "sim-vuln-halo", {**ped, "label": "running an image that is untrusted, unsigned or carries CRITICAL CVEs", "simOnly": True}))
+    _edge(parts, (1.55, -0.55, -0.95), (-2.15, -0.45, 0.4), "edge-registry-api", MAT_CYAN, ped, "pod spec image → admission", 0.03, 0.18)
+    _edge(parts, (2.3, -0.55, 0.95), (-2.15, -0.45, 0.7), "edge-untrusted-api", MAT_DENY, ped, "docker.io image → admission", 0.03, 0.2)
+    _edge(parts, (-0.55, -0.45, 0.6), (0.5, -0.42, 1.0), "edge-api-pod", MAT_LED, ped, "admitted → ReplicaSet creates the pod → kubelet pulls", 0.03, 0.1)
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 6.0, 0.12, 3.4)
+    parts.append((lod, MAT_VOID, "lod1-supply-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1782,6 +1886,7 @@ SCENES = {
     "node-troubleshoot.glb": scene_node_troubleshoot,
     "service-dns.glb": scene_service_dns,
     "cks-pod-security.glb": scene_cks_pod_security,
+    "cks-supply-chain.glb": scene_cks_supply_chain,
 }
 
 
