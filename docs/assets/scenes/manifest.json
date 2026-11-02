@@ -1,6 +1,6 @@
 {
   "v": 5,
-  "updated": "2026-10-23T09:30:00-04:00",
+  "updated": "2026-10-27T09:30:00-04:00",
   "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions. 2026-10-22: NEW authored asset node-troubleshoot.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the worker-node troubleshooting drill \u2014 the first new .glb since 2026-10-06. 2026-10-23: NEW authored asset service-dns.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the Service + DNS troubleshooting drill.",
   "engines": [
     "webgl",
@@ -316,7 +316,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.12.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (13 packs; host-aware prompt for ssh sessions) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
+    "player": "/assets/il-immersive-3d.js (v1.12.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (15 packs; host-aware prompt for ssh sessions) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -420,7 +420,7 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "player": "il-immersive-3d.js v1.12.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
       "packs": [
         {
@@ -533,6 +533,24 @@
             "cross-ns-fqdn"
           ],
           "since": "2026-10-23"
+        },
+        {
+          "sim": "cni-network",
+          "tasks": [
+            "no-cni",
+            "cidr-overlap",
+            "no-kube-proxy"
+          ],
+          "since": "2026-10-27"
+        },
+        {
+          "sim": "mesh-mtls",
+          "tasks": [
+            "strict-reset",
+            "permissive-to-strict",
+            "istiod-down"
+          ],
+          "since": "2026-10-27"
         }
       ],
       "syntax": [
@@ -554,7 +572,9 @@
         "kubectl get / patch / delete / create configmap; kubectl get / describe / patch secret (stringData); kubectl rollout restart|status; kubectl exec \u2026 -- cat / printenv; etcdctl get /registry/secrets/\u2026",
         "sleep N (N \u2265 60 skips the kubelet sync period \u2014 simulated time, nothing waits)",
         "ssh node-01 (session; `exit` returns) or ssh node-01 CMD; systemctl status|start|stop|restart|enable --now|daemon-reload kubelet|containerd; journalctl -u kubelet; cat / sed -i 's|old|new|' on the kubeadm kubelet drop-in; which kubelet; crictl ps|images|rmi --prune; df -h; ls /etc/cni/net.d; kubectl describe node; kubectl rollout restart daemonset calico-node -n kube-system",
-        "kubectl get svc [-A] [-o wide]; kubectl describe svc api|kube-dns; kubectl get endpointslices -l kubernetes.io/service-name=api (and deprecated endpoints); kubectl describe deployment api; kubectl patch svc api (selector / ports[].targetPort); kubectl exec -n shop dnsutils -- nslookup|dig [+short] [+search] NAME | cat /etc/resolv.conf; kubectl exec -n shop deploy/web -- curl; kubectl run \u2026 --rm -it --restart=Never -- nslookup NAME; kubectl logs -n kube-system -l k8s-app=kube-dns; kubectl get configmap coredns -n kube-system -o yaml > FILE + sed -i + kubectl apply -f FILE; kubectl get / describe networkpolicy; kubectl set env deployment/web DB_HOST=\u2026 [--list]"
+        "kubectl get svc [-A] [-o wide]; kubectl describe svc api|kube-dns; kubectl get endpointslices -l kubernetes.io/service-name=api (and deprecated endpoints); kubectl describe deployment api; kubectl patch svc api (selector / ports[].targetPort); kubectl exec -n shop dnsutils -- nslookup|dig [+short] [+search] NAME | cat /etc/resolv.conf; kubectl exec -n shop deploy/web -- curl; kubectl run \u2026 --rm -it --restart=Never -- nslookup NAME; kubectl logs -n kube-system -l k8s-app=kube-dns; kubectl get configmap coredns -n kube-system -o yaml > FILE + sed -i + kubectl apply -f FILE; kubectl get / describe networkpolicy; kubectl set env deployment/web DB_HOST=\u2026 [--list]",
+        "kubectl get nodes [-o wide]; kubectl describe node; kubectl get pods [-n kube-system] [-o wide]; kubectl get daemonsets|deployments -n kube-system; ls /etc/cni/net.d; kubectl apply -f calico.yaml|new-pool.yaml (lab stand-ins); kubectl get ippool [NAME -o yaml]; kubectl patch ippool default-ipv4-ippool --type merge -p '{\"spec\":{\"disabled\":true}}'; kubectl rollout restart deployment [NAME]; kubectl scale deployment coredns; sudo kubeadm init phase addon kube-proxy|coredns; kubectl exec deploy/client -- ping -c N IP | curl -s -m 3 URL | nslookup NAME",
+        "kubectl get namespace [NAME] --show-labels | -L istio-injection; kubectl label namespace shop istio-injection=enabled; kubectl get pods -n shop|payments; kubectl rollout restart|status deployment/frontend -n shop; kubectl get events -n shop; kubectl get peerauthentication -n payments [-o yaml]; kubectl apply -f pa-strict.yaml|pa-permissive.yaml; kubectl get deployments -n istio-system; kubectl scale deployment istiod -n istio-system --replicas=N; istioctl proxy-status; kubectl exec -n shop deploy/frontend -- curl http://payments.payments:8080/headers"
       ],
       "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
       "ux": [
@@ -602,7 +622,9 @@
       },
       "gatewayNote": "Gateway API pack (2026-10-21) drives the gateway-api sim on the same authored ingress-gateway.glb. GatewayClass lab-gw (controllerName example.net/lab-gateway-controller) is a lab implementation computed by the rules engine \u2014 not Envoy Gateway, Istio, Cilium or NGINX Gateway Fabric, and not a live Gateway.",
       "nodeNote": "Worker-node pack (2026-10-22) drives node-troubleshoot on the NEW authored node-troubleshoot.glb. systemd, journald, crictl, df and sed output is computed from sim state (shaped like the real tools, not byte-identical; journal lines are labelled representative). No VM, no real kubelet, no clock: durations such as node-monitor-grace-period and the 300s eviction toleration are explained, not simulated.",
-      "serviceDnsNote": "Service + DNS pack (2026-10-23) drives service-dns on the NEW authored service-dns.glb. Lookups go through the rules engine's resolv.conf model (search shop.svc.cluster.local svc.cluster.local cluster.local, ndots:5) over four cluster records; nslookup / dig / CoreDNS log output is shaped like the real tools (labelled representative), not byte-identical. No live cluster, no real CoreDNS, no internet upstream, no clock: CrashLoopBackOff back-off and resolver timeouts are explained, not counted down. Files written with `>` live only in this terminal session."
+      "serviceDnsNote": "Service + DNS pack (2026-10-23) drives service-dns on the NEW authored service-dns.glb. Lookups go through the rules engine's resolv.conf model (search shop.svc.cluster.local svc.cluster.local cluster.local, ndots:5) over four cluster records; nslookup / dig / CoreDNS log output is shaped like the real tools (labelled representative), not byte-identical. No live cluster, no real CoreDNS, no internet upstream, no clock: CrashLoopBackOff back-off and resolver timeouts are explained, not counted down. Files written with `>` live only in this terminal session.",
+      "cniNote": "CNI pack (2026-10-27) drives cni-network on the authored cni-pod-network.glb (no new asset). Calico is the modelled CNI; calico.yaml and new-pool.yaml are trimmed lab stand-ins, and kubectl get/patch ippool stands in for calicoctl or the Calico API server (projectcalico.org/v3). The pool migration follows Calico's documented order (create the new pool, disable the old one, recreate pods). ping / curl / nslookup results are computed from the rules engine, shaped like busybox and curl output, not byte-identical. No live cluster, no real Calico, no VPC routing, no clock.",
+      "meshNote": "Service-mesh pack (2026-10-27) drives mesh-mtls on the authored service-mesh-sidecar.glb (no new asset). Istio semantics: STRICT resets plaintext clients, injection needs the namespace label and newly created pods, PERMISSIVE accepts both, istiod at zero leaves existing sidecars on their last config while the sidecar-injector webhook (failurePolicy Fail) blocks new pods. payments echoes headers like httpbin /headers, so X-Forwarded-Client-Cert shows an mTLS hop. istioctl output is computed and trimmed. Not CKA core; no live mesh, no real Envoy or istiod."
     }
   },
   "aws_coverage": {

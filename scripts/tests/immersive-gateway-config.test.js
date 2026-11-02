@@ -193,15 +193,15 @@ test('Secret pack: missing secretKeyRef key → CreateContainerConfigError with 
   assert.doesNotMatch(out, /s3cr3t/);
 });
 
-test('pack totals: 13 packs · 38 tasks · 184 steps (11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22); every new step focuses real nodes in its own authored .glb', () => {
+test('pack totals: 15 packs · 44 tasks · 226 steps (11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22; 13 · 38 · 184 on 2026-10-23); every new step focuses real nodes in its own authored .glb', () => {
   const tasks = C.list().reduce((n, id) => n + C.pack(id).tasks.length, 0);
   const steps = C.list().reduce((n, id) => n + C.pack(id).tasks.reduce((m, t) => m + t.steps.length, 0), 0);
-  assert.deepEqual([C.list().length, tasks, steps], [13, 38, 184]);
+  assert.deepEqual([C.list().length, tasks, steps], [15, 44, 226]);
   assert.equal(C.pack('gateway-api').tasks.length, 4);
   assert.equal(C.pack('config-propagation').tasks.length, 3);
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
   assert.match(m.sims.cli.gatewayNote, /not a live Gateway/);
-  assert.match(m.sims.player, /13 packs/);
+  assert.match(m.sims.player, /15 packs/);
 });
 
 /* ── Official CKA blueprint ───────────────────────────────────────────────── */

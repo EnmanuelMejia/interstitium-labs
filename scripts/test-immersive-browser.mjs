@@ -885,7 +885,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 13, 'CLI terminals still mount (13 packs since 2026-10-23)');
+  assert.equal(info.terminals, 15, 'CLI terminals still mount (15 packs since 2026-10-27)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1219,6 +1219,76 @@ await check('CLI pack 2026-10-23: CoreDNS Corefile crash typed end-to-end — re
   assert.deepEqual(errors, []);
   await page.close();
   return 'coredns-corefile 7/7 · crash ring hidden after fix · ' + ev.length + ' verb-only events';
+});
+
+/* 2026-10-27: CNI + service-mesh mTLS packs — the last two drills without a typed task, on their existing authored .glb. */
+await check('CLI pack 2026-10-27: CNI cidr-overlap typed end-to-end — cross-node ping fails, Calico pool migration, pods re-IP; overlay arcs re-tint', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const cn = await cliHost(page, 'cni-network');
+  await cn.locator('[data-il-cli-task="cidr-overlap"]').click();
+  assert.equal(await cn.getAttribute('data-il-cli-task'), 'cidr-overlap:0/8');
+  assert.equal(await cn.getAttribute('data-il-sim-verdict'), 'degraded');
+  const node = (n) => cn.evaluate((el, nm) => { const v = el._ilImmersive._authored.find(x => x.name === nm); return v && v.simStyle && v.simStyle.tint; }, n);
+  assert.equal(await node('overlay-arc-0-0'), 'deny', 'cross-node arcs show the broken path');
+  const t0 = await tints(cn);
+  await type(cn, 'kubectl exec deploy/client -- ping -c 2 10.0.77.3');
+  assert.match(await logText(cn), /100% packet loss/);
+  await type(cn, 'check');
+  assert.match(await cn.getAttribute('data-il-cli-focus') || '', /cni-bridge|veth-0-/, 'coach focuses authored CNI nodes');
+  await type(cn, 'kubectl exec deploy/client -- ping -c 2 10.0.10.5');
+  await type(cn, 'kubectl get nodes -o wide');
+  await type(cn, 'kubectl get ippool default-ipv4-ippool -o yaml');
+  assert.match(await logText(cn), /cidr: 10\.0\.0\.0\/16/);
+  await type(cn, 'kubectl apply -f new-pool.yaml');
+  await type(cn, `kubectl patch ippool default-ipv4-ippool --type merge -p '{"spec":{"disabled":true}}'`);
+  await type(cn, 'kubectl rollout restart deployment');
+  await type(cn, 'kubectl rollout restart deployment coredns -n kube-system');
+  assert.equal(await cn.getAttribute('data-il-cli-task'), 'cidr-overlap:7/8');
+  assert.equal(await node('overlay-arc-0-0'), 'ok');
+  await type(cn, 'kubectl exec deploy/client -- ping -c 2 192.168.77.3');
+  assert.equal(await cn.getAttribute('data-il-cli-task'), 'cidr-overlap:8/8');
+  assert.equal(await cn.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.notEqual(await tints(cn), t0, 'typed pool migration re-tints authored glTF nodes');
+  await cn.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await cn.screenshot({ path: path.join(shots, 'immersive-cli-cni-network.png') });
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 9 && ev.every(d => !/10\.0\.|192\.168|ippool|new-pool|ping/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'cidr-overlap 8/8 · overlay arcs deny → ok · ' + ev.length + ' verb-only events';
+});
+
+await check('CLI pack 2026-10-27: mesh strict-reset typed end-to-end — reset by peer, label + restart, XFCC header; client sidecar node revealed', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const ms = await cliHost(page, 'mesh-mtls');
+  await ms.locator('[data-il-cli-task="strict-reset"]').click();
+  assert.equal(await ms.getAttribute('data-il-cli-task'), 'strict-reset:0/7');
+  assert.equal(await ms.getAttribute('data-il-sim-verdict'), 'down');
+  const node = (n) => ms.evaluate((el, nm) => { const v = el._ilImmersive._authored.find(x => x.name === nm); return v && v.simStyle && { tint: v.simStyle.tint, hide: !!v.simStyle.hide }; }, n);
+  assert.equal((await node('sidecar-0')).hide, true, 'no client sidecar yet');
+  const pay = 'kubectl exec -n shop deploy/frontend -- curl -s -m 3 http://payments.payments:8080/headers';
+  await type(ms, pay);
+  assert.match(await logText(ms), /Connection reset by peer/);
+  await type(ms, 'kubectl get peerauthentication -n payments');
+  await type(ms, 'kubectl get pods -n shop');
+  await type(ms, 'kubectl get namespace shop --show-labels');
+  await type(ms, 'kubectl label namespace shop istio-injection=enabled');
+  assert.equal((await node('sidecar-0')).hide, true, 'a label alone does not inject running pods');
+  await type(ms, 'kubectl rollout restart deployment/frontend -n shop');
+  assert.equal((await node('sidecar-0')).hide, false, 'recreated pods get the sidecar');
+  await type(ms, pay);
+  assert.match(await logText(ms), /X-Forwarded-Client-Cert/);
+  assert.equal(await ms.getAttribute('data-il-cli-task'), 'strict-reset:7/7');
+  assert.equal(await ms.getAttribute('data-il-sim-verdict'), 'healthy');
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 7 && ev.every(d => !/payments|istio-injection|frontend|headers/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  await ms.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await ms.screenshot({ path: path.join(shots, 'immersive-cli-mesh-mtls.png') });
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'strict-reset 7/7 · sidecar-0 revealed only after restart · ' + ev.length + ' verb-only events';
 });
 
 await check('CKA blueprint: finished paper scores the 5 official domains by weight, names the weakest by points at stake with a 3D drill link; review lobby shows readiness', async () => {
