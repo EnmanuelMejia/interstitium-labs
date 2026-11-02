@@ -62,7 +62,7 @@ test('NEW asset: node-troubleshoot.glb is authored + Blender-polished, keeps nam
 test('rules engine: kubelet / runtime / CNI / disk pressure follow documented node behaviour', () => {
   const sim = S.get(SIM);
   const at = set => S.nodeDecide(S.merge(sim.initial, set));
-  assert.ok(['1.5.0', '1.6.0'].includes(S.VERSION), 'node-troubleshoot arrived in v1.5.0; v1.6.0 (2026-10-23) keeps it');
+  assert.ok(['1.5.0', '1.6.0', '1.7.0'].includes(S.VERSION), 'node-troubleshoot arrived in v1.5.0; v1.6.0 (2026-10-23) and v1.7.0 (2026-10-29) keep it');
   assert.equal(at({}).ready, 'True');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   const k203 = at({ execLoaded: false, execOnDisk: false });

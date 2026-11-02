@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -79,7 +79,7 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
   ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
   ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['gateway-api', 'no-refgrant', 'degraded'], ['config-propagation', 'missing-key', 'down'],
-  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded'], ['service-dns', 'corefile', 'down']]) {
+  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded'], ['service-dns', 'corefile', 'down'], ['cks-pod-security', 'rbac-admin', 'exposed']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -256,6 +256,43 @@ const keyFor = (page, qText) => page.evaluate((q) => {
   for (const id of S.list()) for (const sc of S.get(id).scenarios) if (sc.predict && sc.predict.q === q) return { sim: id, sc: sc.id, answer: sc.predict.answer, n: sc.predict.options.length };
   return null;
 }, qText);
+
+/* 2026-10-29: CKS paper — the CKS button draws only CKS-mapped checkpoints and scores the 6 official CKS domains. */
+await check('/immersive/exam/: CKS paper (8 · 12:00) scores the 6 official CKS domains; Supply Chain is listed as not covered', async () => {
+  const { page, errors } = await open('/immersive/exam/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  const poolCks = Number(await page.locator('[data-il-exam-pool-cks]').textContent());
+  const want = await page.evaluate(() => window.ILImmersiveExam.pool(window.ILImmersiveSims, 'CKS').length);
+  assert.equal(poolCks, want);
+  assert.ok(poolCks >= 15, 'CKS pool ' + poolCks);
+  await page.locator('[data-il-exam-start][data-track="CKS"]').click();
+  await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.equal(await page.locator('html').getAttribute('data-il-exam-track'), 'CKS');
+  assert.match(await page.locator('[data-il-exam-timer]').textContent(), /^1[12]:\d\d$/);
+  const sims = new Set();
+  for (let i = 0; i < 8; i++) {
+    await page.waitForFunction(n => document.querySelector('[data-il-exam-progress]').textContent === 'Q ' + n + '/8', i + 1, { timeout: 30000 });
+    await page.locator('[data-il-exam-option]').first().waitFor({ timeout: 30000 });
+    const k = await keyFor(page, await page.locator('[data-il-exam-q]').textContent());
+    assert.ok(k && ['cks-pod-security', 'netpol-isolation', 'rbac-authz'].includes(k.sim), 'CKS pool only: ' + (k && k.sim));
+    sims.add(k.sim);
+    await page.locator(`[data-il-exam-option="${k.answer}"]`).click();
+  }
+  await page.locator('[data-il-exam-done]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.ok(sims.has('cks-pod-security'), 'the new CKS drill is on the paper');
+  assert.equal(await page.locator('html').getAttribute('data-il-exam-score'), '8/8');
+  assert.equal(await page.locator('[data-il-exam-blueprint] tbody tr').count(), 6);
+  assert.match(await page.locator('[data-il-exam-bp-domain="Supply Chain Security"]').textContent(), /not on this paper/);
+  assert.match(await page.locator('[data-il-exam-weighted]').textContent(), /Blueprint-weighted score: 100% over the domains this paper covered \(80% of the CKS weight\)\. Not on this paper: Supply Chain Security\./);
+  assert.match(await page.locator('[data-il-exam-blueprint-title]').textContent(), /Official CNCF CKS blueprint/);
+  assert.match(await page.locator('[data-il-exam-blueprint-honesty]').textContent(), /Supply Chain Security has no drill yet/);
+  assert.match(await page.locator('[data-il-exam-history]').textContent(), /\(CKS\): 8\/8/);
+  await page.screenshot({ path: path.join(shots, 'immersive-exam-cks.png'), fullPage: false });
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'CKS pool ' + poolCks + ' · 8/8 · 6 domains · Supply Chain not covered';
+});
 
 await check('/immersive/: a free-play CKA drill miss lands in the review queue (box 0, due now) and the badge updates', async () => {
   const { page, errors } = await open('/immersive/');
@@ -885,7 +922,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 15, 'CLI terminals still mount (15 packs since 2026-10-27)');
+  assert.equal(info.terminals, 16, 'CLI terminals still mount (16 packs since 2026-10-29)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1219,6 +1256,54 @@ await check('CLI pack 2026-10-23: CoreDNS Corefile crash typed end-to-end — re
   assert.deepEqual(errors, []);
   await page.close();
   return 'coredns-corefile 7/7 · crash ring hidden after fix · ' + ev.length + ' verb-only events';
+});
+
+/* 2026-10-29: the first CKS pack on the NEW authored cks-pod-security.glb. */
+await check('CLI pack 2026-10-29 (CKS): ServiceAccount least privilege typed end-to-end — can-i yes → delete cluster-admin binding → Role + RoleBinding → can-i no; crown hides, verdict healthy', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const ck = await cliHost(page, 'cks-pod-security');
+  await ck.locator('[data-il-cli-task="sa-least-privilege"]').click();
+  assert.equal(await ck.getAttribute('data-il-cli-task'), 'sa-least-privilege:0/7');
+  assert.equal(await ck.getAttribute('data-il-sim-verdict'), 'exposed');
+  const node = (n) => ck.evaluate((el, nm) => { const v = el._ilImmersive._authored.find(x => x.name === nm); return v && v.simStyle && { tint: v.simStyle.tint, hide: !!v.simStyle.hide }; }, n);
+  assert.equal((await node('sim-cluster-admin-crown')).hide, false, 'sim-only cluster-admin crown revealed');
+  assert.equal((await node('edge-token-secrets')).tint, 'deny');
+  const t0 = await tints(ck);
+  const SA = 'system:serviceaccount:payments:api-sa';
+  await type(ck, 'kubectl auth can-i get secrets -A --as ' + SA);
+  await type(ck, 'kubectl get clusterrolebindings -o wide');
+  assert.match(await logText(ck), /api-sa-admin\s+ClusterRole\/cluster-admin/);
+  await type(ck, 'kubectl delete clusterrolebinding api-sa-admin');
+  assert.equal((await node('sim-cluster-admin-crown')).hide, true);
+  await type(ck, 'kubectl create role config-reader -n payments --verb=get,list,watch --resource=configmaps');
+  await type(ck, 'kubectl create rolebinding api-sa-config-reader -n payments --role=config-reader --serviceaccount=payments:api-sa');
+  await type(ck, 'kubectl auth can-i get secrets -A --as ' + SA);
+  await type(ck, 'kubectl auth can-i list configmaps -n payments --as ' + SA);
+  assert.equal(await ck.getAttribute('data-il-cli-task'), 'sa-least-privilege:7/7');
+  assert.equal(await ck.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.notEqual(await tints(ck), t0, 'typed RBAC fix re-tints authored glTF nodes');
+  await ck.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await ck.screenshot({ path: path.join(shots, 'immersive-cli-cks-pod-security.png') });
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 7 && ev.every(d => !/api-sa|config-reader|serviceaccount/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'sa-least-privilege 7/7 · exposed → healthy · ' + ev.length + ' verb-only events';
+});
+
+await check('CKS toggles (2026-10-29): audit backend off → degraded; both ingress policies off → exposed; allow-frontend alone still isolates', async () => {
+  const { page, errors } = await openCli();
+  const host = await cliHost(page, 'cks-pod-security', false);
+  const out = [];
+  for (const [toggle, want] of [['auditOn', 'degraded'], ['auditOn', 'healthy'], ['denyIngress', 'healthy'], ['allowFrontend', 'exposed'], ['allowFrontend', 'healthy'], ['denyIngress', 'healthy']]) {
+    await host.locator(`[data-il-sim-toggle="${toggle}"]`).click();
+    assert.equal(await host.getAttribute('data-il-sim-verdict'), want, toggle);
+    out.push(toggle + '→' + want);
+  }
+  assert.deepEqual(errors, []);
+  await page.close();
+  return out.join(' · ');
 });
 
 /* 2026-10-27: CNI + service-mesh mTLS packs — the last two drills without a typed task, on their existing authored .glb. */

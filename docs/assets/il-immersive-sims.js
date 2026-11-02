@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.6.0 (2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.7.0 (2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -31,6 +31,12 @@
  * Corefile parse error (CrashLoopBackOff → lookups refused, ClusterIPs still work), namespace default-deny egress without
  * a kube-dns:53 rule (lookups time out), short name across namespaces (search list → NXDOMAIN). svcDnsResolve() models
  * the pod resolv.conf search list with ndots:5. The other half of CKA Troubleshooting (30%).
+ *
+ * v1.7.0 (2026-10-29): the first CKS drill, cks-pod-security, on a NEW authored asset cks-pod-security.glb (kit-v2 +
+ * Blender CLI polish): Pod Security Admission enforce=restricted vs a privileged template (Deployment accepted,
+ * ReplicaSet FailedCreate), unlabelled namespace = privileged by default, no seccompProfile = Unconfined (Seccomp: 0),
+ * no NetworkPolicy = allow-all, default-deny ingress without an allow rule (egress untouched), ServiceAccount bound
+ * to cluster-admin, audit policy without --audit-log-path (no backend). New verdict 'exposed' (tone bad).
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1442,10 +1448,167 @@
     }
   };
 
+  /* ── CKS: Pod Security · securityContext/seccomp · default-deny · SA least privilege · audit — v1.7.0 (2026-10-29) ──
+   * Scene contract (cks-pod-security.glb, authored 2026-10-29 — the first CKS asset): control-plane plate with
+   * kube-apiserver, psa-gate (+ sim-psa-reject), audit-policy, audit-log (+ sim-audit-gap), edge-api-audit; ns-payments
+   * with psa-label, payments-pod inside sec-context over seccomp-filter over node-kernel (+ sim-privileged-flare),
+   * sa-token (+ sim-cluster-admin-crown), secret-db-creds, netpol-tablet, sim-netpol-wall; ns-frontend/frontend-pod,
+   * ns-default/attacker-pod, edge-frontend-api, edge-attacker-api; rbac-binding, secrets-vault, edge-token-secrets,
+   * edge-pod-apiserver. Rules follow the documented Pod Security Admission (built-in PodSecurity controller, enforce
+   * applies to Pods; warn/audit also to workload templates; unlabelled namespaces default to privileged), PSS
+   * restricted checks, kubelet seccomp defaults (Unconfined unless seccompDefault), NetworkPolicy isolation, RBAC
+   * binding scope, and the API server audit log backend (off without --audit-log-path). */
+  var CKS_VIOLATIONS = {
+    privileged: 'privileged (container "api" must not set securityContext.privileged=true)',
+    ape: 'allowPrivilegeEscalation != false (container "api" must set securityContext.allowPrivilegeEscalation=false)',
+    caps: 'unrestricted capabilities (container "api" must set securityContext.capabilities.drop=["ALL"])',
+    nonroot: 'runAsNonRoot != true (pod or container "api" must set securityContext.runAsNonRoot=true)',
+    seccomp: 'seccompProfile (pod or container "api" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")'
+  };
+  /** PSS restricted checks the payments-api pod template fails, in the order the PodSecurity admission lists them. */
+  function cksRestrictedViolations(s) {
+    var v = [];
+    if (!s.podHardened) v.push(CKS_VIOLATIONS.privileged, CKS_VIOLATIONS.ape, CKS_VIOLATIONS.caps, CKS_VIOLATIONS.nonroot);
+    if (!s.seccomp) v.push(CKS_VIOLATIONS.seccomp);
+    return v;
+  }
+  function cksDecide(s) {
+    var violations = cksRestrictedViolations(s);
+    var admitted = !s.psaEnforce || violations.length === 0;
+    var privilegedRunning = admitted && !s.podHardened;
+    /* allow-frontend also selects the payments-api pods, so on its own it isolates them too (policies are additive allow-lists). */
+    var isolated = !!s.denyIngress || !!s.allowFrontend;
+    var attackerReach = !isolated;
+    var frontendReach = !isolated || !!s.allowFrontend;
+    var saClusterAdmin = !s.rbacLeast;
+    var exposures = [];
+    if (privilegedRunning) exposures.push('privileged-pod');
+    if (attackerReach) exposures.push('open-ingress');
+    if (saClusterAdmin) exposures.push('cluster-admin-token');
+    return {
+      psaLevel: s.psaEnforce ? 'restricted' : 'privileged (default: no namespace labels)',
+      violations: violations,
+      admitted: admitted,
+      podStatus: admitted ? 'Running' : 'FailedCreate',
+      privilegedRunning: privilegedRunning,
+      runAsUser: admitted ? (s.podHardened ? 10001 : 0) : null,
+      seccompMode: admitted ? (s.seccomp ? 2 : 0) : null,
+      ingressIsolated: isolated,
+      attackerReach: attackerReach,
+      frontendReach: frontendReach,
+      /* policyTypes lists Ingress only, so egress (DNS included) is never isolated by this drill's policy. */
+      egressOk: true,
+      saClusterAdmin: saClusterAdmin,
+      saCanReadAllSecrets: saClusterAdmin,
+      auditEvents: !!s.auditOn,
+      exposures: exposures
+    };
+  }
+
+  var cksPodSecurity = {
+    id: 'cks-pod-security',
+    title: 'CKS workload security drill: Pod Security Admission, securityContext/seccomp, default-deny, least privilege, audit',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-pod-security.glb',
+    initial: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: true },
+    toggles: [
+      { id: 'psaEnforce', label: 'ns payments Pod Security', on: 'enforce=restricted', off: 'no labels (privileged)' },
+      { id: 'podHardened', label: 'payments-api securityContext', on: 'non-root · no escalation · drop ALL', off: 'privileged: true (root)' },
+      { id: 'seccomp', label: 'seccompProfile', on: 'RuntimeDefault', off: 'unset (Unconfined)' },
+      { id: 'denyIngress', label: 'ns payments default-deny ingress', on: 'applied', off: 'none (allow-all)' },
+      { id: 'allowFrontend', label: 'allow frontend → :8080', on: 'applied', off: 'missing' },
+      { id: 'rbacLeast', label: 'ServiceAccount api-sa', on: 'Role in payments (least privilege)', off: 'ClusterRoleBinding → cluster-admin' },
+      { id: 'auditOn', label: 'API audit log backend', on: '--audit-log-path set', off: 'missing (no backend)' }
+    ],
+    scenarios: [
+      { id: 'psa-reject', label: 'restricted vs a privileged template', set: { psaEnforce: true, podHardened: false, seccomp: false, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: true },
+        predict: { q: 'Namespace payments is labelled pod-security.kubernetes.io/enforce=restricted. You run kubectl rollout restart deployment payments-api, whose pod template sets privileged: true and no other securityContext. What happens?',
+          options: ['The Deployment update is accepted, but the ReplicaSet cannot create the new pods: FailedCreate … violates PodSecurity "restricted:latest". With 2 replicas and the default 25% maxUnavailable, the old pods keep running',
+            'kubectl rollout restart is itself rejected with 403 Forbidden, because Pod Security checks Deployments in enforce mode',
+            'The new pods are created, then the kubelet kills them with CreateContainerError'],
+          answer: 0, why: 'Pod Security Admission enforce mode evaluates Pods only; warn and audit modes also evaluate workload templates. So the Deployment change is accepted, and the ReplicaSet controller gets the 403 when it creates each Pod. You see it in `kubectl get events` or `describe rs` as FailedCreate, with every failing check listed (privileged, allowPrivilegeEscalation, capabilities, runAsNonRoot, seccompProfile). With 2 replicas, maxUnavailable rounds down to 0, so the rollout stalls and the old pods keep serving.' } },
+      { id: 'no-psa', label: 'No Pod Security labels', set: { psaEnforce: false, podHardened: false, seccomp: false, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: true },
+        predict: { q: 'Namespace payments has no pod-security.kubernetes.io labels, and the API server uses the default PodSecurity configuration. A teammate deploys payments-api with privileged: true. What does admission do?',
+          options: ['It rejects the pod, because Kubernetes enforces the baseline level by default since PodSecurityPolicy was removed',
+            'It admits the pod with a warning, because the default warn level is restricted',
+            'It admits the pod silently. With no labels and no AdmissionConfiguration defaults, every mode defaults to privileged. The container gets all capabilities and host devices, which makes it about as powerful as root on the node'],
+          answer: 2, why: 'The built-in PodSecurity admission controller defaults enforce, audit and warn to privileged:latest unless you label the namespace or set cluster-wide defaults in the AdmissionConfiguration. PodSecurityPolicy was removed in v1.25, and nothing restrictive replaced it by default. privileged: true turns off most container isolation, including device access and the capability bounding set. Label the namespace (enforce=restricted, or baseline at least) and harden the pod.' } },
+      { id: 'seccomp', label: 'No seccompProfile', set: { psaEnforce: false, podHardened: true, seccomp: false, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: true },
+        predict: { q: 'payments-api now runs as non-root with allowPrivilegeEscalation: false and drop: [ALL], but it sets no seccompProfile. The kubelet runs with its defaults. What does grep Seccomp /proc/1/status print inside the container?',
+          options: ['Seccomp: 2, because the container runtime always applies its default profile',
+            'Seccomp: 0 (unconfined). The kubelet applies the runtime default profile only when seccompDefault is enabled. Set securityContext.seccompProfile.type: RuntimeDefault, which restricted also requires',
+            'Seccomp: 1 (strict mode), because non-root containers get the strict read/write/exit filter'],
+          answer: 1, why: 'Kubernetes runs containers Unconfined unless the pod or container sets seccompProfile, or the kubelet has seccompDefault: true. /proc/1/status shows Seccomp: 0 when unconfined and 2 when a filter is loaded. RuntimeDefault loads the container runtime’s profile, which blocks syscalls such as keyctl and add_key (the kernel keyring is not namespaced). PSS restricted rejects pods without RuntimeDefault or Localhost. Strict mode (1) is never used for containers.' } },
+      { id: 'no-netpol', label: 'No NetworkPolicy', set: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: false, allowFrontend: false, rbacLeast: true, auditOn: true },
+        predict: { q: 'Namespace payments has no NetworkPolicy. A compromised pod in namespace default runs curl http://payments-api.payments:8080. What happens?',
+          options: ['It is refused, because pods accept traffic only from their own namespace by default',
+            'It gets a 200. Until a NetworkPolicy selects a pod, the pod accepts traffic from anywhere. Start with a default-deny ingress policy, then allow only what is needed',
+            'It times out, because the CNI blocks cross-namespace traffic unless the Service is exported'],
+          answer: 1, why: 'Kubernetes networking is flat and allow-all by default. A pod is isolated for ingress only once some NetworkPolicy with Ingress in policyTypes selects it. The CKS pattern is a default-deny policy per namespace (podSelector {} plus policyTypes [Ingress]), followed by narrow allow rules. This needs a CNI that enforces NetworkPolicy, such as Calico or Cilium; flannel alone does not.' } },
+      { id: 'deny-all-ingress', label: 'Default-deny, no allow rule', set: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: true, allowFrontend: false, rbacLeast: true, auditOn: true },
+        predict: { q: 'You apply default-deny-ingress (podSelector: {}, policyTypes: [Ingress]) in payments and nothing else. What happens to frontend → payments-api, and to payments-api’s own DNS lookups?',
+          options: ['frontend still works because Services bypass NetworkPolicy, but DNS breaks',
+            'Both break, because a default-deny policy blocks ingress and egress',
+            'frontend → payments-api times out because nothing allows it yet. payments-api’s DNS lookups keep working, because this policy lists only Ingress, so egress is not isolated. Add an allow rule from namespace frontend on 8080'],
+          answer: 2, why: 'A policy that selects every pod and has no ingress rules drops all inbound traffic to payments, including legitimate traffic. NetworkPolicy is enforced on pod IPs after the Service DNAT, so a ClusterIP does not get around it. Egress isolation needs Egress in policyTypes, so DNS and outbound calls are untouched. Then allow namespaceSelector kubernetes.io/metadata.name=frontend on TCP 8080.' } },
+      { id: 'rbac-admin', label: 'ServiceAccount is cluster-admin', set: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: true, allowFrontend: true, rbacLeast: false, auditOn: true },
+        predict: { q: 'payments-api runs as ServiceAccount api-sa, and a ClusterRoleBinding (api-sa-admin) binds api-sa to cluster-admin. An attacker with RCE in the pod reads the projected token. What can they do?',
+          options: ['Anything in any namespace: kubectl auth can-i get secrets -A --as system:serviceaccount:payments:api-sa says yes. Delete the ClusterRoleBinding, then bind a namespaced Role with only the verbs the app needs',
+            'Only read objects in payments, because a ServiceAccount token is always scoped to its own namespace',
+            'Nothing, because projected tokens are bound to the pod and a copied token is rejected outside it'],
+          answer: 0, why: 'RBAC grants come from bindings, not from the namespace the ServiceAccount lives in. A ClusterRoleBinding to cluster-admin gives the token full rights over the whole cluster. Projected tokens are time-bound and audience-bound, and they become invalid when the pod is deleted. They are still bearer tokens, though: anyone who holds one can use it while the pod lives. Least privilege means a Role plus a RoleBinding in payments, and automountServiceAccountToken: false where the app never calls the API.' } },
+      { id: 'audit-off', label: 'Audit policy without a backend', set: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: false },
+        predict: { q: 'kube-apiserver has --audit-policy-file=/etc/kubernetes/audit/policy.yaml, but --audit-log-path is commented out and there is no webhook backend. Someone reads Secret db-creds. What does the cluster record?',
+          options: ['A RequestResponse event with the secret value, because the policy file alone turns on logging to stdout',
+            'Nothing. The log backend is off when --audit-log-path is not set, so the policy has nowhere to write. Once the flag is set, a Metadata-level rule records who, what, when and from where, but never the secret’s data',
+            'An event in etcd under /registry/events, which kubectl get events shows'],
+          answer: 1, why: 'The audit log backend is turned on by --audit-log-path (a file path, or - for stdout), and the webhook backend by --audit-webhook-config-file. With neither, no events are written. Use the Metadata level for Secrets: the event carries user, verb, resource, name, sourceIPs and responseStatus, but no request or response body, which would contain the secret. Kubernetes Events are a different API and do not record reads. Remember to hostPath-mount the policy file and the log directory into the static pod.' } },
+      { id: 'heal', label: 'Reset', set: { psaEnforce: true, podHardened: true, seccomp: true, denyIngress: true, allowFrontend: true, rbacLeast: true, auditOn: true } }
+    ],
+    derive: function (s) {
+      var d = cksDecide(s), rules = [];
+      rules.push(rule('^psa-label$', s.psaEnforce ? { tint: 'ok', glow: 0.35 } : { tint: 'gold', glow: 0.7, pulse: true }));
+      rules.push(rule('^psa-gate$', !s.psaEnforce ? { tint: 'muted', glow: 0.1 } : (d.admitted ? { tint: 'ok', glow: 0.4 } : { tint: 'deny', glow: 0.8, pulse: true })));
+      rules.push(rule('^sim-psa-reject$', d.admitted ? { hide: true } : { show: true, tint: 'deny', glow: 0.8, pulse: true }));
+      rules.push(rule('^edge-pod-apiserver$', d.admitted ? { tint: 'ok', glow: 0.35 } : { tint: 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^payments-pod$', !d.admitted ? { tint: 'down', glow: 0 } : (d.privilegedRunning ? { tint: 'deny', glow: 0.7, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^sec-context$', s.podHardened ? { tint: 'ok', glow: 0.5 } : { tint: 'deny', glow: 0.2 }));
+      rules.push(rule('^sim-privileged-flare$', d.privilegedRunning ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^seccomp-filter$', s.seccomp ? { tint: 'ok', glow: 0.55 } : { tint: 'warn', glow: 0.6, pulse: true }));
+      rules.push(rule('^node-kernel$', d.privilegedRunning ? { tint: 'deny', glow: 0.5, pulse: true } : (s.seccomp ? { tint: 'muted', glow: 0.1 } : { tint: 'warn', glow: 0.3 })));
+      rules.push(rule('^sim-netpol-wall$', s.denyIngress ? { show: true, tint: 'ok', glow: 0.35 } : { hide: true }));
+      rules.push(rule('^netpol-tablet$', s.denyIngress && s.allowFrontend ? { tint: 'ok', glow: 0.3 } : { tint: 'gold', glow: 0.7, pulse: true }));
+      rules.push(rule('^edge-attacker-api$', d.attackerReach ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^attacker-pod$', d.attackerReach ? { tint: 'deny', glow: 0.7, pulse: true } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^edge-frontend-api$', d.frontendReach ? { tint: 'ok', glow: 0.45 } : { tint: 'warn', glow: 0.5, pulse: true }));
+      rules.push(rule('^frontend-pod$', d.frontendReach ? { tint: 'ok', glow: 0.4 } : { tint: 'warn', glow: 0.5, pulse: true }));
+      rules.push(rule('^sim-cluster-admin-crown$', d.saClusterAdmin ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sa-token$', d.saClusterAdmin ? { tint: 'deny', glow: 0.7, pulse: true } : { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^rbac-binding$', s.rbacLeast ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.7, pulse: true }));
+      rules.push(rule('^edge-token-secrets$', d.saClusterAdmin ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^secrets-vault$', d.saClusterAdmin ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'gold', glow: 0.25 }));
+      rules.push(rule('^secret-db-creds$', { tint: 'gold', glow: 0.3 }));
+      rules.push(rule('^(audit-log|edge-api-audit)$', s.auditOn ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^sim-audit-gap$', s.auditOn ? { hide: true } : { show: true, tint: 'deny', glow: 0.7, pulse: true }));
+      rules.push(rule('^audit-policy$', s.auditOn ? { tint: 'muted', glow: 0.15 } : { tint: 'gold', glow: 0.6, pulse: true }));
+      rules.push(rule('^kube-apiserver$', { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^(ns-payments|ns-frontend|ns-default|control-plane)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = d.exposures.length ? 'exposed' : (!d.admitted ? 'rejected' : (!d.frontendReach ? 'down' : (!s.auditOn || !s.seccomp ? 'degraded' : 'healthy')));
+      var cap = [];
+      cap.push('PSA ' + (s.psaEnforce ? 'enforce=restricted' : 'unlabelled → privileged') + ' · payments-api ' + (d.admitted ? 'Running' + (d.privilegedRunning ? ' PRIVILEGED (root, all capabilities)' : ' as uid ' + d.runAsUser) : 'FailedCreate (' + d.violations.length + ' restricted checks fail)'));
+      if (d.admitted && !s.seccomp) cap.push('no seccompProfile → Unconfined (Seccomp: 0)');
+      cap.push(d.attackerReach ? 'no default-deny → attacker in ns default reaches :8080' : (d.frontendReach ? 'default-deny + allow frontend:8080' : 'default-deny, no allow rule → frontend blocked too (egress untouched)'));
+      if (d.saClusterAdmin) cap.push('api-sa → cluster-admin: a stolen token reads Secrets in every namespace');
+      cap.push(s.auditOn ? 'audit: Metadata events to /var/log/kubernetes/audit/audit.log' : 'audit: no --audit-log-path → nothing recorded');
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
-    'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns };
+    'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
+    'cks-pod-security': cksPodSecurity };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1486,7 +1649,7 @@
     healthy: 'ok', allow: 'ok',
     degraded: 'warn', 'implicit-deny': 'warn', pending: 'warn', terminating: 'warn', released: 'warn',
     stale: 'warn', 'cert-warning': 'warn', rejected: 'warn',
-    down: 'bad', 'explicit-deny': 'bad', 'data-deleted': 'bad', 'exposed-at-rest': 'bad'
+    down: 'bad', 'explicit-deny': 'bad', 'data-deleted': 'bad', 'exposed-at-rest': 'bad', exposed: 'bad'
   };
   function verdictTone(v) { return Object.prototype.hasOwnProperty.call(VERDICT_TONE, v) ? VERDICT_TONE[v] : 'info'; }
 
@@ -1500,7 +1663,7 @@
   }
 
   return {
-    VERSION: '1.6.0',
+    VERSION: '1.7.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1528,6 +1691,8 @@
     nodeDecide: nodeDecide,
     serviceDnsDecide: serviceDnsDecide,
     svcDnsResolve: svcDnsResolve,
+    cksDecide: cksDecide,
+    cksRestrictedViolations: cksRestrictedViolations,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

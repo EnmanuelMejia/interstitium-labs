@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.6.0 (2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.7.0 (2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -55,6 +55,15 @@
  * migration in a safe order, istiod at zero keeps traffic flowing but the injection webhook (failurePolicy Fail) blocks
  * new pods; `istioctl proxy-status`. Tasks: no-cni · cidr-overlap · no-kube-proxy · strict-reset ·
  * permissive-to-strict · istiod-down. Voice: "istio control" → istioctl, "peer authentication", "ip pool", "kube adm".
+ *
+ * v1.7.0 (2026-10-29) — the first CKS pack (16 total) on the NEW authored cks-pod-security.glb: Pod Security Admission
+ * (`kubectl label --dry-run=server --overwrite ns … pod-security.kubernetes.io/enforce=restricted` with the real
+ * existing-pods warning, Forbidden on a privileged pod, ReplicaSet FailedCreate listing every restricted check),
+ * securityContext + seccomp proof from inside the container (`id`, `grep Seccomp /proc/1/status`), default-deny ingress
+ * then allow frontend, ServiceAccount least privilege (`auth can-i --as system:serviceaccount:…`, ClusterRoleBinding
+ * removal, `create role` / `create rolebinding --serviceaccount`), and the API audit log backend (`sed -i` on the
+ * kube-apiserver static-pod manifest, a Metadata-level audit.k8s.io/v1 event without the secret value). Tasks:
+ * psa-enforce · harden-pod · default-deny · sa-least-privilege · audit-log. Voice: "sec comp" → seccomp, "dry run" → dry-run.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -2825,6 +2834,408 @@
     ]
   };
 
+  /* ── pack: CKS workload security (v1.7.0, 2026-10-29 — the first CKS pack) ──────────────────────────────────────
+   * Drives cks-pod-security on the NEW authored cks-pod-security.glb. Namespaces: payments (Deployment payments-api,
+   * ServiceAccount api-sa, Secret db-creds), frontend (deploy/web, the legitimate client), default (pod attacker, a
+   * compromised workload). PodSecurity admission messages follow the built-in controller's format; the audit event is
+   * shaped like audit.k8s.io/v1 (representative, not byte-identical). Lab files stand in for editing YAML; the one
+   * modelled edit is `sed -i` on the kube-apiserver static-pod manifest. */
+  var CKS_NOTE = 'Namespaces: payments (deploy/payments-api, ServiceAccount api-sa, Secret db-creds) · frontend (deploy/web, the real client) · default (pod attacker, a compromised workload). Lab files stand in for editing YAML (ls / cat / kubectl apply -f). Admission, probes, RBAC answers and the audit log are computed by the rules engine. Lab-only: fault psa|harden|seccomp|netpol|allow|rbac|audit break|fix.';
+  var CKS_SA = 'system:serviceaccount:payments:api-sa';
+  var CKS_PODS = { api0: 'payments-api-7d9c6b8f5-q4m2x', api1: 'payments-api-7d9c6b8f5-t8n6w', rs: 'payments-api-7d9c6b8f5', web: 'web-6b7f9c8d4-k2p9z', attacker: 'attacker' };
+  var CKS_APISERVER = '/etc/kubernetes/manifests/kube-apiserver.yaml';
+  var CKS_AUDIT_LOG = '/var/log/kubernetes/audit/audit.log';
+  var CKS_LOGPATH_LINE = '- --audit-log-path=' + CKS_AUDIT_LOG;
+  function cksDeployYaml(hardened, seccomp) {
+    var y = ['apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: payments-api', '  namespace: payments', 'spec:', '  replicas: 2', '  selector:', '    matchLabels:', '      app: payments-api', '  template:', '    metadata:', '      labels:', '        app: payments-api', '    spec:', '      serviceAccountName: api-sa'];
+    if (hardened || seccomp) {
+      y.push('      securityContext:');
+      if (hardened) y.push('        runAsNonRoot: true', '        runAsUser: 10001');
+      if (seccomp) y.push('        seccompProfile:', '          type: RuntimeDefault');
+    }
+    y.push('      containers:', '      - name: api', '        image: registry.example.com/payments/api:2.4.1', '        ports:', '        - containerPort: 8080');
+    if (hardened) y.push('        securityContext:', '          allowPrivilegeEscalation: false', '          capabilities:', '            drop: ["ALL"]', '          readOnlyRootFilesystem: true');
+    else y.push('        securityContext:', '          privileged: true');
+    return y;
+  }
+  var CKS_DEFAULT_DENY = ['apiVersion: networking.k8s.io/v1', 'kind: NetworkPolicy', 'metadata:', '  name: default-deny-ingress', '  namespace: payments', 'spec:', '  podSelector: {}', '  policyTypes:', '  - Ingress'];
+  var CKS_ALLOW_FE = ['apiVersion: networking.k8s.io/v1', 'kind: NetworkPolicy', 'metadata:', '  name: allow-frontend', '  namespace: payments', 'spec:', '  podSelector:', '    matchLabels:', '      app: payments-api', '  policyTypes:', '  - Ingress', '  ingress:', '  - from:', '    - namespaceSelector:', '        matchLabels:', '          kubernetes.io/metadata.name: frontend', '    ports:', '    - protocol: TCP', '      port: 8080'];
+  var CKS_DEBUG = ['apiVersion: v1', 'kind: Pod', 'metadata:', '  name: debug', '  namespace: payments', 'spec:', '  containers:', '  - name: debug', '    image: busybox:1.37', '    command: ["sleep", "3600"]', '    securityContext:', '      privileged: true'];
+  var CKS_POLICY = ['apiVersion: audit.k8s.io/v1', 'kind: Policy', 'omitStages:', '- RequestReceived', 'rules:', '# Secrets and ConfigMaps: who/what/when only, never the body (it would contain the data)', '- level: Metadata', '  resources:', '  - group: ""', '    resources: ["secrets", "configmaps"]',
+    '- level: None', '  users: ["system:kube-proxy"]', '  verbs: ["watch"]', '- level: Request', '  resources:', '  - group: ""', '    resources: ["pods"]', '- level: Metadata'];
+  function cksManifest(auditOn) {
+    return ['# (sim) trimmed — only the fields this task needs', 'apiVersion: v1', 'kind: Pod', 'metadata:', '  name: kube-apiserver', '  namespace: kube-system', 'spec:', '  containers:', '  - command:', '    - kube-apiserver', '    - --advertise-address=10.0.0.10',
+      '    - --authorization-mode=Node,RBAC', '    - --enable-admission-plugins=NodeRestriction', '    - --audit-policy-file=/etc/kubernetes/audit/policy.yaml', '    ' + (auditOn ? '' : '# ') + CKS_LOGPATH_LINE, '    - --audit-log-maxage=7', '    - --audit-log-maxbackup=2', '    - --audit-log-maxsize=100',
+      '    image: registry.k8s.io/kube-apiserver:v1.37.1', '    name: kube-apiserver', '    volumeMounts:', '    - mountPath: /etc/kubernetes/audit/policy.yaml', '      name: audit-policy', '      readOnly: true', '    - mountPath: /var/log/kubernetes/audit/', '      name: audit-log',
+      '  volumes:', '  - hostPath:', '      path: /etc/kubernetes/audit/policy.yaml', '      type: File', '    name: audit-policy', '  - hostPath:', '      path: /var/log/kubernetes/audit/', '      type: DirectoryOrCreate', '    name: audit-log'];
+  }
+  /** Role/RoleBinding for api-sa: lazily seeded from the first state the terminal sees (least = they exist). */
+  function cksRbac(s, ctx) {
+    if (!ctx.vars.cksRbac) ctx.vars.cksRbac = s.rbacLeast ? { role: 'config-reader', rb: 'api-sa-config-reader' } : { role: null, rb: null };
+    return ctx.vars.cksRbac;
+  }
+  function cksCan(s, ctx, who, verb, rsc, ns) {
+    if (!who) return true; /* kubernetes-admin */
+    if (who !== CKS_SA) return false;
+    if (!s.rbacLeast) return true; /* ClusterRoleBinding api-sa-admin → cluster-admin */
+    var r = cksRbac(s, ctx);
+    return !!(r.role && r.rb) && rsc === 'configmaps' && /^(get|list|watch)$/.test(verb) && ns === 'payments';
+  }
+  function cksRes(x) {
+    x = String(x || '').toLowerCase();
+    if (/^(secrets?)$/.test(x)) return 'secrets';
+    if (/^(cm|configmaps?)$/.test(x)) return 'configmaps';
+    if (/^(po|pods?)$/.test(x)) return 'pods';
+    if (/^(deploy|deployments?(\.apps)?)$/.test(x)) return 'deployments';
+    if (x === '*') return '*';
+    return null;
+  }
+  function cksForbidden(who, verb, rsc, ns) {
+    return 'Error from server (Forbidden): ' + rsc + ' is forbidden: User "' + who + '" cannot ' + verb + ' resource "' + rsc + '" in API group "' + (rsc === 'deployments' ? 'apps' : '') + '" ' + (ns === '*' ? 'at the cluster scope' : 'in the namespace "' + ns + '"');
+  }
+  function cksAuditLine(ctx) {
+    var a = ctx.vars.cksAudit; if (!a) return null;
+    var ev = { kind: 'Event', apiVersion: 'audit.k8s.io/v1', level: 'Metadata', auditID: '5b0e8f4c-2d61-4a8e-9a43-0c7f1e2b9d17', stage: 'ResponseComplete',
+      requestURI: '/api/v1/namespaces/payments/secrets/db-creds', verb: 'get', user: { username: 'kubernetes-admin', groups: ['kubeadm:cluster-admins', 'system:authenticated'] } };
+    if (a.as) ev.impersonatedUser = { username: a.as, groups: ['system:serviceaccounts', 'system:serviceaccounts:payments', 'system:authenticated'] };
+    ev.sourceIPs = ['10.0.0.10']; ev.userAgent = 'kubectl/v1.37.1 (linux/amd64) kubernetes/3c1e5f2';
+    ev.objectRef = { resource: 'secrets', namespace: 'payments', name: 'db-creds', apiVersion: 'v1' };
+    ev.responseStatus = { metadata: {}, code: a.code };
+    ev.requestReceivedTimestamp = '2026-10-29T13:05:12.402118Z'; ev.stageTimestamp = '2026-10-29T13:05:12.405771Z';
+    ev.annotations = { 'authorization.k8s.io/decision': a.code === 200 ? 'allow' : 'forbid' };
+    return JSON.stringify(ev);
+  }
+  /** Probe payments-api from a pod in ns frontend (web) or default (attacker). */
+  function cksCurl(s, d, from, cmd) {
+    var url = '';
+    for (var ci = 1; ci < cmd.length; ci++) {
+      if (/^(-m|--max-time|--connect-timeout|-o|--output|-H|--header|-w|--write-out|-X|-T|--timeout|-O)$/.test(cmd[ci])) { ci++; continue; }
+      if (cmd[ci].charAt(0) !== '-') { url = cmd[ci]; break; }
+    }
+    var mm = /^(?:https?:\/\/)?([^\/:]+)(?::(\d+))?/.exec(url);
+    if (!mm) return res(['curl: (3) URL rejected: No host part in the URL'], 3);
+    var host = mm[1].toLowerCase(), port = mm[2] || '80';
+    if (!/^(payments-api\.payments(\.svc(\.cluster\.local)?)?\.?|10\.96\.77\.10)$/.test(host) || port !== '8080') return res(['sim: this drill probes Service payments-api on port 8080 (http://payments-api.payments:8080 or http://10.96.77.10:8080)'], 2);
+    var m = d.metrics, who = from === 'frontend' ? 'frontend' : 'attacker';
+    if (!m.admitted) return res(['curl: (7) Failed to connect to ' + host + ' port 8080 after 1 ms: Couldn\'t connect to server', '(sim) Service payments-api has no endpoints — its pods were never admitted', 'command terminated with exit code 7'], 7, null, ['probe', who + '-refused']);
+    var ok = who === 'frontend' ? m.frontendReach : m.attackerReach;
+    if (!ok) return res(['curl: (28) Connection timed out after 3001 milliseconds', '(sim) dropped by NetworkPolicy in ns payments (a drop, not a reset — so it times out)', 'command terminated with exit code 28'], 28, null, ['probe', who + '-blocked']);
+    return res(['{"service":"payments-api","pod":"' + CKS_PODS.api0 + '","ok":true}'], 0, null, ['probe', who + '-ok']);
+  }
+  var cksPack = {
+    sim: 'cks-pod-security',
+    prompt: 'student@controlplane:~$',
+    note: CKS_NOTE,
+    files: {
+      'payments-api-hardened.yaml': { yaml: cksDeployYaml(true, true), kind: 'deploy', hardened: true, seccomp: true },
+      'payments-api-nonroot.yaml': { yaml: cksDeployYaml(true, false), kind: 'deploy', hardened: true, seccomp: false },
+      'payments-api-privileged.yaml': { yaml: cksDeployYaml(false, false), kind: 'deploy', hardened: false, seccomp: false },
+      'privileged-debug.yaml': { yaml: CKS_DEBUG, kind: 'debug' },
+      'default-deny-ingress.yaml': { yaml: CKS_DEFAULT_DENY, kind: 'deny' },
+      'allow-frontend.yaml': { yaml: CKS_ALLOW_FE, kind: 'allow' }
+    },
+    examples: ['kubectl get ns payments --show-labels', 'kubectl label --dry-run=server --overwrite ns payments pod-security.kubernetes.io/enforce=restricted', 'kubectl get deployment payments-api -n payments',
+      'kubectl get pods -n payments', 'kubectl get events -n payments', 'cat payments-api-hardened.yaml', 'kubectl exec -n payments deploy/payments-api -- id', 'kubectl exec -n payments deploy/payments-api -- grep Seccomp /proc/1/status',
+      'kubectl get networkpolicy -n payments', 'kubectl exec -n default attacker -- curl -s -m 3 http://payments-api.payments:8080', 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://payments-api.payments:8080',
+      'kubectl auth can-i get secrets -A --as ' + CKS_SA, 'kubectl get clusterrolebindings -o wide', 'kubectl get rolebindings -n payments -o wide', 'cat ' + CKS_APISERVER, 'cat /etc/kubernetes/audit/policy.yaml', 'tail -n 1 ' + CKS_AUDIT_LOG],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, rb = cksRbac(s, ctx);
+      var f = faultArgs(t);
+      if (f) {
+        var key = { psa: 'psaEnforce', harden: 'podHardened', seccomp: 'seccomp', netpol: 'denyIngress', allow: 'allowFrontend', rbac: 'rbacLeast', audit: 'auditOn' }[f[0]];
+        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault psa|harden|seccomp|netpol|allow|rbac|audit break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = f[1] === 'fix';
+        if (key === 'rbacLeast') ctx.vars.cksRbac = f[1] === 'fix' ? { role: 'config-reader', rb: 'api-sa-config-reader' } : { role: null, rb: null };
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      /* control-plane files: kube-apiserver static-pod manifest, audit policy, audit log */
+      var file = (t[t.length - 1] || '');
+      if ((t[0] === 'cat' || t[0] === 'less' || t[0] === 'head') && file === CKS_APISERVER) return res(cksManifest(!!s.auditOn), 0, null, ['cat-manifest', 'apiserver-audit-flags']);
+      if (t[0] === 'cat' && file === '/etc/kubernetes/audit/policy.yaml') return res(CKS_POLICY, 0, null, ['audit-policy-read']);
+      if (t[0] === 'ls' && /^\/var\/log\/kubernetes\/audit\/?$/.test(t[t.length - 1] || '')) return s.auditOn ? res(['audit.log'], 0, null, ['ls-audit']) : res([], 0, null, ['ls-audit-empty']);
+      if ((t[0] === 'tail' || t[0] === 'cat' || t[0] === 'grep') && file === CKS_AUDIT_LOG) {
+        if (!s.auditOn) return res([t[0] + ': ' + (t[0] === 'tail' ? 'cannot open \'' + file + '\' for reading' : file) + ': No such file or directory', '(sim) no log backend: kube-apiserver has no --audit-log-path'], 1, null, ['audit-log-missing']);
+        if (t[0] === 'grep' && !/db-creds|secrets/.test(t.slice(1, -1).join(' '))) return res(['sim: this drill models grep for db-creds / secrets in the audit log'], 2);
+        var line = cksAuditLine(ctx);
+        if (!line) return res(t[0] === 'grep' ? [] : ['{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","stage":"ResponseComplete","requestURI":"/api/v1/namespaces/kube-system/configmaps/kube-proxy","verb":"get","user":{"username":"system:node:node-01"},"objectRef":{"resource":"configmaps","namespace":"kube-system","name":"kube-proxy"},"responseStatus":{"code":200}}', '(sim) representative event — no read of Secret db-creds has been recorded since the log backend came up'], t[0] === 'grep' ? 1 : 0, null, ['audit-log-read']);
+        return res(['-- (sim) representative audit.k8s.io/v1 event --', line, '(sim) level Metadata: who · verb · object · source IP · response code — no requestObject / responseObject, so the secret value never reaches the log'], 0, null, ['audit-log-read', 'audit-event-found']);
+      }
+      if (t[0] === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var expr = t.filter(function (a) { return a.charAt(0) === 's' && a.length > 3 && !/[a-z]/i.test(a.charAt(1)); })[0];
+        if (file !== CKS_APISERVER) return res(['sim: this drill models sed on ' + CKS_APISERVER + ' only'], 2);
+        var sub = sedSubst(expr);
+        if (!sub) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var cur = '    ' + (s.auditOn ? '' : '# ') + CKS_LOGPATH_LINE, a0 = sub.a.replace(/^\^/, ''), next = cur;
+        if (sub.a.charAt(0) === '^') { if (cur.indexOf(a0) === 0) next = sub.b + cur.slice(a0.length); }
+        else if (cur.indexOf(a0) >= 0) next = cur.replace(a0, sub.b);
+        var fixed = !s.auditOn && next.trim() === CKS_LOGPATH_LINE && /^\s+-/.test(next);
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written', next], 0);
+        if (next === cur) return res([], 0, null, ['sed-nochange']);
+        if (!fixed) return res(['(sim) the edit would leave an invalid manifest (the kubelet would fail to start the static pod) — this drill only models un-commenting the --audit-log-path line'], 1, null, ['sed-bad-edit']);
+        ctx.vars.cksApiRestarts = (ctx.vars.cksApiRestarts || 0) + 1;
+        return res(['(sim) the kubelet sees the manifest change and recreates the kube-apiserver static pod; kubectl is unavailable for a short while (no clock is simulated)'], 0, { auditOn: true }, ['manifest-edited', 'audit-backend-on']);
+      }
+      var fr = fileRun(cksPack, t); if (fr) return fr;
+      if (t[0] === 'vi' || t[0] === 'vim' || t[0] === 'nano') return res(['sim: no interactive editor in a simulated shell — use sed -i on the manifest, or kubectl apply -f with the lab files'], 2);
+      if (t[0] !== 'kubectl') return null;
+      var verb = t[1], args = positional(t.slice(2), KUBECTL_VALUED.concat(['--as', '--as-group', '--role', '--clusterrole', '--serviceaccount', '--verb', '--resource', '--dry-run'])), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      var as = flag(t, '--as'); if (as === true) as = null;
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      if (verb === 'edit') return res(['sim: interactive editors are not modelled — use kubectl apply -f with the lab files (ls), kubectl label, or kubectl create/delete'], 2);
+      /* namespaces + Pod Security labels */
+      if (verb === 'get' && /^(ns|namespaces?)$/.test(kind)) {
+        var lab = hasFlag(t, '--show-labels'), rows = [['NAME', 'STATUS', 'AGE'].concat(lab ? ['LABELS'] : [])];
+        [['default', ''], ['frontend', ''], ['kube-system', ''], ['payments', s.psaEnforce ? ',pod-security.kubernetes.io/enforce=restricted' : '']].forEach(function (r) {
+          if (!name || name === r[0]) rows.push([r[0], 'Active', '30d'].concat(lab ? ['kubernetes.io/metadata.name=' + r[0] + r[1]] : []));
+        });
+        if (rows.length === 1) return notFound('namespaces', name);
+        return res(table(rows), 0, null, ['get-ns'].concat(lab && (!name || name === 'payments') ? ['ns-labels', s.psaEnforce ? 'ns-labels-restricted' : 'ns-labels-nopsa'] : []));
+      }
+      if (verb === 'label' && /^(ns|namespaces?)$/.test(kind)) {
+        if (name !== 'payments') return name ? notFound('namespaces', name) : res(['error: resource(s) were provided, but no name was specified'], 1);
+        var kv = args.slice(2).filter(function (a) { return /^pod-security\.kubernetes\.io\//.test(a); })[0];
+        if (!kv) return res(['sim: this drill models Pod Security labels on ns payments (pod-security.kubernetes.io/enforce=restricted)'], 2);
+        var dry = flag(t, '--dry-run'), over = hasFlag(t, '--overwrite');
+        if (dry && dry !== 'server') return res(['sim: use --dry-run=server — only the API server runs the PodSecurity check (client dry-run never contacts it)'], 2);
+        var lm = /^pod-security\.kubernetes\.io\/(enforce|warn|audit)(?:=([a-z]+)|(-))$/.exec(kv);
+        if (!lm) return res(['sim: this drill models pod-security.kubernetes.io/enforce=restricted (and enforce- to remove it)'], 2);
+        if (lm[1] !== 'enforce') return res(['sim: warn / audit modes are explained, not modelled — this drill changes only the enforce label (warn would add API warnings, audit would annotate audit events; neither blocks a pod)'], 2);
+        if (lm[3]) { if (dry) return res(['namespace/payments unlabeled (server dry run)'], 0, null, ['psa-dryrun-remove']); return res(['namespace/payments unlabeled'], 0, s.psaEnforce ? { psaEnforce: false } : null, ['psa-unlabel']); }
+        if (lm[2] !== 'restricted') return res(['sim: this drill models enforce=restricted (baseline would also block privileged: true, but not root, added capabilities like NET_RAW off the default set, or a missing seccompProfile)'], 2);
+        if (s.psaEnforce && !over) return res(["error: 'pod-security.kubernetes.io/enforce' already has a value (restricted), and --overwrite is false"], 1);
+        var warn = [];
+        if (m.admitted && m.violations.length) {
+          warn.push('Warning: existing pods in namespace "payments" violate the new PodSecurity enforce level "restricted:latest"');
+          warn.push('Warning: ' + CKS_PODS.api0 + ' (and 1 other pod): ' + m.violations.map(function (v) { return v.split(' (')[0]; }).join(', '));
+        }
+        if (dry) return res(warn.concat(['namespace/payments labeled (server dry run)']), 0, null, ['psa-dryrun', warn.length ? 'psa-dryrun-warnings' : 'psa-dryrun-clean']);
+        return res(warn.concat(['namespace/payments labeled']).concat(warn.length ? ['(sim) enforcement applies to new pods only: the running pods keep running until they are recreated'] : []), 0, { psaEnforce: true }, ['psa-label', 'psa-enforced']);
+      }
+      /* workloads */
+      if (verb === 'get' && /^(deploy|deployments?(\.apps)?)$/.test(kind)) {
+        if (ns !== 'payments' || (name && name !== 'payments-api')) return name ? notFound('deployments.apps', name) : res(['No resources found in ' + ns + ' namespace.'], 0);
+        var ready = m.admitted ? '2/2' : '0/2';
+        return res(table([['NAME', 'READY', 'UP-TO-DATE', 'AVAILABLE', 'AGE'], ['payments-api', ready, m.admitted ? '2' : '0', m.admitted ? '2' : '0', '3m']]), 0, null, ['get-deploy', m.admitted ? 'deploy-ready' : 'deploy-0-ready']);
+      }
+      if (verb === 'get' && /^(rs|replicasets?(\.apps)?)$/.test(kind)) {
+        if (ns !== 'payments') return res(['No resources found in ' + ns + ' namespace.'], 0);
+        return res(table([['NAME', 'DESIRED', 'CURRENT', 'READY', 'AGE'], [CKS_PODS.rs, '2', m.admitted ? '2' : '0', m.admitted ? '2' : '0', '3m']]), 0, null, ['get-rs']);
+      }
+      if (verb === 'get' && /^(po|pods?)$/.test(kind)) {
+        var lsel = flag(t, ['-l', '--selector']) || '';
+        if (ns === 'kube-system') {
+          if (lsel && !/component=kube-apiserver/.test(lsel)) return res(['sim: this drill models -l component=kube-apiserver in kube-system'], 2);
+          var restarts = ctx.vars.cksApiRestarts || 0;
+          return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], ['kube-apiserver-controlplane', '1/1', 'Running', String(restarts), restarts ? '25s' : '30d']]), 0, null, ['get-pods-apiserver', s.auditOn ? 'apiserver-back' : 'apiserver-running']);
+        }
+        if (ns === 'frontend') return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [CKS_PODS.web, '1/1', 'Running', '0', '30d']]), 0, null, ['get-pods-frontend']);
+        if (ns === 'default') return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [CKS_PODS.attacker, '1/1', 'Running', '0', '2h']]), 0, null, ['get-pods-default']);
+        if (ns !== 'payments') return res(['No resources found in ' + (ns === '*' ? 'the cluster (sim: pass -n payments, -n frontend, -n default or -n kube-system)' : ns + ' namespace.')], 0);
+        if (!m.admitted) return res(['No resources found in payments namespace.'], 0, null, ['get-pods', 'pods-none']);
+        return res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [CKS_PODS.api0, '1/1', 'Running', '0', '40s'], [CKS_PODS.api1, '1/1', 'Running', '0', '38s']]), 0, null, ['get-pods', 'pods-running']);
+      }
+      if ((verb === 'get' && /^(ev|events?)$/.test(kind)) || (verb === 'describe' && /^(rs|replicasets?(\.apps)?)$/.test(kind))) {
+        if (ns !== 'payments') return res(['No events found in ' + ns + ' namespace.'], 0);
+        if (!m.admitted) {
+          var msg = 'Error creating: pods "' + CKS_PODS.rs + '-x2x4k" is forbidden: violates PodSecurity "restricted:latest": ' + m.violations.join(', ');
+          var ev = verb === 'get' ? table([['LAST SEEN', 'TYPE', 'REASON', 'OBJECT', 'MESSAGE'], ['8s', 'Warning', 'FailedCreate', 'replicaset/' + CKS_PODS.rs, msg]])
+            : ['Name:           ' + CKS_PODS.rs, 'Namespace:      payments', 'Replicas:       0 current / 2 desired', 'Pods Status:    0 Running / 0 Waiting / 0 Succeeded / 0 Failed', 'Events:', '  Type     Reason        Age                From                   Message', '  ----     ------        ----               ----                   -------', '  Warning  FailedCreate  8s (x6 over 3m)    replicaset-controller  ' + msg];
+          return res(ev, 0, null, ['events', 'psa-failedcreate']);
+        }
+        return res(table([['LAST SEEN', 'TYPE', 'REASON', 'OBJECT', 'MESSAGE'], ['40s', 'Normal', 'SuccessfulCreate', 'replicaset/' + CKS_PODS.rs, 'Created pod: ' + CKS_PODS.api0], ['38s', 'Normal', 'Started', 'pod/' + CKS_PODS.api0, 'Started container api']]), 0, null, ['events', 'events-ok']);
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var a = applyFile(cksPack, t); if (a.err) return a.err;
+        var lf = a.f;
+        if (lf.kind === 'debug') {
+          if (s.psaEnforce) return res(['Error from server (Forbidden): error when creating "' + a.name + '": pods "debug" is forbidden: violates PodSecurity "restricted:latest": ' + [CKS_VIOLATIONS_CLI.privileged, CKS_VIOLATIONS_CLI.ape, CKS_VIOLATIONS_CLI.caps, CKS_VIOLATIONS_CLI.nonroot, CKS_VIOLATIONS_CLI.seccomp].join(', ')], 1, null, ['psa-forbidden']);
+          return res(['pod/debug created', '(sim) admitted: an unlabelled namespace defaults to the privileged level. The debug pod is not drawn in the scene; it is deleted when you leave this terminal'], 0, null, ['privileged-admitted']);
+        }
+        if (lf.kind === 'deploy') {
+          var nowOk = !s.psaEnforce || (lf.hardened && lf.seccomp);
+          var lines = ['deployment.apps/payments-api configured'];
+          if (s.psaEnforce && !nowOk) lines.push('(sim) the Deployment is accepted (enforce mode checks Pods, not templates); the new ReplicaSet will get FailedCreate — read the events');
+          else if (s.psaEnforce && !m.admitted) lines.push('(sim) the new pod template passes restricted, so the ReplicaSet creates the pods');
+          return res(lines, 0, { podHardened: !!lf.hardened, seccomp: !!lf.seccomp }, ['apply-deploy', lf.hardened && lf.seccomp ? 'apply-hardened' : 'apply-weak']);
+        }
+        if (lf.kind === 'deny') return res(['networkpolicy.networking.k8s.io/default-deny-ingress ' + (s.denyIngress ? 'unchanged' : 'created')], 0, s.denyIngress ? null : { denyIngress: true }, ['apply-deny']);
+        return res(['networkpolicy.networking.k8s.io/allow-frontend ' + (s.allowFrontend ? 'unchanged' : 'created')], 0, s.allowFrontend ? null : { allowFrontend: true }, ['apply-allow']);
+      }
+      if (/^(netpol|networkpolic(y|ies)(\.networking\.k8s\.io)?)$/.test(kind)) {
+        if (verb === 'get') {
+          if (ns !== 'payments') return res(['No resources found in ' + ns + ' namespace.'], 0);
+          var np = [['NAME', 'POD-SELECTOR', 'AGE']];
+          if (s.denyIngress) np.push(['default-deny-ingress', '<none>', '5m']);
+          if (s.allowFrontend) np.push(['allow-frontend', 'app=payments-api', '5m']);
+          if (np.length === 1) return res(['No resources found in payments namespace.'], 0, null, ['get-netpol', 'netpol-none']);
+          return res(table(np), 0, null, ['get-netpol']);
+        }
+        if (verb === 'delete') {
+          var dk = name === 'default-deny-ingress' ? 'denyIngress' : (name === 'allow-frontend' ? 'allowFrontend' : null);
+          if (ns !== 'payments' || !dk || !s[dk]) return notFound('networkpolicies.networking.k8s.io', name);
+          var dp = {}; dp[dk] = false;
+          return res(['networkpolicy.networking.k8s.io "' + name + '" deleted'], 0, dp, ['delete-netpol']);
+        }
+      }
+      if (verb === 'delete' && /^(po|pods?)$/.test(kind) && name === 'debug') return res(['pod "debug" deleted'], 0, null, ['delete-debug']);
+      /* RBAC */
+      if (verb === 'auth' && t[2] === 'can-i') {
+        var cargs = positional(t.slice(3), KUBECTL_VALUED.concat(['--as', '--as-group']));
+        if (hasFlag(t, '--list')) return res(['sim: `can-i --list` is not modelled — ask one verb + resource at a time'], 2);
+        var cv = cargs[0], cr = cksRes(cargs[1]);
+        if (!cv || !cr || cr === '*') return res(['sim: this drill models can-i on secrets, configmaps, pods and deployments (e.g. kubectl auth can-i get secrets -A --as ' + CKS_SA + ')'], 2);
+        if (as && as !== CKS_SA) return res(['no', '# sim: only ' + CKS_SA + ' is modelled as a subject (a ServiceAccount is impersonated as system:serviceaccount:<ns>:<name>)'], 1, null, ['cani', 'cani-other']);
+        var scope = ns === '*' ? 'all' : ns, okc = cksCan(s, ctx, as, cv, cr, ns);
+        return res([okc ? 'yes' : 'no'], okc ? 0 : 1, null, ['cani', 'cani-' + (okc ? 'yes' : 'no'), 'cani-' + (as ? 'sa' : 'admin') + '-' + cr + '-' + scope + '-' + (okc ? 'yes' : 'no')].concat(as ? ['cani-' + cr + '-' + scope + '-' + (okc ? 'yes' : 'no')] : []));
+      }
+      if (verb === 'get' && /^(clusterrolebindings?|crb)$/.test(kind)) {
+        var wide = out === 'wide', cr2 = [['NAME', 'ROLE', 'AGE'].concat(wide ? ['USERS', 'GROUPS', 'SERVICEACCOUNTS'] : [])];
+        cr2.push(['cluster-admin', 'ClusterRole/cluster-admin', '30d'].concat(wide ? ['', 'system:masters', ''] : []));
+        cr2.push(['kubeadm:cluster-admins', 'ClusterRole/cluster-admin', '30d'].concat(wide ? ['', 'kubeadm:cluster-admins', ''] : []));
+        if (!s.rbacLeast) cr2.push(['api-sa-admin', 'ClusterRole/cluster-admin', '6d'].concat(wide ? ['', '', 'payments/api-sa'] : []));
+        return res(table(cr2).concat(['# sim: other system:* ClusterRoleBindings omitted']), 0, null, ['get-crb'].concat(!s.rbacLeast && wide ? ['crb-api-sa-found'] : []));
+      }
+      if (verb === 'delete' && /^(clusterrolebindings?|crb)$/.test(kind)) {
+        if (name !== 'api-sa-admin' || s.rbacLeast) return name === 'cluster-admin' || name === 'kubeadm:cluster-admins' ? res(['sim: refusing to model deleting a kubeadm default binding — that locks the admin out'], 2) : notFound('clusterrolebindings.rbac.authorization.k8s.io', name);
+        return res(['clusterrolebinding.rbac.authorization.k8s.io "api-sa-admin" deleted'], 0, { rbacLeast: true }, ['delete-crb']);
+      }
+      if (verb === 'get' && /^(rolebindings?|rb|roles?)$/.test(kind)) {
+        if (ns !== 'payments') return res(['No resources found in ' + ns + ' namespace.'], 0);
+        if (/^roles?$/.test(kind)) return rb.role ? res(table([['NAME', 'CREATED AT'], [rb.role, '2026-10-29T13:00:00Z']]), 0, null, ['get-roles']) : res(['No resources found in payments namespace.'], 0, null, ['get-roles']);
+        if (!rb.rb) return res(['No resources found in payments namespace.'], 0, null, ['get-rolebindings']);
+        return res(table([['NAME', 'ROLE', 'AGE'].concat(out === 'wide' ? ['USERS', 'GROUPS', 'SERVICEACCOUNTS'] : []), [rb.rb, 'Role/' + rb.role, '1m'].concat(out === 'wide' ? ['', '', 'payments/api-sa'] : [])]), 0, null, ['get-rolebindings']);
+      }
+      if (verb === 'create' && kind === 'role') {
+        var vv = String(flag(t, '--verb') || ''), rr = String(flag(t, '--resource') || '');
+        if (!name || !vv || vv === 'true' || !rr || rr === 'true') return res(['error: at least one verb must be specified', '(e.g. kubectl create role config-reader -n payments --verb=get,list,watch --resource=configmaps)'], 1);
+        if (ns !== 'payments') return res(['role.rbac.authorization.k8s.io/' + name + ' created', '# sim: created in namespace ' + ns + ' — it grants nothing in payments (add -n payments). Not reflected in the scene.'], 0, null, ['role-wrong-ns']);
+        var verbs = vv.split(','), rscs = rr.split(',').map(cksRes);
+        if (verbs.some(function (x) { return !/^(get|list|watch)$/.test(x); }) || rscs.some(function (x) { return x !== 'configmaps'; })) return res(['sim: least privilege for this app: it only reads its configuration — --verb=get,list,watch --resource=configmaps (secrets, * or write verbs would re-open the hole)'], 2, null, ['role-too-broad']);
+        if (rb.role === name) return res(['error: failed to create role: roles.rbac.authorization.k8s.io "' + name + '" already exists'], 1);
+        rb.role = name;
+        return res(['role.rbac.authorization.k8s.io/' + name + ' created'], 0, null, ['role-created']);
+      }
+      if (verb === 'create' && kind === 'rolebinding') {
+        var rl = flag(t, '--role'), sa = flag(t, '--serviceaccount');
+        if (!name || !rl || rl === true) return res(['error: exactly one NAME is required, and one of --role or --clusterrole'], 1);
+        if (ns !== 'payments') return res(['rolebinding.rbac.authorization.k8s.io/' + name + ' created', '# sim: created in namespace ' + ns + ' — it grants nothing in payments (add -n payments). Not reflected in the scene.'], 0, null, ['rolebinding-wrong-ns']);
+        if (sa && sa !== true && !/:/.test(sa)) return res(['error: serviceaccount must be <namespace>:<name>'], 1);
+        if (sa !== 'payments:api-sa') return res(['sim: bind the ServiceAccount the app runs as: --serviceaccount=payments:api-sa'], 2);
+        if (!rb.role || rl !== rb.role) return res(['rolebinding.rbac.authorization.k8s.io/' + name + ' created', '# sim: Role "' + rl + '" does not exist in payments, so this binding grants nothing until it does — create the Role first'], 0, null, ['rolebinding-dangling']);
+        if (rb.rb) return res(['error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io "' + rb.rb + '" already exists' + (rb.rb === name ? '' : ' (sim: one binding for api-sa in this drill)')], 1);
+        rb.rb = name;
+        return res(['rolebinding.rbac.authorization.k8s.io/' + name + ' created'], 0, null, ['rolebinding-created']);
+      }
+      if (verb === 'get' && /^(secrets?)$/.test(kind)) {
+        var sns = ns === '*' ? '*' : ns;
+        if (!cksCan(s, ctx, as, name ? 'get' : 'list', 'secrets', sns)) {
+          if (s.auditOn && name === 'db-creds' && sns === 'payments') ctx.vars.cksAudit = { as: as, code: 403 };
+          return res([cksForbidden(as, name ? 'get' : 'list', 'secrets', sns)], 1, null, ['forbidden', 'secrets-forbidden']);
+        }
+        if (name && (name !== 'db-creds' || sns !== 'payments')) return notFound('secrets', name);
+        if (name) {
+          if (s.auditOn) ctx.vars.cksAudit = { as: as, code: 200 };
+          if (out === 'yaml' || out === 'json') return res(['apiVersion: v1', 'kind: Secret', 'metadata:', '  name: db-creds', '  namespace: payments', 'type: Opaque', 'data:', '  password: czNjcjN0LWRiLXBhc3M=   # (sim) base64 is encoding, not encryption', '  username: cGF5bWVudHM='], 0, null, ['secret-read', 'secret-read-yaml']);
+          return res(table([['NAME', 'TYPE', 'DATA', 'AGE'], ['db-creds', 'Opaque', '2', '30d']]), 0, null, ['secret-read']);
+        }
+        var srows = [['NAMESPACE', 'NAME', 'TYPE', 'DATA', 'AGE'], ['kube-system', 'bootstrap-token-abcdef', 'bootstrap.kubernetes.io/token', '6', '30d'], ['payments', 'db-creds', 'Opaque', '2', '30d'], ['frontend', 'session-key', 'Opaque', '1', '30d']];
+        var shown = sns === '*' ? srows : [srows[0].slice(1)].concat(srows.slice(1).filter(function (r) { return r[0] === sns; }).map(function (r) { return r.slice(1); }));
+        if (shown.length === 1) return res(['No resources found in ' + sns + ' namespace.'], 0);
+        return res(table(shown), 0, null, ['secrets-list'].concat(as && sns === '*' ? ['sa-secrets-all-ns'] : []));
+      }
+      var ex = execArgs(t);
+      if (ex) {
+        if (!ex.hasDd || !ex.cmd.length) return res(['error: you must specify at least one command for the container (kubectl exec … -- CMD)'], 1);
+        if (ex.ns === 'default' && ex.target === 'attacker') return /^(curl|wget)$/.test(ex.cmd[0]) ? cksCurl(s, d, 'default', ex.cmd) : res(['sim: from the attacker pod this drill models curl to payments-api'], 2);
+        if (ex.ns === 'frontend' && (ex.target === 'web' || ex.target === CKS_PODS.web)) return /^(curl|wget)$/.test(ex.cmd[0]) ? cksCurl(s, d, 'frontend', ex.cmd) : res(['sim: from web this drill models curl to payments-api'], 2);
+        if (ex.ns === 'payments' && (ex.target === 'payments-api' || ex.target === CKS_PODS.api0 || ex.target === CKS_PODS.api1)) {
+          if (!m.admitted) return res(['error: cannot exec: deployment/payments-api has no running pods (sim) — they were never admitted'], 1, null, ['exec-no-pods']);
+          var c0 = ex.cmd[0], cjoin = ex.cmd.join(' ');
+          if (c0 === 'id' || c0 === 'whoami') return s.podHardened ? res([c0 === 'id' ? 'uid=10001 gid=0(root) groups=0(root)' : 'whoami: unknown uid 10001'], 0, null, ['id', 'id-nonroot']) : res([c0 === 'id' ? 'uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)' : 'root'], 0, null, ['id', 'id-root']);
+          if (/^(grep|cat)$/.test(c0) && /\/proc\/(1|self)\/status/.test(cjoin)) {
+            var sc = s.seccomp ? ['Seccomp:\t2', 'Seccomp_filters:\t1'] : ['Seccomp:\t0', 'Seccomp_filters:\t0'];
+            var capl = s.podHardened ? ['CapEff:\t0000000000000000'] : ['CapEff:\t000001ffffffffff'];
+            var lines2 = c0 === 'cat' ? ['Name:\tapi', 'Uid:\t' + (s.podHardened ? '10001\t10001\t10001\t10001' : '0\t0\t0\t0')].concat(capl, ['NoNewPrivs:\t' + (s.podHardened ? 1 : 0)], sc) : (/Cap/i.test(cjoin) ? capl : (/NoNewPrivs/.test(cjoin) ? ['NoNewPrivs:\t' + (s.podHardened ? 1 : 0)] : sc));
+            return res(lines2, 0, null, ['proc-status', s.seccomp ? 'seccomp-filtered' : 'seccomp-unconfined']);
+          }
+          if (c0 === 'cat' && /serviceaccount\/token/.test(cjoin)) return res(['eyJhbGciOiJSUzI1NiIsImtpZCI6IkxhYiJ9.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpwYXltZW50czphcGktc2EifQ.(sim-signature)', '(sim) a projected, time-bound bearer token for ' + CKS_SA + ' — whoever holds it can use it until it expires or the pod is deleted'], 0, null, ['token-read']);
+          return res(['sim: inside payments-api this drill models id, grep Seccomp|CapEff|NoNewPrivs /proc/1/status and cat /var/run/secrets/kubernetes.io/serviceaccount/token'], 2);
+        }
+        return res(['Error from server (NotFound): pods "' + ex.target + '" not found' + ' (sim: pods in this lab — payments: deploy/payments-api · frontend: deploy/web · default: attacker)'], 1, null, ['not-found']);
+      }
+      if (verb === 'rollout' && args[0] === 'restart') {
+        if (ns !== 'payments' || !/payments-api$/.test(args[1] || '') && args[2] !== 'payments-api') return res(['sim: this drill models kubectl rollout restart deployment payments-api -n payments'], 2);
+        return res(['deployment.apps/payments-api restarted'].concat(m.admitted ? [] : ['(sim) the new pods still fail admission — read the events']), 0, null, ['rollout-restart']);
+      }
+      return unmodelled(t.join(' '), cksPack.examples);
+    },
+    tasks: [
+      { id: 'psa-enforce', title: 'Enforce Pod Security “restricted” on payments',
+        goal: 'Namespace payments runs hardened workloads, yet anyone can still create a privileged pod there. Preview restricted with a server-side dry run, enforce it, and prove a privileged pod is now refused.',
+        setup: { psaEnforce: false, podHardened: true, seccomp: true },
+        steps: [
+          { label: 'See that payments carries no Pod Security labels', event: 'ns-labels-nopsa', hint: 'kubectl get ns payments --show-labels' },
+          { label: 'Preview restricted with a server-side dry run (no warnings = no running pod would break)', event: 'psa-dryrun', hint: 'kubectl label --dry-run=server --overwrite ns payments pod-security.kubernetes.io/enforce=restricted' },
+          { label: 'Enforce restricted on payments', state: function (s) { return !!s.psaEnforce; }, hint: 'kubectl label --overwrite ns payments pod-security.kubernetes.io/enforce=restricted' },
+          { label: 'Prove it: a privileged debug pod is now Forbidden', event: 'psa-forbidden', hint: 'kubectl apply -f privileged-debug.yaml' }
+        ] },
+      { id: 'harden-pod', title: 'Deployment is 0/2: harden its securityContext',
+        goal: 'payments-api was redeployed into the restricted namespace and has no pods. Find the admission error, apply a template that passes restricted, and prove the container runs non-root under a seccomp filter.',
+        setup: { psaEnforce: true, podHardened: false, seccomp: false },
+        steps: [
+          { label: 'The Deployment has 0 of 2 pods ready', event: 'deploy-0-ready', hint: 'kubectl get deployment payments-api -n payments' },
+          { label: 'Read why: FailedCreate … violates PodSecurity "restricted:latest"', event: 'psa-failedcreate', hint: 'kubectl get events -n payments' },
+          { label: 'Apply a template that passes every restricted check', state: function (s) { return !!s.podHardened && !!s.seccomp; }, hint: 'kubectl apply -f payments-api-hardened.yaml' },
+          { label: 'The pods are Running', event: 'pods-running', hint: 'kubectl get pods -n payments' },
+          { label: 'Prove the container is not root', event: 'id-nonroot', hint: 'kubectl exec -n payments deploy/payments-api -- id' },
+          { label: 'Prove a seccomp filter is loaded (Seccomp: 2)', event: 'seccomp-filtered', hint: 'kubectl exec -n payments deploy/payments-api -- grep Seccomp /proc/1/status' }
+        ] },
+      { id: 'default-deny', title: 'Anything can reach payments-api: default-deny, then allow frontend',
+        goal: 'A compromised pod in namespace default can call payments-api. Isolate the namespace with a default-deny ingress policy, notice what else it blocks, and allow only frontend on 8080.',
+        setup: { denyIngress: false, allowFrontend: false },
+        steps: [
+          { label: 'Reproduce: the attacker pod gets a 200', event: 'attacker-ok', hint: 'kubectl exec -n default attacker -- curl -s -m 3 http://payments-api.payments:8080' },
+          { label: 'Apply default-deny ingress in payments', state: function (s) { return !!s.denyIngress; }, hint: 'kubectl apply -f default-deny-ingress.yaml' },
+          { label: 'The attacker now times out', event: 'attacker-blocked', hint: 'kubectl exec -n default attacker -- curl -s -m 3 http://payments-api.payments:8080' },
+          { label: 'So does the real client in frontend', event: 'frontend-blocked', hint: 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://payments-api.payments:8080' },
+          { label: 'Allow namespace frontend on TCP 8080', state: function (s) { return !!s.denyIngress && !!s.allowFrontend; }, hint: 'kubectl apply -f allow-frontend.yaml' },
+          { label: 'frontend gets a 200 again (the attacker still does not)', event: 'frontend-ok', hint: 'kubectl exec -n frontend deploy/web -- curl -s -m 3 http://payments-api.payments:8080' }
+        ] },
+      { id: 'sa-least-privilege', title: 'The app’s ServiceAccount is cluster-admin',
+        goal: 'payments-api only reads its ConfigMaps, but its ServiceAccount token can read every Secret in the cluster. Find the binding, remove it, and grant exactly what the app needs.',
+        setup: { rbacLeast: false },
+        steps: [
+          { label: 'Prove the blast radius: api-sa can read Secrets in every namespace', event: 'cani-secrets-all-yes', hint: 'kubectl auth can-i get secrets -A --as ' + CKS_SA },
+          { label: 'Find the ClusterRoleBinding that grants it', event: 'crb-api-sa-found', hint: 'kubectl get clusterrolebindings -o wide' },
+          { label: 'Delete that binding', state: function (s) { return !!s.rbacLeast; }, hint: 'kubectl delete clusterrolebinding api-sa-admin' },
+          { label: 'Create a Role that only reads ConfigMaps in payments', event: 'role-created', hint: 'kubectl create role config-reader -n payments --verb=get,list,watch --resource=configmaps' },
+          { label: 'Bind it to the ServiceAccount', event: 'rolebinding-created', hint: 'kubectl create rolebinding api-sa-config-reader -n payments --role=config-reader --serviceaccount=payments:api-sa' },
+          { label: 'Verify: no Secrets anywhere…', event: 'cani-secrets-all-no', hint: 'kubectl auth can-i get secrets -A --as ' + CKS_SA },
+          { label: '…but ConfigMaps in payments still work', event: 'cani-configmaps-payments-yes', hint: 'kubectl auth can-i list configmaps -n payments --as ' + CKS_SA }
+        ] },
+      { id: 'audit-log', title: 'Who read db-creds? Turn on the audit log backend',
+        goal: 'Security asks who read Secret db-creds, and the API server has an audit policy — but nothing is being written. Find out why, turn the log backend on, and find a Secret read in the log (without its value).',
+        setup: { auditOn: false },
+        steps: [
+          { label: 'Read the kube-apiserver manifest: a policy file, but --audit-log-path is commented out', event: 'apiserver-audit-flags', hint: 'cat ' + CKS_APISERVER },
+          { label: 'Read the audit policy: Secrets at Metadata', event: 'audit-policy-read', hint: 'cat /etc/kubernetes/audit/policy.yaml' },
+          { label: 'Un-comment --audit-log-path in the static-pod manifest', state: function (s) { return !!s.auditOn; }, hint: "sed -i 's|# - --audit-log-path|- --audit-log-path|' " + CKS_APISERVER },
+          { label: 'The kube-apiserver static pod is back', event: 'apiserver-back', hint: 'kubectl get pods -n kube-system -l component=kube-apiserver' },
+          { label: 'Read Secret db-creds once (that is the event you will look for)', event: 'secret-read', hint: 'kubectl get secret db-creds -n payments' },
+          { label: 'Find it in the audit log: user, verb, object, but no data', event: 'audit-event-found', hint: 'tail -n 1 ' + CKS_AUDIT_LOG }
+        ] }
+    ]
+  };
+  var CKS_VIOLATIONS_CLI = {
+    privileged: 'privileged (container "debug" must not set securityContext.privileged=true)',
+    ape: 'allowPrivilegeEscalation != false (container "debug" must set securityContext.allowPrivilegeEscalation=false)',
+    caps: 'unrestricted capabilities (container "debug" must set securityContext.capabilities.drop=["ALL"])',
+    nonroot: 'runAsNonRoot != true (pod or container "debug" must set securityContext.runAsNonRoot=true)',
+    seccomp: 'seccompProfile (pod or container "debug" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")'
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -2832,7 +3243,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -3185,6 +3596,48 @@
         ['Scale the control plane back to one replica.', '^(mesh-control-plane|cp-halo)$'],
         ['Ask istioctl whether every proxy is in sync with the control plane.', '^xds-[01]-\\d$']
       ]
+    },
+    /* v1.7.0 (2026-10-29) — CKS workload security on cks-pod-security.glb */
+    'cks-pod-security': {
+      'psa-enforce': [
+        ['Pod Security levels are set per namespace with labels. List the payments namespace with its labels showing.', '^(psa-label|ns-payments)$'],
+        ['Before enforcing, ask the API server what would break: the same label command, as a server-side dry run, with overwrite allowed.', '^(psa-gate|psa-label)$'],
+        ['Now set the enforce mode label to the restricted level for real.', '^(psa-label|psa-gate)$'],
+        ['There is a lab manifest for a privileged debug pod. Try to create it and read who refuses it.', '^(psa-gate|sim-psa-reject)$']
+      ],
+      'harden-pod': [
+        ['Start from the workload: how many of its replicas are ready?', '^(payments-pod|edge-pod-apiserver)$'],
+        ['A ReplicaSet that cannot create pods records why. List the namespace’s events and read the message.', '^(sim-psa-reject|psa-gate)$'],
+        ['The lab has three versions of the Deployment. Read them and apply the one that sets non-root, no escalation, drop ALL and a RuntimeDefault seccomp profile.', '^(sec-context|seccomp-filter)$'],
+        ['List the pods in payments again.', '^(payments-pod|psa-gate)$'],
+        ['Run the identity command inside the Deployment’s container.', '^(payments-pod|sec-context)$'],
+        ['The kernel reports a process’s seccomp mode in its /proc status file. Read the Seccomp line for PID 1.', '^(seccomp-filter|node-kernel)$']
+      ],
+      'default-deny': [
+        ['From the attacker pod in default, call the payments-api Service on 8080.', '^(attacker-pod|edge-attacker-api)$'],
+        ['The lab has a policy that selects every pod in payments with no ingress rules. Apply it.', '^(sim-netpol-wall|netpol-tablet)$'],
+        ['Call payments-api from the attacker pod again. A dropped packet looks like a timeout.', '^(edge-attacker-api|sim-netpol-wall)$'],
+        ['Now call it from the web Deployment in frontend, the legitimate client.', '^(frontend-pod|edge-frontend-api)$'],
+        ['Policies add up: apply the lab policy that admits namespace frontend on TCP 8080 to the payments-api pods.', '^(netpol-tablet|edge-frontend-api)$'],
+        ['Call payments-api from frontend once more.', '^(frontend-pod|edge-frontend-api)$']
+      ],
+      'sa-least-privilege': [
+        ['Impersonate the ServiceAccount (system:serviceaccount:<ns>:<name>) and ask whether it may get Secrets across all namespaces.', '^(sa-token|secrets-vault|edge-token-secrets)$'],
+        ['Cluster-wide grants come from ClusterRoleBindings. List them wide enough to see the ServiceAccount column.', '^(rbac-binding|sim-cluster-admin-crown)$'],
+        ['Remove the binding that ties api-sa to cluster-admin.', '^(sim-cluster-admin-crown|rbac-binding)$'],
+        ['Create a namespaced Role in payments that can only read ConfigMaps (get, list, watch).', '^rbac-binding$'],
+        ['Bind that Role to the ServiceAccount (namespace:name form) in payments.', '^(rbac-binding|sa-token)$'],
+        ['Ask the Secrets question again as api-sa.', '^(secrets-vault|edge-token-secrets)$'],
+        ['Ask whether api-sa may list ConfigMaps in payments.', '^(rbac-binding|ns-payments)$']
+      ],
+      'audit-log': [
+        ['The API server is a static pod: read its manifest and look at every audit flag.', '^(kube-apiserver|audit-log)$'],
+        ['The policy file says what is logged and at which level. Read it.', '^audit-policy$'],
+        ['The log path flag is there, just commented out. Remove the comment marker in place in the manifest.', '^(sim-audit-gap|audit-log)$'],
+        ['The kubelet recreates the static pod after a manifest change. List it in kube-system by its component label.', '^(kube-apiserver|control-plane)$'],
+        ['Generate the event you want to find: read that Secret once as admin.', '^(secret-db-creds|kube-apiserver)$'],
+        ['Read the last line of the audit log file and check what it does and does not contain.', '^(audit-log|edge-api-audit)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -3418,7 +3871,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -3484,7 +3937,7 @@
   }
 
   return {
-    VERSION: '1.6.0',
+    VERSION: '1.7.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

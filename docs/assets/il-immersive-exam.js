@@ -1,5 +1,6 @@
 /**
- * IL Immersive Exam v1.2.0 (2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA mock exam over authored 3D sims.
+ * IL Immersive Exam v1.3.0 (2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
+ * v1.3.0, CKS) mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
  * countdown. Rules engine only — not a live cluster, not killer.sh, not a CNCF exam.
@@ -7,6 +8,12 @@
  *
  * v1.2.0 (2026-10-21): + gateway-api drill; official CNCF CKA blueprint — every result is also scored per official
  * domain, weighted by the published exam weights, with the weakest domain chosen by points at stake (weight × miss).
+ *
+ * v1.3.0 (2026-10-29): track option. buildExam(S, { track: 'CKS' }) draws from the CKS pool (the new cks-pod-security
+ * drill + the netpol-isolation and rbac-authz drills, which the CKS curriculum also names) and scores it against the 6
+ * official CNCF CKS domains (cncf/curriculum CKS v1.34 weights). CKS items map to a domain per checkpoint (one drill spans
+ * several domains), the paper takes one item per covered domain first, and Supply Chain Security (20%) is listed as
+ * untested because no drill covers it yet. The default paper is unchanged (track 'CKA').
  *
  * Would Elon be impressed by thirteen free-play drills with no exam pressure while
  * KodeKloud ships timed mock exams? No — this is the honest pressure layer on top
@@ -19,7 +26,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -78,16 +85,45 @@
   };
 
   /**
+   * v1.3.0 (2026-10-29): official CNCF CKS blueprint (cncf/curriculum "CKS_Curriculum v1.34": Cluster Setup 15 · Cluster
+   * Hardening 15 · System Hardening 10 · Minimize Microservice Vulnerabilities 20 · Supply Chain Security 20 · Monitoring,
+   * Logging and Runtime Security 20). The cncf.io exam page has at times shown 10/15/15 for the first three. Checkpoints
+   * map per (sim::scenario); a sim id alone maps every checkpoint of that drill. sims[0] is the drill a gap links to.
+   */
+  var CKS_BLUEPRINT = [
+    { domain: 'Cluster Setup', weight: 15, sims: ['cks-pod-security', 'netpol-isolation'], items: ['cks-pod-security::no-netpol', 'cks-pod-security::deny-all-ingress', 'netpol-isolation'] },
+    { domain: 'Cluster Hardening', weight: 15, sims: ['cks-pod-security', 'rbac-authz'], items: ['cks-pod-security::rbac-admin', 'rbac-authz'] },
+    { domain: 'System Hardening', weight: 10, sims: ['cks-pod-security'], items: ['cks-pod-security::seccomp'] },
+    { domain: 'Minimize Microservice Vulnerabilities', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::psa-reject', 'cks-pod-security::no-psa'] },
+    { domain: 'Supply Chain Security', weight: 20, sims: [], items: [] },
+    { domain: 'Monitoring, Logging & Runtime Security', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::audit-off'] }
+  ];
+  var CKS_SIMS = ['cks-pod-security', 'netpol-isolation', 'rbac-authz'];
+  var CKS_OFFICIAL = {};
+  CKS_BLUEPRINT.forEach(function (b) { b.items.forEach(function (k) { CKS_OFFICIAL[k] = b.domain; }); });
+  ANCHOR['cks-pod-security'] = 'cks-pod-security';
+  /** Official CKS domain of one checkpoint, or null when the CKS blueprint does not cover it. */
+  function cksDomain(simId, scenarioId) { return CKS_OFFICIAL[simId + '::' + scenarioId] || CKS_OFFICIAL[simId] || null; }
+  var TRACKS = {
+    CKA: { label: 'CKA', sims: CKA_SIMS, blueprint: BLUEPRINT, passPct: 66, count: 10, minutes: 15,
+      honesty: 'Timed mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKA.' },
+    CKS: { label: 'CKS', sims: CKS_SIMS, blueprint: CKS_BLUEPRINT, passPct: 67, count: 8, minutes: 12,
+      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Supply Chain Security has no drill yet.' }
+  };
+  function trackOf(t) { return TRACKS[String(t || 'CKA').toUpperCase()] ? String(t || 'CKA').toUpperCase() : 'CKA'; }
+
+  /**
    * Weight per-domain evidence by the official blueprint. scores: { officialDomain: { correct, total } } with
    * total = number of graded items (exam) or checkpoints (mastery) and correct possibly fractional (mastery share).
    * Returns rows in blueprint order, weightedPct over EVIDENCED domains only (renormalised — never pretends an
    * untested domain was passed), coveragePct (blueprint weight that had any evidence), untested domains, and the
    * weakest domain by points at stake = weight × (1 − pct): a 30% domain at 50% outranks a 10% domain at 0%.
    */
-  function blueprintScore(scores) {
+  function blueprintScore(scores, track) {
     scores = scores || {};
+    var tk = trackOf(track), bp = TRACKS[tk].blueprint;
     var rows = [], wSum = 0, wPct = 0, cover = 0, untested = [], weakest = null;
-    BLUEPRINT.forEach(function (b) {
+    bp.forEach(function (b) {
       var sc = scores[b.domain] || { correct: 0, total: 0 };
       var pct = sc.total ? Math.round((sc.correct / sc.total) * 100) : null;
       var row = { domain: b.domain, weight: b.weight, correct: sc.correct, total: sc.total, pct: pct, sims: b.sims.slice(),
@@ -104,18 +140,20 @@
       untested: untested,
       weakest: weakest,
       drill: weakest ? { sim: weakest.sims[0], href: '/immersive/#' + (ANCHOR[weakest.sims[0]] || '') } : null,
-      honesty: 'Weights are the published CNCF CKA domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
+      track: tk,
+      honesty: 'Weights are the published CNCF ' + tk + ' domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
+        + (tk === 'CKS' ? ' Supply Chain Security has no drill yet, so it is always listed as not covered.' : '')
     };
   }
   /** Official-blueprint view of one graded paper (unanswered items count as incorrect, like the exam). */
   function examBlueprint(exam) {
-    var sc = {};
+    var sc = {}, tk = trackOf(exam && exam.track);
     (exam.items || []).forEach(function (it) {
-      var dom = OFFICIAL[it.simId]; if (!dom) return;
+      var dom = tk === 'CKS' ? cksDomain(it.simId, it.scenarioId) : OFFICIAL[it.simId]; if (!dom) return;
       var d = sc[dom] || (sc[dom] = { correct: 0, total: 0 });
       d.total += 1; if (it.correct) d.correct += 1;
     });
-    return blueprintScore(sc);
+    return blueprintScore(sc, tk);
   }
 
   var DEFAULTS = { count: 10, minutes: 15, passPct: 66 };
@@ -140,21 +178,24 @@
     return arr;
   }
 
-  /** Build the full CKA predict pool from an ILImmersiveSims-compatible API. */
-  function pool(S) {
+  /** Build the predict pool for a track (default CKA) from an ILImmersiveSims-compatible API. */
+  function pool(S, track) {
     if (!S || !S.get) return [];
+    var tk = trackOf(track), ids = TRACKS[tk].sims;
     var out = [];
-    for (var i = 0; i < CKA_SIMS.length; i++) {
-      var id = CKA_SIMS[i];
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
       var sim = S.get(id);
       if (!sim || !sim.scenarios) continue;
       for (var j = 0; j < sim.scenarios.length; j++) {
         var sc = sim.scenarios[j];
         if (!sc || !sc.predict) continue;
+        var dom = tk === 'CKS' ? cksDomain(id, sc.id) : (DOMAIN[id] || sim.cert || 'CKA');
+        if (!dom) continue;
         out.push({
           simId: id,
           scenarioId: sc.id,
-          domain: DOMAIN[id] || sim.cert || 'CKA',
+          domain: dom,
           title: sim.title,
           label: sc.label,
           glb: sim.glb,
@@ -177,22 +218,24 @@
    */
   function buildExam(S, opts) {
     opts = opts || {};
-    var count = Math.max(1, Math.min(opts.count || DEFAULTS.count, 45));
-    var minutes = Math.max(1, opts.minutes || DEFAULTS.minutes);
+    var tk = trackOf(opts.track), T = TRACKS[tk];
+    var count = Math.max(1, Math.min(opts.count || T.count, 45));
+    var minutes = Math.max(1, opts.minutes || T.minutes);
     var seed = opts.seed != null ? (opts.seed >>> 0) : ((Date.now() ^ (Math.random() * 0x100000000)) >>> 0);
     var rnd = opts.rnd || mulberry32(seed);
-    var all = pool(S);
-    if (!all.length) throw new Error('ILImmersiveExam: empty CKA predict pool');
+    var all = pool(S, tk);
+    if (!all.length) throw new Error('ILImmersiveExam: empty ' + tk + ' predict pool');
 
+    /* Coverage buckets: one per drill for CKA; one per official domain for CKS (one CKS drill spans several domains). */
     var bySim = {};
     for (var i = 0; i < all.length; i++) {
-      var it = all[i];
-      (bySim[it.simId] || (bySim[it.simId] = [])).push(it);
+      var it = all[i], bk = tk === 'CKS' ? it.domain : it.simId;
+      (bySim[bk] || (bySim[bk] = [])).push(it);
     }
     var simIds = Object.keys(bySim);
     shuffleInPlace(simIds, rnd);
     var focus = {};
-    (opts.focus || []).forEach(function (id) { if (bySim[id]) focus[id] = 1; });
+    if (tk === 'CKA') (opts.focus || []).forEach(function (id) { if (bySim[id]) focus[id] = 1; });
     var hasFocus = Object.keys(focus).length > 0;
     var picked = [];
     var used = {};
@@ -228,10 +271,11 @@
     var startedAt = opts.now || Date.now();
     return {
       version: VERSION,
+      track: tk,
       seed: seed,
       count: picked.length,
       minutes: minutes,
-      passPct: opts.passPct != null ? opts.passPct : DEFAULTS.passPct,
+      passPct: opts.passPct != null ? opts.passPct : T.passPct,
       focus: hasFocus ? Object.keys(focus) : [],
       startedAt: startedAt,
       endsAt: startedAt + minutes * 60 * 1000,
@@ -254,7 +298,7 @@
           ms: null
         };
       }),
-      honesty: 'Timed mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKA.'
+      honesty: T.honesty
     };
   }
 
@@ -308,6 +352,7 @@
     var list = db.attempts || (db.attempts = []);
     list.unshift({
       at: Date.now(),
+      track: trackOf(exam.track),
       seed: exam.seed,
       correct: summary.correct,
       total: summary.total,
@@ -325,6 +370,11 @@
     VERSION: VERSION,
     STORE_KEY: STORE_KEY,
     CKA_SIMS: CKA_SIMS.slice(),
+    CKS_SIMS: CKS_SIMS.slice(),
+    CKS_BLUEPRINT: CKS_BLUEPRINT,
+    CKS_OFFICIAL: CKS_OFFICIAL,
+    TRACKS: TRACKS,
+    cksDomain: cksDomain,
     DOMAIN: DOMAIN,
     BLUEPRINT: BLUEPRINT,
     OFFICIAL: OFFICIAL,

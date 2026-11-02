@@ -34,8 +34,8 @@ function session(sim, taskId, extra) {
 }
 
 test('v1.6.0: two new packs (3 tasks each) on the EXISTING authored assets — no new .glb, no rules-engine change', () => {
-  assert.equal(C.VERSION, '1.6.0');
-  assert.equal(S.VERSION, '1.6.0', 'rules engine untouched since 2026-10-23');
+  assert.ok(['1.6.0', '1.7.0'].includes(C.VERSION), 'CNI + mesh packs arrived in CLI v1.6.0; v1.7.0 (2026-10-29, + CKS pack) keeps them');
+  assert.ok(['1.6.0', '1.7.0'].includes(S.VERSION), 'no rules-engine change for these packs (v1.7.0 only adds the CKS drill)');
   assert.deepEqual(C.pack(CNI).tasks.map(t => t.id), ['no-cni', 'cidr-overlap', 'no-kube-proxy']);
   assert.deepEqual(C.pack(MESH).tasks.map(t => t.id), ['strict-reset', 'permissive-to-strict', 'istiod-down']);
   assert.equal(S.get(CNI).glb, '/assets/immersive/cni-pod-network.glb');
@@ -231,7 +231,7 @@ test('scope + wiring: mesh stays off the graded CKA paper, CNI stays Services & 
   assert.deepEqual(m.sims.cli.packs.find(p => p.sim === CNI).tasks, ['no-cni', 'cidr-overlap', 'no-kube-proxy']);
   assert.match(m.sims.cli.cniNote, /No live cluster, no real Calico, no VPC routing, no clock/);
   assert.match(m.sims.cli.meshNote, /no live mesh, no real Envoy or istiod/);
-  assert.match(m.sims.player, /15 packs/);
+  assert.match(m.sims.player, /1[56] packs/);
   assert.equal(m.cka_coverage.liveUnrealHost, false);
   assert.equal(m.cka_coverage.hostedFleet, false);
   const html = readFileSync(path.join(root, 'docs/immersive/index.html'), 'utf8');

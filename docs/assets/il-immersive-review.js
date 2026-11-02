@@ -1,5 +1,5 @@
 /**
- * IL Immersive Review v1.3.0 (2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
+ * IL Immersive Review v1.3.1 (2026-10-29; v1.3.0 2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
  *
  * Closes the loop the 2026-10-12 exam left open: every exam miss, timeout, and free-play
  * drill result becomes a spaced-repetition card keyed to the exact predict checkpoint,
@@ -23,6 +23,9 @@
  * from predict checkpoints (CLI cards are scheduled and counted, never invented as top-ups).
  * v1.3.0 (2026-10-21): + gateway-api checkpoints; blueprint() — on-device mastery weighted by the official CNCF CKA
  * domain weights, with the weakest domain by points at stake. speakLine() names it when there is evidence.
+ * v1.3.1 (2026-10-29): CLI coach cards from the new CKS pack (cks-pod-security) get the honest domain label
+ * "CKS · Workload security"; CKA mastery / blueprint / adaptive focus stay CKA-only (CKS predict checkpoints are graded
+ * on the CKS paper, not mixed into CKA readiness).
  */
 (function (root, factory) {
   var api = factory(root);
@@ -31,7 +34,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.3.0';
+  var VERSION = '1.3.1';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -62,7 +65,7 @@
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
   /** CLI-lab drills outside the CKA scope still get coach cards, under an honest domain label. */
-  var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience' };
+  var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience', 'cks-pod-security': 'CKS · Workload security' };
   function cliScenarioId(taskId, step) { return 'cli:' + taskId + ':' + step; }
   function parseCli(scenarioId) {
     var m = /^cli:([a-z0-9-]+):(\d+)$/.exec(String(scenarioId || ''));
