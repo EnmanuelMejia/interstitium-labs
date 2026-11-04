@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.9.0 (2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.10.0 (2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -50,6 +50,12 @@
  * Falco pod with a disabled rule sees nothing, an AppArmor profile that is not loaded on the node stops the container
  * (CreateContainerError), AppArmor deny-write returns Permission denied, readOnlyRootFilesystem returns Read-only file
  * system, and the audit log records a pods/exec request but never the commands typed inside it.
+ *
+ * v1.10.0 (2026-11-04): the fourth CKS drill, cks-cluster-hardening (Cluster Setup: CIS benchmark with kube-bench), on a
+ * NEW authored asset cks-cluster-hardening.glb (kit-v2 + Blender CLI polish): anonymous + AlwaysAllow serves the kubelet API
+ * to anyone, Webhook turns system:anonymous into 403, the read-only port 10255 leaks pods with no auth (kube-bench WARN,
+ * Manual), kube-bench PASSes an edited config.yaml the kubelet has not reloaded, etcd data dir 755 (1.1.11), API server
+ * --profiling (1.2.15, static pod re-created on save), and a ServiceAccount token under AlwaysAllow.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1908,11 +1914,166 @@
     }
   };
 
+  /* ── CKS: Cluster Setup — CIS benchmark (kube-bench) — v1.10.0 (2026-11-04) ─────────────────────────────────────────
+   * Scene contract (cks-cluster-hardening.glb, authored 2026-11-04 — the fourth CKS asset): cp-node / kube-apiserver /
+   * apiserver-manifest (+ sim-profiling-on); etcd-db / etcd-dir (+ sim-etcd-open); kubelet / kubelet-config (+ sim-stale-config),
+   * authn-gate, authz-gate, port-10250 (+ sim-kubelet-open, sim-kubelet-denied), port-10255 (+ sim-ro-port-open);
+   * kube-bench → bench-report (+ sim-bench-fail, sim-bench-pass); pod-network / attacker-pod (+ sim-attacker-probe);
+   * edges edge-kubelet-gates, edge-kubelet-sar, edge-api-etcd, edge-bench-api|etcd|kubelet, edge-probe-kubelet|ro.
+   * Rules follow documented behaviour (kubelet authn/authz docs, kube-bench cfg/cis-1.12): an anonymous request to the
+   * kubelet API is user system:anonymous; with authorization.mode AlwaysAllow every authenticated or anonymous request is
+   * allowed, with Webhook the kubelet asks the API server (SubjectAccessReview) and refuses with 403 Forbidden; with
+   * anonymous auth off an unauthenticated request gets 401 Unauthorized; readOnlyPort 10255 serves read-only kubelet data
+   * over plain HTTP with no auth; the kubelet reads its config file only at start, so an edit needs a kubelet restart,
+   * while kube-bench reads the file (and the process flags) and reports PASS as soon as the file is right; a static-pod
+   * manifest edit is picked up by the kubelet, which re-creates the pod. CIS 4.2.4 is a Manual check: kube-bench reports
+   * WARN, not FAIL. A not-restarted kubelet keeps the config it started with (snapshotted on the first edit). */
+  var CH_CHECKS = [
+    { id: '1.1.11', target: 'master', key: 'etcdLocked', manual: false, text: 'Ensure that the etcd data directory permissions are set to 700 or more restrictive (Automated)' },
+    { id: '1.2.15', target: 'master', key: 'profilingOff', manual: false, text: 'Ensure that the --profiling argument is set to false (Automated)' },
+    { id: '4.2.1', target: 'node', key: 'anonOff', manual: false, text: 'Ensure that the --anonymous-auth argument is set to false (Automated)' },
+    { id: '4.2.2', target: 'node', key: 'webhookAuthz', manual: false, text: 'Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)' },
+    { id: '4.2.4', target: 'node', key: 'roPortClosed', manual: true, text: 'Verify that if defined, the --read-only-port argument is set to 0 (Manual)' }
+  ];
+  function cksHardenDecide(s) {
+    var restarted = s.kubeletRestarted !== false;
+    /* Not restarted: the process still runs the config it read at start (runAnonOff/runWebhookAuthz/runRoClosed, snapshotted
+     * by the CLI when it edits config.yaml; absent = the insecure pre-hardening config). */
+    var run = restarted ? { anonOff: !!s.anonOff, webhookAuthz: !!s.webhookAuthz, roPortClosed: !!s.roPortClosed } : { anonOff: !!s.runAnonOff, webhookAuthz: !!s.runWebhookAuthz, roPortClosed: !!s.runRoClosed };
+    var token = !!s.probeToken;
+    var user = token ? 'system:serviceaccount:default:default' : (run.anonOff ? null : 'system:anonymous');
+    var kubeletCode = !user ? 401 : (run.webhookAuthz ? 403 : 200);
+    var bench = CH_CHECKS.map(function (c) { return { id: c.id, target: c.target, text: c.text, result: s[c.key] ? 'PASS' : (c.manual ? 'WARN' : 'FAIL') }; });
+    var fails = bench.filter(function (b) { return b.result !== 'PASS'; });
+    var stale = !restarted && (run.anonOff !== !!s.anonOff || run.webhookAuthz !== !!s.webhookAuthz || run.roPortClosed !== !!s.roPortClosed);
+    var probe = !!s.probe;
+    var exposures = [];
+    if (probe && kubeletCode === 200) exposures.push('kubelet-api-open');
+    if (probe && !run.roPortClosed) exposures.push('readonly-port-leak');
+    var gaps = fails.map(function (b) { return 'CIS ' + b.id + ' ' + b.result; });
+    if (stale) gaps.push('kubelet not restarted: running config ≠ config.yaml');
+    return {
+      running: run,
+      restarted: restarted,
+      stale: stale,
+      user: user,
+      kubeletCode: kubeletCode,
+      kubeletMsg: kubeletCode === 401 ? 'Unauthorized' : (kubeletCode === 403 ? 'Forbidden (user=' + user + ', verb=get, resource=nodes, subresource=proxy)' : '200 OK (PodList)'),
+      roOpen: !run.roPortClosed,
+      bench: bench,
+      fails: fails,
+      allPass: !fails.length,
+      gaps: gaps,
+      exposures: exposures
+    };
+  }
+
+  var cksClusterHardening = {
+    id: 'cks-cluster-hardening',
+    title: 'CKS cluster setup drill: CIS benchmark with kube-bench — kubelet anonymous auth, AlwaysAllow vs Webhook, read-only port, restart after config edits, etcd data dir permissions, API server profiling',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-cluster-hardening.glb',
+    initial: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false },
+    toggles: [
+      { id: 'anonOff', label: 'kubelet authentication.anonymous.enabled', on: 'false', off: 'true' },
+      { id: 'webhookAuthz', label: 'kubelet authorization.mode', on: 'Webhook', off: 'AlwaysAllow' },
+      { id: 'roPortClosed', label: 'kubelet readOnlyPort', on: '0', off: '10255' },
+      { id: 'kubeletRestarted', label: 'kubelet since the last config.yaml edit', on: 'restarted', off: 'not restarted' },
+      { id: 'etcdLocked', label: '/var/lib/etcd mode', on: '700', off: '755' },
+      { id: 'profilingOff', label: 'kube-apiserver --profiling', on: 'false', off: 'true' },
+      { id: 'probe', label: 'compromised pod probing node ports', on: 'probing', off: 'quiet' },
+      { id: 'probeToken', label: 'probe credential', on: 'its ServiceAccount token', off: 'none (anonymous)' }
+    ],
+    scenarios: [
+      { id: 'anon-alwaysallow', label: 'Anonymous + AlwaysAllow', set: { anonOff: false, webhookAuthz: false, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: true, probeToken: false },
+        predict: { q: 'The kubelet config on controlplane has authentication.anonymous.enabled: true and authorization.mode: AlwaysAllow. From a compromised pod, an attacker runs curl -sk https://10.0.0.10:10250/pods with no credentials. What comes back?',
+          options: ['401 Unauthorized, because the kubelet API always requires a client certificate',
+            'A full PodList as JSON. The request is user system:anonymous, AlwaysAllow authorizes everything, and the same API also serves /exec and /run, so the attacker can run commands in any pod on the node. kube-bench reports [FAIL] 4.2.1 and 4.2.2',
+            '403 Forbidden, because anonymous users are never authorized'],
+          answer: 1, why: 'With anonymous authentication on, a request with no client certificate or bearer token is not rejected; it is authenticated as system:anonymous in group system:unauthenticated. Authorization then decides, and AlwaysAllow allows every request. The kubelet API on :10250 serves /pods, /logs, /exec and /run, so this is remote code execution in every pod on the node. CIS 4.2.1 (anonymous-auth false) and 4.2.2 (authorization-mode not AlwaysAllow) exist for exactly this. kubeadm sets both safely by default; hand-built or old clusters often do not.' } },
+      { id: 'anon-webhook', label: 'Anonymous, but Webhook', set: { anonOff: false, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: true, probeToken: false },
+        predict: { q: 'Same probe, but authorization.mode is now Webhook while anonymous authentication is still enabled. What does curl -sk https://10.0.0.10:10250/pods return, and what does kube-bench say?',
+          options: ['A PodList, because Webhook only applies to bearer tokens',
+            '401 Unauthorized, and kube-bench reports every 4.2 check as PASS',
+            'Forbidden (user=system:anonymous, verb=get, resource=nodes, subresource=proxy). Webhook mode asks the API server with a SubjectAccessReview and RBAC grants system:anonymous nothing. The request was still authenticated as anonymous, so kube-bench still reports [FAIL] 4.2.1'],
+          answer: 2, why: 'Authentication and authorization are separate steps. With anonymous auth on, the request becomes system:anonymous; Webhook authorization then sends a SubjectAccessReview to the API server, which checks RBAC for nodes/proxy and denies it, so the kubelet answers 403 Forbidden and names the user and resource it tried. That is safe today, but one careless ClusterRoleBinding to system:unauthenticated would open the node, so CIS 4.2.1 still wants anonymous auth off (then the answer is 401 Unauthorized).' } },
+      { id: 'readonly-port', label: 'Read-only port 10255', set: { anonOff: true, webhookAuthz: true, roPortClosed: false, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: true, probeToken: false },
+        predict: { q: 'Anonymous auth is off and authorization is Webhook, so :10250 answers 401. But config.yaml still has readOnlyPort: 10255. What does curl -s http://10.0.0.10:10255/pods return, and how does kube-bench report it?',
+          options: ['The full PodList over plain HTTP with no credentials at all (pod specs, env values, image names). kube-bench reports [WARN] 4.2.4, not FAIL, because the check is Manual; set readOnlyPort: 0 and restart the kubelet',
+            'Nothing, because the read-only port also enforces Webhook authorization',
+            '401 Unauthorized, because anonymous auth covers every kubelet port'],
+          answer: 0, why: 'The read-only port is a separate, unauthenticated HTTP listener that serves read-only kubelet endpoints such as /pods and /spec. None of the authentication or authorization settings apply to it. Pod specs often carry environment variables and image references an attacker can use. kube-bench marks CIS 4.2.4 as Manual, so a non-zero port shows up as [WARN], which is easy to skim past. Setting readOnlyPort: 0 disables it (a kubelet restart is needed for the change to take effect).' } },
+      { id: 'no-restart', label: 'PASS, still open', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: false, etcdLocked: true, profilingOff: true, probe: true, probeToken: false },
+        predict: { q: 'You fixed anonymous.enabled, authorization.mode and readOnlyPort in /var/lib/kubelet/config.yaml with sed, then ran kube-bench run --targets node: 4.2.1, 4.2.2 and 4.2.4 all show [PASS]. You did not restart anything. What does the anonymous curl to :10250/pods return now?',
+          options: ['401 Unauthorized, because kube-bench PASS means the kubelet is fixed',
+            'Still the PodList. The kubelet reads config.yaml only when it starts, so the running process keeps the old settings. kube-bench read the file and passed it. Run systemctl restart kubelet (daemon-reload alone only re-reads unit files), then prove it with curl',
+            'The kubelet notices the file change and exits, so the node goes NotReady'],
+          answer: 1, why: 'The kubelet loads its configuration file at start-up. Editing the file changes nothing in the running process until the kubelet is restarted (systemctl restart kubelet). kube-bench checks the process flags (ps -fC kubelet) and the config file it points to, so it reports PASS as soon as the file is right. A green report is evidence about configuration, not about the running state, so always re-test the behaviour (curl the port) after restarting.' } },
+      { id: 'etcd-perms', label: 'etcd data dir 755', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: false, profilingOff: true, probe: false, probeToken: false },
+        predict: { q: 'kube-bench run --targets master reports [FAIL] 1.1.11 on controlplane: stat -c %a /var/lib/etcd prints 755. Why does that matter, and what is the remediation?',
+          options: ['It does not matter, because etcd encrypts its data directory by default',
+            'It only matters for etcd backups; snapshots refuse to run until the mode is 700',
+            'Any local user on the node can read the etcd database files, which hold every Secret (base64, and in plaintext unless encryption at rest is configured). Run chmod 700 /var/lib/etcd (and keep it owned by etcd:etcd, CIS 1.1.12), then re-run the check'],
+          answer: 2, why: 'etcd stores the whole cluster state, including every Secret, in its data directory. Secrets are only base64-encoded unless the API server is configured with an EncryptionConfiguration, so readable database files mean readable credentials. CIS 1.1.11 wants mode 700 or stricter so only the owner can read it; 1.1.12 wants ownership etcd:etcd (on kubeadm clusters etcd runs as root in a static pod, so the directory is root-owned there). The remediation in the kube-bench report is literally chmod 700 /var/lib/etcd.' } },
+      { id: 'profiling', label: 'API server profiling on', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: false, probe: false, probeToken: false },
+        predict: { q: 'kube-bench reports [FAIL] 1.2.15 (--profiling). You edit /etc/kubernetes/manifests/kube-apiserver.yaml so it has - --profiling=false. What do you need to do for the change to take effect?',
+          options: ['Nothing more. The kubelet watches the static-pod manifest directory and re-creates the kube-apiserver pod when the file changes; wait for it to come back (kubectl may fail for a minute), then re-run kube-bench',
+            'systemctl restart kube-apiserver, because the API server is a systemd service',
+            'kubectl apply -f /etc/kubernetes/manifests/kube-apiserver.yaml'],
+          answer: 0, why: 'On kubeadm clusters the control-plane components are static pods. The kubelet watches /etc/kubernetes/manifests (staticPodPath) and re-creates a pod whose manifest changed, so saving the file is the deployment. There is no kube-apiserver systemd unit, and kubectl apply would create a second, ordinary Pod object and leave the static pod unchanged. Profiling exposes /debug/pprof on the API server, which leaks performance internals and can be abused for denial of service; CIS wants it off on the API server, controller manager and scheduler (1.2.15, 1.3.2, 1.4.1). Back up the manifest outside the manifests directory before editing.' } },
+      { id: 'token-alwaysallow', label: 'Anonymous off, AlwaysAllow', set: { anonOff: true, webhookAuthz: false, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: true, probeToken: true },
+        predict: { q: 'Anonymous auth is off, but authorization.mode is still AlwaysAllow. The attacker reads the default ServiceAccount token mounted in the compromised pod and sends it: curl -sk -H "Authorization: Bearer $TOKEN" https://10.0.0.10:10250/pods. What happens?',
+          options: ['401 Unauthorized, because anonymous auth is off',
+            'A PodList. The kubelet authenticates the token with a TokenReview (webhook authentication), so the request is system:serviceaccount:default:default, and AlwaysAllow lets any authenticated user do anything, including /exec. Turning anonymous auth off is not enough; set authorization.mode: Webhook (CIS 4.2.2)',
+            '403 Forbidden, because ServiceAccount tokens are only valid against the API server'],
+          answer: 1, why: 'With authentication.webhook.enabled the kubelet validates bearer tokens through the API server (TokenReview), so any ServiceAccount token from any pod authenticates. Authorization is the step that should stop it, and AlwaysAllow does not. That is why CIS has two separate checks: 4.2.1 removes anonymous access and 4.2.2 makes every authenticated request go through a SubjectAccessReview against RBAC, where a default ServiceAccount has no nodes/proxy permission (403 Forbidden).' } },
+      { id: 'heal', label: 'Reset', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false } }
+    ],
+    derive: function (s) {
+      var d = cksHardenDecide(s), rules = [];
+      var probe = !!s.probe;
+      rules.push(rule('^kubelet$', d.kubeletCode === 200 ? { tint: 'deny', glow: 0.6, pulse: probe } : (d.stale ? { tint: 'warn', glow: 0.5, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^kubelet-config$', d.stale ? { tint: 'warn', glow: 0.5 } : (s.anonOff && s.webhookAuthz && s.roPortClosed ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.4 })));
+      rules.push(rule('^sim-stale-config$', d.stale ? { show: true, tint: 'warn', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^authn-gate$', d.running.anonOff ? { tint: 'ok', glow: 0.5 } : { tint: 'warn', glow: 0.25 }));
+      rules.push(rule('^authz-gate$', d.running.webhookAuthz ? { tint: 'ok', glow: 0.5 } : { tint: 'deny', glow: 0.3 }));
+      rules.push(rule('^(port-10250|edge-kubelet-gates)$', d.kubeletCode === 200 ? { tint: 'deny', glow: 0.6 } : { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^edge-kubelet-sar$', d.running.webhookAuthz ? { tint: 'ok', glow: 0.4 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^sim-kubelet-open$', probe && d.kubeletCode === 200 ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-kubelet-denied$', probe && d.kubeletCode !== 200 ? { show: true, tint: 'ok', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^port-10255$', d.roOpen ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^sim-ro-port-open$', d.roOpen ? { show: true, tint: 'deny', glow: 0.8, pulse: probe } : { hide: true }));
+      rules.push(rule('^(etcd-dir)$', s.etcdLocked ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.5 }));
+      rules.push(rule('^sim-etcd-open$', !s.etcdLocked ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^apiserver-manifest$', s.profilingOff ? { tint: 'ok', glow: 0.3 } : { tint: 'warn', glow: 0.5 }));
+      rules.push(rule('^sim-profiling-on$', !s.profilingOff ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^(kube-bench|bench-report)$', d.allPass ? { tint: 'gold', glow: 0.4 } : { tint: 'warn', glow: 0.55 }));
+      rules.push(rule('^sim-bench-fail$', !d.allPass ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-bench-pass$', d.allPass && (d.stale || s.probe) ? { show: true, tint: d.stale ? 'warn' : 'ok', glow: 0.6 } : { hide: true }));
+      rules.push(rule('^(edge-bench-api|edge-bench-etcd|edge-bench-kubelet)$', { tint: 'gold', glow: 0.25 }));
+      rules.push(rule('^attacker-pod$', probe ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^sim-attacker-probe$', probe ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^edge-probe-kubelet$', probe ? (d.kubeletCode === 200 ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'warn', glow: 0.4 }) : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^edge-probe-ro$', probe && d.roOpen ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^(kube-apiserver|etcd-db|edge-api-etcd)$', { tint: 'gold', glow: 0.3 }));
+      rules.push(rule('^(cp-node|pod-network)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = d.exposures.length ? 'exposed' : (d.gaps.length ? 'degraded' : 'healthy');
+      var cap = [];
+      cap.push('kube-bench: ' + (d.allPass ? 'every modelled check PASS' : d.fails.map(function (b) { return '[' + b.result + '] ' + b.id; }).join(' ')));
+      if (d.stale) cap.push('config.yaml edited, kubelet not restarted: running config is the old one');
+      if (probe) {
+        cap.push(':10250 ' + (s.probeToken ? 'with SA token' : 'anonymous') + ' → ' + d.kubeletMsg);
+        cap.push(':10255 → ' + (d.roOpen ? 'PodList over HTTP, no auth' : 'connection refused'));
+      }
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
-    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity };
+    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity, 'cks-cluster-hardening': cksClusterHardening };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1967,7 +2128,7 @@
   }
 
   return {
-    VERSION: '1.9.0',
+    VERSION: '1.10.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -2000,6 +2161,8 @@
     cksSupplyDecide: cksSupplyDecide,
     SC_DIGEST: SC_DIGEST,
     cksRuntimeDecide: cksRuntimeDecide,
+    cksHardenDecide: cksHardenDecide,
+    CH_CHECKS: CH_CHECKS,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

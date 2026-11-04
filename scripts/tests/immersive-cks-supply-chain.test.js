@@ -41,7 +41,7 @@ function glbJson(rel) {
 
 test('NEW asset: cks-supply-chain.glb is authored + Blender-polished, the second CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.8.0', '1.9.0'].includes(S.VERSION), 'cks-supply-chain arrived in v1.8.0; v1.9.0 (2026-11-03) keeps it');
+  assert.ok(['1.8.0', '1.9.0', '1.10.0'].includes(S.VERSION), 'cks-supply-chain arrived in v1.8.0; v1.9.0 (2026-11-03) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-supply-chain.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
@@ -234,7 +234,7 @@ test('honesty: unmodelled trivy/cosign/kubectl forms never invent output; help a
 });
 
 test('CKS paper: Supply Chain Security now has evidence — 6/6 domains, 100% coverage, gap links to the new drill', () => {
-  assert.ok(['1.4.0', '1.5.0'].includes(E.VERSION));
+  assert.ok(['1.4.0', '1.5.0', '1.6.0'].includes(E.VERSION));
   assert.deepEqual(E.CKS_BLUEPRINT.find(b => b.domain === 'Supply Chain Security').sims, [SIM]);
   for (const sc of S.get(SIM).scenarios.filter(x => x.predict)) assert.equal(E.cksDomain(SIM, sc.id), 'Supply Chain Security');
   assert.ok(E.CKS_SIMS.includes(SIM));
@@ -257,7 +257,7 @@ test('CKS paper: Supply Chain Security now has evidence — 6/6 domains, 100% co
 });
 
 test('review: supply-chain coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[23]$/);
+  assert.match(R.VERSION, /^1\.3\.[234]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 22);
   assert.ok(cards.every(c => c.domain === 'CKS · Supply chain security'));

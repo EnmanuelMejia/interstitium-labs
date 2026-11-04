@@ -44,11 +44,11 @@ function glbJson(rel) {
 
 test('NEW asset: cks-runtime-security.glb is authored + Blender-polished, the third CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.equal(S.VERSION, '1.9.0');
+  assert.ok(['1.9.0', '1.10.0'].includes(S.VERSION), 'cks-runtime-security arrived in v1.9.0; v1.10.0 (2026-11-04) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-runtime-security.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', SIM]);
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', SIM, 'cks-cluster-hardening']);
   const j = glbJson('assets/immersive/cks-runtime-security.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['node01', 'node-kernel', 'syscall-stream', 'falco-ds', 'falco-rules', 'falco-alerts', 'sim-falco-alert', 'sim-falco-blind', 'edge-kernel-falco', 'edge-falco-out',
@@ -190,7 +190,7 @@ test('honesty: unmodelled forms never invent output; help and note say simulated
 });
 
 test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for System Hardening, pool +7', () => {
-  assert.equal(E.VERSION, '1.5.0');
+  assert.ok(['1.5.0', '1.6.0'].includes(E.VERSION));
   assert.equal(E.CKS_BLUEPRINT.find(b => b.domain === 'Monitoring, Logging & Runtime Security').sims[0], SIM);
   assert.ok(E.CKS_BLUEPRINT.find(b => b.domain === 'System Hardening').sims.includes(SIM));
   assert.equal(E.cksDomain(SIM, 'apparmor-not-loaded'), 'System Hardening');
@@ -199,13 +199,13 @@ test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for Syst
   assert.equal(E.cksDomain('cks-pod-security', 'audit-off'), 'Monitoring, Logging & Runtime Security');
   assert.ok(E.CKS_SIMS.includes(SIM));
   assert.equal(E.pool(S, 'CKS').filter(it => it.simId === SIM).length, 7);
-  assert.equal(E.pool(S, 'CKS').length, 29);
+  assert.ok(E.pool(S, 'CKS').length >= 29, '29 on 2026-11-03, 36 since 2026-11-04');
   assert.ok(!E.pool(S).some(it => it.simId === SIM), 'the CKA paper never draws a CKS checkpoint');
   for (const seed of [1, 7, 42, 2026]) {
     const ex = E.buildExam(S, { track: 'CKS', seed });
     assert.equal(ex.count, 8);
     assert.equal(new Set(ex.items.map(i => i.domain)).size, 6, 'one item per official domain first (seed ' + seed + ')');
-    assert.match(ex.honesty, /kube-bench is not modelled yet/);
+    assert.match(ex.honesty, /Falco, AppArmor and kube-bench run on a rules engine/);
   }
   const ex2 = E.buildExam(S, { track: 'CKS', seed: 7 });
   ex2.items.forEach(it => { const miss = it.domain === 'Monitoring, Logging & Runtime Security'; it.choice = miss ? (it.answer + 1) % 3 : it.answer; it.correct = !miss; });
@@ -217,7 +217,7 @@ test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for Syst
 });
 
 test('review: runtime coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.equal(R.VERSION, '1.3.3');
+  assert.match(R.VERSION, /^1\.3\.[34]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 16);
   assert.ok(cards.every(c => c.domain === 'CKS · Runtime security'));
@@ -246,11 +246,11 @@ test('wiring: /immersive/ host, exam lobby copy, curriculum rows, manifest (new 
   assert.deepEqual([sc.gltf, sc.cert, sc.polish, sc.polishedOn], [S.get(SIM).glb, 'CKS', 'blender-cli', '2026-11-03']);
   assert.ok(m.sims.list.includes(SIM));
   assert.ok(!m.cka_coverage.interactive.includes(SIM), 'not counted as CKA coverage');
-  assert.deepEqual(m.cks_coverage.interactive, ['cks-pod-security', 'cks-supply-chain', SIM]);
+  assert.deepEqual(m.cks_coverage.interactive.slice(0, 3), ['cks-pod-security', 'cks-supply-chain', SIM]);
   assert.match(m.cks_coverage.covered['Monitoring, Logging & Runtime Security'], /cks-runtime-security/);
   assert.match(m.cks_coverage.covered['System Hardening'], /AppArmor/);
   assert.ok(!m.cks_coverage.notCovered.some(x => /^Runtime threat detection|^AppArmor$/.test(x)));
-  assert.ok(m.cks_coverage.notCovered.some(x => /kube-bench/.test(x)));
+  assert.ok(m.cks_coverage.notCovered.some(x => /kube-bench checks beyond the five modelled/.test(x)), 'kube-bench drilled since 2026-11-04; the rest of the benchmark honestly missing');
   assert.equal(m.cks_coverage.hostedFleet, false);
   assert.equal(m.cks_coverage.liveUnrealHost, false);
   assert.equal(m.sims.runtime_version, S.VERSION);

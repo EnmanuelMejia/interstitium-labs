@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.9.0 (2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.10.0 (2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -80,6 +80,13 @@
  * rollout stalls in CreateContainerError until `apparmor_parser` loads it (`aa-status`), Permission denied vs Read-only
  * file system from `kubectl exec … -- touch`, and the pods/exec audit event (who, not what). Tasks: falco-detect ·
  * apparmor · contain. Voice: "app armor" → apparmor, "falco" stays.
+ *
+ * v1.10.0 (2026-11-04) — the fourth CKS pack (19 total), Cluster Setup: the CIS benchmark with kube-bench, on the NEW
+ * authored cks-cluster-hardening.glb: `kube-bench run --targets node|master [--check IDS]` (cis-1.12 ids, trimmed), the kubelet
+ * API probed with curl (200 / 403 / 401), a line-addressed `sed -i` on /var/lib/kubelet/config.yaml, `systemctl restart
+ * kubelet` (kube-bench PASSes the file before the restart), the read-only port 10255 (WARN, Manual), `chmod 700
+ * /var/lib/etcd`, and --profiling=false in the static-pod manifest. Tasks: kubelet-auth · control-plane · readonly-port.
+ * Voice: "kube bench" → kube-bench.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -3746,6 +3753,199 @@
     ]
   };
 
+  /* ── pack: CKS Cluster Setup — CIS benchmark with kube-bench (v1.10.0, 2026-11-04 — the fourth CKS pack) ────────────
+   * Drives cks-cluster-hardening on the NEW authored cks-cluster-hardening.glb. The lab box is the controlplane node of a
+   * kubeadm cluster (it runs a kubelet too, so both kube-bench targets apply there). kube-bench output follows the
+   * [PASS]/[FAIL]/[WARN] + Remediations + Summary layout and the check ids/texts of cfg/cis-1.12, trimmed to the five
+   * modelled checks; curl, stat, systemctl and the kubelet config are computed from sim state and labelled representative.
+   * No live cluster, no real kube-bench, kubelet, etcd or systemd, no clock. */
+  var CH_KCFG = '/var/lib/kubelet/config.yaml';
+  var CH_APIM = '/etc/kubernetes/manifests/kube-apiserver.yaml';
+  var CH_ETCD = '/var/lib/etcd';
+  var CH_NOTE = 'Lab box = controlplane of a kubeadm cluster (it runs a kubelet too). kube-bench check ids/texts follow cfg/cis-1.12, trimmed to 5 modelled checks (1.1.11, 1.2.15, 4.2.1, 4.2.2, 4.2.4); kubelet config ' + CH_KCFG + '; API server manifest ' + CH_APIM + '. Output is computed by the rules engine and labelled representative — no real kube-bench, kubelet, etcd or systemd. Lab-only: fault anon|authz|roport|restart|etcd|profiling break|fix.';
+  function chKcfg(s) {
+    return ['apiVersion: kubelet.config.k8s.io/v1beta1', 'kind: KubeletConfiguration', 'authentication:', '  anonymous:', '    enabled: ' + (s.anonOff ? 'false' : 'true'), '  webhook:', '    cacheTTL: 0s', '    enabled: true',
+      '  x509:', '    clientCAFile: /etc/kubernetes/pki/ca.crt', 'authorization:', '  mode: ' + (s.webhookAuthz ? 'Webhook' : 'AlwaysAllow'), 'readOnlyPort: ' + (s.roPortClosed ? '0' : '10255'), 'staticPodPath: /etc/kubernetes/manifests'];
+  }
+  function chApim(s) {
+    return ['apiVersion: v1', 'kind: Pod', 'metadata:', '  name: kube-apiserver', '  namespace: kube-system', 'spec:', '  containers:', '  - command:', '    - kube-apiserver', '    - --advertise-address=10.0.0.10', '    - --authorization-mode=Node,RBAC',
+      '    - --enable-admission-plugins=NodeRestriction', '    - --etcd-servers=https://127.0.0.1:2379', '    - --profiling=' + (s.profilingOff ? 'false' : 'true'), '    - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt', '    image: registry.k8s.io/kube-apiserver:v1.34.1', '    name: kube-apiserver', '(sim) trimmed manifest'];
+  }
+  var CH_REMED = {
+    '1.1.11': 'On the etcd server node, get the etcd data directory, passed as an argument --data-dir, from the command \'ps -ef | grep etcd\'. Run the below command (based on the etcd data directory found above). For example, chmod 700 /var/lib/etcd',
+    '1.2.15': 'Edit the API server pod specification file ' + CH_APIM + ' on the control plane node and set the below parameter. --profiling=false',
+    '4.2.1': 'If using a Kubelet config file, edit the file to set `authentication: anonymous: enabled` to `false`. Based on your system, restart the kubelet service. For example, systemctl daemon-reload; systemctl restart kubelet.service',
+    '4.2.2': 'If using a Kubelet config file, edit the file to set `authorization.mode` to Webhook. Based on your system, restart the kubelet service. For example, systemctl daemon-reload; systemctl restart kubelet.service',
+    '4.2.4': 'If using a Kubelet config file, edit the file to set `readOnlyPort` to 0. Based on your system, restart the kubelet service. For example, systemctl daemon-reload; systemctl restart kubelet.service'
+  };
+  function chSed(expr) {
+    var m = /^(\d+)?(s.*)$/.exec(String(expr || ''));
+    if (!m) return null;
+    var sub = sedSubst(m[2]);
+    if (!sub) return null;
+    var g = /g$/.test(m[2]) && m[2].split(m[2].charAt(1)).length >= 4;
+    return { line: m[1] ? Number(m[1]) : null, a: sub.a, b: sub.b, g: g };
+  }
+  function chApply(lines, ed) {
+    return lines.map(function (l, i) {
+      if (ed.line && ed.line !== i + 1) return l;
+      if (!ed.a || l.indexOf(ed.a) < 0) return l;
+      return ed.g ? l.split(ed.a).join(ed.b) : l.replace(ed.a, ed.b);
+    });
+  }
+  var chPack = {
+    sim: 'cks-cluster-hardening',
+    prompt: 'root@controlplane:~#',
+    note: CH_NOTE,
+    examples: ['kube-bench run --targets node', 'kube-bench run --targets master', 'kube-bench run --targets node --check 4.2.1,4.2.2', 'curl -sk https://localhost:10250/pods', 'curl -sk -H "Authorization: Bearer $TOKEN" https://localhost:10250/pods',
+      'curl -s http://localhost:10255/pods', 'cat -n ' + CH_KCFG, "sed -i '5s/true/false/' " + CH_KCFG, "sed -i 's/mode: AlwaysAllow/mode: Webhook/' " + CH_KCFG, "sed -i 's/readOnlyPort: 10255/readOnlyPort: 0/' " + CH_KCFG,
+      'systemctl restart kubelet', 'stat -c %a ' + CH_ETCD, 'chmod 700 ' + CH_ETCD, 'grep profiling ' + CH_APIM, "sed -i 's/--profiling=true/--profiling=false/' " + CH_APIM],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      var f = faultArgs(t);
+      if (f) {
+        var key = { anon: 'anonOff', authz: 'webhookAuthz', roport: 'roPortClosed', restart: 'kubeletRestarted', etcd: 'etcdLocked', profiling: 'profilingOff' }[f[0]];
+        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault anon|authz|roport|restart|etcd|profiling break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = f[1] === 'fix';
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      var head = t[0] || '', file = String(t[t.length - 1] || '').replace(/^(\.\/|~\/)/, '');
+      if (head === 'kube-bench') {
+        var tg = flag(t, ['--targets']), ck = flag(t, ['--check', '-c']);
+        var targets = typeof tg === 'string' ? tg.split(',') : ['master', 'node'];
+        if (targets.some(function (x) { return x !== 'master' && x !== 'node'; })) return res(['sim: this drill models kube-bench run --targets master|node [--check IDS]'], 2);
+        var only = typeof ck === 'string' ? ck.split(',') : null;
+        var rows = m.bench.filter(function (b) { return targets.indexOf(b.target) >= 0 && (!only || only.indexOf(b.id) >= 0); });
+        if (!rows.length) return res(['(sim) no modelled check matches — modelled: 1.1.11, 1.2.15 (master) · 4.2.1, 4.2.2, 4.2.4 (node)'], 2);
+        var out = [], ev = [];
+        targets.forEach(function (tgt) {
+          var r = rows.filter(function (b) { return b.target === tgt; });
+          if (!r.length) return;
+          out.push(tgt === 'master' ? '[INFO] 1 Control Plane Security Configuration' : '[INFO] 4 Worker Node Security Configuration');
+          r.forEach(function (b) { out.push('[' + b.result + '] ' + b.id + ' ' + b.text); });
+          var bad = r.filter(function (b) { return b.result !== 'PASS'; });
+          if (bad.length) { out.push('', '== Remediations ' + tgt + ' =='); bad.forEach(function (b) { out.push(b.id + ' ' + CH_REMED[b.id]); }); }
+          out.push('', '== Summary ' + tgt + ' ==', r.filter(function (b) { return b.result === 'PASS'; }).length + ' checks PASS', r.filter(function (b) { return b.result === 'FAIL'; }).length + ' checks FAIL', r.filter(function (b) { return b.result === 'WARN'; }).length + ' checks WARN', '0 checks INFO', '');
+          ev.push('bench-' + tgt);
+          if (!bad.length) ev.push('bench-pass-' + tgt);
+          if (r.some(function (b) { return b.id === '4.2.4' && b.result === 'WARN'; })) ev.push('bench-warn-424');
+        });
+        out.push('(sim) representative kube-bench output (cis-1.12 ids), trimmed to the modelled checks — kube-bench reads config files and process flags, not the running behaviour');
+        return res(out, 0, null, ev);
+      }
+      if (head === 'curl') {
+        var url = t.filter(function (a) { return /^https?:\/\//.test(a); })[0] || '';
+        var um = /^(https?):\/\/(localhost|127\.0\.0\.1|10\.0\.0\.10|controlplane):(10250|10255)\/(pods|spec)\/?$/.exec(url);
+        if (!um) return res(['sim: this drill models curl -sk https://localhost:10250/pods [-H "Authorization: Bearer $TOKEN"] and curl -s http://localhost:10255/pods'], 2);
+        var tok = t.some(function (a) { return /^Authorization:\s*Bearer\s+\S+/.test(a); });
+        var pl = '{"kind":"PodList","apiVersion":"v1","metadata":{},"items":[{"metadata":{"name":"kube-apiserver-controlplane","namespace":"kube-system"…},{"metadata":{"name":"payments-api-7d9f8c6b5-k4x2p","namespace":"payments"…}…]}';
+        if (um[3] === '10255') {
+          if (um[1] !== 'http') return res(['curl: (35) OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to ' + um[2] + ':10255', '(sim) the read-only port speaks plain HTTP'], 35);
+          if (!m.roOpen) return res(['curl: (7) Failed to connect to ' + um[2] + ' port 10255 after 0 ms: Couldn\'t connect to server'], 7, null, ['ro-closed']);
+          return res([pl, '(sim) representative, truncated — plain HTTP, no credentials asked for'], 0, null, ['ro-leak']);
+        }
+        if (um[1] !== 'https') return res(['Client sent an HTTP request to an HTTPS server.'], 0);
+        var code = tok ? (m.running.webhookAuthz ? 403 : 200) : m.kubeletCode;
+        if (code === 401) return res(['Unauthorized'], 0, null, ['kubelet-401']);
+        if (code === 403) return res(['Forbidden (user=' + (tok ? 'system:serviceaccount:default:default' : 'system:anonymous') + ', verb=get, resource=nodes, subresource=proxy)'], 0, null, ['kubelet-403']);
+        return res([pl, '(sim) representative, truncated — the same API serves /exec and /run'], 0, null, ['kubelet-open']);
+      }
+      if (head === 'cat' || head === 'less' || head === 'head' || head === 'tail') {
+        var num = t.indexOf('-n') > 0;
+        var body = file === CH_KCFG ? chKcfg(s) : (file === CH_APIM ? chApim(s) : null);
+        if (!body) return res([head + ': ' + t[t.length - 1] + ': No such file or directory'], 1);
+        if (num) body = body.map(function (l, i) { return ('     ' + (i + 1)).slice(-6) + '\t' + l; });
+        return res(body, 0, null, ['cat', file === CH_KCFG ? 'cfg-seen' : 'manifest-seen']);
+      }
+      if (head === 'grep') {
+        var pat = t.filter(function (a, i) { return i > 0 && a.charAt(0) !== '-' && i < t.length - 1; })[0] || '';
+        var src = file === CH_KCFG ? chKcfg(s) : (file === CH_APIM ? chApim(s) : null);
+        if (!src) return res(['sim: this drill models grep PATTERN ' + CH_KCFG + ' | ' + CH_APIM], 2);
+        var hit = src.filter(function (l) { return pat && l.indexOf(pat) >= 0; });
+        return res(hit, hit.length ? 0 : 1, null, hit.length && /profiling/.test(pat) ? ['profiling-seen'] : ['grep']);
+      }
+      if (head === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var expr = t.filter(function (a, i) { return i > 0 && a.charAt(0) !== '-' && i < t.length - 1; })[0];
+        if (file !== CH_KCFG && file !== CH_APIM) return res(['sim: this drill models sed on ' + CH_KCFG + ' and ' + CH_APIM + ' only'], 2);
+        var ed = chSed(expr);
+        if (!ed) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var before = file === CH_KCFG ? chKcfg(s) : chApim(s), after = chApply(before, ed);
+        var changed = after.map(function (l, i) { return l !== before[i] ? i : -1; }).filter(function (i) { return i >= 0; });
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written'].concat(after), 0);
+        if (!changed.length) return res([], 0, null, ['sed-nochange']);
+        if (file === CH_APIM) {
+          if (changed.length !== 1 || !/^    - --profiling=(true|false)$/.test(after[changed[0]])) return res(['(sim) this drill models only the --profiling flag in the manifest — that edit would break the static pod'], 1, null, ['sed-bad-edit']);
+          var off = /=false$/.test(after[changed[0]]);
+          return res(['(sim) ' + CH_APIM + ': --profiling=' + (off ? 'false' : 'true') + ' — the kubelet sees the manifest change and re-creates the kube-apiserver static pod (the API may be unavailable for a minute; no systemctl needed)'], 0, { profilingOff: off }, ['apim-edited']);
+        }
+        if (changed.indexOf(7) >= 0) return res(['(sim) refused: that pattern also matched line 8 (webhook: enabled: true) and would turn off token authentication, breaking the API server → kubelet path. Look at cat -n ' + CH_KCFG + ' and address the line, e.g. 5s/true/false/'], 1, null, ['sed-bad-edit']);
+        var okLine = { 4: /^    enabled: (true|false)$/, 11: /^  mode: (Webhook|AlwaysAllow)$/, 12: /^readOnlyPort: (0|10255)$/ };
+        if (changed.some(function (i) { return !okLine[i] || !okLine[i].test(after[i]); })) return res(['(sim) that edit leaves a value this drill does not model (anonymous.enabled true|false, authorization.mode Webhook|AlwaysAllow, readOnlyPort 0|10255) — the kubelet would refuse to start'], 1, null, ['sed-bad-edit']);
+        var patch = { anonOff: / false$/.test(after[4]), webhookAuthz: /Webhook$/.test(after[11]), roPortClosed: / 0$/.test(after[12]), kubeletRestarted: false };
+        if (s.kubeletRestarted !== false) { patch.runAnonOff = !!s.anonOff; patch.runWebhookAuthz = !!s.webhookAuthz; patch.runRoClosed = !!s.roPortClosed; }
+        return res(['(sim) ' + CH_KCFG + ' updated — the running kubelet read its config at start; it keeps the old settings until it is restarted'], 0, patch, ['cfg-edited']);
+      }
+      if (head === 'systemctl') {
+        var act = t[1] || '', unit = String(t[2] || '').replace(/\.service$/, '');
+        if (act === 'daemon-reload') return res(['(sim) systemd re-read its unit files — the kubelet process was not restarted'], 0, null, ['daemon-reload']);
+        if (unit !== 'kubelet') return res(['Failed to ' + act + ' ' + (t[2] || '') + '.service: Unit ' + unit + '.service not found.', unit === 'kube-apiserver' ? '(sim) on kubeadm clusters the API server is a static pod, not a systemd unit — edit its manifest' : ''].filter(Boolean), 5);
+        if (act === 'restart') return res([], 0, { kubeletRestarted: true }, ['kubelet-restart']);
+        if (act === 'status' || act === 'is-active') return res(['● kubelet.service - kubelet: The Kubernetes Node Agent', '     Active: active (running)' + (m.stale ? ' — started before the last ' + CH_KCFG + ' edit' : ''), '(sim) representative'], 0, null, ['kubelet-status']);
+        return res(['sim: this drill models systemctl restart|status kubelet and systemctl daemon-reload'], 2);
+      }
+      if (head === 'stat' || (head === 'ls' && t.indexOf('-ld') > 0)) {
+        if (file !== CH_ETCD) return res(['sim: this drill models stat -c %a ' + CH_ETCD + ' and ls -ld ' + CH_ETCD], 2);
+        var mode = s.etcdLocked ? '700' : '755';
+        if (head === 'ls') return res([(s.etcdLocked ? 'drwx------' : 'drwxr-xr-x') + ' 3 root root 4096 Nov  4 08:12 ' + CH_ETCD], 0, null, ['etcd-perms-seen']);
+        return res(t.indexOf('%a') > 0 ? [mode] : ['  File: ' + CH_ETCD, 'Access: (0' + mode + '/' + (s.etcdLocked ? 'drwx------' : 'drwxr-xr-x') + ')  Uid: (    0/    root)   Gid: (    0/    root)', '(sim) representative'], 0, null, ['etcd-perms-seen']);
+      }
+      if (head === 'chmod') {
+        if (file !== CH_ETCD) return res(['sim: this drill models chmod MODE ' + CH_ETCD], 2);
+        var md = t[1] || '';
+        if (md === '700' || md === 'go-rwx' || md === '0700') return res([], 0, { etcdLocked: true }, ['etcd-chmod']);
+        if (/^0?7[0-5][0-7]$/.test(md)) return res([], 0, { etcdLocked: false }, ['etcd-chmod']);
+        return res(['(sim) refused: without rwx for the owner etcd cannot use its own data directory — CIS wants 700 or more restrictive for group/other, not for the owner'], 1, null, ['sed-bad-edit']);
+      }
+      return null;
+    },
+    tasks: [
+      { id: 'kubelet-auth', title: 'kube-bench FAILs 4.2.1 and 4.2.2: lock the kubelet API, restart, prove it',
+        goal: 'The kubelet on controlplane serves its API to anyone. Run the node checks, prove the exposure with curl, fix anonymous auth and the authorization mode in the kubelet config, restart the kubelet, prove the API now refuses, and re-run the checks.',
+        setup: { anonOff: false, webhookAuthz: false, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false },
+        steps: [
+          { label: 'Run the node checks: [FAIL] 4.2.1 and 4.2.2', event: 'bench-node', hint: 'kube-bench run --targets node' },
+          { label: 'Prove the exposure: an anonymous request lists the pods', event: 'kubelet-open', hint: 'curl -sk https://localhost:10250/pods' },
+          { label: 'Turn anonymous authentication off in config.yaml (only that line)', state: function (s) { return !!s.anonOff; }, hint: "sed -i '5s/true/false/' " + CH_KCFG },
+          { label: 'Set authorization.mode to Webhook', state: function (s) { return !!s.webhookAuthz; }, hint: "sed -i 's/mode: AlwaysAllow/mode: Webhook/' " + CH_KCFG },
+          { label: 'Restart the kubelet so it reads the new config', state: function (s) { return s.kubeletRestarted !== false && !!s.anonOff && !!s.webhookAuthz; }, hint: 'systemctl restart kubelet' },
+          { label: 'Prove it: the same anonymous request gets 401 Unauthorized', event: 'kubelet-401', hint: 'curl -sk https://localhost:10250/pods' },
+          { label: 'Re-run the two checks: [PASS]', event: 'bench-pass-node', hint: 'kube-bench run --targets node --check 4.2.1,4.2.2' }
+        ] },
+      { id: 'control-plane', title: 'kube-bench FAILs 1.1.11 and 1.2.15: etcd data dir and API server profiling',
+        goal: 'Run the control-plane checks, fix the etcd data directory permissions and turn API server profiling off in its static-pod manifest, then re-run the checks.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: false, profilingOff: false, probe: false, probeToken: false },
+        steps: [
+          { label: 'Run the control-plane checks: [FAIL] 1.1.11 and 1.2.15', event: 'bench-master', hint: 'kube-bench run --targets master' },
+          { label: 'Check the mode of the etcd data directory', event: 'etcd-perms-seen', hint: 'stat -c %a ' + CH_ETCD },
+          { label: 'Restrict it to the owner', state: function (s) { return !!s.etcdLocked; }, hint: 'chmod 700 ' + CH_ETCD },
+          { label: 'Find the --profiling flag in the API server manifest', event: 'profiling-seen', hint: 'grep profiling ' + CH_APIM },
+          { label: 'Set --profiling=false (the kubelet re-creates the static pod)', state: function (s) { return !!s.profilingOff; }, hint: "sed -i 's/--profiling=true/--profiling=false/' " + CH_APIM },
+          { label: 'Re-run the control-plane checks: [PASS]', event: 'bench-pass-master', hint: 'kube-bench run --targets master --check 1.1.11,1.2.15' }
+        ] },
+      { id: 'readonly-port', title: 'A WARN, not a FAIL: close the kubelet read-only port',
+        goal: 'The kubelet still serves read-only data on port 10255 with no authentication. Prove it, see how kube-bench reports it, set readOnlyPort to 0, restart the kubelet and prove the port is closed.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: false, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false },
+        steps: [
+          { label: 'Prove the leak: pods over plain HTTP, no credentials', event: 'ro-leak', hint: 'curl -s http://localhost:10255/pods' },
+          { label: 'See how kube-bench reports it: [WARN] 4.2.4 (Manual)', event: 'bench-warn-424', hint: 'kube-bench run --targets node --check 4.2.4' },
+          { label: 'Set readOnlyPort to 0 in config.yaml', state: function (s) { return !!s.roPortClosed; }, hint: "sed -i 's/readOnlyPort: 10255/readOnlyPort: 0/' " + CH_KCFG },
+          { label: 'Restart the kubelet', state: function (s) { return s.kubeletRestarted !== false && !!s.roPortClosed; }, hint: 'systemctl restart kubelet' },
+          { label: 'Prove it: port 10255 refuses the connection', event: 'ro-closed', hint: 'curl -s http://localhost:10255/pods' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -3753,7 +3953,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack, chPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -4206,6 +4406,33 @@
         ['Apply the read-only Deployment variant: new pods replace the compromised ones.', '^(rootfs-layer|payments-pod)$'],
         ['Exec into the new pods and try the same write again.', '^(sim-write-denied|rootfs-layer)$']
       ]
+    },
+    /* v1.10.0 (2026-11-04) — CKS cluster setup (CIS benchmark) on cks-cluster-hardening.glb */
+    'cks-cluster-hardening': {
+      'kubelet-auth': [
+        ['Run the benchmark tool against the worker-node section only.', '^(kube-bench|bench-report|sim-bench-fail)$'],
+        ['Talk to the kubelet API on its HTTPS port without any credentials.', '^(port-10250|sim-kubelet-open|authn-gate)$'],
+        ['Number the lines of the kubelet config first; change only the anonymous enabled line.', '^(kubelet-config|authn-gate)$'],
+        ['Swap the authorization mode in the same file to the one that asks the API server.', '^(kubelet-config|authz-gate|edge-kubelet-sar)$'],
+        ['The kubelet only reads its config at start. Restart its systemd service.', '^(kubelet|sim-stale-config)$'],
+        ['Repeat the same unauthenticated request against port 10250.', '^(sim-kubelet-denied|authn-gate|port-10250)$'],
+        ['Re-run the node checks, narrowed to the two ids you fixed.', '^(bench-report|kube-bench)$']
+      ],
+      'control-plane': [
+        ['Run the benchmark tool against the control-plane section only.', '^(kube-bench|bench-report|sim-bench-fail)$'],
+        ['Print the octal mode of the etcd data directory.', '^(etcd-dir|sim-etcd-open)$'],
+        ['Owner-only access: read, write and execute for the owner, nothing for anyone else.', '^(etcd-dir|etcd-db)$'],
+        ['Search the API server static-pod manifest for the profiling flag.', '^(apiserver-manifest|sim-profiling-on)$'],
+        ['Edit the manifest in place; the kubelet re-creates the static pod by itself.', '^(apiserver-manifest|kube-apiserver)$'],
+        ['Re-run the control-plane checks, narrowed to the two ids you fixed.', '^(bench-report|kube-bench)$']
+      ],
+      'readonly-port': [
+        ['Plain HTTP, the legacy kubelet port, no credentials.', '^(port-10255|sim-ro-port-open)$'],
+        ['Run only check 4.2.4 and read its status word carefully.', '^(bench-report|kube-bench)$'],
+        ['In the kubelet config, the read-only port line should say 0.', '^(kubelet-config|port-10255)$'],
+        ['Config edits need the kubelet to start again.', '^(kubelet|sim-stale-config)$'],
+        ['Repeat the plain-HTTP request against port 10255.', '^(port-10255|edge-probe-ro)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -4439,7 +4666,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bco ?sign\b/g, 'cosign'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bco ?sign\b/g, 'cosign'], [/\b(cube|kube) ?bench\b/g, 'kube-bench'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -4505,7 +4732,7 @@
   }
 
   return {
-    VERSION: '1.9.0',
+    VERSION: '1.10.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,
