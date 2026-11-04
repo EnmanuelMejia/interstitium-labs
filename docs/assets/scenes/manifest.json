@@ -1,7 +1,7 @@
 {
   "v": 5,
-  "updated": "2026-11-03T09:30:00-05:00",
-  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions. 2026-10-22: NEW authored asset node-troubleshoot.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the worker-node troubleshooting drill \u2014 the first new .glb since 2026-10-06. 2026-10-23: NEW authored asset service-dns.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the Service + DNS troubleshooting drill. 2026-10-29: NEW authored asset cks-pod-security.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the first CKS scene, for the cks-pod-security drill. 2026-11-02: NEW authored asset cks-supply-chain.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the second CKS scene, for the cks-supply-chain drill (Supply Chain Security). 2026-11-03: NEW authored asset cks-runtime-security.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the third CKS scene, for the cks-runtime-security drill (Monitoring, Logging & Runtime Security + AppArmor).",
+  "updated": "2026-11-04T09:30:00-05:00",
+  "note": "3D-first curriculum. Kit-v2 authored .glb under /assets/immersive/ (pedagogical nodes, LOD proxies, PBR), Blender CLI 4.2.3 polished + promoted (shade smooth, weighted normals, LOD1 decimate) \u2014 not hand-sculpted. Procedural WebGL fallback only if fetch fails. Unreal via Pixel Streaming client (no live UE host, no fake hosted fleet). v5 (2026-10-06): AWS SAA/CCP spatial scenes + interactive sims (state re-tints/reveals authored nodes; in-browser rules engine, not live infrastructure). Players skip Blender *_LOD1 duplicates. 2026-10-07: +4 interactive CKA sims (NetworkPolicy, RBAC, scheduling, HPA) over the existing Blender-polished glTF; predict options shuffled per attempt. 2026-10-08: +6 interactive drills (storage PV/PVC, Ingress, ConfigMap/Secret propagation, CNI, service-mesh mTLS, control-plane failures) \u2014 every CKA spatial scene is now stateful; keyed answers spread across option positions. 2026-10-22: NEW authored asset node-troubleshoot.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the worker-node troubleshooting drill \u2014 the first new .glb since 2026-10-06. 2026-10-23: NEW authored asset service-dns.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) for the Service + DNS troubleshooting drill. 2026-10-29: NEW authored asset cks-pod-security.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the first CKS scene, for the cks-pod-security drill. 2026-11-02: NEW authored asset cks-supply-chain.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the second CKS scene, for the cks-supply-chain drill (Supply Chain Security). 2026-11-03: NEW authored asset cks-runtime-security.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the third CKS scene, for the cks-runtime-security drill (Monitoring, Logging & Runtime Security + AppArmor). 2026-11-04: NEW authored asset cks-cluster-hardening.glb (kit-v2 + Blender CLI 4.2.3 polish on the box) \u2014 the fourth CKS scene, for the cks-cluster-hardening drill (Cluster Setup: CIS benchmark with kube-bench).",
   "engines": [
     "webgl",
     "webgpu",
@@ -309,6 +309,20 @@
       "gallery": "/immersive/#cks-runtime-security",
       "sim": "cks-runtime-security",
       "note": "NEW asset 2026-11-03 (third CKS scene): worker node01 kernel with its syscall stream tapped by the Falco DaemonSet pod (eBPF probe) \u2192 falco_rules.local.yaml \u2192 alert output; AppArmor profile k8s-deny-write in the node kernel; kube-apiserver \u2192 audit.log (pods/exec request); ns payments with payments-api inside its AppArmor shield over the container rootfs layer (readOnlyRootFilesystem). Sim-only attacker shell, dropped binary, write-denied barrier, Falco alert flare, blind marker, missing-profile marker. Kit-v2 meshes + Blender CLI polish \u2014 not hand-sculpted."
+    },
+    {
+      "id": "cert-cks-cluster-hardening",
+      "kind": "cert",
+      "gltf": "/assets/immersive/cks-cluster-hardening.glb",
+      "procedural": true,
+      "scene": "k8s",
+      "frontier": "cks-cluster-hardening",
+      "cert": "CKS",
+      "polish": "blender-cli",
+      "polishedOn": "2026-11-04",
+      "gallery": "/immersive/#cks-cluster-hardening",
+      "sim": "cks-cluster-hardening",
+      "note": "NEW asset 2026-11-04 (fourth CKS scene): controlplane node with kube-apiserver + its static-pod manifest (--profiling), etcd over its data directory /var/lib/etcd (mode), the kubelet with config.yaml, its authentication gate (anonymous) and authorization gate (Webhook vs AlwaysAllow, SubjectAccessReview edge to the API server), the :10250 API port and the legacy :10255 read-only port; a kube-bench scanner wired to each component and its PASS/FAIL/WARN report; a compromised pod on the pod network probing both ports. Sim-only exposure flare, refusal barrier, read-only-port flare, stale-config marker, etcd-open slab, profiling flare, FAIL / PASS badges. Kit-v2 meshes + Blender CLI polish \u2014 not hand-sculpted."
     }
   ],
   "scaffolds": {
@@ -358,7 +372,7 @@
   },
   "sims": {
     "runtime": "/assets/il-immersive-sims.js",
-    "player": "/assets/il-immersive-3d.js (v1.12.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (18 packs; host-aware prompt for ssh sessions) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
+    "player": "/assets/il-immersive-3d.js (v1.12.0, data-il-sim; options shuffled per attempt; WebXR entry + in-headset world-space predict HUD; in-scene CLI lab (19 packs; host-aware prompt for ssh sessions) + Lab Muse task coach + coach-driven CLI review cards + optional voice-to-command; drills mount without a 3D render under reduced motion / no WebGL)",
     "list": [
       "etcd-quorum",
       "aws-az-failure",
@@ -378,7 +392,8 @@
       "service-dns",
       "cks-pod-security",
       "cks-supply-chain",
-      "cks-runtime-security"
+      "cks-runtime-security",
+      "cks-cluster-hardening"
     ],
     "predictThenReveal": true,
     "analytics": [
@@ -387,12 +402,12 @@
     ],
     "storage": "localStorage il.immersiveSims.v1 (device only)",
     "honesty": "Rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.",
-    "runtime_version": "1.9.0",
+    "runtime_version": "1.10.0",
     "exam": {
       "runtime": "/assets/il-immersive-exam.js",
       "boot": "/assets/il-immersive-exam-boot.js",
       "path": "/immersive/exam/",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "defaults": {
         "count": 10,
         "minutes": 15,
@@ -416,13 +431,13 @@
       "cks": {
         "since": "2026-10-29",
         "track": "CKS",
-        "pool": "cks-pod-security (7) + cks-supply-chain (7, since 2026-11-02) + cks-runtime-security (7, since 2026-11-03) + netpol-isolation + rbac-authz checkpoints, each mapped to one official CKS domain per checkpoint (ILImmersiveExam.CKS_BLUEPRINT / cksDomain)",
+        "pool": "cks-pod-security (7) + cks-supply-chain (7, since 2026-11-02) + cks-runtime-security (7, since 2026-11-03) + cks-cluster-hardening (7, since 2026-11-04) + netpol-isolation + rbac-authz checkpoints, each mapped to one official CKS domain per checkpoint (ILImmersiveExam.CKS_BLUEPRINT / cksDomain)",
         "defaults": {
           "count": 8,
           "minutes": 12,
           "passPct": 67
         },
-        "blueprint": "6 official CNCF CKS domains with cncf/curriculum CKS v1.34 weights; one item per covered domain first; since 2026-11-02 every domain has a drill (Supply Chain Security \u2192 cks-supply-chain), so a clean paper reports 100% coverage; since 2026-11-03 Monitoring, Logging & Runtime Security links to cks-runtime-security and its two AppArmor checkpoints count for System Hardening",
+        "blueprint": "6 official CNCF CKS domains with cncf/curriculum CKS v1.34 weights; one item per covered domain first; since 2026-11-02 every domain has a drill (Supply Chain Security \u2192 cks-supply-chain), so a clean paper reports 100% coverage; since 2026-11-03 Monitoring, Logging & Runtime Security links to cks-runtime-security and its two AppArmor checkpoints count for System Hardening; since 2026-11-04 Cluster Setup links to cks-cluster-hardening (CIS benchmark / kube-bench)",
         "honesty": "Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. A study signal, not a predicted CNCF score."
       }
     },
@@ -477,7 +492,7 @@
     "cli": {
       "since": "2026-10-16",
       "runtime": "/assets/il-immersive-cli.js",
-      "version": "1.9.0",
+      "version": "1.10.0",
       "player": "il-immersive-3d.js v1.12.0 (free-play stages; CLI review cards re-open one task step on /immersive/review/; never on the graded /immersive/exam/)",
       "packs": [
         {
@@ -638,6 +653,15 @@
             "contain"
           ],
           "since": "2026-11-03"
+        },
+        {
+          "sim": "cks-cluster-hardening",
+          "tasks": [
+            "kubelet-auth",
+            "control-plane",
+            "readonly-port"
+          ],
+          "since": "2026-11-04"
         }
       ],
       "syntax": [
@@ -664,7 +688,8 @@
         "kubectl get namespace [NAME] --show-labels | -L istio-injection; kubectl label namespace shop istio-injection=enabled; kubectl get pods -n shop|payments; kubectl rollout restart|status deployment/frontend -n shop; kubectl get events -n shop; kubectl get peerauthentication -n payments [-o yaml]; kubectl apply -f pa-strict.yaml|pa-permissive.yaml; kubectl get deployments -n istio-system; kubectl scale deployment istiod -n istio-system --replicas=N; istioctl proxy-status; kubectl exec -n shop deploy/frontend -- curl http://payments.payments:8080/headers",
         "kubectl get ns --show-labels; kubectl label [--dry-run=server] [--overwrite] ns payments pod-security.kubernetes.io/enforce=restricted|enforce-; kubectl get deployment|rs|pods|events -n payments; kubectl describe rs -n payments; kubectl apply -f (lab files: payments-api-hardened|nonroot|privileged.yaml, privileged-debug.yaml, default-deny-ingress.yaml, allow-frontend.yaml); kubectl exec -n payments deploy/payments-api -- id | grep Seccomp|CapEff|NoNewPrivs /proc/1/status | cat /var/run/secrets/kubernetes.io/serviceaccount/token; kubectl exec -n default attacker|-n frontend deploy/web -- curl; kubectl get|delete networkpolicy; kubectl auth can-i VERB RESOURCE [-n NS|-A] --as system:serviceaccount:payments:api-sa; kubectl get|delete clusterrolebindings [-o wide]; kubectl create role --verb --resource; kubectl create rolebinding --role --serviceaccount=NS:NAME; kubectl get secret[s] [-A] [--as \u2026]; cat /etc/kubernetes/manifests/kube-apiserver.yaml | /etc/kubernetes/audit/policy.yaml; sed -i on the kube-apiserver manifest; kubectl get pods -n kube-system -l component=kube-apiserver; tail|cat|grep /var/log/kubernetes/audit/audit.log",
         "kubectl get deployment payments-api -n payments -o wide; kubectl get pods -n payments; cat Dockerfile | ci/build.sh | allowed-registries.yaml | verify-images.yaml | payments-api-digest.yaml | payments-api-dockerio.yaml | sbom.cdx.json; sed -i on ci/build.sh (add --exit-code 1) and the Dockerfile runtime FROM line; ./ci/build.sh (build \u2192 trivy \u2192 SBOM \u2192 push \u2192 cosign sign/attest under set -e); trivy image [--severity CRITICAL] [--exit-code 1] [--ignore-unfixed] IMAGE; trivy image --format cyclonedx --output sbom.cdx.json IMAGE; trivy sbom sbom.cdx.json; grep [-i] PATTERN sbom.cdx.json; cosign verify|sign|attest|verify-attestation --key cosign.pub|cosign.key [--type cyclonedx --predicate sbom.cdx.json] IMAGE; kubectl apply -f allowed-registries.yaml|verify-images.yaml|payments-api-digest.yaml|payments-api-dockerio.yaml; kubectl get validatingadmissionpolicies|validatingadmissionpolicybindings|clusterpolicies; kubectl set image deployment/payments-api api=IMAGE -n payments; kubectl rollout restart deployment payments-api -n payments",
-        "kubectl get pods -n falco|payments; kubectl logs -n falco ds/falco; cat|sed -i on /etc/falco/falco_rules.local.yaml (enabled: true|false); cat /etc/apparmor.d/k8s-deny-write; aa-status; apparmor_parser [-q] [-r] /etc/apparmor.d/k8s-deny-write; kubectl apply -f payments-api-apparmor.yaml|payments-api-readonly.yaml; kubectl describe pod -n payments (CreateContainerError); kubectl exec -n payments deploy/payments-api -- ls /usr/local/bin | touch PATH; grep pods/exec /var/log/kubernetes/audit/audit.log"
+        "kubectl get pods -n falco|payments; kubectl logs -n falco ds/falco; cat|sed -i on /etc/falco/falco_rules.local.yaml (enabled: true|false); cat /etc/apparmor.d/k8s-deny-write; aa-status; apparmor_parser [-q] [-r] /etc/apparmor.d/k8s-deny-write; kubectl apply -f payments-api-apparmor.yaml|payments-api-readonly.yaml; kubectl describe pod -n payments (CreateContainerError); kubectl exec -n payments deploy/payments-api -- ls /usr/local/bin | touch PATH; grep pods/exec /var/log/kubernetes/audit/audit.log",
+        "kube-bench run --targets master|node [--check 1.1.11,1.2.15,4.2.1,4.2.2,4.2.4]; curl -sk [-H \"Authorization: Bearer $TOKEN\"] https://localhost:10250/pods; curl -s http://localhost:10255/pods; cat [-n] /var/lib/kubelet/config.yaml | /etc/kubernetes/manifests/kube-apiserver.yaml; sed -i ['NUMs/a/b/' | 's/mode: AlwaysAllow/mode: Webhook/' | 's/readOnlyPort: 10255/readOnlyPort: 0/'] /var/lib/kubelet/config.yaml; sed -i 's/--profiling=true/--profiling=false/' on the kube-apiserver manifest; grep profiling; systemctl restart|status kubelet; systemctl daemon-reload; stat -c %a | ls -ld /var/lib/etcd; chmod 700 /var/lib/etcd"
       ],
       "verify": "Killercoda-style tasks: goal \u2192 ordered steps (event steps must follow the previous event step; state steps are checked live) \u2192 complete",
       "ux": [
@@ -717,7 +742,8 @@
       "meshNote": "Service-mesh pack (2026-10-27) drives mesh-mtls on the authored service-mesh-sidecar.glb (no new asset). Istio semantics: STRICT resets plaintext clients, injection needs the namespace label and newly created pods, PERMISSIVE accepts both, istiod at zero leaves existing sidecars on their last config while the sidecar-injector webhook (failurePolicy Fail) blocks new pods. payments echoes headers like httpbin /headers, so X-Forwarded-Client-Cert shows an mTLS hop. istioctl output is computed and trimmed. Not CKA core; no live mesh, no real Envoy or istiod.",
       "cksNote": "CKS pack (2026-10-29) drives cks-pod-security on the NEW authored cks-pod-security.glb. PodSecurity admission messages follow the built-in controller's format (violates PodSecurity \"restricted:latest\": \u2026); /proc status, id, curl and the audit.k8s.io/v1 event are computed from sim state and labelled representative where shaped, not byte-identical. No live cluster, no real kubelet, kernel or seccomp, no clock: the static-pod restart after a manifest edit is explained, not waited for. The audit event shows that a Metadata-level rule never logs the Secret's data.",
       "supplyChainNote": "CKS supply-chain pack (2026-11-02) drives cks-supply-chain on the NEW authored cks-supply-chain.glb. The ValidatingAdmissionPolicy denial follows the documented \"ValidatingAdmissionPolicy '\u2026' with binding '\u2026' denied request\" format; trivy tables, the CycloneDX SBOM, cosign verify/attest output and the Kyverno-style verifyImages denial are computed from sim state and labelled representative, not byte-identical. Only CRITICAL findings are modelled (CVE-2023-45853 in zlib1g on a debian:bookworm base). No registry, no CI runner, no real trivy, cosign, Rekor or Kyverno, no clock.",
-      "runtimeNote": "CKS runtime pack (2026-11-03) drives cks-runtime-security on the NEW authored cks-runtime-security.glb. The lab box is node01 with an admin kubeconfig (a real worker would not have one). Falco output, the lab rule \"Shell in container\" (a custom local rule with no tty requirement, not Falco's default \"Terminal shell in container\"), aa-status, apparmor_parser, CreateContainerError events, touch errors (Permission denied vs Read-only file system) and the audit.k8s.io/v1 pods/exec event are computed from sim state and labelled representative, not byte-identical. No live cluster, no real Falco, kernel, eBPF probe or AppArmor, no clock: Falco's rules reload and the kubelet's retry after the profile loads are explained, not waited for."
+      "runtimeNote": "CKS runtime pack (2026-11-03) drives cks-runtime-security on the NEW authored cks-runtime-security.glb. The lab box is node01 with an admin kubeconfig (a real worker would not have one). Falco output, the lab rule \"Shell in container\" (a custom local rule with no tty requirement, not Falco's default \"Terminal shell in container\"), aa-status, apparmor_parser, CreateContainerError events, touch errors (Permission denied vs Read-only file system) and the audit.k8s.io/v1 pods/exec event are computed from sim state and labelled representative, not byte-identical. No live cluster, no real Falco, kernel, eBPF probe or AppArmor, no clock: Falco's rules reload and the kubelet's retry after the profile loads are explained, not waited for.",
+      "hardeningNote": "CKS CIS-benchmark pack (2026-11-04) drives cks-cluster-hardening on the NEW authored cks-cluster-hardening.glb. The lab box is the controlplane node of a kubeadm cluster, which also runs a kubelet, so both kube-bench targets apply there. kube-bench output uses the check ids and texts of aquasecurity/kube-bench cfg/cis-1.12 (1.1.11, 1.2.15, 4.2.1, 4.2.2, 4.2.4 \u2014 4.2.4 is Manual, so it reports WARN) trimmed to those five checks; kubelet responses (PodList / Forbidden (user=\u2026, verb=get, resource=nodes, subresource=proxy) / Unauthorized), curl errors, stat, systemctl and the config files are computed from sim state and labelled representative, not byte-identical. A sed pattern that would also flip webhook token authentication is refused with an explanation. No live cluster, no real kube-bench, kubelet, etcd or systemd, no clock: the kubelet restart and the static-pod re-creation are explained, not waited for."
     }
   },
   "aws_coverage": {
@@ -736,16 +762,18 @@
     "spatial": [
       "cks-pod-security",
       "cks-supply-chain",
-      "cks-runtime-security"
+      "cks-runtime-security",
+      "cks-cluster-hardening"
     ],
     "interactive": [
       "cks-pod-security",
       "cks-supply-chain",
-      "cks-runtime-security"
+      "cks-runtime-security",
+      "cks-cluster-hardening"
     ],
     "curriculum": "cncf/curriculum CKS v1.34: Cluster Setup 15% \u00b7 Cluster Hardening 15% \u00b7 System Hardening 10% \u00b7 Minimize Microservice Vulnerabilities 20% \u00b7 Supply Chain Security 20% \u00b7 Monitoring, Logging and Runtime Security 20%",
     "covered": {
-      "Cluster Setup": "NetworkPolicy default-deny / allow (cks-pod-security + netpol-isolation)",
+      "Cluster Setup": "NetworkPolicy default-deny / allow (cks-pod-security + netpol-isolation); CIS benchmark with kube-bench: kubelet anonymous auth, AlwaysAllow vs Webhook, read-only port, restart after a config edit, etcd data dir permissions, API server profiling (cks-cluster-hardening)",
       "Cluster Hardening": "RBAC least privilege for ServiceAccounts (cks-pod-security + rbac-authz)",
       "System Hardening": "seccomp RuntimeDefault vs Unconfined (cks-pod-security); AppArmor Localhost profiles: load with apparmor_parser, CreateContainerError when missing, deny-write (cks-runtime-security)",
       "Minimize Microservice Vulnerabilities": "Pod Security Standards / Admission (restricted)",
@@ -754,16 +782,16 @@
     },
     "notCovered": [
       "static analysis of manifests (kubesec / KubeLinter) and keyless (Sigstore OIDC) signing",
-      "CIS benchmark (kube-bench)",
       "Ingress TLS / node metadata protection",
       "sandboxed runtimes (gVisor / Kata)",
       "Cilium pod-to-pod encryption",
-      "Falco rule authoring beyond one lab rule, Falcosidekick / alert routing, Tetragon / Tracee"
+      "Falco rule authoring beyond one lab rule, Falcosidekick / alert routing, Tetragon / Tracee",
+      "kube-bench checks beyond the five modelled (file ownership/permissions of manifests and PKI, controller-manager and scheduler flags, kubelet TLS / rotation)"
     ],
     "hostedFleet": false,
     "liveUnrealHost": false,
     "muskVerdict": "Closer/NO until live UE host + hosted fleet exist",
     "examMode": true,
-    "updated": "2026-11-03"
+    "updated": "2026-11-04"
   }
 }

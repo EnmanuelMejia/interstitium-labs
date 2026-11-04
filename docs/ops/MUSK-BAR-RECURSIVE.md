@@ -1,7 +1,40 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-03 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-04 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-04 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **The CIS benchmark (kube-bench) was the last CKS topic our manifest listed as not modelled**, and Cluster Setup (15%) rested on NetworkPolicy alone. kube-bench labs are standard at KodeKloud (a lab plus a two-node "fix every FAIL" challenge) and show up in killer.sh-style scenarios. |
+| After this ship | **Closer / still NO** | **CKS track, part 4 (CIS benchmark).** A new Blender-polished `cks-cluster-hardening.glb`. A 7-checkpoint predict/reveal drill: anonymous + AlwaysAllow opens the kubelet API, Webhook turns anonymous into 403, the read-only port leaks pods while kube-bench only WARNs, kube-bench PASSes a config the kubelet has not reloaded, etcd data dir 755, API server profiling via the static-pod manifest, and a ServiceAccount token under AlwaysAllow. A 3-task / 18-step typed CLI pack. On the CKS paper, Cluster Setup gaps now link to this drill (pool 29 → 36). |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no real kube-bench, kubelet, etcd or systemd, no live cluster and no hosted fleet. Five benchmark checks are modelled out of 100+ in cis-1.12. The score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- a kubesec / KubeLinter static-analysis task, added to the supply-chain pack
+- a CKS queue in `/immersive/review/` plus a CKS hands-on paper (the Troubleshooting-paper pattern over the four CKS packs)
+- syncing the Notion Labs rows for the four CKS drills (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-04)
+
+| Competitor | CKS cluster-setup / CIS offer | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | CIS benchmark + kube-bench lectures and labs on real environments, plus a challenge to fix every kube-bench FAIL on a two-node cluster | 1 authored 3D drill + 3 typed tasks + domain-weighted paper; simulated shell, not a real VM |
+| killer.sh / Killercoda | CKS simulator (2 × 17 scenarios on real clusters) including API server / kubelet hardening; free kube-bench scenarios | no real binaries, but a 3D view of authn → authz → kubelet API and of "PASS on file vs running config" that they do not draw |
+| A Cloud Guru / Pluralsight | CKS video path with some hands-on labs | predict-before-reveal on an authored scene instead of video |
+
+## Shipped this pass (2026-11-04)
+
+1. `cks-cluster-hardening.glb` (kit-v2 authoring, Blender CLI 4.2.3 polish) + `il-immersive-sims.js` v1.10.0: the `cksClusterHardening` sim (7 scenarios + heal), `cksHardenDecide`, `CH_CHECKS` (cis-1.12 ids).
+2. `il-immersive-cli.js` v1.10.0: the CIS pack (kubelet-auth 7 · control-plane 6 · readonly-port 5), COACH tips with glTF focus for all 18 steps, spoken "kube bench".
+3. `il-immersive-exam.js` v1.6.0: Cluster Setup → `cks-cluster-hardening` (gap link), CKS pool 29 → 36. `il-immersive-review.js` v1.3.4 labels the CIS CLI cards.
+4. Tests: unit 230 → 241 (`immersive-cks-cluster-hardening.test.js`); browser 59 → 62 (CIS predict, `kubelet-auth` typed end-to-end, CIS toggles; CKS pool ≥ 36; reduced-motion terminals 18 → 19).
+
+---
+
+_Prior pass archived below (2026-11-03)._
+
 
 ## Verdict — 2026-11-03 Musk-bar pass
 

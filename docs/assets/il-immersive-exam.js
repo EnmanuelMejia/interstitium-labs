@@ -1,5 +1,5 @@
 /**
- * IL Immersive Exam v1.5.0 (2026-11-03; v1.4.0 2026-11-02; v1.3.0 2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
+ * IL Immersive Exam v1.6.0 (2026-11-04; v1.5.0 2026-11-03; v1.4.0 2026-11-02; v1.3.0 2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
  * v1.3.0, CKS) mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
@@ -24,6 +24,10 @@
  * detection, rule overrides, immutable containers, audit vs runtime visibility) and becomes the drill a gap links to; its
  * two AppArmor checkpoints count for System Hardening. The CKS pool grows by 7. kube-bench is still not modelled.
  *
+ * v1.6.0 (2026-11-04): Cluster Setup (15%) gets a dedicated drill (cks-cluster-hardening: the CIS benchmark with kube-bench —
+ * kubelet anonymous auth / AlwaysAllow / read-only port, restart after a config edit, etcd data dir, API server profiling) and
+ * becomes the drill a gap links to. The CKS pool grows by 7. Every topic in the manifest's notCovered list is still unmodelled.
+ *
  * Would Elon be impressed by thirteen free-play drills with no exam pressure while
  * KodeKloud ships timed mock exams? No — this is the honest pressure layer on top
  * of the 3D mental model peers still teach as video + terminal.
@@ -35,7 +39,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.5.0';
+  var VERSION = '1.6.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -100,26 +104,27 @@
    * map per (sim::scenario); a sim id alone maps every checkpoint of that drill. sims[0] is the drill a gap links to.
    */
   var CKS_BLUEPRINT = [
-    { domain: 'Cluster Setup', weight: 15, sims: ['cks-pod-security', 'netpol-isolation'], items: ['cks-pod-security::no-netpol', 'cks-pod-security::deny-all-ingress', 'netpol-isolation'] },
+    { domain: 'Cluster Setup', weight: 15, sims: ['cks-cluster-hardening', 'cks-pod-security', 'netpol-isolation'], items: ['cks-pod-security::no-netpol', 'cks-pod-security::deny-all-ingress', 'netpol-isolation', 'cks-cluster-hardening'] },
     { domain: 'Cluster Hardening', weight: 15, sims: ['cks-pod-security', 'rbac-authz'], items: ['cks-pod-security::rbac-admin', 'rbac-authz'] },
     { domain: 'System Hardening', weight: 10, sims: ['cks-pod-security', 'cks-runtime-security'], items: ['cks-pod-security::seccomp', 'cks-runtime-security::apparmor-not-loaded', 'cks-runtime-security::apparmor-deny-write'] },
     { domain: 'Minimize Microservice Vulnerabilities', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::psa-reject', 'cks-pod-security::no-psa'] },
     { domain: 'Supply Chain Security', weight: 20, sims: ['cks-supply-chain'], items: ['cks-supply-chain'] },
     { domain: 'Monitoring, Logging & Runtime Security', weight: 20, sims: ['cks-runtime-security', 'cks-pod-security'], items: ['cks-pod-security::audit-off', 'cks-runtime-security'] }
   ];
-  var CKS_SIMS = ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'netpol-isolation', 'rbac-authz'];
+  var CKS_SIMS = ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'netpol-isolation', 'rbac-authz'];
   var CKS_OFFICIAL = {};
   CKS_BLUEPRINT.forEach(function (b) { b.items.forEach(function (k) { CKS_OFFICIAL[k] = b.domain; }); });
   ANCHOR['cks-pod-security'] = 'cks-pod-security';
   ANCHOR['cks-supply-chain'] = 'cks-supply-chain';
   ANCHOR['cks-runtime-security'] = 'cks-runtime-security';
+  ANCHOR['cks-cluster-hardening'] = 'cks-cluster-hardening';
   /** Official CKS domain of one checkpoint, or null when the CKS blueprint does not cover it. */
   function cksDomain(simId, scenarioId) { return CKS_OFFICIAL[simId + '::' + scenarioId] || CKS_OFFICIAL[simId] || null; }
   var TRACKS = {
     CKA: { label: 'CKA', sims: CKA_SIMS, blueprint: BLUEPRINT, passPct: 66, count: 10, minutes: 15,
       honesty: 'Timed mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKA.' },
     CKS: { label: 'CKS', sims: CKS_SIMS, blueprint: CKS_BLUEPRINT, passPct: 67, count: 8, minutes: 12,
-      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Falco and AppArmor run on a rules engine, not a real kernel; kube-bench is not modelled yet.' }
+      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor and kube-bench run on a rules engine, not a real kernel or node.' }
   };
   function trackOf(t) { return TRACKS[String(t || 'CKA').toUpperCase()] ? String(t || 'CKA').toUpperCase() : 'CKA'; }
 
@@ -153,7 +158,7 @@
       drill: weakest ? { sim: weakest.sims[0], href: '/immersive/#' + (ANCHOR[weakest.sims[0]] || '') } : null,
       track: tk,
       honesty: 'Weights are the published CNCF ' + tk + ' domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
-        + (tk === 'CKS' ? ' Every CKS domain has at least one drill since 2026-11-02; Falco runtime detection and AppArmor are simulated since 2026-11-03; kube-bench is not modelled yet.' : '')
+        + (tk === 'CKS' ? ' Every CKS domain has at least one drill since 2026-11-02; Falco runtime detection and AppArmor are simulated since 2026-11-03, the CIS benchmark (kube-bench) since 2026-11-04.' : '')
     };
   }
   /** Official-blueprint view of one graded paper (unanswered items count as incorrect, like the exam). */
