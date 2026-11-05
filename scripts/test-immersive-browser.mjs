@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -79,7 +79,7 @@ await check('/immersive/: every authored-glb stage renders authored meshes; WebG
 for (const [sim, scenario, expectVerdict] of [['aws-az-failure', 'single-az-db', 'down'], ['iam-eval', 'deny-wins', 'explicit-deny'], ['etcd-quorum', 'lose-two', 'down'],
   ['netpol-isolation', 'flannel', 'down'], ['rbac-authz', 'clusterrole-rb', 'degraded'], ['sched-taints', 'untaint', 'healthy'], ['hpa-scale', 'cap', 'degraded'],
   ['storage-csi', 'reclaim-retain', 'released'], ['ingress-routing', 'no-endpoints', 'degraded'], ['gateway-api', 'no-refgrant', 'degraded'], ['config-propagation', 'missing-key', 'down'],
-  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded'], ['service-dns', 'corefile', 'down'], ['cks-pod-security', 'rbac-admin', 'exposed'], ['cks-supply-chain', 'critical-cve', 'exposed'], ['cks-runtime-security', 'falco-alert', 'exposed'], ['cks-cluster-hardening', 'no-restart', 'exposed']]) {
+  ['cni-network', 'no-cni', 'down'], ['mesh-mtls', 'strict-plain', 'down'], ['control-plane-failure', 'api-down', 'down'], ['node-troubleshoot', 'disk-pressure', 'degraded'], ['service-dns', 'corefile', 'down'], ['cks-pod-security', 'rbac-admin', 'exposed'], ['cks-supply-chain', 'critical-cve', 'exposed'], ['cks-runtime-security', 'falco-alert', 'exposed'], ['cks-cluster-hardening', 'no-restart', 'exposed'], ['cks-static-analysis', 'no-gate', 'exposed']]) {
   await check(`sim ${sim}: predict → reveal changes scene state (${scenario} → ${expectVerdict})`, async () => {
     const { page, errors } = await open('/immersive/');
     await page.locator(`[data-il-sim="${sim}"]`).scrollIntoViewIfNeeded();
@@ -266,7 +266,7 @@ await check('/immersive/exam/: CKS paper (8 · 12:00) scores the 6 official CKS 
   const poolCks = Number(await page.locator('[data-il-exam-pool-cks]').textContent());
   const want = await page.evaluate(() => window.ILImmersiveExam.pool(window.ILImmersiveSims, 'CKS').length);
   assert.equal(poolCks, want);
-  assert.ok(poolCks >= 36, 'CKS pool ' + poolCks + ' (15 on 2026-10-29 + 7 supply-chain + 7 runtime-security + 7 CIS-benchmark checkpoints)');
+  assert.ok(poolCks >= 43, 'CKS pool ' + poolCks + ' (15 on 2026-10-29 + 7 supply-chain + 7 runtime-security + 7 CIS-benchmark + 7 static-analysis checkpoints)');
   await page.locator('[data-il-exam-start][data-track="CKS"]').click();
   await page.locator('[data-il-exam-run]:not([hidden])').waitFor({ timeout: 15000 });
   assert.equal(await page.locator('html').getAttribute('data-il-exam-track'), 'CKS');
@@ -276,7 +276,7 @@ await check('/immersive/exam/: CKS paper (8 · 12:00) scores the 6 official CKS 
     await page.waitForFunction(n => document.querySelector('[data-il-exam-progress]').textContent === 'Q ' + n + '/8', i + 1, { timeout: 30000 });
     await page.locator('[data-il-exam-option]').first().waitFor({ timeout: 30000 });
     const k = await keyFor(page, await page.locator('[data-il-exam-q]').textContent());
-    assert.ok(k && ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'netpol-isolation', 'rbac-authz'].includes(k.sim), 'CKS pool only: ' + (k && k.sim));
+    assert.ok(k && ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'cks-static-analysis', 'netpol-isolation', 'rbac-authz'].includes(k.sim), 'CKS pool only: ' + (k && k.sim));
     sims.add(k.sim);
     await page.locator(`[data-il-exam-option="${k.answer}"]`).click();
   }
@@ -924,7 +924,7 @@ await check('prefers-reduced-motion (#24 Codex review): drills keep scenarios, p
     terminals: document.querySelectorAll('details[data-il-cli]').length
   }));
   assert.ok(info.ready >= 13, 'reduced-motion drills mounted: ' + info.ready);
-  assert.equal(info.terminals, 19, 'CLI terminals still mount (19 packs since 2026-11-04)');
+  assert.equal(info.terminals, 20, 'CLI terminals still mount (20 packs since 2026-11-05)');
   const host = page.locator('[data-il-sim-ready="storage-csi"]');
   await host.scrollIntoViewIfNeeded();
   assert.ok(await host.locator('.il-immersive__sim').isVisible(), 'drill panel visible');
@@ -1446,6 +1446,58 @@ await check('CKS CIS toggles (2026-11-04): probe → healthy (401); AlwaysAllow 
   const host = await cliHost(page, 'cks-cluster-hardening', false);
   const out = [];
   for (const [toggle, want] of [['probe', 'healthy'], ['webhookAuthz', 'degraded'], ['probeToken', 'exposed'], ['webhookAuthz', 'healthy'], ['roPortClosed', 'exposed'], ['roPortClosed', 'healthy'], ['kubeletRestarted', 'exposed'], ['kubeletRestarted', 'healthy'], ['probe', 'healthy'], ['etcdLocked', 'degraded'], ['etcdLocked', 'healthy']]) {
+    await host.locator(`[data-il-sim-toggle="${toggle}"]`).click();
+    assert.equal(await host.getAttribute('data-il-sim-verdict'), want, toggle + ' → ' + want);
+    out.push(toggle + '→' + want);
+  }
+  assert.deepEqual(errors, []);
+  await page.close();
+  return out.join(' · ');
+});
+
+/* 2026-11-05: CKS static-analysis pack on the NEW authored cks-static-analysis.glb. */
+await check('CLI pack 2026-11-05 (CKS static analysis): kubesec-gate typed end-to-end — Failed -24 → ungated CI ships it → gate → blocked → fix → Passed → ship; bypass flare hides', async () => {
+  const { page, errors } = await openCli();
+  await page.evaluate(() => { window.__cliEv = []; addEventListener('il-immersive-sim', e => window.__cliEv.push(e.detail)); });
+  const sa = await cliHost(page, 'cks-static-analysis');
+  await sa.locator('[data-il-cli-task="kubesec-gate"]').click();
+  assert.equal(await sa.getAttribute('data-il-cli-task'), 'kubesec-gate:0/7');
+  assert.equal(await sa.getAttribute('data-il-sim-verdict'), 'exposed');
+  const node = (n) => sa.evaluate((el, nm) => { const v = el._ilImmersive._authored.find(x => x.name === nm); return v && v.simStyle && { tint: v.simStyle.tint, hide: !!v.simStyle.hide }; }, n);
+  assert.equal((await node('sim-gate-bypass')).hide, false, 'sim-only bypass flare revealed');
+  const t0 = await tints(sa);
+  await type(sa, 'kubesec scan payments-api.yaml');
+  assert.match(await logText(sa), /Failed with a score of -24 points/);
+  await type(sa, './ci/lint.sh');
+  assert.match(await logText(sa), /swallowed the findings/);
+  await type(sa, "sed -i 's/ || true//' ci/lint.sh");
+  await type(sa, './ci/lint.sh');
+  assert.match(await logText(sa), /kubectl apply never ran/);
+  assert.equal(await sa.getAttribute('data-il-sim-verdict'), 'degraded');
+  assert.equal((await node('sim-gate-block')).hide, false, 'gate barrier shows');
+  await type(sa, "sed -i 's/privileged: true/privileged: false/' payments-api.yaml");
+  await type(sa, 'kubesec scan payments-api.yaml');
+  assert.match(await logText(sa), /Passed with a score of 6 points/);
+  await type(sa, './ci/lint.sh');
+  assert.equal(await sa.getAttribute('data-il-cli-task'), 'kubesec-gate:7/7');
+  assert.equal(await sa.getAttribute('data-il-sim-verdict'), 'healthy');
+  assert.equal((await node('sim-gate-bypass')).hide, true);
+  assert.equal((await node('sim-kubesec-critical')).hide, true);
+  assert.notEqual(await tints(sa), t0, 'typed gating re-tints authored glTF nodes');
+  await sa.locator('.il-immersive__cli').scrollIntoViewIfNeeded();
+  await sa.screenshot({ path: path.join(shots, 'immersive-cli-cks-static-analysis.png') });
+  const ev = await page.evaluate(() => window.__cliEv.filter(d => d.name === 'immersive_cli_cmd'));
+  assert.ok(ev.length >= 7 && ev.every(d => !/payments-api\.yaml|privileged|\|\| true|-24/.test(JSON.stringify(d.detail))), 'analytics carry verb + exit only');
+  assert.deepEqual(errors, []);
+  await page.close();
+  return 'kubesec-gate 7/7 · exposed → healthy · ' + ev.length + ' verb-only events';
+});
+
+await check('CKS static-analysis toggles (2026-11-05): privileged → degraded (gated); || true → exposed; clean → healthy; literal secret → exposed; :latest → degraded (CreateContainerConfigError); gate on → degraded (latest-tag); pinned → healthy', async () => {
+  const { page, errors } = await openCli();
+  const host = await cliHost(page, 'cks-static-analysis', false);
+  const out = [];
+  for (const [toggle, want] of [['privOff', 'degraded'], ['ciGate', 'exposed'], ['privOff', 'healthy'], ['secretRef', 'exposed'], ['secretRef', 'healthy'], ['pinned', 'degraded'], ['ciGate', 'degraded'], ['pinned', 'healthy']]) {
     await host.locator(`[data-il-sim-toggle="${toggle}"]`).click();
     assert.equal(await host.getAttribute('data-il-sim-verdict'), want, toggle + ' → ' + want);
     out.push(toggle + '→' + want);

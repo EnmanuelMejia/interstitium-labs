@@ -44,11 +44,11 @@ function glbJson(rel) {
 
 test('NEW asset: cks-runtime-security.glb is authored + Blender-polished, the third CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.9.0', '1.10.0'].includes(S.VERSION), 'cks-runtime-security arrived in v1.9.0; v1.10.0 (2026-11-04) keeps it');
+  assert.ok(['1.9.0', '1.10.0', '1.11.0'].includes(S.VERSION), 'cks-runtime-security arrived in v1.9.0; v1.10.0 (2026-11-04) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-runtime-security.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', SIM, 'cks-cluster-hardening']);
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', SIM, 'cks-cluster-hardening', 'cks-static-analysis']);
   const j = glbJson('assets/immersive/cks-runtime-security.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['node01', 'node-kernel', 'syscall-stream', 'falco-ds', 'falco-rules', 'falco-alerts', 'sim-falco-alert', 'sim-falco-blind', 'edge-kernel-falco', 'edge-falco-out',
@@ -190,7 +190,7 @@ test('honesty: unmodelled forms never invent output; help and note say simulated
 });
 
 test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for System Hardening, pool +7', () => {
-  assert.ok(['1.5.0', '1.6.0'].includes(E.VERSION));
+  assert.ok(['1.5.0', '1.6.0', '1.7.0'].includes(E.VERSION));
   assert.equal(E.CKS_BLUEPRINT.find(b => b.domain === 'Monitoring, Logging & Runtime Security').sims[0], SIM);
   assert.ok(E.CKS_BLUEPRINT.find(b => b.domain === 'System Hardening').sims.includes(SIM));
   assert.equal(E.cksDomain(SIM, 'apparmor-not-loaded'), 'System Hardening');
@@ -205,7 +205,7 @@ test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for Syst
     const ex = E.buildExam(S, { track: 'CKS', seed });
     assert.equal(ex.count, 8);
     assert.equal(new Set(ex.items.map(i => i.domain)).size, 6, 'one item per official domain first (seed ' + seed + ')');
-    assert.match(ex.honesty, /Falco, AppArmor and kube-bench run on a rules engine/);
+    assert.match(ex.honesty, /Falco, AppArmor, kube-bench, kubesec and KubeLinter run on a rules engine/);
   }
   const ex2 = E.buildExam(S, { track: 'CKS', seed: 7 });
   ex2.items.forEach(it => { const miss = it.domain === 'Monitoring, Logging & Runtime Security'; it.choice = miss ? (it.answer + 1) % 3 : it.answer; it.correct = !miss; });
@@ -217,7 +217,7 @@ test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for Syst
 });
 
 test('review: runtime coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[34]$/);
+  assert.match(R.VERSION, /^1\.3\.[345]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 16);
   assert.ok(cards.every(c => c.domain === 'CKS · Runtime security'));

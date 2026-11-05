@@ -1,5 +1,5 @@
 /**
- * IL Immersive Review v1.3.4 (2026-11-04; v1.3.3 2026-11-03; v1.3.2 2026-11-02; v1.3.1 2026-10-29; v1.3.0 2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
+ * IL Immersive Review v1.3.5 (2026-11-05; v1.3.4 2026-11-04; v1.3.3 2026-11-03; v1.3.2 2026-11-02; v1.3.1 2026-10-29; v1.3.0 2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
  *
  * Closes the loop the 2026-10-12 exam left open: every exam miss, timeout, and free-play
  * drill result becomes a spaced-repetition card keyed to the exact predict checkpoint,
@@ -29,6 +29,7 @@
  * v1.3.2 (2026-11-02): CLI coach cards from the CKS supply-chain pack (cks-supply-chain) get "CKS · Supply chain security".
  * v1.3.3 (2026-11-03): CLI coach cards from the CKS runtime pack (cks-runtime-security) get "CKS · Runtime security".
  * v1.3.4 (2026-11-04): CLI coach cards from the CKS CIS-benchmark pack (cks-cluster-hardening) get "CKS · Cluster setup (CIS benchmark)".
+ * v1.3.5 (2026-11-05): CLI coach cards from the CKS static-analysis pack (cks-static-analysis) get "CKS · Supply chain (static analysis)".
  */
 (function (root, factory) {
   var api = factory(root);
@@ -37,7 +38,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.3.4';
+  var VERSION = '1.3.5';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -68,7 +69,7 @@
 
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
   /** CLI-lab drills outside the CKA scope still get coach cards, under an honest domain label. */
-  var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience', 'cks-pod-security': 'CKS · Workload security', 'cks-supply-chain': 'CKS · Supply chain security', 'cks-runtime-security': 'CKS · Runtime security', 'cks-cluster-hardening': 'CKS · Cluster setup (CIS benchmark)' };
+  var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience', 'cks-pod-security': 'CKS · Workload security', 'cks-supply-chain': 'CKS · Supply chain security', 'cks-runtime-security': 'CKS · Runtime security', 'cks-cluster-hardening': 'CKS · Cluster setup (CIS benchmark)', 'cks-static-analysis': 'CKS · Supply chain (static analysis)' };
   function cliScenarioId(taskId, step) { return 'cli:' + taskId + ':' + step; }
   function parseCli(scenarioId) {
     var m = /^cli:([a-z0-9-]+):(\d+)$/.exec(String(scenarioId || ''));
