@@ -44,11 +44,11 @@ function glbJson(rel) {
 
 test('NEW asset: cks-cluster-hardening.glb is authored + Blender-polished, the fourth CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.equal(S.VERSION, '1.10.0');
+  assert.ok(['1.10.0', '1.11.0'].includes(S.VERSION), 'cks-cluster-hardening arrived in v1.10.0; v1.11.0 (2026-11-05) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-cluster-hardening.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM]);
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM, 'cks-static-analysis']);
   const j = glbJson('assets/immersive/cks-cluster-hardening.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['cp-node', 'kube-apiserver', 'apiserver-manifest', 'sim-profiling-on', 'etcd-db', 'etcd-dir', 'sim-etcd-open', 'kubelet', 'kubelet-config', 'sim-stale-config',
@@ -198,13 +198,13 @@ test('honesty: unmodelled forms never invent output; help and note say simulated
 });
 
 test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
-  assert.equal(E.VERSION, '1.6.0');
+  assert.ok(['1.6.0', '1.7.0'].includes(E.VERSION));
   const cs = E.CKS_BLUEPRINT.find(b => b.domain === 'Cluster Setup');
   assert.equal(cs.sims[0], SIM);
   for (const sc of S.get(SIM).scenarios.filter(x => x.predict)) assert.equal(E.cksDomain(SIM, sc.id), 'Cluster Setup', sc.id);
   assert.ok(E.CKS_SIMS.includes(SIM));
   assert.equal(E.pool(S, 'CKS').filter(it => it.simId === SIM).length, 7);
-  assert.equal(E.pool(S, 'CKS').length, 36);
+  assert.ok(E.pool(S, 'CKS').length >= 36, '36 on 2026-11-04, 43 since 2026-11-05');
   assert.ok(!E.pool(S).some(it => it.simId === SIM), 'the CKA paper never draws a CKS checkpoint');
   for (const seed of [1, 7, 42, 2026]) {
     const ex = E.buildExam(S, { track: 'CKS', seed });
@@ -222,7 +222,7 @@ test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
 });
 
 test('review: CIS coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.equal(R.VERSION, '1.3.4');
+  assert.match(R.VERSION, /^1\.3\.[45]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 18);
   assert.ok(cards.every(c => c.domain === 'CKS · Cluster setup (CIS benchmark)'));
@@ -252,7 +252,7 @@ test('wiring: /immersive/ host, exam lobby copy, curriculum rows, manifest (new 
   assert.deepEqual([sc.gltf, sc.cert, sc.polish, sc.polishedOn], [S.get(SIM).glb, 'CKS', 'blender-cli', '2026-11-04']);
   assert.ok(m.sims.list.includes(SIM));
   assert.ok(!m.cka_coverage.interactive.includes(SIM), 'not counted as CKA coverage');
-  assert.deepEqual(m.cks_coverage.interactive, ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM]);
+  assert.deepEqual(m.cks_coverage.interactive.slice(0, 4), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM]);
   assert.match(m.cks_coverage.covered['Cluster Setup'], /kube-bench/);
   assert.ok(!m.cks_coverage.notCovered.includes('CIS benchmark (kube-bench)'));
   assert.equal(m.cks_coverage.hostedFleet, false);

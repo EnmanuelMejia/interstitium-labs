@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.10.0 (2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.11.0 (2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -87,6 +87,14 @@
  * kubelet` (kube-bench PASSes the file before the restart), the read-only port 10255 (WARN, Manual), `chmod 700
  * /var/lib/etcd`, and --profiling=false in the static-pod manifest. Tasks: kubelet-auth · control-plane · readonly-port.
  * Voice: "kube bench" → kube-bench.
+ *
+ * v1.11.0 (2026-11-05) — the fifth CKS pack (20 total), Supply Chain Security: static analysis of user workloads, on the
+ * NEW authored cks-static-analysis.glb: `kubesec scan` (kubesec v2 JSON: score = sum of rule points, "Passed"/"Failed",
+ * exit 2 when a score is ≤ 0), `kube-linter lint --config .kube-linter.yaml` (one line per failed check, exit 1), a CI
+ * script whose `|| true` throws the exit codes away, `sed -i` (s///, /pat/d) on the manifest and the script, the
+ * ignore-check annotation, a literal secret vs a secretKeyRef, and runAsNonRoot over a root :latest image
+ * (CreateContainerConfigError in `kubectl describe pod`). Tasks: kubesec-gate · kube-linter · image-user.
+ * Voice: "kube linter" → kube-linter, "kube sec" → kubesec.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -3946,6 +3954,229 @@
     ]
   };
 
+  /* ── pack: CKS Supply Chain — static analysis with kubesec + KubeLinter (v1.11.0, 2026-11-05 — the fifth CKS pack) ──
+   * Drives cks-static-analysis on the NEW authored cks-static-analysis.glb. The lab box is a CI runner checkout of the
+   * payments repo with an admin kubeconfig for the payments namespace. kubesec JSON follows the controlplaneio/kubesec v2
+   * report layout (object, valid, fileName, message, score, scoring.critical|passed|advise) and rule ids/points/reasons,
+   * trimmed (selectors dropped, advise trimmed to modelled rules); KubeLinter lines follow its
+   * "<file>: (object: <ns>/<name> <gvk>) <message> (check: <id>, remediation: <text>)" template, with the lab
+   * .kube-linter.yaml restricting it to the 8 modelled checks. Pods, events and CI output are computed from sim state and
+   * labelled representative. No live cluster, no real kubesec, KubeLinter, CI runner or kubelet, no clock. */
+  var SA_FILE = 'payments-api.yaml', SA_CI = 'ci/lint.sh', SA_KL = '.kube-linter.yaml';
+  var SA_SECRET_REF = 'valueFrom: {secretKeyRef: {name: payments-api, key: api-secret}}', SA_SECRET_LIT = 'value: "sk_live_lab_only"';
+  var SA_REQ = '{cpu: 100m, memory: 128Mi}', SA_LIM = '{cpu: 500m, memory: 256Mi}';
+  var SA_NOTE = 'Lab box = a CI runner checkout of the payments repo (' + SA_FILE + ', ' + SA_CI + ', ' + SA_KL + ') with an admin kubeconfig for namespace payments. kubesec output follows the kubesec v2 JSON report (rule ids, points and reasons; selectors dropped); KubeLinter output follows its report template, limited by ' + SA_KL + ' to 8 modelled checks. payments-api:latest was built with no USER (root); payments-api:1.4.2 is distroless with USER 65532. Output is computed by the rules engine and labelled representative — no real kubesec, KubeLinter, CI runner or kubelet.';
+  function saManifest(s) {
+    var out = ['apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: payments-api', '  namespace: payments'];
+    if (!s.noIgnore) out.push('  annotations:', '    ignore-check.kube-linter.io/privileged-container: "debug needs it"');
+    return out.concat(['spec:', '  replicas: 2', '  selector:', '    matchLabels: {app: payments-api}', '  template:', '    metadata:', '      labels: {app: payments-api}', '    spec:',
+      '      serviceAccountName: payments-api', '      containers:', '      - name: api', '        image: ' + SA_IMAGE_CLI + ':' + (s.pinned ? '1.4.2' : 'latest'), '        env:', '        - name: PAYMENTS_API_SECRET',
+      '          ' + (s.secretRef ? SA_SECRET_REF : SA_SECRET_LIT), '        securityContext:', '          privileged: ' + (s.privOff ? 'false' : 'true'), '          runAsNonRoot: ' + (s.nonRoot ? 'true' : 'false'),
+      '          readOnlyRootFilesystem: ' + (s.roRoot ? 'true' : 'false'), '          capabilities: {drop: ["ALL"]}', '        resources:', '          requests: ' + (s.requestsSet ? SA_REQ : '{}'), '          limits: ' + (s.limitsSet ? SA_LIM : '{}')]);
+  }
+  var SA_IMAGE_CLI = 'registry.example.com/payments-api';
+  function saCi(s) {
+    var t = s.ciGate ? '' : ' || true';
+    return ['#!/bin/sh', 'set -e', 'kubesec scan ' + SA_FILE + t, 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE + t, 'kubectl apply -f ' + SA_FILE];
+  }
+  var SA_KLCFG = ['checks:', '  doNotAutoAddDefaults: true', '  include:', '  - privileged-container', '  - privilege-escalation-container', '  - run-as-non-root', '  - no-read-only-root-fs', '  - unset-cpu-requirements', '  - unset-memory-requirements', '  - env-var-secret', '  - latest-tag'];
+  /** Parse the manifest back into sim state; null when an edit leaves something this drill does not model. */
+  function saParse(lines) {
+    lines = lines.filter(function (l, i) { return !(l === '  annotations:' && !/^    /.test(lines[i + 1] || '')); });
+    function one(re) { var hit = lines.map(function (l) { return re.exec(l); }).filter(Boolean); return hit.length === 1 ? hit[0][1] : null; }
+    var priv = one(/^          privileged: (true|false)$/), nr = one(/^          runAsNonRoot: (true|false)$/), ro = one(/^          readOnlyRootFilesystem: (true|false)$/);
+    var rq = one(/^          requests: (\{\}|\{cpu: 100m, memory: 128Mi\})$/), lm = one(/^          limits: (\{\}|\{cpu: 500m, memory: 256Mi\})$/);
+    var img = one(/^        image: registry\.example\.com\/payments-api:(latest|1\.4\.2)$/);
+    var sec = one(/^          (valueFrom: \{secretKeyRef: \{name: payments-api, key: api-secret\}\}|value: "sk_live_lab_only")$/);
+    if ([priv, nr, ro, rq, lm, img, sec].some(function (x) { return x === null; })) return null;
+    var st = { privOff: priv === 'false', nonRoot: nr === 'true', roRoot: ro === 'true', requestsSet: rq !== '{}', limitsSet: lm !== '{}', pinned: img === '1.4.2', secretRef: /^valueFrom/.test(sec),
+      noIgnore: !lines.some(function (l) { return /ignore-check\.kube-linter\.io/.test(l); }) };
+    return saManifest(st).join('\n') === lines.join('\n') ? st : null;
+  }
+  function saPat(p) {
+    var a = p.charAt(0) === '^', z = p.length > 1 && p.charAt(p.length - 1) === '$' && p.charAt(p.length - 2) !== '\\';
+    var body = p.slice(a ? 1 : 0, z ? -1 : undefined).replace(/\\(.)/g, '\u0000$1');
+    var re = body.split('.*').map(function (x) { return x.replace(/\u0000(.)/g, '$1').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('.*');
+    return new RegExp((a ? '^' : '') + re + (z ? '$' : ''));
+  }
+  /** Minimal sed script: s<d>a<d>b<d>[g] and /pat/d, separated by ';'. Patterns are literal apart from ^ $ and .* */
+  function saSed(expr) {
+    var ops = [], i = 0, e = String(expr || '');
+    function read(dl) { var cur = ''; while (i < e.length) { var c = e.charAt(i); if (c === '\\' && e.charAt(i + 1) === dl) { cur += '\\' + dl; i += 2; continue; } if (c === dl) { i++; return cur; } cur += c; i++; } return null; }
+    while (i < e.length) {
+      var c = e.charAt(i);
+      if (c === ';' || c === ' ') { i++; continue; }
+      if (c === 's') {
+        var dl = e.charAt(i + 1); i += 2;
+        var a = read(dl), b = read(dl); if (a === null || b === null) return null;
+        var g = false; while (/[gp]/.test(e.charAt(i) || '-') && i < e.length) { if (e.charAt(i) === 'g') g = true; i++; }
+        ops.push({ s: true, re: saPat(a), b: b.split('\\' + dl).join(dl), g: g });
+      } else if (c === '/') {
+        i++; var pt = read('/'); if (pt === null || e.charAt(i) !== 'd') return null; i++;
+        ops.push({ d: true, re: saPat(pt) });
+      } else return null;
+    }
+    return ops.length ? ops : null;
+  }
+  function saApply(lines, ops) {
+    var out = lines.slice();
+    ops.forEach(function (op) {
+      if (op.d) { out = out.filter(function (l) { return !op.re.test(l); }); return; }
+      out = out.map(function (l) { var re = new RegExp(op.re.source, op.g ? 'g' : ''); return l.replace(re, function () { return op.b; }); });
+    });
+    return out;
+  }
+  function saKubesecJson(d) {
+    function rows(list) { return list.map(function (r, i) { return '        {"id": "' + r.id + '", "reason": "' + r.reason.replace(/"/g, '\\"') + '", "points": ' + r.points + '}' + (i < list.length - 1 ? ',' : ''); }); }
+    var out = ['[', '  {', '    "object": "Deployment/payments-api.payments",', '    "valid": true,', '    "fileName": "' + SA_FILE + '",', '    "message": "' + d.kubesecMsg + '",', '    "score": ' + d.score + ',', '    "scoring": {'];
+    var parts = [['critical', d.critical], ['passed', d.passed], ['advise', d.advise]].filter(function (p) { return p[1].length; });
+    parts.forEach(function (p, k) { out.push('      "' + p[0] + '": ['); out = out.concat(rows(p[1])); out.push('      ]' + (k < parts.length - 1 ? ',' : '')); });
+    return out.concat(['    }', '  }', ']']);
+  }
+  function saLintLines(d) {
+    if (!d.lint.length) return ['KubeLinter (sim)', '', 'No lint errors found!'];
+    return ['KubeLinter (sim)', ''].concat(d.lint.map(function (l) { return SA_FILE + ': (object: payments/payments-api apps/v1, Kind=Deployment) ' + l.msg + ' (check: ' + l.check + ', remediation: ' + l.remediation + ')'; }))
+      .concat(['', 'Error: found ' + d.lint.length + ' lint errors']);
+  }
+  var SA_POD_OLD = ['payments-api-5f6b7c9d4-h8m2v', 'payments-api-5f6b7c9d4-q7t5n'], SA_POD_NEW = ['payments-api-7c9d5b8f6-x2k4q'], SA_POD_PIN = ['payments-api-6d8f4c7b9-m4p8z', 'payments-api-6d8f4c7b9-t2c6j'];
+  function saCcce(s) { return s.rolled !== false && !!s.nonRoot && !s.pinned; }
+  var saPack = {
+    sim: 'cks-static-analysis',
+    prompt: 'ci@runner:~/payments$',
+    note: SA_NOTE,
+    examples: ['ls', 'cat -n ' + SA_FILE, 'cat ' + SA_CI, 'cat ' + SA_KL, 'kubesec scan ' + SA_FILE, 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE, './' + SA_CI, "sed -i 's/ || true//' " + SA_CI,
+      "sed -i 's/privileged: true/privileged: false/' " + SA_FILE, "sed -i '/ignore-check/d' " + SA_FILE, "sed -i 's/payments-api:latest/payments-api:1.4.2/' " + SA_FILE,
+      "sed -i 's/" + SA_SECRET_LIT + "/" + SA_SECRET_REF + "/' " + SA_FILE, 'kubectl apply -f ' + SA_FILE, 'kubectl get pods -n payments', 'kubectl describe pod -n payments -l app=payments-api', 'grep -n securityContext -A5 ' + SA_FILE],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, head = t[0] || '';
+      var file = String(t[t.length - 1] || '').replace(/^(\.\/|~\/payments\/)/, '');
+      function body(f) { return f === SA_FILE ? saManifest(s) : (f === SA_CI ? saCi(s) : (f === SA_KL ? SA_KLCFG : null)); }
+      if (head === 'ls') return res([SA_FILE + '  ci/  ' + SA_KL + '  (sim: ls -a view)'], 0, null, ['ls']);
+      if (head === 'cat' || head === 'less' || head === 'head') {
+        var b = body(file);
+        if (!b) return res([head + ': ' + t[t.length - 1] + ': No such file or directory'], 1);
+        if (t.indexOf('-n') > 0) b = b.map(function (l, i) { return ('     ' + (i + 1)).slice(-6) + '\t' + l; });
+        return res(b, 0, null, ['cat', file === SA_FILE ? 'manifest-seen' : (file === SA_CI ? 'ci-seen' : 'klcfg-seen')]);
+      }
+      if (head === 'grep') {
+        var src = body(file); if (!src) return res(['sim: this drill models grep [-n] [-A N] PATTERN ' + SA_FILE + ' | ' + SA_CI], 2);
+        var after = Number(flag(t, ['-A'])) || 0, num = t.indexOf('-n') > 0;
+        var pat = t.filter(function (a, i) { return i > 0 && i < t.length - 1 && a.charAt(0) !== '-' && t[i - 1] !== '-A'; })[0] || '';
+        var keep = {}; src.forEach(function (l, i) { if (pat && l.indexOf(pat) >= 0) for (var k = i; k <= Math.min(src.length - 1, i + after); k++) keep[k] = true; });
+        var hit = src.map(function (l, i) { return keep[i] ? (num ? (i + 1) + ':' + l : l) : null; }).filter(function (x) { return x !== null; });
+        return res(hit, hit.length ? 0 : 1, null, ['grep']);
+      }
+      if (head === 'kubesec') {
+        if (t[1] !== 'scan' || file !== SA_FILE) return res(['sim: this drill models kubesec scan ' + SA_FILE], 2);
+        var ev = ['kubesec', m.score <= 0 ? 'kubesec-fail' : 'kubesec-pass'];
+        if (m.critical.length) ev.push('kubesec-critical');
+        return res(saKubesecJson(m).concat(['(sim) representative kubesec v2 report, selectors dropped and advise trimmed to the modelled rules — exit ' + m.kubesecExit + (m.kubesecExit ? ' (a score ≤ 0)' : '')]), m.kubesecExit, null, ev);
+      }
+      if (head === 'kube-linter') {
+        if (t[1] !== 'lint' || file !== SA_FILE) return res(['sim: this drill models kube-linter lint [--config ' + SA_KL + '] ' + SA_FILE], 2);
+        var cfg = flag(t, ['--config']);
+        if (cfg !== null && cfg !== SA_KL) return res(['Error: failed to load config: open ' + cfg + ': no such file or directory'], 1);
+        var lev = ['lint', m.lint.length ? 'lint-fail' : 'lint-pass'].concat(m.lint.map(function (l) { return 'lint-hit-' + l.check; }));
+        var lo = saLintLines(m);
+        if (cfg === null) lo = lo.concat(['(sim) without --config the real tool also runs its other default checks (e.g. no-anti-affinity); this drill models the 8 checks in ' + SA_KL]);
+        return res(lo, m.lintExit, null, lev);
+      }
+      if (head === 'sed') {
+        if (file !== SA_FILE && file !== SA_CI) return res(['sim: this drill models sed on ' + SA_FILE + ' and ' + SA_CI + ' only'], 2);
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var exprs = [];
+        for (var i = 1; i < t.length - 1; i++) { if (t[i] === '-e') { exprs.push(t[++i]); continue; } if (t[i].charAt(0) === '-') continue; exprs.push(t[i]); }
+        var ops = []; for (var j = 0; j < exprs.length; j++) { var o = saSed(exprs[j]); if (!o) return res(["sed: -e expression #1, char 1: unknown command: `" + String(exprs[j] || '').charAt(0) + "'"], 1); ops = ops.concat(o); }
+        if (!ops.length) return res(['Usage: sed [OPTION]... {script-only-if-no-other-script} [input-file]...'], 1);
+        var before = body(file), aft = saApply(before, ops);
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written'].concat(aft), 0);
+        if (aft.join('\n') === before.join('\n')) return res([], 0, null, ['sed-nochange']);
+        if (file === SA_CI) {
+          var g3 = aft[2] === 'kubesec scan ' + SA_FILE, g4 = aft[3] === 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE;
+          var u3 = aft[2] === 'kubesec scan ' + SA_FILE + ' || true', u4 = aft[3] === 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE + ' || true';
+          if (aft.length !== 5 || !(g3 || u3) || !(g4 || u4) || g3 !== g4 || aft[0] !== '#!/bin/sh' || aft[1] !== 'set -e' || aft[4] !== 'kubectl apply -f ' + SA_FILE) return res(['(sim) refused: this drill models adding or removing " || true" on BOTH scanner lines of ' + SA_CI + ' (a half-gated pipeline is still an ungated one)'], 1, null, ['sed-bad-edit']);
+          return res(['(sim) ' + SA_CI + ': the scanner lines ' + (g3 ? 'now fail the job under set -e' : 'ignore their exit codes again')], 0, { ciGate: g3 }, ['ci-edited']);
+        }
+        var st = saParse(aft);
+        if (!st) return res(['(sim) refused: that edit leaves ' + SA_FILE + ' in a shape this drill does not model (privileged/runAsNonRoot/readOnlyRootFilesystem true|false, requests/limits {} or the lab values, image :latest|:1.4.2, the secret as a literal or a secretKeyRef, the ignore-check annotation present or deleted)'], 1, null, ['sed-bad-edit']);
+        st.rolled = false;
+        return res(['(sim) ' + SA_FILE + ' updated — not applied yet'], 0, st, ['manifest-edited']);
+      }
+      if (/^(\.\/)?ci\/lint\.sh$/.test(head) || ((head === 'sh' || head === 'bash') && /^(\.\/)?ci\/lint\.sh$/.test(t[1] || ''))) {
+        var out = ['+ kubesec scan ' + SA_FILE + (m.gate ? '' : ' || true'), '  "message": "' + m.kubesecMsg + '"  (sim: report trimmed to its message)'];
+        if (m.gate && m.kubesecExit) return res(out.concat(['(sim) job failed: kubesec exited ' + m.kubesecExit + ' under set -e — kubectl apply never ran; the previous revision keeps serving']), m.kubesecExit, null, ['ci-run', 'ci-blocked']);
+        out.push('+ kube-linter lint --config ' + SA_KL + ' ' + SA_FILE + (m.gate ? '' : ' || true'));
+        out = out.concat(m.lint.length ? m.lint.map(function (l) { return '  ' + l.check + ': ' + l.msg; }).concat(['  Error: found ' + m.lint.length + ' lint errors']) : ['  No lint errors found!']);
+        if (m.gate && m.lintExit) return res(out.concat(['(sim) job failed: kube-linter exited 1 under set -e — kubectl apply never ran; the previous revision keeps serving']), 1, null, ['ci-run', 'ci-blocked']);
+        out.push('+ kubectl apply -f ' + SA_FILE, 'deployment.apps/payments-api configured');
+        return res(out.concat([m.findings ? '(sim) job green: || true swallowed the findings and the manifest was applied as-is' : '(sim) job green: both scanners clean, manifest applied']), 0, { rolled: true }, ['ci-run', 'applied', m.findings ? 'ci-applied-findings' : 'ci-applied-clean']);
+      }
+      if (head === 'kubectl') {
+        var verb = t[1] || '', ns = flag(t, ['-n', '--namespace']);
+        if (verb === 'apply') {
+          var f = flag(t, ['-f', '--filename']);
+          if (f !== SA_FILE && f !== './' + SA_FILE) return res(['error: the path "' + f + '" does not exist'], 1);
+          return res(['deployment.apps/payments-api configured', '(sim) applied straight from the runner shell — no scanner ran'], 0, { rolled: true }, ['applied']);
+        }
+        if ((verb === 'get' && /^(pods?|po)$/.test(t[2] || '')) || (verb === 'describe' && /^(pods?|po)$/.test(t[2] || ''))) {
+          if (ns !== 'payments') return res(['No resources found in ' + (typeof ns === 'string' ? ns : 'default') + ' namespace.'], 0);
+          var cc = saCcce(s);
+          if (verb === 'get') {
+            var rows = ['NAME                           READY   STATUS                       RESTARTS   AGE'];
+            if (s.rolled === false || cc) SA_POD_OLD.forEach(function (n) { rows.push(n + '   1/1     Running                      0          3d'); });
+            if (cc) rows.push(SA_POD_NEW[0] + '   0/1     CreateContainerConfigError   0          41s');
+            else if (s.rolled !== false) SA_POD_PIN.forEach(function (n) { rows.push(n + '   1/1     Running                      0          38s'); });
+            if (s.rolled === false) rows.push('(sim) ' + SA_FILE + ' changed since the last apply — these pods run the previous revision');
+            if (cc) rows.push('(sim) the rollout is stuck: maxUnavailable 25% of 2 rounds down to 0, so both old pods keep serving');
+            return res(rows, 0, null, ['get-pods', cc ? 'pods-ccce' : (s.rolled === false ? 'pods-old' : 'pods-running')]);
+          }
+          if (!cc) return res(['Name:         ' + (s.rolled === false ? SA_POD_OLD[0] : SA_POD_PIN[0]), 'Namespace:    payments', 'Status:       Running', 'Events:       <none>', '(sim) representative, trimmed'], 0, null, ['describe']);
+          return res(['Name:         ' + SA_POD_NEW[0], 'Namespace:    payments', 'Status:       Pending', 'Containers:', '  api:', '    Image:          ' + SA_IMAGE_CLI + ':latest', '    State:          Waiting', '      Reason:       CreateContainerConfigError',
+            'Events:', '  Type     Reason   Age   From     Message', '  ----     ------   ----  ----     -------', '  Warning  Failed   12s   kubelet  Error: container has runAsNonRoot and image will run as root (pod: "' + SA_POD_NEW[0] + '_payments(3f1c9e2a-…)", container: api)', '(sim) representative, trimmed'], 0, null, ['describe', 'describe-ccce']);
+        }
+        return null;
+      }
+      return null;
+    },
+    tasks: [
+      { id: 'kubesec-gate', title: 'kubesec says Failed with a score of -24: prove CI ignores it, gate it, fix privileged, ship',
+        goal: 'payments-api.yaml asks for a privileged container and ci/lint.sh runs both scanners with || true. Score the manifest, prove the pipeline ships it anyway, make the scanner lines fail the job, watch the gate stop the manifest, fix the field, re-score and ship through the gated pipeline.',
+        setup: { privOff: false, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: false, rolled: true },
+        steps: [
+          { label: 'Score the manifest with kubesec: Failed with a score of -24 points', event: 'kubesec-fail', hint: 'kubesec scan ' + SA_FILE },
+          { label: 'Run the pipeline: it goes green and applies the privileged pod', event: 'ci-applied-findings', hint: './' + SA_CI },
+          { label: 'Make both scanner lines fail the job (remove || true)', state: function (s) { return !!s.ciGate; }, hint: "sed -i 's/ || true//' " + SA_CI },
+          { label: 'Run the pipeline again: the gate stops it before kubectl apply', event: 'ci-blocked', hint: './' + SA_CI },
+          { label: 'Set privileged: false', state: function (s) { return !!s.privOff; }, hint: "sed -i 's/privileged: true/privileged: false/' " + SA_FILE },
+          { label: 'Re-score: Passed', event: 'kubesec-pass', hint: 'kubesec scan ' + SA_FILE },
+          { label: 'Ship it through the gated pipeline', event: 'ci-applied-clean', hint: './' + SA_CI }
+        ] },
+      { id: 'kube-linter', title: 'KubeLinter: an ignore annotation that does not hide privileged, a literal secret, a mutable tag',
+        goal: 'Someone silenced privileged-container with an ignore-check annotation, put the API secret in a literal env value and deploys :latest. Lint the manifest, remove the annotation, fix privileged, move the secret to a secretKeyRef, pin the image and lint clean.',
+        setup: { privOff: false, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: false, pinned: false, noIgnore: false, ciGate: true, rolled: true },
+        steps: [
+          { label: 'Lint: privilege-escalation-container still fails despite the annotation', event: 'lint-hit-privilege-escalation-container', hint: 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE },
+          { label: 'Delete the ignore-check annotation', state: function (s) { return !!s.noIgnore; }, hint: "sed -i '/ignore-check/d' " + SA_FILE },
+          { label: 'Set privileged: false', state: function (s) { return !!s.privOff; }, hint: "sed -i 's/privileged: true/privileged: false/' " + SA_FILE },
+          { label: 'Replace the literal secret value with a secretKeyRef', state: function (s) { return !!s.secretRef; }, hint: "sed -i 's/" + SA_SECRET_LIT + "/" + SA_SECRET_REF + "/' " + SA_FILE },
+          { label: 'Pin the image to payments-api:1.4.2', state: function (s) { return !!s.pinned; }, hint: "sed -i 's/payments-api:latest/payments-api:1.4.2/' " + SA_FILE },
+          { label: 'Lint again: No lint errors found!', event: 'lint-pass', hint: 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE }
+        ] },
+      { id: 'image-user', title: 'Both scanners read the manifest, the kubelet reads the image: runAsNonRoot over a root :latest',
+        goal: 'The manifest sets runAsNonRoot: true and deploys payments-api:latest, which runs as root. Apply it, find the stuck rollout and the kubelet\'s reason, see what KubeLinter can and cannot tell you, pin the non-root build and roll it out.',
+        setup: { privOff: true, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: false, noIgnore: true, ciGate: false, rolled: false },
+        steps: [
+          { label: 'Apply the manifest from the runner shell', event: 'applied', hint: 'kubectl apply -f ' + SA_FILE },
+          { label: 'See the new pod stuck in CreateContainerConfigError (old pods still serve)', event: 'pods-ccce', hint: 'kubectl get pods -n payments' },
+          { label: 'Read the kubelet\'s reason in the pod events', event: 'describe-ccce', hint: 'kubectl describe pod -n payments -l app=payments-api' },
+          { label: 'Lint: KubeLinter flags only latest-tag, nothing about the image user', event: 'lint-hit-latest-tag', hint: 'kube-linter lint --config ' + SA_KL + ' ' + SA_FILE },
+          { label: 'Pin the non-root build payments-api:1.4.2', state: function (s) { return !!s.pinned; }, hint: "sed -i 's/payments-api:latest/payments-api:1.4.2/' " + SA_FILE },
+          { label: 'Apply it again', event: 'applied', hint: 'kubectl apply -f ' + SA_FILE },
+          { label: 'Prove it: both new pods Running', event: 'pods-running', hint: 'kubectl get pods -n payments' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -3953,7 +4184,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack, chPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack, chPack, saPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -4433,6 +4664,36 @@
         ['Config edits need the kubelet to start again.', '^(kubelet|sim-stale-config)$'],
         ['Repeat the plain-HTTP request against port 10255.', '^(port-10255|edge-probe-ro)$']
       ]
+    },
+    /* v1.11.0 (2026-11-05) — CKS supply chain: static analysis (kubesec + KubeLinter) on cks-static-analysis.glb */
+    'cks-static-analysis': {
+      'kubesec-gate': [
+        ['Ask the risk-scoring scanner for its verdict on the Deployment file.', '^(kubesec|kubesec-score|sim-kubesec-critical)$'],
+        ['Run the CI script exactly as the runner does and read the last lines.', '^(ci-pipeline|ci-gate|sim-gate-bypass)$'],
+        ['The two scanner lines end with an operator that swallows the exit code. Strip it from the script.', '^(ci-gate|ci-pipeline)$'],
+        ['Run the same CI script again; set -e now has something to stop on.', '^(sim-gate-block|ci-gate)$'],
+        ['One securityContext field is worth -30 on its own. Flip it.', '^(field-privileged|sim-privileged-flare)$'],
+        ['Score the file again; the message word should change.', '^(kubesec-score|kubesec)$'],
+        ['Let the gated pipeline do the apply this time.', '^(ci-gate|edge-gate-api|payments-pod)$']
+      ],
+      'kube-linter': [
+        ['Lint with the lab config file and look for a check the annotation does not name.', '^(kube-linter|lint-report|sim-lint-fail)$'],
+        ['Delete the whole annotation line instead of arguing with it.', '^(lint-ignore)$'],
+        ['The container still asks for full host access. Turn that off.', '^(field-privileged)$'],
+        ['Reference the existing Secret instead of pasting its value; one line, flow-style YAML.', '^(field-secret|sim-secret-leak)$'],
+        ['A tag that moves is not a version. Use the released one.', '^(field-image|image-layer)$'],
+        ['Lint again with the same config.', '^(lint-report|kube-linter)$']
+      ],
+      'image-user': [
+        ['Skip CI for once: send the file to the API server yourself.', '^(edge-gate-api|kube-apiserver)$'],
+        ['List the pods in the payments namespace and compare the two revisions.', '^(payments-pod|sim-ccce)$'],
+        ['The Events section of the stuck pod names the kubelet check that failed.', '^(sim-ccce|image-layer)$'],
+        ['Lint the manifest; notice what a manifest scanner cannot know about the image.', '^(kube-linter|lint-report|field-image)$'],
+        ['Point the image at the release built with a numeric non-root USER.', '^(field-image|image-layer)$'],
+        ['Send the edited file to the API server again.', '^(edge-gate-api|kube-apiserver)$'],
+        ['List the pods again; both new ones should be ready.', '^(payments-pod)$']
+      ]
+
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -4666,7 +4927,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bco ?sign\b/g, 'cosign'], [/\b(cube|kube) ?bench\b/g, 'kube-bench'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bco ?sign\b/g, 'cosign'], [/\b(cube|kube) ?bench\b/g, 'kube-bench'], [/\b(cube|kube) ?linter\b/g, 'kube-linter'], [/\b(cube|kube) ?sec\b/g, 'kubesec'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -4732,7 +4993,7 @@
   }
 
   return {
-    VERSION: '1.10.0',
+    VERSION: '1.11.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

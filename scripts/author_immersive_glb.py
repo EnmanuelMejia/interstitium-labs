@@ -2053,6 +2053,105 @@ def scene_cks_cluster_hardening() -> list:
     return parts
 
 
+def scene_cks_static_analysis() -> list:
+    """CKS Supply Chain Security — static analysis of user workloads (kubesec + KubeLinter) cutaway. A git repo with the
+    payments-api.yaml manifest card (privileged, runAsNonRoot, readOnlyRootFilesystem, resources, the secret env var, the
+    image tag, and a KubeLinter ignore-check annotation tag); the kubesec scanner with its score gauge and the KubeLinter
+    scanner with its report feed a CI gate (set -e vs || true); behind the gate kube-apiserver → namespace payments →
+    payments-pod over its container image layer. sim-* parts are revealed only by the rules engine. Added 2026-11-05
+    (fifth CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-static-analysis", "cert": "CKS", "domain": "supply-chain-security"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.8, 0.08, 4.0)
+    parts.append((floor, MAT_VOID, "sa-floor", {**ped, "label": "Static analysis of workloads (CKS cutaway)"}))
+    # Git repo + manifest card (left)
+    repo = MeshBuilder()
+    repo.add_chamfer_box(-2.4, -0.8, 0.0, 1.6, 0.08, 3.0, 0.03)
+    parts.append((repo, MAT_INK, "git-repo", {**ped, "label": "payments repo (CI runner checkout)", "kind": "Repo"}))
+    card = MeshBuilder()
+    card.add_chamfer_box(-2.4, -0.2, 0.0, 1.1, 1.1, 0.05, 0.02)
+    parts.append((card, MAT_PAPER, "manifest-file", {**ped, "label": "payments-api.yaml (Deployment)", "kind": "Manifest"}))
+    fields = [
+        ("field-privileged", 0.22, "securityContext.privileged (kubesec Privileged -30)"),
+        ("field-nonroot", 0.08, "securityContext.runAsNonRoot (checked by the kubelet against the image user)"),
+        ("field-rootfs", -0.06, "securityContext.readOnlyRootFilesystem"),
+        ("field-resources", -0.20, "resources.requests / limits"),
+        ("field-secret", -0.34, "env PAYMENTS_API_SECRET: literal value vs secretKeyRef"),
+        ("field-image", -0.48, "image tag (:latest is mutable)"),
+    ]
+    for name, y, label in fields:
+        f = MeshBuilder()
+        f.add_chamfer_box(-2.4, y, 0.04, 0.9, 0.09, 0.03, 0.01)
+        parts.append((f, MAT_MUTED, name, {**ped, "label": label, "kind": "Field"}))
+    tag = MeshBuilder()
+    tag.add_chamfer_box(-1.75, 0.3, 0.05, 0.22, 0.14, 0.03, 0.01)
+    parts.append((tag, MAT_TAINT, "lint-ignore", {**ped, "label": "ignore-check.kube-linter.io/privileged-container (silences one check only)", "kind": "Annotation"}))
+    leak = MeshBuilder()
+    leak.add_sphere(-1.8, -0.34, 0.12, 0.09, 10, 12)
+    parts.append((leak, MAT_DENY, "sim-secret-leak", {**ped, "label": "literal secret in the Deployment spec (readable with get deploy -o yaml, committed to git)", "simOnly": True}))
+    # Scanners (centre)
+    ks = MeshBuilder()
+    ks.add_cylinder(-0.6, -0.5, -0.8, 0.32, 0.6, 28)
+    parts.append((ks, MAT_GOLD, "kubesec", {**ped, "label": "kubesec scan (sums rule points; exit 2 when score ≤ 0)", "kind": "Scanner"}))
+    gauge = MeshBuilder()
+    gauge.add_cylinder(-0.6, -0.1, -0.8, 0.22, 0.06, 24)
+    parts.append((gauge, MAT_LED, "kubesec-score", {**ped, "label": "score: Passed (≥ 0) / Failed (< 0)", "kind": "Report"}))
+    kcrit = MeshBuilder()
+    kcrit.add_sphere(-0.6, 0.08, -0.8, 0.12, 10, 12)
+    parts.append((kcrit, MAT_DENY, "sim-kubesec-critical", {**ped, "label": "Failed with a negative score (critical rules outweigh the rest)", "simOnly": True}))
+    kl = MeshBuilder()
+    kl.add_chamfer_box(-0.6, -0.5, 0.8, 0.6, 0.6, 0.6, 0.05)
+    parts.append((kl, MAT_CYAN, "kube-linter", {**ped, "label": "kube-linter lint (one report per failed check; exit 1)", "kind": "Scanner"}))
+    rep = MeshBuilder()
+    rep.add_chamfer_box(-0.6, -0.05, 0.8, 0.5, 0.3, 0.05, 0.02)
+    parts.append((rep, MAT_PAPER, "lint-report", {**ped, "label": "lint report: (check: …, remediation: …)", "kind": "Report"}))
+    lfail = MeshBuilder()
+    lfail.add_sphere(-0.6, 0.18, 0.8, 0.11, 10, 12)
+    parts.append((lfail, MAT_DENY, "sim-lint-fail", {**ped, "label": "Error: found N lint errors", "simOnly": True}))
+    _edge(parts, (-1.85, -0.3, -0.1), (-0.9, -0.4, -0.75), "edge-manifest-kubesec", MAT_LED, ped, "file → kubesec", 0.03, 0.06)
+    _edge(parts, (-1.85, -0.3, 0.1), (-0.9, -0.4, 0.75), "edge-manifest-linter", MAT_LED, ped, "file → KubeLinter", 0.03, 0.06)
+    # CI gate
+    ci = MeshBuilder()
+    ci.add_chamfer_box(0.75, -0.8, 0.0, 1.0, 0.08, 2.6, 0.03)
+    parts.append((ci, MAT_INK, "ci-pipeline", {**ped, "label": "ci/lint.sh (set -e)", "kind": "Pipeline"}))
+    gate = MeshBuilder()
+    gate.add_chamfer_box(0.75, -0.35, 0.0, 0.12, 0.8, 1.2, 0.03)
+    parts.append((gate, MAT_SHIELD, "ci-gate", {**ped, "label": "CI gate: stops on a non-zero scanner exit code (unless || true)", "kind": "Gate"}))
+    blk = MeshBuilder()
+    blk.add_chamfer_box(0.92, -0.35, 0.0, 0.05, 0.9, 1.3, 0.02)
+    parts.append((blk, MAT_SHIELD, "sim-gate-block", {**ped, "label": "job failed: kubectl apply never ran", "simOnly": True}))
+    byp = MeshBuilder()
+    byp.add_sphere(0.75, 0.2, 0.0, 0.13, 10, 12)
+    parts.append((byp, MAT_DENY, "sim-gate-bypass", {**ped, "label": "|| true: findings printed, exit code thrown away, applied anyway", "simOnly": True}))
+    _edge(parts, (-0.25, -0.35, -0.7), (0.65, -0.35, -0.2), "edge-scan-gate", MAT_LED, ped, "exit codes → gate", 0.03, 0.06)
+    # Cluster (right)
+    api = MeshBuilder()
+    api.add_cylinder(1.8, -0.45, -1.0, 0.28, 0.6, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (never consults kubesec or KubeLinter)", "kind": "Component"}))
+    ns = MeshBuilder()
+    ns.add_chamfer_box(2.4, -0.8, 0.5, 1.6, 0.08, 1.8, 0.03)
+    parts.append((ns, MAT_INK, "ns-payments", {**ped, "label": "namespace payments", "kind": "Namespace"}))
+    img = MeshBuilder()
+    img.add_chamfer_box(2.4, -0.68, 0.5, 0.7, 0.12, 0.7, 0.02)
+    parts.append((img, MAT_MUTED, "image-layer", {**ped, "label": "container image (:latest runs as root · 1.4.2 USER 65532)", "kind": "Image"}))
+    pod = MeshBuilder()
+    pod.add_sphere(2.4, -0.3, 0.5, 0.26, 14, 16)
+    parts.append((pod, MAT_CYAN, "payments-pod", {**ped, "label": "payments-api pod", "kind": "Pod"}))
+    cc = MeshBuilder()
+    cc.add_sphere(2.4, 0.05, 0.5, 0.11, 10, 12)
+    parts.append((cc, MAT_TAINT, "sim-ccce", {**ped, "label": "CreateContainerConfigError: container has runAsNonRoot and image will run as root", "simOnly": True}))
+    flare = MeshBuilder()
+    flare.add_sphere(2.4, -0.3, 0.5, 0.34, 12, 14)
+    parts.append((flare, MAT_DENY, "sim-privileged-flare", {**ped, "label": "privileged container running (near-unrestricted host access)", "simOnly": True}))
+    _edge(parts, (0.85, -0.35, -0.3), (1.55, -0.4, -0.95), "edge-gate-api", MAT_LED, ped, "kubectl apply", 0.03, 0.06)
+    _edge(parts, (1.95, -0.45, -0.75), (2.3, -0.35, 0.3), "edge-api-pod", MAT_LED, ped, "rollout → pods", 0.03, 0.06)
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 6.2, 0.12, 3.4)
+    parts.append((lod, MAT_VOID, "lod1-static-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -2079,6 +2178,7 @@ SCENES = {
     "cks-supply-chain.glb": scene_cks_supply_chain,
     "cks-runtime-security.glb": scene_cks_runtime_security,
     "cks-cluster-hardening.glb": scene_cks_cluster_hardening,
+    "cks-static-analysis.glb": scene_cks_static_analysis,
 }
 
 

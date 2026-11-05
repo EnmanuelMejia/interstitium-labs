@@ -36,7 +36,7 @@ const status = r => (/^HTTP\/2 (\d+)/.exec(r.out[0]) || [])[1];
 /* ── Gateway API rules engine ─────────────────────────────────────────────── */
 test('gateway-api sim: Gateway API spec semantics over the SAME authored ingress-gateway.glb', () => {
   const sim = S.get('gateway-api');
-  assert.ok(['1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) – v1.10.0 (2026-11-04) keep it');
+  assert.ok(['1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) – v1.11.0 (2026-11-05) keep it');
   assert.equal(sim.glb, S.get('ingress-routing').glb, 'no new asset — the Blender-polished ingress-gateway.glb read as Gateway API');
   const at = set => S.gatewayDecide(S.merge(sim.initial, set));
   const codes = set => at(set).clients.map(c => c.status);
@@ -193,20 +193,20 @@ test('Secret pack: missing secretKeyRef key → CreateContainerConfigError with 
   assert.doesNotMatch(out, /s3cr3t/);
 });
 
-test('pack totals: 19 packs · 59 tasks · 311 steps (18 · 56 · 293 on 2026-11-03; 17 · 53 · 277 on 2026-11-02; 16 · 49 · 255 on 2026-10-29; 15 · 44 · 226 on 2026-10-27; 11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22; 13 · 38 · 184 on 2026-10-23); every new step focuses real nodes in its own authored .glb', () => {
+test('pack totals: 20 packs · 62 tasks · 331 steps (19 · 59 · 311 on 2026-11-04; 18 · 56 · 293 on 2026-11-03; 17 · 53 · 277 on 2026-11-02; 16 · 49 · 255 on 2026-10-29; 15 · 44 · 226 on 2026-10-27; 11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22; 13 · 38 · 184 on 2026-10-23); every new step focuses real nodes in its own authored .glb', () => {
   const tasks = C.list().reduce((n, id) => n + C.pack(id).tasks.length, 0);
   const steps = C.list().reduce((n, id) => n + C.pack(id).tasks.reduce((m, t) => m + t.steps.length, 0), 0);
-  assert.deepEqual([C.list().length, tasks, steps], [19, 59, 311]);
+  assert.deepEqual([C.list().length, tasks, steps], [20, 62, 331]);
   assert.equal(C.pack('gateway-api').tasks.length, 4);
   assert.equal(C.pack('config-propagation').tasks.length, 3);
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
   assert.match(m.sims.cli.gatewayNote, /not a live Gateway/);
-  assert.match(m.sims.player, /19 packs/);
+  assert.match(m.sims.player, /20 packs/);
 });
 
 /* ── Official CKA blueprint ───────────────────────────────────────────────── */
 test('blueprint: the 5 published CNCF CKA domains and weights; every CKA drill maps to exactly one', () => {
-  assert.ok(['1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0'].includes(E.VERSION), 'CKA blueprint since v1.2.0; v1.3.0 (2026-10-29) adds the CKS track and v1.4.0 (2026-11-02) its supply-chain drill; both keep it');
+  assert.ok(['1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0'].includes(E.VERSION), 'CKA blueprint since v1.2.0; v1.3.0 (2026-10-29) adds the CKS track and v1.4.0 (2026-11-02) its supply-chain drill; both keep it');
   assert.deepEqual(E.BLUEPRINT.map(b => [b.domain, b.weight]), [
     ['Troubleshooting', 30], ['Cluster Architecture, Installation & Configuration', 25], ['Services & Networking', 20], ['Workloads & Scheduling', 15], ['Storage', 10]]);
   assert.equal(E.BLUEPRINT.reduce((n, b) => n + b.weight, 0), 100);

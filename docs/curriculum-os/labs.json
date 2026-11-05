@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-04T09:30:00-05:00",
+  "updated": "2026-11-05T09:30:00-05:00",
   "items": [
     {
       "id": "lab-superlab-sim",
@@ -521,6 +521,28 @@
         "sim": "cks-cluster-hardening"
       },
       "gltf": "/assets/immersive/cks-cluster-hardening.glb"
+    },
+    {
+      "id": "lab-sim-cks-static-analysis",
+      "name": "CKS Supply Chain Drill: static analysis of workloads \u2014 kubesec scores, KubeLinter checks, CI gates, ignore annotations, literal secrets, runAsNonRoot over a root image (interactive 3D)",
+      "slug": "lab-sim-cks-static-analysis",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Fifth CKS drill: Supply Chain Security (20% of the CKS), static analysis of user workloads with kubesec and KubeLinter. Covered: kubesec sums rule points (privileged -30 \u2192 Failed, exit 2), a scan blocks nothing unless CI acts on the exit code (|| true), kubesec cannot see a literal secret while KubeLinter env-var-secret can, an ignore-check annotation silences one check only, runAsNonRoot over a root image passes both scanners and fails at the kubelet (CreateContainerConfigError), kubesec advice vs KubeLinter failures, and a kubesec critical entry under a passing score. Runs on a new authored glTF, with a 3-task simulated CLI lab (kubesec scan, kube-linter lint --config, sed -i on the manifest and ci/lint.sh, ./ci/lint.sh, kubectl apply / get pods / describe pod) and the timed CKS paper. Rules engine; no live cluster, real kubesec, KubeLinter or CI runner.",
+      "surfaceUrl": "/immersive/#cks-static-analysis",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/cks-static-analysis.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cks-static-analysis",
+        "sim": "cks-static-analysis"
+      },
+      "gltf": "/assets/immersive/cks-static-analysis.glb"
     }
   ]
 }
