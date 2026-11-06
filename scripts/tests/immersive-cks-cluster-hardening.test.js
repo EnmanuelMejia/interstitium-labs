@@ -44,11 +44,11 @@ function glbJson(rel) {
 
 test('NEW asset: cks-cluster-hardening.glb is authored + Blender-polished, the fourth CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.10.0', '1.11.0'].includes(S.VERSION), 'cks-cluster-hardening arrived in v1.10.0; v1.11.0 (2026-11-05) keeps it');
+  assert.ok(['1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'cks-cluster-hardening arrived in v1.10.0; v1.11.0 (2026-11-05) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-cluster-hardening.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM, 'cks-static-analysis']);
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM, 'cks-static-analysis', 'cks-sandbox-runtime']);
   const j = glbJson('assets/immersive/cks-cluster-hardening.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['cp-node', 'kube-apiserver', 'apiserver-manifest', 'sim-profiling-on', 'etcd-db', 'etcd-dir', 'sim-etcd-open', 'kubelet', 'kubelet-config', 'sim-stale-config',
@@ -198,7 +198,7 @@ test('honesty: unmodelled forms never invent output; help and note say simulated
 });
 
 test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
-  assert.ok(['1.6.0', '1.7.0'].includes(E.VERSION));
+  assert.ok(['1.6.0', '1.7.0', '1.8.0'].includes(E.VERSION));
   const cs = E.CKS_BLUEPRINT.find(b => b.domain === 'Cluster Setup');
   assert.equal(cs.sims[0], SIM);
   for (const sc of S.get(SIM).scenarios.filter(x => x.predict)) assert.equal(E.cksDomain(SIM, sc.id), 'Cluster Setup', sc.id);
@@ -222,7 +222,7 @@ test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
 });
 
 test('review: CIS coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[45]$/);
+  assert.match(R.VERSION, /^1\.3\.[456]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 18);
   assert.ok(cards.every(c => c.domain === 'CKS · Cluster setup (CIS benchmark)'));

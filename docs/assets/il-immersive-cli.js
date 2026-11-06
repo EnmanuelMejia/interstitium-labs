@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.11.0 (2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.12.0 (2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -95,6 +95,14 @@
  * ignore-check annotation, a literal secret vs a secretKeyRef, and runAsNonRoot over a root :latest image
  * (CreateContainerConfigError in `kubectl describe pod`). Tasks: kubesec-gate · kube-linter · image-user.
  * Voice: "kube linter" → kube-linter, "kube sec" → kubesec.
+ *
+ * v1.12.0 (2026-11-06) — the sixth CKS pack (21 total), Minimize Microservice Vulnerabilities: sandboxed container runtimes
+ * (RuntimeClass + gVisor), on the NEW authored cks-sandbox-runtime.glb: `kubectl get|describe runtimeclass`, `kubectl apply -f`
+ * of a RuntimeClass or a Deployment that names it (the ReplicaSet's FailedCreate when the class is missing), `kubectl rollout
+ * restart`, `kubectl get pods -o wide` / `describe pod` / `get events` (FailedCreatePodSandBox, FailedScheduling with the
+ * overhead), containerd's config.toml (`sed -i '/runsc/s/^#//'`, `systemctl restart containerd`), and, inside the pod,
+ * `uname -r` (4.4.0 under gVisor), `dmesg` and a lab-only host-kernel PoC (simulated; no exploit code). Tasks:
+ * create-runtimeclass · node-handler · blast-radius. Voice: "runtime class" → runtimeclass, "g visor" → gvisor.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -4177,6 +4185,211 @@
     ]
   };
 
+  /* ── pack: CKS Minimize Microservice Vulnerabilities — sandboxed runtimes: RuntimeClass + gVisor (v1.12.0, 2026-11-06 — the sixth CKS pack) ──
+   * Drives cks-sandbox-runtime on the NEW authored cks-sandbox-runtime.glb. The lab box is node01 (labelled
+   * sandbox.gvisor.dev/runtime=gvisor) with an admin kubeconfig and root; node02 has no runsc. kubectl lines follow kubectl's
+   * formats and the admission / scheduler / containerd messages follow the real ones; pods, events, uname and dmesg inside the
+   * pod are computed from sim state and labelled representative. The kernel-bug PoC is a lab-only simulation (no exploit code).
+   * No live cluster, no real containerd, runsc or kernel, no clock: the kubelet's sandbox retry and the ReplicaSet back-off
+   * are explained, not waited for. */
+  var SB_CFG = '/etc/containerd/config.toml', SB_HOST_KERNEL = '6.8.0-45-generic';
+  var SB_NOTE = 'Lab box = node01 (labelled sandbox.gvisor.dev/runtime=gvisor; containerd config ' + SB_CFG + ') with an admin kubeconfig and root; node02 has no runsc and more free CPU. Output follows kubectl, the RuntimeClass admission plugin, the scheduler and containerd formats; gVisor reports an emulated kernel (uname -r 4.4.0). The kernel-bug PoC (/lab/kernel-bug-poc) is a simulation with no exploit code. Computed by the rules engine and labelled representative — no real containerd, runsc or kernel.';
+  var SB_RC_FULL = ['apiVersion: node.k8s.io/v1', 'kind: RuntimeClass', 'metadata:', '  name: gvisor', 'handler: runsc', 'overhead:', '  podFixed:', '    cpu: 250m', '    memory: 120Mi', 'scheduling:', '  nodeSelector:', '    sandbox.gvisor.dev/runtime: gvisor'];
+  var SB_RC_BARE = ['apiVersion: node.k8s.io/v1', 'kind: RuntimeClass', 'metadata:', '  name: gvisor', 'handler: runsc'];
+  function sbDeploy(rc, cpu) {
+    return ['apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: payments-api', '  namespace: payments', 'spec:', '  replicas: 1', '  selector:', '    matchLabels: {app: payments-api}', '  template:', '    metadata:', '      labels: {app: payments-api}', '    spec:']
+      .concat(rc ? ['      runtimeClassName: gvisor'] : []).concat(['      containers:', '      - name: api', '        image: registry.example.com/payments-api:1.4.2', '        resources:', '          requests: {cpu: ' + cpu + ', memory: 256Mi}']);
+  }
+  var SB_REV = { orig: 'payments-api-6c8f9d7b5-k9w2x', gv: 'payments-api-7d5b8c6f4-q4m7z', big: 'payments-api-5b9f7c8d6-r8n2t' };
+  function sbCfgLines(s) {
+    var on = s.cfgRunsc !== false, c = on ? '' : '#';
+    return ['version = 2', '[plugins."io.containerd.grpc.v1.cri".containerd]', '  default_runtime_name = "runc"', '[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]', '  runtime_type = "io.containerd.runc.v2"',
+      c + '[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]', c + '  runtime_type = "io.containerd.runsc.v1"'];
+  }
+  /** s/a/b/[g] optionally behind a /address/ ; returns the edited lines or null when the script is not modelled. */
+  function sbSed(lines, expr) {
+    var addr = null, e = String(expr || ''), am = /^\/([^\/]+)\/(s.*)$/.exec(e);
+    if (am) { addr = saPat(am[1]); e = am[2]; }
+    var ops = saSed(e); if (!ops || ops.some(function (o) { return o.d; })) return null;
+    return lines.map(function (l) { if (addr && !addr.test(l)) return l; var out = l; ops.forEach(function (op) { out = out.replace(new RegExp(op.re.source, op.g ? 'g' : ''), function () { return op.b; }); }); return out; });
+  }
+  function sbRows(s, m, wide) {
+    var rev = s.useRC ? (s.bigReq ? SB_REV.big : SB_REV.gv) : SB_REV.orig, hdr = ['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'].concat(wide ? ['IP', 'NODE'] : []);
+    var rows = [hdr], old = [SB_REV.orig, '1/1', 'Running', '0', '3d'].concat(wide ? ['10.244.1.14', 'node01'] : []);
+    if (m.phase === 'running-runc') return table([hdr, old]);
+    if (m.phase === 'running-gvisor') return table([hdr, [rev, '1/1', 'Running', '0', '41s'].concat(wide ? ['10.244.1.21', 'node01'] : [])]);
+    rows.push(old);
+    if (m.phase === 'sandbox-fail') rows.push([rev, '0/1', 'ContainerCreating', '0', '36s'].concat(wide ? ['<none>', m.node] : []));
+    if (m.phase === 'pending-cpu') rows.push([rev, '0/1', 'Pending', '0', '36s'].concat(wide ? ['<none>', '<none>'] : []));
+    return table(rows);
+  }
+  var sbPack = {
+    sim: 'cks-sandbox-runtime',
+    prompt: 'student@node01:~$',
+    note: SB_NOTE,
+    files: {
+      'runtimeclass-gvisor.yaml': { set: { rcExists: true, rcSelector: true, overhead: true }, yaml: SB_RC_FULL },
+      'runtimeclass-gvisor-bare.yaml': { set: { rcExists: true, rcSelector: false, overhead: false }, yaml: SB_RC_BARE },
+      'payments-api.yaml': { set: { useRC: false, bigReq: false }, yaml: sbDeploy(false, '600m') },
+      'payments-api-gvisor.yaml': { set: { useRC: true, bigReq: false }, yaml: sbDeploy(true, '600m') },
+      'payments-api-gvisor-big.yaml': { set: { useRC: true, bigReq: true }, yaml: sbDeploy(true, '800m') }
+    },
+    examples: ['kubectl get runtimeclass', 'kubectl describe runtimeclass gvisor', 'cat runtimeclass-gvisor.yaml', 'kubectl apply -f runtimeclass-gvisor.yaml', 'kubectl apply -f payments-api-gvisor.yaml',
+      'kubectl get pods -n payments -o wide', 'kubectl describe pod -n payments -l app=payments-api', 'kubectl get events -n payments', 'kubectl rollout restart deployment payments-api -n payments',
+      'cat ' + SB_CFG, "sed -i '/runsc/s/^#//' " + SB_CFG, 'systemctl restart containerd', 'uname -r', 'kubectl exec -n payments deploy/payments-api -- uname -r', 'kubectl exec -n payments deploy/payments-api -- dmesg',
+      'kubectl exec -n payments deploy/payments-api -- /lab/kernel-bug-poc'],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics, head = t[0] || '';
+      var fr = null;
+      if (head === 'cat' && t[1] === SB_CFG) return res(sbCfgLines(s), 0, null, ['cat', s.cfgRunsc === false ? 'cfg-runsc-disabled' : 'cfg-runsc-enabled']);
+      if (head === 'sed') {
+        var file = String(t[t.length - 1] || '');
+        if (file !== SB_CFG) return res(['sim: this drill models sed on ' + SB_CFG + ' only'], 2);
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var ex = []; for (var i = 1; i < t.length - 1; i++) { if (t[i] === '-e') { ex.push(t[++i]); continue; } if (t[i].charAt(0) === '-') continue; ex.push(t[i]); }
+        var before = sbCfgLines(s), after = before;
+        for (var j = 0; j < ex.length && after; j++) after = sbSed(after, ex[j]);
+        if (!after) return res(["sed: -e expression #1, char 1: unknown command: `" + String(ex[0] || '').charAt(0) + "'  (sim: this drill models s/a/b/[g], optionally behind a /address/)"], 1);
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written'].concat(after), 0);
+        if (after.join('\n') === before.join('\n')) return res([], 0, null, ['sed-nochange']);
+        var on = sbCfgLines({ cfgRunsc: true }).join('\n') === after.join('\n'), off = sbCfgLines({ cfgRunsc: false }).join('\n') === after.join('\n');
+        if (!on && !off) return res(['(sim) refused: that edit leaves ' + SB_CFG + ' in a shape this drill does not model (the runsc runtime table either commented out or active, nothing else changed)'], 1, null, ['sed-bad-edit']);
+        return res(['(sim) ' + SB_CFG + ' updated — containerd reads it at start, so it is not loaded yet'], 0, { cfgRunsc: on }, ['cfg-edited']);
+      }
+      if (head === 'systemctl') {
+        if (t[2] !== 'containerd' || !/^(restart|status)$/.test(t[1] || '')) return res(['sim: this drill models systemctl restart|status containerd'], 2);
+        if (t[1] === 'status') return res(['● containerd.service - containerd container runtime', '     Active: active (running)', '(sim) runsc ' + (s.handlerNode01 ? 'is loaded' : 'is not in the loaded config')], 0, null, ['ctrd-status']);
+        var loaded = s.cfgRunsc !== false;
+        return res([], 0, { handlerNode01: loaded }, ['ctrd-restart', loaded ? 'ctrd-runsc-loaded' : 'ctrd-restart-nochange']);
+      }
+      if (head === 'uname') return t[1] === '-r' ? res([SB_HOST_KERNEL], 0, null, ['uname-host']) : res(['sim: this drill models uname -r'], 2);
+      if (head === 'kubectl' && t[1] === 'exec') {
+        var ea = execArgs(t);
+        if (!ea || !ea.hasDd || !ea.cmd.length) return res(['error: you must specify at least one command for the container'], 1);
+        if (ea.ns !== 'payments' || ea.target !== 'payments-api') return res(['Error from server (NotFound): pods "' + (ea.target || '') + '" not found'], 1);
+        var c = ea.cmd, answering = m.sandboxed;
+        if (c[0] === 'uname' && c[1] === '-r') return res([answering ? '4.4.0' : SB_HOST_KERNEL], 0, null, [answering ? 'uname-gvisor' : 'uname-host']);
+        if (c[0] === 'dmesg' && c.length === 1) {
+          if (!answering) return res(['dmesg: read kernel buffer failed: Operation not permitted'], 1, null, ['dmesg-runc']);
+          return res(['[    0.000000] Starting gVisor...', '[    0.436121] Searching for needles in stacks...', '[    0.870316] Creating cloned children...', '[    1.236140] Granting licence to kill(2)...', '[    1.471833] Ready!', '(sim) representative: gVisor prints its own boot messages, not the node\'s ring buffer'], 0, null, ['dmesg-gvisor']);
+        }
+        if (c[0] === '/lab/kernel-bug-poc' && c.length === 1) {
+          var pre = ['[lab-only PoC — simulated, no real exploit code]', '[*] calling the vulnerable syscall path from inside payments-api'];
+          if (!s.kernelBug) return res(pre.concat(['[-] this host kernel is patched: not vulnerable']), 1, null, ['poc-run', 'poc-patched']);
+          if (answering) return res(pre.concat(['[-] the Sentry implemented the syscall in user space: the host-kernel path was never reached', 'poc failed (exit 1) — contained']), 1, null, ['poc-run', 'poc-contained']);
+          return res(pre.concat(['[+] host kernel reached on node01: container escape', '# id', 'uid=0(root) gid=0(root) groups=0(root)  (host namespace, node01)', '(sim) every other pod on node01 and the kubelet credentials are now in reach']), 0, null, ['poc-run', 'poc-escape']);
+        }
+        return res(['sim: this drill models uname -r, dmesg and /lab/kernel-bug-poc inside the pod'], 2);
+      }
+      fr = fileRun(sbPack, t); if (fr) return fr;
+      if (head !== 'kubectl') return null;
+      var verb = t[1] || '', args = positional(t.slice(2), KUBECTL_VALUED), ns = nsOf(t), out = flag(t, ['-o', '--output']);
+      if (verb === 'apply') {
+        var a = applyFile(sbPack, t); if (a.err) return a.err;
+        var base = a.name.replace(/\.yaml$/, '');
+        if (/^runtimeclass-/.test(base)) {
+          var same = s.rcExists && !!s.rcSelector === a.f.set.rcSelector && !!s.overhead === a.f.set.overhead;
+          var word = !s.rcExists ? 'created' : (same ? 'unchanged' : 'configured');
+          var sset = { rcExists: true, rcSelector: a.f.set.rcSelector, overhead: a.f.set.overhead };
+          if (s.useRC && !s.rcExists) sset.backoff = true;
+          return res(['runtimeclass.node.k8s.io/gvisor ' + word], 0, sset, ['apply', 'apply-' + base]);
+        }
+        var same2 = !!s.useRC === a.f.set.useRC && !!s.bigReq === a.f.set.bigReq;
+        return res(['deployment.apps/payments-api ' + (same2 ? 'unchanged' : 'configured')], 0, { useRC: a.f.set.useRC, bigReq: a.f.set.bigReq, rolled: true }, ['apply', 'apply-' + base]);
+      }
+      if (verb === 'rollout' && t[2] === 'restart') {
+        var ra = positional(t.slice(3), KUBECTL_VALUED), kind = String(ra[0] || '').split('/')[0], rname = ra[1] || String(ra[0] || '').split('/')[1] || '';
+        if (!/^(deploy|deployment|deployments)(\.apps)?$/.test(kind) || rname !== 'payments-api' || ns !== 'payments') return notFound('deployments.apps', rname || kind);
+        return res(['deployment.apps/payments-api restarted'], 0, { backoff: false, rolled: true }, ['rollout-restart']);
+      }
+      if (verb === 'get' && /^(runtimeclass(es)?|rc)$/.test(args[0] || '')) {
+        if (!s.rcExists) return res(['No resources found'], 0, null, ['get-rc', 'rc-none']);
+        if (args[1] && args[1] !== 'gvisor') return notFound('runtimeclasses.node.k8s.io', args[1]);
+        return res(table([['NAME', 'HANDLER', 'AGE'], ['gvisor', 'runsc', '5m']]), 0, null, ['get-rc', 'rc-seen']);
+      }
+      if (verb === 'describe' && /^(runtimeclass(es)?|rc)$/.test(args[0] || '')) {
+        if (!s.rcExists || (args[1] && args[1] !== 'gvisor')) return notFound('runtimeclasses.node.k8s.io', args[1] || 'gvisor');
+        var o = ['Name:         gvisor', 'Labels:       <none>', 'API Version:  node.k8s.io/v1', 'Kind:         RuntimeClass', 'Handler:      runsc'];
+        if (s.overhead) o.push('Overhead:', '  Pod Fixed:', '    Cpu:     250m', '    Memory:  120Mi');
+        if (s.rcSelector) o.push('Scheduling:', '  Node Selector:', '    sandbox.gvisor.dev/runtime:  gvisor');
+        o.push('(sim) representative, trimmed' + (!s.overhead && !s.rcSelector ? ' — no Overhead and no Scheduling stanza: the cluster is assumed homogeneous and the sandbox is not accounted' : ''));
+        return res(o, 0, null, ['describe-rc', !s.overhead && !s.rcSelector ? 'describe-rc-bare' : 'describe-rc-full']);
+      }
+      if (verb === 'get' && /^(pods?|po)$/.test(args[0] || '')) {
+        if (ns !== 'payments') return res(['No resources found in ' + (typeof ns === 'string' ? ns : 'default') + ' namespace.'], 0);
+        var rows = sbRows(s, m, out === 'wide');
+        var evs = ['get-pods', 'pods-' + m.phase.replace('running-', '')];
+        if (m.phase === 'running-gvisor') evs.push('pods-sandboxed');
+        var note = { backoff: '(sim) the ReplicaSet controller is backing off after FailedCreate — no new pod yet; kubectl rollout restart retries now',
+          rejected: '(sim) no new pod: the ReplicaSet could not create one (see kubectl get events -n payments)',
+          'sandbox-fail': '(sim) the new pod is stuck on ' + m.node + '; the old pod keeps serving (maxUnavailable rounds down to 0)',
+          'pending-cpu': '(sim) the new pod is unschedulable; the old pod keeps serving' }[m.phase];
+        return res(note ? rows.concat([note]) : rows, 0, null, evs);
+      }
+      if (verb === 'get' && /^(events?|ev)$/.test(args[0] || '')) {
+        if (ns !== 'payments') return res(['No resources found in ' + (typeof ns === 'string' ? ns : 'default') + ' namespace.'], 0);
+        var ev = {
+          rejected: ['replicaset/' + SB_REV.gv.replace(/-[a-z0-9]+$/, ''), 'Warning  FailedCreate', 'Error creating: pods "' + SB_REV.gv.replace(/-[a-z0-9]+$/, '') + '-" is forbidden: pod rejected: RuntimeClass "gvisor" not found'],
+          backoff: ['replicaset/' + SB_REV.gv.replace(/-[a-z0-9]+$/, ''), 'Warning  FailedCreate', 'Error creating: pods "' + SB_REV.gv.replace(/-[a-z0-9]+$/, '') + '-" is forbidden: pod rejected: RuntimeClass "gvisor" not found'],
+          'sandbox-fail': ['pod/' + (s.bigReq ? SB_REV.big : SB_REV.gv), 'Warning  FailedCreatePodSandBox', 'Failed to create pod sandbox: rpc error: code = Unknown desc = failed to get sandbox runtime: no runtime for "runsc" is configured'],
+          'pending-cpu': ['pod/' + (s.bigReq ? SB_REV.big : SB_REV.gv), 'Warning  FailedScheduling', '0/2 nodes are available: 1 Insufficient cpu, 1 node(s) didn\'t match Pod\'s node affinity/selector.']
+        }[m.phase];
+        if (!ev) return res(['No resources found in payments namespace.'], 0, null, ['get-events', 'events-quiet']);
+        var tag = { rejected: 'events-rc-missing', backoff: 'events-rc-missing', 'sandbox-fail': 'events-no-runtime', 'pending-cpu': 'events-pending-cpu' }[m.phase];
+        return res(table([['LAST SEEN', 'TYPE', 'REASON', 'OBJECT', 'MESSAGE'], ['14s', ev[1].split(/\s+/)[0], ev[1].split(/\s+/)[1], ev[0], ev[2]]]).concat(['(sim) representative']), 0, null, ['get-events', tag]);
+      }
+      if (verb === 'describe' && /^(pods?|po)$/.test(args[0] || '')) {
+        if (ns !== 'payments') return res(['No resources found in ' + (typeof ns === 'string' ? ns : 'default') + ' namespace.'], 0);
+        var rev = s.useRC ? (s.bigReq ? SB_REV.big : SB_REV.gv) : SB_REV.orig;
+        if (m.phase === 'sandbox-fail') return res(['Name:                 ' + rev, 'Namespace:            payments', 'Node:                 ' + m.node + '/10.0.0.1' + (m.node === 'node01' ? '2' : '3'), 'Status:               Pending', 'Runtime Class Name:   gvisor', 'Events:', '  Type     Reason                  Age   From     Message', '  ----     ------                  ----  ----     -------',
+          '  Warning  FailedCreatePodSandBox  8s    kubelet  Failed to create pod sandbox: rpc error: code = Unknown desc = failed to get sandbox runtime: no runtime for "runsc" is configured', '(sim) representative, trimmed — the kubelet keeps retrying the sandbox'], 0, null, ['describe', 'describe-no-runtime']);
+        if (m.phase === 'pending-cpu') return res(['Name:                 ' + rev, 'Namespace:            payments', 'Node:                 <none>', 'Status:               Pending', 'Runtime Class Name:   gvisor', 'Events:', '  Type     Reason            Age   From               Message', '  ----     ------            ----  ----               -------',
+          '  Warning  FailedScheduling  9s    default-scheduler  0/2 nodes are available: 1 Insufficient cpu, 1 node(s) didn\'t match Pod\'s node affinity/selector. (requests ' + m.req + 'm + RuntimeClass overhead ' + m.overheadCpu + 'm = ' + m.total + 'm; node01 has ' + m.free + 'm free)', '(sim) representative, trimmed'], 0, null, ['describe', 'describe-pending-cpu']);
+        return res(['Name:                 ' + (m.phase === 'running-gvisor' ? rev : SB_REV.orig), 'Namespace:            payments', 'Node:                 node01/10.0.0.12', 'Status:               Running', 'Runtime Class Name:   ' + (m.phase === 'running-gvisor' ? 'gvisor' : '<none>'), 'Events:               <none>', '(sim) representative, trimmed'], 0, null, ['describe']);
+      }
+      return null;
+    },
+    tasks: [
+      { id: 'create-runtimeclass', title: 'Sandbox payments-api with gVisor: a Deployment that names a RuntimeClass that does not exist yet',
+        goal: 'The payments-api Deployment runs on runc. Reference RuntimeClass gvisor before it exists, read why the ReplicaSet cannot create the pod, create the RuntimeClass (handler runsc, with the node selector and the overhead), roll the Deployment and prove with uname -r that the pod got gVisor.',
+        setup: { rcExists: false, rcSelector: false, overhead: false, useRC: false, bigReq: false, handlerNode01: true, cfgRunsc: true, kernelBug: false, rolled: true, backoff: false },
+        steps: [
+          { label: 'See that the cluster has no RuntimeClass yet', event: 'rc-none', hint: 'kubectl get runtimeclass' },
+          { label: 'Apply the Deployment that sets runtimeClassName: gvisor', event: 'apply-payments-api-gvisor', hint: 'kubectl apply -f payments-api-gvisor.yaml' },
+          { label: 'Read the FailedCreate event: pod rejected, RuntimeClass "gvisor" not found', event: 'events-rc-missing', hint: 'kubectl get events -n payments' },
+          { label: 'Create the RuntimeClass with its nodeSelector and overhead', state: function (s) { return !!(s.rcExists && s.rcSelector && s.overhead); }, hint: 'kubectl apply -f runtimeclass-gvisor.yaml' },
+          { label: 'Roll the Deployment now instead of waiting for the controller back-off', event: 'rollout-restart', hint: 'kubectl rollout restart deployment payments-api -n payments' },
+          { label: 'See the new pod Running on node01', event: 'pods-sandboxed', hint: 'kubectl get pods -n payments -o wide' },
+          { label: 'Prove the sandbox: the pod reports gVisor\'s emulated kernel 4.4.0', event: 'uname-gvisor', hint: 'kubectl exec -n payments deploy/payments-api -- uname -r' }
+        ] },
+      { id: 'node-handler', title: 'FailedCreatePodSandBox: no runtime for "runsc" is configured — fix containerd on node01',
+        goal: 'RuntimeClass gvisor exists and the pod is scheduled to node01, but it never starts. Find the kubelet\'s reason, enable the runsc runtime in containerd\'s config, restart containerd, watch the same pod start and check gVisor\'s own boot messages from inside.',
+        setup: { rcExists: true, rcSelector: true, overhead: true, useRC: true, bigReq: false, handlerNode01: false, cfgRunsc: false, kernelBug: false, rolled: true, backoff: false },
+        steps: [
+          { label: 'See the new pod stuck in ContainerCreating on node01 (old pod still serving)', event: 'pods-sandbox-fail', hint: 'kubectl get pods -n payments -o wide' },
+          { label: 'Read the kubelet\'s reason: no runtime for "runsc" is configured', event: 'describe-no-runtime', hint: 'kubectl describe pod -n payments -l app=payments-api' },
+          { label: 'Look at containerd\'s config: the runsc table is commented out', event: 'cfg-runsc-disabled', hint: 'cat ' + SB_CFG },
+          { label: 'Uncomment the runsc runtime table', state: function (s) { return s.cfgRunsc === true; }, hint: "sed -i '/runsc/s/^#//' " + SB_CFG },
+          { label: 'Restart containerd so it loads the new config', state: function (s) { return !!s.handlerNode01; }, hint: 'systemctl restart containerd' },
+          { label: 'See the same pod Running (the kubelet retried the sandbox)', event: 'pods-sandboxed', hint: 'kubectl get pods -n payments -o wide' },
+          { label: 'Read gVisor\'s boot messages from inside the pod', event: 'dmesg-gvisor', hint: 'kubectl exec -n payments deploy/payments-api -- dmesg' }
+        ] },
+      { id: 'blast-radius', title: 'Host-kernel bug under runc: escape; under gVisor: contained — and the overhead that makes the pod Pending',
+        goal: 'payments-api runs on runc and a RuntimeClass with no scheduling or overhead exists. Run the lab PoC to see the escape, add the node selector and the overhead to the RuntimeClass, try the 800m variant (it will not schedule), fall back to the 600m one, and run the PoC again.',
+        setup: { rcExists: true, rcSelector: false, overhead: false, useRC: false, bigReq: false, handlerNode01: true, cfgRunsc: true, kernelBug: true, rolled: true, backoff: false },
+        steps: [
+          { label: 'Run the PoC inside the runc pod: container escape to node01', event: 'poc-escape', hint: 'kubectl exec -n payments deploy/payments-api -- /lab/kernel-bug-poc' },
+          { label: 'Inspect the RuntimeClass: no Overhead, no Scheduling', event: 'describe-rc-bare', hint: 'kubectl describe runtimeclass gvisor' },
+          { label: 'Apply the full RuntimeClass (nodeSelector + overhead)', state: function (s) { return !!(s.rcSelector && s.overhead); }, hint: 'kubectl apply -f runtimeclass-gvisor.yaml' },
+          { label: 'Apply the 800m sandboxed variant', event: 'apply-payments-api-gvisor-big', hint: 'kubectl apply -f payments-api-gvisor-big.yaml' },
+          { label: 'See it Pending: 800m + 250m overhead does not fit in 1000m', event: 'pods-pending-cpu', hint: 'kubectl get pods -n payments' },
+          { label: 'Apply the 600m sandboxed variant', state: function (s) { return !!(s.useRC && !s.bigReq); }, hint: 'kubectl apply -f payments-api-gvisor.yaml' },
+          { label: 'See the pod Running on node01', event: 'pods-sandboxed', hint: 'kubectl get pods -n payments -o wide' },
+          { label: 'Run the PoC again: the Sentry contains it', event: 'poc-contained', hint: 'kubectl exec -n payments deploy/payments-api -- /lab/kernel-bug-poc' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -4184,7 +4397,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack, chPack, saPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack, chPack, saPack, sbPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -4693,7 +4906,37 @@
         ['Send the edited file to the API server again.', '^(edge-gate-api|kube-apiserver)$'],
         ['List the pods again; both new ones should be ready.', '^(payments-pod)$']
       ]
-
+    },
+    /* v1.12.0 (2026-11-06) — CKS minimize microservice vulnerabilities: sandboxed runtimes (RuntimeClass + gVisor) on cks-sandbox-runtime.glb */
+    'cks-sandbox-runtime': {
+      'create-runtimeclass': [
+        ['Ask the cluster which sandbox classes it knows about.', '^(runtimeclass|edge-rc-deploy)$'],
+        ['Send the Deployment manifest that names the class; the object itself will be accepted.', '^(deploy-card|field-runtimeclass|edge-rc-deploy)$'],
+        ['The ReplicaSet is the one trying to create pods. List the namespace events.', '^(sim-rc-missing|runtimeclass|kube-apiserver)$'],
+        ['The class is a cluster-scoped object that maps a name to a handler; use the lab file that also sets scheduling and overhead.', '^(runtimeclass|rc-selector|rc-overhead)$'],
+        ['The ReplicaSet is backing off. Force a new rollout of the Deployment.', '^(deploy-card|field-runtimeclass|payments-pod)$'],
+        ['List the pods with node names and see where the new one runs.', '^(payments-pod|sentry|node-01)$'],
+        ['Ask the kernel inside the pod for its release string; compare with node01\'s own.', '^(sentry|edge-syscall-sentry|payments-pod)$']
+      ],
+      'node-handler': [
+        ['List the pods with the NODE column; the new one is not Ready.', '^(payments-pod|sim-no-runtime-n1|node-01)$'],
+        ['The pod events carry the kubelet\'s sandbox error. Describe the pod by label.', '^(sim-no-runtime-n1|handler-runsc)$'],
+        ['The handler name is resolved by the runtime on the node, from its own config file.', '^(containerd|handler-runsc)$'],
+        ['Remove the leading comment character from the runsc lines only; address the lines by pattern.', '^(containerd|handler-runsc)$'],
+        ['containerd reads its config at start. Restart the unit.', '^(containerd|handler-runsc|edge-containerd-runsc)$'],
+        ['The kubelet keeps retrying the sandbox. List the pods again.', '^(payments-pod|sentry)$'],
+        ['The container\'s kernel log is not the node\'s. Read it from inside the pod.', '^(sentry|gofer|edge-syscall-sentry)$']
+      ],
+      'blast-radius': [
+        ['Run the lab proof-of-concept binary inside the pod and read where it ends up.', '^(attacker-poc|sim-escape|host-kernel|edge-syscall-host)$'],
+        ['Inspect the existing RuntimeClass and note which stanzas it lacks.', '^(runtimeclass|rc-selector|rc-overhead)$'],
+        ['Re-apply the full RuntimeClass file; it adds scheduling and overhead.', '^(rc-selector|rc-overhead|runtimeclass)$'],
+        ['Apply the sandboxed variant that asks for 800m CPU.', '^(deploy-card|field-requests|field-runtimeclass)$'],
+        ['List the pods; the new one never gets a node.', '^(sim-pending-cpu|cpu-capacity|sim-overhead-slab)$'],
+        ['Go back to the sandboxed variant with the smaller CPU request.', '^(field-requests|deploy-card)$'],
+        ['List pods with node names; the new pod should run on node01.', '^(payments-pod|sentry)$'],
+        ['Run the same proof-of-concept again.', '^(sim-contained|sentry|attacker-poc)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -4927,7 +5170,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bco ?sign\b/g, 'cosign'], [/\b(cube|kube) ?bench\b/g, 'kube-bench'], [/\b(cube|kube) ?linter\b/g, 'kube-linter'], [/\b(cube|kube) ?sec\b/g, 'kubesec'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bco ?sign\b/g, 'cosign'], [/\b(cube|kube) ?bench\b/g, 'kube-bench'], [/\b(cube|kube) ?linter\b/g, 'kube-linter'], [/\b(cube|kube) ?sec\b/g, 'kubesec'], [/\brun ?time ?class(es)?\b/g, 'runtimeclass$1'], [/\bg ?visor\b/g, 'gvisor'], [/\bcontainer ?d\b/g, 'containerd'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -4993,7 +5236,7 @@
   }
 
   return {
-    VERSION: '1.11.0',
+    VERSION: '1.12.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

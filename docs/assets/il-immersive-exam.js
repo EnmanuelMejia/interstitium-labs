@@ -1,5 +1,5 @@
 /**
- * IL Immersive Exam v1.7.0 (2026-11-05; v1.6.0 2026-11-04; v1.5.0 2026-11-03; v1.4.0 2026-11-02; v1.3.0 2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
+ * IL Immersive Exam v1.8.0 (2026-11-06; v1.7.0 2026-11-05; v1.6.0 2026-11-04; v1.5.0 2026-11-03; v1.4.0 2026-11-02; v1.3.0 2026-10-29; v1.2.0 2026-10-21; v1.1.0 2026-10-12; adaptive focus 2026-10-13) — timed CKA (and, since
  * v1.3.0, CKS) mock exam over authored 3D sims.
  *
  * Chains predict-then-reveal checkpoints from the CKA interactive sims under a
@@ -32,6 +32,10 @@
  * workloads with kubesec and KubeLinter — score sums, CI gates, ignore annotations, what a manifest scan cannot see). Its 7
  * checkpoints count for Supply Chain Security; the gap link stays on cks-supply-chain. The CKS pool grows by 7.
  *
+ * v1.8.0 (2026-11-06): Minimize Microservice Vulnerabilities (20%) gets a second drill (cks-sandbox-runtime: sandboxed container
+ * runtimes — RuntimeClass, the containerd handler, scheduling, overhead, gVisor vs a host-kernel bug). Its 7 checkpoints count for
+ * that domain; the gap link stays on cks-pod-security. The CKS pool grows by 7.
+ *
  * Would Elon be impressed by thirteen free-play drills with no exam pressure while
  * KodeKloud ships timed mock exams? No — this is the honest pressure layer on top
  * of the 3D mental model peers still teach as video + terminal.
@@ -43,7 +47,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var VERSION = '1.7.0';
+  var VERSION = '1.8.0';
   var STORE_KEY = 'il.immersiveExam.v1';
 
   /** CKA-domain sims only. AWS IAM / Multi-AZ and Istio mesh stay on /immersive/ free-play. */
@@ -111,11 +115,11 @@
     { domain: 'Cluster Setup', weight: 15, sims: ['cks-cluster-hardening', 'cks-pod-security', 'netpol-isolation'], items: ['cks-pod-security::no-netpol', 'cks-pod-security::deny-all-ingress', 'netpol-isolation', 'cks-cluster-hardening'] },
     { domain: 'Cluster Hardening', weight: 15, sims: ['cks-pod-security', 'rbac-authz'], items: ['cks-pod-security::rbac-admin', 'rbac-authz'] },
     { domain: 'System Hardening', weight: 10, sims: ['cks-pod-security', 'cks-runtime-security'], items: ['cks-pod-security::seccomp', 'cks-runtime-security::apparmor-not-loaded', 'cks-runtime-security::apparmor-deny-write'] },
-    { domain: 'Minimize Microservice Vulnerabilities', weight: 20, sims: ['cks-pod-security'], items: ['cks-pod-security::psa-reject', 'cks-pod-security::no-psa'] },
+    { domain: 'Minimize Microservice Vulnerabilities', weight: 20, sims: ['cks-pod-security', 'cks-sandbox-runtime'], items: ['cks-pod-security::psa-reject', 'cks-pod-security::no-psa', 'cks-sandbox-runtime'] },
     { domain: 'Supply Chain Security', weight: 20, sims: ['cks-supply-chain', 'cks-static-analysis'], items: ['cks-supply-chain', 'cks-static-analysis'] },
     { domain: 'Monitoring, Logging & Runtime Security', weight: 20, sims: ['cks-runtime-security', 'cks-pod-security'], items: ['cks-pod-security::audit-off', 'cks-runtime-security'] }
   ];
-  var CKS_SIMS = ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'cks-static-analysis', 'netpol-isolation', 'rbac-authz'];
+  var CKS_SIMS = ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'cks-static-analysis', 'cks-sandbox-runtime', 'netpol-isolation', 'rbac-authz'];
   var CKS_OFFICIAL = {};
   CKS_BLUEPRINT.forEach(function (b) { b.items.forEach(function (k) { CKS_OFFICIAL[k] = b.domain; }); });
   ANCHOR['cks-pod-security'] = 'cks-pod-security';
@@ -123,13 +127,14 @@
   ANCHOR['cks-runtime-security'] = 'cks-runtime-security';
   ANCHOR['cks-cluster-hardening'] = 'cks-cluster-hardening';
   ANCHOR['cks-static-analysis'] = 'cks-static-analysis';
+  ANCHOR['cks-sandbox-runtime'] = 'cks-sandbox-runtime';
   /** Official CKS domain of one checkpoint, or null when the CKS blueprint does not cover it. */
   function cksDomain(simId, scenarioId) { return CKS_OFFICIAL[simId + '::' + scenarioId] || CKS_OFFICIAL[simId] || null; }
   var TRACKS = {
     CKA: { label: 'CKA', sims: CKA_SIMS, blueprint: BLUEPRINT, passPct: 66, count: 10, minutes: 15,
       honesty: 'Timed mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKA.' },
     CKS: { label: 'CKS', sims: CKS_SIMS, blueprint: CKS_BLUEPRINT, passPct: 67, count: 8, minutes: 12,
-      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec and KubeLinter run on a rules engine, not a real kernel, node or scanner.' }
+      honesty: 'Timed CKS mock over in-browser 3D sims (rules engine). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter and gVisor run on a rules engine, not a real kernel, node, scanner or sandbox.' }
   };
   function trackOf(t) { return TRACKS[String(t || 'CKA').toUpperCase()] ? String(t || 'CKA').toUpperCase() : 'CKA'; }
 
@@ -163,7 +168,7 @@
       drill: weakest ? { sim: weakest.sims[0], href: '/immersive/#' + (ANCHOR[weakest.sims[0]] || '') } : null,
       track: tk,
       honesty: 'Weights are the published CNCF ' + tk + ' domain weights; scores are this device’s answers on in-browser 3D drills — a study signal, not a predicted CNCF exam score.'
-        + (tk === 'CKS' ? ' Every CKS domain has at least one drill since 2026-11-02; Falco runtime detection and AppArmor are simulated since 2026-11-03, the CIS benchmark (kube-bench) since 2026-11-04, static analysis (kubesec, KubeLinter) since 2026-11-05.' : '')
+        + (tk === 'CKS' ? ' Every CKS domain has at least one drill since 2026-11-02; Falco runtime detection and AppArmor are simulated since 2026-11-03, the CIS benchmark (kube-bench) since 2026-11-04, static analysis (kubesec, KubeLinter) since 2026-11-05, sandboxed runtimes (RuntimeClass, gVisor) since 2026-11-06.' : '')
     };
   }
   /** Official-blueprint view of one graded paper (unanswered items count as incorrect, like the exam). */

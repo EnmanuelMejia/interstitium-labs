@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-05T09:30:00-05:00",
+  "updated": "2026-11-06T09:30:00-05:00",
   "musk_rule": "Would Elon be impressed by my mediocrity? If mediocrity would impress nobody \u2014 REPLACE and ship.",
   "law": "Notion = Curriculum OS SoT. Runtime = Interstitium immersive 3d-first (Unreal/Blender/Godot/glTF + Lab Muse). NEVER Notion embeds as 3D runtime.",
   "notion": {
@@ -698,6 +698,28 @@
         "sim": "cks-static-analysis"
       },
       "gltf": "/assets/immersive/cks-static-analysis.glb"
+    },
+    {
+      "id": "lab-sim-cks-sandbox-runtime",
+      "name": "CKS Microservice Vulnerabilities Drill: sandboxed container runtimes \u2014 RuntimeClass, the containerd handler, scheduling, overhead, gVisor vs a host-kernel bug (interactive 3D)",
+      "slug": "lab-sim-cks-sandbox-runtime",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Sixth CKS drill: Minimize Microservice Vulnerabilities (20% of the CKS), sandboxed container runtimes. Covered: a RuntimeClass that does not exist is rejected when the ReplicaSet creates the pod (no silent runc fallback), a handler missing from containerd's config stalls the sandbox with FailedCreatePodSandBox because nothing in the control plane checks nodes, a RuntimeClass without scheduling.nodeSelector lets the scheduler pick a node that has no runsc, overhead.podFixed is counted by the scheduler, a host-kernel bug is a container escape under runc but not through gVisor's Sentry, and uname -r / dmesg inside the pod show which kernel it really got. Runs on a new authored glTF, with a 3-task simulated CLI lab (kubectl get|describe runtimeclass, apply -f, rollout restart, get pods -o wide / describe pod / get events, containerd config.toml with sed -i and systemctl restart containerd, uname -r and dmesg in the pod) and the timed CKS paper. Rules engine; no live cluster, real containerd, runsc or kernel.",
+      "surfaceUrl": "/immersive/#cks-sandbox-runtime",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/cks-sandbox-runtime.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cks-sandbox-runtime",
+        "sim": "cks-sandbox-runtime"
+      },
+      "gltf": "/assets/immersive/cks-sandbox-runtime.glb"
     }
   ],
   "certs": [

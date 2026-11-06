@@ -48,7 +48,7 @@ test('NEW asset: cks-pod-security.glb is authored + Blender-polished, the first 
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-pod-security.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), [SIM, 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'cks-static-analysis'], 'first CKS drill (cks-supply-chain followed on 2026-11-02, cks-runtime-security on 2026-11-03, cks-cluster-hardening on 2026-11-04, cks-static-analysis on 2026-11-05)');
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), [SIM, 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', 'cks-static-analysis', 'cks-sandbox-runtime'], 'first CKS drill (cks-supply-chain followed on 2026-11-02, cks-runtime-security on 2026-11-03, cks-cluster-hardening on 2026-11-04, cks-static-analysis on 2026-11-05, cks-sandbox-runtime on 2026-11-06)');
   const j = glbJson('assets/immersive/cks-pod-security.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['kube-apiserver', 'psa-gate', 'sim-psa-reject', 'audit-policy', 'audit-log', 'sim-audit-gap', 'ns-payments', 'psa-label', 'node-kernel', 'seccomp-filter',
@@ -72,7 +72,7 @@ test('NEW asset: cks-pod-security.glb is authored + Blender-polished, the first 
 test('rules engine: Pod Security Admission, seccomp default, NetworkPolicy isolation, RBAC scope and audit backend semantics', () => {
   const sim = S.get(SIM);
   const at = set => S.cksDecide(S.merge(sim.initial, set));
-  assert.ok(['1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0'].includes(S.VERSION), 'cks-pod-security arrived in v1.7.0; v1.8.0 (2026-11-02) keeps it');
+  assert.ok(['1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'cks-pod-security arrived in v1.7.0; v1.8.0 (2026-11-02) keeps it');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   assert.equal(S.verdictTone('exposed'), 'bad', 'the new unsafe verdict never renders healthy');
   /* restricted vs a privileged template: every restricted check is listed, in the controller's order */
@@ -246,7 +246,7 @@ test('audit-log: commented --audit-log-path → no log file; sed -i un-comments 
 });
 
 test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per covered domain (Supply Chain covered since 2026-11-02)', () => {
-  assert.ok(['1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0'].includes(E.VERSION), 'CKS track since v1.3.0; v1.4.0 (2026-11-02) adds the supply-chain drill');
+  assert.ok(['1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0'].includes(E.VERSION), 'CKS track since v1.3.0; v1.4.0 (2026-11-02) adds the supply-chain drill');
   assert.deepEqual(E.CKS_BLUEPRINT.map(b => [b.domain, b.weight]), [['Cluster Setup', 15], ['Cluster Hardening', 15], ['System Hardening', 10],
     ['Minimize Microservice Vulnerabilities', 20], ['Supply Chain Security', 20], ['Monitoring, Logging & Runtime Security', 20]]);
   assert.equal(E.CKS_BLUEPRINT.reduce((n, b) => n + b.weight, 0), 100);
@@ -281,7 +281,7 @@ test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per co
 });
 
 test('review: CKS coach cards get an honest domain label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[12345]$/, 'CKS labels since v1.3.1');
+  assert.match(R.VERSION, /^1\.3\.[123456]$/, 'CKS labels since v1.3.1');
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 29);
   assert.ok(cards.every(c => c.domain === 'CKS · Workload security'));
