@@ -1,7 +1,43 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-05 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-06 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-06 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **"Sandboxed runtimes (gVisor / Kata)" was still on our CKS notCovered list**, although the CKS curriculum names it under Minimize Microservice Vulnerabilities (20%, the same weight as Supply Chain), and our only evidence for that domain was Pod Security Admission. |
+| After this ship | **Closer / still NO** | **CKS track, part 6 (sandboxed runtimes).** A new Blender-polished `cks-sandbox-runtime.glb`. A 7-checkpoint predict/reveal drill: a missing RuntimeClass is rejected when the ReplicaSet creates the pod (no silent runc fallback), a handler missing from containerd's config stalls the sandbox (FailedCreatePodSandBox) because the control plane never checks nodes, no `scheduling.nodeSelector` lets the scheduler pick a node without runsc, `overhead.podFixed` makes an 800m pod unschedulable on 1000m free, a host-kernel bug is an escape under runc and is not reachable down gVisor's path, and `uname -r` 4.4.0 / `dmesg` prove which kernel a pod got. A 3-task / 22-step typed CLI pack. On the CKS paper, the checkpoints count for Minimize Microservice Vulnerabilities (pool 43 → 50). |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no real containerd, runsc, kernel or exploit (the PoC prints a scripted result and contains no exploit code), no live cluster and no hosted fleet. gVisor is modelled at the level of "a user-space kernel answers the syscalls"; platform choice (ptrace / KVM), syscall compatibility gaps and the performance cost are not. Kata Containers (a VM per pod) is named but not modelled. The score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- a CKS hands-on paper (the Troubleshooting-paper pattern over the six CKS packs) plus a CKS queue in `/immersive/review/`
+- Kata Containers as a second handler on the same scene (VM-per-pod, needs KVM on the node) and the GKE-Sandbox-style managed-cloud variant
+- keyless (Sigstore OIDC) signing and Dockerfile static analysis (hadolint), the remaining Supply Chain gaps
+- syncing the Notion Labs rows for the six CKS drills (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-06)
+
+| Competitor | CKS sandboxed-runtime offer | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | CKS course lecture and lab on container sandboxing (gVisor, Kata) on a real environment | 1 authored 3D drill + 3 typed tasks + domain-weighted paper; simulated shell, not a real VM |
+| killer.sh / Killercoda | RuntimeClass / gVisor scenarios on real clusters in the CKS simulator | no real runsc, but a 3D view of API server → RuntimeClass → containerd handler → Sentry vs host kernel, including the failures that are node-local (handler, label, overhead) |
+| A Cloud Guru / Pluralsight | CKS video path covering sandboxed runtimes | predict-before-reveal on an authored scene instead of video |
+
+_Competitor rows summarise their public course outlines as of this pass; they were not re-verified against a live product this run._
+
+## Shipped this pass (2026-11-06)
+
+1. `cks-sandbox-runtime.glb` (kit-v2 authoring, Blender CLI 4.2.3 polish) + `il-immersive-sims.js` v1.12.0: the `cksSandboxRuntime` sim (7 scenarios + heal), `cksSandboxDecide`.
+2. `il-immersive-cli.js` v1.12.0: the sandboxed-runtime pack (create-runtimeclass 7 · node-handler 7 · blast-radius 8), COACH tips with glTF focus for all 22 steps, spoken "runtime class" / "g visor" / "container d".
+3. `il-immersive-exam.js` v1.8.0: Minimize Microservice Vulnerabilities also draws from `cks-sandbox-runtime` (gap link stays on `cks-pod-security`), CKS pool 43 → 50. `il-immersive-review.js` v1.3.6 labels the sandboxed-runtime CLI cards.
+4. Tests: unit 251 → 261 (`immersive-cks-sandbox-runtime.test.js`); browser 65 → 68 (sim predict for cks-sandbox-runtime, node-handler typed end-to-end, toggles; CKS pool ≥ 50; reduced-motion terminals 20 → 21).
+
+---
+
+_Prior pass archived below (2026-11-05)._
+
 
 ## Verdict — 2026-11-05 Musk-bar pass
 

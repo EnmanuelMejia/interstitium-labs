@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.11.0 (2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.12.0 (2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -63,6 +63,14 @@
  * literal secret while KubeLinter env-var-secret can, an ignore-check annotation silences one check only, runAsNonRoot over a
  * root image passes both scanners and fails at the kubelet (CreateContainerConfigError), advise vs failed checks, and a
  * kubesec "critical" entry under a passing score.
+ *
+ * v1.12.0 (2026-11-06): the sixth CKS drill, cks-sandbox-runtime (Minimize Microservice Vulnerabilities: sandboxed container
+ * runtimes with RuntimeClass and gVisor), on a NEW authored asset cks-sandbox-runtime.glb (kit-v2 + Blender CLI polish): a
+ * RuntimeClass that does not exist is rejected at pod creation (no silent runc fallback), a handler missing from containerd's
+ * config stalls the sandbox (FailedCreatePodSandBox) because nothing in the control plane checks nodes, a RuntimeClass
+ * without scheduling.nodeSelector lets the scheduler pick a node that has no runsc, overhead.podFixed is counted by the
+ * scheduler, a host-kernel bug is an escape under runc but not through gVisor's Sentry, and uname -r / dmesg show which kernel
+ * a pod really got.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -2257,11 +2265,161 @@
     }
   };
 
+  /* ── CKS: Minimize Microservice Vulnerabilities — sandboxed container runtimes (RuntimeClass + gVisor) — v1.12.0 (2026-11-06) ──
+   * Scene contract (cks-sandbox-runtime.glb, authored 2026-11-06 — the sixth CKS asset): kube-apiserver; runtimeclass card with
+   * rc-selector, rc-overhead (+ sim-rc-missing); deploy-card with field-runtimeclass / field-requests; node-01 with host-kernel,
+   * containerd → handler-runc / handler-runsc (+ sim-no-runtime-n1), sentry + gofer under payments-pod, cpu-capacity (+
+   * sim-overhead-slab, sim-pending-cpu); attacker-poc (+ sim-escape, sim-contained); node-02 (node02-kernel, containerd-n2, no
+   * runsc) with sim-pod-node02 (+ sim-no-runtime-n2); edges edge-syscall-host|sentry, edge-containerd-runc|runsc, edge-api-containerd,
+   * edge-rc-deploy. Rules follow Kubernetes and containerd behaviour: a RuntimeClass (node.k8s.io/v1) maps a name to a CRI handler;
+   * its handler is immutable; the RuntimeClass admission plugin rejects a pod whose class does not exist ("pod rejected:
+   * RuntimeClass \"x\" not found"), merges scheduling.nodeSelector into the pod's nodeSelector and copies overhead.podFixed into
+   * pod.spec.overhead (which the scheduler, ResourceQuota and kubelet add to the requests); the scheduler never checks that a node
+   * has the handler; containerd resolves the handler from /etc/containerd/config.toml, which it reads at start, and answers
+   * `no runtime for "runsc" is configured` otherwise (the kubelet keeps retrying the sandbox). gVisor (runsc) serves the pod's
+   * syscalls in a user-space kernel (the Sentry; files via the Gofer) and reports its own emulated kernel (uname -r 4.4.0), so a
+   * host-kernel bug is no longer reachable through the same syscall path. That reduces attack surface; it is not a proof. */
+  var SB_FREE = 1000, SB_OVERHEAD = 250;
+  function cksSandboxDecide(s) {
+    var req = s.bigReq ? 800 : 600, ovh = s.overhead ? SB_OVERHEAD : 0;
+    var phase, node = 'node01';
+    if (!s.useRC) phase = 'running-runc';
+    else if (!s.rcExists) { phase = 'rejected'; node = null; }
+    else if (s.backoff) { phase = 'backoff'; node = null; }
+    else if (!s.rcSelector) { node = 'node02'; phase = 'sandbox-fail'; }
+    else if (req + ovh > SB_FREE) phase = 'pending-cpu';
+    else if (!s.handlerNode01) phase = 'sandbox-fail';
+    else phase = 'running-gvisor';
+    var sandboxed = phase === 'running-gvisor', runc = phase === 'running-runc';
+    var escape = !!s.kernelBug && runc, contained = !!s.kernelBug && sandboxed;
+    var gaps = [];
+    if (runc) gaps.push('shared host kernel (runc)');
+    if (phase === 'rejected') gaps.push('RuntimeClass "gvisor" not found');
+    if (phase === 'backoff') gaps.push('ReplicaSet controller backing off after FailedCreate');
+    if (phase === 'sandbox-fail') gaps.push('FailedCreatePodSandBox: no runtime for "runsc" is configured on ' + node);
+    if (phase === 'pending-cpu') gaps.push('Insufficient cpu: ' + req + 'm requests + ' + ovh + 'm overhead > ' + SB_FREE + 'm free');
+    if (sandboxed && !s.overhead) gaps.push('RuntimeClass has no overhead: the sandbox\'s own CPU and memory are not accounted');
+    var status = {
+      'running-runc': 'Running (runc · shared host kernel)',
+      'running-gvisor': 'Running (gVisor · runsc on node01)',
+      'backoff': 'no new pod yet: the ReplicaSet controller is backing off after FailedCreate (old pods keep serving; kubectl rollout restart retries now)',
+      'rejected': 'no new pod: ReplicaSet FailedCreate (pod rejected: RuntimeClass "gvisor" not found); old pods keep serving',
+      'sandbox-fail': 'ContainerCreating on ' + node + ' (FailedCreatePodSandBox: no runtime for "runsc" is configured)',
+      'pending-cpu': 'Pending (0/2 nodes are available: 1 Insufficient cpu, 1 node(s) didn\'t match Pod\'s node affinity/selector)'
+    }[phase];
+    return { phase: phase, node: node, req: req, overheadCpu: ovh, total: req + ovh, free: SB_FREE, sandboxed: sandboxed, runc: runc, escape: escape, contained: contained,
+      gaps: gaps, podStatus: status, kernel: sandboxed ? '4.4.0' : '6.8.0-45-generic' };
+  }
+  function sbMix(p) { var b = { rcExists: true, handlerNode01: true, cfgRunsc: true, rcSelector: true, useRC: true, overhead: true, bigReq: false, kernelBug: false, rolled: true, backoff: false }; for (var k in p) b[k] = p[k]; return b; }
+  var cksSandboxRuntime = {
+    id: 'cks-sandbox-runtime',
+    title: 'CKS drill: sandboxed container runtimes — RuntimeClass, the containerd handler, scheduling, overhead, and what gVisor does to a host-kernel exploit',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-sandbox-runtime.glb',
+    initial: sbMix({}),
+    toggles: [
+      { id: 'rcExists', label: 'RuntimeClass gvisor (handler: runsc)', on: 'created', off: 'missing' },
+      { id: 'rcSelector', label: 'RuntimeClass scheduling.nodeSelector', on: 'sandbox.gvisor.dev/runtime=gvisor', off: 'unset' },
+      { id: 'overhead', label: 'RuntimeClass overhead.podFixed', on: 'cpu 250m · memory 120Mi', off: 'unset' },
+      { id: 'handlerNode01', label: 'node01 containerd runtime runsc', on: 'configured + loaded', off: 'not configured' },
+      { id: 'useRC', label: 'Deployment runtimeClassName', on: 'gvisor', off: '(unset → runc)' },
+      { id: 'bigReq', label: 'payments-api resources.requests.cpu', on: '800m', off: '600m' },
+      { id: 'kernelBug', label: 'host-kernel bug reachable by a syscall (lab PoC)', on: 'present', off: 'patched' }
+    ],
+    scenarios: [
+      { id: 'no-runtimeclass', label: 'RuntimeClass missing', set: sbMix({ rcExists: false }),
+        predict: { q: 'The payments-api Deployment template sets runtimeClassName: gvisor, but nobody has created the RuntimeClass gvisor. You kubectl apply the Deployment. What happens?',
+          options: ['The pods start on runc: when the class is unknown the kubelet falls back to the default runtime',
+            'The API server accepts the Deployment and the pod lands on node01, where it sits in ContainerCreating',
+            'The Deployment is accepted, but the ReplicaSet cannot create the new pod: the RuntimeClass admission plugin rejects it (a FailedCreate event: pod rejected: RuntimeClass "gvisor" not found). The old pods keep serving and nothing is scheduled; once the RuntimeClass exists the controller retries with back-off, or kubectl rollout restart makes it immediate'],
+          answer: 2, why: 'Admission looks the RuntimeClass up when a Pod is created. A Deployment is only a template, so applying it succeeds; the ReplicaSet controller then tries to create the pod and is refused, and the reason shows up as a FailedCreate event on the ReplicaSet (kubectl apply -f pod.yaml with the same field fails immediately). There is no silent fallback to runc, which is what you want: a fallback would run a workload you chose to sandbox unsandboxed. Create the RuntimeClass first, then roll the workload.' } },
+      { id: 'no-handler', label: 'containerd has no runsc', set: sbMix({ handlerNode01: false, cfgRunsc: false }),
+        predict: { q: 'RuntimeClass gvisor exists (handler: runsc) and its nodeSelector sends pods to node01, but /etc/containerd/config.toml on node01 has no runsc runtime. What do you see?',
+          options: ['The pod is scheduled to node01 and stays in ContainerCreating. Events: FailedCreatePodSandBox … failed to get sandbox runtime: no runtime for "runsc" is configured. Nothing in the API server or the scheduler checks that a node has the handler',
+            'kubectl apply -f runtimeclass-gvisor.yaml is refused, because the API server asks the nodes whether the handler exists',
+            'The pod runs under runc and the event log records that it fell back'],
+          answer: 0, why: 'RuntimeClass.handler is just a name that the kubelet passes to the CRI runtime. containerd resolves it from its own config at sandbox creation, and answers no runtime for "runsc" is configured when the table is missing. The RuntimeClass object is accepted regardless, because the control plane knows nothing about node-local runtime installs. containerd reads config.toml when it starts, so the fix is: install runsc, add the runtimes.runsc table (runtime_type io.containerd.runsc.v1), systemctl restart containerd. The kubelet keeps retrying the sandbox, so the same pod starts without being re-created.' } },
+      { id: 'no-selector', label: 'No scheduling.nodeSelector', set: sbMix({ rcSelector: false }),
+        predict: { q: 'RuntimeClass gvisor has no scheduling.nodeSelector. node01 has runsc and the label sandbox.gvisor.dev/runtime=gvisor. node02 has neither, and it has more free CPU. Where does the new payments-api pod go, and what happens?',
+          options: ['node01: the scheduler sees runtimeClassName and prefers nodes that can run the handler',
+            'Wherever the scheduler scores best, which is node02. Without scheduling.nodeSelector it has no way to know which nodes can run the handler, so the pod lands on node02 and fails there with FailedCreatePodSandBox: no runtime for "runsc" is configured. Put the nodeSelector (and tolerations, if the sandbox nodes are tainted) on the RuntimeClass',
+            'It stays Pending with "no nodes support runtime runsc"'],
+          answer: 1, why: 'Without a scheduling stanza the cluster is assumed to be homogeneous: every node can run every RuntimeClass. The RuntimeClass admission plugin merges scheduling.nodeSelector into the pod\'s own nodeSelector (and appends the tolerations), which is the only thing that steers sandboxed pods to the nodes that really have runsc. The failure is node-local and looks identical to a missing install, so check which node the pod landed on (kubectl get pods -o wide) before debugging containerd.' } },
+      { id: 'overhead', label: 'Overhead pushes it over', set: sbMix({ bigReq: true }),
+        predict: { q: 'node01 has 1000m CPU unreserved. payments-api now requests 800m, and RuntimeClass gvisor declares overhead.podFixed.cpu: 250m. What does the scheduler do?',
+          options: ['Schedules it: 800m fits in 1000m, and overhead is only a hint for the kubelet',
+            'Moves it to node02, because the nodeSelector is a soft preference',
+            'Leaves it Pending: 0/2 nodes are available: 1 Insufficient cpu, 1 node(s) didn\'t match Pod\'s node affinity/selector. The RuntimeClass plugin copies the overhead into pod.spec.overhead, and the scheduler counts requests + overhead = 1050m; the nodeSelector is a hard filter'],
+          answer: 2, why: 'A sandbox is not free: the Sentry, the Gofer and the shim use CPU and memory outside the containers\' own requests. overhead.podFixed makes the scheduler, ResourceQuota and the kubelet\'s pod cgroup all count that cost. Without it the node is silently over-committed by the sandbox on every pod. The fix for this Pending pod is to lower the requests or add capacity, not to remove the overhead. nodeSelector is a hard filter, so node02 is never a candidate.' } },
+      { id: 'runc-kernel-bug', label: 'runc + a host-kernel bug', set: sbMix({ useRC: false, kernelBug: true }),
+        predict: { q: 'payments-api runs under the default runc runtime. A host-kernel vulnerability is reachable through an allowed syscall, and the app is compromised (a lab-only, simulated PoC). What can the attacker reach?',
+          options: ['Only the container: namespaces and cgroups stop kernel bugs',
+            'The host kernel itself. A runc container is a process on node01\'s kernel, filtered only by seccomp and capabilities. A kernel bug reachable through an allowed syscall means root on node01, and with it every other pod on the node and the kubelet\'s credentials. Namespaces isolate names, not the kernel\'s code',
+            'Nothing: seccomp RuntimeDefault blocks every kernel exploit'],
+          answer: 1, why: 'Every runc container shares one kernel. Namespaces and cgroups limit what a process can see and use; seccomp and dropped capabilities shrink which syscalls and kernel paths it can reach, but whatever remains runs in the host kernel\'s own code. That is why multi-tenant clusters, or ones running untrusted code, add a stronger boundary: a user-space kernel (gVisor) or a lightweight VM per pod (Kata Containers). Pod Security restricted and seccomp RuntimeDefault stay worth having, because they cut attack surface before the sandbox.' } },
+      { id: 'gvisor-kernel-bug', label: 'gVisor + the same bug', set: sbMix({ kernelBug: true }),
+        predict: { q: 'The same compromised app and the same kind of host-kernel bug, now with runtimeClassName: gvisor on a healthy node01. What changes?',
+          options: ['The exploit meets the Sentry, a user-space kernel, instead of the host kernel. The Sentry implements the syscall itself and reaches the host through a short, seccomp-filtered list of host syscalls (files through the Gofer), so the host-kernel bug is not reachable down that path and the escape fails. It narrows the attack surface; it does not make a sandbox escape impossible',
+            'Nothing: runsc is only another name for runc',
+            'Admission blocks the pod, because gVisor refuses workloads with a known exploit'],
+          answer: 0, why: 'gVisor does not filter the container\'s syscalls to the host kernel; it answers them. The Sentry is a kernel written in a memory-safe language that runs as an ordinary process, and it talks to the host through a small, fixed set of syscalls that the runsc process is seccomp-restricted to. A bug in an area of the host kernel that the Sentry never calls is out of reach. The price is compatibility (some syscalls and /proc features are missing or emulated) and syscall and file I/O overhead. The sandbox itself can have bugs, so it is one layer, not a replacement for patching.' } },
+      { id: 'fingerprint', label: 'Which kernel am I on?', set: sbMix({}),
+        predict: { q: 'You kubectl exec into the sandboxed payments-api pod and run uname -r and dmesg. node01\'s own kernel is 6.8.0-45-generic. What do you see?',
+          options: ['node01\'s kernel version and its real dmesg: only the process is sandboxed',
+            'uname -r prints 4.4.0 and dmesg prints gVisor\'s own boot messages (they start with "Starting gVisor…"), because the pod talks to the Sentry\'s emulated kernel, not node01\'s. It is the quickest proof of which runtime a pod really got: kubectl get pod shows runtimeClassName whether or not the sandbox started',
+            'Permission denied for both: gVisor hides them from the container'],
+          answer: 1, why: 'Inside a gVisor sandbox the kernel is the Sentry, which reports an emulated kernel version (4.4.0) and prints its own boot log through dmesg. On runc the same commands show the host\'s version and the host\'s ring buffer (when dmesg is allowed at all). So the check for "is this pod really sandboxed" is a command in the pod, not the spec: spec.runtimeClassName is the request, uname -r is the evidence. kubectl get pod -o jsonpath=\'{.spec.runtimeClassName}\' proves only the request.' } },
+      { id: 'heal', label: 'Reset', set: sbMix({}) }
+    ],
+    derive: function (s) {
+      var d = cksSandboxDecide(s), rules = [];
+      var ok = { tint: 'ok', glow: 0.3 };
+      rules.push(rule('^runtimeclass$', s.rcExists ? { tint: 'gold', glow: 0.4 } : { tint: 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^sim-rc-missing$', d.phase === 'rejected' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^rc-selector$', s.rcSelector ? ok : { tint: 'warn', glow: 0.5 }));
+      rules.push(rule('^rc-overhead$', s.overhead ? ok : { tint: 'warn', glow: 0.4 }));
+      rules.push(rule('^field-runtimeclass$', s.useRC ? { tint: 'gold', glow: 0.4 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^field-requests$', s.bigReq ? { tint: 'warn', glow: 0.5 } : ok));
+      rules.push(rule('^(kube-apiserver|containerd|containerd-n2)$', { tint: 'gold', glow: 0.3 }));
+      rules.push(rule('^handler-runc$', d.runc ? { tint: 'ok', glow: 0.5 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^handler-runsc$', d.phase === 'sandbox-fail' && d.node === 'node01' ? { tint: 'deny', glow: 0.7, pulse: true } : (s.handlerNode01 ? { tint: 'ok', glow: d.sandboxed ? 0.55 : 0.2 } : { tint: 'warn', glow: 0.5 })));
+      rules.push(rule('^sim-no-runtime-n1$', d.phase === 'sandbox-fail' && d.node === 'node01' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-no-runtime-n2$', d.phase === 'sandbox-fail' && d.node === 'node02' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-pod-node02$', d.phase === 'sandbox-fail' && d.node === 'node02' ? { show: true, tint: 'warn', glow: 0.6 } : { hide: true }));
+      rules.push(rule('^sentry$', d.sandboxed ? { tint: 'ok', glow: 0.55 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^gofer$', d.sandboxed ? { tint: 'ok', glow: 0.3 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^payments-pod$', d.escape ? { tint: 'deny', glow: 0.6 } : (d.sandboxed || d.runc ? { tint: 'ok', glow: 0.4 } : { tint: 'muted', glow: 0.1 })));
+      rules.push(rule('^host-kernel$', d.escape ? { tint: 'deny', glow: 0.7, pulse: true } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^node02-kernel$', { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^(node-01|node-02)$', { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^cpu-capacity$', d.phase === 'pending-cpu' ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.2 }));
+      rules.push(rule('^sim-overhead-slab$', s.useRC && s.rcExists && s.overhead && (d.phase === 'pending-cpu' || d.sandboxed) ? { show: true, tint: 'warn', glow: 0.5 } : { hide: true }));
+      rules.push(rule('^sim-pending-cpu$', d.phase === 'pending-cpu' ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^attacker-poc$', s.kernelBug ? { tint: 'warn', glow: 0.6, pulse: true } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^sim-escape$', d.escape ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-contained$', d.contained ? { show: true, tint: 'ok', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^edge-syscall-host$', d.runc ? (s.kernelBug ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.4 }) : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^edge-syscall-sentry$', d.sandboxed ? { tint: 'ok', glow: 0.5 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^edge-containerd-runc$', d.runc ? { tint: 'ok', glow: 0.4 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^edge-containerd-runsc$', d.sandboxed ? { tint: 'ok', glow: 0.5 } : (d.phase === 'sandbox-fail' ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.05 })));
+      rules.push(rule('^(edge-api-containerd|edge-rc-deploy)$', { tint: 'gold', glow: 0.2 }));
+      var verdict = d.escape ? 'exposed' : (d.gaps.length ? 'degraded' : 'healthy');
+      var cap = [];
+      cap.push('RuntimeClass: ' + (s.rcExists ? 'gvisor → runsc' + (s.rcSelector ? ' · nodeSelector' : ' · no nodeSelector') + (s.overhead ? ' · overhead 250m' : ' · no overhead') : 'missing'));
+      cap.push('node01 containerd: runsc ' + (s.handlerNode01 ? 'loaded' : 'not configured'));
+      cap.push('pod: ' + d.podStatus);
+      if (d.phase === 'running-gvisor' || d.phase === 'running-runc') cap.push('kernel the pod sees: ' + d.kernel);
+      if (d.escape) cap.push('PoC: container escape — host kernel reached');
+      if (d.contained) cap.push('PoC: contained by the Sentry');
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
-    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity, 'cks-cluster-hardening': cksClusterHardening, 'cks-static-analysis': cksStaticAnalysis };
+    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity, 'cks-cluster-hardening': cksClusterHardening, 'cks-static-analysis': cksStaticAnalysis, 'cks-sandbox-runtime': cksSandboxRuntime };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -2316,7 +2474,7 @@
   }
 
   return {
-    VERSION: '1.11.0',
+    VERSION: '1.12.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -2351,6 +2509,7 @@
     cksRuntimeDecide: cksRuntimeDecide,
     cksHardenDecide: cksHardenDecide,
     cksStaticDecide: cksStaticDecide,
+    cksSandboxDecide: cksSandboxDecide,
     SA_POS: SA_POS,
     CH_CHECKS: CH_CHECKS,
     shuffleOrder: shuffleOrder,
