@@ -281,7 +281,7 @@ test('CKS paper: 6 official CKS domains, per-checkpoint mapping, one item per co
 });
 
 test('review: CKS coach cards get an honest domain label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[123456]$/, 'CKS labels since v1.3.1');
+  assert.match(R.VERSION, /^1\.(3\.[123456]|4\.0)$/, 'CKS labels since v1.3.1');
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 29);
   assert.ok(cards.every(c => c.domain === 'CKS · Workload security'));

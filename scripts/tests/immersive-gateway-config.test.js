@@ -256,7 +256,7 @@ function sandbox() {
 }
 test('review blueprint: unseen = 0% (never strong); evidence moves the weighted readiness and the weakest callout; Lab Muse names it', () => {
   const { S: S2, R } = sandbox();
-  assert.match(R.VERSION, /^1\.3\./, 'blueprint() since v1.3.0; v1.3.1 (2026-10-29) only labels CKS CLI cards');
+  assert.match(R.VERSION, /^1\.[34]\./, 'blueprint() since v1.3.0; v1.3.1 (2026-10-29) only labels CKS CLI cards');
   let bp = R.blueprint(S2);
   assert.equal(bp.evidence, false);
   assert.equal(bp.weightedPct, 0);

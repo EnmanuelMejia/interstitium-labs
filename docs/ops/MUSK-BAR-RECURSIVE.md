@@ -1,7 +1,43 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-06 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-09 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-09 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **The CKS is a performance-based exam (15–20 typed tasks in 2 hours), and our only CKS "exam" was predict-then-reveal multiple choice.** Six CKS packs with 21 typed tasks existed, but they were only free-play. A learner could not sit them under one clock, get a score in the CKS domain weights, or have their misses come back. |
+| After this ship | **Closer / still NO** | **Hands-on CKS paper** (`/immersive/cks/`) with 24 typed tasks across all six CNCF CKS domains, each on its authored 3D scene. The learner gets the task statement only, under one clock (6 min per task, the real exam's pace), with partial credit per verified checkpoint and half credit for a hint. The score is **weighted by the CKS domain weights over the domains the paper tested**, with coverage % and untested domains listed and never counted as passed. The weakest domain is ranked by points at stake and links to the drill of the worst task. Misses become `cks-paper` review cards, served by a new **CKS-only review queue** (`/immersive/review/?track=cks`). |
+| Fake YES risk | Rejected | It is still a **simulated shell** over the rules engine: no live cluster, no real Falco / AppArmor / kube-bench / Trivy / cosign / gVisor, and no hosted fleet. The bank has 24 tasks against killer.sh's 17 + 17 on real clusters. The tasks reuse the free-play packs, so a learner who did the drills has seen them (same staged state, no randomised variants yet). The 67% bar mirrors the published CKS passing score as a study bar and does not predict a CNCF result. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- task variants for the CKS paper (randomised namespace / user / image / port per seed, so the paper is not a replay of the free-play drills), and multi-host tasks (`ssh` between controlplane / node01 as on the real exam)
+- Kata Containers as a second handler on the sandbox scene, plus keyless (Sigstore OIDC) signing and Dockerfile linting (hadolint), the remaining Microservice / Supply Chain gaps
+- the remaining CKS notCovered items with the widest reach: Ingress TLS / node metadata protection, and Cilium pod-to-pod encryption (new authored scene)
+- syncing the Notion Labs rows for the six CKS drills and the CKS paper (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-09)
+
+| Competitor | Hands-on CKS mock | Interstitium after this pass |
+|---|---|---|
+| killer.sh | CKS-A + CKS-B, 17 + 17 scenarios on real clusters, 120-minute countdown, 36 h access, automatic score with a per-sub-task breakdown ($39.99 for two sessions, also bundled with the exam) | 24 typed tasks with partial credit, scored in the CKS domain weights, with weakest-domain routing into a 3D drill and a spaced-repetition CKS queue, free and in the browser. Simulated shell, not real clusters, and a smaller and easier bank. |
+| KodeKloud | CKS course with labs and mock exams on real environments | each task sits on an authored 3D scene of the subsystem, and misses come back as review cards on this device. No real environment. |
+| A Cloud Guru / Pluralsight | CKS video path with hands-on labs | performance-based paper scored by the domain weights instead of video. No real environment. |
+
+_killer.sh figures are from killer.sh/cks and killer.sh/faq, read during this pass. The real-exam format (15–20 performance-based tasks, 2 hours) is from the Linux Foundation's CKS instructions. The KodeKloud and A Cloud Guru rows summarise their public course outlines and were not re-verified against a live product this run._
+
+## Shipped this pass (2026-11-09)
+
+1. `il-immersive-cks-paper.js` v1.0.0 (`ILCksPaper`): 24-task bank (Cluster Setup 5 · Cluster Hardening 3 · System Hardening 1 · Minimize Microservice Vulnerabilities 5 · Supply Chain Security 7 · Monitoring, Logging & Runtime Security 3), heaviest-first draw, blueprint-weighted summary with coverage, points-at-stake weakest domain, on-device history (`il.cksPaper.v1`), `cks-paper` remediation. Grading and staging reuse `ILTroubleshootExam`.
+2. `/immersive/cks/` page (Paper 6 · 36:00, Quick 3 · 18:00, Long 12 · 72:00). `il-immersive-troubleshoot-boot.js` reads `data-il-ts-module` + the module's `ui` copy, and the CKA Troubleshooting page is unchanged.
+3. `il-immersive-review.js` v1.4.0: `queue({ track: 'CKS' })`, `isCksCard`, `cksDue`. `/immersive/review/` gets a "CKS queue" button (`?track=cks`).
+4. Wiring: `/immersive/` section `#cks-hands-on-paper`, exam lobby link, nav links on exam / troubleshoot / review, the manifest `cks_paper` block + review `cksQueue`, the sitemap.
+5. Tests: unit 261 → 270 (`immersive-cks-paper.test.js`: bank, CKS weights equal `ILImmersiveExam.CKS_BLUEPRINT`, no command or step label in any task statement, **every one of the 24 tasks solvable by typing**, draw coverage over 40 seeds, weighted score / renormalisation / weakest, remediation + CKS queue isolation, wiring). Browser 68 → 70 (quick paper typed / hinted / stalled → CKS-weighted results + CKS queue serving only CKS cards; 6-task paper covers all six domains, and the Troubleshooting page wording is unchanged).
+
+---
+
+_Prior pass archived below (2026-11-06)._
 
 ## Verdict — 2026-11-06 Musk-bar pass
 

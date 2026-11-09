@@ -217,7 +217,7 @@ test('CKS paper: Monitoring links to the runtime drill, AppArmor counts for Syst
 });
 
 test('review: runtime coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[3456]$/);
+  assert.match(R.VERSION, /^1\.(3\.[3456]|4\.0)$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 16);
   assert.ok(cards.every(c => c.domain === 'CKS · Runtime security'));

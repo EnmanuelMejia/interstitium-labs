@@ -241,7 +241,7 @@ test('CKS paper: the 7 checkpoints count for Minimize Microservice Vulnerabiliti
 });
 
 test('review: sandboxed-runtime coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.equal(R.VERSION, '1.3.6');
+  assert.match(R.VERSION, /^1\.(3\.6|4\.0)$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 22);
   assert.ok(cards.every(c => c.domain === 'CKS · Microservice vulnerabilities (sandboxed runtimes)'));

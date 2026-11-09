@@ -1,5 +1,7 @@
 /**
- * Boot the hands-on Troubleshooting exam paper (2026-10-28). Depends on ILTroubleshootExam + ILImmersiveCLI +
+ * Boot the hands-on Troubleshooting exam paper (2026-10-28). 2026-11-09: the same UI also runs the hands-on CKS paper
+ * (/immersive/cks/): an element with data-il-ts-module="ILCksPaper" picks that module, whose `ui` copy replaces the
+ * CKA wording. Without the attribute nothing changes. Depends on ILTroubleshootExam + ILImmersiveCLI +
  * ILImmersiveSims + ILImmersive3D (ScenePlayer with cliExam). Optional: ILImmersiveExam (blueprint weights) and
  * ILImmersiveReview (missed checkpoints → CLI review cards). Relative assets only; simulated shell, no live cluster.
  */
@@ -26,7 +28,9 @@
   function now() { return (window.performance && performance.now()) || Date.now(); }
 
   function boot() {
-    var T = window.ILTroubleshootExam, C = window.ILImmersiveCLI, S = window.ILImmersiveSims;
+    var modEl = $('[data-il-ts-module]');
+    var T = (modEl && window[modEl.getAttribute('data-il-ts-module')]) || window.ILTroubleshootExam, C = window.ILImmersiveCLI, S = window.ILImmersiveSims;
+    var U = T && T.ui ? T.ui : null;
     var E = window.ILImmersiveExam || null, R = window.ILImmersiveReview || null;
     if (!T || !C || !S) return;
     var html = document.documentElement;
@@ -41,7 +45,7 @@
     function renderHistory() {
       var h = $('[data-il-ts-history]'); if (!h) return;
       var last = T.loadStore().last;
-      h.textContent = last
+      h.textContent = U ? U.history(last) : last
         ? ('Last paper on this device: ' + last.pct + '% on the CKA incidents · ' + last.resolved + '/' + last.incidents + ' resolved · ' + (last.passed ? 'pass bar cleared' : 'under pass bar') + '.')
         : 'No troubleshooting papers on this device yet.';
     }
@@ -78,12 +82,12 @@
     function renderIncident() {
       var inc = paper.incidents[idx];
       incT0 = now();
-      $('[data-il-ts-progress]').textContent = 'Incident ' + (idx + 1) + '/' + paper.incidents.length;
+      $('[data-il-ts-progress]').textContent = U ? U.progress(idx + 1, paper.incidents.length) : 'Incident ' + (idx + 1) + '/' + paper.incidents.length;
       $('[data-il-ts-area]').textContent = inc.areaLabel;
       $('[data-il-ts-ticket]').textContent = inc.ticket;
       $('[data-il-ts-live]').textContent = 'Checkpoints verified: 0/' + (inc.steps - inc.pre);
       var nx = $('[data-il-ts-next]');
-      nx.textContent = idx + 1 >= paper.incidents.length ? 'Submit & finish paper' : 'Submit & next incident →';
+      nx.textContent = U ? U.nextLabel(idx + 1 >= paper.incidents.length) : (idx + 1 >= paper.incidents.length ? 'Submit & finish paper' : 'Submit & next incident →');
       nx.removeAttribute('data-resolved');
       html.setAttribute('data-il-ts-incident', inc.id);
       mountIncident(inc);
@@ -122,7 +126,7 @@
       var rem = T.remediate(paper, R);
       try { var p = player(); if (p && p.destroy) p.destroy(); } catch (e) { /* ignore */ }
       show(lobby, false); show(run, false); show(done, true);
-      $('[data-il-ts-summary]').textContent = 'CKA incidents: ' + sum.pct + '% credit · ' + sum.resolved + '/' + sum.incidents + ' incidents resolved. '
+      $('[data-il-ts-summary]').textContent = U ? U.summary(sum, reason) : 'CKA incidents: ' + sum.pct + '% credit · ' + sum.resolved + '/' + sum.incidents + ' incidents resolved. '
         + (sum.passed ? 'Pass bar (' + sum.passPct + '%) cleared.' : 'Under the ' + sum.passPct + '% pass bar.')
         + (reason === 'time' ? ' Time expired — unfinished incidents keep the checkpoints you verified; untouched ones score 0.' : '');
       renderIncidents();
@@ -130,15 +134,15 @@
       var wk = $('[data-il-ts-weakest]');
       wk.textContent = '';
       if (sum.weakest) {
-        wk.appendChild(document.createTextNode('Weakest troubleshooting area: ' + sum.weakest.label + ' (' + sum.weakest.pct + '%, ' + sum.weakest.lost + ' checkpoints lost). '));
+        wk.appendChild(document.createTextNode(U ? U.weakest(sum.weakest) : 'Weakest troubleshooting area: ' + sum.weakest.label + ' (' + sum.weakest.pct + '%, ' + sum.weakest.lost + ' checkpoints lost). '));
         wk.appendChild(node('a', 'text-cyan', 'Drill it in 3D →', { href: sum.weakest.href, 'data-il-ts-weakest-link': sum.weakest.area }));
         html.setAttribute('data-il-ts-weakest', sum.weakest.area);
       } else {
-        wk.textContent = 'No weak area on this paper — every CKA incident was resolved without hints.';
+        wk.textContent = U ? U.noWeakest : 'No weak area on this paper — every CKA incident was resolved without hints.';
         html.setAttribute('data-il-ts-weakest', '');
       }
       var bp = $('[data-il-ts-blueprint]');
-      if (bp) bp.textContent = sum.blueprint
+      if (bp) bp.textContent = U ? U.blueprint(sum) : sum.blueprint
         ? ('CKA blueprint: Troubleshooting is ' + sum.blueprint.weight + '% of the CKA. At ' + sum.blueprint.pct + '% here it leaves ' + sum.blueprint.atStake + ' of those ' + sum.blueprint.weight + ' points at stake. ' + sum.blueprint.honesty)
         : '';
       var ms = $('[data-il-ts-mesh-result]');
@@ -146,8 +150,8 @@
       var rm = $('[data-il-ts-remediate]');
       rm.textContent = '';
       if (rem.queued) {
-        rm.appendChild(document.createTextNode('Remediation loop: ' + rem.queued + ' checkpoint' + (rem.queued > 1 ? 's' : '') + ' you missed or needed a hint for became CLI review cards on this device (earlier steps get replayed for you). '));
-        rm.appendChild(node('a', 'text-cyan', 'Open review queue →', { href: '/immersive/review/' }));
+        rm.appendChild(document.createTextNode(U ? U.remediate(rem.queued) : 'Remediation loop: ' + rem.queued + ' checkpoint' + (rem.queued > 1 ? 's' : '') + ' you missed or needed a hint for became CLI review cards on this device (earlier steps get replayed for you). '));
+        rm.appendChild(node('a', 'text-cyan', U ? U.reviewLabel : 'Open review queue →', { href: U ? U.reviewHref : '/immersive/review/' }));
       } else if (R) rm.textContent = 'Nothing to remediate from this paper.';
       rm.setAttribute('data-queued', String(rem.queued));
       $('[data-il-ts-honesty]').textContent = sum.honesty;
