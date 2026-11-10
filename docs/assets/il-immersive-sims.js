@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.10.0 (2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.11.0 (2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -56,6 +56,13 @@
  * to anyone, Webhook turns system:anonymous into 403, the read-only port 10255 leaks pods with no auth (kube-bench WARN,
  * Manual), kube-bench PASSes an edited config.yaml the kubelet has not reloaded, etcd data dir 755 (1.1.11), API server
  * --profiling (1.2.15, static pod re-created on save), and a ServiceAccount token under AlwaysAllow.
+ *
+ * v1.11.0 (2026-11-05): the fifth CKS drill, cks-static-analysis (Supply Chain Security: static analysis of user workloads
+ * with kubesec and KubeLinter), on a NEW authored asset cks-static-analysis.glb (kit-v2 + Blender CLI polish): kubesec sums
+ * rule points (privileged -30 → "Failed", exit 2), a scan blocks nothing without a gate (|| true), kubesec cannot see a
+ * literal secret while KubeLinter env-var-secret can, an ignore-check annotation silences one check only, runAsNonRoot over a
+ * root image passes both scanners and fails at the kubelet (CreateContainerConfigError), advise vs failed checks, and a
+ * kubesec "critical" entry under a passing score.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -2069,11 +2076,192 @@
     }
   };
 
+  /* ── CKS: Supply Chain Security — static analysis of workloads (kubesec + KubeLinter) — v1.11.0 (2026-11-05) ─────────
+   * Scene contract (cks-static-analysis.glb, authored 2026-11-05 — the fifth CKS asset): git-repo / manifest-file with its
+   * fields field-privileged, field-nonroot, field-rootfs, field-resources, field-secret, field-image and the lint-ignore
+   * annotation tag; kubesec → kubesec-score (+ sim-kubesec-critical); kube-linter → lint-report (+ sim-lint-fail); ci-pipeline
+   * → ci-gate (+ sim-gate-block, sim-gate-bypass); kube-apiserver → ns-payments / payments-pod over image-layer (+ sim-ccce,
+   * sim-privileged-flare, sim-secret-leak); edges edge-manifest-kubesec|linter, edge-scan-gate, edge-gate-api, edge-api-pod.
+   * Rules follow the tools' published behaviour: kubesec (controlplaneio/kubesec v2 ruleset) sums the points of every
+   * matched rule (negative rules are listed as "critical", unmatched positive rules as "advise"), reports "Passed with a
+   * score of N points" when the total is ≥ 0 and "Failed with a score of N points" otherwise, and `kubesec scan` exits 2
+   * when any score is ≤ 0. It has no rule for a literal secret value in env, and it scores env valueFrom.secretKeyRef at -5
+   * (SecretsAsEnvironmentVariables). KubeLinter (stackrox/kube-linter) reports one line per failed check and exits 1 with
+   * "Error: found N lint errors"; env-var-secret flags a literal value in an env var whose name contains "secret";
+   * ignore-check.kube-linter.io/<check> silences only that one check, so a privileged container still fails
+   * privilege-escalation-container. Both read only the manifest: the kubelet checks the image user at container start, so
+   * runAsNonRoot over an image that runs as root fails with CreateContainerConfigError. A scan blocks nothing unless a CI
+   * gate (or admission) acts on its exit code. */
+  var SA_POS = [
+    { id: 'ServiceAccountName', points: 3, key: null, reason: 'Service accounts restrict Kubernetes API access and should be configured with least privilege' },
+    { id: 'CapDropAny', points: 1, key: null, reason: 'Reducing kernel capabilities available to a container limits its attack surface' },
+    { id: 'CapDropAll', points: 1, key: null, reason: 'Drop all capabilities and add only those required to reduce syscall attack surface' },
+    { id: 'RunAsNonRoot', points: 1, key: 'nonRoot', reason: 'Force the running image to run as a non-root user to ensure least privilege' },
+    { id: 'ReadOnlyRootFilesystem', points: 1, key: 'roRoot', reason: 'An immutable root filesystem can prevent malicious binaries being added to PATH and increase attack cost' },
+    { id: 'RequestsCPU', points: 1, key: 'requestsSet', reason: 'Enforcing CPU requests aids a fair balancing of resources across the cluster' },
+    { id: 'RequestsMemory', points: 1, key: 'requestsSet', reason: 'Enforcing memory requests aids a fair balancing of resources across the cluster' },
+    { id: 'LimitsCPU', points: 1, key: 'limitsSet', reason: 'Enforcing CPU limits prevents DOS via resource exhaustion' },
+    { id: 'LimitsMemory', points: 1, key: 'limitsSet', reason: 'Enforcing memory limits prevents DOS via resource exhaustion' },
+    { id: 'RunAsUser', points: 1, key: false, reason: 'Run as a high-UID user to avoid conflicts with the host\'s users' },
+    { id: 'SeccompAny', points: 1, key: false, reason: 'Seccomp profiles set minimum privilege and secure against unknown threats' }
+  ];
+  var SA_REM = {
+    'privileged-container': 'Do not run your container as privileged unless it is required.',
+    'privilege-escalation-container': 'Ensure containers do not allow privilege escalation by setting allowPrivilegeEscalation=false, privileged=false and removing CAP_SYS_ADMIN capability. See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ for more details.',
+    'run-as-non-root': 'Set runAsUser and runAsGroup to non-zero numbers and runAsNonRoot to true in your pod or container securityContext. Refer to https://kubernetes.io/docs/tasks/configure-pod-container/security-context/ for details.',
+    'no-read-only-root-fs': 'Set readOnlyRootFilesystem to true in the container securityContext.',
+    'unset-cpu-requirements': 'Set CPU requests for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.',
+    'unset-memory-requirements': 'Set memory limits for your container based on its requirements. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits for details.',
+    'env-var-secret': 'Do not use raw secrets in environment variables. Instead, either mount the secret as a file or use a secretKeyRef. Refer to https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets for details.',
+    'latest-tag': 'Use a container image with a specific tag other than latest.'
+  };
+  var SA_IMAGE = 'registry.example.com/payments-api';
+  function cksStaticDecide(s) {
+    var critical = [], passed = [], advise = [];
+    if (!s.privOff) critical.push({ id: 'Privileged', points: -30, reason: 'Privileged containers can allow almost completely unrestricted host access' });
+    if (s.secretRef) critical.push({ id: 'SecretsAsEnvironmentVariables', points: -5, reason: 'Secrets passed as environment variables can be easily exposed through application logs, crash dumps, and system process inspection' });
+    SA_POS.forEach(function (r) { var hit = r.key === null ? true : (r.key === false ? false : !!s[r.key]); (hit ? passed : advise).push({ id: r.id, points: r.points, reason: r.reason }); });
+    var score = critical.concat(passed).reduce(function (n, r) { return n + r.points; }, 0);
+    var lint = [];
+    var c = 'container "api"';
+    if (!s.privOff && s.noIgnore) lint.push({ check: 'privileged-container', msg: c + ' is privileged' });
+    if (!s.privOff) lint.push({ check: 'privilege-escalation-container', msg: c + ' is Privileged hence allows privilege escalation.' });
+    if (!s.nonRoot) lint.push({ check: 'run-as-non-root', msg: c + ' is not set to runAsNonRoot' });
+    if (!s.roRoot) lint.push({ check: 'no-read-only-root-fs', msg: c + ' does not have a read-only root file system' });
+    if (!s.requestsSet) lint.push({ check: 'unset-cpu-requirements', msg: c + ' has cpu request 0' });
+    if (!s.limitsSet) lint.push({ check: 'unset-memory-requirements', msg: c + ' has memory limit 0' });
+    if (!s.secretRef) lint.push({ check: 'env-var-secret', msg: 'environment variable PAYMENTS_API_SECRET in ' + c + ' found' });
+    if (!s.pinned) lint.push({ check: 'latest-tag', msg: 'The ' + c + ' is using an invalid container image, "' + SA_IMAGE + ':latest". Please use images that are not blocked by the `BlockList` criteria : [".*:(latest)$" "^[^:]*$" "(.*/[^:]+)$"]' });
+    lint.forEach(function (l) { l.remediation = SA_REM[l.check]; });
+    var kubesecFail = score <= 0, lintFail = lint.length > 0, findings = kubesecFail || lintFail;
+    var gate = !!s.ciGate, blocked = gate && findings, deployed = !blocked;
+    /* The :latest image of this lab was built FROM a base with no USER (root); 1.4.2 is distroless with numeric USER 65532. */
+    var imageRoot = !s.pinned;
+    var ccce = deployed && !!s.nonRoot && imageRoot;
+    var exposures = [];
+    if (deployed && !s.privOff) exposures.push('privileged-pod-running');
+    if (deployed && !s.secretRef) exposures.push('literal-secret-in-spec');
+    var gaps = [];
+    if (kubesecFail) gaps.push('kubesec score ' + score);
+    lint.forEach(function (l) { gaps.push('kube-linter ' + l.check); });
+    if (ccce) gaps.push('CreateContainerConfigError: runAsNonRoot over a root image');
+    return {
+      score: score,
+      kubesecMsg: (score >= 0 ? 'Passed' : 'Failed') + ' with a score of ' + score + ' points',
+      kubesecExit: kubesecFail ? 2 : 0,
+      critical: critical, passed: passed, advise: advise,
+      lint: lint, lintExit: lintFail ? 1 : 0,
+      findings: findings, gate: gate, blocked: blocked, deployed: deployed,
+      imageRoot: imageRoot, ccce: ccce,
+      podStatus: blocked ? 'Running (previous revision — the gate stopped this one)' : (ccce ? 'CreateContainerConfigError' : 'Running'),
+      exposures: exposures, gaps: gaps
+    };
+  }
+
+  var cksStaticAnalysis = {
+    id: 'cks-static-analysis',
+    title: 'CKS supply chain drill: static analysis of workloads — kubesec scores, KubeLinter checks, CI gates, ignore annotations, and what a manifest scan cannot see',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-static-analysis.glb',
+    initial: { privOff: true, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: true, rolled: true },
+    toggles: [
+      { id: 'privOff', label: 'securityContext.privileged', on: 'false', off: 'true' },
+      { id: 'nonRoot', label: 'securityContext.runAsNonRoot', on: 'true', off: 'false' },
+      { id: 'roRoot', label: 'securityContext.readOnlyRootFilesystem', on: 'true', off: 'false' },
+      { id: 'requestsSet', label: 'resources.requests', on: 'cpu 100m · memory 128Mi', off: '{}' },
+      { id: 'limitsSet', label: 'resources.limits', on: 'cpu 500m · memory 256Mi', off: '{}' },
+      { id: 'secretRef', label: 'env PAYMENTS_API_SECRET', on: 'valueFrom.secretKeyRef', off: 'literal value' },
+      { id: 'pinned', label: 'image', on: 'payments-api:1.4.2 (USER 65532)', off: 'payments-api:latest (root)' },
+      { id: 'noIgnore', label: 'ignore-check.kube-linter.io/privileged-container', on: 'absent', off: 'annotated' },
+      { id: 'ciGate', label: 'CI acts on the scanners\' exit codes', on: 'gate (set -e)', off: '|| true' }
+    ],
+    scenarios: [
+      { id: 'privileged', label: 'privileged: true', set: { privOff: false, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: true },
+        predict: { q: 'payments-api.yaml is hardened (ServiceAccount, drop ALL, runAsNonRoot, read-only root, requests and limits, secretKeyRef) except one line: privileged: true. CI runs kubesec scan payments-api.yaml under set -e. What does kubesec report?',
+          options: ['"Passed with a score of 6 points": the positive rules outweigh one bad field',
+            '"Failed with a score of -24 points", with Privileged (-30) listed under critical. kubesec sums every matched rule, the total is ≤ 0, so it exits 2 and the gated pipeline stops before kubectl apply',
+            'kubesec refuses to scan a Deployment; it only scores Pods'],
+          answer: 1, why: 'kubesec adds up the points of every rule that matches. Privileged is worth -30, more than every positive rule in this manifest combined (ServiceAccountName +3, CapDropAny and CapDropAll +1 each, RunAsNonRoot, ReadOnlyRootFilesystem and four resource rules +1 each = 11, minus 5 for SecretsAsEnvironmentVariables). 6 - 30 = -24, so the message is "Failed with a score of -24 points" and kubesec scan exits 2 (its default --exit-code) because a score is ≤ 0. Deployments, StatefulSets and DaemonSets are scored like Pods, through their pod template.' } },
+      { id: 'no-gate', label: 'Scan with || true', set: { privOff: false, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: false },
+        predict: { q: 'Same privileged manifest, but ci/lint.sh runs kubesec scan payments-api.yaml || true and kube-linter lint payments-api.yaml || true before kubectl apply -f payments-api.yaml. What runs in the cluster?',
+          options: ['Nothing: kubesec and KubeLinter reject the object at the API server',
+            'The pipeline stays green with a warning, and the API server refuses privileged pods by default',
+            'A privileged payments-api pod. Both reports print their findings, || true throws the exit codes away, and kubectl apply succeeds. Static analysis is advisory unless something acts on it: a CI gate on the exit code, or admission (Pod Security restricted, a policy engine) in the cluster'],
+          answer: 2, why: 'kubesec and KubeLinter are offline tools. They read YAML files and print a report; they are not admission controllers and the API server never consults them. The only thing that turns their findings into a block is their exit code (kubesec 2, KubeLinter 1) and a pipeline that stops on it. With || true the step always succeeds, and nothing in a default cluster rejects privileged: true (Pod Security Admission only enforces when a namespace is labelled). For defence in depth, gate in CI and enforce Pod Security Standards (or a policy engine) at admission, because kubectl apply from a laptop skips CI entirely.' } },
+      { id: 'secret-literal', label: 'Literal secret in env', set: { privOff: true, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: false, pinned: true, noIgnore: true, ciGate: true },
+        predict: { q: 'A developer replaced the secretKeyRef with a literal: - name: PAYMENTS_API_SECRET / value: "sk_live_…". What do the two scanners say?',
+          options: ['kubesec: "Passed with a score of 11 points", exit 0 (it has no rule for a literal value, and the -5 for secretKeyRef is gone, so the score went UP). KubeLinter: env-var-secret, environment variable PAYMENTS_API_SECRET in container "api" found, exit 1. The gate stops it only because KubeLinter is in the pipeline',
+            'Both fail: every scanner detects secrets in manifests',
+            'kubesec fails with SecretsAsEnvironmentVariables; KubeLinter passes'],
+          answer: 0, why: 'The two tools have different rule sets. kubesec\'s SecretsAsEnvironmentVariables rule (-5) matches env[].valueFrom.secretKeyRef and envFrom[].secretRef, because secrets in env vars leak through logs, crash dumps and /proc. A literal value is not a Secret reference, so kubesec does not see it at all and the score rises from 6 to 11. KubeLinter\'s env-var-secret check matches env vars whose name contains "secret" and that have a literal value. A literal in the manifest is also readable by anyone who can get the Deployment and is committed to git. The safest form is a Secret mounted as a file, which clears both tools.' } },
+      { id: 'ignore-annotation', label: 'ignore-check annotation', set: { privOff: false, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: false, ciGate: true },
+        predict: { q: 'To get CI green, someone added metadata.annotations: ignore-check.kube-linter.io/privileged-container: "debug needs it" and left privileged: true. What happens on the gated pipeline?',
+          options: ['KubeLinter still exits 1: the annotation silences only privileged-container, and privilege-escalation-container still reports: container "api" is Privileged hence allows privilege escalation. kubesec ignores KubeLinter annotations and still fails with -24. The gate holds',
+            'Everything passes: the annotation disables KubeLinter for the object and kubesec honours it too',
+            'KubeLinter refuses the file because ignore annotations need a cluster-admin signature'],
+          answer: 0, why: 'ignore-check.kube-linter.io/<check-name> is KubeLinter\'s documented per-object escape hatch, and it switches off exactly one check. privileged: true also trips privilege-escalation-container, which still fails. kubesec has its own rules and knows nothing about KubeLinter annotations, so its -24 stands. Ignore annotations are code: review them like code (who added it, is the reason true), and treat a new one on a privileged workload as a finding in itself.' } },
+      { id: 'nonroot-runtime', label: 'runAsNonRoot over a root image', set: { privOff: true, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: false, noIgnore: true, ciGate: false },
+        predict: { q: 'The manifest says runAsNonRoot: true and uses image payments-api:latest, which was built FROM a base with no USER line (it runs as root). CI is not gated. kubesec passes and KubeLinter only reports latest-tag. What happens to the new pods?',
+          options: ['They run as root: runAsNonRoot is only a hint for scanners',
+            'They stay in CreateContainerConfigError: "Error: container has runAsNonRoot and image will run as root". The scanners read the manifest, not the image; the kubelet checks the image\'s user when it starts the container. Pin an image whose USER is a numeric non-root UID (payments-api:1.4.2 runs as 65532) or set runAsUser',
+            'The API server rejects the Deployment because the image user is root'],
+          answer: 1, why: 'runAsNonRoot is enforced by the kubelet at container start, not by the API server and not by any static analyser. If no runAsUser is set, the kubelet reads the user from the image config. If that is root (UID 0, or no USER at all) it refuses to start the container, and the pod shows CreateContainerConfigError with exactly that message. A non-numeric USER fails too, because the kubelet cannot verify it. Manifest scanners such as kubesec and KubeLinter cannot know what the image does. That is why image scanning and a tested build belong in the pipeline as well, and why a mutable :latest tag (KubeLinter latest-tag) makes the result depend on whatever was pushed last.' } },
+      { id: 'no-resources', label: 'No requests or limits', set: { privOff: true, nonRoot: true, roRoot: true, requestsSet: false, limitsSet: false, secretRef: true, pinned: true, noIgnore: true, ciGate: true },
+        predict: { q: 'resources: requests: {} and limits: {}. Everything else is hardened. Which scanner stops the gated pipeline?',
+          options: ['kubesec, because unset limits are critical findings',
+            'Neither: resources are not a security setting',
+            'Only KubeLinter: unset-cpu-requirements ("has cpu request 0") and unset-memory-requirements ("has memory limit 0"), exit 1. kubesec lists the four resource rules under advise and reports "Passed with a score of 2 points", exit 0, because it only fails when the total is ≤ 0'],
+          answer: 2, why: 'kubesec gives +1 each for RequestsCPU, RequestsMemory, LimitsCPU and LimitsMemory and lists missing ones as advice. Advice costs nothing, so 6 - 4 = 2 and the scan still passes with exit 0. KubeLinter turns the same gaps into failed checks (by default it wants a CPU request and a memory limit), so it exits 1. Unbounded containers are a denial-of-service risk to every other pod on the node. Know which tool enforces which policy, because a gate is only as strict as the tool behind it.' } },
+      { id: 'critical-but-passed', label: '"critical" but Passed', set: { privOff: true, nonRoot: true, roRoot: false, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: true },
+        predict: { q: 'readOnlyRootFilesystem is false; everything else is hardened and the secret comes from a secretKeyRef. kubesec\'s JSON shows SecretsAsEnvironmentVariables (-5) under "critical". What are its message and exit code, and does the gated pipeline pass?',
+          options: ['"Failed with a score of -5 points", exit 2: any critical entry fails',
+            '"Passed with a score of 5 points", exit 0: kubesec fails only when the total is ≤ 0, and a "critical" entry is just a negative rule. The pipeline still stops, because KubeLinter reports no-read-only-root-fs and exits 1',
+            '"Passed with a score of 5 points" and the pipeline deploys'],
+          answer: 1, why: 'In kubesec, every matched negative rule lands in "critical", whatever its size, and the score is the plain sum: 11 positive points - 1 for the missing ReadOnlyRootFilesystem - 5 for SecretsAsEnvironmentVariables = 5. The message is "Passed with a score of 5 points" and kubesec scan exits 0. If you want critical entries to fail the build, check the JSON (for example with jq on .scoring.critical) instead of trusting the exit code. KubeLinter\'s no-read-only-root-fs check fails on its own, so the gate still holds. Mounting the Secret as a file would remove the -5.' } },
+      { id: 'heal', label: 'Reset', set: { privOff: true, nonRoot: true, roRoot: true, requestsSet: true, limitsSet: true, secretRef: true, pinned: true, noIgnore: true, ciGate: true } }
+    ],
+    derive: function (s) {
+      var d = cksStaticDecide(s), rules = [];
+      var ok = { tint: 'ok', glow: 0.3 };
+      rules.push(rule('^field-privileged$', s.privOff ? ok : { tint: 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^field-nonroot$', !s.nonRoot ? { tint: 'warn', glow: 0.5 } : (d.ccce ? { tint: 'warn', glow: 0.6, pulse: true } : ok)));
+      rules.push(rule('^field-rootfs$', s.roRoot ? ok : { tint: 'warn', glow: 0.5 }));
+      rules.push(rule('^field-resources$', s.requestsSet && s.limitsSet ? ok : { tint: 'warn', glow: 0.5 }));
+      rules.push(rule('^field-secret$', s.secretRef ? { tint: 'warn', glow: 0.2 } : { tint: 'deny', glow: 0.6, pulse: true }));
+      rules.push(rule('^field-image$', s.pinned ? ok : { tint: 'warn', glow: 0.5 }));
+      rules.push(rule('^lint-ignore$', s.noIgnore ? { tint: 'muted', glow: 0.05 } : { tint: 'warn', glow: 0.7, pulse: true }));
+      rules.push(rule('^manifest-file$', d.findings ? { tint: 'warn', glow: 0.4 } : { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^(kubesec|kubesec-score)$', d.score <= 0 ? { tint: 'deny', glow: 0.6 } : (d.critical.length ? { tint: 'warn', glow: 0.35 } : { tint: 'gold', glow: 0.35 })));
+      rules.push(rule('^sim-kubesec-critical$', d.score <= 0 ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^(kube-linter|lint-report)$', d.lint.length ? { tint: 'warn', glow: 0.55 } : { tint: 'gold', glow: 0.35 }));
+      rules.push(rule('^sim-lint-fail$', d.lint.length ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^ci-gate$', !d.gate ? { tint: 'muted', glow: 0.05 } : (d.blocked ? { tint: 'deny', glow: 0.7 } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^sim-gate-block$', d.blocked ? { show: true, tint: 'ok', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^sim-gate-bypass$', !d.gate && d.findings ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^(edge-manifest-kubesec|edge-manifest-linter|edge-scan-gate)$', { tint: 'gold', glow: 0.25 }));
+      rules.push(rule('^(edge-gate-api|edge-api-pod)$', d.blocked ? { tint: 'muted', glow: 0.05 } : (d.exposures.length ? { tint: 'deny', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.35 })));
+      rules.push(rule('^payments-pod$', d.exposures.length ? { tint: 'deny', glow: 0.6 } : (d.ccce ? { tint: 'warn', glow: 0.6, pulse: true } : { tint: 'ok', glow: 0.4 })));
+      rules.push(rule('^image-layer$', d.imageRoot ? { tint: 'warn', glow: 0.5 } : { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^sim-ccce$', d.ccce ? { show: true, tint: 'warn', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-privileged-flare$', d.exposures.indexOf('privileged-pod-running') >= 0 ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-secret-leak$', d.exposures.indexOf('literal-secret-in-spec') >= 0 ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^(kube-apiserver|git-repo)$', { tint: 'gold', glow: 0.3 }));
+      rules.push(rule('^(ci-pipeline|ns-payments)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = d.exposures.length ? 'exposed' : (d.gaps.length ? 'degraded' : 'healthy');
+      var cap = [];
+      cap.push('kubesec: ' + d.kubesecMsg + (d.critical.length ? ' (critical: ' + d.critical.map(function (r) { return r.id + ' ' + r.points; }).join(', ') + ')' : ''));
+      cap.push('kube-linter: ' + (d.lint.length ? d.lint.length + ' lint error' + (d.lint.length > 1 ? 's' : '') + ' (' + d.lint.map(function (l) { return l.check; }).join(', ') + ')' : 'no lint errors'));
+      cap.push(d.gate ? (d.blocked ? 'CI gate: blocked, previous revision keeps serving' : 'CI gate: green → applied') : (d.findings ? 'CI: || true — findings ignored, applied anyway' : 'CI: || true (nothing to ignore this time)'));
+      cap.push('pods: ' + d.podStatus);
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
-    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity, 'cks-cluster-hardening': cksClusterHardening };
+    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity, 'cks-cluster-hardening': cksClusterHardening, 'cks-static-analysis': cksStaticAnalysis };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -2128,7 +2316,7 @@
   }
 
   return {
-    VERSION: '1.10.0',
+    VERSION: '1.11.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -2162,6 +2350,8 @@
     SC_DIGEST: SC_DIGEST,
     cksRuntimeDecide: cksRuntimeDecide,
     cksHardenDecide: cksHardenDecide,
+    cksStaticDecide: cksStaticDecide,
+    SA_POS: SA_POS,
     CH_CHECKS: CH_CHECKS,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'

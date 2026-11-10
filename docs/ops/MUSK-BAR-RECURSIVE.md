@@ -1,7 +1,40 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-04 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-05 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-05 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **"Static analysis of manifests (kubesec / KubeLinter)" was still on our CKS notCovered list**, although the CKS curriculum names both tools under Supply Chain Security (20%), and KodeKloud and killer.sh both run kubesec scenarios. |
+| After this ship | **Closer / still NO** | **CKS track, part 5 (static analysis).** A new Blender-polished `cks-static-analysis.glb`. A 7-checkpoint predict/reveal drill: kubesec sums rule points (privileged -30 → "Failed with a score of -24 points", exit 2), `|| true` makes any scan advisory, kubesec cannot see a literal secret while KubeLinter `env-var-secret` can, an ignore-check annotation silences one check only, runAsNonRoot over a root image passes both scanners and fails at the kubelet, kubesec advice vs KubeLinter failures, and a kubesec "critical" entry under a passing score. A 3-task / 20-step typed CLI pack. On the CKS paper, the checkpoints count for Supply Chain Security (pool 36 → 43). |
+| Fake YES risk | Rejected | Still a **simulated shell** over the rules engine: no real kubesec, KubeLinter, CI runner or kubelet, no live cluster and no hosted fleet. kubesec rule ids, points and reasons follow its v2 ruleset and KubeLinter messages follow its templates, but only 8 KubeLinter checks and the kubesec rules this manifest touches are modelled. The score is a study signal, not a CNCF prediction. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- a CKS hands-on paper (the Troubleshooting-paper pattern over the five CKS packs) plus a CKS queue in `/immersive/review/`
+- keyless (Sigstore OIDC) signing and Dockerfile static analysis (hadolint), the remaining Supply Chain gaps
+- syncing the Notion Labs rows for the five CKS drills (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-05)
+
+| Competitor | CKS static-analysis offer | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | kubesec lecture + lab on a real environment (scan a pod, fix the critical findings) | 1 authored 3D drill + 3 typed tasks + domain-weighted paper; simulated shell, not a real VM |
+| killer.sh / Killercoda | kubesec / static-analysis scenarios on real clusters in the CKS simulator | no real binaries, but a 3D view of manifest → scanners → CI gate → kubelet, including what a manifest scan cannot see |
+| A Cloud Guru / Pluralsight | CKS video path covering static analysis | predict-before-reveal on an authored scene instead of video |
+
+## Shipped this pass (2026-11-05)
+
+1. `cks-static-analysis.glb` (kit-v2 authoring, Blender CLI 4.2.3 polish) + `il-immersive-sims.js` v1.11.0: the `cksStaticAnalysis` sim (7 scenarios + heal), `cksStaticDecide`, `SA_POS` (kubesec v2 rule points).
+2. `il-immersive-cli.js` v1.11.0: the static-analysis pack (kubesec-gate 7 · kube-linter 6 · image-user 7), COACH tips with glTF focus for all 20 steps, spoken "kube linter" / "kube sec".
+3. `il-immersive-exam.js` v1.7.0: Supply Chain Security also draws from `cks-static-analysis` (gap link stays on `cks-supply-chain`), CKS pool 36 → 43. `il-immersive-review.js` v1.3.5 labels the static-analysis CLI cards.
+4. Tests: unit 241 → 251 (`immersive-cks-static-analysis.test.js`); browser 62 → 65 (static-analysis predict, `kubesec-gate` typed end-to-end, toggles; CKS pool ≥ 43; reduced-motion terminals 19 → 20).
+
+---
+
+_Prior pass archived below (2026-11-04)._
+
 
 ## Verdict — 2026-11-04 Musk-bar pass
 
