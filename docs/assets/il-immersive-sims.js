@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.8.0 (2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.9.0 (2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -43,6 +43,13 @@
  * ValidatingAdmissionPolicy that matches Deployments denies the apply itself, mutable tags vs @sha256 digests, a signed
  * image with CRITICAL CVEs is still admitted (signature ≠ safety), a Trivy --exit-code 1 gate stops push + sign, a
  * registry allow-list does not prove provenance, signature verification at admission denies an unsigned digest.
+ *
+ * v1.9.0 (2026-11-03): the third CKS drill, cks-runtime-security (Monitoring, Logging & Runtime Security, 20% of the
+ * CKS, plus AppArmor from System Hardening), on a NEW authored asset cks-runtime-security.glb (kit-v2 + Blender CLI
+ * polish): an RCE shell never touches the API server (audit is blind), Falco detects but does not block, a Running
+ * Falco pod with a disabled rule sees nothing, an AppArmor profile that is not loaded on the node stops the container
+ * (CreateContainerError), AppArmor deny-write returns Permission denied, readOnlyRootFilesystem returns Read-only file
+ * system, and the audit log records a pods/exec request but never the commands typed inside it.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1759,11 +1766,153 @@
     }
   };
 
+  /* ── CKS: Monitoring, Logging & Runtime Security (+ AppArmor) — v1.9.0 (2026-11-03) ─────────────────────────────────
+   * Scene contract (cks-runtime-security.glb, authored 2026-11-03 — the third CKS asset): node01 / node-kernel /
+   * syscall-stream → edge-kernel-falco → falco-ds (+ sim-falco-alert, sim-falco-blind) with falco-rules and edge-falco-out →
+   * falco-alerts; apparmor-profile (+ sim-apparmor-missing); kube-apiserver → edge-api-audit → audit-log (+ sim-exec-recorded);
+   * ns-payments / rootfs-layer / payments-pod / apparmor-shield; sim-attacker-shell, edge-shell-pod, sim-rootfs-write,
+   * sim-write-denied, edge-pod-kernel, edge-exec-api.
+   * Rules follow documented behaviour: Falco reads syscalls through its kernel probe and emits alerts for matching
+   * enabled rules — it detects, it does not block; rules files load in order (falco_rules.yaml, then
+   * falco_rules.local.yaml) and a later `enabled: false` override switches a rule off; the kubelet does not load AppArmor
+   * profiles, so a Localhost profile missing on the node stops the container (CreateContainerError); an AppArmor deny
+   * rule returns EACCES (Permission denied); readOnlyRootFilesystem returns EROFS (Read-only file system); the API audit
+   * log records the pods/exec request (who, which pod, when) but never the commands typed inside the stream, and a shell
+   * obtained through an application exploit makes no API request at all. */
+  function cksRuntimeDecide(s) {
+    /* A Localhost profile that is not loaded stops the NEW pods (CreateContainerError); a Deployment rollout stalls and
+     * the old ReplicaSet (without the profile) keeps serving, so AppArmor only protects once the profile is loaded. */
+    var rolloutStuck = !!s.apparmor && !s.profileLoaded;
+    var aaActive = !!s.apparmor && !!s.profileLoaded;
+    var shell = !!s.intrusion;
+    var detected = shell && !!s.falco && !!s.shellRule;
+    var writeBlock = !shell ? null : (s.readOnlyRoot ? 'read-only' : (aaActive ? 'apparmor' : null));
+    var dropped = shell && !writeBlock;
+    var auditSeen = shell && !!s.viaExec;
+    var exposures = [];
+    if (dropped) exposures.push('binary-dropped');
+    if (shell && !detected) exposures.push('no-runtime-visibility');
+    var gaps = [];
+    if (!s.falco) gaps.push('no runtime detection');
+    else if (!s.shellRule) gaps.push('shell rule disabled');
+    if (rolloutStuck) gaps.push('AppArmor profile not loaded on node01 (rollout stuck)');
+    else if (!s.apparmor) gaps.push('no AppArmor profile');
+    if (!s.readOnlyRoot) gaps.push('writable root filesystem');
+    return {
+      newPods: rolloutStuck ? 'CreateContainerError' : 'Running',
+      rolloutStuck: rolloutStuck,
+      aaActive: aaActive,
+      shell: shell,
+      detected: detected,
+      alerts: detected ? 1 : 0,
+      writeBlock: writeBlock,
+      writeError: writeBlock === 'read-only' ? 'Read-only file system' : (writeBlock === 'apparmor' ? 'Permission denied' : null),
+      dropped: dropped,
+      auditSeen: auditSeen,
+      gaps: gaps,
+      exposures: exposures
+    };
+  }
+
+  var cksRuntimeSecurity = {
+    id: 'cks-runtime-security',
+    title: 'CKS runtime security drill: Falco detection, rule overrides, AppArmor profiles, immutable containers, audit vs runtime visibility',
+    cert: 'CKS',
+    glb: '/assets/immersive/cks-runtime-security.glb',
+    initial: { falco: true, shellRule: true, apparmor: true, profileLoaded: true, readOnlyRoot: true, intrusion: false, viaExec: false },
+    toggles: [
+      { id: 'falco', label: 'Falco DaemonSet on node01', on: 'running', off: 'not installed' },
+      { id: 'shellRule', label: 'rule "Shell in container"', on: 'enabled', off: 'enabled: false (local override)' },
+      { id: 'apparmor', label: 'payments-api appArmorProfile', on: 'Localhost k8s-deny-write', off: 'none (Unconfined)' },
+      { id: 'profileLoaded', label: 'k8s-deny-write on node01', on: 'loaded (enforce)', off: 'not loaded' },
+      { id: 'readOnlyRoot', label: 'readOnlyRootFilesystem', on: 'true', off: 'false' },
+      { id: 'intrusion', label: 'attacker shell in payments-api', on: 'active', off: 'none' },
+      { id: 'viaExec', label: 'how the shell started', on: 'kubectl exec (stolen kubeconfig)', off: 'app exploit (RCE)' }
+    ],
+    scenarios: [
+      { id: 'rce-blind', label: 'Shell via app exploit', set: { falco: false, shellRule: true, apparmor: false, profileLoaded: true, readOnlyRoot: false, intrusion: true, viaExec: false },
+        predict: { q: 'An attacker exploits a bug in payments-api, gets the app to run sh, and drops a binary into /usr/local/bin. API audit logging is on (pods/exec logged at RequestResponse). There is no Falco and no AppArmor profile. Which record shows the intrusion?',
+          options: ['The audit log: every process started in a pod is an API request',
+            'The kubelet events: kubectl get events shows "process sh started"',
+            'Nothing. The shell came from inside the app process, so no API request was made, and nothing watches syscalls. Only kernel-level runtime detection (Falco, Tetragon, Tracee) sees an execve of sh in that container'],
+          answer: 2, why: 'The audit log only records requests to the kube-apiserver. A remote code execution in the application forks sh inside the container through the kernel (execve), and the API server never hears of it. Events are about object lifecycle, not processes. That is the gap runtime security fills: Falco reads the syscall stream through its kernel probe (modern eBPF by default) and matches it against rules such as "a shell spawned in a container" or "a write below a binary directory".' } },
+      { id: 'falco-alert', label: 'Falco on, no prevention', set: { falco: true, shellRule: true, apparmor: false, profileLoaded: true, readOnlyRoot: false, intrusion: true, viaExec: true },
+        predict: { q: 'Falco runs as a DaemonSet with a rule that fires when a shell spawns in a container. Someone runs kubectl exec -it into payments-api, starts sh and copies a binary into /usr/local/bin. The pod has no AppArmor profile and a writable root filesystem. What happens?',
+          options: ['Falco prints a Warning alert naming the namespace, pod and command line, and the write still succeeds. Falco detects; it does not block. Prevention comes from AppArmor / seccomp / readOnlyRootFilesystem',
+            'Falco kills the shell, because a Warning-priority rule terminates the process',
+            'The write fails, because Falco makes the container filesystem read-only once a rule fires'],
+          answer: 0, why: 'Falco is a detection engine: a matching rule produces an alert (stdout by default, read with kubectl logs -n falco, or forwarded by Falcosidekick). It does not kill processes or change the pod. Responding is your job: capture evidence, then replace the pod. Preventing the write needs a control that runs in the kernel at the time of the call: an AppArmor deny rule, a read-only root filesystem, or dropping privileges.' } },
+      { id: 'rule-disabled', label: 'Running, but blind', set: { falco: true, shellRule: false, apparmor: true, profileLoaded: true, readOnlyRoot: true, intrusion: true, viaExec: true },
+        predict: { q: 'The falco pod on node01 is Running 1/1 and its logs show no errors, yet a shell in payments-api produced no alert. falco_rules.local.yaml contains "- rule: Shell in container" followed by "enabled: false". Why is there no alert?',
+          options: ['Falco only alerts on Critical priority by default',
+            'The rule is switched off. Falco loads falco_rules.yaml first and falco_rules.local.yaml after it, and the later file overrides the rule. A Running Falco pod with the rule disabled detects nothing for that behaviour',
+            'Falco needs a restart after every exec to see new processes'],
+          answer: 1, why: 'Rules files load in the order listed in falco.yaml (rules_files), and a later definition of a rule with only enabled: false switches it off. Set it back to true (or delete the override); with watch_config_files on (the default) Falco reloads the rules itself. The default min priority (priority: debug in falco.yaml) lets every priority through, so Warning alerts are printed. Always test a rule: trigger it once and read the alert.' } },
+      { id: 'apparmor-not-loaded', label: 'Profile not on the node', set: { falco: true, shellRule: true, apparmor: true, profileLoaded: false, readOnlyRoot: true, intrusion: false, viaExec: false },
+        predict: { q: 'You update the payments-api Deployment with securityContext.appArmorProfile {type: Localhost, localhostProfile: k8s-deny-write}. The profile file sits in /etc/apparmor.d/ on node01 but was never loaded with apparmor_parser. What happens?',
+          options: ['The new pods run Unconfined and the kubelet logs a warning',
+            'The kubelet loads the profile from /etc/apparmor.d/ automatically',
+            'The new pods do not start: CreateContainerError with "apparmor profile not found k8s-deny-write". The rollout stalls and the old pods, which have no profile, keep serving. Load the profile on every node that can run the pod (apparmor_parser, or a DaemonSet that loads profiles), then the kubelet retries'],
+          answer: 2, why: 'Kubernetes does not load AppArmor profiles; it only asks the container runtime to apply one that is already loaded in the node kernel. A Localhost profile that is not loaded fails the container create, which is safer than silently running Unconfined. With a Deployment the rolling update stops at the first failing pod, so nothing is protected yet: the old ReplicaSet keeps running without the profile. Check with aa-status (or cat /sys/kernel/security/apparmor/profiles), load with apparmor_parser -q /etc/apparmor.d/k8s-deny-write, and use node affinity or a loader DaemonSet so every node has it. Since Kubernetes 1.30 the field is securityContext.appArmorProfile; the old container.apparmor.security.beta.kubernetes.io annotation is deprecated.' } },
+      { id: 'apparmor-deny-write', label: 'AppArmor denies the write', set: { falco: true, shellRule: true, apparmor: true, profileLoaded: true, readOnlyRoot: false, intrusion: true, viaExec: true },
+        predict: { q: 'k8s-deny-write (it contains "deny /** w,") is loaded and enforced on payments-api, but readOnlyRootFilesystem is false. Inside a shell in the pod, the attacker runs touch /usr/local/bin/miner. What is the result?',
+          options: ['The file is created, because AppArmor only restricts network access',
+            'touch: /usr/local/bin/miner: Permission denied. The AppArmor deny rule returns EACCES, the kernel logs an apparmor="DENIED" record on the node, and Falco still alerts on the shell itself',
+            'The pod is evicted for violating its profile'],
+          answer: 1, why: 'AppArmor is mandatory access control in the kernel: the deny rule matches the path and the write permission, so the syscall fails with EACCES (Permission denied) no matter which user runs it. The denial is logged on the node (journalctl -k or /var/log/kern.log, apparmor="DENIED" operation=… profile="k8s-deny-write"). The process keeps running, and the pod is not evicted. Detection (Falco) and prevention (AppArmor) are layers, not alternatives.' } },
+      { id: 'readonly-root', label: 'Immutable container', set: { falco: true, shellRule: true, apparmor: false, profileLoaded: true, readOnlyRoot: true, intrusion: true, viaExec: true },
+        predict: { q: 'payments-api now runs with readOnlyRootFilesystem: true and no AppArmor profile. A shell in the pod tries touch /usr/local/bin/miner. What does it get, and what must you add if the app itself needs scratch space in /tmp?',
+          options: ['touch: /usr/local/bin/miner: Read-only file system (EROFS). /tmp is read-only too, so mount an emptyDir volume at /tmp for the app',
+            'Permission denied, and /tmp stays writable because it is always a tmpfs',
+            'The write succeeds for root, because readOnlyRootFilesystem only applies to non-root users'],
+          answer: 0, why: 'readOnlyRootFilesystem mounts the container image layer read-only, so any write to it fails with EROFS whatever the user. That covers /tmp as well unless you mount a writable volume there (an emptyDir, optionally medium: Memory). This "immutable container" pattern is a CKS staple: an attacker cannot drop tools or change binaries, and the change is one field in securityContext.' } },
+      { id: 'audit-exec', label: 'Audit vs runtime', set: { falco: false, shellRule: true, apparmor: true, profileLoaded: true, readOnlyRoot: true, intrusion: true, viaExec: true },
+        predict: { q: 'There is no Falco. An attacker with a stolen kubeconfig runs kubectl exec -it payments-api -- sh and types several commands. The audit policy logs pods/exec at Metadata level. What does the audit log contain?',
+          options: ['Every command typed, because exec traffic passes through the API server',
+            'Nothing, because exec is a kubelet feature and never reaches the API server',
+            'One event for the create on the pods/exec subresource (user, source IP, pod, timestamp, the requested command sh), but not the commands typed inside the stream. What happened inside needs runtime detection'],
+          answer: 2, why: 'kubectl exec is a request to the API server (POST …/pods/payments-api-…/exec), which then proxies a stream to the kubelet. The audit log records that request at the levels your policy sets, so you learn who opened a shell and when. The bytes in the stream are not audited at any level, so the commands typed inside are invisible to it. Pair audit logs (API layer) with runtime detection (syscall layer).' } },
+      { id: 'heal', label: 'Reset', set: { falco: true, shellRule: true, apparmor: true, profileLoaded: true, readOnlyRoot: true, intrusion: false, viaExec: false } }
+    ],
+    derive: function (s) {
+      var d = cksRuntimeDecide(s), rules = [];
+      rules.push(rule('^falco-ds$', !s.falco ? { tint: 'down', glow: 0 } : (!s.shellRule ? { tint: 'warn', glow: 0.4 } : (d.detected ? { tint: 'gold', glow: 0.8, pulse: true } : { tint: 'ok', glow: 0.45 }))));
+      rules.push(rule('^sim-falco-blind$', !s.falco || !s.shellRule ? { show: true, tint: 'warn', glow: 0.6, pulse: !!d.shell } : { hide: true }));
+      rules.push(rule('^sim-falco-alert$', d.detected ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^falco-rules$', s.falco && !s.shellRule ? { tint: 'warn', glow: 0.5, pulse: true } : (s.falco ? { tint: 'ok', glow: 0.3 } : { tint: 'muted', glow: 0.05 })));
+      rules.push(rule('^(edge-kernel-falco|syscall-stream)$', s.falco ? { tint: 'ok', glow: 0.4 } : { tint: 'down', glow: 0 }));
+      rules.push(rule('^(edge-falco-out|falco-alerts)$', d.detected ? { tint: 'deny', glow: 0.7, pulse: true } : (s.falco ? { tint: 'ok', glow: 0.25 } : { tint: 'down', glow: 0 })));
+      rules.push(rule('^apparmor-profile$', s.profileLoaded ? { tint: 'ok', glow: 0.45 } : { tint: 'muted', glow: 0.1 }));
+      rules.push(rule('^sim-apparmor-missing$', d.rolloutStuck ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^apparmor-shield$', !s.apparmor ? { hide: true } : (d.rolloutStuck ? { tint: 'deny', glow: 0.5, pulse: true } : { tint: 'ok', glow: 0.5 })));
+      rules.push(rule('^rootfs-layer$', s.readOnlyRoot ? { tint: 'ok', glow: 0.35 } : (d.dropped ? { tint: 'deny', glow: 0.6 } : { tint: 'warn', glow: 0.25 })));
+      rules.push(rule('^payments-pod$', (d.exposures.length ? { tint: 'deny', glow: 0.7, pulse: true } : (d.shell || d.gaps.length ? { tint: 'warn', glow: 0.5 } : { tint: 'ok', glow: 0.45 }))));
+      rules.push(rule('^(sim-attacker-shell|edge-shell-pod)$', d.shell ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-rootfs-write$', d.dropped ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-write-denied$', d.shell && d.writeBlock ? { show: true, tint: 'ok', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^edge-pod-kernel$', { tint: 'ok', glow: 0.3 }));
+      rules.push(rule('^edge-exec-api$', d.auditSeen ? { tint: 'warn', glow: 0.6, pulse: true } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^sim-exec-recorded$', d.auditSeen ? { show: true, tint: 'warn', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^(kube-apiserver|edge-api-audit|audit-log)$', { tint: 'gold', glow: 0.3 }));
+      rules.push(rule('^(node01|node-kernel|ns-payments)$', { tint: 'muted', glow: 0.05 }));
+      var verdict = d.exposures.length ? 'exposed' : (d.shell || d.gaps.length ? 'degraded' : 'healthy');
+      var cap = [];
+      cap.push(d.rolloutStuck ? 'new payments-api pods CreateContainerError (apparmor profile not found k8s-deny-write) · old pods keep serving without the profile' : 'payments-api Running');
+      if (d.shell) {
+        cap.push('attacker shell via ' + (s.viaExec ? 'kubectl exec' : 'app exploit (no API request)'));
+        cap.push(d.detected ? 'Falco: Warning Shell spawned in a container' : 'no runtime alert');
+        cap.push(d.dropped ? 'write to /usr/local/bin succeeded' : 'write refused: ' + d.writeError);
+        cap.push(d.auditSeen ? 'audit: create pods/exec (not the commands)' : 'audit: nothing');
+      } else if (d.gaps.length && !d.rolloutStuck) cap.push('gaps: ' + d.gaps.join(' · '));
+      return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
+    }
+  };
+
   var SIMS = { 'etcd-quorum': etcd, 'aws-az-failure': awsAz, 'iam-eval': iam,
     'netpol-isolation': netpol, 'rbac-authz': rbac, 'sched-taints': sched, 'hpa-scale': hpa,
     'storage-csi': storage, 'ingress-routing': ingress, 'gateway-api': gateway, 'config-propagation': config, 'cni-network': cni,
     'mesh-mtls': mesh, 'control-plane-failure': controlPlane, 'node-troubleshoot': nodeTrouble, 'service-dns': serviceDns,
-    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain };
+    'cks-pod-security': cksPodSecurity, 'cks-supply-chain': cksSupplyChain, 'cks-runtime-security': cksRuntimeSecurity };
 
   function get(id) { return SIMS[id] || null; }
   function list() { return Object.keys(SIMS); }
@@ -1818,7 +1967,7 @@
   }
 
   return {
-    VERSION: '1.8.0',
+    VERSION: '1.9.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -1850,6 +1999,7 @@
     cksRestrictedViolations: cksRestrictedViolations,
     cksSupplyDecide: cksSupplyDecide,
     SC_DIGEST: SC_DIGEST,
+    cksRuntimeDecide: cksRuntimeDecide,
     shuffleOrder: shuffleOrder,
     honesty: 'In-browser rules engine over authored glTF. No live cluster, AWS account, or hosted fleet.'
   };

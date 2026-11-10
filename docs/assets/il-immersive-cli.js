@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.8.0 (2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.9.0 (2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -73,6 +73,13 @@
  * cyclonedx`, `grep`, `trivy sbom`), cosign sign / verify / attest / verify-attestation with a key pair, and a
  * Kyverno-style verifyImages policy that denies an unsigned digest. Tasks: allowed-registries · scan-gate · sbom ·
  * sign-verify. Voice: "co sign" → cosign, "s bom" → sbom.
+ *
+ * v1.9.0 (2026-11-03) — the third CKS pack (18 total), Monitoring, Logging & Runtime Security + AppArmor, on the NEW
+ * authored cks-runtime-security.glb: Falco as a DaemonSet (`kubectl logs -n falco ds/falco`), a local rules override with
+ * `enabled: false` switched back with `sed -i`, an AppArmor Localhost profile (`securityContext.appArmorProfile`) whose
+ * rollout stalls in CreateContainerError until `apparmor_parser` loads it (`aa-status`), Permission denied vs Read-only
+ * file system from `kubectl exec … -- touch`, and the pods/exec audit event (who, not what). Tasks: falco-detect ·
+ * apparmor · contain. Voice: "app armor" → apparmor, "falco" stays.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -3562,6 +3569,183 @@
     return res(lines, 0, patch, ['apply-deploy', trusted ? (pinned ? 'apply-digest' : 'apply-tag') : 'apply-dockerio']);
   }
 
+  /* ── pack: CKS Monitoring, Logging & Runtime Security + AppArmor (v1.9.0, 2026-11-03 — the third CKS pack) ──────────
+   * Drives cks-runtime-security on the NEW authored cks-runtime-security.glb. The lab box is node01 with an admin
+   * kubeconfig (a real worker would not have one): Falco runs as a DaemonSet in ns falco with its rules in
+   * /etc/falco/falco_rules.yaml + falco_rules.local.yaml (shown as host paths for the lab), the AppArmor profile file is
+   * /etc/apparmor.d/k8s-deny-write, the API audit log is /var/log/kubernetes/audit/audit.log. Falco alerts, aa-status,
+   * apparmor_parser, kubectl and audit output are computed from sim state and labelled representative, not
+   * byte-identical. No live cluster, no real Falco, kernel, eBPF probe or AppArmor, no clock. */
+  var RT_PODS = ['payments-api-7d9f8c6b5-k4x2p', 'payments-api-7d9f8c6b5-r8m3t'];
+  var RT_NEW = 'payments-api-6b4c9d7f8-z5q1w';
+  var RT_PROFILE = '/etc/apparmor.d/k8s-deny-write';
+  var RT_RULES_LOCAL = '/etc/falco/falco_rules.local.yaml';
+  var RT_AUDIT = '/var/log/kubernetes/audit/audit.log';
+  var RT_NOTE = 'Lab box = node01 with an admin kubeconfig (a real worker would not have one). Falco runs as DaemonSet falco in ns falco; rules in ' + RT_RULES_LOCAL + '; AppArmor profile file ' + RT_PROFILE + '; API audit log ' + RT_AUDIT + '. Falco alerts, aa-status, apparmor_parser and audit events are computed by the rules engine and labelled representative — no real Falco, kernel, eBPF probe or AppArmor. Lab-only: fault falco|rule|apparmor|profile|readonly|shell break|fix.';
+  var RT_PROFILE_TXT = ['#include <tunables/global>', '', 'profile k8s-deny-write flags=(attach_disconnected) {', '  #include <abstractions/base>', '', '  file,', '', '  # Deny all file writes.', '  deny /** w,', '}'];
+  function rtRulesLocal(s) {
+    return ['# Local overrides — loaded after falco_rules.yaml (rules_files order in falco.yaml)', '- rule: Shell in container', '  desc: A shell was spawned inside a container (lab rule; no tty requirement, so app-exploit shells match too)',
+      '  condition: spawned_process and container and proc.name in (shell_binaries)', '  output: Shell spawned in a container (user=%user.name k8s.ns=%k8s.ns.name k8s.pod=%k8s.pod.name proc.cmdline=%proc.cmdline)',
+      '  priority: WARNING', '  tags: [container, shell, mitre_execution]', '  enabled: ' + (s.shellRule ? 'true' : 'false'), '# (sim) newer Falco releases also document an override: key for changing one field of an existing rule'];
+  }
+  function rtDeployYaml(s, variant) {
+    var ro = variant === 'readonly' ? true : !!s.readOnlyRoot, aa = variant === 'apparmor' ? true : !!s.apparmor;
+    var sc = ['        securityContext:', '          allowPrivilegeEscalation: false', '          readOnlyRootFilesystem: ' + ro];
+    if (aa) sc = sc.concat(['          appArmorProfile:', '            type: Localhost', '            localhostProfile: k8s-deny-write']);
+    var y = ['apiVersion: apps/v1', 'kind: Deployment', 'metadata:', '  name: payments-api', '  namespace: payments', 'spec:', '  replicas: 2', '  selector:', '    matchLabels:', '      app: payments-api', '  template:', '    metadata:', '      labels:', '        app: payments-api', '    spec:', '      containers:', '      - name: api', '        image: registry.example.com/payments/api@sha256:4f1c9b7e2a6d8c03e5b1f7a9d2c4e6f8a0b3c5d7e9f1a2b4c6d8e0f2a4b6e9a2'].concat(sc);
+    if (ro) y = y.concat(['        volumeMounts:', '        - name: tmp', '          mountPath: /tmp', '      volumes:', '      - name: tmp', '        emptyDir: {}']);
+    return y;
+  }
+  function rtAlert(pod) {
+    return '09:41:07.302114519: Warning Shell spawned in a container (user=root k8s.ns=payments k8s.pod=' + pod + ' proc.cmdline=sh)';
+  }
+  var rtPack = {
+    sim: 'cks-runtime-security',
+    prompt: 'student@node01:~$',
+    note: RT_NOTE,
+    files: { 'payments-api-apparmor.yaml': {}, 'payments-api-readonly.yaml': {} },
+    examples: ['kubectl get pods -n falco', 'kubectl logs -n falco ds/falco', 'cat ' + RT_RULES_LOCAL, "sed -i 's/enabled: false/enabled: true/' " + RT_RULES_LOCAL, 'cat ' + RT_PROFILE, 'aa-status', 'apparmor_parser -q ' + RT_PROFILE,
+      'kubectl get pods -n payments', 'kubectl apply -f payments-api-apparmor.yaml', 'kubectl apply -f payments-api-readonly.yaml', 'kubectl exec -n payments deploy/payments-api -- ls /usr/local/bin',
+      'kubectl exec -n payments deploy/payments-api -- touch /usr/local/bin/miner', 'grep pods/exec ' + RT_AUDIT],
+    run: function (u, s, d, ctx) {
+      var t = u.t, m = d.metrics;
+      var f = faultArgs(t);
+      if (f) {
+        var key = { falco: 'falco', rule: 'shellRule', apparmor: 'apparmor', profile: 'profileLoaded', readonly: 'readOnlyRoot', shell: 'intrusion' }[f[0]];
+        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault falco|rule|apparmor|profile|readonly|shell break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = key === 'intrusion' ? f[1] === 'break' : f[1] === 'fix';
+        return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
+      }
+      var head = t[0] || '', file = String(t[t.length - 1] || '').replace(/^(\.\/|~\/)/, '');
+      if (head === 'ls') return res(['payments-api-apparmor.yaml  payments-api-readonly.yaml'], 0, null, ['ls']);
+      if (head === 'cat' || head === 'less' || head === 'head' || head === 'tail') {
+        if (file === RT_PROFILE) return res(RT_PROFILE_TXT, 0, null, ['cat', 'cat-profile']);
+        if (file === RT_RULES_LOCAL) return res(rtRulesLocal(s), 0, null, ['cat', 'cat-falco-rules'].concat(s.shellRule ? [] : ['rule-disabled-seen']));
+        if (file === 'payments-api-apparmor.yaml') return res(rtDeployYaml(s, 'apparmor'), 0, null, ['cat']);
+        if (file === 'payments-api-readonly.yaml') return res(rtDeployYaml(s, 'readonly'), 0, null, ['cat']);
+        if (file === RT_AUDIT) return res(['(sim) this drill models grep on the audit log — try: grep pods/exec ' + RT_AUDIT], 2);
+        return res([head + ': ' + t[t.length - 1] + ': No such file or directory'], 1);
+      }
+      if (head === 'grep') {
+        if (file !== RT_AUDIT) return res(['sim: this drill models grep PATTERN ' + RT_AUDIT], 2);
+        var pat = t.filter(function (a, i) { return i > 0 && a.charAt(0) !== '-' && i < t.length - 1; })[0] || '';
+        if (!/exec/.test(pat)) return res([], 1, null, ['audit-miss']);
+        if (!m.auditSeen) return res(['(sim) no pods/exec events in the modelled window' + (m.shell ? ' — this shell came from an application exploit, which makes no API request' : '')], 1, null, ['audit-miss']);
+        return res(['{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"5b0e9c8a-1f2d-4c6e-9a7b-3d8f0e2c4a61","stage":"ResponseStarted","requestURI":"/api/v1/namespaces/payments/pods/' + RT_PODS[0] + '/exec?command=sh\u0026container=api\u0026stdin=true\u0026stdout=true\u0026tty=true","verb":"create","user":{"username":"ci-deployer","groups":["system:authenticated"]},"sourceIPs":["203.0.113.47"],"objectRef":{"resource":"pods","namespace":"payments","name":"' + RT_PODS[0] + '","apiVersion":"v1","subresource":"exec"},"responseStatus":{"metadata":{},"code":101}}',
+          '(sim) representative audit event — it names who opened the shell, from where and into which pod; the commands typed inside the stream are not in any audit level'], 0, null, ['audit-exec']);
+      }
+      if (head === 'sed') {
+        var inPlace = t.some(function (a) { return /^-[a-zA-Z]*i/.test(a) || a === '--in-place'; });
+        var expr = t.filter(function (a) { return a.charAt(0) === 's' && a.length > 3 && !/[a-z]/i.test(a.charAt(1)); })[0];
+        if (file !== RT_RULES_LOCAL) return res(['sim: this drill models sed on ' + RT_RULES_LOCAL + ' only'], 2);
+        var sub = sedSubst(expr);
+        if (!sub) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
+        var cur = 'enabled: ' + (s.shellRule ? 'true' : 'false');
+        var next = cur.indexOf(sub.a) >= 0 ? cur.replace(sub.a, sub.b) : cur;
+        if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written', next], 0);
+        if (next === cur) return res([], 0, null, ['sed-nochange']);
+        if (next !== 'enabled: true' && next !== 'enabled: false') return res(['(sim) that edit leaves an invalid enabled: value — Falco would refuse to load the rules file'], 1, null, ['sed-bad-edit']);
+        return res(['(sim) ' + RT_RULES_LOCAL + ': ' + next + ' — Falco watches its rules files (watch_config_files: true) and reloads them'], 0, { shellRule: next === 'enabled: true' }, ['falco-rules-edited']);
+      }
+      if (head === 'aa-status' || head === 'apparmor_status') {
+        var prof = ['/usr/bin/man', 'lsb_release', 'nvidia_modprobe', 'nvidia_modprobe//kmod'].concat(s.profileLoaded ? ['k8s-deny-write'] : []).concat(['cri-containerd.apparmor.d']);
+        return res(['apparmor module is loaded.', prof.length + ' profiles are loaded.', prof.length + ' profiles are in enforce mode.'].concat(prof.map(function (p) { return '   ' + p; })).concat(['(sim) representative aa-status; process lists omitted']), 0, null, ['aa-status', s.profileLoaded ? 'aa-loaded' : 'aa-missing']);
+      }
+      if (head === 'apparmor_parser') {
+        if (file !== RT_PROFILE) return res(['sim: this drill models apparmor_parser [-q] [-r] ' + RT_PROFILE], 2);
+        var was = !!s.profileLoaded;
+        var o = was && !hasFlag(t, ['-r', '--replace']) ? ['(sim) k8s-deny-write is already loaded — use -r to replace it'] : [];
+        if (!was && m.rolloutStuck) o.push('(sim) profile loaded; the kubelet retries the failed containers on its back-off and the rollout continues');
+        return res(o, 0, was ? null : { profileLoaded: true }, ['aa-load']);
+      }
+      if (head !== 'kubectl') return null;
+      var verb = t[1], ns = nsOf(t), dash = t.indexOf('--');
+      var args = positional((dash > 0 ? t.slice(2, dash) : t.slice(2)), KUBECTL_VALUED);
+      var kind = (args[0] || '').toLowerCase(), name = args[1] || '';
+      if (/\//.test(kind)) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+      if (verb === 'get' && /^(po|pods?)$/.test(kind)) {
+        if (ns === 'falco') return s.falco ? res(table([['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], ['falco-7xk2m', '2/2', 'Running', '0', '6d']]), 0, null, ['get-falco']) : res(['No resources found in falco namespace.'], 0, null, ['get-falco', 'falco-missing']);
+        if (ns !== 'payments') return res(['No resources found in ' + ns + ' namespace.'], 0);
+        var rows = [['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE'], [RT_PODS[0], '1/1', 'Running', '0', '3d'], [RT_PODS[1], '1/1', 'Running', '0', '3d']];
+        if (m.rolloutStuck) rows.push([RT_NEW, '0/1', 'CreateContainerError', '0', '40s']);
+        return res(table(rows), 0, null, ['get-pods'].concat(m.rolloutStuck ? ['apparmor-blocked'] : []));
+      }
+      if (verb === 'describe' && /^(po|pods?)$/.test(kind) && ns === 'payments') {
+        if (!m.rolloutStuck || (name && name !== RT_NEW)) return res(['(sim) the modelled describe shows the failing new pod while a rollout is stuck — try kubectl get pods -n payments'], 2);
+        return res(['Name:         ' + RT_NEW, 'Namespace:    payments', 'Status:       Pending', 'Containers:', '  api:', '    State:          Waiting', '      Reason:       CreateContainerError', 'Events:', '  Type     Reason  Age   From     Message',
+          '  Warning  Failed  12s   kubelet  Error: failed to create containerd container: apparmor profile not found k8s-deny-write', '(sim) representative describe output'], 0, null, ['describe-pod', 'apparmor-blocked']);
+      }
+      if (verb === 'logs') {
+        var target = (args[0] || '');
+        if (ns !== 'falco' || !/^(ds|daemonset|daemonsets)\/falco$|^falco-7xk2m$/.test(target)) return res(['sim: this drill models kubectl logs -n falco ds/falco'], 2);
+        if (!s.falco) return res(['error: error from server (NotFound): daemonsets.apps "falco" not found in namespace "falco"'], 1, null, ['falco-missing']);
+        var lg = ['(sim) Falco initialized with configuration files: /etc/falco/falco.yaml', 'Loading rules from: /etc/falco/falco_rules.yaml, ' + RT_RULES_LOCAL, 'Opening \'syscall\' source with modern BPF probe.'];
+        if (m.detected) lg.push(rtAlert(RT_PODS[0]));
+        lg.push('(sim) representative Falco output — Falco is not running here; the rules engine applies the rule');
+        return res(lg, 0, null, ['falco-logs', m.detected ? 'falco-alert' : 'falco-quiet']);
+      }
+      if (verb === 'exec') {
+        var cmd = dash > 0 ? t.slice(dash + 1) : [];
+        if (ns !== 'payments' || !/^(deploy|deployment)\/payments-api$|^payments-api-/.test(args[0] || '') || !cmd.length) return res(['sim: this drill models kubectl exec -n payments deploy/payments-api -- ls|touch PATH'], 2);
+        if (cmd[0] === 'ls' && /^\/usr\/local\/bin\/?$/.test(cmd[cmd.length - 1])) return res(m.dropped ? ['miner'] : [], 0, null, ['exec-ls'].concat(m.dropped ? ['found-dropper'] : []));
+        if (cmd[0] === 'touch' && /^\/(usr|bin|etc|tmp|opt)/.test(cmd[1] || '')) {
+          var tmp = /^\/tmp\//.test(cmd[1]);
+          var ro = !!s.readOnlyRoot && !tmp, aa = m.aaActive;
+          if (ro) return res(['touch: ' + cmd[1] + ': Read-only file system', 'command terminated with exit code 1'], 1, null, ['exec-touch', 'write-erofs']);
+          if (aa) return res(['touch: ' + cmd[1] + ': Permission denied', 'command terminated with exit code 1', '(sim) on node01: journalctl -k shows apparmor="DENIED" operation="mknod" profile="k8s-deny-write" name="' + cmd[1] + '"'], 1, null, ['exec-touch', 'write-eacces']);
+          return res(tmp && s.readOnlyRoot ? ['(sim) /tmp is the emptyDir volume — writable by design'] : [], 0, null, ['exec-touch', 'write-ok']);
+        }
+        return res(['sim: this drill models kubectl exec … -- ls /usr/local/bin and -- touch PATH'], 2);
+      }
+      if (verb === 'apply' || (verb === 'create' && hasFlag(t, ['-f', '--filename']))) {
+        var fname = String(flag(t, ['-f', '--filename']) || '').replace(/^(\.\/|~\/)/, '');
+        if (fname !== 'payments-api-apparmor.yaml' && fname !== 'payments-api-readonly.yaml') return res(['error: the path "' + fname + '" does not exist'], 1);
+        var patch = fname === 'payments-api-apparmor.yaml' ? { apparmor: true } : { readOnlyRoot: true };
+        var changed = fname === 'payments-api-apparmor.yaml' ? !s.apparmor : !s.readOnlyRoot;
+        if (!changed) return res(['deployment.apps/payments-api unchanged'], 0, null, ['apply-deploy']);
+        var stuck = patch.apparmor ? !s.profileLoaded : (!!s.apparmor && !s.profileLoaded);
+        var ol = ['deployment.apps/payments-api configured'];
+        if (stuck) ol.push('(sim) the new ReplicaSet\u2019s pods cannot start until k8s-deny-write is loaded on node01 — the old pods keep serving');
+        else { patch.intrusion = false; if (s.intrusion) ol.push('(sim) rolling update replaced both pods: the attacker shell and anything it wrote in the old writable layer are gone (collect evidence first)'); }
+        return res(ol, 0, patch, ['apply-deploy', patch.apparmor ? 'apply-apparmor' : 'apply-readonly']);
+      }
+      return unmodelled(t.join(' '), rtPack.examples);
+    },
+    tasks: [
+      { id: 'falco-detect', title: 'Falco is Running but silent: find the disabled rule and prove it fires',
+        goal: 'Someone opened a shell in payments-api and Falco said nothing. Check the Falco pod and its output, find the local override that switched the shell rule off, turn it back on, and prove the alert now appears.',
+        setup: { falco: true, shellRule: false, intrusion: true, viaExec: true, readOnlyRoot: true, apparmor: true, profileLoaded: true },
+        steps: [
+          { label: 'Check that the Falco DaemonSet pod is Running on node01', event: 'get-falco', hint: 'kubectl get pods -n falco' },
+          { label: 'Read its output: no alert for the shell', event: 'falco-quiet', hint: 'kubectl logs -n falco ds/falco' },
+          { label: 'Find the local override: enabled: false', event: 'rule-disabled-seen', hint: 'cat ' + RT_RULES_LOCAL },
+          { label: 'Switch the rule back on (Falco reloads its rules files)', state: function (s) { return !!s.shellRule; }, hint: "sed -i 's/enabled: false/enabled: true/' " + RT_RULES_LOCAL },
+          { label: 'Prove it: the shell alert names the namespace, pod and command', event: 'falco-alert', hint: 'kubectl logs -n falco ds/falco' }
+        ] },
+      { id: 'apparmor', title: 'Confine payments-api with an AppArmor profile',
+        goal: 'Make payments-api unable to write anywhere on its filesystem with the k8s-deny-write AppArmor profile. Read the profile, roll it out, see why the new pods fail, load the profile on node01, and prove a write is denied.',
+        setup: { apparmor: false, profileLoaded: false, readOnlyRoot: false, intrusion: false, viaExec: false },
+        steps: [
+          { label: 'Read the profile: deny /** w', event: 'cat-profile', hint: 'cat ' + RT_PROFILE },
+          { label: 'Roll out the Deployment that requests the Localhost profile', state: function (s) { return !!s.apparmor; }, hint: 'kubectl apply -f payments-api-apparmor.yaml' },
+          { label: 'See the new pod stuck in CreateContainerError', event: 'apparmor-blocked', hint: 'kubectl get pods -n payments' },
+          { label: 'Confirm the profile is not loaded in the node kernel', event: 'aa-missing', hint: 'aa-status' },
+          { label: 'Load the profile on node01', state: function (s) { return !!s.profileLoaded; }, hint: 'apparmor_parser -q ' + RT_PROFILE },
+          { label: 'Prove it: a write inside the pod is denied', event: 'write-eacces', hint: 'kubectl exec -n payments deploy/payments-api -- touch /usr/local/bin/miner' }
+        ] },
+      { id: 'contain', title: 'Falco alert: collect evidence, then make the container immutable',
+        goal: 'Falco fired on payments-api. Read the alert, confirm what the attacker dropped, find who opened the shell in the API audit log, then replace the pods with readOnlyRootFilesystem and prove the root filesystem is now immutable.',
+        setup: { falco: true, shellRule: true, intrusion: true, viaExec: true, readOnlyRoot: false, apparmor: false, profileLoaded: true },
+        steps: [
+          { label: 'Read the Falco alert', event: 'falco-alert', hint: 'kubectl logs -n falco ds/falco' },
+          { label: 'Confirm what was dropped in /usr/local/bin', event: 'found-dropper', hint: 'kubectl exec -n payments deploy/payments-api -- ls /usr/local/bin' },
+          { label: 'Find who opened the shell: the pods/exec audit event', event: 'audit-exec', hint: 'grep pods/exec ' + RT_AUDIT },
+          { label: 'Replace the pods with a read-only root filesystem (emptyDir for /tmp)', state: function (s) { return !!s.readOnlyRoot && !s.intrusion; }, hint: 'kubectl apply -f payments-api-readonly.yaml' },
+          { label: 'Prove it: a write to /usr/local/bin fails with Read-only file system', event: 'write-erofs', hint: 'kubectl exec -n payments deploy/payments-api -- touch /usr/local/bin/miner' }
+        ] }
+    ]
+  };
+
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
@@ -3569,7 +3753,7 @@
   }
 
   var PACKS = {};
-  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack].forEach(function (p) { PACKS[p.sim] = p; });
+  [etcdPack, cpPack, schedPack, hpaPack, awsPack, netpolPack, rbacPack, storagePack, ingressPack, gatewayPack, configPack, nodePack, svcDnsPack, cniPack, meshPack, cksPack, scPack, rtPack].forEach(function (p) { PACKS[p.sim] = p; });
 
   /* ── Lab Muse coach content (v1.1.0): per step [nudge (tip, never the command), focus (authored glTF node regex)] ── */
   var COACH = {
@@ -3997,6 +4181,31 @@
         ['Verify the release tag against the public key again.', '^(signature-seal|image-artifact)$'],
         ['Apply the Deployment variant that pins the released digest.', '^(digest-pin|payments-pod|edge-api-pod)$']
       ]
+    },
+    /* v1.9.0 (2026-11-03) — CKS runtime security on cks-runtime-security.glb */
+    'cks-runtime-security': {
+      'falco-detect': [
+        ['Start with the detector itself: list the pods in the falco namespace.', '^(falco-ds|node01)$'],
+        ['Falco writes alerts to stdout. Read the logs of its DaemonSet.', '^(falco-alerts|edge-falco-out|sim-falco-blind)$'],
+        ['Rules load in order, and the local file wins. Read the local rules file under /etc/falco.', '^(falco-rules|sim-falco-blind)$'],
+        ['Edit that file in place so the rule is enabled again.', '^(falco-rules|falco-ds)$'],
+        ['Read the DaemonSet logs once more and look for the Warning line.', '^(sim-falco-alert|falco-alerts|sim-attacker-shell)$']
+      ],
+      'apparmor': [
+        ['Read the profile file under /etc/apparmor.d and find the deny rule.', '^(apparmor-profile|node-kernel)$'],
+        ['Apply the lab Deployment variant that asks for the Localhost profile.', '^(apparmor-shield|payments-pod)$'],
+        ['List the payments pods and compare the old ones with the new one.', '^(sim-apparmor-missing|apparmor-shield)$'],
+        ['Ask the kernel which AppArmor profiles it has loaded.', '^(apparmor-profile|sim-apparmor-missing|node-kernel)$'],
+        ['Load the profile file into the kernel with the AppArmor parser.', '^(apparmor-profile|node-kernel)$'],
+        ['Exec into the Deployment and try to create a file under /usr/local/bin.', '^(sim-write-denied|apparmor-shield|rootfs-layer)$']
+      ],
+      'contain': [
+        ['Read the Falco DaemonSet logs for the alert on payments.', '^(sim-falco-alert|falco-alerts)$'],
+        ['Evidence before cleanup: list /usr/local/bin inside the pod.', '^(sim-rootfs-write|rootfs-layer)$'],
+        ['The exec request went through the API server. Search the audit log for the exec subresource.', '^(audit-log|sim-exec-recorded|edge-exec-api)$'],
+        ['Apply the read-only Deployment variant: new pods replace the compromised ones.', '^(rootfs-layer|payments-pod)$'],
+        ['Exec into the new pods and try the same write again.', '^(sim-write-denied|rootfs-layer)$']
+      ]
     }
   };
   Object.keys(COACH).forEach(function (simId) {
@@ -4230,7 +4439,7 @@
     [/\bstorage ?class(es)?\b/g, 'storageclass$1'], [/\bendpoint ?slices?\b/g, 'endpointslices'], [/\bdaemon ?sets?\b/g, 'daemonsets'],
     [/\bistio ?(control|ctl|cuttle|c t l)\b/g, 'istioctl'], [/\bpeer ?authentications?\b/g, 'peerauthentication'], [/\bi ?p ?pool(s?)\b/g, 'ippool$1'], [/\b(cube|kube) ?(adm|admin|a d m)\b/g, 'kubeadm'], [/\bproxy status\b/g, 'proxy-status'],
     [/\bn ?s ?look ?up\b/g, 'nslookup'], [/\bcore ?d n s\b|\bcore ?dns\b/g, 'coredns'], [/\bconfig ?maps?\b/g, 'configmap'], [/\bresolv(e)? dot conf\b/g, 'resolv.conf'],
-    [/\bco ?sign\b/g, 'cosign'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
+    [/\bco ?sign\b/g, 'cosign'], [/\bapp ?armou?r\b/g, 'apparmor'], [/\ba ?a ?status\b/g, 'aa-status'], [/\bs ?bom\b/g, 'sbom'], [/\bsec ?comp\b/g, 'seccomp'], [/\bdry run\b/g, 'dry-run'], [/\bcan i\b/g, 'can-i'], [/\bsudo\b/g, 'sudo'],
     [/\b(dash dash|double dash|minus minus)\s+(?=(curl|wget|nslookup|dig|host|getent|sh|bash|cat|ls|env)\b)/g, '-- '],
     [/\b(dash dash|double dash|minus minus)\s+/g, '--'], [/\b(dash|minus|hyphen)\s+/g, '-'],
     [/\s*\b(slash|forward slash)\b\s*/g, '/'], [/\s*\b(dot|period)\b\s*/g, '.'],
@@ -4296,7 +4505,7 @@
   }
 
   return {
-    VERSION: '1.8.0',
+    VERSION: '1.9.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,

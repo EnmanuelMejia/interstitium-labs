@@ -1863,6 +1863,95 @@ def scene_cks_supply_chain() -> list:
     return parts
 
 
+def scene_cks_runtime_security() -> list:
+    """CKS Monitoring, Logging & Runtime Security + AppArmor cutaway. Worker node01 kernel slab with the syscall stream
+    tapped by the Falco DaemonSet pod (modern eBPF probe) → falco_rules.local.yaml → alert output (stdout, read with
+    kubectl logs). The AppArmor profile k8s-deny-write loaded in the node kernel (aa-status). Namespace payments:
+    payments-api pod inside its AppArmor shield over a container rootfs layer (readOnlyRootFilesystem). An attacker
+    shell inside the pod, a dropped binary in /usr/local/bin, kube-apiserver + audit log on the side (kubectl exec is
+    an API call; commands typed inside the shell are not). sim-* parts are revealed only by the rules engine.
+    Added 2026-11-03 (third CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-runtime-security", "cert": "CKS", "domain": "runtime-security"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.6, 0.08, 4.0)
+    parts.append((floor, MAT_VOID, "rt-floor", {**ped, "label": "runtime security (CKS cutaway)"}))
+    # Worker node + kernel (back row)
+    node = MeshBuilder()
+    node.add_chamfer_box(-0.6, -0.8, -1.25, 4.6, 0.08, 1.2, 0.03)
+    parts.append((node, MAT_INK, "node01", {**ped, "label": "worker node01", "kind": "Node"}))
+    kern = MeshBuilder()
+    kern.add_chamfer_box(-0.6, -0.68, -1.25, 4.2, 0.1, 0.8, 0.03)
+    parts.append((kern, MAT_MUTED, "node-kernel", {**ped, "label": "Linux kernel (every process, file open and connect is a syscall)", "kind": "Kernel"}))
+    sysc = MeshBuilder()
+    sysc.add_cylinder(-1.6, -0.55, -1.25, 0.36, 0.05, 32, capped=False)
+    sysc.add_cylinder(-1.6, -0.48, -1.25, 0.26, 0.05, 28, capped=False)
+    parts.append((sysc, MAT_LED, "syscall-stream", {**ped, "label": "syscall stream (execve, openat, connect …)", "kind": "Syscalls"}))
+    falco = MeshBuilder()
+    falco.add_chamfer_box(-2.55, -0.45, -1.25, 0.56, 0.56, 0.56, 0.04)
+    parts.append((falco, MAT_GOLD, "falco-ds", {**ped, "label": "Falco DaemonSet pod on node01 (modern eBPF probe, one per node)", "kind": "Falco"}))
+    rules = MeshBuilder()
+    rules.add_chamfer_box(-2.55, -0.05, -1.55, 0.46, 0.4, 0.04, 0.02)
+    parts.append((rules, MAT_PAPER, "falco-rules", {**ped, "label": "/etc/falco/falco_rules.local.yaml (rule: condition + output + priority + enabled)", "kind": "Rules"}))
+    feed = MeshBuilder()
+    feed.add_chamfer_box(-2.55, -0.55, -0.55, 0.62, 0.18, 0.36, 0.03)
+    parts.append((feed, MAT_CRYSTAL, "falco-alerts", {**ped, "label": "alert output: stdout → kubectl logs -n falco ds/falco (or Falcosidekick)", "kind": "Alerts"}))
+    flare = MeshBuilder()
+    flare.add_sphere(-2.55, 0.18, -1.25, 0.14, 10, 12)
+    parts.append((flare, MAT_DENY, "sim-falco-alert", {**ped, "label": "Warning Shell spawned in a container (k8s.ns=payments …)", "simOnly": True}))
+    blind = MeshBuilder()
+    blind.add_chamfer_box(-2.55, -0.45, -1.25, 0.64, 0.06, 0.64, 0.02)
+    parts.append((blind, MAT_TAINT, "sim-falco-blind", {**ped, "label": "nothing is watching: no Falco pod, or the rule is disabled", "simOnly": True}))
+    _edge(parts, (-1.95, -0.52, -1.25), (-2.25, -0.45, -1.25), "edge-kernel-falco", MAT_LED, ped, "eBPF probe reads syscalls", 0.03, 0.06)
+    _edge(parts, (-2.55, -0.2, -1.0), (-2.55, -0.45, -0.7), "edge-falco-out", MAT_LED, ped, "matched rule → alert", 0.03, 0.06)
+    prof = MeshBuilder()
+    prof.add_chamfer_box(0.6, -0.5, -1.25, 0.9, 0.3, 0.06, 0.02)
+    parts.append((prof, MAT_SHIELD, "apparmor-profile", {**ped, "label": "AppArmor profile k8s-deny-write (apparmor_parser → aa-status: enforce)", "kind": "AppArmor"}))
+    miss = MeshBuilder()
+    miss.add_chamfer_box(0.6, -0.5, -1.18, 0.96, 0.36, 0.04, 0.02)
+    parts.append((miss, MAT_DENY, "sim-apparmor-missing", {**ped, "label": "profile not loaded on node01 → container cannot start (CreateContainerError)", "simOnly": True}))
+    # Control plane: kube-apiserver + audit
+    api = MeshBuilder()
+    api.add_cylinder(1.95, -0.45, -1.25, 0.3, 0.62, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (kubectl exec = a pods/exec API request)", "kind": "Component"}))
+    audit = MeshBuilder()
+    audit.add_chamfer_box(2.75, -0.5, -1.25, 0.36, 0.5, 0.44, 0.03)
+    parts.append((audit, MAT_PAPER, "audit-log", {**ped, "label": "audit.log (records the exec request, never the keystrokes inside it)", "kind": "AuditLog"}))
+    rec = MeshBuilder()
+    rec.add_sphere(2.75, -0.1, -1.25, 0.1, 8, 10)
+    parts.append((rec, MAT_TAINT, "sim-exec-recorded", {**ped, "label": "audit event: create pods/exec (who, when, which pod — not the commands)", "simOnly": True}))
+    _edge(parts, (2.25, -0.45, -1.25), (2.55, -0.5, -1.25), "edge-api-audit", MAT_LED, ped, "audit backend", 0.03, 0.05)
+    # Namespace payments + workload (front)
+    ns = MeshBuilder()
+    ns.add_chamfer_box(0.2, -0.8, 1.0, 3.0, 0.08, 1.7, 0.03)
+    parts.append((ns, MAT_INK, "ns-payments", {**ped, "label": "Namespace payments", "kind": "Namespace"}))
+    rootfs = MeshBuilder()
+    rootfs.add_chamfer_box(-0.2, -0.68, 1.0, 1.2, 0.12, 1.0, 0.03)
+    parts.append((rootfs, MAT_MUTED, "rootfs-layer", {**ped, "label": "container root filesystem (readOnlyRootFilesystem: true = immutable)", "kind": "RootFS"}))
+    pod = MeshBuilder()
+    pod.add_sphere(-0.2, -0.3, 1.0, 0.28, 14, 16)
+    parts.append((pod, MAT_CYAN, "payments-pod", {**ped, "label": "Pod payments-api", "kind": "Pod"}))
+    shield = MeshBuilder()
+    shield.add_cylinder(-0.2, -0.3, 1.0, 0.42, 0.62, 28, capped=False)
+    parts.append((shield, MAT_SHIELD, "apparmor-shield", {**ped, "label": "securityContext.appArmorProfile: Localhost k8s-deny-write", "kind": "Policy"}))
+    shell = MeshBuilder()
+    shell.add_sphere(0.95, -0.35, 1.25, 0.16, 10, 12)
+    parts.append((shell, MAT_DENY, "sim-attacker-shell", {**ped, "label": "attacker shell inside payments-api (sh)", "simOnly": True}))
+    drop = MeshBuilder()
+    drop.add_chamfer_box(0.45, -0.55, 0.6, 0.22, 0.22, 0.22, 0.02)
+    parts.append((drop, MAT_DENY, "sim-rootfs-write", {**ped, "label": "dropped binary in /usr/local/bin (the write succeeded)", "simOnly": True}))
+    wd = MeshBuilder()
+    wd.add_chamfer_box(0.45, -0.55, 0.6, 0.06, 0.4, 0.4, 0.02)
+    parts.append((wd, MAT_SHIELD, "sim-write-denied", {**ped, "label": "write refused (AppArmor: Permission denied / read-only rootfs)", "simOnly": True}))
+    _edge(parts, (0.8, -0.35, 1.2), (0.05, -0.3, 1.0), "edge-shell-pod", MAT_DENY, ped, "shell → process inside the container", 0.03, 0.08)
+    _edge(parts, (-0.2, -0.6, 0.6), (-1.5, -0.55, -0.95), "edge-pod-kernel", MAT_LED, ped, "container processes share the node kernel", 0.03, 0.12)
+    _edge(parts, (1.2, -0.4, 0.9), (1.85, -0.45, -1.0), "edge-exec-api", MAT_LED, ped, "kubectl exec → API server → kubelet", 0.03, 0.12)
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 6.0, 0.12, 3.4)
+    parts.append((lod, MAT_VOID, "lod1-runtime-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1887,6 +1976,7 @@ SCENES = {
     "service-dns.glb": scene_service_dns,
     "cks-pod-security.glb": scene_cks_pod_security,
     "cks-supply-chain.glb": scene_cks_supply_chain,
+    "cks-runtime-security.glb": scene_cks_runtime_security,
 }
 
 
