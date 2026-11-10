@@ -70,6 +70,14 @@
         });
       }
       renderBlueprint();
+      /* 2026-11-09: CKS queue — only cards from the CKS drills and the hands-on CKS paper (/immersive/cks/). */
+      var cksBtn = $('[data-il-review-start-cks]');
+      if (cksBtn && R.cksDue) {
+        var nCks = R.cksDue(S);
+        cksBtn.textContent = nCks ? ('CKS queue · ' + nCks + ' card' + (nCks === 1 ? '' : 's')) : 'CKS queue · nothing due';
+        cksBtn.disabled = !nCks;
+        cksBtn.setAttribute('data-count', String(nCks));
+      }
       var q = R.queue(S, { limit: 10 });
       var startBtn = $('[data-il-review-start]');
       if (startBtn) startBtn.textContent = q.length ? ('Start session · ' + q.length + ' card' + (q.length === 1 ? '' : 's')) : 'Nothing to review';
@@ -334,8 +342,10 @@
       track('immersive_review_session', { done: session.done, correct: session.correct });
     }
 
-    function start() {
-      items = R.queue(S, { limit: 10 });
+    function start(track) {
+      items = R.queue(S, track === 'CKS' ? { limit: 10, track: 'CKS' } : { limit: 10 });
+      if (track === 'CKS') document.documentElement.setAttribute('data-il-review-track', 'cks');
+      else document.documentElement.removeAttribute('data-il-review-track');
       if (!items.length) { renderLobby(); return; }
       idx = 0;
       session = { done: 0, correct: 0, promoted: 0, hard: 0, lapsed: 0, n: R.noteSession() };
@@ -345,7 +355,10 @@
     }
 
     var startBtn = $('[data-il-review-start]');
-    if (startBtn) startBtn.addEventListener('click', start);
+    if (startBtn) startBtn.addEventListener('click', function () { start(); });
+    var cksStart = $('[data-il-review-start-cks]');
+    if (cksStart) cksStart.addEventListener('click', function () { start('CKS'); });
+    if (cksStart && /[?&]track=cks\b/i.test(location.search)) { cksStart.setAttribute('data-requested', '1'); try { cksStart.focus({ preventScroll: false }); } catch (e) { /* ignore */ } }
     var nextBtn = $('[data-il-review-next-card]');
     if (nextBtn) nextBtn.addEventListener('click', advance);
     var again = $('[data-il-review-again]');

@@ -1,5 +1,5 @@
 /**
- * IL Immersive Review v1.3.6 (2026-11-06; v1.3.5 2026-11-05; v1.3.4 2026-11-04; v1.3.3 2026-11-03; v1.3.2 2026-11-02; v1.3.1 2026-10-29; v1.3.0 2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
+ * IL Immersive Review v1.4.0 (2026-11-09; v1.3.6 2026-11-06; v1.3.5 2026-11-05; v1.3.4 2026-11-04; v1.3.3 2026-11-03; v1.3.2 2026-11-02; v1.3.1 2026-10-29; v1.3.0 2026-10-21; v1.0.0 2026-10-13) — adaptive remediation loop for the CKA 3D sims.
  *
  * Closes the loop the 2026-10-12 exam left open: every exam miss, timeout, and free-play
  * drill result becomes a spaced-repetition card keyed to the exact predict checkpoint,
@@ -31,6 +31,10 @@
  * v1.3.4 (2026-11-04): CLI coach cards from the CKS CIS-benchmark pack (cks-cluster-hardening) get "CKS · Cluster setup (CIS benchmark)".
  * v1.3.5 (2026-11-05): CLI coach cards from the CKS static-analysis pack (cks-static-analysis) get "CKS · Supply chain (static analysis)".
  * v1.3.6 (2026-11-06): CLI coach cards from the CKS sandboxed-runtime pack (cks-sandbox-runtime) get "CKS · Microservice vulnerabilities (sandboxed runtimes)".
+ * v1.4.0 (2026-11-09): CKS queue. queue(S, { track: 'CKS' }) serves only CKS cards: any card on a cks-* drill, plus RBAC /
+ * NetworkPolicy cards that the hands-on CKS paper (/immersive/cks/, src 'cks-paper') queued. Due cards only — no top-ups,
+ * because top-ups draw from CKA predict checkpoints. Items carry cks:true. cksDue(S, C) counts what that queue would serve.
+ * CKA mastery / blueprint stay CKA-only.
  */
 (function (root, factory) {
   var api = factory(root);
@@ -39,7 +43,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (g) {
   'use strict';
 
-  var VERSION = '1.3.6';
+  var VERSION = '1.4.0';
   var STORE_KEY = 'il.immersiveReview.v1';
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   /** Box → interval until next due. Box 0 = relearn now; box 1 = 10-minute relearning step. */
@@ -71,6 +75,8 @@
   function key(simId, scenarioId) { return simId + '::' + scenarioId; }
   /** CLI-lab drills outside the CKA scope still get coach cards, under an honest domain label. */
   var CLI_DOMAIN_EXTRA = { 'aws-az-failure': 'AWS SAA-C03 · Resilience', 'cks-pod-security': 'CKS · Workload security', 'cks-supply-chain': 'CKS · Supply chain security', 'cks-runtime-security': 'CKS · Runtime security', 'cks-cluster-hardening': 'CKS · Cluster setup (CIS benchmark)', 'cks-static-analysis': 'CKS · Supply chain (static analysis)', 'cks-sandbox-runtime': 'CKS · Microservice vulnerabilities (sandboxed runtimes)' };
+  /** v1.4.0: a card belongs to the CKS queue when it sits on a cks-* drill or the hands-on CKS paper queued it. */
+  function isCksCard(c) { return !!c && (/^cks-/.test(String(c.simId || String(c.k || '').split('::')[0])) || !!(c.src && c.src['cks-paper'])); }
   function cliScenarioId(taskId, step) { return 'cli:' + taskId + ':' + step; }
   function parseCli(scenarioId) {
     var m = /^cli:([a-z0-9-]+):(\d+)$/.exec(String(scenarioId || ''));
@@ -339,11 +345,13 @@
     for (var ci = 0; ci < clis.length; ci++) byKey[clis[ci].k] = clis[ci];
     var items = [];
     var due = dueCards(db, t);
+    var cksOnly = String(opts.track || '').toUpperCase() === 'CKS';
     for (var j = 0; j < due.length && items.length < limit; j++) {
       var c = due[j], cp = byKey[c.k];
       if (!cp) continue; /* checkpoint retired from the sims (or CLI lab not loaded) — skip, never invent */
+      if (cksOnly && !isCksCard(c)) continue;
       var isCli = cp.kind === 'cli';
-      items.push(Object.assign({}, cp, {
+      items.push(Object.assign({}, cp, { cks: isCksCard(c),
         reason: c.box === 0 ? 'relearn' : 'due',
         reasonText: c.box === 0
           ? (isCli ? ('Relearn CLI step — Lab Muse had to help ' + c.lapses + '×') : ('Relearn — missed ' + c.lapses + '×' + (c.src.exam ? ' (incl. timed exam)' : '')))
@@ -351,7 +359,7 @@
         box: c.box, lapses: c.lapses
       }));
     }
-    if (opts.topUp !== false && items.length < limit) {
+    if (opts.topUp !== false && !cksOnly && items.length < limit) {
       /* Top-up order per round-robin pass: weakest evidenced domains first, then domains this
        * device has never tested (an untested domain is a gap, never shown as strong). Domains at
        * 100% mastery are not topped up. With no evidence at all, every domain is a cold start. */
@@ -487,6 +495,11 @@
     else setTimeout(paintBadges, 0);
   }
 
+  /** v1.4.0: how many cards the CKS queue would serve right now (due, servable, CKS). */
+  function cksDue(S, C, opts) {
+    opts = opts || {};
+    return queue(S, { C: C, track: 'CKS', limit: 1000, now: opts.now, db: opts.db }).length;
+  }
   function noteSession() { var db = load(); db.sessions = (db.sessions || 0) + 1; save(db); return db.sessions; }
 
   return {
@@ -514,6 +527,8 @@
     blueprint: blueprint,
     focusSims: focusSims,
     queue: queue,
+    isCksCard: isCksCard,
+    cksDue: cksDue,
     stats: stats,
     speakLine: speakLine,
     exportJson: exportJson,

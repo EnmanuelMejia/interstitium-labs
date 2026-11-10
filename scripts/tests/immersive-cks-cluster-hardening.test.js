@@ -222,7 +222,7 @@ test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
 });
 
 test('review: CIS coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[456]$/);
+  assert.match(R.VERSION, /^1\.(3\.[456]|4\.0)$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 18);
   assert.ok(cards.every(c => c.domain === 'CKS · Cluster setup (CIS benchmark)'));

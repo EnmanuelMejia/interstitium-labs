@@ -227,7 +227,7 @@ test('CKS paper: the 7 checkpoints count for Supply Chain Security, gap link sta
 });
 
 test('review: static-analysis coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.match(R.VERSION, /^1\.3\.[56]$/);
+  assert.match(R.VERSION, /^1\.(3\.[56]|4\.0)$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 20);
   assert.ok(cards.every(c => c.domain === 'CKS · Supply chain (static analysis)'));

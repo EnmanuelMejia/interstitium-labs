@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -1784,6 +1784,114 @@ await check('Troubleshooting paper: opt-in mesh incident is scored separately; c
   assert.deepEqual(errors, []);
   await page.close();
   return 'mesh separate · expiry ' + pcts.join('/') + '%';
+});
+
+/* 2026-11-09: hands-on CKS paper (shared paper UI, ILCksPaper) + the CKS-only review queue. */
+await check('CKS paper: quick 3 = the three 20% domains on authored .glb stages, task-only graded shell, typed fix / hint / stall → CKS-weighted score, coverage, weakest domain by points at stake, cks-paper review cards', async () => {
+  const { page, errors } = await open('/immersive/cks/?seed=2026');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  assert.equal(await page.locator('[data-il-ts-bank]').textContent(), '24');
+  assert.equal(await page.locator('[data-il-ts-mesh]').count(), 0, 'no mesh opt-in on the CKS paper');
+  assert.match(await page.locator('[data-il-ts-history]').textContent(), /No CKS papers on this device yet/);
+  await page.locator('[data-il-ts-start][data-count="3"]').click();
+  await page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  const seen = [];
+  let t = await tsIncident(page);
+  seen.push(t);
+  assert.match(await page.locator('[data-il-ts-progress]').textContent(), /^Task 1\/3$/);
+  assert.match(await page.locator('[data-il-ts-area]').textContent(), / · 20%$/);
+  await t.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  assert.equal(await t.host.getAttribute('data-gltf'), await page.evaluate(sim => window.ILImmersiveSims.get(sim).glb, t.inc.simId));
+  assert.equal(await t.host.locator('.il-immersive__cli-step').count(), 0, 'no step list — the task statement is the brief');
+  assert.equal(await page.locator('[data-il-ts-ticket]').textContent(), t.inc.ticket);
+  await type(t.host, 'solution');
+  assert.match(await logText(t.host), /solution is off during the paper/);
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  await t.host.screenshot({ path: path.join(shots, 'immersive-cks-paper-task.png') });
+  await page.locator('[data-il-ts-next]').click();
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  t = await tsIncident(page);
+  seen.push(t);
+  await type(t.host, 'hint');
+  assert.match(await logText(t.host), /hint \(checkpoint 1\/\d+, half credit\) → /);
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  await page.locator('[data-il-ts-next]').click();
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  t = await tsIncident(page);
+  seen.push(t);
+  for (const c of t.cmds[0]) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-next]').textContent(), /finish paper/);
+  await page.locator('[data-il-ts-next]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 15000 });
+  assert.deepEqual(seen.map(x => x.inc.area).sort(), ['microservice', 'runtime', 'supply'], 'quick paper = the three 20% domains');
+  const items = page.locator('[data-il-ts-inc]');
+  const pcts = await items.evaluateAll(li => li.map(x => +x.getAttribute('data-pct')));
+  assert.equal(pcts[0], 100);
+  assert.ok(pcts[1] < 100 && pcts[1] >= 50, 'hinted checkpoint is half credit: ' + pcts[1]);
+  assert.ok(pcts[2] > 0 && pcts[2] < 50, 'one checkpoint of several: ' + pcts[2]);
+  const pct = +(await page.locator('html').getAttribute('data-il-ts-pct'));
+  assert.ok(Math.abs(pct - pcts.reduce((a, b) => a + b, 0) / 3) <= 1, 'three equal 20% weights → weighted = mean');
+  assert.match(await page.locator('[data-il-ts-summary]').textContent(), /^CKS score: \d+% \(weighted by the CNCF CKS domain weights over the 60% of the blueprint this paper tested; unweighted \d+%\)/);
+  assert.match(await page.locator('[data-il-ts-blueprint]').textContent(), /60% of the exam weight was tested \(not on this paper: Cluster Setup, Cluster Hardening, System Hardening\)/);
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-weakest'), seen[2].inc.area);
+  assert.match(await page.locator('p[data-il-ts-weakest]').textContent(), /^Weakest CKS domain: .+ — \d+%, [\d.]+ of its 20 blueprint points at stake/);
+  const href = await page.locator('[data-il-ts-weakest-link]').getAttribute('href');
+  const anchorOk = await page.evaluate(async (h) => (await (await fetch('/immersive/')).text()).includes('id="' + h.split('#')[1] + '"'), href);
+  assert.ok(anchorOk, 'weakest-domain link lands on a real 3D drill: ' + href);
+  assert.match(await page.locator('[data-il-ts-areas] tbody').textContent(), /\(20%\)/);
+  assert.match(await page.locator('[data-il-ts-honesty]').textContent(), /not the CNCF CKS/);
+  assert.equal(await page.locator('[data-il-ts-remediate]').getAttribute('data-queued'), '2');
+  assert.equal(await page.locator('[data-il-ts-remediate] a').getAttribute('href'), '/immersive/review/?track=cks');
+  const src = await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem('il.immersiveReview.v1')).cards).filter(c => c.kind === 'cli' && c.src['cks-paper']).length);
+  assert.equal(src, 2);
+  assert.match(await page.locator('[data-il-ts-history]').textContent(), /^Last CKS paper on this device: \d+% \(CKS-weighted, 60% of the blueprint tested\)/);
+  await page.locator('[data-il-ts-done]').screenshot({ path: path.join(shots, 'immersive-cks-paper-results.png') });
+
+  /* The CKS review queue serves only those cards, even with a CKA card due on the same device. */
+  await page.evaluate(() => window.ILImmersiveReview.recordCli({ simId: 'node-troubleshoot', taskId: 'runtime-down', step: 1, how: 'solution' }));
+  await page.goto(base + '/immersive/review/?track=cks', { waitUntil: 'load' });
+  const cksBtn = page.locator('[data-il-review-start-cks]');
+  await page.waitForFunction(() => document.querySelector('[data-il-review-start-cks]').getAttribute('data-count') !== null);
+  assert.equal(await cksBtn.getAttribute('data-count'), '2');
+  assert.equal(await cksBtn.textContent(), 'CKS queue · 2 cards');
+  assert.equal(await cksBtn.getAttribute('data-requested'), '1');
+  assert.ok(+(await page.locator('[data-il-review-due]').textContent()) >= 3, 'the full queue still counts the CKA card');
+  await cksBtn.click();
+  await page.locator('[data-il-review-run]:not([hidden])').waitFor();
+  assert.equal(await page.locator('html').getAttribute('data-il-review-track'), 'cks');
+  const want = new Set(seen.slice(1).map(x => x.inc.taskId));
+  await page.waitForFunction(() => /^[a-z-]+:\d+$/.test(document.querySelector('[data-il-review-stage]').getAttribute('data-il-cli-review') || ''), null, { timeout: 30000 });
+  const first = await page.locator('[data-il-review-stage]').getAttribute('data-il-cli-review');
+  assert.ok(want.has(first.split(':')[0]), 'CKS queue serves a CKS-paper card first: ' + first);
+  assert.deepEqual(errors, []);
+  await page.close();
+  return seen.map(x => x.id).join(' · ') + ' → ' + pcts.join('/') + '% · CKS ' + pct + '% · weakest ' + seen[2].inc.area + ' · CKS queue 2';
+});
+
+await check('CKS paper: a 6-task paper covers all six CKS domains; ending at once scores every domain 0 (tested, not passed) and keeps the CKA Troubleshooting page wording intact', async () => {
+  const { page, errors } = await open('/immersive/cks/?seed=7');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-ts-start][data-count="6"]').click();
+  assert.equal(await page.locator('[data-il-ts-timer]').textContent(), '36:00');
+  const areas = await page.evaluate(() => window.ILTroubleshootExamUI.paper().incidents.map(i => i.area));
+  assert.equal(new Set(areas).size, 6);
+  await tsIncident(page);
+  await page.locator('[data-il-ts-end]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 10000 });
+  assert.equal(await page.locator('[data-il-ts-area-row]').count(), 6);
+  assert.match(await page.locator('[data-il-ts-blueprint]').textContent(), /100% of the exam weight was tested — all six domains/);
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-finished'), 'fail');
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-weakest'), 'microservice', 'all at 0%: a 20% domain wins on points at stake, ties broken by checkpoints lost');
+  assert.deepEqual(errors, []);
+  await page.close();
+  const ts = await open('/immersive/troubleshoot/');
+  assert.match(await ts.page.locator('[data-il-ts-history]').textContent(), /^No troubleshooting papers on this device yet\.$/);
+  assert.equal(await ts.page.locator('a[href="/immersive/cks/"]').count(), 1);
+  await ts.page.close();
+  return 'areas ' + [...new Set(areas)].join(',');
 });
 
 await browser.close();
