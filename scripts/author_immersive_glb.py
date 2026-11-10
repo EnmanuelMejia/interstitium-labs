@@ -2152,6 +2152,118 @@ def scene_cks_static_analysis() -> list:
     return parts
 
 
+def scene_cks_sandbox_runtime() -> list:
+    """CKS Minimize Microservice Vulnerabilities — sandboxed container runtimes (RuntimeClass + gVisor/runsc) cutaway.
+    kube-apiserver with the RuntimeClass card (handler runsc, scheduling.nodeSelector, overhead.podFixed) and the
+    Deployment card (runtimeClassName); node01 with containerd (runc and runsc handlers), the gVisor Sentry (a user-space
+    kernel) and Gofer under the payments pod, over the host kernel, plus a CPU capacity gauge; node02 with containerd and
+    only runc. A syscall stream from the pod goes to the host kernel (runc) or the Sentry (runsc). sim-* parts are revealed
+    only by the rules engine. Added 2026-11-06 (sixth CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-sandbox-runtime", "cert": "CKS", "domain": "minimize-microservice-vulnerabilities"}}
+    floor = MeshBuilder()
+    floor.add_box(0.2, -0.9, 0, 7.6, 0.08, 4.2)
+    parts.append((floor, MAT_VOID, "sr-floor", {**ped, "label": "Sandboxed runtimes (CKS cutaway)"}))
+    # Control plane + objects (left)
+    api = MeshBuilder()
+    api.add_cylinder(-3.0, -0.45, -1.3, 0.28, 0.6, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (RuntimeClass admission controller)", "kind": "Component"}))
+    rc = MeshBuilder()
+    rc.add_chamfer_box(-2.8, -0.2, -0.1, 1.1, 1.0, 0.05, 0.02)
+    parts.append((rc, MAT_PAPER, "runtimeclass", {**ped, "label": "RuntimeClass gvisor (handler: runsc; cluster-scoped; handler is immutable)", "kind": "RuntimeClass"}))
+    sel = MeshBuilder()
+    sel.add_chamfer_box(-2.8, 0.1, -0.06, 0.9, 0.14, 0.03, 0.01)
+    parts.append((sel, MAT_MUTED, "rc-selector", {**ped, "label": "scheduling.nodeSelector: sandbox.gvisor.dev/runtime=gvisor", "kind": "Field"}))
+    ovh = MeshBuilder()
+    ovh.add_chamfer_box(-2.8, -0.1, -0.06, 0.9, 0.14, 0.03, 0.01)
+    parts.append((ovh, MAT_MUTED, "rc-overhead", {**ped, "label": "overhead.podFixed: cpu 250m, memory 120Mi (added to every pod's requests)", "kind": "Field"}))
+    miss = MeshBuilder()
+    miss.add_sphere(-2.15, 0.25, -0.05, 0.12, 10, 12)
+    parts.append((miss, MAT_DENY, "sim-rc-missing", {**ped, "label": "pod rejected: RuntimeClass \"gvisor\" not found", "simOnly": True}))
+    dep = MeshBuilder()
+    dep.add_chamfer_box(-2.8, -0.2, 1.4, 1.1, 0.9, 0.05, 0.02)
+    parts.append((dep, MAT_PAPER, "deploy-card", {**ped, "label": "Deployment payments-api", "kind": "Deployment"}))
+    frc = MeshBuilder()
+    frc.add_chamfer_box(-2.8, 0.1, 1.44, 0.9, 0.14, 0.03, 0.01)
+    parts.append((frc, MAT_MUTED, "field-runtimeclass", {**ped, "label": "spec.template.spec.runtimeClassName: gvisor (immutable on a running pod; roll the Deployment)", "kind": "Field"}))
+    freq = MeshBuilder()
+    freq.add_chamfer_box(-2.8, -0.12, 1.44, 0.9, 0.14, 0.03, 0.01)
+    parts.append((freq, MAT_MUTED, "field-requests", {**ped, "label": "resources.requests.cpu (600m, or 800m in the big variant)", "kind": "Field"}))
+    # node01
+    n1 = MeshBuilder()
+    n1.add_chamfer_box(0.2, -0.82, -0.3, 3.2, 0.08, 3.0, 0.03)
+    parts.append((n1, MAT_INK, "node-01", {**ped, "label": "node01 (labelled sandbox.gvisor.dev/runtime=gvisor; 1000m CPU free)", "kind": "Node"}))
+    hk = MeshBuilder()
+    hk.add_chamfer_box(0.4, -0.7, 0.2, 2.5, 0.12, 1.6, 0.03)
+    parts.append((hk, MAT_VOID, "host-kernel", {**ped, "label": "node01 host Linux kernel (one kernel shared by every runc container)", "kind": "Kernel"}))
+    ct = MeshBuilder()
+    ct.add_cylinder(-0.9, -0.45, -1.3, 0.22, 0.5, 24)
+    parts.append((ct, MAT_GOLD, "containerd", {**ped, "label": "containerd (/etc/containerd/config.toml: runtimes.runc, runtimes.runsc; restart to load)", "kind": "Runtime"}))
+    hr = MeshBuilder()
+    hr.add_chamfer_box(-0.2, -0.5, -1.3, 0.5, 0.4, 0.4, 0.04)
+    parts.append((hr, MAT_CYAN, "handler-runc", {**ped, "label": "handler runc (io.containerd.runc.v2): syscalls go straight to the host kernel", "kind": "Handler"}))
+    hs = MeshBuilder()
+    hs.add_chamfer_box(0.5, -0.5, -1.3, 0.5, 0.4, 0.4, 0.04)
+    parts.append((hs, MAT_SHIELD, "handler-runsc", {**ped, "label": "handler runsc (io.containerd.runsc.v1): gVisor", "kind": "Handler"}))
+    nrt = MeshBuilder()
+    nrt.add_sphere(0.5, -0.1, -1.3, 0.12, 10, 12)
+    parts.append((nrt, MAT_DENY, "sim-no-runtime-n1", {**ped, "label": "FailedCreatePodSandBox: no runtime for \"runsc\" is configured (node01)", "simOnly": True}))
+    sentry = MeshBuilder()
+    sentry.add_chamfer_box(0.9, -0.38, 0.3, 1.2, 0.5, 1.2, 0.06)
+    parts.append((sentry, MAT_SHIELD, "sentry", {**ped, "label": "gVisor Sentry: a user-space kernel that serves the pod's syscalls (uname -r: 4.4.0)", "kind": "Sandbox"}))
+    gofer = MeshBuilder()
+    gofer.add_chamfer_box(1.75, -0.5, 0.3, 0.3, 0.3, 0.5, 0.03)
+    parts.append((gofer, MAT_MUTED, "gofer", {**ped, "label": "Gofer: mediates the pod's file access", "kind": "Sandbox"}))
+    pod = MeshBuilder()
+    pod.add_sphere(0.9, 0.0, 0.3, 0.3, 14, 16)
+    parts.append((pod, MAT_CYAN, "payments-pod", {**ped, "label": "payments-api pod", "kind": "Pod"}))
+    cap = MeshBuilder()
+    cap.add_chamfer_box(-0.9, -0.55, 0.9, 0.3, 0.28, 0.3, 0.03)
+    parts.append((cap, MAT_MUTED, "cpu-capacity", {**ped, "label": "node01 allocatable CPU left: 1000m", "kind": "Capacity"}))
+    ovs = MeshBuilder()
+    ovs.add_chamfer_box(-0.9, -0.3, 0.9, 0.3, 0.14, 0.3, 0.02)
+    parts.append((ovs, MAT_TAINT, "sim-overhead-slab", {**ped, "label": "RuntimeClass overhead (250m) counted on top of the pod requests", "simOnly": True}))
+    pcpu = MeshBuilder()
+    pcpu.add_sphere(-0.9, 0.0, 0.9, 0.13, 10, 12)
+    parts.append((pcpu, MAT_DENY, "sim-pending-cpu", {**ped, "label": "Pending: 1 Insufficient cpu (requests + overhead > free)", "simOnly": True}))
+    # attacker syscall + outcomes
+    poc = MeshBuilder()
+    poc.add_chamfer_box(0.9, 0.45, 0.3, 0.2, 0.12, 0.2, 0.02)
+    parts.append((poc, MAT_TAINT, "attacker-poc", {**ped, "label": "compromised app running a host-kernel exploit PoC (lab-only, simulated)", "kind": "Attacker"}))
+    esc = MeshBuilder()
+    esc.add_sphere(0.4, -0.55, 0.2, 0.34, 12, 14)
+    parts.append((esc, MAT_DENY, "sim-escape", {**ped, "label": "container escape: the exploit reached the host kernel (root on node01, every neighbour pod exposed)", "simOnly": True}))
+    cont = MeshBuilder()
+    cont.add_chamfer_box(0.9, -0.1, 0.3, 1.3, 0.04, 1.3, 0.03)
+    parts.append((cont, MAT_SHIELD, "sim-contained", {**ped, "label": "contained: the Sentry served the syscall; the host kernel never saw that path", "simOnly": True}))
+    _edge(parts, (0.9, -0.2, 0.25), (0.4, -0.62, 0.2), "edge-syscall-host", MAT_LED, ped, "runc: syscalls → host kernel", 0.03, 0.06)
+    _edge(parts, (0.9, 0.0, 0.3), (0.9, -0.3, 0.3), "edge-syscall-sentry", MAT_LED, ped, "runsc: syscalls → Sentry", 0.03, 0.06)
+    _edge(parts, (-0.2, -0.45, -1.1), (-0.1, -0.2, 0.0), "edge-containerd-runc", MAT_LED, ped, "containerd → runc shim", 0.03, 0.06)
+    _edge(parts, (0.1, -0.45, -1.1), (0.7, -0.2, 0.0), "edge-containerd-runsc", MAT_LED, ped, "containerd → runsc shim", 0.03, 0.06)
+    _edge(parts, (-2.75, -0.45, -1.2), (-1.1, -0.45, -1.3), "edge-api-containerd", MAT_LED, ped, "kubelet → containerd (CRI): RuntimeClass handler name", 0.03, 0.06)
+    _edge(parts, (-2.8, -0.2, 0.15), (-2.8, -0.2, 1.1), "edge-rc-deploy", MAT_LED, ped, "runtimeClassName → RuntimeClass", 0.03, 0.06)
+    # node02
+    n2 = MeshBuilder()
+    n2.add_chamfer_box(3.4, -0.82, 0.0, 1.5, 0.08, 2.4, 0.03)
+    parts.append((n2, MAT_INK, "node-02", {**ped, "label": "node02 (no runsc installed, no gVisor label; emptier, so the scheduler likes it)", "kind": "Node"}))
+    k2 = MeshBuilder()
+    k2.add_chamfer_box(3.4, -0.7, 0.3, 1.2, 0.12, 1.0, 0.03)
+    parts.append((k2, MAT_VOID, "node02-kernel", {**ped, "label": "node02 host kernel", "kind": "Kernel"}))
+    ct2 = MeshBuilder()
+    ct2.add_cylinder(3.4, -0.45, -0.7, 0.18, 0.4, 24)
+    parts.append((ct2, MAT_GOLD, "containerd-n2", {**ped, "label": "containerd on node02: runc only", "kind": "Runtime"}))
+    ghost = MeshBuilder()
+    ghost.add_sphere(3.4, -0.2, 0.3, 0.26, 12, 14)
+    parts.append((ghost, MAT_MUTED, "sim-pod-node02", {**ped, "label": "payments-api pod scheduled to node02 (no label required: the scheduler never checks handlers)", "simOnly": True}))
+    nrt2 = MeshBuilder()
+    nrt2.add_sphere(3.4, 0.2, 0.3, 0.12, 10, 12)
+    parts.append((nrt2, MAT_DENY, "sim-no-runtime-n2", {**ped, "label": "FailedCreatePodSandBox: no runtime for \"runsc\" is configured (node02)", "simOnly": True}))
+    lod = MeshBuilder()
+    lod.add_box(0.2, -0.75, 0, 7.0, 0.12, 3.8)
+    parts.append((lod, MAT_VOID, "lod1-sandbox-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -2179,6 +2291,7 @@ SCENES = {
     "cks-runtime-security.glb": scene_cks_runtime_security,
     "cks-cluster-hardening.glb": scene_cks_cluster_hardening,
     "cks-static-analysis.glb": scene_cks_static_analysis,
+    "cks-sandbox-runtime.glb": scene_cks_sandbox_runtime,
 }
 
 

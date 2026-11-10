@@ -44,11 +44,11 @@ const kubesecJson = r => JSON.parse(r.out.filter(l => !/^\(sim\)/.test(l)).join(
 
 test('NEW asset: cks-static-analysis.glb is authored + Blender-polished, the fifth CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.equal(S.VERSION, '1.11.0');
+  assert.ok(['1.11.0', '1.12.0'].includes(S.VERSION), 'cks-static-analysis arrived in v1.11.0; v1.12.0 (2026-11-06) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-static-analysis.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
-  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', SIM]);
+  assert.deepEqual(S.list().filter(id => S.get(id).cert === 'CKS'), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', SIM, 'cks-sandbox-runtime']);
   const j = glbJson('assets/immersive/cks-static-analysis.glb');
   const names = j.nodes.map(n => n.name);
   for (const n of ['git-repo', 'manifest-file', 'field-privileged', 'field-nonroot', 'field-rootfs', 'field-resources', 'field-secret', 'field-image', 'lint-ignore', 'sim-secret-leak',
@@ -203,19 +203,19 @@ test('honesty: unmodelled forms never invent output; help and note say simulated
 });
 
 test('CKS paper: the 7 checkpoints count for Supply Chain Security, gap link stays on cks-supply-chain, pool +7 (43)', () => {
-  assert.equal(E.VERSION, '1.7.0');
+  assert.ok(['1.7.0', '1.8.0'].includes(E.VERSION), 'v1.8.0 (2026-11-06) keeps the static-analysis wiring');
   const sc = E.CKS_BLUEPRINT.find(b => b.domain === 'Supply Chain Security');
   assert.deepEqual(sc.sims, ['cks-supply-chain', SIM]);
   for (const x of S.get(SIM).scenarios.filter(y => y.predict)) assert.equal(E.cksDomain(SIM, x.id), 'Supply Chain Security', x.id);
   assert.ok(E.CKS_SIMS.includes(SIM));
   assert.equal(E.pool(S, 'CKS').filter(it => it.simId === SIM).length, 7);
-  assert.equal(E.pool(S, 'CKS').length, 43);
+  assert.ok(E.pool(S, 'CKS').length >= 43, '43 on 2026-11-05, 50 since 2026-11-06');
   assert.ok(!E.pool(S).some(it => it.simId === SIM), 'the CKA paper never draws a CKS checkpoint');
   for (const seed of [1, 7, 42, 2026]) {
     const ex = E.buildExam(S, { track: 'CKS', seed });
     assert.equal(ex.count, 8);
     assert.equal(new Set(ex.items.map(i => i.domain)).size, 6, 'one item per official domain first (seed ' + seed + ')');
-    assert.match(ex.honesty, /kubesec and KubeLinter run on a rules engine/);
+    assert.match(ex.honesty, /kubesec, KubeLinter and gVisor run on a rules engine/);
   }
   const ex2 = E.buildExam(S, { track: 'CKS', seed: 7 });
   ex2.items.forEach(it => { const miss = it.domain === 'Supply Chain Security'; it.choice = miss ? (it.answer + 1) % 3 : it.answer; it.correct = !miss; });
@@ -227,7 +227,7 @@ test('CKS paper: the 7 checkpoints count for Supply Chain Security, gap link sta
 });
 
 test('review: static-analysis coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
-  assert.equal(R.VERSION, '1.3.5');
+  assert.match(R.VERSION, /^1\.3\.[56]$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
   assert.equal(cards.length, 20);
   assert.ok(cards.every(c => c.domain === 'CKS · Supply chain (static analysis)'));
@@ -255,7 +255,7 @@ test('wiring: /immersive/ host, exam lobby copy, curriculum rows, manifest (new 
   assert.deepEqual([sc.gltf, sc.cert, sc.polish, sc.polishedOn], [S.get(SIM).glb, 'CKS', 'blender-cli', '2026-11-05']);
   assert.ok(m.sims.list.includes(SIM));
   assert.ok(!m.cka_coverage.interactive.includes(SIM), 'not counted as CKA coverage');
-  assert.deepEqual(m.cks_coverage.interactive, ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', SIM]);
+  assert.deepEqual(m.cks_coverage.interactive.slice(0, 5), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', 'cks-cluster-hardening', SIM]);
   assert.match(m.cks_coverage.covered['Supply Chain Security'], /kubesec and KubeLinter/);
   assert.ok(!m.cks_coverage.notCovered.some(x => /^static analysis of manifests \(kubesec \/ KubeLinter\)/.test(x)));
   assert.ok(m.cks_coverage.notCovered.some(x => /keyless \(Sigstore OIDC\) signing/.test(x)), 'keyless signing still honestly missing');
