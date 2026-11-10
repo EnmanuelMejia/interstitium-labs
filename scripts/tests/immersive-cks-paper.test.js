@@ -42,7 +42,7 @@ function play(inc, { upto = Infinity, hintAt = [] } = {}) {
 const idx = (html) => readFileSync(path.join(root, 'docs/immersive/index.html'), 'utf8').includes(html);
 
 test('v1.0.0 bank: 24 typed CKS tasks across all six CNCF CKS domains, each on a real CLI task over an authored .glb', () => {
-  assert.equal(K.VERSION, '1.0.0');
+  assert.match(K.VERSION, /^1\.[01]\.0$/);
   const b = K.bank(C);
   assert.equal(b.length, 24);
   assert.equal(new Set(b.map(x => x.id)).size, 24);

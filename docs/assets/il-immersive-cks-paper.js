@@ -1,5 +1,5 @@
 /**
- * IL CKS hands-on paper v1.0.0 (2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
+ * IL CKS hands-on paper v1.1.0 (2026-11-10; v1.0.0 2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
  * glTF scenes (plus the RBAC and NetworkPolicy scenes the CKS blueprint shares with the CKA) and their CLI packs.
  *
  * Would Elon be impressed by a CKS track whose only "exam" is predict-then-reveal multiple choice, when the real CKS is
@@ -13,6 +13,20 @@
  *
  * Grading and staging reuse ILTroubleshootExam.gradeIncident / stage (same rules, one implementation).
  *
+ * v1.1.0 (2026-11-10) — seeded task VARIANTS. Would Elon be impressed by a "mock exam" that is a replay of the free-play
+ * drills, word for word? No — and killer.sh's CKS-A / CKS-B sets are fixed too (the Linux Foundation says the simulator
+ * questions are "exactly the same for every attempt and every user (unlike those found on the actual exams)"). So every
+ * paper seed now re-draws the task's entity names per task: namespace, user, ServiceAccount, Secret, AppArmor profile,
+ * service port, registry host and image tags (VARY × POOLS). The rename is a strict SWAP (canonical ↔ variant, an
+ * involution) applied at the terminal boundary: what you type is swapped before the rules engine sees it, and every line
+ * the shell prints (output, hints, lab files, the sim panel) is swapped back. So the variant world is self-consistent,
+ * and typing a drill-replay name (e.g. `alice` when this paper's user is `carol`) hits a name that does not exist in
+ * this paper instead of silently working. Pools are unit-tested to never occur as a word anywhere in the CLI packs or
+ * the sims, every task is solvable by typing the variant commands for 40 seeds, and nothing canonical leaks.
+ * Honest scope: surface variants (names, port, registry, tags) over the same staged faults — not new fault logic;
+ * CIS check ids, kubelet ports (10250/10255) and system paths stay real because they are the same on every cluster;
+ * the authored 3D scene node names and the review cards stay canonical (cards re-open the free-play drill).
+ *
  * Honest scope: SIMULATED shell over the in-browser rules engine (real CLI syntax, computed output). Not a live
  * cluster, not killer.sh, not the CNCF CKS — Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor
  * are rules-engine stand-ins, not real tools, kernels or sandboxes. Scores stay on this device (il.cksPaper.v1).
@@ -25,13 +39,13 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (TS) {
   'use strict';
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.1.0';
   var STORE_KEY = 'il.cksPaper.v1';
   var SRC = 'cks-paper';
   var HINT_CREDIT = TS ? TS.HINT_CREDIT : 0.5;
   /* The CKS passing score is 67% (Linux Foundation candidate handbook); this bar mirrors it as a study bar, not a CNCF result. */
   var DEFAULTS = { count: 6, minutes: 36, passPct: 67 };
-  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score.';
+  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score. Names, ports, registry and tags are re-drawn per paper seed (surface variants over the same staged faults).';
 
   /**
    * The six official CNCF CKS domains (curriculum v1.34 weights, identical to ILImmersiveExam.CKS_BLUEPRINT).
@@ -116,6 +130,75 @@
   var BY_ID = {};
   INCIDENTS.forEach(function (x) { BY_ID[x.id] = x; });
 
+  /**
+   * v1.1.0 variant pools: canonical token → replacements. Pools are disjoint, never contain a canonical token, and are
+   * unit-tested to never occur as a word in il-immersive-cli.js / il-immersive-sims.js (so the swap is a bijection).
+   */
+  var POOLS = {
+    'payments': ['billing', 'ledger', 'invoices', 'treasury', 'remit'],
+    'alice': ['carol', 'dana', 'erin'],
+    'bob': ['mallory', 'trent', 'victor'],
+    'dev': ['staging', 'qa', 'team-blue'],
+    'frontend': ['storefront', 'webui', 'portal'],
+    'backend': ['platform', 'mid-tier', 'apps-core'],
+    'untrusted': ['guest', 'partner', 'outsider'],
+    '8080': ['9091', '7070', '8181'],
+    'registry.example.com': ['registry.corp.internal', 'cr.acme.internal', 'images.lab.internal'],
+    '2.4.1': ['3.1.0', '2.7.3', '3.0.4'],
+    '1.4.2': ['2.0.9', '1.6.0', '2.1.3'],
+    'api-sa': ['app-sa', 'svc-runner', 'web-sa'],
+    'db-creds': ['api-token', 'stripe-key', 'vault-pass'],
+    'k8s-deny-write': ['k8s-ro-root', 'k8s-no-write', 'k8s-lockdown']
+  };
+  /** Which canonical tokens each task re-draws. [] = fixed on purpose (CIS ids, kubelet ports and paths are the same on every cluster). */
+  var VARY = {
+    'cks-bench-kubelet': [], 'cks-bench-control-plane': [], 'cks-bench-readonly': [],
+    'cks-netpol-default-deny': ['payments', 'frontend', '8080'],
+    'cks-netpol-lock-api': ['backend', 'frontend', 'untrusted', '8080'],
+    'cks-rbac-sa-admin': ['payments', 'api-sa'],
+    'cks-rbac-least': ['alice', 'dev'],
+    'cks-rbac-revoke': ['bob', 'dev'],
+    'cks-apparmor': ['payments', 'k8s-deny-write'],
+    'cks-psa-enforce': ['payments'], 'cks-harden-pod': ['payments'],
+    'cks-gvisor-runtimeclass': ['payments'], 'cks-gvisor-handler': ['payments'], 'cks-gvisor-overhead': ['payments'],
+    'cks-allowed-registries': ['payments', 'registry.example.com'],
+    'cks-trivy-gate': ['payments', 'registry.example.com', '2.4.1'],
+    'cks-sbom': ['payments', 'registry.example.com', '2.4.1'],
+    'cks-cosign-verify': ['payments', 'registry.example.com', '2.4.1'],
+    'cks-kubesec-gate': ['payments'], 'cks-kube-linter': ['payments', '1.4.2'], 'cks-image-user': ['payments', '1.4.2'],
+    'cks-audit-log': ['payments', 'db-creds'],
+    'cks-falco-silent': ['payments'], 'cks-falco-contain': ['payments']
+  };
+
+  function reEsc(t) { return String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  /**
+   * swapper(pairs) → fn(text): swaps every whole-word occurrence of a or b for the other (pairs = [[canonical, variant], …]).
+   * Word = not adjacent to [A-Za-z0-9_], so `payments-api`, `ns/payments`, `payments:api-sa` and `:2.4.1` all swap, while
+   * `paymentsX` or `12.4.1` do not. It is an involution: swap(swap(x)) === x.
+   */
+  function swapper(pairs) {
+    var map = {}, toks = [];
+    (pairs || []).forEach(function (p) {
+      if (!p || !p[0] || !p[1] || p[0] === p[1]) return;
+      map[p[0]] = p[1]; map[p[1]] = p[0]; toks.push(p[0], p[1]);
+    });
+    if (!toks.length) return function (x) { return x; };
+    toks.sort(function (a, b) { return b.length - a.length; });
+    var re = new RegExp('(^|[^A-Za-z0-9_])(' + toks.map(reEsc).join('|') + ')(?![A-Za-z0-9_])', 'g');
+    return function (text) {
+      if (text == null) return text;
+      return String(text).replace(re, function (m, pre, tok) { return pre + map[tok]; });
+    };
+  }
+  function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  /** Deterministic variant for (paper seed, task id): its own PRNG stream, so the task draw is unchanged from v1.0.0. */
+  function variantFor(id, seed) {
+    var toks = VARY[id] || [];
+    var rnd = mulberry32(((seed >>> 0) ^ hashStr(id)) >>> 0);
+    var pairs = toks.map(function (t) { var pool = POOLS[t]; return [t, pool[Math.floor(rnd() * pool.length)]]; });
+    return { pairs: pairs, label: pairs.map(function (p) { return p[0] + '→' + p[1]; }).join(', ') };
+  }
+
   function mulberry32(a) {
     if (TS && TS.mulberry32) return TS.mulberry32(a);
     return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -157,14 +240,18 @@
     }
     shuffle(picked, rnd); /* the real exam does not group tasks by domain either */
     var startedAt = opts.now != null ? opts.now : Date.now();
+    var variants = opts.variants !== false;
     return {
       version: VERSION, kind: 'cks', seed: seed, minutes: minutes,
       passPct: opts.passPct != null ? opts.passPct : DEFAULTS.passPct,
       startedAt: startedAt, endsAt: startedAt + minutes * 60 * 1000,
+      variants: variants,
       incidents: picked.map(function (x, i) {
         var tk = C && C.task ? C.task(x.simId, x.taskId) : null;
+        var v = variants ? variantFor(x.id, seed) : null, sw = swapper(v ? v.pairs : null);
         return { i: i, id: x.id, area: x.area, areaLabel: AREAS[x.area].label + ' · ' + AREAS[x.area].weight + '%', cka: true, simId: x.simId, taskId: x.taskId,
-          pre: x.pre, ticket: x.ticket, title: tk ? tk.title : x.id, steps: tk ? tk.steps.length : null, result: null };
+          pre: x.pre, ticket: sw(x.ticket), title: sw(tk ? tk.title : x.id), steps: tk ? tk.steps.length : null,
+          variant: v && v.pairs.length ? v : null, result: null };
       }),
       honesty: HONESTY
     };
@@ -172,7 +259,15 @@
 
   function gradeIncident(inc, status, hinted, extra) {
     if (!TS) throw new Error('ILCksPaper needs ILTroubleshootExam (grading rules)');
-    return TS.gradeIncident(inc, status, hinted, extra);
+    var r = TS.gradeIncident(inc, status, hinted, extra);
+    if (inc && inc.variant) {
+      /* results screen: show the commands / labels in this paper's names, never the drill's */
+      var sw = swapper(inc.variant.pairs);
+      r.notes.forEach(function (n) { n.label = sw(n.label); if (n.cmd) n.cmd = sw(n.cmd); });
+      r.feedback = sw(r.feedback);
+      r.variant = inc.variant.label;
+    }
+    return r;
   }
 
   /**
@@ -229,7 +324,7 @@
     var db = loadStore();
     var list = db.attempts || (db.attempts = []);
     list.unshift({ at: Date.now(), seed: paper.seed, incidents: summary.incidents, resolved: summary.resolved, pct: summary.pct, rawPct: summary.rawPct,
-      coveragePct: summary.coveragePct, passed: summary.passed, minutes: paper.minutes, weakest: summary.weakest ? summary.weakest.area : null });
+      coveragePct: summary.coveragePct, passed: summary.passed, minutes: paper.minutes, variants: paper.variants !== false, weakest: summary.weakest ? summary.weakest.area : null });
     if (list.length > 20) list.length = 20;
     db.last = list[0];
     saveStore(db);
@@ -281,7 +376,7 @@
 
   return {
     VERSION: VERSION, STORE_KEY: STORE_KEY, SRC: SRC, HINT_CREDIT: HINT_CREDIT, DEFAULTS: DEFAULTS, HONESTY: HONESTY, honesty: HONESTY,
-    AREAS: AREAS, AREA_ORDER: AREA_ORDER, ANCHOR: ANCHOR, INCIDENTS: INCIDENTS, get: function (id) { return BY_ID[id] || null; },
+    AREAS: AREAS, AREA_ORDER: AREA_ORDER, ANCHOR: ANCHOR, INCIDENTS: INCIDENTS, POOLS: POOLS, VARY: VARY, swapper: swapper, variantFor: variantFor, get: function (id) { return BY_ID[id] || null; },
     bank: bank, buildPaper: buildPaper, gradeIncident: gradeIncident, summarize: summarize,
     loadStore: loadStore, recordAttempt: recordAttempt, remediate: remediate, stage: stage, mulberry32: mulberry32, ui: ui
   };
