@@ -1952,6 +1952,107 @@ def scene_cks_runtime_security() -> list:
     return parts
 
 
+def scene_cks_cluster_hardening() -> list:
+    """CKS Cluster Setup — CIS benchmark (kube-bench) cutaway. Control-plane node with kube-apiserver (+ its static-pod
+    manifest and the --profiling flag), etcd with its data directory (/var/lib/etcd, 700), the kubelet with its config file
+    (/var/lib/kubelet/config.yaml), its authentication gate (anonymous), authorization gate (Webhook vs AlwaysAllow), the
+    :10250 API port and the legacy :10255 read-only port. A kube-bench job reads the config of each component and writes
+    PASS / FAIL / WARN; an attacker pod on the pod network probes the kubelet ports. sim-* parts are revealed only by
+    the rules engine. Added 2026-11-04 (fourth CKS asset)."""
+    parts = []
+    ped = {"il": {"role": "pedagogy", "topic": "cks-cluster-hardening", "cert": "CKS", "domain": "cluster-setup"}}
+    floor = MeshBuilder()
+    floor.add_box(0, -0.9, 0, 6.6, 0.08, 4.0)
+    parts.append((floor, MAT_VOID, "ch-floor", {**ped, "label": "CIS benchmark (CKS cutaway)"}))
+    cp = MeshBuilder()
+    cp.add_chamfer_box(0.0, -0.8, -1.2, 5.6, 0.08, 1.4, 0.03)
+    parts.append((cp, MAT_INK, "cp-node", {**ped, "label": "controlplane node (control plane + its own kubelet)", "kind": "Node"}))
+    api = MeshBuilder()
+    api.add_cylinder(-1.9, -0.45, -1.3, 0.3, 0.62, 28)
+    parts.append((api, MAT_GOLD, "kube-apiserver", {**ped, "label": "kube-apiserver (static pod)", "kind": "Component"}))
+    man = MeshBuilder()
+    man.add_chamfer_box(-1.9, -0.05, -1.75, 0.5, 0.42, 0.04, 0.02)
+    parts.append((man, MAT_PAPER, "apiserver-manifest", {**ped, "label": "/etc/kubernetes/manifests/kube-apiserver.yaml (kubelet re-creates the pod on save)", "kind": "Manifest"}))
+    prof = MeshBuilder()
+    prof.add_sphere(-1.45, -0.15, -1.3, 0.12, 10, 12)
+    parts.append((prof, MAT_DENY, "sim-profiling-on", {**ped, "label": "--profiling=true: /debug/pprof exposed (CIS 1.2.15 FAIL)", "simOnly": True}))
+    etcd = MeshBuilder()
+    etcd.add_cylinder(-0.55, -0.5, -1.3, 0.26, 0.5, 24)
+    etcd.add_cylinder(-0.55, -0.18, -1.3, 0.26, 0.08, 24)
+    parts.append((etcd, MAT_CRYSTAL, "etcd-db", {**ped, "label": "etcd (every Secret lives here)", "kind": "Component"}))
+    edir = MeshBuilder()
+    edir.add_chamfer_box(-0.55, -0.7, -1.3, 0.7, 0.1, 0.7, 0.02)
+    parts.append((edir, MAT_MUTED, "etcd-dir", {**ped, "label": "/var/lib/etcd (CIS 1.1.11: 700 or stricter)", "kind": "Directory"}))
+    eopen = MeshBuilder()
+    eopen.add_chamfer_box(-0.55, -0.62, -1.3, 0.78, 0.04, 0.78, 0.02)
+    parts.append((eopen, MAT_DENY, "sim-etcd-open", {**ped, "label": "drwxr-xr-x: any local user can read the etcd database", "simOnly": True}))
+    kl = MeshBuilder()
+    kl.add_chamfer_box(1.05, -0.45, -1.3, 0.6, 0.6, 0.6, 0.05)
+    parts.append((kl, MAT_CYAN, "kubelet", {**ped, "label": "kubelet (systemd service; reads its config file only at start)", "kind": "Kubelet"}))
+    kcfg = MeshBuilder()
+    kcfg.add_chamfer_box(1.05, -0.02, -1.75, 0.5, 0.42, 0.04, 0.02)
+    parts.append((kcfg, MAT_PAPER, "kubelet-config", {**ped, "label": "/var/lib/kubelet/config.yaml (authentication, authorization, readOnlyPort)", "kind": "Config"}))
+    stale = MeshBuilder()
+    stale.add_sphere(1.45, 0.0, -1.3, 0.11, 10, 12)
+    parts.append((stale, MAT_TAINT, "sim-stale-config", {**ped, "label": "file edited, kubelet not restarted: the running config is the old one", "simOnly": True}))
+    authn = MeshBuilder()
+    authn.add_chamfer_box(1.75, -0.45, -0.85, 0.08, 0.5, 0.5, 0.02)
+    parts.append((authn, MAT_SHIELD, "authn-gate", {**ped, "label": "authentication: anonymous.enabled=false (CIS 4.2.1) → 401 Unauthorized", "kind": "Policy"}))
+    authz = MeshBuilder()
+    authz.add_chamfer_box(2.0, -0.45, -0.85, 0.08, 0.5, 0.5, 0.02)
+    parts.append((authz, MAT_SHIELD, "authz-gate", {**ped, "label": "authorization.mode: Webhook (CIS 4.2.2) → SubjectAccessReview → 403 Forbidden", "kind": "Policy"}))
+    p250 = MeshBuilder()
+    p250.add_cylinder(2.35, -0.45, -0.85, 0.12, 0.2, 20)
+    parts.append((p250, MAT_LED, "port-10250", {**ped, "label": "kubelet API :10250 (HTTPS: /pods, /exec, /run)", "kind": "Port"}))
+    p255 = MeshBuilder()
+    p255.add_cylinder(2.35, -0.45, -1.55, 0.12, 0.2, 20)
+    parts.append((p255, MAT_MUTED, "port-10255", {**ped, "label": "read-only port :10255 (plain HTTP, no auth; CIS 4.2.4: set readOnlyPort 0)", "kind": "Port"}))
+    roo = MeshBuilder()
+    roo.add_sphere(2.35, -0.15, -1.55, 0.12, 10, 12)
+    parts.append((roo, MAT_DENY, "sim-ro-port-open", {**ped, "label": ":10255 open: pod specs readable with no credentials", "simOnly": True}))
+    kopen = MeshBuilder()
+    kopen.add_sphere(2.35, -0.1, -0.85, 0.14, 10, 12)
+    parts.append((kopen, MAT_DENY, "sim-kubelet-open", {**ped, "label": "200 OK: kubelet API answers (pods listed; /run executes commands)", "simOnly": True}))
+    kden = MeshBuilder()
+    kden.add_chamfer_box(2.6, -0.45, -0.85, 0.06, 0.56, 0.56, 0.02)
+    parts.append((kden, MAT_SHIELD, "sim-kubelet-denied", {**ped, "label": "request refused (401 Unauthorized / 403 Forbidden)", "simOnly": True}))
+    _edge(parts, (1.05, -0.45, -1.0), (1.85, -0.45, -0.85), "edge-kubelet-gates", MAT_LED, ped, "request → authn → authz", 0.03, 0.06)
+    _edge(parts, (0.75, -0.3, -1.3), (-1.6, -0.3, -1.3), "edge-kubelet-sar", MAT_LED, ped, "Webhook mode asks the API server (SubjectAccessReview)", 0.03, 0.08)
+    _edge(parts, (-1.6, -0.5, -1.3), (-0.8, -0.5, -1.3), "edge-api-etcd", MAT_LED, ped, "API server → etcd (mTLS)", 0.03, 0.06)
+    # kube-bench + report (front left)
+    bench = MeshBuilder()
+    bench.add_chamfer_box(-1.6, -0.5, 0.9, 0.7, 0.5, 0.5, 0.05)
+    parts.append((bench, MAT_GOLD, "kube-bench", {**ped, "label": "kube-bench (CIS Kubernetes Benchmark checks, run on the node it audits)", "kind": "Scanner"}))
+    rep = MeshBuilder()
+    rep.add_chamfer_box(-0.6, -0.55, 0.9, 0.6, 0.4, 0.06, 0.02)
+    parts.append((rep, MAT_PAPER, "bench-report", {**ped, "label": "report: [PASS] / [FAIL] / [WARN] + remediations + summary", "kind": "Report"}))
+    bfail = MeshBuilder()
+    bfail.add_sphere(-0.6, -0.2, 0.9, 0.12, 10, 12)
+    parts.append((bfail, MAT_DENY, "sim-bench-fail", {**ped, "label": "[FAIL] / [WARN] findings", "simOnly": True}))
+    bpass = MeshBuilder()
+    bpass.add_chamfer_box(-0.6, -0.55, 0.98, 0.66, 0.46, 0.03, 0.02)
+    parts.append((bpass, MAT_SHIELD, "sim-bench-pass", {**ped, "label": "every modelled check [PASS] (a config read, not proof of the running state)", "simOnly": True}))
+    _edge(parts, (-1.6, -0.3, 0.65), (-1.9, -0.3, -1.0), "edge-bench-api", MAT_LED, ped, "reads the API server manifest + flags", 0.03, 0.06)
+    _edge(parts, (-1.35, -0.4, 0.65), (-0.6, -0.55, -0.95), "edge-bench-etcd", MAT_LED, ped, "stat /var/lib/etcd", 0.03, 0.06)
+    _edge(parts, (-1.25, -0.35, 0.75), (1.0, -0.2, -1.6), "edge-bench-kubelet", MAT_LED, ped, "ps -fC kubelet + cat config.yaml", 0.03, 0.06)
+    # Pod network + attacker pod (front right)
+    pn = MeshBuilder()
+    pn.add_chamfer_box(1.7, -0.8, 1.0, 2.4, 0.08, 1.4, 0.03)
+    parts.append((pn, MAT_INK, "pod-network", {**ped, "label": "pod network (every pod can reach node ports unless a firewall says otherwise)", "kind": "Network"}))
+    att = MeshBuilder()
+    att.add_sphere(2.0, -0.45, 1.1, 0.24, 14, 16)
+    parts.append((att, MAT_MUTED, "attacker-pod", {**ped, "label": "compromised pod (default ServiceAccount token mounted)", "kind": "Pod"}))
+    probe = MeshBuilder()
+    probe.add_sphere(2.0, -0.1, 1.1, 0.1, 8, 10)
+    parts.append((probe, MAT_DENY, "sim-attacker-probe", {**ped, "label": "curl -sk https://<node>:10250/pods", "simOnly": True}))
+    _edge(parts, (2.05, -0.35, 0.85), (2.35, -0.45, -0.7), "edge-probe-kubelet", MAT_DENY, ped, "probe :10250", 0.03, 0.08)
+    _edge(parts, (1.85, -0.35, 0.85), (2.3, -0.45, -1.4), "edge-probe-ro", MAT_DENY, ped, "probe :10255", 0.03, 0.08)
+    lod = MeshBuilder()
+    lod.add_box(0, -0.75, 0, 6.0, 0.12, 3.4)
+    parts.append((lod, MAT_VOID, "lod1-hardening-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    return parts
+
+
 SCENES = {
     "lecture-k8s-control-plane.glb": scene_k8s_control_plane,
     "cert-cka.glb": scene_cert_cka,
@@ -1977,6 +2078,7 @@ SCENES = {
     "cks-pod-security.glb": scene_cks_pod_security,
     "cks-supply-chain.glb": scene_cks_supply_chain,
     "cks-runtime-security.glb": scene_cks_runtime_security,
+    "cks-cluster-hardening.glb": scene_cks_cluster_hardening,
 }
 
 

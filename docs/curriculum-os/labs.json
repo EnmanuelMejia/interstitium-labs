@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-03T09:30:00-05:00",
+  "updated": "2026-11-04T09:30:00-05:00",
   "items": [
     {
       "id": "lab-superlab-sim",
@@ -499,6 +499,28 @@
         "sim": "cks-runtime-security"
       },
       "gltf": "/assets/immersive/cks-runtime-security.glb"
+    },
+    {
+      "id": "lab-sim-cks-cluster-hardening",
+      "name": "CKS Cluster Setup Drill: CIS benchmark with kube-bench \u2014 kubelet anonymous auth, AlwaysAllow vs Webhook, read-only port, restart after config edits, etcd data dir, API server profiling (interactive 3D)",
+      "slug": "lab-sim-cks-cluster-hardening",
+      "lang": "EN",
+      "publishStatus": "published",
+      "kind": "sim",
+      "trackSlug": "k8s-cka-exceed",
+      "summary": "Fourth CKS drill: Cluster Setup (15% of the CKS), the CIS benchmark with kube-bench. Covered: anonymous auth + AlwaysAllow serves the kubelet API (and /exec) to anyone, Webhook authorization turns system:anonymous into 403 Forbidden, the read-only port 10255 leaks pod specs with no auth and kube-bench only WARNs (Manual check), kube-bench PASSes an edited config.yaml the kubelet has not reloaded, etcd data directory 755 (CIS 1.1.11), API server --profiling (1.2.15, static pod re-created on save), and a ServiceAccount token under AlwaysAllow. Runs on a new authored glTF, with a 3-task simulated CLI lab (kube-bench run --targets/--check, curl to :10250/:10255, sed -i on config.yaml, systemctl restart kubelet, chmod 700 /var/lib/etcd, the API server manifest) and the timed CKS paper. Rules engine; no live cluster, real kube-bench, kubelet or etcd.",
+      "surfaceUrl": "/immersive/#cks-cluster-hardening",
+      "immersive": {
+        "mode": "3d-first",
+        "engine": "gltf",
+        "asset": "/assets/immersive/cks-cluster-hardening.glb",
+        "captions": true,
+        "fallback": "reduced-motion",
+        "webgpu": true,
+        "frontier": "cks-cluster-hardening",
+        "sim": "cks-cluster-hardening"
+      },
+      "gltf": "/assets/immersive/cks-cluster-hardening.glb"
     }
   ]
 }
