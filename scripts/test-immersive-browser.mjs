@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09; +seeded CKS paper variants 2026-11-10): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -617,7 +617,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.13.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.14.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -1678,7 +1678,9 @@ async function tsIncident(page) {
   const host = page.locator(`[data-il-ts-stage][data-il-cli-exam="${inc.taskId}"]`);
   await host.waitFor({ timeout: 30000 });
   const steps = await page.evaluate(([sim, task]) => window.ILImmersiveCLI.task(sim, task).steps.map(s => s.hint), [inc.simId, inc.taskId]);
-  return { id, inc, host, cmds: steps.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)) };
+  /* 2026-11-10: a CKS paper task with seeded variants is typed in the paper's names (canon = the drill's own commands). */
+  const typed = inc.variant ? await page.evaluate(([hs, pairs]) => { const sw = window.ILCksPaper.swapper(pairs); return hs.map(h => sw(h)); }, [steps, inc.variant.pairs]) : steps;
+  return { id, inc, host, cmds: typed.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)), canon: steps.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)) };
 }
 await check('Troubleshooting paper: 3 mixed incidents on authored .glb stages, ticket-only graded shell (no step list, solution off), typed fix / hint / stall → per-incident feedback, weakest area, CKA 30% blueprint, review cards', async () => {
   const { page, errors } = await open('/immersive/troubleshoot/?seed=4242');
@@ -1892,6 +1894,71 @@ await check('CKS paper: a 6-task paper covers all six CKS domains; ending at onc
   assert.equal(await ts.page.locator('a[href="/immersive/cks/"]').count(), 1);
   await ts.page.close();
   return 'areas ' + [...new Set(areas)].join(',');
+});
+
+/* 2026-11-10: seeded CKS paper variants — the shell speaks the paper's names; a drill replay is refused; ?variants=0 replays. */
+await check('CKS paper variants: seeded names in ticket + shell + sim panel, variant commands resolve, canonical replay verifies nothing, results show the paper\'s commands; ?variants=0 keeps the drill names', async () => {
+  const { page, errors } = await open('/immersive/cks/?seed=1110');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  assert.equal(await page.locator('[data-il-ts-variants]').isChecked(), true, 'variants on by default');
+  await page.locator('[data-il-ts-start][data-count="3"]').click();
+  await page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-variants'), '1');
+  const t = await tsIncident(page);
+  assert.ok(t.inc.variant && t.inc.variant.pairs.length >= 1, 'first task carries a variant');
+  assert.equal(await t.host.getAttribute('data-il-ts-variant'), t.inc.variant.label);
+  const canonRe = new RegExp('(^|[^A-Za-z0-9_])(' + t.inc.variant.pairs.map(([c]) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![A-Za-z0-9_])');
+  const ticket = await page.locator('[data-il-ts-ticket]').textContent();
+  assert.equal(canonRe.test(ticket), false, 'ticket speaks the variant: ' + ticket);
+  assert.ok(t.inc.variant.pairs.some(([, v]) => ticket.includes(v)));
+  await t.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  /* Drill replay: the canonical commands hit names that do not exist in this paper. */
+  for (const group of t.canon) for (const c of group) await type(t.host, c);
+  assert.doesNotMatch(await page.locator('[data-il-ts-live]').textContent(), /resolved/);
+  const replayed = +(await t.host.getAttribute('data-il-cli-exam-progress')).split('/')[0];
+  assert.equal(replayed, 0, 'the drill replay verifies no checkpoint');
+  await type(t.host, 'reset');
+  /* Variant commands: resolve, and nothing canonical is printed anywhere on the stage. */
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  const log = await logText(t.host);
+  const echoed = new Set(t.canon.flat());
+  const printed = log.split('\n').filter(ln => ![...echoed].some(c => ln.endsWith(' ' + c)));
+  assert.equal(printed.some(ln => canonRe.test(ln)), false, 'no canonical name printed by the shell after the reset');
+  const panel = await t.host.locator('.il-immersive__sim-verdict, .il-immersive__sim-btn').allInnerTexts();
+  assert.deepEqual(panel.filter(x => canonRe.test(x)), [], 'sim panel speaks the variant');
+  await t.host.screenshot({ path: path.join(shots, 'immersive-cks-paper-variant.png') });
+  await page.locator('[data-il-ts-next]').click();
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  const t3 = await tsIncident(page);
+  for (const c of t3.cmds[0]) await type(t3.host, c); /* one checkpoint, then stop: the rest are listed with their commands */
+  await page.locator('[data-il-ts-end]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 10000 });
+  assert.equal(await page.locator('[data-il-ts-variant-note]').first().textContent(), 'Variant (drill name → this paper): ' + t.inc.variant.label);
+  const codes = await page.locator('[data-il-ts-inc="' + t3.id + '"] code').allTextContents();
+  assert.ok(codes.length > 0, 'missed checkpoints list their commands');
+  if (t3.inc.variant) {
+    const re3 = new RegExp('(^|[^A-Za-z0-9_])(' + t3.inc.variant.pairs.map(([c]) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![A-Za-z0-9_])');
+    assert.deepEqual(codes.filter(x => re3.test(x)), [], 'results show the paper\'s commands');
+  }
+  assert.deepEqual(errors, []);
+  await page.close();
+
+  const off = await open('/immersive/cks/?seed=1110&variants=0');
+  await off.page.locator('[data-il-ts-start][data-count="3"]').click();
+  await off.page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  assert.equal(await off.page.locator('html').getAttribute('data-il-ts-variants'), '0');
+  const t2 = await tsIncident(off.page);
+  assert.equal(t2.id, t.id, 'same seed, same draw');
+  assert.equal(t2.inc.variant, null);
+  assert.equal(await off.page.locator('[data-il-ts-ticket]').textContent(), await off.page.evaluate(id => window.ILCksPaper.get(id).ticket, t2.id));
+  await t2.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  for (const group of t2.canon) for (const c of group) await type(t2.host, c);
+  assert.match(await off.page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  assert.deepEqual(off.errors, []);
+  await off.page.close();
+  return t.id + ' [' + t.inc.variant.label + '] · replay ' + replayed + '/' + t.cmds.length + ' · variant resolved · variants=0 resolves canonical';
 });
 
 await browser.close();

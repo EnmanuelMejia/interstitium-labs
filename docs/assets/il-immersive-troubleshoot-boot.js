@@ -1,7 +1,9 @@
 /**
  * Boot the hands-on Troubleshooting exam paper (2026-10-28). 2026-11-09: the same UI also runs the hands-on CKS paper
  * (/immersive/cks/): an element with data-il-ts-module="ILCksPaper" picks that module, whose `ui` copy replaces the
- * CKA wording. Without the attribute nothing changes. Depends on ILTroubleshootExam + ILImmersiveCLI +
+ * CKA wording. Without the attribute nothing changes. 2026-11-10: a paper incident carrying `variant` (ILCksPaper v1.1.0
+ * seeded names) mounts its stage with cliExam.swap so the shell speaks the paper's names; a [data-il-ts-variants]
+ * checkbox (or ?variants=0) turns variants off for a drill-replay paper. Depends on ILTroubleshootExam + ILImmersiveCLI +
  * ILImmersiveSims + ILImmersive3D (ScenePlayer with cliExam). Optional: ILImmersiveExam (blueprint weights) and
  * ILImmersiveReview (missed checkpoints → CLI review cards). Relative assets only; simulated shell, no live cluster.
  */
@@ -75,7 +77,8 @@
       stage.setAttribute('data-il-sim', inc.simId);
       stage.setAttribute('data-gltf', sim.glb);
       stage.setAttribute('data-immersive', JSON.stringify({ mode: '3d-first', engine: 'three', asset: sim.glb, webgpu: true, sim: inc.simId,
-        exam: true, cliExam: { task: inc.taskId, pre: inc.pre } }));
+        exam: true, cliExam: { task: inc.taskId, pre: inc.pre, swap: inc.variant ? inc.variant.pairs : null } }));
+      if (inc.variant) stage.setAttribute('data-il-ts-variant', inc.variant.label); else stage.removeAttribute('data-il-ts-variant');
       try { API.mount(stage); } catch (e3) { /* ignore */ }
     }
 
@@ -168,6 +171,7 @@
         var li = node('li', 'il-ts-inc', null, { 'data-il-ts-inc': inc.id, 'data-pct': String(r ? r.pct : 0), 'data-resolved': r && r.resolved ? '1' : '0' });
         li.appendChild(node('p', 'font-mono text-[0.62rem] uppercase tracking-[0.16em] text-gold', (i + 1) + ' · ' + inc.areaLabel + (inc.cka ? '' : ' · not in CKA score')));
         li.appendChild(node('p', 'mt-1 font-display text-base', inc.title + ' — ' + (r ? r.pct : 0) + '%'));
+        if (inc.variant) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', 'Variant (drill name → this paper): ' + inc.variant.label, { 'data-il-ts-variant-note': inc.id }));
         li.appendChild(node('p', 'mt-1 text-sm', r ? r.feedback : 'Not reached.', { 'data-il-ts-feedback': '' }));
         if (r && r.notes.length) {
           var ul = node('ul', 'mt-2 space-y-1 text-xs text-muted');
@@ -202,10 +206,12 @@
       stopTimer();
       var q = /[?&]seed=(\d+)/.exec(location.search);
       if (q) opts.seed = +q[1];
+      if (/[?&]variants=0\b/.test(location.search)) opts.variants = false;
       paper = T.buildPaper(C, opts);
       idx = 0; finished = false;
       html.removeAttribute('data-il-ts-finished');
       html.setAttribute('data-il-ts-seed', String(paper.seed));
+      html.setAttribute('data-il-ts-variants', paper.variants ? '1' : '0');
       show(lobby, false); show(done, false); show(run, true);
       timerId = setInterval(tick, 250);
       tick();
@@ -214,9 +220,11 @@
 
     document.querySelectorAll('[data-il-ts-start]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var mesh = $('[data-il-ts-mesh]');
-        start({ count: Number(btn.getAttribute('data-count')) || T.DEFAULTS.count, minutes: Number(btn.getAttribute('data-minutes')) || T.DEFAULTS.minutes,
-          mesh: !!(mesh && mesh.checked) });
+        var mesh = $('[data-il-ts-mesh]'), vb = $('[data-il-ts-variants]');
+        var o = { count: Number(btn.getAttribute('data-count')) || T.DEFAULTS.count, minutes: Number(btn.getAttribute('data-minutes')) || T.DEFAULTS.minutes,
+          mesh: !!(mesh && mesh.checked) };
+        if (vb && !vb.checked) o.variants = false;
+        start(o);
       });
     });
     var nx = $('[data-il-ts-next]');

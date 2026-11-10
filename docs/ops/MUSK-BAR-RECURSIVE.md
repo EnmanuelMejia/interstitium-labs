@@ -1,7 +1,43 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-09 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-10 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-10 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **The hands-on CKS paper was a word-for-word replay of the free-play drills.** Every task used the same namespace, user, port, registry and tags as its drill, so a learner who had done the drills could retype from memory instead of reading the task. |
+| After this ship | **Closer / still NO** | **Seeded CKS paper variants** (`il-immersive-cks-paper.js` v1.1.0 + `il-immersive-3d.js` v1.14.0). Every paper seed re-draws each task's names: namespace, user, ServiceAccount, Secret, AppArmor profile, service port, registry host and image tags (21 of 24 tasks, 14 canonical tokens, 3+ options each). The shell applies a strict canonical ↔ variant **swap** at the terminal boundary: the typed line is swapped before the rules engine, and every printed line (output, hints, lab files, prompt, sim panel) is swapped back. A replayed drill name does not exist in that paper, so the replay fails (unit-tested on 21 tasks). The results screen shows the commands in the paper's names. A lobby checkbox (or `?variants=0`) gives a drill-replay paper. |
+| Fake YES risk | Rejected | These are **surface variants over the same staged faults**, not new fault logic, so the bank is still 24 scenarios. The 3 kube-bench tasks stay fixed on purpose (CIS ids, kubelet ports and paths are the same on every cluster). Authored 3D node names and review cards stay canonical. It is still a simulated shell, with no live cluster and no hosted fleet. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- multi-host tasks (`ssh` between controlplane / node01 with per-host state, as on the real exam and KodeKloud's multi-cluster mocks), then structural variants (a different fault per seed, not just different names)
+- Kata Containers as a second handler on the sandbox scene, plus keyless (Sigstore OIDC) signing and Dockerfile linting (hadolint)
+- Ingress TLS / node metadata protection and Cilium pod-to-pod encryption (new authored scene)
+- syncing the Notion Labs rows for the six CKS drills and the CKS paper (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-10)
+
+| Competitor | Repeat attempts | Interstitium after this pass |
+|---|---|---|
+| killer.sh | CKS-A and CKS-B, 17 scenarios each on real clusters. Each set is the same every time, and the Linux Foundation says the simulator questions are "exactly the same for every attempt and every user (unlike those found on the actual exams)". | Every seed gives a new draw and new names, across 24 tasks. Simulated shell, not real clusters, and the faults themselves do not change. |
+| KodeKloud | Ultimate CKS Mock Exam Series: fixed mocks of 16 hands-on tasks over multiple clusters (SSH between them), with auto-validation and weighted scoring | Seeded names per paper, scored by the CKS domain weights. No multi-cluster or multi-host tasks yet (next). |
+| A Cloud Guru / Pluralsight, Udemy CKS courses | video paths with labs or practice tests | performance-based, varied paper on authored 3D stages. No real environment. |
+
+_The killer.sh and KodeKloud facts were read from killer.sh/cks, the KodeKloud community FAQ, the KodeKloud course page and the Linux Foundation CKS bundle page during this pass. The ACG and Udemy row summarises public course outlines and was not re-verified this run._
+
+## Shipped this pass (2026-11-10)
+
+1. `il-immersive-cks-paper.js` v1.1.0: `POOLS`, `VARY`, `swapper`, `variantFor` and `buildPaper({ variants })` (on by default). Each variant draw has its own PRNG stream, so the task draw per seed is unchanged from v1.0.0. Tickets and titles are swapped, results notes and feedback are swapped, and history records `variants`.
+2. `il-immersive-3d.js` v1.14.0: `cliExam.swap`. The typed line is swapped before `ILImmersiveCLI.run`. `_cliPrint` (except the echoed command), the prompt, sim toggles and the verdict are swapped back. Silent `pre` replays stay canonical. `cliExamVariants: true`.
+3. `il-immersive-troubleshoot-boot.js` passes `inc.variant.pairs` to the stage, sets `data-il-ts-variant` / `data-il-ts-variants`, reads `?variants=0` and the lobby checkbox, and shows a variant line per task on the results screen. The `/immersive/cks/` lobby gets a variants bullet and a checkbox.
+4. Manifest `cks_paper.version` 1.1.0 and a `cks_paper.variants` block.
+5. Tests: unit 270 → 278 with `immersive-cks-paper-variants.test.js` (+8). It covers pool hygiene against the whole CLI/sim corpus, the swap involution, determinism and spread over 40 seeds, an unchanged draw, no canonical name in tickets, all 21 varied tasks solvable at 100% by typing the variant commands for 40 seeds with no canonical leak in the shell (including `help`, `ls` and `cat` of every lab file), the drill replay failing, swapped results notes, and wiring. Browser 70 → 71: a seeded variant task (seed 1110) has no canonical name in the ticket, shell or sim panel. Its canonical replay verifies 0 checkpoints, the variant commands resolve it, and the results show the paper's commands. `?variants=0` gives the same draw with the drill names.
+
+---
+
+_Prior pass archived below (2026-11-09)._
 
 ## Verdict — 2026-11-09 Musk-bar pass
 

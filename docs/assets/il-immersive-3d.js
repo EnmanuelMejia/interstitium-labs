@@ -55,6 +55,11 @@
  * for the next checkpoint and is recorded (half credit), `solution` is off until the paper ends, `reset` re-stages the
  * incident, and the sim caption hides its diagnosis text (tints + provenance stay). Progress is emitted as il-immersive-cli-exam { task, completed, total, pre, done, hinted, cmds }.
  * Same simulated shell + rules engine + authored glTF — not a live cluster.
+ * v1.14.0 (2026-11-10): seeded task variants for the CKS paper. cliExam may carry swap: [[canonical, variant], …]; the
+ * line the learner types is swapped before the rules engine sees it, and every line the stage prints (shell output,
+ * coach hints, the prompt, sim toggles and verdict) is swapped back, so the incident reads in the paper's own names. The
+ * typed command is echoed exactly as typed; silent `pre` replays use the pack's canonical commands (no swap). Scene
+ * tints follow sim state, so the authored glTF needs no per-variant asset; its node names stay canonical.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -63,6 +68,15 @@
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /** Whole-word canonical↔variant swap (an involution); identical rules to ILCksPaper.swapper. */
+  function makeSwap(pairs){
+    var map = {}, toks = [];
+    pairs.forEach(function (p){ map[p[0]] = p[1]; map[p[1]] = p[0]; toks.push(p[0], p[1]); });
+    toks.sort(function (a, b){ return b.length - a.length; });
+    var re = new RegExp('(^|[^A-Za-z0-9_])(' + toks.map(function (t){ return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![A-Za-z0-9_])', 'g');
+    return function (text){ return text == null ? text : String(text).replace(re, function (m, pre, tok){ return pre + map[tok]; }); };
   }
 
   var CYAN = [0.369, 0.918, 0.831];
@@ -464,6 +478,11 @@
     cfg.cliReview = j && j.review && j.cliReview && j.cliReview.task && j.cliReview.step >= 0 ? { task: String(j.cliReview.task), step: +j.cliReview.step } : null;
     /* 2026-10-28: a Troubleshooting-paper incident = one CLI task on a graded stage (exam), optionally pre-broken by replaying `pre` steps. */
     cfg.cliExam = j && j.exam && j.cliExam && j.cliExam.task ? { task: String(j.cliExam.task), pre: Math.max(0, +j.cliExam.pre || 0) } : null;
+    /* 2026-11-10: CKS paper variants — a validated list of [canonical, variant] string pairs (see makeSwap). */
+    if (cfg.cliExam && j.cliExam.swap && j.cliExam.swap.length) {
+      var sp = [].concat(j.cliExam.swap).filter(function (p){ return p && typeof p[0] === 'string' && typeof p[1] === 'string' && p[0] && p[1] && p[0] !== p[1]; }).slice(0, 16);
+      if (sp.length) { cfg.cliExam.swap = sp; cfg.cliExam.swapFn = makeSwap(sp); }
+    }
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
       cfg.scene = resolveScene(cfg.asset.slice(11));
@@ -1251,7 +1270,7 @@
     scen.setAttribute('role', 'group');
     scen.setAttribute('aria-label', 'Scenarios');
     sim.scenarios.forEach(function (sc){
-      var b = el('button', 'il-immersive__sim-btn', sc.label);
+      var b = el('button', 'il-immersive__sim-btn', self._swapText(sc.label));
       b.type = 'button';
       b.setAttribute('data-il-sim-scenario', sc.id);
       b.addEventListener('click', function (){ self._simScenario(sc); });
@@ -1326,12 +1345,12 @@
     }
     for (var id in this._simToggles) {
       var tg = this._simToggles[id], on = !!this._simState[id];
-      tg.btn.textContent = tg.def.label + ': ' + (on ? tg.def.on : tg.def.off);
+      tg.btn.textContent = this._swapText(tg.def.label + ': ' + (on ? tg.def.on : tg.def.off));
       tg.btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       var risk = tg.def.risk || 'off';
       tg.btn.setAttribute('data-risk', risk === 'none' ? '0' : ((risk === 'on') === on ? '1' : '0'));
     }
-    this._simVerdict.textContent = d.verdict;
+    this._simVerdict.textContent = this._swapText(d.verdict);
     this._simVerdict.setAttribute('data-verdict', d.verdict);
     var tone = S.verdictTone ? S.verdictTone(d.verdict) : 'info';
     this._simVerdict.setAttribute('data-tone', tone);
@@ -1367,12 +1386,12 @@
     this._simPredictClose();
     this._simPending = { sc: sc, t0: (g.performance && performance.now()) || Date.now() };
     var box = this._simPredict;
-    box.appendChild(el('p', 'il-immersive__sim-q', 'Predict first: ' + sc.predict.q));
+    box.appendChild(el('p', 'il-immersive__sim-q', 'Predict first: ' + this._swapText(sc.predict.q)));
     /* Shuffle display order per attempt so the keyed answer is never positional; data-il-sim-option keeps the original index. */
     var order = (S.shuffleOrder ? S.shuffleOrder(sc.predict.options.length) : sc.predict.options.map(function (_, i){ return i; }));
     order.forEach(function (idx){
       var opt = sc.predict.options[idx];
-      var b = el('button', 'il-immersive__sim-opt', opt);
+      var b = el('button', 'il-immersive__sim-opt', self._swapText(opt));
       b.type = 'button';
       b.setAttribute('data-il-sim-option', String(idx));
       b.addEventListener('click', function (){ self._simCommit(idx); });
@@ -1398,7 +1417,7 @@
     rec.attempts += 1; sr.a += 1; sr.lastMs = ms;
     if (res && res.correct) { rec.correct += 1; sr.c += 1; }
     simSave(db);
-    this._simResult.textContent = (res && res.correct ? 'Correct. ' : 'Not quite — answer: “' + p.sc.predict.options[res ? res.answer : 0] + '”. ') + (res ? res.why : '');
+    this._simResult.textContent = this._swapText((res && res.correct ? 'Correct. ' : 'Not quite — answer: “' + p.sc.predict.options[res ? res.answer : 0] + '”. ') + (res ? res.why : ''));
     this._simResult.setAttribute('data-correct', res && res.correct ? '1' : '0');
     simTrack('immersive_sim_predict', { sim: sim.id, scenario: p.sc.id, correct: !!(res && res.correct), ms: ms });
     /* Adaptive remediation loop (2026-10-13): free-play predictions become spaced-repetition cards. */
@@ -1452,7 +1471,7 @@
     tasks.setAttribute('aria-label', 'CLI lab tasks');
     this._cliTaskBtns = {};
     pack.tasks.forEach(function (tk){
-      var b = el('button', 'il-immersive__sim-btn il-immersive__cli-task', tk.title);
+      var b = el('button', 'il-immersive__sim-btn il-immersive__cli-task', self._swapText(tk.title));
       b.type = 'button';
       b.setAttribute('data-il-cli-task', tk.id);
       b.addEventListener('click', function (){ self._cliStartTask(tk.id); });
@@ -1585,7 +1604,7 @@
     this._cliReplaying = false;
     this._cliCtx.history = [];
     this._cliLog.textContent = '';
-    if (this._cliPromptEl && C.promptFor) this._cliPromptEl.textContent = C.promptFor(sim.id, this._cliCtx);
+    if (this._cliPromptEl && C.promptFor) this._cliPromptEl.textContent = this._swapText(C.promptFor(sim.id, this._cliCtx));
     return true;
   };
   ScenePlayer.prototype._cliExamStart = function (){
@@ -1726,10 +1745,17 @@
     try { rec.start(); } catch (e5) { done(); }
   };
 
+  /** v1.14.0: the paper's variant names on everything the stage prints (identity when there is no swap). */
+  ScenePlayer.prototype._swapText = function (text){
+    var f = this.cfg && this.cfg.cliExam && this.cfg.cliExam.swapFn;
+    return f ? f(text) : text;
+  };
+
   ScenePlayer.prototype._cliPrint = function (lines, kind){
     var log = this._cliLog; if (!log) return;
+    var self = this;
     [].concat(lines).forEach(function (ln){
-      var row = el('div', 'il-immersive__cli-line', String(ln));
+      var row = el('div', 'il-immersive__cli-line', kind === 'cmd' ? String(ln) : String(self._swapText(ln)));
       if (kind) row.setAttribute('data-kind', kind);
       log.appendChild(row);
     });
@@ -1744,10 +1770,12 @@
     var raw = String(line == null ? '' : line);
     var pack = C.pack(sim.id);
     var curPrompt = C.promptFor ? C.promptFor(sim.id, this._cliCtx) : pack.prompt;
-    this._cliPrint(curPrompt + ' ' + raw, 'cmd');
-    var r = C.run(sim.id, this._simState, raw, this._cliCtx);
+    this._cliPrint(this._swapText(curPrompt) + ' ' + raw, 'cmd');
+    /* v1.14.0: the learner types the paper's variant names; the rules engine speaks canonical (silent replays are canonical already). */
+    var engineLine = this.cfg.cliExam && this.cfg.cliExam.swapFn && !this._cliReplaying ? this.cfg.cliExam.swapFn(raw) : raw;
+    var r = C.run(sim.id, this._simState, engineLine, this._cliCtx);
     /* v1.12.0: `ssh node-01` / `exit` move the session between hosts — keep the visible prompt honest. */
-    if (C.promptFor && this._cliPromptEl) this._cliPromptEl.textContent = r.action === 'reset' ? pack.prompt : C.promptFor(sim.id, this._cliCtx);
+    if (C.promptFor && this._cliPromptEl) this._cliPromptEl.textContent = this._swapText(r.action === 'reset' ? pack.prompt : C.promptFor(sim.id, this._cliCtx));
     if (r.action === 'clear') { this._cliLog.textContent = ''; }
     else if (r.action === 'reset' && this.cfg.cliExam) {
       this._cliExamStage();
@@ -2647,7 +2675,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.13.0',
+    version: '1.14.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -2662,6 +2690,7 @@
     cliReviewCards: true,
     cliVoiceInput: true,
     cliExam: true,
+    cliExamVariants: true,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,

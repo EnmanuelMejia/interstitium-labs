@@ -27,9 +27,10 @@ function load(navigator = {}) {
 }
 const plain = (o) => JSON.parse(JSON.stringify(o));
 
-test('exports v1.13.0 (v1.8.0 HUD + v1.9.0 CLI lab + v1.10.0 coach + v1.11.0 CLI review cards / voice input + v1.12.0 host-aware prompt + v1.13.0 graded CLI incidents) with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
+test('exports v1.14.0 (v1.8.0 HUD + v1.9.0 CLI lab + v1.10.0 coach + v1.11.0 CLI review cards / voice input + v1.12.0 host-aware prompt + v1.13.0 graded CLI incidents + v1.14.0 CKS paper variants) with webxr flag and an honest (non-Unreal, non-hosted) label', () => {
   const API = load();
-  assert.equal(API.version, '1.13.0');
+  assert.equal(API.version, '1.14.0');
+  assert.equal(API.cliExamVariants, true);
   assert.equal(API.cliLab, true);
   assert.equal(API.cliReviewCards, true);
   assert.equal(API.cliVoiceInput, true);
