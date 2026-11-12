@@ -29,8 +29,8 @@ function session(sim, taskId) {
   };
 }
 
-test('exports v1.12.0 with an honest simulated-shell label and packs only for sims that exist', () => {
-  assert.equal(C.VERSION, '1.12.0');
+test('exports v1.13.0 with an honest simulated-shell label and packs only for sims that exist', () => {
+  assert.equal(C.VERSION, '1.13.0');
   assert.match(C.honesty, /Simulated shell/);
   assert.match(C.honesty, /Not a real shell, not a cluster, no AWS account, no hosted lab fleet/);
   assert.deepEqual(C.list().sort(), ['aws-az-failure', 'cks-cluster-hardening', 'cks-pod-security', 'cks-runtime-security', 'cks-sandbox-runtime', 'cks-static-analysis', 'cks-supply-chain', 'cni-network', 'config-propagation', 'control-plane-failure', 'etcd-quorum', 'gateway-api', 'hpa-scale', 'ingress-routing', 'mesh-mtls', 'netpol-isolation', 'node-troubleshoot', 'rbac-authz', 'sched-taints', 'service-dns', 'storage-csi']);

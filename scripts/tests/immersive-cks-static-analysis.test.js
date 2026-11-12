@@ -44,7 +44,7 @@ const kubesecJson = r => JSON.parse(r.out.filter(l => !/^\(sim\)/.test(l)).join(
 
 test('NEW asset: cks-static-analysis.glb is authored + Blender-polished, the fifth CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.11.0', '1.12.0'].includes(S.VERSION), 'cks-static-analysis arrived in v1.11.0; v1.12.0 (2026-11-06) keeps it');
+  assert.ok(['1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'cks-static-analysis arrived in v1.11.0; v1.12.0 (2026-11-06) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-static-analysis.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');

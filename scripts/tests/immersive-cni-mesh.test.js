@@ -34,8 +34,8 @@ function session(sim, taskId, extra) {
 }
 
 test('v1.6.0: two new packs (3 tasks each) on the EXISTING authored assets — no new .glb, no rules-engine change', () => {
-  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(C.VERSION), 'CNI + mesh packs arrived in CLI v1.6.0; v1.7.0 (2026-10-29, + CKS pack) and v1.8.0 (2026-11-02, + CKS supply-chain pack) keep them');
-  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'no rules-engine change for these packs (v1.7.0 / v1.8.0 only add CKS drills)');
+  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(C.VERSION), 'CNI + mesh packs arrived in CLI v1.6.0; v1.7.0 (2026-10-29, + CKS pack) and v1.8.0 (2026-11-02, + CKS supply-chain pack) keep them');
+  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'no rules-engine change for these packs (v1.7.0 / v1.8.0 only add CKS drills)');
   assert.deepEqual(C.pack(CNI).tasks.map(t => t.id), ['no-cni', 'cidr-overlap', 'no-kube-proxy']);
   assert.deepEqual(C.pack(MESH).tasks.map(t => t.id), ['strict-reset', 'permissive-to-strict', 'istiod-down']);
   assert.equal(S.get(CNI).glb, '/assets/immersive/cni-pod-network.glb');

@@ -75,7 +75,7 @@ test('resolver: resolv.conf search list + ndots:5 — short names stay in the na
 test('rules engine: Service / EndpointSlice / kube-proxy / CoreDNS / NetworkPolicy semantics', () => {
   const sim = S.get(SIM);
   const at = set => S.serviceDnsDecide(S.merge(sim.initial, set));
-  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'service-dns arrived in v1.6.0; v1.7.0 (2026-10-29) and v1.8.0 (2026-11-02) keep it');
+  assert.ok(['1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'service-dns arrived in v1.6.0; v1.7.0 (2026-10-29) and v1.8.0 (2026-11-02) keep it');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   const sel = at({ selectorOk: false });
   assert.equal(sel.endpoints, 0);

@@ -3,7 +3,9 @@
  * (/immersive/cks/): an element with data-il-ts-module="ILCksPaper" picks that module, whose `ui` copy replaces the
  * CKA wording. Without the attribute nothing changes. 2026-11-10: a paper incident carrying `variant` (ILCksPaper v1.1.0
  * seeded names) mounts its stage with cliExam.swap so the shell speaks the paper's names; a [data-il-ts-variants]
- * checkbox (or ?variants=0) turns variants off for a drill-replay paper. Depends on ILTroubleshootExam + ILImmersiveCLI +
+ * checkbox (or ?variants=0) turns variants off for a drill-replay paper. 2026-11-11: an incident carrying `fault` (ILCksPaper
+ * v1.2.0 seeded fault variants) already names its own CLI task (inc.taskId); the stage gets data-il-ts-fault and the results
+ * screen says which fault this paper staged (never during the task: the ticket is the only brief). Depends on ILTroubleshootExam + ILImmersiveCLI +
  * ILImmersiveSims + ILImmersive3D (ScenePlayer with cliExam). Optional: ILImmersiveExam (blueprint weights) and
  * ILImmersiveReview (missed checkpoints → CLI review cards). Relative assets only; simulated shell, no live cluster.
  */
@@ -79,6 +81,7 @@
       stage.setAttribute('data-immersive', JSON.stringify({ mode: '3d-first', engine: 'three', asset: sim.glb, webgpu: true, sim: inc.simId,
         exam: true, cliExam: { task: inc.taskId, pre: inc.pre, swap: inc.variant ? inc.variant.pairs : null } }));
       if (inc.variant) stage.setAttribute('data-il-ts-variant', inc.variant.label); else stage.removeAttribute('data-il-ts-variant');
+      if (inc.fault) stage.setAttribute('data-il-ts-fault', inc.fault.id); else stage.removeAttribute('data-il-ts-fault');
       try { API.mount(stage); } catch (e3) { /* ignore */ }
     }
 
@@ -172,6 +175,7 @@
         li.appendChild(node('p', 'font-mono text-[0.62rem] uppercase tracking-[0.16em] text-gold', (i + 1) + ' · ' + inc.areaLabel + (inc.cka ? '' : ' · not in CKA score')));
         li.appendChild(node('p', 'mt-1 font-display text-base', inc.title + ' — ' + (r ? r.pct : 0) + '%'));
         if (inc.variant) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', 'Variant (drill name → this paper): ' + inc.variant.label, { 'data-il-ts-variant-note': inc.id }));
+        if (inc.fault) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', 'Fault staged on this paper: ' + inc.fault.label + (inc.fault.canonical ? ' (the free-play drill’s fault)' : ' (a fault variant)'), { 'data-il-ts-fault-note': inc.id }));
         li.appendChild(node('p', 'mt-1 text-sm', r ? r.feedback : 'Not reached.', { 'data-il-ts-feedback': '' }));
         if (r && r.notes.length) {
           var ul = node('ul', 'mt-2 space-y-1 text-xs text-muted');
@@ -212,6 +216,7 @@
       html.removeAttribute('data-il-ts-finished');
       html.setAttribute('data-il-ts-seed', String(paper.seed));
       html.setAttribute('data-il-ts-variants', paper.variants ? '1' : '0');
+      html.setAttribute('data-il-ts-faults', paper.faults ? '1' : '0');
       show(lobby, false); show(done, false); show(run, true);
       timerId = setInterval(tick, 250);
       tick();

@@ -1,7 +1,43 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-10 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-11 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-11 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **Every CKS paper task ran on one host, and the 2026-11-10 variants were names only.** The real exam, killer.sh and KodeKloud all make you `ssh` to the right node and fix it there. Our three kube-bench tasks were fixed on purpose and always staged the same fault, so a drill replay still solved them. |
+| After this ship | **Closer / still NO** | **Multi-node CIS tasks + seeded fault variants** (`il-immersive-cks-paper.js` v1.2.0, `il-immersive-cli.js` v1.13.0, `il-immersive-sims.js` v1.13.0, re-authored `cks-cluster-hardening.glb`). The hardening scene gains a **node01 worker bay**: a worker kubelet with its own config, authn/authz gates, ports 10250/10255 and a node-local kube-bench, built with kit-v2 and Blender 4.2 polish. The shell gains **per-host state**: `ssh node01` switches the prompt and the kubelet, `exit` returns, and an unknown host exits 255. On node01 the API server and etcd manifests do not exist (a wrong-host trap), and `kube-bench --targets master` is refused. curl can probe node01's kubelet from either host. 4 new tasks: worker-kubelet, worker-authz, worker-readonly and split-hardening (fix etcd on the controlplane **and** the kubelet on node01). Each paper seed draws **which fault** is staged for the 3 kube-bench tasks (7 authored faults: 3 single-host canonical + 4 multi-node). The worker's name is re-drawn per seed (compute-03 / wk-east-2 / k8s-w7), so `ssh node01` does not resolve on a varied paper. The results screen names the staged fault. |
+| Fake YES risk | Rejected | These are **7 authored faults over 3 tasks, not procedurally generated faults**. The other 21 tasks still get name variants over one staged fault. "ssh" is a host switch in the simulated shell: no VM, no real sshd and no real kube-bench. The worker bay is an authored stage, not a cluster. There is no new predict scenario, so the CKS exam pool is unchanged at 50. The player (`il-immersive-3d.js` v1.14.0) is unchanged. |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- Kata Containers as a second handler on the sandbox scene, plus keyless (Sigstore OIDC) cosign signing and Dockerfile linting (hadolint), the remaining Microservice / Supply Chain gaps
+- fault variants for the other CKS domains (for example a second Falco rule fault and a second NetworkPolicy fault), so the 21 name-varied tasks also change their staged fault
+- kubectl-context multi-cluster tasks (`kubectl config use-context`, as on killer.sh and the real exam)
+- Ingress TLS / node metadata protection and Cilium pod-to-pod encryption (new authored scene)
+- syncing the Notion Labs rows for the CKS drills and the CKS paper (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-11)
+
+| Competitor | Multi-host / changing faults | Interstitium after this pass |
+|---|---|---|
+| killer.sh | CKS-A and CKS-B, 17 scenarios each on real clusters. You `ssh` to named nodes (for example `cluster1-controlplane1`, `cluster1-node1`), nested ssh is not possible, and there is a 120-minute countdown with 36 h access. The scenarios are fixed: the Linux Foundation says they are the same for every attempt. | Simulated `ssh` between controlplane and a seeded worker name with per-host kubelet state and wrong-host traps. 3 tasks draw 1 of 7 authored faults per seed. Not real nodes, and a smaller bank. |
+| KodeKloud | Ultimate CKS Mock Exam Series: multiple clusters, starting from a student node and `ssh`-ing to cluster nodes, 16 tasks per exam, 2 h, automated weighted scoring, kube-bench tasks included | Same shape (ssh to the node, then fix it there) in a free in-browser simulated shell on authored 3D stages. No real clusters and no multi-cluster contexts yet. |
+
+_The killer.sh and KodeKloud facts were re-read from killer.sh, the KodeKloud course and community pages and the Linux Foundation CKS bundle page during this pass._
+
+## Shipped this pass (2026-11-11)
+
+1. `cks-cluster-hardening.glb` re-authored with kit-v2 (`scene_cks_cluster_hardening`: +14 node01 worker-bay nodes, 3 edges and an LOD1 proxy) and Blender 4.2.3 polished (`blender_polish_glb.py --promote`; 102 nodes including `_LOD1`, extras preserved).
+2. `il-immersive-sims.js` v1.13.0: `cksW1Decide` (node checks only; missing keys count as secure). `cksHardenDecide` returns `w1`, `cpAllPass` and `allPass` (controlplane **and** node01). 3 node01 toggles; `w1-*` derive rules and captions. The 7 predict scenarios are unchanged.
+3. `il-immersive-cli.js` v1.13.0: per-host sessions (`ssh`, `exit`, `hostname`, root@ prompts), `fault [node01] anon|authz|roport|restart break|fix`, host-scoped sed/cat/systemctl/grep, node01 wrong-host traps, `-node01` event suffixes and `bench-fail-<target>` events. 4 new tasks (8 + 7 + 6 + 9 steps) with coach focus on real `w1-*` mesh nodes: 21 packs, 69 tasks, 383 steps.
+4. `il-immersive-cks-paper.js` v1.2.0: `FAULTS` (7), `faultFor` (own PRNG stream, so the v1.0.0 task draw and the v1.1.0 name draw per seed are unchanged), `POOLS.node01`, fault tickets, `incident.fault`, `faultsOf`. `il-immersive-troubleshoot-boot.js` adds `data-il-ts-fault(s)` and a "Fault staged on this paper" results line. The `/immersive/cks/` lobby copy is updated, and the checkbox randomises names and faults. Manifest `cks_paper` 1.2.0 + a `faults` block.
+5. Tests: unit 278 → 288 with `immersive-cks-multinode-faults.test.js` (+10). It covers sims decisions, CLI hosts and sessions, wrong-host traps, the FAULTS table, faultFor determinism and spread, every fault solvable at 100% over 40 seeds with no node01 leak, a canonical replay failing, and wiring. Browser 71 → 72: seed 1174 stages the node01 kubelet fault on compute-03. The canonical kubelet-auth replay stalls at 1/8, the ssh prompt follows the drawn name, the variant commands resolve it, and the results name the fault. `?variants=0` gives the drill fault.
+
+---
+
+_Prior pass archived below (2026-11-10)._
 
 ## Verdict — 2026-11-10 Musk-bar pass
 

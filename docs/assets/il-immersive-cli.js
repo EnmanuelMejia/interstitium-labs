@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.12.0 (2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.13.0 (2026-11-11; v1.12.0 2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -103,6 +103,14 @@
  * overhead), containerd's config.toml (`sed -i '/runsc/s/^#//'`, `systemctl restart containerd`), and, inside the pod,
  * `uname -r` (4.4.0 under gVisor), `dmesg` and a lab-only host-kernel PoC (simulated; no exploit code). Tasks:
  * create-runtimeclass · node-handler · blast-radius. Voice: "runtime class" → runtimeclass, "g visor" → gvisor.
+ *
+ * v1.13.0 (2026-11-11) — the CIS pack goes MULTI-NODE (21 packs, 4 new tasks): controlplane (the lab box) + node01, a worker
+ * with its own kubelet, config.yaml, gates and ports. `ssh node01` opens a session (prompt root@node01:~#, `exit` returns),
+ * `ssh node01 CMD` runs one command there; `curl https://node01:10250/pods` / `http://node01:10255/pods` probe node01 from
+ * anywhere; kube-bench, sed on config.yaml and `systemctl restart kubelet` act on the host you are on (kube-bench audits only
+ * that node, and a worker has no API server manifest or /var/lib/etcd — the shell says so). Tasks: worker-kubelet ·
+ * worker-authz (anonymous off, ServiceAccount token under AlwaysAllow) · worker-readonly · split-hardening (profiling on
+ * controlplane + anonymous kubelet auth on node01). Same honest scope: computed output, no VM, no real kubelet or ssh.
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -3778,7 +3786,7 @@
   var CH_KCFG = '/var/lib/kubelet/config.yaml';
   var CH_APIM = '/etc/kubernetes/manifests/kube-apiserver.yaml';
   var CH_ETCD = '/var/lib/etcd';
-  var CH_NOTE = 'Lab box = controlplane of a kubeadm cluster (it runs a kubelet too). kube-bench check ids/texts follow cfg/cis-1.12, trimmed to 5 modelled checks (1.1.11, 1.2.15, 4.2.1, 4.2.2, 4.2.4); kubelet config ' + CH_KCFG + '; API server manifest ' + CH_APIM + '. Output is computed by the rules engine and labelled representative — no real kube-bench, kubelet, etcd or systemd. Lab-only: fault anon|authz|roport|restart|etcd|profiling break|fix.';
+  var CH_NOTE = 'Lab box = controlplane of a kubeadm cluster (it runs a kubelet too). kube-bench check ids/texts follow cfg/cis-1.12, trimmed to 5 modelled checks (1.1.11, 1.2.15, 4.2.1, 4.2.2, 4.2.4); kubelet config ' + CH_KCFG + '; API server manifest ' + CH_APIM + '. Output is computed by the rules engine and labelled representative — no real kube-bench, kubelet, etcd or systemd. Hosts: controlplane (this box) · node01 (a worker with its own kubelet + config.yaml; no API server, no etcd) — `ssh node01` opens a session, `ssh node01 CMD` runs one command, `exit` returns; kube-bench audits only the host it runs on. Lab-only: fault [node01] anon|authz|roport|restart break|fix · fault etcd|profiling break|fix.';
   function chKcfg(s) {
     return ['apiVersion: kubelet.config.k8s.io/v1beta1', 'kind: KubeletConfiguration', 'authentication:', '  anonymous:', '    enabled: ' + (s.anonOff ? 'false' : 'true'), '  webhook:', '    cacheTTL: 0s', '    enabled: true',
       '  x509:', '    clientCAFile: /etc/kubernetes/pki/ca.crt', 'authorization:', '  mode: ' + (s.webhookAuthz ? 'Webhook' : 'AlwaysAllow'), 'readOnlyPort: ' + (s.roPortClosed ? '0' : '10255'), 'staticPodPath: /etc/kubernetes/manifests'];
@@ -3809,29 +3817,63 @@
       return ed.g ? l.split(ed.a).join(ed.b) : l.replace(ed.a, ed.b);
     });
   }
+  /* v1.13.0 (2026-11-11) — multi-node: controlplane (the lab box) + node01, a worker with its OWN kubelet. State keys per
+   * host; a missing w1* key reads as the secure default (old saved states). */
+  var CH_HOSTS = { controlplane: { ip: '10.0.0.10', anon: 'anonOff', authz: 'webhookAuthz', ro: 'roPortClosed', restarted: 'kubeletRestarted', runAnon: 'runAnonOff', runAuthz: 'runWebhookAuthz', runRo: 'runRoClosed', sfx: '' },
+    node01: { ip: '10.0.0.11', anon: 'w1AnonOff', authz: 'w1WebhookAuthz', ro: 'w1RoPortClosed', restarted: 'w1KubeletRestarted', runAnon: 'w1RunAnonOff', runAuthz: 'w1RunWebhookAuthz', runRo: 'w1RunRoClosed', sfx: '-node01' } };
+  function chGet(s, key) { return /^w1/.test(key) ? s[key] !== false : !!s[key]; }
+  /** The kubelet config view of one host (what is in its config.yaml on disk). */
+  function chView(s, host) { var K = CH_HOSTS[host]; return { anonOff: chGet(s, K.anon), webhookAuthz: chGet(s, K.authz), roPortClosed: chGet(s, K.ro), restarted: s[K.restarted] !== false }; }
+  /** Running-kubelet facts of one host from the rules engine (controlplane = the original fields, node01 = metrics.w1). */
+  function chRun(m, host) { return host === 'node01' ? m.w1 : { running: m.running, kubeletCode: m.kubeletCode, roOpen: m.roOpen, stale: m.stale, bench: m.bench }; }
+  function chTargetHost(h, cur) { return /^(localhost|127\.0\.0\.1)$/.test(h) ? cur : (/^(10\.0\.0\.11|node01)$/.test(h) ? 'node01' : 'controlplane'); }
   var chPack = {
     sim: 'cks-cluster-hardening',
     prompt: 'root@controlplane:~#',
     note: CH_NOTE,
     examples: ['kube-bench run --targets node', 'kube-bench run --targets master', 'kube-bench run --targets node --check 4.2.1,4.2.2', 'curl -sk https://localhost:10250/pods', 'curl -sk -H "Authorization: Bearer $TOKEN" https://localhost:10250/pods',
       'curl -s http://localhost:10255/pods', 'cat -n ' + CH_KCFG, "sed -i '5s/true/false/' " + CH_KCFG, "sed -i 's/mode: AlwaysAllow/mode: Webhook/' " + CH_KCFG, "sed -i 's/readOnlyPort: 10255/readOnlyPort: 0/' " + CH_KCFG,
-      'systemctl restart kubelet', 'stat -c %a ' + CH_ETCD, 'chmod 700 ' + CH_ETCD, 'grep profiling ' + CH_APIM, "sed -i 's/--profiling=true/--profiling=false/' " + CH_APIM],
+      'systemctl restart kubelet', 'stat -c %a ' + CH_ETCD, 'chmod 700 ' + CH_ETCD, 'grep profiling ' + CH_APIM, "sed -i 's/--profiling=true/--profiling=false/' " + CH_APIM,
+      'ssh node01', 'ssh node01 kube-bench run --targets node', 'curl -sk https://node01:10250/pods', 'curl -s http://node01:10255/pods', "ssh node01 sed -i '5s/true/false/' " + CH_KCFG, 'ssh node01 systemctl restart kubelet', 'hostname', 'exit'],
     run: function (u, s, d, ctx) {
       var t = u.t, m = d.metrics;
+      /* v1.13.0: hosts. `ssh node01` opens a session (prompt follows), `ssh node01 CMD` runs one command there, `exit` returns. */
+      if (u.host && !/^(node01|controlplane)$/.test(u.host)) return res(['ssh: Could not resolve hostname ' + u.host + ': Name or service not known (this lab has controlplane, node01)'], 255);
+      if (u.host && !t.length) {
+        ctx.vars.host = u.host === 'controlplane' ? null : u.host;
+        return res(['(sim) logged in to ' + u.host + (u.host === 'node01' ? ' — `exit` returns to controlplane' : '')], 0, null, ['ssh-' + u.host], { prompt: 'root@' + u.host + ':~#' });
+      }
+      if ((t[0] === 'exit' || t[0] === 'logout') && !u.host) {
+        if (!ctx.vars.host) return res(['sim: already on controlplane (the lab keeps this terminal open)'], 0);
+        var was = ctx.vars.host; ctx.vars.host = null;
+        return res(['logout', 'Connection to ' + was + ' closed.'], 0, null, ['ssh-exit'], { prompt: 'root@controlplane:~#' });
+      }
+      var host = u.host || ctx.vars.host || 'controlplane', HK = CH_HOSTS[host], sfx = HK.sfx, onW1 = host === 'node01';
+      var kv = chView(s, host), kr = chRun(m, host);
+      if (t[0] === 'hostname') return res([host], 0, null, ['hostname']);
       var f = faultArgs(t);
       if (f) {
-        var key = { anon: 'anonOff', authz: 'webhookAuthz', roport: 'roPortClosed', restart: 'kubeletRestarted', etcd: 'etcdLocked', profiling: 'profilingOff' }[f[0]];
-        if (!key || (f[1] !== 'break' && f[1] !== 'fix')) return res(['usage: fault anon|authz|roport|restart|etcd|profiling break|fix   (lab-only fault injection)'], 2);
-        var fs = {}; fs[key] = f[1] === 'fix';
+        var w1f = f[0] === 'node01';
+        var ff = w1f ? f.slice(1) : f;
+        var key = w1f ? { anon: 'w1AnonOff', authz: 'w1WebhookAuthz', roport: 'w1RoPortClosed', restart: 'w1KubeletRestarted' }[ff[0]]
+          : { anon: 'anonOff', authz: 'webhookAuthz', roport: 'roPortClosed', restart: 'kubeletRestarted', etcd: 'etcdLocked', profiling: 'profilingOff' }[ff[0]];
+        if (!key || (ff[1] !== 'break' && ff[1] !== 'fix')) return res(['usage: fault [node01] anon|authz|roport|restart break|fix · fault etcd|profiling break|fix   (lab-only fault injection)'], 2);
+        var fs = {}; fs[key] = ff[1] === 'fix';
         return res(['[lab fault injection] ' + f.join(' ') + ' (simulated)'], 0, fs, ['fault']);
       }
       var head = t[0] || '', file = String(t[t.length - 1] || '').replace(/^(\.\/|~\/)/, '');
+      /* node01 is a worker: no API server manifest, no etcd data directory. */
+      if (onW1 && (file === CH_APIM || file === CH_ETCD) && /^(cat|less|head|tail|grep|sed|stat|ls|chmod)$/.test(head)) {
+        var nf = { cat: 'cat: ', less: 'less: ', head: 'head: cannot open \'', tail: 'tail: cannot open \'', grep: 'grep: ', sed: 'sed: can\'t read ', stat: 'stat: cannot statx \'', ls: 'ls: cannot access \'', chmod: 'chmod: cannot access \'' }[head];
+        return res([nf + file + (/'$/.test(nf) ? '\'' : '') + ': No such file or directory', '(sim) node01 is a worker: the API server manifest and /var/lib/etcd live on controlplane'], head === 'grep' || head === 'sed' ? 2 : 1, null, ['wrong-host']);
+      }
       if (head === 'kube-bench') {
         var tg = flag(t, ['--targets']), ck = flag(t, ['--check', '-c']);
-        var targets = typeof tg === 'string' ? tg.split(',') : ['master', 'node'];
+        var targets = typeof tg === 'string' ? tg.split(',') : (onW1 ? ['node'] : ['master', 'node']);
         if (targets.some(function (x) { return x !== 'master' && x !== 'node'; })) return res(['sim: this drill models kube-bench run --targets master|node [--check IDS]'], 2);
+        if (onW1 && targets.indexOf('master') >= 0) return res(['(sim) node01 is a worker: no kube-apiserver, etcd or manifests here — run the master checks on controlplane (kube-bench audits only the node it runs on)'], 1, null, ['wrong-host']);
         var only = typeof ck === 'string' ? ck.split(',') : null;
-        var rows = m.bench.filter(function (b) { return targets.indexOf(b.target) >= 0 && (!only || only.indexOf(b.id) >= 0); });
+        var rows = kr.bench.filter(function (b) { return targets.indexOf(b.target) >= 0 && (!only || only.indexOf(b.id) >= 0); });
         if (!rows.length) return res(['(sim) no modelled check matches — modelled: 1.1.11, 1.2.15 (master) · 4.2.1, 4.2.2, 4.2.4 (node)'], 2);
         var out = [], ev = [];
         targets.forEach(function (tgt) {
@@ -3842,40 +3884,44 @@
           var bad = r.filter(function (b) { return b.result !== 'PASS'; });
           if (bad.length) { out.push('', '== Remediations ' + tgt + ' =='); bad.forEach(function (b) { out.push(b.id + ' ' + CH_REMED[b.id]); }); }
           out.push('', '== Summary ' + tgt + ' ==', r.filter(function (b) { return b.result === 'PASS'; }).length + ' checks PASS', r.filter(function (b) { return b.result === 'FAIL'; }).length + ' checks FAIL', r.filter(function (b) { return b.result === 'WARN'; }).length + ' checks WARN', '0 checks INFO', '');
-          ev.push('bench-' + tgt);
-          if (!bad.length) ev.push('bench-pass-' + tgt);
-          if (r.some(function (b) { return b.id === '4.2.4' && b.result === 'WARN'; })) ev.push('bench-warn-424');
+          ev.push('bench-' + tgt + sfx);
+          if (!bad.length) ev.push('bench-pass-' + tgt + sfx);
+          else ev.push('bench-fail-' + tgt + sfx);
+          if (r.some(function (b) { return b.id === '4.2.4' && b.result === 'WARN'; })) ev.push('bench-warn-424' + sfx);
         });
-        out.push('(sim) representative kube-bench output (cis-1.12 ids), trimmed to the modelled checks — kube-bench reads config files and process flags, not the running behaviour');
+        out.push('(sim) representative kube-bench output (cis-1.12 ids), trimmed to the modelled checks — kube-bench reads config files and process flags on ' + host + ' only, not the running behaviour');
         return res(out, 0, null, ev);
       }
       if (head === 'curl') {
         var url = t.filter(function (a) { return /^https?:\/\//.test(a); })[0] || '';
-        var um = /^(https?):\/\/(localhost|127\.0\.0\.1|10\.0\.0\.10|controlplane):(10250|10255)\/(pods|spec)\/?$/.exec(url);
-        if (!um) return res(['sim: this drill models curl -sk https://localhost:10250/pods [-H "Authorization: Bearer $TOKEN"] and curl -s http://localhost:10255/pods'], 2);
+        var um = /^(https?):\/\/(localhost|127\.0\.0\.1|10\.0\.0\.1[01]|controlplane|node01):(10250|10255)\/(pods|spec)\/?$/.exec(url);
+        if (!um) return res(['sim: this drill models curl -sk https://localhost|node01:10250/pods [-H "Authorization: Bearer $TOKEN"] and curl -s http://localhost|node01:10255/pods'], 2);
         var tok = t.some(function (a) { return /^Authorization:\s*Bearer\s+\S+/.test(a); });
-        var pl = '{"kind":"PodList","apiVersion":"v1","metadata":{},"items":[{"metadata":{"name":"kube-apiserver-controlplane","namespace":"kube-system"…},{"metadata":{"name":"payments-api-7d9f8c6b5-k4x2p","namespace":"payments"…}…]}';
+        var th = chTargetHost(um[2], host), tr = chRun(m, th), ts = CH_HOSTS[th].sfx;
+        var pl = th === 'node01'
+          ? '{"kind":"PodList","apiVersion":"v1","metadata":{},"items":[{"metadata":{"name":"kube-proxy-x7k2d","namespace":"kube-system"…},{"metadata":{"name":"payments-api-7d9f8c6b5-r8m4t","namespace":"payments"…}…]}'
+          : '{"kind":"PodList","apiVersion":"v1","metadata":{},"items":[{"metadata":{"name":"kube-apiserver-controlplane","namespace":"kube-system"…},{"metadata":{"name":"payments-api-7d9f8c6b5-k4x2p","namespace":"payments"…}…]}';
         if (um[3] === '10255') {
           if (um[1] !== 'http') return res(['curl: (35) OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to ' + um[2] + ':10255', '(sim) the read-only port speaks plain HTTP'], 35);
-          if (!m.roOpen) return res(['curl: (7) Failed to connect to ' + um[2] + ' port 10255 after 0 ms: Couldn\'t connect to server'], 7, null, ['ro-closed']);
-          return res([pl, '(sim) representative, truncated — plain HTTP, no credentials asked for'], 0, null, ['ro-leak']);
+          if (!tr.roOpen) return res(['curl: (7) Failed to connect to ' + um[2] + ' port 10255 after 0 ms: Couldn\'t connect to server'], 7, null, ['ro-closed' + ts]);
+          return res([pl, '(sim) representative, truncated — plain HTTP, no credentials asked for (' + th + ')'], 0, null, ['ro-leak' + ts]);
         }
         if (um[1] !== 'https') return res(['Client sent an HTTP request to an HTTPS server.'], 0);
-        var code = tok ? (m.running.webhookAuthz ? 403 : 200) : m.kubeletCode;
-        if (code === 401) return res(['Unauthorized'], 0, null, ['kubelet-401']);
-        if (code === 403) return res(['Forbidden (user=' + (tok ? 'system:serviceaccount:default:default' : 'system:anonymous') + ', verb=get, resource=nodes, subresource=proxy)'], 0, null, ['kubelet-403']);
-        return res([pl, '(sim) representative, truncated — the same API serves /exec and /run'], 0, null, ['kubelet-open']);
+        var code = tok ? (tr.running.webhookAuthz ? 403 : 200) : tr.kubeletCode;
+        if (code === 401) return res(['Unauthorized'], 0, null, ['kubelet-401' + ts]);
+        if (code === 403) return res(['Forbidden (user=' + (tok ? 'system:serviceaccount:default:default' : 'system:anonymous') + ', verb=get, resource=nodes, subresource=proxy)'], 0, null, ['kubelet-403' + ts].concat(tok ? ['kubelet-403-token' + ts] : []));
+        return res([pl, '(sim) representative, truncated — the same API serves /exec and /run (' + th + ')'], 0, null, ['kubelet-open' + ts].concat(tok ? ['kubelet-open-token' + ts] : []));
       }
       if (head === 'cat' || head === 'less' || head === 'head' || head === 'tail') {
         var num = t.indexOf('-n') > 0;
-        var body = file === CH_KCFG ? chKcfg(s) : (file === CH_APIM ? chApim(s) : null);
+        var body = file === CH_KCFG ? chKcfg(kv) : (file === CH_APIM ? chApim(s) : null);
         if (!body) return res([head + ': ' + t[t.length - 1] + ': No such file or directory'], 1);
         if (num) body = body.map(function (l, i) { return ('     ' + (i + 1)).slice(-6) + '\t' + l; });
-        return res(body, 0, null, ['cat', file === CH_KCFG ? 'cfg-seen' : 'manifest-seen']);
+        return res(body, 0, null, ['cat', file === CH_KCFG ? 'cfg-seen' + sfx : 'manifest-seen']);
       }
       if (head === 'grep') {
         var pat = t.filter(function (a, i) { return i > 0 && a.charAt(0) !== '-' && i < t.length - 1; })[0] || '';
-        var src = file === CH_KCFG ? chKcfg(s) : (file === CH_APIM ? chApim(s) : null);
+        var src = file === CH_KCFG ? chKcfg(kv) : (file === CH_APIM ? chApim(s) : null);
         if (!src) return res(['sim: this drill models grep PATTERN ' + CH_KCFG + ' | ' + CH_APIM], 2);
         var hit = src.filter(function (l) { return pat && l.indexOf(pat) >= 0; });
         return res(hit, hit.length ? 0 : 1, null, hit.length && /profiling/.test(pat) ? ['profiling-seen'] : ['grep']);
@@ -3886,7 +3932,7 @@
         if (file !== CH_KCFG && file !== CH_APIM) return res(['sim: this drill models sed on ' + CH_KCFG + ' and ' + CH_APIM + ' only'], 2);
         var ed = chSed(expr);
         if (!ed) return res(["sed: -e expression #1, char 1: unknown command: `" + String(expr || '').charAt(0) + "'"], 1);
-        var before = file === CH_KCFG ? chKcfg(s) : chApim(s), after = chApply(before, ed);
+        var before = file === CH_KCFG ? chKcfg(kv) : chApim(s), after = chApply(before, ed);
         var changed = after.map(function (l, i) { return l !== before[i] ? i : -1; }).filter(function (i) { return i >= 0; });
         if (!inPlace) return res(['(sim) without -i sed prints the edited file to stdout — nothing was written'].concat(after), 0);
         if (!changed.length) return res([], 0, null, ['sed-nochange']);
@@ -3898,16 +3944,17 @@
         if (changed.indexOf(7) >= 0) return res(['(sim) refused: that pattern also matched line 8 (webhook: enabled: true) and would turn off token authentication, breaking the API server → kubelet path. Look at cat -n ' + CH_KCFG + ' and address the line, e.g. 5s/true/false/'], 1, null, ['sed-bad-edit']);
         var okLine = { 4: /^    enabled: (true|false)$/, 11: /^  mode: (Webhook|AlwaysAllow)$/, 12: /^readOnlyPort: (0|10255)$/ };
         if (changed.some(function (i) { return !okLine[i] || !okLine[i].test(after[i]); })) return res(['(sim) that edit leaves a value this drill does not model (anonymous.enabled true|false, authorization.mode Webhook|AlwaysAllow, readOnlyPort 0|10255) — the kubelet would refuse to start'], 1, null, ['sed-bad-edit']);
-        var patch = { anonOff: / false$/.test(after[4]), webhookAuthz: /Webhook$/.test(after[11]), roPortClosed: / 0$/.test(after[12]), kubeletRestarted: false };
-        if (s.kubeletRestarted !== false) { patch.runAnonOff = !!s.anonOff; patch.runWebhookAuthz = !!s.webhookAuthz; patch.runRoClosed = !!s.roPortClosed; }
-        return res(['(sim) ' + CH_KCFG + ' updated — the running kubelet read its config at start; it keeps the old settings until it is restarted'], 0, patch, ['cfg-edited']);
+        var patch = {};
+        patch[HK.anon] = / false$/.test(after[4]); patch[HK.authz] = /Webhook$/.test(after[11]); patch[HK.ro] = / 0$/.test(after[12]); patch[HK.restarted] = false;
+        if (kv.restarted) { patch[HK.runAnon] = kv.anonOff; patch[HK.runAuthz] = kv.webhookAuthz; patch[HK.runRo] = kv.roPortClosed; }
+        return res(['(sim) ' + host + ':' + CH_KCFG + ' updated — the running kubelet read its config at start; it keeps the old settings until it is restarted'], 0, patch, ['cfg-edited' + sfx]);
       }
       if (head === 'systemctl') {
         var act = t[1] || '', unit = String(t[2] || '').replace(/\.service$/, '');
         if (act === 'daemon-reload') return res(['(sim) systemd re-read its unit files — the kubelet process was not restarted'], 0, null, ['daemon-reload']);
         if (unit !== 'kubelet') return res(['Failed to ' + act + ' ' + (t[2] || '') + '.service: Unit ' + unit + '.service not found.', unit === 'kube-apiserver' ? '(sim) on kubeadm clusters the API server is a static pod, not a systemd unit — edit its manifest' : ''].filter(Boolean), 5);
-        if (act === 'restart') return res([], 0, { kubeletRestarted: true }, ['kubelet-restart']);
-        if (act === 'status' || act === 'is-active') return res(['● kubelet.service - kubelet: The Kubernetes Node Agent', '     Active: active (running)' + (m.stale ? ' — started before the last ' + CH_KCFG + ' edit' : ''), '(sim) representative'], 0, null, ['kubelet-status']);
+        if (act === 'restart') { var rp = {}; rp[HK.restarted] = true; return res([], 0, rp, ['kubelet-restart' + sfx]); }
+        if (act === 'status' || act === 'is-active') return res(['● kubelet.service - kubelet: The Kubernetes Node Agent (' + host + ')', '     Active: active (running)' + (kr.stale ? ' — started before the last ' + CH_KCFG + ' edit' : ''), '(sim) representative'], 0, null, ['kubelet-status' + sfx]);
         return res(['sim: this drill models systemctl restart|status kubelet and systemctl daemon-reload'], 2);
       }
       if (head === 'stat' || (head === 'ls' && t.indexOf('-ld') > 0)) {
@@ -3958,6 +4005,59 @@
           { label: 'Set readOnlyPort to 0 in config.yaml', state: function (s) { return !!s.roPortClosed; }, hint: "sed -i 's/readOnlyPort: 10255/readOnlyPort: 0/' " + CH_KCFG },
           { label: 'Restart the kubelet', state: function (s) { return s.kubeletRestarted !== false && !!s.roPortClosed; }, hint: 'systemctl restart kubelet' },
           { label: 'Prove it: port 10255 refuses the connection', event: 'ro-closed', hint: 'curl -s http://localhost:10255/pods' }
+        ] },
+      /* v1.13.0 (2026-11-11) — multi-node tasks: the fault is on node01 (or split across both hosts). Every kubelet fix has to
+       * happen on the node that runs that kubelet (ssh node01); kube-bench audits only the node it runs on. Hints use the
+       * one-shot `ssh node01 CMD` form so each is self-contained; an `ssh node01` session works the same. */
+      { id: 'worker-kubelet', title: 'Two nodes, one open kubelet: controlplane PASSes, node01 serves its API to anyone',
+        goal: 'controlplane passes its node checks, but the kubelet on node01 answers anonymous requests. Prove both, fix anonymous auth and the authorization mode in node01\'s own kubelet config, restart node01\'s kubelet, prove node01 now refuses, and re-run the checks on node01.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false, w1AnonOff: false, w1WebhookAuthz: false, w1RoPortClosed: true, w1KubeletRestarted: true },
+        steps: [
+          { label: 'On controlplane, the node checks PASS (they audit only this node)', event: 'bench-pass-node', hint: 'kube-bench run --targets node' },
+          { label: 'From controlplane, prove node01\'s kubelet API answers an anonymous request', event: 'kubelet-open-node01', hint: 'curl -sk https://node01:10250/pods' },
+          { label: 'On node01, run the node checks: [FAIL] 4.2.1 and 4.2.2', event: 'bench-fail-node-node01', hint: 'ssh node01 kube-bench run --targets node' },
+          { label: 'On node01, turn anonymous authentication off (only that line)', state: function (s) { return s.w1AnonOff !== false; }, hint: "ssh node01 sed -i '5s/true/false/' " + CH_KCFG },
+          { label: 'On node01, set authorization.mode to Webhook', state: function (s) { return s.w1WebhookAuthz !== false; }, hint: "ssh node01 sed -i 's/mode: AlwaysAllow/mode: Webhook/' " + CH_KCFG },
+          { label: 'Restart node01\'s kubelet so it reads the new config', state: function (s) { return s.w1KubeletRestarted !== false && s.w1AnonOff !== false && s.w1WebhookAuthz !== false; }, hint: 'ssh node01 systemctl restart kubelet' },
+          { label: 'From controlplane, prove node01 now answers 401 Unauthorized', event: 'kubelet-401-node01', hint: 'curl -sk https://node01:10250/pods' },
+          { label: 'Re-run the two node checks on node01: [PASS]', event: 'bench-pass-node-node01', hint: 'ssh node01 kube-bench run --targets node --check 4.2.1,4.2.2' }
+        ] },
+      { id: 'worker-authz', title: 'Anonymous is off on node01, but AlwaysAllow still lets any ServiceAccount token in',
+        goal: 'node01 already refuses anonymous requests, yet kube-bench there still FAILs. Find which check, prove that a ServiceAccount token gets a PodList from node01, switch node01\'s kubelet to Webhook authorization, restart it, prove the same token now gets 403 Forbidden, and re-run the checks on node01.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false, w1AnonOff: true, w1WebhookAuthz: false, w1RoPortClosed: true, w1KubeletRestarted: true },
+        steps: [
+          { label: 'On node01, run the node checks: [FAIL] 4.2.2 only', event: 'bench-fail-node-node01', hint: 'ssh node01 kube-bench run --targets node' },
+          { label: 'Anonymous is already refused by node01 (401)', event: 'kubelet-401-node01', hint: 'curl -sk https://node01:10250/pods' },
+          { label: 'A ServiceAccount token still gets node01\'s PodList', event: 'kubelet-open-token-node01', hint: 'curl -sk -H "Authorization: Bearer $TOKEN" https://node01:10250/pods' },
+          { label: 'On node01, set authorization.mode to Webhook', state: function (s) { return s.w1WebhookAuthz !== false; }, hint: "ssh node01 sed -i 's/mode: AlwaysAllow/mode: Webhook/' " + CH_KCFG },
+          { label: 'Restart node01\'s kubelet', state: function (s) { return s.w1KubeletRestarted !== false && s.w1WebhookAuthz !== false; }, hint: 'ssh node01 systemctl restart kubelet' },
+          { label: 'The same token now gets 403 Forbidden (SubjectAccessReview)', event: 'kubelet-403-token-node01', hint: 'curl -sk -H "Authorization: Bearer $TOKEN" https://node01:10250/pods' },
+          { label: 'Re-run check 4.2.2 on node01: [PASS]', event: 'bench-pass-node-node01', hint: 'ssh node01 kube-bench run --targets node --check 4.2.2' }
+        ] },
+      { id: 'worker-readonly', title: 'The read-only port is closed on controlplane and open on node01',
+        goal: 'Somebody re-enabled the kubelet read-only port on node01 only. Prove node01 leaks pods over plain HTTP while controlplane does not, see how kube-bench on node01 reports it, set readOnlyPort to 0 in node01\'s kubelet config, restart node01\'s kubelet and prove the port is closed.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false, w1AnonOff: true, w1WebhookAuthz: true, w1RoPortClosed: false, w1KubeletRestarted: true },
+        steps: [
+          { label: 'From controlplane, prove node01 leaks pods on 10255', event: 'ro-leak-node01', hint: 'curl -s http://node01:10255/pods' },
+          { label: 'controlplane\'s own 10255 refuses (it is a per-node setting)', event: 'ro-closed', hint: 'curl -s http://localhost:10255/pods' },
+          { label: 'On node01, kube-bench reports [WARN] 4.2.4 (Manual)', event: 'bench-warn-424-node01', hint: 'ssh node01 kube-bench run --targets node --check 4.2.4' },
+          { label: 'On node01, set readOnlyPort to 0', state: function (s) { return s.w1RoPortClosed !== false; }, hint: "ssh node01 sed -i 's/readOnlyPort: 10255/readOnlyPort: 0/' " + CH_KCFG },
+          { label: 'Restart node01\'s kubelet', state: function (s) { return s.w1KubeletRestarted !== false && s.w1RoPortClosed !== false; }, hint: 'ssh node01 systemctl restart kubelet' },
+          { label: 'Prove node01:10255 now refuses the connection', event: 'ro-closed-node01', hint: 'curl -s http://node01:10255/pods' }
+        ] },
+      { id: 'split-hardening', title: 'One finding per node: API server profiling on controlplane, anonymous kubelet auth on node01',
+        goal: 'kube-bench FAILs on both nodes. On controlplane, the API server still serves profiling; on node01, the kubelet still accepts anonymous requests (Webhook authorization answers 403, so it looks safe). Fix each on the node it belongs to, restart what needs restarting, and prove both with kube-bench on the right node.',
+        setup: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: false, probe: false, probeToken: false, w1AnonOff: false, w1WebhookAuthz: true, w1RoPortClosed: true, w1KubeletRestarted: true },
+        steps: [
+          { label: 'On controlplane, the master checks: [FAIL] 1.2.15', event: 'bench-fail-master', hint: 'kube-bench run --targets master' },
+          { label: 'Set --profiling=false in the API server manifest (controlplane only)', state: function (s) { return !!s.profilingOff; }, hint: "sed -i 's/--profiling=true/--profiling=false/' " + CH_APIM },
+          { label: 'Re-run 1.2.15 on controlplane: [PASS]', event: 'bench-pass-master', hint: 'kube-bench run --targets master --check 1.2.15' },
+          { label: 'node01 answers an anonymous request with 403, not 401 (anonymous is still on)', event: 'kubelet-403-node01', hint: 'curl -sk https://node01:10250/pods' },
+          { label: 'On node01, the node checks: [FAIL] 4.2.1', event: 'bench-fail-node-node01', hint: 'ssh node01 kube-bench run --targets node --check 4.2.1' },
+          { label: 'On node01, turn anonymous authentication off', state: function (s) { return s.w1AnonOff !== false; }, hint: "ssh node01 sed -i '5s/true/false/' " + CH_KCFG },
+          { label: 'Restart node01\'s kubelet', state: function (s) { return s.w1KubeletRestarted !== false && s.w1AnonOff !== false; }, hint: 'ssh node01 systemctl restart kubelet' },
+          { label: 'node01 now answers 401 Unauthorized', event: 'kubelet-401-node01', hint: 'curl -sk https://node01:10250/pods' },
+          { label: 'Re-run 4.2.1 on node01: [PASS]', event: 'bench-pass-node-node01', hint: 'ssh node01 kube-bench run --targets node --check 4.2.1' }
         ] }
     ]
   };
@@ -4393,7 +4493,8 @@
   /** Prompt for the terminal after the last command (node packs change host with `ssh NODE` / `exit`). */
   function promptFor(simId, ctx) {
     var p = PACKS[simId]; if (!p) return '';
-    return ctx && ctx.vars && ctx.vars.host ? 'student@' + ctx.vars.host + ':~$' : p.prompt;
+    if (!(ctx && ctx.vars && ctx.vars.host)) return p.prompt;
+    return /^root@/.test(p.prompt) ? 'root@' + ctx.vars.host + ':~#' : 'student@' + ctx.vars.host + ':~$';
   }
 
   var PACKS = {};
@@ -4876,6 +4977,45 @@
         ['In the kubelet config, the read-only port line should say 0.', '^(kubelet-config|port-10255)$'],
         ['Config edits need the kubelet to start again.', '^(kubelet|sim-stale-config)$'],
         ['Repeat the plain-HTTP request against port 10255.', '^(port-10255|edge-probe-ro)$']
+      ],
+      /* v1.13.0 (2026-11-11) — multi-node (node01 bay: w1-* nodes) */
+      'worker-kubelet': [
+        ['Stay on controlplane and run the worker-node section of the benchmark here first. What does a clean report on this host prove about other nodes?', '^(kube-bench|bench-report|sim-bench-pass)$'],
+        ['Point the same unauthenticated HTTPS request at the worker by name instead of localhost.', '^(w1-port-10250|sim-w1-kubelet-open|edge-probe-w1)$'],
+        ['The benchmark audits only the host it runs on: run it on the worker through a remote shell.', '^(w1-kube-bench|sim-w1-bench-fail|edge-ssh-w1)$'],
+        ['The worker has its own copy of the kubelet config. Edit that one, line-addressed, on the worker.', '^(w1-kubelet-config|w1-authn-gate)$'],
+        ['Same file on the worker: the authorization mode should ask the API server.', '^(w1-kubelet-config|w1-authz-gate)$'],
+        ['The worker\'s kubelet still runs the old config. Restart that service on that host.', '^(w1-kubelet|sim-w1-stale-config|edge-ssh-w1)$'],
+        ['Repeat the unauthenticated request against the worker\'s HTTPS kubelet port.', '^(w1-port-10250|sim-w1-kubelet-denied)$'],
+        ['Back on the worker, re-run only the two checks you fixed.', '^(w1-kube-bench|edge-bench-w1)$']
+      ],
+      'worker-authz': [
+        ['Run the node checks where the problem is, the worker, and count the FAILs.', '^(w1-kube-bench|sim-w1-bench-fail|edge-ssh-w1)$'],
+        ['Send the worker\'s HTTPS kubelet port a request with no credentials at all.', '^(w1-port-10250|w1-authn-gate|sim-w1-kubelet-denied)$'],
+        ['Now send the same request with the pod\'s ServiceAccount bearer token in a header.', '^(w1-authz-gate|sim-w1-kubelet-open|edge-probe-w1)$'],
+        ['In the worker\'s kubelet config, switch the authorization mode to the one that asks the API server.', '^(w1-kubelet-config|w1-authz-gate)$'],
+        ['The worker\'s kubelet reads its config only at start.', '^(w1-kubelet|sim-w1-stale-config)$'],
+        ['Repeat the token request and read who the kubelet says you are.', '^(w1-authz-gate|sim-w1-kubelet-denied)$'],
+        ['Back on the worker, re-run only the authorization check.', '^(w1-kube-bench|edge-bench-w1)$']
+      ],
+      'worker-readonly': [
+        ['Plain HTTP to the worker\'s legacy kubelet port, by name, from here.', '^(w1-port-10255|sim-w1-ro-port-open|edge-probe-w1)$'],
+        ['Same plain-HTTP request against this host\'s own legacy port.', '^(port-10255)$'],
+        ['On the worker, run only check 4.2.4 and read its status word.', '^(w1-kube-bench|sim-w1-bench-fail)$'],
+        ['The worker\'s kubelet config: the read-only port line should say 0.', '^(w1-kubelet-config|w1-port-10255)$'],
+        ['Config edits on the worker need the worker\'s kubelet to start again.', '^(w1-kubelet|sim-w1-stale-config)$'],
+        ['Repeat the plain-HTTP request against the worker\'s port 10255.', '^(w1-port-10255|edge-probe-w1)$']
+      ],
+      'split-hardening': [
+        ['Start with the control-plane section of the benchmark on this host.', '^(kube-bench|bench-report|sim-bench-fail)$'],
+        ['The API server is a static pod here: edit its manifest in place.', '^(apiserver-manifest|sim-profiling-on|kube-apiserver)$'],
+        ['Re-run only the profiling check on this host.', '^(bench-report|kube-bench)$'],
+        ['Probe the worker\'s HTTPS kubelet port with no credentials and read the status word: 401 and 403 mean different things.', '^(w1-port-10250|w1-authn-gate|sim-w1-kubelet-denied)$'],
+        ['On the worker, run only the anonymous-auth check.', '^(w1-kube-bench|sim-w1-bench-fail|edge-ssh-w1)$'],
+        ['On the worker, change only the anonymous enabled line of its kubelet config.', '^(w1-kubelet-config|w1-authn-gate)$'],
+        ['Restart the worker\'s kubelet service on the worker.', '^(w1-kubelet|sim-w1-stale-config)$'],
+        ['Repeat the unauthenticated request against the worker.', '^(w1-port-10250|sim-w1-kubelet-denied)$'],
+        ['On the worker, re-run only the anonymous-auth check.', '^(w1-kube-bench|edge-bench-w1)$']
       ]
     },
     /* v1.11.0 (2026-11-05) — CKS supply chain: static analysis (kubesec + KubeLinter) on cks-static-analysis.glb */
@@ -5236,7 +5376,7 @@
   }
 
   return {
-    VERSION: '1.12.0',
+    VERSION: '1.13.0',
     honesty: HONESTY,
     tokenize: tokenize,
     flag: flag,
